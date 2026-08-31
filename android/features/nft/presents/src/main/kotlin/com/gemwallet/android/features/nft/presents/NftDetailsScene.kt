@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.nft.presents
 
+import com.gemwallet.android.ui.LocalAddressService
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,8 +28,8 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.ext.supportsNftTransfer
 import com.gemwallet.android.ext.AddressFormatter
-import com.gemwallet.android.ext.toChainType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.NftImage
 import com.gemwallet.android.ui.components.image.toImageSource
@@ -53,7 +54,6 @@ import com.gemwallet.android.domains.nft.NftAssetDetailsData
 import com.gemwallet.android.features.nft.viewmodels.NftDetailsViewModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
-import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.NFTAttribute
 import kotlinx.coroutines.launch
@@ -72,10 +72,7 @@ fun NFTDetailsScene(
     val refresh = stringResource(R.string.common_refresh)
     val refreshFailed = stringResource(R.string.errors_error_occurred)
 
-    if (assetData == null) {
-        return
-    }
-    val model = assetData!!
+    val model = assetData ?: return
     var isMenuExpanded by remember { mutableStateOf(false) }
     Scene(
         titleContent = {
@@ -86,7 +83,7 @@ fun NFTDetailsScene(
             )
         },
         actions = {
-            if (model.asset.chain.toChainType() in enabledChainTypes) {
+            if (model.asset.chain.supportsNftTransfer()) {
                 IconButton(onClick = { onRecipient(AssetId(model.asset.chain), model.asset.id) }) {
                     Icon(AppIcons.ArrowUpward, contentDescription = "Send nft")
                 }
@@ -137,8 +134,6 @@ fun NFTDetailsScene(
     }
 }
 
-private val enabledChainTypes: Set<ChainType> = setOf(ChainType.Ethereum, ChainType.Ton, ChainType.Solana)
-
 private fun LazyListScope.generalInfo(model: NftAssetDetailsData) {
     item {
         PropertyItem(R.string.nft_collection, model.collection.name, listPosition = ListPosition.First)
@@ -146,7 +141,7 @@ private fun LazyListScope.generalInfo(model: NftAssetDetailsData) {
         model.asset.contractAddress?.let {
             AddressPropertyItem(
                 title = R.string.asset_contract,
-                displayText = AddressFormatter(it, chain = model.collection.chain).value(),
+                displayText = AddressFormatter(LocalAddressService.current, it, chain = model.collection.chain).value(),
                 copyValue = it,
                 explorerLink = model.contractExplorerLink,
                 listPosition = ListPosition.Middle,
@@ -154,7 +149,7 @@ private fun LazyListScope.generalInfo(model: NftAssetDetailsData) {
         }
         val tokenId = model.asset.tokenId
         val tokenIdDisplayText = if (tokenId.length > 16) {
-            AddressFormatter(tokenId, chain = model.collection.chain).value()
+            AddressFormatter(LocalAddressService.current, tokenId, chain = model.collection.chain).value()
         } else {
             "#$tokenId"
         }

@@ -1,22 +1,18 @@
 package com.gemwallet.android.data.coordinators.wallet_connect
 
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
 import com.gemwallet.android.serializer.toJson
-import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.ApplicationMetadataSource
 import com.wallet.core.primitives.WalletConnectionSessionProposal
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemSessionProposal
+import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
 
@@ -31,24 +27,16 @@ class PrepareSessionProposalImplTest {
         icon = "https://app.example/icon.png",
         source = ApplicationMetadataSource.WalletConnect,
     )
-    private val sessionRepository = mockk<SessionRepository> {
-        every { session() } returns MutableStateFlow(mockSession(wallet = currentWallet))
-    }
-    private val walletsRepository = mockk<WalletsRepository> {
-        every { getAll() } returns flowOf(wallets)
-    }
     private val walletConnectService = mockk<GemWalletConnectServiceInterface> {
         every { applicationMetadata(metadata.name, metadata.description, metadata.url, listOf(metadata.icon)) } returns metadata.toJson()
     }
-    private val subject = PrepareSessionProposalImpl(sessionRepository, walletsRepository, walletConnectService)
+    private val subject = PrepareSessionProposalImpl(walletConnectService)
 
     @Test
-    fun prepareSessionProposal_passesWalletsAndCurrentWalletToCore() = runTest {
+    fun prepareSessionProposal_mapsCoreProposal() = runTest {
         val proposal = WalletConnectionSessionProposal(defaultWallet = currentWallet, wallets = wallets, metadata = metadata)
         every {
             walletConnectService.prepareSessionProposal(
-                wallets = wallets.map { it.toJson() },
-                currentWalletId = currentWallet.id.id,
                 requiredChainIds = listOf("eip155:1"),
                 optionalChainIds = emptyList(),
                 metadata = metadata.toJson(),
@@ -65,7 +53,7 @@ class PrepareSessionProposalImplTest {
 
     @Test
     fun prepareSessionProposal_failsWhenCoreRejects() = runTest {
-        every { walletConnectService.prepareSessionProposal(any(), any(), any(), any(), any(), any(), any()) } throws IllegalStateException("wallets unsupported")
+        every { walletConnectService.prepareSessionProposal(any(), any(), any(), any(), any()) } throws GemWalletConnectException.UnsupportedWallets()
 
         assertTrue(runCatching { prepare(requiredChainIds = listOf("eip155:1", "cosmos:unknown-9")) }.isFailure)
     }

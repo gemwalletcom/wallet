@@ -39,8 +39,8 @@ public struct AssetPriceAlertsScene: View {
         .bindQuery(model.query)
         .bindQuery(model.priceQuery)
         .listSectionSpacing(.compact)
-        .refreshable { await model.fetch() }
-        .task { await model.fetch() }
+        .refreshable { await model.load() }
+        .task { await model.load() }
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -56,6 +56,7 @@ public struct AssetPriceAlertsScene: View {
                     walletId: model.walletId,
                     asset: model.asset,
                     priceAlertService: model.priceAlertService,
+                    preferencesService: model.preferencesService,
                 ) { model.onSetPriceAlertComplete(message: $0) },
             )
         }

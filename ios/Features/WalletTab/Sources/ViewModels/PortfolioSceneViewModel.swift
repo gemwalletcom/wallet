@@ -3,6 +3,9 @@
 import Components
 import Formatters
 import Foundation
+import enum Gemstone.GemPortfolioDataInput
+import protocol Gemstone.GemPortfolioServiceProtocol
+import GemstonePrimitives
 import Localization
 import Preferences
 import Primitives
@@ -13,7 +16,7 @@ import Style
 @MainActor
 public final class PortfolioSceneViewModel: ChartListViewable {
     private let wallet: Wallet
-    private let service: PortfolioDataService
+    private let portfolioService: any GemPortfolioServiceProtocol
     private let preferences: ObservablePreferences
 
     private let currencyFormatter: CurrencyFormatter
@@ -35,16 +38,16 @@ public final class PortfolioSceneViewModel: ChartListViewable {
 
     public init(
         wallet: Wallet,
-        service: PortfolioDataService,
+        portfolioService: any GemPortfolioServiceProtocol,
         preferences: ObservablePreferences,
         defaultType: PortfolioType = .wallet,
         perpetualFormatter: CurrencyFormatter = .usd,
     ) {
         self.wallet = wallet
-        self.service = service
+        self.portfolioService = portfolioService
         self.preferences = preferences
         self.perpetualFormatter = perpetualFormatter
-        let currencyCode = preferences.preferences.currency
+        let currencyCode = preferences.currency
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
         priceFormatter = CurrencyFormatter(currencyCode: currencyCode)
         state = PortfolioState(selectedType: defaultType)
@@ -87,10 +90,10 @@ public final class PortfolioSceneViewModel: ChartListViewable {
 // MARK: - Business Logic
 
 extension PortfolioSceneViewModel {
-    public func fetch() async {
+    public func load() async {
         selectedState = .loading
         do {
-            let data = try await service.getPortfoliData(input: getDataInput())
+            let data = try await PortfolioData(portfolioService.portfolioData(input: getDataInput()))
             if data.availablePeriods.isNotEmpty, !data.availablePeriods.contains(selectedPeriod) {
                 selectedPeriod = data.availablePeriods.first ?? selectedPeriod
             }
@@ -102,7 +105,7 @@ extension PortfolioSceneViewModel {
 
     func onTypeChanged(_: PortfolioType, _: PortfolioType) {
         guard selectedState.value == nil else { return }
-        Task { await fetch() }
+        Task { await load() }
     }
 
     func typeTitle(for type: PortfolioType) -> String {
@@ -145,15 +148,15 @@ extension PortfolioSceneViewModel {
 // MARK: - Private
 
 extension PortfolioSceneViewModel {
-    private func getDataInput() throws -> PortfolioDataInput {
+    private func getDataInput() throws -> GemPortfolioDataInput {
         switch state.selectedType {
         case .wallet:
-            return .wallet(walletId: wallet.id, period: selectedPeriod, currencyCode: currencyCode)
+            return try .wallet(walletId: wallet.id.id, period: selectedPeriod.json(), currency: Currency(id: currencyCode).json())
         case .perpetuals:
             guard let address = wallet.hyperliquidAccount?.address else {
                 throw AnyError("perpetual account not available")
             }
-            return .perpetuals(period: selectedPeriod, address: address)
+            return try .perpetuals(chain: Chain.hyperCore.rawValue, address: address, period: selectedPeriod.json())
         }
     }
 
@@ -186,7 +189,7 @@ extension PortfolioSceneViewModel {
     }
 
     private var currencyCode: String {
-        preferences.preferences.currency
+        preferences.currency
     }
 
     private var chartFormatter: CurrencyFormatter {

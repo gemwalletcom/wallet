@@ -15,7 +15,7 @@ public class LockSceneViewModel {
 
     private let service: any BiometryAuthenticatable
 
-    var lastUnlockTime: Date = .init(timeIntervalSince1970: 0)
+    var backgroundedAt: ContinuousClock.Instant?
     var state: LockSceneState
 
     private var showPlaceholderPreview: Bool = false
@@ -56,7 +56,8 @@ public class LockSceneViewModel {
     }
 
     var shouldLock: Bool {
-        Date() > lastUnlockTime && isAutoLockEnabled
+        guard let backgroundedAt else { return false }
+        return service.shouldRelock(elapsedMilliseconds: (ContinuousClock.now - backgroundedAt).milliseconds)
     }
 
     var shouldShowLockScreen: Bool {
@@ -81,7 +82,7 @@ public class LockSceneViewModel {
         if isPrivacyLockEnabled {
             return state != .unlocked || showPlaceholderPreview
         } else {
-            return state == .lockedCanceled || shouldLock
+            return state == .locked || state == .lockedCanceled || shouldLock
         }
     }
 }
@@ -96,7 +97,7 @@ extension LockSceneViewModel {
                 state = .unlocking(attempt.invalidated())
             }
             if state == .unlocked, !shouldLock {
-                lastUnlockTime = Date().addingTimeInterval(TimeInterval(lockPeriod.value))
+                backgroundedAt = ContinuousClock.now
             }
         case .active:
             showPlaceholderPreview = false
@@ -139,7 +140,7 @@ extension LockSceneViewModel {
 
     func resetLockState() {
         showPlaceholderPreview = false
-        lastUnlockTime = .distantFuture
+        backgroundedAt = nil
         state = .unlocked
     }
 

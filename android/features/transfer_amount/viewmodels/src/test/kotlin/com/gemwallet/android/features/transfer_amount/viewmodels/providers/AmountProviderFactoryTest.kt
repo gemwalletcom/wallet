@@ -1,16 +1,16 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
-import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalance
-import com.gemwallet.android.application.stake.coordinators.GetDelegation
-import com.gemwallet.android.application.stake.coordinators.GetDelegations
-import com.gemwallet.android.application.stake.coordinators.GetRecommendedValidator
-import com.gemwallet.android.application.stake.coordinators.GetStakeValidator
-import com.gemwallet.android.data.repositories.config.UserConfig
+import uniffi.gemstone.GemRecipient
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.perpetual.cases.GetPerpetual
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
+import com.gemwallet.android.application.stake.cases.GetDelegation
+import com.gemwallet.android.application.stake.cases.GetDelegations
+import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
+import com.gemwallet.android.application.stake.cases.GetStakeValidator
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockPerpetualTransferData
 import com.wallet.core.primitives.PerpetualId
@@ -24,6 +24,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertTrue
 import org.junit.Test
+
+import uniffi.gemstone.GemAmountService
 
 class AmountProviderFactoryTest {
 
@@ -51,13 +53,14 @@ class AmountProviderFactoryTest {
         userConfig = mockk<UserConfig>(relaxed = true) {
             every { perpetualLeverage() } returns flowOf(5)
         },
+        amountService = GemAmountService(),
     )
     private val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
 
     @Test
     fun `Transfer params produce TransferProvider`() {
         val provider = factory.create(
-            AmountParams.Transfer(asset.id, DestinationAddress("to", null), null),
+            AmountParams.Transfer(asset.id, GemRecipient("to", null), null),
             scope,
         )
         assertTrue(provider is AmountTransferProvider)

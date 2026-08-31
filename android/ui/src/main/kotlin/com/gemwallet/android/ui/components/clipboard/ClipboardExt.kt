@@ -7,11 +7,11 @@ import android.content.Context
 import android.os.Build
 import android.os.PersistableBundle
 import android.widget.Toast
-import androidx.compose.ui.platform.NativeClipboard
+import com.gemwallet.android.ui.R
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-fun NativeClipboard.setPlainText(context: Context, data: String, isSensitive: Boolean = false) {
+fun ClipboardManager.setPlainText(context: Context, data: String, isSensitive: Boolean = false) {
     val clip = ClipData.newPlainText("", data).apply {
         if (isSensitive) {
             description.extras = PersistableBundle().apply {
@@ -26,19 +26,20 @@ fun NativeClipboard.setPlainText(context: Context, data: String, isSensitive: Bo
     setPrimaryClip(clip)
 
     Executors.newSingleThreadScheduledExecutor().schedule({
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.clearPrimaryClip()
+        context.clipboardManager().clearPrimaryClip()
     }, 1, TimeUnit.MINUTES)
 
     if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
-        Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.common_copied_to_clipboard), Toast.LENGTH_SHORT).show()
     }
 }
 
-fun NativeClipboard.getPlainText(): String? {
+fun ClipboardManager.getPlainText(): String? {
     return primaryClip?.getItemAt(0)?.text?.toString()
 }
 
-fun NativeClipboard.clear() {
+fun ClipboardManager.clear() {
     clearPrimaryClip()
 }
+
+fun Context.clipboardManager(): ClipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager

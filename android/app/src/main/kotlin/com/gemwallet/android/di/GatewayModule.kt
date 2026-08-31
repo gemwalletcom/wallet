@@ -4,15 +4,11 @@ import android.content.Context
 import com.gemwallet.android.Constants
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.password.TinkGemPreferences
-import com.gemwallet.android.data.repositories.gemstone.GemstonePreferencesStore
-import com.gemwallet.android.cases.device.SyncDevice
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePreferencesStore
 import com.gemwallet.android.services.DeviceSyncPreflight
-import com.gemwallet.android.application.device.coordinators.GetDeviceId
 import com.gemwallet.android.math.fromHex
 import kotlinx.coroutines.runBlocking
-import com.gemwallet.android.data.services.gemapi.NativeProvider
-import com.gemwallet.android.data.services.gemapi.NativeProviderConfig
-import com.gemwallet.android.ui.R as UiR
+import com.gemwallet.android.data.services.nativeprovider.NativeProvider
 import dagger.Lazy
 import dagger.Module
 import dagger.Provides
@@ -27,12 +23,13 @@ import uniffi.gemstone.GemConfigService
 import uniffi.gemstone.GemAuthService
 import uniffi.gemstone.GemBalanceService
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.data.repositories.gemstone.GemstoneKeystorePassword
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import uniffi.gemstone.GemKeystore
 import uniffi.gemstone.GemDeviceApiClient as GemstoneDeviceApiClient
 import uniffi.gemstone.GemFiatService
+import uniffi.gemstone.GemFiatServiceInterface
 import uniffi.gemstone.GemFiatStore
-import com.gemwallet.android.data.repositories.gemstone.GemstonePerpetualStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import uniffi.gemstone.GemAssetStore
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemPriceService
@@ -40,14 +37,14 @@ import uniffi.gemstone.GemSearchStore
 import uniffi.gemstone.GemSearchService
 import uniffi.gemstone.GemBannerService
 import uniffi.gemstone.GemAppStartService
+import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPortfolioService
+import uniffi.gemstone.GemPortfolioStore
 import uniffi.gemstone.GemRewardsService
 import uniffi.gemstone.GemSupportService
 import uniffi.gemstone.GemSupportStore
 import uniffi.gemstone.GemWalletConfigurationService
 import uniffi.gemstone.GemBannerStore
-import com.gemwallet.android.data.repositories.gemstone.GemstonePortfolioStore
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
 import javax.inject.Named
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemApiClient as GemstoneApiClient
@@ -55,8 +52,10 @@ import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemStaticApiClient
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPreferencesStore
-import uniffi.gemstone.PaymentService
-import uniffi.gemstone.PaymentServiceInterface
+import uniffi.gemstone.GemSecureStore
+import uniffi.gemstone.GemPaymentLinkService
+import uniffi.gemstone.GemPaymentLinkServiceInterface
+import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemServiceStatus
 import uniffi.gemstone.serviceStatusTimeoutSeconds
 import uniffi.gemstone.TransactionSimulationService
@@ -65,6 +64,8 @@ import javax.inject.Singleton
 import uniffi.gemstone.GemFileStore
 import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemWalletService
+import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemDeviceKeyService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -72,7 +73,7 @@ object GatewayModule {
 
     @Singleton
     @Provides
-    fun provideGemPreferencesStore(@ApplicationContext context: Context): GemPreferencesStore = TinkGemPreferences(context)
+    fun provideGemSecureStore(@ApplicationContext context: Context): GemSecureStore = TinkGemPreferences(context)
 
 
     @Singleton
@@ -80,14 +81,10 @@ object GatewayModule {
     fun provideAlienProvider(
         getNodeUrlCase: GetNodeUrlCase,
         okHttpClient: OkHttpClient,
-        @ApplicationContext context: Context,
     ): AlienProvider {
         return NativeProvider(
             getNodeUrlCase = getNodeUrlCase,
             httpClient = okHttpClient,
-            config = NativeProviderConfig(
-                networkOfflineMessage = context.getString(UiR.string.errors_network_offline),
-            ),
         )
     }
 
@@ -95,7 +92,7 @@ object GatewayModule {
     @Singleton
     fun provideGateway(
         alienProvider: AlienProvider,
-        securePreferences: GemPreferencesStore,
+        securePreferences: GemSecureStore,
         @ApplicationContext context: Context,
     ): GemGateway {
         return GemGateway(
@@ -118,24 +115,24 @@ object GatewayModule {
     @Named("registration")
     fun provideDeviceRegistrationApiClient(
         alienProvider: AlienProvider,
-        getDeviceId: GetDeviceId,
+        deviceKeyService: GemDeviceKeyService,
     ): GemstoneDeviceApiClient = GemstoneDeviceApiClient(
         alienProvider,
         Constants.API_URL,
-        runBlocking { getDeviceId.getDeviceKey().fromHex() },
+        deviceKeyService.keyPair().privateKey,
     )
 
     @Provides
     @Singleton
     fun provideGemstoneDeviceApiClient(
         alienProvider: AlienProvider,
-        getDeviceId: GetDeviceId,
-        syncDevice: Lazy<SyncDevice>,
+        deviceKeyService: GemDeviceKeyService,
+        deviceService: Lazy<GemDeviceService>,
     ): GemstoneDeviceApiClient = GemstoneDeviceApiClient.withPreflight(
         alienProvider,
         Constants.API_URL,
-        runBlocking { getDeviceId.getDeviceKey().fromHex() },
-        DeviceSyncPreflight(syncDevice),
+        deviceKeyService.keyPair().privateKey,
+        DeviceSyncPreflight(deviceService),
     )
 
 
@@ -146,12 +143,12 @@ object GatewayModule {
         apiClient: GemstoneDeviceApiClient,
         keystore: GemKeystore,
         passwordStore: PasswordStore,
-        getDeviceId: GetDeviceId,
+        deviceKeyService: GemDeviceKeyService,
     ): GemAuthService = GemAuthService(
         apiClient,
         keystore,
         GemstoneKeystorePassword(passwordStore),
-        runBlocking { getDeviceId.getDeviceKey().fromHex() },
+        deviceKeyService.keyPair().privateKey,
     )
 
 
@@ -181,7 +178,8 @@ object GatewayModule {
         assetsService: GemAssetsService,
         walletConfigurationService: GemWalletConfigurationService,
         walletService: GemWalletService,
-    ): GemAppStartService = GemAppStartService(configService, bannerService, assetsService, walletConfigurationService, walletService)
+        deviceService: GemDeviceService,
+    ): GemAppStartService = GemAppStartService(configService, bannerService, assetsService, walletConfigurationService, walletService, deviceService)
 
 
     @Provides
@@ -210,11 +208,19 @@ object GatewayModule {
         store: GemFiatStore,
     ): GemFiatService = GemFiatService(apiClient, assetsService, store)
 
+    @Provides
+    @Singleton
+    fun provideGemFiatServiceInterface(service: GemFiatService): GemFiatServiceInterface = service
+
 
     @Provides
     @Singleton
-    fun provideGemPortfolioService(apiClient: GemstoneDeviceApiClient, assetsRepository: Lazy<AssetsRepository>): GemPortfolioService =
-        GemPortfolioService(apiClient, GemstonePortfolioStore(assetsRepository))
+    fun provideGemPortfolioService(
+        apiClient: GemstoneDeviceApiClient,
+        store: GemPortfolioStore,
+        priceService: GemPriceService,
+        perpetualService: GemPerpetualService,
+    ): GemPortfolioService = GemPortfolioService(apiClient, store, priceService, perpetualService)
 
     @Provides
     @Singleton
@@ -224,7 +230,7 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemChartService(apiClient: GemstoneApiClient): GemChartService = GemChartService(apiClient)
+    fun provideGemChartService(apiClient: GemstoneApiClient, priceService: GemPriceService): GemChartService = GemChartService(apiClient, priceService)
 
     @Provides
     @Singleton
@@ -240,7 +246,11 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun providePaymentService(alienProvider: AlienProvider): PaymentServiceInterface = PaymentService(alienProvider)
+    fun providePaymentLinkService(alienProvider: AlienProvider): GemPaymentLinkServiceInterface = GemPaymentLinkService(alienProvider)
+
+    @Provides
+    @Singleton
+    fun provideGemPaymentService(): GemPaymentService = GemPaymentService()
 
 
     @Provides
@@ -248,7 +258,6 @@ object GatewayModule {
     fun provideGemServiceStatus(
         getNodeUrlCase: GetNodeUrlCase,
         okHttpClient: OkHttpClient,
-        @ApplicationContext context: Context,
     ): GemServiceStatus {
         val httpClient = okHttpClient.newBuilder()
             .callTimeout(serviceStatusTimeoutSeconds().toLong(), TimeUnit.SECONDS)
@@ -256,9 +265,6 @@ object GatewayModule {
         val provider = NativeProvider(
             getNodeUrlCase = getNodeUrlCase,
             httpClient = httpClient,
-            config = NativeProviderConfig(
-                networkOfflineMessage = context.getString(UiR.string.errors_network_offline),
-            ),
         )
         return GemServiceStatus(provider)
     }

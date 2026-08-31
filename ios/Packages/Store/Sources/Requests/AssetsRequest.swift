@@ -36,7 +36,7 @@ public struct AssetsRequest: DatabaseQueryable {
                 .map { $0.mapToEmptyAssetData() }
         }
 
-        return try fetchAssetsSearch(walletId: walletId, filters: filters)
+        return try loadAssetsSearch(walletId: walletId, filters: filters)
             .fetchAll(db)
             .map(\.assetData)
     }
@@ -47,6 +47,7 @@ public struct AssetsRequest: DatabaseQueryable {
             switch filter {
             case .enabled,
                  .buyable,
+                 .sellable,
                  .swappable,
                  .stakeable,
                  .chains,
@@ -55,6 +56,7 @@ public struct AssetsRequest: DatabaseQueryable {
                  .enabledBalance,
                  .disabledBalance,
                  .hasBalance,
+                 .hasAvailableBalance,
                  .priceAlerts:
                 request = Self.applyFilter(request: request, filter)
             }
@@ -102,10 +104,20 @@ extension AssetsRequest {
                 .filter(
                     TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.isEnabled] == true,
                 )
+        case .hasAvailableBalance:
+            return request
+                .filter(
+                    TableAlias(name: BalanceRecord.databaseTableName)[BalanceRecord.Columns.availableAmount] > 0,
+                )
         case .buyable:
             return request
                 .filter(
                     TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.isBuyable] == true,
+                )
+        case .sellable:
+            return request
+                .filter(
+                    TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.isSellable] == true,
                 )
         case .swappable:
             return request
@@ -141,7 +153,7 @@ extension AssetsRequest {
         }
     }
 
-    private func fetchAssetsSearch(
+    private func loadAssetsSearch(
         walletId: WalletId,
         filters: [AssetsRequestFilter],
     ) -> QueryInterfaceRequest<AssetRecordInfo> {
@@ -193,3 +205,26 @@ extension AssetsRequest {
 }
 
 extension AssetsRequest: Equatable {}
+
+extension AssetsRequestFilter {
+    var referencesBalances: Bool {
+        switch self {
+        case .hasBalance,
+             .hasAvailableBalance,
+             .enabledBalance,
+             .disabledBalance:
+            true
+        case let .search(_, hasPriorityAssets):
+            hasPriorityAssets
+        case .enabled,
+             .buyable,
+             .sellable,
+             .swappable,
+             .stakeable,
+             .chains,
+             .chainsOrAssets,
+             .priceAlerts:
+            false
+        }
+    }
+}

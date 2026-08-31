@@ -34,11 +34,15 @@ impl GemAppUpdateService {
             return Ok(None);
         }
         let config = self.config.get_config().await?;
-        let skipped_version = self.preferences.get_skipped_app_version()?;
+        let skipped_version = self.preferences.get_skipped_app_version();
         Ok(rules::available_update(&config.releases, store, &current_version, skipped_version.as_deref()))
     }
 
     pub fn skip(&self, version: String) -> Result<(), GemServiceError> {
         self.preferences.set_skipped_app_version(version)
+    }
+
+    pub fn is_version_higher(&self, new: String, current: String) -> bool {
+        rules::is_version_higher(new, current)
     }
 }

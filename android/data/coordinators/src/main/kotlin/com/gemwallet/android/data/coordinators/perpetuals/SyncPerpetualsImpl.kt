@@ -1,21 +1,17 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
-import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
-import com.gemwallet.android.serializer.toJson
-import com.wallet.core.primitives.Chain
+import com.gemwallet.android.application.perpetual.cases.SyncPerpetuals
+import android.util.Log
+import com.gemwallet.android.ext.runCatchingCancellable
 import javax.inject.Inject
-import uniffi.gemstone.GemPerpetualService
+import uniffi.gemstone.GemMarketsRefreshTrigger
+import uniffi.gemstone.GemPerpetualServiceInterface
 
 class SyncPerpetualsImpl @Inject constructor(
-    private val perpetualService: GemPerpetualService,
-    private val getCurrentCurrency: GetCurrentCurrency,
-    private val chains: List<Chain>,
+    private val perpetualService: GemPerpetualServiceInterface,
 ) : SyncPerpetuals {
-    override suspend fun syncPerpetuals() {
-        val currency = getCurrentCurrency.getCurrentCurrency().toJson()
-        chains.forEach { chain ->
-            runCatching { perpetualService.syncMarkets(chain.string, currency) }
-        }
+    override suspend fun syncPerpetuals(trigger: GemMarketsRefreshTrigger) {
+        runCatchingCancellable { perpetualService.syncEnablement(null, trigger) }
+            .onFailure { Log.e("SyncPerpetuals", "perpetual markets sync failed", it) }
     }
 }

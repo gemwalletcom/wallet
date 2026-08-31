@@ -90,4 +90,23 @@ mod observable_tests {
             vec![bitcoin, ethereum]
         );
     }
+
+    #[test]
+    fn test_rate_or_base_only_defaults_usd() {
+        let stored = FiatRate { symbol: Currency::EUR, rate: 0.9 };
+        assert_eq!(rate_or_base(Currency::EUR, Some(stored.clone())).map(|rate| rate.rate), Some(0.9));
+        assert_eq!(rate_or_base(Currency::USD, None).map(|rate| rate.rate), Some(1.0));
+        assert!(rate_or_base(Currency::EUR, None).is_none());
+    }
+
+    #[test]
+    fn test_fiat_prices_convert_with_rate() {
+        let now = chrono::Utc::now();
+        let rate = FiatRate { symbol: Currency::EUR, rate: 0.5 };
+
+        let updates = fiat_prices(vec![AssetPrice::new(AssetId::from_chain(primitives::Chain::Bitcoin), 100.0, 2.0, now)], &rate);
+
+        assert_eq!((updates[0].price, updates[0].price_usd, updates[0].price_change_percentage_24h), (50.0, 100.0, 2.0));
+        assert_eq!(updates[0].updated_at, now);
+    }
 }

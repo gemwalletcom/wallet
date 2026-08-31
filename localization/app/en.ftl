@@ -43,6 +43,8 @@ common_wallet = Wallet
 common_show = Show %@
 # Used in shared app UI for the copied label. Contains 1 string placeholder.
 common_copied = Copied: %@
+# Toast shown after copying a value on Android 12 and older.
+common_copied_to_clipboard = Copied to clipboard
 # Used in shared app UI for the recommended label.
 common_recommended = Recommended
 # Used in shared app UI for the all label.
@@ -401,6 +403,12 @@ errors_token_invalid_id = Invalid Token ID
 errors_import_invalid_secret_phrase = Invalid Secret Phrase
 # Used in error cards and validation UI for the import invalid secret phrase word label. Contains 1 string placeholder.
 errors_import_invalid_secret_phrase_word = Invalid Secret Phrase word: %@
+# Shown when an imported private key cannot be decoded for the selected chain.
+errors_import_invalid_private_key = Invalid private key
+# Shown when the wallet keys cannot be read from this device keystore.
+errors_keystore_access = Couldn't access this wallet's keys on this device. If you have your recovery phrase, remove this wallet and import it again to restore access.
+# Shown on the confirm screen when the wallet has no account for the transfer chain.
+errors_wallet_account_missing = This wallet has no account for this network
 # Used in error cards and validation UI for the invalid url label.
 errors_invalid_url = Invalid URL
 # Used in error cards and validation UI for the error occurred label.
@@ -409,6 +417,8 @@ errors_error_occurred = An error occurred!
 errors_invalid_network_id = Invalid Network ID
 # Used in error cards and validation UI for the error label.
 errors_error = Error
+# Used in error cards and validation UI for the cancelled label.
+errors_cancelled = Cancelled
 # Used in error cards and validation UI for the connections user cancelled label.
 errors_connections_user_cancelled = User cancelled
 # Used in error cards and validation UI for the not supported label.

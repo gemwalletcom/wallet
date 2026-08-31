@@ -2,6 +2,7 @@
 
 import Foundation
 import protocol Gemstone.GemBalanceStore
+import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemBalanceUpdate
 import enum Gemstone.GemBalanceUpdateType
 import struct Gemstone.GemBalanceValue
@@ -17,6 +18,13 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
         self.store = store
     }
 
+    public func getAvailableBalances(walletId: String, assetIds: [Gemstone.AssetId]) throws -> [GemAssetBalance] {
+        let walletId = try WalletId.from(id: walletId)
+        return try assetIds.compactMap { assetId in
+            try store.getBalance(walletId: walletId, assetId: Primitives.AssetId(id: assetId))?.gem(assetId: assetId)
+        }
+    }
+
     public func updateBalances(walletId: String, updates: [GemBalanceUpdate]) async throws {
         let walletId = try WalletId.from(id: walletId)
         let balances = try updates.map { update in
@@ -27,7 +35,6 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
                 isActive: update.isActive,
             )
         }
-        try store.addBalance(assetIds: balances.map(\.assetId), isEnabled: false, for: walletId)
         try store.updateBalances(balances, for: walletId)
     }
 
@@ -39,11 +46,11 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
         ).map(\Primitives.AssetId.identifier)
     }
 
-    public func setEnabled(walletId: String, assetIds: [Gemstone.AssetId], enabled: Bool) async throws {
+    public func setAssetsEnabled(walletId: String, assetIds: [Gemstone.AssetId], enabled: Bool) async throws {
         try store.setIsEnabled(walletId: WalletId.from(id: walletId), assetIds: assetIds.map { try Primitives.AssetId(id: $0) }, value: enabled)
     }
 
-    public func setPinned(walletId: String, assetId: Gemstone.AssetId, pinned: Bool) async throws {
+    public func setAssetPinned(walletId: String, assetId: Gemstone.AssetId, pinned: Bool) async throws {
         try store.pinAsset(walletId: WalletId.from(id: walletId), assetId: Primitives.AssetId(id: assetId), value: pinned)
     }
 
@@ -71,5 +78,24 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
 
     private func value(_ value: GemBalanceValue) -> UpdateBalanceValue {
         UpdateBalanceValue(value: value.value, amount: value.amount)
+    }
+}
+
+private extension Primitives.Balance {
+    func gem(assetId: Gemstone.AssetId) -> GemAssetBalance {
+        GemAssetBalance(
+            assetId: assetId,
+            available: available.description,
+            frozen: frozen.description,
+            locked: locked.description,
+            staked: staked.description,
+            pending: pending.description,
+            pendingUnconfirmed: pendingUnconfirmed.description,
+            rewards: rewards.description,
+            reserved: reserved.description,
+            withdrawable: withdrawable.description,
+            earn: earn.description,
+            metadata: metadata?.json(),
+        )
     }
 }

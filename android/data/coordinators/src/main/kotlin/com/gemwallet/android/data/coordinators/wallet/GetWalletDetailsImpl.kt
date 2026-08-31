@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.coordinators.wallet
 
 import androidx.compose.runtime.Stable
-import com.gemwallet.android.application.wallet.coordinators.GetWalletDetails
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.wallet.cases.GetWalletDetails
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.domains.wallet.aggregates.WalletDetailsAggregate
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAddress
@@ -15,11 +15,11 @@ import kotlinx.coroutines.flow.mapLatest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetWalletDetailsImpl(
-    private val walletsRepository: WalletsRepository
+    private val walletStore: GemstoneWalletStore
 ) : GetWalletDetails {
 
     override fun getWallet(walletId: WalletId): Flow<WalletDetailsAggregate?> {
-        return  walletsRepository.getWallet(walletId)
+        return  walletStore.observeWallet(walletId)
             .mapLatest { dto -> dto?.let { WalletDetailsAggregateImpl(it) } }
     }
 }

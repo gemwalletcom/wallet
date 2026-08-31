@@ -16,16 +16,5 @@ internal val QuoteState.formattedToAmount: String
     get() = ValueFormatter(style = ValueFormatter.Style.Auto)
         .string(quote.toValue.toBigInteger(), receive.asset.decimals)
 
-internal val QuoteState.validationError: SwapError?
-    get() {
-        val availableBalance = pay.balance.balance.available.toBigInteger()
-        val fromValue = quote.fromValue
-        return if (availableBalance < fromValue.toBigInteger()) {
-            SwapError.InsufficientBalance(pay.asset.symbol)
-        } else {
-            null
-        }
-    }
-
 internal val QuoteState.receiveEquivalent: BigDecimal
     get() = receive.calculateFiat(quote.toValue)

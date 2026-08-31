@@ -5,11 +5,11 @@ import Components
 import GemstoneServices
 import Formatters
 import Foundation
+import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstoneFormatters
 import InfoSheet
 import Localization
 import Perpetuals
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
@@ -46,13 +46,13 @@ public final class AmountSceneViewModel {
         input: AmountInput,
         wallet: Wallet,
         service: AmountService,
-        preferences: Preferences = .standard,
+        preferencesService: any GemPreferencesServiceProtocol,
         onTransferAction: TransferDataAction,
     ) {
         self.wallet = wallet
         self.onTransferAction = onTransferAction
-        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferences.currency)
-        provider = .make(from: input, wallet: wallet, service: service)
+        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferencesService.currencyCode)
+        provider = .make(from: input, wallet: wallet, service: service, preferencesService: preferencesService)
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
         amountInputModel = InputValidationViewModel(mode: .onDemand, validators: [])
         amountInputModel.update(validators: inputValidators)
@@ -154,7 +154,7 @@ extension AmountSceneViewModel {
 
     public func onSelectNextButton() {
         Task {
-            await fetch()
+            await load()
         }
     }
 
@@ -241,7 +241,7 @@ private extension AmountSceneViewModel {
         amountInputModel.update(validators: inputValidators)
     }
 
-    func fetch() async {
+    func load() async {
         do {
             transferState = .loading
             let value = try amountTransferValue
@@ -270,7 +270,7 @@ private extension AmountSceneViewModel {
                 source: source,
                 decimals: asset.decimals.asInt,
                 validators: [
-                    AmountValueValidator(asset: asset, available: provider.availableValue(from: assetData), minimum: provider.minimumValue),
+                    AmountValueValidator(asset: asset, available: provider.availableValue(from: assetData), minimum: provider.minimumValue, amountService: provider.amountService),
                 ],
             ),
         ]

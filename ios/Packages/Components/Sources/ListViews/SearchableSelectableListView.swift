@@ -2,7 +2,7 @@
 
 import SwiftUI
 
-public struct SearchableSelectableListView<ViewModel: SelectableListAdoptable & ItemFilterable, Content: View>: View {
+public struct SearchableSelectableListView<ViewModel: SelectableSearchable, Content: View>: View {
     public typealias ListContent = (ViewModel.Item) -> Content
     public typealias FinishSelection = ([ViewModel.Item]) -> Void
 
@@ -22,32 +22,38 @@ public struct SearchableSelectableListView<ViewModel: SelectableListAdoptable & 
     }
 
     public var body: some View {
-        SearchableListView(
-            items: model.items,
-            filter: model.filter(_:query:),
-            content: { item in
-                switch model.selectionType {
-                case .multiSelection, .checkmark:
-                    SelectionView(
-                        value: item,
-                        selection: model.selectedItems.contains(item) ? item : nil,
-                        action: onSelect(item:),
-                        content: {
-                            listContent(item)
-                        },
-                    )
-                case .navigationLink:
-                    NavigationCustomLink(with: listContent(item)) {
-                        onSelect(item: item)
+        if let search = model.search {
+            SearchableListView(
+                items: model.items,
+                filter: search.filter,
+                content: { item in
+                    switch model.selectionType {
+                    case .multiSelection, .checkmark:
+                        SelectionView(
+                            value: item,
+                            selection: model.selectedItems.contains(item) ? item : nil,
+                            action: onSelect(item:),
+                            content: {
+                                listContent(item)
+                            },
+                        )
+                    case .navigationLink:
+                        NavigationCustomLink(with: listContent(item)) {
+                            onSelect(item: item)
+                        }
                     }
-                }
-            },
-            emptyContent: {
-                if let model = model.emptyContentModel {
-                    EmptyContentView(model: model)
-                }
-            },
-        )
+                },
+                emptyContent: {
+                    EmptyContentView(model: search.emptyContent)
+                },
+            )
+        } else {
+            SelectableListView(
+                model: $model,
+                onFinishSelection: onFinishSelection,
+                listContent: listContent,
+            )
+        }
     }
 
     private func onSelect(item: ViewModel.Item) {

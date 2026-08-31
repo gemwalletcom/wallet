@@ -2,15 +2,15 @@ package com.gemwallet.android.features.perpetual.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
-import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalances
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPositions
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetuals
-import com.gemwallet.android.application.perpetual.coordinators.PerpetualObserver
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
-import com.gemwallet.android.application.perpetual.coordinators.SetPerpetualPinned
+import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
+import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
+import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
+import com.gemwallet.android.application.perpetual.cases.SyncPerpetualPositions
+import com.gemwallet.android.application.perpetual.cases.SyncPerpetuals
+import com.gemwallet.android.application.perpetual.cases.SetPerpetualPinned
 import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
 import com.gemwallet.android.model.CurrencyFormatter
@@ -22,6 +22,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetualSubscription
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,7 +40,7 @@ import javax.inject.Inject
 class PerpetualMarketViewModel @Inject constructor(
     private val getPerpetuals: GetPerpetuals,
     private val getPositions: GetPerpetualPositions,
-    private val getBalance: GetPerpetualBalances,
+    private val getBalance: GetPerpetualBalance,
     private val syncPerpetuals: SyncPerpetuals,
     private val syncPerpetualPositions: SyncPerpetualPositions,
     private val setPerpetualPinned: SetPerpetualPinned,
@@ -67,7 +68,7 @@ class PerpetualMarketViewModel @Inject constructor(
                 it.asset.name.contains(needle, ignoreCase = true)
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-    val balance = getBalance.getPerpetualBalance()
+    val balance = getBalance.getDisplayBalance()
         .stateIn(viewModelScope, SharingStarted.Eagerly, EmptyPerpetualBalance)
     val recent: StateFlow<List<Asset>> =
         getRecentAssets(RecentAssetsRequest(types = listOf(RecentType.Perpetual)))
@@ -78,7 +79,7 @@ class PerpetualMarketViewModel @Inject constructor(
         sceneState.update { PerpetualMarketSceneState.Refreshing }
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                syncPerpetuals.syncPerpetuals()
+                syncPerpetuals.syncPerpetuals(GemMarketsRefreshTrigger.USER_REQUESTED)
             }
             withContext(Dispatchers.IO) {
                 syncPerpetualPositions.syncPerpetualPositions()

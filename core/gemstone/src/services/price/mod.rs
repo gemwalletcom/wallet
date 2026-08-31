@@ -6,11 +6,11 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate, Markets, WalletId};
+use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate, WalletId};
 
 use crate::models::asset::asset_ids_enabled_by_default;
 
-pub use model::GemPriceUpdate;
+pub use model::{GemAssetPrice, GemPriceUpdate};
 pub use store::GemPriceStore;
 
 use crate::api::{GemApiClient, GemApiError};
@@ -28,20 +28,16 @@ impl GemPriceService {
         Self { api, store }
     }
 
+    pub fn prices(&self, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetPrice>, GemServiceError> {
+        self.store.get_prices(asset_ids)
+    }
+
     pub async fn get_prices(&self, currency: Option<Currency>, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPrice>, GemApiError> {
         Ok(self.api.client.get_prices(currency, asset_ids).await?)
     }
 
-    pub async fn get_markets(&self) -> Result<Markets, GemApiError> {
-        Ok(self.api.client.get_markets().await?)
-    }
-
     pub async fn update_prices(&self, prices: Vec<AssetPrice>, currency: Currency) -> Result<(), GemServiceError> {
         update_prices(self.store.as_ref(), prices, currency).await
-    }
-
-    pub async fn update_asset_price(&self, asset_id: AssetId, price: Option<AssetPrice>, currency: Currency) -> Result<(), GemServiceError> {
-        update_prices(self.store.as_ref(), vec![price.unwrap_or_else(|| AssetPrice::empty(asset_id))], currency).await
     }
 
     pub async fn update_rates(&self, rates: Vec<FiatRate>, currency: Currency) -> Result<(), GemServiceError> {
@@ -57,13 +53,19 @@ impl GemPriceService {
 
     pub async fn change_currency(&self, currency: Currency) -> Result<(), GemServiceError> {
         let Some(rate) = rules::rate_or_base(currency.clone(), self.store.get_rate(currency.clone()).await?) else {
-            return Err(GemServiceError::UnknownCurrency { currency: currency.to_string() });
+            return Err(GemServiceError::InvalidInput {
+                msg: format!("unknown currency: {currency}"),
+            });
         };
         self.store.convert_prices(currency, rate.rate).await
     }
 }
 
 impl GemPriceService {
+    pub async fn update_asset_price(&self, asset_id: AssetId, price: Option<AssetPrice>, currency: Currency) -> Result<(), GemServiceError> {
+        update_prices(self.store.as_ref(), vec![price.unwrap_or_else(|| AssetPrice::empty(asset_id))], currency).await
+    }
+
     pub async fn observable_asset_ids(&self, wallet_id: WalletId, alert_asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
         Ok(rules::observable_asset_ids(
             self.store.get_enabled_price_asset_ids(wallet_id).await?,
@@ -117,6 +119,9 @@ mod tests {
 
     #[async_trait::async_trait]
     impl GemPriceStore for MemoryStore {
+        fn get_prices(&self, _asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetPrice>, GemServiceError> {
+            Ok(vec![])
+        }
         async fn get_enabled_price_asset_ids(&self, _wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
             Ok(vec![])
         }

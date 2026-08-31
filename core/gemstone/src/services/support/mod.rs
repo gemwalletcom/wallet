@@ -36,7 +36,7 @@ impl GemSupportService {
             return Ok(self.files.path(file_name));
         }
         let image = download(&self.provider, url).await?;
-        self.files.save_named(image, file_name)
+        self.files.save_named_file(image, file_name)
     }
 
     pub async fn sync_messages(&self, from_timestamp: u64) -> Result<(), GemServiceError> {
@@ -58,7 +58,7 @@ impl GemSupportService {
 
     pub async fn retry_message(&self, message: SupportMessage) -> Result<(), GemServiceError> {
         if !message.images.is_empty() {
-            return Err(GemServiceError::Status {
+            return Err(GemServiceError::Unsupported {
                 msg: "image messages cannot be retried".to_string(),
             });
         }
@@ -76,7 +76,7 @@ impl GemSupportService {
     {
         self.store.save_messages(vec![message.clone()]).await?;
         match send.await {
-            Ok(sent) => self.store.replace_message(message.id, sent).await,
+            Ok(sent) => self.store.save_message(message.id, sent).await,
             Err(error) => {
                 self.store.save_messages(vec![rules::with_status(message, SupportMessageStatus::Failed)]).await?;
                 Err(GemApiError::from(error).into())

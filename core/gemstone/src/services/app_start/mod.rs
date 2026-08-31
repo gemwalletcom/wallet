@@ -1,6 +1,5 @@
 pub mod model;
 
-use std::future::Future;
 use std::sync::Arc;
 
 use primitives::{Chain, Wallet};
@@ -10,7 +9,9 @@ pub use model::{GemAppStartFailure, GemAppStartStep};
 use crate::services::assets::GemAssetsService;
 use crate::services::banner::GemBannerService;
 use crate::services::config::GemConfigService;
+use crate::services::device::GemDeviceService;
 use crate::services::error::GemServiceError;
+use crate::services::failures::record;
 use crate::services::wallet::GemWalletService;
 use crate::services::wallet_configuration::GemWalletConfigurationService;
 
@@ -21,6 +22,7 @@ pub struct GemAppStartService {
     assets: Arc<GemAssetsService>,
     wallet_configuration: Arc<GemWalletConfigurationService>,
     wallet: Arc<GemWalletService>,
+    device: Arc<GemDeviceService>,
 }
 
 #[uniffi::export]
@@ -32,6 +34,7 @@ impl GemAppStartService {
         assets: Arc<GemAssetsService>,
         wallet_configuration: Arc<GemWalletConfigurationService>,
         wallet: Arc<GemWalletService>,
+        device: Arc<GemDeviceService>,
     ) -> Self {
         Self {
             config,
@@ -39,6 +42,7 @@ impl GemAppStartService {
             assets,
             wallet_configuration,
             wallet,
+            device,
         }
     }
 
@@ -56,6 +60,7 @@ impl GemAppStartService {
         record(&mut failures, GemAppStartStep::UpdateConfig, async { self.config.update_config().await.map(|_| ()) }).await;
         record(&mut failures, GemAppStartStep::SetupBanners, self.banners.setup()).await;
         record(&mut failures, GemAppStartStep::SyncAssets, self.sync_assets()).await;
+        record(&mut failures, GemAppStartStep::SyncDevice, self.device.synchronize_if_needed()).await;
         failures
     }
 
@@ -77,47 +82,5 @@ impl GemAppStartService {
         self.assets.sync_swappable_chains().await?;
         let config = self.config.get_config().await?;
         self.assets.sync_availability(config.versions).await
-    }
-}
-
-async fn record<F>(failures: &mut Vec<GemAppStartFailure>, step: GemAppStartStep, future: F)
-where
-    F: Future<Output = Result<(), GemServiceError>>,
-{
-    if let Err(error) = future.await {
-        failures.push(GemAppStartFailure { step, message: error.to_string() });
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_record_collects_failures_and_continues() {
-        let failures = futures::executor::block_on(async {
-            let mut failures = Vec::new();
-            record(&mut failures, GemAppStartStep::UpdateConfig, async {
-                Err(GemServiceError::Status { msg: "offline".to_string() })
-            })
-            .await;
-            record(&mut failures, GemAppStartStep::SetupBanners, async { Ok(()) }).await;
-            record(&mut failures, GemAppStartStep::SyncAssets, async { Err(GemServiceError::Cancelled) }).await;
-            failures
-        });
-
-        assert_eq!(
-            failures,
-            vec![
-                GemAppStartFailure {
-                    step: GemAppStartStep::UpdateConfig,
-                    message: "offline".to_string()
-                },
-                GemAppStartFailure {
-                    step: GemAppStartStep::SyncAssets,
-                    message: "cancelled".to_string()
-                },
-            ]
-        );
     }
 }

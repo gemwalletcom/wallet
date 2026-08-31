@@ -4,7 +4,7 @@ import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.applicationMetadataShortName
+import uniffi.gemstone.GemApplicationMetadataService
 
 fun Account.toGem() = uniffi.gemstone.Account(
     chain = chain.string,
@@ -23,5 +23,5 @@ fun uniffi.gemstone.Account.toPrimitives(): Account? {
     )
 }
 
-val ApplicationMetadata.shortName: String
-    get() = applicationMetadataShortName(toJson())
+fun ApplicationMetadata.shortName(applicationMetadataService: GemApplicationMetadataService): String =
+    applicationMetadataService.shortName(toJson())

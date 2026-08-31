@@ -1,8 +1,8 @@
-use std::{collections::HashMap, fmt::Debug};
+use std::fmt::Debug;
 
-use gem_client::{CONTENT_TYPE, Client, ClientExt, ContentType};
+use gem_client::{Client, ClientExt};
 
-use super::model::{RelayChainsResponse, RelayQuoteRequest, RelayQuoteResponse, RelayRequestsResponse};
+use super::model::{RelayChainsResponse, RelayErrorResponse, RelayQuoteRequest, RelayQuoteResponse, RelayRequestsResponse};
 use crate::SwapperError;
 
 #[derive(Clone, Debug)]
@@ -22,8 +22,10 @@ where
     }
 
     pub async fn get_quote(&self, request: RelayQuoteRequest) -> Result<RelayQuoteResponse, SwapperError> {
-        let headers = HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationJson.as_str().into())]);
-        self.client.post_with("/quote/v2", &request, headers).await.map_err(SwapperError::from)
+        self.client
+            .post_or_error::<_, _, RelayErrorResponse>("/quote/v2", &request)
+            .await
+            .map_err(SwapperError::from)
     }
 
     pub async fn get_request(&self, identifier: &str) -> Result<RelayRequestsResponse, SwapperError> {

@@ -6,6 +6,7 @@ All commands use the `just` task runner. Run from the workspace root unless spec
 
 ```sh
 just build                      # Build the workspace
+just clean                      # Clean workspace build artifacts
 just build-gemstone             # Build cross-platform library
 just gemstone build-ios         # Build the core iOS GemTest project
 just gemstone bindgen-swift     # Generate iOS Swift bindings (run in gemstone/)

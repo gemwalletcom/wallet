@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAssetConfigService
 import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
 import Components
@@ -21,11 +22,12 @@ public final class AddAssetSceneViewModel {
     var input: AddAssetInput
 
     var isPresentingScanner = false
+    var loadTrigger: AddAssetLoadTrigger?
 
-    public init(wallet: Wallet, gatewayService: GatewayService, explorerService: any GemExplorerServiceProtocol) {
+    public init(wallet: Wallet, gatewayService: GatewayService, explorerService: any GemExplorerServiceProtocol, assetConfig: GemAssetConfigService) {
         self.gatewayService = gatewayService
         self.explorerService = explorerService
-        input = AddAssetInput(chains: wallet.chainsWithTokens)
+        input = AddAssetInput(chains: wallet.chainsWithTokens, assetConfig: assetConfig)
     }
 
     var title: String {
@@ -96,19 +98,39 @@ public final class AddAssetSceneViewModel {
 // MARK: - Business Logic
 
 extension AddAssetSceneViewModel {
-    func fetch() async {
-        guard let chain = input.chain, let address = input.address, !address.isEmpty else {
-            state = .noData
-            return
-        }
+    func setInput(_ address: String) {
+        input.address = address
+        setLoadTrigger(isImmediate: true)
+    }
+
+    func onChangeAddress() {
+        guard loadTrigger?.address != input.address else { return }
+        setLoadTrigger(isImmediate: false)
+    }
+
+    func onSubmitAddress() {
+        setLoadTrigger(isImmediate: true)
+    }
+
+    func load() async {
+        guard let trigger = loadTrigger else { return }
 
         state = .loading
 
         do {
-            let asset = try await gatewayService.tokenData(chain: chain, tokenId: address)
+            let asset = try await gatewayService.tokenData(chain: trigger.chain, tokenId: trigger.address)
             state = .data(AddAssetViewModel(asset: asset, explorerService: explorerService))
         } catch {
             state.setError(error)
         }
+    }
+
+    private func setLoadTrigger(isImmediate: Bool) {
+        guard let chain = input.chain, let address = input.address, !address.isEmpty else {
+            state = .noData
+            loadTrigger = nil
+            return
+        }
+        loadTrigger = AddAssetLoadTrigger(chain: chain, address: address, isImmediate: isImmediate)
     }
 }

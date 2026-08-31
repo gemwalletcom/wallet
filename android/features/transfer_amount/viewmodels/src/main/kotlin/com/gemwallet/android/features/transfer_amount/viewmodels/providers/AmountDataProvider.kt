@@ -19,7 +19,10 @@ import uniffi.gemstone.GemAmountService
 import uniffi.gemstone.GemAmountType
 import java.math.BigInteger
 
-abstract class AmountDataProvider(private val scope: CoroutineScope) {
+abstract class AmountDataProvider(
+    private val scope: CoroutineScope,
+    private val amountService: GemAmountService,
+) {
     abstract val title: AmountTitle
     abstract val canSwitchInputType: Boolean
     abstract val assetInfo: StateFlow<AssetInfo?>
@@ -28,8 +31,6 @@ abstract class AmountDataProvider(private val scope: CoroutineScope) {
     protected open val balance: StateFlow<GemTransferBalance?> by lazy {
         assetInfo.map { it?.toAmountBalance() }.stateIn(scope, SharingStarted.Eagerly, null)
     }
-
-    private val amountService = GemAmountService()
 
     val rules: StateFlow<GemAmountRules?> by lazy {
         combine(amountType, assetInfo) { type, current ->

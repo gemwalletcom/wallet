@@ -7,7 +7,6 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.contacts.viewmodels.ManageContactViewModel
-import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressInput
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactPage
 
 @Composable
@@ -43,20 +42,22 @@ fun ManageContactNavScreen(
                 },
             )
 
-            ManageContactPage.Address -> ManageContactAddressScene(
-                input = uiState.addressInput ?: ContactAddressInput(),
-                onAddressChange = viewModel::setAddress,
-                onMemoChange = viewModel::setMemo,
-                onScan = viewModel::scanAddress,
-                onPaste = viewModel::pasteAddress,
-                onAction = { action ->
-                    when (action) {
-                        ManageContactAddressAction.SelectChain -> viewModel.selectChain()
-                        ManageContactAddressAction.Confirm -> viewModel.confirmAddress()
-                        ManageContactAddressAction.Cancel -> viewModel.cancelAddress()
-                    }
-                },
-            )
+            ManageContactPage.Address -> uiState.addressInput?.let { input ->
+                ManageContactAddressScene(
+                    input = input,
+                    onAddressChange = viewModel::setAddress,
+                    onMemoChange = viewModel::setMemo,
+                    onScan = viewModel::scanAddress,
+                    onPaste = viewModel::pasteAddress,
+                    onAction = { action ->
+                        when (action) {
+                            ManageContactAddressAction.SelectChain -> viewModel.selectChain()
+                            ManageContactAddressAction.Confirm -> viewModel.confirmAddress()
+                            ManageContactAddressAction.Cancel -> viewModel.cancelAddress()
+                        }
+                    },
+                )
+            }
 
             ManageContactPage.SelectChain -> ContactChainSelectScene(
                 onSelect = viewModel::setChain,

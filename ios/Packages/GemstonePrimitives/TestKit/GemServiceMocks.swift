@@ -10,6 +10,7 @@ public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
     private let syncError: Error?
     public private(set) var synchronizeCalls = 0
     public private(set) var synchronizeIfNeededCalls = 0
+    public private(set) var pushEnabledValues: [Bool] = []
 
     public init(syncError: Error? = nil) {
         self.syncError = syncError
@@ -23,6 +24,15 @@ public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
         return try Primitives.Device.mock().json()
     }
 
+    public func isRegistered() async throws -> Bool { true }
+
+    public func setPushEnabled(enabled: Bool) async throws {
+        pushEnabledValues.append(enabled)
+        if let syncError {
+            throw syncError
+        }
+    }
+
     public func synchronizeIfNeeded() async throws {
         synchronizeIfNeededCalls += 1
         if let syncError {
@@ -31,13 +41,25 @@ public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
     }
 }
 
+public final class GemSecureStoreMock: GemSecureStore, @unchecked Sendable {
+    private var values: [String: String] = [:]
+
+    public init() {}
+
+    public func get(key: String) throws -> String? { values[key] }
+
+    public func set(key: String, value: String) throws { values[key] = value }
+
+    public func remove(key: String) throws { values[key] = nil }
+}
+
 public final class GemPreferencesStoreMock: GemPreferencesStore, @unchecked Sendable {
     private let lock = NSLock()
     private var values: [String: String] = [:]
 
     public init() {}
 
-    public func get(key: String) throws -> String? {
+    public func get(key: String) -> String? {
         lock.withLock { values[key] }
     }
 
@@ -47,6 +69,10 @@ public final class GemPreferencesStoreMock: GemPreferencesStore, @unchecked Send
 
     public func remove(key: String) throws {
         lock.withLock { values[key] = nil }
+    }
+
+    public func clear() throws {
+        lock.withLock { values.removeAll() }
     }
 }
 
@@ -59,15 +85,7 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         self.priceAlertsEnabled = priceAlertsEnabled
     }
 
-    public func getSkippedAppVersion() throws -> String? {
-        lock.withLock { skippedAppVersion }
-    }
-
-    public func setSkippedAppVersion(version: String) throws {
-        lock.withLock { skippedAppVersion = version }
-    }
-
-    public func isPriceAlertsEnabled() throws -> Bool {
+    public func isPriceAlertsEnabled() -> Bool {
         lock.withLock { priceAlertsEnabled }
     }
 
@@ -75,9 +93,87 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         lock.withLock { priceAlertsEnabled = enabled }
     }
 
+    public func getCurrency() -> Gemstone.Currency { (Primitives.Currency.usd.json()) ?? "\"USD\"" }
+
+    public func setCurrency(currency _: Gemstone.Currency) throws {}
+
+    public func setupCurrency(localeCurrency _: String?) throws -> Gemstone.Currency { Primitives.Currency.usd.json() }
+
+    public func getChartPeriod() -> Gemstone.ChartPeriod { (Primitives.ChartPeriod.day.json()) ?? "\"day\"" }
+
+    public func setChartPeriod(period _: Gemstone.ChartPeriod) throws {}
+
+    public func getPerpetualChartPeriod() -> Gemstone.ChartPeriod { (Primitives.ChartPeriod.day.json()) ?? "\"day\"" }
+
+    public func setPerpetualChartPeriod(period _: Gemstone.ChartPeriod) throws {}
+
+    public func isPushNotificationsEnabled() -> Bool { false }
+
+    public func setPushNotificationsEnabled(enabled _: Bool) throws {}
+
+    private var perpetualEnabled = false
+    private var hideBalanceEnabled = false
+    private var developerEnabled = false
+    private var acceptTermsCompleted = false
+    private var appearance: Gemstone.Appearance = (Primitives.Appearance.system.json()) ?? "\"system\""
+
+    public func isPerpetualEnabled() -> Bool { perpetualEnabled }
+
+    public func setPerpetualEnabled(enabled: Bool) throws { perpetualEnabled = enabled }
+
+    public func showPerpetuals(wallet: Gemstone.Wallet) -> Bool {
+        perpetualEnabled && ((try? Primitives.Wallet(wallet).hasPerpetualsSupport) ?? false)
+    }
+
+    public func isHideBalanceEnabled() -> Bool { hideBalanceEnabled }
+
+    public func setHideBalanceEnabled(enabled: Bool) throws { hideBalanceEnabled = enabled }
+
+    public func isDeveloperEnabled() -> Bool { developerEnabled }
+
+    public func setDeveloperEnabled(enabled: Bool) throws { developerEnabled = enabled }
+
+    public func isAcceptTermsCompleted() -> Bool { acceptTermsCompleted }
+
+    public func setAcceptTermsCompleted() throws { acceptTermsCompleted = true }
+
+    public func getAppearance() -> Gemstone.Appearance { appearance }
+
+    public func setAppearance(appearance: Gemstone.Appearance) throws { self.appearance = appearance }
+
+    public func getSwapSlippageBps() -> UInt32? { nil }
+
+    public func setSwapSlippageBps(bps _: UInt32?) throws {}
+
+    public func getPerpetualLeverage() -> UInt8 { 5 }
+
+    public func setPerpetualLeverage(leverage _: UInt8) throws {}
+
+    public func getPerpetualTakeProfitPercent() -> UInt8 { 0 }
+
+    public func setPerpetualTakeProfitPercent(percent _: UInt8) throws {}
+
+    public func getPerpetualStopLossPercent() -> UInt8 { 0 }
+
+    public func setPerpetualStopLossPercent(percent _: UInt8) throws {}
+
+    public func getLaunchesCount() -> UInt32 { 0 }
+
+    public func incrementLaunchesCount() throws -> UInt32 { 1 }
+
+    public func shouldRequestReview() -> Bool { false }
+
+    public func setRateApplicationShown() throws {}
+
+    public func shouldAskNotifications() -> Bool { false }
+
+    public func setNotificationsAsked() throws {}
+
     public func defaultCurrency(localeCurrency _: String?) -> Gemstone.Currency {
         "\"USD\""
     }
+
+    public func clear() throws {}
 }
 
 public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unchecked Sendable {
@@ -88,7 +184,7 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
         self.enabled = enabled
     }
 
-    public func isEnabled() throws -> Bool {
+    public func isEnabled() -> Bool {
         lock.withLock { enabled }
     }
 
@@ -101,8 +197,6 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
     public func enablePriceAlert(alert _: Gemstone.PriceAlert) async throws {
         lock.withLock { enabled = true }
     }
-
-    public func addPriceAlerts(alerts _: [Gemstone.PriceAlert]) async throws {}
 
     public func deletePriceAlerts(alerts _: [Gemstone.PriceAlert]) async throws {}
 
@@ -129,26 +223,72 @@ public final class GemTransactionsServiceMock: GemTransactionsServiceProtocol, @
         try await lock.withLock { onSync }(walletId, assetId)
     }
 
-    public func associatedAssetIds(transaction _: Gemstone.Transaction) -> [Gemstone.AssetId] {
-        []
-    }
-
 }
 
 public final class GemContactServiceMock: GemContactServiceProtocol, @unchecked Sendable {
+    private let service = GemContactService(
+        store: GemContactStoreMock(),
+        addressStore: GemAddressStoreMock(),
+        files: GemFileStoreMock(),
+    )
+
     public init() {}
 
-    public func addContact(contact _: Gemstone.Contact, addresses _: [Gemstone.ContactAddress]) async throws {}
-
-    public func updateContact(contact _: Gemstone.Contact, addresses _: [Gemstone.ContactAddress]) async throws {}
-
-    public func deleteContact(contact _: Gemstone.Contact) async throws {}
-
-    public func saveAvatar(image _: Data) throws -> String {
-        ""
+    public func saveContact(input: GemContactInput) async throws -> Gemstone.Contact {
+        try await service.saveContact(input: input)
     }
 
-    public func removeAvatar(fileName _: String) throws {}
+    public func updateContact(contact: Gemstone.Contact, addresses: [Gemstone.ContactAddress]) async throws {
+        try await service.updateContact(contact: contact, addresses: addresses)
+    }
+
+    public func deleteContact(contact: Gemstone.Contact) async throws {
+        try await service.deleteContact(contact: contact)
+    }
+
+    public func addAddress(addresses: [Gemstone.ContactAddress], input: GemContactAddressInput) -> [Gemstone.ContactAddress] {
+        service.addAddress(addresses: addresses, input: input)
+    }
+
+    public func defaultChain() -> Gemstone.Chain {
+        service.defaultChain()
+    }
+}
+
+public final class GemContactStoreMock: GemContactStore, @unchecked Sendable {
+    public init() {}
+
+    public func getAddresses(contactId _: String) async throws -> [Gemstone.ContactAddress] { [] }
+
+    public func saveContact(contact _: Gemstone.Contact, addresses _: [Gemstone.ContactAddress]) async throws {}
+
+    public func updateContact(contact _: Gemstone.Contact, addresses _: [Gemstone.ContactAddress], deleteAddressIds _: [String]) async throws {}
+
+    public func deleteContact(contactId _: String) async throws {}
+}
+
+public final class GemAddressStoreMock: GemAddressStore, @unchecked Sendable {
+    public init() {}
+
+    public func getAddressName(chain _: Gemstone.Chain, address _: String) throws -> Gemstone.AddressName? { nil }
+
+    public func saveAddressNames(names _: [Gemstone.AddressName]) async throws {}
+
+    public func deleteAddressNames(names _: [Gemstone.AddressName]) async throws {}
+}
+
+public final class GemFileStoreMock: GemFileStore, @unchecked Sendable {
+    public init() {}
+
+    public func saveFile(data _: Data, extension _: String) throws -> String { "" }
+
+    public func saveNamedFile(data _: Data, fileName: String) throws -> String { fileName }
+
+    public func exists(fileName _: String) -> Bool { false }
+
+    public func path(fileName: String) -> String { fileName }
+
+    public func remove(fileName _: String) throws {}
 }
 
 public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Sendable {
@@ -164,10 +304,14 @@ public final class GemFiatServiceMock: GemFiatServiceProtocol, @unchecked Sendab
         self.quotes = quotes
     }
 
+    public func quoteDebounceMilliseconds() -> UInt64 { 250 }
+
+    public func quoteRefreshIntervalMilliseconds() -> UInt64 { 300_000 }
+
     public func syncTransactions(walletId _: String) async throws {}
 
     public func getQuotes(walletId _: String, quoteType _: Gemstone.FiatQuoteType, assetId _: String, amount _: Double, currency _: String) async throws -> [Gemstone.FiatQuote] {
-        try quotes.map { try $0.json() }
+        quotes.map { $0.json() }
     }
 
     public func getQuoteUrl(walletId _: String, quoteId _: String) async throws -> Gemstone.FiatQuoteUrl {
@@ -177,6 +321,7 @@ public final class GemFiatServiceMock: GemFiatServiceProtocol, @unchecked Sendab
 }
 
 public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendable {
+    private let recipientService = GemRecipientService()
     private let addressNames: [Primitives.AddressName]
     private let nameRecord: Primitives.NameRecord?
     private let error: Error?
@@ -198,22 +343,42 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
         name.split(separator: ".").count >= 2
     }
 
+    public func addressName(chain: String, address: String) throws -> Gemstone.AddressName? {
+        try addressNames.first { $0.chain.rawValue == chain && $0.address == address }?.json()
+    }
+
+    public func recipients() -> GemRecipientService {
+        recipientService
+    }
+
     public func getAddressNames(requests: [Gemstone.ChainAddress]) async throws -> [Gemstone.AddressName] {
         if error != nil { return [] }
         let requested = try requests.map { try Primitives.ChainAddress($0) }
         return try addressNames
             .filter { name in requested.contains { $0.chain == name.chain && $0.address == name.address } }
-            .map { try $0.json() }
+            .map { $0.json() }
     }
 }
 
 public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchecked Sendable {
-    private let allTimeHigh: ChartValuePercentage?
-    private let allTimeLow: ChartValuePercentage?
+    private let allTimeHigh: Primitives.ChartValuePercentage?
+    private let allTimeLow: Primitives.ChartValuePercentage?
 
-    public init(allTimeHigh: ChartValuePercentage? = nil, allTimeLow: ChartValuePercentage? = nil) {
+    public init(allTimeHigh: Primitives.ChartValuePercentage? = nil, allTimeLow: Primitives.ChartValuePercentage? = nil) {
         self.allTimeHigh = allTimeHigh
         self.allTimeLow = allTimeLow
+    }
+
+    public func syncWalletValues(walletId _: Gemstone.WalletId, period _: Gemstone.ChartPeriod, currency _: Gemstone.Currency) async throws -> GemPortfolioValues {
+        try GemPortfolioValues(values: [], allTimeHigh: allTimeHigh?.json(), allTimeLow: allTimeLow?.json())
+    }
+
+    public func portfolioData(input _: Gemstone.GemPortfolioDataInput) async throws -> Gemstone.PortfolioData {
+        try Primitives.PortfolioData(
+            charts: [PortfolioChartData(chartType: .value, values: [])],
+            statistics: [allTimeHigh.map { .allTimeHigh($0) }, allTimeLow.map { .allTimeLow($0) }].compactMap(\.self),
+            availablePeriods: [.day, .week, .month, .year, .all],
+        ).json()
     }
 
     public func getAssets(period _: Gemstone.ChartPeriod, request _: Gemstone.PortfolioAssetsRequest) async throws -> Gemstone.PortfolioAssets {
@@ -227,9 +392,83 @@ public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchec
 
 public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Sendable {
     private let earnData: String
+    private let stakeBalanceShown: Bool
+    private let stakedValue: Gemstone.GemBigInt
+    private let rewardsShown: Bool
+    private let completionDateShown: Bool
+    private let claimable: Bool
+    private let explorerAddress: String?
+    private let actions: [Gemstone.GemDelegationAction]
+    private let validators: [Gemstone.DelegationValidator]
 
-    public init(earnData: String = "{}") {
+    public init(
+        earnData: String = "{}",
+        stakeBalanceShown: Bool = false,
+        stakedValue: Gemstone.GemBigInt = "0",
+        rewardsShown: Bool = false,
+        completionDateShown: Bool = false,
+        claimable: Bool = false,
+        explorerAddress: String? = nil,
+        actions: [Gemstone.GemDelegationAction] = [],
+        validators: [Gemstone.DelegationValidator] = [],
+    ) {
         self.earnData = earnData
+        self.stakeBalanceShown = stakeBalanceShown
+        self.stakedValue = stakedValue
+        self.rewardsShown = rewardsShown
+        self.completionDateShown = completionDateShown
+        self.claimable = claimable
+        self.explorerAddress = explorerAddress
+        self.actions = actions
+        self.validators = validators
+    }
+
+    public func delegationActions(walletType _: Gemstone.GemWalletType, chain _: Gemstone.Chain, provider _: Gemstone.StakeProviderType, state _: Gemstone.DelegationState) -> [Gemstone.GemDelegationAction] {
+        actions
+    }
+
+    public func canClaimDelegationRewards(walletType _: Gemstone.GemWalletType, chain _: Gemstone.Chain, state _: Gemstone.DelegationState, rewards _: String) -> Bool {
+        claimable
+    }
+
+    public func validatorExplorerAddress(validator _: Gemstone.DelegationValidator) -> String? {
+        explorerAddress
+    }
+
+    public func showsCompletionDate(state _: Gemstone.DelegationState) -> Bool {
+        completionDateShown
+    }
+
+    public func showsRewards(state _: Gemstone.DelegationState, rewards _: String) -> Bool {
+        rewardsShown
+    }
+
+    public func canClaimStakeRewards(chain _: Gemstone.Chain, rewardsValue _: String) -> Bool {
+        claimable
+    }
+
+    public func requiresFrozenBalance(chain _: Gemstone.Chain, frozenValue _: String) -> Bool {
+        false
+    }
+
+    public func recommendedValidatorIds(chain _: Gemstone.Chain) -> [String] {
+        validators.map { $0 }
+    }
+
+    public func recommendedValidator(chain _: Gemstone.Chain, validators _: [Gemstone.DelegationValidator]) -> Gemstone.DelegationValidator? {
+        self.validators.first
+    }
+
+    public func selectableValidators(validators _: [Gemstone.DelegationValidator]) -> [Gemstone.DelegationValidator] {
+        self.validators
+    }
+
+    public func stakedValue(chain _: Gemstone.Chain, balance _: Gemstone.GemStakeBalance) -> Gemstone.GemBigInt {
+        stakedValue
+    }
+
+    public func showsStakeBalance(chain _: Gemstone.Chain, isStakeEnabled _: Bool, balance _: Gemstone.GemStakeBalance) -> Bool {
+        stakeBalanceShown
     }
 
     public func sync(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws {}
@@ -243,51 +482,77 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
 
 public final class GemTransactionStateServiceMock: GemTransactionStateServiceProtocol, @unchecked Sendable {
     private let store: (any GemTransactionStateStore)?
-    private let update: @Sendable (String, Gemstone.Transaction) async throws -> GemTransactionStateResult?
+    private let notificationAsset: Gemstone.Asset?
 
-    public init(store: (any GemTransactionStateStore)? = nil, update: @escaping @Sendable (String, Gemstone.Transaction) async throws -> GemTransactionStateResult?) {
+    public init(store: (any GemTransactionStateStore)? = nil, notificationAsset: Gemstone.Asset? = nil) {
         self.store = store
-        self.update = update
+        self.notificationAsset = notificationAsset
     }
 
-    public func update(walletId: String, transaction: Gemstone.Transaction) async throws -> GemTransactionStateResult? {
-        try await update(walletId, transaction)
-    }
+    public func trackPending() async throws {}
 
-    public func pendingTransactions() async throws -> [GemPendingTransaction] {
-        try await store?.getPendingTransactions() ?? []
-    }
+    public func track(walletId _: Gemstone.WalletId, transactions _: [Gemstone.Transaction]) async throws {}
 
-    public func getTransaction(walletId: Gemstone.WalletId, transactionId: Gemstone.TransactionId) async throws -> GemPendingTransaction? {
-        try await store?.getTransaction(walletId: walletId, transactionId: transactionId)
-    }
+    public func stopTracking() {}
 
-    public func addTransactions(walletId: Gemstone.WalletId, transactions: [Gemstone.Transaction]) async throws {
-        try await store?.addTransactions(walletId: walletId, transactions: transactions)
+    public func addNotificationTransaction(wallet _: Gemstone.Wallet, assetId _: Gemstone.AssetId, transaction: Gemstone.Transaction) async throws -> Gemstone.Asset? {
+        if let store {
+            try await store.addTransactions(walletId: "", transactions: [transaction])
+        }
+        return notificationAsset
     }
-
-    public func enableTransactionAssets(walletId _: Gemstone.WalletId, transactions _: [Gemstone.Transaction], currency _: Gemstone.Currency) async throws {}
 }
 
 public final class GemBalanceServiceMock: GemBalanceServiceProtocol, @unchecked Sendable {
     private let onUpdate: @Sendable (String, [Gemstone.AssetId]) async -> Void
+    private let onSetAssetsEnabled: (@Sendable (String, [Gemstone.AssetId], Bool) async throws -> Void)?
+    private let onSetAssetPinned: (@Sendable (String, Gemstone.AssetId, Bool) async throws -> Void)?
+    private let assetBalances: [GemAssetBalance]
 
-    public init(onUpdate: @escaping @Sendable (String, [Gemstone.AssetId]) async -> Void = { _, _ in }) {
+    public init(
+        onUpdate: @escaping @Sendable (String, [Gemstone.AssetId]) async -> Void = { _, _ in },
+        onSetAssetsEnabled: (@Sendable (String, [Gemstone.AssetId], Bool) async throws -> Void)? = nil,
+        onSetAssetPinned: (@Sendable (String, Gemstone.AssetId, Bool) async throws -> Void)? = nil,
+        assetBalances: [GemAssetBalance] = [],
+    ) {
         self.onUpdate = onUpdate
+        self.onSetAssetsEnabled = onSetAssetsEnabled
+        self.onSetAssetPinned = onSetAssetPinned
+        self.assetBalances = assetBalances
+    }
+
+    public func balances(walletId: String, assetIds: [Gemstone.AssetId]) throws -> [GemAssetBalance] {
+        assetBalances.filter { assetIds.contains($0.assetId) }
     }
 
     public func update(walletId: String, assetIds: [Gemstone.AssetId]) async throws {
         await onUpdate(walletId, assetIds)
     }
 
-    public func enableAssets(walletId _: String, assetIds _: [Gemstone.AssetId], enabled _: Bool, currency _: Gemstone.Currency) async throws {}
+    public func setAssetsEnabled(walletId: String, assetIds: [Gemstone.AssetId], enabled: Bool) async throws {
+        try await onSetAssetsEnabled?(walletId, assetIds, enabled)
+    }
 
-    public func pinAsset(walletId _: String, assetId _: Gemstone.AssetId, pinned _: Bool, currency _: Gemstone.Currency) async throws {}
+    public func setAssetPinned(walletId: String, assetId: Gemstone.AssetId, pinned: Bool) async throws {
+        try await onSetAssetPinned?(walletId, assetId, pinned)
+    }
+}
+
+public extension GemBalanceServiceProtocol where Self == GemBalanceServiceMock {
+    static func mock(
+        onSetAssetsEnabled: (@Sendable (String, [Gemstone.AssetId], Bool) async throws -> Void)? = nil,
+        onSetAssetPinned: (@Sendable (String, Gemstone.AssetId, Bool) async throws -> Void)? = nil,
+    ) -> GemBalanceServiceMock {
+        GemBalanceServiceMock(onSetAssetsEnabled: onSetAssetsEnabled, onSetAssetPinned: onSetAssetPinned)
+    }
 }
 
 public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchecked Sendable {
+    public var autocloseSummary: GemAutocloseSummary?
+    public var isPerpetualEnabled = true
     public private(set) var syncMarketsCount = 0
     public private(set) var clearMarketsCount = 0
+    public var connectionFailures = 0
     private var updatedAt: Int64?
 
     public init(marketsUpdatedAt: Int64? = nil) {
@@ -298,7 +563,36 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         updatedAt
     }
 
-    public func syncMarkets(chain _: Gemstone.Chain, currency _: Gemstone.Currency) async throws {
+    public func autocloseSummary(data _: Gemstone.PerpetualModifyConfirmData) -> GemAutocloseSummary? {
+        autocloseSummary
+    }
+
+    public func collateralAssetId(chain _: Gemstone.Chain) -> Gemstone.AssetId? {
+        .none
+    }
+
+    public func syncEnablement(wallet: Gemstone.Wallet?, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
+        if isPerpetualEnabled {
+            _ = try await syncMarketsIfNeeded(chain: "hypercore", trigger: trigger)
+        } else {
+            try await clearMarkets()
+        }
+        return shouldConnectPerpetuals(wallet: wallet)
+    }
+
+    public func shouldConnectPerpetuals(wallet: Gemstone.Wallet?) -> Bool {
+        isPerpetualEnabled && (wallet.flatMap { try? Primitives.Wallet($0).hasPerpetualsSupport } ?? false)
+    }
+
+    public func syncMarketsIfNeeded(chain: Gemstone.Chain, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
+        if trigger == .scheduled, updatedAt != nil {
+            return false
+        }
+        try await syncMarkets(chain: chain)
+        return true
+    }
+
+    public func syncMarkets(chain _: Gemstone.Chain) async throws {
         syncMarketsCount += 1
         updatedAt = Int64(Date().timeIntervalSince1970)
     }
@@ -308,23 +602,49 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         updatedAt = nil
     }
 
-    public func syncPositions(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws {}
+    public func syncPositions(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws -> Gemstone.PerpetualAccountMode {
+        Primitives.PerpetualAccountMode.standard.json()
+    }
+
+    public func connection(wallet: Gemstone.Wallet) async throws -> Gemstone.GemPerpetualConnection? {
+        if connectionFailures > 0 {
+            connectionFailures -= 1
+            throw AnyError("connection unavailable")
+        }
+        guard let account = try Primitives.Wallet(wallet).hyperliquidAccount else { return nil }
+        return try Gemstone.GemPerpetualConnection(
+            address: account.address,
+            mode: Primitives.PerpetualAccountMode.standard.json(),
+        )
+    }
 
     public func setPinned(perpetualId _: String, pinned _: Bool) async throws {}
+
+    public func getCandlesticks(chain _: Gemstone.Chain, symbol _: String, period _: Gemstone.ChartPeriod) async throws -> [Gemstone.ChartCandleStick] { [] }
+
+    public func candleInterval(period _: Gemstone.ChartPeriod) -> String { "" }
+
+    public func mergeCandle(candles: [Gemstone.ChartCandleStick], candle: Gemstone.ChartCandleStick) -> [Gemstone.ChartCandleStick] {
+        candles + [candle]
+    }
+
+    public func getPortfolio(chain _: Gemstone.Chain, address _: String) async throws -> Gemstone.PerpetualPortfolio {
+        try Primitives.PerpetualPortfolio(day: nil, week: nil, month: nil, allTime: nil, accountSummary: nil).json()
+    }
 
     public func applySocketMessage(walletId _: String, mode _: Gemstone.PerpetualAccountMode, data _: Data) async throws -> Gemstone.GemPerpetualSocketUpdate {
         .applied
     }
 
     public func accountMode(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws -> Gemstone.PerpetualAccountMode {
-        try Primitives.PerpetualAccountMode.standard.json()
+        Primitives.PerpetualAccountMode.standard.json()
     }
 }
 
 public final class GemAssetDiscoveryServiceMock: GemAssetDiscoveryServiceProtocol, @unchecked Sendable {
     public init() {}
 
-    public func discover(walletId _: String, currency _: Gemstone.Currency) async throws -> [Gemstone.AssetId] {
+    public func discover(walletId _: String) async throws -> [Gemstone.AssetId] {
         []
     }
 }
@@ -392,25 +712,25 @@ public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Se
         stored
     }
 
-    public func activeEvents(walletId _: Gemstone.WalletId?, assetId _: Gemstone.AssetId?, context _: GemBannerContext) async throws -> [Gemstone.BannerEvent] {
-        []
+    public func showsOnboarding(state _: Gemstone.BannerState, isWalletEmpty: Bool) -> Bool {
+        isWalletEmpty
     }
 
     public func close(key: GemBannerKey) async throws {
         closedKeys.append(key)
     }
 
-    public func closesOnAction(event _: Gemstone.BannerEvent) -> Bool {
-        false
-    }
-
-    public func handleAction(key _: GemBannerKey, action: GemBannerAction) async throws {
+    public func applyAction(key _: GemBannerKey, action: GemBannerAction) async throws {
         handledActions.append(action)
     }
 
     public func setup() async throws {}
 
     public func setupWallet(wallet _: Gemstone.Wallet) async throws {}
+
+    public func bannerContent(event _: Gemstone.BannerEvent, asset _: Gemstone.Asset?) -> GemBannerContent {
+        GemBannerContent(icon: .none, title: .none, description: .none)
+    }
 }
 
 public final class GemSearchServiceMock: GemSearchServiceProtocol, @unchecked Sendable {
@@ -425,7 +745,7 @@ public final class GemSearchServiceMock: GemSearchServiceProtocol, @unchecked Se
     }
 
     public func searchAssets(wallet _: Gemstone.Wallet, query _: String, currency _: Gemstone.Currency) async throws -> [Gemstone.AssetBasic] {
-        try assets.map { try $0.json() }
+        assets.map { $0.json() }
     }
 }
 
@@ -457,7 +777,7 @@ public final class GemWalletPreferencesStoreMock: GemWalletPreferencesStore, @un
 
     public init() {}
 
-    public func get(walletId: Gemstone.WalletId, key: String) throws -> String? {
+    public func get(walletId: Gemstone.WalletId, key: String) -> String? {
         lock.withLock { values["\(walletId):\(key)"] }
     }
 
@@ -465,7 +785,7 @@ public final class GemWalletPreferencesStoreMock: GemWalletPreferencesStore, @un
         lock.withLock { values["\(walletId):\(key)"] = value }
     }
 
-    public func clear(walletId: Gemstone.WalletId) throws {
+    public func deletePreferences(walletId: Gemstone.WalletId) throws {
         lock.withLock { values = values.filter { !$0.key.hasPrefix("\(walletId):") } }
     }
 }

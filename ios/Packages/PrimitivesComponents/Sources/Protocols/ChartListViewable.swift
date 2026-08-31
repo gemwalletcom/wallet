@@ -9,7 +9,7 @@ public protocol ChartListViewable: AnyObject, Observable {
     var chartState: StateViewType<ChartValuesViewModel> { get }
     var selectedPeriod: ChartPeriod { get set }
     var periods: [ChartPeriod] { get }
-    func fetch() async
+    func load() async
 }
 
 public extension ChartListViewable {

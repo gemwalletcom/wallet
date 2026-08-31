@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.list_item.transaction
 
+import androidx.annotation.StringRes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -12,34 +13,54 @@ import com.gemwallet.android.ui.components.statusColor
 import com.gemwallet.android.ui.components.statusLabelRes
 import com.gemwallet.android.ui.components.titleRes
 import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.decodeJsonOrNull
+import uniffi.gemstone.GemAmountSign
+import uniffi.gemstone.GemTransactionSubtitle
+import uniffi.gemstone.GemTransactionTitle
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
-import com.wallet.core.primitives.TransactionDirection
-import com.wallet.core.primitives.TransactionState
+import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionType
 
 private val usdFiatFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
 
 @Composable
-fun TransactionDataAggregate.getTitle(): String =
-    perpetualTitle(type, perpetualDirection) ?: stringResource(type.getTitle(direction, state))
+fun TransactionDataAggregate.getTitle(): String = title.string()
 
 @Composable
-fun TransactionDetailsAggregate.getTitle(): String =
-    perpetualTitle(type, perpetualDirection) ?: stringResource(type.getTitle(direction, state))
+fun TransactionDetailsAggregate.getTitle(): String = title.string()
 
 @Composable
-private fun perpetualTitle(type: TransactionType, direction: PerpetualDirection?): String? {
-    val side = when (direction) {
+fun GemTransactionTitle.string(): String = when (this) {
+    GemTransactionTitle.Received -> stringResource(R.string.transaction_title_received)
+    GemTransactionTitle.Sent -> stringResource(R.string.transaction_title_sent)
+    GemTransactionTitle.Transfer -> stringResource(R.string.transfer_title)
+    GemTransactionTitle.SmartContract -> stringResource(R.string.transfer_smart_contract_title)
+    GemTransactionTitle.Swap -> stringResource(R.string.wallet_swap)
+    GemTransactionTitle.Approve -> stringResource(R.string.transfer_approve_title)
+    GemTransactionTitle.Stake -> stringResource(R.string.transfer_stake_title)
+    GemTransactionTitle.Unstake -> stringResource(R.string.transfer_unstake_title)
+    GemTransactionTitle.Redelegate -> stringResource(R.string.transfer_redelegate_title)
+    GemTransactionTitle.Rewards -> stringResource(R.string.transfer_rewards_title)
+    GemTransactionTitle.Withdraw -> stringResource(R.string.transfer_withdraw_title)
+    GemTransactionTitle.ActivateAsset -> stringResource(R.string.transfer_activate_asset_title)
+    GemTransactionTitle.Freeze -> stringResource(R.string.transfer_freeze_title)
+    GemTransactionTitle.Unfreeze -> stringResource(R.string.transfer_unfreeze_title)
+    GemTransactionTitle.Earn -> stringResource(R.string.common_earn)
+    is GemTransactionTitle.PerpetualOpen -> perpetualTitle(direction, R.string.perpetual_open_direction, R.string.perpetual_position)
+    is GemTransactionTitle.PerpetualClose -> perpetualTitle(direction, R.string.perpetual_close_direction, R.string.perpetual_close_position)
+    GemTransactionTitle.PerpetualModify -> stringResource(R.string.perpetual_modify)
+}
+
+@Composable
+private fun perpetualTitle(direction: String?, @StringRes directionTitle: Int, @StringRes fallback: Int): String {
+    val side = when (direction?.decodeJsonOrNull<PerpetualDirection>()) {
         PerpetualDirection.Long -> stringResource(R.string.perpetual_long)
         PerpetualDirection.Short -> stringResource(R.string.perpetual_short)
-        null -> stringResource(R.string.perpetual_position)
+        null -> return stringResource(fallback)
     }
-    return when (type) {
-        TransactionType.PerpetualOpenPosition -> stringResource(R.string.perpetual_open_direction, side)
-        TransactionType.PerpetualClosePosition -> stringResource(R.string.perpetual_close_direction, side)
-        else -> null
-    }
+    return stringResource(directionTitle, side)
 }
 
 @Composable
@@ -50,90 +71,27 @@ fun TransactionDataAggregate.getBadgeText(): String =
 fun TransactionDataAggregate.getBadgeColor(): Color = state.statusColor()
 
 @Composable
-fun TransactionDataAggregate.formatAddress(): String? = when (type) {
-    TransactionType.TransferNFT,
-    TransactionType.Transfer,
-    TransactionType.TokenApproval,
-    TransactionType.SmartContractCall -> {
-        val displayAddress = addressName ?: address
-        when (direction) {
-            TransactionDirection.SelfTransfer,
-            TransactionDirection.Outgoing -> "${stringResource(id = R.string.transfer_to)} $displayAddress"
-            TransactionDirection.Incoming -> "${stringResource(id = R.string.transfer_from)} $displayAddress"
-        }
-    }
-    TransactionType.StakeDelegate,
-    TransactionType.StakeRedelegate,
-    TransactionType.EarnDeposit -> (addressName ?: address)
-        .takeIf { it.isNotEmpty() }
-        ?.let { "${stringResource(id = R.string.transfer_to)} $it" }
-    TransactionType.StakeUndelegate,
-    TransactionType.EarnWithdraw -> (addressName ?: address)
-        .takeIf { it.isNotEmpty() }
-        ?.let { "${stringResource(id = R.string.transfer_from)} $it" }
-    TransactionType.PerpetualOpenPosition,
-    TransactionType.PerpetualClosePosition,
-    TransactionType.PerpetualModifyPosition -> perpetualPrice?.let {
-        "${stringResource(R.string.asset_price)}: ${usdFiatFormatter.string(it)}"
-    }
-    TransactionType.StakeFreeze -> resourceType?.let {
-        "${stringResource(id = R.string.transfer_to)} ${stringResource(it.titleRes())}"
-    }
-    TransactionType.StakeUnfreeze -> resourceType?.let {
-        "${stringResource(id = R.string.transfer_from)} ${stringResource(it.titleRes())}"
-    }
-    TransactionType.Swap,
-    TransactionType.StakeWithdraw,
-    TransactionType.AssetActivation,
-    TransactionType.StakeRewards,
-        -> null
+fun TransactionDataAggregate.formatAddress(): String? = when (val subtitle = subtitle) {
+    is GemTransactionSubtitle.ToAddress -> prefixed(R.string.transfer_to, addressName ?: address)
+    is GemTransactionSubtitle.FromAddress -> prefixed(R.string.transfer_from, addressName ?: address)
+    is GemTransactionSubtitle.ToResource -> prefixed(R.string.transfer_to, stringResource(subtitle.resource.decodeJson<Resource>().titleRes()))
+    is GemTransactionSubtitle.FromResource -> prefixed(R.string.transfer_from, stringResource(subtitle.resource.decodeJson<Resource>().titleRes()))
+    is GemTransactionSubtitle.Price -> "${stringResource(R.string.asset_price)}: ${usdFiatFormatter.string(subtitle.value)}"
+    GemTransactionSubtitle.None -> null
 }
 
 @Composable
-fun TransactionDataAggregate.getValueColor(): Color = when (type) {
-    TransactionType.Swap -> MaterialTheme.colorScheme.tertiary
-    TransactionType.PerpetualClosePosition -> when {
+private fun prefixed(@StringRes prefix: Int, value: String): String? =
+    value.takeIf { it.isNotEmpty() }?.let { "${stringResource(prefix)} $it" }
+
+@Composable
+fun TransactionDataAggregate.getValueColor(): Color = when {
+    type == TransactionType.PerpetualClosePosition -> when {
         (pnl ?: 0.0) > 0 -> MaterialTheme.colorScheme.tertiary
         (pnl ?: 0.0) < 0 -> MaterialTheme.colorScheme.error
         else -> MaterialTheme.colorScheme.onSurface
     }
-    else -> when (direction) {
-        TransactionDirection.SelfTransfer,
-        TransactionDirection.Outgoing -> MaterialTheme.colorScheme.onSurface
-        TransactionDirection.Incoming -> MaterialTheme.colorScheme.tertiary
-    }
+    valueSign == GemAmountSign.INCOMING -> MaterialTheme.colorScheme.tertiary
+    else -> MaterialTheme.colorScheme.onSurface
 }
 
-// TODO: Deprecating it
-fun TransactionType.getTitle(direction: TransactionDirection? = null, state: TransactionState? = null): Int {
-    return when (this) {
-        TransactionType.EarnDeposit,
-        TransactionType.StakeDelegate -> R.string.transfer_stake_title
-        TransactionType.EarnWithdraw,
-        TransactionType.StakeWithdraw -> R.string.transfer_withdraw_title
-        TransactionType.StakeUndelegate -> R.string.transfer_unstake_title
-        TransactionType.StakeRedelegate -> R.string.transfer_redelegate_title
-        TransactionType.StakeRewards -> R.string.transfer_rewards_title
-        TransactionType.Transfer,
-        TransactionType.TransferNFT -> when (state) {
-            TransactionState.Failed,
-            TransactionState.Reverted,
-            TransactionState.Pending -> R.string.transfer_title
-            TransactionState.Confirmed -> when (direction) {
-                TransactionDirection.Incoming -> R.string.transaction_title_received
-                else -> R.string.transaction_title_sent
-            }
-            else -> R.string.transfer_send_title
-        }
-
-        TransactionType.Swap -> R.string.wallet_swap
-        TransactionType.TokenApproval -> R.string.transfer_approve_title
-        TransactionType.AssetActivation -> R.string.transfer_activate_asset_title
-        TransactionType.SmartContractCall -> R.string.transfer_smart_contract_title
-        TransactionType.PerpetualOpenPosition -> R.string.perpetual_position
-        TransactionType.PerpetualClosePosition -> R.string.perpetual_close_position
-        TransactionType.StakeFreeze -> R.string.transfer_freeze_title
-        TransactionType.StakeUnfreeze -> R.string.transfer_unfreeze_title
-        TransactionType.PerpetualModifyPosition -> R.string.perpetual_modify
-    }
-}

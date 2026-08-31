@@ -1,10 +1,10 @@
 use std::error::Error;
 
 use api_connector::PusherClient;
-use chrono::NaiveDateTime;
+use cacher::{CacherClient, GLOBAL_RATE_LIMIT_SCOPE, RateLimiter};
 use gem_rewards::{IpSecurityClient, ReferralError, RewardsError, RiskScoreConfig, RiskScoringInput, UsernameError, evaluate_risk};
 use primitives::rewards::{RewardRedemptionOption, RewardStatus};
-use primitives::{ConfigKey, Localize, NaiveDateTimeExt, Platform, ReferralLeaderboard, RewardEvent, Rewards, WalletId, now};
+use primitives::{ConfigKey, Localize, NaiveDateTimeExt, Platform, RateLimitKey, RateLimitWindow, ReferralLeaderboard, RewardEvent, Rewards, WalletId, now};
 use storage::models::DeviceRow;
 use storage::{
     ConfigCacher, Database, NewWalletRow, ReferralValidationError, RewardsRedemptionsRepository, RewardsRepository, RiskSignalsRepository, WalletSource, WalletType,
@@ -18,14 +18,9 @@ enum ReferralProcessResult {
     RiskScoreExceeded(i32, ReferralError),
 }
 
-struct ReferralLimitsConfig {
+struct ReferralSecurityConfig {
     tor_allowed: bool,
     ineligible_countries: Vec<String>,
-    daily_limit: i64,
-    device_daily_limit: i64,
-    ip_daily_limit: i64,
-    ip_weekly_limit: i64,
-    country_daily_limit: i64,
 }
 
 fn referrer_multiplier(config: &ConfigCacher, status: &RewardStatus) -> Result<i64, storage::DatabaseError> {
@@ -41,17 +36,19 @@ pub struct RewardsClient {
     config: ConfigCacher,
     stream_producer: StreamProducer,
     ip_security_client: IpSecurityClient,
+    rate_limiter: RateLimiter,
     pusher: PusherClient,
 }
 
 impl RewardsClient {
-    pub fn new(database: Database, stream_producer: StreamProducer, ip_security_client: IpSecurityClient, pusher: PusherClient) -> Self {
+    pub fn new(database: Database, cacher: CacherClient, stream_producer: StreamProducer, ip_security_client: IpSecurityClient, pusher: PusherClient) -> Self {
         let config = ConfigCacher::new(database.clone());
         Self {
             db: database,
             config,
             stream_producer,
             ip_security_client,
+            rate_limiter: RateLimiter::new(cacher),
             pusher,
         }
     }
@@ -87,20 +84,13 @@ impl RewardsClient {
     pub async fn create_username(&self, wallet_identifier: &str, code: &str, device_id: i32, ip_address: &str, locale: &str) -> Result<Rewards, Box<dyn Error + Send + Sync>> {
         let wallet = self.db.wallets()?.get_wallet(wallet_identifier)?;
 
-        let global_daily_limit = self.config.get_i64(ConfigKey::UsernameCreationGlobalDailyLimit)?;
-        let ip_limit = self.config.get_i64(ConfigKey::UsernameCreationPerIp)?;
-        let device_limit = self.config.get_i64(ConfigKey::UsernameCreationPerDevice)?;
-        let country_daily_limit = self.config.get_i64(ConfigKey::UsernameCreationPerCountryDailyLimit)?;
-
-        self.ip_security_client
-            .check_username_creation_limits(ip_address, device_id, global_daily_limit, ip_limit, device_limit)
+        self.consume_username_creation_limits(ip_address, device_id)
             .await
             .map_err(|e| self.map_username_error(e, locale))?;
 
         let ip_result = self.ip_security_client.check_ip(ip_address).await?;
 
-        self.ip_security_client
-            .check_username_creation_country_limit(&ip_result.country_code, country_daily_limit)
+        self.consume_username_creation_limit(RateLimitKey::UsernameCreationPerCountryLimit, &ip_result.country_code)
             .await
             .map_err(|e| self.map_username_error(e, locale))?;
 
@@ -109,9 +99,28 @@ impl RewardsClient {
             .rewards()?
             .create_reward(wallet.id, code)
             .map_err(|e| RewardsError::Username(UsernameError::Validation(e).localize(locale)))?;
-        self.ip_security_client.record_username_creation(&ip_result.country_code, ip_address, device_id).await?;
         self.publish_events(vec![event_id]).await?;
         Ok(rewards)
+    }
+
+    async fn consume_username_creation_limits(&self, ip_address: &str, device_id: i32) -> Result<(), Box<dyn Error + Send + Sync>> {
+        let device_id = device_id.to_string();
+        for (key, scope) in [
+            (RateLimitKey::UsernameCreationGlobalLimit, GLOBAL_RATE_LIMIT_SCOPE),
+            (RateLimitKey::UsernameCreationPerIpLimit, ip_address),
+            (RateLimitKey::UsernameCreationPerDeviceLimit, device_id.as_str()),
+        ] {
+            self.consume_username_creation_limit(key, scope).await?;
+        }
+        Ok(())
+    }
+
+    async fn consume_username_creation_limit(&self, key: RateLimitKey, scope: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
+        if self.consume_rate_limit(key, scope).await? {
+            Ok(())
+        } else {
+            Err(UsernameError::LimitReached(key).into())
+        }
     }
 
     pub async fn use_referral_code(
@@ -197,6 +206,14 @@ impl RewardsClient {
         ip_address: &str,
         user_agent: &str,
     ) -> Result<ReferralProcessResult, ReferralError> {
+        let device_id = device.id.to_string();
+        self.consume_referral_limits([
+            (RateLimitKey::ReferralGlobalLimit, GLOBAL_RATE_LIMIT_SCOPE),
+            (RateLimitKey::ReferralPerDeviceLimit, device_id.as_str()),
+            (RateLimitKey::ReferralPerIpLimit, ip_address),
+        ])
+        .await?;
+
         let referrer_info;
         {
             let mut client = self.db.client()?;
@@ -209,13 +226,14 @@ impl RewardsClient {
             let multiplier = referrer_multiplier(&self.config, &referrer_info.status)?;
             let current = now();
             let cooldown = self.config.get_duration(ConfigKey::ReferralCooldown)?;
+            let limits = self.config.get_rate_limit(RateLimitKey::ReferralPerUserLimit)?;
 
-            self.check_referrer_rate_limit(&mut client, referrer_username, current.days_ago(7), ConfigKey::ReferralPerUserWeekly, multiplier)?;
-            self.check_referrer_rate_limit(&mut client, referrer_username, current.days_ago(1), ConfigKey::ReferralPerUserDaily, multiplier)?;
-            self.check_referrer_rate_limit(&mut client, referrer_username, current.hours_ago(1), ConfigKey::ReferralPerUserHourly, multiplier)?;
+            for window in RateLimitWindow::ALL {
+                self.check_referrer_rate_limit(&mut client, referrer_username, current.ago(window.duration()), limits.get(window) * multiplier)?;
+            }
 
             if client.rewards().count_referrals_since(referrer_username, current.ago(cooldown))? >= 1 {
-                return Err(ReferralError::ReferrerLimitReached(ConfigKey::ReferralCooldown));
+                return Err(ReferralError::ReferrerLimitReached);
             }
 
             let eligibility = self.config.get_duration(ConfigKey::ReferralEligibility)?;
@@ -234,14 +252,23 @@ impl RewardsClient {
         }
 
         let ip_result = self.ip_security_client.check_ip(ip_address).await?;
-        let limits_config = self.load_referral_limits_config()?;
+        let security_config = self.load_referral_security_config()?;
+        if !security_config.tor_allowed && ip_result.is_tor {
+            return Err(ReferralError::IpTorNotAllowed);
+        }
+        if security_config.ineligible_countries.contains(&ip_result.country_code) {
+            return Err(ReferralError::IpCountryIneligible(ip_result.country_code));
+        }
+        self.consume_referral_limits([(RateLimitKey::ReferralPerCountryLimit, ip_result.country_code.as_str())])
+            .await?;
+
         let risk_score_config = self.load_risk_score_config()?;
         let since = now().ago(risk_score_config.lookback);
 
         let mut client = self.db.client()?;
 
         if client.count_disabled_users_by_device(device.id, since)? > 0 {
-            return Err(ReferralError::LimitReached(ConfigKey::ReferralPerDeviceDaily));
+            return Err(ReferralError::LimitReached);
         }
 
         let scoring_input = RiskScoringInput {
@@ -265,33 +292,6 @@ impl RewardsClient {
         if client.has_fingerprint_for_referrer(&fingerprint, referrer_username, since).unwrap_or(false) {
             return Err(ReferralError::DuplicateAttempt);
         }
-
-        if !limits_config.tor_allowed && scoring_input.ip_result.is_tor {
-            return Err(ReferralError::IpTorNotAllowed);
-        }
-
-        if limits_config.ineligible_countries.contains(&scoring_input.ip_result.country_code) {
-            return Err(ReferralError::IpCountryIneligible(scoring_input.ip_result.country_code.clone()));
-        }
-
-        let one_day_ago = now().days_ago(1);
-        self.check_global_rate_limit(&mut client, None, one_day_ago, limits_config.daily_limit, ConfigKey::ReferralUseDailyLimit)?;
-        self.check_device_rate_limit(&mut client, scoring_input.device_id, one_day_ago, limits_config.device_daily_limit)?;
-        self.check_global_rate_limit(
-            &mut client,
-            Some(&scoring_input.ip_result.ip_address),
-            one_day_ago,
-            limits_config.ip_daily_limit,
-            ConfigKey::ReferralPerIpDaily,
-        )?;
-        self.check_global_rate_limit(
-            &mut client,
-            Some(&scoring_input.ip_result.ip_address),
-            now().days_ago(7),
-            limits_config.ip_weekly_limit,
-            ConfigKey::ReferralPerIpWeekly,
-        )?;
-        self.check_country_rate_limit(&mut client, &scoring_input.ip_result.country_code, one_day_ago, limits_config.country_daily_limit)?;
 
         let existing_signals = client.get_matching_risk_signals(
             &fingerprint,
@@ -337,59 +337,33 @@ impl RewardsClient {
         })
     }
 
-    fn check_referrer_rate_limit(
-        &self,
-        client: &mut storage::DatabaseClient,
-        referrer_username: &str,
-        since: NaiveDateTime,
-        key: ConfigKey,
-        multiplier: i64,
-    ) -> Result<(), ReferralError> {
+    fn check_referrer_rate_limit(&self, client: &mut storage::DatabaseClient, referrer_username: &str, since: chrono::NaiveDateTime, limit: i64) -> Result<(), ReferralError> {
         let count = client.rewards().count_referrals_since(referrer_username, since)?;
-        let limit = self.config.get_i64(key.clone())? * multiplier;
         if count >= limit {
-            return Err(ReferralError::ReferrerLimitReached(key));
+            return Err(ReferralError::ReferrerLimitReached);
         }
         Ok(())
     }
 
-    fn check_global_rate_limit(
-        &self,
-        client: &mut storage::DatabaseClient,
-        ip_address: Option<&str>,
-        since: NaiveDateTime,
-        limit: i64,
-        key: ConfigKey,
-    ) -> Result<(), ReferralError> {
-        if client.count_signals_since(ip_address, since)? >= limit {
-            return Err(ReferralError::LimitReached(key));
+    async fn consume_referral_limits<'a>(&self, limits: impl IntoIterator<Item = (RateLimitKey, &'a str)>) -> Result<(), ReferralError> {
+        let mut allowed = true;
+        for (key, scope) in limits {
+            allowed &= self.consume_rate_limit(key, scope).await?;
+        }
+        if !allowed {
+            return Err(ReferralError::LimitReached);
         }
         Ok(())
     }
 
-    fn check_device_rate_limit(&self, client: &mut storage::DatabaseClient, device_id: i32, since: NaiveDateTime, limit: i64) -> Result<(), ReferralError> {
-        if client.count_signals_for_device_id(device_id, since)? >= limit {
-            return Err(ReferralError::LimitReached(ConfigKey::ReferralPerDeviceDaily));
-        }
-        Ok(())
+    async fn consume_rate_limit(&self, key: RateLimitKey, scope: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        self.rate_limiter.consume(key, scope, self.config.get_rate_limit(key)?).await
     }
 
-    fn check_country_rate_limit(&self, client: &mut storage::DatabaseClient, country_code: &str, since: NaiveDateTime, limit: i64) -> Result<(), ReferralError> {
-        if client.count_signals_for_country(country_code, since)? >= limit {
-            return Err(ReferralError::LimitReached(ConfigKey::ReferralPerCountryDaily));
-        }
-        Ok(())
-    }
-
-    fn load_referral_limits_config(&self) -> Result<ReferralLimitsConfig, storage::DatabaseError> {
-        Ok(ReferralLimitsConfig {
+    fn load_referral_security_config(&self) -> Result<ReferralSecurityConfig, storage::DatabaseError> {
+        Ok(ReferralSecurityConfig {
             tor_allowed: self.config.get_bool(ConfigKey::ReferralIpTorAllowed)?,
             ineligible_countries: self.config.get_vec_string(ConfigKey::ReferralIneligibleCountries)?,
-            daily_limit: self.config.get_i64(ConfigKey::ReferralUseDailyLimit)?,
-            device_daily_limit: self.config.get_i64(ConfigKey::ReferralPerDeviceDaily)?,
-            ip_daily_limit: self.config.get_i64(ConfigKey::ReferralPerIpDaily)?,
-            ip_weekly_limit: self.config.get_i64(ConfigKey::ReferralPerIpWeekly)?,
-            country_daily_limit: self.config.get_i64(ConfigKey::ReferralPerCountryDaily)?,
         })
     }
 
@@ -435,7 +409,7 @@ impl RewardsClient {
             velocity_window: self.config.get_duration(ConfigKey::ReferralAbuseVelocityWindow)?,
             velocity_divisor: self.config.get_i64(ConfigKey::ReferralAbuseVelocityDivisor)?,
             velocity_penalty: self.config.get_i64(ConfigKey::ReferralAbuseVelocityPenaltyPerSignal)?,
-            referral_per_user_daily: self.config.get_i64(ConfigKey::ReferralPerUserDaily)?,
+            referral_per_user_daily: self.config.get_rate_limit(RateLimitKey::ReferralPerUserLimit)?.get(RateLimitWindow::Day),
             verified_multiplier: self.config.get_i64(ConfigKey::ReferralVerifiedMultiplier)?,
             trusted_multiplier: self.config.get_i64(ConfigKey::ReferralTrustedMultiplier)?,
             cross_referrer_device_penalty: self.config.get_i64(ConfigKey::ReferralRiskScoreCrossReferrerDevicePenalty)?,

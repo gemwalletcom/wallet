@@ -1,21 +1,20 @@
 package com.gemwallet.android.data.coordinators.wallet
 
 import android.util.Log
-import com.gemwallet.android.application.wallet.coordinators.DeleteWallet
-import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.wallet.cases.DeleteWallet
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemWalletDeletion
 import uniffi.gemstone.GemWalletService
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class DeleteWalletImpl @Inject constructor(
-    private val sessionRepository: SessionRepository,
-    private val deleteKeyStoreOperator: DeleteKeyStoreOperator,
     private val walletService: GemWalletService,
+    private val userConfig: UserConfig,
 ) : DeleteWallet {
 
     override suspend fun deleteWallet(
@@ -23,22 +22,19 @@ class DeleteWalletImpl @Inject constructor(
         onBoard: () -> Unit,
         onComplete: () -> Unit
     ) = withContext(Dispatchers.IO) {
-        if (!deleteKeyStoreOperator(walletId)) {
-            Log.e(TAG, "keystore delete failed for ${walletId.id}; keeping the wallet")
-            return@withContext
-        }
-        val hasWallets = try {
+        val deletion = try {
             walletService.deleteWallet(walletId.id)
         } catch (error: Exception) {
             Log.e(TAG, "wallet removal failed for ${walletId.id}; retry delete to finish", error)
             return@withContext
         }
 
-        val callback: () -> Unit = if (hasWallets) {
-            onComplete
-        } else {
-            sessionRepository.reset()
-            onBoard
+        val callback: () -> Unit = when (deletion) {
+            GemWalletDeletion.WALLETS_REMAINING -> onComplete
+            GemWalletDeletion.LAST_WALLET_DELETED -> {
+                userConfig.reload()
+                onBoard
+            }
         }
 
         withContext(Dispatchers.Main) {

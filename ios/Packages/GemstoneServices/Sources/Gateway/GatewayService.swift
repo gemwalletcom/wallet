@@ -11,12 +11,12 @@ import GemstonePrimitives
 public actor GatewayService: Sendable {
     let gateway: GemGateway
     private let preferences: any GemPreferencesStore
-    private let securePreferences: any GemPreferencesStore
+    private let securePreferences: any GemSecureStore
 
     public init(
         provider: NativeProvider,
         preferences: any GemPreferencesStore,
-        securePreferences: any GemPreferencesStore,
+        securePreferences: any GemSecureStore,
     ) {
         self.preferences = preferences
         self.securePreferences = securePreferences
@@ -31,17 +31,18 @@ public actor GatewayService: Sendable {
         GatewayService(provider: provider, preferences: preferences, securePreferences: securePreferences)
     }
 
-    public nonisolated func stakeService(staticApi: GemStaticApiClient, store: any GemStakeStore) -> GemStakeService {
-        GemStakeService(gateway: gateway, staticApi: staticApi, store: store)
+    public nonisolated func stakeService(staticApi: GemStaticApiClient, store: any GemStakeStore, addressStore: any GemAddressStore) -> GemStakeService {
+        GemStakeService(gateway: gateway, staticApi: staticApi, store: store, addressStore: addressStore)
     }
 
     public nonisolated func transactionStateService(
         store: any GemTransactionStateStore,
+        assets: GemAssetsService,
         balance: GemBalanceService,
         stake: GemStakeService,
         nft: GemNftService,
     ) -> GemTransactionStateService {
-        GemTransactionStateService(gateway: gateway, store: store, balance: balance, stake: stake, nft: nft)
+        GemTransactionStateService(gateway: gateway, store: store, assets: assets, balance: balance, stake: stake, nft: nft)
     }
 
     public nonisolated func balanceService(
@@ -51,8 +52,9 @@ public actor GatewayService: Sendable {
         assets: GemAssetsService,
         price: GemPriceService,
         stream: GemStreamSubscriptionService,
+        preferences: GemPreferencesService,
     ) -> GemBalanceService {
-        GemBalanceService(gateway: gateway, walletStore: walletStore, assetStore: assetStore, store: store, assets: assets, price: price, stream: stream)
+        GemBalanceService(gateway: gateway, walletStore: walletStore, assetStore: assetStore, store: store, assets: assets, price: price, stream: stream, preferences: preferences)
     }
 
     public nonisolated func assetsService(
@@ -67,18 +69,30 @@ public actor GatewayService: Sendable {
     public nonisolated func perpetualService(
         price: GemPriceService,
         store: any GemPerpetualStore,
+        assetStore: any GemAssetStore,
         preferences: GemPreferencesService,
         balance: GemBalanceService,
         walletPreferences: GemWalletPreferencesService,
     ) -> GemPerpetualService {
-        GemPerpetualService(gateway: gateway, price: price, store: store, preferences: preferences, balance: balance, walletPreferences: walletPreferences)
+        GemPerpetualService(
+            gateway: gateway,
+            price: price,
+            store: store,
+            assetStore: assetStore,
+            preferences: preferences,
+            balance: balance,
+            walletPreferences: walletPreferences,
+        )
     }
 
     public nonisolated func confirmService(
         simulation: TransactionSimulationService,
         scanner: GemScanService,
+        transactionState: GemTransactionStateService,
+        balance: GemBalanceService,
+        price: GemPriceService,
     ) -> GemConfirmService {
-        GemConfirmService(gateway: gateway, simulation: simulation, scanner: scanner)
+        GemConfirmService(gateway: gateway, simulation: simulation, scanner: scanner, transactionState: transactionState, balance: balance, price: price)
     }
 }
 
@@ -113,6 +127,10 @@ public extension GatewayService {
     func nodeStatus(chain: Primitives.Chain, url: String) async throws -> Primitives.NodeStatus {
         try await gateway.getNodeStatus(chain: chain.rawValue, url: url).map()
     }
+
+    public func checkNode(chain: Primitives.Chain, url: String) async throws -> Primitives.NodeStatus {
+        try await gateway.checkNode(chain: chain.rawValue, url: url).map()
+    }
 }
 
 // MARK: - Token
@@ -124,14 +142,6 @@ public extension GatewayService {
 
     func isTokenAddress(chain: Primitives.Chain, tokenId: String) async throws -> Bool {
         try await gateway.getIsTokenAddress(chain: chain.rawValue, tokenId: tokenId)
-    }
-}
-
-// MARK: - Transaction Load
-
-public extension GatewayService {
-    func transactionLoad(chain: Primitives.Chain, input: GemTransactionLoadInput) async throws -> TransactionData {
-        try await gateway.getTransactionLoad(chain: chain.rawValue, input: input).map()
     }
 }
 

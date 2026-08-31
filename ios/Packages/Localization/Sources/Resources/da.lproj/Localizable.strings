@@ -18,6 +18,7 @@
 "common.wallet" = "Tegnebog";
 "common.show" = "Vis %@";
 "common.copied" = "Kopieret: %@";
+"common.copied_to_clipboard" = "Kopieret til udklipsholder";
 "common.recommended" = "Anbefales";
 "common.all" = "Alle";
 "common.not_available" = "Ikke tilgængelig";
@@ -175,10 +176,14 @@
 "errors.token.invalid_id" = "Ugyldigt token-id";
 "errors.import.invalid_secret_phrase" = "Ugyldig hemmelig sætning";
 "errors.import.invalid_secret_phrase_word" = "Ugyldigt ord i hemmelig sætning: %@";
+"errors.import.invalid_private_key" = "Ugyldig privat nøgle";
+"errors.keystore_access" = "Kunne ikke få adgang til denne tegnebogs nøgler på denne enhed. Hvis du har din gendannelsesfrase, skal du fjerne denne tegnebog og importere den igen for at gendanne adgangen.";
+"errors.wallet_account_missing" = "Denne tegnebog har ingen konto til dette netværk";
 "errors.invalid_url" = "Ugyldig URL";
 "errors.error_occurred" = "Der opstod en fejl!";
 "errors.invalid_network_id" = "Ugyldigt netværks-id";
 "errors.error" = "Fejl";
+"errors.cancelled" = "Annulleret";
 "errors.connections.user_cancelled" = "Bruger annulleret";
 "errors.not_supported" = "Ikke understøttet";
 "errors.permissions_not_granted" = "Tilladelser ikke givet";
@@ -211,6 +216,8 @@
 "errors.swap.minimum_amount" = "Minimumsbeløbet for handel er %@. Indtast venligst et højere beløb.";
 "errors.perpetual.trigger_price_lower" = "Triggerprisen skal være lavere end markedsprisen";
 "errors.perpetual.trigger_price_higher" = "Triggerprisen skal være højere end markedsprisen";
+"errors.network_error" = "Netværksfejl: %@";
+"errors.network_offline" = "Internetforbindelsen ser ud til at være offline.";
 "errors.no_internet_connection" = "Ingen internetforbindelse";
 "errors.no_service_connection" = "Ingen serviceforbindelse";
 "errors.balances_activity_outdated" = "Saldi og aktivitet kan være forældede.";

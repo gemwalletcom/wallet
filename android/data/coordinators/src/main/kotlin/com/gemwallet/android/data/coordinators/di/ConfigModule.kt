@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
+import com.gemwallet.android.application.config.cases.GetRemoteConfig
 import com.gemwallet.android.data.coordinators.config.GetRemoteConfigImpl
 import dagger.Module
 import dagger.Provides

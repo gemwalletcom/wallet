@@ -4,11 +4,11 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.asset_select.coordinators.GetChainAssets
-import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.coordinators.HideAsset
-import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
-import com.gemwallet.android.application.session.coordinators.GetSession
+import com.gemwallet.android.application.asset_select.cases.GetChainAssets
+import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
+import com.gemwallet.android.application.assets.cases.HideAsset
+import com.gemwallet.android.application.assets.cases.SetAssetPinned
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
@@ -49,11 +49,11 @@ class NetworkAssetsViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
 
     val pinned: StateFlow<List<AssetInfoDataAggregate>> = activeAssets
-        .map { assets -> assets.filter { it.metadata?.isPinned == true }.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
+        .map { assets -> assets.filter { it.metadata.isPinned }.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val unpinned: StateFlow<List<AssetInfoDataAggregate>> = activeAssets
-        .map { assets -> assets.filter { it.metadata?.isPinned != true }.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
+        .map { assets -> assets.filter { !it.metadata.isPinned }.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val hidden: StateFlow<List<AssetInfoDataAggregate>> = getChainAssets.hidden(chain)

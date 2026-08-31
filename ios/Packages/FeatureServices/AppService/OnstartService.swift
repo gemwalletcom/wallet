@@ -5,9 +5,7 @@ import GemstoneServices
 import Foundation
 import protocol Gemstone.GemAppStartServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
-import Preferences
 import Primitives
-import Store
 import UIKit
 
 /// OnstartService runs services before the app starts.
@@ -15,21 +13,15 @@ import UIKit
 public struct OnstartService: Sendable {
     private let appStartService: any GemAppStartServiceProtocol
     private let preferencesService: any GemPreferencesServiceProtocol
-    private let nodeStore: NodeStore
-    private let preferences: Preferences
     private let walletService: WalletService
 
     public init(
         appStartService: any GemAppStartServiceProtocol,
         preferencesService: any GemPreferencesServiceProtocol,
-        nodeStore: NodeStore,
-        preferences: Preferences,
         walletService: WalletService,
     ) {
         self.appStartService = appStartService
         self.preferencesService = preferencesService
-        self.nodeStore = nodeStore
-        self.preferences = preferences
         self.walletService = walletService
     }
 
@@ -39,11 +31,11 @@ public struct OnstartService: Sendable {
         configureURLCache()
         do {
             try excludeDirectoriesFromBackup()
-            configureDefaultCurrency()
+            _ = try preferencesService.setupCurrency(localeCurrency: Locale.current.currency?.identifier)
+            _ = try preferencesService.incrementLaunchesCount()
         } catch {
             debugLog("configure error: \(error)")
         }
-        preferences.incrementLaunchesCount()
 
         #if DEBUG
             configureScreenshots()
@@ -67,11 +59,6 @@ public struct OnstartService: Sendable {
 // MARK: - Private
 
 extension OnstartService {
-    private func configureDefaultCurrency() {
-        guard !preferences.hasCurrency else { return }
-        preferences.currency = ((try? preferencesService.defaultCurrency(locale: .current)) ?? .usd).rawValue
-    }
-
     private func configureURLCache() {
         URLCache.shared.memoryCapacity = 256_000_000 // ~256 MB memory space
         URLCache.shared.diskCapacity = 1_000_000_000 // ~1GB disk cache space
@@ -97,12 +84,12 @@ extension OnstartService {
     }
 
     private func configureScreenshots() {
-        if ProcessInfo.processInfo.environment["SCREENSHOTS_PATH"] != nil {
-            if let currency = Locale.current.currency, let currency = Currency(rawValue: currency.identifier) {
-                Preferences.standard.currency = currency.rawValue
-            } else {
-                Preferences.standard.currency = Currency.usd.rawValue
-            }
+        guard ProcessInfo.processInfo.environment["SCREENSHOTS_PATH"] != nil else { return }
+        let currency = Locale.current.currency.flatMap { Currency(rawValue: $0.identifier) } ?? .usd
+        do {
+            try preferencesService.setCurrency(currency: currency.json())
+        } catch {
+            debugLog("screenshots currency error: \(error)")
         }
     }
 }

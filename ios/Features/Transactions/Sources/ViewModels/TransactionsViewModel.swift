@@ -3,9 +3,10 @@
 import protocol Gemstone.GemTransactionsServiceProtocol
 import Components
 import protocol Gemstone.GemExplorerServiceProtocol
+import class Gemstone.GemTransactionFormatter
 import Foundation
+import protocol Gemstone.GemPreferencesServiceProtocol
 import Localization
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
@@ -15,8 +16,9 @@ import GemstoneServices
 @MainActor
 public final class TransactionsViewModel {
     public let explorerService: any GemExplorerServiceProtocol
+    let transactionFormatter: GemTransactionFormatter
     public let transactionsService: any GemTransactionsServiceProtocol
-    public let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
 
     private let type: TransactionsRequestType
 
@@ -34,16 +36,18 @@ public final class TransactionsViewModel {
     public init(
         transactionsService: any GemTransactionsServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
+        transactionFormatter: GemTransactionFormatter,
         wallet: Wallet,
         type: TransactionsRequestType,
-        preferences: Preferences = .standard,
+        preferencesService: any GemPreferencesServiceProtocol,
     ) {
         self.transactionsService = transactionsService
         self.explorerService = explorerService
+        self.transactionFormatter = transactionFormatter
         self.type = type
         self.wallet = wallet
         filterModel = TransactionsFilterViewModel(wallet: wallet, type: type)
-        self.preferences = preferences
+        self.preferencesService = preferencesService
     }
 
     public var title: String {
@@ -55,7 +59,7 @@ public final class TransactionsViewModel {
     }
 
     public var currency: String {
-        preferences.currency
+        preferencesService.currencyCode
     }
 
     public var emptyContentModel: EmptyContentTypeViewModel {
@@ -74,11 +78,11 @@ public extension TransactionsViewModel {
         isPresentingSheet = .filter
     }
 
-    func fetch() async {
+    func load() async {
         do {
             try await transactionsService.sync(walletId: walletId.id, assetId: nil)
         } catch {
-            debugLog("fetch getTransactions error \(error)")
+            debugLog("load getTransactions error \(error)")
         }
     }
 }

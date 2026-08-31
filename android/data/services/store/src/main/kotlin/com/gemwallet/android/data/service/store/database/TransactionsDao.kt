@@ -6,13 +6,14 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RawQuery
 import androidx.sqlite.db.SupportSQLiteQuery
-import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
+import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.data.service.store.database.entities.DbAddress
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
+import com.gemwallet.android.data.service.store.database.entities.DbSwapPair
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
-import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
+import com.gemwallet.android.data.service.store.database.entities.DbTransactionSwapMetadata
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.WalletId
@@ -82,7 +83,7 @@ interface TransactionsDao {
             DbTransaction::class,
             DbAsset::class,
             DbPrice::class,
-            DbTxSwapMetadata::class,
+            DbTransactionSwapMetadata::class,
             DbAddress::class,
         ]
     )
@@ -143,11 +144,19 @@ interface TransactionsDao {
         updatedAt: Long = System.currentTimeMillis(),
     ): Int
 
-    @Insert(entity = DbTxSwapMetadata::class, onConflict = OnConflictStrategy.REPLACE)
-    fun addSwapMetadata(metadata: List<DbTxSwapMetadata>)
+    @Insert(entity = DbTransactionSwapMetadata::class, onConflict = OnConflictStrategy.REPLACE)
+    fun addSwapMetadata(metadata: List<DbTransactionSwapMetadata>)
 
     @Query("DELETE FROM tx_swap_metadata WHERE tx_id = :transactionId AND NOT EXISTS (SELECT 1 FROM transactions WHERE transactions.id = :transactionId)")
     fun deleteUnreferencedSwapMetadata(transactionId: String)
+
+    @Query("""
+        SELECT swap.from_asset_id AS fromAssetId, swap.to_asset_id AS toAssetId
+        FROM tx_swap_metadata AS swap
+        JOIN transactions AS tx ON tx.id = swap.tx_id
+        WHERE tx.walletId = :walletId
+        """)
+    suspend fun getSwapPairs(walletId: String): List<DbSwapPair>
 
     @Query("DELETE FROM transactions WHERE state = :state")
     fun deleteByState(state: TransactionState)

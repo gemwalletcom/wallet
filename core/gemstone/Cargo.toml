@@ -18,6 +18,7 @@ reqwest_provider = ["swapper/reqwest_provider"]
 swap_integration_tests = ["reqwest_provider"]
 
 [dependencies]
+rand = { workspace = true }
 swapper = { path = "../crates/swapper" }
 payment = { path = "../crates/payment" }
 primitives = { path = "../crates/primitives" }
@@ -30,6 +31,7 @@ gem_evm = { path = "../crates/gem_evm", features = ["rpc", "signer"] }
 gem_optimism = { path = "../crates/gem_optimism", features = ["rpc"] }
 gem_everstake = { path = "../crates/gem_everstake", features = ["rpc"] }
 gem_monad = { path = "../crates/gem_monad", features = ["rpc"] }
+gem_bsc = { path = "../crates/gem_bsc", features = ["rpc"] }
 gem_tempo = { path = "../crates/gem_tempo", features = ["rpc", "signer"] }
 simulation = { path = "../crates/simulation", features = ["rpc"] }
 gem_sui = { path = "../crates/gem_sui", features = ["rpc", "signer"] }

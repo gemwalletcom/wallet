@@ -18,6 +18,7 @@
 "common.wallet" = "Portofel";
 "common.show" = "Afișează %@";
 "common.copied" = "Copiat: %@";
+"common.copied_to_clipboard" = "Copiat în clipboard";
 "common.recommended" = "Recomandat";
 "common.all" = "Toate";
 "common.not_available" = "Nu este disponibil";
@@ -175,10 +176,14 @@
 "errors.token.invalid_id" = "ID token nevalid";
 "errors.import.invalid_secret_phrase" = "Expresie secretă nevalidă";
 "errors.import.invalid_secret_phrase_word" = "Cuvânt expresie secretă nevalid: %@";
+"errors.import.invalid_private_key" = "Cheie privată invalidă";
+"errors.keystore_access" = "Nu s-a putut accesa cheile acestui portofel pe acest dispozitiv. Dacă aveți fraza de recuperare, eliminați acest portofel și importați-l din nou pentru a restabili accesul.";
+"errors.wallet_account_missing" = "Acest portofel nu are un cont pentru această rețea";
 "errors.invalid_url" = "Adresă URL nevalidă";
 "errors.error_occurred" = "A apărut o eroare!";
 "errors.invalid_network_id" = "ID de rețea nevalid";
 "errors.error" = "Eroare";
+"errors.cancelled" = "Anulat";
 "errors.connections.user_cancelled" = "Anulat de utilizator";
 "errors.not_supported" = "Nu este acceptat";
 "errors.permissions_not_granted" = "Permisiunile nu sunt acordate";
@@ -211,6 +216,8 @@
 "errors.swap.minimum_amount" = "Suma minimă a tranzacției este %@. Vă rugăm să introduceți o sumă mai mare.";
 "errors.perpetual.trigger_price_lower" = "Prețul de declanșare trebuie să fie mai mic decât prețul pieței";
 "errors.perpetual.trigger_price_higher" = "Prețul de declanșare trebuie să fie mai mare decât prețul pieței";
+"errors.network_error" = "Eroare de rețea: %@";
+"errors.network_offline" = "Conexiunea la internet pare să fie offline.";
 "errors.no_internet_connection" = "Nicio conexiune la internet";
 "errors.no_service_connection" = "Nicio conexiune la serviciu";
 "errors.balances_activity_outdated" = "Soldurile și activitatea pot fi învechite.";

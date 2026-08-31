@@ -18,7 +18,7 @@ public final class GemstoneBannerStore: GemBannerStore, @unchecked Sendable {
 
     public func getState(key: GemBannerKey) async throws -> Gemstone.BannerState? {
         try store.getBanner(id: bannerIdentifier(key: key))
-            .map { try $0.state.json() }
+            .map { $0.state.json() }
     }
 
     public func setState(key: GemBannerKey, state: Gemstone.BannerState) async throws {
@@ -34,9 +34,9 @@ public final class GemstoneBannerStore: GemBannerStore, @unchecked Sendable {
 
     private func newBanner(key: GemBannerKey, state: Primitives.BannerState) throws -> NewBanner {
         try NewBanner(
+            id: bannerIdentifier(key: key),
             walletId: key.walletId,
             assetId: key.assetId.map { try Primitives.AssetId(id: $0) },
-            chain: key.chain.flatMap { Primitives.Chain(rawValue: $0) },
             event: Primitives.BannerEvent(key.event),
             state: state,
         )

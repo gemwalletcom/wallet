@@ -106,13 +106,6 @@ mod tests {
         data
     }
 
-    fn bad_request_message(error: ApiError) -> String {
-        match error {
-            ApiError::BadRequest(message) => message,
-            ApiError::OkError(message) | ApiError::NotFound(message) | ApiError::InternalServerError(message) => panic!("expected BadRequest, got {message}"),
-        }
-    }
-
     #[test]
     fn validates_supported_image_upload() {
         let image = validate_support_image_upload(&config(), Some("proof.png".to_string()), &ContentType::PNG, png_bytes()).unwrap();
@@ -133,21 +126,21 @@ mod tests {
     fn rejects_html_filename() {
         let error = validate_support_image_upload(&config(), Some("proof.html".to_string()), &ContentType::PNG, png_bytes()).unwrap_err();
 
-        assert_eq!(bad_request_message(error), "Image filename extension is not supported");
+        assert_eq!(error, ApiError::BadRequest("Image filename extension is not supported".to_string()));
     }
 
     #[test]
     fn rejects_tiny_image_upload() {
         let error = validate_support_image_upload(&config(), Some("proof.png".to_string()), &ContentType::PNG, b"\x89PNG\r\n\x1A\n".to_vec()).unwrap_err();
 
-        assert_eq!(bad_request_message(error), "Image upload is too small");
+        assert_eq!(error, ApiError::BadRequest("Image upload is too small".to_string()));
     }
 
     #[test]
     fn rejects_mismatched_content_type() {
         let error = validate_support_image_upload(&config(), Some("proof.jpg".to_string()), &ContentType::JPEG, png_bytes()).unwrap_err();
 
-        assert_eq!(bad_request_message(error), "Image content does not match Content-Type");
+        assert_eq!(error, ApiError::BadRequest("Image content does not match Content-Type".to_string()));
     }
 
     #[test]
@@ -157,7 +150,7 @@ mod tests {
 
         let error = validate_support_image_upload(&config(), Some("proof.png".to_string()), &ContentType::PNG, data).unwrap_err();
 
-        assert_eq!(bad_request_message(error), "Image upload is not a valid image");
+        assert_eq!(error, ApiError::BadRequest("Image upload is not a valid image".to_string()));
     }
 
     #[test]
@@ -165,7 +158,7 @@ mod tests {
         let config = SupportImageUploadConfig::new(&["jpeg".to_string()]).unwrap();
         let error = validate_support_image_upload(&config, Some("proof.png".to_string()), &ContentType::PNG, png_bytes()).unwrap_err();
 
-        assert_eq!(bad_request_message(error), "Image upload type is not supported");
+        assert_eq!(error, ApiError::BadRequest("Image upload type is not supported".to_string()));
     }
 
     #[test]

@@ -5,6 +5,7 @@ import Components
 import Foundation
 import GemstonePrimitives
 import Localization
+import class Gemstone.GemAddressService
 import Primitives
 import PrimitivesComponents
 import Style
@@ -33,31 +34,38 @@ public final class ManageContactAddressViewModel {
         }
     }
 
+    public struct Input: Sendable {
+        public let chain: Chain
+        public let address: String
+        public let memo: String?
+        public let replacingId: String?
+    }
+
     private let mode: Mode
-    private let contactId: String
-    private let onComplete: (ContactAddress) -> Void
+    private let onComplete: (Input) -> Void
 
     var addressInputModel: AddressInputViewModel
     var memo: String = ""
     var isPresentingScanner = false
 
     public init(
-        contactId: String,
+        defaultChain: Chain,
         nameService: any GemNameServiceProtocol,
         mode: Mode,
-        onComplete: @escaping (ContactAddress) -> Void,
+        addressService: GemAddressService,
+        onComplete: @escaping (Input) -> Void,
     ) {
-        self.contactId = contactId
         self.mode = mode
         self.onComplete = onComplete
         title = Localized.Common.address
 
-        let chain = mode.contactAddress?.chain ?? .bitcoin
+        let chain = mode.contactAddress?.chain ?? defaultChain
         addressInputModel = AddressInputViewModel(
             chain: chain,
             nameService: nameService,
             placeholder: title,
-            validators: [.required(requireName: title), .address(Asset(chain))],
+            addressService: addressService,
+            validators: [.required(requireName: title), .address(Asset(chain), addressService: addressService)],
         )
 
         if let address = mode.contactAddress {
@@ -99,12 +107,12 @@ public final class ManageContactAddressViewModel {
         addressInputModel.isValid ? .normal : .disabled
     }
 
-    private var currentAddress: ContactAddress {
-        ContactAddress.new(
-            contactId: contactId,
+    private var input: Input {
+        Input(
             chain: chain,
             address: addressInputModel.resolvedAddress,
-            memo: memo.isEmpty ? nil : memo,
+            memo: memo,
+            replacingId: mode.contactAddress?.id,
         )
     }
 }
@@ -127,6 +135,6 @@ extension ManageContactAddressViewModel {
 
     func complete() {
         guard addressInputModel.validate() else { return }
-        onComplete(currentAddress)
+        onComplete(input)
     }
 }

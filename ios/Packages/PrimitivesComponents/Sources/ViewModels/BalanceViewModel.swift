@@ -62,37 +62,24 @@ public struct BalanceViewModel: Sendable {
         formatter.string(balance.available, decimals: asset.decimals.asInt, currency: asset.symbol)
     }
 
-    public func balanceTextWithSymbol(for type: StakeProviderType) -> String {
-        let amount = switch type {
-        case .stake:
-            switch StakeChain(rawValue: asset.chain.rawValue) {
-            case .celestia, .cosmos, .hyperCore, .injective, .osmosis, .sei, .smartChain, .solana, .sui, .ethereum, .aptos, .monad, .none:
-                balance.staked + balance.pending
-            case .tron:
-                balance.frozen + balance.locked + balance.pending
-            }
-        case .earn:
-            balance.earn
-        }
-        return formatter.string(amount, decimals: asset.decimals.asInt, currency: asset.symbol)
+    public func balanceTextWithSymbol(_ value: BigInt) -> String {
+        formatter.string(value, decimals: asset.decimals.asInt, currency: asset.symbol)
     }
 
     public var hasStakingResources: Bool {
-        switch StakeChain(rawValue: asset.chain.rawValue) {
-        case .celestia, .cosmos, .hyperCore, .injective, .osmosis, .sei, .smartChain, .solana, .sui, .ethereum, .aptos, .monad, .none:
-            false
-        case .tron:
-            true
-        }
+        usesFreeze
     }
 
     public var hasFrozenResources: Bool {
-        switch StakeChain(rawValue: asset.chain.rawValue) {
-        case .celestia, .cosmos, .hyperCore, .injective, .osmosis, .sei, .smartChain, .solana, .sui, .ethereum, .aptos, .monad, .none:
-            false
-        case .tron:
-            !(balance.frozen + balance.locked).isZero
-        }
+        usesFreeze && !frozenResources.isZero
+    }
+
+    public var frozenResources: BigInt {
+        balance.frozen + balance.locked
+    }
+
+    private var usesFreeze: Bool {
+        StakeChain(rawValue: asset.chain.rawValue)?.usesFreeze ?? false
     }
 
     public var hasReservedBalance: Bool {

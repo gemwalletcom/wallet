@@ -2,6 +2,7 @@
 
 import BigInt
 import Formatters
+import class Gemstone.GemFeeService
 import GemstonePrimitives
 import Localization
 import Observation
@@ -18,6 +19,7 @@ public final class NetworkFeeCustomViewModel {
     private let baseTotal: BigInt?
     private let normalTotal: BigInt?
     private let decimals: Int
+    private let feeService: GemFeeService
     private let onSelect: @MainActor (BigInt) -> Void
 
     public var input: String = ""
@@ -31,6 +33,7 @@ public final class NetworkFeeCustomViewModel {
         baseTotal: BigInt?,
         normalTotal: BigInt?,
         initialRate: BigInt?,
+        feeService: GemFeeService,
         onSelect: @escaping @MainActor (BigInt) -> Void,
     ) {
         self.chain = chain
@@ -40,6 +43,7 @@ public final class NetworkFeeCustomViewModel {
         self.baseFee = baseFee
         self.baseTotal = baseTotal
         self.normalTotal = normalTotal
+        self.feeService = feeService
         self.onSelect = onSelect
         decimals = chain.feeRateDecimals(assetDecimals: feeAsset.decimals.asInt)
         input = initialRate.map { ValueFormatter.full.string($0, decimals: decimals) } ?? ""
@@ -110,6 +114,7 @@ public final class NetworkFeeCustomViewModel {
             baseTotal: baseTotal ?? .zero,
             normalTotal: normalTotal ?? .zero,
             maxMultiplier: chain.maxCustomFeeRateMultiplier,
+            feeService: feeService,
         )
     }
 

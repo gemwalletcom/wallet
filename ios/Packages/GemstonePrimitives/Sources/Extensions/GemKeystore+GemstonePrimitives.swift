@@ -37,13 +37,6 @@ public extension WalletType {
 }
 
 public extension GemWalletImport {
-    func mapToPreview() throws -> WalletImport {
-        try WalletImport(
-            walletId: Primitives.WalletId.from(id: walletId),
-            walletType: walletType.map(),
-            accounts: accounts.map { try $0.mapToAccount() },
-        )
-    }
 }
 
 public extension GemStoredWallet {

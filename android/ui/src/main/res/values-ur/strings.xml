@@ -20,6 +20,7 @@
   <string name="common_wallet">والیٹ</string>
   <string name="common_show">دکھائیں۔ %1$s</string>
   <string name="common_copied">کاپی کیا گیا: %1$s</string>
+  <string name="common_copied_to_clipboard">کلپ بورڈ پر کاپی ہو گیا</string>
   <string name="common_recommended">تجویز کردہ</string>
   <string name="common_all">تمام</string>
   <string name="common_not_available">دستیاب نہیں</string>
@@ -182,10 +183,14 @@
   <string name="errors_token_invalid_id">غلط ٹوکن ID</string>
   <string name="errors_import_invalid_secret_phrase">غلط خفیہ جملہ</string>
   <string name="errors_import_invalid_secret_phrase_word">غلط خفیہ جملہ کا لفظ: %1$s</string>
+  <string name="errors_import_invalid_private_key">غلط پرائیویٹ کلید</string>
+  <string name="errors_keystore_access">اس ڈیوائس پر اس والیٹ کی کلیدوں تک رسائی نہیں ہو سکی۔ اگر آپ کے پاس ریکوری فقرہ ہے تو اس والیٹ کو ہٹا کر دوبارہ درآمد کریں تاکہ رسائی بحال ہو جائے۔</string>
+  <string name="errors_wallet_account_missing">اس والیٹ میں اس نیٹ ورک کے لیے کوئی اکاؤنٹ نہیں ہے</string>
   <string name="errors_invalid_url">غلط URL</string>
   <string name="errors_error_occurred">ایک خرابی پیش آگئی!</string>
   <string name="errors_invalid_network_id">غلط نیٹ ورک ID</string>
   <string name="errors_error">خرابی</string>
+  <string name="errors_cancelled">منسوخ کر دیا گیا</string>
   <string name="errors_connections_user_cancelled">صارف نے منسوخ کر دیا۔</string>
   <string name="errors_not_supported">تعاون یافتہ نہیں۔</string>
   <string name="errors_permissions_not_granted">اجازت نہیں دی گئی۔</string>

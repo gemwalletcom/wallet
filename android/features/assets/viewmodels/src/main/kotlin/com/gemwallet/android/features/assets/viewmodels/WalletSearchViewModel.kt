@@ -1,20 +1,20 @@
 package com.gemwallet.android.features.assets.viewmodels
 
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
-import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
-import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
-import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
-import com.gemwallet.android.application.assets.coordinators.GetSearchLists
-import com.gemwallet.android.application.nft.coordinators.GetNftCollections
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetuals
-import com.gemwallet.android.application.perpetual.coordinators.SetPerpetualPinned
-import com.gemwallet.android.application.session.coordinators.GetSession
-import com.gemwallet.android.cases.tokens.SearchTokensCase
-import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.config.showPerpetuals
-import com.gemwallet.android.data.repositories.tokens.WalletSearch
+import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
+import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
+import com.gemwallet.android.application.assets.cases.SetAssetPinned
+import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
+import com.gemwallet.android.application.assets.cases.GetSearchLists
+import com.gemwallet.android.application.nft.cases.GetNftCollections
+import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
+import com.gemwallet.android.application.perpetual.cases.SetPerpetualPinned
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.tokens.cases.SearchTokens
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.data.services.gemstone.config.showPerpetuals
+import com.gemwallet.android.data.services.gemstone.tokens.WalletSearch
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.search.WalletSearchConfig
@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
+import uniffi.gemstone.GemAssetConfigService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -53,7 +54,8 @@ class WalletSearchViewModel @Inject constructor(
     updateRecentAsset: UpdateRecentAsset,
     switchAssetVisibility: SwitchAssetVisibility,
     setAssetPinned: SetAssetPinned,
-    @WalletSearch searchTokensCase: SearchTokensCase,
+    @WalletSearch searchTokensCase: SearchTokens,
+    assetConfig: GemAssetConfigService,
     getPerpetuals: GetPerpetuals,
     getNftCollections: GetNftCollections,
     getSearchLists: GetSearchLists,
@@ -66,7 +68,8 @@ class WalletSearchViewModel @Inject constructor(
     switchAssetVisibility,
     setAssetPinned,
     searchTokensCase,
-    BaseSelectSearch(searchSelectAssets),
+    BaseSelectSearch(searchSelectAssets, assetConfig),
+    assetConfig,
 ) {
 
     private val showPerpetuals = userConfig.showPerpetuals(getSession())

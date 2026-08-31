@@ -14,6 +14,7 @@ serde_json = { workspace = true }
 alloy-primitives = { workspace = true }
 gem_encoding = { path = "../gem_encoding" }
 gem_hash = { path = "../gem_hash" }
+signer = { path = "../signer" }
 ed25519-dalek = { workspace = true }
 zeroize = { workspace = true }
 
@@ -24,6 +25,4 @@ uuid = { workspace = true, optional = true }
 jsonwebtoken = { workspace = true, optional = true }
 
 [dev-dependencies]
-alloy-signer = { workspace = true }
-alloy-signer-local = { workspace = true }
 primitives = { path = "../primitives", features = ["testkit"] }

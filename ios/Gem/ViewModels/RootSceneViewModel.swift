@@ -2,7 +2,9 @@
 
 import protocol Gemstone.GemAppUpdateServiceProtocol
 import protocol Gemstone.GemAvatarServiceProtocol
+import protocol Gemstone.GemChainServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemTransactionStateServiceProtocol
 import GemstonePrimitives
 import protocol Gemstone.GemAppStartServiceProtocol
 import AppService
@@ -25,7 +27,6 @@ final class RootSceneViewModel {
     private let onstartService: OnstartService
     private let appStartService: any GemAppStartServiceProtocol
     private let pushNotificationEnablerService: PushNotificationEnablerService
-    private let transactionStateScheduler: TransactionStateScheduler
     private let appLifecycleService: AppLifecycleService
     private let navigationHandler: NavigationHandler
     private let appUpdateService: any GemAppUpdateServiceProtocol
@@ -37,6 +38,7 @@ final class RootSceneViewModel {
     let walletService: WalletService
     let walletSessionService: any WalletSessionManageable
     let nameService: any GemNameServiceProtocol
+    let chainService: any GemChainServiceProtocol
     let avatarService: any GemAvatarServiceProtocol
     let walletConnectorPresenter: WalletConnectorPresenter
     let lockManager: any LockWindowManageable
@@ -79,13 +81,13 @@ final class RootSceneViewModel {
         onstartService: OnstartService,
         appStartService: any GemAppStartServiceProtocol,
         pushNotificationEnablerService: PushNotificationEnablerService,
-        transactionStateScheduler: TransactionStateScheduler,
         appLifecycleService: AppLifecycleService,
         navigationHandler: NavigationHandler,
         lockWindowManager: any LockWindowManageable,
         walletService: WalletService,
         walletSessionService: any WalletSessionManageable,
         nameService: any GemNameServiceProtocol,
+        chainService: any GemChainServiceProtocol,
         appUpdateService: any GemAppUpdateServiceProtocol,
         rateService: RateService,
         toastPresenter: ToastPresenter,
@@ -97,13 +99,13 @@ final class RootSceneViewModel {
         self.onstartService = onstartService
         self.appStartService = appStartService
         self.pushNotificationEnablerService = pushNotificationEnablerService
-        self.transactionStateScheduler = transactionStateScheduler
         self.appLifecycleService = appLifecycleService
         self.navigationHandler = navigationHandler
         lockManager = lockWindowManager
         self.walletService = walletService
         self.walletSessionService = walletSessionService
         self.nameService = nameService
+        self.chainService = chainService
         self.appUpdateService = appUpdateService
         self.rateService = rateService
         self.toastPresenter = toastPresenter
@@ -118,8 +120,6 @@ extension RootSceneViewModel {
     func setup() {
         rateService.perform()
         Task { await checkForUpdate() }
-        Task { _ = try await deviceService.synchronize() }
-        transactionStateScheduler.setup()
         Task { await appLifecycleService.setup() }
         Task { await setupWallets() }
     }
@@ -169,12 +169,8 @@ extension RootSceneViewModel {
 extension RootSceneViewModel {
     private func setup(wallet: Wallet) {
         Task {
-            do {
-                for failure in try await appStartService.setupWallet(wallet: wallet.json()) {
-                    debugLog("wallet start \(failure.step) failed: \(failure.message)")
-                }
-            } catch {
-                debugLog("RootSceneViewModel setupWallet error: \(error)")
+            for failure in await appStartService.setupWallet(wallet: wallet.json()) {
+                debugLog("wallet start \(failure.step) failed: \(failure.message)")
             }
             await appLifecycleService.updateWalletConnections()
         }
@@ -228,7 +224,7 @@ extension RootSceneViewModel {
         Task {
             do {
                 if try await pushNotificationEnablerService.requestPermissionsIfNotDetermined() {
-                    _ = try await deviceService.synchronize()
+                    try await deviceService.synchronizeIfNeeded()
                 }
             } catch {
                 debugLog("requestPushPermissions error: \(error)")

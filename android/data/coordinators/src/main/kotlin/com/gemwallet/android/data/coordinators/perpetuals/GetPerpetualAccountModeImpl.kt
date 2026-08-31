@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualAccountMode
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualAccountMode
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualAccountMode

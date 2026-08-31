@@ -37,7 +37,6 @@ pub struct Permit2ApprovalData {
     pub permit2_nonce: u64,
 }
 
-#[uniffi::export]
 pub fn permit2_data_to_eip712_json(chain: Chain, data: PermitSingle, contract: &str) -> Result<String, SwapperError> {
     swapper::permit2_data::permit2_data_to_eip712_json(chain, data, contract)
 }

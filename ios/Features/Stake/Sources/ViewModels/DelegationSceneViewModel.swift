@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemStakeServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
@@ -17,11 +18,13 @@ public struct DelegationSceneViewModel {
 
     private let wallet: Wallet
     private let asset: Asset
+    private let stakeService: any GemStakeServiceProtocol
 
     public init(
         wallet: Wallet,
         model: DelegationViewModel,
         asset: Asset,
+        stakeService: any GemStakeServiceProtocol,
         validators: [DelegationValidator],
         onAmountInputAction: AmountInputAction,
         onTransferAction: TransferDataAction,
@@ -29,6 +32,7 @@ public struct DelegationSceneViewModel {
         self.wallet = wallet
         self.model = model
         self.asset = asset
+        self.stakeService = stakeService
         self.validators = validators
         self.onAmountInputAction = onAmountInputAction
         self.onTransferAction = onTransferAction
@@ -99,22 +103,13 @@ public struct DelegationSceneViewModel {
     }
 
     public var availableActions: [DelegationActionType] {
-        guard wallet.canSign else { return [] }
-        return switch providerType {
-        case .stake:
-            switch model.state {
-            case .active: stakeChain.supportRedelegate ? [.stake, .unstake, .redelegate] : [.unstake]
-            case .inactive: stakeChain.supportRedelegate ? [.unstake, .redelegate] : [.unstake]
-            case .awaitingWithdrawal: stakeChain.supportWithdraw ? [.withdraw] : []
-            case .pending, .activating, .deactivating: []
-            }
-        case .earn:
-            switch model.state {
-            case .active: [.deposit, .withdraw]
-            case .inactive: [.withdraw]
-            case .pending, .activating, .deactivating, .awaitingWithdrawal: []
-            }
-        }
+        return stakeService.delegationActions(
+            walletType: wallet.type.map(),
+            chain: asset.chain.rawValue,
+            provider: providerType.json(),
+            state: model.state.json(),
+        )
+            .map(DelegationActionType.init)
     }
 
     public var showManage: Bool {
@@ -122,10 +117,12 @@ public struct DelegationSceneViewModel {
     }
 
     public var canClaimRewards: Bool {
-        wallet.canSign
-            && stakeChain.supportClaimRewards
-            && model.state == .active
-            && model.delegation.base.rewardsValue > 0
+        return stakeService.canClaimDelegationRewards(
+            walletType: wallet.type.map(),
+            chain: asset.chain.rawValue,
+            state: model.state.json(),
+            rewards: model.delegation.base.rewards,
+        )
     }
 
     public func actionTitle(_ action: DelegationActionType) -> String {
@@ -208,9 +205,9 @@ extension DelegationSceneViewModel {
     }
 
     private var recommendedValidator: DelegationValidator? {
-        StakeRecommendedValidators().randomValidator(
-            chain: model.delegation.base.assetId.chain,
-            from: validators,
-        )
+        (try? stakeService.recommendedValidator(
+            chain: model.delegation.base.assetId.chain.rawValue,
+            validators: validators.map { $0.json() },
+        ).map { try DelegationValidator($0) }) ?? .none
     }
 }

@@ -14,7 +14,7 @@ import WalletTab
 struct MainTabView: View {
     @Environment(\.assetDiscoveryService) private var assetDiscoveryService
     @Environment(\.explorerService) private var explorerService
-    @Environment(\.assetsEnabler) private var assetsEnabler
+    @Environment(\.transactionFormatter) private var transactionFormatter
     @Environment(\.balanceService) private var balanceService
     @Environment(\.bannerService) private var bannerService
     @Environment(\.deviceService) private var deviceService
@@ -23,6 +23,7 @@ struct MainTabView: View {
     @Environment(\.nftService) private var nftService
     @Environment(\.priceService) private var priceService
     @Environment(\.observablePreferences) private var observablePreferences
+    @Environment(\.preferencesService) private var preferencesService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.priceAlertService) private var priceAlertService
     @Environment(\.walletPreferencesService) private var walletPreferencesService
@@ -52,7 +53,6 @@ struct MainTabView: View {
                     model: WalletSceneViewModel(
                         assetDiscoveryService: assetDiscoveryService,
                         balanceService: balanceService,
-                        assetsEnabler: assetsEnabler,
                         bannerService: bannerService,
                         nftService: nftService,
                         walletPreferencesService: walletPreferencesService,
@@ -69,21 +69,15 @@ struct MainTabView: View {
             }
             .tag(TabItem.wallet)
 
-            if model.isMarketEnabled {
-                MarketsNavigationStack()
-                    .tabItem {
-                        tabItem("Markets", Images.Tabs.markets)
-                    }
-                    .tag(TabItem.markets)
-            }
-
             NavigationStack(path: navigationState.activity.binding) {
                 TransactionsNavigationView(
                     model: TransactionsViewModel(
                         transactionsService: transactionsService,
                         explorerService: explorerService,
+                        transactionFormatter: transactionFormatter,
                         wallet: wallet,
                         type: .all,
+                        preferencesService: preferencesService,
                     ),
                 )
                 .id(wallet.id)
@@ -133,6 +127,7 @@ struct MainTabView: View {
                     walletId: wallet.id,
                     asset: input.asset,
                     priceAlertService: priceAlertService,
+                    preferencesService: preferencesService,
                     price: input.price,
                     onComplete: onSetPriceAlertComplete,
                 ),
@@ -195,7 +190,7 @@ extension MainTabView {
                 case .activity:
                     navigationState.wallet.setPath([Scenes.Asset(asset: asset)])
                     navigationState.selectedTab = .wallet
-                case .markets, .settings:
+                case .settings:
                     break
                 }
                 presenter.isPresentingAssetInput.wrappedValue = nil

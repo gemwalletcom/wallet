@@ -1,21 +1,24 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.add_asset.coordinators.AddCustomToken
-import com.gemwallet.android.application.add_asset.coordinators.GetAvailableTokenChains
-import com.gemwallet.android.application.add_asset.coordinators.ObserveToken
-import com.gemwallet.android.application.add_asset.coordinators.SearchCustomToken
-import com.gemwallet.android.application.assets.coordinators.EnableAsset
+import com.gemwallet.android.application.add_asset.cases.AddCustomToken
+import com.gemwallet.android.application.add_asset.cases.GetAvailableTokenChains
+import com.gemwallet.android.application.add_asset.cases.ObserveToken
+import com.gemwallet.android.application.add_asset.cases.SearchCustomToken
+import com.gemwallet.android.application.assets.cases.EnableAsset
 import com.gemwallet.android.data.coordinators.add_asset.AddCustomTokenImpl
 import com.gemwallet.android.data.coordinators.add_asset.GetAvailableTokenChainsImpl
 import com.gemwallet.android.data.coordinators.add_asset.ObserveTokenImpl
 import com.gemwallet.android.data.coordinators.add_asset.SearchCustomTokenImpl
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.tokens.cases.SearchTokens
+import com.gemwallet.android.application.session.cases.GetSession
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -24,34 +27,31 @@ object AddAssetModule {
     @Provides
     @Singleton
     fun provideGetAvailableTokenChains(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
     ): GetAvailableTokenChains {
-        return GetAvailableTokenChainsImpl(sessionRepository)
+        return GetAvailableTokenChainsImpl(getSession)
     }
 
     @Provides
     @Singleton
     fun provideSearchCustomToken(
-        sessionRepository: SessionRepository,
-        assetsRepository: AssetsRepository,
-    ): SearchCustomToken {
-        return SearchCustomTokenImpl(sessionRepository, assetsRepository)
-    }
+        getCurrentCurrency: GetCurrentCurrency,
+        searchTokensCase: SearchTokens,
+    ): SearchCustomToken = SearchCustomTokenImpl(getCurrentCurrency, searchTokensCase)
 
     @Provides
     @Singleton
     fun provideObserveToken(
-        assetsRepository: AssetsRepository,
-    ): ObserveToken {
-        return ObserveTokenImpl(assetsRepository)
-    }
+        assetStore: GemstoneAssetStore,
+        getCurrentWalletId: GetCurrentWalletId,
+    ): ObserveToken = ObserveTokenImpl(assetStore, getCurrentWalletId)
 
     @Provides
     @Singleton
     fun provideAddCustomToken(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         enableAsset: EnableAsset,
     ): AddCustomToken {
-        return AddCustomTokenImpl(sessionRepository, enableAsset)
+        return AddCustomTokenImpl(getSession, enableAsset)
     }
 }

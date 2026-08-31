@@ -1,14 +1,18 @@
 package com.gemwallet.android.data.coordinators.wallet
 
 import androidx.compose.runtime.Stable
-import com.gemwallet.android.application.wallet.coordinators.GetAllWallets
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.wallet.cases.GetAllWallets
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -17,21 +21,24 @@ import kotlinx.coroutines.flow.mapLatest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetAllWalletsImpl(
-    private val sessionRepository: SessionRepository,
-    private val walletsRepository: WalletsRepository,
+    private val getSession: GetSession,
+    private val walletStore: GemstoneWalletStore,
+    private val walletService: GemWalletService,
 ) : GetAllWallets {
 
     override fun getAllWallets(): Flow<List<WalletDataAggregate>> {
-        return sessionRepository.session().flatMapLatest { session ->
+        return getSession().flatMapLatest { session ->
             val currentWalletId = session?.wallet?.id
-            walletsRepository.getAll().map { items ->
-                val watch = items.filter { it.type == WalletType.View }
-                val single = items.filter { it.type == WalletType.Single }
-                val privateKey = items.filter { it.type == WalletType.PrivateKey }
-                val multi = items.filter { it.type == WalletType.Multicoin }
-                multi + single + privateKey + watch
+            walletStore.observeWallets().map { items ->
+                walletService.sortedWallets(items.map { it.toJson() }).map { it.decodeJson<Wallet>() }
             }.mapLatest { items ->
-                items.map { WalletDataAggregateImpl(it, it.id == currentWalletId) }
+                items.map {
+                    WalletDataAggregateImpl(
+                        wallet = it,
+                        isCurrent = it.id == currentWalletId,
+                        walletAccount = walletService.displayAccount(it.toJson())?.toPrimitives(),
+                    )
+                }
             }
         }
     }
@@ -40,7 +47,8 @@ class GetAllWalletsImpl(
 @Stable
 class WalletDataAggregateImpl(
     private val wallet: Wallet,
-    override val isCurrent: Boolean
+    override val isCurrent: Boolean,
+    private val walletAccount: Account?,
 ) : WalletDataAggregate {
 
     override val id: String = wallet.id.id
@@ -56,12 +64,4 @@ class WalletDataAggregateImpl(
     override val isPinned: Boolean = wallet.isPinned
 
     override val imageUrl: String? = wallet.imageUrl
-
-    private val walletAccount: Account?
-        get() = when (type) {
-            WalletType.View,
-            WalletType.PrivateKey,
-            WalletType.Single -> wallet.accounts.firstOrNull()
-            WalletType.Multicoin -> wallet.accounts.firstOrNull { it.chain == Chain.Ethereum }
-        }
 }

@@ -6,7 +6,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PriceAlert
 
 interface PriceAlertDataAggregate {
-    val id: Int
+    val id: String
     val priceAlert: PriceAlert
     val asset: Asset
     val assetId: AssetId

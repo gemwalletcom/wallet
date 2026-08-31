@@ -1,14 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import typealias Gemstone.PriceAlert
 import protocol Gemstone.GemPriceAlertStore
+import typealias Gemstone.PriceAlert
+import class Gemstone.PriceAlertFormatter
 import GemstonePrimitives
 import Primitives
 import Store
 
 public final class GemstonePriceAlertStore: GemPriceAlertStore, @unchecked Sendable {
     private let store: PriceAlertStore
+    private let priceAlertFormatter = PriceAlertFormatter()
 
     public init(store: PriceAlertStore) {
         self.store = store
@@ -16,10 +18,13 @@ public final class GemstonePriceAlertStore: GemPriceAlertStore, @unchecked Senda
 
     public func getPriceAlerts(assetId: String?) async throws -> [Gemstone.PriceAlert] {
         let alerts = try assetId.map { try store.getPriceAlerts(for: $0) } ?? store.getPriceAlerts()
-        return try alerts.map { try $0.json() }
+        return alerts.map { $0.json() }
     }
 
-    public func update(alerts: [Gemstone.PriceAlert], deleteIds: [String]) async throws {
-        try store.diffPriceAlerts(deleteIds: deleteIds, alerts: alerts.map { try Primitives.PriceAlert($0) })
+    public func updatePriceAlerts(alerts: [Gemstone.PriceAlert], deleteIds: [String]) async throws {
+        try store.diffPriceAlerts(
+            deleteIds: deleteIds,
+            alerts: alerts.map { try (id: priceAlertFormatter.alertId(alert: $0), alert: Primitives.PriceAlert($0)) },
+        )
     }
 }

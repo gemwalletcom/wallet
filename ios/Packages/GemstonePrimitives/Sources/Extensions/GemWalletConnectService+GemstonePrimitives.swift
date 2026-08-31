@@ -19,8 +19,6 @@ public extension GemWalletConnectServiceProtocol {
     }
 
     func prepareSessionProposal(
-        wallets: [Wallet],
-        currentWalletId: WalletId?,
         requiredChainIds: [String],
         optionalChainIds: [String],
         metadata: Primitives.ApplicationMetadata,
@@ -28,8 +26,6 @@ public extension GemWalletConnectServiceProtocol {
         validation: WalletConnectionVerificationStatus,
     ) throws -> (proposal: WalletConnectionSessionProposal, verificationStatus: WalletConnectionVerificationStatus) {
         let result = try prepareSessionProposal(
-            wallets: wallets.map { try $0.json() },
-            currentWalletId: currentWalletId?.id,
             requiredChainIds: requiredChainIds,
             optionalChainIds: optionalChainIds,
             metadata: metadata.json(),
@@ -39,8 +35,8 @@ public extension GemWalletConnectServiceProtocol {
         return (try WalletConnectionSessionProposal(result.proposal), result.verificationStatus)
     }
 
-    func sessionApproval(wallet: Wallet, supportedChains: [Chain]) throws -> WalletConnectSessionApproval {
-        let approval = sessionApproval(wallet: try wallet.json(), supportedChains: supportedChains.map(\.rawValue))
+    func sessionApproval(wallet: Wallet) throws -> WalletConnectSessionApproval {
+        let approval = sessionApproval(wallet: wallet.json())
         return try WalletConnectSessionApproval(
             chains: approval.chains.map { try $0.map() },
             accounts: approval.accounts.map { try $0.map() },
@@ -58,7 +54,7 @@ public extension GemWalletConnectServiceProtocol {
     }
 
     func updateSessions(_ sessions: [WalletConnectionSession]) async throws {
-        try await updateSessions(sessions: sessions.map { try $0.json() })
+        try await updateSessions(sessions: sessions.map { $0.json() })
     }
 }
 

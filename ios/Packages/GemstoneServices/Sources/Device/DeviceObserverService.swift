@@ -28,6 +28,6 @@ public actor DeviceObserverService {
     }
 
     func handleSubscriptionsChange() async throws {
-        _ = try await deviceService.synchronize()
+        try await deviceService.synchronizeIfNeeded()
     }
 }

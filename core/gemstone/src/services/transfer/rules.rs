@@ -12,7 +12,6 @@ use primitives::{
 use super::model::{GemPendingTransactionInput, GemTransferBalance, GemTransferData, GemTransferOutput};
 use crate::models::transaction::{GemTransactionInputType, transaction_metadata_block_number, transaction_metadata_sequence};
 use crate::services::amount::model::GemAmountError;
-use crate::services::amount::rules::parse_value;
 
 pub fn transaction_type(input_type: &GemTransactionInputType) -> TransactionType {
     TransactionInputType::from(input_type.clone()).transaction_type()
@@ -130,35 +129,35 @@ pub fn metadata(input_type: &GemTransactionInputType) -> Result<Option<serde_jso
     Ok(value)
 }
 
-pub fn tron_stake_available(asset: &Asset, balance: &GemTransferBalance) -> Result<BigInt, GemAmountError> {
+pub fn tron_stake_available(asset: &Asset, balance: &GemTransferBalance) -> BigInt {
     let staked = BigInt::from(balance.votes) * BigInt::from(10u32).pow(asset.decimals.max(0) as u32);
-    Ok((parse_value(&balance.frozen)? + parse_value(&balance.locked)? - staked).max(BigInt::from(0)))
+    (&balance.frozen + &balance.locked - staked).max(BigInt::from(0))
 }
 
-pub fn unfreeze_available(resource: &primitives::Resource, balance: &GemTransferBalance) -> Result<BigInt, GemAmountError> {
+pub fn unfreeze_available(resource: &primitives::Resource, balance: &GemTransferBalance) -> BigInt {
     match resource {
-        primitives::Resource::Bandwidth => parse_value(&balance.frozen),
-        primitives::Resource::Energy => parse_value(&balance.locked),
+        primitives::Resource::Bandwidth => balance.frozen.clone(),
+        primitives::Resource::Energy => balance.locked.clone(),
     }
 }
 
 pub fn available_value(transfer: &GemTransferData, balance: &GemTransferBalance) -> Result<BigInt, GemAmountError> {
     let asset = transfer.input_type.asset();
     Ok(match &transfer.input_type {
-        GemTransactionInputType::Withdrawal { .. } => parse_value(&balance.withdrawable)?,
+        GemTransactionInputType::Withdrawal { .. } => balance.withdrawable.clone(),
         GemTransactionInputType::Stake { stake_type, .. } => match stake_type {
             StakeType::Unstake(delegation) | StakeType::Withdraw(delegation) => BigInt::from(delegation.base.balance.clone()),
             StakeType::Redelegate(data) => BigInt::from(data.delegation.base.balance.clone()),
-            StakeType::Rewards(_) => parse_value(&transfer.value)?,
-            StakeType::Unfreeze(resource) => unfreeze_available(resource, balance)?,
-            StakeType::Stake(_) if asset.chain() == Chain::Tron => tron_stake_available(asset, balance)?,
-            StakeType::Stake(_) | StakeType::Freeze(_) => parse_value(&balance.available)?,
+            StakeType::Rewards(_) => transfer.value.clone(),
+            StakeType::Unfreeze(resource) => unfreeze_available(resource, balance),
+            StakeType::Stake(_) if asset.chain() == Chain::Tron => tron_stake_available(asset, balance),
+            StakeType::Stake(_) | StakeType::Freeze(_) => balance.available.clone(),
         },
         GemTransactionInputType::Earn { earn_type, .. } => match earn_type {
             EarnType::Withdraw(delegation) => BigInt::from(delegation.base.balance.clone()),
-            EarnType::Deposit(_) => parse_value(&balance.available)?,
+            EarnType::Deposit(_) => balance.available.clone(),
         },
-        _ => parse_value(&balance.available)?,
+        _ => balance.available.clone(),
     })
 }
 
@@ -186,7 +185,7 @@ pub fn pending_transaction(input: GemPendingTransactionInput) -> Result<Option<T
                 GemTransactionInputType::Swap { swap_data, .. } => swap_data.data.to.clone(),
                 _ => transfer.recipient.address.clone(),
             };
-            let value = simulation_header.as_ref().map(|header| header.value.clone()).unwrap_or(input.value);
+            let value = simulation_header.as_ref().map(|header| header.value.clone()).unwrap_or_else(|| input.value.to_string());
             let memo = match &transfer.input_type {
                 GemTransactionInputType::Swap { .. } => String::new(),
                 _ => transfer.recipient.memo.clone().unwrap_or_default(),
@@ -216,7 +215,7 @@ pub fn pending_transaction(input: GemPendingTransactionInput) -> Result<Option<T
         None,
         input.transaction_type,
         TransactionState::Pending,
-        input.network_fee,
+        input.network_fee.to_string(),
         input.fee.fee_asset,
         value,
         Some(memo),
@@ -299,7 +298,7 @@ mod tests {
                 data: SwapQuoteData {
                     to: "0xrouter".into(),
                     data_type: SwapQuoteDataType::Contract,
-                    value: "100".into(),
+                    value: "100".to_string(),
                     data: "0x".into(),
                     memo: None,
                     approval,
@@ -350,7 +349,7 @@ mod tests {
                 memo: Some("memo".into()),
                 references: vec![],
             },
-            value: value.into(),
+            value: value.parse().unwrap(),
             use_max_amount: false,
             minimum_value: None,
         }
@@ -358,10 +357,10 @@ mod tests {
 
     fn balance(available: u64, frozen: u64, locked: u64) -> GemTransferBalance {
         GemTransferBalance {
-            available: available.to_string(),
-            frozen: frozen.to_string(),
-            locked: locked.to_string(),
-            withdrawable: "0".to_string(),
+            available: BigInt::from(available),
+            frozen: BigInt::from(frozen),
+            locked: BigInt::from(locked),
+            withdrawable: BigInt::ZERO,
             votes: 0,
         }
     }
@@ -370,17 +369,17 @@ mod tests {
         GemPendingTransactionInput {
             sender: "sender".into(),
             transfer: transfer(input_type, "100"),
-            value: "99".into(),
+            value: BigInt::from(99),
             transaction_type,
             hash: hash.into(),
             fee: GemTransactionLoadFee {
-                fee: "1".into(),
-                gas_price_type: GemGasPriceType::Regular { gas_price: "1".into() },
-                gas_limit: "21000".into(),
+                fee: BigInt::from(1),
+                gas_price_type: GemGasPriceType::Regular { gas_price: BigInt::from(1) },
+                gas_limit: BigInt::from(21_000),
                 options: GemFeeOptions { options: HashMap::new() },
                 fee_asset: AssetId::from_chain(Chain::Ethereum),
             },
-            network_fee: "1".into(),
+            network_fee: BigInt::from(1),
             metadata: GemTransactionLoadMetadata::None,
             simulation: None,
             transaction_index: index,
@@ -537,7 +536,7 @@ mod tests {
             available_value(
                 &transfer(withdrawal, "1"),
                 &GemTransferBalance {
-                    withdrawable: "9".to_string(),
+                    withdrawable: BigInt::from(9),
                     ..balance(10, 0, 0)
                 }
             )
@@ -563,7 +562,7 @@ mod tests {
             Some(ApprovalData {
                 token: "0xusdc".into(),
                 spender: "0xspender".into(),
-                value: "100".into(),
+                value: "100".to_string(),
                 is_unlimited: false,
             }),
         );
@@ -601,7 +600,7 @@ mod tests {
             payload: vec![],
             header: Some(primitives::SimulationHeader {
                 asset_id: AssetId::from(Chain::Solana, Some("usdc".into())),
-                value: "19000000".into(),
+                value: "19000000".to_string(),
                 is_unlimited: false,
             }),
         });

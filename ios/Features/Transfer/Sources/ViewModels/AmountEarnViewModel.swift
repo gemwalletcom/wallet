@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAmountService
 import BigInt
 import Foundation
 import enum Gemstone.GemAmountType
@@ -13,17 +14,20 @@ public final class AmountEarnViewModel: AmountDataProvidable {
     let action: EarnType
     private let stakeService: any GemStakeServiceProtocol
     private let wallet: Wallet
+    let amountService: GemAmountService
 
     init(
         asset: Asset,
         action: EarnType,
         stakeService: any GemStakeServiceProtocol,
         wallet: Wallet,
+        amountService: GemAmountService,
     ) {
         self.asset = asset
         self.action = action
         self.stakeService = stakeService
         self.wallet = wallet
+        self.amountService = amountService
     }
 
     var provider: DelegationValidator {
@@ -49,13 +53,9 @@ public final class AmountEarnViewModel: AmountDataProvidable {
     }
 
     var gemAmountType: GemAmountType {
-        do {
-            return switch action {
-            case .deposit: .earn(earnType: .deposit)
-            case let .withdraw(delegation): try .earn(earnType: .withdraw(delegation: delegation.json()))
-            }
-        } catch {
-            preconditionFailure("Unencodable delegation: \(error)")
+        switch action {
+        case .deposit: .earn(earnType: .deposit)
+        case let .withdraw(delegation): .earn(earnType: .withdraw(delegation: delegation.json()))
         }
     }
 

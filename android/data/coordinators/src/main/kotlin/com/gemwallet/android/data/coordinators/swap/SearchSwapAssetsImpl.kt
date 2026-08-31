@@ -1,14 +1,16 @@
 package com.gemwallet.android.data.coordinators.swap
 
-import com.gemwallet.android.application.swap.coordinators.SearchSwapAssets
-import com.gemwallet.android.data.repositories.assets.AssetsSearchService
+import uniffi.gemstone.GemAssetConfigService
+import com.gemwallet.android.application.swap.cases.SearchSwapAssets
+import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.domains.asset.eligible
+import uniffi.gemstone.GemAssetAction
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.hasAvailable
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,6 +27,7 @@ import uniffi.gemstone.SwapperAssetList
 class SearchSwapAssetsImpl(
     private val searchService: AssetsSearchService,
     private val swapService: GemSwapServiceInterface,
+    private val assetConfig: GemAssetConfigService,
 ) : SearchSwapAssets {
 
     override fun invoke(
@@ -57,13 +60,9 @@ class SearchSwapAssetsImpl(
         }
         .catch { emit(emptyList()) }
         .map { items ->
-            items.filter { assetInfo ->
-                assetInfo.metadata?.isSwapEnabled == true &&
-                    if (swapItemType == SwapItemType.Pay) {
-                        assetInfo.balance.balance.hasAvailable()
-                    } else {
-                        true
-                    }
+            when (swapItemType) {
+                SwapItemType.Pay -> GemAssetAction.SWAP_PAY.eligible(items, assetConfig)
+                SwapItemType.Receive -> GemAssetAction.SWAP_RECEIVE.eligible(items, assetConfig)
             }
         }
     }

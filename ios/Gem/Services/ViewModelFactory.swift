@@ -1,5 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemTransactionStateServiceProtocol
+import protocol Gemstone.GemPerpetualServiceProtocol
+import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemPriceServiceProtocol
@@ -8,6 +11,8 @@ import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemFiatServiceProtocol
 import GemstoneServices
+import class Gemstone.GemTransferService
+import class Gemstone.GemAddressService
 import Assets
 import FiatConnect
 import Foundation
@@ -15,6 +20,13 @@ import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
 import protocol Gemstone.GemSwapServiceProtocol
 import class Gemstone.GemConfirmService
+import class Gemstone.GemApplicationMetadataService
+import class Gemstone.GemDeeplinkService
+import class Gemstone.GemAssetConfigService
+import class Gemstone.GemSwapQuoteService
+import class Gemstone.GemSimulationFormatter
+import class Gemstone.GemFeeService
+import class Gemstone.GemPaymentService
 import Preferences
 import Primitives
 import PrimitivesComponents
@@ -29,31 +41,37 @@ import WalletTab
 
 public struct ViewModelFactory: Sendable {
     let keystore: any Keystore
-    let chainServiceFactory: ChainServiceFactory
     let gemConfirmService: GemConfirmService
     let swapService: any GemSwapServiceProtocol
-    let assetsEnabler: any AssetsEnabler
+    let swapQuoteService: GemSwapQuoteService
     let priceUpdater: any PriceUpdater
     let walletSessionService: any WalletSessionManageable
     let stakeService: any GemStakeServiceProtocol
     let explorerService: any GemExplorerServiceProtocol
+    let preferencesService: any GemPreferencesServiceProtocol
     let amountService: AmountService
     let nameService: any GemNameServiceProtocol
     let balanceService: any GemBalanceServiceProtocol
-    let balanceStore: BalanceStore
     let addressStore: AddressStore
     let priceService: any GemPriceServiceProtocol
-    let priceStore: PriceStore
-    let transactionStateScheduler: TransactionStateScheduler
+    let transactionStateService: any GemTransactionStateServiceProtocol
     let gemNameService: any GemNameServiceProtocol
-    let recentActivityStore: RecentActivityStore
+    let recentAssetsService: RecentAssetsService
     let toastPresenter: ToastPresenter
     let fiatService: any GemFiatServiceProtocol
     let assetsService: any GemAssetsServiceProtocol
     let assetStore: AssetStore
     let priceAlertService: any GemPriceAlertServiceProtocol
     let searchService: any GemSearchServiceProtocol
-    let perpetualService: PerpetualService
+    let perpetualService: any GemPerpetualServiceProtocol
+    let feeService: GemFeeService
+    let transferService: GemTransferService
+    let addressService: GemAddressService
+    let paymentService: GemPaymentService
+    let applicationMetadataService: GemApplicationMetadataService
+    let deeplinkService: GemDeeplinkService
+    let simulationFormatter: GemSimulationFormatter
+    let assetConfig: GemAssetConfigService
 
     @MainActor
     public func selectAssetScene(
@@ -66,9 +84,11 @@ public struct ViewModelFactory: Sendable {
             wallet: wallet,
             selectType: selectType,
             searchService: searchService,
-            assetsEnabler: assetsEnabler,
+            balanceService: balanceService,
             priceAlertService: priceAlertService,
-            recentActivityStore: recentActivityStore,
+            recentAssetsService: recentAssetsService,
+            preferencesService: preferencesService,
+            assetConfig: assetConfig,
             selectAssetAction: selectAssetAction,
             chains: chains,
         )
@@ -83,11 +103,11 @@ public struct ViewModelFactory: Sendable {
     ) -> AssetsResultsSceneViewModel {
         AssetsResultsSceneViewModel(
             wallet: wallet,
-            assetsEnabler: assetsEnabler,
-            preferences: Preferences.standard,
+            balanceService: balanceService,
+            preferencesService: preferencesService,
             searchService: searchService,
             perpetualService: perpetualService,
-            recentActivityStore: recentActivityStore,
+            recentAssetsService: recentAssetsService,
             request: request,
             title: title,
             onSelectAsset: onSelectAsset,
@@ -112,20 +132,26 @@ public struct ViewModelFactory: Sendable {
             confirmService: ConfirmServiceFactory.create(
                 explorerService: explorerService,
                 keystore: keystore,
-                chainServiceFactory: chainServiceFactory,
                 gemConfirmService: gemConfirmService,
-                balanceStore: balanceStore,
+                preferencesService: preferencesService,
                 assetStore: assetStore,
                 assetsService: assetsService,
-                priceStore: priceStore,
-                transactionStateScheduler: transactionStateScheduler,
+                transactionStateService: transactionStateService,
                 nameService: gemNameService,
-                addressStore: addressStore,
-                recentActivityStore: recentActivityStore,
+                recentAssetsService: recentAssetsService,
                 toastPresenter: toastPresenter,
-                chain: data.chain,
+                feeService: feeService,
+                transferService: transferService,
+                amountService: amountService.amountService,
+                simulationFormatter: simulationFormatter,
+                perpetualService: perpetualService,
             ),
+            transferService: transferService,
             onComplete: onComplete,
+            assetConfig: assetConfig,
+            feeService: feeService,
+            swapQuoteService: swapQuoteService,
+            applicationMetadataService: applicationMetadataService,
         )
     }
 
@@ -147,6 +173,8 @@ public struct ViewModelFactory: Sendable {
             recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
+            addressService: addressService,
+            paymentService: paymentService,
         )
     }
 
@@ -160,6 +188,7 @@ public struct ViewModelFactory: Sendable {
             input: input,
             wallet: wallet,
             service: amountService,
+            preferencesService: preferencesService,
             onTransferAction: onTransferAction,
         )
     }
@@ -175,7 +204,7 @@ public struct ViewModelFactory: Sendable {
             fiatService: fiatService,
             assetAddress: assetAddress,
             wallet: wallet,
-            assetsEnabler: assetsEnabler,
+            balanceService: balanceService,
             type: type,
             amount: amount,
         )
@@ -187,10 +216,12 @@ public struct ViewModelFactory: Sendable {
         onSwap: @escaping (TransferData) -> Void,
     ) -> SwapSceneViewModel {
         SwapSceneViewModel(
+            preferencesService: preferencesService,
             input: input,
             balanceService: balanceService,
             priceUpdater: priceUpdater,
             swapService: swapService,
+            swapQuoteService: swapQuoteService,
             onSwap: onSwap,
         )
     }
@@ -203,7 +234,7 @@ public struct ViewModelFactory: Sendable {
         StakeSceneViewModel(
             wallet: wallet,
             chain: StakeChain(rawValue: chain.rawValue)!, // Expected Only StakeChain accepted.
-            currencyCode: Preferences.standard.currency,
+            currencyCode: preferencesService.currencyCode,
             stakeService: stakeService,
             explorerService: explorerService,
         )
@@ -217,7 +248,7 @@ public struct ViewModelFactory: Sendable {
         EarnSceneViewModel(
             wallet: wallet,
             asset: asset,
-            currencyCode: Preferences.standard.currency,
+            currencyCode: preferencesService.currencyCode,
             stakeService: stakeService,
             explorerService: explorerService,
         )
@@ -234,8 +265,9 @@ public struct ViewModelFactory: Sendable {
     ) -> DelegationSceneViewModel {
         DelegationSceneViewModel(
             wallet: wallet,
-            model: DelegationViewModel(explorerService: explorerService, delegation: delegation, asset: asset, formatter: .auto, currencyCode: Preferences.standard.currency),
+            model: DelegationViewModel(explorerService: explorerService, stakeService: stakeService, delegation: delegation, asset: asset, formatter: .auto, currencyCode: preferencesService.currencyCode),
             asset: asset,
+            stakeService: stakeService,
             validators: validators,
             onAmountInputAction: onAmountInputAction,
             onTransferAction: onTransferAction,
@@ -253,6 +285,7 @@ public struct ViewModelFactory: Sendable {
             nameService: gemNameService,
             payload: payload,
             confirmTransferDelegate: confirmTransferDelegate,
+            applicationMetadataService: applicationMetadataService,
         )
     }
 }

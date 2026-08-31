@@ -1,6 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemTransferService
+import struct Gemstone.GemConfirmData
+import class Gemstone.GemAmountService
+import class Gemstone.GemFeeService
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Validators
@@ -9,12 +14,22 @@ public struct ConfirmTransferInputProvider: Sendable {
     private let transferTransactionProvider: any TransferTransactionProvidable
     private let feeAssetProvider: any FeeAssetProvidable
 
+    private let feeService: GemFeeService
+    private let transferService: GemTransferService
+    private let amountService: GemAmountService
+
     public init(
         transferTransactionProvider: any TransferTransactionProvidable,
         feeAssetProvider: any FeeAssetProvidable,
+        feeService: GemFeeService,
+        transferService: GemTransferService,
+        amountService: GemAmountService,
     ) {
         self.transferTransactionProvider = transferTransactionProvider
         self.feeAssetProvider = feeAssetProvider
+        self.feeService = feeService
+        self.transferService = transferService
+        self.amountService = amountService
     }
 
     func load(
@@ -23,22 +38,18 @@ public struct ConfirmTransferInputProvider: Sendable {
         selection: FeeSelection,
         feeAssetSelection: FeeAssetSelection,
     ) async throws -> ConfirmTransferPreload {
-        let loadedTransactionData: TransferTransactionData
+        let confirmData: GemConfirmData
         do {
-            loadedTransactionData = try await transferTransactionProvider.loadTransferTransactionData(
+            confirmData = try await transferTransactionProvider.loadConfirmData(
                 wallet: request.wallet,
                 data: request.data,
                 selection: selection,
+                feeAssetId: feeAssetSelection.selectedAssetId,
             )
         } catch {
             throw preloadFailureError(metadata: metadata) ?? error
         }
-
-        let transactionData = switch feeAssetSelection {
-        case .automatic: loadedTransactionData
-        case let .selected(assetId): loadedTransactionData.withFeeAsset(assetId)
-        }
-        let fee = transactionData.transactionData.fee
+        let fee = try confirmData.fee.map()
         let feeAssetId = fee.feeAssetId
         let feeAssetData = try feeAssetProvider.getAssetData(walletId: request.wallet.id, assetId: feeAssetId)
         let assetPrices = if let feeAssetPrice = feeAssetData.price {
@@ -54,21 +65,22 @@ public struct ConfirmTransferInputProvider: Sendable {
             assetPrices: assetPrices,
         )
         let input = ConfirmTransferInput(
-            transactionData: transactionData.transactionData,
-            transferAmount: TransferAmountCalculator().validate(
+            confirmData: confirmData,
+            fee: fee,
+            transferAmount: TransferAmountCalculator(amountService: amountService).validate(
                 transferData: request.data,
-                availableValue: try request.data.availableValue(balance: metadata.assetBalance),
+                availableValue: try request.data.availableValue(balance: metadata.assetBalance, transferService: transferService),
                 feeAsset: feeAssetData.asset,
                 assetFeeBalance: metadata.feeAvailable,
                 fee: fee.fee,
             ),
             feeAsset: feeAssetData.asset,
         )
-        return ConfirmTransferPreload(
+        return try ConfirmTransferPreload(
             metadata: metadata,
             input: input,
-            feeRates: transactionData.rates,
-            simulation: transactionData.simulation,
+            feeRates: confirmData.feeRates.map { try $0.map() },
+            simulation: confirmData.simulation.map { try Primitives.SimulationResult($0) },
         )
     }
 
@@ -77,10 +89,7 @@ public struct ConfirmTransferInputProvider: Sendable {
     }
 
     private func preloadFailureError(metadata: TransferDataMetadata) -> TransferAmountCalculatorError? {
-        if [Chain.hyperCore, Chain.tron].contains(metadata.feeAssetId.chain) {
-            return nil
-        }
-        guard metadata.feeAvailable.isZero, metadata.feeAssetId.type == .native else {
+        guard feeService.isInsufficientNetworkFee(feeAssetId: metadata.feeAssetId.identifier, feeAvailable: metadata.feeAvailable.description) else {
             return nil
         }
         return .insufficientNetworkFee(metadata.feeAssetId.chain.asset, requirement: nil)

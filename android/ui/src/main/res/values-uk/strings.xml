@@ -20,6 +20,7 @@
   <string name="common_wallet">Гаманець</string>
   <string name="common_show">Показати %1$s</string>
   <string name="common_copied">Скопійовано: %1$s.</string>
+  <string name="common_copied_to_clipboard">Скопійовано в буфер обміну</string>
   <string name="common_recommended">Рекомендовано</string>
   <string name="common_all">Всі</string>
   <string name="common_not_available">Недоступно</string>
@@ -182,10 +183,14 @@
   <string name="errors_token_invalid_id">Невірний ідентифікатор токену</string>
   <string name="errors_import_invalid_secret_phrase">Недійсна секретна фраза</string>
   <string name="errors_import_invalid_secret_phrase_word">Невірне слово секретної фрази: %1$s</string>
+  <string name="errors_import_invalid_private_key">Недійсний приватний ключ</string>
+  <string name="errors_keystore_access">Не вдалося отримати доступ до ключів цього гаманця на цьому пристрої. Якщо у вас є фраза відновлення, видаліть цей гаманець і імпортуйте його знову, щоб відновити доступ.</string>
+  <string name="errors_wallet_account_missing">У цьому гаманці немає рахунку для цієї мережі</string>
   <string name="errors_invalid_url">Недійсний URL</string>
   <string name="errors_error_occurred">Виникла помилка!</string>
   <string name="errors_invalid_network_id">Неправильний ідентифікатор мережі</string>
   <string name="errors_error">Помилка</string>
+  <string name="errors_cancelled">Скасовано</string>
   <string name="errors_connections_user_cancelled">Скасовано користувачем</string>
   <string name="errors_not_supported">Не підтримується</string>
   <string name="errors_permissions_not_granted">Дозволу не надано</string>

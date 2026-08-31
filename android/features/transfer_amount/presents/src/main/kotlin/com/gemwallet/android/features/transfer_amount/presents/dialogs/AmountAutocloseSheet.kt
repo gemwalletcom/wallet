@@ -14,7 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.domains.perpetual.autoclose.AutocloseEstimator
+import uniffi.gemstone.GemAutocloseEstimator
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseField
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseValidator
 import com.gemwallet.android.ext.PerpetualFormatter
@@ -38,6 +38,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TpslType
+import com.gemwallet.android.domains.perpetual.toGem
 
 @Composable
 internal fun AmountAutocloseSheet(
@@ -153,7 +154,7 @@ internal fun AmountAutocloseSheet(
                 PercentSuggestionsBar(
                     suggestions = activeField.percentSuggestions,
                     onPercentSelected = { percent ->
-                        val target = estimator.targetPriceFromRoe(percent, activeField.type)
+                        val target = estimator.targetPriceFromRoe(percent, activeField.type.toGem())
                         val formatted = PerpetualFormatter.formatInputPrice(
                             provider = perpetualProvider,
                             price = target,
@@ -191,7 +192,7 @@ private fun buildField(
     type: TpslType,
     price: Double?,
     validation: AutocloseValidation,
-    estimator: AutocloseEstimator,
+    estimator: GemAutocloseEstimator,
     showErrors: Boolean,
 ): AutocloseUIModel.Field {
     val field = AutocloseField(

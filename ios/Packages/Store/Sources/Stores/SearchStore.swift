@@ -35,7 +35,7 @@ extension SearchStore {
                 .filter(SearchRecord.Columns.assetId != nil)
                 .deleteAll(database)
             for (index, id) in ids.enumerated() {
-                try SearchRecord(query: query, assetId: id, priority: index).insert(database)
+                try SearchRecord(query: query, assetId: id, priority: index).upsert(database)
             }
         }
     }
@@ -47,7 +47,7 @@ extension SearchStore {
                 .filter(SearchRecord.Columns.perpetualId != nil)
                 .deleteAll(database)
             for (index, id) in ids.enumerated() {
-                try SearchRecord(query: query, perpetualId: id, priority: index).insert(database)
+                try SearchRecord(query: query, perpetualId: id, priority: index).upsert(database)
             }
         }
     }
@@ -59,7 +59,7 @@ extension SearchStore {
                 .filter(SearchRecord.Columns.listId != nil)
                 .deleteAll(database)
             for (index, id) in ids.enumerated() {
-                try SearchRecord(query: query, listId: id, priority: index).insert(database)
+                try SearchRecord(query: query, listId: id, priority: index).upsert(database)
             }
         }
     }

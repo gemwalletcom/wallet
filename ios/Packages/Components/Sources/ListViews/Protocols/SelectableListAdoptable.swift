@@ -24,6 +24,10 @@ public extension SelectableListAdoptable {
         self.init(state: state, selectedItems: [], selectionType: .navigationLink)
     }
 
+    var items: [Item] {
+        state.value?.items ?? []
+    }
+
     var shouldResetOnToggle: Bool {
         switch selectionType {
         case .multiSelection: false

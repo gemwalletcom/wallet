@@ -1,7 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
-
 public enum WalletImportResult: Sendable {
     case new(Wallet)
     case existing(Wallet)

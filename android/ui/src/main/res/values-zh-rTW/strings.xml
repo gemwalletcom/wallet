@@ -20,6 +20,7 @@
   <string name="common_wallet">錢包</string>
   <string name="common_show">顯示%1$s</string>
   <string name="common_copied">已復制： %1$s</string>
+  <string name="common_copied_to_clipboard">已複製到剪貼簿</string>
   <string name="common_recommended">推薦</string>
   <string name="common_all">全部</string>
   <string name="common_not_available">無法使用</string>
@@ -182,10 +183,14 @@
   <string name="errors_token_invalid_id">無效的代幣 ID</string>
   <string name="errors_import_invalid_secret_phrase">助記詞無效</string>
   <string name="errors_import_invalid_secret_phrase_word">助記詞無效： %1$s</string>
+  <string name="errors_import_invalid_private_key">無效的私鑰</string>
+  <string name="errors_keystore_access">無法在此裝置上存取該錢包的金鑰。如果你有助記詞，請移除該錢包並重新匯入以恢復存取。</string>
+  <string name="errors_wallet_account_missing">此錢包沒有此網路的帳戶</string>
   <string name="errors_invalid_url">無效的網址</string>
   <string name="errors_error_occurred">出錯了！</string>
   <string name="errors_invalid_network_id">無效的網路ID</string>
   <string name="errors_error">錯誤</string>
+  <string name="errors_cancelled">已取消</string>
   <string name="errors_connections_user_cancelled">用戶已取消</string>
   <string name="errors_not_supported">不支援</string>
   <string name="errors_permissions_not_granted">未授予權限</string>

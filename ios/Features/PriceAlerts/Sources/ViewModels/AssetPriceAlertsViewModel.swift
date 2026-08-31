@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemPriceAlertServiceProtocol
 import Components
-import Localization
-import Preferences
+import protocol Gemstone.GemPreferencesServiceProtocol
+import protocol Gemstone.GemPriceAlertServiceProtocol
 import GemstoneServices
+import Localization
 import Primitives
 import PrimitivesComponents
 import Store
@@ -15,6 +15,7 @@ import SwiftUI
 @MainActor
 public final class AssetPriceAlertsViewModel: Sendable {
     let priceAlertService: any GemPriceAlertServiceProtocol
+    let preferencesService: any GemPreferencesServiceProtocol
     let walletId: WalletId
     let asset: Asset
 
@@ -29,10 +30,12 @@ public final class AssetPriceAlertsViewModel: Sendable {
 
     public init(
         priceAlertService: any GemPriceAlertServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
         walletId: WalletId,
         asset: Asset,
     ) {
         self.priceAlertService = priceAlertService
+        self.preferencesService = preferencesService
         self.walletId = walletId
         self.asset = asset
         query = ObservableQuery(PriceAlertsRequest(assetId: asset.id), initialValue: [])
@@ -44,11 +47,14 @@ public final class AssetPriceAlertsViewModel: Sendable {
     }
 
     var autoAlertItemModel: PriceAlertItemViewModel {
-        PriceAlertItemViewModel(data: PriceAlertData(
-            asset: asset,
-            price: priceQuery.value?.price,
-            priceAlert: .default(for: asset.id, currency: .default),
-        ))
+        PriceAlertItemViewModel(
+            data: PriceAlertData(
+                asset: asset,
+                price: priceQuery.value?.price,
+                priceAlert: .default(for: asset.id, currency: .default),
+            ),
+            currency: preferencesService.currencyCode,
+        )
     }
 
     var isAutoAlertEnabledBinding: Binding<Bool> {
@@ -62,30 +68,26 @@ public final class AssetPriceAlertsViewModel: Sendable {
 
     var alertsModel: [PriceAlertItemViewModel] {
         priceAlerts
-            .filter { $0.priceAlert.shouldDisplay && $0.priceAlert.type != .auto }
-            .sorted(using: [
-                KeyPathComparator(\.priceAlert.price, order: .reverse),
-                KeyPathComparator(\.priceAlert.priceDirection, order: .reverse),
-                KeyPathComparator(\.priceAlert.pricePercentChange, order: .reverse),
-            ])
-            .map { PriceAlertItemViewModel(data: $0) }
+            .filter { $0.priceAlert.type != .auto }
+            .displayedAlerts
+            .map { PriceAlertItemViewModel(data: $0, currency: preferencesService.currencyCode) }
     }
 }
 
 // MARK: - Business Logic
 
 extension AssetPriceAlertsViewModel {
-    func fetch() async {
+    func load() async {
         do {
             try await priceAlertService.sync(assetId: asset.id.identifier)
         } catch {
-            debugLog("fetch error: \(error)")
+            debugLog("load error: \(error)")
         }
     }
 
     func toggleAutoAlert(enabled: Bool) async {
         do {
-            let currency = try Currency(id: Preferences.standard.currency)
+            let currency = preferencesService.currencyValue
             if enabled {
                 try await priceAlertService.enable(priceAlert: .default(for: asset.id, currency: currency))
             } else {

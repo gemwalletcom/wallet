@@ -3,17 +3,14 @@
 import Foundation
 import Primitives
 
-public protocol WalletSessionManageableThrowing: Sendable {
-    func getWallets() throws -> [Wallet]
-    func getWallet(walletId: WalletId) throws -> Wallet
-    func getCurrentWallet() throws -> Wallet
-}
-
-public protocol WalletSessionManageable: WalletSessionManageableThrowing {
+public protocol WalletSessionManageable: Sendable {
     var wallets: [Wallet] { get }
     var currentWallet: Wallet? { get }
     var currentWalletId: WalletId? { get }
 
+    func getWallets() throws -> [Wallet]
+    func getWallet(walletId: WalletId) throws -> Wallet
+    func getCurrentWallet() throws -> Wallet
     func setCurrent(walletId: WalletId?) throws
 }
 
@@ -52,6 +49,11 @@ public extension WalletSessionManageable {
     }
 
     func hasMulticoinWallet() -> Bool {
-        (try? getWallets().contains { $0.type == .multicoin }) ?? false
+        do {
+            return try getWallets().contains { $0.type == .multicoin }
+        } catch {
+            debugLog("wallets unavailable: \(error)")
+            return false
+        }
     }
 }

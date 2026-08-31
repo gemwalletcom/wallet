@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemFiatServiceProtocol
 import GemstoneServices
 import BigInt
@@ -19,8 +20,16 @@ import Validators
 @Observable
 public final class FiatSceneViewModel {
     let fiatService: any GemFiatServiceProtocol
+
+    var quoteDebounce: Duration {
+        .milliseconds(fiatService.quoteDebounceMilliseconds())
+    }
+
+    var quoteRefreshInterval: TimeInterval {
+        TimeInterval(fiatService.quoteRefreshIntervalMilliseconds()) / 1000
+    }
     private let wallet: Wallet
-    private let assetsEnabler: any AssetsEnabler
+    private let balanceService: any GemBalanceServiceProtocol
     private let assetAddress: AssetAddress
     private let currencyFormatter: CurrencyFormatter
     private let valueFormatter = ValueFormatter(locale: .US, style: .auto)
@@ -35,7 +44,7 @@ public final class FiatSceneViewModel {
     var type: FiatQuoteType
     var isPresentingFiatProvider: Bool = false
     var isPresentingAlertMessage: AlertMessage?
-    var fetchTrigger: FiatFetchTrigger
+    var loadTrigger: FiatLoadTrigger
 
     let buyViewModel: FiatOperationViewModel
     let sellViewModel: FiatOperationViewModel
@@ -45,7 +54,7 @@ public final class FiatSceneViewModel {
         currencyFormatter: CurrencyFormatter = CurrencyFormatter(currencyCode: Currency.usd.rawValue),
         assetAddress: AssetAddress,
         wallet: Wallet,
-        assetsEnabler: any AssetsEnabler,
+        balanceService: any GemBalanceServiceProtocol,
         type: FiatQuoteType = .buy,
         amount: Int? = nil,
     ) {
@@ -53,7 +62,7 @@ public final class FiatSceneViewModel {
         self.currencyFormatter = currencyFormatter
         self.assetAddress = assetAddress
         self.wallet = wallet
-        self.assetsEnabler = assetsEnabler
+        self.balanceService = balanceService
         self.type = type
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))
         priceUsdQuery = ObservableQuery(PriceUsdRequest(assetId: assetAddress.asset.id), initialValue: nil)
@@ -88,7 +97,7 @@ public final class FiatSceneViewModel {
         }
 
         let initialAmount = amount.map { String($0) } ?? defaultAmount
-        fetchTrigger = FiatFetchTrigger(type: type, amount: initialAmount, isImmediate: true)
+        loadTrigger = FiatLoadTrigger(type: type, amount: initialAmount, isImmediate: true)
 
         if let amount {
             currentViewModel.setAmount(String(amount))
@@ -218,8 +227,8 @@ public final class FiatSceneViewModel {
 // MARK: - Actions
 
 extension FiatSceneViewModel {
-    func fetch() {
-        currentViewModel.fetch()
+    func load() {
+        currentViewModel.load()
     }
 
     func onAssetDataChange(_: AssetData, _ newValue: AssetData) {
@@ -276,13 +285,13 @@ extension FiatSceneViewModel {
     func onChangeType(oldType: FiatQuoteType, newType: FiatQuoteType) {
         resetStateIfNeeded(for: oldType)
         currentViewModel.setAmount(currentViewModel.amount)
-        fetchTrigger = FiatFetchTrigger(type: newType, amount: currentViewModel.amount, isImmediate: true)
+        loadTrigger = FiatLoadTrigger(type: newType, amount: currentViewModel.amount, isImmediate: true)
     }
 
     func onChangeAmountText(_: String, text: String) {
         guard text != currentViewModel.amount else { return }
         currentViewModel.onChangeAmountText("", text: text)
-        fetchTrigger = FiatFetchTrigger(type: type, amount: text, isImmediate: false)
+        loadTrigger = FiatLoadTrigger(type: type, amount: text, isImmediate: false)
     }
 }
 
@@ -291,7 +300,7 @@ extension FiatSceneViewModel {
 extension FiatSceneViewModel {
     private func enableAsset() async {
         do {
-            try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [asset.id], enabled: true)
+            try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: [asset.id], enabled: true)
         } catch {
             debugLog("FiatSceneViewModel enableAsset error: \(error)")
         }
@@ -308,7 +317,7 @@ extension FiatSceneViewModel {
     private func selectAmount(_ amount: Int) {
         let amountText = String(amount)
         currentViewModel.setAmount(amountText)
-        fetchTrigger = FiatFetchTrigger(type: type, amount: amountText, isImmediate: true)
+        loadTrigger = FiatLoadTrigger(type: type, amount: amountText, isImmediate: true)
     }
 
     private func resetStateIfNeeded(for type: FiatQuoteType) {

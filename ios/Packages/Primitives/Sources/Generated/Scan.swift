@@ -15,10 +15,10 @@ public struct ScanAddressTarget: Codable, Equatable, Sendable {
 }
 
 public struct ScanTransaction: Codable, Equatable, Sendable {
-	public let isMalicious: Bool
-	public let isMemoRequired: Bool
+	public let isMalicious: Bool?
+	public let isMemoRequired: Bool?
 
-	public init(isMalicious: Bool, isMemoRequired: Bool) {
+	public init(isMalicious: Bool?, isMemoRequired: Bool?) {
 		self.isMalicious = isMalicious
 		self.isMemoRequired = isMemoRequired
 	}

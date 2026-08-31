@@ -2,9 +2,9 @@ package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.coordinators.GetPortfolioData
-import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
-import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
+import com.gemwallet.android.application.assets.cases.GetPortfolioData
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
 import com.wallet.core.primitives.ChartDateValue

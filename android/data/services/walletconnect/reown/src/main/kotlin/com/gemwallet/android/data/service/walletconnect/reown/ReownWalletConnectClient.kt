@@ -3,20 +3,20 @@ package com.gemwallet.android.data.service.walletconnect.reown
 import android.app.Application
 import android.content.Context
 import android.util.Log
-import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthObject
-import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthPayloadParams
-import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthenticationRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectClient
-import com.gemwallet.android.data.repositories.bridge.WalletConnectEvent
-import com.gemwallet.android.data.repositories.bridge.WalletConnectJsonRpcRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectJsonRpcResponse
-import com.gemwallet.android.data.repositories.bridge.WalletConnectProposalNamespace
-import com.gemwallet.android.data.repositories.bridge.WalletConnectSession
-import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionNamespace
-import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionProposal
-import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectValidation
-import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
+import com.gemwallet.android.application.wallet_connect.WalletConnectAuthObject
+import com.gemwallet.android.application.wallet_connect.WalletConnectAuthPayloadParams
+import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectClient
+import com.gemwallet.android.application.wallet_connect.WalletConnectEvent
+import com.gemwallet.android.application.wallet_connect.WalletConnectJsonRpcRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectJsonRpcResponse
+import com.gemwallet.android.application.wallet_connect.WalletConnectProposalNamespace
+import com.gemwallet.android.application.wallet_connect.WalletConnectSession
+import com.gemwallet.android.application.wallet_connect.WalletConnectSessionNamespace
+import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
+import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectValidation
+import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.reown.android.Core
 import com.reown.android.CoreClient
 import com.reown.android.relay.ConnectionType
@@ -36,7 +36,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ReownWalletConnectClient @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val walletConnectService: GemWalletConnectService,
 ) : WalletConnectClient, WalletKit.WalletDelegate, CoreClient.CoreDelegate {
 

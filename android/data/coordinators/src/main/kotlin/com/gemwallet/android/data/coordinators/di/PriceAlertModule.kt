@@ -1,132 +1,96 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.pricealerts.coordinators.ExcludePriceAlert
-import com.gemwallet.android.application.pricealerts.coordinators.GetAssetPriceAlertState
-import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
-import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlertsEnabled
-import com.gemwallet.android.application.pricealerts.coordinators.HasAssetPriceAlerts
-import com.gemwallet.android.application.pricealerts.coordinators.IncludePriceAlert
-import com.gemwallet.android.application.pricealerts.coordinators.SetAssetPriceAlertEnabled
-import com.gemwallet.android.application.pricealerts.coordinators.SetPriceAlertsEnabled
-import com.gemwallet.android.application.pricealerts.coordinators.SyncAssetPriceAlerts
-import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
-import com.gemwallet.android.data.coordinators.pricealerts.ExcludePriceAlertImpl
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.application.pricealerts.cases.ExcludePriceAlert
+import com.gemwallet.android.application.pricealerts.cases.GetAssetPriceAlertState
+import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
+import com.gemwallet.android.application.pricealerts.cases.GetPriceAlertsEnabled
+import com.gemwallet.android.application.pricealerts.cases.HasAssetPriceAlerts
+import com.gemwallet.android.application.pricealerts.cases.IncludePriceAlert
+import com.gemwallet.android.application.pricealerts.cases.SetAssetPriceAlertEnabled
+import com.gemwallet.android.application.pricealerts.cases.SetPriceAlertsEnabled
+import com.gemwallet.android.application.pricealerts.cases.SyncAssetPriceAlerts
+import com.gemwallet.android.application.pricealerts.cases.UpdatePriceAlerts
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceAlertStore
 import com.gemwallet.android.data.coordinators.pricealerts.GetAssetPriceAlertStateImpl
 import com.gemwallet.android.data.coordinators.pricealerts.GetPriceAlertsImpl
 import com.gemwallet.android.data.coordinators.pricealerts.HasAssetPriceAlertsImpl
-import com.gemwallet.android.data.coordinators.pricealerts.IncludePriceAlertImpl
-import com.gemwallet.android.data.coordinators.pricealerts.SetAssetPriceAlertEnabledImpl
-import com.gemwallet.android.data.coordinators.pricealerts.PriceAlertsEnabledCoordinator
+import com.gemwallet.android.data.coordinators.pricealerts.PriceAlertsCoordinator
 import com.gemwallet.android.data.coordinators.pricealerts.SyncAssetPriceAlertsImpl
 import com.gemwallet.android.data.coordinators.pricealerts.UpdatePriceAlertsImpl
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemPriceAlertService
+import uniffi.gemstone.PriceAlertFormatter
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
 object PriceAlertModule {
+
     @Provides
     @Singleton
-    fun provideAddPriceAlerts(
+    fun providePriceAlertsCoordinator(
         priceAlertService: GemPriceAlertService,
-        sessionRepository: SessionRepository,
-        setPriceAlertsEnabled: SetPriceAlertsEnabled,
-    ): IncludePriceAlert {
-        return IncludePriceAlertImpl(
-            priceAlertService = priceAlertService,
-            sessionRepository = sessionRepository,
-            setPriceAlertsEnabled = setPriceAlertsEnabled,
-        )
-    }
+        getCurrentCurrency: GetCurrentCurrency,
+    ): PriceAlertsCoordinator = PriceAlertsCoordinator(
+        priceAlertService = priceAlertService,
+        getCurrentCurrency = getCurrentCurrency,
+    )
+
+    @Provides
+    fun provideGetPriceAlertsEnabled(coordinator: PriceAlertsCoordinator): GetPriceAlertsEnabled = coordinator
+
+    @Provides
+    fun provideSetPriceAlertsEnabled(coordinator: PriceAlertsCoordinator): SetPriceAlertsEnabled = coordinator
+
+    @Provides
+    fun provideIncludePriceAlert(coordinator: PriceAlertsCoordinator): IncludePriceAlert = coordinator
+
+    @Provides
+    fun provideExcludePriceAlert(coordinator: PriceAlertsCoordinator): ExcludePriceAlert = coordinator
+
+    @Provides
+    fun provideSetAssetPriceAlertEnabled(coordinator: PriceAlertsCoordinator): SetAssetPriceAlertEnabled = coordinator
 
     @Provides
     @Singleton
     fun provideGetPriceAlerts(
-        priceAlertRepository: PriceAlertRepository,
-        assetsRepository: AssetsRepository,
-    ): GetPriceAlerts {
-        return GetPriceAlertsImpl(
-            priceAlertRepository = priceAlertRepository,
-            assetsRepository = assetsRepository,
-        )
-    }
-
-    @Provides
-    @Singleton
-    fun providePriceAlertsEnabledCoordinator(
-        priceAlertService: GemPriceAlertService,
-    ): PriceAlertsEnabledCoordinator = PriceAlertsEnabledCoordinator(priceAlertService)
-
-    @Provides
-    fun provideGetPriceAlertsEnabled(coordinator: PriceAlertsEnabledCoordinator): GetPriceAlertsEnabled = coordinator
-
-    @Provides
-    fun provideSetPriceAlertsEnabled(coordinator: PriceAlertsEnabledCoordinator): SetPriceAlertsEnabled = coordinator
-
-    @Provides
-    @Singleton
-    fun provideSetAssetPriceAlertEnabled(
-        includePriceAlert: IncludePriceAlert,
-        excludePriceAlert: ExcludePriceAlert,
-    ): SetAssetPriceAlertEnabled {
-        return SetAssetPriceAlertEnabledImpl(
-            includePriceAlert = includePriceAlert,
-            excludePriceAlert = excludePriceAlert,
-        )
-    }
-
-    @Provides
-    @Singleton
-    fun providePriceAlertExclude(
-        priceAlertService: GemPriceAlertService,
-        sessionRepository: SessionRepository,
-    ): ExcludePriceAlert {
-        return ExcludePriceAlertImpl(
-            priceAlertService = priceAlertService,
-            sessionRepository = sessionRepository,
-        )
-    }
+        priceAlertStore: GemstonePriceAlertStore,
+        getWalletAssets: GetWalletAssets,
+        priceAlertFormatter: PriceAlertFormatter,
+    ): GetPriceAlerts = GetPriceAlertsImpl(
+        priceAlertStore = priceAlertStore,
+        getWalletAssets = getWalletAssets,
+        priceAlertFormatter = priceAlertFormatter,
+    )
 
     @Provides
     @Singleton
     fun provideAssetPriceAlertState(
-        priceAlertRepository: PriceAlertRepository,
-    ): GetAssetPriceAlertState {
-        return GetAssetPriceAlertStateImpl(
-            priceAlertRepository = priceAlertRepository,
-        )
-    }
+        priceAlertStore: GemstonePriceAlertStore,
+    ): GetAssetPriceAlertState = GetAssetPriceAlertStateImpl(priceAlertStore)
 
     @Provides
     fun provideUpdatePriceAlerts(
         priceAlertService: GemPriceAlertService,
-    ): UpdatePriceAlerts {
-        return UpdatePriceAlertsImpl(
-            priceAlertService = priceAlertService,
-        )
-    }
+    ): UpdatePriceAlerts = UpdatePriceAlertsImpl(priceAlertService = priceAlertService)
 
     @Provides
     @Singleton
     fun provideHasAssetPriceAlerts(
-        priceAlertRepository: PriceAlertRepository,
-    ): HasAssetPriceAlerts = HasAssetPriceAlertsImpl(priceAlertRepository)
+        priceAlertStore: GemstonePriceAlertStore,
+    ): HasAssetPriceAlerts = HasAssetPriceAlertsImpl(priceAlertStore)
 
     @Provides
     fun provideSyncAssetPriceAlerts(
         hasAssetPriceAlerts: HasAssetPriceAlerts,
         updatePriceAlerts: UpdatePriceAlerts,
-    ): SyncAssetPriceAlerts {
-        return SyncAssetPriceAlertsImpl(
-            hasAssetPriceAlerts = hasAssetPriceAlerts,
-            updatePriceAlerts = updatePriceAlerts,
-        )
-    }
+    ): SyncAssetPriceAlerts = SyncAssetPriceAlertsImpl(
+        hasAssetPriceAlerts = hasAssetPriceAlerts,
+        updatePriceAlerts = updatePriceAlerts,
+    )
 }

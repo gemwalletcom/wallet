@@ -1,15 +1,16 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
-import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalance
-import com.gemwallet.android.application.stake.coordinators.GetDelegation
-import com.gemwallet.android.application.stake.coordinators.GetDelegations
-import com.gemwallet.android.application.stake.coordinators.GetRecommendedValidator
-import com.gemwallet.android.application.stake.coordinators.GetStakeValidator
-import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.perpetual.cases.GetPerpetual
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
+import com.gemwallet.android.application.stake.cases.GetDelegation
+import com.gemwallet.android.application.stake.cases.GetDelegations
+import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
+import com.gemwallet.android.application.stake.cases.GetStakeValidator
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.model.AmountParams
 import kotlinx.coroutines.CoroutineScope
+import uniffi.gemstone.GemAmountService
 import javax.inject.Inject
 
 class AmountProviderFactory @Inject constructor(
@@ -21,6 +22,7 @@ class AmountProviderFactory @Inject constructor(
     private val getPerpetual: GetPerpetual,
     private val getPerpetualBalance: GetPerpetualBalance,
     private val userConfig: UserConfig,
+    private val amountService: GemAmountService,
 ) {
     fun create(params: AmountParams, scope: CoroutineScope): AmountDataProvider = when (params) {
         is AmountParams.Transfer,
@@ -29,6 +31,7 @@ class AmountProviderFactory @Inject constructor(
             params = params,
             getAssetInfo = getAssetInfo,
             scope = scope,
+            amountService = amountService,
         )
         is AmountParams.Stake -> AmountStakeProvider(
             params = params,
@@ -38,6 +41,7 @@ class AmountProviderFactory @Inject constructor(
             getRecommendedValidator = getRecommendedValidator,
             getStakeValidator = getStakeValidator,
             scope = scope,
+            amountService = amountService,
         )
         is AmountParams.Perpetual -> AmountPerpetualProvider(
             params = params,
@@ -46,6 +50,7 @@ class AmountProviderFactory @Inject constructor(
             getPerpetual = getPerpetual,
             getPerpetualBalance = getPerpetualBalance,
             scope = scope,
+            amountService = amountService,
         )
     }
 }

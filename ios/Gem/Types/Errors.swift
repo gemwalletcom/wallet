@@ -5,11 +5,37 @@ import Gemstone
 import Localization
 import Primitives
 
+extension KeystoreError: @retroactive LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .missingPassword: Localized.Errors.keystoreAccess
+        }
+    }
+}
+
+extension Gemstone.GemServiceError: @retroactive LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case let .Api(message),
+             let .Gateway(message),
+             let .Store(message),
+             let .Core(message),
+             let .Platform(message),
+             let .InvalidInput(message),
+             let .NotFound(message),
+             let .Unsupported(message): message
+        case .Cancelled: Localized.Errors.cancelled
+        }
+    }
+}
+
 extension Gemstone.GatewayError: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {
+        case .Offline: Localized.Errors.networkOffline
         case let .NetworkError(string): string
         case let .PlatformError(string): string
+        case .NetworkIdMismatch: Localized.Errors.invalidNetworkId
         }
     }
 }
@@ -32,6 +58,17 @@ extension Gemstone.GemPaymentError: @retroactive LocalizedError {
     }
 }
 
+extension Gemstone.GemWalletConnectError: @retroactive LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .UnsupportedChains: Localized.Errors.Connections.unsupportedChain
+        case .InvalidOrigin: Localized.Errors.Connections.maliciousOrigin
+        case .UnsupportedWallets: Localized.Errors.Connections.noSupportedWallets
+        case let .Service(msg): msg
+        }
+    }
+}
+
 extension Gemstone.SwapperError: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {
@@ -50,7 +87,8 @@ extension Gemstone.AlienError: @retroactive LocalizedError {
         switch self {
         case let .RequestError(msg: msg): msg
         case let .ResponseError(msg: msg): msg
-        case let .Http(status, _): "Response Status: \(status)"
+        case let .Http(status, _): Localized.Errors.networkError(status)
+        case .Offline: Localized.Errors.networkOffline
         }
     }
 }

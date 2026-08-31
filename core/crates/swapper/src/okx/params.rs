@@ -1,5 +1,5 @@
 use super::{
-    constants::{EVM_NATIVE_TOKEN_ADDRESS, TRON_NATIVE_TOKEN_ADDRESS, chain_index, dex_ids},
+    constants::{EVM_NATIVE_TOKEN_ADDRESS, chain_index, dex_ids},
     model::{QuoteData, QuoteParams, SwapParams},
     referral::referrer_wallet_addresses,
 };
@@ -9,7 +9,7 @@ use crate::{
 };
 use primitives::{
     Chain, ChainType,
-    contract_constants::SOLANA_SYSTEM_PROGRAM_ID,
+    contract_constants::{SOLANA_SYSTEM_PROGRAM_ID, TRON_BLACK_HOLE_ADDRESS},
     swap::{HUNDRED_PERCENT_IN_BPS, QuoteAsset, SlippageMode},
 };
 
@@ -40,7 +40,7 @@ pub(super) fn asset_to_token_address(asset: &QuoteAsset) -> Result<String, Swapp
         return Ok(asset_id.token_id.unwrap_or_else(|| SOLANA_SYSTEM_PROGRAM_ID.to_string()));
     }
     if asset_id.chain == Chain::Tron {
-        return Ok(asset_id.token_id.unwrap_or_else(|| TRON_NATIVE_TOKEN_ADDRESS.to_string()));
+        return Ok(asset_id.token_id.unwrap_or_else(|| TRON_BLACK_HOLE_ADDRESS.to_string()));
     }
     if asset_id.chain.chain_type() == ChainType::Ethereum {
         return Ok(asset_id.token_id.unwrap_or_else(|| EVM_NATIVE_TOKEN_ADDRESS.to_string()));
@@ -135,7 +135,7 @@ mod tests {
             asset_to_token_address(&mock_quote_asset_with_symbol(&ETHEREUM_USDC_ASSET_ID.to_string(), "")).unwrap(),
             ETHEREUM_USDC_TOKEN_ID
         );
-        assert_eq!(asset_to_token_address(&mock_quote_asset_with_symbol(&trx, "")).unwrap(), TRON_NATIVE_TOKEN_ADDRESS);
+        assert_eq!(asset_to_token_address(&mock_quote_asset_with_symbol(&trx, "")).unwrap(), TRON_BLACK_HOLE_ADDRESS);
         assert_eq!(
             asset_to_token_address(&mock_quote_asset_with_symbol(&AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID).to_string(), "")).unwrap(),
             TRON_USDT_TOKEN_ID
@@ -201,7 +201,7 @@ mod tests {
             100,
             SlippageMode::Auto,
         );
-        let tron_route = mock_quote_data(TRON_NATIVE_TOKEN_ADDRESS, TRON_USDT_TOKEN_ID);
+        let tron_route = mock_quote_data(TRON_BLACK_HOLE_ADDRESS, TRON_USDT_TOKEN_ID);
         let tron_params = build_swap_params(&tron_request, &tron_route).unwrap();
         assert_eq!(tron_params.chain_index, "195");
         assert_eq!(tron_params.fee_percent, "0.7");

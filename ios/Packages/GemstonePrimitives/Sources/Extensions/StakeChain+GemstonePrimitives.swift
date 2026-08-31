@@ -18,16 +18,12 @@ public extension Primitives.StakeChain {
         Config.shared.getStakeConfig(chain: rawValue).changeAmountOnUnstake
     }
 
-    var supportRedelegate: Bool {
-        Config.shared.getStakeConfig(chain: rawValue).canRedelegate
+    var usesFreeze: Bool {
+        Config.shared.getStakeConfig(chain: rawValue).usesFreeze
     }
 
-    var supportWithdraw: Bool {
-        Config.shared.getStakeConfig(chain: rawValue).canWithdraw
-    }
-
-    var supportClaimRewards: Bool {
-        Config.shared.getStakeConfig(chain: rawValue).canClaimRewards
+    var usesWholeAmounts: Bool {
+        Config.shared.getStakeConfig(chain: rawValue).usesWholeAmounts
     }
 
     var supportClaimAllRewards: Bool {

@@ -4,16 +4,20 @@ import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import BigInt
 import protocol Gemstone.GemSwapServiceProtocol
+import enum Gemstone.GemSwapButtonAction
+import class Gemstone.GemSwapQuoteService
 import enum Gemstone.SwapperError
+import struct Gemstone.GemSwapPairSuggestion
 import struct Gemstone.SwapperQuote
 import GemstoneServices
-import Preferences
-import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
 import StoreTestKit
 @testable import Swap
+import class Gemstone.GemPreferencesService
+import protocol Gemstone.GemPreferencesServiceProtocol
+import GemstonePrimitives
 import Testing
 
 @MainActor
@@ -28,6 +32,30 @@ struct SwapSceneViewModelTests {
 
         #expect(model.assetIds == assetIds)
         #expect(model.assetIds == [AssetId.mockEthereum(), AssetId.mockEthereumUSDT()])
+    }
+
+    @Test
+    func suggestPairAppliesTheCoreSuggestion() async {
+        let suggestion = GemSwapPairSuggestion(payAssetId: AssetId.mockEthereum().identifier, receiveAssetId: AssetId.mockEthereumUSDT().identifier)
+        let model = SwapSceneViewModel.mock(swapService: GemSwapServiceMock(pairSuggestion: suggestion))
+
+        await model.suggestPair()
+
+        #expect(model.pairSelectorModel.fromAssetId == .mockEthereum())
+        #expect(model.pairSelectorModel.toAssetId == .mockEthereumUSDT())
+    }
+
+    @Test
+    func suggestPairKeepsAnAlreadySelectedReceiveAsset() async {
+        let suggestion = GemSwapPairSuggestion(payAssetId: AssetId.mockEthereum().identifier, receiveAssetId: AssetId.mockSolana().identifier)
+        let model = SwapSceneViewModel.mock(
+            swapService: GemSwapServiceMock(pairSuggestion: suggestion),
+            pairSelector: SwapPairSelectorViewModel(fromAssetId: .mockEthereum(), toAssetId: .mockEthereumUSDT()),
+        )
+
+        await model.suggestPair()
+
+        #expect(model.pairSelectorModel.toAssetId == .mockEthereumUSDT())
     }
 
     @Test
@@ -54,22 +82,22 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock()
 
         model.swapState.quotes = .data([])
-        #expect(model.buttonViewModel.buttonAction == SwapButtonAction.swap)
+        #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.swap)
         #expect(model.buttonViewModel.isVisible)
 
-        model.swapState.quotes = .error(TestError())
-        #expect(model.buttonViewModel.buttonAction == SwapButtonAction.retryQuotes)
+        model.swapState.quotes = .error(SwapperError.NoQuoteAvailable)
+        #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.retryQuote)
 
         model.swapState.quotes = .error(SwapperError.InputAmountError(minAmount: "1000"))
-        #expect(model.buttonViewModel.buttonAction == SwapButtonAction.useMinAmount(amount: "1000", asset: .mockEthereum()))
+        #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.useMinimumAmount(value: "1000"))
 
         model.swapState.quotes = .data([])
-        model.swapState.swapTransferData = .error(TestError())
-        #expect(model.buttonViewModel.buttonAction == SwapButtonAction.retrySwap)
+        model.swapState.swapTransferData = .error(SwapperError.NoQuoteAvailable)
+        #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.retryTransfer)
 
-        model.swapState.quotes = .error(TestError())
-        model.swapState.swapTransferData = .error(TestError())
-        #expect(model.buttonViewModel.buttonAction == SwapButtonAction.retrySwap)
+        model.swapState.quotes = .error(SwapperError.NoQuoteAvailable)
+        model.swapState.swapTransferData = .error(SwapperError.NoQuoteAvailable)
+        #expect(model.buttonViewModel.buttonAction == GemSwapButtonAction.retryTransfer)
     }
 
     @Test
@@ -97,7 +125,7 @@ struct SwapSceneViewModelTests {
         let previousQuote = model.selectedSwapQuote
 
         model.swapState.swapTransferData = .loading
-        await model.fetch()
+        await model.load()
 
         #expect(model.swapState.quotes.isLoading == false)
         #expect(model.toValue == previousToValue)
@@ -127,7 +155,7 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock(swapService: swapService)
 
         let task = Task {
-            await model.fetch()
+            await model.load()
         }
 
         try await Task.sleep(for: .milliseconds(50))
@@ -148,7 +176,7 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock(swapService: swapService)
 
         let task = Task {
-            await model.fetch()
+            await model.load()
         }
 
         try await Task.sleep(for: .milliseconds(50))
@@ -186,7 +214,7 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock(swapService: swapService)
 
         let task = Task {
-            await model.fetch()
+            await model.load()
         }
 
         try await Task.sleep(for: .milliseconds(50))
@@ -206,7 +234,7 @@ struct SwapSceneViewModelTests {
         let oldAsset = model.toAsset
 
         model.swapState.swapTransferData = .error(TestError())
-        model.fetchTrigger = nil
+        model.loadTrigger = nil
         model.toAssetQuery.value = .mock(asset: .mockBNB())
         model.onChangeToAsset(old: oldAsset, new: model.toAsset)
 
@@ -214,7 +242,7 @@ struct SwapSceneViewModelTests {
         #expect(model.toValue.isEmpty)
         #expect(model.selectedSwapQuote == nil)
         #expect(model.swapState.swapTransferData.isNoData)
-        #expect(model.fetchTrigger?.isImmediate == true)
+        #expect(model.loadTrigger?.isImmediate == true)
     }
 
     @Test
@@ -231,35 +259,47 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func fetchTriggerIsImmediate() {
+    func loadTriggerIsImmediate() {
         let model = SwapSceneViewModel.mock()
 
-        model.fetchTrigger = nil
+        model.loadTrigger = nil
         model.onChangeFromValue("1", "2")
 
-        #expect(model.fetchTrigger?.isImmediate == false)
+        #expect(model.loadTrigger?.isImmediate == false)
 
-        model.fetchTrigger = nil
+        model.loadTrigger = nil
         model.onSelectPercent(50)
 
-        #expect(model.fetchTrigger?.isImmediate == true)
+        #expect(model.loadTrigger?.isImmediate == true)
 
-        model.fetchTrigger = nil
+        model.loadTrigger = nil
         model.onChangeToAsset(old: .mock(asset: .mockEthereum()), new: .mock(asset: .mockEthereumUSDT()))
 
-        #expect(model.fetchTrigger?.isImmediate == true)
+        #expect(model.loadTrigger?.isImmediate == true)
 
-        model.fetchTrigger = nil
+        model.loadTrigger = nil
         model.swapState.quotes = .error(SwapperError.NoQuoteAvailable)
         model.buttonViewModel.action()
 
-        #expect(model.fetchTrigger?.isImmediate == true)
+        #expect(model.loadTrigger?.isImmediate == true)
 
-        model.fetchTrigger = nil
+        model.loadTrigger = nil
         model.swapState.quotes = .error(SwapperError.InputAmountError(minAmount: "1000000000000000000"))
         model.buttonViewModel.action()
 
-        #expect(model.fetchTrigger?.isImmediate == true)
+        #expect(model.loadTrigger?.isImmediate == true)
+    }
+
+    @Test
+    func retryQuoteUpdatesLoadTrigger() {
+        let model = SwapSceneViewModel.mock()
+
+        model.swapState.quotes = .error(SwapperError.NoQuoteAvailable)
+        model.buttonViewModel.action()
+        let firstRetry = model.loadTrigger
+        model.buttonViewModel.action()
+
+        #expect(model.loadTrigger != firstRetry)
     }
 
     @Test
@@ -273,7 +313,7 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock(swapService: swapService)
 
         model.onFinishSwapProviderSelection(.mock(toValue: "249000000000", provider: .thorchain))
-        await model.fetch()
+        await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .thorchain)
         #expect(model.selectedSwapQuote?.toValue == "250000000000")
@@ -288,7 +328,7 @@ struct SwapSceneViewModelTests {
             ],
         )
         let model = SwapSceneViewModel.mock(swapService: swapService)
-        await model.fetch()
+        await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .uniswapV3)
 
@@ -311,12 +351,12 @@ struct SwapSceneViewModelTests {
     func increasedAmountSelectsBestProviderWithoutManualSelection() async {
         let model = SwapSceneViewModel.mock(swapService: GemSwapServiceMock(quotes: quotesByAmount))
 
-        await model.fetch()
+        await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .thorchain)
 
         model.amountInputModel.text = "4"
-        await model.fetch()
+        await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .uniswapV3)
         #expect(model.selectedSwapQuote?.toValue == "260000000000")
@@ -328,7 +368,7 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock(swapService: swapService)
 
         model.onFinishSwapProviderSelection(.mock(toValue: "249000000000", provider: .thorchain))
-        await model.fetch()
+        await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .uniswapV3)
     }
@@ -345,21 +385,63 @@ struct SwapSceneViewModelTests {
 
         model.onFinishSwapProviderSelection(.mock(toValue: "249000000000", provider: .thorchain))
         model.onChangeToAsset(old: .mock(asset: .mockEthereum()), new: .mock(asset: .mockEthereumUSDT()))
-        await model.fetch()
+        await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .uniswapV3)
     }
 
     @Test
     func slippagePersistsAcrossSessions() {
-        let preferences = Preferences.mock()
-        let model = SwapSceneViewModel.mock(preferences: preferences)
+        let preferencesService = GemPreferencesService(store: GemPreferencesStoreMock())
+        let model = SwapSceneViewModel.mock(preferencesService: preferencesService)
         #expect(model.selectedSlippage == .auto)
 
         model.onSelectSlippage(.manual(bps: 150))
 
-        #expect(preferences.swapSlippage == .manual(bps: 150))
-        #expect(SwapSceneViewModel.mock(preferences: preferences).selectedSlippage == .manual(bps: 150))
+        #expect(preferencesService.swapSlippage == .manual(bps: 150))
+        #expect(SwapSceneViewModel.mock(preferencesService: preferencesService).selectedSlippage == .manual(bps: 150))
+    }
+
+    @Test
+    func minimumAmountIsOfferedOnlyWhenTheBalanceCoversIt() async {
+        let model = SwapSceneViewModel.mock()
+
+        model.swapState.quotes = .error(SwapperError.InputAmountError(minAmount: "900000000000000000"))
+        #expect(model.buttonViewModel.buttonAction == .useMinimumAmount(value: "900000000000000000"))
+
+        model.swapState.quotes = .error(SwapperError.InputAmountError(minAmount: "2000000000000000000"))
+        #expect(model.buttonViewModel.buttonAction == .insufficientBalance)
+    }
+
+    @Test
+    func unaffordableAmountBlocksTheButtonBeforeAnyQuote() {
+        let model = SwapSceneViewModel.mock()
+
+        model.amountInputModel.text = "2"
+
+        #expect(model.swapState.quotes.isNoData)
+        #expect(model.buttonViewModel.buttonAction == .insufficientBalance)
+
+        model.amountInputModel.text = "1"
+
+        #expect(model.buttonViewModel.buttonAction == .swap)
+    }
+
+    @Test
+    func onlyRetryableFailuresOfferARetry() {
+        let model = SwapSceneViewModel.mock()
+
+        model.swapState.quotes = .error(SwapperError.NoQuoteAvailable)
+        #expect(model.buttonViewModel.buttonAction == .retryQuote)
+
+        model.swapState.quotes = .error(SwapperError.NoAvailableProvider)
+        #expect(model.buttonViewModel.buttonAction == .swap)
+
+        model.swapState.swapTransferData = .error(SwapperError.TransactionError("nonce"))
+        #expect(model.buttonViewModel.buttonAction == .retryTransfer)
+
+        model.swapState.swapTransferData = .error(SwapperError.NotSupportedAsset)
+        #expect(model.buttonViewModel.buttonAction == .swap)
     }
 
     // MARK: - Private methods
@@ -369,7 +451,7 @@ struct SwapSceneViewModelTests {
     ) async -> SwapSceneViewModel {
         let swapService = GemSwapServiceMock(quotes: [.mock(toValue: toValueMock)])
         let model = SwapSceneViewModel.mock(swapService: swapService)
-        await model.fetch()
+        await model.load()
         return model
     }
 }
@@ -377,17 +459,19 @@ struct SwapSceneViewModelTests {
 extension SwapSceneViewModel {
     static func mock(
         swapService: any GemSwapServiceProtocol = GemSwapServiceMock(),
-        preferences: Preferences = .mock(),
+        preferencesService: any GemPreferencesServiceProtocol = GemPreferencesService(store: GemPreferencesStoreMock()),
+        pairSelector: SwapPairSelectorViewModel = SwapPairSelectorViewModel(fromAssetId: .mockEthereum(), toAssetId: nil),
     ) -> SwapSceneViewModel {
         let model = SwapSceneViewModel(
-            preferences: preferences,
+            preferencesService: preferencesService,
             input: .init(
                 wallet: .mock(accounts: [.mock(chain: .ethereum)]),
-                pairSelector: SwapPairSelectorViewModel(fromAssetId: .mockEthereum(), toAssetId: nil),
+                pairSelector: pairSelector,
             ),
             balanceService: GemBalanceServiceMock(),
             priceUpdater: .mock(),
             swapService: swapService,
+            swapQuoteService: GemSwapQuoteService(),
         )
         model.fromAssetQuery.value = .mock(asset: .mockEthereum(), balance: .mock())
         model.toAssetQuery.value = .mock(asset: .mockEthereumUSDT())
@@ -397,9 +481,7 @@ extension SwapSceneViewModel {
     }
 }
 
-private struct TestError: Error, RetryableError {
-    var isRetryAvailable: Bool = true
-}
+private struct TestError: Error {}
 
 private let quotesByAmount: @Sendable (BigInt) -> [SwapperQuote] = { amount in
     guard amount > BigInt(stringLiteral: "2000000000000000000") else {

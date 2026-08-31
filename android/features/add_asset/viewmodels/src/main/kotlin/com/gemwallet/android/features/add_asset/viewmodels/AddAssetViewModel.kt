@@ -1,17 +1,23 @@
 package com.gemwallet.android.features.add_asset.viewmodels
 
+import uniffi.gemstone.GemAddressService
+import android.util.Log
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.toIdentifier
+import uniffi.gemstone.GemAssetConfigService
+import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemExplorerService
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.add_asset.coordinators.AddCustomToken
-import com.gemwallet.android.application.add_asset.coordinators.GetAvailableTokenChains
-import com.gemwallet.android.application.add_asset.coordinators.ObserveToken
-import com.gemwallet.android.application.add_asset.coordinators.SearchCustomToken
+import com.gemwallet.android.application.add_asset.cases.AddCustomToken
+import com.gemwallet.android.application.add_asset.cases.GetAvailableTokenChains
+import com.gemwallet.android.application.add_asset.cases.ObserveToken
+import com.gemwallet.android.application.add_asset.cases.SearchCustomToken
 import com.gemwallet.android.ext.checksumAddress
-import com.gemwallet.android.ext.filter
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState
 import com.gemwallet.android.features.add_asset.viewmodels.models.TokenSearchState
 import com.gemwallet.android.ui.models.ButtonState
@@ -40,11 +46,14 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AddAssetViewModel @Inject constructor(
+    private val addressService: GemAddressService,
     private val searchCustomToken: SearchCustomToken,
     private val observeToken: ObserveToken,
     private val addCustomToken: AddCustomToken,
     getAvailableTokenChains: GetAvailableTokenChains,
     private val explorerService: GemExplorerService,
+    private val chainService: GemChainService,
+    private val assetConfig: GemAssetConfigService,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(State())
@@ -57,15 +66,13 @@ class AddAssetViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val chains = snapshotFlow { chainFilter.text }.combine(availableChains) { query, availableChains ->
-        availableChains?.filter(query.toString().lowercase()) ?: emptyList()
+        availableChains?.let { chainService.getMatchingChains(it.map { chain -> chain.string }, query.toString()).mapNotNull { chain -> chain.toChain() } } ?: emptyList()
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val defaultChain = availableChains.map {
-        it.let {
-            it?.firstOrNull { chain -> chain == Chain.Ethereum } ?: it?.firstOrNull() ?: Chain.Ethereum
-        }
+    val defaultChain = availableChains.map { chains ->
+        assetConfig.defaultTokenChain(chains.orEmpty().map { it.string })?.toChain() ?: Chain.Ethereum
     }
     private val chain = MutableStateFlow<Chain?>(null)
     val selectedChain = defaultChain.combine(chain) {defaultChain, chain ->
@@ -77,7 +84,7 @@ class AddAssetViewModel @Inject constructor(
     val addressQuery = snapshotFlow { addressState.value }
 
     private val customAssetId = addressQuery.combine(selectedChain) { address, chain ->
-        AssetId(chain, chain.checksumAddress(address))
+        AssetId(chain, chain.checksumAddress(address, addressService))
     }
 
     val searchState = customAssetId.flatMapLatest { assetId ->
@@ -151,12 +158,19 @@ class AddAssetViewModel @Inject constructor(
     fun addAsset(onFinish: () -> Unit) = viewModelScope.launch {
         val assetId = token.value?.id ?: return@launch
         state.update { it.copy(isImporting = true) }
-        runCatching {
+        val added = runCatchingCancellable {
             withContext(Dispatchers.IO) {
                 addCustomToken(selectedChain.value, assetId)
             }
+        }.onFailure { Log.e(TAG, "add custom token failed for ${assetId.toIdentifier()}", it) }
+        state.update { it.copy(isImporting = false) }
+        if (added.isSuccess) {
+            onFinish()
         }
-        onFinish()
+    }
+
+    private companion object {
+        const val TAG = "AddAsset"
     }
 
     private data class State(

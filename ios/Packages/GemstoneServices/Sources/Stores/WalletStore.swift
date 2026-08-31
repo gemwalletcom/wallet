@@ -16,11 +16,11 @@ public final class GemstoneWalletStore: GemWalletStore, @unchecked Sendable {
     }
 
     public func getWallets() throws -> [Gemstone.Wallet] {
-        try store.getWallets().map { try $0.json() }
+        try store.getWallets().map { $0.json() }
     }
 
     public func getWallet(walletId: Gemstone.WalletId) throws -> Gemstone.Wallet? {
-        try store.getWallet(id: Primitives.WalletId.from(id: walletId)).map { try $0.json() }
+        try store.getWallet(id: Primitives.WalletId.from(id: walletId)).map { $0.json() }
     }
 
     public func addWallet(wallet: Gemstone.Wallet) async throws {
@@ -39,7 +39,7 @@ public final class GemstoneWalletStore: GemWalletStore, @unchecked Sendable {
         try store.setWalletAvatar(Primitives.WalletId.from(id: walletId), path: imageUrl)
     }
 
-    public func rename(walletId: Gemstone.WalletId, name: String) async throws {
+    public func setName(walletId: Gemstone.WalletId, name: String) async throws {
         try store.renameWallet(Primitives.WalletId.from(id: walletId), name: name)
     }
 }

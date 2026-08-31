@@ -18,6 +18,7 @@
 "common.wallet" = "Wallet";
 "common.show" = "Nuna %@";
 "common.copied" = "An Kwafi: %@";
+"common.copied_to_clipboard" = "An kwafa zuwa allo";
 "common.recommended" = "An ba da shawarar";
 "common.all" = "Duka";
 "common.not_available" = "Babu";
@@ -175,10 +176,14 @@
 "errors.token.invalid_id" = "ID na Token mara inganci";
 "errors.import.invalid_secret_phrase" = "Kalmomin sirri mara inganci";
 "errors.import.invalid_secret_phrase_word" = "Kalmar Sirri mara inganci: %@";
+"errors.import.invalid_private_key" = "Maɓallin sirri mara inganci";
+"errors.keystore_access" = "An kasa samun damar shiga makullan wannan walat a wannan na'urar. Idan kana da jimlar dawo da walat, cire wannan walat sannan ka sake shigo da ita don dawo da damar shiga.";
+"errors.wallet_account_missing" = "Wannan walat ba ta da asusu don wannan hanyar sadarwa";
 "errors.invalid_url" = "URL mara inganci";
 "errors.error_occurred" = "An sami kuskure!";
 "errors.invalid_network_id" = "ID na hanyar sadarwa mara inganci";
 "errors.error" = "Kuskure";
+"errors.cancelled" = "An soke";
 "errors.connections.user_cancelled" = "Mai amfani ya soke";
 "errors.not_supported" = "Ba a Tallafawa";
 "errors.permissions_not_granted" = "Ba a Ba da izini ba";
@@ -211,6 +216,8 @@
 "errors.swap.minimum_amount" = "Mafi ƙarancin adadin ciniki shine %@. Da fatan a shigar da adadin da ya fi girma.";
 "errors.perpetual.trigger_price_lower" = "Farashin kunnawa ya kamata ya zama ƙasa da farashin kasuwa";
 "errors.perpetual.trigger_price_higher" = "Farashin kunnawa ya kamata ya zama sama da farashin kasuwa";
+"errors.network_error" = "Kuskuren hanyar sadarwa: %@";
+"errors.network_offline" = "Da alama haɗin intanet ɗin ya katse.";
 "errors.no_internet_connection" = "Babu haɗin intanet";
 "errors.no_service_connection" = "Babu haɗin sabis";
 "errors.balances_activity_outdated" = "Ma'aunai da ayyuka na iya zama tsofaffi.";

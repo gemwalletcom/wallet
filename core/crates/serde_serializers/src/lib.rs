@@ -12,6 +12,8 @@ pub use biguint::{
     biguint_from_hex_str, deserialize_biguint_from_hex_str, deserialize_biguint_from_option_hex_str, deserialize_biguint_from_str, deserialize_option_biguint_from_str,
     serialize_biguint, serialize_biguint_to_hex_str,
 };
+pub mod display;
+pub use display::serialize_display;
 pub mod duration;
 pub use duration::{deserialize as deserialize_duration, deserialize_option as deserialize_option_duration};
 pub mod f64;

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.bridge.views
 
+import com.gemwallet.android.ui.LocalApplicationMetadataService
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -16,7 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,6 +42,7 @@ import com.wallet.core.primitives.WalletConnection
 import kotlinx.coroutines.launch
 import com.gemwallet.android.AppUrl
 import uniffi.gemstone.DocsUrl
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
 fun ConnectionsScene(
@@ -48,7 +50,7 @@ fun ConnectionsScene(
     onCancel: () -> Unit,
     viewModel: ConnectionsViewModel = hiltViewModel()
 ) {
-    val clipboardManager = LocalClipboard.current.nativeClipboard
+    val clipboardManager = LocalContext.current.clipboardManager()
     var scannerShowed by remember { mutableStateOf(false) }
 
     val connections by viewModel.connections.collectAsStateWithLifecycle()
@@ -143,13 +145,13 @@ fun ConnectionItem(
     ListItem(
         modifier = if (onClick == null) Modifier else Modifier.clickable { onClick(connection.session.id) },
         leading = {
-            val name = connection.session.metadata.shortName
+            val name = connection.session.metadata.shortName(LocalApplicationMetadataService.current)
             IconWithBadge(
                 connection.session.metadata.icon,
                 placeholder = if (name.isEmpty()) "WC" else name[0].toString()
             )
         },
-        title = { ListItemTitleText(connection.session.metadata.shortName) },
+        title = { ListItemTitleText(connection.session.metadata.shortName(LocalApplicationMetadataService.current)) },
         subtitle = { ListItemSupportText(connection.session.metadata.url.getShortUrl() ?: connection.session.metadata.url) },
         listPosition = listPosition
     )

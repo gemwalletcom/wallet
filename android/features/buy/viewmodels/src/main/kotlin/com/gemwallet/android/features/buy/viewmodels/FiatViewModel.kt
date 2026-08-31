@@ -1,13 +1,13 @@
 package com.gemwallet.android.features.buy.viewmodels
 
-import android.text.format.DateUtils
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import uniffi.gemstone.GemFiatServiceInterface
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.fiat.coordinators.GetAssetPriceUsd
-import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
-import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
-import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
+import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
+import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
+import com.gemwallet.android.application.fiat.cases.GetBuyQuoteUrl
+import com.gemwallet.android.application.fiat.cases.GetBuyQuotes
 import com.gemwallet.android.domains.fiat.FiatConfig
 import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.features.buy.viewmodels.models.AmountValidator
@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -60,6 +61,7 @@ class FiatViewModel @Inject constructor(
     private val getBuyQuoteUrl: GetBuyQuoteUrl,
     getBuyAssetInfo: GetBuyAssetInfo,
     getAssetPriceUsd: GetAssetPriceUsd,
+    private val fiatService: GemFiatServiceInterface,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -133,11 +135,11 @@ class FiatViewModel @Inject constructor(
         .flatMapLatest { operationFor(it).state }
         .stateIn(viewModelScope, SharingStarted.Eagerly, FiatSceneState.Ready)
 
-    private val ticker = tickerFlow(5 * DateUtils.MINUTE_IN_MILLIS) {}
+    private val ticker = tickerFlow(fiatService.quoteRefreshIntervalMilliseconds().toLong()) {}
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
     init {
-        combine(assetData.filterNotNull(), type, amount, ticker) { data, currentType, amount, tick ->
+        combine(assetData.filterNotNull(), type, amount.debounce(fiatService.quoteDebounceMilliseconds().toLong()), ticker) { data, currentType, amount, tick ->
             QuoteFetchParams(
                 assetData = data,
                 type = currentType,
@@ -178,7 +180,7 @@ class FiatViewModel @Inject constructor(
                     amount = amountParsed,
                 )
                 if (quotes.isEmpty()) throw Exception()
-                operation.updateQuotes(quotes.sortedByDescending { it.cryptoAmount })
+                operation.updateQuotes(quotes)
                 operation.updateState(FiatSceneState.Ready)
             } catch (_: Exception) {
                 operation.updateState(FiatSceneState.Error(BuyError.QuoteNotAvailable))
@@ -257,5 +259,4 @@ class FiatViewModel @Inject constructor(
 
 }
 
-private fun AssetData.showFiatTypePicker() =
-    metadata?.isSellEnabled == true
+private fun AssetData.showFiatTypePicker() = metadata.isSellEnabled

@@ -7,19 +7,15 @@ import typealias Gemstone.WalletId
 public final class GemstoneWalletPreferencesStore: GemWalletPreferencesStore, Sendable {
     public init() {}
 
-    public func get(walletId: Gemstone.WalletId, key: String) throws -> String? {
-        switch defaults(walletId: walletId).object(forKey: key) {
-        case let value as String: value
-        case let value as NSNumber: CFGetTypeID(value) == CFBooleanGetTypeID() ? (value.boolValue ? "true" : "false") : value.stringValue
-        default: nil
-        }
+    public func get(walletId: Gemstone.WalletId, key: String) -> String? {
+        defaults(walletId: walletId).preferenceValue(forKey: key)
     }
 
     public func set(walletId: Gemstone.WalletId, key: String, value: String) throws {
         defaults(walletId: walletId).set(value, forKey: key)
     }
 
-    public func clear(walletId: Gemstone.WalletId) throws {
+    public func deletePreferences(walletId: Gemstone.WalletId) throws {
         UserDefaults.standard.removePersistentDomain(forName: suiteName(walletId: walletId))
     }
 

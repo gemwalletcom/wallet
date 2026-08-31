@@ -2,12 +2,13 @@ package com.gemwallet.android.features.activities.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.transactions.coordinators.GetTransactions
-import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
-import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.transactions.cases.GetTransactions
+import com.gemwallet.android.application.transactions.cases.SyncTransactions
+import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ui.models.TransactionTypeFilter
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemAssetConfigService
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -31,9 +32,10 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TransactionsViewModel @Inject constructor(
-    sessionRepository: SessionRepository,
+    getSession: GetSession,
     getTransactions: GetTransactions,
     private val syncTransactions: SyncTransactions,
+    private val assetConfig: GemAssetConfigService,
 ) : ViewModel() {
 
     private val _isRefreshing = MutableStateFlow(false)
@@ -43,7 +45,7 @@ class TransactionsViewModel @Inject constructor(
 
     val typeFilter = MutableStateFlow<List<TransactionTypeFilter>>(emptyList())
 
-    val session = sessionRepository.session()
+    val session = getSession()
         .stateIn(viewModelScope, started = SharingStarted.Eagerly, null)
 
     val walletId: StateFlow<WalletId?> = session
@@ -57,7 +59,7 @@ class TransactionsViewModel @Inject constructor(
         typeFilter,
     ) { chains, types ->
         buildList {
-            addAll(TransactionsRequestFilter.activityDefaults())
+            addAll(TransactionsRequestFilter.activityDefaults(assetConfig))
             if (chains.isNotEmpty()) add(TransactionsRequestFilter.Chains(chains))
             val allowedTypes = types.flatMap { it.types }
             if (allowedTypes.isNotEmpty()) add(TransactionsRequestFilter.Types(allowedTypes))

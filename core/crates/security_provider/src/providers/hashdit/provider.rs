@@ -1,8 +1,9 @@
-use crate::providers::hashdit::models::DetectResponse;
-use crate::{AddressTarget, ScanProvider, ScanResult, TokenTarget, mapper};
+use crate::providers::hashdit::{mapper, models::DetectResponse};
+use crate::{AddressTarget, ScanProvider, ScanResult, TokenTarget};
 use async_trait::async_trait;
 use gem_client::{ClientError, ClientExt, ReqwestClient};
 use hmac::{Hmac, KeyInit, Mac};
+use primitives::Chain;
 use serde_json::{Value, json};
 use sha2::Sha256;
 use std::collections::HashMap;
@@ -108,9 +109,17 @@ impl ScanProvider for HashDitProvider {
         PROVIDER_NAME
     }
 
+    fn supports_address_chain(&self, chain: Chain) -> bool {
+        mapper::map_chain(chain).is_ok()
+    }
+
+    fn supports_token_chain(&self, chain: Chain) -> bool {
+        mapper::map_chain(chain).is_ok()
+    }
+
     async fn scan_address(&self, target: &AddressTarget) -> Result<ScanResult<AddressTarget>, Box<dyn std::error::Error + Send + Sync>> {
         let body = json!({
-            "chain_id": mapper::chain_to_provider_id(target.chain),
+            "chain_id": mapper::map_chain(target.chain)?,
             "address": target.address,
         });
         self._scan(target, "gem_wallet_address_detection", &body).await
@@ -118,7 +127,7 @@ impl ScanProvider for HashDitProvider {
 
     async fn scan_token(&self, target: &TokenTarget) -> Result<ScanResult<TokenTarget>, Box<dyn std::error::Error + Send + Sync>> {
         let body = json!({
-            "chain_id": mapper::chain_to_provider_id(target.chain),
+            "chain_id": mapper::map_chain(target.chain)?,
             "address": target.token_id,
         });
         self._scan(target, "gem_wallet_token_detection", &body).await

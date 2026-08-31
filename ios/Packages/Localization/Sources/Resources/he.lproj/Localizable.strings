@@ -18,6 +18,7 @@
 "common.wallet" = "ארנק";
 "common.show" = "לְהַצִיג %@";
 "common.copied" = "הועתק: %@";
+"common.copied_to_clipboard" = "הועתק ללוח";
 "common.recommended" = "מומלץ";
 "common.all" = "הכל";
 "common.not_available" = "לא זמין";
@@ -175,10 +176,14 @@
 "errors.token.invalid_id" = "מזהה אסימון לא חוקי";
 "errors.import.invalid_secret_phrase" = "ביטוי סודי לא חוקי";
 "errors.import.invalid_secret_phrase_word" = "מילת ביטוי סודי לא חוקי: %@";
+"errors.import.invalid_private_key" = "מפתח פרטי לא תקין";
+"errors.keystore_access" = "לא ניתן לגשת למפתחות הארנק הזה במכשיר הזה. אם יש לך את ביטוי השחזור, הסר את הארנק וייבא אותו מחדש כדי לשחזר את הגישה.";
+"errors.wallet_account_missing" = "לארנק הזה אין חשבון עבור הרשת הזו";
 "errors.invalid_url" = "כתובת אתר לא חוקית";
 "errors.error_occurred" = "אירעה שגיאה!";
 "errors.invalid_network_id" = "מזהה רשת לא חוקי";
 "errors.error" = "שגיאה";
+"errors.cancelled" = "בוטל";
 "errors.connections.user_cancelled" = "המשתמש ביטל";
 "errors.not_supported" = "לא נתמך";
 "errors.permissions_not_granted" = "הרשאות לא ניתנו";
@@ -211,6 +216,8 @@
 "errors.swap.minimum_amount" = "סכום המסחר המינימלי הוא %@. אנא הזן סכום גבוה יותר.";
 "errors.perpetual.trigger_price_lower" = "מחיר ההפעלה צריך להיות נמוך ממחיר השוק";
 "errors.perpetual.trigger_price_higher" = "מחיר ההפעלה צריך להיות גבוה ממחיר השוק";
+"errors.network_error" = "שגיאת רשת: %@";
+"errors.network_offline" = "נראה שחיבור האינטרנט אינו מקוון.";
 "errors.no_internet_connection" = "אין חיבור לאינטרנט";
 "errors.no_service_connection" = "אין חיבור לשירות";
 "errors.balances_activity_outdated" = "היתרות והפעילות עשויות להיות לא מעודכנות.";

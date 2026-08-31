@@ -1,15 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import PrimitivesTestKit
+import protocol Gemstone.GemPreferencesServiceProtocol
+import GemstonePrimitivesTestKit
 import GemstoneServices
-import Preferences
-import PreferencesTestKit
 
 public extension PushNotificationEnablerService {
-    static func mock(preferences: Preferences = .mock()) -> Self {
-        PushNotificationEnablerService(
-            preferences: preferences,
-        )
+    static func mock(preferencesService: any GemPreferencesServiceProtocol = GemPreferencesServiceMock()) -> Self {
+        PushNotificationEnablerService(preferencesService: preferencesService)
     }
 }

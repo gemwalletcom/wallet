@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
 
 public enum KeystoreImportType: Sendable {
     case phrase(words: [String], chains: [Chain])

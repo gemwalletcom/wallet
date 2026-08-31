@@ -1,15 +1,17 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
-import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
+import com.gemwallet.android.model.HyperliquidRecipient
+import uniffi.gemstone.GemRecipient
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.DestinationAddress
 import com.wallet.core.primitives.Asset
 import kotlinx.coroutines.CoroutineScope
+import uniffi.gemstone.GemAmountService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +28,8 @@ class AmountTransferProvider(
     private val params: AmountParams,
     getAssetInfo: GetAssetInfo,
     scope: CoroutineScope,
-) : AmountDataProvider(scope) {
+    amountService: GemAmountService,
+) : AmountDataProvider(scope, amountService) {
 
     override val title: AmountTitle = when (params) {
         is AmountParams.Deposit -> AmountTitle.Deposit
@@ -60,8 +63,8 @@ class AmountTransferProvider(
         val owner = current.owner ?: error("owner missing")
         val builder = ConfirmParams.Builder(current.asset, owner, amount.atomicValue, isMax)
         return when (params) {
-            is AmountParams.Deposit -> builder.deposit(DestinationAddress.hyperliquidDeposit)
-            is AmountParams.Withdraw -> builder.withdrawal(DestinationAddress(owner.address))
+            is AmountParams.Deposit -> builder.deposit(HyperliquidRecipient.deposit)
+            is AmountParams.Withdraw -> builder.withdrawal(GemRecipient(owner.address))
             is AmountParams.Transfer -> builder.transfer(params.destination, params.memo, params.references)
             else -> error("AmountTransferProvider requires Transfer, Deposit or Withdraw params")
         }

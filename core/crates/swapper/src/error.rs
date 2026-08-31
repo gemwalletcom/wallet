@@ -1,8 +1,7 @@
 use crate::alien::AlienError;
-use crate::thorchain::model::ErrorResponse as ThorchainError;
 use gem_client::ClientError;
 use gem_jsonrpc::types::JsonRpcError;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::fmt::Debug;
 
 pub const INVALID_AMOUNT: &str = "Invalid amount";
@@ -54,12 +53,33 @@ impl SwapperError {
     }
 }
 
+pub trait ProviderErrorResponse: DeserializeOwned {
+    fn into_swapper_error(self) -> Option<SwapperError>;
+}
+
+trait HttpErrorBody {
+    fn into_swapper_error(self, status: u16) -> SwapperError;
+}
+
+impl HttpErrorBody for Vec<u8> {
+    fn into_swapper_error(self, status: u16) -> SwapperError {
+        SwapperError::ComputeQuoteError(format!("HTTP error: status {status}"))
+    }
+}
+
+impl<E: ProviderErrorResponse> HttpErrorBody for Option<E> {
+    fn into_swapper_error(self, status: u16) -> SwapperError {
+        self.and_then(E::into_swapper_error).unwrap_or_else(|| Vec::new().into_swapper_error(status))
+    }
+}
+
 impl From<AlienError> for SwapperError {
     fn from(err: AlienError) -> Self {
         match err {
             AlienError::RequestError { msg } => Self::ComputeQuoteError(msg),
             AlienError::ResponseError { msg } => Self::ComputeQuoteError(msg),
             AlienError::Http { status, .. } => Self::ComputeQuoteError(format!("HTTP error: status {}", status)),
+            AlienError::Offline => Self::ComputeQuoteError(err.to_string()),
         }
     }
 }
@@ -70,22 +90,12 @@ impl From<JsonRpcError> for SwapperError {
     }
 }
 
-impl From<ClientError> for SwapperError {
-    fn from(err: ClientError) -> Self {
-        match err {
-            ClientError::Network(msg) => Self::ComputeQuoteError(msg),
+impl<B: HttpErrorBody> From<ClientError<B>> for SwapperError {
+    fn from(error: ClientError<B>) -> Self {
+        match error {
+            ClientError::Network(message) | ClientError::Serialization(message) => Self::ComputeQuoteError(message),
             ClientError::Timeout => Self::ComputeQuoteError("Request timed out".into()),
-            ClientError::Http { status, ref body } => {
-                if let Ok(thorchain_error) = serde_json::from_slice::<ThorchainError>(body)
-                    && thorchain_error.is_input_amount_error()
-                {
-                    return Self::InputAmountError {
-                        min_amount: thorchain_error.parse_min_amount(),
-                    };
-                }
-                Self::ComputeQuoteError(format!("HTTP error: status {}", status))
-            }
-            ClientError::Serialization(msg) => Self::ComputeQuoteError(msg),
+            ClientError::Http { status, body } => body.into_swapper_error(status),
         }
     }
 }
@@ -171,7 +181,6 @@ impl From<number_formatter::NumberFormatterError> for SwapperError {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     #[test]
     fn test_solana_error_mapping() {
         assert_eq!(

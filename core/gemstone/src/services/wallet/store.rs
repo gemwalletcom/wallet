@@ -10,6 +10,6 @@ pub trait GemWalletStore: Send + Sync {
     async fn add_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError>;
     async fn delete_wallet(&self, wallet_id: WalletId) -> Result<bool, GemServiceError>;
     async fn set_pinned(&self, wallet_id: WalletId, pinned: bool) -> Result<(), GemServiceError>;
-    async fn rename(&self, wallet_id: WalletId, name: String) -> Result<(), GemServiceError>;
+    async fn set_name(&self, wallet_id: WalletId, name: String) -> Result<(), GemServiceError>;
     async fn set_image_url(&self, wallet_id: WalletId, image_url: Option<String>) -> Result<(), GemServiceError>;
 }

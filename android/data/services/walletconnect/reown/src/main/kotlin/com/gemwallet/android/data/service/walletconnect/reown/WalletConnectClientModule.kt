@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.service.walletconnect.reown
 
-import com.gemwallet.android.data.repositories.bridge.WalletConnectClient
+import com.gemwallet.android.application.wallet_connect.WalletConnectClient
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

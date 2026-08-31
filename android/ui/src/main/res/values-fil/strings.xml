@@ -20,6 +20,7 @@
   <string name="common_wallet">Wallet</string>
   <string name="common_show">Ipakita %1$s</string>
   <string name="common_copied">Nakopya: %1$s</string>
+  <string name="common_copied_to_clipboard">Kinopya sa clipboard</string>
   <string name="common_recommended">Inirerekomenda</string>
   <string name="common_all">Lahat</string>
   <string name="common_not_available">Hindi Magagamit</string>
@@ -182,10 +183,14 @@
   <string name="errors_token_invalid_id">Di-wastong Token ID</string>
   <string name="errors_import_invalid_secret_phrase">Di-wastong Lihim na Parirala</string>
   <string name="errors_import_invalid_secret_phrase_word">Di-wastong Lihim na Parirala na salita: %1$s</string>
+  <string name="errors_import_invalid_private_key">Hindi wastong private key</string>
+  <string name="errors_keystore_access">Hindi ma-access ang mga key ng wallet na ito sa device na ito. Kung mayroon kang recovery phrase, alisin ang wallet na ito at i-import itong muli upang maibalik ang access.</string>
+  <string name="errors_wallet_account_missing">Walang account ang wallet na ito para sa network na ito</string>
   <string name="errors_invalid_url">Di-wastong URL</string>
   <string name="errors_error_occurred">May naganap na error!</string>
   <string name="errors_invalid_network_id">Di-wastong Network ID</string>
   <string name="errors_error">Error</string>
+  <string name="errors_cancelled">Nakansela</string>
   <string name="errors_connections_user_cancelled">Kinansela ang user</string>
   <string name="errors_not_supported">Hindi Sinusuportahan</string>
   <string name="errors_permissions_not_granted">Hindi Ipinagkaloob ang Mga Pahintulot</string>

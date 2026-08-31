@@ -6,6 +6,7 @@ import Components
 import GemstoneServices
 import Foundation
 import Localization
+import class Gemstone.GemAddressService
 import Primitives
 import PrimitivesComponents
 import Store
@@ -21,6 +22,7 @@ public final class ContactsViewModel {
 
     let service: any GemContactServiceProtocol
     let nameService: any GemNameServiceProtocol
+    let addressService: GemAddressService
     let mode: Mode
 
     public let query: ObservableQuery<ContactsRequest>
@@ -33,10 +35,12 @@ public final class ContactsViewModel {
     public init(
         service: any GemContactServiceProtocol,
         nameService: any GemNameServiceProtocol,
+        addressService: GemAddressService,
         mode: Mode = .list,
     ) {
         self.service = service
         self.nameService = nameService
+        self.addressService = addressService
         self.mode = mode
         query = ObservableQuery(ContactsRequest(), initialValue: [])
     }
@@ -45,12 +49,26 @@ public final class ContactsViewModel {
         Localized.Contacts.title
     }
 
+    var addContactMode: ManageContactViewModel.Mode {
+        switch mode {
+        case .list: .add()
+        case let .addAddress(recipient): .add(recipient)
+        }
+    }
+
     func add(to contact: ContactData) {
         guard case let .addAddress(recipient) = mode else { return }
-        let updated = contact.addAddress(from: recipient)
         Task {
             do {
-                try await service.updateContact(updated.contact, addresses: updated.addresses)
+                let addresses = try service.addAddress(
+                    contact.addresses,
+                    contactId: contact.contact.id,
+                    chain: recipient.chain,
+                    address: recipient.recipient.address,
+                    memo: recipient.recipient.memo,
+                    replacingId: nil,
+                )
+                try await service.updateContact(contact.contact, addresses: addresses)
             } catch {
                 debugLog("ContactsViewModel add error: \(error)")
             }

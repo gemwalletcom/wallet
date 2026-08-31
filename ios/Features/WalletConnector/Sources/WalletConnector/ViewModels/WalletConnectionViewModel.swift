@@ -1,14 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemApplicationMetadataService
 import Primitives
 import PrimitivesComponents
 
 public struct WalletConnectionViewModel: Sendable {
     let connection: WalletConnection
+    let applicationMetadataService: GemApplicationMetadataService
 
     var nameText: String {
-        connection.session.metadata.shortName
+        connection.session.metadata.shortName(applicationMetadataService: applicationMetadataService)
     }
 
     var imageUrl: URL? {

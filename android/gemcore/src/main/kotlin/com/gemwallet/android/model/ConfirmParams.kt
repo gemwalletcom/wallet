@@ -1,7 +1,7 @@
 package com.gemwallet.android.model
 
+import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.domains.asset.toGem
-import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.domains.confirm.toConfirmInput
 import com.gemwallet.android.domains.confirm.toConfirmParams
 import com.gemwallet.android.domains.perpetual.toGem
@@ -16,6 +16,7 @@ import com.gemwallet.android.serializer.packRouteString
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.serializer.unpackRouteString
 import com.wallet.core.primitives.Account
+import android.util.Log
 import com.wallet.core.primitives.AccountDataType
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Asset
@@ -38,9 +39,7 @@ import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransactionInputType.*
 import uniffi.gemstone.GemTransferDataExtra
 import uniffi.gemstone.SwapperProvider
-import uniffi.gemstone.confirmInputDecode
-import uniffi.gemstone.confirmInputEncode
-import uniffi.gemstone.GemstoneException
+
 import uniffi.gemstone.GemTransferService
 sealed class ConfirmParams() {
 
@@ -65,42 +64,43 @@ sealed class ConfirmParams() {
         val amount: BigInteger = BigInteger.ZERO,
         val useMaxAmount: Boolean = false,
     ) {
-        fun transfer(destination: DestinationAddress, memo: String? = null, references: List<String> = emptyList()): TransferParams {
-            return when (asset.id.type()) {
-                AssetSubtype.NATIVE -> TransferParams.Native(
-                    asset = asset,
-                    from = from,
-                    amount = amount,
-                    destination = destination,
-                    memo = memo,
-                    references = references,
-                    useMaxAmount = useMaxAmount
-                )
-                AssetSubtype.TOKEN -> TransferParams.Token(
-                    asset = asset,
-                    from = from,
-                    amount = amount,
-                    destination = destination,
-                    memo = memo,
-                    references = references,
-                    useMaxAmount = useMaxAmount
-                )
-            }
+        fun transfer(destination: GemRecipient, memo: String? = null, references: List<String> = emptyList()): TransferParams {
+            return TransferParams.Transfer(
+                asset = asset,
+                from = from,
+                amount = amount,
+                destination = destination,
+                memo = memo,
+                references = references,
+                useMaxAmount = useMaxAmount,
+            )
         }
 
-        fun deposit(destination: DestinationAddress): TransferParams.Deposit = TransferParams.Deposit(
+        fun deposit(
+            destination: GemRecipient,
+            memo: String? = null,
+            references: List<String> = emptyList(),
+        ): TransferParams.Deposit = TransferParams.Deposit(
             asset = asset,
             from = from,
             amount = amount,
             destination = destination,
+            memo = memo,
+            references = references,
             useMaxAmount = useMaxAmount,
         )
 
-        fun withdrawal(destination: DestinationAddress): TransferParams.Withdrawal = TransferParams.Withdrawal(
+        fun withdrawal(
+            destination: GemRecipient,
+            memo: String? = null,
+            references: List<String> = emptyList(),
+        ): TransferParams.Withdrawal = TransferParams.Withdrawal(
             asset = asset,
             from = from,
             amount = amount,
             destination = destination,
+            memo = memo,
+            references = references,
             useMaxAmount = useMaxAmount,
         )
 
@@ -134,8 +134,8 @@ sealed class ConfirmParams() {
             )
         }
 
-        fun activate(): Activate {
-            return Activate(asset, from)
+        fun activate(accountType: AccountDataType = AccountDataType.Activate): Activate {
+            return Activate(asset, from, accountType = accountType)
         }
 
         fun freeze(resource: Resource): Stake.Freeze {
@@ -152,10 +152,10 @@ sealed class ConfirmParams() {
 
     abstract fun toDto(): GemTransactionInputType
     sealed class TransferParams : ConfirmParams() {
-        abstract val destination: DestinationAddress
+        abstract val destination: GemRecipient
         abstract val memo: String?
 
-        override fun destination(): DestinationAddress {
+        override fun destination(): GemRecipient {
             return destination
         }
 
@@ -166,7 +166,7 @@ sealed class ConfirmParams() {
             override val asset: Asset,
             override val from: Account,
             override val amount: BigInteger = BigInteger.ZERO,
-            override val destination: DestinationAddress = DestinationAddress(""),
+            override val destination: GemRecipient = GemRecipient(""),
             override val memo: String? = null,
             override val useMaxAmount: Boolean = false,
             val outputType: PrimitiveOutputType = PrimitiveOutputType.EncodedTransaction,
@@ -220,34 +220,24 @@ sealed class ConfirmParams() {
             }
 
         }
-        class Native(
+        class Transfer(
             override val asset: Asset,
             override val from: Account,
             override val amount: BigInteger,
-            override val destination: DestinationAddress,
+            override val destination: GemRecipient,
             override val memo: String? = null,
             override val references: List<String> = emptyList(),
             override val useMaxAmount: Boolean = false,
         ) : TransferParams() {
             override fun toDto(): GemTransactionInputType = GemTransactionInputType.Transfer(asset.toGem())
         }
-        class Token(
-            override val asset: Asset,
-            override val from: Account,
-            override val amount: BigInteger,
-            override val destination: DestinationAddress,
-            override val memo: String? = null,
-            override val references: List<String> = emptyList(),
-            override val useMaxAmount: Boolean = false,
-        ) : TransferParams() {
-            override fun toDto(): GemTransactionInputType = Transfer(asset.toGem())
-        }
         class Deposit(
             override val asset: Asset,
             override val from: Account,
             override val amount: BigInteger,
-            override val destination: DestinationAddress,
+            override val destination: GemRecipient,
             override val memo: String? = null,
+            override val references: List<String> = emptyList(),
             override val useMaxAmount: Boolean = false,
         ) : TransferParams() {
             override fun toDto(): GemTransactionInputType = GemTransactionInputType.Deposit(asset.toGem())
@@ -256,8 +246,9 @@ sealed class ConfirmParams() {
             override val asset: Asset,
             override val from: Account,
             override val amount: BigInteger,
-            override val destination: DestinationAddress,
+            override val destination: GemRecipient,
             override val memo: String? = null,
+            override val references: List<String> = emptyList(),
             override val useMaxAmount: Boolean = false,
         ) : TransferParams() {
             override fun toDto(): GemTransactionInputType = GemTransactionInputType.Withdrawal(asset.toGem())
@@ -302,7 +293,7 @@ sealed class ConfirmParams() {
             swapData = swapData.toJson(),
         )
 
-        override fun destination(): DestinationAddress = DestinationAddress(swapData.data.to)
+        override fun destination(): GemRecipient = GemRecipient(swapData.data.to)
 
         override fun memo(): String? = swapData.data.memo
     }
@@ -310,21 +301,22 @@ sealed class ConfirmParams() {
         override val asset: Asset,
         override val from: Account,
         override val amount: BigInteger = BigInteger.ZERO,
+        val accountType: AccountDataType = AccountDataType.Activate,
     ) : ConfirmParams() {
         override val useMaxAmount: Boolean
             get() = false
 
         override fun toDto(): GemTransactionInputType =
-            Account(asset.toGem(), AccountDataType.Activate.toJson())
+            Account(asset.toGem(), accountType.toJson())
 
-        override fun destination(): DestinationAddress {
-            return DestinationAddress(from.address)
+        override fun destination(): GemRecipient {
+            return GemRecipient(from.address)
         }
     }
     class NftParams(
         override val asset: Asset,
         override val from: Account,
-        val destination: DestinationAddress,
+        val destination: GemRecipient,
         val nftAsset: NFTAsset,
     ) : ConfirmParams() {
         override val useMaxAmount: Boolean
@@ -337,7 +329,7 @@ sealed class ConfirmParams() {
 
         override val amount: BigInteger = BigInteger.ZERO
 
-        override fun destination(): DestinationAddress {
+        override fun destination(): GemRecipient {
             return destination
         }
     }
@@ -355,8 +347,8 @@ sealed class ConfirmParams() {
                 stakeType = (StakeType.Stake(validator) as StakeType).toJson()
             )
 
-            override fun destination(): DestinationAddress {
-                return DestinationAddress(validator.id)
+            override fun destination(): GemRecipient {
+                return GemRecipient(validator.id)
             }
         }
         class WithdrawParams(
@@ -373,8 +365,8 @@ sealed class ConfirmParams() {
                 stakeType = (StakeType.Withdraw(delegation) as StakeType).toJson()
             )
 
-            override fun destination(): DestinationAddress {
-                return DestinationAddress(delegation.validator.id)
+            override fun destination(): GemRecipient {
+                return GemRecipient(delegation.validator.id)
             }
         }
         class UndelegateParams(
@@ -391,8 +383,8 @@ sealed class ConfirmParams() {
                 stakeType = (StakeType.Unstake(delegation) as StakeType).toJson()
             )
 
-            override fun destination(): DestinationAddress {
-                return DestinationAddress(delegation.validator.id)
+            override fun destination(): GemRecipient {
+                return GemRecipient(delegation.validator.id)
             }
         }
         class RedelegateParams(
@@ -410,8 +402,8 @@ sealed class ConfirmParams() {
                 stakeType = (StakeType.Redelegate(RedelegateData(delegation, destinationValidator)) as StakeType).toJson()
             )
 
-            override fun destination(): DestinationAddress {
-                return DestinationAddress("")
+            override fun destination(): GemRecipient {
+                return GemRecipient("")
             }
         }
         class RewardsParams(
@@ -428,8 +420,8 @@ sealed class ConfirmParams() {
                 stakeType = (StakeType.Rewards(validators) as StakeType).toJson()
             )
 
-            override fun destination(): DestinationAddress {
-                return DestinationAddress("")
+            override fun destination(): GemRecipient {
+                return GemRecipient("")
             }
         }
         class Freeze(
@@ -445,8 +437,8 @@ sealed class ConfirmParams() {
                 stakeType = (StakeType.Freeze(resource) as StakeType).toJson()
             )
 
-            override fun destination(): DestinationAddress {
-                return DestinationAddress("")
+            override fun destination(): GemRecipient {
+                return GemRecipient("")
             }
         }
         class Unfreeze(
@@ -463,8 +455,8 @@ sealed class ConfirmParams() {
                 stakeType = (StakeType.Unfreeze(resource) as StakeType).toJson()
             )
 
-            override fun destination(): DestinationAddress {
-                return DestinationAddress("")
+            override fun destination(): GemRecipient {
+                return GemRecipient("")
             }
         }
     }
@@ -476,7 +468,7 @@ sealed class ConfirmParams() {
         val perpetualType: PerpetualType,
     ) : ConfirmParams() {
 
-        override fun destination(): DestinationAddress = DestinationAddress.hyperliquidProvider
+        override fun destination(): GemRecipient = HyperliquidRecipient.provider
 
         override fun toDto(): GemTransactionInputType = GemTransactionInputType.Perpetual(
             asset = asset.toGem(),
@@ -484,17 +476,14 @@ sealed class ConfirmParams() {
         )
     }
 
-    fun approvalData(transactionType: TransactionType): ApprovalData? = try {
-        GemTransferService().approval(toDto(), transactionType.toJson())?.decodeJson<ApprovalData>()
-    } catch (_: GemstoneException) {
-        throw ConfirmError.TransactionIncorrect
-    }
+    fun pack(transferService: GemTransferService): String? = runCatching { transferService.encodeConfirmInput(toConfirmInput()).packRouteString() }
+        .onFailure { Log.e(TAG, "confirm params encode failed", it) }
+        .getOrNull()
 
-    fun pack(): String? = runCatching { confirmInputEncode(toConfirmInput()).packRouteString() }.getOrNull()
+    fun getTransactionType(transferService: GemTransferService): TransactionType =
+        transferService.transactionType(toDto()).decodeJson<TransactionType>()
 
-    fun getTransactionType(): TransactionType = GemTransferService().transactionType(toDto()).decodeJson<TransactionType>()
-
-    open fun destination(): DestinationAddress? = null
+    open fun destination(): GemRecipient? = null
 
     open fun memo(): String? = null
 
@@ -508,9 +497,13 @@ sealed class ConfirmParams() {
     }
 
     companion object {
-        fun unpack(input: String): ConfirmParams? = runCatching {
-            confirmInputDecode(input.unpackRouteString()).toConfirmParams()
-        }.getOrNull()
+        private const val TAG = "ConfirmParams"
+
+        fun unpack(input: String, transferService: GemTransferService): ConfirmParams? = runCatching {
+            transferService.decodeConfirmInput(input.unpackRouteString()).toConfirmParams()
+        }
+            .onFailure { Log.e(TAG, "confirm params decode failed", it) }
+            .getOrNull()
     }
 }
 

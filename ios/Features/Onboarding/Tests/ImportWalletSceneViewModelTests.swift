@@ -2,8 +2,6 @@
 
 import GemstonePrimitivesTestKit
 import protocol Gemstone.GemNameServiceProtocol
-import PreferencesTestKit
-import Preferences
 import GemstoneServices
 import GemstoneServicesTestKit
 @testable import Onboarding
@@ -18,9 +16,9 @@ struct ImportWalletSceneViewModelTests {
     @Test
     func existingImportSetsCurrentWallet() async throws {
         let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum]))
-        let preferences = ObservablePreferences.mock()
-        let walletSessionService = WalletSessionService.mock(store: walletStore, preferences: preferences)
-        let service = WalletService.mock(walletStore: walletStore, preferences: preferences)
+        let sessionStore = GemstoneWalletSessionStore.mock()
+        let walletSessionService = WalletSessionService.mock(store: walletStore, sessionStore: sessionStore)
+        let service = WalletService.mock(walletStore: walletStore, sessionStore: sessionStore)
 
         let walletA = try await service.importWallet(
             name: "Wallet A",
@@ -76,10 +74,10 @@ private extension ImportWalletSceneViewModel {
         nameService: any GemNameServiceProtocol = GemNameServiceMock(nameRecord: .mock()),
     ) -> ImportWalletSceneViewModel {
         let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum]))
-        let preferences = ObservablePreferences.mock()
-        let sessionService = walletSessionService ?? WalletSessionService.mock(store: walletStore, preferences: preferences)
+        let sessionStore = GemstoneWalletSessionStore.mock()
+        let sessionService = walletSessionService ?? WalletSessionService.mock(store: walletStore, sessionStore: sessionStore)
         return ImportWalletSceneViewModel(
-            walletService: walletService ?? .mock(walletStore: walletStore, preferences: preferences),
+            walletService: walletService ?? .mock(walletStore: walletStore, sessionStore: sessionStore),
             walletSessionService: sessionService,
             nameService: nameService,
             type: .chain(.ethereum),

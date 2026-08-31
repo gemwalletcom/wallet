@@ -3,8 +3,8 @@ package com.gemwallet.android.features.nft.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.nft.coordinators.GetNftAssetDetails
-import com.gemwallet.android.application.nft.coordinators.RefreshNftAsset
+import com.gemwallet.android.application.nft.cases.GetNftAssetDetails
+import com.gemwallet.android.application.nft.cases.RefreshNftAsset
 import com.gemwallet.android.ui.models.navigation.requireNftAssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException

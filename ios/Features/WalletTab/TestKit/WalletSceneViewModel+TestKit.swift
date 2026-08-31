@@ -16,7 +16,6 @@ public extension WalletSceneViewModel {
         WalletSceneViewModel(
             assetDiscoveryService: GemAssetDiscoveryServiceMock(),
             balanceService: GemBalanceServiceMock(),
-            assetsEnabler: .mock(),
             bannerService: GemBannerServiceMock(),
             nftService: GemNftService.mock(),
             walletPreferencesService: GemWalletPreferencesService.mock(),

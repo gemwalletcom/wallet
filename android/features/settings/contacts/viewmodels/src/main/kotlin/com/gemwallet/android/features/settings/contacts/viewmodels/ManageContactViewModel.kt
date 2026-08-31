@@ -4,10 +4,10 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.cases.contacts.AddContact
-import com.gemwallet.android.cases.contacts.GetContacts
-import com.gemwallet.android.cases.contacts.UpdateContact
-import com.gemwallet.android.cases.name.GetNameRecord
+import com.gemwallet.android.application.contacts.cases.AddContactAddress
+import com.gemwallet.android.application.contacts.cases.GetContacts
+import com.gemwallet.android.application.contacts.cases.SaveContact
+import com.gemwallet.android.application.recipient.cases.GetNameRecord
 import com.gemwallet.android.ext.decodePayment
 import com.gemwallet.android.ext.isValidAddress
 import com.gemwallet.android.ext.request
@@ -17,7 +17,6 @@ import com.gemwallet.android.features.settings.contacts.viewmodels.models.Contac
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactPage
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactState
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactUIState
-import com.gemwallet.android.data.service.store.LocalStore
 import com.gemwallet.android.ui.components.image.EmojiAvatarRenderer
 import com.gemwallet.android.ui.models.name.AddressInputModel
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -34,16 +33,20 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemContactAvatar
+import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemRecipientService
 import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class ManageContactViewModel @Inject constructor(
     private val getContacts: GetContacts,
-    private val addContactCase: AddContact,
-    private val updateContactCase: UpdateContact,
-    @ApplicationContext private val context: Context,
-    private val localStore: LocalStore,
+    private val saveContactCase: SaveContact,
+    private val addContactAddress: AddContactAddress,
+    @param:ApplicationContext private val context: Context,
+    private val recipientService: GemRecipientService,
+    private val paymentService: GemPaymentService,
     getNameRecord: GetNameRecord,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -62,6 +65,7 @@ class ManageContactViewModel @Inject constructor(
 
     private val addressInput = AddressInputModel(
         getNameRecord = getNameRecord,
+        recipientService = recipientService,
         scope = viewModelScope,
     )
 
@@ -133,7 +137,7 @@ class ManageContactViewModel @Inject constructor(
     }
 
     fun addAddress() {
-        val form = ContactAddressForm()
+        val form = ContactAddressForm(chain = addContactAddress.defaultChain())
         addressInput.reset()
         addressInput.setChain(form.chain)
         state.update { it.copy(page = ManageContactPage.Address, form = form) }
@@ -169,7 +173,7 @@ class ManageContactViewModel @Inject constructor(
     fun pasteAddress(data: String) = applyExternalAddress(data)
 
     private fun applyExternalAddress(data: String) {
-        val decoded = decodePayment(data)?.request
+        val decoded = paymentService.decodePayment(data)?.request
         val address = (decoded?.address?.ifBlank { null } ?: data).trim()
         val memo = decoded?.memo
         addressInput.applyExternalAddress(address)
@@ -196,34 +200,21 @@ class ManageContactViewModel @Inject constructor(
         val input = uiState.value.addressInput ?: return
         if (!input.isConfirmEnabled) return
 
-        val address = contactAddress(
-            chain = input.chain,
-            address = addressInput.resolvedAddress,
-            memo = input.memo.ifBlank { null },
-        )
-
         addressInput.reset()
         state.update { current ->
             current.copy(
-                addresses = current.addresses.upsert(address, setOfNotNull(input.editingId, address.id)),
+                addresses = addContactAddress.addAddress(
+                    addresses = current.addresses,
+                    contactId = contactId,
+                    chain = input.chain,
+                    address = addressInput.resolvedAddress,
+                    memo = input.memo,
+                    replacingId = input.editingId,
+                ),
                 page = ManageContactPage.Form,
             )
         }
     }
-
-    private fun List<ContactAddress>.upsert(address: ContactAddress, replacing: Set<String>): List<ContactAddress> {
-        val index = indexOfFirst { it.id in replacing }
-        val without = filterNot { it.id in replacing }
-        return if (index < 0) without + address else without.take(index) + address + without.drop(index)
-    }
-
-    private fun contactAddress(chain: Chain, address: String, memo: String?): ContactAddress = ContactAddress(
-        id = "${contactId}_${chain.string}_${address}",
-        contactId = contactId,
-        address = address,
-        chain = chain,
-        memo = memo,
-    )
 
     fun save() {
         val current = uiState.value
@@ -231,25 +222,20 @@ class ManageContactViewModel @Inject constructor(
         state.update { it.copy(isSaving = true) }
 
         viewModelScope.launch(Dispatchers.IO) {
-            val imageUrl = when (val avatar = current.avatar) {
-                ContactAvatarState.Empty -> null
-                is ContactAvatarState.Image -> avatar.imageUrl
-                is ContactAvatarState.Emoji -> localStore.save(EmojiAvatarRenderer.render(context, avatar.emoji, avatar.backgroundColor), "png")
-            }
-            val now = System.currentTimeMillis()
-            val updated = Contact(
+            saveContactCase.saveContact(
                 id = contactId,
-                name = current.name.trim(),
-                description = current.description.ifBlank { null },
-                imageUrl = imageUrl,
-                createdAt = contact?.createdAt ?: now,
-                updatedAt = now,
+                existing = contact,
+                name = current.name,
+                description = current.description,
+                avatar = when (val avatar = current.avatar) {
+                    ContactAvatarState.Empty -> GemContactAvatar.Empty
+                    is ContactAvatarState.Image -> GemContactAvatar.Image(avatar.imageUrl)
+                    is ContactAvatarState.Emoji -> GemContactAvatar.Rendered(
+                        EmojiAvatarRenderer.render(context, avatar.emoji, avatar.backgroundColor)
+                    )
+                },
+                addresses = current.addresses,
             )
-            when (mode) {
-                is Mode.Add -> addContactCase.addContact(updated, current.addresses)
-                is Mode.Edit -> updateContactCase.updateContact(updated, current.addresses)
-            }
-            if (contact?.imageUrl != imageUrl) localStore.remove(contact?.imageUrl)
             state.update { it.copy(saved = true) }
         }
     }

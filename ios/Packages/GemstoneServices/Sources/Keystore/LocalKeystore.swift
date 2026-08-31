@@ -8,10 +8,12 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
     private let keystoreURL: URL
     private let keystorePassword: KeystorePassword
     private let queue = DispatchQueue(label: "com.gemwallet.keystore", qos: .userInitiated)
+    private let transferService: GemTransferService
 
     public init(
         directory: String = "keystore",
         keystorePassword: KeystorePassword = LocalKeystorePassword(),
+        transferService: GemTransferService,
     ) {
         do {
             // migrate keystore from documents directory to application support directory
@@ -30,19 +32,20 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         }
 
         self.keystorePassword = keystorePassword
+        self.transferService = transferService
     }
 
-    public func keystorePassword(createIfMissing: Bool) throws -> Data {
+    public func keystorePassword(createIfMissing: Bool) throws -> String {
         let password = try keystorePassword.getPassword()
         if password.isNotEmpty {
-            return try password.v4KeystorePasswordBytes()
+            return password
         }
-        guard createIfMissing else {
-            throw AnyError("Couldn't access this wallet's keys on this device. If you have your recovery phrase, remove this wallet and import it again to restore access.")
+        guard createIfMissing, try !gemKeystore.hasStoredWallets() else {
+            throw KeystoreError.missingPassword
         }
         let newPassword = try SecureRandom.generateKey(length: 32).hex
         try keystorePassword.setPassword(newPassword, authentication: .none)
-        return try newPassword.v4KeystorePasswordBytes()
+        return newPassword
     }
 
     public func migrateV3Keystores(for wallets: [Primitives.Wallet]) async throws -> [KeystoreMigrationFailure] {
@@ -68,36 +71,22 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         return failures
     }
 
-    public func deleteKey(for wallet: Primitives.Wallet) async throws {
-        switch wallet.type {
-        case .view: break
-        case .multicoin, .single, .privateKey:
-            try await queue.asyncTask { [gemKeystore, keystoreURL] in
-                _ = try gemKeystore.delete(keystoreId: wallet.keystoreId)
-                if let legacyURL = Self.findV3File(in: keystoreURL, matching: wallet.legacyV3Id) {
-                    try FileManager.default.removeItem(at: legacyURL)
-                }
-            }
-        }
-    }
-
-    public func sign(wallet: Primitives.Wallet, input: SignerInput) async throws -> [GemSignedTransaction] {
-        let gemInput = try input.map()
+    public func sign(wallet: Primitives.Wallet, input: GemSignerInput) async throws -> [GemSignedTransaction] {
         let password = try await getPassword()
-        let keystoreId = wallet.keystoreId
-        let chain = input.asset.chain.rawValue
+        let keystoreId = gemKeystore.keystoreId(walletId: wallet.id.id)
+        let chain = try Primitives.Asset(transferService.asset(inputType: input.input.inputType)).id.chain.rawValue
         return try await queue.asyncTask { [gemKeystore] in
-            try withV4Password(password) { passwordBytes in
-                try gemKeystore.sign(keystoreId: keystoreId, chain: chain, input: gemInput, password: passwordBytes)
+            try withV4Password(keystore: gemKeystore, password) { passwordBytes in
+                try gemKeystore.sign(keystoreId: keystoreId, chain: chain, input: input, password: passwordBytes)
             }
         }
     }
 
     public func signMessage(signer: MessageSigner, wallet: Primitives.Wallet) async throws -> String {
         let password = try await getPassword()
-        let keystoreId = wallet.keystoreId
+        let keystoreId = gemKeystore.keystoreId(walletId: wallet.id.id)
         return try await queue.asyncTask { [gemKeystore] in
-            try withV4Password(password) { passwordBytes in
+            try withV4Password(keystore: gemKeystore, password) { passwordBytes in
                 try signer.signWithKeystore(keystore: gemKeystore, keystoreId: keystoreId, password: passwordBytes)
             }
         }
@@ -106,9 +95,9 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
     public func getPrivateKeyEncoded(wallet: Primitives.Wallet, chain: Primitives.Chain) async throws -> String {
         let password = try await getPassword()
         return try await queue.asyncTask { [gemKeystore] in
-            try withV4Password(password) { passwordBytes in
+            try withV4Password(keystore: gemKeystore, password) { passwordBytes in
                 try gemKeystore.exportPrivateKey(
-                    keystoreId: wallet.keystoreId,
+                    keystoreId: gemKeystore.keystoreId(walletId: wallet.id.id),
                     chain: chain.rawValue,
                     password: passwordBytes,
                 )
@@ -119,9 +108,9 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
     public func getMnemonic(wallet: Primitives.Wallet) async throws -> [String] {
         let password = try await getPassword()
         return try await queue.asyncTask { [gemKeystore] in
-            try withV4Password(password) { passwordBytes in
+            try withV4Password(keystore: gemKeystore, password) { passwordBytes in
                 try gemKeystore.exportRecoveryPhrase(
-                    keystoreId: wallet.keystoreId,
+                    keystoreId: gemKeystore.keystoreId(walletId: wallet.id.id),
                     password: passwordBytes,
                 )
             }
@@ -161,7 +150,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
     private func migrateV3Keystore(wallet: Primitives.Wallet, v3URL: URL, password: String) async throws {
         try await queue.asyncTask { [gemKeystore] in
             var v3Password = password.v3PasswordBytes()
-            var newPassword = try password.v4KeystorePasswordBytes()
+            var newPassword = gemKeystore.decodePassword(password: password)
             defer {
                 v3Password.zeroize()
                 newPassword.zeroize()
@@ -204,13 +193,14 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
 }
 
 func withV4Password<T>(
+    keystore: Gemstone.GemKeystore,
     _ password: String,
     _ operation: (Data) throws -> T,
 ) throws -> T {
     guard password.isNotEmpty else {
-        throw AnyError("Couldn't access this wallet's keys on this device. If you have your recovery phrase, remove this wallet and import it again to restore access.")
+        throw KeystoreError.missingPassword
     }
-    var passwordBytes = try password.v4KeystorePasswordBytes()
+    var passwordBytes = keystore.decodePassword(password: password)
     defer { passwordBytes.zeroize() }
     return try operation(passwordBytes)
 }

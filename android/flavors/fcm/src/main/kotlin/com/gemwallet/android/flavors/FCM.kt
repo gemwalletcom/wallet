@@ -1,9 +1,8 @@
 package com.gemwallet.android.flavors
 
-import com.gemwallet.android.cases.device.GetPushEnabled
-import com.gemwallet.android.cases.device.SetPushToken
-import com.gemwallet.android.cases.device.SyncDevice
-import com.gemwallet.android.cases.pushes.ShowSystemNotification
+import com.gemwallet.android.application.device.cases.GetPushEnabled
+import com.gemwallet.android.application.device.cases.SetPushToken
+import com.gemwallet.android.application.notifications.cases.ShowSystemNotification
 import com.gemwallet.android.model.PushNotificationField
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -17,9 +16,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class FCM : FirebaseMessagingService() {
-
-    @Inject
-    lateinit var syncDevice: SyncDevice
     @Inject
     lateinit var getPushEnabled: GetPushEnabled
     @Inject
@@ -43,10 +39,8 @@ class FCM : FirebaseMessagingService() {
         }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onNewToken(token: String) {
-        scope.launch {
-            setPushToken.setPushToken(token)
-            syncDevice.syncDevice()
-        }
+        setPushToken.setPushToken(token)
     }
 }

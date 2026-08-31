@@ -2,16 +2,16 @@
 
 import Foundation
 import struct Gemstone.Account
-import class Gemstone.WalletConnect
+import class Gemstone.GemChainService
 import Primitives
 import ReownWalletKit
 
 extension Primitives.Account {
-    var blockchain: WalletConnectUtils.Account? {
-        if let blockchain = chain.blockchain {
-            return WalletConnectUtils.Account(blockchain: blockchain, address: address)
+    func blockchain(chainService: GemChainService) -> WalletConnectUtils.Account? {
+        guard let blockchain = chain.blockchain(chainService: chainService) else {
+            return .none
         }
-        return .none
+        return WalletConnectUtils.Account(blockchain: blockchain, address: address)
     }
 
     public func mapToGem() -> Gemstone.Account {

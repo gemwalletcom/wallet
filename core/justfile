@@ -4,6 +4,10 @@ list:
 build:
     cargo build
 
+clean:
+    @rm -rf target
+    @echo "Rust build folders cleaned"
+
 build-gemstone:
     just gemstone build
 

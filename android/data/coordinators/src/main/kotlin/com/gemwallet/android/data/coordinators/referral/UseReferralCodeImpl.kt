@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.referral
 
-import com.gemwallet.android.application.referral.coordinators.UseReferralCode
+import com.gemwallet.android.application.referral.cases.UseReferralCode
 import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemRewardsService
 import com.gemwallet.android.serializer.toJson

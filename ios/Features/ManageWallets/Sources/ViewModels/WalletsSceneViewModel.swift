@@ -1,5 +1,6 @@
 import Components
 import Foundation
+import GemstonePrimitives
 import Localization
 import Preferences
 import Primitives
@@ -10,11 +11,8 @@ import GemstoneServices
 @Observable
 @MainActor
 public final class WalletsSceneViewModel {
-    #if DEBUG
-        public static let walletsLimit = 1000
-    #else
-        public static let walletsLimit = 100
-    #endif
+
+    public static let walletsLimit = 100
 
     private let service: WalletService
     private let walletSessionService: any WalletSessionManageable
@@ -32,8 +30,8 @@ public final class WalletsSceneViewModel {
     let pinnedWalletsQuery: ObservableQuery<WalletsRequest>
     let walletsQuery: ObservableQuery<WalletsRequest>
 
-    var pinnedWallets: [Wallet] { pinnedWalletsQuery.value }
-    var wallets: [Wallet] { walletsQuery.value }
+    var pinnedWallets: [Wallet] { sorted(pinnedWalletsQuery.value) }
+    var wallets: [Wallet] { sorted(walletsQuery.value) }
     var hasWallets: Bool { wallets.isNotEmpty || pinnedWallets.isNotEmpty }
 
     public init(
@@ -56,6 +54,10 @@ public final class WalletsSceneViewModel {
 
     var title: String {
         Localized.Wallets.title
+    }
+
+    private func sorted(_ wallets: [Wallet]) -> [Wallet] {
+        service.sorted(wallets: wallets)
     }
 }
 

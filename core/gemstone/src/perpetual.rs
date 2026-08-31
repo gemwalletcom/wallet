@@ -5,17 +5,23 @@ use gem_hypercore::{
     perpetual_formatter::PerpetualFormatter,
     provider::{websocket_mapper::account_subscriptions, websocket_subscriptions::WebSocketSubscriptions},
 };
-use primitives::{AutocloseValidation, AutocloseValidator as Validator, PerpetualAccountMode, PerpetualDirection, PerpetualProvider, TpslType};
+use primitives::{
+    AutocloseEstimator as Estimator, AutocloseValidation, AutocloseValidator as Validator, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection, PerpetualProvider,
+    PerpetualType, TpslType,
+};
 
 use crate::models::perpetual::GemPerpetualSubscription;
+use crate::services::error::GemServiceError;
+use crate::services::perpetual::model::{GemPerpetualCloseInput, GemPerpetualOrderInput};
+use crate::services::perpetual::rules as perpetual_rules;
 
 #[derive(Debug, uniffi::Object)]
-pub struct Perpetual {
+pub struct GemPerpetual {
     provider: PerpetualProvider,
 }
 
 #[uniffi::export]
-impl Perpetual {
+impl GemPerpetual {
     #[uniffi::constructor]
     pub fn new(provider: PerpetualProvider) -> Self {
         Self { provider }
@@ -37,6 +43,18 @@ impl Perpetual {
         match self.provider {
             PerpetualProvider::Hypercore => PerpetualFormatter::format_size(size, decimals),
         }
+    }
+
+    pub fn funding_apr(&self, funding: f64) -> f64 {
+        perpetual_rules::funding_apr(funding)
+    }
+
+    pub fn order(&self, input: GemPerpetualOrderInput) -> Result<PerpetualType, GemServiceError> {
+        perpetual_rules::order(self.provider.clone(), input)
+    }
+
+    pub fn close_order(&self, input: GemPerpetualCloseInput) -> PerpetualConfirmData {
+        perpetual_rules::close_order(self.provider.clone(), input)
     }
 }
 
@@ -70,6 +88,52 @@ impl AutocloseValidator {
 
     pub fn validate(&self, price: f64) -> AutocloseValidation {
         self.inner.validate(price)
+    }
+}
+
+#[derive(Debug, uniffi::Object)]
+pub struct GemAutocloseEstimator {
+    inner: Estimator,
+}
+
+#[uniffi::export]
+impl GemAutocloseEstimator {
+    #[uniffi::constructor]
+    pub fn new(entry_price: f64, position_size: f64, direction: PerpetualDirection, leverage: u8) -> Self {
+        Self {
+            inner: Estimator::new(entry_price, position_size, direction, leverage),
+        }
+    }
+
+    #[uniffi::constructor]
+    pub fn for_open(market_price: f64, size: f64, leverage: u8, direction: PerpetualDirection) -> Self {
+        Self {
+            inner: Estimator::for_open(market_price, size, leverage, direction),
+        }
+    }
+
+    pub fn has_size(&self) -> bool {
+        self.inner.has_size()
+    }
+
+    pub fn percent_suggestions(&self) -> Vec<u8> {
+        crate::config::perpetual_config::get_autoclose_suggestions(self.inner.leverage)
+    }
+
+    pub fn pnl(&self, price: f64) -> f64 {
+        self.inner.pnl(price)
+    }
+
+    pub fn price_change_percent(&self, price: f64) -> f64 {
+        self.inner.price_change_percent(price)
+    }
+
+    pub fn roe(&self, price: f64) -> f64 {
+        self.inner.roe(price)
+    }
+
+    pub fn target_price_from_roe(&self, roe_percent: i32, trigger_type: TpslType) -> f64 {
+        self.inner.target_price_from_roe(roe_percent, trigger_type)
     }
 }
 
@@ -131,7 +195,7 @@ impl From<HyperliquidSubscription> for GemPerpetualSubscription {
 }
 
 impl GemPerpetualSubscription {
-    fn map(self) -> HyperliquidSubscription {
+    pub(crate) fn map(self) -> HyperliquidSubscription {
         match self {
             Self::AccountState { address } => HyperliquidSubscription::AccountState { address },
             Self::SpotState { address } => HyperliquidSubscription::SpotState { address },

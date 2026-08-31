@@ -15,7 +15,7 @@ class AssetChartSceneTest {
     fun `contract market info is available for token assets without market data`() {
         val asset = mockAssetSolanaUSDC()
 
-        val info = contractMarketInfo(asset, "Solscan") { _, _, _ -> null }
+        val info = contractMarketInfo(asset, null)
 
         assertNotNull(info)
         assertEquals(MarketInfoUIModel.MarketInfoTypeUIModel.Contract, info?.type)
@@ -26,7 +26,7 @@ class AssetChartSceneTest {
     fun `contract market info is absent for native assets`() {
         val asset = mockAssetSolana()
 
-        val info = contractMarketInfo(asset, "Solscan") { _, _, _ -> null }
+        val info = contractMarketInfo(asset, null)
 
         assertNull(info)
     }

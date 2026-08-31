@@ -1,4 +1,3 @@
-import class Gemstone.GemMnemonic
 import protocol Gemstone.GemNameServiceProtocol
 import Components
 import Foundation
@@ -194,9 +193,6 @@ extension ImportWalletSceneViewModel {
         switch importType {
         case .phrase:
             let words = trimmedInput.split(separator: " ").map { String($0) }
-            guard try validateForm(type: importType, address: recipient.address, words: words) else {
-                return
-            }
             switch type {
             case .multicoin:
                 try await importWallet(
@@ -210,18 +206,9 @@ extension ImportWalletSceneViewModel {
                 )
             }
         case .privateKey:
-            guard try validateForm(type: importType, address: recipient.address, words: [trimmedInput]) else {
-                return
-            }
             try await importWallet(name: recipient.name, keystoreType: .privateKey(text: trimmedInput, chain: chain!))
         case .address:
-            guard try validateForm(type: importType, address: recipient.address, words: []) else {
-                return
-            }
-            let chain = chain!
-            let address = chain.checksumAddress(recipient.address)
-
-            try await importWallet(name: recipient.name, keystoreType: .address(address: address, chain: chain))
+            try await importWallet(name: recipient.name, keystoreType: .address(address: recipient.address, chain: chain!))
         }
     }
 
@@ -246,26 +233,5 @@ extension ImportWalletSceneViewModel {
             isPresentingAlertMessage = AlertMessage(title: alertTitle, message: error.localizedDescription)
         }
         buttonState = .normal
-    }
-
-    private func validateForm(type: WalletImportType, address: String, words: [String]) throws -> Bool {
-        switch type {
-        case .phrase:
-            for word in words {
-                if !GemMnemonic().isValidWord(word: word) {
-                    throw WalletImportError.invalidSecretPhraseWord(word: word)
-                }
-            }
-            guard GemMnemonic().isValid(words: words) else {
-                throw WalletImportError.invalidSecretPhrase
-            }
-        case .privateKey:
-            return !words.joined().isEmpty
-        case .address:
-            guard chain!.isValidAddress(address) else {
-                throw WalletImportError.invalidAddress
-            }
-        }
-        return true
     }
 }

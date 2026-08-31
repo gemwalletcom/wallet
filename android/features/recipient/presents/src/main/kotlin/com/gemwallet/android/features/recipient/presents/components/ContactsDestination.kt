@@ -1,11 +1,12 @@
 package com.gemwallet.android.features.recipient.presents.components
 
+import com.gemwallet.android.ui.LocalAddressService
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.gemwallet.android.cases.contacts.ContactRecipient
+import com.gemwallet.android.application.contacts.values.ContactRecipient
 import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -43,7 +44,7 @@ private fun ContactRecipientItem(
         title = { PropertyTitleText(contact.name) },
         data = {
             PropertyDataText(
-                AddressFormatter(contact.address, chain = contact.chain).value(),
+                AddressFormatter(LocalAddressService.current, contact.address, chain = contact.chain).value(),
                 badge = { DataBadgeChevron() },
             )
         },

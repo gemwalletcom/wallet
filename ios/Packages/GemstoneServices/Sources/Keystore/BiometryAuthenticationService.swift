@@ -1,13 +1,28 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemSecurityService
 import Primitives
 import LocalAuthentication
 
 public struct BiometryAuthenticationService: BiometryAuthenticatable {
     private let keystorePassword: KeystorePassword
+    private let securityService: GemSecurityService
 
-    public init(keystorePassword: KeystorePassword = LocalKeystorePassword()) {
+    public init(
+        keystorePassword: KeystorePassword = LocalKeystorePassword(),
+        securityService: GemSecurityService = GemSecurityService(),
+    ) {
         self.keystorePassword = keystorePassword
+        self.securityService = securityService
+    }
+
+    public func shouldRelock(elapsedMilliseconds: Int64) -> Bool {
+        securityService.shouldRelock(
+            elapsedMilliseconds: elapsedMilliseconds,
+            lockIntervalMinutes: securityService.lockPeriodMinutes(period: lockPeriod.gemLockPeriod),
+            authRequired: requiresAuthentication,
+            hasPendingRequest: false,
+        )
     }
 
     public var requiresAuthentication: Bool {

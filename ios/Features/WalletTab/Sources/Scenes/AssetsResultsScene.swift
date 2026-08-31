@@ -53,7 +53,7 @@ public struct AssetsResultsScene: View {
         .navigationBarTitleDisplayMode(.inline)
         .bindQuery(model.searchQuery)
         .taskOnce {
-            model.fetch()
+            model.load()
         }
         .toast(message: $model.isPresentingToastMessage)
     }

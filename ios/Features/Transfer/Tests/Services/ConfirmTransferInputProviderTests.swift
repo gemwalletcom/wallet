@@ -1,27 +1,32 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAmountService
 import Foundation
+import struct Gemstone.GemConfirmData
+import struct Gemstone.GemFeeRate
+import GemstonePrimitivesTestKit
 @testable import Primitives
 import PrimitivesTestKit
+import class Gemstone.GemTransferService
 import Testing
 @testable import Transfer
 import TransferTestKit
 import Validators
+import class Gemstone.GemFeeService
 
 struct ConfirmTransferInputProviderTests {
+    private let transferService = GemTransferService()
+
     @Test
     func loadReturnsInputWithRatesAndFee() async throws {
         let provider = ConfirmTransferInputProvider.mock(transaction: .success(
-            TransferTransactionData(
-                allRates: [FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 1))],
-                transactionData: .mock(),
-            ),
+            .mock(input: TransferData.mock().confirmInput(from: .mock()), feeRates: [GemFeeRate(priority: .normal, gasPriceType: .regular(gasPrice: "1"))]),
         ))
 
         let result = try await provider.load()
 
         #expect(result.feeRates.count == 1)
-        #expect(result.input.transactionData.fee.fee == 1)
+        #expect(result.input.fee.fee == 1)
     }
 
     @Test
@@ -31,12 +36,12 @@ struct ConfirmTransferInputProviderTests {
         let feeAssetPrice = Price.mock(price: 1)
         let provider = ConfirmTransferInputProvider(
             transferTransactionProvider: TransferTransactionProviderMock(result: .success(
-                TransferTransactionData(
-                    allRates: [],
-                    transactionData: .mock(feeAsset: feeAsset),
-                ),
+                .mock(input: TransferData.mock().confirmInput(from: .mock()), fee: .mock(feeAsset: feeAsset.id.identifier)),
             )),
             feeAssetProvider: FeeAssetProviderMock(asset: feeAsset, balance: feeAssetBalance, price: feeAssetPrice),
+            feeService: GemFeeService(),
+            transferService: GemTransferService(),
+            amountService: GemAmountService(),
         )
 
         let result = try await provider.load()
@@ -50,18 +55,19 @@ struct ConfirmTransferInputProviderTests {
     @Test
     func loadUsesSelectedFeeAsset() async throws {
         let selectedAsset = Asset.mockTempoUSDC()
+        let transferProvider = TransferTransactionProviderMock(result: .success(
+            .mock(input: TransferData.mock().confirmInput(from: .mock()), fee: .mock(feeAsset: selectedAsset.id.identifier)),
+        ))
         let provider = ConfirmTransferInputProvider(
-            transferTransactionProvider: TransferTransactionProviderMock(result: .success(
-                TransferTransactionData(
-                    allRates: [],
-                    transactionData: .mock(feeAsset: .mockTempoPathUSD()),
-                ),
-            )),
+            transferTransactionProvider: transferProvider,
             feeAssetProvider: FeeAssetProviderMock(
                 asset: selectedAsset,
                 balance: .mock(available: 42),
                 price: .mock(price: 1),
             ),
+            feeService: GemFeeService(),
+            transferService: GemTransferService(),
+            amountService: GemAmountService(),
         )
 
         let result = try await provider.load(
@@ -71,7 +77,7 @@ struct ConfirmTransferInputProviderTests {
             feeAssetSelection: .selected(selectedAsset.id),
         )
 
-        #expect(result.input.transactionData.fee.feeAssetId == selectedAsset.id)
+        #expect(transferProvider.loadedFeeAssetId == selectedAsset.id)
         #expect(result.input.feeAsset == selectedAsset)
         #expect(result.metadata.feeAssetId == selectedAsset.id)
     }
@@ -119,9 +125,12 @@ struct ConfirmTransferInputProviderTests {
     func loadRethrowsFeeAssetFailure() async {
         let provider = ConfirmTransferInputProvider(
             transferTransactionProvider: TransferTransactionProviderMock(result: .success(
-                TransferTransactionData(allRates: [], transactionData: .mock()),
+                .mock(input: TransferData.mock().confirmInput(from: .mock())),
             )),
             feeAssetProvider: FeeAssetProviderMock(error: "fee asset"),
+            feeService: GemFeeService(),
+            transferService: GemTransferService(),
+            amountService: GemAmountService(),
         )
         let metadata = TransferDataMetadata.mock(
             feeAssetId: AssetId(chain: .ethereum, tokenId: nil),
@@ -144,10 +153,13 @@ private extension ConfirmTransferInputProvider {
         )
     }
 
-    static func mock(transaction: Result<TransferTransactionData, Error>) -> ConfirmTransferInputProvider {
+    static func mock(transaction: Result<GemConfirmData, Error>) -> ConfirmTransferInputProvider {
         ConfirmTransferInputProvider(
             transferTransactionProvider: TransferTransactionProviderMock(result: transaction),
             feeAssetProvider: FeeAssetProviderMock(),
+            feeService: GemFeeService(),
+            transferService: GemTransferService(),
+            amountService: GemAmountService(),
         )
     }
 }

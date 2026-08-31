@@ -10,13 +10,13 @@ import Primitives
 
 public actor NativeProvider {
     private let session: URLSession
-    private let nodeProvider: any NodeURLFetchable
+    private let nodeProvider: any NodeURLProvidable
     private let cache: MemoryCache
     private let requestInterceptor: any RequestInterceptable
 
     public init(
         session: URLSession = .shared,
-        nodeProvider: any NodeURLFetchable,
+        nodeProvider: any NodeURLProvidable,
         requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor(),
     ) {
         self.session = session
@@ -34,7 +34,7 @@ public actor NativeProvider {
     }
 }
 
-struct StaticNode: NodeURLFetchable {
+struct StaticNode: NodeURLProvidable {
     let url: URL
 
     func node(for _: Primitives.Chain) -> URL {
@@ -60,6 +60,9 @@ extension NativeProvider: AlienProvider {
 
             return AlienResponse(status: statusCode.map(UInt16.init), data: data)
         } catch {
+            if isNetworkError(error) {
+                throw AlienError.Offline
+            }
             if (error as NSError).domain == NSURLErrorDomain {
                 throw AlienError.ResponseError(msg: error.localizedDescription)
             }

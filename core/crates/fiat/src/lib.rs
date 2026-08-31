@@ -1,6 +1,6 @@
 pub mod client;
 pub mod error;
-pub mod fiat_cacher_client;
+mod fiat_cacher_client;
 pub mod hmac_signature;
 pub mod ip_check_client;
 pub mod model;
@@ -15,24 +15,26 @@ pub use webhook::FiatWebhookRequest;
 
 use crate::providers::{BanxaClient, FlashnetClient, MercuryoClient, MoonPayClient, PaybisClient, TransakClient};
 use gem_client::ReqwestClient;
+use primitives::AccessTokenCacher;
 use settings::Settings;
+use std::sync::Arc;
 use std::time::Duration;
 
 pub use client::FiatClient;
+pub use model::FiatDeviceContext;
 
 fn request_client(timeout: Duration) -> reqwest::Client {
     gem_client::builder().timeout(timeout).build().expect("fiat HTTP client configuration is valid")
 }
-pub use fiat_cacher_client::{CachedFiatQuoteData, FiatCacherClient};
 pub use ip_check_client::{IPAddressInfo, IPCheckClient};
 pub use transaction_info_mapper::fiat_transaction_info;
 
-#[cfg(all(test, feature = "fiat_integration_tests"))]
+#[cfg(test)]
 pub mod testkit;
 
 pub struct FiatProviderFactory {}
 impl FiatProviderFactory {
-    pub fn new_providers(settings: Settings) -> Vec<Box<dyn FiatProvider + Send + Sync>> {
+    pub fn new_providers(settings: Settings, access_token_cacher: Arc<dyn AccessTokenCacher>) -> Vec<Box<dyn FiatProvider + Send + Sync>> {
         let request_client = request_client(settings.fiat.timeout);
 
         let moonpay = MoonPayClient::new(
@@ -53,6 +55,7 @@ impl FiatProviderFactory {
             settings.fiat.transak.key.public,
             settings.fiat.transak.key.secret,
             settings.fiat.transak.referrer.domain,
+            access_token_cacher,
         );
         let banxa = BanxaClient::new(
             ReqwestClient::new(settings.fiat.banxa.api.url, request_client.clone()),

@@ -25,7 +25,7 @@ public extension TransferData {
 public extension FeeSelection {
     func map() -> GemConfirmFeeSelection {
         switch self {
-        case let .preset(priority): .priority(priority: priority.rawValue)
+        case let .preset(priority): .priority(priority: priority.map())
         case let .custom(gasPrice): .custom(gasPrice: gasPrice.description)
         }
     }

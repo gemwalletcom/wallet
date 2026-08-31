@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.fiat
 
-import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
+import com.gemwallet.android.application.fiat.cases.GetBuyQuoteUrl
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive

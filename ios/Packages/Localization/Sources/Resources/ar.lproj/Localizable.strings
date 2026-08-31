@@ -18,6 +18,7 @@
 "common.wallet" = "محفظة";
 "common.show" = "إظهار %@";
 "common.copied" = "تم النسخ: %@";
+"common.copied_to_clipboard" = "تم النسخ إلى الحافظة";
 "common.recommended" = "مُستَحسَن";
 "common.all" = "الجميع";
 "common.not_available" = "غير متاح";
@@ -175,10 +176,14 @@
 "errors.token.invalid_id" = "معرف الرمز المميز غير صالح";
 "errors.import.invalid_secret_phrase" = "العبارة السرية غير صالحة";
 "errors.import.invalid_secret_phrase_word" = "كلمة عبارة سرية غير صالحة: %@";
+"errors.import.invalid_private_key" = "مفتاح خاص غير صالح";
+"errors.keystore_access" = "تعذر الوصول إلى مفاتيح هذه المحفظة على هذا الجهاز. إذا كانت لديك عبارة الاسترداد، فاحذف هذه المحفظة واستوردها مرة أخرى لاستعادة الوصول.";
+"errors.wallet_account_missing" = "لا تحتوي هذه المحفظة على حساب لهذه الشبكة";
 "errors.invalid_url" = "URL غير صالح";
 "errors.error_occurred" = "حدث خطأ!";
 "errors.invalid_network_id" = "معرف الشبكة غير صالح";
 "errors.error" = "خطأ";
+"errors.cancelled" = "ملغى";
 "errors.connections.user_cancelled" = "تم إلغاء المستخدم";
 "errors.not_supported" = "غير مدعوم";
 "errors.permissions_not_granted" = "لم يتم منح الأذونات";
@@ -211,6 +216,8 @@
 "errors.swap.minimum_amount" = "الحد الأدنى لمبلغ التداول هو %@. يرجى إدخال مبلغ أعلى.";
 "errors.perpetual.trigger_price_lower" = "يجب أن يكون سعر التفعيل أقل من سعر السوق";
 "errors.perpetual.trigger_price_higher" = "يجب أن يكون سعر التفعيل أعلى من سعر السوق";
+"errors.network_error" = "خطأ في الشبكة: %@";
+"errors.network_offline" = "يبدو أن الاتصال بالإنترنت غير متاح.";
 "errors.no_internet_connection" = "لا يوجد اتصال بالإنترنت";
 "errors.no_service_connection" = "لا يوجد اتصال بالخدمة";
 "errors.balances_activity_outdated" = "قد تكون الأرصدة والنشاط غير محدثة.";

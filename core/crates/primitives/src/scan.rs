@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 use typeshare::typeshare;
 
-use crate::{AssetId, Chain, TransactionType};
+use crate::{AssetId, Chain, ChainAddress, TransactionType};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Sendable")]
@@ -19,8 +19,22 @@ pub struct ScanTransactionPayload {
 #[typeshare(swift = "Equatable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct ScanTransaction {
-    pub is_malicious: bool,
-    pub is_memo_required: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub is_malicious: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub is_memo_required: Option<bool>,
+    #[serde(default)]
+    #[typeshare(skip)]
+    pub is_scan_complete: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[typeshare(skip)]
+    pub malicious_addresses: Option<Vec<ChainAddress>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[typeshare(skip)]
+    pub malicious_assets: Option<Vec<AssetId>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[typeshare(skip)]
+    pub malicious_website: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemWalletDeletion
 import protocol Gemstone.GemWalletServiceProtocol
 import GemstonePrimitives
 import Preferences
@@ -33,29 +34,34 @@ public struct WalletService: Sendable {
     }
 
     public func acceptTerms() {
-        preferences.isAcceptTermsCompleted = true
+        preferences.acceptTerms()
     }
 
     public func createWallet() throws -> [String] {
         try service.createWallet()
     }
 
+    public func sorted(wallets: [Wallet]) -> [Wallet] {
+        guard let sorted = try? service.sortedWallets(wallets: wallets.map { $0.json() }).map({ try Wallet($0) }) else {
+            return wallets
+        }
+        return sorted
+    }
+
     public func importWallet(name: String, type: KeystoreImportType, source: WalletSource) async throws -> WalletImportResult {
-        switch try await service.importWallet(name: name, import: type.walletImport, source: source.map()) {
+        let walletImport = try service.validateImport(import: type.walletImport)
+        return switch try await service.importWallet(name: name, import: walletImport, source: source.map()) {
         case let .new(wallet): try .new(Wallet(wallet))
         case let .existing(wallet): try .existing(Wallet(wallet))
         }
     }
 
     public func delete(_ wallet: Wallet) async throws {
-        try await keystore.deleteKey(for: wallet)
-        let hasWallets = try await service.deleteWallet(walletId: wallet.id.id)
-        if !hasWallets {
-            preferences.preferences.clear()
-            preferences.preferences.invalidateSubscriptions()
+        switch try await service.deleteWallet(walletId: wallet.id.id) {
+        case .walletsRemaining: break
+        case .lastWalletDeleted: preferences.reload()
         }
     }
-
 
     public func setup(chains: [Chain]) async throws {
         _ = try await service.setupChains(chains: chains.map(\.rawValue))
@@ -83,10 +89,6 @@ public struct WalletService: Sendable {
 
     public func getMnemonic(wallet: Wallet) async throws -> [String] {
         try await keystore.getMnemonic(wallet: wallet)
-    }
-
-    package func mockWallets() throws -> [Wallet] {
-        try walletSessionService.getWallets()
     }
 
     public func getPrivateKeyEncoded(wallet: Primitives.Wallet, chain: Chain) async throws -> String {

@@ -10,7 +10,7 @@ import javax.inject.Singleton
 
 @Singleton
 class WalletAvatarService @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val avatarService: GemAvatarService,
 ) {
     suspend fun setEmoji(walletId: WalletId, emoji: String, backgroundColor: Int) =

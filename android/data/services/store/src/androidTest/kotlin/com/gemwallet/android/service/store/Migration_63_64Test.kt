@@ -374,11 +374,8 @@ class Migration_63_64Test {
     private class TestPasswordStore : PasswordStore {
         private val passwords = mutableMapOf<String, String>()
 
-        override fun createPassword(key: String): String {
-            val password = "generated_password_$key"
-            passwords[key] = password
-            return password
-        }
+        override fun getOrCreatePassword(key: String): String =
+            passwords.getOrPut(key) { "generated_password_$key" }
 
         override fun getPassword(key: String): String {
             return passwords[key] ?: ""

@@ -17,7 +17,7 @@ struct AssetsSectionsTests {
     func popularEnabledRemovesPopularFromAssets() {
         let sections = AssetsSections.from(
             [asset(.bitcoin), asset(.ethereum), asset(.solana), asset(.smartChain)],
-            enablePopular: true
+            popularIds: [Chain.bitcoin.assetId, Chain.ethereum.assetId, Chain.solana.assetId]
         )
 
         #expect(sections.popular.map { $0.asset.id.chain } == [.bitcoin, .ethereum, .solana])
@@ -36,7 +36,7 @@ struct AssetsSectionsTests {
     func pinnedAssetsStaySeparateFromPopularAndAssets() {
         let sections = AssetsSections.from(
             [asset(.smartChain, isPinned: true), asset(.ethereum), asset(.tron)],
-            enablePopular: true
+            popularIds: [Chain.bitcoin.assetId, Chain.ethereum.assetId, Chain.solana.assetId]
         )
 
         #expect(sections.pinned.map { $0.asset.id.chain } == [.smartChain])

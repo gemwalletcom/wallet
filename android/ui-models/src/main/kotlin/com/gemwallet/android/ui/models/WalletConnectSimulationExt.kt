@@ -6,7 +6,7 @@ import com.wallet.core.primitives.SimulationPayloadField
 import com.wallet.core.primitives.SimulationPayloadFieldType
 import com.wallet.core.primitives.SimulationSeverity
 import com.wallet.core.primitives.SimulationWarning
-import uniffi.gemstone.Explorer
+import uniffi.gemstone.GemExplorerService
 
 data class PayloadField(
     val field: SimulationPayloadField,
@@ -19,13 +19,12 @@ fun List<SimulationWarning>.hasCriticalWarning(): Boolean =
 
 fun List<SimulationPayloadField>.withExplorerLinks(
     chain: Chain?,
-    explorerName: String?,
+    explorerService: GemExplorerService?,
 ): List<PayloadField> {
-    if (chain == null || explorerName == null) return map { PayloadField(field = it, chain = chain) }
-    val explorer = Explorer(chain.string)
+    if (chain == null || explorerService == null) return map { PayloadField(field = it, chain = chain) }
     return map { field ->
         val link = if (field.fieldType == SimulationPayloadFieldType.Address) {
-            BlockExplorerLink(explorerName, explorer.getAddressUrl(explorerName, field.value))
+            explorerService.getAddressUrl(chain.string, field.value).let { BlockExplorerLink(it.name, it.link) }
         } else null
         PayloadField(field = field, explorerLink = link, chain = chain)
     }

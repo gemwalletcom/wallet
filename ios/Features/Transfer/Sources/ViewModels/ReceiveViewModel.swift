@@ -1,6 +1,8 @@
+import protocol Gemstone.GemBalanceServiceProtocol
 import Components
 import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
+import class Gemstone.GemReceiveService
 import GemstoneServices
 import GemstonePrimitives
 import Localization
@@ -22,8 +24,9 @@ public final class ReceiveViewModel: Sendable {
     var renderedImage: UIImage?
 
     private let wallet: Wallet
-    private let assetsEnabler: any AssetsEnabler
+    private let balanceService: any GemBalanceServiceProtocol
     private let assetsService: any GemAssetsServiceProtocol
+    private let receiveService: GemReceiveService
     private let generator = QRCodeGenerator()
     let networkAssetIds: [AssetId]
 
@@ -32,14 +35,16 @@ public final class ReceiveViewModel: Sendable {
         associations: [AssetAssociation],
         wallet: Wallet,
         address: String,
-        assetsEnabler: any AssetsEnabler,
+        balanceService: any GemBalanceServiceProtocol,
         assetsService: any GemAssetsServiceProtocol,
+        receiveService: GemReceiveService,
     ) {
         assetModel = AssetViewModel(asset: asset)
         self.wallet = wallet
         self.address = address
-        self.assetsEnabler = assetsEnabler
+        self.balanceService = balanceService
         self.assetsService = assetsService
+        self.receiveService = receiveService
 
         networkAssetIds = ([asset.id] + associations.map(\.assetId))
             .filter { assetId in wallet.accounts.contains { $0.chain == assetId.chain } }
@@ -49,32 +54,36 @@ public final class ReceiveViewModel: Sendable {
     public convenience init(
         assetData: AssetData,
         wallet: Wallet,
-        assetsEnabler: any AssetsEnabler,
+        balanceService: any GemBalanceServiceProtocol,
         assetsService: any GemAssetsServiceProtocol,
+        receiveService: GemReceiveService,
     ) {
         self.init(
             asset: assetData.asset,
             associations: assetData.associations,
             wallet: wallet,
             address: assetData.account.address,
-            assetsEnabler: assetsEnabler,
+            balanceService: balanceService,
             assetsService: assetsService,
+            receiveService: receiveService,
         )
     }
 
     public convenience init(
         assetAddress: AssetAddress,
         wallet: Wallet,
-        assetsEnabler: any AssetsEnabler,
+        balanceService: any GemBalanceServiceProtocol,
         assetsService: any GemAssetsServiceProtocol,
+        receiveService: GemReceiveService,
     ) {
         self.init(
             asset: assetAddress.asset,
             associations: [],
             wallet: wallet,
             address: assetAddress.address,
-            assetsEnabler: assetsEnabler,
+            balanceService: balanceService,
             assetsService: assetsService,
+            receiveService: receiveService,
         )
     }
 
@@ -101,10 +110,10 @@ public final class ReceiveViewModel: Sendable {
     }
 
     private var memoWarningText: String? {
-        switch assetModel.asset.chain {
-        case .xrp where assetModel.asset.chain.isMemoSupported: Localized.Wallet.Receive.noDestinationTagRequired
-        case _ where assetModel.asset.chain.isMemoSupported: Localized.Wallet.Receive.noMemoRequired
-        default: nil
+        switch receiveService.memoWarning(chain: assetModel.asset.chain.rawValue) {
+        case .destinationTag: Localized.Wallet.Receive.noDestinationTagRequired
+        case .memo: Localized.Wallet.Receive.noMemoRequired
+        case .notSupported: nil
         }
     }
 
@@ -158,7 +167,7 @@ public final class ReceiveViewModel: Sendable {
 
     private func enableAsset() async {
         do {
-            try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [assetModel.asset.id], enabled: true)
+            try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: [assetModel.asset.id], enabled: true)
         } catch {
             debugLog("ReceiveViewModel enableAsset error: \(error)")
         }
@@ -166,7 +175,7 @@ public final class ReceiveViewModel: Sendable {
 
     private func prefetchAssociations() async {
         do {
-            try await assetsService.prefetchAssets(
+            try await assetsService.syncMissingAssets(
                 for: networkAssetIds.filter { $0 != assetModel.asset.id },
             )
         } catch {

@@ -50,7 +50,7 @@ android {
 dependencies {
     api(project(":ui-models"))
     implementation(project(":ui"))
-    implementation(project(":data:repositories"))
+    implementation(project(":data:services:gemstone"))
     implementation(project(":blockchain"))
     implementation(project(":gemcore"))
 

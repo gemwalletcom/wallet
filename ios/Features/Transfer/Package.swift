@@ -71,6 +71,7 @@ let package = Package(
             dependencies: [
                 "Transfer",
                 "Primitives",
+                "WalletConnector",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
             ],
             path: "TestKit",

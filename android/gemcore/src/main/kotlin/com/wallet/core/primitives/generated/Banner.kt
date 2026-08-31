@@ -13,8 +13,6 @@ enum class BannerEvent(val string: String) {
 	Stake("stake"),
 	@SerialName("accountActivation")
 	AccountActivation("accountActivation"),
-	@SerialName("enableNotifications")
-	EnableNotifications("enableNotifications"),
 	@SerialName("accountBlockedMultiSignature")
 	AccountBlockedMultiSignature("accountBlockedMultiSignature"),
 	@SerialName("activateAsset")
@@ -39,9 +37,8 @@ enum class BannerState(val string: String) {
 
 @Serializable
 data class Banner (
-	val wallet: Wallet? = null,
+	val walletId: WalletId? = null,
 	val asset: Asset? = null,
-	val chain: Chain? = null,
 	val event: BannerEvent,
 	val state: BannerState
 )

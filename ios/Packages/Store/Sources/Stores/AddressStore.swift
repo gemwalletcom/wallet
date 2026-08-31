@@ -20,13 +20,18 @@ public struct AddressStore: Sendable {
     }
 
     public func updateAddressNames(_ addressNames: [AddressName]) throws {
-        let localTypes = AddressType.allCases.filter(\.isLocal).map(\.rawValue)
+        if addressNames.isEmpty {
+            return
+        }
         try db.write { db in
             for addressName in addressNames {
+                let reservedTypes = AddressType.allCases
+                    .filter { $0.isLocal && $0 != addressName.type }
+                    .map(\.rawValue)
                 try AddressRecord
                     .filter(AddressRecord.Columns.chain == addressName.chain.rawValue)
                     .filter(AddressRecord.Columns.address == addressName.address)
-                    .filter(!localTypes.contains(AddressRecord.Columns.type))
+                    .filter(!reservedTypes.contains(AddressRecord.Columns.type))
                     .updateAll(db, [
                         AddressRecord.Columns.name.set(to: addressName.name),
                         AddressRecord.Columns.type.set(to: addressName.type.rawValue),
@@ -34,6 +39,18 @@ public struct AddressStore: Sendable {
                         AddressRecord.Columns.imageUrl.set(to: addressName.imageUrl),
                     ])
                 try addressName.record.insert(db, onConflict: .ignore)
+            }
+        }
+    }
+
+    public func deleteAddressNames(_ addressNames: [AddressName]) throws {
+        try db.write { db in
+            for addressName in addressNames {
+                try AddressRecord
+                    .filter(AddressRecord.Columns.chain == addressName.chain.rawValue)
+                    .filter(AddressRecord.Columns.address == addressName.address)
+                    .filter(AddressRecord.Columns.type == addressName.type.rawValue)
+                    .deleteAll(db)
             }
         }
     }

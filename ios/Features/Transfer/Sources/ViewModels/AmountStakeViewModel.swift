@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAmountService
 import BigInt
 import Formatters
 import Foundation
@@ -20,9 +21,11 @@ public enum AmountStakeSelection {
 public final class AmountStakeViewModel: AmountDataProvidable {
     let asset: Asset
     let action: AmountStakeType
+    let amountService: GemAmountService
     public let selection: AmountStakeSelection
 
-    init(asset: Asset, type: AmountStakeType) {
+    init(asset: Asset, type: AmountStakeType, amountService: GemAmountService) {
+        self.amountService = amountService
         self.asset = asset
         action = type
         selection = Self.makeSelection(type: type)
@@ -99,20 +102,16 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     }
 
     var gemAmountType: GemAmountType {
-        do {
-            let stakeType: GemAmountStakeType = switch action {
-            case .stake: .stake
-            case let .unstake(delegation): try .unstake(delegation: delegation.json())
-            case let .redelegate(delegation, _, _): try .redelegate(delegation: delegation.json())
-            case let .withdraw(delegation): try .withdraw(delegation: delegation.json())
-            case let .claimRewards(delegations): try .rewards(delegations: selectedRewardsDelegations(delegations).map { try $0.json() })
-            case .freeze: try .freeze(resource: selectedResource.json())
-            case .unfreeze: try .unfreeze(resource: selectedResource.json())
-            }
-            return .stake(stakeType: stakeType)
-        } catch {
-            preconditionFailure("Unencodable stake amount type: \(error)")
+        let stakeType: GemAmountStakeType = switch action {
+        case .stake: .stake
+        case let .unstake(delegation): .unstake(delegation: delegation.json())
+        case let .redelegate(delegation, _, _): .redelegate(delegation: delegation.json())
+        case let .withdraw(delegation): .withdraw(delegation: delegation.json())
+        case let .claimRewards(delegations): .rewards(delegations: selectedRewardsDelegations(delegations).map { $0.json() })
+        case .freeze: .freeze(resource: selectedResource.json())
+        case .unfreeze: .unfreeze(resource: selectedResource.json())
         }
+        return .stake(stakeType: stakeType)
     }
 
     private var selectedResource: Resource {

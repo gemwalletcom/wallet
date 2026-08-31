@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAddressService
 import protocol Gemstone.GemNameServiceProtocol
 import Components
 @testable import Contacts
@@ -45,6 +46,7 @@ extension ManageContactViewModel {
         ManageContactViewModel(
             service: GemContactServiceMock(),
             nameService: nameService,
+            addressService: GemAddressService(),
             mode: mode,
         )
     }

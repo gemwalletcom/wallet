@@ -18,7 +18,6 @@ fun Wallet.getAccount(chain: Chain): Account? {
 fun Wallet.getAccount(assetId: AssetId): Account? = getAccount(assetId.chain)
 
 val WalletType.isViewOnly: Boolean get() = this == WalletType.View
-val WalletType.canSign: Boolean get() = !isViewOnly
 
 fun WalletType.toGem(): GemWalletType = when (this) {
     WalletType.Multicoin -> GemWalletType.MULTICOIN
@@ -26,11 +25,6 @@ fun WalletType.toGem(): GemWalletType = when (this) {
     WalletType.PrivateKey -> GemWalletType.PRIVATE_KEY
     WalletType.View -> GemWalletType.VIEW
 }
-
-val Wallet.keystoreId: String
-    get() = uniffi.gemstone.keystoreIdForWallet(id.id)
-
-fun String.v4KeystorePasswordBytes(): ByteArray = fromHex()
 
 val Wallet.hyperliquidAccount: Account?
     get() = accounts.firstOrNull {

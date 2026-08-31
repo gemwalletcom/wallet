@@ -7,6 +7,7 @@ use std::sync::Arc;
 use swapper::{SwapResult, SwapperProvider, swapper::GemSwapper};
 
 use crate::gateway::ChainClientFactory;
+use crate::gateway::map_network_error;
 
 use super::TransactionStatusError;
 
@@ -96,7 +97,7 @@ impl StatusProvider {
         provider
             .get_transaction_status(request)
             .await
-            .map_err(|e| TransactionStatusError::NetworkError(e.to_string()))
+            .map_err(|e| TransactionStatusError::from(map_network_error(e)))
     }
 
     async fn swap_provider_status(&self, chain: Chain, provider: SwapperProvider, transaction_hash: &str) -> Result<TransactionUpdate, TransactionStatusError> {
@@ -164,7 +165,7 @@ fn get_transaction_update(
         } else {
             update
         }),
-        err @ Err(TransactionStatusError::NetworkError(_)) => err,
+        err @ Err(TransactionStatusError::Offline | TransactionStatusError::NetworkError(_)) => err,
         Err(_) if pending_expired => Ok(TransactionUpdate::new_state(TransactionState::Failed)),
         Err(err) => Err(err),
     }

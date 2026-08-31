@@ -1,11 +1,11 @@
 package com.gemwallet.android.data.coordinators.swap
 
-import com.gemwallet.android.application.swap.coordinators.RequestSwapQuotes
-import com.gemwallet.android.application.swap.coordinators.RequestSwapQuotes.Companion.QUOTE_DEBOUNCE_MS
-import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestKey
-import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestParams
-import com.gemwallet.android.application.swap.coordinators.SwapQuotesResult
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
+import com.gemwallet.android.application.swap.cases.RequestSwapQuotes.Companion.QUOTE_DEBOUNCE_MS
+import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
+import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
+import com.gemwallet.android.application.swap.cases.SwapQuotesResult
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.serializer.toJson
 import kotlinx.coroutines.CancellationException
@@ -26,7 +26,7 @@ import uniffi.gemstone.GemSwapServiceInterface
 import java.math.BigInteger
 
 class RequestSwapQuotesImpl(
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
     private val swapService: GemSwapServiceInterface,
 ) : RequestSwapQuotes {
 
@@ -53,7 +53,7 @@ class RequestSwapQuotesImpl(
                         while (currentCoroutineContext().isActive) {
                             delay(QUOTE_DEBOUNCE_MS)
                             onFetchStarted(params.key)
-                            val data = fetchQuotes(params)
+                            val data = requestQuotes(params)
                             emit(data)
                             if (data.err != null) {
                                 break
@@ -66,8 +66,8 @@ class RequestSwapQuotesImpl(
         .flowOn(Dispatchers.IO)
     }
 
-    private suspend fun fetchQuotes(params: SwapQuoteRequestParams): SwapQuotesResult = try {
-        val wallet = checkNotNull(sessionRepository.session().value?.wallet) { "Swap has no active wallet" }
+    private suspend fun requestQuotes(params: SwapQuoteRequestParams): SwapQuotesResult = try {
+        val wallet = checkNotNull(getSession().value?.wallet) { "Swap has no active wallet" }
         val amount = Crypto(params.value, params.pay.asset.decimals).atomicValue
         val quotes = swapService.getQuotes(
             wallet = wallet.toJson(),

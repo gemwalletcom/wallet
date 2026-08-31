@@ -1,6 +1,6 @@
 package com.gemwallet.android.ui.models.name
 
-import com.gemwallet.android.cases.name.GetNameRecord
+import com.gemwallet.android.application.recipient.cases.GetNameRecord
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope

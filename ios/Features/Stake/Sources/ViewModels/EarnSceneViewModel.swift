@@ -36,7 +36,7 @@ public final class EarnSceneViewModel {
     }
 
     public var providers: [DelegationValidator] {
-        providersQuery.value
+        selectable(providersQuery.value)
     }
 
     public init(
@@ -64,6 +64,10 @@ public final class EarnSceneViewModel {
 
     var title: String {
         Localized.Common.earn
+    }
+
+    private func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
+        (try? stakeService.selectableValidators(validators: validators.map { $0.json() }).map { try DelegationValidator($0) }) ?? []
     }
 
     var assetModel: AssetViewModel {
@@ -98,7 +102,7 @@ public final class EarnSceneViewModel {
     var positionModels: [DelegationViewModel] {
         positions
             .filter { (BigInt($0.base.balance) ?? .zero) > 0 }
-            .map { DelegationViewModel(explorerService: explorerService, delegation: $0, asset: asset, currencyCode: currencyCode) }
+            .map { DelegationViewModel(explorerService: explorerService, stakeService: stakeService, delegation: $0, asset: asset, currencyCode: currencyCode) }
     }
 
     var hasPositions: Bool {
@@ -126,7 +130,7 @@ public final class EarnSceneViewModel {
 // MARK: - Actions
 
 extension EarnSceneViewModel {
-    func fetch() async {
+    func load() async {
         viewState = .loading
         do {
             let address = try wallet.account(for: asset.id.chain).address

@@ -1,8 +1,48 @@
-use std::collections::HashSet;
+use crate::services::chain::rules::chain_matches_query;
+use crate::services::collections::unique_by;
 
-use primitives::{AssetBasic, AssetPrice, Chain, Wallet, WalletType};
+use primitives::perpetual::{PerpetualData, PerpetualMetadata, PerpetualSearchData};
+use primitives::{Asset, AssetBasic, AssetId, AssetPrice, Chain, Wallet, WalletType};
 
 use super::model::GemSearchScope;
+
+pub fn matching_assets(assets: Vec<Asset>, query: &str) -> Vec<Asset> {
+    let trimmed = query.trim().to_lowercase();
+    if trimmed.is_empty() {
+        return assets;
+    }
+    assets
+        .into_iter()
+        .filter(|asset| asset.name.to_lowercase().contains(&trimmed) || asset.symbol.to_lowercase().contains(&trimmed) || chain_matches_query(asset.chain(), &trimmed))
+        .collect()
+}
+
+pub fn skips_search(scope: &GemSearchScope, query: &str) -> bool {
+    *scope == GemSearchScope::All && query.is_empty()
+}
+
+pub fn stores_lists(scope: &GemSearchScope) -> bool {
+    *scope == GemSearchScope::All
+}
+
+pub fn asset_ids(assets: &[AssetBasic]) -> Vec<AssetId> {
+    assets.iter().map(|asset| asset.asset.id.clone()).collect()
+}
+
+pub fn perpetual_data(perpetuals: &[PerpetualSearchData]) -> Vec<PerpetualData> {
+    perpetuals
+        .iter()
+        .map(|item| PerpetualData {
+            perpetual: item.perpetual.clone(),
+            asset: item.asset.clone(),
+            metadata: PerpetualMetadata { is_pinned: false },
+        })
+        .collect()
+}
+
+pub fn perpetual_ids(perpetuals: &[PerpetualSearchData]) -> Vec<String> {
+    perpetuals.iter().map(|item| item.perpetual.id.to_string()).collect()
+}
 
 pub fn wallet_chains(wallet: &Wallet) -> Vec<Chain> {
     match wallet.wallet_type {
@@ -35,46 +75,22 @@ pub fn search_key(scope: &GemSearchScope, query: &str) -> String {
 }
 
 pub fn merge_assets(assets: Vec<AssetBasic>, tokens: Vec<AssetBasic>) -> Vec<AssetBasic> {
-    let mut seen = HashSet::new();
-    assets.into_iter().chain(tokens).filter(|asset| seen.insert(asset.asset.id.clone())).collect()
+    unique_by(assets.into_iter().chain(tokens), |asset| asset.asset.id.clone())
 }
 
 pub fn prices(assets: &[AssetBasic]) -> Vec<AssetPrice> {
-    assets
-        .iter()
-        .filter_map(|asset| {
-            asset
-                .price
-                .as_ref()
-                .map(|price| AssetPrice::new(asset.asset.id.clone(), price.price, price.price_change_percentage_24h, price.updated_at))
-        })
-        .collect()
+    crate::services::assets::rules::asset_prices(assets)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{Account, Asset, AssetId, AssetProperties, AssetScore, AssetType, WalletId, WalletSource};
+    use primitives::{Account, Asset, AssetId, AssetProperties, AssetScore, AssetType};
 
     fn wallet(wallet_type: WalletType, chains: &[Chain]) -> Wallet {
         Wallet {
-            id: WalletId::Multicoin("0x1".to_string()),
-            external_id: None,
-            name: "wallet".to_string(),
-            index: 0,
             wallet_type,
-            accounts: chains
-                .iter()
-                .map(|chain| Account {
-                    chain: *chain,
-                    address: String::new(),
-                    derivation_path: String::new(),
-                    extended_public_key: None,
-                })
-                .collect(),
-            is_pinned: false,
-            image_url: None,
-            source: WalletSource::Import,
+            ..Wallet::mock_with_accounts(Account::mock_chains(chains, ""))
         }
     }
 
@@ -117,5 +133,46 @@ mod tests {
             vec![asset(Chain::Ethereum, Some("0x1")), asset(Chain::Solana, None)],
         );
         assert_eq!(merged.len(), 3);
+    }
+
+    #[test]
+    fn test_prices_skip_assets_without_price() {
+        let mut priced = asset(Chain::Ethereum, None);
+        priced.price = Some(primitives::Price {
+            price: 2.0,
+            price_change_percentage_24h: 1.5,
+            updated_at: chrono::Utc::now(),
+            provider: Default::default(),
+        });
+
+        let prices = prices(&[priced, asset(Chain::Bitcoin, None)]);
+
+        assert_eq!(prices.len(), 1);
+        assert_eq!(
+            (prices[0].asset_id.chain, prices[0].price, prices[0].price_change_percentage_24h),
+            (Chain::Ethereum, 2.0, 1.5)
+        );
+    }
+
+    #[test]
+    fn test_skips_search_only_for_an_empty_query_in_the_all_scope() {
+        assert!(skips_search(&GemSearchScope::All, ""));
+        assert!(!skips_search(&GemSearchScope::All, "gem"));
+        assert!(!skips_search(&GemSearchScope::List { id: "trending".to_string() }, ""));
+    }
+
+    #[test]
+    fn test_only_the_all_scope_stores_lists() {
+        assert!(stores_lists(&GemSearchScope::All));
+        assert!(!stores_lists(&GemSearchScope::List { id: "trending".to_string() }));
+    }
+
+    #[test]
+    fn test_assets_match_on_name_symbol_or_chain() {
+        let assets = vec![Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Bitcoin)];
+
+        assert_eq!(matching_assets(assets.clone(), "bitcoin").len(), 1);
+        assert_eq!(matching_assets(assets.clone(), " ").len(), 2);
+        assert!(matching_assets(assets, "dogecoin").is_empty());
     }
 }

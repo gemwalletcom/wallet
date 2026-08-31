@@ -24,11 +24,6 @@ pub struct GemPriceAlertService {
 
 #[uniffi::export]
 impl GemPriceAlertService {
-    pub async fn add_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
-        self.api.client.add_price_alerts(alerts.clone()).await.map_err(GemApiError::from)?;
-        self.store.update(alerts, Vec::new()).await
-    }
-
     #[uniffi::constructor]
     pub fn new(
         api: Arc<GemDeviceApiClient>,
@@ -46,16 +41,19 @@ impl GemPriceAlertService {
         }
     }
 
-    pub fn is_enabled(&self) -> Result<bool, GemServiceError> {
+    pub fn is_enabled(&self) -> bool {
         self.preferences.is_price_alerts_enabled()
     }
 
     pub async fn set_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
-        if self.is_enabled()? == enabled {
+        if self.is_enabled() == enabled {
             return Ok(());
         }
         if enabled {
-            self.permissions.request_permissions_or_open_settings().await?;
+            if !self.permissions.request_permissions_or_open_settings().await? {
+                return Ok(());
+            }
+            self.preferences.set_push_notifications_enabled(true)?;
         }
         self.preferences.set_price_alerts_enabled(enabled)?;
         self.device.synchronize().await.map(|_| ())
@@ -82,18 +80,20 @@ impl GemPriceAlertService {
         if changes.delete_ids.is_empty() && changes.alerts.is_empty() {
             return Ok(());
         }
-        self.store.update(changes.alerts, changes.delete_ids).await
+        self.store.update_price_alerts(changes.alerts, changes.delete_ids).await
     }
 
     pub async fn delete_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
         self.api.client.delete_price_alerts(alerts.clone()).await.map_err(GemApiError::from)?;
-        self.store.update(Vec::new(), alerts.iter().map(|alert| alert.id()).collect()).await
+        self.store.update_price_alerts(Vec::new(), alerts.iter().map(|alert| alert.id()).collect()).await
     }
 }
 
-#[uniffi::export]
-pub fn price_alert_id(alert: PriceAlert) -> String {
-    alert.id()
+impl GemPriceAlertService {
+    pub async fn add_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
+        self.api.client.add_price_alerts(alerts.clone()).await.map_err(GemApiError::from)?;
+        self.store.update_price_alerts(alerts, Vec::new()).await
+    }
 }
 
 #[cfg(test)]

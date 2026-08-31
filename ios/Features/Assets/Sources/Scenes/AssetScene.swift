@@ -33,6 +33,7 @@ public struct AssetScene: View {
                 Section {
                     BannerView(
                         banner: banner,
+                        content: model.bannerContent(for: banner),
                         action: model.onSelectBanner,
                     )
                 }
@@ -110,7 +111,7 @@ public struct AssetScene: View {
                         NavigationCustomLink(
                             with: ListItemView(
                                 title: model.balanceTitle(for: .stake),
-                                subtitle: model.assetDataModel.balanceTextWithSymbol(for: .stake),
+                                subtitle: model.balanceTextWithSymbol(for: .stake),
                             ),
                             action: { model.onSelectHeader(.stake) },
                         )
@@ -121,7 +122,7 @@ public struct AssetScene: View {
                         NavigationCustomLink(
                             with: ListItemView(
                                 title: model.balanceTitle(for: .earn),
-                                subtitle: model.assetDataModel.balanceTextWithSymbol(for: .earn),
+                                subtitle: model.balanceTextWithSymbol(for: .earn),
                             ),
                             action: { model.onSelectEarn() },
                         )
@@ -184,6 +185,7 @@ public struct AssetScene: View {
             if model.showTransactions {
                 TransactionsList(
                     explorerService: model.explorerService,
+                    transactionFormatter: model.transactionFormatter,
                     model.transactions,
                     currency: model.assetDataModel.currencyCode,
                 )
@@ -197,10 +199,10 @@ public struct AssetScene: View {
                 .cleanListRow()
             }
         }
-        .refreshableTimer(every: .minutes(5)) {
-            await model.fetch()
+        .refreshableTimer(every: .minutes(5)) { _ in
+            await model.load()
         }
-        .taskOnce(model.fetchOnce)
+        .taskOnce(model.loadOnce)
         .listSectionSpacing(.compact)
         .navigationTitle(model.title)
         .contentMargins([.top], .small, for: .scrollContent)

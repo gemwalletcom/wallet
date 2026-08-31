@@ -388,7 +388,7 @@ pub struct Security {
     #[serde(deserialize_with = "duration::deserialize")]
     pub timeout: Duration,
     pub abuseipdb: UrlSecretKeySettings,
-    pub goplus: URL,
+    pub goplus: UrlKeySettings,
     pub hashdit: UrlKeySettings,
     pub ipapi: UrlSecretKeySettings,
 }

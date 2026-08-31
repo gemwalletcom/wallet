@@ -3,11 +3,11 @@ package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 import uniffi.gemstone.GemExplorerService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.coordinators.GetAssetById
-import com.gemwallet.android.application.assets.coordinators.GetAssetLinks
-import com.gemwallet.android.application.assets.coordinators.GetAssetMarket
-import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
-import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
+import com.gemwallet.android.application.assets.cases.GetAssetById
+import com.gemwallet.android.application.assets.cases.GetAssetLinks
+import com.gemwallet.android.application.assets.cases.GetAssetMarket
+import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockAssetMarket

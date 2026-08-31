@@ -28,7 +28,9 @@ fun amountErrorString(error: AmountError): String = when (error) {
         error.minimumValue
     )
     AmountError.IncorrectAddress -> stringResource(id = R.string.errors_invalid_address_name)
-    is AmountError.Unknown -> "${stringResource(id = R.string.errors_unknown)}: ${error.data}"
+    is AmountError.Unknown -> error.data.takeIf { it.isNotBlank() }
+        ?.let { "${stringResource(id = R.string.errors_unknown)}: $it" }
+        ?: stringResource(id = R.string.errors_unknown_try_again)
     AmountError.NoValidatorSelected -> stringResource(id = R.string.errors_unknown)
     AmountError.NoDelegationSelected -> stringResource(id = R.string.errors_unknown)
 }

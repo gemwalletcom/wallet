@@ -48,7 +48,7 @@ where
             .ok_or_else(|| SwapperError::compute_quote_error(format!("{INVALID_ADDRESS}: {asset_id}")))
     }
 
-    async fn fetch_token_program(&self, mint: &str) -> Result<String, SwapperError> {
+    async fn get_token_program(&self, mint: &str) -> Result<String, SwapperError> {
         let request = SolanaRpc::GetAccountInfo(mint.to_string(), SolanaAccountEncoding::Base64);
         let rpc_result: JsonRpcResult<ValueResult<Option<AccountData>>> = self.rpc_client.request_with_cache(&request, Some(u64::MAX)).await?;
         let value = rpc_result.take()?;
@@ -59,13 +59,13 @@ where
             .ok_or_else(|| SwapperError::compute_quote_error("Unable to fetch the fee token program"))
     }
 
-    async fn fetch_referral_account(&self, input_mint: &str, output_mint: &str, referral_address: &str) -> Result<String, SwapperError> {
+    async fn get_referral_account(&self, input_mint: &str, output_mint: &str, referral_address: &str) -> Result<String, SwapperError> {
         let fee_mint = if PREFERRED_FEE_MINTS.contains(&output_mint) { output_mint } else { input_mint };
         let is_preferred_fee_mint = PREFERRED_FEE_MINTS.contains(&fee_mint);
         let token_program = if is_preferred_fee_mint {
             TOKEN_PROGRAM.to_string()
         } else {
-            self.fetch_token_program(fee_mint).await?
+            self.get_token_program(fee_mint).await?
         };
         let fee_account = get_token_account(referral_address, fee_mint, &token_program)?;
         if is_preferred_fee_mint {
@@ -104,7 +104,7 @@ where
         let input_mint = Self::asset_mint(&request.from_asset.id)?;
         let output_mint = Self::asset_mint(&request.to_asset.id)?;
         let referral_fee = default_referral_fees().solana;
-        let fee_account = self.fetch_referral_account(&input_mint, &output_mint, &referral_fee.address).await?;
+        let fee_account = self.get_referral_account(&input_mint, &output_mint, &referral_fee.address).await?;
         let build_request = BuildRequest {
             input_mint: input_mint.clone(),
             output_mint: output_mint.clone(),

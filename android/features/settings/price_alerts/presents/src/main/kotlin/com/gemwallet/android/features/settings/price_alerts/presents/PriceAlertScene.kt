@@ -64,7 +64,7 @@ internal fun PriceAlertScene(
     snackbar: SnackbarHostState? = null,
     onAction: (PriceAlertAction) -> Unit,
 ) {
-    val revealable = remember { mutableStateOf<Int?>(null) }
+    val revealable = remember { mutableStateOf<String?>(null) }
     Scene(
         title = stringResource(R.string.settings_price_alerts_title),
         actions = @Composable {
@@ -162,11 +162,11 @@ private fun LazyListScope.emptyAlertingAssets(empty: Boolean) {
 }
 
 private fun LazyListScope.assets(
-    revealable: MutableState<Int?>,
+    revealable: MutableState<String?>,
     data: Map<AssetId?, List<PriceAlertDataAggregate>>,
     isAssetView: Boolean,
     onChart: (AssetId) -> Unit,
-    onExclude: (Int) -> Unit,
+    onExclude: (String) -> Unit,
 ) {
     data.entries.forEach { item ->
         if (item.value.isEmpty()) return@forEach
@@ -179,10 +179,10 @@ private fun LazyListScope.assets(
 }
 
 private fun LazyListScope.assets(
-    revealable: MutableState<Int?>,
+    revealable: MutableState<String?>,
     data: List<PriceAlertDataAggregate>,
     onChart: ((AssetId) -> Unit)?,
-    onExclude: (Int) -> Unit,
+    onExclude: (String) -> Unit,
 ) {
     itemsPositioned(data/*, key = { _, item -> item.id}*/) { position, item ->
         var minActionWidth by remember { mutableStateOf(0.dp) }

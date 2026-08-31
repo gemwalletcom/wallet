@@ -25,7 +25,8 @@ fun StakeScreen(
     val actions by viewModel.actions.collectAsStateWithLifecycle()
     val stakeInfoUrl by viewModel.stakeInfoUrl.collectAsStateWithLifecycle()
 
-    if (assetInfo == null) {
+    val stakeAssetInfo = assetInfo
+    if (stakeAssetInfo == null) {
         LoadingScene(
             title = stringResource(id = R.string.transfer_stake_title),
             onCancel = onCancel,
@@ -33,7 +34,7 @@ fun StakeScreen(
     } else {
         StakeScene(
             inSync = inSync,
-            assetInfo = assetInfo!!,
+            assetInfo = stakeAssetInfo,
             delegations = delegations,
             actions = actions,
             stakeInfoUrl = stakeInfoUrl,

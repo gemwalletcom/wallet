@@ -4,14 +4,14 @@ import BigInt
 import Foundation
 import Primitives
 
-struct AddNodeResult {
-    let url: URL
-    let chainID: String
-    let blockNumber: BigInt
-    let latency: Latency
-    let isInSync: Bool
+public struct AddNodeResult: Sendable {
+    public let url: URL
+    public let chainID: String
+    public let blockNumber: BigInt
+    public let latency: Latency
+    public let isInSync: Bool
 
-    init(
+    public init(
         url: URL,
         chainID: String,
         blockNumber: BigInt,

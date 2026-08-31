@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemWalletConnectMessageRequest
 import struct Gemstone.SignMessage
+import GemstonePrimitives
 import Primitives
 
 public struct SignMessagePayload: Sendable {
@@ -23,6 +25,16 @@ public struct SignMessagePayload: Sendable {
         self.session = session
         self.message = message
         self.simulation = simulation
+    }
+
+    public init(_ request: GemWalletConnectMessageRequest) throws {
+        try self.init(
+            chain: request.chain.map(),
+            session: WalletConnectionSession(request.session),
+            wallet: Wallet(request.wallet),
+            message: request.message,
+            simulation: SimulationResult(request.simulation),
+        )
     }
 }
 

@@ -1,8 +1,9 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
-import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import android.util.Log
+import com.gemwallet.android.application.assets.cases.SyncMissingAssets
+import com.gemwallet.android.application.assets.cases.SyncAssetInfo
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.decodeJson
@@ -24,8 +25,8 @@ class SyncAssetInfoImpl(
     private val assetsService: GemAssetsService,
     private val balanceService: GemBalanceService,
     private val streamSubscriptionService: GemStreamSubscriptionService,
-    private val prefetchAssets: PrefetchAssets,
-    private val sessionRepository: SessionRepository,
+    private val syncMissingAssets: SyncMissingAssets,
+    private val getCurrentCurrency: GetCurrentCurrency,
 ) : SyncAssetInfo {
 
     override suspend fun syncAssetInfo(assetId: AssetId, wallet: Wallet): Unit = withContext(Dispatchers.IO) {
@@ -33,29 +34,32 @@ class SyncAssetInfoImpl(
 
         streamSubscriptionService.addPrices(listOf(assetId.toIdentifier()))
 
+        val assetFull = syncAssetMetadata(assetId)
         coroutineScope {
             launch { syncBalance(wallet, assetId) }
-            launch {
-                val assetFull = syncAssetMetadata(assetId) ?: return@launch
-                prefetchAssets.prefetchAssets(assetFull.associations.map { it.assetId })
-            }
+            assetFull?.let { launch { syncMissingAssets.syncMissingAssets(it.associations.map { association -> association.assetId }) } }
         }
     }
 
     private suspend fun syncBalance(wallet: Wallet, assetId: AssetId) {
         try {
             balanceService.update(wallet.id.id, listOf(assetId.toIdentifier()))
-        } catch (_: Exception) {
+        } catch (error: Exception) {
             currentCoroutineContext().ensureActive()
+            Log.e(TAG, "balance update failed for ${assetId.toIdentifier()}", error)
         }
     }
 
     private suspend fun syncAssetMetadata(assetId: AssetId): AssetFull? {
         return try {
-            assetsService.syncAsset(assetId.toIdentifier(), sessionRepository.getCurrentCurrency().toJson()).decodeJson<AssetFull>()
+            assetsService.syncAsset(assetId.toIdentifier(), getCurrentCurrency.getCurrentCurrency().toJson()).decodeJson<AssetFull>()
         } catch (_: Exception) {
             currentCoroutineContext().ensureActive()
             null
         }
+    }
+
+    private companion object {
+        const val TAG = "SyncAssetInfo"
     }
 }

@@ -8,7 +8,7 @@ public struct PriceAlertsViewModel {
     public let priceAlerts: [PriceAlert]
 
     public init(priceAlerts: [PriceAlert]) {
-        self.priceAlerts = priceAlerts.filter(\.shouldDisplay)
+        self.priceAlerts = priceAlerts.displayedAlerts
     }
 
     public var hasPriceAlerts: Bool {

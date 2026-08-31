@@ -5,15 +5,19 @@ import androidx.compose.foundation.text.input.clearText
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.asset_select.coordinators.ClearRecentAssets
-import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
-import com.gemwallet.android.ext.filter
+import com.gemwallet.android.application.asset_select.cases.ClearRecentAssets
+import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.RecentAsset
 import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.model.RecentType
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
+import com.wallet.core.primitives.Asset
 import dagger.hilt.android.lifecycle.HiltViewModel
+import uniffi.gemstone.GemAssetConfigService
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -34,6 +38,7 @@ import javax.inject.Inject
 class RecentsSheetViewModel @Inject constructor(
     private val getRecentAssets: GetRecentAssets,
     private val clearRecentAssets: ClearRecentAssets,
+    private val assetConfig: GemAssetConfigService,
 ) : ViewModel() {
 
     val query = TextFieldState()
@@ -71,15 +76,10 @@ class RecentsSheetViewModel @Inject constructor(
     }
 
     private fun buildUIModel(items: List<RecentAsset>, searchText: String): RecentsSheetUIModel {
-        val filtered = if (searchText.isBlank()) items
-        else {
-            val chains = items.map { it.asset.id.chain }.filter(searchText).toSet()
-            items.filter {
-                it.asset.name.contains(searchText, ignoreCase = true) ||
-                    it.asset.symbol.contains(searchText, ignoreCase = true) ||
-                    chains.contains(it.asset.id.chain)
-            }
-        }
+        val matching = assetConfig.matchingAssets(items.map { it.asset.toJson() }, searchText)
+            .map { it.decodeJson<Asset>().id.toIdentifier() }
+            .toSet()
+        val filtered = items.filter { it.asset.id.toIdentifier() in matching }
         return RecentsSheetUIModel(
             items = filtered.toImmutableList(),
             hasAnyRecents = items.isNotEmpty(),

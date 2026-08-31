@@ -4,16 +4,16 @@ import uniffi.gemstone.GemExplorerService
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.coordinators.EnableAsset
-import com.gemwallet.android.application.assets.coordinators.GetChainAssetInfo
-import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
-import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
-import com.gemwallet.android.application.pricealerts.coordinators.SyncAssetPriceAlerts
-import com.gemwallet.android.application.session.coordinators.GetSession
-import com.gemwallet.android.application.transactions.coordinators.GetTransactions
-import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
-import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
-import com.gemwallet.android.cases.banners.HasMultiSign
+import com.gemwallet.android.application.assets.cases.EnableAsset
+import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
+import com.gemwallet.android.application.assets.cases.SyncAssetInfo
+import com.gemwallet.android.application.assets.cases.SetAssetPinned
+import com.gemwallet.android.application.pricealerts.cases.SyncAssetPriceAlerts
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.transactions.cases.GetTransactions
+import com.gemwallet.android.application.transactions.cases.SyncAssetTransactions
+import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
+import com.gemwallet.android.application.banner.cases.HasMultiSign
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.model.ChainAssetInfo
@@ -55,6 +55,7 @@ class AssetDetailsViewModel @Inject constructor(
     private val explorerService: GemExplorerService,
     private val hasMultiSign: HasMultiSign,
     private val syncAssetTransactions: SyncAssetTransactions,
+    private val assetInfoUIModelFactory: AssetInfoUIModelFactory,
 ) : ViewModel() {
     private var syncJob: Job? = null
 
@@ -94,7 +95,20 @@ class AssetDetailsViewModel @Inject constructor(
 
     val uiModel = combine(model, session) { current, session ->
         val wallet = session?.wallet ?: return@combine null
-        current?.let { AssetInfoUIModelFactory.create(it.chainAssetInfo, it.explorerName, wallet.type) }
+        current?.let {
+            val asset = it.chainAssetInfo.assetInfo.asset
+            assetInfoUIModelFactory.create(
+                chainAssetInfo = it.chainAssetInfo,
+                explorerName = it.explorerName,
+                walletType = wallet.type,
+                explorerAddressUrl = it.chainAssetInfo.assetInfo.owner?.address?.let { address ->
+                    explorerService.getAddressUrl(asset.chain.string, address).link
+                },
+                explorerTokenUrl = asset.id.tokenId?.let { tokenId ->
+                    explorerService.getTokenUrl(asset.chain.string, tokenId)?.link
+                },
+            )
+        }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -139,7 +153,7 @@ class AssetDetailsViewModel @Inject constructor(
         val assetInfo = model.value?.chainAssetInfo?.assetInfo ?: return@launch
         val assetId = assetInfo.id()
         wallet.getAccount(assetId) ?: return@launch
-        setAssetPinned(assetId, assetInfo.metadata?.isPinned != true)
+        setAssetPinned(assetId, !assetInfo.metadata.isPinned)
     }
 
     fun add() = viewModelScope.launch(Dispatchers.IO) {

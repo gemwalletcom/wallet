@@ -20,6 +20,7 @@
   <string name="common_wallet">Portafoglio</string>
   <string name="common_show">Mostra %1$s</string>
   <string name="common_copied">Copiato: %1$s</string>
+  <string name="common_copied_to_clipboard">Copiato negli appunti</string>
   <string name="common_recommended">Consigliato</string>
   <string name="common_all">Tutto</string>
   <string name="common_not_available">Non disponibile</string>
@@ -182,10 +183,14 @@
   <string name="errors_token_invalid_id">ID token non valido</string>
   <string name="errors_import_invalid_secret_phrase">Frase segreta non valida</string>
   <string name="errors_import_invalid_secret_phrase_word">Parola frase segreta non valida: %1$s</string>
+  <string name="errors_import_invalid_private_key">Chiave privata non valida</string>
+  <string name="errors_keystore_access">Impossibile accedere alle chiavi di questo portafoglio su questo dispositivo. Se hai la tua frase di recupero, rimuovi questo portafoglio e importalo di nuovo per ripristinare l\'accesso.</string>
+  <string name="errors_wallet_account_missing">Questo portafoglio non ha un account per questa rete</string>
   <string name="errors_invalid_url">URL non valido</string>
   <string name="errors_error_occurred">Si è verificato un errore!</string>
   <string name="errors_invalid_network_id">ID di rete non valido</string>
   <string name="errors_error">Errore</string>
+  <string name="errors_cancelled">Annullato</string>
   <string name="errors_connections_user_cancelled">Utente cancellato</string>
   <string name="errors_not_supported">Non supportato</string>
   <string name="errors_permissions_not_granted">Autorizzazioni non concesse</string>

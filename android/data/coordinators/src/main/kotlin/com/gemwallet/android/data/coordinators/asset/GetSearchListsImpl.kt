@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.application.assets.coordinators.GetSearchLists
-import com.gemwallet.android.data.repositories.assets.AssetsSearchService
+import com.gemwallet.android.application.assets.cases.GetSearchLists
+import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.wallet.core.primitives.AssetList
 import kotlinx.coroutines.flow.Flow
 

@@ -42,9 +42,14 @@ public struct ConnectionsStore: Sendable {
     }
 
     public func updateConnectionSession(_ session: WalletConnectionSession) throws {
-        let connection = try getConnection(id: session.id).update(with: session)
         try db.write { db in
-            try connection.upsert(db)
+            guard let connection = try WalletConnectionRecord
+                .filter(WalletConnectionRecord.Columns.id == session.id || WalletConnectionRecord.Columns.sessionId == session.id)
+                .fetchOne(db)
+            else {
+                return
+            }
+            try connection.update(with: session).upsert(db)
         }
     }
 
@@ -59,20 +64,6 @@ public struct ConnectionsStore: Sendable {
     public func deleteAll() throws -> Int {
         try db.write { db in
             try WalletConnectionRecord.deleteAll(db)
-        }
-    }
-
-    // MARK: - Private methods
-
-    private func getConnection(id: String) throws -> WalletConnectionRecord {
-        try db.read { db in
-            guard let connection = try WalletConnectionRecord
-                .filter(WalletConnectionRecord.Columns.id == id || WalletConnectionRecord.Columns.sessionId == id)
-                .fetchOne(db)
-            else {
-                throw AnyError("wallet connection record not found")
-            }
-            return connection
         }
     }
 }

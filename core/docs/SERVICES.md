@@ -1,132 +1,557 @@
 # Gemstone Services
 
-Core-owned services live in [`core/gemstone/src/services/`](../gemstone/src/services/) as `<name>/{mod,model,rules,store}.rs` (only the files a service needs); every service and store returns the shared [`GemServiceError`](../gemstone/src/services/error.rs). A service owns the flow (API + rules); each app implements the `Gem*Store` trait over its database or preferences and constructs the service in DI ([`ServicesFactory.swift`](../../ios/Gem/Services/ServicesFactory.swift), Hilt modules under [`android/data/repositories/.../di`](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/di/) and [`android/data/coordinators/.../di`](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/di/)).
+Core-owned services live in [`core/gemstone/src/services/`](../gemstone/src/services/) as `<name>/{mod,model,rules,store}.rs` (only the files a service needs); every service and store returns the shared [`GemServiceError`](../gemstone/src/services/error.rs). A service owns the flow (API + rules); each app implements the `Gem*Store` trait over its database or preferences and constructs the service in DI ([`ServicesFactory.swift`](../../ios/Gem/Services/ServicesFactory.swift), Hilt modules under [`android/data/repositories/.../di`](../../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/di/) and [`android/data/coordinators/.../di`](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/di/)). Read [How a service is built](#how-a-service-is-built) before adding or changing one.
 
-Status: **Done** = flow in Core, both apps use it · **In progress** = being migrated · **Review** = app service not yet reviewed for Core-movable logic · **App-only** = platform concern, stays in the app · **Planned** = queued.
+## How a service is built
 
-## Core services
+[`GemPriceAlertService`](../gemstone/src/services/price_alert/mod.rs) is the reference: it calls the device API, reads a preference, writes a database table and asks the platform for a permission, so it exercises every seam a service can have. New services copy its shape; existing ones move toward it.
 
-| Service | Store | iOS adapter | Android adapter | Status | Notes |
-| --- | --- | --- | --- | --- | --- |
-| [`GemAssetDiscoveryService`](../gemstone/src/services/asset_discovery/mod.rs) | `GemWalletPreferencesService` | — | — | Done | Discovers wallet assets, enables them, prefetches metadata; timestamps and initial-load steps live in wallet preferences |
-| [`GemAssetsService`](../gemstone/src/services/assets/mod.rs) | [`GemAssetStore`](../gemstone/src/services/assets/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/AssetStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/AssetStore.kt) | Done | Asset details, search, prefetch, missing balances, buy/sell/swap availability from config versions, wallet default balances, default asset seeding (`sync_default_assets`, stakeable flags) |
-| [`GemBalanceService`](../gemstone/src/services/balance/mod.rs) | [`GemBalanceStore`](../gemstone/src/services/balance/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/BalanceStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/BalanceStore.kt) | Done | Coin/token/stake/earn balance updates via gateway |
-| [`GemBannerService`](../gemstone/src/services/banner/mod.rs) | [`GemBannerStore`](../gemstone/src/services/banner/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/BannerStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/BannerStore.kt) | Done | Banner state rules |
-| [`GemContactService`](../gemstone/src/services/contact/mod.rs) | [`GemContactStore`](../gemstone/src/services/contact/store.rs), [`GemFileStore`](../gemstone/src/services/file/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/ContactStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/ContactStore.kt) | Done | Contact writes, address-name sync and avatar files (`save_avatar`, `remove_avatar`, removed on delete) |
-| [`GemDeviceService`](../gemstone/src/services/device/mod.rs) | [`GemDeviceStore`](../gemstone/src/services/device/store.rs), [`GemDevicePlatform`](../gemstone/src/services/device/platform.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/DeviceStore.swift), [Swift platform](../../ios/Packages/GemstoneServices/Sources/Device/DevicePlatform.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/DeviceStore.kt), [Kotlin platform](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/device/DeviceRepository.kt) | Done | Device registration and subscription sync; Core builds the `Device` from the foreign platform facts (id, push token/enabled, os/model/version/locale/store, currency) plus its own price-alert preference, and owns `synchronize`/`synchronize_if_needed` with in-flight sync coordination — `GemPriceAlertService` calls it directly (the foreign `GemDeviceSync` and both apps' sync coordinators are gone) |
-| [`GemNameService`](../gemstone/src/services/name/mod.rs) | [`GemAddressStore`](../gemstone/src/services/name/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/AddressStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/AddressStore.kt) | Done | Name resolution (incl. the `can_resolve_name` rule), address names; iOS `NameServiceable`/`GemstoneNameService` adapter removed, view models use the Core protocol |
-| [`GemNftService`](../gemstone/src/services/nft/mod.rs) | [`GemNftStore`](../gemstone/src/services/nft/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/NftStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/NftStore.kt) | Done | NFT sync, asset refresh, reporting |
-| [`GemNodeService`](../gemstone/src/services/node/mod.rs) | [`GemNodeStore`](../gemstone/src/services/node/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/NodeStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/NodeStore.kt) | Done | Node selection and custom nodes |
-| [`GemNotificationService`](../gemstone/src/services/notification/mod.rs) | [`GemNotificationStore`](../gemstone/src/services/notification/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/NotificationStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/NotificationStore.kt) | Done | In-app notifications sync; sync timestamp in wallet preferences |
-| [`GemPerpetualService`](../gemstone/src/services/perpetual/mod.rs) | [`GemPerpetualStore`](../gemstone/src/services/perpetual/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/PerpetualStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/PerpetualStore.kt) | Done | Perpetual markets and positions |
-| [`GemPreferencesService`](../gemstone/src/services/preferences/mod.rs) | [`GemPreferencesStore`](../gemstone/src/services/preferences/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/PreferencesStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/PreferencesStore.kt) | Done | Typed app preferences over a key-value store; also backs the gateway; `default_currency(locale)` rule used by both apps when no currency is set |
-| [`GemPriceService`](../gemstone/src/services/price/mod.rs) | [`GemPriceStore`](../gemstone/src/services/price/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/PriceStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/PriceStore.kt) | Done | Prices, rates, currency change, market data |
-| [`GemPriceAlertService`](../gemstone/src/services/price_alert/mod.rs) | [`GemPriceAlertStore`](../gemstone/src/services/price_alert/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/PriceAlertStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/PriceAlertStore.kt) | Done | Alerts sync; `set_enabled`/`enable_price_alert` request notification permissions (`GemNotificationPermissions`) and sync the device (`GemDeviceSync`) |
-| [`GemStakeService`](../gemstone/src/services/stake/mod.rs) | [`GemStakeStore`](../gemstone/src/services/stake/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/StakeStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/StakeStore.kt) | Done | Validators, delegations, and earn positions sync |
-| [`GemStreamService`](../gemstone/src/services/stream/mod.rs) | — | — | — | Done | Dispatches WebSocket events to the Core services; support typing goes through `GemSupportStore.update_typing`/`clear_typing` |
-| [`GemStreamSubscriptionService`](../gemstone/src/services/stream/subscription.rs) | [`GemStreamConnection`](../gemstone/src/services/stream/connection.rs) | [Swift](../../ios/Packages/FeatureServices/StreamService/StreamConnection.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/StreamConnection.kt) | Done | Price subscription bookkeeping (`setup_assets`, `resubscribe`, `add_prices`, `reset`) over the app WebSocket, which stays app-side |
-| [`GemSubscriptionService`](../gemstone/src/services/subscription/mod.rs) | [`GemWalletStore`](../gemstone/src/services/wallet/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/WalletStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/WalletStore.kt) | Done | Wallet subscription changes |
-| [`GemSupportService`](../gemstone/src/services/support/mod.rs) | [`GemSupportStore`](../gemstone/src/services/support/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/SupportStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/SupportStore.kt) | Done | Message sync, pending/failed delivery of text and images, image preview files cached through `GemFileStore` (`image_file`, downloaded via `AlienProvider`) |
-| [`GemAmountService`](../gemstone/src/services/amount/mod.rs) | — | [Swift](../../ios/Features/Transfer/Sources/Protocols/AmountDataProvidable.swift) | [Kotlin](../../android/features/transfer_amount/viewmodels/src/main/kotlin/com/gemwallet/android/features/transfer_amount/viewmodels/providers/AmountDataProvider.kt) | Done | Amount screen rules for every flow (`GemAmountType`: transfer, deposit, withdraw, stake types, earn, perpetual): minimum value (stake/redelegate/USDC deposit-withdraw/perpetual order), reserve-for-fee, can-change-value, shows-asset-balance (`rules`), available/max value and whether the fee reserve applies (`limits` over `GemAmountBalance` incl. Tron votes, delegation balances, rewards, resources, perpetual reduce), and `validate` (zero, below minimum, insufficient balance) ([rules](../gemstone/src/services/amount/rules.rs)); iOS providers only supply `gemAmountType`, Android providers only `amountType` (+ perpetual balance) |
-| [`GemRecipientService`](../gemstone/src/services/recipient/mod.rs) | — | [Swift](../../ios/Packages/PrimitivesComponents/Sources/ViewModels/AddressInputViewModel.swift) | [Kotlin](../../android/ui-models/src/main/kotlin/com/gemwallet/android/ui/models/name/AddressInputModel.kt) | Done | Recipient input rules shared by the address input and recipient screens: validity of typed address vs a resolved name record (name, chain and address must match), checksummed recipient address, when to show the address error (never for name-shaped input), `recipient(chain, input, name_record, memo, references)` → `GemRecipient` ([rules](../gemstone/src/services/recipient/rules.rs)); name lookups stay on `GemNameService` |
-| [`GemTransferService`](../gemstone/src/services/transfer/mod.rs) | — | [Swift](../../ios/Packages/GemstonePrimitives/Sources/Extensions/TransferData+GemstonePrimitives.swift) | [Kotlin](../../android/gemcore/src/main/kotlin/com/gemwallet/android/domains/confirm/ConfirmInputMapper.kt) | Done | Shared transfer model `GemTransferData { input_type, recipient: GemRecipient, value, use_max_amount, minimum_value }` (`GemConfirmInput = from + transfer`) and the rules both apps duplicated: transaction type, transaction metadata, asset ids, fee asset, output type/action, approval data, spends-balance, available balance source (delegation/rewards/frozen/locked/withdrawable) and the pending-transaction factory incl. which HyperCore legs are tracked ([rules](../gemstone/src/services/transfer/rules.rs)); iOS `TransferData`/`TransferDataType` and Android `ConfirmParams` keep their typed shape but forward these rules to Core; Android `ConfirmParams` is packed/unpacked for navigation only through Core `confirm_input_encode/decode` (every variant), `SwapParams` holds the Core `SwapData`, `Generic` carries the Core output type/action, `TokenApprovalParams` and the kotlinx fallback are gone |
-| [`GemTransactionStateService`](../gemstone/src/services/transaction_state/mod.rs) | [`GemTransactionStateStore`](../gemstone/src/services/transaction_state/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/TransactionStateStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/TransactionStateStore.kt) | Done | Pending transaction status updates and post-processing (balances on in-transit/completion; stake, earn and NFT syncs on completion, [rules](../gemstone/src/services/transaction_state/rules.rs)) |
-| [`GemTransactionsService`](../gemstone/src/services/transactions/mod.rs) | [`GemTransactionStore`](../gemstone/src/services/transactions/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/TransactionStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/TransactionStore.kt) | Done | Transaction history sync; per-wallet and per-asset sync timestamps in wallet preferences |
-| [`GemWalletConfigurationService`](../gemstone/src/services/wallet_configuration/mod.rs) | `GemWalletPreferencesService` | — | — | Done | Initial wallet configuration sync, multi-signature banners; completion flag in wallet preferences |
-| [`GemWalletPreferencesService`](../gemstone/src/services/wallet_preferences/mod.rs) | [`GemWalletPreferencesStore`](../gemstone/src/services/wallet_preferences/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/WalletPreferencesStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/WalletPreferencesStore.kt) | Done | Per-wallet key-value preferences (sync timestamps, initial-load steps, wallet configuration flag, perpetual account mode; keys are a strum enum); cleared on wallet delete, completed for created wallets; Android keeps its reactive `UserConfig` copy of the perpetual mode for `GetWalletSummary` |
-| [`GemWalletSessionService`](../gemstone/src/services/wallet_session/mod.rs) | [`GemWalletSessionStore`](../gemstone/src/services/wallet_session/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/WalletSessionStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/WalletSessionStore.kt) | Done | Current wallet session |
-| [`GemWalletService`](../gemstone/src/services/wallet/mod.rs) | [`GemWalletStore`](../gemstone/src/services/wallet/store.rs), [`GemKeystorePassword`](../gemstone/src/services/wallet/password.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/WalletStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/WalletStore.kt) | Done | Wallet import, creation, deletion (removes the avatar file through `GemFileStore`), chain setup, pin, rename and image url; wallet reads on `GemWalletStore` are synchronous so session lookups need no `await` |
-| [`GemAvatarService`](../gemstone/src/services/avatar/mod.rs) | [`GemFileStore`](../gemstone/src/services/file/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Wallet/FileStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/FileStore.kt) | Done | Wallet avatar: stores the image file through the app file store (removing the previous one), downloads image urls through `AlienProvider`, writes the wallet image url |
-| [`GemDeviceRequestSigner`](../gemstone/src/services/device/signer.rs) | — | [Swift](../../ios/Packages/GemstonePrimitives/Sources/Extensions/GemDeviceRequestSigner+GemstonePrimitives.swift) | — | Done | Device auth header for the stream WebSocket request; Android builds it in `AssetsModule` |
-| [`GemSwapService`](../gemstone/src/services/swap/mod.rs) | [`GemKeystorePassword`](../gemstone/src/services/wallet/password.rs) | — | — | Done | Quotes (request from the wallet accounts, route preload, sorted by output), `swap_quote` mapping and `get_transfer` (quote data with permit2 signing through the Core keystore, recipient account, amount) ([rules](../gemstone/src/services/swap/rules.rs)) |
-| [`GemAppUpdateService`](../gemstone/src/services/app_update/mod.rs) | — | — | — | Done | Release for the store, version compare, skipped version via `GemPreferencesService` |
-| [`GemFiatService`](../gemstone/src/services/fiat/mod.rs) | [`GemFiatStore`](../gemstone/src/services/fiat/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/FiatStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/FiatStore.kt) | Done | Fiat quotes, transaction sync with asset prefetch |
-| [`GemAuthService`](../gemstone/src/services/auth/mod.rs) | [`GemKeystorePassword`](../gemstone/src/services/wallet/password.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/KeystorePasswordStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/KeystorePasswordStore.kt) | Done | Auth payload: nonce → auth message → Core keystore signature, device id from the device key ([rules](../gemstone/src/services/auth/rules.rs)) |
-| [`GemChartService`](../gemstone/src/services/chart/mod.rs) | — | — | — | Done | Price charts |
-| [`GemExplorerService`](../gemstone/src/services/explorer/mod.rs) | — | — | — | Done | Block explorer selection (preference) and transaction/address/token/NFT/validator links |
-| [`GemAppStartService`](../gemstone/src/services/app_start/mod.rs) | — | — | — | Done | App start (`run`), wallet start (`setup_wallet`) and `setup_wallets` (default asset seeding + chain setup for every wallet, used by iOS `OnstartService` and Android `CheckAccountsService`); each `run` step reports failures without stopping the rest |
-| [`GemConfigService`](../gemstone/src/services/config/mod.rs) | — | — | — | Done | Remote config, cached via `GemPreferencesService`; concurrent updates share one request |
-| [`GemPortfolioService`](../gemstone/src/services/portfolio/mod.rs) | [`GemPortfolioStore`](../gemstone/src/services/portfolio/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/PortfolioStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/PortfolioStore.kt) | Done | Portfolio chart for the wallet's held assets |
-| [`GemRewardsService`](../gemstone/src/services/rewards/mod.rs) | — | — | — | Done | Rewards and referrals; authenticated calls take a wallet and build the auth payload through `GemAuthService`; `redeem` enables the redeemed asset through `GemBalanceService` |
-| [`GemScanService`](../gemstone/src/services/scan/mod.rs) | — | — | — | Done | Transaction scanning |
-| [`GemSearchService`](../gemstone/src/services/search/mod.rs) | [`GemSearchStore`](../gemstone/src/services/search/store.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/SearchStore.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/SearchStore.kt) | Done | Wallet search: API + token lookup merge, asset/price/balance persistence, perpetuals, lists and search history keys ([rules](../gemstone/src/services/search/rules.rs)) |
-| [`GemWalletConnectService`](../gemstone/src/services/wallet_connect/mod.rs) | [`GemConnectionStore`](../gemstone/src/services/wallet_connect/store.rs), [`GemWalletConnectSigner`](../gemstone/src/services/wallet_connect/signer.rs) | [Swift](../../ios/Packages/GemstoneServices/Sources/Stores/ConnectionStore.swift), [Swift signer](../../ios/Features/WalletConnector/Sources/WalletConnector/Services/WalletConnectorSigner.swift) | [Kotlin](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/ConnectionStore.kt), [Kotlin signer](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/gemstone/WalletConnectSigner.kt) | Done | Session proposal preparation (CAIP-2 chain parsing, wallet selection, origin verification), app metadata rule, session approval data (chains, accounts, methods, events), session model from namespace accounts, connection persistence (`add_connection`, `update_sessions` sync rule, `delete_session`), request parse → connection/account lookup and session chain validation → simulate → decode → app signer (`GemWalletConnectSignRequest` with wallet, account, session, simulation and a message or transaction payload) → encode ([rules](../gemstone/src/services/wallet_connect/rules.rs)); Android `WalletConnectRequestHandler` runs `handle_request` and the signer publishes a `WalletConnectPendingRequest` the request screen approves or rejects |
+### 1. Core owns the flow
 
-## App services (iOS is the reference)
+`core/gemstone/src/services/<name>/` holds only the files that service needs:
 
-Every app service is listed so nothing is missed; "Review" rows are the remaining migration work.
+| File | Holds |
+| --- | --- |
+| `mod.rs` | the `#[derive(uniffi::Object)]` service, its `#[uniffi::constructor]`, and the exported methods — each one a short *API call → rule → store write* sequence |
+| `rules.rs` | the decisions, as pure functions with unit tests |
+| `store.rs` | the `#[uniffi::export(rust, foreign)]` trait the apps implement |
+| `model.rs` | the `uniffi::Record`/`uniffi::Enum` types the service returns |
+| `error.rs` | only when [`GemServiceError`](../gemstone/src/services/error.rs) cannot express a case |
 
-| App service | Core service | Status | Notes |
-| --- | --- | --- | --- |
-| `ActivityService` | — | App-only | Wrapper removed; callers use `RecentActivityStore` directly (Android: `RecentAssetsService`) |
-| `AddAssetService` | `GemGateway` | Done | Wrapper removed; the add-asset view model reads token data through `GatewayService` |
-| `AddressNameService` | `GemNameService` | Done | Wrapper removed; callers use the Core service (`addressNames` typed helper) and `AddressStore` |
-| [`AppService/OnstartService`](../../ios/Packages/FeatureServices/AppService/OnstartService.swift) | `GemAssetsService` | Done | `setupWallets` runs the v3 keystore migration then `GemAppStartService.setup_wallets`; default currency comes from `GemPreferencesService.default_currency`; what remains is device security, URL cache, backup exclusion and screenshots config |
-| `AppService/OnstartAsyncService` | `GemAppStartService` | Done | Replaced by `GemAppStartService.run()` (config update, banner setup, swappable chains, availability sync); Android [`SyncService`](../../android/app/src/main/kotlin/com/gemwallet/android/services/SyncService.kt) calls the same |
-| `AppService/OnstartWalletService` | `GemAppStartService` | Done | Replaced by `GemAppStartService.setup_wallet()` (default balances, wallet banners, configuration sync) on both apps; the push permission prompt is `PushNotificationEnablerService.requestPermissionsIfNotDetermined` |
-| `AppService/ConfigService` | `GemConfigService` | Done | Wrapper removed; concurrent `update_config` calls are coalesced in Core |
-| `AppService/ReleaseAlertService` | `GemAppUpdateService` | Done | Wrapper removed; view models call the Core service (typed helpers in `GemAppUpdateService+GemstonePrimitives.swift`) and open the store themselves; Android: [`AppUpdateCoordinator`](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/update/AppUpdateCoordinator.kt) |
-| [`AppService/RateService`](../../ios/Packages/FeatureServices/AppService/RateService.swift) | — | App-only | App Store review prompt |
-| [`AppService/AppLifecycleService`](../../ios/Packages/FeatureServices/AppService/AppLifecycleService.swift) | — | App-only | Scene phase orchestration of observers |
-| `AssetsService` / `ImportAssetsService` | `GemAssetsService` | Done | Wrappers removed; callers use the Core service (typed helpers in `GemAssetsService+GemstonePrimitives.swift`) and `AssetStore` directly; default assets are seeded by `sync_default_assets` (Android `updateNativeAssetRanks` removed) |
-| `AuthService` | `GemAuthService` | Done | Wrapper removed; auth payload built in Core on both apps (Android `GetAuthPayloadImpl` removed) |
-| `AvatarService` | `GemAvatarService` | Done | Wrapper removed on both apps; the app provides `GemFileStore` (iOS `LocalStore`, Android `LocalStore`), Android keeps only the emoji rendering |
-| `BalanceService` | `GemBalanceService` | Done | Wrapper removed; view models call `update` on the Core service and read `BalanceStore` directly |
-| `BannerService` | `GemBannerService` | Done | Wrapper removed; banner seeding (`setup`, `setup_wallet`), action handling, closing and visibility/ordering (`visible_banners`) live in Core, the app provides `GemNotificationPermissions` and the `GemBannerContext` inputs |
-| [`ConnectionsService`](../../ios/Packages/FeatureServices/ConnectionsService) | — | App-only | WalletConnect activation flag and SDK setup; session persistence goes through Core (`GemstoneConnectionStore`) |
-| [`ConnectionStatusService`](../../ios/Packages/FeatureServices/ConnectionStatusService) | — | App-only | Connectivity |
-| `ContactService` | `GemContactService` | Done | Wrapper removed; avatar files go through Core over `GemFileStore` (typed helpers in `GemContactService+GemstonePrimitives.swift`); Android: `ContactsRepository` |
-| [`DeviceService`](../../ios/Packages/GemstoneServices/Sources) | `GemDeviceService` | Done | `DeviceRequestSigner` replaced by Core `GemDeviceRequestSigner` on both apps; `GemstoneDeviceSync` adapts the app device sync for Core |
-| `DiscoverAssetsService` | `GemAssetDiscoveryService` | Done | Wrapper removed; view models call the Core service directly |
-| `EarnService` | `GemStakeService` | Done | Wrapper removed; `sync_earn` and `get_earn_data` on the Core service, APR read from `GemStakeStore`; Android has no earn UI yet |
-| `ExplorerService` | `GemExplorerService` | Done | Moved to Core with the selected-explorer preference; both apps call the Core service directly (legacy selection migrated once) |
-| `FiatService` | `GemFiatService` | Done | Wrapper removed; view models and buy/sell operations call the Core service directly; Android: `SyncFiatTransactionsImpl`, `GetBuyQuotesImpl` |
-| `NFTService` | `GemNftService` | Done | Wrapper removed; view models call the Core service directly |
-| `InAppNotificationService` | `GemNotificationService` | Done | Wrapper removed; view models call the Core service directly |
-| [`PerpetualService`](../../ios/Packages/GemstoneServices/Sources) | `GemPerpetualService` | Done | |
-| `PortfolioService` | `GemPortfolioService` | Done | Wrapper removed; held assets come from `GemPortfolioStore` on both apps |
-| `PriceAlertService` | `GemPriceAlertService` | Done | Wrapper removed; enable/disable, permissions and device sync run in Core (typed helpers in `GemPriceAlertService+GemstonePrimitives.swift`); Android `PriceAlertsEnabledCoordinator` only republishes the flag |
-| [`PriceService`](../../ios/Packages/GemstoneServices/Sources) | `GemPriceService` | Done | |
-| `RewardsService` | `GemRewardsService` | Done | Wrapper removed; view models call the Core service (typed helpers in `GemRewardsService+GemstonePrimitives.swift`) |
-| `ServiceStatusService` | `GemServiceStatus` | Done | Wrapper removed on both apps; view models use the Core client directly |
-| [`StreamService`](../../ios/Packages/FeatureServices/StreamService) | `GemStreamService` | Done | Event handling and price subscriptions in Core (`GemStreamService`, `GemStreamSubscriptionService`); only the socket connection stays app-side (`StreamObserverService`, `GemStreamConnection` adapter), see [DEVICE_WEBSOCKETS.md](DEVICE_WEBSOCKETS.md); Android: [`StreamObserverService`](../../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/stream/StreamObserverService.kt) |
-| `SupportChatService` | `GemSupportService` | Done | Wrapper removed; the view model calls the Core service (typed helpers in `GemSupportService+GemstonePrimitives.swift`), `SupportTypingState` is an app observable fed by Core through `GemSupportStore`, image previews stay in the view model |
-| `SwapService` / `SwapQuotesProvider` / `SwapQuoteDataProvider` / `Permit2DataProvider` | `GemSwapService` | Done | Wrappers removed on both apps (Android `GetSwapQuotes*`/`GetSwapSupported` too); view models call the Core service (typed helpers in `GemSwapService+GemstonePrimitives.swift`), see [SWAPPER.md](../../docs/SWAPPER.md) |
-| `TransactionsService` | `GemTransactionsService` | Done | Wrapper removed; view models call `sync` on the Core service and use `TransactionStore` directly |
-| [`TransactionStateService`](../../ios/Packages/GemstoneServices/Sources) | `GemTransactionStateService` | Done | Post-processing (`TransactionPostProcessingService` on both apps) moved into Core `update` |
-| [`WalletService`](../../ios/Packages/GemstoneServices/Sources/WalletService.swift) | `GemWalletService` | Done | Import/create/delete/setup-chains/pin/rename orchestration in Core over `GemKeystore`, `GemWalletStore`, `GemWalletSessionService` and `GemDeviceStore` (subscriptions version); the app provides the keystore password lazily via `GemKeystorePassword` and keeps v3 migration, avatar files and app preferences; Android uses it for import (`PhraseAddressImportWalletService`), deletion (`DeleteWalletImpl`), account backfill (`CheckAccountsService`), pin and rename |
-| `WalletSetupService` | `GemAssetsService` | Done | Wrapper removed; default asset balances for a new wallet come from `setup_wallet` (`GemAssetStore.add_balances`) on both apps |
-| [`WalletSessionService`](../../ios/Packages/GemstoneServices/Sources/Wallet/WalletSessionService.swift) | `GemWalletSessionService` | Done | Current wallet id and wallet lookups in Core over `GemWalletSessionStore` and the synchronous `GemWalletStore`; the iOS wrapper only maps types for `WalletSessionManageable`, Android `SessionRepositoryImpl` calls Core |
-| [`GatewayService`](../../ios/Packages/GemstoneServices/Sources/Gateway) | `GemGateway` | Done | Typed gateway wrapper and chain service factory, moved from `Blockchain` and the former `ChainServices` package into `GemstoneServices` |
-| `WalletSearchService` / `AssetSearchService` | `GemSearchService` | Done | Wrappers removed; both apps call the Core search service (Android `WalletSearchTokens` delegates to it) |
-| [`Signer`](../../ios/Packages/GemstoneServices/Sources/Signer) | `GemSigner` | Done | Transaction and message signing over the Core signer, moved into `GemstoneServices` |
-| [`NodeService`](../../ios/Packages/GemstoneServices/Sources) | `GemNodeService` | Done | |
-| `StakeService` | `GemStakeService` | Done | Wrapper removed; view models call `sync` on the Core service, APR read from `GemStakeStore` |
-| [`FeatureServices/WalletConnectorService`](../../ios/Packages/FeatureServices/WalletConnectorService) | `GemWalletConnectService` | Done | Package `ChainServices` folded into `FeatureServices`; only the reown SDK bridge remains (pairing, `AutoNamespaces`, streams, rejection reasons); proposals, session models, metadata and requests go through Core; Android `ProposalSceneViewModel` uses the same `prepare_session_proposal` and `BridgesRepository` syncs sessions through `update_sessions` (its `Session.kt` settled-session record mapping still applies the name/icon rule locally) |
-| [`SystemServices`](../../ios/Packages/SystemServices) | — | App-only | Connectivity, image gallery, local store |
+The service holds `Arc`s of other Core services and of store traits — never an app type:
 
-## App packaging goal
+```rust
+#[derive(uniffi::Object)]
+pub struct GemPriceAlertService {
+    api: Arc<GemDeviceApiClient>,
+    preferences: Arc<GemPreferencesService>,
+    store: Arc<dyn GemPriceAlertStore>,
+    device: Arc<GemDeviceService>,
+    permissions: Arc<dyn GemNotificationPermissions>,
+}
+```
 
-Store adapters and the thin app services are being consolidated so both apps look the same:
+A method reads remote and local state, asks a rule what changed, and writes only that:
 
-- **iOS `Packages/GemstoneServices/Sources/Stores`** — every `Gem*Store` implementation, one file per store (`FiatStore.swift`, `BalanceStore.swift`, …) over the `Store`/`Preferences` packages. Feature packages depend on `GemstoneServices` instead of owning adapters; the app injects the gateway's preference stores into `GatewayService`.
-- **iOS `Packages/GemstoneServices`** — the thin app-side services that wrap the Core services, one folder per service that needs more than one file (`Device/`, `Perpetual/`, `Support/`, `TransactionState/`, `Wallet/`, …), tests under `Tests/`. App services must not read or write stores directly: persistence goes through Core (`Gem*Store` adapters); the only sync store reads left are `NodeService.node(for:)` (RPC provider hot path) and `WalletSessionService.currentWallet` (session façade). The migrated `FeatureServices` move here as they are wired to `GemstoneStore`; wrappers that only forward calls (for example `AssetDiscoveryService`, `InAppNotificationService`, `MarketService`, `ChartService`) are removed and callers use the Core service directly; a wrapper stays only when it combines Core calls with app-side stores or files, or maps bridged JSON to typed models for several call sites.
-- **Android** — the same split in Android's patterns: store adapters in one package (`data/repositories/.../gemstone`, one file per store) and the coordinators/repositories stay thin wrappers over the Core services.
+```rust
+pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
+    let remote = self.api.client.get_price_alerts(...).await.map_err(GemApiError::from)?;
+    let local = self.store.get_price_alerts(asset_id).await?;
+    let changes = rules::reconcile(local, remote);
+    if changes.delete_ids.is_empty() && changes.alerts.is_empty() {
+        return Ok(());
+    }
+    self.store.update_price_alerts(changes.alerts, changes.delete_ids).await
+}
+```
 
-Status: stores — done on both apps (iOS `GemstoneServices/Sources/Stores`, Android package `data.repositories.gemstone`); GemstoneServices — in progress: all migrated feature services moved (Fiat, NFT, Transactions, SupportChat, AddressName, Contact, Price, Device, Auth, Rewards, Notification, PriceAlert, Banner, DiscoverAssets, Assets, Balance, Earn, TransactionState, Perpetual); Stake, Node, Swap and Activity moved too; `Blockchain`, `ChainService`, `Signer` and `Keystore` packages folded in (`Sources/Gateway`, `Sources/Signer`, `Sources/Keystore`); pure-forwarding wrappers removed (AssetDiscovery, InAppNotification, Market, Chart, Stake, Earn, AddAsset, ServiceStatus, WalletSetup, NFT, Fiat, Balance, Transactions, AddressName, Portfolio, Price, Assets); `DeviceRequestSigner` lives in `GemstoneServices` (the `GemAPIDevice` target is gone).
+Everything that decides belongs in `rules.rs` with a test that fails if the rule flips. A failure is either impossible (a rule with a built-in default), surfaced (returned as `GemServiceError`), or recorded through `services::failures::record` — never swallowed.
+
+**There is no `*RulesService`.** A domain has one service, and a rule that domain's service owns is a method on it. When a rule has to be reachable from code that can never hold an injected service — a SwiftUI `Identifiable`, a Compose scene, a value-type extension, an enum property, a `Gem*Store` adapter (Core constructs the service *from* it) — the caller that *can* hold the service resolves it and passes the answer down — a view model asks `GemExplorerService` for the link and hands the URL to the Compose scene or the UI-model factory; the scene never reaches for a service. A constructible service is **not** a licence to hold one at file scope. `private let addressService = GemAddressService()` / `private val assetConfig = GemAssetConfigService()` above a value-type extension is a hidden global: nothing can substitute it, and the extension reaches outward instead of being handed what it needs. There are around fifteen of these on each platform (`gemcore/ext/*`, `GemstonePrimitives/Sources/Extensions/*`) and they are all going. The fix is the same every time — the caller that can hold the injected service resolves the answer and passes it down, as `FeeRateUIModel` now takes `totalFee` rather than computing it. Where an extension genuinely has no caller that can hold a service, that is a signal the logic belongs on the feature's service and the extension should not exist. The I/O service never carries a second copy of a rule, and a second *exported* object is not the answer either: a feature's clients see exactly one type, its service. `Explorer` and `GemStakeConfig` were both dropped from the FFI for this reason — `Explorer` stays as a plain Rust struct that `GemExplorerService` uses internally, and stake's rules moved onto `GemStakeService`.
+
+Know the cost before choosing it. A rule reachable only through an I/O service cannot be exercised by an app test without mocking it, and a mocked rule is a premise, not a check — so the rule's real test has to exist in `rules.rs`, mutation-checked, before the app-side one is downgraded. Moving stake's rules onto `GemStakeService` traded three Android rule tests for that: `AssetInfoUIModelFactoryTest` now states what the service reports and asserts only the formatting, because Core's `stake::rules` tests already cover which chain counts frozen versus staked.
+
+### 2. Pick the store the value belongs in
+
+| What the service needs | Trait | Shape | iOS | Android |
+| --- | --- | --- | --- | --- |
+| rows in the database | one `Gem<Name>Store` per service ([example](../gemstone/src/services/price_alert/store.rs)) | `async`, every method returns `Result<_, GemServiceError>` | GRDB store under [`GemstoneServices/Sources/Stores/`](../../ios/Packages/GemstoneServices/Sources/Stores/) | Room DAO under [`data/repositories/.../gemstone/`](../../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/stores/) |
+| a value the user set | [`GemPreferencesStore`](../gemstone/src/services/preferences/store.rs) through `GemPreferencesService` | sync; `get` returns `Option<String>` and **cannot fail** | `GemstonePreferencesStore` over `UserDefaults` | `GemstonePreferencesStore` over `SharedPreferences` |
+| the same, per wallet | `GemWalletPreferencesStore` through `GemWalletPreferencesService` | sync, keyed by `WalletId` | same file layout | same file layout |
+| a secret | [`GemSecureStore`](../gemstone/src/services/preferences/store.rs) | sync; **every read can fail** | `GemstoneSecurePreferencesStore` over the Keychain | `TinkGemPreferences` over Tink |
+| something only the OS can do | a foreign trait of its own (`GemNotificationPermissions`, `GemStreamConnection`) | whatever the platform needs | app class | app class |
+
+- One trait per table. A second trait over the same rows is how the two apps drift apart.
+- A new preference is a `const` key plus typed accessors on `GemPreferencesService` — single-word keys (`_` separates the settings hierarchy in environment variables), never a raw key string in an app.
+- The preference read is infallible on purpose: getters return plain values, so neither app writes `try?`/`runCatching` around them. Secure reads are fallible and their failure must propagate — a swallowed secure read regenerates identity or loses a key.
+- Store methods follow the vocabulary in [Conventions](#conventions): `get_*`, `is_*`, `set_*`, `save_*`, `add_*`, `update_<items>(items, delete_ids)`, `delete_*`, `clear*`.
+
+### 3. Each app implements the store — and nothing else
+
+iOS, `ios/Packages/GemstoneServices/Sources/Stores/<Name>Store.swift`, class `Gemstone<Name>Store`, converting with `.json()` and `Primitives.<T>(_:)`:
+
+```swift
+public final class GemstonePriceAlertStore: GemPriceAlertStore, @unchecked Sendable {
+    private let store: PriceAlertStore
+
+    public func updatePriceAlerts(alerts: [Gemstone.PriceAlert], deleteIds: [String]) async throws {
+        try store.diffPriceAlerts(deleteIds: deleteIds, alerts: alerts.map { try Primitives.PriceAlert($0) })
+    }
+}
+```
+
+Android, `android/data/repositories/.../gemstone/<Name>Store.kt`, class `Gemstone<Name>Store`, converting with `toJson()` and `decodeJson()`:
+
+```kotlin
+class GemstonePriceAlertStore(
+    private val priceAlertsDao: PriceAlertsDao,
+) : GemPriceAlertStore {
+
+    override suspend fun updatePriceAlerts(alerts: List<String>, deleteIds: List<String>) {
+        priceAlertsDao.update(alerts.map { it.decodeJson<PriceAlert>().toRecord() }, deleteIds)
+    }
+}
+```
+
+The two adapters are mirrors: same methods, same conflict behaviour (upsert where the other upserts), same "write only rows whose values differ" rule, same treatment of a missing row. A difference between them is a bug in one of them, not a platform choice. Types that cross as JSON (`Asset`, `Account`, `Wallet`, `SimulationResult`, …) arrive as `String` typealiases and are decoded at the adapter boundary, never deeper in the app.
+
+### 4. Construct it once
+
+iOS builds the store and the service in [`ServicesFactory.swift`](../../ios/Gem/Services/ServicesFactory.swift) and publishes the service through `AppResolver` and an `@Entry` on the environment:
+
+```swift
+let gemPriceAlertStore = GemstonePriceAlertStore(store: storeManager.priceAlertStore)
+let priceAlertService = Gemstone.GemPriceAlertService(
+    api: gemDeviceApiClient,
+    preferences: preferencesService,
+    store: gemPriceAlertStore,
+    device: deviceService,
+    permissions: GemstoneNotificationPermissions(service: pushNotificationEnablerService),
+)
+```
+
+Android provides the store and the service from one Hilt module ([`PriceAlertsModule`](../../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/di/PriceAlertsModule.kt)):
+
+```kotlin
+@Singleton @Provides
+fun provideGemPriceAlertStore(priceAlertsDao: PriceAlertsDao): GemPriceAlertStore = GemstonePriceAlertStore(priceAlertsDao)
+
+@Singleton @Provides
+fun provideGemPriceAlertService(...): GemPriceAlertService = GemPriceAlertService(api, preferences, store, device, permissions)
+```
+
+### 5. Call it from the app — the service itself on iOS, a case on Android
+
+**iOS: the view model holds the Core protocol.** Nothing sits in between.
+
+```swift
+@Observable
+@MainActor
+public final class PriceAlertsSceneViewModel: Sendable {
+    private let priceAlertService: any GemPriceAlertServiceProtocol
+    private let preferencesService: any GemPreferencesServiceProtocol
+    public let query: ObservableQuery<PriceAlertsRequest>
+
+    public init(
+        priceAlertService: any GemPriceAlertServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
+    ) {
+        self.priceAlertService = priceAlertService
+        self.preferencesService = preferencesService
+        isPriceAlertsEnabled = priceAlertService.isEnabled()
+        query = ObservableQuery(PriceAlertsRequest(), initialValue: [])
+    }
+}
+```
+
+The screen reads the service out of the environment and passes it in — `@Environment(\.priceAlertService)`, built once in `ServicesFactory`. **Do not write an app service around a Core service.** The distinction is which way the dependency points: a class that *implements* a Core trait is an adapter and is required (the `Gemstone*Store` classes, `GemstoneNotificationPermissions`, the WalletConnect signer); a class that *calls* a Core service and re-exposes it is a wrapper, and the view model should hold the protocol instead. The wrappers still in the app are listed under [iOS](#ios) below, and they go.
+
+**Android: the view model holds cases, never a repository.** A case is three files: the interface the screen asks for, the implementation that holds the Core service, and the view model that injects the interface.
+
+`gemcore/.../application/pricealerts/cases/SetPriceAlertsEnabled.kt` — the case:
+
+```kotlin
+interface SetPriceAlertsEnabled {
+    suspend operator fun invoke(enabled: Boolean)
+}
+```
+
+`data/coordinators/.../pricealerts/PriceAlertsEnabledCoordinator.kt` — the implementation, holding nothing but the Core service and the signal that makes the read re-emit:
+
+```kotlin
+class PriceAlertsEnabledCoordinator(
+    private val priceAlertService: GemPriceAlertService,
+) : GetPriceAlertsEnabled, SetPriceAlertsEnabled {
+
+    private val changes = MutableSharedFlow<Unit>()
+
+    override fun isPriceAlertsEnabled(): Flow<Boolean> = changes
+        .onStart { emit(Unit) }
+        .map { priceAlertService.isEnabled() }
+
+    override suspend fun invoke(enabled: Boolean) {
+        priceAlertService.setEnabled(enabled)
+        changes.emit(Unit)
+    }
+}
+```
+
+Hilt builds it once and binds both interfaces to it, so the view model asks for the case it needs and nothing else:
+
+```kotlin
+@Provides @Singleton
+fun providePriceAlertsEnabledCoordinator(priceAlertService: GemPriceAlertService) = PriceAlertsEnabledCoordinator(priceAlertService)
+
+@Provides
+fun provideGetPriceAlertsEnabled(coordinator: PriceAlertsEnabledCoordinator): GetPriceAlertsEnabled = coordinator
+
+@Provides
+fun provideSetPriceAlertsEnabled(coordinator: PriceAlertsEnabledCoordinator): SetPriceAlertsEnabled = coordinator
+```
+
+**Two shapes, and the name says which:** `*Impl` is one case with no state — it forwards to Core, or returns the Room `Flow` the database already makes reactive (`GetAssetPriceAlertState`). `*Coordinator` implements the read *and* the write for one subject and owns the signal between them; it is the right shape when Core answers with a point read that screens must observe. `PriceAlertsEnabledCoordinator` is one (the enabled flag is a preference, so `isEnabled()` cannot be observed) and `AppUpdateCoordinator` is another (the update offer has no row behind it).
+
+Prefer the coordinator over refreshing state in each view model: `setPriceAlertsEnabled` has a second writer — `IncludePriceAlertImpl` turns alerts on when one is added — and a screen holding its own copy goes stale the moment someone else writes. Routing both directions through one object is what keeps every observer correct. iOS gets away with the simpler thing (`isPriceAlertsEnabled = priceAlertService.isEnabled()` after its own `setEnabled`) because its screens re-read on appear. If Core ever publishes preference changes as a stream, every coordinator of this kind collapses back into two stateless `*Impl`s.
+
+**A case composing other cases is always fine** — `SyncAssetPriceAlertsImpl` holds `HasAssetPriceAlerts` and `UpdatePriceAlerts` — that is how a flow is assembled; what a case must not hold is a repository.
+
+`features/settings/price_alerts/.../PriceAlertViewModel.kt` — the screen's view model, which injects the cases and never the service or a repository:
+
+```kotlin
+@HiltViewModel
+class PriceAlertViewModel @Inject constructor(
+    private val getPriceAlertsEnabled: GetPriceAlertsEnabled,
+    private val setPriceAlertsEnabled: SetPriceAlertsEnabled,
+) : ViewModel() {
+
+    val priceAlertEnabled = getPriceAlertsEnabled.isPriceAlertsEnabled()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch {
+        setPriceAlertsEnabled(enable)
+    }
+}
+```
+
+A case may compose other cases ([`SyncAssetPriceAlertsImpl`](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/pricealerts/SyncAssetPriceAlertsImpl.kt) calls `HasAssetPriceAlerts` and `UpdatePriceAlerts`), and it holds the `Gemstone*Store` adapter when the screen needs an observed read — never the DAO, and never a repository for data a Core service owns. The repositories left in the graph are legacy and shrink as services land; `SessionRepository` is the one still in wide use, and Core's `GemWalletSessionService` is replacing it.
+
+**A screen asks one thing, and the thing it asks is a Core service.** A view model that takes a `Gem*Service` *and* a rule service and combines them is doing the feature's job in the view layer — but the answer is not an app-side wrapper around both. Put the decision in Core and let the screen call it.
+
+Rules belong in `gemstone`, not in an app class wrapping several services — `GemGateway.check_node` owns the node network-id check `AddNodeSceneViewModel` used to assemble. One constraint: `GemNodeService` cannot hold the gateway, because the gateway's transport picks node URLs *through* `GemNodeService`. Check where a service sits in that graph before giving it a new collaborator.
+
+The same rule with each platform's noun, for the cases Core genuinely cannot answer:
+
+- **iOS** — a feature service in `Features/<Feature>/Sources/Services/`, built in the app layer and passed into the view model's initializer. A feature package cannot read the app's `@Environment` service keys, so the service reaches it through the view model it is handed, never through an ambient registry.
+- **Android** — a case in `gemcore` `application/<area>/cases/` with its implementation in `data/coordinators/<area>/`, injected into the view model by Hilt.
+
+Still open: `AddNodeViewModel` on Android is the untouched twin — `NodeStatusService`, `AddNodeCase`, `SetCurrentNodeCase` and a raw `GemChainService` for the same network-id check, which `GemGateway.check_node` now answers. It belongs to the nodes work in flight.
+
+**An app service holds Core services, not the tables Core owns.** Reaching into a `Gem*Store`'s table from the app is a second read path the owner cannot see — the same violation as a case taking a Room DAO. The exception is a table Core has no concept of: the recent-activity list is the app's own, so `RecentActivityStore` (iOS) and `RecentAssetsService` (Android) are the platform's query layer and stay.
+
+Android already follows this: no view model holds a `Gemstone*Store`, and the fifty that do are cases in `data/coordinators`, which is the documented home for an observed read. iOS's confirm flow does not, and the reason is structural rather than careless — every method on a Core service crosses UniFFI as `async`, and the confirm screen builds its first state inside a synchronous initializer, so it reads the store directly instead:
+
+| Reader | Reads | Owner it bypasses |
+| --- | --- | --- |
+| `ConfirmSimulationService.simulationAssets` | `AssetStore.getAssets` | `GemAssetsService` |
+| `FeeAssetProvider` | `AssetStore.getAssetData`, `getAssetsData` | `GemAssetsService` |
+| `TransferMetadataProvider` | `BalanceStore.getBalance`, `PriceStore.getPrices` | `GemBalanceService`, `GemPriceService` |
+| `ConfirmService.addressName` | `AddressStore.getAddressName` | `GemNameService` |
+
+The fix has a precedent in the same codebase: `GemWalletStore.get_wallets` and `get_wallet` are **synchronous** trait methods, so `GemWalletService` answers a session lookup without `await`. The reads above are all point reads of a single row or a short list, so they can be synchronous the same way — the trait method loses `async`, the service exposes it synchronously, and the confirm flow asks the owner. Do that before the confirm seam, because the seam's own migration assumes those reads come from Core.
+
+`DeveloperViewModel` holds five stores to dump and reset them; it is a developer screen and stays as it is.
+
+**Observed reads.** Core has no observation primitive, so a screen that must update as rows change observes the app's own database — iOS with `ObservableQuery` over a GRDB request, Android with a Room `Flow` returned by the case. Everything else — writes, remote sync, point reads, every decision — goes through the service.
+
+**Tests.** iOS mocks the protocol from [`GemstoneServices/TestKit`](../../ios/Packages/GemstoneServices/TestKit/); Android fakes the case interface, or mocks `Gem*Service` with MockK, using fixtures from `gemcore` `testFixtures`. Never mock a constructible service (`GemAssetConfigService`, `GemChainService`, …) — construct the real one, or the test asserts the mock. Never fabricate I/O to reach a rule either: an offline `AlienProvider`, in-memory preference and secure stores and empty row stores, stood up so a test can touch rules that use none of them, is always the wrong answer — pass the answer in from the caller that owns the service, or mock the service and state the premise plainly. Neither app tests a rule that lives in Core — that test belongs in `rules.rs`.
+
+### Done means
+
+- Core has the flow, the rules and their tests; the app code it replaced is deleted in the same commit.
+- Both apps implement the same store trait the same way, and both build and pass their suites.
+- No app-side copy of a Core decision, no raw preference keys, no swallowed store failure, and no app service reading a table a `Gem*Store` owns.
+- Nothing was added to reach it: iOS injects the protocol, Android calls a case — no wrapper service, no repository. A feature service or case that gathers several collaborators for one screen is not a wrapper; a class that forwards one call is.
+- No `private let`/`private val` holding a `Gem*Service` at file scope. A service comes from the initializer or from Hilt, so a test can substitute it.
+- The service is listed in [Core services](#core-services) with its store and both adapters, and its line in the plan below is removed.
+
+## App services
+
+What stays on the app side, because it is a platform concern with no Core counterpart:
+
+| Service | Notes |
+| --- | --- |
+| [`AppService/RateService`](../../ios/Packages/FeatureServices/AppService/RateService.swift) | App Store review prompt |
+| [`AppService/AppLifecycleService`](../../ios/Packages/FeatureServices/AppService/AppLifecycleService.swift) | Scene phase orchestration of observers |
+| [`ConnectionStatusService`](../../ios/Packages/FeatureServices/ConnectionStatusService) | Connectivity |
+| [`SystemServices`](../../ios/Packages/SystemServices) | Connectivity, image gallery, local store |
+
+Every other app service is gone and its callers hold the Core service. Every `Gem*Service` Core exports is referenced by both apps — there is no Core service without an app consumer, and no app missing one.
 
 ## Remaining
 
-- **iOS `Packages/GemAPI`** — only the widget's one-endpoint client (`GemPriceWidget`); the app and feature packages no longer depend on it.
+- **iOS `Packages/GemAPI`** — one endpoint, one caller: `GemPriceWidget` reads asset prices with it. It stays. Routing the widget through Core would link the Rust library into an app extension that runs under a tight memory budget and makes a single GET, so the trade is wrong; nothing else in the app or the feature packages depends on the package. Android's equivalent is already down to the alien provider itself: `data/services/native-provider` is `NativeProvider` plus its cache, named after the trait it implements the way iOS's `NativeProviderService` package is.
+- **iOS `Packages/GemstonePrimitives` is 2,656 lines and mostly load-bearing.** A sweep for declarations with no reader outside the package found twelve, of which six were genuinely dead and are gone (`Chain.tokenActivateFee`, `AssetId.getAssetType`, `GemKeystore.mapToPreview`, `StakeChain.supportRedelegate`/`supportWithdraw`/`supportClaimRewards`); the other six are used inside the package. What is left is the JSON bridge conformances, the chain and stake config accessors, and typed wrappers over Core's JSON-string APIs — it shrinks when primitives stop crossing as JSON strings, not before, so treat the number as a consequence of the confirm seam rather than a target of its own.
+- iOS `Primitives` keeps hand-written views of Core types (`GasPriceType`, `FeeRate`, `Fee`, `FeeSelection`, `CustomFeeEstimate`, `TransferAmount`, `BalanceRequirement`, and ids such as `WalletId`/`TransactionId`/`AssetId`). They stay: they are typed views bridged once at the seam, not a second source of truth.
 
-- Shared transfer model: both apps keep a typed transfer type (`TransferDataType` / `ConfirmParams`) for UI pattern matching and forward every rule to `GemTransferService`; a possible next step is generating that enum from `TransactionInputType` (typeshare) so the three copies (primitives tuple enum, gemstone named-field enum, Swift/Kotlin enums) collapse. Android has no Earn flow yet (`GemTransactionInputType::Earn` is iOS-only there).
+## TODO — finish Core as the single owner of logic
 
-- iOS `Primitives` hand-written mirrors of Core types (`GasPriceType`, `FeeRate`, `Fee`, `FeeSelection`, `CustomFeeEstimate`, `TransferAmount`, `BalanceRequirement`, ids such as `WalletId`/`TransactionId`/`AssetId`) stay as typed views bridged once in `GemstonePrimitives`; dead ones were removed 2026-08-27.
+Every app service forwards to a Core service or is platform glue, and the rules that used to live in view models live in `gemstone` with unit tests. Every exported `Gem*Service` has a consumer on both platforms, all 26 store traits have an adapter on both (Android's node store is the one gap, owned by the nodes work in flight), and Android has no repositories left.
 
-- Periodic review of app wrappers (`NodeService.node(for:)`, `PerpetualService`, `WalletService`) and of typeshare models unused by both apps (18 exports dropped 2026-08-27; the Rust types stay where Core uses them).
+What is left is below, in priority order: the confirm seam is the last large migration, then the per-feature reads, then the platform-side gaps. Work it top to bottom inside each section; each item lands with the app-side code it replaces deleted, a Core test that would flip if the rule flipped, and its line removed from this file in the same commit. Presentation and localization work goes last. When the list is empty, audit again and write a new one.
+
+### Not yet migrated — every place that moves, both platforms
+
+Each entry is one batch. Work it end to end: put the rule in Core with a test that would flip if the rule flipped, wire both platforms onto it, delete the app code it replaces, then remove the entry. The iOS file is the one that owns the logic today; the Android column is its counterpart, which is usually already thinner — converge on whichever reading is better and say which in the commit.
+
+| # | Service | iOS | Android | What moves |
+|---|---|---|---|---|
+| 3 | Confirm | [`ConfirmService`](../../ios/Features/Transfer/Sources/Services/ConfirmService.swift) + `ConfirmSimulationService`, `ConfirmTransferInputProvider`, `FeeAssetProvider`, `TransferTransactionProvider` | `coordinators/confirm/*` (`BuildConfirmPropertiesImpl`, `ChainFeeAssetProvider`, `ConfirmTransactionImpl`, `GetFeeAssetsImpl`), `ConfirmViewModel` | The seam below. **Metadata is done**: `GemConfirmService.metadata` owns which assets the screen needs and rejects a missing balance with `BalanceMissing`, over `GemBalanceService`/`GemPriceService` rather than their stores; `TransferMetadataProvider` is now a mapper onto it. **Simulation assets are done**: `ConfirmSimulationService` never wanted an aggregate — it reads `[Asset]` and keeps nothing else — so it now goes through `GemAssetsService.assets`. What is left is `FeeAssetProvider`. It returns `[AssetData]`, and that is **not** asset + balance + price: the fee row is built by `AssetDataViewModel`, which also reads `metadata` (six flags plus the staking and earn APRs), `account.address`, `isPriceAlertsEnabled` and `assetAddress`. A Core record carrying only asset, balance and price would compile and render, then hand every later reader default metadata — wrong and not crashing. So either Core models the whole aggregate, including `AssetMetaData`, `Account`, price alerts and associations, or this stays app-side. That is a decision, not a port. **The recent-activity read is done**: `RecentAssetsService` owns that store on iOS, matching Android's `RecentAssetsService`, and every screen that recorded or cleared a recent asset — confirm, perpetuals, asset select, wallet search, results, recents — goes through it instead of holding the store. |
+
+**Row 5 (device observation) was stale and is closed.** Both platforms already observe and both already own the wiring: iOS `DeviceObserverService` watches the accounts table, Android's watches `getWallets()`, and each has a test. The real difference was that iOS called `synchronize()` on every change, pushing the device unconditionally and ignoring `needs_sync` — the one rule Core owns here. It calls `synchronizeIfNeeded()` now, like Android, so Core decides whether a push happens.
+
+**Row 4 is closed.** Two of its three claims did not survive reading the code. The "120 lines of shared dance" is a three-case event switch already forwarding to `GemPerpetualStreamService`; the rest is platform concurrency. And iOS does have a foreground gate — `handleScenePhase(.active)` runs `connectPerpetual()`, `.background` runs `perpetualObserver.disconnect()`, which is Android's foreground flow by another name. The one real defect it did contain is fixed: iOS recorded `currentWallet` before asking for the connection, so a single failed lookup stranded the stream for that wallet until the app restarted.
+
+**Row 7 is closed.** Both halves that were Core's are Core's: `LockTimer` asks `shouldRelock`, and the prompt classification is `GemAuthPromptOutcome`. What was left in `SystemAuthPolicy` is platform — `allowedAuthenticators` and `isEnrollmentMissing` are `BiometricManager` constants, and `authRequestTimeout`/`authRequestRestartDelay` pace an Android-only auth queue that iOS has no counterpart for. Exporting those would put a rule in Core with one consumer. One thing to watch: the 500 ms restart delay is now written both in Core (as the cancelled-prompt retry) and in `SystemAuthPolicy`; `InitialAuthErrorTest` asserts they agree, so drift fails a test.
+
+**Rows 1 and 2 were stale and are closed.** Row 1's three named rules are already Core's and iOS already forwards to them: `nextWalletIndex` → `service.nextWalletIndex`, `sorted(wallets:)` → `service.sortedWallets`, and import is `validateImport` then `importWallet`, so the ordering lives in `GemWalletService`. Its last claim was wrong too — `ObservablePreferences` does not hold a second copy of `isAcceptTermsCompleted`; it reads and writes Core's and only wraps it in `withMutation` so SwiftUI re-renders, which Core cannot do.
+
+Row 2 is glue on both sides, not duplication: iOS lifts Core's JSON into `Primitives`, Android composes the observed session into a `StateFlow`. The one shared sequence, changing currency, is the same three Core calls on each platform. The re-exports are worth keeping: deleting them pushes `try Wallet($0)` to every call site.
+
+### What is left, and what each needs
+
+Everything below was checked against the code, not inherited from the survey. Nothing here is blocked on more investigation.
+
+**Needs a decision. Each is one sentence, and I have a recommendation.**
+
+| Item | The question | Recommendation |
+|---|---|---|
+| Row 3, `FeeAssetProvider` | Does Core model the whole `AssetData` — asset, account, balance, price, `AssetMetaData`, price alerts, associations — or does the fee picker stay app-side? | Leave it app-side. The fee-asset *rule* is already Core's (`chainFeeAssetIds`), and the rest is rendering. A narrow record renders correctly today and hands later readers default metadata. |
+| S1 | Make the keystore password genuinely per-wallet (a re-encrypt migration), or drop `wallet_id` from `GemKeystorePassword`? | Drop the parameter. Neither platform honours it, so the contract currently promises something untrue; re-adding it later is cheap, a bad migration is not. |
+| S8 | Should Android get the privacy-lock setting iOS has? | Product call, no engineering preference. |
+| S9 | Should iOS get WalletConnect one-click auth (SIWE)? | Product call. Note its rules live in Android UI code today, so whoever takes it should move them to Core first. |
+| N1 | Who owns the three-state notification permission decision? | Core owns the decision; Android needs an activity-scoped requester so the adapter can tell "never asked" from "denied". |
+| Push re-enable after opt-out | Where does "the user said no" live? | A preference in `GemPreferencesService`, checked before the 30-day re-ask. Nothing records it today, which is why the opt-out is reversed. |
+
+**Needs no decision, but is wide — and the old count here was wrong.** This section used to say "twelve file-scope holders" and then "the three left". Both numbers were bookkeeping of specific *named* sites, not a survey: `GemPaymentService`, `GemDeeplinkService` and `GemApplicationMetadataService` were each marked done after one site was converted while other holders of the same service stayed. A real sweep (`= Gem*Service()` outside tests and DI modules) found **21 on iOS and 7 on Android**. Do not trust a count in this file that was not produced by that grep.
+
+**Where it stands now: 7 left on iOS, 2 on Android**, down from 21 and 7. Six of those nine are the frozen `assetConfig` table; the other three are `AddressFormatter`, `NetworkSelectorViewModel` and the `BiometryAuthenticationService` default — all three attempted, reverted, and explained in the table below. **Every holder that was not blocked by a documented obstacle is gone.**
+
+The pattern is settled — copy it rather than reinventing:
+
+- a view model, coordinator or other injected class → constructor injection
+- a Compose scene → one instance provided at `MainActivity` through `CompositionLocalProvider`, read as `LocalAddressService.current` (see `LocalAddressService`, `LocalChainService`, `LocalDeeplinkService`, `LocalAssetConfigService`, `LocalApplicationMetadataService`, `LocalTransferService`)
+- a plain helper inside a Compose file → an explicit parameter, because a `CompositionLocal` cannot be read outside a `@Composable` (`selectFilterChain` is a `LazyListScope` extension, so it takes the service; its two composable callers read the local)
+- a value type or namespace of statics → make it an instance that is handed the service (`URLParser`)
+- a value-type extension → the method takes the service; the caller that can hold one passes it down
+- a SwiftUI view that builds a view model from the environment → an `@Entry` in `ios/Gem/Types/Environment.swift` sourced from `AppResolver.main.services`
+
+Three things make this cheaper than it looks. Most of these services are **already injected somewhere in the same feature** — `SwapSceneViewModel` held `GemSwapQuoteService` while two extensions it called constructed their own; `ViewModelFactory` already held `feeService` while `NetworkFeeCustomViewModel` reached for its own. So the work is usually threading an existing dependency one or two levels, not introducing one. The errors arrive **one module at a time**: grep every construction site of the type you just changed before recompiling, or you pay a full build per call site. And on Android, `androidTest` is **not** covered by `testGoogleDebugUnitTest` — `PaymentDestination`'s instrumented callers only surfaced under `assembleGoogleDebugAndroidTest`, so run that too.
+
+Converted: `GemPaymentService` (both platforms), `GemAssetConfigService` in `TransactionsRequestFilter` and Android's `ConfirmErrorInfo`, `GemAddressService` (both), `GemApplicationMetadataService` (both), `GemTransferService` (`ConfirmParams`, iOS `TransferData+`, iOS `LocalKeystore`), `GemDeeplinkService` (both), `GemFeeService` (iOS), `GemSwapQuoteService` (iOS), `GemAmountService` (iOS), `GemChainService` (iOS WalletConnect, Android `SelectFilterChain`), `GemSecurityService` (Android), `GemAssetConfigService` in iOS `SelectAssetFlow`/`AddAssetInput`, plus a dead `Chain.defaultAssetRank` and a dead `GasPriceType.custom(base:gasPrice:)`.
+
+`GemFeeService` is the worked example of the whole shape: the two extension files held their own instance, `NetworkFeeCustomViewModel` → `NetworkFeeSceneViewModel` → `ConfirmTransferSceneViewModel`/`TransactionSceneViewModel` → `ViewModelFactory` already had the graph, and the factory already held `feeService` — the holders existed purely because nobody threaded the last two hops. One of its two rules, `customGasPrice`, turned out to have no caller on either platform; the Core function stays because `confirm/rules.rs` uses it internally, but the iOS wrapper was dead and is gone.
+
+Still open:
+
+| Holder | Where | Why it is its own pass |
+|---|---|---|
+| `AddressFormatter` (iOS) | 23 uses, ~60 construction sites | **Attempted and reverted — read this before trying again.** Threading the service compiles as far as `WalletViewModel`, then spreads somewhere it does not belong: `extension Wallet: SimpleListItemViewable` builds a `WalletViewModel` only to read `avatarImage`, which never touches the formatter, so the conformance would carry a service it does not use; the same happens in previews. It also needs a first `@Entry` in `PrimitivesComponents`, and `CopyTypeViewModel`/`WalletViewModel` lose synthesised `Equatable`/`Hashable` once a service is stored. The real fix is smaller than the threading: split the display-only parts (`avatarImage`, `name`) from the parts that format an address, so only the latter needs the service. That is a design change, so it wants a decision, not a mechanical pass. |
+| `NetworkSelectorViewModel` (iOS) | 1 site | **Attempted and reverted — same class of obstacle.** `SelectableListAdoptable` requires `init(state:selectedItems:selectionType:)`, so a required `chainService` parameter breaks conformance. The requirement exists only so the protocol's own `init(state:)` convenience initialiser can call it, and `SwapProvidersViewModel` uses that convenience init — so the requirement cannot simply be dropped. Fixing it properly means reshaping that protocol, which is not proportionate to one conformer. |
+| `assetConfig`: Android `ext/Chain.kt` and `AssetDefaults.kt`, iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+` | 21 sites on Android | The frozen-table case — see below. Android's is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open, where there is no graph to inject from; making it a class means changing the Room builder and an `androidTest` that needs a device. Note the cache: `chainAsset` is a `by lazy` map over every chain, so any version taking a service must keep caching or it decodes JSON per call. |
+| `GemSecurityService` (iOS) | `BiometryAuthenticationService` | A *defaulted* service parameter rather than file scope. Making it required pushes the default into `SecurityViewModel` and `LockSceneViewModel`, which also default-construct the whole `BiometryAuthenticationService` — so it is a lock-manager pass, not a one-liner. |
+
+On the `Chain.asset()` / `assetConfig` table cases specifically: that service is used once, to build an immutable lookup at first access — not reached per call. Threading a dependency through fifty-odd sites so a pure `Chain.asset()` can read a constant makes every caller carry a parameter for nothing at runtime. The rule's stated reason is that a call site reaching for a service is where an app-side variant creeps in, and a frozen table cannot drift. Worth deciding whether the rule should carve this out before spending the change. **Method note, learned five times over:** grep counts on property names are useless here — `.feeAsset` matched 381 lines and was really twenty sites; `ConfirmParams` was "59 files" and was twelve; `Chain.asset()` was "~52 callers" and was twenty-one; and the holder count in this very section was wrong in both directions. Make the change, let the compiler count, and revert if it lands somewhere a dependency cannot go — `AddressFormatter` and `NetworkSelectorViewModel` both did, and both are recorded above rather than forced.
+
+One more shape worth knowing, met in `AssetsFilterViewModel`: storing a service costs a value type its synthesised `Equatable`. Where the remaining fields are the value's real identity (`type`, `chainsFilter`, `hasBalance`) a hand-written `==` over them is correct and small — the service is a stateless dependency, not state. Where the type has many fields, or equality drives something subtle, that is the point to stop and reconsider, as `CopyTypeViewModel`/`WalletViewModel` did under `AddressFormatter`.
+
+### Surveyed divergences — the consolidation backlog
+
+Rows were verified against the code and adversarially re-checked; **V5, N4, N6, V7 and T4 were examined and found wrong — do not re-add them**; **S5 and S6 were stale — both are already done**: both platforms call `GemWalletConnectService.shouldProcessMessage` for replay suppression and `isOriginRejected` for origin rejection, so do not re-add them (the one real gap S5 still had, Android not deduping session *proposals*, is fixed); V6 was half wrong and is now closed (its "recents include hidden assets" claim is false — the recents query already applies `asset.rank >= 0`, which is exactly how Android derives `isEnabled`, so `recentFilter` leaving ENABLED unmapped is correct; the real half, fully-staked balances in swap recents, is fixed). Read each row's action, not just its description.
+
+Found by reading both platforms side by side. Ranked within each group by value: a difference the **user or an attacker can observe** outranks pure duplication. Each row is a batch; delete the row when it lands.
+
+#### Security and key material — do these first
+
+| # | What | iOS | Android | The difference |
+|---|---|---|---|---|
+| S1 | Keystore password scope | `Stores/KeystorePasswordStore.swift:14-16` drops the `walletId` and returns one global Keychain secret | `stores/KeystorePasswordStore.kt:12-28` reads per wallet, but on create it writes **the same global secret** under the wallet id as a compatibility alias | Core's `GemKeystorePassword` contract is per-wallet and neither platform honours it — checked, and the survey's claim that Android limits the blast radius is wrong, the secret is identical across wallets on both. Still worth deciding: either make it genuinely per-wallet (needs a re-encrypt migration) or drop `wallet_id` from the trait so the contract stops implying something untrue. |
+| S3 | Biometric gate placement | Keychain ACL on the item itself (`LocalKeystorePassword.swift:100-107`), so every secret read prompts | A separate UI call at each call site (`ConfirmScreen.kt:150`, `WalletConnectReviewScene.kt:49`, `routes/Wallet.kt:51`); `PasswordStore` itself is unauthenticated | On Android the gate is advisory — any new caller reaching `PasswordStore` bypasses it. Core should mark which operations require authentication. |
+| S8 | Privacy lock | Setting + `shouldCoverScreen` rule (`LockSceneViewModel.swift:79-87`), overlay window | none; nearest is an unrelated `FLAG_SECURE` toggle | A whole app-lock setting exists on one platform. The cover predicate is Core's; the overlay/`FLAG_SECURE` is platform. |
+| S9 | WalletConnect one-click auth (SIWE) | none | `WCAuthViewModel.kt:238-323` builds issuer, payload and message; method table hand-written in `Namespace.kt:9-75` | An entire signing surface — including *what the user is asked to sign* — exists on Android only, with its rules in UI code. |
+
+#### Notifications, device and streaming
+
+| # | What | iOS | Android | The difference |
+|---|---|---|---|---|
+| N1 | Permission prompt | `NotificationPermissions.swift:13-15` + `PushNotificationService.swift:25-40` — granted → register, undetermined → prompt, denied → Settings | `NotificationPermissions.kt:12-22` — anything but "already enabled" jumps to system Settings; the runtime prompt lives in the UI gate instead | Partly fixed: Core refuses to enable when permission is refused, and the Android gate asks before acting instead of after, so a fresh install no longer gets Settings and the prompt at once. Still open: the adapter opens Settings for a user who has never been asked, because it holds an application Context and cannot tell that from a denial — it needs an activity-scoped requester, and Core should own the three-state decision rather than a single boolean. |
+| N9 | Build capability flag | none | `NotificationsAvailable.kt` per flavour, consumed in about forty places | Core cannot reason about "this build can never have a token". The dead `RequestPushToken.initRequester` is gone. |
+
+#### Timers, reconnects and refresh cadence — all silently drifting
+
+| # | What | iOS | Android | The difference |
+|---|---|---|---|---|
+| T3 | Swap quote debounce | `SwapScene.swift` debounce 250 ms | `RequestSwapQuotes.QUOTE_DEBOUNCE_MS` 500 ms | The 30 s refresh interval is now `GemSwapQuoteService.refresh_interval_milliseconds`, read by both. The debounce is still two numbers and wants a decision, not a coin flip — 250 ms is snappier, 500 ms halves a fan-out across swap providers. Same question as the 250/500 ms name-resolution debounce. **Not drift:** Android stopping the refresh loop after a failed quote is deliberate and pinned by `quote errors do not schedule automatic retries`. Whether iOS should also stop retrying is the open question; do not silently delete the Android break. |
+| T5 | In-app polling | two `onTimer` sites, both Core-driven now | fiat ticker, Core-driven | The row described four hardcoded iOS timers (positions, charts, asset, activity); only two `onTimer` sites exist, and both read their interval from Core — swap from `GemSwapQuoteService`, fiat from `GemFiatService`. `PRICES_UPDATE_INTERVAL_SECONDS` is not unused either: Core reads it in `prices_outdated`, and Android exposes it through `PerpetualConfig`. What is left is the design question the row was really about — whether a screen should poll at all on top of a live socket — which is a decision, not a missing call. |
+| T7 | Live price subscription | `PriceUpdater.swift`, called from the asset screen and both swap legs | now also subscribed from both swap legs | The user-visible half is fixed: Android's swap screen never subscribed its pair, so fiat values only moved if some other screen had subscribed those assets first. What is left is the original intent — Core deciding *when* prices are subscribed rather than each screen asking — which would then delete `PriceUpdater.swift`. That is a design change, not a missing call. |
+| T12 | App-start ordering | `OnstartService` + `RootSceneViewModel` | `SyncService.kt` | `GemAppStartService.run()` now ends with the device sync, so neither app bolts one on: Android's `SyncService` is just `run()`, and iOS dropped the separate task in `RootSceneViewModel.setup`. Still per-platform: the v3 keystore migration runs from `OnstartService` on iOS and `MainViewModel` on Android — left alone deliberately, the migration is temporary. iOS still gates wallet setup on unlock and Android does not, which is a lifecycle decision. |
+
+**T8 was half wrong.** Android does get `clear_markets` and `sync_markets_if_stale` — through `SyncPerpetualsImpl`, which calls `syncEnablement(null)`, not through the connect path the row was looking at. The real problem was smaller: `ObservePerpetualWallet` ANDed its own `isPerpetualEnabled()` with `showPerpetuals(wallet)`, which already ANDs that same flag inside Core, so the enabled state was read from two places and could disagree. The flag is now only the change trigger and Core decides.
+
+Found while landing the batches above, not yet fixed:
+
+- **The reconnect cap was a real decision, not a default.** Android's 30 s was set deliberately (`d1cdb74`, "Cap stream reconnect backoff at 30s") so the price stream resumes within half a minute; iOS's 60 s was the untouched default from the initial import. Core took 30 s. Worth knowing before "restoring" 60 s.
+- **Deleting a wallet was leaking v3 secrets, and the backlog description was wrong about why.** S10 said "Core already deletes the keystore, so neither app should". Core deleted the **v4** file only; the legacy **v3** file was app-side on both platforms, so removing the app calls without moving v3 cleanup into Core would have orphaned WalletCore secrets on installs that never finished migrating. The two apps also disagreed on how to find it: iOS scanned by name, suffix and JSON `id`; Android checked one exact filename, so it would leak a v3 file written under WalletCore's own `UTC--…--<uuid>` name. Core owns the locator now, content-matching gated on a successful keystore parse because Android's keystore base directory is the app's whole data directory.
+- **Stake push notifications go to different places.** iOS `case .stake: break` only selects the wallet tab, behind a TODO; Android opens the asset via `prepareAssetRoutes`. A navigation decision rather than payload decoding, so it was left alone — but it is a real behavioural difference and wants a decision.
+- **Dead typeshare models.** `PushNotificationAsset`, `SwapAsset`, `WalletAsset`, `Transaction` and `Reward` are unused by both apps now (only `PushNotificationTypes` survives, in one Android test). Dropping their `#[typeshare]` attributes would delete the generated models, but needs `just generate-models` on both platforms.
+- **Count the copies before adding one.** The candle interval mapping was described here as two app-side copies; it was three — `candle_interval` in `gem_hypercore` has always driven the REST candlestick fetch. Writing a fresh rule would have made a fourth, free to drift from the fetch path, and the subscribed interval must equal the fetched interval or the chart never updates. Check `core/crates/` before writing a rule that sounds new.
+- **Same button, two strings, and a product call to make.** iOS says "Use Minimum Amount" (`swap_use_minimum_amount`); Android says "Minimum amount" (`stake_minimum_amount`), borrowed from staking because there is no swap-specific key. Nobody has guessed at new copy.
+- **Core's `ValueFormatter` is not locale-aware.** Formatting the activation-fee amount in Core would have regressed non-`en` locales, so Core hands over `{ value, decimals, symbol }` and each app keeps its own formatter. Applies to any future amount rule.
+
+**Two of the above are fixed.** `get_perpetual_candlesticks` now returns `PlatformError` for an unparseable period instead of unwrapping, and the `migrate_v3_*` tests take a per-process, per-call temp directory. The second was verified by mutation: restoring the fixed path fails 5-of-6 tests on every concurrent run, the unique path passes every time.
+
+#### Live defects found by the verification pass, not yet fixed
+
+| What | Where | Why it matters |
+|---|---|---|
+| Android silently re-enables push 30 days after a deliberate opt-out | `SettingsViewModel.kt:123-128` calls `stopAskNotifications()` on **disable**, restarting the 30-day timer; `AppViewModel.kt:83-89` then re-asks and `PushRequest.kt:25-29` finds `POST_NOTIFICATIONS` still granted, so it enables with no dialog | Reverses an explicit privacy choice. Needs somewhere to record "the user said no", which does not exist yet |
+
+**The swap-pay recents row was stale.** `referencesBalances` already covers `.hasAvailableBalance`, so the join is added, and `swapPayKeepsOnlyAssetsWithAnAvailableBalance` exercises the exact filter set. Nothing to fix.
+
+**Pull-to-refresh on perpetual markets is fixed.** Both platforms ran their user pull through the same call as their background timer, so `MARKETS_REFRESH_INTERVAL_SECONDS = 3600` swallowed it — pulling did nothing for up to an hour. Core now takes the caller's intent rather than a boolean: `GemMarketsRefreshTrigger { Scheduled, UserRequested }`, with `sync_markets_if_needed` and `sync_enablement` taking it and `rules::should_sync_markets` deciding what each means. The apps say what happened, not what to do. On iOS the modifier was the bug — `refreshableTimer` fired one closure for both the pull and the tick, so its action now takes a `RefreshSource`; three other screens ignore it. Covered by `should_sync_markets` in Core, `pullToRefreshUpdatesMarketsThatTheTimerWouldSkip` on iOS and `pull to refresh asks core for a user requested markets sync` on Android, all three mutation-checked.
+
+Worth knowing for the next Android view-model test: the first version passed in isolation and failed in the full run. `onRefresh` hands its work to `Dispatchers.IO`, which `advanceUntilIdle()` does not wait for — a `CompletableDeferred` completed inside the mock is deterministic. It then failed a second time with `Dispatchers.Main is used concurrently with setting it`, the same cause as the earlier `SwapViewModelTest` flake: teardown must cancel `viewModelScope` before `resetMain()`, or the eagerly-started `stateIn` flows outlive the dispatcher.
+
+#### Tests that cannot fail
+
+- `Migration_88_89Test.kt:35` seeds a multi-sig banner with `asset_id NULL`, the pre-`46889318bc` contract, and only calls `runMigrationsAndValidate`, which checks the schema and never asserts the row survived — so it cannot fail on data loss either. Still open: it is an `androidTest`, so fixing it means running it on a device, which no one has done here.
+
+Pure duplication, no divergence found (lower priority, still one rule each): swap slippage bounds, min-receive BPS math, swap ETA truncation, the critical-warning gate, collections availability, and the custom-fee minimum check — each written once per platform on top of a Core call that already exists.
+
+### No service is constructed at a call site
+
+A `Gem*Service()` in a field initialiser or at file scope is a second instance of something the graph already owns, and it is where app-side variants creep back in. Every one is injected: iOS registers it in `ServicesFactory`, exposes it through `@Entry`, and passes it into the view model; Android provides it in `RulesModule` and injects it. A stateless Compose component or a value-type extension takes the *answer* as a parameter — it does not reach for the service. Done so far: the amount service, balance calculator and transaction formatter. `GemPaymentService` is done — `decodePayment` is an extension on the service, so the two view models that used it inject their own and the file-scope holder is gone. Still open, and measured: **twelve** file-scope holders remain, mirrored across both platforms — `GemAssetConfigService`, `GemAddressService`, `GemDeeplinkService`, `GemTransferService`, `GemChainService` and `GemApplicationMetadataService`. They are not a find-and-replace. Each is read by a value-type extension that Compose scenes call directly: `AddressFormatter` alone is constructed at twelve sites, nearly all of them inside `presents/` or `ui/components/`. Honouring the rule there means lifting the formatted value into a view model at every one, feature by feature — a wide mechanical change, not a swap. `GemPaymentService` was the easy shape (two view models, both already injecting) and is done. Worth knowing before starting: these are stateless Core objects, so the "second instance" costs nothing at runtime; the reason to do it is the second half of the rule, that a call site reaching for a service is where an app-side variant later creeps in. The holders in `gemcore/ext/*`, `GemstonePrimitives/Sources/Extensions/*` and the Compose components.
+
+### Design decisions to apply everywhere
+
+- **One preferences owner.** `GemPreferencesService` (Core, over the key-value `GemPreferencesStore`) owns every product preference; iOS `GemstonePreferencesStore`/`ObservablePreferences` and Android `UserConfig`/`ConfigStore` are storage adapters plus SwiftUI/Compose observation, nothing else, and no service or view model injects both an app preferences object and `GemPreferencesServiceProtocol`. Two things to know when adding a key: iOS namespaces every key as `gemstone_*` except the handful whose pre-move values must carry over (`currency`, `appearance`, `is_perpetual_enabled`, `is_push_notifications_enabled`, `swap_slippage_bps`, the `perpetual_*` defaults, the per-chain `explorer_name_*` keys, and the four aliased ones — `current_wallet_id`, `price_alerts_enabled`, `is_hide_balance_enabled`, `is_accept_terms_completed`), and `currency` is mirrored into the `group.com.gemwallet.ios` app group for the price widget. The app lock is not a preference: `authRequired` and `getLockInterval` live in secure storage on both platforms (iOS `KeystorePassword`, Android `TinkGemPreferences` over `GemSecureStore`), each still falling back to its pre-move DataStore/`ConfigStore` value until the next write.
+- **Amounts are typed, and named for their type.** A big-integer quantity in atomic units is a `value`; an `f64` is an `amount` — `GemBalanceValue.amount: f64` and `margin_amount: f64` against `minimum_value`, `available_value`, `max_value`. A model field holding a big integer is typed `GemBigInt`, never `String` parsed at point of use: `GemBigInt` is a UniFFI custom type (`models/custom_types.rs:48-56`) that lowers to a `String` and lifts with a **fallible** `try_lift`, so the generated Swift and Kotlin signatures stay `String` while a malformed value fails at the boundary instead of becoming a silent zero. That deletes the `unwrap_or_default()` and `is_ok_and(...)` helpers that otherwise accumulate around each field. Two exceptions, both about wire format rather than taste: a type that also derives `Serialize`/`Deserialize` crosses as JSON, and `num_bigint`'s serde form is not a string, so retyping one changes a format shared with the apps or the backend; and `primitives::` typeshare structs are the backend's contract. Leave both as `String` and parse at the edge. Known violations still to fix: `GemPerpetualOrderInput.usdc_value` is named correctly but still typed `String` — retyping it makes `perpetual::rules::order` infallible, which turns the exported `GemPerpetual.order` non-throwing and changes two iOS call sites plus Android, so it lands with both app builds green, not on its own. `Permit2Detail.amount` and `SwapperError::InputAmountError.min_amount` are big-integer strings named `amount`, but they live in the `swapper` crate behind `#[uniffi::remote]`; `Permit2Detail.amount` additionally mirrors the EIP-712 `PermitDetails` field name and stays.
+- **Encoding to the boundary cannot fail; decoding from it can.** Core's `json_bridge!` lowers with an infallible closure that `debug_assert!`s and yields an empty string, and lifts with a fallible one. Android's `toJson` does not throw and `decodeJson` does. iOS now matches on both sides: `JsonCodable.json()` is non-throwing — it asserts in debug and returns `""` in release, exactly as Core does — while `init(_ json:)` still throws. A `try` in front of `.json()` was never catching anything a caller could act on, and the four `GemTransactionFormatter` helpers that existed only to absorb it are gone.
+- **No `try? … ?? default` on Core calls.** Core preference reads are infallible (`GemPreferencesStore.get`/`GemWalletPreferencesStore.get` return `Option`), so getters return plain values; the only allowed fallback is the JSON→enum decode of a Core-provided enum in `GemPreferencesService+GemstonePrimitives.swift` (`currencyValue`, `chartPeriodValue`, …), never in a view model. Keychain-backed values are not preferences: the gateway's secure store implements the separate, fallible `GemSecureStore` trait (iOS `GemstoneSecurePreferencesStore`, Android `TinkGemPreferences`). A Core method either cannot fail (rule with a built-in default, like `includes_perpetual_collateral`) or its failure is surfaced (thrown, mapped to a localized error, or recorded through `services::failures::record`). Deliberate fail-open fallbacks (keep, do not "fix"): transaction scan outage, address-name lookup → cached names, perpetual account mode → stored mode, explorer name → first explorer, corrupt cached config → refetch, per-chain token search → no match for that chain. Same on Android: no bare `runCatching { coreCall }` without logging or a user-visible state — use `runCatchingCancellable` and handle the failure.
+- **A model field is optional only when absent means something.** `AssetInfo.metadata` is `AssetMetaData? = null` on Android while iOS's `AssetData.metadata` is a plain `AssetMetaData` built with a default, and nothing distinguishes "metadata not loaded" from "metadata says no" — so the null is not carrying information, it is deferring a decision to whoever dereferences it. Around forty `metadata?.` call sites then answer it independently and inconsistently: `?.isPinned != true` defaults to not-pinned, `?.isBuyEnabled == true` defaults to false, `?.stakingApr ?: 0.0` and `?.rankScore ?: 0` invent their own zeros. Give Android the same non-null field with one default instance, and every one of those collapses to a plain read. Where a Core rule takes such a flag (`shows_stake_balance(chain, is_stake_enabled, balance)`) the flag itself is right to pass — it is per-asset backend metadata, not derivable from `Chain` — but the missing-value decision belongs in Core or in the model, not re-answered at each call site in two languages.
+- **`GemConfirmInput` is not comparable by equality.** `GemTransactionInputType` carries `asset` and `stakeType` as embedded JSON strings, and serde reformats them on decode, so an input that has been through `encode_confirm_input`/`decode_confirm_input` compares unequal to the one it came from while meaning the same thing. The wire form *is* idempotent — pack, unpack, pack returns the same string — and that is the property to assert. Nothing may build navigation dedupe or `distinctUntilChanged` on `GemConfirmInput ==`; `ConfirmInputPropertiesTest` pins both halves of this.
+- **A mapping copies fields; it never substitutes a literal.** A constructor that fills one field with `"0"` where the source type has that field is a silent-zero bug wearing the clothes of a conversion — `GemStakeBalance(_ balance:)` did exactly that with `rewards`, understating every staked balance by the user's unclaimed rewards and, for an asset that is not stake-enabled, removing the stake row from the screen entirely. When a source field genuinely has no counterpart, that is a modelling gap to raise, not a literal to invent.
+- **Swift warnings are invisible from the build recipe.** `just ios build` pipes xcodebuild through `xcbeautify --quieter`, which drops warnings entirely, so dead `try`, unreachable `catch` and their kind accumulate unseen — 42 had built up before anyone looked. To see them, run xcodebuild raw with the same flags, after touching the sources (Swift only re-emits warnings for files it recompiles).
+- **Store adapters are mirrors.** For every `Gem*Store` trait method the iOS and Android adapters must do the same reads/writes with the same filters, batching and transactions; the divergences below are bugs until proven otherwise. Settled so far: `add_missing_balances` filters to stored assets in Core, so neither adapter repeats the lookup and neither can insert a balance that violates its asset foreign key; a perpetual's asset row is written by Core through `GemAssetStore.save_assets` (`perpetual_asset_basics`), so neither perpetual adapter touches the asset table and Android stops silently ignoring an updated row; `set_swappable_assets`/`set_stakeable_assets` are additive on both platforms because `sync_swappable_chains` and `sync_default_assets` top up the same flag that `sync_availability` replaces; a transaction's derived swap asset links are rebuilt on both platforms whenever metadata arrives, inside the same database transaction as the row it belongs to; the banner row id is Core's `banner_identifier` on both platforms; balances are filtered and written in one round trip on both (`getVisibleAssetIds` in SQL, `setWalletAssetsVisibility` and `updateBalances` inside one database transaction); pending transactions read their wallets in a single query; search lists are delete-then-insert per type on both, so an empty result clears the stale rows instead of leaving them; address-name deletes are one transaction.
+- **One device identity owner.** `GemDeviceKeyService` (Core, over `GemSecureStore`) owns get-or-create: it stores the private key as hex under `device_private_key`, derives the public key rather than trusting a stored copy, and caches the pair. It refuses to mint a new identity when the store errors or the stored key is unreadable — the failure propagates instead, because a silent regeneration re-registers the device and orphans its push subscriptions. The two app implementations are deleted (`GetDeviceId`/`GetDeviceIdImpl`, `SecurePreferences.getOrCreateDeviceKeyPair`/`getDeviceId`), and each app's `GemSecureStore` adapter carries the legacy read-through: iOS reads the unnamespaced keychain `devicePrivateKey` `Data` and rewrites it as hex under the namespaced key, keeping `whenUnlockedThisDeviceOnly`; Android reads `TinkSecurityStore` (`gem_device_keys`, and through it the pre-Tink DataStore layer) and rewrites it into the Core store.
+- **One device owner.** `GemDeviceService` owns registration, the pushed-device diff and the in-flight lock; both apps hold it directly, and Android's `DeviceRepository` is only what it really is — the `GemDevicePlatform` implementation, reading the currency from `GemPreferencesService` like iOS. Android calls `synchronize_if_needed` everywhere while iOS forces `synchronize` after a token, currency or subscription change; Core's `needs_sync` already diffs all three, so the cheaper call is the right one and the difference is deliberate.
+- **One currency owner.** `GemPreferencesService` holds the currency on both platforms, because Core-internal reads (`GemBalanceService`, price syncs) must see the same value the UI shows — a second copy silently runs them on the default. Android keeps the Room `session.currency` row in step only because the `asset_info` view joins prices on it.
+- **Ephemeral state that the UI observes belongs to the store adapter, not to Core and not to a class of its own.** Core has no way to publish a change, so the `Gem*Store` trait *is* its push channel: `GemSupportStore.update_typing` arrives from the stream and the adapter holds the agent where SwiftUI and Compose can observe it (`GemstoneSupportStore.typingAgent` on both apps).
+- **Tracking a transaction is fire-and-forget on purpose.** `GemTransactionStateService.track` polls until the transaction settles, so a caller that awaits it blocks for the lifetime of the transaction. Both apps start it in a detached task and log the failure; do not "fix" this by folding `track` into `add_notification_transaction` in Core.
+- **A case holds one Core service, or composes other cases — never a repository.** See [How a service is built](#5-call-it-from-the-app--the-service-itself-on-ios-a-case-on-android); the repositories still in the Android graph are legacy and listed under [Android](#android).
+
+### The confirm seam
+
+Every service and store trait is migrated; what is left of the migration lives in one screen. Both apps rebuild Core's confirm records as their own aggregates, map into them, and map back out to call Core. Core already exposes the whole flow: `GemConfirmInput`, `GemConfirmLoadOptions`, `GemConfirmData`, `GemSendInput`, `GemExecuteResult`, `GemTransferData`, `GemRecipient`, `GemTransactionInputType`, `GemTransactionLoadFee`, `GemFeeRate`, `GemGasPriceType`, `GemFeeOptions`, `GemTransactionLoadMetadata`, `GemSignerInput`, `GemSignedTransaction`, plus the `GemTransferService` derivations (`transaction_type`, `asset`, `fee_asset`, `output`, `approval`, `available_value`) and the free rules `acquire_asset_flow`, `default_fee_priority`, `is_insufficient_network_fee`.
+
+App types in the seam, with their Core home:
+
+| App type | Platform | References | Core record |
+| --- | --- | --- | --- |
+| `ConfirmParams` (sealed, 16 subclasses) + `Builder` | Android | 249 | `GemConfirmInput` + `GemTransferData` |
+| `AmountParams` | Android | 166 | `GemTransferData` fields |
+| `TransferData` mappers (`toTransferData`, `toDto`, `toConfirmParams`) | Android | 62 | `GemTransferData`, `GemTransactionInputType` |
+| `SignerParams` | Android | 14 | now carries `GemConfirmData` itself, plus the input, the typed `Fee` and the signed amount |
+| `Fee` (sealed), `FeeSelection`, `DestinationAddress` | Android | — | `GemTransactionLoadFee`, `GemConfirmFeeSelection`, `GemRecipient` |
+| `ConfirmTransferPreload` | iOS | 8 | `GemConfirmData` |
+| `TransferAmount` | iOS | 18 | `GemTransferAmount` — the typed view of Core's calculator output |
+| `Fee`, `FeeRate`, `GasPriceType`, `TransferData`, `TransferDataExtra` (Primitives) | iOS | — | `GemTransactionLoadFee`, `GemFeeRate`, `GemGasPriceType`, `GemTransferData`, `GemTransferDataExtra` |
+
+Android converts the same payload seven times per confirm screen: `pack` → `unpack` → view model re-pack → `SignerPreloaderProxy.toConfirmInput` → `CalculateTransferAmount` → `availableValue` → `toSendInput`.
+
+**iOS's remaining duplicates are a module-boundary problem, not a sweep.** `Recipient`, `TransferData`, `TransferDataType`, `FeeRate` and `GasPriceType` all live in `Primitives`, which depends on `BigInt` and nothing else and never imports `Gemstone` — deliberately, since it also carries the typeshare backend contract. They therefore cannot hold `GemRecipient`/`GemTransferData`/`GemFeeRate` where they are. Android has no equivalent problem because `gemcore` depends on the generated bindings, which is why every one of these consolidations has been possible there first and blocked here.
+
+There are two ways through and they are not equivalent. Either `Primitives` gains a dependency on `Gemstone`, which inverts the layering for every type in the module including the generated ones; or the hand-written app-flow types move up into `GemstonePrimitives`, which already depends on both, leaving `Primitives` as the backend contract plus `BigInt` value types. The second is the one that matches what those types are, but it is a module reorganisation across 50+ files and wants deciding before it is started, not during.
+
+Separately, `TransferData.value` is a `BigInt` and `GemTransferData.value` reaches Swift as a `String` typealias, so even after the move that field cannot be carried directly — this is the same `GemBigInt` boundary that keeps `Fee`, `FeeOptionMap` and `TransferAmount` alive.
+
+Blockers, in the order they have to be solved:
+
+1. **Typed reads over JSON strings.** Every Core primitive crosses UniFFI as a JSON `String` typealias (`Asset`, `AssetId`, `Account`, `Wallet`, `ApplicationMetadata`, `ApprovalData`, `StakeType`, `PerpetualType`, `TransactionType`, `SimulationResult`, `ScanTransaction`). The UI reads `asset.decimals`, `asset.symbol`, `assetId.chain` everywhere, so carrying `GemConfirmInput` end to end means decoding at each read site or keeping one decoded shadow per screen. This is the largest blocker and it applies to both apps.
+2. **`GemConfirmData` does not echo its input.** Android's `SignerParams.input` and iOS's `ConfirmTransferInput` exist only to keep the input beside the result. Either the apps hold the `GemConfirmInput` they sent, or Core returns it.
+3. **The signed amount has no carrier.** Android's `SignerParams.finalAmount` (written once, read once) and iOS's `TransferAmount.value` both feed `GemSendInput.value`; nothing in Core carries it between `load` and `execute`.
+
+4. **Fee priority is split.** `GemTransactionLoadFee` has no priority; `GemConfirmData.selected_priority` carries it separately and both apps fuse them into their own `Fee` (iOS's `Fee` has no priority at all — the selection carries it, which is the shape Android should reach). A custom gas price still comes back as `selected_priority: normal` from `select_fee_rate`, so `Fee.priority` lies for custom fees until Android stops storing the priority in `Fee`.
+5. **Fee subclass identity.** Android's `Fee` sealed subclasses (Plain/Regular/Eip1559/Solana) are chosen from the chain type and then unchecked-cast the gas price; Core models this as one `GemGasPriceType` enum. iOS keeps `BigInt` fee math against Core's decimal strings.
+6. **`ConfirmParams` is narrower than Core's enum.** `TokenApprove` and `Earn` have no `ConfirmParams` subclass, so `unpack` returns `null` and the confirm screen cancels; the Earn half waits on the Android Earn surface.
+7. **Presentation code switches on app subclasses.** `ConfirmProperty.Destination.map`, `BuildConfirmPropertiesImpl.getValidator` and the swap/perpetual detail builders do exhaustive `when` over `ConfirmParams`; they have to be rewritten against `GemTransactionInputType`.
+8. **`GemConfirmData.scan` is never read** by either app — only the fatal verdicts surface, as errors from Core.
+
+Defects found in this path (fixed ones are removed from this list): the WalletConnect `extra.gas_price` from a dapp is dropped by Android's `toGenericParams`/`Generic.toDto` round trip (latent — Core has no consumer yet); `GemTransferData.minimum_value` is never read by `toConfirmParams` and survives only because swaps re-derive it from the quote; `ConfirmParams` overrides `hashCode` without `equals`, so every re-emission looks like a change.
+
+### One service per feature, the same one on both platforms
+
+A screen should ask one thing for its data, and that thing should be the same on both platforms: on iOS the Core `Gem*Service` for the feature, on Android the coordinator that implements that feature's cases. Where a feature's decisions need no store or API they live on its constructible service (`GemStakeConfig`, `GemAssetConfigService`, `GemChainService`); where it needs I/O it holds the I/O service too, and the split stays visible.
+
+The features to shape this way, in the order the screens were built:
+
+| Feature | iOS today | Android today | Target |
+| --- | --- | --- | --- |
+| Validator selection | `ValidatorSelectSceneViewModel` + `StakeSceneViewModel` each call `GemStakeConfig` | `GetValidators`, `GetRecommendedValidator`, `GetRecommendedValidatorIds` cases | one `GemValidatorService` in Core over `GemStakeStore` (selectable, recommended, ids, by id), so neither app filters or sorts validators itself |
+| Delegation | `DelegationSceneViewModel` holds `GemStakeConfig` | `GetDelegation`/`GetDelegations` cases over `StakeDao` | delegation reads move behind `GemStakeService`; actions and claimability stay on the constructible `GemStakeConfig` |
+| Price alerts | `PriceAlertsSceneViewModel` holds `GemPriceAlertServiceProtocol` | `PriceAlertsCoordinator` implements the five write/flag cases; the three reads hold `GemstonePriceAlertStore` | the reads move onto `GemPriceAlertService` (it already owns the store trait), leaving those three cases as one-line forwards or nothing |
+| Transactions | `TransactionsViewModel` over GRDB requests | `GetTransactions`/`GetTransaction` over `GemstoneTransactionStore` | the row's title and its sub-line are `GemTransactionFormatter.title`/`.subtitle` on both platforms; still open — `GemTransactionsService` answers the point reads, and the value sign and the swap pair follow them into the formatter. Only the observed list stays platform-side |
+| Perpetuals | `PerpetualSceneViewModel` + observer trio | `PerpetualRepository` + observer trio | see the Hyperliquid item below; the reads join `GemPerpetualService` |
+| NFT, contacts, support, banners, notifications | view models hold the Core service | cases over the DAO | same shape: the Core service answers, the app observes |
+
+- **A case must not take a Room DAO.** It is the same violation as taking a repository: the case then owns a second read path Core cannot see, and the two drift. Every case now holds the platform *store adapter* instead — the same `Gemstone*Store` Core writes through, which is where `GemstoneSupportStore.typingAgent` already lives. The adapters carry the observed reads (`GemstoneStakeStore.observeValidators`, `GemstoneBannerStore.observeMultiSign`, `GemstoneNftStore.observeNftData`, `GemstoneAddressStore.observeAddressName`, `GemstoneFiatStore.observeTransactions`, `GemstonePriceStore.observeUsdPrice`, …), so each DAO has one reader again. What is left for these cases is the second half: moving the point reads onto the Core service that already owns the matching `Gem*Store`, leaving the app only what Core cannot express — an observed list.
+
+### Hyperliquid streaming belongs in Core
+
+Done, in part. `GemPerpetualStreamService` ([perpetual/stream.rs](../gemstone/src/services/perpetual/stream.rs)) owns the subscription set, the frames and the dispatch: `connected`, `disconnected`, `subscribe`, `unsubscribe` and `handle`, which applies a socket message and hands back only a chart candle. Each app keeps its socket behind the `GemPerpetualStreamConnection` foreign trait and its chart sink, which deleted `HyperliquidSubscriptionService` and `HyperliquidEventHandler` on both platforms (about 160 lines) along with the two app tests that were re-asserting the framing `WebSocketSubscriptions` already tests in Rust.
+
+The websocket URL rule went with it: `GemNodeService.websocket_node_url(chain)` swaps the scheme and appends `"ws"` once, which deleted iOS `PerpetualNodeService` and Android's `toWebSocketUrl`. What is left of the stack is the connection lifecycle, and it is smaller than it was. `GemPerpetualService.connection(wallet)` answers what both observers used to work out for themselves — which account signs for perpetuals, and its account mode, syncing positions first and falling back to the stored mode when that fails. Neither observer resolves an address or a mode any more. What remains is genuinely each platform's own: [iOS `HyperliquidObserverService`](../../ios/Packages/GemstoneServices/Sources/Perpetual/HyperliquidObserverService.swift) is an actor that holds one wallet and cancels its observe task; [Android's](../../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/perpetual/HyperliquidObserverService.kt) combines a foreground flag with the observed wallet and collects. Those are the idioms, not the rules, and they stay.
+
+One divergence the comparison surfaced and did not fix: Android syncs the perpetual market list when the wallet changes (a second `scope.launch` calling `syncPerpetuals`) and iOS does not. It needs a decision rather than a port — markets are global rather than per-wallet, and the sync is throttled by `MARKETS_REFRESH_INTERVAL_SECONDS` anyway, so the question is whether the Android call earns its keep, not whether iOS is missing one.
+
+### Rust (core/gemstone)
+
+- A service reaches its own rules. `GemNameService.recipients()` hands back the `GemRecipientService` it already holds, so nothing holding the domain service needs a second one registered beside it. Prefer this over adding a sibling service to the resolver or the Hilt graph. The limit is construction cost, not taste: a caller that needs only rules must not be made to hold a service that needs a gateway, an API client and stores — that is what `GemStakeService` needs, which is why stake's rules live on the constructible `GemStakeConfig` and the service delegates to it rather than carrying a second copy.
+- Free functions become services. A `#[uniffi::export] pub fn` is a rule with no home: each app reaches it through its own extension (`Chain.matches(query:)`, `List<Chain>.filter(query)`), and those extensions are where app-side variants creep back in. `GemChainService` (`get_chains`, `get_matching_chains`, `is_valid_network_id`) is the shape: a `uniffi::Object` with a `new()` constructor, held like any other service. This started at 82 exports; 10 are left and all are deliberate: `create_auth_message`, `generate_device_key_pair`, `decode_private_key`, `encode_private_key` and `supports_private_key_import` are the key-material boundary calls, and `connection_status`, `service_status_timeout_seconds`, `banner_identifier` and `parse_support_message_display_content` are the singles at the bottom of the table. The record of where each group went:
+
+| Target service | Functions to fold in |
+| --- | --- |
+| Left as free functions | `parse_support_message_display_content`, `banner_identifier`, `connection_status`, `service_status_timeout_seconds` — one function each, no siblings to group with, and every caller is value code (a message composable, a store adapter). A service needs at least two methods to be worth holding. `default_contact_chain` left this list: it became `GemContactService.default_chain`, and the two data-class defaults that called it now take the chain from the view model |
+| Keep as free functions | `generate_device_key_pair`, `decode_private_key`, `encode_private_key`, `supports_private_key_import`, `create_auth_message` — key material, called once at a boundary that already owns the secret |
+
+- Where a service is built follows what it needs. A service with a store, an API client or a gateway is built once in `ServicesFactory` (iOS) or a Hilt module (Android) and injected — nothing constructs one at a call site. A **constructible** service (`GemChainService`, `GemAddressService`, `GemAssetConfigService`, `GemStakeConfig`, `GemTransferService`, `GemFeeService`, `GemAmountService`, `GemPaymentService`, `GemDeeplinkService`, `GemRecipientService`, `GemSwapQuoteService`, `GemApplicationMetadataService`, `GemTransactionFormatter`, `GemSimulationFormatter`, `PriceAlertFormatter`, `BalanceCalculator`, `GemPerpetual`, `GemKeystore`) is reachable from value code that has no injector, so both apps hold one as a file-level `private let`/`private val` — the same pattern, file for file. Every site holds one now — the only remaining `GemAssetConfigService()` in an expression is iOS `SelectAssetViewModel.popularIds`, a `static let` evaluated once.
+
+- One-sided exports still open: `wallet_connect::authentication_chain_ids` waits on iOS WalletConnect authentication; `nft::report` has only the iOS `ReportNftViewModel` and waits on an Android report screen; `wallet_preferences::is_initial_load_completed` drives the iOS wallet empty state and has no Android equivalent; `reset_transactions_timestamp` is an iOS developer action.
+- Transfer model: generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums collapse (685 Core, 52 Android, 5 iOS references — do it after both apps carry Core records through confirm, transaction construction is wallet-critical). **Not started.**
+
+### iOS
+
+- Store reads that belong to Core: `ConfirmSimulationService`, `FeeAssetProvider`, `TransferMetadataProvider` and `ConfirmService` read `AssetStore`, `BalanceStore`, `PriceStore` and `AddressStore` directly because the confirm screen builds its first state in a synchronous initializer and every Core method is `async`. Make those point reads synchronous on the store traits the way `GemWalletStore.get_wallet` already is, expose them synchronously on `GemAssetsService`, `GemBalanceService`, `GemPriceService` and `GemNameService`, and the four readers ask the owner. Do it before the confirm seam.
+- Confirm view models still assemble `GemSendInput` from app aggregates. See **The confirm seam** below — it is the last migration item before the `TransactionInputType` collapse.
+- The rule for a failing Core call on iOS: a Core read whose `Optional` models a real state (no wallet yet, no selected node) returns that optional and says nothing; a failure the app recovers from is **logged** and the recovery is deliberate; a failure the user must act on is thrown and mapped to localized text. Deliberate recoveries, keep them: `PerpetualService.accountMode` → the stored mode, `AmountDataProvidable.limits` → zero available (fail-closed for a send), `String+Keystore` → utf8 bytes for pre-hex passwords, `LocalKeystore.keystorePassword` → `""` is the "no password stored yet" sentinel, not a swallowed error. The 513 `try?` left outside tests are value conversions — JSON round trips, formatter parses, `wallet.account(for:)` — where `nil` is the render path, plus the developer screen; leave them.
+- Two store differences remain, and neither is an adapter bug: `banners.walletId`/`banners.assetId` are foreign keys and SQLite does not apply `INSERT OR IGNORE` conflict resolution to foreign keys, so a banner for an asset the app has not stored throws where Android stores it; `PortfolioStore` reads through `asset_info`, which joins `accounts`, so a wallet without an account row for the chain contributes nothing.
+- Dead code: the two TODOs are not stale — `NavigationHandler`'s `.stake` deep link is an unimplemented branch and `TransactionScene`'s corner radius is an open iOS 26 styling question; both mark real gaps and stay until someone closes them. The two "delete in 2026" `FileMigrator` calls (`LocalKeystore`, `DB.swift`) move the keystore and the database from the documents directory to application support on launch; deleting them strands anyone who has not opened the app since the move — losing their keystore — so this needs install-base data, not a code decision.
+- Consistency: the `JSONEncoder`/`JSONSerialization` in `WalletConnectorService` and `WalletConnectResponseType` sit on the dapp-JSON boundary and belong there.
+- Naming, still open: `GemstoneNftStore` wraps `NFTStore` and `ConnectionStore` wraps `ConnectionsStore` (one name per store), and untyped `.map()` conversions where Android has `toPrimitives()`.
+
+### Android
+
+In priority order. The last three are settled or deliberately held; presentation and localization come last.
+
+- Earn flow: Android has no Earn surface yet (no `StakeProviderType.Earn` reader, no `AmountParams.Earn`, no `ConfirmParams.Earn`, `GemDelegationAction.DEPOSIT` maps to nothing); build the Earn scene, the amount provider and the confirm params on top of `GemStakeService.sync_earn`/`get_earn_data`, `GemAmountType::Earn` and `GemTransactionInputType::Earn` (iOS `EarnSceneViewModel` + `AmountEarnViewModel` are the reference). This is a feature, not a consolidation, so plan it as its own batch.
+- Store adapter divergences (mirror iOS or fix iOS, per method). Settled: `asset_info` no longer joins prices on `session.currency` — the guard meant every balance read as empty between `setCurrency` writing the session row and Core's `convert_prices` stamping the price rows, and `TransactionsDao` already joined the same table without it. The currency has one owner again (`GemPreferencesService`); the session row's copy is a legacy read-through for the one-time `setup_currency` migration and nothing else. Still open: `AssetStore.saveAsset` bumps `updatedAt`, `TransactionStateStore` writes swap amounts and `NftStore` fills two legacy image columns — all three are confirmed dead `NOT NULL` columns with no iOS counterpart, but minSdk 28 has no `ALTER TABLE DROP COLUMN`, so removing them means recreating tables (`asset` behind its foreign keys) and instrumented migration tests do not run in CI; batch them with a migration that has another reason to touch those tables. `PriceStore` still stamps `prices.currency`, which is now only the label `AssetPriceInfo.currency` reads, and `mapNotNull`s unparsable ids where iOS maps straight through. Not a divergence: `ConnectionStore`'s three extra methods are the observed reads the case pattern puts on the adapter — iOS gets the same from `ConnectionsRequest`.
+- Layering: the portfolio screen's presentation is Core's now — `GemPortfolioService.portfolio_data` decides the charts, the statistics and the available periods for a wallet or a perpetual account, so iOS `PortfolioDataService` and Android `GetPortfolioDataImpl` only pass an input and decode. `GetWalletSummaryImpl` is down to five collaborators: the perpetual half is `PerpetualBalanceCoordinator`, which owns every read of the collateral balance — the raw one, the formatted one and the one that counts toward the wallet total (`getCollateralIncludedInTotal`, the gate iOS applies inside `AssetFiatValuesRequest`). It replaced the `GetPerpetualBalance`/`GetPerpetualBalances` pair, whose two impls read the same row. `SearchSwapAssetsImpl` and `ConfirmTransactionImpl` were on this list for mixing a Core service with an app one, but `AssetsSearchService` and `RecentAssetsService` are the platform's query layer over tables Core does not own (a filtered search, the recent-activity list), which is the same role a `Gemstone*Store` adapter plays; `TokensRepository` and `BannersRepository` are gone — `SearchTokensImpl` holds `GemSearchService` and `GemAssetsService` and picks the call per site the way iOS does. `data/services/native-provider` (only the alien provider) is a candidate to fold. An observed read belongs on the `Gemstone*Store` adapter, and the case holds the adapter — `GetShowWelcomeBannerImpl`, `ObserveFiatTransactionsImpl` and `GetAssetPriceUsdImpl` are the shape to copy.
+- Node screens: `AddNodeViewModel` holds `NodeStatusService`, `AddNodeCase`, `SetCurrentNodeCase` and a raw `GemChainService`, and does the network-id check itself — `GemGateway.check_node` answers it now, as it does for iOS. It belongs to the nodes work in flight.
+- Case naming: the legacy `com.gemwallet.android.cases.<area>/` tree is down to `cases/nodes/` (seven `*Case` interfaces, owned by the nodes work in flight); everything else lives in `application/<area>/cases/` with the `Case` suffix dropped. New areas came out of the fold: `addresses`, `contacts`, `tokens`, `security`. `bridge` merged into `wallet_connect` — one area, matching iOS.
+- `UserConfig` is the preferences adapter now; only the app-lock keys are left outside Core, in secure storage by design. What remains is deleting the `ConfigStore` fallback for `auth` once enough installs have written the secure value.
+- Consistency: still open — `toChain()` (nullable) and `requireChain()` (throws) are picked arbitrarily at call sites, and `*Service` classes live inside the coordinators module. Settled: the JSON bridge is one convention now, `decodeJson` (throws) and `decodeJsonOrNull` (null is the render path, for dapp and push payloads only); `tx` is gone from Kotlin names (`DbTransactionSwapMetadata.transactionId`, `transactionProperties`) with the database columns kept verbatim; no `fetch*`/`resolve*` names are left; the `AssetsDao` overload pair is `getAssetsInfo`/`getAssetsInfoByIds`. Not a divergence: every file in the `gemstone` package implements a Core foreign trait — `GemNotificationPermissions`, `GemStreamConnection`, `GemFileStore`, `GemKeystorePassword`, `GemPerpetualStreamConnection` are adapters like the stores, and `WalletConnectSigner` is `WalletConnectPendingRequests` in `application/wallet_connect/`.
+- Repositories: **all gone.** `grep -rn Repository android/` finds nothing. `PerpetualRepository`, `WalletsRepository`, `AssetsRepository`, `SessionRepository` and `WalletConnectorService` were replaced by cases over the `Gemstone*Store` adapters, plus three coordinators where one object had to own shared state: `WalletAssetsCoordinator` (the one current-wallet asset flow), `SessionCoordinator` (the observed session and the current currency), `WalletConnectCoordinator` (the client initialization and the merged event stream). Two more followed for the same reason: `PerpetualBalanceCoordinator` (every read of the collateral row) and `PriceAlertsCoordinator` (the alert writes and the observed enabled flag). The module they lived in is `data/services/gemstone` now — the layer that implements Core's foreign traits, named the way Core and iOS name it.
+- Error handling: suspend work uses `runCatchingCancellable` and logs what failed. The plain `runCatching` calls left are around non-suspend work (URI parsing, `valueOf`, `startActivity`, focus requests, JSON decode helpers), where cancellation cannot be swallowed — leave them.
+- Compose/platform deprecations: `PullToRefreshDefaults.containerColor` is `indicatorContainerColor` now. Two are deliberate holds. `rememberModalBottomSheetState` (5 sites) is deprecated for `rememberBottomSheetState(initialValue = Hidden)`, but the deprecated wrapper pins `isBottomSheetPartiallyExpandedDeterministicEnabled = false` while the replacement reads the live Compose flag — migrating changes how every sheet settles, on an alpha Material3 API, for no user benefit; wait for the flag to stabilize. `FirebaseMessaging.token` in `RequestrPushToken` is deprecated with no replacement in firebase-messaging 25.1.0 — `getToken()` is still the only API on the class. The clipboard ones are gone: the 14 screens take the platform `ClipboardManager` from the context (`Context.clipboardManager()`), so neither `Clipboard.nativeClipboard` nor the `NativeClipboard` typealias is used.
+- Localization: `DevelopScene`/`PaymentsScene` are developer-only screens and stay English. Still open: 59 hardcoded `dp` values (worst: `SupportMessageBubble`, `ReceiveScreen`, `ImportScreen`, `WalletTypeTab`, `FiatScene`).
+
+### How to work this list (for whoever picks it up)
+
+- One change at a time: implement in Core → regenerate bindings only if an exported signature changed (`just generate-stone` and `just generate-android-stone` from the repo root, never while an iOS build is running) → wire both apps → delete the app code it replaces → verify → commit and push to `main` directly (no PR, no `Co-Authored-By`/session trailers) → arm a CI watch for the pushed commit and fix red CI before anything else.
+- Every commit that finishes an item removes its line from this file in the same commit; do not add checkboxes or "done" notes.
+- Rules go in `rules.rs` with a unit test that would fail if the rule flipped; services are `services/<name>/{mod,model,rules,store,error}.rs` with only the files they need. No code comments. No `utils`/`helper`/`fetch`/`resolve` names, no `tx`.
+- Compare the pre-change app logic (`git show <sha>^:<path>`) with the Core rule before deleting it; when iOS and Android disagree, pick the iOS rule unless it is clearly wrong, and say so in the commit message.
+- Stores only write rows whose values differ; a case holds one Core service or composes other cases, never a repository.
+
+### Verification
+
+- Core: `cargo fmt --all && cargo clippy -p gemstone --all-targets --all-features -- -D warnings && cargo test -p gemstone --lib --all-features`; regenerate bindings only when an exported signature changes. CI also compiles the workspace with `--features unit_tests` and `chain_integration_tests`.
+- Android: root `./gradlew compileGoogleDebugKotlin compileGoogleDebugUnitTestKotlin` plus the touched modules' `testDebugUnitTest` (the root task does not compile every module's unit tests).
+- iOS: `just build && just test` from `ios/`.
+- After each batch: compare the pre-change app logic (`git show <sha>^:<path>`) with the Core rule and add the Core test that would flip if the rule flipped.
 
 ## Conventions
 
 - Identifiers cross the FFI typed: `WalletId`, `AssetId`, `Chain`, `NFTAssetId`, `Currency`; store row ids stay `String`.
-- Store methods: `get_*` reads, `set_*` preferences, `save_*` upserts, `update_<items>(…, items, delete_ids)` for reconcile writes, `delete_*` removals.
-- Rules live in `rules.rs` with unit tests; `primitives` types stay policy-free.
+- Store methods: `get_*` reads, `is_*` boolean reads, `set_*` preferences and stored flags or sets (`set_buyable_assets`, `set_assets_enabled`, `search::set_assets`), `save_*` upserts, `add_*` inserts that must not overwrite existing rows, `update_<items>(…, items, delete_ids)` for reconcile writes, `delete_*` removals, and `clear*` for wiping a whole scope (`preferences::clear`, `support::clear_typing`).
+- Rules live in `rules.rs` with unit tests built from the `testkit` mocks (`NFTData::mock_with`, `Asset::mock`, …), not hand-written literals; add the mock to `crates/primitives/src/testkit/` when one is missing. `primitives` types stay policy-free.
+- Chain icons come from the chain config, never an app-side list: `icon_chain` (an Ethereum layer 2 draws the Ethereum icon, SeiEvm draws Sei's) and `badge_chain` (the layer 2's own icon as the badge), both following `EVMChain::is_ethereum_layer2`.

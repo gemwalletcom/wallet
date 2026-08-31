@@ -2,23 +2,28 @@ pub mod rules;
 pub mod store;
 
 use crate::services::error::GemServiceError;
+use crate::services::preferences::GemPreferencesStore;
 use std::sync::Arc;
 
 use primitives::Chain;
 use primitives::node::{Node, NodeState};
+use primitives::node_config::NodeRegion;
 
 pub use store::GemNodeStore;
+
+const NODE: &str = "node";
 
 #[derive(uniffi::Object)]
 pub struct GemNodeService {
     store: Arc<dyn GemNodeStore>,
+    preferences: Arc<dyn GemPreferencesStore>,
 }
 
 #[uniffi::export]
 impl GemNodeService {
     #[uniffi::constructor]
-    pub fn new(store: Arc<dyn GemNodeStore>) -> Self {
-        Self { store }
+    pub fn new(store: Arc<dyn GemNodeStore>, preferences: Arc<dyn GemPreferencesStore>) -> Self {
+        Self { store, preferences }
     }
 
     pub fn get_default_nodes(&self, chain: Chain) -> Vec<Node> {
@@ -27,28 +32,45 @@ impl GemNodeService {
 
     pub async fn get_nodes(&self, chain: Chain) -> Result<Vec<Node>, GemServiceError> {
         let stored = self.store.get_nodes(chain).await?;
-        Ok(rules::merge_nodes(rules::default_nodes(chain), stored))
+        let nodes = rules::merge_nodes(rules::default_nodes(chain), stored);
+        let selected_url = self.selected_url(chain);
+        let selected = rules::selected_node(selected_url.clone(), nodes.clone(), rules::region_node(chain, NodeRegion::Us));
+        if selected_url.as_deref() != Some(selected.url.as_str()) {
+            self.set_selected_url(chain, selected.url)?;
+        }
+        Ok(nodes)
     }
 
-    pub async fn get_selected_node(&self, chain: Chain) -> Result<Node, GemServiceError> {
-        let selected_url = self.store.get_selected_url(chain).await?;
-        let stored_nodes = self.store.get_nodes(chain).await?;
-        Ok(rules::chain_node(chain, selected_url, stored_nodes))
+    pub fn can_delete_node(&self, chain: Chain, url: String) -> bool {
+        rules::can_delete_node(chain, &url)
     }
 
-    pub async fn get_node_url(&self, chain: Chain) -> Result<String, GemServiceError> {
-        Ok(self.get_selected_node(chain).await?.url)
+    pub fn sorted_nodes(&self, chain: Chain, nodes: Vec<Node>) -> Vec<Node> {
+        rules::sorted_nodes(chain, nodes)
     }
 
-    pub fn node_url(&self, chain: Chain, selected_url: Option<String>, stored_nodes: Vec<Node>) -> String {
-        rules::chain_node(chain, selected_url, stored_nodes).url
+    pub fn node_url(&self, chain: Chain) -> String {
+        rules::preferred_chain_node(chain, self.selected_url(chain)).url
     }
 
-    pub async fn set_selected_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
-        self.store.set_selected_url(chain, url).await
+    pub fn websocket_node_url(&self, chain: Chain) -> String {
+        rules::websocket_url(&self.node_url(chain))
+    }
+
+    pub fn selected_node(&self, chain: Chain) -> Node {
+        rules::preferred_chain_node(chain, self.selected_url(chain))
+    }
+
+    pub async fn select_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
+        let stored = self.store.get_nodes(chain).await?;
+        let selected = rules::chain_node(chain, Some(url), stored);
+        self.set_selected_url(chain, selected.url)
     }
 
     pub async fn add_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
+        if !rules::can_delete_node(chain, &url) {
+            return Ok(());
+        }
         self.store
             .add_node(
                 chain,
@@ -65,25 +87,37 @@ impl GemNodeService {
         if rules::is_default_node(&url, &rules::default_nodes(chain)) {
             return Ok(());
         }
-        self.store.delete_node(chain, url.clone()).await?;
-        if self.store.get_selected_url(chain).await? == Some(url) {
-            self.store.clear_selected_url(chain).await?;
+        if self.selected_url(chain).as_deref() == Some(url.as_str()) {
+            self.set_selected_url(chain, rules::region_node(chain, NodeRegion::Us).url)?;
         }
-        Ok(())
+        self.store.delete_node(chain, url).await
     }
+}
+
+impl GemNodeService {
+    fn selected_url(&self, chain: Chain) -> Option<String> {
+        self.preferences.get(node_key(chain))
+    }
+
+    fn set_selected_url(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
+        self.preferences.set(node_key(chain), url)
+    }
+}
+
+fn node_key(chain: Chain) -> String {
+    format!("{NODE}_{}", chain.as_ref())
 }
 
 #[cfg(test)]
 mod tests {
     use super::rules::*;
     use super::*;
-    use primitives::node_config::NodeRegion;
+    use std::collections::HashMap;
     use std::sync::Mutex;
 
     #[derive(Default)]
     struct MemoryStore {
         nodes: Mutex<Vec<Node>>,
-        selected: Mutex<Option<String>>,
     }
 
     #[async_trait::async_trait]
@@ -99,15 +133,30 @@ mod tests {
             self.nodes.lock().unwrap().retain(|node| node.url != url);
             Ok(())
         }
-        async fn get_selected_url(&self, _chain: Chain) -> Result<Option<String>, GemServiceError> {
-            Ok(self.selected.lock().unwrap().clone())
+    }
+
+    #[derive(Default)]
+    struct MemoryPreferences {
+        values: Mutex<HashMap<String, String>>,
+    }
+
+    impl GemPreferencesStore for MemoryPreferences {
+        fn get(&self, key: String) -> Option<String> {
+            self.values.lock().unwrap().get(&key).cloned()
         }
-        async fn set_selected_url(&self, _chain: Chain, url: String) -> Result<(), GemServiceError> {
-            *self.selected.lock().unwrap() = Some(url);
+
+        fn set(&self, key: String, value: String) -> Result<(), GemServiceError> {
+            self.values.lock().unwrap().insert(key, value);
             Ok(())
         }
-        async fn clear_selected_url(&self, _chain: Chain) -> Result<(), GemServiceError> {
-            *self.selected.lock().unwrap() = None;
+
+        fn remove(&self, key: String) -> Result<(), GemServiceError> {
+            self.values.lock().unwrap().remove(&key);
+            Ok(())
+        }
+
+        fn clear(&self) -> Result<(), GemServiceError> {
+            self.values.lock().unwrap().clear();
             Ok(())
         }
     }
@@ -132,45 +181,48 @@ mod tests {
     fn test_selected_node_falls_back_to_us_region() {
         futures::executor::block_on(async {
             let store = Arc::new(MemoryStore::default());
-            let service = GemNodeService::new(store.clone());
+            let preferences = Arc::new(MemoryPreferences::default());
+            let service = GemNodeService::new(store, preferences.clone());
 
-            assert_eq!(service.get_node_url(Chain::Ethereum).await.unwrap(), NodeRegion::Us.url(Chain::Ethereum));
+            assert_eq!(service.node_url(Chain::Ethereum), NodeRegion::Us.url(Chain::Ethereum));
 
-            service.set_selected_node(Chain::Ethereum, "https://unknown.example".into()).await.unwrap();
-            assert_eq!(service.get_node_url(Chain::Ethereum).await.unwrap(), NodeRegion::Us.url(Chain::Ethereum));
+            service.get_nodes(Chain::Ethereum).await.unwrap();
+            assert_eq!(preferences.get(node_key(Chain::Ethereum)), Some(NodeRegion::Us.url(Chain::Ethereum)));
+
+            service.select_node(Chain::Ethereum, "https://unknown.example".into()).await.unwrap();
+            assert_eq!(service.node_url(Chain::Ethereum), NodeRegion::Us.url(Chain::Ethereum));
         });
     }
 
     #[test]
-    fn test_delete_node_keeps_defaults_and_clears_selection() {
+    fn test_delete_node_keeps_defaults_and_selects_fallback() {
         futures::executor::block_on(async {
             let store = Arc::new(MemoryStore::default());
-            let service = GemNodeService::new(store.clone());
+            let preferences = Arc::new(MemoryPreferences::default());
+            let service = GemNodeService::new(store.clone(), preferences.clone());
             let default_url = NodeRegion::Eu.url(Chain::Ethereum);
 
             service.add_node(Chain::Ethereum, "https://custom.example".into()).await.unwrap();
-            service.set_selected_node(Chain::Ethereum, "https://custom.example".into()).await.unwrap();
+            service.select_node(Chain::Ethereum, "https://custom.example".into()).await.unwrap();
             service.delete_node(Chain::Ethereum, "https://custom.example".into()).await.unwrap();
             service.delete_node(Chain::Ethereum, default_url.clone()).await.unwrap();
 
-            assert!(store.selected.lock().unwrap().is_none());
+            let fallback_url = NodeRegion::Us.url(Chain::Ethereum);
+            assert_eq!(preferences.get(node_key(Chain::Ethereum)).as_deref(), Some(fallback_url.as_str()));
             assert!(!service.get_nodes(Chain::Ethereum).await.unwrap().iter().any(|node| node.url == "https://custom.example"));
             assert!(service.get_nodes(Chain::Ethereum).await.unwrap().iter().any(|node| node.url == default_url));
         });
     }
 
     #[test]
-    fn test_node_url_uses_known_selection_and_falls_back_to_us_region() {
-        let service = GemNodeService::new(Arc::new(MemoryStore::default()));
-        let custom = Node {
-            url: "https://custom.example".to_string(),
-            status: NodeState::Active,
-            priority: 0,
-        };
+    fn test_node_url_uses_persisted_selection_and_falls_back_when_unset() {
+        let preferences = Arc::new(MemoryPreferences::default());
+        let service = GemNodeService::new(Arc::new(MemoryStore::default()), preferences.clone());
         let us_url = NodeRegion::Us.url(Chain::Ethereum);
 
-        assert_eq!(service.node_url(Chain::Ethereum, Some(custom.url.clone()), vec![custom.clone()]), custom.url);
-        assert_eq!(service.node_url(Chain::Ethereum, Some("https://unknown.example".to_string()), vec![custom]), us_url);
-        assert_eq!(service.node_url(Chain::Ethereum, None, vec![]), us_url);
+        assert_eq!(service.node_url(Chain::Ethereum), us_url);
+        preferences.set(node_key(Chain::Ethereum), "https://persisted.example".to_string()).unwrap();
+        assert_eq!(service.node_url(Chain::Ethereum), "https://persisted.example");
+        assert_eq!(node_key(Chain::Ethereum), "node_ethereum");
     }
 }

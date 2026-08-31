@@ -1,12 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPreferencesServiceProtocol
 import Store
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemTransactionStateServiceProtocol
 import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
+import protocol Gemstone.GemPerpetualServiceProtocol
 import Foundation
-import class Gemstone.GemConfirmService
+import class Gemstone.GemTransferService
+import protocol Gemstone.GemConfirmServiceProtocol
+import class Gemstone.GemSimulationFormatter
+import class Gemstone.GemAmountService
+import class Gemstone.GemFeeService
 import Preferences
 import Primitives
 import PrimitivesComponents
@@ -15,49 +22,48 @@ public enum ConfirmServiceFactory {
     public static func create(
         explorerService: any GemExplorerServiceProtocol,
         keystore: any Keystore,
-        chainServiceFactory: any ChainServiceFactorable,
-        gemConfirmService: GemConfirmService,
-        balanceStore: BalanceStore,
+        gemConfirmService: any GemConfirmServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
         assetStore: AssetStore,
         assetsService: any GemAssetsServiceProtocol,
-        priceStore: PriceStore,
-        transactionStateScheduler: TransactionStateScheduler,
+        transactionStateService: any GemTransactionStateServiceProtocol,
         nameService: any GemNameServiceProtocol,
-        addressStore: AddressStore,
-        recentActivityStore: RecentActivityStore,
+        recentAssetsService: any RecentAssetsServiceable,
         toastPresenter: ToastPresenter,
-        chain: Chain,
+        feeService: GemFeeService,
+        transferService: GemTransferService,
+        amountService: GemAmountService,
+        simulationFormatter: GemSimulationFormatter,
+        perpetualService: any GemPerpetualServiceProtocol,
     ) -> ConfirmService {
-        let chainService = chainServiceFactory.service(for: chain)
-
         return ConfirmService(
-            metadataProvider: TransferMetadataProvider(
-                balanceStore: balanceStore,
-                priceStore: priceStore,
-            ),
+            metadataProvider: TransferMetadataProvider(confirmService: gemConfirmService),
             inputProvider: ConfirmTransferInputProvider(
                 transferTransactionProvider: TransferTransactionProvider(
                     confirmService: gemConfirmService,
                 ),
                 feeAssetProvider: FeeAssetProvider(assetStore: assetStore),
+                feeService: feeService,
+                transferService: transferService,
+                amountService: amountService,
             ),
             simulationService: ConfirmSimulationService(
                 nameService: nameService,
                 assetsService: assetsService,
-                assetStore: assetStore,
+                simulationFormatter: simulationFormatter,
             ),
-            transferExecutor: TransferExecutor(
-                signer: TransactionSigner(keystore: keystore),
-                confirmService: gemConfirmService,
-                preferences: .standard,
-                transactionStateScheduler: transactionStateScheduler,
-            ),
-            recentActivityStore: recentActivityStore,
+            gemConfirmService: gemConfirmService,
+            signer: KeystoreTransactionSigner(keystore: keystore),
+            preferencesService: preferencesService,
+            transactionStateService: transactionStateService,
+            recentAssetsService: recentAssetsService,
             toastPresenter: toastPresenter,
             keystore: keystore,
-            chainService: chainService,
             explorerService: explorerService,
-            addressStore: addressStore,
+            nameService: nameService,
+            feeService: feeService,
+            transferService: transferService,
+            perpetualService: perpetualService,
         )
     }
 }

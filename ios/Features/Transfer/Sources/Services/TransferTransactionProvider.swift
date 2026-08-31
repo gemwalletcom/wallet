@@ -7,44 +7,36 @@ import GemstonePrimitives
 import Primitives
 
 public protocol TransferTransactionProvidable: Sendable {
-    func loadTransferTransactionData(
+    func loadConfirmData(
         wallet: Primitives.Wallet,
         data: TransferData,
         selection: FeeSelection,
-    ) async throws -> TransferTransactionData
+        feeAssetId: Primitives.AssetId?,
+    ) async throws -> GemConfirmData
 }
 
 public struct TransferTransactionProvider: TransferTransactionProvidable {
-    private let confirmService: GemConfirmService
+    private let confirmService: any GemConfirmServiceProtocol
 
-    public init(confirmService: GemConfirmService) {
+    public init(confirmService: any GemConfirmServiceProtocol) {
         self.confirmService = confirmService
     }
 
-    public func loadTransferTransactionData(
+    public func loadConfirmData(
         wallet: Primitives.Wallet,
         data: TransferData,
         selection: FeeSelection,
-    ) async throws -> TransferTransactionData {
+        feeAssetId: Primitives.AssetId?,
+    ) async throws -> GemConfirmData {
         let account = try wallet.account(for: data.chain)
-        let result: GemConfirmData
         do {
-            result = try await confirmService.load(
+            return try await confirmService.load(
                 input: data.confirmInput(from: account),
-                options: GemConfirmLoadOptions(feeSelection: selection.map(), feeAssetId: nil),
+                options: GemConfirmLoadOptions(feeSelection: selection.map(), feeAssetId: feeAssetId?.identifier),
             )
         } catch let error as GemConfirmError {
             throw error.map(symbol: data.type.asset.symbol)
         }
-        return try TransferTransactionData(
-            allRates: result.feeRates.map { try $0.map() },
-            transactionData: TransactionData(
-                fee: result.fee.map(),
-                metadata: result.metadata,
-            ),
-            scanResult: result.scan.map { try Primitives.ScanTransaction($0) },
-            simulation: result.simulation.map { try Primitives.SimulationResult($0) },
-        )
     }
 }
 
@@ -54,7 +46,7 @@ private extension GemConfirmError {
         case .ScanMalicious: ScanTransactionError.malicious
         case .ScanMemoRequired: ScanTransactionError.memoRequired(symbol: symbol)
         case .FeeRatesMissing: ChainCoreError.feeRateMissed
-        case .Load, .Broadcast, .Network: self
+        case .Load, .Broadcast, .Network, .Offline, .Record, .AccountMissing, .BalanceMissing, .SenderMismatch, .Sign, .ApprovalInvalid: self
         }
     }
 }

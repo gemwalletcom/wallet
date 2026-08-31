@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -46,6 +45,7 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import com.wallet.core.primitives.WalletId
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
 fun CreateWalletScreen(
@@ -109,12 +109,12 @@ fun CreateWalletScreen(
 private fun UI(
     generatedNameIndex: Int,
     data: List<String>,
-    dataError: String,
+    dataError: String?,
     onCreate: (String) -> Unit,
     onCancel: () -> Unit,
 ) {
     val context = LocalContext.current
-    val clipboardManager = LocalClipboard.current.nativeClipboard
+    val clipboardManager = LocalContext.current.clipboardManager()
     val name = stringResource(id = R.string.wallet_default_name, generatedNameIndex)
     Scene(
         title = stringResource(id = R.string.wallet_new_title),
@@ -133,8 +133,8 @@ private fun UI(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            if (dataError.isNotEmpty()) {
-                Text(text = dataError)
+            if (dataError != null) {
+                Text(text = dataError.ifBlank { stringResource(id = R.string.errors_unknown_try_again) })
             } else {
                 Text(
                     text = stringResource(id = R.string.secret_phrase_save_phrase_safely),
@@ -170,7 +170,7 @@ fun PreviewCreateUI() {
                     "cinnamon", "two", "three", "cinnamon", "five", "six",
                     "seven", "eight", "cinnamon", "ten", "eleven", "twelve"
                 ),
-                dataError = "",
+                dataError = null,
                 onCreate = {},
                 onCancel = {},
             )

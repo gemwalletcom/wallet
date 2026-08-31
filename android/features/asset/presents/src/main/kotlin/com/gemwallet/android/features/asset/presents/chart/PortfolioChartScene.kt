@@ -65,7 +65,7 @@ fun PortfolioChartScene(
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = viewModel::refresh,
-            containerColor = PullToRefreshDefaults.containerColor,
+            containerColor = PullToRefreshDefaults.indicatorContainerColor,
         ) {
             LazyColumn {
                 item { PortfolioChart(viewModel) }

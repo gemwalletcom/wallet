@@ -11,7 +11,7 @@ public struct ChainListSettingsScene: View {
     @State private var model: ChainListSettingsViewModel
     @State private var searchQuery = ""
 
-    public init(model: ChainListSettingsViewModel = ChainListSettingsViewModel()) {
+    public init(model: ChainListSettingsViewModel) {
         _model = State(initialValue: model)
     }
 

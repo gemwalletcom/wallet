@@ -4,12 +4,13 @@ mod preferences;
 
 pub use chain_factory::ChainClientFactory;
 pub use error::GatewayError;
-use error::map_network_error;
+pub(crate) use error::map_network_error;
 #[cfg(test)]
 pub use preferences::EmptyPreferences;
-pub(crate) use preferences::PreferencesWrapper;
+pub(crate) use preferences::{PreferencesWrapper, SecureStoreWrapper};
 
-use crate::services::preferences::GemPreferencesStore;
+use crate::services::chain::rules as chain_rules;
+use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
 
 use crate::alien::{AlienProvider, AlienProviderWrapper, coalescing_provider};
 use crate::models::*;
@@ -72,7 +73,7 @@ impl GemGateway {
         Fut: Future<Output = Result<T, Box<dyn std::error::Error + Send + Sync>>>,
     {
         let provider = self.chain_factory.create(chain).await?;
-        call(provider).await.map_err(|e| GatewayError::NetworkError { msg: e.to_string() })
+        call(provider).await.map_err(map_network_error)
     }
     pub fn get_earn_providers(&self, asset_id: AssetId) -> Vec<GemDelegationValidator> {
         self.yielder.get_providers(&asset_id)
@@ -89,7 +90,7 @@ impl GemGateway {
 #[uniffi::export]
 impl GemGateway {
     #[uniffi::constructor]
-    pub fn new(provider: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferencesStore>, secure_preferences: Arc<dyn GemPreferencesStore>) -> Self {
+    pub fn new(provider: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferencesStore>, secure_preferences: Arc<dyn GemSecureStore>) -> Self {
         let provider = coalescing_provider(provider);
         let chain_factory = Arc::new(ChainClientFactory::new(provider.clone(), preferences, secure_preferences));
         let alien_wrapper = Arc::new(AlienProviderWrapper::new(provider));
@@ -165,7 +166,9 @@ impl GemGateway {
     }
 
     pub async fn get_perpetual_candlesticks(&self, chain: Chain, symbol: String, period: String) -> Result<Vec<GemChartCandleStick>, GatewayError> {
-        let chart_period = ChartPeriod::new(period).unwrap();
+        let chart_period = ChartPeriod::new(period.clone()).ok_or(GatewayError::PlatformError {
+            msg: format!("Unknown chart period: {}", period),
+        })?;
         self.with_provider(chain, |provider| async move { provider.get_perpetual_candlesticks(symbol, chart_period).await })
             .await
     }
@@ -193,6 +196,17 @@ impl GemGateway {
         let provider = self.chain_factory.create_with_url(chain, url.to_string()).await?;
         provider.get_nodes_status().await.map_err(map_network_error)
     }
+
+    pub async fn check_node(&self, chain: Chain, url: &str) -> Result<GemNodeStatus, GatewayError> {
+        let status = self.get_node_status(chain, url).await?;
+        if !chain_rules::is_valid_network_id(chain, &status.chain_id) {
+            return Err(GatewayError::NetworkIdMismatch {
+                chain: chain.to_string(),
+                network_id: status.chain_id,
+            });
+        }
+        Ok(status)
+    }
 }
 
 #[cfg(all(test, feature = "reqwest_provider"))]
@@ -204,14 +218,15 @@ mod tests {
     fn test_get_node_status_http_404_error() {
         let provider: Arc<dyn AlienProvider> = Arc::new(TestAlienProvider::with_status(404));
         let preferences: Arc<dyn GemPreferencesStore> = Arc::new(EmptyPreferences {});
-        let gateway = GemGateway::new(provider, preferences.clone(), preferences.clone());
+        let secure: Arc<dyn GemSecureStore> = Arc::new(EmptyPreferences {});
+        let gateway = GemGateway::new(provider, preferences.clone(), secure);
 
         let result = futures::executor::block_on(gateway.get_node_status(Chain::Bitcoin, "https://httpbin.org/status/404"));
 
         match result {
             Ok(status) => panic!("expected network error for 404 response, got {:?}", status),
             Err(GatewayError::NetworkError { msg }) => assert_eq!(msg, "HTTP error: status 404"),
-            Err(GatewayError::PlatformError { .. }) => panic!("expected NetworkError, got PlatformError"),
+            Err(error) => panic!("expected NetworkError, got {error:?}"),
         }
     }
 }

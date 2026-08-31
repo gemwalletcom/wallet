@@ -1,3 +1,4 @@
+import class Gemstone.GemTransferService
 import Foundation
 import class Gemstone.GemMnemonic
 @testable import GemstoneServices
@@ -76,6 +77,29 @@ struct LocalKeystoreTests {
             )
             let exportedKey = try await keystore2.getPrivateKeyEncoded(wallet: wallet2, chain: .solana)
             #expect(exportedKey == exported)
+        }
+    }
+
+    @Test
+    func keystorePasswordCreatedOnlyWhileKeystoreIsEmpty() throws {
+        let directory = UUID().uuidString
+        let baseDir = try FileManager.default
+            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            .appending(path: directory, directoryHint: .isDirectory)
+        defer { try? FileManager.default.removeItem(at: baseDir) }
+
+        let keystore = LocalKeystore(directory: directory, keystorePassword: MockKeystorePassword(memoryPassword: ""), transferService: GemTransferService())
+        #expect(throws: Never.self) { try keystore.keystorePassword(createIfMissing: true) }
+
+        _ = try keystore.importWallet(name: "test", type: .phrase(words: LocalKeystore.words, chains: [.ethereum]))
+
+        let lostPassword = LocalKeystore(directory: directory, keystorePassword: MockKeystorePassword(memoryPassword: ""), transferService: GemTransferService())
+        #expect(throws: Error.self) { try lostPassword.keystorePassword(createIfMissing: true) }
+
+        let storedPassword = try keystore.keystorePassword(createIfMissing: false)
+        #expect(storedPassword.isNotEmpty)
+        #expect(throws: Never.self) {
+            try keystore.importWallet(name: "second", type: .phrase(words: LocalKeystore.words, chains: [.bitcoin]))
         }
     }
 

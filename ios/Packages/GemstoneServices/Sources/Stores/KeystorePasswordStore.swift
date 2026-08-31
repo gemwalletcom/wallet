@@ -3,18 +3,17 @@
 import Foundation
 import protocol Gemstone.GemKeystorePassword
 import typealias Gemstone.WalletId
-import Store
 
 public final class GemstoneKeystorePassword: GemKeystorePassword, @unchecked Sendable {
     private let keystore: any Keystore
-    private let walletStore: WalletStore
 
-    public init(keystore: any Keystore, walletStore: WalletStore) {
+    public init(keystore: any Keystore) {
         self.keystore = keystore
-        self.walletStore = walletStore
     }
 
-    public func getPassword(walletId _: Gemstone.WalletId, createIfMissing: Bool) throws -> Data {
-        try keystore.keystorePassword(createIfMissing: createIfMissing && walletStore.getWallets().allSatisfy { $0.type == .view })
+    public func getPassword(walletId _: Gemstone.WalletId, createIfMissing: Bool) throws -> String {
+        try keystore.keystorePassword(createIfMissing: createIfMissing)
     }
+
+    public func deletePassword(walletId _: Gemstone.WalletId) throws {}
 }

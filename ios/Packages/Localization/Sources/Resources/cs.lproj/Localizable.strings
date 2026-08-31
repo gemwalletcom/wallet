@@ -18,6 +18,7 @@
 "common.wallet" = "Peněženka";
 "common.show" = "Zobrazit %@";
 "common.copied" = "Zkopírováno: %@";
+"common.copied_to_clipboard" = "Zkopírováno do schránky";
 "common.recommended" = "Doporučeno";
 "common.all" = "Vše";
 "common.not_available" = "Není k dispozici";
@@ -175,10 +176,14 @@
 "errors.token.invalid_id" = "Neplatné ID tokenu";
 "errors.import.invalid_secret_phrase" = "Neplatná tajná fráze";
 "errors.import.invalid_secret_phrase_word" = "Neplatné slovo tajné fráze: %@";
+"errors.import.invalid_private_key" = "Neplatný soukromý klíč";
+"errors.keystore_access" = "Na tomto zařízení se nepodařilo získat přístup ke klíčům této peněženky. Pokud máte obnovovací frázi, odeberte tuto peněženku a znovu ji importujte, abyste obnovili přístup.";
+"errors.wallet_account_missing" = "Tato peněženka nemá účet pro tuto síť";
 "errors.invalid_url" = "Neplatná adresa URL";
 "errors.error_occurred" = "Došlo k chybě!";
 "errors.invalid_network_id" = "Neplatné ID sítě";
 "errors.error" = "Chyba";
+"errors.cancelled" = "Zrušeno";
 "errors.connections.user_cancelled" = "Uživatel zrušen";
 "errors.not_supported" = "Není podporováno";
 "errors.permissions_not_granted" = "Oprávnění nebyla udělena";
@@ -211,6 +216,8 @@
 "errors.swap.minimum_amount" = "Minimální částka obchodu je %@. Zadejte prosím vyšší částku.";
 "errors.perpetual.trigger_price_lower" = "Spouštěcí cena musí být nižší než tržní cena";
 "errors.perpetual.trigger_price_higher" = "Spouštěcí cena musí být vyšší než tržní cena";
+"errors.network_error" = "Chyba sítě: %@";
+"errors.network_offline" = "Zdá se, že je internetové připojení offline.";
 "errors.no_internet_connection" = "Žádné připojení k internetu";
 "errors.no_service_connection" = "Žádné připojení ke službě";
 "errors.balances_activity_outdated" = "Zůstatky a aktivita mohou být zastaralé.";

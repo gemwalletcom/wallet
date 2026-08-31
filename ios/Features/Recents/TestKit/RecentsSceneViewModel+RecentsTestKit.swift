@@ -15,7 +15,7 @@ public extension RecentsSceneViewModel {
         RecentsSceneViewModel(
             walletId: walletId,
             types: types,
-            recentActivityStore: .mock(),
+            recentAssetsService: RecentAssetsService(store: .mock()),
             onSelect: onSelect,
         )
     }

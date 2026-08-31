@@ -26,10 +26,10 @@ public struct ChartListView<Model: ChartListViewable, Content: View>: View {
         }
         .listSectionSpacing(.compact)
         .task(id: model.selectedPeriod) {
-            await model.fetch()
+            await model.load()
         }
-        .refreshableTimer(every: .minutes(1)) { @MainActor in
-            await model.fetch()
+        .refreshableTimer(every: .minutes(1)) { @MainActor _ in
+            await model.load()
         }
     }
 }

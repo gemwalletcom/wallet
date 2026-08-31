@@ -1,9 +1,11 @@
-use crate::models::rpc::LedgerCurrent;
-use primitives::NodeSyncStatus;
 use std::error::Error;
 
-pub fn map_node_status(ledger_info: &LedgerCurrent) -> Result<NodeSyncStatus, Box<dyn Error + Sync + Send>> {
-    Ok(NodeSyncStatus::synced(ledger_info.ledger_current_index as u64))
+use primitives::NodeSyncStatus;
+
+use crate::models::rpc::LedgerInfo;
+
+pub fn map_node_status(ledger_info: &LedgerInfo) -> Result<NodeSyncStatus, Box<dyn Error + Sync + Send>> {
+    Ok(NodeSyncStatus::synced(ledger_info.ledger_index))
 }
 
 #[cfg(test)]
@@ -12,7 +14,10 @@ mod tests {
 
     #[test]
     fn test_map_node_status() {
-        let ledger_info = LedgerCurrent { ledger_current_index: 80123456 };
+        let ledger_info = LedgerInfo {
+            ledger_index: 80123456,
+            validated: true,
+        };
         let mapped = map_node_status(&ledger_info).unwrap();
 
         assert!(mapped.in_sync);

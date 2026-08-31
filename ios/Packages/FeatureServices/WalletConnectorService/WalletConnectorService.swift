@@ -1,27 +1,33 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemChainService
 import Foundation
 import struct Gemstone.GemWalletConnectRequest
 import protocol Gemstone.GemWalletConnectServiceProtocol
-import class Gemstone.WalletConnect
 import GemstonePrimitives
+import protocol GemstoneServices.WalletSessionManageable
 import Primitives
 @preconcurrency import ReownWalletKit
 @preconcurrency import WalletConnectPairing
 
 public final class WalletConnectorService {
     private let interactor = WCConnectionsInteractor()
-    private let signer: WalletConnectorSignable
+    private let walletSessionService: any WalletSessionManageable
+    private let walletConnectorInteractor: any WalletConnectorInteractable
     private let service: any GemWalletConnectServiceProtocol
-    private let messageTracker = MessageTracker()
-    private let walletConnect = WalletConnect()
+    private let chainService: GemChainService
+    private let setupState = SetupState()
 
     public init(
-        signer: WalletConnectorSignable,
+        walletSessionService: any WalletSessionManageable,
+        interactor: any WalletConnectorInteractable,
         service: any GemWalletConnectServiceProtocol,
+        chainService: GemChainService,
     ) {
-        self.signer = signer
+        self.walletSessionService = walletSessionService
+        walletConnectorInteractor = interactor
         self.service = service
+        self.chainService = chainService
     }
 }
 
@@ -51,6 +57,9 @@ extension WalletConnectorService: WalletConnectorServiceable {
     }
 
     public func setup() async {
+        guard await setupState.start() else {
+            return
+        }
         Events.instance.setTelemetryEnabled(false)
         await withTaskGroup(of: Void.self) { group in
             group.addTask {
@@ -72,6 +81,7 @@ extension WalletConnectorService: WalletConnectorServiceable {
     }
 
     public func pair(uri: String) async throws {
+        await setup()
         let uri = try WalletConnectURI(uriString: uri)
         try await Pair.instance.pair(uri: uri)
     }
@@ -87,8 +97,8 @@ extension WalletConnectorService: WalletConnectorServiceable {
         }
     }
 
-    public var hasSessions: Bool {
-        !interactor.sessions.isEmpty
+    public func hasSessions() async throws -> Bool {
+        try await service.hasSessions()
     }
 }
 
@@ -127,7 +137,7 @@ extension WalletConnectorService {
             reason: RejectionReason(from: error),
         )
         try? await service.deleteSession(sessionId: proposal.pairingTopic)
-        await signer.sessionReject(error: error)
+        await walletConnectorInteractor.sessionReject(error: error)
     }
 
     private func handleSessionRequests() async {
@@ -143,15 +153,8 @@ extension WalletConnectorService {
             }
 
             do {
-                let status = walletConnect.validateOrigin(metadataUrl: session.peer.url, origin: verifyContext.origin, validation: verifyContext.validation.map()).map()
-
-                debugLog("Verification status for request: \(status)")
-
-                switch status {
-                case .verified, .unknown: break
-                case .invalid, .malicious:
-                    // show toast with an error
-                    debugLog("Warning: Request status error (\(status)")
+                if service.isOriginRejected(metadataUrl: session.peer.url, origin: verifyContext.origin, validation: verifyContext.validation.map()) {
+                    debugLog("Warning: rejected request origin for \(session.peer.url)")
                     try await rejectRequest(request)
                     continue
                 }
@@ -194,7 +197,7 @@ extension WalletConnectorService {
     private func handleRequest(request: WalletConnectSign.Request, session: Session) async throws {
         let messageId = request.messageId
 
-        guard await messageTracker.shouldProcess(messageId) else {
+        guard service.shouldProcessMessage(messageId: messageId) else {
             debugLog("Ignoring duplicate request with ID: \(messageId)")
             try await rejectRequest(request)
             return
@@ -222,26 +225,28 @@ extension WalletConnectorService {
             } catch {
                 debugLog("Error rejecting request: \(error)")
             }
-            await signer.sessionReject(error: requestError)
+            await walletConnectorInteractor.sessionReject(error: requestError)
         }
     }
 
     private func rejectRequest(_ request: WalletConnectSign.Request) async throws {
-        try await WalletKit.instance.respond(topic: request.topic, requestId: request.id, response: .error(JSONRPCError(code: 4001, message: "User rejected the request")))
+        let rejection = service.userRejectedError()
+        try await WalletKit.instance.respond(
+            topic: request.topic,
+            requestId: request.id,
+            response: .error(JSONRPCError(code: Int(rejection.code), message: rejection.message)),
+        )
     }
 
     private func processSession(proposal: Session.Proposal, verifyContext: VerifyContext) async throws {
         let messageId = proposal.messageId
 
-        guard await messageTracker.shouldProcess(messageId) else {
+        guard service.shouldProcessMessage(messageId: messageId) else {
             debugLog("Ignoring duplicate proposal with ID: \(messageId)")
             return
         }
 
-        let currentWalletId = try? signer.getCurrentWallet().id
         let (payload, status) = try service.prepareSessionProposal(
-            wallets: signer.getWallets(),
-            currentWalletId: currentWalletId,
             requiredChainIds: proposal.requiredNamespaces.chainIds,
             optionalChainIds: proposal.optionalNamespaces?.chainIds ?? [],
             metadata: metadata(proposal.proposer),
@@ -254,24 +259,24 @@ extension WalletConnectorService {
             proposal: payload,
             verificationStatus: status.map(),
         )
-        let approvedWalletId = try await signer.sessionApproval(payload: payloadTopic)
-        let selectedWallet = try signer.getWallet(id: approvedWalletId)
+        let approvedWalletId = try await walletConnectorInteractor.sessionApproval(payload: payloadTopic)
+        let selectedWallet = try walletSessionService.getWallet(walletId: approvedWalletId)
 
         let session = try await acceptProposal(proposal: proposal, wallet: selectedWallet)
         try await service.addConnection(WalletConnection(session: connectionSession(session), wallet: selectedWallet))
     }
 
     private func acceptProposal(proposal: Session.Proposal, wallet: Primitives.Wallet) async throws -> Session {
-        let approval = try service.sessionApproval(wallet: wallet, supportedChains: signer.allChains)
+        let approval = try service.sessionApproval(wallet: wallet)
         let sessionNamespaces = try AutoNamespaces.build(
             sessionProposal: proposal,
-            chains: approval.chains.compactMap(\.blockchain),
+            chains: approval.chains.compactMap { $0.blockchain(chainService: chainService) },
             methods: approval.methods,
             events: approval.events,
-            accounts: approval.accounts.compactMap(\.blockchain),
+            accounts: approval.accounts.compactMap { $0.blockchain(chainService: chainService) },
         )
         let caip2Chains = sessionNamespaces.values.flatMap { $0.chains ?? [] }.map(\.absoluteString)
-        let sessionProperties = walletConnect.configSessionProperties(
+        let sessionProperties = service.configSessionProperties(
             properties: proposal.sessionProperties ?? [:],
             caip2Chains: caip2Chains,
             accounts: approval.accounts.map { $0.mapToGem() },

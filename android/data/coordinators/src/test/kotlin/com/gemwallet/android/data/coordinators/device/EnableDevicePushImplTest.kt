@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.device
 
-import com.gemwallet.android.cases.device.SwitchPushEnabled
+import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

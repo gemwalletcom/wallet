@@ -49,10 +49,9 @@ sealed interface ConfirmProperty {
                 is ConfirmParams.Stake.UndelegateParams,
                 is ConfirmParams.Stake.WithdrawParams -> Stake(data = validator?.name ?: "", address = validator?.id)
                 is ConfirmParams.NftParams,
-                is ConfirmParams.TransferParams.Token,
                 is ConfirmParams.TransferParams.Deposit,
                 is ConfirmParams.TransferParams.Withdrawal,
-                is ConfirmParams.TransferParams.Native -> {
+                is ConfirmParams.TransferParams.Transfer -> {
                     val destination = params.destination() ?: throw ConfirmError.RecipientEmpty
                     Transfer(
                         domain = destination.name ?: addressName?.name,

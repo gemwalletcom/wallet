@@ -2,11 +2,11 @@ package com.gemwallet.android.features.settings.settings.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.cases.device.GetPushEnabled
-import com.gemwallet.android.cases.device.SwitchPushEnabled
-import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.device.cases.GetPushEnabled
+import com.gemwallet.android.application.device.cases.SwitchPushEnabled
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.model.NotificationsAvailable
 import com.wallet.core.primitives.Appearance
@@ -27,15 +27,15 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userConfig: UserConfig,
-    private val walletsRepository: WalletsRepository,
-    private val sessionRepository: SessionRepository,
+    private val getWallets: GetWallets,
+    private val getSession: GetSession,
     private val switchPushEnabled: SwitchPushEnabled,
     private val getPushEnabled: GetPushEnabled,
     val notificationsAvailable: NotificationsAvailable,
 ) : ViewModel() {
 
-    private val session = sessionRepository.session()
-    private val wallets = walletsRepository.getAll()
+    private val session = getSession()
+    private val wallets = getWallets()
     private val state = MutableStateFlow(SettingsViewModelState())
     val uiState = state.asStateFlow()
 

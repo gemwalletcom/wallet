@@ -3,12 +3,12 @@ package com.gemwallet.android.features.referral.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.referral.coordinators.CreateReferral
-import com.gemwallet.android.application.referral.coordinators.GetRewards
-import com.gemwallet.android.application.referral.coordinators.Redeem
-import com.gemwallet.android.application.referral.coordinators.UseReferralCode
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.referral.cases.CreateReferral
+import com.gemwallet.android.application.referral.cases.GetRewards
+import com.gemwallet.android.application.referral.cases.Redeem
+import com.gemwallet.android.application.referral.cases.UseReferralCode
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.RewardRedemptionOption
 import com.wallet.core.primitives.Rewards
@@ -32,8 +32,8 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ReferralViewModel @Inject constructor(
-    sessionRepository: SessionRepository,
-    walletsRepository: WalletsRepository,
+    getSession: GetSession,
+    getWallets: GetWallets,
     private val getRewards: GetRewards,
     private val redeem: Redeem,
     private val useReferralCode: UseReferralCode,
@@ -54,11 +54,11 @@ class ReferralViewModel @Inject constructor(
     val referralLink = rewards.mapLatest { it?.code?.let(getRewards::referralLink) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val availableWallets = walletsRepository.getAll().mapLatest { items ->
+    val availableWallets = getWallets().mapLatest { items ->
         items.filter { it.type == WalletType.Multicoin }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val session = sessionRepository.session()
+    private val session = getSession()
         .filterNotNull()
         .combine(availableWallets) { session, availableWallets ->
             if (session.wallet.type != WalletType.Multicoin) {

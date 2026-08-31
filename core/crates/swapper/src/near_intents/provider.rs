@@ -14,6 +14,8 @@ use crate::{
     near_intents::client::{base_url, explorer_url},
 };
 use async_trait::async_trait;
+#[cfg(test)]
+use chrono::DateTime;
 use chrono::{Duration, Utc};
 use gem_sui::{SuiClient, build_transfer_message_bytes};
 use num_bigint::BigUint;
@@ -23,7 +25,7 @@ use primitives::{Chain, TransactionSwapMetadata, swap::SwapStatus};
 use std::{fmt::Debug, sync::Arc};
 
 const DEFAULT_DEADLINE_MINUTES: i64 = 30;
-const BITCOIN_DEADLINE_MINUTES: i64 = 60;
+const BITCOIN_DEADLINE_MINUTES: i64 = 120;
 
 // Supported-chain subset of https://docs.near-intents.org/security-compliance/treasury-addresses
 const TREASURY_ADDRESSES: [&str; 16] = [
@@ -309,7 +311,7 @@ where
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let quote_request = Self::build_quote_request(request, SwapType::FlexInput, true)?;
         let amount = quote_request.amount.clone();
-        let response = Self::extract_quote(self.client.fetch_quote(&quote_request).await?, request.from_asset.decimals)?;
+        let response = Self::extract_quote(self.client.get_quote(&quote_request).await?, request.from_asset.decimals)?;
 
         let eta = response.quote.time_estimate;
         let min_amount_in = response.quote.min_amount_in.to_string();
@@ -340,7 +342,7 @@ where
         let request_deposit_mode = quote_request.deposit_mode.clone();
         quote_request.dry = false;
 
-        let response: QuoteResponse = Self::extract_quote(self.client.fetch_quote(&quote_request).await?, quote.request.from_asset.decimals)?;
+        let response: QuoteResponse = Self::extract_quote(self.client.get_quote(&quote_request).await?, quote.request.from_asset.decimals)?;
         let QuoteResponse {
             quote_request: _,
             quote: near_quote,
@@ -434,6 +436,22 @@ mod tests {
         let quote_request = NearIntents::<RpcClient>::build_quote_request(&request, SwapType::FlexInput, true).unwrap();
 
         assert_eq!(quote_request.amount, "37000000");
+    }
+
+    #[test]
+    fn test_bitcoin_quote_deadline_is_two_hours() {
+        for (from_chain, to_chain) in [(Chain::Bitcoin, Chain::Litecoin), (Chain::Litecoin, Chain::Bitcoin)] {
+            let mut request = QuoteRequest::mock(from_chain, None);
+            request.to_asset = SwapperQuoteAsset::from(AssetId::from_chain(to_chain));
+            let earliest_deadline = Utc::now() + Duration::hours(2);
+
+            let quote_request = NearIntents::<RpcClient>::build_quote_request(&request, SwapType::FlexInput, true).unwrap();
+            let latest_deadline = Utc::now() + Duration::hours(2);
+            let deadline: DateTime<Utc> = quote_request.deadline.parse().unwrap();
+
+            assert!(deadline >= earliest_deadline);
+            assert!(deadline <= latest_deadline);
+        }
     }
 
     #[test]

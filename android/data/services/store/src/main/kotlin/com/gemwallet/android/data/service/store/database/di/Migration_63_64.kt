@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.application.wallet.coordinators.WalletIdGenerator
+import com.gemwallet.android.application.wallet.cases.WalletIdGenerator
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletType

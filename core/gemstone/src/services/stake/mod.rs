@@ -1,3 +1,4 @@
+pub mod model;
 pub mod rules;
 pub mod store;
 
@@ -5,26 +6,36 @@ use crate::services::error::GemServiceError;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use primitives::{AssetId, Chain, DelegationValidator, StakeProviderType, WalletId};
+use primitives::{AssetId, Chain, DelegationState, DelegationValidator, StakeProviderType, WalletId, WalletType};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
+use crate::models::custom_types::GemBigInt;
 use crate::models::{GemContractCallData, GemEarnType};
 
+pub use model::{GemDelegationAction, GemStakeBalance};
 pub use store::GemStakeStore;
+
+use crate::services::name::GemAddressStore;
 
 #[derive(uniffi::Object)]
 pub struct GemStakeService {
     gateway: Arc<GemGateway>,
     static_api: Arc<GemStaticApiClient>,
     store: Arc<dyn GemStakeStore>,
+    address_store: Arc<dyn GemAddressStore>,
 }
 
 #[uniffi::export]
 impl GemStakeService {
     #[uniffi::constructor]
-    pub fn new(gateway: Arc<GemGateway>, static_api: Arc<GemStaticApiClient>, store: Arc<dyn GemStakeStore>) -> Self {
-        Self { gateway, static_api, store }
+    pub fn new(gateway: Arc<GemGateway>, static_api: Arc<GemStaticApiClient>, store: Arc<dyn GemStakeStore>, address_store: Arc<dyn GemAddressStore>) -> Self {
+        Self {
+            gateway,
+            static_api,
+            store,
+            address_store,
+        }
     }
 
     pub async fn sync(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<(), GemServiceError> {
@@ -45,6 +56,54 @@ impl GemStakeService {
 
     pub async fn get_earn_data(&self, asset_id: AssetId, address: String, value: String, earn_type: GemEarnType) -> Result<GemContractCallData, GemServiceError> {
         Ok(self.gateway.get_earn_data(asset_id, address, value, earn_type).await?)
+    }
+
+    pub fn delegation_actions(&self, wallet_type: WalletType, chain: Chain, provider: StakeProviderType, state: DelegationState) -> Vec<GemDelegationAction> {
+        rules::delegation_actions(wallet_type, chain, provider, state)
+    }
+
+    pub fn can_claim_delegation_rewards(&self, wallet_type: WalletType, chain: Chain, state: DelegationState, rewards: String) -> bool {
+        rules::can_claim_rewards(wallet_type, chain, state, &rewards)
+    }
+
+    pub fn validator_explorer_address(&self, validator: DelegationValidator) -> Option<String> {
+        rules::validator_explorer_address(&validator)
+    }
+
+    pub fn shows_completion_date(&self, state: DelegationState) -> bool {
+        rules::shows_completion_date(state)
+    }
+
+    pub fn shows_rewards(&self, state: DelegationState, rewards: String) -> bool {
+        rules::shows_rewards(state, &rewards)
+    }
+
+    pub fn can_claim_stake_rewards(&self, chain: Chain, rewards_value: String) -> bool {
+        rules::can_claim_stake_rewards(chain, &rewards_value)
+    }
+
+    pub fn requires_frozen_balance(&self, chain: Chain, frozen_value: String) -> bool {
+        rules::requires_frozen_balance(chain, &frozen_value)
+    }
+
+    pub fn recommended_validator_ids(&self, chain: Chain) -> Vec<String> {
+        rules::recommended_validator_ids(chain)
+    }
+
+    pub fn recommended_validator(&self, chain: Chain, validators: Vec<DelegationValidator>) -> Option<DelegationValidator> {
+        rules::recommended_validator(chain, validators)
+    }
+
+    pub fn selectable_validators(&self, validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {
+        rules::selectable_validators(validators)
+    }
+
+    pub fn staked_value(&self, chain: Chain, balance: GemStakeBalance) -> GemBigInt {
+        rules::staked_value(chain, &balance)
+    }
+
+    pub fn shows_stake_balance(&self, chain: Chain, is_stake_enabled: bool, balance: GemStakeBalance) -> bool {
+        rules::shows_stake_balance(chain, is_stake_enabled, &balance)
     }
 }
 
@@ -70,7 +129,7 @@ impl GemStakeService {
             if !stale_ids.is_empty() {
                 self.store.deactivate_validators(asset_id, stale_ids).await?;
             }
-            self.store.save_address_names(rules::validator_address_names(&validators)).await?;
+            self.address_store.save_address_names(rules::validator_address_names(&validators)).await?;
         }
         Ok(names)
     }

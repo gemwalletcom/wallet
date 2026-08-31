@@ -8,29 +8,28 @@ import GemstonePrimitives
 import Primitives
 import Store
 
-public final class GemstoneSupportStore: GemSupportStore, @unchecked Sendable {
+public final class GemstoneSupportStore: GemSupportStore, Sendable {
     private let store: SupportChatStore
-    private let typing: SupportTypingState
 
-    public init(store: SupportChatStore, typing: SupportTypingState) {
+    public let typing = SupportTypingState()
+
+    public init(store: SupportChatStore) {
         self.store = store
-        self.typing = typing
     }
 
     public func saveMessages(messages: [Gemstone.SupportMessage]) async throws {
         try store.addMessages(messages.map { try Primitives.SupportMessage($0) })
     }
 
-    public func replaceMessage(id: String, message: Gemstone.SupportMessage) async throws {
+    public func saveMessage(id: String, message: Gemstone.SupportMessage) async throws {
         try store.replace(id: id, with: Primitives.SupportMessage(message))
     }
 
     public func updateTyping(typing: Gemstone.SupportTyping) throws {
-        let typing = try Primitives.SupportTyping(typing)
-        Task { @MainActor in self.typing.update(typing) }
+        self.typing.update(try Primitives.SupportTyping(typing))
     }
 
     public func clearTyping() throws {
-        Task { @MainActor in typing.clear() }
+        typing.clear()
     }
 }

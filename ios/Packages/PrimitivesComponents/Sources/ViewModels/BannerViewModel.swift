@@ -1,8 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemBannerAmount
+import struct Gemstone.GemBannerContent
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -16,80 +19,58 @@ struct BannerViewModel {
     }
 
     private let banner: Banner
+    private let content: GemBannerContent
 
-    init(banner: Banner) {
+    init(banner: Banner, content: GemBannerContent) {
         self.banner = banner
+        self.content = content
     }
 
     var image: AssetImage? {
-        switch banner.event {
-        case .stake:
+        guard let icon = content.icon else {
+            return .none
+        }
+        switch icon {
+        case .moneyBag:
             return AssetImage(type: .emoji(Emoji.WalletAvatar.moneyBag.rawValue))
-        case .accountActivation, .activateAsset:
-            guard let asset else {
-                return .none
-            }
-            return AssetImage.image(ChainImage(chain: asset.chain).placeholder)
-        case .enableNotifications:
-            return AssetImage.image(Images.System.bell)
-        case .accountBlockedMultiSignature:
+        case let .network(chain):
+            return Primitives.Chain(rawValue: chain).map { AssetImage.image(ChainImage(chain: $0).placeholder) }
+        case .warning:
             return AssetImage.image(Images.System.exclamationmarkTriangle)
-        case .suspiciousAsset:
+        case .suspicious:
             return AssetImage.image(Images.TokenStatus.risk)
-        case .onboarding:
+        case .bitcoin:
             return AssetImage.image(Images.System.bitcoin)
-        case .tradePerpetuals:
+        case .perpetuals:
             return AssetImage.image(Images.Perpetuals.perpetuals)
         }
     }
 
     var title: String? {
-        switch banner.event {
-        case .stake:
-            guard let asset else {
-                return .none
-            }
-            return Localized.Banner.Stake.title(asset.name)
-        case .accountActivation:
-            return Localized.Banner.AccountActivation.title
-        case .enableNotifications:
-            return Localized.Banner.EnableNotifications.title
-        case .accountBlockedMultiSignature:
-            return Localized.Common.warning
-        case .activateAsset:
-            return Localized.Transfer.ActivateAsset.title
-        case .suspiciousAsset:
-            return Localized.Banner.AssetStatus.title
+        guard let title = content.title else {
+            return .none
+        }
+        switch title {
+        case let .stake(assetName): return Localized.Banner.Stake.title(assetName)
+        case .accountActivation: return Localized.Banner.AccountActivation.title
+        case .warning: return Localized.Common.warning
+        case .activateAsset: return Localized.Transfer.ActivateAsset.title
+        case .suspiciousAsset: return Localized.Banner.AssetStatus.title
         case .onboarding: return Localized.Banner.Onboarding.title
         case .tradePerpetuals: return Localized.Banner.Perpetuals.title
         }
     }
 
     var description: String? {
-        switch banner.event {
-        case .stake:
-            guard let asset else {
-                return .none
-            }
-            return Localized.Banner.Stake.description(asset.symbol)
-        case .accountActivation:
-            guard let asset, let fee = asset.chain.accountActivationFee else {
-                return .none
-            }
-            let amount = ValueFormatter(style: .auto)
-                .string(fee.asInt.asBigInt, decimals: asset.decimals.asInt, currency: asset.symbol)
-            return Localized.Banner.AccountActivation.description(asset.name, amount)
-        case .enableNotifications:
-            return Localized.Banner.EnableNotifications.description
-        case .accountBlockedMultiSignature:
-            return Localized.Warnings.multiSignatureBlocked(asset?.name ?? "")
-        case .activateAsset:
-            guard let asset else {
-                return .none
-            }
-            return Localized.Banner.ActivateAsset.description(asset.symbol, asset.chain.networkName)
-        case .suspiciousAsset:
-            return Localized.Banner.AssetStatus.description
+        guard let description = content.description else {
+            return .none
+        }
+        switch description {
+        case let .stake(assetSymbol): return Localized.Banner.Stake.description(assetSymbol)
+        case let .accountActivation(networkName, fee): return Localized.Banner.AccountActivation.description(networkName, formatted(fee))
+        case let .multiSignatureBlocked(networkName): return Localized.Warnings.multiSignatureBlocked(networkName)
+        case let .activateAsset(assetSymbol, networkName): return Localized.Banner.ActivateAsset.description(assetSymbol, networkName)
+        case .suspiciousAsset: return Localized.Banner.AssetStatus.description
         case .onboarding: return Localized.Banner.Onboarding.description
         case .tradePerpetuals: return Localized.Banner.Perpetuals.description
         }
@@ -103,7 +84,6 @@ struct BannerViewModel {
         switch banner.event {
         case .stake,
              .accountActivation,
-             .enableNotifications,
              .accountBlockedMultiSignature,
              .activateAsset,
              .suspiciousAsset,
@@ -119,8 +99,7 @@ struct BannerViewModel {
              .activateAsset,
              .suspiciousAsset,
              .tradePerpetuals: 14
-        case .enableNotifications,
-             .accountBlockedMultiSignature,
+        case .accountBlockedMultiSignature,
              .onboarding: 0
         }
     }
@@ -136,7 +115,6 @@ struct BannerViewModel {
     var url: URL? {
         switch banner.event {
         case .stake,
-             .enableNotifications,
              .activateAsset,
              .onboarding,
              .tradePerpetuals:
@@ -162,7 +140,6 @@ struct BannerViewModel {
         switch banner.event {
         case .stake,
              .accountActivation,
-             .enableNotifications,
              .accountBlockedMultiSignature,
              .activateAsset,
              .suspiciousAsset,
@@ -175,7 +152,6 @@ struct BannerViewModel {
         switch banner.event {
         case .stake,
              .accountActivation,
-             .enableNotifications,
              .accountBlockedMultiSignature,
              .activateAsset,
              .suspiciousAsset,
@@ -188,10 +164,12 @@ struct BannerViewModel {
     }
 
     private var asset: Asset? {
-        if let asset = banner.asset {
-            return asset
-        }
-        return banner.chain?.asset
+        banner.asset
+    }
+
+    private func formatted(_ amount: GemBannerAmount) -> String {
+        ValueFormatter(style: .auto)
+            .string(BigInt(stringLiteral: amount.value), decimals: amount.decimals.asInt, currency: amount.symbol)
     }
 }
 

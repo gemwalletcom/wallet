@@ -1,20 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPreferencesServiceProtocol
 import Foundation
 import Preferences
 import UIKit
 
 public struct PushNotificationEnablerService: PushNotificationEnabler {
-    private let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
 
-    public init(preferences: Preferences = .standard) {
-        self.preferences = preferences
+    public init(preferencesService: any GemPreferencesServiceProtocol) {
+        self.preferencesService = preferencesService
     }
 
     public func requestPermissions() async throws -> Bool {
-        if !preferences.isPushNotificationsEnabled {
-            preferences.isPushNotificationsEnabled = try await requestAuthorizationPermissions()
-            return preferences.isPushNotificationsEnabled
+        if !preferencesService.isPushNotificationsEnabled() {
+            let enabled = try await requestAuthorizationPermissions()
+            try preferencesService.setPushNotificationsEnabled(enabled: enabled)
+            return enabled
         }
         await registerForRemoteNotifications()
         return true
@@ -24,9 +26,9 @@ public struct PushNotificationEnablerService: PushNotificationEnabler {
         let status = try await getNotificationSettingsStatus()
         switch status {
         case .authorized, .ephemeral, .provisional:
-            preferences.isPushNotificationsEnabled = true
+            try preferencesService.setPushNotificationsEnabled(enabled: true)
             await registerForRemoteNotifications()
-            return preferences.isPushNotificationsEnabled
+            return true
         case .notDetermined:
             return try await requestPermissions()
         case .denied:

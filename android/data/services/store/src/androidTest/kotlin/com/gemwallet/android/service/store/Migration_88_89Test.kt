@@ -6,8 +6,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.service.store.database.GemDatabase
 import com.gemwallet.android.data.service.store.database.di.Migration_88_89
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -32,21 +30,12 @@ class Migration_88_89Test {
     }
 
     @Test
-    fun migrate88To89_addsEarnColumns() {
+    fun migrate88To89_recreatesBannersWithoutChain() {
         helper.createDatabase(testDb, 88).apply {
-            execSQL(
-                "INSERT INTO asset (id, name, symbol, decimals, type, chain, is_enabled, is_buy_enabled, is_sell_enabled, is_swap_enabled, is_stake_enabled, rank, updated_at, associations) " +
-                    "VALUES ('ethereum', 'Ethereum', 'ETH', 18, 'NATIVE', 'ethereum', 1, 0, 0, 0, 0, 1, 0, '[]')"
-            )
+            execSQL("INSERT INTO banners (id, wallet_id, asset_id, chain, state, event) VALUES ('stale', 'wallet-1', NULL, 'ethereum', 'AlwaysActive', 'AccountBlockedMultiSignature')")
             close()
         }
 
-        val migratedDb = helper.runMigrationsAndValidate(testDb, 89, true, Migration_88_89)
-        migratedDb.query("SELECT is_earn_enabled, earn_apr FROM asset WHERE id = 'ethereum'").use {
-            assertTrue(it.moveToFirst())
-            assertEquals(0, it.getInt(0))
-            assertTrue(it.isNull(1))
-        }
-        migratedDb.close()
+        helper.runMigrationsAndValidate(testDb, 89, true, Migration_88_89).close()
     }
 }

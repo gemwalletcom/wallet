@@ -2,6 +2,7 @@
 
 @testable import ConnectionStatusService
 import ConnectivityService
+import class Gemstone.GemConnectionService
 import Primitives
 import Testing
 
@@ -16,7 +17,7 @@ struct ConnectionStatusServiceTests {
     @Test
     @MainActor
     func updateComponent() {
-        let observer = ConnectionStatusObserver(monitors: [])
+        let observer = ConnectionStatusObserver(connectionService: GemConnectionService(), monitors: [])
 
         #expect(observer.status == .online)
 
@@ -34,7 +35,7 @@ struct ConnectionStatusServiceTests {
     @Test
     @MainActor
     func internetRecoveryResetsComponents() {
-        let observer = ConnectionStatusObserver(monitors: [])
+        let observer = ConnectionStatusObserver(connectionService: GemConnectionService(), monitors: [])
 
         observer.update(component: .internet, isHealthy: false)
         observer.update(component: .api, isHealthy: false)
@@ -49,7 +50,7 @@ struct ConnectionStatusServiceTests {
     @Test
     @MainActor
     func internetHealthyDoesNotResetComponents() {
-        let observer = ConnectionStatusObserver(monitors: [])
+        let observer = ConnectionStatusObserver(connectionService: GemConnectionService(), monitors: [])
 
         observer.update(component: .internet, isHealthy: true)
         observer.update(component: .api, isHealthy: false)

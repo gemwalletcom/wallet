@@ -1,5 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAddressService
+import protocol Gemstone.GemTransactionStateServiceProtocol
+import class Gemstone.GemChainService
+import class Gemstone.GemReceiveService
+import class Gemstone.GemTransactionFormatter
+import class Gemstone.GemDeviceKeyService
+import protocol Gemstone.GemPerpetualServiceProtocol
+import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemWalletPreferencesServiceProtocol
 import protocol Gemstone.GemSupportServiceProtocol
 import protocol Gemstone.GemContactServiceProtocol
@@ -18,12 +26,14 @@ import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemFiatServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
+import class Gemstone.GemNodeService
 import GemstoneServices
 import AppService
-import ConnectionsService
+import WalletConnectorService
 import ConnectionStatusService
 import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
+import Preferences
 import protocol Gemstone.GemDeviceServiceProtocol
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemChartServiceProtocol
@@ -42,11 +52,10 @@ extension AppResolver {
         // Environment-level services
         let balanceService: any GemBalanceServiceProtocol
         let bannerService: any GemBannerServiceProtocol
-        let chainServiceFactory: ChainServiceFactory
-        let connectionsService: ConnectionsService
+        let walletConnector: WalletConnectorService
         let connectionStatusObserver: ConnectionStatusObserver
         let deviceService: any GemDeviceServiceProtocol
-        let nodeService: NodeService
+        let nodeService: GemNodeService
         let serviceStatusService: any GemServiceStatusProtocol
         let navigationHandler: NavigationHandler
         let navigationPresenter: NavigationPresenter
@@ -58,11 +67,13 @@ extension AppResolver {
         let marketService: any GemPriceServiceProtocol
         let stakeService: any GemStakeServiceProtocol
         let transactionsService: any GemTransactionsServiceProtocol
-        let transactionStateScheduler: TransactionStateScheduler
+        let transactionStateService: any GemTransactionStateServiceProtocol
         let walletService: WalletService
         let walletPreferencesService: any GemWalletPreferencesServiceProtocol
+        let preferencesService: any GemPreferencesServiceProtocol
+        let deviceKeyService: GemDeviceKeyService
+        let observablePreferences: ObservablePreferences
         let walletSessionService: any WalletSessionManageable
-        let assetsEnabler: any AssetsEnabler
         let assetDiscoveryService: any GemAssetDiscoveryServiceProtocol
         let gemAssetsService: any GemAssetsServiceProtocol
         let explorerService: any GemExplorerServiceProtocol
@@ -76,11 +87,15 @@ extension AppResolver {
         let onstartService: OnstartService
         let appStartService: any GemAppStartServiceProtocol
         let pushNotificationEnablerService: PushNotificationEnablerService
-        let walletConnectorManager: WalletConnectorManager
-        let perpetualService: PerpetualService
+        let walletConnectorPresenter: WalletConnectorPresenter
+        let chainService: GemChainService
+        let receiveService: GemReceiveService
+        let transactionFormatter: GemTransactionFormatter
+        let perpetualService: any GemPerpetualServiceProtocol
         let hyperliquidObserverService: any PerpetualObservable
         let nameService: any GemNameServiceProtocol
         let toastPresenter: ToastPresenter
+        let addressService: GemAddressService
         let viewModelFactory: ViewModelFactory
         let rewardsService: any GemRewardsServiceProtocol
         let searchService: any GemSearchServiceProtocol
@@ -90,6 +105,6 @@ extension AppResolver {
         let fiatService: any GemFiatServiceProtocol
         let contactService: any GemContactServiceProtocol
         let supportService: any GemSupportServiceProtocol
-        let supportTypingState: SupportTypingState
+        let supportStore: GemstoneSupportStore
     }
 }

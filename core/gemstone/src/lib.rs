@@ -2,13 +2,12 @@ pub mod address;
 pub mod address_formatter;
 pub mod alien;
 pub mod api;
-mod application;
+pub mod application;
 pub mod auth;
 pub mod balance_calculator;
 pub mod block_explorer;
 pub mod clock;
 pub mod config;
-pub mod confirm;
 pub mod crypto_fiat_converter;
 pub mod deeplink;
 pub mod device;
@@ -42,7 +41,6 @@ use alien::AlienError;
 uniffi::setup_scaffolding!("gemstone");
 const LIB_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-#[uniffi::export]
 pub fn lib_version() -> String {
     String::from(LIB_VERSION)
 }
@@ -63,6 +61,12 @@ impl std::fmt::Display for GemstoneError {
 }
 
 impl std::error::Error for GemstoneError {}
+
+impl From<uniffi::UnexpectedUniFFICallbackError> for GemstoneError {
+    fn from(error: uniffi::UnexpectedUniFFICallbackError) -> Self {
+        Self::AnyError { msg: error.reason }
+    }
+}
 
 impl From<Box<dyn std::error::Error + Send + Sync>> for GemstoneError {
     fn from(error: Box<dyn std::error::Error + Send + Sync>) -> Self {

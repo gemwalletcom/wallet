@@ -11,7 +11,6 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -19,6 +18,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.icons.AppIcons
 import com.wallet.core.primitives.AssetId
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Immutable
 data class AssetContextActions(
@@ -50,7 +50,7 @@ fun rememberAssetContextMenuItems(
     actions: AssetContextActions,
 ): List<AssetContextMenuItem> {
     val context = LocalContext.current
-    val clipboard = LocalClipboard.current.nativeClipboard
+    val clipboard = LocalContext.current.clipboardManager()
     return remember(assetId, address, isPinned, isBalanceEnabled, actions) {
         if (actions.isEmpty) return@remember emptyList()
         listOfNotNull(

@@ -51,4 +51,6 @@ pub struct QuoteDetails {
     pub estimated_price: f64,
     pub number_of_chunks: Option<u32>,
     pub chunk_interval_blocks: Option<u32>,
+    #[serde(default)]
+    pub low_liquidity_warning: bool,
 }

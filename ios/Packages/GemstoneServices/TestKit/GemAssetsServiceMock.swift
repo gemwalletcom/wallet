@@ -32,24 +32,20 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
         self.store = store
     }
 
+    public func assets(assetIds: [Gemstone.AssetId]) throws -> [Gemstone.Asset] {
+        if let store {
+            return try store.getAssets(assetIds: assetIds)
+        }
+        return assetsResult.filter { assetIds.contains($0.asset.id.identifier) }.map { $0.asset.json() }
+    }
+
     public func getAsset(assetId _: Gemstone.AssetId) async throws -> Gemstone.AssetFull {
         guard let assetResult else { throw AnyError("not stubbed") }
-        return try assetResult.json()
+        return assetResult.json()
     }
 
     public func getAssets(assetIds _: [Gemstone.AssetId], currency _: String?) async throws -> [Gemstone.AssetBasic] {
-        try assetsResult.map { try $0.json() }
-    }
-
-    public func getFiatAssets(quoteType: Gemstone.FiatQuoteType) async throws -> Gemstone.FiatAssets {
-        let assets = try Primitives.FiatQuoteType(quoteType) == .buy ? buyableFiatAssets : sellableFiatAssets
-        guard let assets else { throw AnyError("not stubbed") }
-        return try assets.json()
-    }
-
-    public func getSwapAssets() async throws -> Gemstone.FiatAssets {
-        guard let swapAssets else { throw AnyError("not stubbed") }
-        return try swapAssets.json()
+        assetsResult.map { $0.json() }
     }
 
     public func search(query _: String, chains _: [Gemstone.Chain], tags _: [String]) async throws -> Gemstone.SearchResponse {
@@ -57,46 +53,38 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
     }
 
     public func searchAssets(query _: String, chains _: [Gemstone.Chain]) async throws -> [Gemstone.AssetBasic] {
-        try searchAssetsResult.map { try $0.json() }
+        searchAssetsResult.map { $0.json() }
     }
 
-    public func prefetchAssets(assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.AssetId] {
+    public func syncMissingAssets(assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.AssetId] {
         guard let store else { return [] }
         let existing = try await store.getAssetIds(assetIds: assetIds).asSet()
         let missing = assetsResult.filter { assetIds.contains($0.asset.id.identifier) && !existing.contains($0.asset.id.identifier) }
-        try await store.saveAssets(assets: missing.map { try $0.json() })
+        try await store.saveAssets(assets: missing.map { $0.json() })
         return missing.map(\.asset.id.identifier)
     }
 
     public func ensureAsset(assetId: Gemstone.AssetId) async throws -> Gemstone.Asset {
         guard let asset = assetsResult.first(where: { $0.asset.id.identifier == assetId }) else { throw AnyError("not stubbed") }
-        return try asset.asset.json()
+        return asset.asset.json()
+    }
+
+    public func openWalletAsset(wallet _: Gemstone.Wallet, assetId: Gemstone.AssetId) async throws -> Gemstone.Asset? {
+        try await ensureAsset(assetId: assetId)
     }
 
     public func ensureTokenAsset(assetId: Gemstone.AssetId) async throws -> Gemstone.Asset {
         try await ensureAsset(assetId: assetId)
     }
 
-    public func searchAssetsAndTokens(query _: String, chains _: [Gemstone.Chain]) async throws -> [Gemstone.AssetBasic] {
-        try searchAssetsResult.map { try $0.json() }
-    }
-
-    public func searchTokens(tokenId _: String, chains _: [Gemstone.Chain]) async -> [Gemstone.AssetBasic] {
-        []
-    }
-
     public func addMissingBalances(walletId _: String, assetIds _: [Gemstone.AssetId]) async throws {}
 
     public func setupWallet(wallet _: Gemstone.Wallet) async throws {}
 
-    public func syncDefaultAssets() async throws {}
-
-    public func syncSwappableChains() async throws {}
-
-    public func syncAvailability(versions _: Gemstone.ConfigVersions) async throws {}
+    public func syncAssets(assetIds _: [Gemstone.AssetId], currency _: Gemstone.Currency) async throws {}
 
     public func syncAsset(assetId _: Gemstone.AssetId, currency _: Gemstone.Currency) async throws -> Gemstone.AssetFull {
         guard let assetResult else { throw AnyError("not stubbed") }
-        return try assetResult.json()
+        return assetResult.json()
     }
 }

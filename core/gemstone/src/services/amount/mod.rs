@@ -3,6 +3,8 @@ pub mod rules;
 
 use primitives::Asset;
 
+use crate::transfer_amount::{GemTransferAmount, GemTransferAmountError, GemTransferAmountInput, calculate_transfer_amount};
+
 use crate::services::transfer::GemTransferBalance;
 pub use model::{GemAmountEarnType, GemAmountError, GemAmountLimits, GemAmountPerpetualPosition, GemAmountRules, GemAmountStakeType, GemAmountType};
 
@@ -14,6 +16,10 @@ impl GemAmountService {
     #[uniffi::constructor]
     pub fn new() -> Self {
         Self
+    }
+
+    pub fn calculate(&self, input: GemTransferAmountInput) -> Result<GemTransferAmount, GemTransferAmountError> {
+        calculate_transfer_amount(input)
     }
 
     pub fn rules(&self, amount_type: &GemAmountType, asset: Asset) -> GemAmountRules {

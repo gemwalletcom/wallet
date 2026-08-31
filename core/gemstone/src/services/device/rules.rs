@@ -29,61 +29,30 @@ pub fn device_changed(current: &Device, other: &Device) -> bool {
 mod tests {
     use super::*;
     use primitives::currency::Currency;
-    use primitives::{Account, Chain, DeviceLocale, Platform, PlatformStore, WalletId, WalletSource, WalletType};
-
-    fn account(chain: Chain, address: &str) -> Account {
-        Account {
-            chain,
-            address: address.into(),
-            derivation_path: "".into(),
-            extended_public_key: None,
-        }
-    }
+    use primitives::{Account, Chain, WalletId, WalletSource};
 
     fn wallet(id: &str, accounts: Vec<Account>) -> Wallet {
         Wallet {
             id: WalletId::Multicoin(id.into()),
-            external_id: None,
             name: "Test Wallet".into(),
-            index: 0,
-            wallet_type: WalletType::Multicoin,
-            accounts,
-            is_pinned: false,
-            image_url: None,
             source: WalletSource::Create,
-        }
-    }
-
-    fn device() -> Device {
-        Device {
-            id: "device-id".into(),
-            platform: Platform::Android,
-            platform_store: PlatformStore::GooglePlay,
-            os: "Android 15".into(),
-            model: "Pixel".into(),
-            token: "push-token".into(),
-            locale: DeviceLocale::EN,
-            version: "1.0".into(),
-            currency: Currency::USD,
-            is_push_enabled: true,
-            is_price_alerts_enabled: Some(true),
-            subscriptions_version: 1,
+            ..Wallet::mock_with_accounts(accounts)
         }
     }
 
     #[test]
     fn test_signature_ignores_rename_and_pin_but_tracks_accounts_and_order() {
-        let base = wallet("wallet1", vec![account(Chain::Ethereum, "0xabc")]);
+        let base = wallet("wallet1", vec![Account::mock(Chain::Ethereum, "0xabc")]);
         let renamed = Wallet {
             name: "Renamed".into(),
             is_pinned: true,
             ..base.clone()
         };
         let extended = Wallet {
-            accounts: vec![account(Chain::Ethereum, "0xabc"), account(Chain::Bitcoin, "bc1xyz")],
+            accounts: vec![Account::mock(Chain::Ethereum, "0xabc"), Account::mock(Chain::Bitcoin, "bc1xyz")],
             ..base.clone()
         };
-        let other = wallet("wallet2", vec![account(Chain::Solana, "solana123")]);
+        let other = wallet("wallet2", vec![Account::mock(Chain::Solana, "solana123")]);
 
         assert_eq!(subscriptions_signature(std::slice::from_ref(&base)), subscriptions_signature(&[renamed]));
         assert_ne!(subscriptions_signature(std::slice::from_ref(&base)), subscriptions_signature(&[extended]));
@@ -92,7 +61,7 @@ mod tests {
 
     #[test]
     fn test_device_changed_tracks_synced_fields_only() {
-        let remote = device();
+        let remote = Device::mock();
 
         assert!(!device_changed(&remote, &remote.clone()));
         assert!(device_changed(

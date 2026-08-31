@@ -31,19 +31,10 @@ mod tests {
         assert_eq!(result, vec![AssetId::from_chain(Chain::Ethereum)]);
     }
 
-    fn account(chain: Chain, address: &str) -> Account {
-        Account {
-            chain,
-            address: address.into(),
-            derivation_path: String::new(),
-            extended_public_key: None,
-        }
-    }
-
     #[test]
     fn test_hyperliquid_account() {
-        let accounts = [account(Chain::Bitcoin, "bc1"), account(Chain::HyperCore, "0xhl")];
+        let accounts = [Account::mock(Chain::Bitcoin, "bc1"), Account::mock(Chain::HyperCore, "0xhl")];
         assert_eq!(hyperliquid_account(&accounts).map(|account| account.address.as_str()), Some("0xhl"));
-        assert!(hyperliquid_account(&[account(Chain::Bitcoin, "bc1")]).is_none());
+        assert!(hyperliquid_account(&[Account::mock(Chain::Bitcoin, "bc1")]).is_none());
     }
 }

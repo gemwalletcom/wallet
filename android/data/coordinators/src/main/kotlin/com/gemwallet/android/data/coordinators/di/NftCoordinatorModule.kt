@@ -1,19 +1,18 @@
 package com.gemwallet.android.data.coordinators.di
 
 import uniffi.gemstone.GemExplorerService
-import com.gemwallet.android.application.nft.coordinators.GetNftAssetDetails
-import com.gemwallet.android.application.nft.coordinators.GetNftCollections
-import com.gemwallet.android.application.nft.coordinators.RefreshNftAsset
-import com.gemwallet.android.application.nft.coordinators.SyncNftCollections
-import com.gemwallet.android.cases.nft.GetAssetNft
-import com.gemwallet.android.cases.nft.GetListNftCase
-import com.gemwallet.android.cases.nft.RefreshNftAsset as RefreshNftAssetCase
-import com.gemwallet.android.cases.nft.SyncNfts
+import uniffi.gemstone.GemNftService
+import com.gemwallet.android.application.nft.cases.GetNftAssetDetails
+import com.gemwallet.android.application.nft.cases.GetNftCollections
+import com.gemwallet.android.application.nft.cases.RefreshNftAsset
+import com.gemwallet.android.application.nft.cases.SyncNftCollections
+import com.gemwallet.android.application.nft.cases.GetAssetNft
+import com.gemwallet.android.application.nft.cases.GetListNft
 import com.gemwallet.android.data.coordinators.nft.GetNftAssetDetailsImpl
 import com.gemwallet.android.data.coordinators.nft.GetNftCollectionsImpl
 import com.gemwallet.android.data.coordinators.nft.RefreshNftAssetImpl
 import com.gemwallet.android.data.coordinators.nft.SyncNftCollectionsImpl
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,36 +26,36 @@ object NftCoordinatorModule {
     @Provides
     @Singleton
     fun provideGetNftAssetDetails(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         getAssetNft: GetAssetNft,
         explorerService: GemExplorerService,
     ): GetNftAssetDetails {
-        return GetNftAssetDetailsImpl(sessionRepository, getAssetNft, explorerService)
+        return GetNftAssetDetailsImpl(getSession, getAssetNft, explorerService)
     }
 
     @Provides
     @Singleton
     fun provideGetNftCollections(
-        sessionRepository: SessionRepository,
-        getListNftCase: GetListNftCase,
+        getSession: GetSession,
+        getListNftCase: GetListNft,
     ): GetNftCollections {
-        return GetNftCollectionsImpl(sessionRepository, getListNftCase)
+        return GetNftCollectionsImpl(getSession, getListNftCase)
     }
 
     @Provides
     @Singleton
     fun provideSyncNftCollections(
-        syncNfts: SyncNfts,
+        nftService: GemNftService,
     ): SyncNftCollections {
-        return SyncNftCollectionsImpl(syncNfts)
+        return SyncNftCollectionsImpl(nftService)
     }
 
     @Provides
     @Singleton
     fun provideRefreshNftAsset(
-        sessionRepository: SessionRepository,
-        refreshNftAsset: RefreshNftAssetCase,
+        getSession: GetSession,
+        nftService: GemNftService,
     ): RefreshNftAsset {
-        return RefreshNftAssetImpl(sessionRepository, refreshNftAsset)
+        return RefreshNftAssetImpl(getSession, nftService)
     }
 }

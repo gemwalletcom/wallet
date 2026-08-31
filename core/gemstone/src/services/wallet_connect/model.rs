@@ -1,7 +1,8 @@
+use crate::services::transfer::GemTransferData;
 use primitives::{Account, Chain, SimulationResult, Wallet, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
 
 use crate::message::sign_type::SignMessage;
-use crate::wallet_connect::{WalletConnectResponseType, WalletConnectTransaction};
+use crate::wallet_connect::WalletConnectResponseType;
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemWalletConnectRequest {
@@ -10,6 +11,12 @@ pub struct GemWalletConnectRequest {
     pub params: String,
     pub chain_id: String,
     pub domain: String,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemWalletConnectRpcError {
+    pub code: i32,
+    pub message: String,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -40,26 +47,26 @@ pub struct GemSessionApproval {
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
-pub struct GemWalletConnectSignRequest {
+pub struct GemWalletConnectMessageRequest {
     pub session_id: String,
     pub chain: Chain,
     pub wallet: Wallet,
     pub account: Account,
     pub session: WalletConnectionSession,
     pub simulation: SimulationResult,
-    pub payload: GemWalletConnectSignPayload,
+    pub message: SignMessage,
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
-#[allow(clippy::large_enum_variant)]
-pub enum GemWalletConnectSignPayload {
-    Message {
-        message: SignMessage,
-    },
-    Transaction {
-        transaction: WalletConnectTransaction,
-        action: GemWalletConnectTransactionAction,
-    },
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemWalletConnectTransactionRequest {
+    pub session_id: String,
+    pub chain: Chain,
+    pub wallet: Wallet,
+    pub account: Account,
+    pub session: WalletConnectionSession,
+    pub simulation: SimulationResult,
+    pub transfer: GemTransferData,
+    pub action: GemWalletConnectTransactionAction,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]

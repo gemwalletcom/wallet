@@ -20,6 +20,7 @@
   <string name="common_wallet">Wallet</string>
   <string name="common_show">Show %1$s</string>
   <string name="common_copied">Copied: %1$s</string>
+  <string name="common_copied_to_clipboard">Copied to clipboard</string>
   <string name="common_recommended">Recommended</string>
   <string name="common_all">All</string>
   <string name="common_not_available">Not Available</string>
@@ -182,10 +183,14 @@
   <string name="errors_token_invalid_id">Invalid Token ID</string>
   <string name="errors_import_invalid_secret_phrase">Invalid Secret Phrase</string>
   <string name="errors_import_invalid_secret_phrase_word">Invalid Secret Phrase word: %1$s</string>
+  <string name="errors_import_invalid_private_key">Invalid private key</string>
+  <string name="errors_keystore_access">Couldn\'t access this wallet\'s keys on this device. If you have your recovery phrase, remove this wallet and import it again to restore access.</string>
+  <string name="errors_wallet_account_missing">This wallet has no account for this network</string>
   <string name="errors_invalid_url">Invalid URL</string>
   <string name="errors_error_occurred">An error occurred!</string>
   <string name="errors_invalid_network_id">Invalid Network ID</string>
   <string name="errors_error">Error</string>
+  <string name="errors_cancelled">Cancelled</string>
   <string name="errors_connections_user_cancelled">User cancelled</string>
   <string name="errors_not_supported">Not Supported</string>
   <string name="errors_permissions_not_granted">Permissions Not Granted</string>

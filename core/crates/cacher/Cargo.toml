@@ -4,9 +4,9 @@ edition = { workspace = true }
 version = { workspace = true }
 
 [dependencies]
+gem_tracing = { path = "../tracing" }
+primitives = { path = "../primitives" }
 redis = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-
-[dev-dependencies]
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["sync"] }

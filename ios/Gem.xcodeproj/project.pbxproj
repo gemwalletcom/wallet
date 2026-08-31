@@ -39,7 +39,6 @@
 		83E0415A2D0AFCB80031D4BC /* RootSceneViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E041592D0AFCB80031D4BC /* RootSceneViewModel.swift */; };
 		83EB5E302D2ECF00006A7CFB /* Onboarding in Frameworks */ = {isa = PBXBuildFile; productRef = 83EB5E2F2D2ECF00006A7CFB /* Onboarding */; };
 		83EF67E52E005F48009C690F /* Formatters in Frameworks */ = {isa = PBXBuildFile; productRef = 83EF67E42E005F48009C690F /* Formatters */; };
-		AA0000032F26000000000002 /* ConnectionsService in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000022F26000000000002 /* ConnectionsService */; };
 		B604C2E82F3F538000CBAFDC /* Contacts in Frameworks */ = {isa = PBXBuildFile; productRef = B604C2E92F3F538100CBAFDC /* Contacts */; };
 		B60C6C352E68848900899BAC /* Support in Frameworks */ = {isa = PBXBuildFile; productRef = B60C6C342E68848900899BAC /* Support */; };
 		B62F6B9D2DE61ADF00AF56AB /* Onboarding in Frameworks */ = {isa = PBXBuildFile; productRef = B62F6B9C2DE61ADF00AF56AB /* Onboarding */; };
@@ -91,7 +90,6 @@
 		D852CB012C9CC315004121D3 /* PriceAlertsNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D852CB002C9CC315004121D3 /* PriceAlertsNavigationView.swift */; };
 		D85AD2A62CD7017E0010DEF8 /* NativeProviderService in Frameworks */ = {isa = PBXBuildFile; productRef = D85AD2A52CD7017E0010DEF8 /* NativeProviderService */; };
 		D87316B82E3AF30300C11634 /* ui_tests.xctestplan in Resources */ = {isa = PBXBuildFile; fileRef = D87316B72E3AF30300C11634 /* ui_tests.xctestplan */; };
-		D873DA512D7933AF0003F5CE /* MarketsNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D873DA502D7933AF0003F5CE /* MarketsNavigationStack.swift */; };
 		D890F7A52C7FC0AC00C26819 /* WalletsNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D890F7A42C7FC0AC00C26819 /* WalletsNavigationStack.swift */; };
 		D891DD412D3F359F00241222 /* CollectionsSceneNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D891DD402D3F359F00241222 /* CollectionsSceneNavigationView.swift */; };
 		D896B57E2E2EE2D300ADE083 /* Perpetuals in Frameworks */ = {isa = PBXBuildFile; productRef = D896B57D2E2EE2D300ADE083 /* Perpetuals */; };
@@ -255,7 +253,6 @@
 		D87316552E3AF1F000C11634 /* SystemServices */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = SystemServices; sourceTree = "<group>"; };
 		D87316B62E3AF2FA00C11634 /* Gemstone */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Gemstone; sourceTree = "<group>"; };
 		D87316B72E3AF30300C11634 /* ui_tests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = ui_tests.xctestplan; sourceTree = "<group>"; };
-		D873DA502D7933AF0003F5CE /* MarketsNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketsNavigationStack.swift; sourceTree = "<group>"; };
 		D88BB2682E2EE09F006310B9 /* Perpetuals */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Perpetuals; sourceTree = "<group>"; };
 		D890F7A42C7FC0AC00C26819 /* WalletsNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletsNavigationStack.swift; sourceTree = "<group>"; };
 		D891DD402D3F359F00241222 /* CollectionsSceneNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionsSceneNavigationView.swift; sourceTree = "<group>"; };
@@ -304,7 +301,6 @@
 				833809D12D273E450055D91F /* WalletConnector in Frameworks */,
 				833809D02D273E450055D91F /* WalletConnectorService in Frameworks */,
 				D85AD2A62CD7017E0010DEF8 /* NativeProviderService in Frameworks */,
-				AA0000032F26000000000002 /* ConnectionsService in Frameworks */,
 				D8D83C842CECFA610083AA53 /* Swap in Frameworks */,
 				B6STREAM02F5000000000001 /* StreamService in Frameworks */,
 				839C794B2D1C42A500E32072 /* PrimitivesComponents in Frameworks */,
@@ -440,7 +436,6 @@
 				83A35C612DF2054B00360060 /* Transfer */,
 				836281B22DEF423400CA5C75 /* Assets */,
 				83ACA9792DEE01F00085B133 /* Swap */,
-				D873DA4F2D7933940003F5CE /* Markets */,
 				8336E4732D5D2A63007113F9 /* Wallet */,
 				8351CD292D552875002ACCAB /* Wallets */,
 				8351CD282D5524FE002ACCAB /* Settings */,
@@ -695,14 +690,6 @@
 			path = Scenes;
 			sourceTree = "<group>";
 		};
-		D873DA4F2D7933940003F5CE /* Markets */ = {
-			isa = PBXGroup;
-			children = (
-				D873DA502D7933AF0003F5CE /* MarketsNavigationStack.swift */,
-			);
-			path = Markets;
-			sourceTree = "<group>";
-		};
 		D891DD3D2D3EDD7400241222 /* Stake */ = {
 			isa = PBXGroup;
 			children = (
@@ -806,7 +793,6 @@
 				83EF67E42E005F48009C690F /* Formatters */,
 				D896B57D2E2EE2D300ADE083 /* Perpetuals */,
 				B60C6C342E68848900899BAC /* Support */,
-				AA0000022F26000000000002 /* ConnectionsService */,
 			);
 			productName = wallet;
 			productReference = C30952B0299C39D70004C0F9 /* Gem.app */;
@@ -1081,7 +1067,6 @@
 				D8B738D42C59643D004EF083 /* MainTabViewModel.swift in Sources */,
 				C30952B4299C39D70004C0F9 /* App.swift in Sources */,
 				D807004C2BBB26DD00ED770B /* TransactionsNavigationView.swift in Sources */,
-				D873DA512D7933AF0003F5CE /* MarketsNavigationStack.swift in Sources */,
 				83B57FAB2CFF92670009319F /* AppResolver.swift in Sources */,
 				B67ED5472DDB5DCC009F74E6 /* NavigationHandler.swift in Sources */,
 				FADEC0DE000000000000B002 /* AddContactNavigationView.swift in Sources */,
@@ -1788,10 +1773,6 @@
 		83FE37B32D273CC80048D54C /* WalletConnector */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = WalletConnector;
-		};
-		AA0000022F26000000000002 /* ConnectionsService */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = ConnectionsService;
 		};
 		B604C2E92F3F538100CBAFDC /* Contacts */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -25,6 +25,7 @@ gem_tempo = { path = "../gem_tempo", features = ["rpc"] }
 gem_evm = { path = "../gem_evm", features = ["rpc", "reqwest"] }
 gem_everstake = { path = "../gem_everstake", features = ["rpc", "reqwest"] }
 gem_monad = { path = "../gem_monad", features = ["rpc", "reqwest"] }
+gem_bsc = { path = "../gem_bsc", features = ["rpc", "reqwest"] }
 gem_hypercore = { path = "../gem_hypercore", features = ["reqwest"] }
 gem_near = { path = "../gem_near", features = ["rpc", "reqwest"] }
 gem_polkadot = { path = "../gem_polkadot", features = ["rpc", "reqwest"] }

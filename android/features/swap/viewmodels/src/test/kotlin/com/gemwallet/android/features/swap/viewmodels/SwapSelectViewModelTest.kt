@@ -3,13 +3,13 @@ package com.gemwallet.android.features.swap.viewmodels
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
-import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
-import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.coordinators.SetAssetPinned
-import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
-import com.gemwallet.android.application.session.coordinators.GetSession
-import com.gemwallet.android.application.swap.coordinators.SearchSwapAssets
-import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
+import com.gemwallet.android.application.assets.cases.SetAssetPinned
+import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.swap.cases.SearchSwapAssets
+import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import io.mockk.coEvery
@@ -28,6 +28,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemAssetConfigService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SwapSelectViewModelTest {
@@ -39,7 +40,7 @@ class SwapSelectViewModelTest {
     private val updateRecentAsset = mockk<UpdateRecentAsset>(relaxed = true)
     private val switchAssetVisibility = mockk<SwitchAssetVisibility>(relaxed = true)
     private val setAssetPinned = mockk<SetAssetPinned>(relaxed = true)
-    private val searchTokensCase = mockk<SearchTokensCase>()
+    private val searchTokensCase = mockk<SearchTokens>()
     private val searchSwapAssets = mockk<SearchSwapAssets>()
 
     @Before
@@ -75,6 +76,7 @@ class SwapSelectViewModelTest {
         switchAssetVisibility = switchAssetVisibility,
         setAssetPinned = setAssetPinned,
         searchTokensCase = searchTokensCase,
+        assetConfig = GemAssetConfigService(),
         searchSwapAssets = searchSwapAssets,
         savedStateHandle = SavedStateHandle(
             mapOf(RouteArgument.SwapItemType.key to type)

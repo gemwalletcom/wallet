@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
-import com.gemwallet.android.application.asset_select.coordinators.ClearRecentAssets
-import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
+import com.gemwallet.android.application.asset_select.cases.ClearRecentAssets
+import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsEmptyState
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
 import com.gemwallet.android.model.AssetFilter
@@ -32,6 +32,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemAssetConfigService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RecentsSheetViewModelTest {
@@ -60,7 +61,7 @@ class RecentsSheetViewModelTest {
 
     @Test
     fun `show makes visible and dismiss hides`() = runTest(testDispatcher) {
-        val vm = RecentsSheetViewModel(getRecentAssets, clearRecentAssets)
+        val vm = RecentsSheetViewModel(getRecentAssets, clearRecentAssets, GemAssetConfigService())
 
         assertFalse(vm.visible.value)
 
@@ -88,7 +89,7 @@ class RecentsSheetViewModelTest {
 
     @Test
     fun `clear delegates to coordinator with current types`() = runTest(testDispatcher) {
-        val vm = RecentsSheetViewModel(getRecentAssets, clearRecentAssets)
+        val vm = RecentsSheetViewModel(getRecentAssets, clearRecentAssets, GemAssetConfigService())
         val types = listOf(RecentType.Swap)
         vm.show(types = types)
         advanceUntilIdle()

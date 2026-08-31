@@ -13,8 +13,9 @@ import Transfer
 
 struct SelectAssetSceneNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.assetsEnabler) private var assetsEnabler
+    @Environment(\.balanceService) private var balanceService
     @Environment(\.assetsService) private var assetsService
+    @Environment(\.receiveService) private var receiveService
     @Environment(\.dismiss) private var dismiss
 
     @State private var isPresentingFilteringView: Bool = false
@@ -78,8 +79,9 @@ struct SelectAssetSceneNavigationStack: View {
                             model: ReceiveViewModel(
                                 assetData: input.assetData,
                                 wallet: model.wallet,
-                                assetsEnabler: assetsEnabler,
+                                balanceService: balanceService,
                                 assetsService: assetsService,
+                                receiveService: receiveService,
                             ),
                         )
                     case .buy:

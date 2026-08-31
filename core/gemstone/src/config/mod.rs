@@ -21,8 +21,8 @@ use {
     docs::{DocsUrl, get_docs_url},
     fee_config::{FeeConfig, get_fee_config},
     fiat_config::{FiatConfig, get_fiat_config},
-    perpetual_config::{PerpetualConfig, get_autoclose_suggestions, get_perpetual_config, select_leverage},
-    public::{ASSETS_URL, PublicUrl, get_public_url},
+    perpetual_config::{PerpetualConfig, get_autoclose_suggestions, get_perpetual_config, leverage_options, select_leverage},
+    public::{PublicUrl, get_public_url},
     rewards::{RewardsUrl, get_rewards_url},
     search_config::{WalletSearchConfig, get_wallet_search_config},
     social::{SocialUrl, get_social_url, get_social_url_deeplink},
@@ -67,6 +67,10 @@ impl Config {
         get_wallet_search_config()
     }
 
+    fn leverage_options(&self, max_leverage: u8) -> Vec<u8> {
+        leverage_options(max_leverage)
+    }
+
     fn select_leverage(&self, desired: u8, options: Vec<u8>) -> u8 {
         select_leverage(desired, &options)
     }
@@ -95,8 +99,7 @@ impl Config {
         get_public_url(item)
     }
 
-    fn get_chain_config(&self, chain: String) -> ChainConfig {
-        let chain = Chain::from_str(&chain).unwrap();
+    fn get_chain_config(&self, chain: Chain) -> ChainConfig {
         crate::config::chain::get_chain_config(chain)
     }
 
@@ -130,18 +133,6 @@ impl Config {
 
     fn get_node_region_priority(&self, region: NodeRegion) -> i32 {
         region.priority()
-    }
-
-    fn image_formatter_asset_url(&self, chain: &str, token_id: Option<String>) -> String {
-        primitives::ImageFormatter::get_asset_url(ASSETS_URL, chain, token_id.as_deref())
-    }
-
-    fn image_formatter_validator_url(&self, chain: &str, id: &str) -> String {
-        primitives::ImageFormatter::get_validator_url(ASSETS_URL, chain, id)
-    }
-
-    fn image_formatter_nft_asset_url(&self, url: &str, id: &str) -> String {
-        primitives::ImageFormatter::get_nft_asset_url(url, id)
     }
 
     fn get_block_explorers(&self, chain: &str) -> Vec<String> {

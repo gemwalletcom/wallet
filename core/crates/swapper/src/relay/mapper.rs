@@ -1,23 +1,36 @@
+use gem_tron::address::TronAddress;
 use primitives::{TransactionSwapMetadata, swap::ApprovalData};
 
 use super::{
     asset::map_currency_to_asset_id,
     chain::RelayChain,
-    model::{RelayQuoteResponse, RelayRequest, StepData},
+    model::{RelayQuoteResponse, RelayRequest},
 };
 use crate::{
     SwapResult, SwapperError, SwapperProvider, SwapperQuoteData,
-    approval::{DEFAULT_EVM_SWAP_GAS_LIMIT, get_swap_gas_limit_with_approval},
+    approval::{DEFAULT_EVM_SWAP_GAS_LIMIT, DEFAULT_TRON_SWAP_ENERGY_LIMIT, get_swap_gas_limit_with_approval},
 };
 
-pub fn map_quote_data(quote_response: &RelayQuoteResponse, approval: Option<ApprovalData>) -> Result<SwapperQuoteData, SwapperError> {
-    let step_data = quote_response.step_data().ok_or(SwapperError::InvalidRoute)?;
-
-    match step_data {
-        StepData::Evm(evm) => {
+pub fn map_quote_data(quote_response: &RelayQuoteResponse, approval: Option<ApprovalData>, from_chain: RelayChain) -> Result<SwapperQuoteData, SwapperError> {
+    match from_chain {
+        RelayChain::Evm(_) => {
+            let evm = quote_response.get_evm_step().ok_or(SwapperError::InvalidRoute)?;
             let gas_limit = get_swap_gas_limit_with_approval(&approval, evm.gas_limit_with_buffer(), DEFAULT_EVM_SWAP_GAS_LIMIT);
             let call_data = evm.data.clone().unwrap_or_default();
             Ok(SwapperQuoteData::new_contract(evm.to.clone(), evm.value.clone(), call_data, approval, gas_limit))
+        }
+        RelayChain::Tron => {
+            let tron = quote_response.get_tron_step().ok_or(SwapperError::InvalidRoute)?;
+            let transaction = tron.trigger_smart_contract().ok_or(SwapperError::InvalidRoute)?;
+            let contract = TronAddress::parse_hex_or_base58(&transaction.contract_address).map_err(|_| SwapperError::InvalidRoute)?;
+            let gas_limit = get_swap_gas_limit_with_approval(&approval, None, DEFAULT_TRON_SWAP_ENERGY_LIMIT);
+            Ok(SwapperQuoteData::new_contract(
+                contract.to_string(),
+                transaction.call_value.unwrap_or_default().to_string(),
+                transaction.data.clone(),
+                approval,
+                gas_limit,
+            ))
         }
     }
 }
@@ -49,13 +62,13 @@ pub fn map_swap_result(request: &RelayRequest) -> SwapResult {
 mod tests {
     use super::*;
     use crate::relay::model::{RelayQuoteResponse, RelayRequest, RelayRequestsResponse, RelayStatus, Step};
-    use primitives::{AssetId, Chain, swap::SwapStatus};
+    use primitives::{AssetId, Chain, EVMChain, swap::SwapStatus};
 
     #[test]
     fn test_map_evm_quote_data() {
         let quote_response = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("swap", "0xrouter", "1000000000000000000", "0xabcdef")]);
 
-        let result = map_quote_data(&quote_response, None).unwrap();
+        let result = map_quote_data(&quote_response, None, RelayChain::Evm(EVMChain::Ethereum)).unwrap();
 
         assert_eq!(result.to, "0xrouter");
         assert_eq!(result.value, "1000000000000000000");
@@ -69,16 +82,47 @@ mod tests {
         let approval = ApprovalData::make("0xtoken", "0xrouter", "1000", false);
 
         let quote_response = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction_with_gas("swap", "0xrouter", "0", "0xabcdef", Some(482935))]);
-        let result = map_quote_data(&quote_response, Some(approval.clone())).unwrap();
+        let result = map_quote_data(&quote_response, Some(approval.clone()), RelayChain::Evm(EVMChain::Ethereum)).unwrap();
 
         assert_eq!(result.to, "0xrouter");
         assert_eq!(result.approval, Some(approval.clone()));
         assert_eq!(result.gas_limit, Some("724402".to_string()));
 
         let quote_response = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("swap", "0xrouter", "0", "0xabcdef")]);
-        let result = map_quote_data(&quote_response, Some(approval)).unwrap();
+        let result = map_quote_data(&quote_response, Some(approval), RelayChain::Evm(EVMChain::Ethereum)).unwrap();
 
         assert_eq!(result.gas_limit, Some(DEFAULT_EVM_SWAP_GAS_LIMIT.to_string()));
+    }
+
+    #[test]
+    fn test_map_tron_quote_data() {
+        let quote_response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_tron_usdt_to_base_usdc.json")).unwrap();
+        let result = map_quote_data(&quote_response, None, RelayChain::Tron).unwrap();
+
+        assert_eq!(result.to, "TXtEs6t2oUWQsNos7m68gbHdE9Q5n6x2oN");
+        assert_eq!(result.value, "0");
+        assert_eq!(
+            result.data,
+            "e8017952000000000000000000000000f70da97812cb96acdf810712aa562db8dfa3dbef000000000000000000000000a614f803b6fd780986a42c78ec9c7f77e6ded13c00000000000000000000000000000000000000000000000000000000000f42407ea7c6b23ebd61b4a4b5802cfd9ca2ba44bf096a67858bb0efff82111cf096c0"
+        );
+        assert!(result.approval.is_none());
+        assert!(result.gas_limit.is_none());
+
+        let approval = ApprovalData::make("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", "TXtEs6t2oUWQsNos7m68gbHdE9Q5n6x2oN", "1000000", true);
+        let result = map_quote_data(&quote_response, Some(approval.clone()), RelayChain::Tron).unwrap();
+        assert_eq!(result.approval, Some(approval));
+        assert_eq!(result.gas_limit, Some(DEFAULT_TRON_SWAP_ENERGY_LIMIT.to_string()));
+
+        let native_quote: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_tron_to_base_usdc.json")).unwrap();
+        let native = map_quote_data(&native_quote, None, RelayChain::Tron).unwrap();
+        assert_eq!(native.to, "TXtEs6t2oUWQsNos7m68gbHdE9Q5n6x2oN");
+        assert_eq!(native.value, "10000000");
+        assert!(native.approval.is_none());
+
+        assert_eq!(
+            map_quote_data(&quote_response, None, RelayChain::Evm(EVMChain::Ethereum)).unwrap_err(),
+            SwapperError::InvalidRoute
+        );
     }
 
     #[test]
@@ -117,6 +161,6 @@ mod tests {
     fn test_map_quote_data_without_step_data() {
         let quote_response = RelayQuoteResponse::mock_with_steps(vec![Step::mock_empty("approve", "transaction")]);
 
-        assert!(map_quote_data(&quote_response, None).is_err());
+        assert!(map_quote_data(&quote_response, None, RelayChain::Evm(EVMChain::Ethereum)).is_err());
     }
 }

@@ -4,15 +4,16 @@ import uniffi.gemstone.GemExplorerService
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.coordinators.GetAssetById
-import com.gemwallet.android.application.assets.coordinators.GetAssetLinks
-import com.gemwallet.android.application.assets.coordinators.GetAssetMarket
-import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
-import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
+import com.gemwallet.android.application.assets.cases.GetAssetById
+import com.gemwallet.android.application.assets.cases.GetAssetLinks
+import com.gemwallet.android.application.assets.cases.GetAssetMarket
+import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetMarketUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.toModel
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.BlockExplorerLink
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -26,7 +27,7 @@ class AssetChartViewModel internal constructor(
     getAssetById: GetAssetById,
     getAssetLinks: GetAssetLinks,
     getAssetMarket: GetAssetMarket,
-    explorerService: GemExplorerService,
+    private val explorerService: GemExplorerService,
     getPriceAlerts: GetPriceAlerts,
     getCurrentCurrency: GetCurrentCurrency,
     val assetId: AssetId,
@@ -63,6 +64,9 @@ class AssetChartViewModel internal constructor(
                 currency = currency,
                 marketInfo = market,
                 explorerName = explorerName,
+                tokenExplorerLink = it.id.tokenId?.let { tokenId ->
+                    explorerService.getTokenUrl(it.id.chain.string, tokenId)?.let { url -> BlockExplorerLink(url.name, url.link) }
+                },
             )
         }
     }

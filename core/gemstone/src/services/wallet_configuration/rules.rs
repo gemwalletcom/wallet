@@ -1,4 +1,4 @@
-use primitives::{BannerEvent, WalletConfiguration, WalletId};
+use primitives::{AssetId, BannerEvent, WalletConfiguration, WalletId};
 
 use crate::services::banner::GemBannerKey;
 
@@ -8,8 +8,7 @@ pub fn multi_signature_banners(wallet_id: &WalletId, configuration: &WalletConfi
         .iter()
         .map(|account| GemBannerKey {
             wallet_id: Some(wallet_id.clone()),
-            asset_id: None,
-            chain: Some(account.chain),
+            asset_id: Some(AssetId::from_chain(account.chain)),
             event: BannerEvent::AccountBlockedMultiSignature,
         })
         .collect()
@@ -35,7 +34,10 @@ mod tests {
                 .iter()
                 .all(|key| key.wallet_id == Some(wallet_id.clone()) && key.event == BannerEvent::AccountBlockedMultiSignature)
         );
-        assert_eq!(banners.iter().map(|key| key.chain).collect::<Vec<_>>(), vec![Some(Chain::Tron), Some(Chain::Ethereum)]);
+        assert_eq!(
+            banners.iter().map(|key| key.asset_id.clone()).collect::<Vec<_>>(),
+            vec![Some(AssetId::from_chain(Chain::Tron)), Some(AssetId::from_chain(Chain::Ethereum))]
+        );
         assert!(multi_signature_banners(&wallet_id, &WalletConfiguration { multi_signature_accounts: vec![] }).is_empty());
     }
 }

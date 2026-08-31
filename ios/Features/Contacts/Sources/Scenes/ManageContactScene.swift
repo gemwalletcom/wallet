@@ -67,9 +67,10 @@ public struct ManageContactScene: View {
     private func contactAddressScene(mode: ManageContactAddressViewModel.Mode) -> some View {
         ManageContactAddressScene(
             model: ManageContactAddressViewModel(
-                contactId: model.contactId,
+                defaultChain: model.defaultChain,
                 nameService: model.nameService,
                 mode: mode,
+                addressService: model.addressService,
                 onComplete: model.onAddressComplete,
             ),
         )

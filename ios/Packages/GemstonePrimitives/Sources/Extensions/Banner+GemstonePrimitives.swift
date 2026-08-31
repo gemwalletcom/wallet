@@ -2,6 +2,7 @@
 
 import Foundation
 import enum Gemstone.GemBannerAction
+import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerContext
 import struct Gemstone.GemBannerItem
 import protocol Gemstone.GemBannerServiceProtocol
@@ -11,10 +12,9 @@ import Primitives
 public extension Primitives.Banner {
     var gemKey: GemBannerKey {
         get throws {
-            try GemBannerKey(
-                walletId: wallet?.id.id,
+            GemBannerKey(
+                walletId: walletId?.id,
                 assetId: asset?.id.identifier,
-                chain: chain?.rawValue,
                 event: event.json(),
             )
         }
@@ -25,7 +25,7 @@ public extension Primitives.BannerActionType {
     var gemAction: GemBannerAction {
         get throws {
             switch self {
-            case let .event(event): try .event(event: event.json())
+            case let .event(event): .event(event: event.json())
             case .button: .button
             case .closeBanner: .close
             }
@@ -34,14 +34,17 @@ public extension Primitives.BannerActionType {
 }
 
 public extension GemBannerServiceProtocol {
-    func visibleBanners(_ banners: [Banner], wallet: Wallet?, asset: Asset?, context: GemBannerContext) throws -> [Banner] {
-        let stored = try banners.map { try GemBannerItem(event: $0.event.json(), state: $0.state.json()) }
+    func content(for banner: Banner) -> GemBannerContent {
+        bannerContent(event: banner.event.json(), asset: banner.asset?.json())
+    }
+
+    func visibleBanners(_ banners: [Banner], walletId: WalletId?, asset: Asset?, context: GemBannerContext) throws -> [Banner] {
+        let stored = banners.map { GemBannerItem(event: $0.event.json(), state: $0.state.json()) }
         return try visibleBanners(stored: stored, context: context).map { item in
             let event = try Primitives.BannerEvent(item.event)
             return try banners.first { $0.event == event } ?? Banner(
-                wallet: wallet,
+                walletId: walletId,
                 asset: asset,
-                chain: .none,
                 event: event,
                 state: Primitives.BannerState(item.state),
             )

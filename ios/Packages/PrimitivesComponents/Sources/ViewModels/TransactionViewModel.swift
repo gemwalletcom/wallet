@@ -1,5 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemAmountSign
+import class Gemstone.GemTransactionFormatter
+import enum Gemstone.GemTransactionValue
 import protocol Gemstone.GemExplorerServiceProtocol
 import BigInt
 import Components
@@ -16,16 +19,19 @@ public struct TransactionViewModel: Sendable {
 
     private let explorerService: any GemExplorerServiceProtocol
     private let assetImageFormatter = AssetImageFormatter()
+    private let transactionFormatter: GemTransactionFormatter
     private let currency: String
     private let formatter: ValueFormatter = .short
 
     public init(
         explorerService: any GemExplorerServiceProtocol,
+        transactionFormatter: GemTransactionFormatter,
         transaction: TransactionExtended,
         currency: String,
     ) {
         self.transaction = transaction
         self.explorerService = explorerService
+        self.transactionFormatter = transactionFormatter
         self.currency = currency
     }
 
@@ -73,13 +79,16 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var infoModel: TransactionInfoViewModel {
-        let direction: TransactionDirection? = switch transaction.transaction.type {
-        case .transfer: transaction.transaction.direction
-        case .stakeRewards, .stakeWithdraw: .incoming
-        default: nil
-        }
+        infoModel(sign: amountSign)
+    }
 
-        return TransactionInfoViewModel(
+    private var amountSign: GemAmountSign {
+        guard case let .amount(sign) = transactionFormatter.value(transaction: transaction.transaction.json()) else { return .none }
+        return sign
+    }
+
+    private func infoModel(sign: GemAmountSign) -> TransactionInfoViewModel {
+        TransactionInfoViewModel(
             currency: currency,
             asset: transaction.asset,
             assetPrice: transaction.price,
@@ -87,67 +96,13 @@ public struct TransactionViewModel: Sendable {
             feeAssetPrice: transaction.feePrice,
             value: transaction.transaction.valueBigInt,
             feeValue: transaction.transaction.feeBigInt,
-            direction: direction,
+            direction: sign.direction,
         )
     }
 
     public var titleTextValue: TextValue {
-        let title: String = {
-            switch transaction.transaction.type {
-            case .transfer, .transferNFT:
-                switch transaction.transaction.state {
-                case .confirmed:
-                    switch transaction.transaction.direction {
-                    case .incoming:
-                        return Localized.Transaction.Title.received
-                    case .outgoing, .selfTransfer:
-                        return Localized.Transaction.Title.sent
-                    }
-                case .failed, .pending, .reverted, .inTransit:
-                    return Localized.Transfer.title
-                }
-            case .smartContractCall:
-                return Localized.Transfer.SmartContract.title
-            case .swap:
-                return Localized.Wallet.swap
-            case .tokenApproval:
-                return Localized.Transfer.Approve.title
-            case .stakeDelegate:
-                return Localized.Transfer.Stake.title
-            case .stakeUndelegate:
-                return Localized.Transfer.Unstake.title
-            case .stakeRedelegate:
-                return Localized.Transfer.Redelegate.title
-            case .stakeRewards:
-                return Localized.Transfer.Rewards.title
-            case .stakeWithdraw:
-                return Localized.Transfer.Withdraw.title
-            case .assetActivation:
-                return Localized.Transfer.ActivateAsset.title
-            case .stakeFreeze:
-                return Localized.Transfer.Freeze.title
-            case .stakeUnfreeze:
-                return Localized.Transfer.Unfreeze.title
-            case .perpetualOpenPosition:
-                if let metadata = transaction.transaction.metadata?.decode(TransactionPerpetualMetadata.self) {
-                    return Localized.Perpetual.openDirection(PerpetualDirectionViewModel(direction: metadata.direction).title)
-                }
-                return .empty
-            case .perpetualClosePosition:
-                if let metadata = transaction.transaction.metadata?.decode(TransactionPerpetualMetadata.self) {
-                    return Localized.Perpetual.closeDirection(PerpetualDirectionViewModel(direction: metadata.direction).title)
-                }
-                return .empty
-            case .perpetualModifyPosition:
-                return .empty
-            case .earnDeposit:
-                return Localized.Common.earn
-            case .earnWithdraw:
-                return Localized.Transfer.Withdraw.title
-            }
-        }()
-        return TextValue(
-            text: title,
+        TextValue(
+            text: transactionFormatter.title(transaction: transaction.transaction.json()).title,
             style: TextStyle(font: Font.system(.body, weight: .medium), color: .primary),
         )
     }
@@ -175,48 +130,15 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var titleExtraTextValue: TextValue? {
-        let title: String? = {
-            let chain = assetId.chain
-            switch transaction.transaction.type {
-            case .transfer, .transferNFT, .tokenApproval, .smartContractCall:
-                switch transaction.transaction.direction {
-                case .incoming:
-                    return participantTitle(prefix: Localized.Transfer.from, address: transaction.transaction.from, chain: chain)
-                case .outgoing, .selfTransfer:
-                    return participantTitle(prefix: Localized.Transfer.to, address: transaction.transaction.to, chain: chain)
-                }
-            case .stakeDelegate,
-                 .stakeRedelegate:
-                return participantTitle(prefix: Localized.Transfer.to, address: transaction.transaction.to, chain: chain)
-            case .stakeUndelegate:
-                return participantTitle(prefix: Localized.Transfer.from, address: transaction.transaction.to, chain: chain)
-            case .stakeFreeze:
-                guard let title = getResourceTitle() else { return .none }
-                return String(format: "%@ %@", Localized.Transfer.to, title)
-            case .stakeUnfreeze:
-                guard let title = getResourceTitle() else { return .none }
-                return String(format: "%@ %@", Localized.Transfer.from, title)
-            case .earnDeposit:
-                return participantTitle(prefix: Localized.Transfer.to, address: transaction.transaction.to, chain: chain)
-            case .earnWithdraw:
-                return participantTitle(prefix: Localized.Transfer.from, address: transaction.transaction.to, chain: chain)
-            case .swap,
-                 .stakeRewards,
-                 .stakeWithdraw,
-                 .assetActivation,
-                 .perpetualModifyPosition,
-                 .perpetualOpenPosition,
-                 .perpetualClosePosition:
-                guard
-                    let metadata = transaction.transaction.metadata?.decode(TransactionPerpetualMetadata.self),
-                    metadata.price > 0
-                else {
-                    return .none
-                }
-                let price = AmountDisplay.currency(value: metadata.price, currencyCode: Currency.usd.rawValue, showSign: false).text
-                return String(format: "%@: %@", Localized.Asset.price, price)
-            }
-        }()
+        let title: String? = switch transactionFormatter.subtitle(transaction: transaction.transaction.json()) {
+        case let .toAddress(address): participantTitle(prefix: Localized.Transfer.to, address: address, chain: assetId.chain)
+        case let .fromAddress(address): participantTitle(prefix: Localized.Transfer.from, address: address, chain: assetId.chain)
+        case let .toResource(resource): resourceTitle(prefix: Localized.Transfer.to, resource: resource)
+        case let .fromResource(resource): resourceTitle(prefix: Localized.Transfer.from, resource: resource)
+        case let .price(value):
+            String(format: "%@: %@", Localized.Asset.price, AmountDisplay.currency(value: value, currencyCode: Currency.usd.rawValue, showSign: false).text)
+        case .none: .none
+        }
 
         return title.map {
             TextValue(
@@ -227,26 +149,26 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var subtitleTextValue: TextValue? {
-        switch transaction.transaction.type {
-        case .transfer,
-             .smartContractCall,
-             .stakeRewards,
-             .stakeWithdraw,
-             .stakeDelegate,
-             .stakeUndelegate,
-             .stakeRedelegate,
-             .assetActivation,
-             .stakeFreeze,
-             .stakeUnfreeze,
-             .earnDeposit,
-             .earnWithdraw:
-            return infoModel.amountDisplay(formatter: formatter).amount
-        case .perpetualClosePosition:
-            guard let metadata = transaction.transaction.metadata?.decode(TransactionPerpetualMetadata.self), metadata.pnl != 0 else {
-                return .none
-            }
-            return AmountDisplay.currency(value: metadata.pnl, currencyCode: Currency.usd.rawValue)
-        case .perpetualOpenPosition:
+        amountTextValue(transactionFormatter.value(transaction: transaction.transaction.json()), textStyle: nil)
+    }
+
+    public var subtitleExtraTextValue: TextValue? {
+        amountTextValue(transactionFormatter.equivalentValue(transaction: transaction.transaction.json()), textStyle: .footnote)
+    }
+
+    private func amountTextValue(_ value: GemTransactionValue, textStyle: TextStyle?) -> TextValue? {
+        switch value {
+        case .none:
+            return .none
+        case .assetSymbol:
+            return AmountDisplay.symbol(asset: transaction.asset).amount
+        case let .amount(sign):
+            return infoModel(sign: sign).amountDisplay(formatter: formatter).amount
+        case .swapReceived:
+            return swapAmount(assetId: swapMetadata?.toAsset, value: swapMetadata?.toValue, sign: .incoming, textStyle: textStyle)
+        case .swapSpent:
+            return swapAmount(assetId: swapMetadata?.fromAsset, value: swapMetadata?.fromValue, sign: .outgoing, textStyle: textStyle)
+        case .perpetualNotional:
             return AmountDisplay.numeric(
                 asset: Chain.hyperCore.defaultAsset(type: .perpetual),
                 price: Price(price: 1, priceChangePercentage24h: .zero, updatedAt: .now),
@@ -255,57 +177,28 @@ public struct TransactionViewModel: Sendable {
                 formatter: formatter,
                 textStyle: TextStyle(font: .body, color: Colors.black, fontWeight: .medium),
             ).fiat
-        case .tokenApproval:
-            return AmountDisplay.symbol(asset: transaction.asset).amount
-        case .swap:
-            guard let metadata = transaction.transaction.metadata?.decode(TransactionSwapMetadata.self), let asset = transaction.assets.first(where: { $0.id == metadata.toAsset }) else {
-                return .none
-            }
-            return AmountDisplay.numeric(
-                data: AssetValuePrice(asset: asset, value: BigInt.fromString(metadata.toValue), price: nil),
-                style: AmountDisplayStyle(sign: .incoming, formatter: formatter, currencyCode: currency),
-            ).amount
-        case .transferNFT:
-            return nil
-        case .perpetualModifyPosition:
-            return nil
+        case let .perpetualPnl(pnl):
+            return AmountDisplay.currency(value: pnl, currencyCode: Currency.usd.rawValue)
         }
     }
 
-    public var subtitleExtraTextValue: TextValue? {
-        switch transaction.transaction.type {
-        case .transfer,
-             .transferNFT,
-             .tokenApproval,
-             .stakeDelegate,
-             .stakeUndelegate,
-             .stakeRedelegate,
-             .stakeRewards,
-             .stakeWithdraw,
-             .assetActivation,
-             .smartContractCall,
-             .perpetualOpenPosition,
-             .perpetualClosePosition,
-             .perpetualModifyPosition,
-             .stakeFreeze,
-             .stakeUnfreeze,
-             .earnDeposit,
-             .earnWithdraw:
+    private func swapAmount(assetId: AssetId?, value: String?, sign: AmountDisplaySign, textStyle: TextStyle?) -> TextValue? {
+        guard
+            let assetId,
+            let value,
+            let asset = transaction.assets.first(where: { $0.id == assetId }),
+            let amount = try? BigInt.from(string: value)
+        else {
             return .none
-        case .swap:
-            guard let metadata = transaction.transaction.metadata?.decode(TransactionSwapMetadata.self), let asset = transaction.assets.first(where: { $0.id == metadata.fromAsset }) else {
-                return .none
-            }
-            return AmountDisplay.numeric(
-                data: AssetValuePrice(asset: asset, value: BigInt(stringLiteral: metadata.fromValue), price: nil),
-                style: AmountDisplayStyle(
-                    sign: .outgoing,
-                    formatter: formatter,
-                    currencyCode: currency,
-                    textStyle: .footnote,
-                ),
-            ).amount
         }
+        return AmountDisplay.numeric(
+            data: AssetValuePrice(asset: asset, value: amount, price: nil),
+            style: AmountDisplayStyle(sign: sign, formatter: formatter, currencyCode: currency, textStyle: textStyle),
+        ).amount
+    }
+
+    private var swapMetadata: TransactionSwapMetadata? {
+        transaction.transaction.metadata?.decode(TransactionSwapMetadata.self)
     }
 
     public var participant: String {
@@ -351,8 +244,8 @@ public struct TransactionViewModel: Sendable {
         return String(format: "%@ %@", prefix, value)
     }
 
-    private func getResourceTitle() -> String? {
-        guard let resourceType = transaction.transaction.metadata?.decode(TransactionResourceTypeMetadata.self)?.resourceType else { return nil }
-        return ResourceViewModel(resource: resourceType).title
+    private func resourceTitle(prefix: String, resource: String) -> String? {
+        guard let resource = try? Primitives.Resource(resource) else { return nil }
+        return String(format: "%@ %@", prefix, ResourceViewModel(resource: resource).title)
     }
 }

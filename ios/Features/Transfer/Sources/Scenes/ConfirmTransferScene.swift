@@ -28,7 +28,7 @@ public struct ConfirmTransferScene: View {
         }
         .frame(maxWidth: .infinity)
         .task(id: model.preloadSelection) {
-            await model.fetch()
+            await model.load()
         }
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
@@ -76,7 +76,9 @@ extension ConfirmTransferScene {
                 action: { self.model.onSelectPerpetualDetails(model) },
             )
         case let .perpetualModifyPosition(model):
-            ListItemView(model: model.listItemModel)
+            if let listItemModel = model.listItemModel {
+                ListItemView(model: listItemModel)
+            }
         case let .networkFee(model, selectable):
             if selectable {
                 NavigationCustomLink(

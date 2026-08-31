@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import typealias Gemstone.AddressName
 import typealias Gemstone.AssetId
 import typealias Gemstone.DelegationBase
 import typealias Gemstone.DelegationValidator
@@ -13,11 +12,9 @@ import Store
 
 public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
     private let store: StakeStore
-    private let addressStore: AddressStore
 
-    public init(store: StakeStore, addressStore: AddressStore) {
+    public init(store: StakeStore) {
         self.store = store
-        self.addressStore = addressStore
     }
 
     public func getApr(assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> Double? {
@@ -29,7 +26,7 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
     }
 
     public func getValidators(assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> [Gemstone.DelegationValidator] {
-        try store.getValidators(assetId: Primitives.AssetId(id: assetId), providerType: Primitives.StakeProviderType(providerType)).map { try $0.json() }
+        try store.getValidators(assetId: Primitives.AssetId(id: assetId), providerType: Primitives.StakeProviderType(providerType)).map { $0.json() }
     }
 
     public func saveValidators(validators: [Gemstone.DelegationValidator]) async throws {
@@ -52,7 +49,4 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
         )
     }
 
-    public func saveAddressNames(names: [Gemstone.AddressName]) async throws {
-        try addressStore.updateAddressNames(names.map { try Primitives.AddressName($0) })
-    }
 }

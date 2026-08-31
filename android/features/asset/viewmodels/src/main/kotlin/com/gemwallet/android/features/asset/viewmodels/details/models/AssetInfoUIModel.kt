@@ -5,6 +5,7 @@ import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.BalanceMetadata
 import com.wallet.core.primitives.WalletType
@@ -20,6 +21,8 @@ class AssetInfoUIModel(
     val accountInfoUIModel: AccountInfoUIModel = AccountInfoUIModel(),
     val isBuyEnabled: Boolean = false,
     val isSwapEnabled: Boolean = false,
+    val swapPayAssetId: AssetId? = null,
+    val swapReceiveAssetId: AssetId? = null,
     val explorerName: String = "",
     val explorerAddressUrl: String? = null,
     val explorerTokenUrl: String? = null,

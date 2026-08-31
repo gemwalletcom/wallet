@@ -20,6 +20,7 @@
   <string name="common_wallet">Portefeuille</string>
   <string name="common_show">Afficher %1$s</string>
   <string name="common_copied">Copié : %1$s</string>
+  <string name="common_copied_to_clipboard">Copié dans le presse-papiers</string>
   <string name="common_recommended">Recommandé</string>
   <string name="common_all">Tous</string>
   <string name="common_not_available">Pas disponible</string>
@@ -182,10 +183,14 @@
   <string name="errors_token_invalid_id">ID de jeton invalide</string>
   <string name="errors_import_invalid_secret_phrase">Phrase secrète invalide</string>
   <string name="errors_import_invalid_secret_phrase_word">Mot de phrase secrète non valide : %1$s</string>
+  <string name="errors_import_invalid_private_key">Clé privée invalide</string>
+  <string name="errors_keystore_access">Impossible d\'accéder aux clés de ce portefeuille sur cet appareil. Si vous avez votre phrase de récupération, supprimez ce portefeuille et importez-le à nouveau pour restaurer l\'accès.</string>
+  <string name="errors_wallet_account_missing">Ce portefeuille n\'a pas de compte pour ce réseau</string>
   <string name="errors_invalid_url">URL invalide</string>
   <string name="errors_error_occurred">Une erreur s\'est produite !</string>
   <string name="errors_invalid_network_id">ID de réseau invalide</string>
   <string name="errors_error">Erreur</string>
+  <string name="errors_cancelled">Annulé</string>
   <string name="errors_connections_user_cancelled">Utilisateur annulé</string>
   <string name="errors_not_supported">Non pris en charge</string>
   <string name="errors_permissions_not_granted">Autorisations non accordées</string>

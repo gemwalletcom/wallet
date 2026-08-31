@@ -19,7 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -32,8 +32,6 @@ import androidx.compose.ui.text.input.PlatformImeOptions
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.blockchain.operators.InvalidWords
-import com.gemwallet.android.blockchain.operators.gemstone.GemValidatePhraseOperator
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.FieldBottomAction
@@ -46,6 +44,7 @@ import com.gemwallet.android.ui.components.fields.NameResolveIndicator
 import com.gemwallet.android.ui.models.name.NameRecordState
 import com.gemwallet.android.ui.theme.Spacer16
 import com.wallet.core.primitives.WalletType
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 internal fun supportsPhraseSuggestions(walletType: WalletType): Boolean {
     return when (walletType) {
@@ -71,9 +70,10 @@ internal fun ImportInput(
     importType: ImportType,
     uiState: NameRecordState,
     onValueChange: (TextFieldValue) -> Unit,
+    invalidWords: (String) -> Set<String>,
 ) {
     val errorColor = MaterialTheme.colorScheme.error
-    val clipboardManager = LocalClipboard.current.nativeClipboard
+    val clipboardManager = LocalContext.current.clipboardManager()
     val interactionSource = remember { MutableInteractionSource() }
 
     Column(
@@ -94,10 +94,7 @@ internal fun ImportInput(
                         return@BasicTextField TransformedText(it, OffsetMapping.Identity)
                     }
                     TransformedText(
-                        highlightErrors(
-                            it.text,
-                            errorColor = errorColor
-                        ),
+                        highlightInvalidPhraseWords(it.text, errorColor, invalidWords(it.text)),
                         OffsetMapping.Identity
                     )
                 },
@@ -161,14 +158,6 @@ internal fun ImportInput(
             }
         }
     }
-}
-
-private fun highlightErrors(text: String, errorColor: Color): AnnotatedString {
-    val validateResult = GemValidatePhraseOperator().invoke(text)
-    val error = validateResult.exceptionOrNull()
-    val invalidWords = (error as? InvalidWords)?.words.orEmpty().filter { it.isNotBlank() }.toSet()
-
-    return highlightInvalidPhraseWords(text, errorColor, invalidWords)
 }
 
 internal fun highlightInvalidPhraseWords(

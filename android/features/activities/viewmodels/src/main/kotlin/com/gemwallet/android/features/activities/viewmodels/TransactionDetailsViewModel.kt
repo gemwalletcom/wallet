@@ -3,7 +3,7 @@ package com.gemwallet.android.features.activities.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.transactions.coordinators.GetTransactionDetails
+import com.gemwallet.android.application.transactions.cases.GetTransactionDetails
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.TransactionId
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -21,12 +21,14 @@ import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import uniffi.gemstone.GemAddressService
+import uniffi.gemstone.GemTransactionFormatter
 
 class TransactionDataAggregateImplTest {
     private val gemstoneLibraryOverrideProperty = "uniffi.component.gemstone.libraryOverride"
 
     companion object {
-        private fun resolveGemstoneLibraryPath(): Path? {
+        private fun gemstoneLibraryPath(): Path? {
             val libraryName = System.mapLibraryName("gemstone")
             var directory: Path? = Paths.get("").toAbsolutePath()
 
@@ -43,7 +45,7 @@ class TransactionDataAggregateImplTest {
     }
 
     private fun assumeHostGemstoneRuntime() {
-        val libraryPath = resolveGemstoneLibraryPath()
+        val libraryPath = gemstoneLibraryPath()
         val isAvailable = try {
             Class.forName("com.sun.jna.Native", true, javaClass.classLoader)
             true
@@ -131,7 +133,7 @@ class TransactionDataAggregateImplTest {
     )
 
     private fun createAggregate(transaction: TransactionExtended): TransactionDataAggregate =
-        TransactionDataAggregateImpl(transaction)
+        TransactionDataAggregateImpl(transaction, GemTransactionFormatter(), GemAddressService())
 
     @Test
     fun testBasicPropertyDelegation() {
@@ -319,7 +321,7 @@ class TransactionDataAggregateImplTest {
         val extended = createTransactionExtended(transaction, asset = ethAsset)
         val aggregate = createAggregate(extended)
 
-        assertEquals("0.5 ETH", aggregate.value)
+        assertEquals("+0.5 ETH", aggregate.value)
         assertNull(aggregate.equivalentValue)
     }
 
@@ -347,7 +349,7 @@ class TransactionDataAggregateImplTest {
         val extended = createTransactionExtended(transaction, asset = ethAsset)
         val aggregate = createAggregate(extended)
 
-        assertEquals("", aggregate.value)
+        assertEquals("1 ETH", aggregate.value)
         assertNull(aggregate.equivalentValue)
     }
 

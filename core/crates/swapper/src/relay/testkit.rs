@@ -17,7 +17,7 @@ impl QuoteDetails {
         Self {
             currency_out: CurrencyAmount { amount: "0".to_string() },
             time_estimate: None,
-            swap_impact: None,
+            slippage_tolerance: None,
         }
     }
 }

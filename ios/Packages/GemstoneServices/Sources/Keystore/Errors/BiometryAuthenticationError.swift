@@ -1,12 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemSecurityService
+import enum Gemstone.GemAuthPromptOutcome
 import LocalAuthentication
 
 public enum BiometryAuthenticationError: Error, Equatable {
     case biometryUnavailable
     case cancelledByUser
     case cancelledBySystem
+    case lockedOut
     case authenticationFailed
 
     init(error: NSError) {
@@ -17,9 +20,10 @@ public enum BiometryAuthenticationError: Error, Equatable {
                  .passcodeNotSet:
                 self = .biometryUnavailable
             case .userCancel,
-                 .userFallback,
-                 .biometryLockout:
+                 .userFallback:
                 self = .cancelledByUser
+            case .biometryLockout:
+                self = .lockedOut
             case .systemCancel,
                  .appCancel:
                 self = .cancelledBySystem
@@ -31,10 +35,17 @@ public enum BiometryAuthenticationError: Error, Equatable {
         }
     }
 
-    public var isAuthenticationCancelled: Bool {
+    public var promptOutcome: GemAuthPromptOutcome {
         switch self {
-        case .cancelledByUser, .cancelledBySystem: true
-        case .biometryUnavailable, .authenticationFailed: false
+        case .biometryUnavailable: .unavailable
+        case .cancelledByUser: .cancelledByUser
+        case .cancelledBySystem: .cancelledBySystem
+        case .lockedOut: .lockedOut
+        case .authenticationFailed: .failed
         }
+    }
+
+    public var isAuthenticationCancelled: Bool {
+        GemSecurityService().isAuthCancelled(outcome: promptOutcome)
     }
 }

@@ -1,15 +1,16 @@
 package com.gemwallet.android.data.coordinators.swap
 
-import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestParams
-import com.gemwallet.android.application.swap.coordinators.SwapQuotesResult
-import com.gemwallet.android.application.swap.coordinators.matches
+import com.gemwallet.android.testkit.mockAssetInfo
+import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
+import com.gemwallet.android.application.swap.cases.SwapQuotesResult
+import com.gemwallet.android.application.swap.cases.matches
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWalletId
 import io.mockk.every
@@ -30,6 +31,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemSwapServiceInterface
+import uniffi.gemstone.GemSwapPairSuggestion
 import uniffi.gemstone.GemSwapTransfer
 import uniffi.gemstone.SwapperAssetList
 import uniffi.gemstone.SwapperQuote
@@ -43,7 +45,7 @@ class RequestSwapQuotesImplTest {
     @Test
     fun `canceled in flight quote request does not emit an error result`() = runBlocking {
         val fakeQuotes = StubSwapService(delayOnFirst = 5_000)
-        val requester = RequestSwapQuotesImpl(sessionRepository(), fakeQuotes)
+        val requester = RequestSwapQuotesImpl(getSession(), fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
         val results = mutableListOf<SwapQuotesResult?>()
 
@@ -53,6 +55,7 @@ class RequestSwapQuotesImplTest {
                 refreshRequests = refreshRequests,
                 refreshEnabled = refreshEnabled,
                 onFetchStarted = {},
+                refreshIntervalMillis = 30_000,
             ).collect { results += it }
         }
 
@@ -67,7 +70,7 @@ class RequestSwapQuotesImplTest {
     @Test
     fun `invalid input clears quote and late success is ignored`() = runBlocking {
         val fakeQuotes = StubSwapService(nonCancellableOnFirst = true)
-        val requester = RequestSwapQuotesImpl(sessionRepository(), fakeQuotes)
+        val requester = RequestSwapQuotesImpl(getSession(), fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
         val results = mutableListOf<SwapQuotesResult?>()
 
@@ -77,6 +80,7 @@ class RequestSwapQuotesImplTest {
                 refreshRequests = refreshRequests,
                 refreshEnabled = refreshEnabled,
                 onFetchStarted = {},
+                refreshIntervalMillis = 30_000,
             ).collect { results += it }
         }
 
@@ -113,7 +117,7 @@ class RequestSwapQuotesImplTest {
     @Test
     fun `successful quote refresh waits for the configured interval`() = runBlocking {
         val fakeQuotes = StubSwapService()
-        val requester = RequestSwapQuotesImpl(sessionRepository(), fakeQuotes)
+        val requester = RequestSwapQuotesImpl(getSession(), fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
 
         val job = launch {
@@ -137,7 +141,7 @@ class RequestSwapQuotesImplTest {
     @Test
     fun `quote errors do not schedule automatic retries`() = runBlocking {
         val fakeQuotes = StubSwapService(shouldFail = true)
-        val requester = RequestSwapQuotesImpl(sessionRepository(), fakeQuotes)
+        val requester = RequestSwapQuotesImpl(getSession(), fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
         val results = mutableListOf<SwapQuotesResult?>()
 
@@ -163,7 +167,7 @@ class RequestSwapQuotesImplTest {
     @Test
     fun `automatic refresh stops in background and resumes in foreground`() = runBlocking {
         val fakeQuotes = StubSwapService()
-        val requester = RequestSwapQuotesImpl(sessionRepository(), fakeQuotes)
+        val requester = RequestSwapQuotesImpl(getSession(), fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
 
         val job = launch {
@@ -191,7 +195,7 @@ class RequestSwapQuotesImplTest {
     @Test
     fun `null params emits null without calling quotes service`() = runBlocking {
         val fakeQuotes = StubSwapService()
-        val requester = RequestSwapQuotesImpl(sessionRepository(), fakeQuotes)
+        val requester = RequestSwapQuotesImpl(getSession(), fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(null)
         val results = mutableListOf<SwapQuotesResult?>()
 
@@ -201,6 +205,7 @@ class RequestSwapQuotesImplTest {
                 refreshRequests = refreshRequests,
                 refreshEnabled = refreshEnabled,
                 onFetchStarted = {},
+                refreshIntervalMillis = 30_000,
             ).collect { results += it }
         }
 
@@ -214,7 +219,7 @@ class RequestSwapQuotesImplTest {
     @Test
     fun `changing params during debounce does not emit stale result`() = runBlocking {
         val fakeQuotes = StubSwapService()
-        val requester = RequestSwapQuotesImpl(sessionRepository(), fakeQuotes)
+        val requester = RequestSwapQuotesImpl(getSession(), fakeQuotes)
         val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
         val results = mutableListOf<SwapQuotesResult?>()
 
@@ -224,6 +229,7 @@ class RequestSwapQuotesImplTest {
                 refreshRequests = refreshRequests,
                 refreshEnabled = refreshEnabled,
                 onFetchStarted = {},
+                refreshIntervalMillis = 30_000,
             ).collect { results += it }
         }
 
@@ -254,11 +260,10 @@ class RequestSwapQuotesImplTest {
             decimals = 18,
             type = AssetType.TOKEN,
         )
-        return AssetInfo(
-            owner = Account(chain = Chain.SmartChain, address = "address", derivationPath = "m/44'/60'/0'/0/0"),
+        return mockAssetInfo(
             asset = asset,
+            owner = Account(chain = Chain.SmartChain, address = "address", derivationPath = "m/44'/60'/0'/0/0"),
             balance = AssetBalance.create(asset, available = "100000000000000000000"),
-            walletId = mockWalletId(),
         )
     }
 
@@ -270,8 +275,8 @@ class RequestSwapQuotesImplTest {
         )
     }
 
-    private fun sessionRepository(): SessionRepository = mockk {
-        every { session() } returns MutableStateFlow(mockSession())
+    private fun getSession(): GetSession = mockk {
+        every { this@mockk() } returns MutableStateFlow(mockSession())
     }
 
     private class StubSwapService(
@@ -305,5 +310,10 @@ class RequestSwapQuotesImplTest {
         override suspend fun getTransfer(wallet: String, quote: SwapperQuote): GemSwapTransfer = throw UnsupportedOperationException()
 
         override fun supportedAssets(assetId: String): SwapperAssetList = SwapperAssetList(emptyList(), emptyList())
+
+        override suspend fun suggestPair(walletId: String, payAssetId: String?): GemSwapPairSuggestion? = null
+
+        override fun pairForAsset(assetId: String, hasBalance: Boolean): GemSwapPairSuggestion =
+            GemSwapPairSuggestion(assetId, null)
     }
 }

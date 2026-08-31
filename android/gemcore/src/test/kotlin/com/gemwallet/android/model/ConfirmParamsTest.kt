@@ -1,6 +1,7 @@
 package com.gemwallet.android.model
 
-import com.gemwallet.android.domains.confirm.ConfirmError
+import uniffi.gemstone.GemTransferService
+import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
@@ -25,25 +26,13 @@ import com.wallet.core.primitives.swap.ApprovalData
 import java.math.BigInteger
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemTransactionInputType
 
 class ConfirmParamsTest {
 
-    @Test
-    fun approvalDataMatchesTransactionType() {
-        val approval = ApprovalData(token = "token", spender = "spender", value = "1", isUnlimited = false)
-        val swap = mockSwapParams(approval = approval)
-
-        assertEquals(approval, swap.approvalData(TransactionType.TokenApproval))
-        assertNull(swap.approvalData(TransactionType.Swap))
-        assertThrows(ConfirmError.TransactionIncorrect::class.java) {
-            mockSwapParams().approvalData(TransactionType.TokenApproval)
-        }
-    }
+    private val transferService = GemTransferService()
 
     @Test
     fun genericInputPreservesDecodedTransactionType() {
@@ -52,7 +41,7 @@ class ConfirmParamsTest {
             asset = mockAssetEthereum(),
             from = mockAccount(chain = Chain.Ethereum),
             amount = BigInteger.ONE,
-            destination = DestinationAddress("destination"),
+            destination = GemRecipient("destination"),
             memo = "memo",
             metadata = applicationMetadata(),
             data = "0x01",
@@ -68,12 +57,11 @@ class ConfirmParamsTest {
         assertEquals("21000", input.extra.gasLimit)
         assertEquals(listOf(1.toByte()), input.extra.data?.toList())
         assertEquals("memo", params.memo)
-        assertEquals(approval, params.approvalData(TransactionType.TokenApproval))
     }
 
     @Test
     fun packUnpackRoundTripsEveryVariant() {
-        val destination = DestinationAddress("destination")
+        val destination = GemRecipient("destination")
         val nativeAsset = mockAsset()
         val nativeAccount = mockAccount()
         val tokenAsset = mockAssetSolanaUSDC()
@@ -127,12 +115,30 @@ class ConfirmParamsTest {
         )
 
         variants.forEach { original ->
-            val packed = original.pack()
+            val packed = original.pack(transferService)
             assertNotNull(packed)
-            val decoded = ConfirmParams.unpack(requireNotNull(packed))
+            val decoded = ConfirmParams.unpack(requireNotNull(packed), transferService)
             assertNotNull(decoded)
             assertEquals(original::class, decoded!!::class)
-            assertEquals(packed, decoded.pack())
+            assertEquals(packed, decoded.pack(transferService))
+        }
+    }
+
+    @Test
+    fun depositAndWithdrawalKeepMemoAndReferences() {
+        val builder = ConfirmParams.Builder(mockAsset(), mockAccount(), BigInteger.ONE)
+        val destination = GemRecipient("destination")
+        val variants = listOf(
+            builder.deposit(destination, memo = "memo", references = listOf("reference")),
+            builder.withdrawal(destination, memo = "memo", references = listOf("reference")),
+        )
+
+        variants.forEach { original ->
+            val decoded = ConfirmParams.unpack(requireNotNull(original.pack(transferService)), transferService)
+
+            assertEquals(original::class, decoded!!::class)
+            assertEquals("memo", decoded.memo())
+            assertEquals(listOf("reference"), decoded.references)
         }
     }
 

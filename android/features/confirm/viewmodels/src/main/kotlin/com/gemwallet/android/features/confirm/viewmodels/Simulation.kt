@@ -5,10 +5,16 @@ import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
+import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemSimulationFormatter
+import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.SimulationBalanceChange
+import com.wallet.core.primitives.SimulationPayloadField
 import com.wallet.core.primitives.SimulationPayloadFieldDisplay
 import com.wallet.core.primitives.SimulationPayloadFieldKind
 import com.wallet.core.primitives.SimulationResult
@@ -31,22 +37,30 @@ data class SimulationAssetChange(
 )
 
 fun SimulationResult.toSimulation(
+    simulationFormatter: GemSimulationFormatter,
     assets: Map<AssetId, Asset>,
     chain: Chain? = null,
-    explorerName: String? = null,
+    explorerService: GemExplorerService? = null,
+    isApproval: Boolean = false,
 ): Simulation {
-    val hideValueField = header != null
-    val filtered = payload.filterNot { hideValueField && it.kind == SimulationPayloadFieldKind.Value }
+    val showsHeader = simulationFormatter.showsHeader(toJson(), isApproval)
+    val filtered = simulationFormatter.payloadFields(payload.map { it.toJson() }, showsHeader)
+        .map { it.decodeJson<SimulationPayloadField>() }
 
     return Simulation(
         warnings = warnings,
         primaryPayloadFields = filtered.filter { it.display == SimulationPayloadFieldDisplay.Primary }
-            .withExplorerLinks(chain, explorerName),
+            .withExplorerLinks(chain, explorerService),
         secondaryPayloadFields = filtered.filter { it.display == SimulationPayloadFieldDisplay.Secondary }
-            .withExplorerLinks(chain, explorerName),
+            .withExplorerLinks(chain, explorerService),
         headerValue = header?.value,
         headerIsUnlimited = header?.isUnlimited == true,
-        balanceChanges = balanceChanges.toBalanceChanges(assets),
+        balanceChanges = simulationFormatter.balanceChanges(toJson(), assets.keys.map { it.toIdentifier() })
+            .mapNotNull { change ->
+                val asset = change.assetId.toAssetId()?.let { assets[it] } ?: return@mapNotNull null
+                val value = change.value.toBigIntegerOrNull() ?: return@mapNotNull null
+                SimulationAssetChange(asset = asset, value = value)
+            },
     )
 }
 
@@ -59,18 +73,6 @@ fun SimulationAssetChange.valueDirection(): ValueDirection = when {
     value > BigInteger.ZERO -> ValueDirection.Up
     value < BigInteger.ZERO -> ValueDirection.Down
     else -> ValueDirection.None
-}
-
-private fun List<SimulationBalanceChange>.toBalanceChanges(assets: Map<AssetId, Asset>): List<SimulationAssetChange> {
-    return mapNotNull { change ->
-        val value = change.value.toBigIntegerOrNull() ?: return@mapNotNull null
-        if (value == BigInteger.ZERO) return@mapNotNull null
-        val asset = assets[change.assetId] ?: return@mapNotNull null
-        SimulationAssetChange(
-            asset = asset,
-            value = value,
-        )
-    }
 }
 
 fun List<ConfirmProperty>.reorderRequestProperties(): List<ConfirmProperty> {

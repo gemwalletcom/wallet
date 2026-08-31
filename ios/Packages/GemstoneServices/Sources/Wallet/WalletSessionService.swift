@@ -13,12 +13,21 @@ public struct WalletSessionService: WalletSessionManageable {
     }
 
     public var currentWallet: Wallet? {
-        try? service.getCurrentWallet().map { try Wallet($0) }
+        do {
+            return try service.getCurrentWallet().map { try Wallet($0) }
+        } catch {
+            debugLog("current wallet unavailable: \(error)")
+            return .none
+        }
     }
 
     public var currentWalletId: WalletId? {
-        guard let id = try? service.getCurrentWalletId() else { return nil }
-        return try? WalletId.from(id: id)
+        do {
+            return try service.getCurrentWalletId().map { try WalletId.from(id: $0) }
+        } catch {
+            debugLog("current wallet id unavailable: \(error)")
+            return .none
+        }
     }
 
     public func setCurrent(walletId: WalletId?) throws {

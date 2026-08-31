@@ -18,7 +18,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getReserveBalanceUrl
-import com.gemwallet.android.ext.hasNativeAsset
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.ui.components.list_item.energyItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
@@ -40,7 +39,6 @@ import com.gemwallet.android.features.asset.presents.details.components.network
 import com.gemwallet.android.features.asset.presents.details.components.price
 import com.gemwallet.android.features.asset.presents.details.components.status
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
-import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.WalletType
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,7 +57,7 @@ internal fun AssetDetailsScene(
     val uriHandler = LocalUriHandler.current
     val snackBar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val isPinned = uiState.assetInfo.metadata?.isPinned == true
+    val isPinned = uiState.assetInfo.metadata.isPinned
     val pinToastMessage = stringResource(
         if (isPinned) R.string.common_unpinned_asset else R.string.common_pinned_asset,
         uiState.asset.name,
@@ -67,12 +65,12 @@ internal fun AssetDetailsScene(
     val addToastMessage = stringResource(R.string.asset_added_to_wallet)
     val swapAction: (() -> Unit)? = if (uiState.isSwapEnabled && uiState.accountInfoUIModel.walletType != WalletType.View) {
         {
-            val chain = uiState.asset.id.chain
-            val toAssetId = when (uiState.asset.id.type()) {
-                AssetSubtype.NATIVE -> null
-                AssetSubtype.TOKEN -> if (chain.hasNativeAsset()) chain.asset().id else null
-            }
-            onAction(AssetDetailsAction.Swap(uiState.asset.id, toAssetId))
+            onAction(
+                AssetDetailsAction.Swap(
+                    fromAssetId = uiState.swapPayAssetId ?: uiState.asset.id,
+                    toAssetId = uiState.swapReceiveAssetId,
+                )
+            )
         }
     } else {
         null
@@ -143,7 +141,7 @@ internal fun AssetDetailsScene(
                         scope.launch { snackBar.showSnackbar(addToastMessage, R.drawable.ic_add_circle_outlined) }
                     },
                 )
-                status(uiState.asset, uiState.assetInfo.metadata?.rankScore ?: 0)
+                status(uiState.asset, uiState.assetInfo.metadata.rankScore)
                 price(uiState, priceAlertsCount, onChart = { onAction(AssetDetailsAction.OpenChart(it)) }, onPriceAlerts = { onAction(AssetDetailsAction.OpenPriceAlerts(it)) })
                 network(uiState, onAction)
                 balancesHeader(uiState.accountInfoUIModel)

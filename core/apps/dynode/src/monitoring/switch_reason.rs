@@ -84,7 +84,7 @@ mod tests {
 
     #[test]
     fn current_node_error_uses_shared_failure_reason() {
-        let cases = [
+        let cases: [(ClientError, NodeMonitorError); 3] = [
             (ClientError::Timeout, NodeMonitorError::Upstream(FailureReason::Timeout)),
             (ClientError::Http { status: 503, body: Vec::new() }, NodeMonitorError::Upstream(FailureReason::Status(503))),
             (ClientError::Network("request failed".to_string()), NodeMonitorError::Request),

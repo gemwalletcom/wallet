@@ -28,7 +28,7 @@ impl GemExplorerService {
     }
 
     pub fn get_explorer_name(&self, chain: Chain) -> String {
-        let selected = self.preferences.get_explorer_name(chain).ok().flatten();
+        let selected = self.preferences.get_explorer_name(chain);
         rules::selected_explorer(&self.get_explorers(chain), selected).unwrap_or_default()
     }
 

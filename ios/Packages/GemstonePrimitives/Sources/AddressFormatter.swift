@@ -1,7 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAddressService
 import Gemstone
 import Primitives
+
+private let addressService = GemAddressService()
 
 public struct AddressFormatter {
     public enum Style {
@@ -31,7 +34,7 @@ public struct AddressFormatter {
         case let .extra(extra): .extra(extra: UInt32(clamping: max(extra, 0)))
         }
 
-        return Gemstone.formatAddress(
+        return addressService.format(
             address: address,
             chain: chain?.rawValue,
             style: gemstoneStyle,

@@ -6,12 +6,14 @@ import Primitives
 public struct AssetFiatValuesRequest: DatabaseQueryable, Equatable {
     public var walletId: WalletId
     public var type: TotalValueType
-    public var perpetualAccountMode: PerpetualAccountMode
+    public var perpetualAssetId: AssetId
+    public var includesPerpetualCollateral: Bool
 
-    public init(walletId: WalletId, type: TotalValueType, perpetualAccountMode: PerpetualAccountMode = .standard) {
+    public init(walletId: WalletId, type: TotalValueType, perpetualAssetId: AssetId, includesPerpetualCollateral: Bool = true) {
         self.walletId = walletId
         self.type = type
-        self.perpetualAccountMode = perpetualAccountMode
+        self.perpetualAssetId = perpetualAssetId
+        self.includesPerpetualCollateral = includesPerpetualCollateral
     }
 
     public func fetch(_ db: Database) throws -> [AssetFiatValue] {
@@ -22,10 +24,7 @@ public struct AssetFiatValuesRequest: DatabaseQueryable, Equatable {
             let assets = try assetRecords(db).compactMap {
                 AssetFiatValue(record: $0, amount: $0.balance.totalAmount)
             }
-            switch perpetualAccountMode {
-            case .unified: return assets
-            case .standard: return try assets + [perpetualFiatValue(db)]
-            }
+            return includesPerpetualCollateral ? try assets + [perpetualFiatValue(db)] : assets
         case .earn:
             return try assetRecords(db).compactMap {
                 AssetFiatValue(record: $0, amount: $0.balance.stakedAmount + $0.balance.earnAmount)
@@ -46,7 +45,7 @@ public struct AssetFiatValuesRequest: DatabaseQueryable, Equatable {
     }
 
     private func perpetualFiatValue(_ db: Database) throws -> AssetFiatValue {
-        let balance = try PerpetualWalletBalanceRequest(walletId: walletId).fetch(db)
+        let balance = try PerpetualWalletBalanceRequest(walletId: walletId, assetId: perpetualAssetId).fetch(db)
         return AssetFiatValue(amount: balance.total, price: 1, priceChangePercentage24h: 0)
     }
 }

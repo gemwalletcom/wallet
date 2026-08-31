@@ -21,3 +21,9 @@ pub enum GemWalletImportResult {
     New { wallet: Wallet },
     Existing { wallet: Wallet },
 }
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemWalletDeletion {
+    WalletsRemaining,
+    LastWalletDeleted,
+}

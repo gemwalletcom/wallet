@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.wallet
 
-import com.gemwallet.android.application.wallet.coordinators.WalletIdGenerator
+import com.gemwallet.android.application.wallet.cases.WalletIdGenerator
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletType
@@ -10,7 +10,7 @@ import org.junit.Test
 
 class GenerateWalletIdTest {
 
-    val generator: WalletIdGenerator = WalletIdGeneratorImpl()
+    val generator: WalletIdGenerator = object : WalletIdGenerator {}
 
     @Test
     fun `generateWalletId for Multicoin wallet type`() {

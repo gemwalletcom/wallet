@@ -49,7 +49,7 @@ struct TransactionRecord: Codable, TableRecord, FetchableRecord, PersistableReco
     var feeAssetId: AssetId
     var sequence: Int
     var date: Date
-    var state: String
+    var state: TransactionState
     var confirmationEtaSeconds: UInt32?
     var memo: String?
     var direction: TransactionDirection
@@ -149,7 +149,7 @@ extension TransactionRecord {
             to: to,
             contract: contract,
             type: type,
-            state: TransactionState(rawValue: state) ?? .pending,
+            state: state,
             blockNumber: blockNumber.asString,
             sequence: sequence.asString,
             fee: fee,
@@ -183,7 +183,7 @@ extension Transaction {
             feeAssetId: feeAssetId,
             sequence: Int(sequence ?? "0") ?? 0,
             date: createdAt,
-            state: state.rawValue,
+            state: state,
             confirmationEtaSeconds: nil,
             memo: memo,
             direction: direction,

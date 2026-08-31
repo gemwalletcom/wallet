@@ -3,7 +3,7 @@ use crate::database::rewards_redemptions::{RedemptionUpdate, RewardsRedemptionsS
 use crate::models::{NewRewardRedemptionRow, RewardRedemptionRow};
 use crate::sql_types::{RedemptionStatus, RewardRedemptionType};
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
-use chrono::Utc;
+use chrono::NaiveDateTime;
 use primitives::rewards::{RewardRedemption, RewardRedemptionOption};
 
 pub trait RewardsRedemptionsRepository {
@@ -12,7 +12,7 @@ pub trait RewardsRedemptionsRepository {
     fn update_redemption(&mut self, redemption_id: i32, updates: Vec<RedemptionUpdate>) -> Result<(), DatabaseError>;
     fn get_redemption_options(&mut self, types: &[RewardRedemptionType]) -> Result<Vec<RewardRedemptionOption>, DatabaseError>;
     fn get_redemption_option(&mut self, id: &str) -> Result<RewardRedemptionOption, DatabaseError>;
-    fn count_redemptions_since_days(&mut self, username: &str, days: i64) -> Result<i64, DatabaseError>;
+    fn count_redemptions_since(&mut self, username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError>;
 }
 
 impl RewardsRedemptionsRepository for DatabaseClient {
@@ -66,8 +66,7 @@ impl RewardsRedemptionsRepository for DatabaseClient {
         Ok(RewardsRedemptionsStore::get_redemption_option(self, id).or_not_found(id.to_string())?.as_primitive())
     }
 
-    fn count_redemptions_since_days(&mut self, username: &str, days: i64) -> Result<i64, DatabaseError> {
-        let since = Utc::now().naive_utc() - chrono::Duration::days(days);
+    fn count_redemptions_since(&mut self, username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError> {
         Ok(RewardsRedemptionsStore::count_redemptions_since(self, username, since)?)
     }
 }

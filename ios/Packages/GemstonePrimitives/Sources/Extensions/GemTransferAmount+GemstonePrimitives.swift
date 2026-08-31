@@ -12,6 +12,7 @@ public extension TransferAmount {
         feeAssetId: Primitives.AssetId,
         assetFeeBalance: BigInt,
         fee: BigInt,
+        amountService: GemAmountService,
     ) throws -> TransferAmount {
         let input = try GemTransferAmountInput(
             inputType: transferData.type.map(),
@@ -24,7 +25,7 @@ public extension TransferAmount {
             minimumValue: transferData.minimumValue?.description,
         )
         do {
-            return try Gemstone.calculateTransferAmount(input: input).map()
+            return try amountService.calculate(input: input).map()
         } catch let error as GemTransferAmountError {
             throw try error.map()
         }

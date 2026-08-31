@@ -42,7 +42,7 @@ public struct WalletSearchScene: View {
             model.onAppear()
         }
         .taskOnce {
-            model.fetch()
+            model.load()
         }
         .toast(message: $model.isPresentingToastMessage)
         .recentAssetsSheet(model: model.recentModel, onSelect: model.onSelectRecent)

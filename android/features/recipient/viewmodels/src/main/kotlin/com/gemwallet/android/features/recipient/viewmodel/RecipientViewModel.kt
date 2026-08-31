@@ -1,15 +1,17 @@
 package com.gemwallet.android.features.recipient.viewmodel
 
+import uniffi.gemstone.GemAddressService
+import uniffi.gemstone.GemRecipient
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
-import com.gemwallet.android.application.recipient.coordinators.GetWallets
-import com.gemwallet.android.application.session.coordinators.GetSession
-import com.gemwallet.android.cases.contacts.ContactRecipient
-import com.gemwallet.android.cases.contacts.GetContacts
-import com.gemwallet.android.cases.name.GetNameRecord
-import com.gemwallet.android.cases.nft.GetAssetNft
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.wallet.cases.GetWallets
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.contacts.values.ContactRecipient
+import com.gemwallet.android.application.contacts.cases.GetContacts
+import com.gemwallet.android.application.recipient.cases.GetNameRecord
+import com.gemwallet.android.application.nft.cases.GetAssetNft
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.checksumAddress
@@ -24,7 +26,6 @@ import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
@@ -42,6 +43,7 @@ import com.wallet.core.primitives.NFTAsset
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.NameRecord
 import uniffi.gemstone.GemRecipientException
+import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemRecipientService
 import com.wallet.core.primitives.PaymentRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -75,11 +77,15 @@ class RecipientViewModel @Inject constructor(
     private val getAssetInfo: GetAssetInfo,
     private val getAssetNft: GetAssetNft,
     private val getNameRecord: GetNameRecord,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    private val recipientService: GemRecipientService,
+    private val paymentService: GemPaymentService,
+    private val addressService: GemAddressService,
 ) : ViewModel() {
 
     private val addressInput = AddressInputModel(
         getNameRecord = getNameRecord,
+        recipientService = recipientService,
         scope = viewModelScope,
     )
 
@@ -169,7 +175,7 @@ class RecipientViewModel @Inject constructor(
 
     fun onDestination(
         type: RecipientType,
-        destination: DestinationAddress,
+        destination: GemRecipient,
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
     ) {
@@ -186,14 +192,14 @@ class RecipientViewModel @Inject constructor(
     ) {
         val chain = type.assetInfo.asset.chain
         val recipient = try {
-            GemRecipientService().recipient(chain.string, input, nameRecord?.toJson(), memo.value, references)
+            recipientService.recipient(chain.string, input, nameRecord?.toJson(), memo.value, references)
         } catch (_: GemRecipientException) {
             if (!getNameRecord.isNameSupported(input)) {
                 addressInput.markInvalid()
             }
             return
         }
-        val destination = DestinationAddress(address = recipient.address, name = recipient.name ?: selectedName)
+        val destination = GemRecipient(address = recipient.address, name = recipient.name ?: selectedName)
         when (type) {
             is RecipientType.Nft -> onNftConfirm(type.nftAsset, destination, confirmAction)
             is RecipientType.Asset -> amountAction(
@@ -231,22 +237,22 @@ class RecipientViewModel @Inject constructor(
     }
 
     private fun scannedDestination(type: RecipientType, data: String): PaymentDestination.Transfer {
-        val request = decodePayment(data)?.request ?: return PaymentDestination.Unsupported
+        val request = paymentService.decodePayment(data)?.request ?: return PaymentDestination.Unsupported
 
         return when (type) {
             is RecipientType.Nft -> PaymentDestination.Recipient(type.assetInfo.asset.id, request.copy(amount = null))
-            is RecipientType.Asset -> PaymentDestination.transfer(request, type.assetInfo)
+            is RecipientType.Asset -> PaymentDestination.transfer(request, type.assetInfo, paymentService)
         }
     }
 
     private fun updateFrom(request: PaymentRequest) {
-        addressInput.applyExternalAddress(assetId.chain.checksumAddress(request.address))
+        addressInput.applyExternalAddress(assetId.chain.checksumAddress(request.address, addressService))
         request.memo?.let { _memo.value = it }
         references = request.references.orEmpty()
         requestedAmount = request.exactAmount
     }
 
-    private fun onNftConfirm(nftAsset: NFTAsset, destination: DestinationAddress, confirmAction: ConfirmTransactionAction) {
+    private fun onNftConfirm(nftAsset: NFTAsset, destination: GemRecipient, confirmAction: ConfirmTransactionAction) {
         val params = ConfirmParams.NftParams(
             asset = nftAsset.chain.asset(),
             from = session.value?.wallet?.getAccount(nftAsset.chain) ?: return,

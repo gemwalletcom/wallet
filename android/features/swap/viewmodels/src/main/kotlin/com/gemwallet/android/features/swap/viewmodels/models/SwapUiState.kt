@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.swap.viewmodels.models
 
 import com.gemwallet.android.ui.models.ButtonState
-import com.gemwallet.android.ui.models.buttonState
+import uniffi.gemstone.GemSwapButtonAction
 
 sealed interface SwapActionState {
     data object None : SwapActionState
@@ -34,6 +34,7 @@ data class SwapItemInteraction(
 
 data class SwapUiState(
     val action: SwapActionState = SwapActionState.None,
+    val buttonAction: GemSwapButtonAction = GemSwapButtonAction.Swap,
     val isQuoteLoading: Boolean = false,
     val isTransferLoading: Boolean = false,
     val isInputEmpty: Boolean = true,
@@ -49,13 +50,11 @@ data class SwapUiState(
         }
 
     val buttonState: ButtonState
-        get() = when (val currentAction = action) {
-            SwapActionState.Ready,
-            is SwapActionState.TransferError -> ButtonState.Enabled
-            is SwapActionState.QuoteError -> buttonState(enabled = currentAction.error !is SwapError.InsufficientBalance)
-            SwapActionState.QuoteLoading,
-            SwapActionState.TransferLoading -> ButtonState.Loading
-            SwapActionState.None -> ButtonState.Disabled
+        get() = when {
+            buttonAction is GemSwapButtonAction.InsufficientBalance -> ButtonState.Disabled
+            isQuoteLoading || isTransferLoading -> ButtonState.Loading
+            buttonAction is GemSwapButtonAction.Swap && action != SwapActionState.Ready -> ButtonState.Disabled
+            else -> ButtonState.Enabled
         }
 
     val isReceiveLoading: Boolean
@@ -71,24 +70,22 @@ data class SwapUiState(
         get() = SwapItemInteraction.receive(isQuoteInteractionEnabled)
 }
 
-internal fun createSwapUiState(session: SwapQuoteSession): SwapUiState {
+internal fun createSwapUiState(session: SwapQuoteSession, buttonAction: GemSwapButtonAction): SwapUiState {
     val quotePhase = session.quotePhase
     val transferPhase = session.transferPhase
-    val displayedQuote = session.quote
-    val validationError = displayedQuote?.validationError
 
     val action = when {
         transferPhase is SwapTransferPhase.Loading -> SwapActionState.TransferLoading
-        transferPhase is SwapTransferPhase.Failed -> SwapActionState.TransferError(transferPhase.error)
+        transferPhase is SwapTransferPhase.Failed -> SwapActionState.TransferError(SwapError.toError(transferPhase.error))
         quotePhase is SwapQuotePhase.Loading -> SwapActionState.QuoteLoading
-        quotePhase is SwapQuotePhase.Failed -> SwapActionState.QuoteError(quotePhase.error)
-        validationError != null -> SwapActionState.QuoteError(validationError)
-        displayedQuote != null -> SwapActionState.Ready
+        quotePhase is SwapQuotePhase.Failed -> SwapActionState.QuoteError(SwapError.toError(quotePhase.error))
+        session.quote != null -> SwapActionState.Ready
         else -> SwapActionState.None
     }
 
     return SwapUiState(
         action = action,
+        buttonAction = buttonAction,
         isQuoteLoading = quotePhase is SwapQuotePhase.Loading,
         isTransferLoading = transferPhase is SwapTransferPhase.Loading,
         isInputEmpty = quotePhase is SwapQuotePhase.NoInput,

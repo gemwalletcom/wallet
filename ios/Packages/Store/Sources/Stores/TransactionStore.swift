@@ -62,6 +62,16 @@ public struct TransactionStore: Sendable {
         }
     }
 
+    public func getSwapHistory(walletId: WalletId) throws -> [TransactionSwapMetadata] {
+        try db.read { db in
+            try TransactionRecord
+                .filter(TransactionRecord.Columns.walletId == walletId.id)
+                .filter(TransactionRecord.Columns.type == TransactionType.swap.rawValue)
+                .fetchAll(db)
+                .compactMap { $0.metadata?.decode(TransactionSwapMetadata.self) }
+        }
+    }
+
     public func addTransactions(walletId: WalletId, transactions: [Transaction]) throws {
         if transactions.isEmpty {
             return
@@ -69,15 +79,7 @@ public struct TransactionStore: Sendable {
         try db.write { db in
             for transaction in transactions {
                 let record = try transaction.record(walletId: walletId.id).upsertAndFetch(db, as: TransactionRecord.self)
-                if let id = record.id {
-                    try TransactionAssetAssociationRecord
-                        .filter(TransactionAssetAssociationRecord.Columns.transactionId == id)
-                        .deleteAll(db)
-
-                    try transaction.assetIds.forEach {
-                        try TransactionAssetAssociationRecord(transactionId: id, assetId: $0).upsert(db)
-                    }
-                }
+                try updateAssetAssociations(db, record: record)
             }
         }
     }
@@ -85,10 +87,11 @@ public struct TransactionStore: Sendable {
     public func getTransactionState(walletId: WalletId, transactionId: TransactionId) throws -> TransactionState? {
         try db.read { db in
             try TransactionRecord
+                .select(TransactionRecord.Columns.state, as: String.self)
                 .filter(TransactionRecord.Columns.walletId == walletId.id)
                 .filter(TransactionRecord.Columns.transactionId == transactionId.identifier)
                 .fetchOne(db)
-                .flatMap { TransactionState(rawValue: $0.state) }
+                .flatMap(TransactionState.init(rawValue:))
         }
     }
 
@@ -124,7 +127,16 @@ public struct TransactionStore: Sendable {
             metadata.map { TransactionRecord.Columns.metadata.set(to: $0) },
             confirmationEtaSeconds.map { TransactionRecord.Columns.confirmationEtaSeconds.set(to: $0) },
         ]
-        return try updateValues(walletId: walletId, transactionId: transactionId, values: values.compactMap { $0 })
+        return try db.write { db in
+            let request = TransactionRecord
+                .filter(TransactionRecord.Columns.walletId == walletId.id)
+                .filter(TransactionRecord.Columns.transactionId == transactionId.identifier)
+            let updated = try request.updateAll(db, values.compactMap { $0 })
+            if updated > 0, metadata != nil, let record = try request.fetchOne(db) {
+                try updateAssetAssociations(db, record: record)
+            }
+            return updated
+        }
     }
 
     public func deleteTransactionId(ids: [String]) throws -> Int {
@@ -133,6 +145,23 @@ public struct TransactionStore: Sendable {
                 .filter(ids.contains(TransactionRecord.Columns.transactionId))
                 .deleteAll(db)
         }
+    }
+
+    private func updateAssetAssociations(_ db: Database, record: TransactionRecord) throws {
+        guard let id = record.id else {
+            return
+        }
+        let assetIds = record.mapToTransaction().assetIds
+        let storedIds = try AssetRecord
+            .select(AssetRecord.Columns.id, as: String.self)
+            .filter(assetIds.map(\.identifier).contains(AssetRecord.Columns.id))
+            .fetchSet(db)
+        try TransactionAssetAssociationRecord
+            .filter(TransactionAssetAssociationRecord.Columns.transactionId == id)
+            .deleteAll(db)
+        try assetIds
+            .filter { storedIds.contains($0.identifier) }
+            .forEach { try TransactionAssetAssociationRecord(transactionId: id, assetId: $0).upsert(db) }
     }
 
     @discardableResult

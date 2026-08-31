@@ -26,11 +26,14 @@ interface ConnectionsDao {
     @Query("SELECT * FROM wallets_connections WHERE id = :connectionId")
     fun getConnection(connectionId: String): Flow<DbConnection?>
 
-    @Query("SELECT * FROM wallets_connections WHERE session_id = :sessionId")
+    @Query("SELECT * FROM wallets_connections")
+    suspend fun getConnections(): List<DbConnection>
+
+    @Query("SELECT * FROM wallets_connections WHERE id = :sessionId OR session_id = :sessionId")
     suspend fun getBySessionId(sessionId: String): DbConnection?
 
-    @Query("DELETE FROM wallets_connections WHERE id = :id")
-    suspend fun delete(id: String)
+    @Query("DELETE FROM wallets_connections WHERE id IN (:sessionIds) OR session_id IN (:sessionIds)")
+    suspend fun delete(sessionIds: List<String>)
 
     @Query("DELETE FROM wallets_connections")
     suspend fun deleteAll()

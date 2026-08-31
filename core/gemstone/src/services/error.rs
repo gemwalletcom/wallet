@@ -7,18 +7,25 @@ pub enum GemServiceError {
     Api { msg: String },
     Gateway { msg: String },
     Store { msg: String },
-    Status { msg: String },
     Core { msg: String },
     Platform { msg: String },
-    UnknownCurrency { currency: String },
+    InvalidInput { msg: String },
+    NotFound { msg: String },
+    Unsupported { msg: String },
     Cancelled,
 }
 
 impl std::fmt::Display for GemServiceError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Api { msg } | Self::Gateway { msg } | Self::Store { msg } | Self::Status { msg } | Self::Core { msg } | Self::Platform { msg } => write!(f, "{msg}"),
-            Self::UnknownCurrency { currency } => write!(f, "unknown currency: {currency}"),
+            Self::Api { msg }
+            | Self::Gateway { msg }
+            | Self::Store { msg }
+            | Self::Core { msg }
+            | Self::Platform { msg }
+            | Self::InvalidInput { msg }
+            | Self::NotFound { msg }
+            | Self::Unsupported { msg } => write!(f, "{msg}"),
             Self::Cancelled => write!(f, "cancelled"),
         }
     }

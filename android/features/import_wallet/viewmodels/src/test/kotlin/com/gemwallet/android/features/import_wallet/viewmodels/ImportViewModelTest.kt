@@ -1,6 +1,8 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
-import com.gemwallet.android.cases.name.GetNameRecord
+import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
+import com.gemwallet.android.blockchain.operators.gemstone.GemValidatePhraseOperator
+import com.gemwallet.android.application.recipient.cases.GetNameRecord
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.models.name.NameRecordState
@@ -50,6 +52,8 @@ class ImportViewModelTest {
         walletService = mockk(relaxed = true),
         importWalletService = mockk(relaxed = true),
         setCurrentWallet = mockk(relaxed = true),
+        validatePhrase = GemValidatePhraseOperator(),
+        findPhraseWord = GemFindPhraseWord(),
         getNameRecord = getNameRecord,
     )
 

@@ -12,20 +12,16 @@ public struct BannerRecord: Codable, FetchableRecord, PersistableRecord {
         static let state = Column("state")
         static let event = Column("event")
         static let assetId = Column("assetId")
-        static let chain = Column("chain")
         static let walletId = Column("walletId")
     }
 
     public var id: String
     public var walletId: String?
     public var assetId: AssetId?
-    public var chain: String?
     public var event: BannerEvent
     public var state: BannerState
 
     static let asset = belongsTo(AssetRecord.self, key: "asset", using: ForeignKey(["assetId"], to: ["id"]))
-    static let chain = belongsTo(AssetRecord.self, key: "chain", using: ForeignKey(["chain"], to: ["id"]))
-    static let wallet = belongsTo(WalletRecord.self).forKey("wallet")
 }
 
 extension BannerRecord: CreateTable {
@@ -39,8 +35,6 @@ extension BannerRecord: CreateTable {
                 .references(WalletRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
             $0.column(Columns.assetId.name, .text)
                 .references(AssetRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
-            $0.column(Columns.chain.name, .text)
-                .references(AssetRecord.databaseTableName, onDelete: .cascade, onUpdate: .cascade)
             $0.column(Columns.event.name, .text)
                 .notNull()
             $0.column(Columns.state.name, .text)
@@ -49,7 +43,6 @@ extension BannerRecord: CreateTable {
                 [
                     Columns.walletId.name,
                     Columns.assetId.name,
-                    Columns.chain.name,
                     Columns.event.name,
                 ],
             )
@@ -61,9 +54,8 @@ extension Banner {
     var record: BannerRecord {
         BannerRecord(
             id: id,
-            walletId: wallet?.id.id,
+            walletId: walletId?.id,
             assetId: asset?.id,
-            chain: chain?.id,
             event: event,
             state: state,
         )
@@ -72,82 +64,34 @@ extension Banner {
 
 extension NewBanner {
     var record: BannerRecord {
-        let wallet: Wallet? = {
-            if let walletId, let id = try? WalletId.from(id: walletId) {
-                return Wallet(id: id, externalId: nil, name: "", index: 0, type: .multicoin, accounts: [], isPinned: false, imageUrl: nil, source: .create)
-            }
-            return .none
-        }()
-        let asset: Asset? = {
-            if let assetId {
-                return Asset(id: assetId, name: "", symbol: "", decimals: 0, type: .native)
-            }
-            return .none
-        }()
-
-        return Banner(
-            wallet: wallet,
-            asset: asset,
-            chain: chain,
+        BannerRecord(
+            id: id,
+            walletId: walletId,
+            assetId: assetId,
             event: event,
             state: state,
-        ).record
+        )
     }
 }
 
 public struct NewBanner {
+    let id: String
     let walletId: String?
     let assetId: AssetId?
-    var chain: Chain?
     let event: BannerEvent
     let state: BannerState
 
     public init(
+        id: String,
         walletId: String? = .none,
         assetId: AssetId? = .none,
-        chain: Chain? = .none,
         event: BannerEvent,
         state: BannerState,
     ) {
+        self.id = id
         self.walletId = walletId
         self.assetId = assetId
-        self.chain = chain
         self.event = event
         self.state = state
-    }
-}
-
-public extension NewBanner {
-    static func stake(assetId: AssetId) -> NewBanner {
-        NewBanner(
-            assetId: assetId,
-            event: .stake,
-            state: .active,
-        )
-    }
-
-    static func accountActivation(assetId: AssetId) -> NewBanner {
-        NewBanner(
-            assetId: assetId,
-            event: .accountActivation,
-            state: .active,
-        )
-    }
-
-
-    static func onboarding(walletId: WalletId) -> NewBanner {
-        NewBanner(
-            walletId: walletId.id,
-            event: .onboarding,
-            state: .active,
-        )
-    }
-
-    static func tradePerpetuals(assetId: AssetId) -> NewBanner {
-        NewBanner(
-            assetId: assetId,
-            event: .tradePerpetuals,
-            state: .active,
-        )
     }
 }

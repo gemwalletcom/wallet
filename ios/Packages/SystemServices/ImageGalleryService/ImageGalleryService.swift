@@ -15,7 +15,7 @@ public struct ImageGalleryService: Sendable {
 
     public func saveImageFromURL(_ url: URL) async throws(ImageGalleryServiceError) {
         try await checkPermissionToPhotos()
-        let data = try await fetchData(from: url)
+        let data = try await loadData(from: url)
         let image = try imageFromData(data)
         await saveImageToPhotos(image: image)
     }
@@ -34,7 +34,7 @@ public struct ImageGalleryService: Sendable {
         }
     }
 
-    private func fetchData(from url: URL) async throws(ImageGalleryServiceError) -> Data {
+    private func loadData(from url: URL) async throws(ImageGalleryServiceError) -> Data {
         do {
             let (data, response) = try await session.data(from: url)
             try validateHTTPResponse(response)

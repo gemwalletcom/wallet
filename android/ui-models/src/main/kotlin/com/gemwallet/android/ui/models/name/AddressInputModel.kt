@@ -1,6 +1,6 @@
 package com.gemwallet.android.ui.models.name
 
-import com.gemwallet.android.cases.name.GetNameRecord
+import com.gemwallet.android.application.recipient.cases.GetNameRecord
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameRecord
@@ -16,11 +16,11 @@ import uniffi.gemstone.GemRecipientValidation
 
 class AddressInputModel(
     private val getNameRecord: GetNameRecord,
+    private val recipientService: GemRecipientService,
     scope: CoroutineScope,
     initialChain: Chain? = null,
 ) {
     private val nameRecordController = NameRecordController(getNameRecord, scope)
-    private val recipientService = GemRecipientService()
     private val _text = MutableStateFlow("")
     private val _showError = MutableStateFlow(false)
     private val _chain = MutableStateFlow(initialChain)

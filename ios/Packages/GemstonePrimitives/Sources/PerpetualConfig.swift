@@ -36,10 +36,6 @@ public struct PerpetualConfig {
         BigInt(Config.shared.getPerpetualConfig().minWithdraw)
     }
 
-    public static var pricesUpdateIntervalSeconds: TimeInterval {
-        TimeInterval(Config.shared.getPerpetualConfig().pricesUpdateIntervalSeconds)
-    }
-
     public static var leverageOptions: [UInt8] {
         Array(Config.shared.getPerpetualConfig().leverageOptions)
     }
@@ -50,6 +46,10 @@ public struct PerpetualConfig {
 
     public static var stopLossOptions: [UInt8] {
         Array(Config.shared.getPerpetualConfig().stopLossPercentOptions)
+    }
+
+    public static func leverageOptions(maxLeverage: UInt8) -> [UInt8] {
+        Array(Config.shared.leverageOptions(maxLeverage: maxLeverage))
     }
 
     public static func selectLeverage(desired: UInt8, options: [UInt8]) -> UInt8 {

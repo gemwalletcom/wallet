@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.update
 
 import com.gemwallet.android.model.AppUpdateChannel
 import com.gemwallet.android.model.BuildInfo
-import com.gemwallet.android.cases.device.RequestPushToken
+import com.gemwallet.android.application.device.cases.RequestPushToken
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.PlatformStore
 import com.wallet.core.primitives.Release

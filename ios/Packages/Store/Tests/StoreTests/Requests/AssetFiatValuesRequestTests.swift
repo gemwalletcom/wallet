@@ -12,7 +12,7 @@ struct AssetFiatValuesRequestTests {
         let db = try DB.mockAssetsWithPrice(priceChangePercentage24h: 10)
 
         try db.dbQueue.read { db in
-            let result = try AssetFiatValuesRequest(walletId: .mock(), type: .wallet).fetch(db)
+            let result = try AssetFiatValuesRequest(walletId: .mock(), type: .wallet, perpetualAssetId: Asset.mockHypercoreUSDC().id).fetch(db)
 
             #expect(result == [
                 AssetFiatValue(amount: 3, price: 1100, priceChangePercentage24h: 10),
@@ -26,7 +26,7 @@ struct AssetFiatValuesRequestTests {
         let db = DB.mockAssets()
 
         try db.dbQueue.read { db in
-            let result = try AssetFiatValuesRequest(walletId: .mock(), type: .wallet).fetch(db)
+            let result = try AssetFiatValuesRequest(walletId: .mock(), type: .wallet, perpetualAssetId: Asset.mockHypercoreUSDC().id).fetch(db)
 
             #expect(result == [AssetFiatValue(amount: 0, price: 1, priceChangePercentage24h: 0)])
         }
@@ -37,7 +37,7 @@ struct AssetFiatValuesRequestTests {
         let db = try DB.mockAssetsWithPerpetualCollateralBalance()
 
         try db.dbQueue.read { db in
-            let result = try AssetFiatValuesRequest(walletId: .mock(), type: .wallet).fetch(db)
+            let result = try AssetFiatValuesRequest(walletId: .mock(), type: .wallet, perpetualAssetId: Asset.mockHypercoreUSDC().id).fetch(db)
 
             // ethereum (3 * 100) + perpetual (50 + 25); bnb is disabled
             #expect(result == [
@@ -52,7 +52,7 @@ struct AssetFiatValuesRequestTests {
         let db = try DB.mockAssetsWithPerpetualCollateralBalance()
 
         try db.dbQueue.read { db in
-            let result = try AssetFiatValuesRequest(walletId: .mock(), type: .perpetual).fetch(db)
+            let result = try AssetFiatValuesRequest(walletId: .mock(), type: .perpetual, perpetualAssetId: Asset.mockHypercoreUSDC().id).fetch(db)
 
             #expect(result == [AssetFiatValue(amount: 75, price: 1, priceChangePercentage24h: 0)])
         }
@@ -63,7 +63,7 @@ struct AssetFiatValuesRequestTests {
         let db = try DB.mockAssetsWithPerpetualCollateralBalance()
 
         try db.dbQueue.read { db in
-            let result = try PerpetualWalletBalanceRequest(walletId: .mock()).fetch(db)
+            let result = try PerpetualWalletBalanceRequest(walletId: .mock(), assetId: Asset.mockHypercoreUSDC().id).fetch(db)
 
             #expect(result.total == 75)
             #expect(result.available == 50)
@@ -75,7 +75,7 @@ struct AssetFiatValuesRequestTests {
         let db = try DB.mockAssetsWithEarnBalance()
 
         try db.dbQueue.read { db in
-            let result = try AssetFiatValuesRequest(walletId: .mock(), type: .earn).fetch(db)
+            let result = try AssetFiatValuesRequest(walletId: .mock(), type: .earn, perpetualAssetId: Asset.mockHypercoreUSDC().id).fetch(db)
 
             #expect(result == [AssetFiatValue(amount: 3, price: 110, priceChangePercentage24h: 10)])
         }

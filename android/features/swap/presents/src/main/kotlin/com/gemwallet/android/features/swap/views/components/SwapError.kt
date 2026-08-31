@@ -22,8 +22,7 @@ internal fun SwapError(state: SwapUiState, pay: AssetInfo?) {
     val error = state.error ?: return
 
     val errorText = when (error) {
-        SwapError.None,
-        is SwapError.InsufficientBalance -> return
+        SwapError.None -> return
         SwapError.NotSupportedAsset -> stringResource(R.string.errors_swap_not_supported_asset)
         is SwapError.Unknown -> "${stringResource(R.string.errors_unknown_try_again)}: ${error.data}"
         is SwapError.InputAmountTooSmall -> "${stringResource(R.string.errors_swap_amount_too_small)} ${pay?.asset?.let { error.getFormattedValue(it) } ?: ""}"

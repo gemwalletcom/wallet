@@ -1,16 +1,17 @@
 package com.gemwallet.android.features.swap.viewmodels.models
 
-import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestKey
-import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestParams
-import com.gemwallet.android.application.swap.coordinators.SwapQuotesResult
-import com.gemwallet.android.application.swap.coordinators.getQuote
+import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
+import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
+import com.gemwallet.android.application.swap.cases.SwapQuotesResult
+import com.gemwallet.android.application.swap.cases.getQuote
+import uniffi.gemstone.SwapperException
 import uniffi.gemstone.SwapperProvider
 
 internal sealed interface SwapQuotePhase {
     data object NoInput : SwapQuotePhase
     data class Loading(val requestKey: SwapQuoteRequestKey) : SwapQuotePhase
     data object Ready : SwapQuotePhase
-    data class Failed(val requestKey: SwapQuoteRequestKey, val error: SwapError) : SwapQuotePhase
+    data class Failed(val requestKey: SwapQuoteRequestKey, val error: Throwable) : SwapQuotePhase
 }
 
 internal sealed interface SwapTransferPhase {
@@ -23,7 +24,7 @@ internal sealed interface SwapTransferPhase {
     data class Failed(
         val requestKey: SwapQuoteRequestKey,
         val providerId: SwapperProvider,
-        val error: SwapError,
+        val error: Throwable,
     ) : SwapTransferPhase
 }
 
@@ -46,6 +47,12 @@ internal data class SwapQuoteSession(
 
     val acceptsQuotes: Boolean
         get() = transferPhase is SwapTransferPhase.Idle
+
+    val quoteError: SwapperException?
+        get() = (quotePhase as? SwapQuotePhase.Failed)?.error as? SwapperException
+
+    val transferError: SwapperException?
+        get() = (transferPhase as? SwapTransferPhase.Failed)?.error as? SwapperException
 }
 
 internal fun SwapQuoteSession.onRequestParamsChanged(params: SwapQuoteRequestParams?): SwapQuoteSession =
@@ -65,16 +72,13 @@ internal fun SwapQuoteSession.onQuoteResults(results: SwapQuotesResult): SwapQuo
     )
 }
 
-private fun SwapQuotesResult.quoteErrorOrNull(): SwapError? {
-    val failure = err
-    return when {
-        failure != null -> SwapError.toError(failure)
-        items.isEmpty() -> SwapError.NoQuote
-        else -> null
-    }
+private fun SwapQuotesResult.quoteErrorOrNull(): Throwable? = when {
+    err != null -> err
+    items.isEmpty() -> SwapperException.NoQuoteAvailable()
+    else -> null
 }
 
-private fun SwapQuotesResult.phaseFor(error: SwapError?): SwapQuotePhase =
+private fun SwapQuotesResult.phaseFor(error: Throwable?): SwapQuotePhase =
     if (error == null) SwapQuotePhase.Ready else SwapQuotePhase.Failed(requestKey, error)
 
 internal fun SwapQuoteSession.onProviderSelected(provider: SwapperProvider): SwapQuoteSession = copy(
@@ -101,7 +105,7 @@ internal fun SwapQuoteSession.startTransfer(): Pair<SwapQuoteSession, SwapTransf
 
 internal fun SwapQuoteSession.onTransferFailed(
     transfer: SwapTransferPhase.Loading,
-    error: SwapError,
+    error: Throwable,
 ): SwapQuoteSession = if (transferPhase == transfer) {
     copy(
         transferPhase = SwapTransferPhase.Failed(

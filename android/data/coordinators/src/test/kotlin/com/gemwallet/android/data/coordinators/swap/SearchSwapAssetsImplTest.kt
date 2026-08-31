@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.coordinators.swap
 
-import com.gemwallet.android.data.repositories.assets.AssetsSearchService
+import uniffi.gemstone.GemAssetConfigService
+import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
@@ -62,7 +63,7 @@ class SearchSwapAssetsImplTest {
             )
         }
 
-        val subject = SearchSwapAssetsImpl(searchService, swapService)
+        val subject = SearchSwapAssetsImpl(searchService, swapService, GemAssetConfigService())
 
         val result = subject.invoke(
             wallet = wallet,

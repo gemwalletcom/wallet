@@ -1,3 +1,4 @@
+use crate::models::custom_types::GemBigInt;
 use primitives::{AssetId, BannerEvent, BannerState, Chain, WalletId};
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -11,8 +12,6 @@ pub struct GemBannerContext {
     pub asset_rank_score: Option<i32>,
     pub has_perpetuals_support: bool,
     pub is_wallet_empty: bool,
-    pub notifications_available: bool,
-    pub launch_count: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -25,8 +24,53 @@ pub struct GemBannerItem {
 pub struct GemBannerKey {
     pub wallet_id: Option<WalletId>,
     pub asset_id: Option<AssetId>,
-    pub chain: Option<Chain>,
     pub event: BannerEvent,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemBannerIcon {
+    MoneyBag,
+    Network { chain: Chain },
+    Warning,
+    Suspicious,
+    Bitcoin,
+    Perpetuals,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemBannerAmount {
+    pub value: GemBigInt,
+    pub decimals: i32,
+    pub symbol: String,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemBannerTitle {
+    Stake { asset_name: String },
+    AccountActivation,
+    Warning,
+    ActivateAsset,
+    SuspiciousAsset,
+    Onboarding,
+    TradePerpetuals,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemBannerDescription {
+    Stake { asset_symbol: String },
+    AccountActivation { network_name: String, fee: GemBannerAmount },
+    MultiSignatureBlocked { network_name: String },
+    ActivateAsset { asset_symbol: String, network_name: String },
+    SuspiciousAsset,
+    Onboarding,
+    TradePerpetuals,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemBannerContent {
+    pub icon: Option<GemBannerIcon>,
+    pub title: Option<GemBannerTitle>,
+    pub description: Option<GemBannerDescription>,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]
@@ -41,7 +85,6 @@ pub fn banner_identifier(key: GemBannerKey) -> String {
     [
         key.wallet_id.map(|wallet_id| wallet_id.id()),
         key.asset_id.map(|asset_id| asset_id.to_string()),
-        key.chain.map(|chain| chain.as_ref().to_string()),
         Some(key.event.as_ref().to_string()),
     ]
     .into_iter()
@@ -57,24 +100,20 @@ mod tests {
 
     #[test]
     fn test_banner_identifier() {
-        let key = |wallet_id: Option<&str>, asset_id: Option<AssetId>, chain: Option<Chain>, event: BannerEvent| GemBannerKey {
+        let key = |wallet_id: Option<&str>, asset_id: Option<AssetId>, event: BannerEvent| GemBannerKey {
             wallet_id: wallet_id.map(|id| WalletId::Multicoin(id.to_string())),
             asset_id,
-            chain,
             event,
         };
 
         assert_eq!(
-            banner_identifier(key(Some("wallet-1"), Some(AssetId::from_chain(Chain::Bitcoin)), Some(Chain::Bitcoin), BannerEvent::Stake)),
-            "multicoin_wallet-1_bitcoin_bitcoin_stake"
+            banner_identifier(key(Some("wallet-1"), Some(AssetId::from_chain(Chain::Bitcoin)), BannerEvent::Stake)),
+            "multicoin_wallet-1_bitcoin_stake"
         );
-        assert_eq!(banner_identifier(key(None, None, None, BannerEvent::EnableNotifications)), "enableNotifications");
+        assert_eq!(banner_identifier(key(None, None, BannerEvent::SuspiciousAsset)), "suspiciousAsset");
+        assert_eq!(banner_identifier(key(Some("wallet-1"), None, BannerEvent::Onboarding)), "multicoin_wallet-1_onboarding");
         assert_eq!(
-            banner_identifier(key(Some("wallet-1"), None, None, BannerEvent::Onboarding)),
-            "multicoin_wallet-1_onboarding"
-        );
-        assert_eq!(
-            banner_identifier(key(None, Some(AssetId::from_chain(Chain::Ethereum)), None, BannerEvent::ActivateAsset)),
+            banner_identifier(key(None, Some(AssetId::from_chain(Chain::Ethereum)), BannerEvent::ActivateAsset)),
             "ethereum_activateAsset"
         );
     }

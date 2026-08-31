@@ -2,10 +2,10 @@
 
 import Components
 import Formatters
+import class Gemstone.GemSwapQuoteService
 import Foundation
 import struct Gemstone.SwapperQuote
 import Localization
-import Preferences
 import Primitives
 import PrimitivesComponents
 
@@ -31,6 +31,7 @@ public final class SwapDetailsViewModel {
     private var rateDirection: AssetRateFormatter.Direction = .direct
     private let priceViewModel: PriceViewModel
     private let isProviderSelectionEnabled: Bool
+    private let swapQuoteService: GemSwapQuoteService
     private let swapProviderSelectAction: ((SwapperQuote) -> Void)?
 
     public init(
@@ -39,8 +40,9 @@ public final class SwapDetailsViewModel {
         toAssetPrice: AssetPriceValue,
         selectedQuote: SwapQuote,
         slippage: SwapSlippage,
-        preferences: Preferences = .standard,
+        currency: String,
         isProviderSelectionEnabled: Bool = true,
+        swapQuoteService: GemSwapQuoteService,
         swapProviderSelectAction: ((SwapperQuote) -> Void)? = nil,
     ) {
         self.state = state ?? .data([])
@@ -49,8 +51,9 @@ public final class SwapDetailsViewModel {
         providerViewModel = SwapProviderViewModel(providerData: selectedQuote.providerData)
         self.selectedQuote = selectedQuote
         self.slippage = slippage
-        priceViewModel = PriceViewModel(price: toAssetPrice.price, currencyCode: preferences.currency)
+        priceViewModel = PriceViewModel(price: toAssetPrice.price, currencyCode: currency)
         self.isProviderSelectionEnabled = isProviderSelectionEnabled
+        self.swapQuoteService = swapQuoteService
         self.swapProviderSelectAction = swapProviderSelectAction
     }
 
@@ -122,6 +125,7 @@ public final class SwapDetailsViewModel {
             fromValue: selectedQuote.fromValue,
             toAssetPrice: toAssetPrice,
             toValue: selectedQuote.toValue,
+            swapQuoteService: swapQuoteService,
         )
     }
 
@@ -169,6 +173,7 @@ public final class SwapDetailsViewModel {
                 selectedProvider: selectedQuote.providerData.provider,
                 priceViewModel: priceViewModel,
                 valueFormatter: valueFormatter,
+                swapQuoteService: swapQuoteService,
             )
         }
     }
@@ -185,7 +190,7 @@ extension SwapDetailsViewModel {
     }
 
     func onFinishSwapProviderSelection(item: [SwapProviderItem]) {
-        guard let quote = item.first?.swapperQuote, let swapQuote = try? quote.map() else { return }
+        guard let quote = item.first?.swapperQuote, let swapQuote = try? quote.map(swapQuoteService: swapQuoteService) else { return }
         swapProviderSelectAction?(quote)
         selectedQuote = swapQuote
     }

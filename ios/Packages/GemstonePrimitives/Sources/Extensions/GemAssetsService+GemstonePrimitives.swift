@@ -9,17 +9,17 @@ public extension GemAssetsServiceProtocol {
         try await Primitives.Asset(ensureAsset(assetId: assetId.identifier))
     }
 
+    func openWalletAsset(wallet: Primitives.Wallet, assetId: Primitives.AssetId) async throws -> Primitives.Asset? {
+        try await openWalletAsset(wallet: wallet.json(), assetId: assetId.identifier).map { try Primitives.Asset($0) }
+    }
+
     func ensureTokenAsset(for assetId: Primitives.AssetId) async throws -> Primitives.Asset {
         try await Primitives.Asset(ensureTokenAsset(assetId: assetId.identifier))
     }
 
     @discardableResult
-    func prefetchAssets(for assetIds: [Primitives.AssetId]) async throws -> [Primitives.AssetId] {
-        try await prefetchAssets(assetIds: assetIds.ids).map { try Primitives.AssetId(id: $0) }
-    }
-
-    func addMissingBalances(walletId: Primitives.WalletId, assetIds: [Primitives.AssetId]) async throws {
-        try await addMissingBalances(walletId: walletId.id, assetIds: assetIds.ids)
+    func syncMissingAssets(for assetIds: [Primitives.AssetId]) async throws -> [Primitives.AssetId] {
+        try await syncMissingAssets(assetIds: assetIds.ids).map { try Primitives.AssetId(id: $0) }
     }
 
     @discardableResult
@@ -30,11 +30,4 @@ public extension GemAssetsServiceProtocol {
         return try await Primitives.AssetFull(syncAsset(assetId: assetId.identifier, currency: currency.json()))
     }
 
-    func searchAssetsAndTokens(query: String, chains: [Primitives.Chain]) async throws -> [Primitives.AssetBasic] {
-        try await searchAssetsAndTokens(query: query, chains: chains.map(\.rawValue)).map { try Primitives.AssetBasic($0) }
-    }
-
-    func searchTokens(tokenId: String, chains: [Primitives.Chain]) async -> [Primitives.AssetBasic] {
-        await searchTokens(tokenId: tokenId, chains: chains.map(\.rawValue)).compactMap { try? Primitives.AssetBasic($0) }
-    }
 }

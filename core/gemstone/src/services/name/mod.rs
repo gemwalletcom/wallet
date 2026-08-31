@@ -1,7 +1,6 @@
 pub mod rules;
 pub mod store;
 
-use crate::services::collections::unique_by;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
@@ -9,6 +8,7 @@ use primitives::name::NameRecord;
 use primitives::{AddressName, Chain, ChainAddress};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
+use crate::services::recipient::GemRecipientService;
 
 pub use store::GemAddressStore;
 
@@ -16,13 +16,22 @@ pub use store::GemAddressStore;
 pub struct GemNameService {
     api: Arc<GemDeviceApiClient>,
     store: Arc<dyn GemAddressStore>,
+    recipients: Arc<GemRecipientService>,
 }
 
 #[uniffi::export]
 impl GemNameService {
     #[uniffi::constructor]
     pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemAddressStore>) -> Self {
-        Self { api, store }
+        Self {
+            api,
+            store,
+            recipients: Arc::new(GemRecipientService::new()),
+        }
+    }
+
+    pub fn recipients(&self) -> Arc<GemRecipientService> {
+        self.recipients.clone()
     }
 
     pub fn is_name_supported(&self, name: String) -> bool {
@@ -33,8 +42,12 @@ impl GemNameService {
         Ok(self.api.client.get_name_record(name, chain.to_string()).await.map_err(GemApiError::from)?)
     }
 
+    pub fn address_name(&self, chain: Chain, address: String) -> Result<Option<AddressName>, GemServiceError> {
+        self.store.get_address_name(chain, address)
+    }
+
     pub async fn get_address_names(&self, requests: Vec<ChainAddress>) -> Result<Vec<AddressName>, GemServiceError> {
-        let requests = unique_requests(requests);
+        let requests = rules::unique_requests(requests);
         if requests.is_empty() {
             return Ok(Vec::new());
         }
@@ -42,7 +55,7 @@ impl GemNameService {
         let mut cached = Vec::new();
         let mut missing = Vec::new();
         for request in requests {
-            match self.store.get_address_name(request.chain, request.address.clone()).await? {
+            match self.store.get_address_name(request.chain, request.address.clone())? {
                 Some(name) => cached.push(name),
                 None => missing.push(request),
             }
@@ -58,31 +71,5 @@ impl GemNameService {
         self.store.save_address_names(remote.clone()).await?;
         cached.extend(remote);
         Ok(cached)
-    }
-}
-
-fn unique_requests(requests: Vec<ChainAddress>) -> Vec<ChainAddress> {
-    unique_by(requests.into_iter().filter(|request| !request.address.is_empty()), |request| {
-        (request.chain, request.address.clone())
-    })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use primitives::Chain;
-
-    #[test]
-    fn test_unique_requests() {
-        let requests = vec![
-            ChainAddress::new(Chain::Ethereum, "0xa".to_string()),
-            ChainAddress::new(Chain::Ethereum, "0xa".to_string()),
-            ChainAddress::new(Chain::Bitcoin, "0xa".to_string()),
-            ChainAddress::new(Chain::Ethereum, String::new()),
-        ];
-        let unique = unique_requests(requests);
-        assert_eq!(unique.len(), 2);
-        assert_eq!(unique[0], ChainAddress::new(Chain::Ethereum, "0xa".to_string()));
-        assert_eq!(unique[1], ChainAddress::new(Chain::Bitcoin, "0xa".to_string()));
     }
 }

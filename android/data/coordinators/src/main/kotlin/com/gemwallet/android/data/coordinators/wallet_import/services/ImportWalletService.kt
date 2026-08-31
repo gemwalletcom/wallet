@@ -1,9 +1,8 @@
 package com.gemwallet.android.data.coordinators.wallet_import.services
 
-import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
-import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
+import com.gemwallet.android.application.wallet_import.cases.GetImportWalletState
+import com.gemwallet.android.application.wallet_import.cases.SyncWalletImport
 import com.gemwallet.android.application.wallet_import.values.ImportWalletState
-import com.gemwallet.android.cases.device.SyncDevice
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -15,14 +14,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemAssetDiscoveryService
+import uniffi.gemstone.GemDeviceService
 
 class ImportWalletService(
     private val discoveryService: GemAssetDiscoveryService,
-    private val sessionRepository: SessionRepository,
-    private val syncDevice: SyncDevice,
+    private val getCurrentCurrency: GetCurrentCurrency,
+    private val deviceService: GemDeviceService,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }),
 ) : SyncWalletImport, GetImportWalletState {
 
@@ -40,12 +40,12 @@ class ImportWalletService(
     }
 
     private suspend fun syncWallet(wallet: Wallet) {
-        syncDevice.syncDevice()
+        deviceService.synchronizeIfNeeded()
         discoverAssets(wallet)
     }
 
     private suspend fun discoverAssets(wallet: Wallet) {
-        discoveryService.discover(wallet.id.id, sessionRepository.getCurrentCurrency().toJson())
+        discoveryService.discover(wallet.id.id)
     }
 
     override fun getImportState(walletId: WalletId): Flow<ImportWalletState> = importingWalletIds.map { walletIds ->

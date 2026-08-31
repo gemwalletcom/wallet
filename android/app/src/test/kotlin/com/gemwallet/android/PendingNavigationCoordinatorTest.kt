@@ -2,42 +2,26 @@ package com.gemwallet.android
 
 import android.content.Intent
 import com.gemwallet.android.model.PushNotificationField
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.wallet.core.primitives.Payment
-import com.wallet.core.primitives.PaymentLink
-import com.wallet.core.primitives.PaymentLinkSolanaPayInner
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.Deeplink
-import uniffi.gemstone.UrlAction
-import uniffi.gemstone.WalletConnectLink
-import uniffi.gemstone.urlAction
+import uniffi.gemstone.GemDeeplinkService
 
 class PendingNavigationCoordinatorTest {
 
     private val notificationNavigation = mockk<NotificationNavigation>(relaxed = true)
     private val paymentNavigation = mockk<PaymentNavigation>(relaxed = true)
-    private val coordinator = PendingNavigationCoordinator(notificationNavigation, paymentNavigation)
-
-    @Before
-    fun setUp() = mockkStatic("uniffi.gemstone.GemstoneKt")
-
-    @After
-    fun tearDown() = unmockkStatic("uniffi.gemstone.GemstoneKt")
+    private val coordinator = PendingNavigationCoordinator(notificationNavigation, paymentNavigation, GemDeeplinkService())
 
     @Test
     fun buildRoutes_withoutPendingInput_isNoOp() = runTest {
@@ -50,7 +34,6 @@ class PendingNavigationCoordinatorTest {
     fun buildRoutes_walletConnectPairing_invokesPairingHandlerAndClears() = runTest {
         val handler = RecordingWalletConnect()
         val uri = "wc:abc@2?relay-protocol=irn"
-        every { urlAction(uri) } returns UrlAction.WalletConnect(WalletConnectLink.Connect(uri))
         coordinator.handleScan(uri)
 
         coordinator.buildRoutes(handler)
@@ -63,7 +46,6 @@ class PendingNavigationCoordinatorTest {
     fun buildRoutes_walletConnectRequest_invokesRequestHandlerAndClears() = runTest {
         val handler = RecordingWalletConnect()
         val uri = "gem://wc?requestId=42"
-        every { urlAction(uri) } returns UrlAction.WalletConnect(WalletConnectLink.Request)
         coordinator.handleScan(uri)
 
         coordinator.buildRoutes(handler)
@@ -75,7 +57,6 @@ class PendingNavigationCoordinatorTest {
     @Test
     fun buildRoutes_webDeepLink_storesRoute() = runTest {
         val uri = "https://gemwallet.com/join/gemcoder"
-        every { urlAction(uri) } returns UrlAction.Deeplink(Deeplink.Rewards(code = "gemcoder"))
         coordinator.handleScan(uri)
 
         coordinator.buildRoutes(NoOpWalletConnect)
@@ -87,7 +68,6 @@ class PendingNavigationCoordinatorTest {
     @Test
     fun buildRoutes_unknownScan_clears() = runTest {
         val uri = "https://example.com/unknown"
-        every { urlAction(uri) } returns null
         coordinator.handleScan(uri)
 
         coordinator.buildRoutes(NoOpWalletConnect)
@@ -98,10 +78,7 @@ class PendingNavigationCoordinatorTest {
     @Test
     fun buildRoutes_paymentLink_showsLoadingUntilNavigationIsPrepared() = runTest {
         val uri = "solana:https%3A%2F%2Fexample.com%2Fpay"
-        val payment: Payment = Payment.Link(PaymentLink.SolanaPay(PaymentLinkSolanaPayInner("https://example.com/pay")))
-        val paymentJson = payment.toJson()
         val release = CompletableDeferred<Unit>()
-        every { urlAction(uri) } returns UrlAction.Payment(paymentJson)
         coEvery { paymentNavigation.routes(any()) } coAnswers {
             release.await()
             emptyList()

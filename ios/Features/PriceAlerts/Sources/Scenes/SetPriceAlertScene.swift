@@ -48,10 +48,8 @@ struct SetPriceAlertScene: View {
             }
         }
         .onChange(of: model.state.type, model.onChangeAlertType)
-        .onChange(of: model.state.amount, onChangeAmount)
         .onAppear {
             focusedField = true
-            model.setAlertDirection(for: model.assetData.price)
         }
     }
 }
@@ -102,10 +100,6 @@ extension SetPriceAlertScene {
 // MARK: - Actions
 
 extension SetPriceAlertScene {
-    func onChangeAmount(_: String, _: String) {
-        model.setAlertDirection(for: model.assetData.price)
-    }
-
     func onSelectSuggestion(_ suggestion: some SuggestionViewable) {
         model.onSelectSuggestion(suggestion)
     }

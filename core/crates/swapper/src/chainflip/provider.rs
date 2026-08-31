@@ -127,29 +127,32 @@ fn get_best_quote(quotes: Vec<QuoteResponse>, request: &ChainflipQuoteRequest) -
     let matches_request = |details: &QuoteDetails| {
         details.ingress_asset == request.source_asset && details.ingress_amount_native == ingress_amount && details.egress_asset == request.destination_asset
     };
-    let quote = quotes
+    let (details, quote_type, recommended_slippage_tolerance_percent, estimated_boost_fee_bps) = quotes
         .into_iter()
         .filter(|quote| matches_request(&quote.details) && quote.boost_quote.as_ref().is_none_or(|quote| matches_request(&quote.details)))
-        .max_by(|left, right| left.details.egress_amount_native.cmp(&right.details.egress_amount_native))
+        .filter_map(|quote| {
+            let QuoteResponse {
+                details,
+                quote_type,
+                recommended_slippage_tolerance_percent,
+                boost_quote,
+            } = quote;
+            match boost_quote {
+                Some(boost_quote) if !boost_quote.details.low_liquidity_warning => Some((
+                    boost_quote.details,
+                    quote_type,
+                    recommended_slippage_tolerance_percent,
+                    Some(boost_quote.estimated_boost_fee_bps),
+                )),
+                _ if !details.low_liquidity_warning => Some((details, quote_type, recommended_slippage_tolerance_percent, None)),
+                _ => None,
+            }
+        })
+        .max_by(|(left, ..), (right, ..)| left.egress_amount_native.cmp(&right.egress_amount_native))
         .ok_or(SwapperError::NoQuoteAvailable)?;
-    let QuoteResponse {
-        details,
-        quote_type,
-        recommended_slippage_tolerance_percent,
-        boost_quote,
-    } = quote;
-    let (details, boost_fee) = match boost_quote {
-        Some(boost_quote) => {
-            let boost_fee = boost_quote
-                .estimated_boost_fee_bps
-                .ceil()
-                .to_u32()
-                .filter(|fee| *fee <= u8::MAX as u32)
-                .ok_or(SwapperError::InvalidRoute)?;
-            (boost_quote.details, Some(boost_fee))
-        }
-        None => (details, None),
-    };
+    let boost_fee = estimated_boost_fee_bps
+        .map(|fee| fee.ceil().to_u32().filter(|fee| *fee <= u8::MAX as u32).ok_or(SwapperError::InvalidRoute))
+        .transpose()?;
     if details.egress_amount_native == BigUint::from(0u32)
         || !details.estimated_price.is_finite()
         || details.estimated_price <= 0.0
@@ -443,7 +446,7 @@ mod tests {
             }
             "/quotes-native?amount=68000000&sourceAsset=sol.sol&destinationAsset=btc.btc&commissionBps=45&isVaultSwap=true" => {
                 quote_counter.fetch_add(1, Ordering::Relaxed);
-                Ok(br#"[{"type":"regular","ingressAsset":"sol.sol","ingressAmountNative":"68000000","egressAsset":"btc.btc","egressAmountNative":"1","recommendedSlippageTolerancePercent":1,"estimatedDurationSeconds":60,"estimatedPrice":1}]"#.to_vec())
+                Ok(br#"[{"type":"regular","ingressAsset":"sol.sol","ingressAmountNative":"68000000","egressAsset":"btc.btc","egressAmountNative":"1","lowLiquidityWarning":false,"recommendedSlippageTolerancePercent":1,"estimatedDurationSeconds":60,"estimatedPrice":1}]"#.to_vec())
             }
             _ => panic!("unexpected path: {path}"),
         });
@@ -613,6 +616,7 @@ mod tests {
             "recommendedSlippageTolerancePercent": 1,
             "estimatedDurationSeconds": 163.5,
             "type": "regular",
+            "lowLiquidityWarning": false,
             "estimatedPrice": 1
         }]))
         .unwrap();
@@ -626,6 +630,69 @@ mod tests {
     }
 
     #[test]
+    fn test_low_liquidity_quotes_are_excluded() {
+        let response = serde_json::from_str::<serde_json::Value>(include_str!("./test/chainflip_boost_quotes.json")).unwrap();
+        let request = quote_request("100000000", "btc.btc", "eth.eth");
+
+        let mut warned_boost = serde_json::json!([response[0].clone()]);
+        warned_boost[0]["boostQuote"]["lowLiquidityWarning"] = serde_json::json!(true);
+        let (egress_amount, _, _, route_data) = get_best_quote(serde_json::from_value(warned_boost).unwrap(), &request).unwrap();
+        assert_eq!(egress_amount.to_string(), "4082976513112383071");
+        assert_eq!(route_data.boost_fee, None);
+
+        let mut warned_regular = serde_json::json!([response[0].clone()]);
+        warned_regular[0]["lowLiquidityWarning"] = serde_json::json!(true);
+        let (egress_amount, _, _, route_data) = get_best_quote(serde_json::from_value(warned_regular).unwrap(), &request).unwrap();
+        assert_eq!(egress_amount.to_string(), "4080934615929730944");
+        assert_eq!(route_data.boost_fee, Some(5));
+
+        let mut warned_best = response.clone();
+        warned_best[1]["lowLiquidityWarning"] = serde_json::json!(true);
+        warned_best[1]["boostQuote"]["lowLiquidityWarning"] = serde_json::json!(true);
+        let (egress_amount, _, _, _) = get_best_quote(serde_json::from_value(warned_best.clone()).unwrap(), &request).unwrap();
+        assert_eq!(egress_amount.to_string(), "4080934615929730944");
+
+        warned_best[0]["lowLiquidityWarning"] = serde_json::json!(true);
+        warned_best[0]["boostQuote"]["lowLiquidityWarning"] = serde_json::json!(true);
+        let quotes = serde_json::from_value(warned_best).unwrap();
+        assert_eq!(get_best_quote(quotes, &request), Err(SwapperError::NoQuoteAvailable));
+    }
+
+    #[test]
+    fn test_missing_low_liquidity_warning_is_allowed() {
+        let response = serde_json::from_str::<serde_json::Value>(include_str!("./test/chainflip_boost_quotes.json")).unwrap();
+        let request = quote_request("100000000", "btc.btc", "eth.eth");
+
+        let mut regular = response[0].clone();
+        regular.as_object_mut().unwrap().remove("lowLiquidityWarning");
+        regular.as_object_mut().unwrap().remove("boostQuote");
+        let (egress_amount, _, _, route_data) = get_best_quote(serde_json::from_value(serde_json::json!([regular])).unwrap(), &request).unwrap();
+        assert_eq!(egress_amount.to_string(), "4082976513112383071");
+        assert_eq!(route_data.boost_fee, None);
+
+        let mut boosted = response[0].clone();
+        boosted["boostQuote"].as_object_mut().unwrap().remove("lowLiquidityWarning");
+        let (egress_amount, _, _, route_data) = get_best_quote(serde_json::from_value(serde_json::json!([boosted])).unwrap(), &request).unwrap();
+        assert_eq!(egress_amount.to_string(), "4080934615929730944");
+        assert_eq!(route_data.boost_fee, Some(5));
+    }
+
+    #[test]
+    fn test_quotes_rank_safe_execution_amount() {
+        let mut response = serde_json::from_str::<serde_json::Value>(include_str!("./test/chainflip_boost_quotes.json")).unwrap();
+        let request = quote_request("100000000", "btc.btc", "eth.eth");
+        response[0]["lowLiquidityWarning"] = serde_json::json!(true);
+        response[0]["egressAmountNative"] = serde_json::json!("1000");
+        response[0]["boostQuote"]["egressAmountNative"] = serde_json::json!("10");
+        response[1]["egressAmountNative"] = serde_json::json!("20");
+        response[1]["boostQuote"]["lowLiquidityWarning"] = serde_json::json!(true);
+
+        let (egress_amount, _, _, route_data) = get_best_quote(serde_json::from_value(response).unwrap(), &request).unwrap();
+        assert_eq!(egress_amount, BigUint::from(20u32));
+        assert_eq!(route_data.boost_fee, None);
+    }
+
+    #[test]
     fn test_quote_must_match_request() {
         let quote = serde_json::json!([{
             "type": "regular",
@@ -633,6 +700,7 @@ mod tests {
             "ingressAmountNative": "1",
             "egressAsset": "btc.btc",
             "egressAmountNative": "1",
+            "lowLiquidityWarning": false,
             "recommendedSlippageTolerancePercent": 1,
             "estimatedDurationSeconds": 60,
             "estimatedPrice": 1
@@ -660,6 +728,7 @@ mod tests {
             "ingressAmountNative": "1",
             "egressAsset": "btc.btc",
             "egressAmountNative": "1",
+            "lowLiquidityWarning": false,
             "recommendedSlippageTolerancePercent": 1,
             "estimatedDurationSeconds": 60,
             "estimatedPrice": 1
@@ -690,6 +759,7 @@ mod tests {
             "recommendedSlippageTolerancePercent": 1,
             "estimatedDurationSeconds": 60,
             "type": "dca",
+            "lowLiquidityWarning": false,
             "estimatedPrice": 1
         }]))
         .unwrap();
@@ -792,7 +862,8 @@ mod tests {
             to_asset: SwapperQuoteAsset::mock_with_asset_id(primitives::known_assets::ARBITRUM_USDC.id.clone(), "USDC", 6),
             wallet_address: "TEcDijvKSXcfWT7S6rd44H5vNgufm7Y4XC".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            value: "10000000".to_string(),
+            // Route-specific minimums can exceed the global minimum returned by /assets.
+            value: "100000000".to_string(),
             options: Options::default(),
         };
 

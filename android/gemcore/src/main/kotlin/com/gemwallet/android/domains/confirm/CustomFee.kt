@@ -1,13 +1,12 @@
 package com.gemwallet.android.domains.confirm
 
-import com.gemwallet.android.ext.toFeePriority
-import com.gemwallet.android.ext.totalFee
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.FeePriority
 import uniffi.gemstone.GemFeeRate
-import uniffi.gemstone.customFeeEstimate
+import uniffi.gemstone.GemFeeService
 import java.math.BigInteger
 
 data class CustomFee(
@@ -29,13 +28,14 @@ data class CustomFee(
             decimals: Int,
             maxMultiplier: Int,
             minimumCustomFeeRate: BigInteger?,
+            feeService: GemFeeService,
         ): CustomFee {
-            val baseTotal = baseTotal(selection, feeRates, currentFee.priority)
-            val normalTotal = normalTotal(feeRates) ?: baseTotal
+            val baseTotal = baseTotal(selection, feeRates, currentFee.priority, feeService)
+            val normalTotal = normalTotal(feeRates, feeService) ?: baseTotal
             val rate = input.parseInputNumberOrNull()?.movePointRight(decimals)?.toBigInteger()?.takeIf { it > BigInteger.ZERO }
             val isBelowMinimum = rate != null && minimumCustomFeeRate != null && rate < minimumCustomFeeRate
 
-            val estimate = customFeeEstimate(
+            val estimate = feeService.customFeeEstimate(
                 rate = rate?.toString(),
                 loadedFee = currentFee.amount.toString(),
                 baseTotal = baseTotal.toString(),
@@ -61,15 +61,15 @@ data class CustomFee(
         fun formatRate(value: BigInteger, decimals: Int, unitSymbol: String): String =
             ValueFormatter(style = ValueFormatter.Style.Auto).string(value, decimals, unitSymbol)
 
-        private fun baseTotal(selection: FeeSelection, feeRates: List<GemFeeRate>, loadedPriority: FeePriority): BigInteger =
+        private fun baseTotal(selection: FeeSelection, feeRates: List<GemFeeRate>, loadedPriority: FeePriority, feeService: GemFeeService): BigInteger =
             when (selection) {
                 is FeeSelection.Custom -> selection.gasPrice
-                is FeeSelection.Preset -> feeRates.firstOrNull { it.priority.toFeePriority() == loadedPriority }
-                    ?.gasPriceType?.totalFee() ?: BigInteger.ZERO
+                is FeeSelection.Preset -> feeRates.firstOrNull { it.priority.toPrimitives() == loadedPriority }
+                    ?.let { feeService.totalFee(it.gasPriceType).toBigInteger() } ?: BigInteger.ZERO
             }
 
-        private fun normalTotal(feeRates: List<GemFeeRate>): BigInteger? =
-            (feeRates.firstOrNull { it.priority.toFeePriority() == FeePriority.Normal } ?: feeRates.firstOrNull())
-                ?.gasPriceType?.totalFee()
+        private fun normalTotal(feeRates: List<GemFeeRate>, feeService: GemFeeService): BigInteger? =
+            (feeRates.firstOrNull { it.priority.toPrimitives() == FeePriority.Normal } ?: feeRates.firstOrNull())
+                ?.let { feeService.totalFee(it.gasPriceType).toBigInteger() }
     }
 }

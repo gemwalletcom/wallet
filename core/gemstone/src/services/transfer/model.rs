@@ -1,13 +1,17 @@
 use serde::{Deserialize, Serialize};
 
+use crate::models::custom_types::GemBigInt;
 use crate::models::transaction::{GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use primitives::{SimulationResult, TransactionType, TransferDataOutputAction, TransferDataOutputType};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, uniffi::Record)]
 pub struct GemRecipient {
     pub address: String,
+    #[uniffi(default = None)]
     pub name: Option<String>,
+    #[uniffi(default = None)]
     pub memo: Option<String>,
+    #[uniffi(default = [])]
     pub references: Vec<String>,
 }
 
@@ -15,17 +19,19 @@ pub struct GemRecipient {
 pub struct GemTransferData {
     pub input_type: GemTransactionInputType,
     pub recipient: GemRecipient,
-    pub value: String,
+    #[serde(with = "crate::models::custom_types::decimal_string")]
+    pub value: GemBigInt,
     pub use_max_amount: bool,
-    pub minimum_value: Option<String>,
+    #[serde(with = "crate::models::custom_types::decimal_string::optional")]
+    pub minimum_value: Option<GemBigInt>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTransferBalance {
-    pub available: String,
-    pub frozen: String,
-    pub locked: String,
-    pub withdrawable: String,
+    pub available: GemBigInt,
+    pub frozen: GemBigInt,
+    pub locked: GemBigInt,
+    pub withdrawable: GemBigInt,
     pub votes: u32,
 }
 
@@ -39,13 +45,32 @@ pub struct GemTransferOutput {
 pub struct GemPendingTransactionInput {
     pub sender: String,
     pub transfer: GemTransferData,
-    pub value: String,
+    pub value: GemBigInt,
     pub transaction_type: TransactionType,
     pub hash: String,
     pub fee: GemTransactionLoadFee,
-    pub network_fee: String,
+    pub network_fee: GemBigInt,
     pub metadata: GemTransactionLoadMetadata,
     pub simulation: Option<SimulationResult>,
     pub transaction_index: u32,
     pub transaction_count: u32,
+}
+
+#[cfg(test)]
+mod wire_format_tests {
+    use super::*;
+
+    #[test]
+    fn test_transfer_value_keeps_the_decimal_string_wire_format() {
+        let json = r#"{"address":"recipient","name":null,"memo":null,"references":[]}"#;
+        let recipient: GemRecipient = serde_json::from_str(json).unwrap();
+        assert_eq!(serde_json::to_string(&recipient).unwrap(), json);
+    }
+
+    #[test]
+    fn test_a_malformed_transfer_value_is_rejected_rather_than_read_as_zero() {
+        let malformed =
+            r#"{"input_type":{},"recipient":{"address":"r","name":null,"memo":null,"references":[]},"value":"not-a-number","use_max_amount":false,"minimum_value":null}"#;
+        assert!(serde_json::from_str::<GemTransferData>(malformed).is_err());
+    }
 }

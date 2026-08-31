@@ -15,8 +15,8 @@ data class ScanAddressTarget (
 
 @Serializable
 data class ScanTransaction (
-	val isMalicious: Boolean,
-	val isMemoRequired: Boolean
+	val isMalicious: Boolean? = null,
+	val isMemoRequired: Boolean? = null
 )
 
 @Serializable

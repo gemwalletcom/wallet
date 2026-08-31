@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.confirm.presents
 
 import androidx.activity.compose.BackHandler
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -97,7 +98,7 @@ fun ConfirmScreen(
 ) {
     val context = LocalContext.current
     val amountModel by viewModel.amountUIModel.collectAsStateWithLifecycle()
-    val txProperties by viewModel.txProperties.collectAsStateWithLifecycle()
+    val transactionProperties by viewModel.transactionProperties.collectAsStateWithLifecycle()
     val feeModel by viewModel.feeUIModel.collectAsStateWithLifecycle()
     val feeValue by viewModel.feeValue.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -112,7 +113,7 @@ fun ConfirmScreen(
     val request = params as? ConfirmParams.TransferParams.Generic
     val isExternalRequest = request != null
     val isPayment = request?.metadata?.source == ApplicationMetadataSource.Payment
-    val displayTxProperties = if (isExternalRequest) txProperties.reorderRequestProperties() else txProperties
+    val displayTransactionProperties = if (isExternalRequest) transactionProperties.reorderRequestProperties() else transactionProperties
 
     var showSelectTxSpeed by remember { mutableStateOf(false) }
     var showSimulationDetails by remember { mutableStateOf(false) }
@@ -209,8 +210,8 @@ fun ConfirmScreen(
                     )
                 }
             }
-            val sectionSize = displayTxProperties.size + detailElements.size
-            itemsIndexed(displayTxProperties) { index, item ->
+            val sectionSize = displayTransactionProperties.size + detailElements.size
+            itemsIndexed(displayTransactionProperties) { index, item ->
                 val listPosition = ListPosition.getPosition(index, sectionSize)
                 when (item) {
                     is ConfirmProperty.Destination -> PropertyDestination(
@@ -234,7 +235,7 @@ fun ConfirmScreen(
                 }
             }
             itemsIndexed(detailElements) { index, item ->
-                val listPosition = ListPosition.getPosition(displayTxProperties.size + index, sectionSize)
+                val listPosition = ListPosition.getPosition(displayTransactionProperties.size + index, sectionSize)
                 ConfirmDetailElementRow(
                     item = item,
                     listPosition = listPosition,
@@ -296,6 +297,7 @@ fun ConfirmScreen(
             currentFee = feeModel as? FeeUIModel.FeeInfo,
             selection = feeSelection,
             feeRates = feeRates,
+            feeService = viewModel.feeService,
             feeAssetInfo = feeAssetInfo,
             feeAssets = feeAssets,
             onSelect = viewModel::changeFeeSelection,
@@ -396,7 +398,7 @@ fun ConfirmState.buttonLabel(): String {
     return when (this) {
         is ConfirmState.BroadcastError,
         is ConfirmState.Error -> stringResource(R.string.common_try_again)
-        is ConfirmState.FatalError -> message
+        is ConfirmState.FatalError -> stringResource(messageRes)
         ConfirmState.Prepare,
         ConfirmState.Ready,
         is ConfirmState.Result,
@@ -430,5 +432,27 @@ private fun confirmTitle(
 ): String = when {
     isExternalRequest -> stringResource(R.string.transfer_review_request)
     perpetualType != null -> perpetualType.title()
-    else -> stringResource(transactionType?.getTitle() ?: R.string.transfer_title)
+    else -> stringResource(transactionType?.titleRes() ?: R.string.transfer_title)
+}
+
+@StringRes
+private fun TransactionType.titleRes(): Int = when (this) {
+    TransactionType.EarnDeposit,
+    TransactionType.StakeDelegate -> R.string.transfer_stake_title
+    TransactionType.EarnWithdraw,
+    TransactionType.StakeWithdraw -> R.string.transfer_withdraw_title
+    TransactionType.StakeUndelegate -> R.string.transfer_unstake_title
+    TransactionType.StakeRedelegate -> R.string.transfer_redelegate_title
+    TransactionType.StakeRewards -> R.string.transfer_rewards_title
+    TransactionType.Transfer,
+    TransactionType.TransferNFT -> R.string.transfer_send_title
+    TransactionType.Swap -> R.string.wallet_swap
+    TransactionType.TokenApproval -> R.string.transfer_approve_title
+    TransactionType.AssetActivation -> R.string.transfer_activate_asset_title
+    TransactionType.SmartContractCall -> R.string.transfer_smart_contract_title
+    TransactionType.PerpetualOpenPosition -> R.string.perpetual_position
+    TransactionType.PerpetualClosePosition -> R.string.perpetual_close_position
+    TransactionType.StakeFreeze -> R.string.transfer_freeze_title
+    TransactionType.StakeUnfreeze -> R.string.transfer_unfreeze_title
+    TransactionType.PerpetualModifyPosition -> R.string.perpetual_modify
 }

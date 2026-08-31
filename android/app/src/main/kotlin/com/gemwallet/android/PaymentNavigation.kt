@@ -1,10 +1,10 @@
 package com.gemwallet.android
 
+import uniffi.gemstone.GemRecipient
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.application.asset_select.coordinators.GetSelectAssetsInfo
+import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.model.toPaymentWalletAsset
 import com.gemwallet.android.model.toTransferParams
@@ -20,12 +20,15 @@ import java.math.BigInteger
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import com.wallet.core.primitives.ChainAddress
-import uniffi.gemstone.PaymentServiceInterface
-import uniffi.gemstone.paymentDecodedTransfer
+import uniffi.gemstone.GemPaymentLinkServiceInterface
+import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemTransferService
 
 class PaymentNavigation @Inject constructor(
     private val getSelectAssetsInfo: GetSelectAssetsInfo,
-    private val paymentService: PaymentServiceInterface,
+    private val paymentLinkService: GemPaymentLinkServiceInterface,
+    private val paymentService: GemPaymentService,
+    private val transferService: GemTransferService,
 ) {
 
     suspend fun routes(payment: Payment): List<NavKey> = when (payment) {
@@ -34,9 +37,9 @@ class PaymentNavigation @Inject constructor(
     }
 
     private suspend fun requestRoutes(request: PaymentRequest): List<NavKey> =
-        when (val destination = PaymentDestination.from(request, getSelectAssetsInfo().first())) {
+        when (val destination = PaymentDestination.from(request, getSelectAssetsInfo().first(), paymentService)) {
             PaymentDestination.Unsupported -> emptyList()
-            is PaymentDestination.Confirm -> listOfNotNull(destination.params.pack()?.let(::ConfirmRoute))
+            is PaymentDestination.Confirm -> listOfNotNull(destination.params.pack(transferService)?.let(::ConfirmRoute))
             is PaymentDestination.Recipient -> listOf(
                 RecipientInputRoute(destination.assetId, nftAssetId = null, payment = destination.request)
             )
@@ -46,7 +49,7 @@ class PaymentNavigation @Inject constructor(
     private suspend fun linkRoutes(link: PaymentLink): List<NavKey> {
         val assets = getSelectAssetsInfo().first()
         val accounts = assets.mapNotNull { it.owner }.distinctBy { it.chain }
-        val payment = paymentService.load(
+        val payment = paymentLinkService.load(
             link.toJson(),
             accounts.map { ChainAddress(chain = it.chain, address = it.address).toJson() },
         )
@@ -57,9 +60,9 @@ class PaymentNavigation @Inject constructor(
         val transfer = payment.request?.let { request ->
             val decoded = request.decodeJson<PaymentRequest>()
             assets.firstOrNull { it.asset.id == decoded.assetId }
-                ?.let { paymentDecodedTransfer(request, it.toPaymentWalletAsset())?.toTransferParams(assets) }
+                ?.let { paymentService.decodedTransfer(request, it.toPaymentWalletAsset())?.toTransferParams(assets) }
         } ?: ConfirmParams.Builder(account.chain.asset(), account, BigInteger.ZERO)
-            .transfer(DestinationAddress(""), payment.memo)
+            .transfer(GemRecipient(""), payment.memo)
         val params = ConfirmParams.TransferParams.Generic(
             asset = transfer.asset,
             from = transfer.from,
@@ -71,6 +74,6 @@ class PaymentNavigation @Inject constructor(
             gasLimit = null,
             decodedTransactionType = payment.transactionType.decodeJson(),
         )
-        return listOfNotNull(params.pack()?.let(::ConfirmRoute))
+        return listOfNotNull(params.pack(transferService)?.let(::ConfirmRoute))
     }
 }

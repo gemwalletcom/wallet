@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -39,6 +38,7 @@ import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import com.gemwallet.android.ui.theme.space8
 import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.DocsUrl
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 internal data class WalletSecretDataContent(
     val titleRes: Int,
@@ -76,7 +76,7 @@ fun WalletSecretDataNavScreen(
     val content = walletSecretDataContent(walletType)
 
     val context = LocalContext.current
-    val clipboardManager = LocalClipboard.current.nativeClipboard
+    val clipboardManager = LocalContext.current.clipboardManager()
 
 
     if (value == null) {
@@ -161,8 +161,7 @@ private fun WalletSecretDataErrorScene(title: String, onCancel: () -> Unit) {
         ) {
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "Couldn't access this wallet's keys on this device. " +
-                    "If you have your recovery phrase, remove this wallet and import it again to restore access.",
+                text = stringResource(R.string.errors_keystore_access),
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,

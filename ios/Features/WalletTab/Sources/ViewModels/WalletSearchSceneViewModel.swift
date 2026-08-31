@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemBalanceServiceProtocol
+import protocol Gemstone.GemPerpetualServiceProtocol
 import Components
 import protocol Gemstone.GemSearchServiceProtocol
 import GemstonePrimitives
@@ -19,9 +21,9 @@ import SwiftUI
 @MainActor
 public final class WalletSearchSceneViewModel: Sendable, AssetActions, PerpetualPinActions {
     private let searchService: any GemSearchServiceProtocol
-    private let recentActivityStore: RecentActivityStore
-    let assetsEnabler: any AssetsEnabler
-    let perpetualService: PerpetualService
+    private let recentAssetsService: any RecentAssetsServiceable
+    let balanceService: any GemBalanceServiceProtocol
+    let perpetualService: any GemPerpetualServiceProtocol
     private let preferences: ObservablePreferences
 
     let wallet: Wallet
@@ -49,18 +51,18 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     public init(
         wallet: Wallet,
         searchService: any GemSearchServiceProtocol,
-        recentActivityStore: RecentActivityStore,
-        assetsEnabler: any AssetsEnabler,
-        perpetualService: PerpetualService,
-        preferences: ObservablePreferences = .default,
+        recentAssetsService: any RecentAssetsServiceable,
+        balanceService: any GemBalanceServiceProtocol,
+        perpetualService: any GemPerpetualServiceProtocol,
+        preferences: ObservablePreferences,
         onDismissSearch: VoidAction,
         onSelectAssetAction: AssetAction,
         onAddToken: VoidAction,
     ) {
         self.wallet = wallet
         self.searchService = searchService
-        self.recentActivityStore = recentActivityStore
-        self.assetsEnabler = assetsEnabler
+        self.recentAssetsService = recentAssetsService
+        self.balanceService = balanceService
         self.perpetualService = perpetualService
         self.preferences = preferences
         self.onDismissSearch = onDismissSearch
@@ -79,7 +81,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         recentModel = RecentAssetsModel(
             walletId: wallet.id,
             types: WalletSearchModel.recentActivityTypes,
-            recentActivityStore: recentActivityStore,
+            recentAssetsService: recentAssetsService,
         )
     }
 
@@ -113,7 +115,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var currencyCode: String {
-        preferences.preferences.currency
+        preferences.currency
     }
 
     var showRecents: Bool {
@@ -231,7 +233,7 @@ extension WalletSearchSceneViewModel {
         await search(query: query)
     }
 
-    func fetch() {
+    func load() {
         updateRequest()
         Task {
             await search(query: .empty)
@@ -272,7 +274,7 @@ extension WalletSearchSceneViewModel {
 extension WalletSearchSceneViewModel {
     private func updateRecent(_ asset: Asset) {
         do {
-            try recentActivityStore.add(.search(asset), walletId: wallet.id)
+            try recentAssetsService.add(.search(asset), walletId: wallet.id)
         } catch {
             debugLog("UpdateRecent error: \(error)")
         }
@@ -287,7 +289,7 @@ extension WalletSearchSceneViewModel {
     private func search(query: String) async {
         state = .loading
         do {
-            try await searchService.search(wallet: wallet, query: query, scope: .all, currency: preferences.preferences.currency)
+            try await searchService.search(wallet: wallet, query: query, scope: .all, currency: preferences.currency)
             state = .data(true)
         } catch {
             state.setError(error)

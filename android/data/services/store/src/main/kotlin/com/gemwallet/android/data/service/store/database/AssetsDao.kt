@@ -82,8 +82,7 @@ private const val ASSET_INFO_SOURCE = """
     LEFT JOIN accounts ON accounts.wallet_id = :walletId AND asset.chain = accounts.chain
     LEFT JOIN balances ON asset.id = balances.asset_id AND balances.wallet_id = :walletId
     LEFT JOIN wallets ON wallets.id = :walletId
-    LEFT JOIN session ON session.id = 1
-    LEFT JOIN prices ON asset.id = prices.asset_id AND prices.currency = session.currency
+    LEFT JOIN prices ON asset.id = prices.asset_id
 """
 
 private const val ASSET_INFO_SELECT = "SELECT $ASSET_INFO_COLUMNS $ASSET_INFO_SOURCE"
@@ -104,6 +103,9 @@ interface AssetsDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertBalance(balance: DbBalance)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertBalances(balances: List<DbBalance>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addLinks(links: List<DbAssetLink>)
@@ -136,6 +138,11 @@ interface AssetsDao {
         isVisible: Boolean,
         listPosition: Int,
     )
+
+    @Transaction
+    suspend fun setWalletAssetsVisibility(walletId: String, assetIds: List<String>, isVisible: Boolean) {
+        assetIds.forEach { setWalletAssetVisibility(walletId, it, isVisible) }
+    }
 
     @Transaction
     suspend fun setWalletAssetVisibility(
@@ -192,7 +199,7 @@ interface AssetsDao {
     fun getAsset(id: String): Flow<DbAsset?>
 
     @Query("SELECT * FROM asset WHERE id IN (:ids)")
-    suspend fun getAssetsByIds(ids: List<String>): List<DbAsset>
+    fun getAssetsByIds(ids: List<String>): List<DbAsset>
 
     @Query("SELECT id FROM asset WHERE id IN (:ids)")
     suspend fun getAssetIds(ids: List<String>): List<String>
@@ -206,6 +213,9 @@ interface AssetsDao {
     @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 ORDER BY balanceFiatTotalAmount DESC")
     fun getAssetsInfo(walletId: String): Flow<List<DbAssetInfo>>
 
+    @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 AND balanceTotalAmount > 0 ORDER BY balanceFiatTotalAmount DESC")
+    suspend fun getPortfolioAssets(walletId: String): List<DbAssetInfo>
+
     @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 AND chain = :chain ORDER BY balanceFiatTotalAmount DESC")
     fun getAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<DbAssetInfo>>
 
@@ -213,7 +223,7 @@ interface AssetsDao {
     fun getHiddenAssetsInfoByChain(walletId: String, chain: Chain): Flow<List<DbAssetInfo>>
 
     @Query("SELECT * FROM $ASSET_INFO WHERE id IN (:ids) AND walletId = :walletId ORDER BY balanceFiatTotalAmount DESC")
-    fun getAssetsInfo(walletId: String, ids: List<String>): Flow<List<DbAssetInfo>>
+    fun getAssetsInfoByIds(walletId: String, ids: List<String>): Flow<List<DbAssetInfo>>
 
     @Query("""
         SELECT asset_info.*
@@ -241,10 +251,25 @@ interface AssetsDao {
             AND (symbol LIKE '%' || :query || '%'
             OR name LIKE '%' || :query || '%' COLLATE NOCASE
             OR (type = 'NATIVE' AND chain LIKE '%' || :query || '%' COLLATE NOCASE))
+            AND (NOT :buyable OR isBuyEnabled = 1)
+            AND (NOT :sellable OR isSellEnabled = 1)
+            AND (NOT :swappable OR isSwapEnabled = 1)
+            AND (NOT :hasBalance OR balanceTotalAmount > 0)
+            AND (NOT :hasAvailableBalance OR balanceAvailableAmount > 0)
             ORDER BY pinned DESC, visible DESC, balanceFiatTotalAmount DESC, assetRank DESC
             LIMIT :limit
         """)
-    fun search(walletId: String, query: String, limit: Int = NO_QUERY_LIMIT, exclude: List<String> = emptyList()): Flow<List<DbAssetInfo>>
+    fun search(
+        walletId: String,
+        query: String,
+        limit: Int = NO_QUERY_LIMIT,
+        exclude: List<String> = emptyList(),
+        buyable: Boolean = false,
+        sellable: Boolean = false,
+        swappable: Boolean = false,
+        hasBalance: Boolean = false,
+        hasAvailableBalance: Boolean = false,
+    ): Flow<List<DbAssetInfo>>
 
     @Query("""
         SELECT asset_info.*
@@ -256,10 +281,25 @@ interface AssetsDao {
             AND (walletId = :walletId OR walletId IS NULL)
             AND assetRank >= 0
             AND search.`query` = :query
+            AND (NOT :buyable OR isBuyEnabled = 1)
+            AND (NOT :sellable OR isSellEnabled = 1)
+            AND (NOT :swappable OR isSwapEnabled = 1)
+            AND (NOT :hasBalance OR balanceTotalAmount > 0)
+            AND (NOT :hasAvailableBalance OR balanceAvailableAmount > 0)
             ORDER BY balanceFiatTotalAmount DESC, search.priority ASC, assetRank DESC
             LIMIT :limit
         """)
-    fun searchWithPriority(walletId: String, query: String, limit: Int = NO_QUERY_LIMIT, exclude: List<String> = emptyList()): Flow<List<DbAssetInfo>>
+    fun searchWithPriority(
+        walletId: String,
+        query: String,
+        limit: Int = NO_QUERY_LIMIT,
+        exclude: List<String> = emptyList(),
+        buyable: Boolean = false,
+        sellable: Boolean = false,
+        swappable: Boolean = false,
+        hasBalance: Boolean = false,
+        hasAvailableBalance: Boolean = false,
+    ): Flow<List<DbAssetInfo>>
 
     @Query("""
         SELECT asset_info.*
@@ -328,6 +368,12 @@ interface AssetsDao {
                     AND balances.wallet_id = :walletId
                     AND balances.total_amount > 0
             ))
+            AND (NOT :hasAvailableBalance OR EXISTS (
+                SELECT 1 FROM balances
+                WHERE balances.asset_id = asset.id
+                    AND balances.wallet_id = :walletId
+                    AND balances.available_amount > 0
+            ))
         GROUP BY asset.id
         ORDER BY added_at DESC, asset.id ASC
         LIMIT CASE WHEN :limit <= 0 THEN -1 ELSE :limit END
@@ -338,6 +384,7 @@ interface AssetsDao {
         buyable: Boolean,
         swappable: Boolean,
         hasBalance: Boolean,
+        hasAvailableBalance: Boolean,
         limit: Int,
     ): Flow<List<DbRecentAsset>>
 
@@ -352,6 +399,7 @@ interface AssetsDao {
         buyable = AssetFilter.Buyable in filters,
         swappable = AssetFilter.Swappable in filters,
         hasBalance = AssetFilter.HasBalance in filters,
+        hasAvailableBalance = AssetFilter.HasAvailableBalance in filters,
         limit = limit,
     )
 

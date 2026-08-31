@@ -24,6 +24,22 @@ pub enum BalanceKind {
     Earn,
 }
 
+pub fn request_token_ids(token_ids: &[AssetId]) -> Vec<String> {
+    token_ids.iter().filter_map(|asset_id| asset_id.token_id.clone()).collect()
+}
+
+pub fn chain_balances(coin: Vec<AssetBalance>, stake: Vec<AssetBalance>, tokens: Vec<AssetBalance>, earn: Vec<AssetBalance>) -> Vec<(BalanceKind, AssetBalance)> {
+    [
+        (BalanceKind::Coin, coin),
+        (BalanceKind::Stake, stake),
+        (BalanceKind::Token, tokens),
+        (BalanceKind::Earn, earn),
+    ]
+    .into_iter()
+    .flat_map(|(kind, balances)| balances.into_iter().map(move |balance| (kind, balance)))
+    .collect()
+}
+
 pub fn balance_requests(accounts: &[Account], asset_ids: &[AssetId]) -> Vec<BalanceRequest> {
     accounts
         .iter()
@@ -50,7 +66,7 @@ pub fn balance_updates(assets: &[Asset], balances: Vec<(BalanceKind, AssetBalanc
         .filter_map(|(kind, balance)| {
             let decimals = *decimals.get(&balance.asset_id)?;
             let value = |amount: &BigUint| GemBalanceValue {
-                value: amount.to_string(),
+                value: amount.clone(),
                 amount: BigNumberFormatter::value_as_f64(&amount.to_string(), decimals).unwrap_or_default(),
             };
             let update_type = match kind {
@@ -96,15 +112,6 @@ mod tests {
     use super::*;
     use primitives::{AssetType, Balance};
 
-    fn account(chain: Chain, address: &str) -> Account {
-        Account {
-            chain,
-            address: address.into(),
-            derivation_path: "".into(),
-            extended_public_key: None,
-        }
-    }
-
     #[test]
     fn test_balance_requests_match_tokens_by_typed_chain() {
         let sei = AssetId::from_chain(Chain::Sei);
@@ -112,7 +119,7 @@ mod tests {
         let ethereum_token = AssetId::from_token(Chain::Ethereum, "0xusdc");
 
         let requests = balance_requests(
-            &[account(Chain::Sei, "sei-address"), account(Chain::Ethereum, "0xaddress")],
+            &[Account::mock(Chain::Sei, "sei-address"), Account::mock(Chain::Ethereum, "0xaddress")],
             &[sei.clone(), sei_evm_token, ethereum_token.clone()],
         );
 
@@ -156,7 +163,7 @@ mod tests {
         assert_eq!(updates[0].asset_id, ethereum);
         match &updates[0].update_type {
             GemBalanceUpdateType::Coin { available, .. } => {
-                assert_eq!(available.value, "1500000000000000000");
+                assert_eq!(available.value, BigUint::from(1_500_000_000_000_000_000u64));
                 assert_eq!(available.amount, 1.5);
             }
             other => panic!("unexpected update {other:?}"),
@@ -173,5 +180,23 @@ mod tests {
             vec![bitcoin.clone(), ethereum.clone()]
         );
         assert_eq!(newly_enabled_asset_ids(&[bitcoin.clone(), ethereum.clone()], &[bitcoin]), vec![ethereum]);
+    }
+
+    #[test]
+    fn test_request_token_ids_keeps_only_token_identifiers() {
+        let token_ids = request_token_ids(&[AssetId::from_chain(Chain::Ethereum), AssetId::from_token(Chain::Ethereum, "0x1234")]);
+
+        assert_eq!(token_ids, vec!["0x1234".to_string()]);
+    }
+
+    #[test]
+    fn test_chain_balances_tags_every_balance_with_its_kind() {
+        let balance = |asset_id: AssetId| AssetBalance::new(asset_id, BigUint::from(1u32));
+        let coin = balance(AssetId::from_chain(Chain::Ethereum));
+        let token = balance(AssetId::from_token(Chain::Ethereum, "0x1234"));
+
+        let balances = chain_balances(vec![coin.clone()], Vec::new(), vec![token.clone()], Vec::new());
+
+        assert_eq!(balances, vec![(BalanceKind::Coin, coin), (BalanceKind::Token, token)]);
     }
 }

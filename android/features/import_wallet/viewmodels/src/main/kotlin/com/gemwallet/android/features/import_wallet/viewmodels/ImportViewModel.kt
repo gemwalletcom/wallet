@@ -1,12 +1,15 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
+import com.gemwallet.android.blockchain.operators.InvalidWords
+import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
+import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.wallet.coordinators.SetCurrentWallet
-import com.gemwallet.android.cases.wallet.ImportError
-import com.gemwallet.android.cases.wallet.ImportWalletService
-import com.gemwallet.android.cases.wallet.WalletImportResult
-import com.gemwallet.android.cases.name.GetNameRecord
+import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
+import com.gemwallet.android.application.wallet_import.values.ImportError
+import com.gemwallet.android.application.wallet_import.cases.ImportWalletService
+import com.gemwallet.android.application.wallet_import.values.WalletImportResult
+import com.gemwallet.android.application.recipient.cases.GetNameRecord
 import uniffi.gemstone.GemWalletService
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ImportType
@@ -30,8 +33,19 @@ class ImportViewModel @Inject constructor(
     private val walletService: GemWalletService,
     private val importWalletService: ImportWalletService,
     private val setCurrentWallet: SetCurrentWallet,
+    private val validatePhrase: ValidatePhraseOperator,
+    private val findPhraseWord: GemFindPhraseWord,
     getNameRecord: GetNameRecord,
 ) : ViewModel() {
+
+    fun invalidPhraseWords(text: String): Set<String> =
+        (validatePhrase(text).exceptionOrNull() as? InvalidWords)
+            ?.words
+            .orEmpty()
+            .filter { it.isNotBlank() }
+            .toSet()
+
+    fun phraseSuggestions(word: String): List<String> = findPhraseWord(word)
 
     private val state = MutableStateFlow(ImportViewModelState())
     val uiState = state.map { it.toUIState() }
@@ -101,7 +115,7 @@ class ImportViewModel @Inject constructor(
                     }
                 }
             } catch (err: Throwable) {
-                state.update { it.copy(dataError = (err as? ImportError) ?: ImportError.CreateError("Unknown error"), loading = false) }
+                state.update { it.copy(dataError = (err as? ImportError) ?: ImportError.CreateError(err.message.orEmpty()), loading = false) }
             }
         }
     }

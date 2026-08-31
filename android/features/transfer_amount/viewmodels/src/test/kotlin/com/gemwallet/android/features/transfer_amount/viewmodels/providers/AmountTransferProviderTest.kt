@@ -1,12 +1,12 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
-import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
+import uniffi.gemstone.GemRecipient
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
 import io.mockk.coEvery
@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
+import uniffi.gemstone.GemAmountService
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -34,7 +35,7 @@ class AmountTransferProviderTest {
     private val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
     private val params = AmountParams.Transfer(
         assetId = asset.id,
-        destination = DestinationAddress(address = "to", name = null),
+        destination = GemRecipient(address = "to", name = null),
         memo = "memo",
     )
 
@@ -42,6 +43,7 @@ class AmountTransferProviderTest {
         params = params,
         getAssetInfo = getAssetInfo,
         scope = scope,
+        amountService = GemAmountService(),
     )
 
     @Test
@@ -81,6 +83,7 @@ class AmountTransferProviderTest {
             params = AmountParams.Deposit(asset.id),
             getAssetInfo = getAssetInfo,
             scope = scope,
+            amountService = GemAmountService(),
         )
         assertEquals(AmountTitle.Deposit, provider.title)
     }
@@ -91,6 +94,7 @@ class AmountTransferProviderTest {
             params = AmountParams.Withdraw(asset.id),
             getAssetInfo = getAssetInfo,
             scope = scope,
+            amountService = GemAmountService(),
         )
         assertEquals(AmountTitle.Withdraw, provider.title)
     }
@@ -108,6 +112,7 @@ class AmountTransferProviderTest {
             params = AmountParams.Withdraw(asset.id),
             getAssetInfo = getInfo,
             scope = scope,
+            amountService = GemAmountService(),
         )
         assertEquals(BigInteger("5000000"), provider.availableBalance.first { it != BigInteger.ZERO })
     }
@@ -118,6 +123,7 @@ class AmountTransferProviderTest {
             params = AmountParams.Withdraw(asset.id),
             getAssetInfo = getAssetInfo,
             scope = scope,
+            amountService = GemAmountService(),
         )
         val owner = provider.assetInfo.filterNotNull().first().owner
         val confirm = provider.buildConfirmParams(amount = Crypto(BigInteger.ONE), isMax = false)

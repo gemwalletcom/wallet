@@ -24,7 +24,7 @@ impl GemAvatarService {
     }
 
     pub async fn set_image(&self, wallet_id: WalletId, image: Vec<u8>) -> Result<(), GemServiceError> {
-        let file_name = self.files.save(image, IMAGE_EXTENSION.to_string())?;
+        let file_name = self.files.save_file(image, IMAGE_EXTENSION.to_string())?;
         self.remove_previous(&wallet_id)?;
         self.wallets.set_image_url(wallet_id, Some(file_name)).await
     }

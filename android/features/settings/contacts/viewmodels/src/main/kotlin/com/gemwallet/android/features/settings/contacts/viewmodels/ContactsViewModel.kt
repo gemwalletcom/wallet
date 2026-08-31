@@ -2,8 +2,8 @@ package com.gemwallet.android.features.settings.contacts.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.cases.contacts.DeleteContact
-import com.gemwallet.android.cases.contacts.GetContacts
+import com.gemwallet.android.application.contacts.cases.DeleteContact
+import com.gemwallet.android.application.contacts.cases.GetContacts
 import com.wallet.core.primitives.Contact
 import com.wallet.core.primitives.ContactData
 import dagger.hilt.android.lifecycle.HiltViewModel

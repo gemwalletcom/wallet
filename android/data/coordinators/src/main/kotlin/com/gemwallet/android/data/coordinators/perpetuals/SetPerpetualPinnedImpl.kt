@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
-import com.gemwallet.android.application.perpetual.coordinators.SetPerpetualPinned
+import com.gemwallet.android.application.perpetual.cases.SetPerpetualPinned
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.PerpetualId
 import uniffi.gemstone.GemPerpetualService

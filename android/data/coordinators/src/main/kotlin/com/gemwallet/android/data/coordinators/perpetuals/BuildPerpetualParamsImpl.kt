@@ -1,8 +1,8 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
-import com.gemwallet.android.application.perpetual.coordinators.BuildPerpetualParams
-import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.perpetual.cases.BuildPerpetualParams
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
 import com.gemwallet.android.domains.perpetual.PerpetualOrderFactory
 import com.gemwallet.android.domains.perpetual.PerpetualTransferData
@@ -24,8 +24,8 @@ import java.math.BigInteger
 import kotlin.math.pow
 
 class BuildPerpetualParamsImpl(
-    private val perpetualRepository: PerpetualRepository,
-    private val sessionRepository: SessionRepository,
+    private val perpetualStore: GemstonePerpetualStore,
+    private val getSession: GetSession,
 ) : BuildPerpetualParams {
 
     override suspend fun open(perpetualId: PerpetualId, direction: PerpetualDirection): AmountParams.Perpetual? {
@@ -53,7 +53,7 @@ class BuildPerpetualParamsImpl(
         val data = getPerpetual(perpetualId) ?: return null
         val position = getPosition(perpetualId) ?: return null
         val assetIndex = data.perpetual.identifier.toIntOrNull() ?: return null
-        val account = sessionRepository.session().value?.wallet?.hyperliquidAccount ?: return null
+        val account = getSession().value?.wallet?.hyperliquidAccount ?: return null
         val confirmData = PerpetualOrderFactory.makeCloseOrder(
             assetIndex = assetIndex,
             perpetual = data.perpetual,
@@ -74,7 +74,7 @@ class BuildPerpetualParamsImpl(
         if (modifyTypes.isEmpty()) return null
         val data = getPerpetual(perpetualId) ?: return null
         val assetIndex = data.perpetual.identifier.toIntOrNull() ?: return null
-        val account = sessionRepository.session().value?.wallet?.hyperliquidAccount ?: return null
+        val account = getSession().value?.wallet?.hyperliquidAccount ?: return null
         val confirmData = PerpetualModifyConfirmData(
             baseAsset = HypercoreUSDC,
             assetIndex = assetIndex,
@@ -87,11 +87,11 @@ class BuildPerpetualParamsImpl(
     }
 
     private suspend fun getPerpetual(perpetualId: PerpetualId): PerpetualData? =
-        perpetualRepository.getPerpetual(perpetualId).firstOrNull()
+        perpetualStore.observePerpetual(perpetualId).firstOrNull()
 
     private suspend fun getPosition(perpetualId: PerpetualId): PerpetualPosition? {
-        val walletId = sessionRepository.session().value?.wallet?.id ?: return null
-        return perpetualRepository.getPositionByPerpetualId(walletId, perpetualId).firstOrNull()?.position
+        val walletId = getSession().value?.wallet?.id ?: return null
+        return perpetualStore.observePositionByPerpetualId(walletId, perpetualId).firstOrNull()?.position
     }
 
     private fun createTransferData(

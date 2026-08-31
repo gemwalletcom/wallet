@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.service.store.database
 
-import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
+import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.WalletId
 

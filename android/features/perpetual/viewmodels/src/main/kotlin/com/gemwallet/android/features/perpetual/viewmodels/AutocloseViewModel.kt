@@ -3,10 +3,10 @@ package com.gemwallet.android.features.perpetual.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.perpetual.coordinators.BuildPerpetualParams
-import com.gemwallet.android.application.session.coordinators.GetSession
-import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
-import com.gemwallet.android.domains.perpetual.autoclose.AutocloseEstimator
+import com.gemwallet.android.application.perpetual.cases.BuildPerpetualParams
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByAsset
+import uniffi.gemstone.GemAutocloseEstimator
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseField
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseModifyBuilder
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseValidator
@@ -39,11 +39,13 @@ import kotlinx.coroutines.launch
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 import javax.inject.Inject
+import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.domains.perpetual.toGem
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AutocloseViewModel @Inject constructor(
-    private val perpetualRepository: PerpetualRepository,
+    private val getPositionByAsset: GetPerpetualPositionByAsset,
     private val buildPerpetualParams: BuildPerpetualParams,
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
@@ -53,13 +55,9 @@ class AutocloseViewModel @Inject constructor(
 
     private val numericFormatter = NumericFormatter()
 
-    val position: StateFlow<PerpetualPositionData?> = combine(
-        perpetualRepository.getPerpetualByAssetId(assetId).distinctUntilChanged(),
-        getSession().filterNotNull(),
-    ) { data, session -> data to session.wallet.id }
-        .flatMapLatest { (data, walletId) ->
-            data?.let { perpetualRepository.getPositionByPerpetualId(walletId, it.perpetual.id) } ?: flowOf(null)
-        }
+    val position: StateFlow<PerpetualPositionData?> = getSession()
+        .filterNotNull()
+        .flatMapLatest { session -> getPositionByAsset(session.wallet.id, assetId) }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -102,7 +100,7 @@ class AutocloseViewModel @Inject constructor(
         submitAttempted.value = false
         val position = position.value ?: return
         val estimator = estimator(position)
-        val target = estimator.targetPriceFromRoe(percent, type)
+        val target = estimator.targetPriceFromRoe(percent, type.toGem())
         val formatted = PerpetualFormatter.formatInputPrice(
             provider = position.perpetual.provider,
             price = target,
@@ -184,10 +182,10 @@ class AutocloseViewModel @Inject constructor(
         )
     }
 
-    private fun estimator(position: PerpetualPositionData) = AutocloseEstimator(
+    private fun estimator(position: PerpetualPositionData) = GemAutocloseEstimator(
         entryPrice = position.position.entryPrice,
         positionSize = position.position.size,
-        direction = position.position.direction,
+        direction = position.position.direction.toJson(),
         leverage = position.position.leverage,
     )
 

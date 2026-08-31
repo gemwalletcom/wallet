@@ -61,6 +61,3 @@ extension SecurityScene {
     }
 }
 
-#Preview {
-    SecurityScene(model: .init())
-}

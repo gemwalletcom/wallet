@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPosition
-import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualPosition
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregateImpl
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
@@ -19,10 +19,10 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class GetPerpetualPositionImpl @Inject constructor(
-    private val perpetualRepository: PerpetualRepository
+    private val perpetualStore: GemstonePerpetualStore
 ) : GetPerpetualPosition {
     override fun getPositionByPerpetual(walletId: WalletId, id: PerpetualId): Flow<PerpetualPositionDetailsDataAggregate?> {
-        return perpetualRepository.getPositionByPerpetualId(walletId, id).map { PerpetualPositionDetailsDataAggregateImpl(it ?: return@map null) }
+        return perpetualStore.observePositionByPerpetualId(walletId, id).map { PerpetualPositionDetailsDataAggregateImpl(it ?: return@map null) }
     }
 }
 

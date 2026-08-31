@@ -12,7 +12,7 @@ import Store
 @Observable
 @MainActor
 public final class RecentsSceneViewModel {
-    private let recentActivityStore: RecentActivityStore
+    private let recentAssetsService: any RecentAssetsServiceable
     private let walletId: WalletId
 
     public let query: ObservableQuery<RecentActivityRequest>
@@ -28,11 +28,11 @@ public final class RecentsSceneViewModel {
         walletId: WalletId,
         types: [RecentActivityType],
         filters: [AssetsRequestFilter] = [],
-        recentActivityStore: RecentActivityStore,
+        recentAssetsService: any RecentAssetsServiceable,
         onSelect: @escaping (Asset) -> Void,
     ) {
         self.walletId = walletId
-        self.recentActivityStore = recentActivityStore
+        self.recentAssetsService = recentAssetsService
         query = ObservableQuery(RecentActivityRequest(walletId: walletId, limit: .max, types: types, filters: filters), initialValue: [])
         self.onSelect = onSelect
     }
@@ -65,13 +65,8 @@ public final class RecentsSceneViewModel {
     }
 
     private var filteredAssets: [RecentAsset] {
-        guard !searchQuery.isEmpty else { return recentAssets }
-        let chains = Set(recentAssets.map(\.asset.chain).filter(query: searchQuery))
-        return recentAssets.filter {
-            $0.asset.name.localizedCaseInsensitiveContains(searchQuery) ||
-                $0.asset.symbol.localizedCaseInsensitiveContains(searchQuery) ||
-                chains.contains($0.asset.chain)
-        }
+        let matching = Set(recentAssets.map(\.asset).matching(query: searchQuery).map(\.id))
+        return recentAssets.filter { matching.contains($0.asset.id) }
     }
 }
 
@@ -80,7 +75,7 @@ public final class RecentsSceneViewModel {
 extension RecentsSceneViewModel {
     func onSelectClear() {
         do {
-            try recentActivityStore.clear(walletId: walletId, types: query.request.types)
+            try recentAssetsService.clear(walletId: walletId, types: query.request.types)
         } catch {
             debugLog("RecentsSceneViewModel clear error: \(error)")
         }

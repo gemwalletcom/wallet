@@ -1,15 +1,17 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
+import uniffi.gemstone.GemApplicationMetadataService
 import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.wallet_connect.coordinators.PrepareSessionProposal
-import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
-import com.gemwallet.android.data.repositories.bridge.BridgesRepository
-import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionProposal
-import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
+import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
+import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
+import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
+import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
+import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.wallet.core.primitives.WalletConnectionSessionProposal
+import com.gemwallet.android.features.bridge.viewmodels.model.map
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
 import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
@@ -25,15 +27,18 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemWalletConnectService
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import javax.inject.Inject
 
 @HiltViewModel
 class ProposalSceneViewModel @Inject constructor(
-    private val bridgesRepository: BridgesRepository,
+    private val applicationMetadataService: GemApplicationMetadataService,
+    private val approveWalletConnection: ApproveWalletConnection,
     private val prepareSessionProposal: PrepareSessionProposal,
     private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
+    private val walletConnectService: GemWalletConnectService,
 ) : ViewModel() {
 
     val state = MutableStateFlow<ProposalSceneState>(ProposalSceneState.Init(WalletConnectionVerificationStatus.UNKNOWN))
@@ -41,7 +46,7 @@ class ProposalSceneViewModel @Inject constructor(
     private val _proposal = MutableStateFlow<WalletConnectSessionProposal?>(null)
     private val _sessionProposal = MutableStateFlow<WalletConnectionSessionProposal?>(null)
 
-    val proposal = _sessionProposal.map { it?.metadata?.toSessionUI() }
+    val proposal = _sessionProposal.map { it?.metadata?.toSessionUI(applicationMetadataService) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val availableWallets = _sessionProposal.map { it?.wallets.orEmpty() }
@@ -63,8 +68,11 @@ class ProposalSceneViewModel @Inject constructor(
         verifyContext: WalletConnectVerifyContext,
         onNotify: (BridgeRequestError) -> Unit,
     ) {
-        val verification = originVerifier.verify(proposal.url, verifyContext)
-        if (verification.isScam) {
+        if (!walletConnectService.shouldProcessMessage("proposal_${proposal.proposerPublicKey}")) {
+            Log.d(TAG, "Ignoring duplicate proposal")
+            return
+        }
+        if (originVerifier.isRejected(proposal.url, verifyContext)) {
             onNotify(BridgeRequestError.MaliciousSession)
             reject(proposal)
             return
@@ -79,7 +87,7 @@ class ProposalSceneViewModel @Inject constructor(
                     requiredChainIds = proposal.requiredNamespaces.values.flatMap { it.chains.orEmpty() },
                     optionalChainIds = proposal.optionalNamespaces.values.flatMap { it.chains.orEmpty() },
                     origin = verifyContext.origin,
-                    validation = verification.status,
+                    validation = verifyContext.map(),
                 )
             }.getOrElse { error ->
                 Log.e(TAG, "session proposal rejected: ${error.message}")
@@ -106,14 +114,14 @@ class ProposalSceneViewModel @Inject constructor(
         state.update { ProposalSceneState.Approving(it.verificationStatus) }
         viewModelScope.launch(Dispatchers.IO) {
             val result = runCatching {
-                bridgesRepository.approveConnection(
+                approveWalletConnection.approveConnection(
                     wallet = wallet,
                     proposal = proposal,
                     onSuccess = { finish(proposal) },
                     onError = { message -> fail(proposal, message, onError) }
                 )
             }
-            result.onFailure { err -> fail(proposal, err.message ?: "Connection failed", onError) }
+            result.onFailure { err -> fail(proposal, err.message.orEmpty(), onError) }
         }
     }
 
@@ -138,7 +146,7 @@ class ProposalSceneViewModel @Inject constructor(
 
     private fun reject(proposal: WalletConnectSessionProposal) {
         viewModelScope.launch(Dispatchers.IO) {
-            bridgesRepository.rejectConnection(
+            approveWalletConnection.rejectConnection(
                 proposal = proposal,
                 onSuccess = { finish(proposal) },
                 onError = { finish(proposal) }

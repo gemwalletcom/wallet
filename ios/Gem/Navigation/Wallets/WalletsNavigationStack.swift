@@ -13,6 +13,7 @@ struct WalletsNavigationStack: View {
     @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.avatarService) private var avatarService
     @Environment(\.nameService) private var nameService
+    @Environment(\.chainService) private var chainService
     @Environment(\.explorerService) private var explorerService
     @Environment(\.dismiss) private var dismiss
 
@@ -65,6 +66,7 @@ struct WalletsNavigationStack: View {
                         walletSessionService: walletSessionService,
                         avatarService: avatarService,
                         nameService: nameService,
+                        chainService: chainService,
                         onComplete: { dismiss() },
                     ),
                 )

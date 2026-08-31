@@ -38,11 +38,11 @@ public final class FiatTransactionsViewModel {
         EmptyContentTypeViewModel(type: .activity(isViewOnly: false))
     }
 
-    func fetch() async {
+    func load() async {
         do {
             try await service.syncTransactions(walletId: walletId.id)
         } catch {
-            debugLog("FiatTransactionsViewModel fetch error: \(error)")
+            debugLog("FiatTransactionsViewModel load error: \(error)")
         }
     }
 }

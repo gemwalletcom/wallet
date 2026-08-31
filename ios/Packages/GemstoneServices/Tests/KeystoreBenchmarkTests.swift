@@ -18,7 +18,7 @@ struct KeystoreBenchmarkTests {
         var wallet: Primitives.Wallet?
         for index in 0 ... Self.iterations {
             if let wallet {
-                try await keystore.deleteKey(for: wallet)
+                _ = try keystore.gemKeystore.delete(keystoreId: keystore.gemKeystore.keystoreId(walletId: wallet.id.id))
             }
             let start = clock.now
             wallet = try keystore.importWallet(
@@ -40,7 +40,7 @@ struct KeystoreBenchmarkTests {
             }
             #expect(words == LocalKeystore.words)
         }
-        try await keystore.deleteKey(for: imported)
+        _ = try keystore.gemKeystore.delete(keystoreId: keystore.gemKeystore.keystoreId(walletId: imported.id.id))
 
         print("keystore_v4 encrypt(importWallet) median: \(Self.median(encryptDurations))")
         print("keystore_v4 decrypt(getMnemonic) median: \(Self.median(decryptDurations))")

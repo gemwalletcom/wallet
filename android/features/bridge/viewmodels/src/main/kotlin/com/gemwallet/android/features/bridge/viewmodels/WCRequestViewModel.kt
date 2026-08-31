@@ -1,18 +1,20 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
+import uniffi.gemstone.GemApplicationMetadataService
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
-import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
-import com.gemwallet.android.data.repositories.bridge.BridgesRepository
-import com.gemwallet.android.data.repositories.bridge.WalletConnectJsonRpcResponse
-import com.gemwallet.android.data.repositories.bridge.WalletConnectPendingRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectPendingRequests
-import com.gemwallet.android.data.repositories.bridge.WalletConnectRequestHandler
-import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
+import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
+import com.gemwallet.android.application.wallet_connect.cases.GetWalletConnections
+import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectJsonRpcResponse
+import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
+import com.gemwallet.android.application.wallet_connect.WalletConnectRequestHandler
+import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.WCRequest
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
@@ -31,11 +33,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemWalletConnectService
 import javax.inject.Inject
 
 @HiltViewModel
 class WCRequestViewModel @Inject constructor(
-    private val bridgeRepository: BridgesRepository,
+    private val applicationMetadataService: GemApplicationMetadataService,
+    private val getWalletConnections: GetWalletConnections,
+    private val respondWalletConnectRequest: RespondWalletConnectRequest,
     private val requestHandler: WalletConnectRequestHandler,
     private val pendingRequests: WalletConnectPendingRequests,
     private val passwordStore: PasswordStore,
@@ -43,6 +48,7 @@ class WCRequestViewModel @Inject constructor(
     private val explorerService: GemExplorerService,
     private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
+    private val walletConnectService: GemWalletConnectService,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(RequestViewModelState())
@@ -66,18 +72,23 @@ class WCRequestViewModel @Inject constructor(
         onNotify: (BridgeRequestError) -> Unit,
         onError: (String) -> Unit,
     ) {
+        if (!walletConnectService.shouldProcessMessage("${sessionRequest.topic}_${sessionRequest.request.id}")) {
+            Log.d(TAG, "Ignoring duplicate request id=${sessionRequest.request.id}")
+            viewModelScope.launch(Dispatchers.IO) { rejectRequest(sessionRequest) }
+            return
+        }
         requestJob?.cancel()
         pendingRequests.current.value?.takeIf { it.sessionId == sessionRequest.topic }?.reject()
         state.update { RequestViewModelState(sessionRequest = sessionRequest) }
         Log.d(TAG, "Resolving request method=${sessionRequest.request.method} chainId=${sessionRequest.chainId} id=${sessionRequest.request.id}")
         val job = viewModelScope.launch(Dispatchers.IO) {
-            val connection = bridgeRepository.getConnectionByTopic(sessionRequest.topic)
+            val connection = getWalletConnections.getConnectionByTopic(sessionRequest.topic)
             if (connection == null) {
                 rejectRequest(sessionRequest)
                 return@launch
             }
             val appMetadata = connection.session.metadata
-            if (originVerifier.verify(appMetadata.url, verifyContext).isScam) {
+            if (originVerifier.isRejected(appMetadata.url, verifyContext)) {
                 Log.e(TAG, "Request rejected method=${sessionRequest.request.method} id=${sessionRequest.request.id}: malicious session")
                 onNotify(BridgeRequestError.MaliciousSession)
                 rejectRequest(sessionRequest)
@@ -90,7 +101,7 @@ class WCRequestViewModel @Inject constructor(
                 throw err
             } catch (err: Throwable) {
                 Log.e(TAG, "Request failed method=${sessionRequest.request.method} id=${sessionRequest.request.id}", err)
-                onError(err.message ?: "Request failed")
+                onError(err.message.orEmpty())
                 rejectRequest(sessionRequest)
                 return@launch
             }
@@ -118,7 +129,7 @@ class WCRequestViewModel @Inject constructor(
             } catch (err: Throwable) {
                 Log.e(TAG, "Sign message failed topic=${request.pending.sessionId}", err)
                 state.update { it.copy(responseState = RequestResponseState.Idle, approved = null) }
-                onError(err.message ?: "Sign failed")
+                onError(err.message.orEmpty())
                 request.reject()
                 return@launch
             }
@@ -156,33 +167,34 @@ class WCRequestViewModel @Inject constructor(
     }
 
     private fun toRequest(pending: WalletConnectPendingRequest): WCRequest = when (pending) {
-        is WalletConnectPendingRequest.SignMessage -> WCRequest.SignMessage(pending, explorerService.getExplorerName(pending.chain.string))
-        is WalletConnectPendingRequest.Transaction -> WCRequest.Transaction(pending)
+        is WalletConnectPendingRequest.SignMessage -> WCRequest.SignMessage(pending, explorerService, applicationMetadataService)
+        is WalletConnectPendingRequest.Transaction -> WCRequest.Transaction(pending, applicationMetadataService)
     }
 
     private fun respond(sessionRequest: WalletConnectSessionRequest, response: WalletConnectJsonRpcResponse, onError: (String) -> Unit) {
-        bridgeRepository.respondSessionRequest(
+        respondWalletConnectRequest.respond(
             topic = sessionRequest.topic,
             id = sessionRequest.request.id,
             response = response,
             onSuccess = { activeRequest.finish(sessionRequest) },
             onError = { error ->
+                activeRequest.finish(sessionRequest)
                 state.update { it.copy(responseState = RequestResponseState.Idle, approved = null) }
-                onError(error.ifBlank { "Request failed" })
+                onError(error)
             },
         )
     }
 
     private fun rejectRequest(sessionRequest: WalletConnectSessionRequest) {
-        bridgeRepository.respondSessionRequest(
+        respondWalletConnectRequest.respond(
             topic = sessionRequest.topic,
             id = sessionRequest.request.id,
-            response = WalletConnectJsonRpcResponse.Error(
-                code = 4001,
-                message = "User rejected the request",
-            ),
+            response = requestHandler.rejected(),
             onSuccess = { activeRequest.finish(sessionRequest) },
-            onError = { error -> Log.e(TAG, "Request rejection failed id=${sessionRequest.request.id}: $error") },
+            onError = { error ->
+                activeRequest.finish(sessionRequest)
+                Log.e(TAG, "Request rejection failed id=${sessionRequest.request.id}: $error")
+            },
         )
     }
 

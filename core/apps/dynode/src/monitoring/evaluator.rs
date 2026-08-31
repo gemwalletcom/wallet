@@ -139,7 +139,7 @@ impl NodeHealthEvaluator {
 mod tests {
     use super::*;
     use crate::config::MetricsConfig;
-    use crate::testkit::sync::url;
+    use crate::testkit::config::url;
 
     #[test]
     fn test_probe_order() {

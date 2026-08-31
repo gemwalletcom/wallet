@@ -43,8 +43,7 @@ pub fn post_processing(transaction: &Transaction, previous_state: TransactionSta
         | TransactionType::StakeWithdraw
         | TransactionType::StakeFreeze
         | TransactionType::StakeUnfreeze => {
-            processing.stake_chains = transaction.asset_ids().into_iter().map(|asset_id| asset_id.chain).collect();
-            processing.stake_chains.dedup();
+            processing.stake_chains = unique(transaction.asset_ids().into_iter().map(|asset_id| asset_id.chain));
         }
         TransactionType::EarnDeposit | TransactionType::EarnWithdraw => processing.earn_asset_ids = transaction.asset_ids(),
         TransactionType::TransferNFT => processing.sync_nfts = true,
@@ -64,7 +63,7 @@ pub fn state_update(state: TransactionState, changes: &[TransactionChange]) -> R
     let mut update = GemTransactionStateUpdate::new(state);
     for change in changes {
         match change {
-            TransactionChange::NetworkFee(fee) => update.fee = Some(fee.to_string()),
+            TransactionChange::NetworkFee(fee) => update.fee = Some(fee.clone()),
             TransactionChange::BlockNumber(number) => update.block_number = Some(number.clone()),
             TransactionChange::Metadata(metadata) => update.metadata = Some(metadata_json(metadata)?),
             TransactionChange::ConfirmationEtaSeconds(seconds) => update.confirmation_eta_seconds = Some(*seconds),
@@ -83,4 +82,29 @@ fn metadata_json(metadata: &TransactionMetadata) -> Result<String, serde_json::E
 
 pub fn assets_to_enable(transactions: &[Transaction]) -> Vec<AssetId> {
     unique(transactions.iter().flat_map(Transaction::asset_ids).filter(|asset_id| asset_id.chain != Chain::HyperCore))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_post_processing_stake_chains_are_unique() {
+        let mut transaction = Transaction::mock();
+        transaction.transaction_type = TransactionType::StakeDelegate;
+        transaction.asset_id = AssetId::from_chain(Chain::Ethereum);
+        transaction.metadata = Some(serde_json::json!({
+            "assetTransfers": [
+                { "assetId": "solana", "from": "a", "to": "b", "value": "1" },
+                { "assetId": "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7", "from": "a", "to": "b", "value": "1" }
+            ]
+        }));
+
+        let processing = post_processing(&transaction, TransactionState::Pending, TransactionState::Confirmed).unwrap();
+
+        let mut chains = processing.stake_chains.clone();
+        chains.sort();
+        assert_eq!(processing.stake_chains.len(), 2);
+        assert_eq!(chains, vec![Chain::Ethereum, Chain::Solana]);
+    }
 }

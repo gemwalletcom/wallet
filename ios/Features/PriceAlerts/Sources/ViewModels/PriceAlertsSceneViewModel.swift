@@ -1,8 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemPriceAlertServiceProtocol
-import Localization
 import GemstoneServices
+import Localization
 import Primitives
 import PrimitivesComponents
 import Store
@@ -12,6 +13,7 @@ import SwiftUI
 @MainActor
 public final class PriceAlertsSceneViewModel: Sendable {
     private let priceAlertService: any GemPriceAlertServiceProtocol
+    private let preferencesService: any GemPreferencesServiceProtocol
 
     public let query: ObservableQuery<PriceAlertsRequest>
     var priceAlerts: [PriceAlertData] {
@@ -20,14 +22,22 @@ public final class PriceAlertsSceneViewModel: Sendable {
 
     var isPriceAlertsEnabled: Bool
 
-    public init(priceAlertService: any GemPriceAlertServiceProtocol) {
+    public init(
+        priceAlertService: any GemPriceAlertServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
+    ) {
         self.priceAlertService = priceAlertService
-        isPriceAlertsEnabled = (try? priceAlertService.isEnabled()) ?? false
+        self.preferencesService = preferencesService
+        isPriceAlertsEnabled = priceAlertService.isEnabled()
         query = ObservableQuery(PriceAlertsRequest(), initialValue: [])
     }
 
     var title: String {
         Localized.Settings.PriceAlerts.title
+    }
+
+    var currencyCode: String {
+        preferencesService.currencyCode
     }
 
     var enableTitle: String {
@@ -39,12 +49,11 @@ public final class PriceAlertsSceneViewModel: Sendable {
     }
 
     func sections(for alerts: [PriceAlertData]) -> PriceAlertsSections {
-        let (autoAlerts, manualGroups) = alerts.reduce(into: ([PriceAlertData](), [Asset: [PriceAlertData]]())) { result, alert in
+        let (autoAlerts, manualGroups) = alerts.displayedAlerts.reduce(into: ([PriceAlertData](), [Asset: [PriceAlertData]]())) { result, alert in
             switch alert.priceAlert.type {
             case .auto:
                 result.0.append(alert)
             case .price, .pricePercentChange:
-                guard alert.priceAlert.lastNotifiedAt == nil else { return }
                 result.1[alert.asset, default: []].append(alert)
             }
         }
@@ -59,7 +68,7 @@ public final class PriceAlertsSceneViewModel: Sendable {
 // MARK: - Business Logic
 
 extension PriceAlertsSceneViewModel {
-    public func fetch() async {
+    public func load() async {
         do {
             try await priceAlertService.sync(assetId: nil)
         } catch {
@@ -79,7 +88,7 @@ extension PriceAlertsSceneViewModel {
         do {
             try await priceAlertService.setEnabled(enabled: enabled)
         } catch {
-            isPriceAlertsEnabled = (try? priceAlertService.isEnabled()) ?? false
+            isPriceAlertsEnabled = priceAlertService.isEnabled()
             debugLog("setPriceAlertsEnabled error: \(error)")
         }
     }

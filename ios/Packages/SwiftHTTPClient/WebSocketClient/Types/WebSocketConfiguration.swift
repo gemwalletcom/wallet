@@ -9,7 +9,7 @@ public struct WebSocketConfiguration: Sendable {
 
     public init(
         requestProvider: any WebSocketRequestProvider,
-        reconnection: any Reconnectable = ExponentialReconnection(),
+        reconnection: any Reconnectable,
         sessionConfiguration: URLSessionConfiguration = .default,
     ) {
         self.requestProvider = requestProvider
@@ -19,7 +19,7 @@ public struct WebSocketConfiguration: Sendable {
 
     public init(
         request: URLRequest,
-        reconnection: any Reconnectable = ExponentialReconnection(),
+        reconnection: any Reconnectable,
         sessionConfiguration: URLSessionConfiguration = .default,
     ) {
         requestProvider = StaticRequestProvider(request: request)
@@ -29,7 +29,7 @@ public struct WebSocketConfiguration: Sendable {
 
     public init(
         url: URL,
-        reconnection: any Reconnectable = ExponentialReconnection(),
+        reconnection: any Reconnectable,
         sessionConfiguration: URLSessionConfiguration = .default,
     ) {
         requestProvider = StaticRequestProvider(url: url)

@@ -28,11 +28,11 @@ public struct PriceAlertStore: Sendable {
         }
     }
 
-    public func addPriceAlerts(_ alerts: [PriceAlert]) throws {
+    public func addPriceAlerts(_ alerts: [(id: String, alert: PriceAlert)]) throws {
         try db.write { (db: Database) in
-            for alert in alerts {
-                try alert
-                    .mapToRecord()
+            for value in alerts {
+                try value.alert
+                    .mapToRecord(id: value.id)
                     .upsert(db)
             }
         }
@@ -47,7 +47,7 @@ public struct PriceAlertStore: Sendable {
         }
     }
 
-    public func diffPriceAlerts(deleteIds: [String], alerts: [PriceAlert]) throws {
+    public func diffPriceAlerts(deleteIds: [String], alerts: [(id: String, alert: PriceAlert)]) throws {
         if deleteIds.isEmpty, alerts.isEmpty {
             return
         }
@@ -56,9 +56,9 @@ public struct PriceAlertStore: Sendable {
                 .filter(deleteIds.contains(PriceAlertRecord.Columns.id))
                 .deleteAll(db)
 
-            for alert in alerts {
-                try alert
-                    .mapToRecord()
+            for value in alerts {
+                try value.alert
+                    .mapToRecord(id: value.id)
                     .upsert(db)
             }
         }

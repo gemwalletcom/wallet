@@ -1,20 +1,23 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
+import uniffi.gemstone.GemApplicationMetadataService
+import uniffi.gemstone.GemChainService
+import uniffi.gemstone.GemWalletConnectService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.application.wallet_connect.coordinators.PrepareSessionProposal
+import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
-import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
-import com.gemwallet.android.data.repositories.bridge.BridgesRepository
-import com.gemwallet.android.data.repositories.bridge.ChainNamespace
-import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthPayloadParams
-import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthenticationRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
-import com.gemwallet.android.data.repositories.bridge.fromWalletConnectChainId
+import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
+import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
+import com.gemwallet.android.application.wallet_connect.ChainNamespace
+import com.gemwallet.android.application.wallet_connect.WalletConnectAuthPayloadParams
+import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
+import com.gemwallet.android.application.wallet_connect.fromWalletConnectChainId
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.toChainType
+import com.gemwallet.android.features.bridge.viewmodels.model.map
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
@@ -25,7 +28,6 @@ import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,12 +47,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WCAuthViewModel @Inject constructor(
-    private val bridgesRepository: BridgesRepository,
+    private val applicationMetadataService: GemApplicationMetadataService,
+    private val approveWalletConnectAuthentication: ApproveWalletConnectAuthentication,
     private val prepareSessionProposal: PrepareSessionProposal,
     private val passwordStore: PasswordStore,
     private val signMessageOperator: GemSignMessageOperator,
     private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
+    private val walletConnectService: GemWalletConnectService,
+    private val chainService: GemChainService,
 ) : ViewModel() {
 
     private var authRequest: WalletConnectAuthenticationRequest? = null
@@ -71,11 +76,10 @@ class WCAuthViewModel @Inject constructor(
         authRequest = request
         hasResponded = false
         _state.update { AuthSceneState.Loading }
-        val verification = originVerifier.verify(request.metadata?.url, verifyContext)
-        if (verification.isScam) {
+        if (originVerifier.isRejected(request.metadata?.url, verifyContext)) {
             onNotify(BridgeRequestError.MaliciousSession)
             hasResponded = true
-            bridgesRepository.rejectAuthentication(request)
+            approveWalletConnectAuthentication.rejectAuthentication(request)
             finish(request)
             return
         }
@@ -89,7 +93,7 @@ class WCAuthViewModel @Inject constructor(
                     requiredChainIds = emptyList(),
                     optionalChainIds = request.ethereumChainIds(),
                     origin = verifyContext.origin,
-                    validation = verification.status,
+                    validation = verifyContext.map(),
                 )
 
                 if (!isActiveRequest(request)) {
@@ -103,7 +107,7 @@ class WCAuthViewModel @Inject constructor(
                 }
                 _state.update {
                     AuthSceneState.Request(
-                        peer = prepared.proposal.metadata.toSessionUI(),
+                        peer = prepared.proposal.metadata.toSessionUI(applicationMetadataService),
                         availableWallets = prepared.proposal.wallets,
                         selectedWallet = selectedWallet,
                         approval = approval,
@@ -111,7 +115,7 @@ class WCAuthViewModel @Inject constructor(
                 }
             } catch (err: Throwable) {
                 if (isActiveRequest(request)) {
-                    rejectRequest(request, AuthSceneState.Error(err.message ?: "Authentication failed"))
+                    rejectRequest(request, AuthSceneState.Error(err.message, err))
                 }
             }
         }
@@ -124,7 +128,7 @@ class WCAuthViewModel @Inject constructor(
         val approval = runCatching {
             buildApproval(request, wallet)
         }.getOrElse { err ->
-            _state.update { AuthSceneState.Error(err.message ?: "Authentication failed") }
+            _state.update { AuthSceneState.Error(err.message) }
             return
         }
 
@@ -158,12 +162,12 @@ class WCAuthViewModel @Inject constructor(
                 if (!isActiveRequest(request)) {
                     return@launch
                 }
-                val authObject = bridgesRepository.generateAuthObject(
+                val authObject = approveWalletConnectAuthentication.authObject(
                     payloadParams = approval.payloadParams,
                     issuer = approval.issuer,
                     signature = signature,
                 )
-                bridgesRepository.approveAuthentication(
+                approveWalletConnectAuthentication.approveAuthentication(
                     request = request,
                     auths = listOf(authObject),
                     wallet = approval.wallet,
@@ -181,7 +185,7 @@ class WCAuthViewModel @Inject constructor(
                 )
             } catch (err: Throwable) {
                 if (authRequest?.id == request.id) {
-                    _state.update { AuthSceneState.Error(err.message ?: "Authentication failed") }
+                    _state.update { AuthSceneState.Error(err.message) }
                 }
             }
         }
@@ -197,7 +201,7 @@ class WCAuthViewModel @Inject constructor(
             return
         }
         hasResponded = true
-        bridgesRepository.rejectAuthentication(request)
+        approveWalletConnectAuthentication.rejectAuthentication(request)
         finish()
     }
 
@@ -209,7 +213,7 @@ class WCAuthViewModel @Inject constructor(
             return
         }
         hasResponded = true
-        bridgesRepository.rejectAuthentication(request)
+        approveWalletConnectAuthentication.rejectAuthentication(request)
         _state.update { errorState }
     }
 
@@ -241,13 +245,13 @@ class WCAuthViewModel @Inject constructor(
         val selectedAccount = supportedAccounts.firstOrNull()
             ?: throw IllegalStateException("Requested chains are not supported")
         val supportedChains = supportedAccounts.map { it.chainId }.distinct()
-        val payloadParams = bridgesRepository.generateAuthPayloadParams(
+        val payloadParams = approveWalletConnectAuthentication.authPayloadParams(
             payloadParams = request.payloadParams,
             supportedChains = supportedChains,
             supportedMethods = ChainNamespace.Eip155.methodIds,
         )
         val issuer = selectedAccount.issuer
-        val message = bridgesRepository.formatAuthMessage(payloadParams, issuer)
+        val message = approveWalletConnectAuthentication.authMessage(payloadParams, issuer)
         val payloadPreview = payloadPreview(selectedAccount.account.chain, message)
 
         return AuthApproval(
@@ -266,16 +270,14 @@ class WCAuthViewModel @Inject constructor(
         request: WalletConnectAuthenticationRequest,
     ): List<AuthAccount> {
         return request.ethereumChainIds().mapNotNull { chainId ->
-            val chain = Chain.fromWalletConnectChainId(chainId) ?: return@mapNotNull null
+            val chain = Chain.fromWalletConnectChainId(chainService, chainId) ?: return@mapNotNull null
             val account = wallet.getAccount(chain) ?: return@mapNotNull null
             AuthAccount(account = account, chainId = chainId)
         }
     }
 
     private fun WalletConnectAuthenticationRequest.ethereumChainIds(): List<String> {
-        return payloadParams.chains.distinct().filter { chainId ->
-            Chain.fromWalletConnectChainId(chainId)?.toChainType() == ChainType.Ethereum
-        }
+        return walletConnectService.authenticationChainIds(payloadParams.chains)
     }
 
     private fun payloadPreview(
@@ -328,7 +330,7 @@ sealed interface AuthSceneState {
 
     data object Loading : AuthSceneState
 
-    class Error(val message: String) : AuthSceneState
+    class Error(val message: String?, val cause: Throwable? = null) : AuthSceneState
 
     sealed interface Content : AuthSceneState, WalletConnectReviewModel {
         val peer: SessionUI

@@ -18,8 +18,12 @@ public extension JsonCodable {
         self = try JSONDateDecoder.standard.decode(Self.self, from: Data(json.utf8))
     }
 
-    func json() throws -> String {
-        try String(decoding: JsonCodableEncoder.standard.encode(self), as: UTF8.self)
+    func json() -> String {
+        guard let data = try? JsonCodableEncoder.standard.encode(self) else {
+            assertionFailure("failed to serialize \(Self.self)")
+            return ""
+        }
+        return String(decoding: data, as: UTF8.self)
     }
 }
 
@@ -43,9 +47,11 @@ extension Primitives.BannerState: JsonCodable {}
 extension Primitives.CancelOrderData: JsonCodable {}
 extension Primitives.ChainAddress: JsonCodable {}
 extension Primitives.ChainAsset: JsonCodable {}
+extension Primitives.Appearance: JsonCodable {}
 extension Primitives.ChartCandleStick: JsonCodable {}
 extension Primitives.ChartCandleUpdate: JsonCodable {}
 extension Primitives.ChartDateValue: JsonCodable {}
+extension Primitives.ChartValuePercentage: JsonCodable {}
 extension Primitives.ChartPeriod: JsonCodable {}
 extension Primitives.Charts: JsonCodable {}
 extension Primitives.ConfigResponse: JsonCodable {}
@@ -112,8 +118,11 @@ extension Primitives.PerpetualType: JsonCodable {}
 extension Primitives.PortfolioAssets: JsonCodable {}
 extension Primitives.PortfolioAsset: JsonCodable {}
 extension Primitives.PortfolioAssetsRequest: JsonCodable {}
+extension Primitives.PortfolioData: JsonCodable {}
 extension Primitives.Price: JsonCodable {}
 extension Primitives.PriceAlert: JsonCodable {}
+extension Primitives.PriceAlertDirection: JsonCodable {}
+extension Primitives.PriceAlertNotificationType: JsonCodable {}
 extension Primitives.RedemptionRequest: JsonCodable {}
 extension Primitives.RedemptionResult: JsonCodable {}
 extension Primitives.ReferralCode: JsonCodable {}
@@ -126,6 +135,7 @@ extension Primitives.ScanTransactionPayload: JsonCodable {}
 extension Primitives.SearchResponse: JsonCodable {}
 extension Primitives.SimulationPayloadField: JsonCodable {}
 extension Primitives.SimulationResult: JsonCodable {}
+extension Primitives.SimulationHeader: JsonCodable {}
 extension Primitives.SolanaNftStandard: JsonCodable {}
 extension Primitives.SolanaTokenProgramId: JsonCodable {}
 extension Primitives.StakeProviderType: JsonCodable {}

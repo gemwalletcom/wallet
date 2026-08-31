@@ -1,19 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Localization
+import GemstonePrimitives
 import GemstoneServices
+import Localization
 import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
 import Validators
+import class Gemstone.GemNodeService
 
 @MainActor
 @Observable
 final class AddNodeSceneViewModel {
-    private let nodeService: NodeService
-    private let chainServiceFactory: ChainServiceFactory
+    private let nodeService: GemNodeService
+    private let gatewayService: GatewayService
 
     let chain: Chain
 
@@ -21,12 +23,12 @@ final class AddNodeSceneViewModel {
     var state: StateViewType<AddNodeResultViewModel> = .noData
     var isPresentingScanner: Bool = false
     var isPresentingAlertMessage: AlertMessage?
-    var fetchTrigger: AddNodeFetchTrigger?
+    var loadTrigger: AddNodeLoadTrigger?
 
-    init(chain: Chain, nodeService: NodeService, chainServiceFactory: ChainServiceFactory) {
+    init(chain: Chain, nodeService: GemNodeService, gatewayService: GatewayService) {
         self.chain = chain
         self.nodeService = nodeService
-        self.chainServiceFactory = chainServiceFactory
+        self.gatewayService = gatewayService
     }
 
     var title: String {
@@ -69,23 +71,23 @@ final class AddNodeSceneViewModel {
 
 extension AddNodeSceneViewModel {
     func onChangeInput() {
-        guard fetchTrigger?.url != urlInputModel.text else { return }
-        setFetchTrigger(isImmediate: false)
+        guard loadTrigger?.url != urlInputModel.text else { return }
+        setLoadTrigger(isImmediate: false)
     }
 
     func setInput(_ text: String) {
         urlInputModel.text = text
-        setFetchTrigger(isImmediate: true)
+        setLoadTrigger(isImmediate: true)
     }
 
-    private func setFetchTrigger(isImmediate: Bool) {
+    private func setLoadTrigger(isImmediate: Bool) {
         let text = urlInputModel.text
         guard text.isNotEmpty, urlInputModel.isValid else {
             state = .noData
-            fetchTrigger = nil
+            loadTrigger = nil
             return
         }
-        fetchTrigger = AddNodeFetchTrigger(url: text, isImmediate: isImmediate)
+        loadTrigger = AddNodeLoadTrigger(url: text, isImmediate: isImmediate)
     }
 
     func importFoundNode() async throws {
@@ -94,7 +96,7 @@ extension AddNodeSceneViewModel {
         }
 
         // TODO: - implement disable after user selects "import node button", we can't use state: StateViewType<ImportNodeResult> progress
-        try await nodeService.addNode(chain: chain, url: model.url.absoluteString)
+        try await nodeService.addNode(chain: chain.rawValue, url: model.url.absoluteString)
 
         // TODO: - implement correct way of selection node
         /*
@@ -102,7 +104,7 @@ extension AddNodeSceneViewModel {
           */
     }
 
-    func fetch() async {
+    func load() async {
         guard let url = try? URLDecoder().decode(urlInputModel.text) else {
             // safety check for onSubmitUrl
             state = .error(AnyError(AddNodeError.invalidURL.errorDescription ?? ""))
@@ -110,22 +112,16 @@ extension AddNodeSceneViewModel {
         }
 
         state = .loading
-        let service = chainServiceFactory.service(for: chain, url: url)
 
         do {
-            let nodeStatus = try await service.getNodeStatus(url: urlInputModel.text)
-            guard NodeService.isValid(networkId: nodeStatus.chainId, for: chain) else {
-                throw AddNodeError.invalidNetworkId
-            }
-
-            let result = AddNodeResult(
+            let status = try await gatewayService.checkNode(chain: chain, url: url.absoluteString)
+            state = .data(AddNodeResultViewModel(addNodeResult: AddNodeResult(
                 url: url,
-                chainID: nodeStatus.chainId,
-                blockNumber: nodeStatus.latestBlockNumber,
+                chainID: status.chainId,
+                blockNumber: status.latestBlockNumber,
                 isInSync: true,
-                latency: nodeStatus.latency,
-            )
-            state = .data(AddNodeResultViewModel(addNodeResult: result))
+                latency: status.latency,
+            )))
         } catch {
             state.setError(error)
         }

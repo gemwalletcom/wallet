@@ -5,7 +5,6 @@ use std::future::Future;
 use std::sync::Arc;
 
 use chrono::Utc;
-use primitives::currency::Currency;
 use primitives::{AssetId, WalletId};
 
 pub use crate::services::wallet_preferences::GemDiscoveryStep;
@@ -48,9 +47,9 @@ impl GemAssetDiscoveryService {
         }
     }
 
-    pub async fn discover(&self, wallet_id: WalletId, currency: Currency) -> Result<Vec<AssetId>, GemServiceError> {
+    pub async fn discover(&self, wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
         let (asset_ids, _, _) = futures::try_join!(
-            self.discover_assets(wallet_id.clone(), currency),
+            self.discover_assets(wallet_id.clone()),
             self.complete(wallet_id.clone(), GemDiscoveryStep::Transactions, self.transactions.sync(wallet_id.clone(), None)),
             self.complete(wallet_id.clone(), GemDiscoveryStep::Nfts, async { self.nft.sync(wallet_id.clone()).await.map(|_| ()) }),
         )?;
@@ -59,16 +58,16 @@ impl GemAssetDiscoveryService {
 }
 
 impl GemAssetDiscoveryService {
-    async fn discover_assets(&self, wallet_id: WalletId, currency: Currency) -> Result<Vec<AssetId>, GemServiceError> {
+    async fn discover_assets(&self, wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
         let Some(wallet) = self.wallet_store.get_wallet(wallet_id.clone())? else {
             return Ok(vec![]);
         };
-        let from_timestamp = self.preferences.get_assets_timestamp(wallet_id.clone())?;
+        let from_timestamp = self.preferences.get_assets_timestamp(wallet_id.clone());
         let timestamp = Utc::now().timestamp() as u64;
         let asset_ids = self.api.client.get_assets_list(wallet_id.id(), from_timestamp).await.map_err(GemApiError::from)?;
         let asset_ids = rules::discoverable_asset_ids(asset_ids, &wallet.accounts);
         if !asset_ids.is_empty() {
-            self.balance.enable_assets(wallet_id.clone(), asset_ids.clone(), true, currency).await?;
+            self.balance.set_assets_enabled(wallet_id.clone(), asset_ids.clone(), true).await?;
         }
         self.preferences.set_assets_timestamp(wallet_id.clone(), timestamp)?;
         self.preferences.set_initial_load_completed(wallet_id, GemDiscoveryStep::Assets)?;

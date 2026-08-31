@@ -2,14 +2,16 @@ package com.gemwallet.android
 
 import android.content.Intent
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.application.assets.coordinators.GetAssetById
-import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
-import com.gemwallet.android.cases.parseNotificationData
-import com.gemwallet.android.cases.transactions.CreateTransaction
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.model.PushNotificationData
+import com.gemwallet.android.application.assets.cases.SyncMissingAssets
+import com.gemwallet.android.application.transactions.cases.CreateTransaction
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
+import com.gemwallet.android.application.wallet.cases.GetWallet
+import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PushNotificationField
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualPositionRoute
@@ -18,100 +20,106 @@ import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.gemwallet.android.ui.navigation.routes.SupportRoute
 import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
-import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.toIdentifier
-import uniffi.gemstone.GemAssetsService
-import uniffi.gemstone.GemTransactionsService
-import com.gemwallet.android.serializer.toJson
-import com.gemwallet.android.ext.toAssetId
+import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.firstOrNull
+import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemPushNotification
+import uniffi.gemstone.GemPushNotificationService
 import javax.inject.Inject
 
 class NotificationNavigation @Inject constructor(
-    private val sessionRepository: SessionRepository,
-    private val walletsRepository: WalletsRepository,
+    private val getSession: GetSession,
+    private val setCurrentWallet: SetCurrentWallet,
+    private val getWallet: GetWallet,
     private val createTransaction: CreateTransaction,
-    private val transactionsService: GemTransactionsService,
-    private val prefetchAssets: PrefetchAssets,
+    private val syncMissingAssets: SyncMissingAssets,
     private val assetsService: GemAssetsService,
-    private val getAssetById: GetAssetById,
+    private val pushNotificationService: GemPushNotificationService,
 ) {
     suspend fun prepareNavigation(intent: Intent): List<NavKey> {
         if (!intent.hasNotificationPayload()) {
             return emptyList()
         }
-        val type = intent.getStringExtra(PushNotificationField.Type.key)
-        val rawData = intent.getStringExtra(PushNotificationField.Data.key)
-        return prepareNavigation(type = type, data = parseNotificationData(type, rawData))
+        val notificationType = intent.getStringExtra(PushNotificationField.Type.key) ?: return emptyList()
+        val notification = pushNotificationService.parse(
+            notificationType = notificationType,
+            data = intent.getStringExtra(PushNotificationField.Data.key),
+        ) ?: return emptyList()
+        return prepareNavigation(notification)
     }
 
-    internal suspend fun prepareNavigation(type: String?, data: PushNotificationData?): List<NavKey> {
-        return when (val payload = data ?: parseNotificationData(type, rawData = null) ?: return emptyList()) {
-            is PushNotificationData.Asset -> {
-                prepareAssets(payload.assetId)
-                listOf(AssetRoute(payload.assetId))
+    internal suspend fun prepareNavigation(notification: GemPushNotification): List<NavKey> {
+        return when (notification) {
+            is GemPushNotification.Asset -> prepareAssetRoute(notification.assetId.toAssetId())
+            is GemPushNotification.PriceAlert -> prepareAssetRoute(notification.assetId.toAssetId())
+            is GemPushNotification.BuyAsset -> {
+                val assetId = notification.assetId.toAssetId() ?: return emptyList()
+                prepareAssets(assetId)
+                listOf(FiatInputRoute(assetId))
             }
-            is PushNotificationData.BuyAsset -> {
-                prepareAssets(payload.assetId)
-                listOf(FiatInputRoute(payload.assetId))
+            is GemPushNotification.FiatTransaction -> prepareWalletAssetRoutes(WalletId(notification.walletId), notification.assetId.toAssetId())
+            is GemPushNotification.Stake -> prepareWalletAssetRoutes(WalletId(notification.walletId), notification.assetId.toAssetId())
+            is GemPushNotification.SwapAsset -> {
+                val fromAssetId = notification.fromAssetId.toAssetId() ?: return emptyList()
+                val toAssetId = notification.toAssetId.toAssetId() ?: return emptyList()
+                prepareAssets(fromAssetId, toAssetId)
+                listOf(SwapPairRoute(fromAssetId, toAssetId))
             }
-            is PushNotificationData.WalletAsset -> {
-                prepareWallet(payload.walletId, listOf(payload.assetId)) ?: return emptyList()
-                listOf(AssetRoute(payload.assetId))
-            }
-            is PushNotificationData.Stake -> {
-                prepareWallet(payload.walletId, listOf(payload.assetId)) ?: return emptyList()
-                listOf(AssetRoute(payload.assetId))
-            }
-            is PushNotificationData.Swap -> {
-                prepareAssets(payload.fromAssetId, payload.toAssetId)
-                listOf(SwapPairRoute(payload.fromAssetId, payload.toAssetId))
-            }
-            is PushNotificationData.Transaction -> prepareTransactionRoutes(payload)
-            PushNotificationData.Reward -> listOf(ReferralRoute())
-            PushNotificationData.Support -> listOf(SupportRoute)
+            is GemPushNotification.Transaction -> prepareTransactionRoutes(
+                walletId = WalletId(notification.walletId),
+                assetId = notification.assetId.toAssetId() ?: return emptyList(),
+                transaction = notification.transaction.decodeJson(),
+            )
+            GemPushNotification.Rewards -> listOf(ReferralRoute())
+            GemPushNotification.Support -> listOf(SupportRoute)
+            GemPushNotification.Test -> emptyList()
         }
+    }
+
+    private suspend fun prepareAssetRoute(assetId: AssetId?): List<NavKey> {
+        if (assetId == null) {
+            return emptyList()
+        }
+        prepareAssets(assetId)
+        return listOf(AssetRoute(assetId))
     }
 
     private suspend fun prepareAssets(vararg assetIds: AssetId) {
-        prefetchAssets.prefetchAssets(assetIds.toList())
+        syncMissingAssets.syncMissingAssets(assetIds.toList())
     }
 
-    private suspend fun prepareTransaction(data: PushNotificationData.Transaction): Boolean {
-        val associatedAssetIds = transactionsService.associatedAssetIds(data.transaction.toJson()).map { it.toAssetId() ?: return false }
-        val assetIds = (associatedAssetIds + data.assetId).distinct()
-        prepareWallet(data.walletId, assetIds) ?: return false
-        createTransaction.createTransaction(data.walletId, data.transaction, sessionRepository.getCurrentCurrency())
-        return true
+    private suspend fun prepareWalletAssetRoutes(walletId: WalletId, assetId: AssetId?): List<NavKey> {
+        val assetId = assetId ?: return emptyList()
+        val wallet = getWallet(walletId).firstOrNull() ?: return emptyList()
+        val asset = assetsService.openWalletAsset(wallet.toJson(), assetId.toIdentifier())?.decodeJson<Asset>() ?: return emptyList()
+        selectWallet(wallet)
+        return listOf(AssetRoute(asset.id))
     }
 
-    private suspend fun prepareTransactionRoutes(data: PushNotificationData.Transaction): List<NavKey> {
-        if (!prepareTransaction(data)) {
-            return emptyList()
-        }
-        val transactionRoute = TransactionDetailsRoute(data.transaction.id)
-        val asset = getAssetById(data.assetId).firstOrNull() ?: return emptyList()
+    private suspend fun prepareTransactionRoutes(walletId: WalletId, assetId: AssetId, transaction: Transaction): List<NavKey> {
+        val wallet = getWallet(walletId).firstOrNull() ?: return emptyList()
+        val asset = createTransaction.createNotificationTransaction(
+            wallet = wallet,
+            assetId = assetId,
+            transaction = transaction,
+        ) ?: return emptyList()
+        selectWallet(wallet)
+        val transactionRoute = TransactionDetailsRoute(transaction.id)
         if (asset.type != AssetType.PERPETUAL) {
             return listOf(AssetRoute(asset.id), transactionRoute)
         }
-        return listOf(PerpetualRoute, PerpetualPositionRoute(data.assetId), transactionRoute)
+        return listOf(PerpetualRoute, PerpetualPositionRoute(asset.id), transactionRoute)
     }
 
-    private suspend fun prepareWallet(walletId: WalletId, assetIds: List<AssetId>): Wallet? {
-        val wallet = walletsRepository.getWallet(walletId).firstOrNull() ?: return null
-        prefetchAssets.prefetchAssets(assetIds)
-        assetsService.addMissingBalances(
-            wallet.id.id,
-            assetIds.filter { wallet.getAccount(it.chain) != null }.map { it.toIdentifier() },
-        )
-        if (sessionRepository.session().firstOrNull()?.wallet?.id != wallet.id) {
-            sessionRepository.setWallet(wallet)
+    private suspend fun selectWallet(wallet: Wallet) {
+        if (getSession().firstOrNull()?.wallet?.id != wallet.id) {
+            setCurrentWallet.setCurrentWallet(wallet.id)
         }
-        return wallet
     }
 }
 

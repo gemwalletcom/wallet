@@ -11,6 +11,11 @@ use super::{
 };
 
 impl ReaderV3 {
+    pub(crate) fn file_id(path: &Path) -> Option<String> {
+        let bytes = crate::storage::read_capped(path, WHOLE_FILE_CAP).ok()?;
+        KeystoreV3::parse(&bytes).ok()?.id
+    }
+
     pub(crate) fn decrypt_path(path: &Path, password: &[u8]) -> Result<SecretV3, KeystoreError> {
         let bytes = crate::storage::read_capped(path, WHOLE_FILE_CAP)?;
         Self::decrypt_json_bytes(&bytes, password)

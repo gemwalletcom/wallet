@@ -26,8 +26,8 @@ import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoU
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.launch
+import com.gemwallet.android.ui.LocalDeeplinkService
 import uniffi.gemstone.Deeplink
-import uniffi.gemstone.deeplinkBuildUrl
 
 @Composable
 fun RowScope.AssetDetailsMenu(
@@ -38,6 +38,7 @@ fun RowScope.AssetDetailsMenu(
     onPriceAlert: (AssetId) -> Unit,
 ) {
     val context = LocalContext.current
+    val deeplinkService = LocalDeeplinkService.current
     val scope = rememberCoroutineScope()
 
     val priceAlertToastRes = if (priceAlertEnabled) R.string.price_alerts_disabled_for else R.string.price_alerts_enabled_for
@@ -49,7 +50,7 @@ fun RowScope.AssetDetailsMenu(
     val onShare = fun () {
         val subject = "${uiState.assetInfo.owner?.chain}\n${uiState.assetInfo.asset.symbol}"
         val assetId = uiState.asset.id
-        val shareUrl = deeplinkBuildUrl(Deeplink.Asset(assetId = assetId.toIdentifier()))
+        val shareUrl = deeplinkService.buildUrl(Deeplink.Asset(assetId = assetId.toIdentifier()))
 
         context.shareText(subject = subject, text = shareUrl, chooserTitle = shareTitle)
     }

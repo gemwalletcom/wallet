@@ -7,7 +7,7 @@ pub struct AddressTarget {
     pub chain: Chain,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TokenTarget {
     pub token_id: String,
     pub chain: Chain,

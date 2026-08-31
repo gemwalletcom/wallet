@@ -51,6 +51,7 @@ public struct WalletScene: View {
                 Section {
                     BannerView(
                         banner: banner,
+                        content: model.bannerContent(for: banner),
                         action: model.onBanner,
                     )
                 }
@@ -109,10 +110,10 @@ public struct WalletScene: View {
         .listSectionSpacing(.compact)
         .id(model.wallet.id)
         .refreshable {
-            await model.fetch()
+            await model.load()
         }
         .taskOnce {
-            Task { await model.fetchOnce() }
+            Task { await model.loadOnce() }
         }
         .listSectionSpacing(.compact)
     }

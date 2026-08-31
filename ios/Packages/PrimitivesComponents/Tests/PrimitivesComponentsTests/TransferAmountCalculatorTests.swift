@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAmountService
 import BigInt
 import Primitives
 @testable import PrimitivesComponents
@@ -8,7 +9,7 @@ import Testing
 import Validators
 
 struct TransferAmountCalculatorTests {
-    let service = TransferAmountCalculator()
+    let service = TransferAmountCalculator(amountService: GemAmountService())
     let asset = Asset.mockSolana()
     let token = Asset.mockSolanaUSDC()
     let tempoToken = Asset.mockTempoUSDC()

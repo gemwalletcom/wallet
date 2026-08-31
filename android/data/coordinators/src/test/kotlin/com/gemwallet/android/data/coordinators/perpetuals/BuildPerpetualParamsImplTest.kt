@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
-import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockPerpetualData
@@ -50,10 +50,10 @@ class BuildPerpetualParamsImplTest {
         ),
     )
 
-    private val perpetualRepository = mockk<PerpetualRepository> {
-        every { getPerpetual(perpetualData.perpetual.id) } returns flowOf(perpetualData)
-        every { getPositionByPerpetualId(ownWalletId, perpetualData.perpetual.id) } returns flowOf(ownPosition)
-        every { getPositionByPerpetualId(otherWalletId, perpetualData.perpetual.id) } returns flowOf(otherWalletPosition)
+    private val perpetualStore = mockk<GemstonePerpetualStore> {
+        every { observePerpetual(perpetualData.perpetual.id) } returns flowOf(perpetualData)
+        every { observePositionByPerpetualId(ownWalletId, perpetualData.perpetual.id) } returns flowOf(ownPosition)
+        every { observePositionByPerpetualId(otherWalletId, perpetualData.perpetual.id) } returns flowOf(otherWalletPosition)
     }
 
     @Test
@@ -67,12 +67,12 @@ class BuildPerpetualParamsImplTest {
     }
 
     private suspend fun reduceFor(walletId: WalletId): PerpetualPositionAction.Reduce {
-        val sessionRepository = mockk<SessionRepository> {
-            every { session() } returns MutableStateFlow(mockSession(wallet = mockWallet(id = walletId.id)))
+        val getSession = mockk<GetSession> {
+            every { this@mockk() } returns MutableStateFlow(mockSession(wallet = mockWallet(id = walletId.id)))
         }
         val subject = BuildPerpetualParamsImpl(
-            perpetualRepository = perpetualRepository,
-            sessionRepository = sessionRepository,
+            perpetualStore = perpetualStore,
+            getSession = getSession,
         )
         val params = requireNotNull(subject.reduce(perpetualData.perpetual.id))
         return params.positionAction as PerpetualPositionAction.Reduce

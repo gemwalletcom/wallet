@@ -20,6 +20,7 @@
   <string name="common_wallet">ウォレット</string>
   <string name="common_show">%1$sを表示</string>
   <string name="common_copied">コピー済み: %1$s</string>
+  <string name="common_copied_to_clipboard">クリップボードにコピーしました</string>
   <string name="common_recommended">推奨</string>
   <string name="common_all">全て</string>
   <string name="common_not_available">利用不可</string>
@@ -182,10 +183,14 @@
   <string name="errors_token_invalid_id">無効なトークンID</string>
   <string name="errors_import_invalid_secret_phrase">無効な秘密フレーズ</string>
   <string name="errors_import_invalid_secret_phrase_word">無効なシークレットフレーズの単語: %1$s</string>
+  <string name="errors_import_invalid_private_key">無効な秘密鍵</string>
+  <string name="errors_keystore_access">このデバイスでこのウォレットの鍵にアクセスできませんでした。リカバリーフレーズをお持ちの場合は、このウォレットを削除して再度インポートするとアクセスを復元できます。</string>
+  <string name="errors_wallet_account_missing">このウォレットにはこのネットワークのアカウントがありません</string>
   <string name="errors_invalid_url">無効なURL</string>
   <string name="errors_error_occurred">エラーが発生しました！</string>
   <string name="errors_invalid_network_id">無効なネットワークID</string>
   <string name="errors_error">エラー</string>
+  <string name="errors_cancelled">キャンセルされました</string>
   <string name="errors_connections_user_cancelled">ユーザーがキャンセルしました</string>
   <string name="errors_not_supported">サポートされていません</string>
   <string name="errors_permissions_not_granted">許可が得られていません</string>

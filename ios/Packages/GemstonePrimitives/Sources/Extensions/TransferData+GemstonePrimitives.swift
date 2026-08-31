@@ -29,7 +29,7 @@ public extension TransferData {
         )
     }
 
-    func availableValue(balance: Balance) throws -> BigInt {
+    func availableValue(balance: Balance, transferService: GemTransferService) throws -> BigInt {
         let transferBalance = GemTransferBalance(
             available: balance.available.description,
             frozen: balance.frozen.description,
@@ -37,7 +37,7 @@ public extension TransferData {
             withdrawable: balance.withdrawable.description,
             votes: UInt32(balance.metadata?.votes ?? 0),
         )
-        return try BigInt.from(string: GemTransferService().availableValue(transfer: gem, balance: transferBalance))
+        return try BigInt.from(string: transferService.availableValue(transfer: gem, balance: transferBalance))
     }
 }
 

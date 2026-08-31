@@ -9,7 +9,7 @@ import android.content.pm.Signature
 import android.os.Build
 import android.os.Environment
 import androidx.core.content.FileProvider
-import uniffi.gemstone.isVersionHigher
+import uniffi.gemstone.GemAppUpdateService
 import com.gemwallet.android.ext.universalApkDownloadUrl
 import com.gemwallet.android.model.BuildInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -33,6 +33,7 @@ import javax.inject.Inject
 class InAppUpdateServiceImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val buildInfo: BuildInfo,
+    private val appUpdateService: GemAppUpdateService,
 ) : InAppUpdateService {
 
     private val appFileProvider = "${context.packageName}.provider"
@@ -173,7 +174,7 @@ class InAppUpdateServiceImpl @Inject constructor(
         if (archiveVersion != expectedVersion) {
             throw IllegalStateException("Downloaded APK version mismatch")
         }
-        if (!isVersionHigher(new = archiveVersion, current = buildInfo.versionName)) {
+        if (!appUpdateService.isVersionHigher(new = archiveVersion, current = buildInfo.versionName)) {
             throw IllegalStateException("Downloaded APK is not a newer version")
         }
 

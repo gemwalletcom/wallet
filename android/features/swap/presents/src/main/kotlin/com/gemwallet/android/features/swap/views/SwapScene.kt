@@ -90,6 +90,7 @@ internal fun SwapScene(
             } else {
                 SwapAction(
                     swapState = swapState,
+                    pay = pay,
                     onSwap = {
                         clearAmountFocus()
                         onAction(SwapSceneAction.Swap)

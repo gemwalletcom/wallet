@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemTransferService
 import Foundation
+import class Gemstone.GemKeystore
 import GemstonePrimitives
 @testable import GemstoneServices
 import GemstoneServicesTestKit
@@ -54,7 +56,7 @@ struct MigrateV3KeystoreTests {
         defer { try? FileManager.default.removeItem(at: baseDir) }
 
         let mockPassword = MockKeystorePassword(memoryPassword: Self.password)
-        let keystore = LocalKeystore(directory: directory, keystorePassword: mockPassword)
+        let keystore = LocalKeystore(directory: directory, keystorePassword: mockPassword, transferService: GemTransferService())
         let migrated = Wallet.mock(
             id: .privateKey(chain: .ethereum, address: Self.ethereumAddress),
             type: .privateKey,
@@ -77,6 +79,7 @@ struct MigrateV3KeystoreTests {
         let keystore = LocalKeystore(
             directory: directory,
             keystorePassword: MockKeystorePassword(memoryPassword: ""),
+            transferService: GemTransferService(),
         )
         let legacy = Wallet.mock(
             id: .privateKey(chain: .ethereum, address: Self.ethereumAddress),
@@ -94,37 +97,6 @@ struct MigrateV3KeystoreTests {
         #expect(FileManager.default.fileExists(atPath: v3URL.path), "a failed migration must keep the v3 file for retry")
     }
 
-    @Test
-    func deleteAfterMigrationRemovesEveryCopy() async throws {
-        let directory = "migrate-test-\(UUID().uuidString)"
-        let baseDir = try FileManager.default
-            .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            .appending(path: directory, directoryHint: .isDirectory)
-        defer { try? FileManager.default.removeItem(at: baseDir) }
-
-        let keystore = LocalKeystore(
-            directory: directory,
-            keystorePassword: MockKeystorePassword(memoryPassword: Self.password),
-        )
-        let legacy = Wallet.mock(
-            id: .privateKey(chain: .ethereum, address: Self.ethereumAddress),
-            type: .privateKey,
-            source: .import,
-        )
-        let fixtureURL = try #require(Bundle.module.url(forResource: "v3_ios_private_key", withExtension: "json"))
-        let v3URL = baseDir.appending(path: legacy.legacyV3Id, directoryHint: .notDirectory)
-        try FileManager.default.copyItem(at: fixtureURL, to: v3URL)
-
-        let failures = try await keystore.migrateV3Keystores(for: [legacy])
-        #expect(failures.isEmpty)
-        let v4URL = baseDir.appending(path: "\(legacy.keystoreId).json")
-        #expect(FileManager.default.fileExists(atPath: v4URL.path))
-        #expect(!FileManager.default.fileExists(atPath: v3URL.path), "a verified migration deletes the v3 file")
-
-        try await keystore.deleteKey(for: legacy)
-        #expect(!FileManager.default.fileExists(atPath: v4URL.path))
-    }
-
     @discardableResult
     private func assertMigratesAndIsIdempotent(_ legacy: Wallet, fixture: String) async throws -> String {
         let directory = "migrate-test-\(UUID().uuidString)"
@@ -137,6 +109,7 @@ struct MigrateV3KeystoreTests {
         let keystore = LocalKeystore(
             directory: directory,
             keystorePassword: mockPassword,
+            transferService: GemTransferService(),
         )
 
         let fixtureURL = try #require(Bundle.module.url(forResource: fixture, withExtension: "json"))
@@ -145,7 +118,7 @@ struct MigrateV3KeystoreTests {
 
         let failures = try await keystore.migrateV3Keystores(for: [legacy])
         #expect(failures.isEmpty)
-        let keystoreId = legacy.keystoreId
+        let keystoreId = try GemKeystore(baseDir: baseDir.path).keystoreId(walletId: legacy.id.id)
         #expect(FileManager.default.fileExists(atPath: baseDir.appending(path: "\(keystoreId).json").path))
         #expect(!FileManager.default.fileExists(atPath: v3URL.path), "a verified migration deletes the v3 file")
 

@@ -11,7 +11,7 @@ public extension GatewayService {
         GatewayService(
             provider: NativeProvider(session: .offline, url: Constants.apiURL),
             preferences: GemPreferencesStoreMock(),
-            securePreferences: GemPreferencesStoreMock(),
+            securePreferences: GemSecureStoreMock(),
         )
     }
 }

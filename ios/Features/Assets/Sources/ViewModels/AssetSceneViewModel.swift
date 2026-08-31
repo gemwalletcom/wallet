@@ -1,14 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemDeeplinkService
 import protocol Gemstone.GemPriceAlertServiceProtocol
+import BigInt
 import Components
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
+import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerContext
 import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
+import class Gemstone.GemTransactionFormatter
+import protocol Gemstone.GemSwapServiceProtocol
+import struct Gemstone.GemStakeBalance
+import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import Localization
 import Preferences
@@ -22,16 +29,20 @@ import UIKit
 @Observable
 @MainActor
 public final class AssetSceneViewModel: Sendable {
-    private let assetsEnabler: any AssetsEnabler
     private let balanceService: any GemBalanceServiceProtocol
     private let assetsService: any GemAssetsServiceProtocol
+    private let deeplinkService: GemDeeplinkService
     private let transactionsService: any GemTransactionsServiceProtocol
     private let priceUpdater: any PriceUpdater
     private let bannerService: any GemBannerServiceProtocol
+    private let swapService: any GemSwapServiceProtocol
+    private let stakeService: any GemStakeServiceProtocol
 
-    private let preferences: ObservablePreferences = .default
+    private let preferences: ObservablePreferences
 
     let explorerService: any GemExplorerServiceProtocol
+
+    let transactionFormatter: GemTransactionFormatter
     public let priceAlertService: any GemPriceAlertServiceProtocol
 
     private var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
@@ -45,25 +56,33 @@ public final class AssetSceneViewModel: Sendable {
     public let transactionsQuery: ObservableQuery<TransactionsRequest>
 
     public init(
-        assetsEnabler: any AssetsEnabler,
         balanceService: any GemBalanceServiceProtocol,
         assetsService: any GemAssetsServiceProtocol,
         transactionsService: any GemTransactionsServiceProtocol,
         priceUpdater: any PriceUpdater,
         priceAlertService: any GemPriceAlertServiceProtocol,
         bannerService: any GemBannerServiceProtocol,
+        swapService: any GemSwapServiceProtocol,
+        stakeService: any GemStakeServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
+        transactionFormatter: GemTransactionFormatter,
+        deeplinkService: GemDeeplinkService,
+        preferences: ObservablePreferences,
         input: AssetSceneInput,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
-        self.assetsEnabler = assetsEnabler
         self.balanceService = balanceService
         self.assetsService = assetsService
+        self.deeplinkService = deeplinkService
         self.transactionsService = transactionsService
         self.priceUpdater = priceUpdater
         self.priceAlertService = priceAlertService
         self.bannerService = bannerService
+        self.swapService = swapService
+        self.stakeService = stakeService
         self.explorerService = explorerService
+        self.transactionFormatter = transactionFormatter
+        self.preferences = preferences
 
         self.input = input
         assetQuery = ObservableQuery(
@@ -228,12 +247,21 @@ public final class AssetSceneViewModel: Sendable {
         AssetDataViewModel(
             assetData: assetData,
             formatter: .auto,
-            currencyCode: preferences.preferences.currency,
+            currencyCode: preferences.currency,
         )
     }
 
     var visibleBanners: [Banner] {
-        (try? bannerService.visibleBanners(banners, wallet: wallet, asset: assetData.asset, context: bannerContext)) ?? []
+        do {
+            return try bannerService.visibleBanners(banners, walletId: wallet.id, asset: assetData.asset, context: bannerContext)
+        } catch {
+            debugLog("asset scene: visible banners error \(error)")
+            return []
+        }
+    }
+
+    func bannerContent(for banner: Banner) -> GemBannerContent {
+        bannerService.content(for: banner)
     }
 
     private var bannerContext: GemBannerContext {
@@ -241,14 +269,12 @@ public final class AssetSceneViewModel: Sendable {
             hasWallet: true,
             hasAsset: true,
             isStakeable: assetData.metadata.isStakeEnabled,
-            hasStakeBalance: !(assetData.balance.staked.isZero && assetData.balance.frozen.isZero),
+            hasStakeBalance: stakedValue > .zero,
             hasAvailableBalance: assetData.balance.available > 0,
             isAssetActivated: assetData.metadata.isActive,
             assetRankScore: assetData.metadata.rankScore,
             hasPerpetualsSupport: wallet.hasPerpetualsSupport,
             isWalletEmpty: false,
-            notificationsAvailable: false,
-            launchCount: 0,
         )
     }
 
@@ -261,7 +287,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     public var shareAssetUrl: URL {
-        DeepLink.asset(assetDataModel.asset.id).url
+        DeepLink.asset(assetDataModel.asset.id).url(deeplinkService: deeplinkService)
     }
 
     public var assetModel: AssetViewModel {
@@ -307,26 +333,31 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var swapAssetType: SelectedAssetType {
-        switch assetData.asset.id.type {
-        case .native: .swap(assetData.asset, nil)
-        case .token:
-            if assetData.balance.available == .zero, assetData.asset.chain.hasNativeAsset {
-                .swap(assetData.asset.chain.asset, assetData.asset)
-            } else {
-                .swap(assetData.asset, nil)
-            }
-        }
+        let pair = swapService.pairForAsset(
+            assetId: assetData.asset.id.identifier,
+            hasBalance: assetData.balance.available > .zero,
+        )
+        guard pair.receiveAssetId != nil else { return .swap(assetData.asset, nil) }
+        return .swap(assetData.asset.chain.asset, assetData.asset)
     }
 
     func showProviderBalance(for type: StakeProviderType) -> Bool {
         switch type {
-        case .stake: assetDataModel.isStakeEnabled || assetData.balances.contains(where: { Self.showStakedBalanceTypes.contains($0.key) && $0.value > 0 })
+        case .stake: stakeService.showsStakeBalance(chain: asset.chain.rawValue, isStakeEnabled: assetData.metadata.isStakeEnabled, balance: stakeBalance)
         #if DEBUG
             case .earn: assetData.balance.earn > .zero
         #else
             case .earn: false
         #endif
         }
+    }
+
+    func balanceTextWithSymbol(for type: StakeProviderType) -> String {
+        let value = switch type {
+        case .stake: stakedValue
+        case .earn: assetData.balance.earn
+        }
+        return assetDataModel.balanceTextWithSymbol(value)
     }
 
     func balanceTitle(for type: StakeProviderType) -> String {
@@ -344,16 +375,16 @@ public final class AssetSceneViewModel: Sendable {
 // MARK: - Business Logic
 
 public extension AssetSceneViewModel {
-    internal func fetchOnce() {
+    internal func loadOnce() {
         Task {
-            await fetch()
+            await load()
         }
         Task {
             await updateAsset()
         }
     }
 
-    internal func fetch() async {
+    internal func load() async {
         await withTaskGroup(of: Void.self) { group in
             group.addTask { await self.updateWallet() }
             if assetData.priceAlerts.isNotEmpty {
@@ -401,16 +432,15 @@ public extension AssetSceneViewModel {
                         value: 0,
                     ),
                 )
-            case .enableNotifications,
-                 .accountActivation,
+            case .accountActivation,
                  .accountBlockedMultiSignature,
                  .onboarding:
                 Task {
-                    try await bannerService.handleAction(key: action.banner.gemKey, action: action.type.gemAction)
+                    try await bannerService.applyAction(key: action.banner.gemKey, action: action.type.gemAction)
                 }
             case .suspiciousAsset: break
             case .tradePerpetuals:
-                UIApplication.shared.open(DeepLink.perpetuals.gemUrl)
+                UIApplication.shared.open(DeepLink.perpetuals.gemUrl(deeplinkService: deeplinkService))
                 preferences.isPerpetualEnabled = true
             }
         case let .button(bannerButton):
@@ -420,7 +450,7 @@ public extension AssetSceneViewModel {
             }
         case .closeBanner:
             Task {
-                try await bannerService.handleAction(key: action.banner.gemKey, action: action.type.gemAction)
+                try await bannerService.applyAction(key: action.banner.gemKey, action: action.type.gemAction)
             }
         }
         onSelect(url: action.url)
@@ -473,7 +503,7 @@ public extension AssetSceneViewModel {
         let pinned = !assetData.metadata.isPinned
         Task {
             do {
-                try await assetsEnabler.pinAsset(wallet: wallet, assetId: asset.id, pinned: pinned)
+                try await balanceService.setAssetPinned(wallet: wallet, assetId: asset.id, pinned: pinned)
                 isPresentingToastMessage = .pin(asset.name, pinned: pinned)
             } catch {
                 debugLog("onSelectPin error: \(error)")
@@ -485,7 +515,7 @@ public extension AssetSceneViewModel {
         Task {
             let enabled = !assetData.metadata.isBalanceEnabled
             do {
-                try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [asset.id], enabled: enabled)
+                try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: [asset.id], enabled: enabled)
                 isPresentingToastMessage = .showAsset(visible: enabled)
             } catch {
                 debugLog("onSelectEnable error: \(error)")
@@ -523,17 +553,23 @@ extension AssetSceneViewModel {
         return explorerService.getTokenUrl(chain: assetModel.asset.chain.rawValue, address: tokenId).map { BlockExplorerLink($0) }
     }
 
-    private static let showStakedBalanceTypes: [Primitives.BalanceType] = [.staked, .pending, .rewards]
-
     private var addressLink: BlockExplorerLink {
         BlockExplorerLink(explorerService.getAddressUrl(chain: assetModel.asset.chain.rawValue, address: assetDataModel.address))
+    }
+
+    private var stakeBalance: GemStakeBalance {
+        GemStakeBalance(assetData.balance)
+    }
+
+    private var stakedValue: BigInt {
+        BigInt(stringLiteral: stakeService.stakedValue(chain: asset.chain.rawValue, balance: stakeBalance))
     }
 
     private var feeAssetDataModel: AssetDataViewModel {
         AssetDataViewModel(
             assetData: chainAssetData.feeAssetData,
             formatter: .auto,
-            currencyCode: preferences.preferences.currency,
+            currencyCode: preferences.currency,
         )
     }
 
@@ -542,17 +578,17 @@ extension AssetSceneViewModel {
         isPresentingAssetSheet = .url(url)
     }
 
-    private func fetchTransactions() async {
+    private func loadTransactions() async {
         do {
             try await transactionsService.sync(walletId: walletModel.wallet.id.id, assetId: assetModel.asset.id.identifier)
         } catch {
-            // TODO: - handle fetchTransactions error
-            debugLog("asset scene: fetchTransactions error \(error)")
+            // TODO: - handle loadTransactions error
+            debugLog("asset scene: loadTransactions error \(error)")
         }
     }
 
     private func setPriceAlert(enabled: Bool) async throws {
-        let currency = try Currency(id: preferences.preferences.currency)
+        let currency = try Currency(id: preferences.currency)
         let priceAlert = PriceAlert.default(for: assetModel.asset.id, currency: currency)
         if enabled {
             try await priceAlertService.enable(priceAlert: priceAlert)
@@ -572,7 +608,7 @@ extension AssetSceneViewModel {
         do {
             let asset = try await assetsService.syncAsset(
                 for: assetModel.asset.id,
-                currency: preferences.preferences.currency,
+                currency: preferences.currency,
             )
             associations = asset.associations
         } catch {
@@ -582,7 +618,7 @@ extension AssetSceneViewModel {
         }
 
         do {
-            try await assetsService.prefetchAssets(for: associations.map(\.assetId))
+            try await assetsService.syncMissingAssets(for: associations.map(\.assetId))
         } catch {
             debugLog("asset scene: prefetch associations error \(error)")
         }
@@ -597,9 +633,17 @@ extension AssetSceneViewModel {
     }
 
     private func updateWallet() async {
-        async let balance: Void? = try? balanceService.update(walletId: walletModel.wallet.id.id, assetIds: [assetModel.asset.id.identifier])
-        async let transactions: Void = fetchTransactions()
+        async let balance: Void = updateBalance()
+        async let transactions: Void = loadTransactions()
         _ = await (balance, transactions)
+    }
+
+    private func updateBalance() async {
+        do {
+            try await balanceService.update(walletId: walletModel.wallet.id.id, assetIds: [assetModel.asset.id.identifier])
+        } catch {
+            debugLog("asset scene: balance update error \(error)")
+        }
     }
 
     private func updatePriceAlerts() async {

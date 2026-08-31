@@ -22,9 +22,9 @@ object AmountValidation {
         return Crypto(number, asset.decimals)
     }
 
-    fun validate(asset: Asset, amount: Crypto, availableBalance: BigInteger, minimumValue: BigInteger) {
+    fun validate(amountService: GemAmountService, asset: Asset, amount: Crypto, availableBalance: BigInteger, minimumValue: BigInteger) {
         try {
-            GemAmountService().validate(amount.atomicValue.toString(), availableBalance.toString(), minimumValue.toString())
+            amountService.validate(amount.atomicValue.toString(), availableBalance.toString(), minimumValue.toString())
         } catch (error: GemAmountException) {
             throw when (error) {
                 is GemAmountException.InvalidValue -> AmountError.IncorrectAmount

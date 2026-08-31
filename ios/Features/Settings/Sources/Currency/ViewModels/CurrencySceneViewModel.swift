@@ -75,7 +75,11 @@ public final class CurrencySceneViewModel {
     }
 
     func updateDevice() async {
-        _ = try? await deviceService.synchronize()
+        do {
+            try await deviceService.synchronizeIfNeeded()
+        } catch {
+            debugLog("currency scene: device synchronize error \(error)")
+        }
     }
 }
 

@@ -62,7 +62,13 @@ public struct StakeStore: Sendable {
 
     public func getValidatorsActive(assetId: AssetId, providerType: StakeProviderType) throws -> [DelegationValidator] {
         try db.read { db in
-            try ValidatorsRequest(chain: assetId.chain, providerType: providerType).fetch(db)
+            try StakeValidatorRecord
+                .filter(StakeValidatorRecord.Columns.assetId == assetId.identifier)
+                .filter(StakeValidatorRecord.Columns.providerType == providerType.rawValue)
+                .filter(StakeValidatorRecord.Columns.isActive == true)
+                .order(StakeValidatorRecord.Columns.apr.desc)
+                .fetchAll(db)
+                .map(\.validator)
         }
     }
 
@@ -87,7 +93,10 @@ public struct StakeStore: Sendable {
 
     @discardableResult
     public func deactivateValidators(assetId: AssetId, validatorIds: [String]) throws -> Int {
-        try db.write { db in
+        if validatorIds.isEmpty {
+            return 0
+        }
+        return try db.write { db in
             try StakeValidatorRecord
                 .filter(StakeValidatorRecord.Columns.assetId == assetId.identifier)
                 .filter(validatorIds.contains(StakeValidatorRecord.Columns.validatorId))

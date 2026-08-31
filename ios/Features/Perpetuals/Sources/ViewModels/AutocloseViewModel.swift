@@ -9,18 +9,19 @@ import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
+import class Gemstone.GemAutocloseEstimator
 
 public struct AutocloseViewModel {
     private let type: TpslType
     private let price: Double?
-    private let estimator: AutocloseEstimator
+    private let estimator: GemAutocloseEstimator
     private let currencyFormatter: CurrencyFormatter
     private let percentFormatter: PercentFormatter
 
     public init(
         type: TpslType,
         price: Double?,
-        estimator: AutocloseEstimator,
+        estimator: GemAutocloseEstimator,
         currencyFormatter: CurrencyFormatter,
         percentFormatter: PercentFormatter,
     ) {
@@ -43,17 +44,17 @@ public struct AutocloseViewModel {
     }
 
     public var profitTitle: String {
-        let isProfit = price.map { estimator.calculatePnL(price: $0) >= 0 } ?? (type == .takeProfit)
+        let isProfit = price.map { estimator.pnl(price: $0) >= 0 } ?? (type == .takeProfit)
         return isProfit ? Localized.Perpetual.AutoClose.expectedProfit : Localized.Perpetual.AutoClose.expectedLoss
     }
 
     public var expectedPnL: String {
         guard let price else { return "-" }
-        let pnl = estimator.calculatePnL(price: price)
-        let roe = estimator.calculateROE(price: price)
+        let pnl = estimator.pnl(price: price)
+        let roe = estimator.roe(price: price)
         let percentText = percentFormatter.string(roe)
 
-        guard estimator.hasSize else {
+        guard estimator.hasSize() else {
             return percentText
         }
 
@@ -64,12 +65,12 @@ public struct AutocloseViewModel {
 
     public var roeColor: Color {
         guard let price else { return Colors.secondaryText }
-        let roe = estimator.calculateROE(price: price)
+        let roe = estimator.roe(price: price)
         return PriceChangeColor.color(for: roe)
     }
 
     public var percents: [Int] {
-        PerpetualConfig.autocloseSuggestions(leverage: estimator.leverage).map { Int($0) }
+        estimator.percentSuggestions().map { Int($0) }
     }
 
     public var percentSuggestions: [PercentageSuggestion] {

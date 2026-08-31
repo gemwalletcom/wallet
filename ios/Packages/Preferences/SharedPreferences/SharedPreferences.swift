@@ -4,7 +4,6 @@ import Foundation
 import Primitives
 
 private enum SharedPreferenceConstants {
-    static let appGroupIdentifier = "group.com.gemwallet.ios"
     static let currencyKey = "currency"
 }
 
@@ -12,7 +11,7 @@ public struct SharedPreferences {
     private let userDefaults: UserDefaults?
 
     public init() {
-        userDefaults = UserDefaults(suiteName: SharedPreferenceConstants.appGroupIdentifier)
+        userDefaults = UserDefaults(suiteName: Constants.appGroupIdentifier)
     }
 
     public init(userDefaults: UserDefaults?) {

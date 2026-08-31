@@ -17,8 +17,8 @@ public extension GemRewardsServiceProtocol {
         try await useReferralCode(wallet: wallet.json(), code: code)
     }
 
-    func redeem(wallet: Primitives.Wallet, redemptionId: String, currency: Primitives.Currency) async throws -> Primitives.RedemptionResult {
-        try await Primitives.RedemptionResult(redeem(wallet: wallet.json(), redemptionId: redemptionId, currency: currency.json()))
+    func redeem(wallet: Primitives.Wallet, redemptionId: String) async throws -> Primitives.RedemptionResult {
+        try await Primitives.RedemptionResult(redeem(wallet: wallet.json(), redemptionId: redemptionId))
     }
 
     func referralLink(code: String) throws -> URL {

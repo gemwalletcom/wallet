@@ -5,6 +5,7 @@ import class Gemstone.GemRecipientService
 import struct Gemstone.GemRecipientValidation
 import Components
 import Foundation
+import class Gemstone.GemAddressService
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -17,7 +18,8 @@ import Validators
 public final class AddressInputViewModel {
     let placeholder: String
     public let nameRecordViewModel: NameRecordViewModel
-    private let recipientService = GemRecipientService()
+    private let recipientService: GemRecipientService
+    private let addressService: GemAddressService
 
     public var chain: Chain {
         didSet { onChangeChain() }
@@ -29,11 +31,14 @@ public final class AddressInputViewModel {
         chain: Chain,
         nameService: any GemNameServiceProtocol,
         placeholder: String,
+        addressService: GemAddressService,
         validators: [any TextValidator] = [],
     ) {
         self.chain = chain
         self.placeholder = placeholder
+        self.addressService = addressService
         nameRecordViewModel = NameRecordViewModel(nameService: nameService)
+        recipientService = nameService.recipients()
         inputModel = InputValidationViewModel(
             mode: .manual,
             validators: validators,
@@ -72,11 +77,7 @@ public final class AddressInputViewModel {
     }
 
     private var validation: GemRecipientValidation {
-        do {
-            return try recipientService.validate(chain: chain.rawValue, input: text, nameRecord: nameResolveState.result?.json())
-        } catch {
-            preconditionFailure("Unencodable name record: \(error)")
-        }
+        recipientService.validate(chain: chain.rawValue, input: text, nameRecord: nameResolveState.result?.json())
     }
 
     @discardableResult
@@ -138,7 +139,7 @@ extension AddressInputViewModel {
             mode: .manual,
             validators: [
                 .required(requireName: placeholder),
-                .address(Asset(chain)),
+                .address(Asset(chain), addressService: addressService),
             ],
         )
         text = currentText

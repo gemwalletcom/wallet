@@ -6,15 +6,13 @@ import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
+import uniffi.gemstone.GemAuthPromptOutcome
+import uniffi.gemstone.GemSecurityService
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
 internal object SystemAuthPolicy {
-    private val transientRetryDelay = 1.seconds
-    private val lockoutRetryDelay = 30.seconds
-
     val authRequestTimeout = 5.minutes
     val authRequestRestartDelay = 500.milliseconds
 
@@ -24,16 +22,21 @@ internal object SystemAuthPolicy {
         BIOMETRIC_WEAK or DEVICE_CREDENTIAL
     }
 
-    fun initialRetryDelay(errorCode: Int): Duration? = when (errorCode) {
-        BiometricPrompt.ERROR_CANCELED,
+    fun initialRetryDelay(errorCode: Int, securityService: GemSecurityService): Duration? =
+        securityService.authRetryDelayMilliseconds(promptOutcome(errorCode))?.toLong()?.milliseconds
+
+    private fun promptOutcome(errorCode: Int): GemAuthPromptOutcome = when (errorCode) {
+        BiometricPrompt.ERROR_CANCELED -> GemAuthPromptOutcome.CANCELLED_BY_SYSTEM
         BiometricPrompt.ERROR_NEGATIVE_BUTTON,
         BiometricPrompt.ERROR_TIMEOUT,
-        BiometricPrompt.ERROR_USER_CANCELED -> authRequestRestartDelay
+        BiometricPrompt.ERROR_USER_CANCELED -> GemAuthPromptOutcome.CANCELLED_BY_USER
         BiometricPrompt.ERROR_HW_UNAVAILABLE,
         BiometricPrompt.ERROR_UNABLE_TO_PROCESS,
-        BiometricPrompt.ERROR_VENDOR -> transientRetryDelay
-        BiometricPrompt.ERROR_LOCKOUT -> lockoutRetryDelay
-        else -> null
+        BiometricPrompt.ERROR_VENDOR -> GemAuthPromptOutcome.TRANSIENT
+        BiometricPrompt.ERROR_LOCKOUT -> GemAuthPromptOutcome.LOCKED_OUT
+        BiometricPrompt.ERROR_NO_BIOMETRICS,
+        BiometricPrompt.ERROR_HW_NOT_PRESENT -> GemAuthPromptOutcome.UNAVAILABLE
+        else -> GemAuthPromptOutcome.FAILED
     }
 
     fun isEnrollmentMissing(canAuthenticateResult: Int): Boolean {

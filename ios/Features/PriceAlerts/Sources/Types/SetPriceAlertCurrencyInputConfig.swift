@@ -11,7 +11,7 @@ import SwiftUI
 
 struct SetPriceAlertCurrencyInputConfig: CurrencyInputConfigurable {
     let type: SetPriceAlertType
-    let alertDirection: PriceAlertDirection?
+    let alertDirection: PriceAlertDirection
     let assetData: AssetData
     let formatter: CurrencyFormatter
     let onTapActionButton: VoidAction
@@ -56,10 +56,13 @@ struct SetPriceAlertCurrencyInputConfig: CurrencyInputConfigurable {
     }
 
     private var actionButtonImage: Image? {
-        switch (type, alertDirection) {
-        case (.percentage, .up): Images.PriceAlert.up
-        case (.percentage, .down): Images.PriceAlert.down
-        default: nil
+        switch type {
+        case .price: nil
+        case .percentage:
+            switch alertDirection {
+            case .up: Images.PriceAlert.up
+            case .down: Images.PriceAlert.down
+            }
         }
     }
 }

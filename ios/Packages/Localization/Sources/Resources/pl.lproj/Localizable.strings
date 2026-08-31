@@ -18,6 +18,7 @@
 "common.wallet" = "Portfel";
 "common.show" = "Pokaż %@";
 "common.copied" = "Skopiowano: %@";
+"common.copied_to_clipboard" = "Skopiowano do schowka";
 "common.recommended" = "Zalecane";
 "common.all" = "Wszystko";
 "common.not_available" = "Niedostępne";
@@ -175,10 +176,14 @@
 "errors.token.invalid_id" = "Nieprawidłowy identyfikator tokena";
 "errors.import.invalid_secret_phrase" = "Nieprawidłowe tajne zdanie";
 "errors.import.invalid_secret_phrase_word" = "Nieprawidłowe tajne słowo: %@";
+"errors.import.invalid_private_key" = "Nieprawidłowy klucz prywatny";
+"errors.keystore_access" = "Nie udało się uzyskać dostępu do kluczy tego portfela na tym urządzeniu. Jeśli masz frazę odzyskiwania, usuń ten portfel i zaimportuj go ponownie, aby przywrócić dostęp.";
+"errors.wallet_account_missing" = "Ten portfel nie ma konta w tej sieci";
 "errors.invalid_url" = "nieprawidłowy URL";
 "errors.error_occurred" = "Wystąpił błąd!";
 "errors.invalid_network_id" = "Nieprawidłowy identyfikator sieci";
 "errors.error" = "Błąd";
+"errors.cancelled" = "Anulowano";
 "errors.connections.user_cancelled" = "Anulowane przez użytkownika";
 "errors.not_supported" = "Nieobsługiwane";
 "errors.permissions_not_granted" = "Uprawnienia nie zostały przyznane";
@@ -211,6 +216,8 @@
 "errors.swap.minimum_amount" = "Minimalna kwota transakcji wynosi %@. Proszę wprowadzić wyższą kwotę.";
 "errors.perpetual.trigger_price_lower" = "Cena aktywacji powinna być niższa niż cena rynkowa";
 "errors.perpetual.trigger_price_higher" = "Cena aktywacji powinna być wyższa niż cena rynkowa";
+"errors.network_error" = "Błąd sieciowy: %@";
+"errors.network_offline" = "Połączenie internetowe wydaje się być niedostępne.";
 "errors.no_internet_connection" = "Brak połączenia z internetem";
 "errors.no_service_connection" = "Brak połączenia z usługą";
 "errors.balances_activity_outdated" = "Salda i aktywność mogą być nieaktualne.";

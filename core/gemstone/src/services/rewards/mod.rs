@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use primitives::currency::Currency;
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{AuthenticatedRequest, ReferralCode, Rewards, Wallet, WalletId};
 
@@ -51,7 +50,7 @@ impl GemRewardsService {
         Ok(())
     }
 
-    pub async fn redeem(&self, wallet: Wallet, redemption_id: String, currency: Currency) -> Result<RedemptionResult, GemServiceError> {
+    pub async fn redeem(&self, wallet: Wallet, redemption_id: String) -> Result<RedemptionResult, GemServiceError> {
         let wallet_id = wallet.id.clone();
         let request = AuthenticatedRequest {
             auth: self.auth.get_auth_payload(wallet).await?,
@@ -59,7 +58,7 @@ impl GemRewardsService {
         };
         let result = self.api.client.redeem_rewards(wallet_id.id(), request).await.map_err(GemApiError::from)?;
         if let Some(asset) = &result.redemption.option.asset {
-            self.balance.enable_assets(wallet_id, vec![asset.id.clone()], true, currency).await.ok();
+            self.balance.set_assets_enabled(wallet_id, vec![asset.id.clone()], true).await?;
         }
         Ok(result)
     }

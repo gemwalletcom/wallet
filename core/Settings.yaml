@@ -311,6 +311,9 @@ security:
       secret: ""
   goplus:
     url: "https://api.gopluslabs.io"
+    key:
+      public: ""
+      secret: ""
   hashdit:
     url: "https://api.hashdit.io"
     key:

@@ -1,11 +1,11 @@
 package com.gemwallet.android.features.settings.settings.viewmodels
 
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.cases.device.GetPushEnabled
-import com.gemwallet.android.cases.device.SwitchPushEnabled
-import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.device.cases.GetPushEnabled
+import com.gemwallet.android.application.device.cases.SwitchPushEnabled
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Wallet
@@ -35,11 +35,11 @@ class SettingsViewModelTest {
     private val userConfig = mockk<UserConfig>(relaxed = true)
     private val wallets = MutableStateFlow<List<Wallet>>(emptyList())
     private val session = MutableStateFlow<Session?>(null)
-    private val walletsRepository = mockk<WalletsRepository>(relaxed = true) {
-        every { getAll() } returns wallets
+    private val getWallets = mockk<GetWallets>(relaxed = true) {
+        every { this@mockk() } returns wallets
     }
-    private val sessionRepository = mockk<SessionRepository>(relaxed = true) {
-        every { session() } returns session
+    private val getSession = mockk<GetSession>(relaxed = true) {
+        every { this@mockk() } returns session
     }
     private val switchPushEnabled = mockk<SwitchPushEnabled>(relaxed = true)
     private val getPushEnabled = object : GetPushEnabled {
@@ -70,7 +70,10 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `rewards shown before wallets load`() = runTest(testDispatcher) {
+    fun `rewards stay available while no wallets are loaded`() = runTest(testDispatcher) {
+        wallets.value = emptyList()
+        advanceUntilIdle()
+
         assertTrue(viewModel.isRewardsAvailable.value)
     }
 
@@ -92,8 +95,8 @@ class SettingsViewModelTest {
 
     private fun createViewModel() = SettingsViewModel(
         userConfig = userConfig,
-        walletsRepository = walletsRepository,
-        sessionRepository = sessionRepository,
+        getWallets = getWallets,
+        getSession = getSession,
         switchPushEnabled = switchPushEnabled,
         getPushEnabled = getPushEnabled,
         notificationsAvailable = true,

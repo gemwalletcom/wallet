@@ -1,8 +1,9 @@
+use crate::models::custom_types::GemBigUint;
 use primitives::{AssetId, asset_balance::BalanceMetadata};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemBalanceValue {
-    pub value: String,
+    pub value: GemBigUint,
     pub amount: f64,
 }
 
@@ -39,4 +40,20 @@ pub struct GemBalanceUpdate {
     pub asset_id: AssetId,
     pub update_type: GemBalanceUpdateType,
     pub is_active: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAssetBalance {
+    pub asset_id: AssetId,
+    pub available: GemBigUint,
+    pub frozen: GemBigUint,
+    pub locked: GemBigUint,
+    pub staked: GemBigUint,
+    pub pending: GemBigUint,
+    pub pending_unconfirmed: GemBigUint,
+    pub rewards: GemBigUint,
+    pub reserved: GemBigUint,
+    pub withdrawable: GemBigUint,
+    pub earn: GemBigUint,
+    pub metadata: Option<BalanceMetadata>,
 }

@@ -18,6 +18,7 @@
 "common.wallet" = "Dompet";
 "common.show" = "Tampilkan %@";
 "common.copied" = "Disalin: %@";
+"common.copied_to_clipboard" = "Disalin ke papan klip";
 "common.recommended" = "Direkomendasikan";
 "common.all" = "Semua";
 "common.not_available" = "Tidak Tersedia";
@@ -175,10 +176,14 @@
 "errors.token.invalid_id" = "ID Token Tidak Valid";
 "errors.import.invalid_secret_phrase" = "Frasa Rahasia Tidak Valid";
 "errors.import.invalid_secret_phrase_word" = "Kata Frasa Rahasia Tidak Valid: %@";
+"errors.import.invalid_private_key" = "Kunci privat tidak valid";
+"errors.keystore_access" = "Tidak dapat mengakses kunci dompet ini di perangkat ini. Jika Anda memiliki frasa pemulihan, hapus dompet ini dan impor kembali untuk memulihkan akses.";
+"errors.wallet_account_missing" = "Dompet ini tidak memiliki akun untuk jaringan ini";
 "errors.invalid_url" = "URL Tidak Valid";
 "errors.error_occurred" = "Terjadi kesalahan!";
 "errors.invalid_network_id" = "ID Jaringan Tidak Valid";
 "errors.error" = "Kesalahan";
+"errors.cancelled" = "Dibatalkan";
 "errors.connections.user_cancelled" = "Pengguna dibatalkan";
 "errors.not_supported" = "Tidak didukung";
 "errors.permissions_not_granted" = "Izin tidak diberikan";
@@ -211,6 +216,8 @@
 "errors.swap.minimum_amount" = "Jumlah transaksi minimum adalah %@. Silakan masukkan jumlah yang lebih tinggi.";
 "errors.perpetual.trigger_price_lower" = "Harga pemicu harus lebih rendah dari harga pasar";
 "errors.perpetual.trigger_price_higher" = "Harga pemicu harus lebih tinggi dari harga pasar";
+"errors.network_error" = "Kesalahan jaringan: %@";
+"errors.network_offline" = "Koneksi internet tampaknya sedang offline.";
 "errors.no_internet_connection" = "Tidak ada koneksi internet";
 "errors.no_service_connection" = "Tidak ada koneksi layanan";
 "errors.balances_activity_outdated" = "Saldo dan aktivitas mungkin tidak terbaru.";

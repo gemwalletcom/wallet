@@ -1,12 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemContactServiceProtocol
+import enum Gemstone.GemContactAvatar
 import protocol Gemstone.GemNameServiceProtocol
 import Components
 import GemstoneServices
 import Foundation
 import GemstonePrimitives
 import Localization
+import class Gemstone.GemAddressService
 import Primitives
 import PrimitivesComponents
 import Style
@@ -44,6 +46,7 @@ public final class ManageContactViewModel {
 
     let contactId: String
     let nameService: any GemNameServiceProtocol
+    let addressService: GemAddressService
 
     var nameInputModel: InputValidationViewModel
     var description: String = ""
@@ -57,10 +60,12 @@ public final class ManageContactViewModel {
     public init(
         service: any GemContactServiceProtocol,
         nameService: any GemNameServiceProtocol,
+        addressService: GemAddressService,
         mode: Mode,
     ) {
         self.service = service
         self.nameService = nameService
+        self.addressService = addressService
         self.mode = mode
 
         nameInputModel = InputValidationViewModel(
@@ -69,10 +74,17 @@ public final class ManageContactViewModel {
         )
 
         switch mode {
-        case let .add(input):
+        case let .add(recipient):
             contactId = UUID().uuidString
-            addresses = input.map {
-                [ContactAddress.new(contactId: contactId, chain: $0.chain, address: $0.recipient.address, memo: $0.recipient.memo)]
+            addresses = recipient.flatMap {
+                try? service.addAddress(
+                    [],
+                    contactId: contactId,
+                    chain: $0.chain,
+                    address: $0.recipient.address,
+                    memo: $0.recipient.memo,
+                    replacingId: nil,
+                )
             } ?? []
         case let .edit(contactData):
             contactId = contactData.contact.id
@@ -85,6 +97,10 @@ public final class ManageContactViewModel {
 
     var title: String {
         Localized.Contacts.contact
+    }
+
+    var defaultChain: Chain {
+        service.defaultContactChain
     }
 
     var isAddMode: Bool {
@@ -144,17 +160,17 @@ public final class ManageContactViewModel {
         isPresentingAvatar = false
     }
 
-    private func saveAvatar() throws -> String? {
+    private func avatarInput() throws -> GemContactAvatar {
         switch avatar {
         case .empty:
-            return nil
+            return .empty
         case let .image(imageUrl):
-            return imageUrl
+            return .image(imageUrl: imageUrl)
         case let .emoji(value):
             guard let data = EmojiAvatarRenderer.image(emoji: value.emoji, size: .image.extraLarge, color: value.color.uiColor).pngData() else {
                 throw AnyError("Render avatar image failed")
             }
-            return try service.saveAvatar(image: data)
+            return .rendered(image: data)
         }
     }
 
@@ -170,12 +186,15 @@ public final class ManageContactViewModel {
         )
     }
 
-    func onAddressComplete(_ address: ContactAddress) {
-        if let index = addresses.firstIndex(where: { $0.id == address.id }) {
-            addresses[index] = address
-        } else {
-            addresses.append(address)
-        }
+    func onAddressComplete(_ input: ManageContactAddressViewModel.Input) {
+        addresses = (try? service.addAddress(
+            addresses,
+            contactId: contactId,
+            chain: input.chain,
+            address: input.address,
+            memo: input.memo,
+            replacingId: input.replacingId,
+        )) ?? addresses
         isPresentingAddress = nil
     }
 
@@ -186,20 +205,14 @@ public final class ManageContactViewModel {
     func onSave() {
         Task {
             do {
-                let contact = Contact.new(
+                let contact = try await service.saveContact(
                     id: contactId,
-                    name: nameInputModel.text.trim(),
-                    description: description.isEmpty ? nil : description,
-                    imageUrl: try saveAvatar(),
-                    createdAt: mode.contact?.createdAt ?? .now,
+                    existing: mode.contact,
+                    name: nameInputModel.text,
+                    description: description,
+                    avatar: try avatarInput(),
+                    addresses: addresses,
                 )
-                switch mode {
-                case .add: try await service.addContact(contact, addresses: addresses)
-                case .edit: try await service.updateContact(contact, addresses: addresses)
-                }
-                if let previous = mode.contact?.imageUrl, previous != contact.imageUrl {
-                    try? service.removeAvatar(fileName: previous)
-                }
                 avatar = Avatar(imageUrl: contact.imageUrl)
             } catch {
                 debugLog("ManageContactViewModel save error: \(error)")

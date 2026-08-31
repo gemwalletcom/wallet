@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.confirm
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
@@ -18,19 +19,15 @@ class FeeRateUIModelTest {
     fun feeRateScalesFiatFromSelectedLoadedFeeForGweiChain() {
         val assetInfo = mockAssetInfo(asset = mockAssetEthereum())
             .copy(price = mockAssetPriceInfo(price = 1.0))
-        val selectedRate = GemFeeRate(
-            priority = FeePriority.Normal.string,
-            gasPriceType = GemGasPriceType.Eip1559(gasPrice = "2", priorityFee = "0"),
-        )
         val model = FeeRateUIModel(
-            feeRate = GemFeeRate(
-                priority = FeePriority.Fast.string,
+            feeRate = GemFeeRate(FeePriority.Fast.toGem(),
                 gasPriceType = GemGasPriceType.Eip1559(gasPrice = "1", priorityFee = "0"),
             ),
             feeAsset = assetInfo,
             feeUnitType = FeeUnitType.Gwei,
             feeRateDecimals = 9,
-            selectedRate = selectedRate,
+            totalFee = BigInteger("1"),
+            selectedTotalFee = BigInteger("2"),
             selectedFeeAmount = BigInteger("1000000000000000000"),
         )
 
@@ -41,16 +38,13 @@ class FeeRateUIModelTest {
     @Test
     fun nativeFeeChainScalesCryptoFromSelectedLoadedFee() {
         val assetInfo = mockAssetInfo(asset = mockAssetSolana())
-        val selectedRate = GemFeeRate(
-            priority = FeePriority.Normal.string,
-            gasPriceType = GemGasPriceType.Regular(gasPrice = "110"),
-        )
         fun model(priority: FeePriority, gasPrice: String) = FeeRateUIModel(
-            feeRate = GemFeeRate(priority = priority.string, gasPriceType = GemGasPriceType.Regular(gasPrice = gasPrice)),
+            feeRate = GemFeeRate(priority = priority.toGem(), gasPriceType = GemGasPriceType.Regular(gasPrice = gasPrice)),
             feeAsset = assetInfo,
             feeUnitType = FeeUnitType.Native,
             feeRateDecimals = assetInfo.asset.decimals,
-            selectedRate = selectedRate,
+            totalFee = gasPrice.toBigInteger(),
+            selectedTotalFee = BigInteger("110"),
             selectedFeeAmount = BigInteger("110000"),
         )
 
@@ -61,13 +55,13 @@ class FeeRateUIModelTest {
     @Test
     fun nativeFeeChainShowsCryptoAmountWithoutFiatWhenFeeNotLoaded() {
         val model = FeeRateUIModel(
-            feeRate = GemFeeRate(
-                priority = FeePriority.Normal.string,
+            feeRate = GemFeeRate(FeePriority.Normal.toGem(),
                 gasPriceType = GemGasPriceType.Regular(gasPrice = "1"),
             ),
             feeAsset = mockAssetInfo(asset = mockAssetEthereum()),
             feeUnitType = FeeUnitType.Native,
             feeRateDecimals = mockAssetEthereum().decimals,
+            totalFee = BigInteger("1"),
         )
 
         assertEquals("0.000000000000000001 ETH", model.price)

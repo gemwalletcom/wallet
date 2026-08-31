@@ -1,12 +1,12 @@
 package com.gemwallet.android.domains.confirm
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.FeePriority
-import com.gemwallet.android.ext.totalFee
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.GemFeeRate
 import java.math.BigInteger
@@ -16,11 +16,12 @@ data class FeeRateUIModel(
     val feeAsset: AssetInfo,
     val feeUnitType: FeeUnitType?,
     val feeRateDecimals: Int,
-    val selectedRate: GemFeeRate? = null,
+    val totalFee: BigInteger,
+    val selectedTotalFee: BigInteger? = null,
     val selectedFeeAmount: BigInteger? = null,
     val unitSymbol: String? = null,
 ) {
-    val priority: FeePriority = FeePriority.entries.first { it.string == feeRate.priority }
+    val priority: FeePriority = feeRate.priority.toPrimitives()
 
     val price: String
         get() = if (feeUnitType == FeeUnitType.Native) {
@@ -40,10 +41,9 @@ data class FeeRateUIModel(
 
     private val feeAmount: BigInteger?
         get() {
-            if (selectedFeeAmount != null && selectedRate != null) {
-                val selectedTotal = selectedRate.gasPriceType.totalFee()
-                if (selectedTotal == BigInteger.ZERO) return null
-                return selectedFeeAmount.multiply(feeRate.gasPriceType.totalFee()).divide(selectedTotal)
+            if (selectedFeeAmount != null && selectedTotalFee != null) {
+                if (selectedTotalFee == BigInteger.ZERO) return null
+                return selectedFeeAmount.multiply(totalFee).divide(selectedTotalFee)
             }
             return null
         }
@@ -59,11 +59,11 @@ data class FeeRateUIModel(
         feeUnitType ?: return ""
         val symbol = unitSymbol ?: return ""
         return ValueFormatter(style = ValueFormatter.Style.Auto)
-            .string(feeRate.gasPriceType.totalFee(), feeRateDecimals, symbol)
+            .string(totalFee, feeRateDecimals, symbol)
     }
 
     private fun nativeAmountText(): String {
-        val amount = feeAmount ?: feeRate.gasPriceType.totalFee()
+        val amount = feeAmount ?: totalFee
         return ValueFormatter(style = ValueFormatter.Style.Auto)
             .string(amount, feeAsset.asset.decimals, feeAsset.asset.symbol)
     }

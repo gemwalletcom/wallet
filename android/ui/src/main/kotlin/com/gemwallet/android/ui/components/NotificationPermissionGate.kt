@@ -8,20 +8,18 @@ import androidx.compose.runtime.setValue
 
 @Composable
 fun rememberNotificationPermissionGate(onGranted: () -> Unit = {}): (() -> Unit) -> Unit {
-    var requesting by remember { mutableStateOf(false) }
+    var pending by remember { mutableStateOf<(() -> Unit)?>(null) }
 
-    if (requesting) {
+    pending?.let { action ->
         PushRequest(
             onNotificationEnable = {
-                requesting = false
+                pending = null
+                action()
                 onGranted()
             },
-            onDismiss = { requesting = false },
+            onDismiss = { pending = null },
         )
     }
 
-    return { action ->
-        action()
-        requesting = true
-    }
+    return { action -> pending = action }
 }

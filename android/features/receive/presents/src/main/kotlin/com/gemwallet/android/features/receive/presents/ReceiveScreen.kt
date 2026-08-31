@@ -27,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,7 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.networkFullName
 import com.gemwallet.android.ext.boldMarkdown
-import com.gemwallet.android.ext.isMemoSupport
+import uniffi.gemstone.GemMemoWarning
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.features.receive.presents.components.rememberQRCodePainter
 import com.gemwallet.android.features.receive.viewmodels.ReceiveViewModel
@@ -67,6 +66,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 private val qrSize = 300.dp
 private val qrSizeCompact = 220.dp
@@ -93,6 +93,7 @@ fun ReceiveScreen(
         ReceiveScene(
             closeIcon = closeIcon,
             assetInfo = info,
+            memoWarning = viewModel.memoWarning(info.asset.id.chain),
             onSelectNetwork = if (networkAssetIds.size > 1) {
                 { isShowingNetworkSelector = true }
             } else {
@@ -115,11 +116,12 @@ fun ReceiveScreen(
 private fun ReceiveScene(
     closeIcon: Boolean,
     assetInfo: AssetInfo,
+    memoWarning: GemMemoWarning,
     onSelectNetwork: (() -> Unit)?,
     onCancel: () -> Unit,
 ) {
     val context = LocalContext.current
-    val clipboardManager = LocalClipboard.current.nativeClipboard
+    val clipboardManager = LocalContext.current.clipboardManager()
     val shareTitle = stringResource(R.string.common_share)
     val isCompactHeight = isCompactDimension(WindowDimension.Height)
     val imageSize = if (isCompactHeight) qrSizeCompact else qrSize
@@ -221,7 +223,7 @@ private fun ReceiveScene(
             }
             Text(
                 modifier = Modifier.width(imageSize),
-                text = parseMarkdownToAnnotatedString(warningMessage(assetInfo.asset)),
+                text = parseMarkdownToAnnotatedString(warningMessage(assetInfo.asset, memoWarning)),
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.bodyMedium,
@@ -232,18 +234,16 @@ private fun ReceiveScene(
 }
 
 @Composable
-private fun warningMessage(asset: Asset): String {
+private fun warningMessage(asset: Asset, memoWarning: GemMemoWarning): String {
     val warning = stringResource(
         R.string.receive_warning,
         asset.symbol.boldMarkdown(),
         asset.networkFullName.boldMarkdown(),
     )
-    val memoWarning = when {
-        asset.chain == Chain.Xrp && asset.chain.isMemoSupport() ->
-            stringResource(R.string.wallet_receive_no_destination_tag_required)
-        asset.chain.isMemoSupport() ->
-            stringResource(R.string.wallet_receive_no_memo_required)
-        else -> null
+    val memoText = when (memoWarning) {
+        GemMemoWarning.DESTINATION_TAG -> stringResource(R.string.wallet_receive_no_destination_tag_required)
+        GemMemoWarning.MEMO -> stringResource(R.string.wallet_receive_no_memo_required)
+        GemMemoWarning.NOT_SUPPORTED -> null
     }
-    return listOfNotNull(warning, memoWarning).joinToString(" ")
+    return listOfNotNull(warning, memoText).joinToString(" ")
 }

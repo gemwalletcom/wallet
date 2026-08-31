@@ -28,7 +28,7 @@ interface AddressesDao {
 
     @Query(
         "UPDATE addresses SET name = :name, type = :type, status = :status, imageUrl = :imageUrl " +
-            "WHERE chain = :chain AND address = :address AND type NOT IN (:localTypes)"
+            "WHERE chain = :chain AND address = :address AND type NOT IN (:reservedTypes)"
     )
     suspend fun updateAddressName(
         chain: Chain,
@@ -37,7 +37,7 @@ interface AddressesDao {
         type: AddressType,
         status: VerificationStatus,
         imageUrl: String?,
-        localTypes: List<AddressType> = AddressType.entries.filter { it.isLocal },
+        reservedTypes: List<AddressType> = AddressType.entries.filter { it.isLocal && it != type },
     )
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
@@ -47,10 +47,15 @@ interface AddressesDao {
     fun getFlow(chain: Chain, address: String): Flow<DbAddress?>
 
     @Query("SELECT * FROM addresses WHERE chain = :chain AND address = :address LIMIT 1")
-    suspend fun get(chain: Chain, address: String): DbAddress?
+    fun get(chain: Chain, address: String): DbAddress?
 
     @Query("DELETE FROM addresses WHERE chain = :chain AND address = :address AND type = :type")
     suspend fun delete(chain: Chain, address: String, type: AddressType)
+
+    @Transaction
+    suspend fun deleteNames(addresses: List<DbAddress>) {
+        addresses.forEach { delete(it.chain, it.address, it.type) }
+    }
 
     @Query("UPDATE addresses SET name = :name WHERE walletId = :walletId")
     suspend fun updateName(walletId: String, name: String)

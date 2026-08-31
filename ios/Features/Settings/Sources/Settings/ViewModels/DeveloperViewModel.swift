@@ -1,5 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemDeeplinkService
+import class Gemstone.GemDeviceKeyService
+import protocol Gemstone.GemPerpetualServiceProtocol
+import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemWalletPreferencesServiceProtocol
 import GemstoneServices
 import BigInt
@@ -23,7 +27,10 @@ public final class DeveloperViewModel {
     private let stakeStore: StakeStore
     private let bannerStore: BannerStore
     private let priceStore: PriceStore
-    private let perpetualService: PerpetualService
+    private let perpetualService: any GemPerpetualServiceProtocol
+    private let deeplinkService: GemDeeplinkService
+    private let preferencesService: any GemPreferencesServiceProtocol
+    private let deviceKeyService: GemDeviceKeyService
 
     public var isPresentingToastMessage: ToastMessage?
 
@@ -34,10 +41,14 @@ public final class DeveloperViewModel {
         stakeStore: StakeStore,
         bannerStore: BannerStore,
         priceStore: PriceStore,
-        perpetualService: PerpetualService,
+        perpetualService: any GemPerpetualServiceProtocol,
         walletPreferencesService: any GemWalletPreferencesServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
+        deviceKeyService: GemDeviceKeyService,
+        deeplinkService: GemDeeplinkService,
     ) {
         self.walletId = walletId
+        self.deeplinkService = deeplinkService
         self.walletPreferencesService = walletPreferencesService
         self.transactionStore = transactionStore
         self.assetStore = assetStore
@@ -45,6 +56,8 @@ public final class DeveloperViewModel {
         self.bannerStore = bannerStore
         self.priceStore = priceStore
         self.perpetualService = perpetualService
+        self.preferencesService = preferencesService
+        self.deviceKeyService = deviceKeyService
     }
 
     var title: String {
@@ -52,7 +65,7 @@ public final class DeveloperViewModel {
     }
 
     var deviceId: String {
-        (try? SecurePreferences.standard.getDeviceId()) ?? .empty
+        (try? deviceKeyService.deviceId()) ?? .empty
     }
 
     var deviceToken: String {
@@ -62,7 +75,7 @@ public final class DeveloperViewModel {
     func reset() {
         do {
             try clearDocuments()
-            Preferences.standard.clear()
+            try preferencesService.clear()
             try SecurePreferences.standard.clear()
             fatalError()
         } catch {
@@ -98,7 +111,7 @@ public final class DeveloperViewModel {
 
     func clearWalletPreferences() {
         performAction {
-            try walletPreferencesService.clear(walletId: walletId)
+            try walletPreferencesService.deletePreferences(walletId: walletId)
         }
     }
 
@@ -288,7 +301,7 @@ public final class DeveloperViewModel {
 
     func deeplink(deeplink: DeepLink) {
         Task { @MainActor in
-            await UIApplication.shared.open(deeplink.gemUrl, options: [:])
+            await UIApplication.shared.open(deeplink.gemUrl(deeplinkService: deeplinkService), options: [:])
         }
     }
 }

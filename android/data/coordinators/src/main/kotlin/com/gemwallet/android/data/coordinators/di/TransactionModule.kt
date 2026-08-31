@@ -1,21 +1,31 @@
 package com.gemwallet.android.data.coordinators.di
 
 import uniffi.gemstone.GemExplorerService
-import com.gemwallet.android.application.transactions.coordinators.GetTransactionDetails
-import com.gemwallet.android.application.transactions.coordinators.GetTransactions
-import com.gemwallet.android.application.transactions.coordinators.SyncAssetTransactions
-import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
+import uniffi.gemstone.GemAddressService
+import uniffi.gemstone.GemTransactionFormatter
+import com.gemwallet.android.application.transactions.cases.GetTransactionDetails
+import com.gemwallet.android.application.transactions.cases.GetTransactions
+import com.gemwallet.android.application.transactions.cases.SyncAssetTransactions
+import com.gemwallet.android.application.transactions.cases.SyncTransactions
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionDetailsImpl
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionsImpl
 import com.gemwallet.android.data.coordinators.transaction.SyncTransactionsImpl
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.transactions.TransactionRepository
+import com.gemwallet.android.application.transactions.cases.GetTransaction
+import com.gemwallet.android.application.transactions.cases.GetPendingTransactionsCount
+import com.gemwallet.android.application.transactions.cases.ClearPendingTransactions
+import com.gemwallet.android.data.coordinators.transaction.ClearPendingTransactionsImpl
+import com.gemwallet.android.data.coordinators.transaction.GetPendingTransactionsCountImpl
+import com.gemwallet.android.data.coordinators.transaction.GetTransactionImpl
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStore
+import uniffi.gemstone.GemAssetConfigService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -23,10 +33,30 @@ object TransactionModule {
     @Provides
     @Singleton
     fun provideGetTransactions(
-        transactionRepository: TransactionRepository,
-    ): GetTransactions {
-        return GetTransactionsImpl(transactionRepository)
-    }
+        getCurrentWalletId: GetCurrentWalletId,
+        transactionStore: GemstoneTransactionStore,
+        transactionFormatter: GemTransactionFormatter,
+        addressService: GemAddressService,
+    ): GetTransactions = GetTransactionsImpl(getCurrentWalletId, transactionStore, transactionFormatter, addressService)
+
+    @Provides
+    @Singleton
+    fun provideGetTransaction(
+        getCurrentWalletId: GetCurrentWalletId,
+        transactionStore: GemstoneTransactionStore,
+    ): GetTransaction = GetTransactionImpl(getCurrentWalletId, transactionStore)
+
+    @Provides
+    @Singleton
+    fun provideGetPendingTransactionsCount(
+        getCurrentWalletId: GetCurrentWalletId,
+        transactionStore: GemstoneTransactionStore,
+        assetConfig: GemAssetConfigService,
+    ): GetPendingTransactionsCount = GetPendingTransactionsCountImpl(getCurrentWalletId, transactionStore, assetConfig)
+
+    @Provides
+    @Singleton
+    fun provideClearPending(transactionStore: GemstoneTransactionStore): ClearPendingTransactions = ClearPendingTransactionsImpl(transactionStore)
 
     @Provides
     @Singleton
@@ -43,16 +73,18 @@ object TransactionModule {
     @Provides
     @Singleton
     fun provideGetTransactionDetails(
-        sessionRepository: SessionRepository,
-        transactionRepository: TransactionRepository,
-        assetsRepository: AssetsRepository,
+        getSession: GetSession,
+        getTransaction: GetTransaction,
+        getWalletAssets: GetWalletAssets,
         explorerService: GemExplorerService,
+        transactionFormatter: GemTransactionFormatter,
     ): GetTransactionDetails {
         return GetTransactionDetailsImpl(
-            sessionRepository = sessionRepository,
-            transactionRepository = transactionRepository,
-            assetsRepository = assetsRepository,
+            getSession = getSession,
+            getTransaction = getTransaction,
+            getWalletAssets = getWalletAssets,
             explorerService = explorerService,
+            transactionFormatter = transactionFormatter,
         )
     }
 }
