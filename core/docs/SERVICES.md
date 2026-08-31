@@ -332,11 +332,6 @@ Found by reading both platforms side by side. Ranked within each group by value:
 | T11 | Stream registration gate | reads `isRegistered()`, syncs only if unregistered | syncs unconditionally on every foreground | Same intent, two preconditions. |
 | T12 | App-start ordering | `OnstartService` + `RootSceneViewModel`, device sync raced, wallet setup gated on unlock | `SyncService.kt:16-24` sequential, no unlock gate | `GemAppStartService.run()` covers only config/banners/assets; everything else is bolted on per platform in a different order. |
 
-#### Screen rules the two apps answer differently
-
-| # | What | iOS | Android | The difference |
-|---|---|---|---|---|
-
 Found while landing the batches above, not yet fixed:
 
 - **The reconnect cap was a real decision, not a default.** Android's 30 s was set deliberately (`d1cdb74`, "Cap stream reconnect backoff at 30s") so the price stream resumes within half a minute; iOS's 60 s was the untouched default from the initial import. Core took 30 s. Worth knowing before "restoring" 60 s.
@@ -354,7 +349,6 @@ Found while landing the batches above, not yet fixed:
 | What | Where | Why it matters |
 |---|---|---|
 | Android silently re-enables push 30 days after a deliberate opt-out | `SettingsViewModel.kt:123-128` calls `stopAskNotifications()` on **disable**, restarting the 30-day timer; `AppViewModel.kt:83-89` then re-asks and `PushRequest.kt:25-29` finds `POST_NOTIFICATIONS` still granted, so it enables with no dialog | Reverses an explicit privacy choice. Needs somewhere to record "the user said no", which does not exist yet |
-| Android's `is_push_enabled` never consults runtime notification authorization | `DevicePlatform.kt:118` is preference AND flavour flag; iOS reads live `UNAuthorizationStatus` since `25a6a38bfa` | A user who revokes `POST_NOTIFICATIONS` keeps reporting enabled with a live token. The runtime check already exists in the same module (`NotificationPermissions.kt:13`), wired only to price-alert banners |
 | iOS's swap-pay recents query references an unjoined table | `RecentActivityRequest.swift` adds the balances join only for `.hasBalance`/`.enabledBalance`, but `AssetsRequest.applyFilter` emits `balances[availableAmount] > 0` for `.hasAvailableBalance` — swap-pay's set. `RecentActivityRequestTests.swift:49` exercises only `[.hasBalance]` | Must be fixed before iOS is used as the reference for V6 |
 | Pull-to-refresh on perpetual markets is a no-op for up to an hour, both platforms | `MARKETS_REFRESH_INTERVAL_SECONDS = 3600` throttles both the Android pull and iOS's 1-minute timer | An explicit user pull should arguably bypass the staleness gate |
 | Android's fiat/buy amount has no debounce | `FiatViewModel.kt:140-146` combines `amount` straight into `mapLatest`; iOS debounces 250 ms | Same class as the swap and name debounce drift; in no row |

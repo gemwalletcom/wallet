@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.device
 
 import android.content.Context
+import androidx.core.app.NotificationManagerCompat
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -103,7 +104,10 @@ class GemstoneDevicePlatform(
         return token
     }
 
-    override suspend fun isPushEnabled(): Boolean = getPushEnabled().firstOrNull() ?: false
+    override suspend fun isPushEnabled(): Boolean =
+        notificationsAvailable &&
+            preferencesService.isPushNotificationsEnabled() &&
+            NotificationManagerCompat.from(context).areNotificationsEnabled()
 
     override suspend fun currency(): String = preferencesService.getCurrency()
 
