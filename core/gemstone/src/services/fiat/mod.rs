@@ -11,6 +11,8 @@ use crate::services::assets::GemAssetsService;
 
 pub use store::GemFiatStore;
 
+const QUOTE_DEBOUNCE_MILLISECONDS: u64 = 250;
+
 #[derive(uniffi::Object)]
 pub struct GemFiatService {
     api: Arc<GemDeviceApiClient>,
@@ -23,6 +25,10 @@ impl GemFiatService {
     #[uniffi::constructor]
     pub fn new(api: Arc<GemDeviceApiClient>, assets: Arc<GemAssetsService>, store: Arc<dyn GemFiatStore>) -> Self {
         Self { api, assets, store }
+    }
+
+    pub fn quote_debounce_milliseconds(&self) -> u64 {
+        QUOTE_DEBOUNCE_MILLISECONDS
     }
 
     pub async fn sync_transactions(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {

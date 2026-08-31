@@ -33,7 +33,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
+import uniffi.gemstone.GemFiatServiceInterface
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -58,6 +60,10 @@ class FiatViewModelTest {
         override fun invoke(assetId: AssetId): Flow<AssetData?> = assetDataFlow
     }
     private val assetPriceUsdFlow = MutableStateFlow<Double?>(100.0)
+    private val fiatService = mockk<GemFiatServiceInterface> {
+        every { quoteDebounceMilliseconds() } returns 250uL
+    }
+
     private val getAssetPriceUsd = object : GetAssetPriceUsd {
         override fun invoke(assetId: AssetId): Flow<Double?> = assetPriceUsdFlow
     }
@@ -116,9 +122,11 @@ class FiatViewModelTest {
         val viewModel = createViewModel()
 
         try {
+            advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
             assetDataFlow.value = assetData(price = 125.0)
+            advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
             coVerify(exactly = 1) {
@@ -142,9 +150,11 @@ class FiatViewModelTest {
         val viewModel = createViewModel()
 
         try {
+            advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
             assetDataFlow.value = assetData(price = 100.0)
+            advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
             coVerify(exactly = 1) {
@@ -166,6 +176,7 @@ class FiatViewModelTest {
         val viewModel = createViewModel(initialAmount = 10)
 
         try {
+            advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
             assertEquals("10", viewModel.amount.value)
@@ -189,10 +200,12 @@ class FiatViewModelTest {
         val viewModel = createViewModel()
 
         try {
+            advanceTimeBy(DebounceSettleMs)
             runCurrent()
             assertFalse(viewModel.showFiatTypePicker.value)
 
             assetDataFlow.value = assetData(price = 100.0, isSellEnabled = true, available = "0")
+            advanceTimeBy(DebounceSettleMs)
             runCurrent()
             assertTrue(viewModel.showFiatTypePicker.value)
         } finally {
@@ -206,6 +219,7 @@ class FiatViewModelTest {
         val viewModel = createViewModel()
 
         try {
+            advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
             assertEquals("1 BTC", viewModel.assetInfoUIModel.value?.balance)
@@ -220,16 +234,19 @@ class FiatViewModelTest {
         val viewModel = createViewModel()
 
         try {
+            advanceTimeBy(DebounceSettleMs)
             runCurrent()
             viewModel.setType(FiatQuoteType.Sell)
             assertEquals(FiatQuoteType.Buy, viewModel.type.value)
 
             assetDataFlow.value = assetData(price = 100.0, isSellEnabled = true, available = "0")
+            advanceTimeBy(DebounceSettleMs)
             runCurrent()
             viewModel.setType(FiatQuoteType.Sell)
             assertEquals(FiatQuoteType.Sell, viewModel.type.value)
 
             assetDataFlow.value = assetData(price = 100.0, isSellEnabled = false, available = OneBitcoin)
+            advanceTimeBy(DebounceSettleMs)
             runCurrent()
             assertEquals(FiatQuoteType.Buy, viewModel.type.value)
         } finally {
@@ -243,16 +260,19 @@ class FiatViewModelTest {
         val viewModel = createViewModel(initialAmount = 25, initialType = FiatQuoteType.Sell)
 
         try {
+            advanceTimeBy(DebounceSettleMs)
             runCurrent()
             assertEquals(FiatQuoteType.Sell, viewModel.type.value)
             assertEquals("25", viewModel.amount.value)
 
             assetDataFlow.value = assetData(price = 100.0, isSellEnabled = true, available = OneBitcoin)
+            advanceTimeBy(DebounceSettleMs)
             runCurrent()
             assertEquals(FiatQuoteType.Sell, viewModel.type.value)
             assertEquals("25", viewModel.amount.value)
 
             viewModel.setType(FiatQuoteType.Buy)
+            advanceTimeBy(DebounceSettleMs)
             runCurrent()
             assertEquals(FiatConfig.defaultBuyAmount.toString(), viewModel.amount.value)
         } finally {
@@ -283,6 +303,7 @@ class FiatViewModelTest {
         val viewModel = createViewModel()
 
         try {
+            advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
             val provider = viewModel.providers.value.first()
@@ -303,6 +324,7 @@ class FiatViewModelTest {
             getBuyQuoteUrl = getBuyQuoteUrl,
             getBuyAssetInfo = getBuyAssetInfo,
             getAssetPriceUsd = getAssetPriceUsd,
+            fiatService = fiatService,
             savedStateHandle = SavedStateHandle(arguments),
         )
     }
@@ -320,5 +342,6 @@ class FiatViewModelTest {
 
     private companion object {
         const val OneBitcoin = "100000000"
+        const val DebounceSettleMs = 300L
     }
 }

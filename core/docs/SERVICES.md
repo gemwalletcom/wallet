@@ -348,9 +348,9 @@ Found while landing the batches above, not yet fixed:
 | What | Where | Why it matters |
 |---|---|---|
 | Android silently re-enables push 30 days after a deliberate opt-out | `SettingsViewModel.kt:123-128` calls `stopAskNotifications()` on **disable**, restarting the 30-day timer; `AppViewModel.kt:83-89` then re-asks and `PushRequest.kt:25-29` finds `POST_NOTIFICATIONS` still granted, so it enables with no dialog | Reverses an explicit privacy choice. Needs somewhere to record "the user said no", which does not exist yet |
-| iOS's swap-pay recents query references an unjoined table | `RecentActivityRequest.swift` adds the balances join only for `.hasBalance`/`.enabledBalance`, but `AssetsRequest.applyFilter` emits `balances[availableAmount] > 0` for `.hasAvailableBalance` — swap-pay's set. `RecentActivityRequestTests.swift:49` exercises only `[.hasBalance]` | Must be fixed before iOS is used as the reference for V6 |
 | Pull-to-refresh on perpetual markets is a no-op for up to an hour, both platforms | `MARKETS_REFRESH_INTERVAL_SECONDS = 3600` throttles both the Android pull and iOS's 1-minute timer | An explicit user pull should arguably bypass the staleness gate |
-| Android's fiat/buy amount has no debounce | `FiatViewModel.kt:140-146` combines `amount` straight into `mapLatest`; iOS debounces 250 ms | Same class as the swap and name debounce drift; in no row |
+
+**The swap-pay recents row was stale.** `referencesBalances` already covers `.hasAvailableBalance`, so the join is added, and `swapPayKeepsOnlyAssetsWithAnAvailableBalance` exercises the exact filter set. Nothing to fix.
 
 #### Tests that cannot fail
 

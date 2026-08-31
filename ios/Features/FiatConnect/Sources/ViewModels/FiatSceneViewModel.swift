@@ -20,6 +20,10 @@ import Validators
 @Observable
 public final class FiatSceneViewModel {
     let fiatService: any GemFiatServiceProtocol
+
+    var quoteDebounce: Duration {
+        .milliseconds(fiatService.quoteDebounceMilliseconds())
+    }
     private let wallet: Wallet
     private let balanceService: any GemBalanceServiceProtocol
     private let assetAddress: AssetAddress

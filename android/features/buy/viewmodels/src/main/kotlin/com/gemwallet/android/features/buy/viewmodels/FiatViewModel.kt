@@ -3,6 +3,7 @@ package com.gemwallet.android.features.buy.viewmodels
 import android.text.format.DateUtils
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import uniffi.gemstone.GemFiatServiceInterface
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
@@ -36,6 +37,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -60,6 +62,7 @@ class FiatViewModel @Inject constructor(
     private val getBuyQuoteUrl: GetBuyQuoteUrl,
     getBuyAssetInfo: GetBuyAssetInfo,
     getAssetPriceUsd: GetAssetPriceUsd,
+    private val fiatService: GemFiatServiceInterface,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -137,7 +140,7 @@ class FiatViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
     init {
-        combine(assetData.filterNotNull(), type, amount, ticker) { data, currentType, amount, tick ->
+        combine(assetData.filterNotNull(), type, amount.debounce(fiatService.quoteDebounceMilliseconds().toLong()), ticker) { data, currentType, amount, tick ->
             QuoteFetchParams(
                 assetData = data,
                 type = currentType,

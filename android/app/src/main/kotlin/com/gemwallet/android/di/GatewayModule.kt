@@ -27,6 +27,7 @@ import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassw
 import uniffi.gemstone.GemKeystore
 import uniffi.gemstone.GemDeviceApiClient as GemstoneDeviceApiClient
 import uniffi.gemstone.GemFiatService
+import uniffi.gemstone.GemFiatServiceInterface
 import uniffi.gemstone.GemFiatStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import uniffi.gemstone.GemAssetStore
@@ -206,6 +207,10 @@ object GatewayModule {
         assetsService: GemAssetsService,
         store: GemFiatStore,
     ): GemFiatService = GemFiatService(apiClient, assetsService, store)
+
+    @Provides
+    @Singleton
+    fun provideGemFiatServiceInterface(service: GemFiatService): GemFiatServiceInterface = service
 
 
     @Provides

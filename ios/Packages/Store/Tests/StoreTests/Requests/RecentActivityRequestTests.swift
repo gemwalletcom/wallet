@@ -9,7 +9,7 @@ import Testing
 
 struct RecentActivityRequestTests {
     @Test
-    func fetchRecentAssets() throws {
+    func recentAssetsAreNewestFirstAndOnePerAsset() throws {
         let db = DB.mockAssets()
         let store = RecentActivityStore(db: db)
         let btc = AssetId(chain: .bitcoin)
@@ -30,7 +30,7 @@ struct RecentActivityRequestTests {
     }
 
     @Test
-    func fetchRecentAssetsWithFilters() throws {
+    func filtersNarrowTheRecentAssets() throws {
         let db = DB.mockAssets()
         let store = RecentActivityStore(db: db)
         let assetStore = AssetStore(db: db)
@@ -61,7 +61,7 @@ struct RecentActivityRequestTests {
     }
 
     @Test
-    func fetchRecentAssetsWithSwapPayFilters() throws {
+    func swapPayKeepsOnlyAssetsWithAnAvailableBalance() throws {
         let db = DB.mockAssets()
         let store = RecentActivityStore(db: db)
         let balanceStore = BalanceStore(db: db)
