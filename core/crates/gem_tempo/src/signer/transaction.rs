@@ -104,8 +104,11 @@ impl TempoTransaction {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloy_primitives::Signature;
-    use primitives::{Chain, asset_constants::TEMPO_BRIDGED_USDC_TOKEN_ID, testkit::signer_mock::TEST_PRIVATE_KEY};
+    use primitives::{
+        Chain,
+        asset_constants::TEMPO_BRIDGED_USDC_TOKEN_ID,
+        testkit::signer_mock::{TEST_PRIVATE_KEY, TEST_PRIVATE_KEY_ETHEREUM_ADDRESS},
+    };
 
     #[test]
     fn test_sign_is_byte_stable_and_recovers_signer() {
@@ -132,8 +135,6 @@ mod tests {
         assert_eq!(hex::encode(hash), "0ab41dc111006b724a6c72b55621146c6a264064c718db369fe1ac6657d5db57");
 
         let signature_bytes = &signed[signed.len() - 65..];
-        let signature = Signature::try_from(signature_bytes).unwrap();
-        let signer = signature.recover_address_from_prehash(&hash).unwrap();
-        assert_eq!(signer, "0x1a642f0e3c3af545e7acbd38b07251b3990914f1".parse::<Address>().unwrap());
+        assert_eq!(Signer::recover_ethereum_address(&hash.0, signature_bytes).unwrap(), TEST_PRIVATE_KEY_ETHEREUM_ADDRESS);
     }
 }

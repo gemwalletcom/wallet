@@ -247,9 +247,9 @@ mod tests {
         let transaction = map_user_fill_by_hash("0xabc", fills.clone(), TEST_TRANSACTION_ID, None).unwrap();
         let by_order_id = map_user_fill_by_oid("0xabc", fills, TEST_TRANSACTION_ORDER_ID.parse().unwrap(), None).unwrap();
 
-        assert_eq!(transaction.hash, TEST_TRANSACTION_ID);
+        assert_eq!(transaction.hash(), TEST_TRANSACTION_ID);
         assert_eq!(transaction.transaction_type, TransactionType::PerpetualOpenPosition);
-        assert_eq!(by_order_id.hash, TEST_TRANSACTION_ID);
+        assert_eq!(by_order_id.hash(), TEST_TRANSACTION_ID);
         assert_eq!(transaction.asset_id.to_string(), "hypercore_perpetual::HYPE");
         assert_eq!(transaction.fee_asset_id, HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone());
         assert_eq!(transaction.fee, "441520");
@@ -299,8 +299,8 @@ mod tests {
         let transactions = map_user_fills("0xabc", fills, Some(&spot_meta()));
 
         assert_eq!(transactions.len(), 2);
-        assert_eq!(transactions[0].hash, "0xshared");
-        assert_eq!(transactions[1].hash, "0xshared");
+        assert_eq!(transactions[0].hash(), "0xshared");
+        assert_eq!(transactions[1].hash(), "0xshared");
 
         let mut fees = transactions.iter().map(|tx| tx.fee.as_str()).collect::<Vec<_>>();
         fees.sort_unstable();
@@ -314,7 +314,7 @@ mod tests {
 
         assert_eq!(transactions.len(), 1);
         assert_eq!(transactions[0].transaction_type, TransactionType::Swap);
-        assert_eq!(transactions[0].hash, "0xd16518b18533f577d2de043763f8ad020482009720371449752dc4044437cf62");
+        assert_eq!(transactions[0].hash(), "0xd16518b18533f577d2de043763f8ad020482009720371449752dc4044437cf62");
         assert_eq!(transactions[0].asset_id, HYPERCORE_SPOT_HYPE_ASSET_ID.clone());
         assert_eq!(transactions[0].fee, "1326708");
         assert_eq!(transactions[0].fee_asset_id, HYPERCORE_SPOT_USDC_ASSET_ID.clone());
@@ -336,7 +336,7 @@ mod tests {
 
         assert_eq!(transactions.len(), 1);
         assert_eq!(transactions[0].transaction_type, TransactionType::Swap);
-        assert_eq!(transactions[0].hash, "0xbf8b52bd13095a59c105043764964e02028200a2ae0c792b6353fe0fd20d3444");
+        assert_eq!(transactions[0].hash(), "0xbf8b52bd13095a59c105043764964e02028200a2ae0c792b6353fe0fd20d3444");
         assert_eq!(transactions[0].asset_id, HYPERCORE_SPOT_USDC_ASSET_ID.clone());
         assert_eq!(transactions[0].fee, "20159");
         assert_eq!(transactions[0].fee_asset_id, HYPERCORE_SPOT_HYPE_ASSET_ID.clone());

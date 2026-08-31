@@ -1,8 +1,11 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
-import com.gemwallet.android.application.pricealerts.coordinators.HasAssetPriceAlerts
-import com.gemwallet.android.application.pricealerts.coordinators.SyncAssetPriceAlerts
-import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
+import android.util.Log
+import com.gemwallet.android.application.pricealerts.cases.HasAssetPriceAlerts
+import com.gemwallet.android.application.pricealerts.cases.SyncAssetPriceAlerts
+import com.gemwallet.android.application.pricealerts.cases.UpdatePriceAlerts
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 
 class SyncAssetPriceAlertsImpl(
@@ -12,7 +15,12 @@ class SyncAssetPriceAlertsImpl(
 
     override suspend fun invoke(assetId: AssetId) {
         if (hasAssetPriceAlerts(assetId)) {
-            runCatching { updatePriceAlerts.update(assetId) }
+            runCatchingCancellable { updatePriceAlerts.update(assetId) }
+                .onFailure { Log.e(TAG, "price alerts sync failed for ${assetId.toIdentifier()}", it) }
         }
+    }
+
+    private companion object {
+        const val TAG = "SyncAssetPriceAlerts"
     }
 }

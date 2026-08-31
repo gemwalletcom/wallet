@@ -208,7 +208,7 @@ mod tests {
     }
 
     fn assert_usdt_transaction(transaction: &Transaction) {
-        assert_eq!(transaction.hash, "DXUp65qSLjpbMrMVubtH1YY13fDHLA5av7q7skJ8kx5E");
+        assert_eq!(transaction.hash(), "DXUp65qSLjpbMrMVubtH1YY13fDHLA5av7q7skJ8kx5E");
         assert_eq!(transaction.block_number.as_deref(), Some("211048907"));
         assert_eq!(transaction.asset_id, NEAR_USDT_ASSET_ID.clone());
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
@@ -238,7 +238,7 @@ mod tests {
         let expected_transactions_request: Value = serde_json::from_str(include_str!("../../../testdata/fastnear_transactions_request.json")).unwrap();
 
         assert_eq!(
-            transactions.iter().map(|transaction| transaction.hash.as_str()).collect::<Vec<_>>(),
+            transactions.iter().map(|transaction| transaction.hash()).collect::<Vec<_>>(),
             vec!["incoming-transaction", "outgoing-transaction", "attached-deposit-transaction"]
         );
         assert_eq!(
@@ -263,7 +263,7 @@ mod tests {
             .await
             .unwrap();
         let token_transaction = token_transactions.first().unwrap();
-        assert_eq!(token_transaction.hash, "DXUp65qSLjpbMrMVubtH1YY13fDHLA5av7q7skJ8kx5E");
+        assert_eq!(token_transaction.hash(), "DXUp65qSLjpbMrMVubtH1YY13fDHLA5av7q7skJ8kx5E");
         assert_eq!(token_transaction.value, "99500026");
         assert_eq!(token_transaction.fee, "0");
         assert_eq!(token_transaction.asset_id, NEAR_USDT_ASSET_ID.clone());
@@ -347,7 +347,7 @@ mod tests {
 
         assert_eq!(transactions.len(), 1);
         let transaction = &transactions[0];
-        assert_eq!(transaction.hash, "DXUp65qSLjpbMrMVubtH1YY13fDHLA5av7q7skJ8kx5E");
+        assert_eq!(transaction.hash(), "DXUp65qSLjpbMrMVubtH1YY13fDHLA5av7q7skJ8kx5E");
         assert_eq!(transaction.block_number.as_deref(), Some("211048907"));
         assert_eq!(transaction.from, "sender.near");
         assert_eq!(transaction.to, "receiver.near");

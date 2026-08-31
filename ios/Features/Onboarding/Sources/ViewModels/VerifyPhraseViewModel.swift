@@ -8,7 +8,7 @@ import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import WalletService
+import GemstoneServices
 
 @Observable
 @MainActor

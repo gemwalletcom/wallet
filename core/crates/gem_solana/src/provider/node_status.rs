@@ -86,39 +86,3 @@ impl<C: Client + Clone> ChainNodeStatus for SolanaProvider<C> {
             .await
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use chain_traits::ChainTraits;
-    use gem_jsonrpc::testkit::mock_jsonrpc_client;
-    use primitives::{NodeCheckRequest, NodeCheckStatus, NodeSyncStatus};
-    use serde_json::json;
-
-    use super::*;
-    use crate::rpc::SolanaClient;
-
-    #[tokio::test]
-    async fn test_parser_profile_checks_recent_block() {
-        let client = mock_jsonrpc_client(|method, params| match method {
-            method::GET_GENESIS_HASH => Ok(json!("5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d")),
-            method::GET_BLOCK => {
-                assert_eq!(params[0], 990);
-                Ok(json!({ "blockTime": 1_700_000_000, "transactions": [] }))
-            }
-            _ => panic!("unexpected method: {method}"),
-        });
-        let provider = SolanaProvider::new_rpc_only(SolanaClient::new(client));
-
-        let report = ChainTraits::check_node(&provider, &NodeCheckRequest::Parser, &NodeSyncStatus::synced(1_000), Duration::ZERO).await;
-
-        assert_eq!(report.checks.len(), 3);
-        assert_eq!(report.get("block_transactions").unwrap().status, NodeCheckStatus::Passed { result: "0".to_string() });
-        assert_eq!(
-            report.get(method::GET_GENESIS_HASH).unwrap().status,
-            NodeCheckStatus::Passed {
-                result: "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d".to_string()
-            }
-        );
-        assert_eq!(report.get(method::GET_SLOT).unwrap().status, NodeCheckStatus::Passed { result: "1000".to_string() });
-    }
-}

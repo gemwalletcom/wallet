@@ -3,7 +3,7 @@
 import Foundation
 import Localization
 import Primitives
-import WalletService
+import GemstoneServices
 
 struct WalletNameGenerator {
     private let type: ImportWalletType
@@ -14,7 +14,7 @@ struct WalletNameGenerator {
         self.walletService = walletService
     }
 
-    var name: String {
+    func name() async -> String {
         name(
             type: type,
             index: (try? walletService.nextWalletIndex()) ?? .zero,

@@ -38,7 +38,7 @@ import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.toBitmap
 import com.gemwallet.android.MainActivity
-import com.gemwallet.android.data.repositories.di.WidgetEntryPoint
+import com.gemwallet.android.data.services.gemstone.di.WidgetEntryPoint
 import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.model.AssetInfo
@@ -64,12 +64,12 @@ class PricesWidget : GlanceAppWidget() {
         context: Context,
         id: GlanceId
     ) {
-        val assetsRepository = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java).assetsRepository()
-        val sessionRepository = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java).sessionRepository()
+        val getWidgetAssets = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java).getWidgetAssets()
+        val getCurrentCurrency = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java).getCurrentCurrency()
         val noData = context.getString(R.string.errors_no_data_available)
         val items = try {
-            val currency = sessionRepository.session().firstOrNull()?.currency ?: Currency.USD
-            loadItems(context, assetsRepository.getWidgetTokens(currency))
+            val currency = getCurrentCurrency.getCurrentCurrency()
+            loadItems(context, getWidgetAssets(currency))
         } catch (_: Throwable) {
             emptyList()
         }

@@ -16,8 +16,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.bridge.viewmodels.AuthSceneState
 import com.gemwallet.android.features.bridge.viewmodels.WCAuthViewModel
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
-import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthenticationRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
+import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -46,7 +46,6 @@ fun AuthRequestScene(
                     R.string.errors_connections_malicious_origin,
                     Toast.LENGTH_LONG
                 ).show()
-                else -> Unit
             }
         }
     }
@@ -54,7 +53,9 @@ fun AuthRequestScene(
     when (val currentState = state) {
         is AuthSceneState.Error -> FatalStateScene(
             title = stringResource(id = R.string.wallet_connect_connect_title),
-            message = currentState.message,
+            message = currentState.cause?.walletConnectMessage()
+                ?: currentState.message
+                ?: stringResource(id = R.string.errors_unknown_try_again),
             onCancel = viewModel::onReject,
         )
         AuthSceneState.Loading -> LoadingScene(

@@ -15,7 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -42,6 +42,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
 import com.wallet.core.primitives.Chain
 import java.text.NumberFormat
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
 fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
@@ -145,7 +146,7 @@ private fun UrlField(
     onQRScan: () -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-    val clipboardManager = LocalClipboard.current.nativeClipboard
+    val clipboardManager = LocalContext.current.clipboardManager()
     GemTextField(
         modifier = Modifier
             .fillMaxWidth()

@@ -17,11 +17,6 @@ public extension Wallet {
         type == .multicoin
     }
 
-    var addressChains: [AddressChains] {
-        Dictionary(grouping: accounts, by: \.address)
-            .map { AddressChains(address: $0.key, chains: Set($0.value.map(\.chain)).sorted()) }
-    }
-
     var hasTokenSupport: Bool {
         accounts.map(\.chain).asSet().intersection(AssetConfiguration.supportedChainsWithTokens).isNotEmpty
     }

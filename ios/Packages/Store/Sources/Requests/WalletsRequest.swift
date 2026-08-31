@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import GRDB
 import Primitives
 
@@ -15,7 +14,6 @@ public struct WalletsRequest: DatabaseQueryable {
         try WalletRecord
             .including(all: WalletRecord.accounts)
             .filter(WalletRecord.Columns.isPinned == isPinned)
-            .order(WalletRecord.Columns.order.asc)
             .asRequest(of: WalletRecordInfo.self)
             .fetchAll(db)
             .map { $0.mapToWallet() }

@@ -18,6 +18,7 @@
 "common.wallet" = "کیف پول";
 "common.show" = "نمایش %@";
 "common.copied" = "%@ کپی شد.";
+"common.copied_to_clipboard" = "در کلیپ‌بورد کپی شد";
 "common.recommended" = "پیشنهاد شده";
 "common.all" = "همه";
 "common.not_available" = "در دسترس نیست";
@@ -178,10 +179,14 @@
 "errors.token.invalid_id" = "شناسه توکن نامعتبر است.";
 "errors.import.invalid_secret_phrase" = "عبارات خصوصی نامعتبر.";
 "errors.import.invalid_secret_phrase_word" = "عبارت خصوصی نامعتبر: %@";
+"errors.import.invalid_private_key" = "کلید خصوصی نامعتبر";
+"errors.keystore_access" = "دسترسی به کلیدهای این کیف پول در این دستگاه ممکن نشد. اگر عبارت بازیابی خود را دارید، این کیف پول را حذف کنید و دوباره وارد کنید تا دسترسی بازیابی شود.";
+"errors.wallet_account_missing" = "این کیف پول برای این شبکه حسابی ندارد";
 "errors.invalid_url" = "URL نامعتبر";
 "errors.error_occurred" = "خطایی رخ داد!";
 "errors.invalid_network_id" = "شناسه شبکه نامعتبر است.";
 "errors.error" = "خطا";
+"errors.cancelled" = "لغو شد";
 "errors.connections.user_cancelled" = "توسط کاربر لغو شد.";
 "errors.not_supported" = "پشتیبانی نمی شود.";
 "errors.permissions_not_granted" = "دسترسی داده نشده.";
@@ -214,6 +219,8 @@
 "errors.swap.minimum_amount" = "حداقل مبلغ معامله %@ است. لطفاً مبلغ بیشتری وارد کنید.";
 "errors.perpetual.trigger_price_lower" = "قیمت فعالسازی باید کمتر از قیمت بازار باشد";
 "errors.perpetual.trigger_price_higher" = "قیمت فعالسازی باید بیشتر از قیمت بازار باشد";
+"errors.network_error" = "خطای شبکه: %@";
+"errors.network_offline" = "به نظر می‌رسد اتصال اینترنت آفلاین است.";
 "errors.no_internet_connection" = "اتصال اینترنت برقرار نیست";
 "errors.no_service_connection" = "اتصال سرویس برقرار نیست";
 "errors.balances_activity_outdated" = "موجودی‌ها و فعالیت ممکن است به‌روز نباشند.";

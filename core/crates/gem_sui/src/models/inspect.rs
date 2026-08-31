@@ -22,15 +22,6 @@ pub type InspectReturnValue = (Vec<u8>, String);
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct InspectEvent<T> {
-    pub package_id: String,
-    pub transaction_module: String,
-    pub parsed_json: T,
-    pub r#type: String,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct InspectEffects {
     pub gas_used: InspectGasUsed,
 }

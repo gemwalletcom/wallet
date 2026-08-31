@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import ContactService
+import GemstoneServices
 import Primitives
 import Style
 import SwiftUI
@@ -27,7 +27,7 @@ public struct ContactsNavigationView: View {
             }
             .sheet(isPresented: $model.isPresentingAddContact) {
                 NavigationStack {
-                    manageContact(for: .add())
+                    manageContact(for: model.addContactMode)
                         .toolbarDismissItem(type: .close, placement: .cancellationAction)
                 }
             }
@@ -41,6 +41,7 @@ public struct ContactsNavigationView: View {
             model: ManageContactViewModel(
                 service: model.service,
                 nameService: model.nameService,
+                addressService: model.addressService,
                 mode: mode,
             ),
         )

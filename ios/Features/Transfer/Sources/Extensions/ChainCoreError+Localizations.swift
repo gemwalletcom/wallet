@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Blockchain
+import GemstonePrimitives
+import Primitives
+import GemstoneServices
 import Localization
 import SwiftUI
 

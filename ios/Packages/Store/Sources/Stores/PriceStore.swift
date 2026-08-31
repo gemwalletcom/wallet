@@ -11,32 +11,23 @@ public struct PriceStore: Sendable {
         self.db = db.dbQueue
     }
 
-    public func updatePrice(price: AssetPrice, currency: String) throws {
-        try updatePrices(prices: [price], currency: currency)
-    }
-
-    public func getRate(currency: String) throws -> FiatRateRecord {
+    public func getRate(currency: String) throws -> FiatRateRecord? {
         try db.read { db in
-            guard let rate = try FiatRateRecord.filter(key: currency).fetchOne(db) else {
-                throw AnyError("unknown currency: \(currency)")
-            }
-            return rate
+            try FiatRateRecord.filter(key: currency).fetchOne(db)
         }
     }
 
-    public func updatePrices(prices: [AssetPrice], currency: String) throws {
-        let rate = try getRate(currency: currency)
+    public func updatePrices(_ updates: [PriceUpdate]) throws {
         try db.write { db in
-            for assetPrice in prices {
-                let convertedPrice = assetPrice.price * rate.rate
-                _ = try assetPrice.record(fiatPrice: convertedPrice).upsertAndFetch(
+            for update in updates {
+                _ = try update.record.upsertAndFetch(
                     db,
                     onConflict: [],
                     doUpdate: { _ in [
-                        PriceRecord.Columns.price.set(to: convertedPrice),
-                        PriceRecord.Columns.priceUsd.set(to: assetPrice.price),
-                        PriceRecord.Columns.priceChangePercentage24h.set(to: assetPrice.priceChangePercentage24h),
-                        PriceRecord.Columns.updatedAt.set(to: Date()),
+                        PriceRecord.Columns.price.set(to: update.price),
+                        PriceRecord.Columns.priceUsd.set(to: update.priceUsd),
+                        PriceRecord.Columns.priceChangePercentage24h.set(to: update.priceChangePercentage24h),
+                        PriceRecord.Columns.updatedAt.set(to: update.updatedAt),
                         PriceRecord.Columns.marketCap.noOverwrite,
                         PriceRecord.Columns.marketCapFdv.noOverwrite,
                         PriceRecord.Columns.marketCapRank.noOverwrite,
@@ -57,23 +48,23 @@ public struct PriceStore: Sendable {
     }
 
     @discardableResult
-    public func updateMarket(assetId: String, market: AssetMarket, rate: Double) throws -> Int {
+    public func updateMarket(assetId: String, market: AssetMarket) throws -> Int {
         try db.write { db in
             try PriceRecord
                 .filter(PriceRecord.Columns.assetId == assetId)
                 .updateAll(
                     db,
-                    PriceRecord.Columns.marketCap.set(to: market.marketCap.map { $0 * rate }),
-                    PriceRecord.Columns.marketCapFdv.set(to: market.marketCapFdv.map { $0 * rate }),
-                    PriceRecord.Columns.totalVolume.set(to: market.totalVolume.map { $0 * rate }),
+                    PriceRecord.Columns.marketCap.set(to: market.marketCap),
+                    PriceRecord.Columns.marketCapFdv.set(to: market.marketCapFdv),
+                    PriceRecord.Columns.totalVolume.set(to: market.totalVolume),
                     PriceRecord.Columns.marketCapRank.set(to: market.marketCapRank),
                     PriceRecord.Columns.circulatingSupply.set(to: market.circulatingSupply),
                     PriceRecord.Columns.totalSupply.set(to: market.totalSupply),
                     PriceRecord.Columns.maxSupply.set(to: market.maxSupply),
-                    PriceRecord.Columns.allTimeHigh.set(to: market.allTimeHighValue.map { Double($0.value) * rate }),
+                    PriceRecord.Columns.allTimeHigh.set(to: market.allTimeHighValue.map { Double($0.value) }),
                     PriceRecord.Columns.allTimeHighDate.set(to: market.allTimeHighValue?.date),
                     PriceRecord.Columns.allTimeHighChangePercentage.set(to: market.allTimeHighValue.map { Double($0.percentage) }),
-                    PriceRecord.Columns.allTimeLow.set(to: market.allTimeLowValue.map { Double($0.value) * rate }),
+                    PriceRecord.Columns.allTimeLow.set(to: market.allTimeLowValue.map { Double($0.value) }),
                     PriceRecord.Columns.allTimeLowDate.set(to: market.allTimeLowValue?.date),
                     PriceRecord.Columns.allTimeLowChangePercentage.set(to: market.allTimeLowValue.map { Double($0.percentage) }),
                 )
@@ -91,24 +82,20 @@ public struct PriceStore: Sendable {
 
     public func enabledPriceAssets(walletId: WalletId) throws -> [AssetId] {
         try db.read { db in
-            let priceAlertsAssets = try PriceAlertRecord.fetchAll(db).map(\.assetId)
-            let enabledAssets = try BalanceRecord
+            try BalanceRecord
                 .filter(BalanceRecord.Columns.walletId == walletId.id)
                 .filter(BalanceRecord.Columns.isEnabled == true)
                 .fetchAll(db)
                 .compactMap(\.assetId)
-
-            return priceAlertsAssets.asSet().union(enabledAssets).asArray()
         }
     }
 
     @discardableResult
-    public func updateCurrency(currency: String) throws -> Int {
-        let rate = try getRate(currency: currency)
-        return try db.write { db in
+    public func convertPrices(rate: Double) throws -> Int {
+        try db.write { db in
             try PriceRecord.updateAll(db, [
                 PriceRecord.Columns.price
-                    .set(to: PriceRecord.Columns.priceUsd * rate.rate),
+                    .set(to: PriceRecord.Columns.priceUsd * rate),
             ])
         }
     }

@@ -103,8 +103,8 @@ impl TransferAmountInput {
             (true, false) => value.clone(),
             (true, true) => &value + &self.fee,
         };
-        let should_skip_fee_check = asset.chain == Chain::HyperCore && !spends_balance;
-        let minimum_account_balance = match asset.chain.minimum_account_balance() {
+        let should_skip_fee_check = asset.chain() == Chain::HyperCore && !spends_balance;
+        let minimum_account_balance = match asset.chain().minimum_account_balance() {
             Some(minimum) if asset.asset_type == AssetType::NATIVE && !self.is_max_amount && spends_balance => Some(BigInt::from(minimum)),
             _ => None,
         };
@@ -154,7 +154,7 @@ mod tests {
     const FEE: u64 = 5_000;
 
     fn input(input_type: TransactionInputType, value: u64, available_value: u64, fee_asset_balance: u64) -> TransferAmountInput {
-        let fee_asset = AssetId::from_chain(input_type.get_asset().chain);
+        let fee_asset = AssetId::from_chain(input_type.get_asset().chain());
         TransferAmountInput {
             input_type,
             value: BigInt::from(value),

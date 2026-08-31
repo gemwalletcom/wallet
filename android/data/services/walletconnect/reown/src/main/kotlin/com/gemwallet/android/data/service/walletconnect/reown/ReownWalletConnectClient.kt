@@ -3,39 +3,41 @@ package com.gemwallet.android.data.service.walletconnect.reown
 import android.app.Application
 import android.content.Context
 import android.util.Log
-import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthObject
-import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthPayloadParams
-import com.gemwallet.android.data.repositories.bridge.WalletConnectAuthenticationRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectClient
-import com.gemwallet.android.data.repositories.bridge.WalletConnectEvent
-import com.gemwallet.android.data.repositories.bridge.WalletConnectJsonRpcRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectJsonRpcResponse
-import com.gemwallet.android.data.repositories.bridge.WalletConnectProposalNamespace
-import com.gemwallet.android.data.repositories.bridge.WalletConnectSession
-import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionNamespace
-import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionProposal
-import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectValidation
-import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
-import com.gemwallet.android.ext.walletConnectIcon
+import com.gemwallet.android.application.wallet_connect.WalletConnectAuthObject
+import com.gemwallet.android.application.wallet_connect.WalletConnectAuthPayloadParams
+import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectClient
+import com.gemwallet.android.application.wallet_connect.WalletConnectEvent
+import com.gemwallet.android.application.wallet_connect.WalletConnectJsonRpcRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectJsonRpcResponse
+import com.gemwallet.android.application.wallet_connect.WalletConnectProposalNamespace
+import com.gemwallet.android.application.wallet_connect.WalletConnectSession
+import com.gemwallet.android.application.wallet_connect.WalletConnectSessionNamespace
+import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
+import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectValidation
+import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.reown.android.Core
 import com.reown.android.CoreClient
 import com.reown.android.relay.ConnectionType
 import com.reown.walletkit.client.Wallet
 import com.reown.walletkit.client.WalletKit
-import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
+import com.wallet.core.primitives.ApplicationMetadata
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.net.URI
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import uniffi.gemstone.GemWalletConnectService
+import com.gemwallet.android.serializer.decodeJson
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class ReownWalletConnectClient @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
+    private val walletConnectService: GemWalletConnectService,
 ) : WalletConnectClient, WalletKit.WalletDelegate, CoreClient.CoreDelegate {
 
     override val isEnabled: Boolean = true
@@ -270,13 +272,30 @@ class ReownWalletConnectClient @Inject constructor(
         walletEvents.tryEmit(WalletConnectEvent.SessionRequest(sessionRequest.toWalletConnectSessionRequest(), verifyContext.toWalletConnectVerifyContext()))
     }
 
-    override fun onSessionSettleResponse(settleSessionResponse: Wallet.Model.SettledSessionResponse) {
-        if (settleSessionResponse is Wallet.Model.SettledSessionResponse.Result) {
-            walletEvents.tryEmit(WalletConnectEvent.SessionSettled(settleSessionResponse.session.toWalletConnectSession()))
-        }
-    }
+    override fun onSessionSettleResponse(settleSessionResponse: Wallet.Model.SettledSessionResponse) = Unit
 
     override fun onSessionUpdateResponse(sessionUpdateResponse: Wallet.Model.SessionUpdateResponse) = Unit
+
+    private fun Wallet.Model.Session.toWalletConnectSession(): WalletConnectSession {
+        return WalletConnectSession(
+            topic = topic,
+            expiry = expiry,
+            metadata = metaData?.toApplicationMetadata(),
+            namespaces = namespaces.mapValues { it.value.toWalletConnectSessionNamespace() },
+            redirect = redirect,
+        )
+    }
+
+    private fun Wallet.Model.SessionAuthenticate.toWalletConnectAuthenticationRequest(): WalletConnectAuthenticationRequest {
+        return WalletConnectAuthenticationRequest(
+            id = id,
+            metadata = participant.metadata?.toApplicationMetadata(),
+            payloadParams = payloadParams.toWalletConnectAuthPayloadParams(),
+        )
+    }
+
+    private fun Core.Model.AppMetaData.toApplicationMetadata(): ApplicationMetadata =
+        walletConnectService.applicationMetadata(name, description, url, icons).decodeJson()
 
     private fun WalletConnectSessionProposal.pendingReownProposal(): Wallet.Model.SessionProposal? {
         return WalletKit.getSessionProposals().firstOrNull { it.proposerPublicKey == proposerPublicKey }
@@ -290,24 +309,6 @@ class ReownWalletConnectClient @Inject constructor(
     }
 }
 
-private fun Wallet.Model.Session.toWalletConnectSession(): WalletConnectSession {
-    return WalletConnectSession(
-        topic = topic,
-        expiry = expiry,
-        metadata = metaData?.toWalletConnectionSessionAppMetadata(),
-        namespaces = namespaces.mapValues { it.value.toWalletConnectSessionNamespace() },
-        redirect = redirect,
-    )
-}
-
-private fun Core.Model.AppMetaData.toWalletConnectionSessionAppMetadata(): WalletConnectionSessionAppMetadata {
-    return WalletConnectionSessionAppMetadata(
-        name = name,
-        description = description,
-        url = url,
-        icon = icons.walletConnectIcon(),
-    )
-}
 
 private fun Wallet.Model.Namespace.Session.toWalletConnectSessionNamespace(): WalletConnectSessionNamespace {
     return WalletConnectSessionNamespace(
@@ -353,14 +354,6 @@ private fun Wallet.Model.SessionRequest.toWalletConnectSessionRequest(): WalletC
             method = request.method,
             params = request.params,
         ),
-    )
-}
-
-private fun Wallet.Model.SessionAuthenticate.toWalletConnectAuthenticationRequest(): WalletConnectAuthenticationRequest {
-    return WalletConnectAuthenticationRequest(
-        id = id,
-        metadata = participant.metadata?.toWalletConnectionSessionAppMetadata(),
-        payloadParams = payloadParams.toWalletConnectAuthPayloadParams(),
     )
 }
 

@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapLatest
@@ -37,12 +38,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigInteger
 import javax.inject.Inject
+import uniffi.gemstone.GemAmountService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AmountViewModel @Inject constructor(
     factory: AmountProviderFactory,
     savedStateHandle: SavedStateHandle,
+    private val amountService: GemAmountService,
 ) : ViewModel() {
 
     private val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Auto)
@@ -55,7 +58,6 @@ class AmountViewModel @Inject constructor(
 
     val amountInputType = MutableStateFlow(AmountInputType.Crypto)
     val amountError = MutableStateFlow<AmountError>(AmountError.None)
-    private val maxAmount = MutableStateFlow(false)
 
     val availableBalanceFormatted: StateFlow<String> = combine(
         provider.availableBalance,
@@ -66,10 +68,16 @@ class AmountViewModel @Inject constructor(
 
     val reserveForFeeFormatted: StateFlow<String?> = combine(
         provider.assetInfo,
-        maxAmount,
-    ) { current, isMax ->
-        if (!provider.shouldReserveFee(isMax) || provider.reserveForFee.signum() == 0) null
-        else current?.asset?.let { valueFormatter.string(provider.reserveForFee, it) }
+        snapshotFlow { amount },
+        provider.limits,
+        provider.reserveForFee,
+    ) { current, input, limits, reserve ->
+        val asset = current?.asset
+        when {
+            asset == null || limits?.reservesFee != true || reserve.signum() == 0 -> null
+            input != maxAmountInput(asset) -> null
+            else -> valueFormatter.string(reserve, asset)
+        }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val amountEquivalent: StateFlow<String> = combine(
@@ -107,29 +115,23 @@ class AmountViewModel @Inject constructor(
             .onEach { amountError.value = it }
             .launchIn(viewModelScope)
 
-        if (!provider.canChangeValue) {
-            provider.assetInfo.filterNotNull()
-                .combine(provider.availableBalance) { _, balance -> balance }
-                .onEach { onMaxAmount() }
-                .launchIn(viewModelScope)
-        }
+        combine(provider.canChangeValue, provider.assetInfo.filterNotNull(), provider.availableBalance) { canChange, _, _ -> canChange }
+            .filter { !it }
+            .onEach { onMaxAmount() }
+            .launchIn(viewModelScope)
     }
 
-    fun updateAmount(input: String, isMax: Boolean = false) {
+    fun updateAmount(input: String) {
         amount = input
-        maxAmount.update { isMax }
     }
 
     fun onMaxAmount() = viewModelScope.launch {
         val current = provider.assetInfo.value ?: return@launch
-        val balance = provider.availableBalance.value
-        val final = if (provider.shouldReserveFee(isMaxAmount = true)) {
-            (balance - provider.reserveForFee).max(BigInteger.ZERO)
-        } else {
-            balance
-        }
-        updateAmount(Crypto(final).value(current.asset.decimals).stripTrailingZeros().toPlainString(), isMax = true)
+        updateAmount(maxAmountInput(current.asset))
     }
+
+    private fun maxAmountInput(asset: Asset): String =
+        Crypto(provider.maxValue()).value(asset.decimals).stripTrailingZeros().toPlainString()
 
     fun switchInputType() {
         amountInputType.update { if (it == AmountInputType.Crypto) AmountInputType.Fiat else AmountInputType.Crypto }
@@ -141,18 +143,17 @@ class AmountViewModel @Inject constructor(
             try {
                 val current = provider.assetInfo.value ?: return@launch
                 val asset = current.asset
-                AmountValidation.validateAmount(asset, amount, provider.minimumValue.value)
+                AmountValidation.parseAmount(asset, amount)
                 val price = current.price?.price?.price ?: 0.0
                 val crypto = amountInputType.value.getAmount(amount, asset.decimals, price)
-                val available = provider.availableBalance.value.toBigDecimal().movePointLeft(asset.decimals)
-                AmountValidation.validateBalance(current, crypto, available)
+                AmountValidation.validate(amountService, asset, crypto, provider.availableBalance.value, provider.minimumValue.value)
                 amountError.value = AmountError.None
-                val isMax = maxAmount.value || crypto.atomicValue == provider.availableBalance.value
+                val isMax = crypto.atomicValue == provider.maxValue()
                 onConfirm(provider.buildConfirmParams(crypto, isMax))
             } catch (err: AmountError) {
                 amountError.value = err
             } catch (err: Throwable) {
-                amountError.value = AmountError.Unknown(err.message ?: "Unknown error")
+                amountError.value = AmountError.Unknown(err.message.orEmpty())
             }
         }
     }
@@ -163,11 +164,10 @@ class AmountViewModel @Inject constructor(
         val asset = inputs.asset ?: return AmountError.None
         val current = provider.assetInfo.value ?: return AmountError.None
         return try {
-            AmountValidation.validateAmount(asset, inputs.amount, inputs.minimumValue)
+            AmountValidation.parseAmount(asset, inputs.amount)
             val price = current.price?.price?.price ?: 0.0
             val crypto = inputs.inputType.getAmount(inputs.amount, asset.decimals, price)
-            val available = inputs.availableBalance.toBigDecimal().movePointLeft(asset.decimals)
-            AmountValidation.validateBalance(current, crypto, available)
+            AmountValidation.validate(amountService, asset, crypto, inputs.availableBalance, inputs.minimumValue)
             AmountError.None
         } catch (err: Throwable) {
             err as? AmountError ?: AmountError.None
@@ -185,14 +185,14 @@ class AmountViewModel @Inject constructor(
         return try {
             when (direction) {
                 AmountInputType.Crypto -> {
-                    AmountValidation.validateAmount(asset, input, BigInteger.ZERO)
+                    AmountValidation.parseAmount(asset, input)
                     val crypto = direction.getAmount(input, asset.decimals, price)
                     val unit = CryptoFiatConverter.toFiat(crypto, asset.decimals, price)
                     currencyFormatter.string(unit.atomicValue)
                 }
                 AmountInputType.Fiat -> {
                     val crypto = direction.getAmount(input, asset.decimals, price)
-                    AmountValidation.validateAmount(asset, crypto.value(asset.decimals).toPlainString(), BigInteger.ZERO)
+                    AmountValidation.parseAmount(asset, crypto.value(asset.decimals).toPlainString())
                     valueFormatter.string(crypto.atomicValue, asset.decimals, asset.symbol)
                 }
             }

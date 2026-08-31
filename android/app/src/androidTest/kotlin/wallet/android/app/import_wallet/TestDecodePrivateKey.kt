@@ -1,7 +1,7 @@
 package wallet.android.app.import_wallet
 
 import androidx.test.core.app.ApplicationProvider
-import com.gemwallet.android.data.repositories.wallets.PhraseAddressImportWalletService
+import com.gemwallet.android.data.services.gemstone.wallets.PhraseAddressImportWalletService
 import com.gemwallet.android.testkit.gemstoneTestAddressForPrivateKey
 import com.gemwallet.android.testkit.includeGemstoneLibs
 import com.wallet.core.primitives.Chain

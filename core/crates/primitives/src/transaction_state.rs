@@ -21,6 +21,10 @@ impl TransactionState {
             Self::Pending | Self::InTransit => false,
         }
     }
+
+    pub fn merged_with(self, updated: Self) -> Self {
+        if self == Self::Pending || updated.is_completed() { updated } else { self }
+    }
 }
 
 #[cfg(test)]

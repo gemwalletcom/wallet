@@ -11,7 +11,6 @@ use crate::models::Digest;
 
 const TRANSACTIONS_BY_ADDRESS_QUERY: &str = "query GetTransactionsByAddress($address: SuiAddress!, $limit: Int!, $before: String) { transactions(last: $limit, before: $before, filter: { affectedAddress: $address }) { nodes { digest effects { status timestamp gasEffects { gasObject { owner { ... on AddressOwner { address { address } } } } gasSummary { computationCost storageCost storageRebate nonRefundableStorageFee } } balanceChanges(first: 50) { nodes { owner { address } coinType { repr } amount } } events(first: 50) { nodes { contents { type { repr } json } transactionModule { package { address } } } } } } pageInfo { hasPreviousPage startCursor } } }";
 const TRANSACTIONS_PAGE_SIZE: usize = 50;
-const GRAPHQL_PATH: &str = "/graphql";
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -58,7 +57,7 @@ impl<C: Client> SuiIndexer<C> {
                 },
                 "query": TRANSACTIONS_BY_ADDRESS_QUERY,
             });
-            let response: GraphqlData<TransactionsData> = self.client.post(GRAPHQL_PATH, &request).await?;
+            let response: GraphqlData<TransactionsData> = self.client.post("/graphql", &request).await?;
             if let Some(error) = response.errors.and_then(|errors| errors.into_iter().next()) {
                 return Err(error.message.into());
             }
@@ -95,7 +94,7 @@ mod tests {
         let responses_for_client = responses.clone();
         let requests_for_client = requests.clone();
         let client = MockClient::new().with_post(move |path, body| {
-            assert_eq!(path, GRAPHQL_PATH);
+            assert_eq!(path, "/graphql");
             requests_for_client.lock().unwrap().push(serde_json::from_slice::<serde_json::Value>(body).unwrap());
             Ok(responses_for_client.lock().unwrap().pop_front().unwrap())
         });

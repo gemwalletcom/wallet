@@ -59,11 +59,11 @@ mod tests {
     fn test_asset_mock() {
         let asset = Asset::mock();
         assert_eq!(asset.symbol, "ETH");
-        assert_eq!(asset.chain, Chain::Ethereum);
+        assert_eq!(asset.chain(), Chain::Ethereum);
 
         let sol_asset = Asset::mock_sol();
         assert_eq!(sol_asset.symbol, "SOL");
-        assert_eq!(sol_asset.chain, Chain::Solana);
+        assert_eq!(sol_asset.chain(), Chain::Solana);
 
         let spl_asset = Asset::mock_spl_token();
         assert_eq!(spl_asset.symbol, "USDC");

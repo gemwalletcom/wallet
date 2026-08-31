@@ -1,8 +1,6 @@
 use crate::models::GemTransactionInputType;
-use num_bigint::BigInt;
+use crate::models::custom_types::GemBigInt;
 use primitives::{AssetId, TransactionInputType, TransferAmount, TransferAmountError, TransferAmountInput};
-
-type GemBigInt = BigInt;
 
 pub type GemTransferAmount = TransferAmount;
 pub type GemTransferAmountError = TransferAmountError;
@@ -48,7 +46,6 @@ impl From<GemTransferAmountInput> for TransferAmountInput {
     }
 }
 
-#[uniffi::export]
 pub fn calculate_transfer_amount(input: GemTransferAmountInput) -> Result<GemTransferAmount, GemTransferAmountError> {
     TransferAmountInput::from(input).calculate()
 }
@@ -56,6 +53,7 @@ pub fn calculate_transfer_amount(input: GemTransferAmountInput) -> Result<GemTra
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_bigint::BigInt;
     use primitives::{Asset, Chain};
 
     fn input(value: u64, available_value: u64, fee_asset_balance: u64) -> GemTransferAmountInput {

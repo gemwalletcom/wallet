@@ -48,7 +48,7 @@ public struct WalletsScene: View {
                             currentWalletId: model.currentWalletId,
                             onSelect: { model.onSelect(wallet: $0, dismiss: dismiss) },
                             onEdit: model.onEdit,
-                            onPin: model.onPin,
+                            onPin: { wallet in Task { await model.onPin(wallet: wallet) } },
                             onDelete: model.onDelete,
                         )
                     }
@@ -67,7 +67,7 @@ public struct WalletsScene: View {
                         currentWalletId: model.currentWalletId,
                         onSelect: { model.onSelect(wallet: $0, dismiss: dismiss) },
                         onEdit: model.onEdit,
-                        onPin: model.onPin,
+                        onPin: { wallet in Task { await model.onPin(wallet: wallet) } },
                         onDelete: model.onDelete,
                     )
                 }

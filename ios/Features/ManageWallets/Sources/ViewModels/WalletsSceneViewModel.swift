@@ -1,21 +1,18 @@
 import Components
 import Foundation
+import GemstonePrimitives
 import Localization
 import Preferences
 import Primitives
 import Store
 import SwiftUI
-import WalletService
-import WalletSessionService
+import GemstoneServices
 
 @Observable
 @MainActor
 public final class WalletsSceneViewModel {
-    #if DEBUG
-        public static let walletsLimit = 1000
-    #else
-        public static let walletsLimit = 100
-    #endif
+
+    public static let walletsLimit = 100
 
     private let service: WalletService
     private let walletSessionService: any WalletSessionManageable
@@ -33,8 +30,8 @@ public final class WalletsSceneViewModel {
     let pinnedWalletsQuery: ObservableQuery<WalletsRequest>
     let walletsQuery: ObservableQuery<WalletsRequest>
 
-    var pinnedWallets: [Wallet] { pinnedWalletsQuery.value }
-    var wallets: [Wallet] { walletsQuery.value }
+    var pinnedWallets: [Wallet] { sorted(pinnedWalletsQuery.value) }
+    var wallets: [Wallet] { sorted(walletsQuery.value) }
     var hasWallets: Bool { wallets.isNotEmpty || pinnedWallets.isNotEmpty }
 
     public init(
@@ -58,13 +55,21 @@ public final class WalletsSceneViewModel {
     var title: String {
         Localized.Wallets.title
     }
+
+    private func sorted(_ wallets: [Wallet]) -> [Wallet] {
+        service.sorted(wallets: wallets)
+    }
 }
 
 // MARK: - Business Logic
 
 extension WalletsSceneViewModel {
     func setCurrent(_ walletId: WalletId) {
-        walletSessionService.setCurrent(walletId: walletId)
+        do {
+            try walletSessionService.setCurrent(walletId: walletId)
+        } catch {
+            debugLog("set current wallet error: \(error)")
+        }
     }
 
     func onEdit(wallet: Wallet) {
@@ -75,11 +80,11 @@ extension WalletsSceneViewModel {
         try await service.delete(wallet)
     }
 
-    private func pin(_ wallet: Wallet) throws {
+    private func pin(_ wallet: Wallet) async throws {
         if wallet.isPinned {
-            try service.unpin(wallet: wallet)
+            try await service.unpin(wallet: wallet)
         } else {
-            try service.pin(wallet: wallet)
+            try await service.pin(wallet: wallet)
         }
     }
 }
@@ -115,9 +120,9 @@ extension WalletsSceneViewModel {
         walletDelete = wallet
     }
 
-    func onPin(wallet: Wallet) {
+    func onPin(wallet: Wallet) async {
         do {
-            try pin(wallet)
+            try await pin(wallet)
         } catch {
             isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
         }

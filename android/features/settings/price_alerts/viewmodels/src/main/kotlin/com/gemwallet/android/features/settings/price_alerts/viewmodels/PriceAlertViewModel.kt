@@ -3,15 +3,15 @@ package com.gemwallet.android.features.settings.price_alerts.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.device.coordinators.EnableDevicePush
-import com.gemwallet.android.application.pricealerts.coordinators.ExcludePriceAlert
-import com.gemwallet.android.application.pricealerts.coordinators.GetAssetPriceAlertState
-import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
-import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlertsEnabled
-import com.gemwallet.android.application.pricealerts.coordinators.IncludePriceAlert
-import com.gemwallet.android.application.pricealerts.coordinators.SetPriceAlertsEnabled
-import com.gemwallet.android.application.pricealerts.coordinators.UpdatePriceAlerts
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
+import com.gemwallet.android.application.device.cases.EnableDevicePush
+import com.gemwallet.android.application.pricealerts.cases.ExcludePriceAlert
+import com.gemwallet.android.application.pricealerts.cases.GetAssetPriceAlertState
+import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
+import com.gemwallet.android.application.pricealerts.cases.GetPriceAlertsEnabled
+import com.gemwallet.android.application.pricealerts.cases.IncludePriceAlert
+import com.gemwallet.android.application.pricealerts.cases.SetPriceAlertsEnabled
+import com.gemwallet.android.application.pricealerts.cases.UpdatePriceAlerts
+import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Asset
@@ -30,6 +30,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import android.util.Log
+import com.gemwallet.android.ext.runCatchingCancellable
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -39,7 +41,7 @@ class PriceAlertViewModel @Inject constructor(
     private val getAssetPriceAlertState: GetAssetPriceAlertState,
     private val setPriceAlertsEnabled: SetPriceAlertsEnabled,
     private val updatePriceAlerts: UpdatePriceAlerts,
-    private val assetsRepository: AssetsRepository,
+    private val getAssetTokenInfo: GetAssetTokenInfo,
     private val includePriceAlert: IncludePriceAlert,
     private val excludePriceAlert: ExcludePriceAlert,
     private val enableDevicePush: EnableDevicePush,
@@ -53,7 +55,7 @@ class PriceAlertViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val assetInfo = assetId.flatMapLatest { id ->
-        if (id != null) assetsRepository.getTokenInfo(id) else flowOf(null)
+        if (id != null) getAssetTokenInfo(id) else flowOf(null)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val data = assetId.flatMapLatest { getPriceAlerts(it) }
@@ -74,13 +76,13 @@ class PriceAlertViewModel @Inject constructor(
     init {
         val initialAssetId = savedStateHandle.get<String?>(RouteArgument.AssetId.key)?.toAssetId()
         viewModelScope.launch(Dispatchers.IO) {
-            runCatching {
+            runCatchingCancellable {
                 if (initialAssetId != null) {
                     updatePriceAlerts.update(initialAssetId)
                 } else {
                     updatePriceAlerts.update()
                 }
-            }
+            }.onFailure { Log.e(TAG, "price alerts sync failed", it) }
         }
     }
 
@@ -89,13 +91,13 @@ class PriceAlertViewModel @Inject constructor(
             try {
                 refreshState.value = true
                 val assetId = assetId.value
-                runCatching {
+                runCatchingCancellable {
                     if (assetId != null) {
                         updatePriceAlerts.update(assetId)
                     } else {
                         updatePriceAlerts.update()
                     }
-                }
+                }.onFailure { Log.e(TAG, "price alerts refresh failed", it) }
             } finally {
                 refreshState.value = false
             }
@@ -106,7 +108,7 @@ class PriceAlertViewModel @Inject constructor(
 
     fun togglePriceAlerts(enable: Boolean) {
         viewModelScope.launch {
-            setPriceAlertsEnabled(enable)
+            setPriceAlertsEnabled.setPriceAlertsEnabled(enable)
         }
     }
 
@@ -117,21 +119,27 @@ class PriceAlertViewModel @Inject constructor(
     fun toggleAutoAlert(enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {
         val assetId = assetId.value ?: return@launch
         if (enabled) {
-            includePriceAlert(assetId)
+            includePriceAlert.includePriceAlert(assetId)
         } else {
-            val autoAlert = data.value[null]?.firstOrNull()
-            autoAlert?.let { excludePriceAlert(it.id) }
+            val autoAlert = data.value[null]?.firstOrNull() ?: return@launch
+            excludePriceAlert.excludePriceAlert(autoAlert.priceAlert)
         }
     }
 
-    fun excludeAsset(priceAlertId: Int) = viewModelScope.launch(Dispatchers.IO) {
-        excludePriceAlert(priceAlertId)
+    fun excludeAsset(priceAlertId: String) = viewModelScope.launch(Dispatchers.IO) {
+        val alert = data.value.values.flatten().firstOrNull { it.id == priceAlertId } ?: return@launch
+        excludePriceAlert.excludePriceAlert(alert.priceAlert)
     }
 
     fun includeAsset(assetId: AssetId, callback: (Asset) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
-        includePriceAlert(assetId)
+        includePriceAlert.includePriceAlert(assetId)
 
-        val assetInfo = assetsRepository.getTokenInfo(assetId).firstOrNull() ?: return@launch
+        val assetInfo = getAssetTokenInfo(assetId).firstOrNull() ?: return@launch
         withContext(Dispatchers.Main) { callback(assetInfo.asset) }
     }
+
+    private companion object {
+        const val TAG = "PriceAlerts"
+    }
+
 }

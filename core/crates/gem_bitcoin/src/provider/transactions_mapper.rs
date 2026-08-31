@@ -182,7 +182,7 @@ mod tests {
         let transaction: BitcoinTransaction = serde_json::from_str(include_str!("../../testdata/transaction_by_hash.json")).unwrap();
         let mapped = map_transaction(Chain::Bitcoin, &transaction).unwrap();
 
-        assert_eq!(mapped.hash, TEST_TRANSACTION_ID);
+        assert_eq!(mapped.hash(), TEST_TRANSACTION_ID);
         assert_eq!(mapped.fee, "1694");
         assert_eq!(mapped.value, "546");
     }

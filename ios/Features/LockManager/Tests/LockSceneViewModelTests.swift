@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemSecurityService
+import Primitives
 import Foundation
-import Keystore
+import GemstoneServices
 import LocalAuthentication
 @testable import LockManager
 import Testing
@@ -42,7 +44,7 @@ struct LockSceneViewModelTests {
 
         #expect(viewModel.state == .unlocked)
         #expect(viewModel.shouldShowLockScreen == false)
-        #expect(viewModel.lastUnlockTime == .distantFuture)
+        #expect(viewModel.backgroundedAt == nil)
         #expect(mockService.authenticateCallsCount == 1)
     }
 
@@ -273,7 +275,7 @@ struct LockSceneViewModelTests {
         )
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
-        viewModel.lastUnlockTime = Date(timeIntervalSince1970: 0)
+        viewModel.backgroundedAt = ContinuousClock.now - .seconds(3600)
 
         viewModel.handleSceneChange(to: .inactive)
         viewModel.handleSceneChange(to: .background)
@@ -295,7 +297,7 @@ struct LockSceneViewModelTests {
         )
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
-        viewModel.lastUnlockTime = Date().addingTimeInterval(1000)
+        viewModel.backgroundedAt = ContinuousClock.now
 
         viewModel.handleSceneChange(to: .background)
         viewModel.handleSceneChange(to: .active)
@@ -313,13 +315,13 @@ struct LockSceneViewModelTests {
         )
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
-        viewModel.lastUnlockTime = .now + 0.5 // inside grace period
+        viewModel.backgroundedAt = ContinuousClock.now
 
         viewModel.handleSceneChange(to: .background)
 
-        // lastUnlockTime must now be ≈ now + 60 s
-        let delta = Int(viewModel.lastUnlockTime.timeIntervalSinceNow.rounded())
-        #expect(delta == LockPeriod.oneMinute.value)
+        let elapsed = viewModel.backgroundedAt.map { (ContinuousClock.now - $0).milliseconds } ?? .max
+        #expect(elapsed < 1000, "backgrounding inside the grace period restarts the countdown")
+        #expect(viewModel.shouldLock == false)
     }
 
     @Test
@@ -347,12 +349,12 @@ struct LockSceneViewModelTests {
         )
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
-        viewModel.lastUnlockTime = .distantFuture
+        viewModel.backgroundedAt = nil
 
         try mockService.update(period: .fiveMinutes)
 
         #expect(viewModel.lockPeriod == .fiveMinutes)
-        #expect(viewModel.lastUnlockTime == .distantFuture)
+        #expect(viewModel.backgroundedAt == nil)
     }
 
     @Test
@@ -449,10 +451,10 @@ struct LockSceneViewModelTests {
         )
         let viewModel = LockSceneViewModel(service: mockService)
 
-        viewModel.lastUnlockTime = Date().addingTimeInterval(-1000)
+        viewModel.backgroundedAt = ContinuousClock.now - .seconds(3600)
         #expect(viewModel.shouldLock)
 
-        viewModel.lastUnlockTime = Date().addingTimeInterval(1000)
+        viewModel.backgroundedAt = ContinuousClock.now
         #expect(!viewModel.shouldLock)
     }
 
@@ -464,10 +466,10 @@ struct LockSceneViewModelTests {
         )
         let viewModel = LockSceneViewModel(service: mockService)
 
-        viewModel.lastUnlockTime = Date().addingTimeInterval(-1000)
+        viewModel.backgroundedAt = ContinuousClock.now - .seconds(3600)
         #expect(!viewModel.shouldLock)
 
-        viewModel.lastUnlockTime = Date().addingTimeInterval(1000)
+        viewModel.backgroundedAt = ContinuousClock.now
         #expect(!viewModel.shouldLock)
     }
 
@@ -480,7 +482,7 @@ struct LockSceneViewModelTests {
         )
         let viewModel = LockSceneViewModel(service: mockService)
         viewModel.state = .unlocked
-        viewModel.lastUnlockTime = Date().addingTimeInterval(1000)
+        viewModel.backgroundedAt = ContinuousClock.now
 
         viewModel.handleSceneChange(to: .background)
         viewModel.handleSceneChange(to: .active)
@@ -504,7 +506,7 @@ struct LockSceneViewModelTests {
         #expect(viewModel.state == .unlocked)
         #expect(!viewModel.shouldShowLockScreen)
         #expect(!viewModel.isLocked)
-        #expect(viewModel.lastUnlockTime == .distantFuture)
+        #expect(viewModel.backgroundedAt == nil)
     }
 
     @Test
@@ -562,6 +564,16 @@ class MockBiometryAuthenticationService: BiometryAuthenticatable, @unchecked Sen
         availableAuthentication = availableAuth
         self.lockPeriod = lockPeriod
         self.isPrivacyLockEnabled = isPrivacyLockEnabled
+    }
+
+    func shouldRelock(elapsedMilliseconds: Int64) -> Bool {
+        let service = GemSecurityService()
+        return service.shouldRelock(
+            elapsedMilliseconds: elapsedMilliseconds,
+            lockIntervalMinutes: service.lockPeriodMinutes(period: lockPeriod.gemLockPeriod),
+            authRequired: requiresAuthentication,
+            hasPendingRequest: false,
+        )
     }
 
     @MainActor

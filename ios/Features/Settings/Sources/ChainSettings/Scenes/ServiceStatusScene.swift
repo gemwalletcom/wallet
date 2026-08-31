@@ -28,10 +28,10 @@ public struct ServiceStatusScene: View {
         .listSectionSpacing(.compact)
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .refreshable {
-            await model.fetch()
+            await model.load()
         }
         .taskOnce {
-            Task { await model.fetch() }
+            Task { await model.load() }
         }
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)

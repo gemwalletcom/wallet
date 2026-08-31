@@ -71,6 +71,7 @@ public struct PerpetualStore: Sendable {
         }
         try db.write { db in
             try PerpetualPositionRecord
+                .filter(PerpetualPositionRecord.Columns.walletId == walletId.id)
                 .filter(deleteIds.contains(PerpetualPositionRecord.Columns.id))
                 .deleteAll(db)
 

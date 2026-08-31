@@ -244,7 +244,7 @@ mod tests {
 
         let mapped = map_direct_transaction(Chain::Xrp, transaction).unwrap();
 
-        assert_eq!(mapped.hash, TEST_TRANSACTION_ID);
+        assert_eq!(mapped.hash(), TEST_TRANSACTION_ID);
         assert_eq!(mapped.from, "rnXZ876yGEhoATQSYegtD8bg8wpA8TTX5a");
     }
 

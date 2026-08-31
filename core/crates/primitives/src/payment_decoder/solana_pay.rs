@@ -17,15 +17,11 @@ const QUERY_REFERENCE: &str = "reference";
 
 pub fn decode(path: &str) -> Result<Payment> {
     if path.starts_with(TRANSACTION_LINK_PREFIX) {
-        return Ok(Payment::Link(PaymentLink::SolanaPay(transaction_link(path)?)));
+        return Ok(Payment::Link(PaymentLink::SolanaPay { url: transaction_link(path)? }));
     }
 
     let (recipient, query) = path.split_once('?').unwrap_or((path, ""));
     let parameters = query::parameters(query);
-
-    if parameters.contains_key(QUERY_REFERENCE) {
-        return Err(PaymentDecoderError::InvalidFormat("Unsupported payment reference".to_string()));
-    }
 
     let token = query::value(&parameters, QUERY_SPL_TOKEN);
     let amount = query::value(&parameters, QUERY_AMOUNT)
@@ -39,6 +35,10 @@ pub fn decode(path: &str) -> Result<Payment> {
         address: recipient.to_string(),
         amount,
         memo: query::value(&parameters, QUERY_MEMO),
+        references: match query::values(query, QUERY_REFERENCE) {
+            references if references.is_empty() => None,
+            references => Some(references),
+        },
         asset_id: Some(AssetId::from(Chain::Solana, token)),
     }))
 }
@@ -84,6 +84,7 @@ mod tests {
                 address: RECIPIENT.to_string(),
                 amount: Some(PaymentAmount::ExactValue("1".to_string())),
                 memo: Some("OrderId5678".to_string()),
+                references: None,
                 asset_id: Some(AssetId::from(Chain::Solana, Some(SOLANA_USDC_TOKEN_ID.to_string()))),
             })
         );
@@ -93,21 +94,31 @@ mod tests {
     fn test_decode_transaction_link() {
         assert_eq!(
             decode("https://merchant.example/pay?order=12345").unwrap(),
-            Payment::Link(PaymentLink::SolanaPay("https://merchant.example/pay?order=12345".to_string()))
+            Payment::Link(PaymentLink::SolanaPay {
+                url: "https://merchant.example/pay?order=12345".to_string()
+            })
         );
         assert_eq!(
             decode("https%3A%2F%2Fapi.spherepay.co%2Fv1%2Fpublic%2FpaymentLink%2Fpay%2FpaymentLink_1%3Fnetwork%3Dsol").unwrap(),
-            Payment::Link(PaymentLink::SolanaPay(
-                "https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1?network=sol".to_string()
-            ))
+            Payment::Link(PaymentLink::SolanaPay {
+                url: "https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1?network=sol".to_string()
+            })
         );
     }
 
     #[test]
-    fn test_decode_refuses_a_reference() {
+    fn test_decode_references() {
+        let first = "82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny";
+        let second = "7GUcQZQwHHa9GBPhVq7v2LArSsp5VmGXV5zXnQ8Q7N3a";
         assert_eq!(
-            decode(&format!("{RECIPIENT}?amount=1&reference=82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny")),
-            Err(PaymentDecoderError::InvalidFormat("Unsupported payment reference".to_string()))
+            decode(&format!("{RECIPIENT}?amount=1&reference={first}&reference={second}")),
+            Ok(Payment::Request(PaymentRequest {
+                address: RECIPIENT.to_string(),
+                amount: Some(PaymentAmount::ExactValue("1".to_string())),
+                references: Some(vec![first.to_string(), second.to_string()]),
+                asset_id: Some(AssetId::from_chain(Chain::Solana)),
+                ..PaymentRequest::mock()
+            }))
         );
     }
 }

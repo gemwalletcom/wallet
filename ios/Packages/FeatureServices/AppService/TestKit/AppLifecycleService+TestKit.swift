@@ -1,46 +1,43 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import AppService
-import ConnectionsService
-import ConnectionsServiceTestKit
+import class Gemstone.GemConnectionService
+import protocol Gemstone.GemPerpetualServiceProtocol
+import protocol Gemstone.GemTransactionStateServiceProtocol
+import GemstonePrimitivesTestKit
+import protocol Gemstone.GemStreamSubscriptionServiceProtocol
+import WalletConnectorService
+import WalletConnectorServiceTestKit
 import ConnectionStatusService
-import DeviceService
-import DeviceServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import Foundation
-import PerpetualService
-import PerpetualServiceTestKit
-import Preferences
 import PreferencesTestKit
 import StreamService
 import StreamServiceTestKit
-import WalletSessionService
-import WalletSessionServiceTestKit
 
 public extension AppLifecycleService {
     static func mock(
-        preferences: Preferences = .mock(),
-        connectionsService: ConnectionsService = .mock(),
-        connectionStatusObserver: ConnectionStatusObserver = ConnectionStatusObserver(monitors: []),
+        walletConnector: any WalletConnectorServiceable = WalletConnectorServiceMock(),
+        connectionStatusObserver: ConnectionStatusObserver = ConnectionStatusObserver(connectionService: GemConnectionService(), monitors: []),
         deviceObserverService: DeviceObserverService = .mock(),
         streamObserverService: StreamObserverService = .mock(),
-        streamSubscriptionService: StreamSubscriptionService = .mock(),
+        streamSubscriptionService: any GemStreamSubscriptionServiceProtocol = GemStreamSubscriptionServiceMock(),
         hyperliquidObserverService: PerpetualObserverMock = PerpetualObserverMock(),
-        perpetualService: any PerpetualServiceable = PerpetualServiceMock(),
+        perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
         walletSessionService: any WalletSessionManageable = WalletSessionService.mock(),
+        transactionStateService: any GemTransactionStateServiceProtocol = GemTransactionStateServiceMock(),
     ) -> AppLifecycleService {
         AppLifecycleService(
-            preferences: preferences,
-            connectionsService: connectionsService,
+            walletConnector: walletConnector,
             connectionStatusObserver: connectionStatusObserver,
             deviceObserverService: deviceObserverService,
             streamObserverService: streamObserverService,
             streamSubscriptionService: streamSubscriptionService,
-            perpetualEnablerService: PerpetualEnablerService(
-                observer: hyperliquidObserverService,
-                service: perpetualService,
-                preferences: preferences,
-            ),
+            perpetualService: perpetualService,
+            perpetualObserver: hyperliquidObserverService,
             walletSessionService: walletSessionService,
+            transactionStateService: transactionStateService,
         )
     }
 }

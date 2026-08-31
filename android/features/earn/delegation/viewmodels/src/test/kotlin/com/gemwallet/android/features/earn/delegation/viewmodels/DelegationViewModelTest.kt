@@ -1,10 +1,12 @@
 package com.gemwallet.android.features.earn.delegation.viewmodels
 
+import uniffi.gemstone.GemBlockExplorerLink
+import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemStakeServiceInterface
 import androidx.lifecycle.SavedStateHandle
-import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.stake.StakeRepository
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockDelegation
@@ -34,12 +36,12 @@ class DelegationViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val asset = mockAssetCosmos()
 
-    private val assetsRepository = mockk<AssetsRepository> {
-        every { getAssetInfo(asset.id) } returns flowOf(mockAssetInfo(asset = asset))
+    private val getAssetInfo = mockk<GetAssetInfo> {
+        every { this@mockk(asset.id) } returns flowOf(mockAssetInfo(asset = asset))
     }
-    private val stakeRepository = mockk<StakeRepository>()
-    private val getCurrentBlockExplorer = mockk<GetCurrentBlockExplorer>(relaxed = true) {
-        every { getCurrentBlockExplorer(asset.id.chain) } returns "Mintscan"
+    private val getDelegation = mockk<GetDelegation>()
+    private val explorerService = mockk<GemExplorerService>(relaxed = true) {
+        every { getValidatorUrl(asset.id.chain.string, any()) } answers { GemBlockExplorerLink("Mintscan", "https://mintscan.io/validators/${secondArg<String>()}") }
     }
 
     @Before
@@ -55,18 +57,19 @@ class DelegationViewModelTest {
         val ownDelegation = mockDelegation(assetId = asset.id, balance = "77", validatorId = "v1", delegationId = "d1")
         val otherWalletDelegation = mockDelegation(assetId = asset.id, balance = "999999", validatorId = "v1", delegationId = "d1")
 
-        every { stakeRepository.getDelegation(ownWalletId, "v1", "d1") } returns flowOf(ownDelegation)
-        every { stakeRepository.getDelegation(otherWalletId, "v1", "d1") } returns flowOf(otherWalletDelegation)
+        every { getDelegation(ownWalletId, "v1", "d1") } returns flowOf(ownDelegation)
+        every { getDelegation(otherWalletId, "v1", "d1") } returns flowOf(otherWalletDelegation)
 
-        val sessionRepository = mockk<SessionRepository> {
-            every { session() } returns MutableStateFlow(mockSession(wallet = mockWallet(id = ownWalletId.id)))
+        val getSession = mockk<GetSession> {
+            every { this@mockk() } returns MutableStateFlow(mockSession(wallet = mockWallet(id = ownWalletId.id)))
         }
 
         val viewModel = DelegationViewModel(
-            assetsRepository = assetsRepository,
-            stakeRepository = stakeRepository,
-            getCurrentBlockExplorer = getCurrentBlockExplorer,
-            sessionRepository = sessionRepository,
+            getAssetInfo = getAssetInfo,
+            getDelegation = getDelegation,
+            stakeService = mockk<GemStakeServiceInterface>(relaxed = true),
+            explorerService = explorerService,
+            getSession = getSession,
             savedStateHandle = SavedStateHandle(
                 mapOf(
                     RouteArgument.ValidatorId.key to "v1",

@@ -1,15 +1,17 @@
 package com.gemwallet.android.features.recipient.viewmodel
 
+import uniffi.gemstone.GemAddressService
+import uniffi.gemstone.GemRecipient
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
-import com.gemwallet.android.application.recipient.coordinators.GetWallets
-import com.gemwallet.android.application.session.coordinators.GetSession
-import com.gemwallet.android.cases.contacts.ContactRecipient
-import com.gemwallet.android.cases.contacts.GetContacts
-import com.gemwallet.android.cases.name.ResolveName
-import com.gemwallet.android.cases.nft.GetAssetNft
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.wallet.cases.GetWallets
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.contacts.values.ContactRecipient
+import com.gemwallet.android.application.contacts.cases.GetContacts
+import com.gemwallet.android.application.recipient.cases.GetNameRecord
+import com.gemwallet.android.application.nft.cases.GetAssetNft
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.checksumAddress
@@ -17,7 +19,6 @@ import com.gemwallet.android.ext.decodePayment
 import com.gemwallet.android.ext.exactAmount
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isMemoSupport
-import com.gemwallet.android.ext.isValidAddress
 import com.gemwallet.android.ext.request
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
@@ -25,9 +26,7 @@ import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.model.PaymentDestination
-import com.gemwallet.android.model.PaymentTransfer
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -41,7 +40,11 @@ import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAsset
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.NameRecord
+import uniffi.gemstone.GemRecipientException
+import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemRecipientService
 import com.wallet.core.primitives.PaymentRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineStart
@@ -73,17 +76,17 @@ class RecipientViewModel @Inject constructor(
     private val getContacts: GetContacts,
     private val getAssetInfo: GetAssetInfo,
     private val getAssetNft: GetAssetNft,
-    private val resolveName: ResolveName,
-    savedStateHandle: SavedStateHandle
+    private val getNameRecord: GetNameRecord,
+    savedStateHandle: SavedStateHandle,
+    private val recipientService: GemRecipientService,
+    private val paymentService: GemPaymentService,
+    private val addressService: GemAddressService,
 ) : ViewModel() {
 
-    private val validateAddress: (address: String, chain: Chain) -> Boolean =
-        { address, chain -> chain.isValidAddress(address) }
-
     private val addressInput = AddressInputModel(
-        resolveName = resolveName,
+        getNameRecord = getNameRecord,
+        recipientService = recipientService,
         scope = viewModelScope,
-        validateAddress = validateAddress,
     )
 
     val address: StateFlow<String> = addressInput.text
@@ -92,6 +95,7 @@ class RecipientViewModel @Inject constructor(
 
     private val _memo = MutableStateFlow("")
     val memo = _memo.asStateFlow()
+    private var references = emptyList<String>()
     private var requestedAmount: String? = null
 
     private val session = getSession()
@@ -166,55 +170,48 @@ class RecipientViewModel @Inject constructor(
         confirmAction: ConfirmTransactionAction,
     ) {
         if (!addressInput.validate()) return
-        val resolvedNameRecord = addressInput.nameRecord
-        submit(
-            type = type,
-            destination = DestinationAddress(
-                address = addressInput.resolvedAddress,
-                name = resolvedNameRecord?.name,
-            ),
-            amountAction = amountAction,
-            confirmAction = confirmAction,
-            nameRecord = resolvedNameRecord,
-        )
+        submit(type, address.value, addressInput.nameRecord, amountAction, confirmAction)
     }
 
     fun onDestination(
         type: RecipientType,
-        destination: DestinationAddress,
+        destination: GemRecipient,
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
     ) {
-        submit(type, destination, amountAction, confirmAction)
+        submit(type, destination.address, null, amountAction, confirmAction, destination.name)
     }
 
     private fun submit(
         type: RecipientType,
-        destination: DestinationAddress,
+        input: String,
+        nameRecord: NameRecord?,
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
-        nameRecord: NameRecord? = null,
+        selectedName: String? = null,
     ) {
-        val asset = type.assetInfo.asset
-        destination.copy(address = asset.chain.checksumAddress(destination.address)).let { destination ->
-            if (!destination.isValidRecipient(address.value, asset.chain, nameRecord, validateAddress)) {
-                if (!resolveName.canResolveName(destination.address)) {
-                    addressInput.markInvalid()
-                }
-                return
+        val chain = type.assetInfo.asset.chain
+        val recipient = try {
+            recipientService.recipient(chain.string, input, nameRecord?.toJson(), memo.value, references)
+        } catch (_: GemRecipientException) {
+            if (!getNameRecord.isNameSupported(input)) {
+                addressInput.markInvalid()
             }
-            when (type) {
-                is RecipientType.Nft -> onNftConfirm(type.nftAsset, destination, confirmAction)
-                is RecipientType.Asset -> amountAction(
-                    AmountParams.Transfer(type.assetInfo.id(), destination, memo.value, requestedAmount)
-                )
-            }
+            return
+        }
+        val destination = GemRecipient(address = recipient.address, name = recipient.name ?: selectedName)
+        when (type) {
+            is RecipientType.Nft -> onNftConfirm(type.nftAsset, destination, confirmAction)
+            is RecipientType.Asset -> amountAction(
+                AmountParams.Transfer(type.assetInfo.id(), destination, memo.value, references, requestedAmount)
+            )
         }
     }
 
     fun onAddress(input: String) {
         if (input != address.value) {
             requestedAmount = null
+            references = emptyList()
         }
         addressInput.onTextChange(input)
     }
@@ -240,21 +237,22 @@ class RecipientViewModel @Inject constructor(
     }
 
     private fun scannedDestination(type: RecipientType, data: String): PaymentDestination.Transfer {
-        val request = decodePayment(data)?.request ?: return PaymentDestination.Unsupported
+        val request = paymentService.decodePayment(data)?.request ?: return PaymentDestination.Unsupported
 
         return when (type) {
             is RecipientType.Nft -> PaymentDestination.Recipient(type.assetInfo.asset.id, request.copy(amount = null))
-            is RecipientType.Asset -> PaymentTransfer(type.assetInfo).destination(request)
+            is RecipientType.Asset -> PaymentDestination.transfer(request, type.assetInfo, paymentService)
         }
     }
 
     private fun updateFrom(request: PaymentRequest) {
-        addressInput.applyExternalAddress(assetId.chain.checksumAddress(request.address))
+        addressInput.applyExternalAddress(assetId.chain.checksumAddress(request.address, addressService))
         request.memo?.let { _memo.value = it }
+        references = request.references.orEmpty()
         requestedAmount = request.exactAmount
     }
 
-    private fun onNftConfirm(nftAsset: NFTAsset, destination: DestinationAddress, confirmAction: ConfirmTransactionAction) {
+    private fun onNftConfirm(nftAsset: NFTAsset, destination: GemRecipient, confirmAction: ConfirmTransactionAction) {
         val params = ConfirmParams.NftParams(
             asset = nftAsset.chain.asset(),
             from = session.value?.wallet?.getAccount(nftAsset.chain) ?: return,

@@ -38,10 +38,10 @@ public struct PriceAlertsScene: View {
         }
         .onChange(of: model.isPriceAlertsEnabled, onAlertsEnable)
         .refreshable {
-            await model.fetch()
+            await model.load()
         }
         .task {
-            await model.fetch()
+            await model.load()
         }
         .navigationTitle(model.title)
     }
@@ -63,7 +63,7 @@ private extension PriceAlertsScene {
     }
 
     func alertView(alert: PriceAlertData) -> some View {
-        ListAssetItemView(model: PriceAlertItemViewModel(data: alert))
+        ListAssetItemView(model: PriceAlertItemViewModel(data: alert, currency: model.currencyCode))
             .swipeActions(edge: .trailing) {
                 Button(Localized.Common.delete, role: .destructive) {
                     onDelete(alert: alert.priceAlert)

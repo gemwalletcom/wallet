@@ -139,6 +139,19 @@ fn test_gem_keystore_v4_password_is_opaque_bytes() {
 }
 
 #[test]
+fn test_gem_keystore_has_stored_wallets() {
+    let dir = TempDir::new().unwrap();
+    let keystore = GemKeystore::new(dir.path().to_string_lossy().to_string()).unwrap();
+    assert!(!keystore.has_stored_wallets().unwrap());
+
+    let stored = keystore.create_store(mock_multicoin_phrase_import(vec![Chain::Ethereum]), b"password".to_vec()).unwrap();
+    assert!(keystore.has_stored_wallets().unwrap());
+
+    keystore.delete(stored.keystore_id).unwrap();
+    assert!(!keystore.has_stored_wallets().unwrap());
+}
+
+#[test]
 fn test_gem_keystore_single_phrase_import_create() {
     let dir = TempDir::new().unwrap();
     let keystore = GemKeystore::new(dir.path().to_string_lossy().to_string()).unwrap();

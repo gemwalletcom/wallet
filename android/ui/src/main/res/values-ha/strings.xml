@@ -20,6 +20,7 @@
   <string name="common_wallet">Wallet</string>
   <string name="common_show">Nuna %1$s</string>
   <string name="common_copied">An Kwafi: %1$s</string>
+  <string name="common_copied_to_clipboard">An kwafa zuwa allo</string>
   <string name="common_recommended">An ba da shawarar</string>
   <string name="common_all">Duka</string>
   <string name="common_not_available">Babu</string>
@@ -185,10 +186,14 @@
   <string name="errors_token_invalid_id">ID na Token mara inganci</string>
   <string name="errors_import_invalid_secret_phrase">Kalmomin sirri mara inganci</string>
   <string name="errors_import_invalid_secret_phrase_word">Kalmar Sirri mara inganci: %1$s</string>
+  <string name="errors_import_invalid_private_key">Maɓallin sirri mara inganci</string>
+  <string name="errors_keystore_access">An kasa samun damar shiga makullan wannan walat a wannan na\'urar. Idan kana da jimlar dawo da walat, cire wannan walat sannan ka sake shigo da ita don dawo da damar shiga.</string>
+  <string name="errors_wallet_account_missing">Wannan walat ba ta da asusu don wannan hanyar sadarwa</string>
   <string name="errors_invalid_url">URL mara inganci</string>
   <string name="errors_error_occurred">An sami kuskure!</string>
   <string name="errors_invalid_network_id">ID na hanyar sadarwa mara inganci</string>
   <string name="errors_error">Kuskure</string>
+  <string name="errors_cancelled">An soke</string>
   <string name="errors_connections_user_cancelled">Mai amfani ya soke</string>
   <string name="errors_not_supported">Ba a Tallafawa</string>
   <string name="errors_permissions_not_granted">Ba a Ba da izini ba</string>

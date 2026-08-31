@@ -21,14 +21,12 @@ struct ConnectionsStoreTests {
         try connectionsStore.addConnection(.mock(session: .mock(sessionId: "session-a"), wallet: walletA))
         try connectionsStore.addConnection(.mock(session: .mock(sessionId: "session-b"), wallet: walletB))
 
-        #expect(try connectionsStore.getConnection(id: "session-a").wallet.id == walletA.id)
-        #expect(try connectionsStore.getConnection(id: "session-b").wallet.id == walletB.id)
+        #expect(try connectionsStore.getConnection(sessionId: "session-a")?.wallet.id == walletA.id)
+        #expect(try connectionsStore.getConnection(sessionId: "session-b")?.wallet.id == walletB.id)
     }
 
     @Test
-    func getConnectionThrowsForNonexistentSession() throws {
-        #expect(throws: Error.self) {
-            _ = try ConnectionsStore.mock().getConnection(id: "nonexistent")
-        }
+    func getConnectionIsNilForNonexistentSession() throws {
+        #expect(try ConnectionsStore.mock().getConnection(sessionId: "nonexistent") == nil)
     }
 }

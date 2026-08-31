@@ -12,22 +12,37 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BannersDao {
-    @Query("SELECT * FROM banners WHERE wallet_id=:walletId AND (asset_id=:assetId OR asset_id LIKE :chain || '%') AND event = :event")
-    suspend fun getBanner(walletId: String?, assetId: String?, chain: String?, event: BannerEvent): DbBanner?
+    @Query("SELECT * FROM banners WHERE id = :id")
+    suspend fun getBanner(id: String): DbBanner?
+
+    @Query("SELECT * FROM banners WHERE id = :id")
+    fun observeBanner(id: String): Flow<DbBanner?>
 
     @Query("""
         SELECT * FROM
             banners
         WHERE
-            wallet_id=:walletId AND (asset_id=:assetId OR chain=:chain) AND state IN (:state)
+            (wallet_id IS NULL OR wallet_id = :walletId)
+            AND asset_id = :assetId
+            AND state IN (:states)
     """)
-    suspend fun getBanner(
-        walletId: String,
+    suspend fun getAssetBanners(
+        walletId: String?,
         assetId: String,
-        chain: Chain?,
-        state: List<BannerState> = listOf(BannerState.Active, BannerState.AlwaysActive)
+        states: List<BannerState> = listOf(BannerState.Active, BannerState.AlwaysActive),
     ): List<DbBanner>
 
+    @Query("""
+        SELECT * FROM
+            banners
+        WHERE
+            wallet_id = :walletId AND event IN (:events) AND state IN (:states)
+    """)
+    suspend fun getWalletBanners(
+        walletId: String,
+        events: List<BannerEvent>,
+        states: List<BannerState> = listOf(BannerState.Active, BannerState.AlwaysActive),
+    ): List<DbBanner>
 
     @Query("""
         SELECT state FROM
@@ -39,4 +54,7 @@ interface BannersDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveBanner(banner: DbBanner)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun addBanners(banners: List<DbBanner>)
 }

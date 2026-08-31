@@ -71,12 +71,12 @@ extension WalletConnectionRecord: CreateTable {
 extension WalletConnection {
     var record: WalletConnectionRecord {
         WalletConnectionRecord(
-            id: session.sessionId,
+            id: session.id,
             sessionId: session.sessionId,
             walletId: wallet.id.id,
             state: session.state,
             chains: session.chains,
-            createdAt: Date(),
+            createdAt: session.createdAt,
             expireAt: session.expireAt,
             appName: session.metadata.name,
             appDescription: session.metadata.description,
@@ -89,28 +89,29 @@ extension WalletConnection {
 extension WalletConnectionRecord {
     var session: WalletConnectionSession {
         WalletConnectionSession(
-            id: sessionId,
+            id: id,
             sessionId: sessionId,
             state: state,
             chains: chains ?? [],
             createdAt: createdAt,
             expireAt: expireAt,
-            metadata: WalletConnectionSessionAppMetadata(
+            metadata: ApplicationMetadata(
                 name: appName,
                 description: appDescription,
                 url: appLink,
                 icon: appIcon,
+                source: .walletConnect,
             ),
         )
     }
 
     func update(with session: WalletConnectionSession) -> WalletConnectionRecord {
         WalletConnectionRecord(
-            id: session.sessionId,
-            sessionId: session.sessionId,
+            id: id,
+            sessionId: sessionId,
             walletId: walletId,
             state: session.state,
-            chains: chains ?? [],
+            chains: session.chains,
             createdAt: createdAt,
             expireAt: session.expireAt,
             appName: session.metadata.name,

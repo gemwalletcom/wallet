@@ -10,6 +10,7 @@ public actor WebSocketConnection: WebSocketConnectable {
     private var session: URLSession?
     private var task: URLSessionWebSocketTask?
     private var reconnectTask: Task<Void, Never>?
+    private var keepaliveTask: Task<Void, Never>?
     private var continuation: AsyncStream<WebSocketEvent>.Continuation?
     private var reconnectAttempt: Int = 0
     private var pendingMessages: [URLSessionWebSocketTask.Message] = []
@@ -18,13 +19,14 @@ public actor WebSocketConnection: WebSocketConnectable {
         self.configuration = configuration
     }
 
-    public init(url: URL) {
-        self.init(configuration: WebSocketConfiguration(url: url))
+    public init(url: URL, reconnection: any Reconnectable) {
+        self.init(configuration: WebSocketConfiguration(url: url, reconnection: reconnection))
     }
 
     deinit {
         task?.cancel(with: .goingAway, reason: nil)
         reconnectTask?.cancel()
+        keepaliveTask?.cancel()
         continuation?.finish()
     }
 
@@ -98,8 +100,34 @@ public actor WebSocketConnection: WebSocketConnectable {
     }
 
     private func cancelTask() {
+        cancelKeepalive()
         task?.cancel(with: .goingAway, reason: nil)
         task = nil
+    }
+
+    private func cancelKeepalive() {
+        keepaliveTask?.cancel()
+        keepaliveTask = nil
+    }
+
+    private func startKeepalive() {
+        cancelKeepalive()
+        let interval = configuration.reconnection.pingIntervalMilliseconds()
+        keepaliveTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(interval))
+                guard !Task.isCancelled else { return }
+                await self?.sendPing()
+            }
+        }
+    }
+
+    private func sendPing() {
+        guard state == .connected, let task else { return }
+        task.sendPing { [weak self] error in
+            guard let error else { return }
+            Task { await self?.handleError(error) }
+        }
     }
 
     private func cancelReconnect() {
@@ -170,6 +198,7 @@ public actor WebSocketConnection: WebSocketConnectable {
 
         state = .connected
         resetReconnectionAttempt()
+        startKeepalive()
         continuation?.yield(.connected)
 
         Task {
@@ -234,11 +263,11 @@ public actor WebSocketConnection: WebSocketConnectable {
         state = .reconnecting
         continuation?.yield(.disconnected(error))
 
-        let delay = configuration.reconnection.reconnectAfter(attempt: reconnectAttempt)
+        let delay = configuration.reconnection.reconnectDelayMilliseconds(attempt: UInt32(clamping: reconnectAttempt))
         reconnectAttempt += 1
 
         reconnectTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(delay))
+            try? await Task.sleep(for: .milliseconds(delay))
             await self?.finishReconnect()
         }
     }

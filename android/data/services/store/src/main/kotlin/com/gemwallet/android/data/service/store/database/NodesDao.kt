@@ -5,11 +5,25 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.gemwallet.android.data.service.store.database.entities.DbNode
+import com.gemwallet.android.ext.requireChain
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Chain
-import kotlinx.coroutines.flow.Flow
+import com.wallet.core.primitives.Node
+import uniffi.gemstone.GemNodeStore
 
 @Dao
-interface NodesDao {
+interface NodesDao : GemNodeStore {
+
+    override suspend fun getNodes(chain: String): List<String> = getNodes(chain.requireChain())
+        .map { Node(it.url, it.status, it.priority).toJson() }
+
+    override suspend fun addNode(chain: String, node: String) {
+        val value = node.decodeJson<Node>()
+        addNodes(listOf(DbNode(value.url, value.status, value.priority, chain.requireChain())))
+    }
+
+    override suspend fun deleteNode(chain: String, url: String) = deleteNode(chain.requireChain(), url)
 
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun addNodes(nodes: List<DbNode>)
@@ -18,6 +32,6 @@ interface NodesDao {
     suspend fun deleteNode(chain: Chain, url: String)
 
     @Query("SELECT * FROM nodes WHERE chain = :chain ORDER BY priority DESC, url ASC")
-    fun getNodes(chain: Chain): Flow<List<DbNode>>
+    suspend fun getNodes(chain: Chain): List<DbNode>
 
 }

@@ -7,7 +7,7 @@ struct LeverageOptionTests {
     @Test
     func leverageOption() {
         let allOptions = LeverageOption.allOptions
-        let maxLeverage4 = allOptions.filter { $0.value <= 4 }
+        let maxLeverage4 = LeverageOption.options(maxLeverage: 4)
 
         #expect(LeverageOption.option(desiredValue: 10, from: allOptions).value == 10)
         #expect(LeverageOption.option(desiredValue: 5, from: allOptions).value == 5)

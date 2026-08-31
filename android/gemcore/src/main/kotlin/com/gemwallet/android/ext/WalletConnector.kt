@@ -1,16 +1,10 @@
 package com.gemwallet.android.ext
 
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Account
-import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
-import uniffi.gemstone.GemWalletConnectionSessionAppMetadata
-import uniffi.gemstone.walletConnectAppShortName
-
-fun WalletConnectionSessionAppMetadata.toGem() = GemWalletConnectionSessionAppMetadata(
-    name = name,
-    description = description,
-    url = url,
-    icon = icon,
-)
+import com.wallet.core.primitives.ApplicationMetadata
+import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemApplicationMetadataService
 
 fun Account.toGem() = uniffi.gemstone.Account(
     chain = chain.string,
@@ -19,15 +13,15 @@ fun Account.toGem() = uniffi.gemstone.Account(
     extendedPublicKey = extendedPublicKey,
 )
 
-val WalletConnectionSessionAppMetadata.shortName: String
-    get() = walletConnectAppShortName(toGem())
-
-fun List<String>?.walletConnectIcon(): String {
-    return this?.firstOrNull { it.endsWith("png", ignoreCase = true) || it.endsWith("jpg", ignoreCase = true) }
-        ?: this?.firstOrNull()
-        ?: ""
+fun uniffi.gemstone.Account.toPrimitives(): Account? {
+    val chain = Chain.entries.firstOrNull { it.string == chain } ?: return null
+    return Account(
+        chain = chain,
+        address = address,
+        derivationPath = derivationPath,
+        extendedPublicKey = extendedPublicKey,
+    )
 }
 
-fun walletConnectAppName(name: String?, url: String?): String {
-    return name?.takeIf { it.isNotBlank() } ?: url?.getShortUrl().orEmpty()
-}
+fun ApplicationMetadata.shortName(applicationMetadataService: GemApplicationMetadataService): String =
+    applicationMetadataService.shortName(toJson())

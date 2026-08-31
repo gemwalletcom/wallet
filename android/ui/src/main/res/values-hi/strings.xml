@@ -20,6 +20,7 @@
   <string name="common_wallet">बटुआ</string>
   <string name="common_show">दिखाओ %1$s</string>
   <string name="common_copied">कॉपी किया गया: %1$s</string>
+  <string name="common_copied_to_clipboard">क्लिपबोर्ड पर कॉपी किया गया</string>
   <string name="common_recommended">अनुशंसित</string>
   <string name="common_all">सब</string>
   <string name="common_not_available">उपलब्ध नहीं है</string>
@@ -185,10 +186,14 @@
   <string name="errors_token_invalid_id">अमान्य टोकन आईडी</string>
   <string name="errors_import_invalid_secret_phrase">अमान्य गुप्त वाक्यांश</string>
   <string name="errors_import_invalid_secret_phrase_word">अमान्य गुप्त वाक्यांश शब्द: %1$s</string>
+  <string name="errors_import_invalid_private_key">अमान्य प्राइवेट की</string>
+  <string name="errors_keystore_access">इस डिवाइस पर इस वॉलेट की कुंजियों तक पहुँच नहीं हो सकी। यदि आपके पास रिकवरी फ़्रेज़ है, तो इस वॉलेट को हटाकर दोबारा इम्पोर्ट करें और एक्सेस बहाल करें।</string>
+  <string name="errors_wallet_account_missing">इस वॉलेट में इस नेटवर्क के लिए कोई खाता नहीं है</string>
   <string name="errors_invalid_url">अमान्य यूआरएल</string>
   <string name="errors_error_occurred">एक त्रुटि पाई गई!</string>
   <string name="errors_invalid_network_id">अमान्य नेटवर्क आईडी</string>
   <string name="errors_error">त्रुटि</string>
+  <string name="errors_cancelled">रद्द किया गया</string>
   <string name="errors_connections_user_cancelled">उपयोगकर्ता ने रद्द किया</string>
   <string name="errors_not_supported">समर्थित नहीं</string>
   <string name="errors_permissions_not_granted">अनुमतियाँ नहीं दी गईं</string>

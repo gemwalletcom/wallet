@@ -1,8 +1,9 @@
 package com.gemwallet.android.ui.models.name
 
-import com.gemwallet.android.cases.name.ResolveName
-import com.gemwallet.android.ext.checksumAddress
+import com.gemwallet.android.application.recipient.cases.GetNameRecord
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.NameRecord
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -10,14 +11,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import uniffi.gemstone.GemRecipientService
+import uniffi.gemstone.GemRecipientValidation
 
 class AddressInputModel(
-    private val resolveName: ResolveName,
+    private val getNameRecord: GetNameRecord,
+    private val recipientService: GemRecipientService,
     scope: CoroutineScope,
-    private val validateAddress: (address: String, chain: Chain) -> Boolean,
     initialChain: Chain? = null,
 ) {
-    private val resolver = NameResolveController(resolveName, scope)
+    private val nameRecordController = NameRecordController(getNameRecord, scope)
     private val _text = MutableStateFlow("")
     private val _showError = MutableStateFlow(false)
     private val _chain = MutableStateFlow(initialChain)
@@ -25,45 +28,44 @@ class AddressInputModel(
     val chain: Chain? get() = _chain.value
 
     val text: StateFlow<String> = _text.asStateFlow()
-    val nameResolveState: StateFlow<NameRecordState> = resolver.state
+    val nameResolveState: StateFlow<NameRecordState> = nameRecordController.state
     val showError: StateFlow<Boolean> = _showError.asStateFlow()
 
-    val isValid: StateFlow<Boolean> = combine(_text, resolver.state, _chain) { text, resolve, chain ->
+    val isValid: StateFlow<Boolean> = combine(_text, nameRecordController.state, _chain) { text, resolve, chain ->
         isValid(text, resolve, chain)
     }.stateIn(scope, SharingStarted.Eagerly, false)
 
-    val nameRecord get() = resolver.state.value.nameRecord
+    val nameRecord get() = nameRecordController.state.value.nameRecord
 
     val resolvedAddress: String
-        get() {
-            val address = nameRecord?.address?.takeIf { it.isNotEmpty() } ?: _text.value
-            return chain?.checksumAddress(address) ?: address
-        }
+        get() = chain?.let { validation(_text.value, nameRecord, it).address } ?: _text.value
 
     fun onTextChange(value: String) {
         _text.value = value
         _showError.value = false
-        resolver.resolve(value, chain)
+        nameRecordController.getNameRecord(value, chain)
     }
 
     fun setChain(chain: Chain) {
         if (_chain.value == chain) return
         _chain.value = chain
-        resolver.reset()
-        resolver.resolve(_text.value, chain)
+        nameRecordController.reset()
+        nameRecordController.getNameRecord(_text.value, chain)
         validate()
     }
 
     fun applyExternalAddress(address: String) {
         _text.value = address
-        resolver.resolve(address, chain)
+        nameRecordController.getNameRecord(address, chain)
         validate()
     }
 
     fun validate(): Boolean {
         val text = _text.value
-        val valid = isValid(text, resolver.state.value, _chain.value)
-        _showError.value = text.isNotBlank() && !resolveName.canResolveName(text) && !valid
+        val chain = _chain.value
+        val resolve = nameRecordController.state.value
+        val valid = isValid(text, resolve, chain)
+        _showError.value = if (chain == null) text.isNotBlank() else validation(text, resolve.nameRecord, chain).showsError
         return valid
     }
 
@@ -72,14 +74,16 @@ class AddressInputModel(
     }
 
     fun reset() {
-        resolver.reset()
+        nameRecordController.reset()
         _text.value = ""
         _showError.value = false
     }
 
     private fun isValid(text: String, resolve: NameRecordState, chain: Chain?): Boolean = when (resolve) {
         NameRecordState.Loading, NameRecordState.Error -> false
-        is NameRecordState.Complete -> true
-        NameRecordState.None -> text.isNotBlank() && chain != null && validateAddress(chain.checksumAddress(text), chain)
+        is NameRecordState.Complete, NameRecordState.None -> chain != null && validation(text, resolve.nameRecord, chain).isValid
     }
+
+    private fun validation(text: String, nameRecord: NameRecord?, chain: Chain): GemRecipientValidation =
+        recipientService.validate(chain.string, text, nameRecord?.toJson())
 }

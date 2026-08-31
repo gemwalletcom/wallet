@@ -2,16 +2,19 @@ package com.gemwallet.android.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
-import com.gemwallet.android.application.update.coordinators.SkipAppUpdate
-import com.gemwallet.android.application.update.coordinators.SyncAppUpdate
-import com.gemwallet.android.cases.device.GetPushEnabled
-import com.gemwallet.android.cases.device.SwitchPushEnabled
-import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.application.assets.cases.GetWalletSummary
+import com.gemwallet.android.application.update.cases.SkipAppUpdate
+import com.gemwallet.android.application.update.cases.SyncAppUpdate
+import com.gemwallet.android.application.wallet_import.cases.SetupWallet
+import com.gemwallet.android.application.device.cases.GetPushEnabled
+import com.gemwallet.android.application.device.cases.SwitchPushEnabled
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.model.AppUpdateChannel
 import com.gemwallet.android.model.AppUpdateOffer
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.session.cases.GetCurrentWallet
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
+import com.gemwallet.android.application.wallet.cases.GetWallets
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.model.Session
@@ -25,6 +28,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -35,15 +40,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AppViewModel @Inject constructor(
-    private val sessionRepository: SessionRepository,
+    private val getSession: GetSession,
+    private val getCurrentWallet: GetCurrentWallet,
+    private val setCurrentWallet: SetCurrentWallet,
     private val userConfig: UserConfig,
     private val getPushEnabled: GetPushEnabled,
     private val switchPushEnabled: SwitchPushEnabled,
-    private val walletsRepository: WalletsRepository,
+    private val getWallets: GetWallets,
     private val syncAppUpdate: SyncAppUpdate,
     private val skipAppUpdate: SkipAppUpdate,
     private val notificationsAvailable: NotificationsAvailable,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
+    private val setupWallet: SetupWallet,
     getWalletSummary: GetWalletSummary,
 ) : ViewModel() {
 
@@ -74,7 +82,7 @@ class AppViewModel @Inject constructor(
 
     val askNotifications = combine(
         userConfig.isAskNotifications(),
-        sessionRepository.session(),
+        getSession(),
         getPushEnabled.getPushEnabled(),
     ) { isAsk, session, pushEnabled ->
         notificationsAvailable && isAsk && session != null && !pushEnabled
@@ -87,9 +95,15 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             handleAppVersion()
             rateAs()
-            sessionRepository.session().collectLatest {
+            getSession().collectLatest {
                 onSession(it ?: return@collectLatest)
             }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            getSession()
+                .filterNotNull()
+                .distinctUntilChangedBy { it.wallet.id }
+                .collectLatest { setupWallet.setup(it.wallet) }
         }
     }
 
@@ -126,10 +140,7 @@ class AppViewModel @Inject constructor(
     fun onNotificationsEnable() {
         viewModelScope.launch(Dispatchers.IO) {
             userConfig.stopAskNotifications()
-            switchPushEnabled.switchPushEnabled(
-                true,
-                walletsRepository.getAll().firstOrNull() ?: emptyList()
-            )
+            switchPushEnabled.switchPushEnabled(true)
         }
     }
 
@@ -140,10 +151,12 @@ class AppViewModel @Inject constructor(
     }
 
     private fun rateAs() {
-        if (userConfig.getLaunchNumber() == 10) {
-            state.update { it.copy(intent = AppIntent.ShowReview) }
-        }
         userConfig.increaseLaunchNumber()
+        if (!userConfig.shouldRequestReview()) {
+            return
+        }
+        state.update { it.copy(intent = AppIntent.ShowReview) }
+        userConfig.setRateApplicationShown()
     }
 
     private fun onSession(session: Session) {
@@ -153,14 +166,15 @@ class AppViewModel @Inject constructor(
     }
 
     private suspend fun getStartDestination(): NavKey = withContext(Dispatchers.IO) {
-        if (sessionRepository.getCurrentWallet() != null) {
+        if (getCurrentWallet.getCurrentWallet() != null) {
             WalletRootRoute
         } else {
-            val wallet = walletsRepository.getAll().firstOrNull()
+            val wallet = getWallets().firstOrNull()
+                ?.filter { it.accounts.isNotEmpty() }
                 ?.sortedWith(compareBy({ it.index }, { it.id.id }))
                 ?.firstOrNull()
             if (wallet != null) {
-                sessionRepository.setWallet(wallet)
+                setCurrentWallet.setCurrentWallet(wallet.id)
                 WalletRootRoute
             } else {
                 OnboardingRoute

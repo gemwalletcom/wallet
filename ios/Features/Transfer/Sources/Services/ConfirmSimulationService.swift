@@ -1,26 +1,34 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AddressNameService
-import AssetsService
 import BigInt
+import protocol Gemstone.GemAssetsServiceProtocol
+import protocol Gemstone.GemNameServiceProtocol
+import class Gemstone.GemSimulationFormatter
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
+import Store
 
 public struct ConfirmSimulationService: Sendable {
-    private let addressNameService: AddressNameService
-    private let assetsService: AssetsService
+    private let nameService: any GemNameServiceProtocol
+    private let assetsService: any GemAssetsServiceProtocol
+
+    private let simulationFormatter: GemSimulationFormatter
 
     public init(
-        addressNameService: AddressNameService,
-        assetsService: AssetsService,
+        nameService: any GemNameServiceProtocol,
+        assetsService: any GemAssetsServiceProtocol,
+        simulationFormatter: GemSimulationFormatter,
     ) {
-        self.addressNameService = addressNameService
+        self.nameService = nameService
         self.assetsService = assetsService
+        self.simulationFormatter = simulationFormatter
     }
 
     func makeState(data: TransferData, simulation: SimulationResult?) -> ConfirmSimulationState {
         let assets = simulationAssets(simulation)
         return ConfirmSimulationState(
+            result: simulation,
             warnings: simulation?.warnings ?? [],
             payload: payloadModel(data: data, simulation: simulation),
             headerData: cachedHeaderData(data: data, simulation: simulation, assets: assets),
@@ -31,16 +39,17 @@ public struct ConfirmSimulationService: Sendable {
     func updateState(data: TransferData, simulation: SimulationResult?) async -> ConfirmSimulationState {
         var payload = payloadModel(data: data, simulation: simulation)
         let addressRequests = payload.addressRequests
-        async let names = addressNameService.getAddressNames(requests: addressRequests)
+        async let names = nameService.addressNames(requests: addressRequests)
         do {
-            try await assetsService.prefetchAssets(assetIds: simulation?.simulationAssetIds ?? [])
+            try await assetsService.syncMissingAssets(for: simulation?.simulationAssetIds ?? [])
         } catch {
-            debugLog("simulation asset prefetch error: \(error)")
+            debugLog("simulation asset preload error: \(error)")
         }
         payload.addressNames = await (try? names) ?? [:]
 
         let assets = simulationAssets(simulation)
         return ConfirmSimulationState(
+            result: simulation,
             warnings: simulation?.warnings ?? [],
             payload: payload,
             headerData: cachedHeaderData(data: data, simulation: simulation, assets: assets),
@@ -68,11 +77,10 @@ private extension ConfirmSimulationService {
         }
 
         let payload = simulation?.payload ?? []
-        guard shouldHideValueField(for: transferType, simulation: simulation) else {
-            return payload
-        }
-
-        return payload.filter { $0.kind != .value }
+        let showsHeader = shouldHideValueField(for: transferType, simulation: simulation)
+        return simulationFormatter
+            .payloadFields(payload: payload.map { $0.json() }, showsHeader: showsHeader)
+            .compactMap { try? SimulationPayloadField($0) }
     }
 
     func approvalHeaderData(for transferType: TransferDataType) -> AssetValueHeaderData? {
@@ -110,38 +118,36 @@ private extension ConfirmSimulationService {
         simulation: SimulationResult?,
         assets: [AssetId: Asset],
     ) -> [SimulationAssetChange] {
-        (simulation?.balanceChanges ?? []).compactMap { change in
-            guard let value = BigInt(change.value, radix: 10),
-                  value != .zero,
-                  let asset = assets[change.assetId]
-            else {
-                return nil
+        simulationFormatter
+            .balanceChanges(simulation: simulation?.json(), knownAssetIds: assets.keys.map(\.identifier))
+            .compactMap { change in
+                guard let assetId = try? AssetId(id: change.assetId),
+                      let asset = assets[assetId],
+                      let value = BigInt(change.value, radix: 10)
+                else {
+                    return nil
+                }
+                return SimulationAssetChange(asset: asset, value: value)
             }
-            return SimulationAssetChange(
-                asset: asset,
-                value: value,
-            )
-        }
     }
 
     func simulationAssets(_ simulation: SimulationResult?) -> [AssetId: Asset] {
         guard let simulation else {
             return [:]
         }
-        let assets = (try? assetsService.getAssets(for: simulation.simulationAssetIds)) ?? []
+        let assets = (try? assetsService.assets(assetIds: simulation.simulationAssetIds.ids).map { try Primitives.Asset($0) }) ?? []
         return Dictionary(uniqueKeysWithValues: assets.map { ($0.id, $0) })
     }
 
     func shouldHideValueField(for transferType: TransferDataType, simulation: SimulationResult?) -> Bool {
-        if approvalHeaderData(for: transferType) != nil {
-            return true
-        }
-
-        return simulationHeaderValue(simulation) != nil
+        simulationFormatter.showsHeader(
+            simulation: simulation?.json(),
+            isApproval: approvalHeaderData(for: transferType) != nil,
+        )
     }
 
     func simulationHeaderValue(_ simulation: SimulationResult?) -> (assetId: AssetId, value: ApprovalValue)? {
-        guard let header = simulation?.header,
+        guard let header = try? simulationFormatter.header(simulation: simulation?.json()).flatMap({ try SimulationHeader($0) }),
               let value = header.approvalValue
         else {
             return nil

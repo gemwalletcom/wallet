@@ -1,171 +1,91 @@
 package com.gemwallet.android.data.coordinators.di
 
-import android.content.Context
-import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
-import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
-import com.gemwallet.android.application.fiat.coordinators.GetAssetPriceUsd
-import com.gemwallet.android.application.fiat.coordinators.GetBuyAssetInfo
-import com.gemwallet.android.application.fiat.coordinators.GetBuyQuoteUrl
-import com.gemwallet.android.application.fiat.coordinators.GetBuyQuotes
-import com.gemwallet.android.application.fiat.coordinators.GetBuyableFiatAssets
-import com.gemwallet.android.application.fiat.coordinators.GetFiatTransactions
-import com.gemwallet.android.application.fiat.coordinators.GetSellableFiatAssets
-import com.gemwallet.android.application.fiat.coordinators.ObserveFiatTransactions
-import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
-import com.gemwallet.android.application.fiat.coordinators.SyncFiatTransactions
+import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
+import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
+import com.gemwallet.android.application.fiat.cases.GetBuyQuoteUrl
+import com.gemwallet.android.application.fiat.cases.GetBuyQuotes
+import com.gemwallet.android.application.fiat.cases.ObserveFiatTransactions
+import com.gemwallet.android.application.fiat.cases.SyncFiatTransactions
 import com.gemwallet.android.data.coordinators.fiat.GetAssetPriceUsdImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyAssetInfoImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyQuoteUrlImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyQuotesImpl
-import com.gemwallet.android.data.coordinators.fiat.GetBuyableFiatAssetsImpl
-import com.gemwallet.android.data.coordinators.fiat.GetFiatTransactionsImpl
-import com.gemwallet.android.data.coordinators.fiat.GetSellableFiatAssetsImpl
 import com.gemwallet.android.data.coordinators.fiat.ObserveFiatTransactionsImpl
-import com.gemwallet.android.data.coordinators.fiat.SyncFiatAssetsImpl
 import com.gemwallet.android.data.coordinators.fiat.SyncFiatTransactionsImpl
-import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.service.store.ConfigStore
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
-import com.gemwallet.android.data.service.store.database.PricesDao
-import com.gemwallet.android.data.services.gemapi.GemApiClient
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Qualifier
+import uniffi.gemstone.GemFiatService
+import uniffi.gemstone.GemFiatStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneFiatStore
 import javax.inject.Singleton
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class FiatConfigStore
+import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 
 @InstallIn(SingletonComponent::class)
 @Module
 object FiatModule {
-    @Provides
-    @Singleton
-    @FiatConfigStore
-    fun provideFiatConfigStore(
-        @ApplicationContext context: Context,
-    ): ConfigStore {
-        return ConfigStore(
-            context.getSharedPreferences(
-                "buy_config",
-                Context.MODE_PRIVATE,
-            )
-        )
-    }
 
-    @Provides
-    @Singleton
-    fun provideGetBuyableFiatAssets(
-        gemApiClient: GemApiClient,
-    ): GetBuyableFiatAssets {
-        return GetBuyableFiatAssetsImpl(
-            gemApiClient = gemApiClient,
-        )
-    }
 
-    @Provides
-    @Singleton
-    fun provideGetSellableFiatAssets(
-        gemApiClient: GemApiClient,
-    ): GetSellableFiatAssets {
-        return GetSellableFiatAssetsImpl(
-            gemApiClient = gemApiClient,
-        )
-    }
 
-    @Provides
-    @Singleton
-    fun provideGetFiatTransactions(
-        gemDeviceApiClient: GemDeviceApiClient,
-    ): GetFiatTransactions {
-        return GetFiatTransactionsImpl(
-            gemDeviceApiClient = gemDeviceApiClient,
-        )
-    }
 
     @Provides
     @Singleton
     fun provideObserveFiatTransactions(
-        sessionRepository: SessionRepository,
-        fiatTransactionsDao: FiatTransactionsDao,
+        getSession: GetSession,
+        fiatStore: GemstoneFiatStore,
     ): ObserveFiatTransactions {
-        return ObserveFiatTransactionsImpl(sessionRepository, fiatTransactionsDao)
+        return ObserveFiatTransactionsImpl(getSession, fiatStore)
     }
+
 
     @Provides
     @Singleton
-    fun provideSyncFiatAssets(
-        @FiatConfigStore configStore: ConfigStore,
-        getRemoteConfig: GetRemoteConfig,
-        getBuyableFiatAssets: GetBuyableFiatAssets,
-        getSellableFiatAssets: GetSellableFiatAssets,
-        availabilityService: AssetsAvailabilityService,
-        prefetchAssets: PrefetchAssets,
-    ): SyncFiatAssets {
-        return SyncFiatAssetsImpl(
-            configStore = configStore,
-            getRemoteConfig = getRemoteConfig,
-            getBuyableFiatAssets = getBuyableFiatAssets,
-            getSellableFiatAssets = getSellableFiatAssets,
-            availabilityService = availabilityService,
-            prefetchAssets = prefetchAssets,
-        )
-    }
+    fun provideGemstoneFiatStore(fiatTransactionsDao: FiatTransactionsDao): GemstoneFiatStore = GemstoneFiatStore(fiatTransactionsDao)
+
+    @Provides
+    @Singleton
+    fun provideGemFiatStore(store: GemstoneFiatStore): GemFiatStore = store
 
     @Provides
     @Singleton
     fun provideSyncFiatTransactions(
-        sessionRepository: SessionRepository,
-        getFiatTransactions: GetFiatTransactions,
-        prefetchAssets: PrefetchAssets,
-        fiatTransactionsDao: FiatTransactionsDao,
-    ): SyncFiatTransactions {
-        return SyncFiatTransactionsImpl(
-            sessionRepository = sessionRepository,
-            getFiatTransactions = getFiatTransactions,
-            prefetchAssets = prefetchAssets,
-            fiatTransactionsDao = fiatTransactionsDao,
-        )
-    }
+        getSession: GetSession,
+        fiatService: GemFiatService,
+    ): SyncFiatTransactions = SyncFiatTransactionsImpl(getSession, fiatService)
 
     @Provides
     @Singleton
     fun provideGetBuyAssetInfo(
-        sessionRepository: SessionRepository,
-        assetsRepository: AssetsRepository,
-    ): GetBuyAssetInfo {
-        return GetBuyAssetInfoImpl(sessionRepository, assetsRepository)
-    }
+        getSession: GetSession,
+        getAssetTokenInfo: GetAssetTokenInfo,
+    ): GetBuyAssetInfo = GetBuyAssetInfoImpl(getSession, getAssetTokenInfo)
 
     @Provides
     @Singleton
     fun provideGetAssetPriceUsd(
-        pricesDao: PricesDao,
+        priceStore: GemstonePriceStore,
     ): GetAssetPriceUsd {
-        return GetAssetPriceUsdImpl(pricesDao)
+        return GetAssetPriceUsdImpl(priceStore)
     }
 
     @Provides
     @Singleton
     fun provideGetBuyQuotes(
-        gemDeviceApiClient: GemDeviceApiClient,
+        fiatService: GemFiatService,
     ): GetBuyQuotes {
-        return GetBuyQuotesImpl(gemDeviceApiClient)
+        return GetBuyQuotesImpl(fiatService)
     }
 
     @Provides
     @Singleton
     fun provideGetBuyQuoteUrl(
-        gemDeviceApiClient: GemDeviceApiClient,
+        fiatService: GemFiatService,
     ): GetBuyQuoteUrl {
-        return GetBuyQuoteUrlImpl(gemDeviceApiClient)
+        return GetBuyQuoteUrlImpl(fiatService)
     }
 
 }

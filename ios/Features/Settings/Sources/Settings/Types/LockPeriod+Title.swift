@@ -1,7 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Primitives
 import Foundation
-import Keystore
+import GemstoneServices
 import Localization
 
 public extension LockPeriod {

@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
+import protocol Gemstone.GemStakeServiceProtocol
+import GemstonePrimitives
 import Formatters
 import Foundation
 import Primitives
@@ -14,7 +16,8 @@ public struct DelegationViewModel: Sendable {
     public let currencyCode: String
     private let asset: Asset
     private let formatter: ValueFormatter
-    private let exploreService: ExplorerService
+    private let explorerService: any GemExplorerServiceProtocol
+    private let stakeService: any GemStakeServiceProtocol
     private let priceFormatter: CurrencyFormatter
 
     private static let dateFormatterDefault: DateComponentsFormatter = {
@@ -34,17 +37,19 @@ public struct DelegationViewModel: Sendable {
     }()
 
     public init(
+        explorerService: any GemExplorerServiceProtocol,
+        stakeService: any GemStakeServiceProtocol,
         delegation: Delegation,
         asset: Asset,
         formatter: ValueFormatter = .short,
         currencyCode: String,
-        exploreService: ExplorerService = .standard,
     ) {
         self.delegation = delegation
         self.currencyCode = currencyCode
         self.asset = asset
         self.formatter = formatter
-        self.exploreService = exploreService
+        self.explorerService = explorerService
+        self.stakeService = stakeService
         priceFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
     }
 
@@ -80,33 +85,26 @@ public struct DelegationViewModel: Sendable {
         return priceFormatter.string(price.price * balance)
     }
 
+    private var showsRewards: Bool {
+        stakeService.showsRewards(state: delegation.base.state.json(), rewards: delegation.base.rewards)
+    }
+
     public var rewardsText: String? {
-        switch delegation.base.state {
-        case .active:
-            if delegation.base.rewardsValue == 0 {
-                return .none
-            }
-            return formatter.string(delegation.base.rewardsValue, decimals: asset.decimals.asInt, currency: asset.symbol)
-        case .pending,
-             .inactive,
-             .activating,
-             .deactivating,
-             .awaitingWithdrawal:
-            return .none
-        }
+        guard showsRewards else { return nil }
+        return formatter.string(delegation.base.rewardsValue, decimals: asset.decimals.asInt, currency: asset.symbol)
     }
 
     public var rewardsFiatValueText: String? {
         guard
+            showsRewards,
             let price = delegation.price,
-            delegation.base.rewardsValue > 0,
             let rewards = try? formatter.double(from: delegation.base.rewardsValue, decimals: asset.decimals.asInt)
         else { return nil }
         return priceFormatter.string(price.price * rewards)
     }
 
     public var validatorModel: ValidatorViewModel {
-        ValidatorViewModel(validator: delegation.validator, exploreService: exploreService)
+        ValidatorViewModel(validator: delegation.validator)
     }
 
     public var validatorText: String {
@@ -118,10 +116,12 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var validatorUrl: URL? {
-        validatorModel.url
+        guard let address = stakeService.validatorExplorerAddress(validator: delegation.validator.json()) else { return nil }
+        return explorerService.getValidatorUrl(chain: delegation.validator.chain.rawValue, address: address).map { BlockExplorerLink($0) }?.url
     }
 
     public var completionDateText: String? {
+        guard stakeService.showsCompletionDate(state: delegation.base.state.json()) else { return nil }
         let now = Date.now
         if let completionDate = delegation.base.completionDate, completionDate > now {
             if now.distance(to: completionDate) < 86400 {

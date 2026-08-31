@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use std::error::Error;
 
-use super::{GrpcTransport, validate_http_status};
+use super::{GrpcTransport, grpc_headers, validate_http_status};
 
 #[derive(Clone, Debug)]
 pub struct ReqwestGrpcTransport {
@@ -25,15 +25,11 @@ impl Default for ReqwestGrpcTransport {
 #[async_trait]
 impl GrpcTransport for ReqwestGrpcTransport {
     async fn unary(&self, endpoint: &str, path: &str, body: Vec<u8>) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
-        let response = self
-            .client
-            .post(format!("{}{}", endpoint.trim_end_matches('/'), path))
-            .header("Content-Type", "application/grpc+proto")
-            .header("Accept", "application/grpc+proto")
-            .header("TE", "trailers")
-            .body(body)
-            .send()
-            .await?;
+        let mut request = self.client.post(format!("{}{}", endpoint.trim_end_matches('/'), path));
+        for (name, value) in grpc_headers() {
+            request = request.header(name, value);
+        }
+        let response = request.body(body).send().await?;
         let status = response.status().as_u16();
         validate_grpc_status(&response)?;
         let bytes = response.bytes().await?.to_vec();

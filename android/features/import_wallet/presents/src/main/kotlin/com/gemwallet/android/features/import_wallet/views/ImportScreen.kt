@@ -39,9 +39,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
-import com.gemwallet.android.cases.wallet.ImportError
-import com.gemwallet.android.cases.wallet.WalletImportResult
+import com.gemwallet.android.application.wallet_import.values.ImportError
+import com.gemwallet.android.application.wallet_import.values.WalletImportResult
 import com.gemwallet.android.features.import_wallet.components.ImportInput
 import com.gemwallet.android.features.import_wallet.components.WalletTypeTab
 import com.gemwallet.android.features.import_wallet.components.importTypeTabIndex
@@ -121,6 +120,8 @@ fun ImportScreen(
         },
         onInput = viewModel::onInput,
         onTypeChange = viewModel::chainType,
+        invalidWords = viewModel::invalidPhraseWords,
+        phraseSuggestions = viewModel::phraseSuggestions,
         onCancel = onCancel,
     )
     if (uiState.loading) {
@@ -173,6 +174,8 @@ private fun ImportScene(
     onImport: (generatedName: String, value: String) -> Unit,
     onInput: (String) -> Unit,
     onTypeChange: (WalletType) -> Unit,
+    invalidWords: (String) -> Set<String>,
+    phraseSuggestions: (String) -> List<String>,
     onCancel: () -> Unit
 ) {
     val title = when (val sceneTitle = importSceneTitle(importType, chainName)) {
@@ -219,7 +222,7 @@ private fun ImportScene(
                         onTypeChange(walletType)
                         inputState.value = TextFieldValue()
                     }
-                    DataInput(importType, inputState, nameResolveState, onInput) {
+                    DataInput(importType, inputState, nameResolveState, invalidWords, phraseSuggestions, onInput) {
                         dataErrorState = null
                     }
                     ErrorMessage(dataErrorState)
@@ -247,12 +250,15 @@ private fun DataInput(
     importType: ImportType,
     inputState: MutableState<TextFieldValue>,
     nameResolveState: NameRecordState,
+    invalidWords: (String) -> Set<String>,
+    phraseSuggestions: (String) -> List<String>,
     onInput: (String) -> Unit,
     onChange: () -> Unit,
 ) {
     val suggestions = remember(importType.walletType) { mutableStateListOf<String>() }
 
     ImportInput(
+        invalidWords = invalidWords,
         inputState = inputState.value,
         importType = importType,
         uiState = nameResolveState,
@@ -276,7 +282,7 @@ private fun DataInput(
             if (word.isNullOrEmpty()) {
                 return@ImportInput
             }
-            val result = GemFindPhraseWord().invoke(word)
+            val result = phraseSuggestions(word)
             suggestions.addAll(result)
         },
     )
@@ -326,14 +332,17 @@ private fun TypeSelection(
 @Composable
 private fun ErrorMessage(error: ImportError?) {
     val text = when (error) {
-        is ImportError.CreateError -> stringResource(R.string.errors_create_wallet, error.message ?: "")
+        is ImportError.CreateError -> stringResource(
+            R.string.errors_create_wallet,
+            error.message?.takeIf { it.isNotBlank() } ?: stringResource(R.string.errors_unknown_try_again),
+        )
         is ImportError.InvalidWords -> stringResource(
             R.string.errors_import_invalid_secret_phrase_word,
             error.words.joinToString()
         )
         ImportError.InvalidationSecretPhrase -> stringResource(R.string.errors_import_invalid_secret_phrase)
         ImportError.InvalidAddress -> stringResource(R.string.errors_invalid_address_name)
-        ImportError.InvalidationPrivateKey -> "Invalid private key"
+        ImportError.InvalidationPrivateKey -> stringResource(R.string.errors_import_invalid_private_key)
         is ImportError.DuplicatedWallet -> "Duplicated wallet"
         null -> return
     }
@@ -374,6 +383,8 @@ fun PreviewImportAddress() {
                 onImport = {_, _ -> },
                 onInput = {},
                 onTypeChange = {},
+                invalidWords = { emptySet() },
+                phraseSuggestions = { emptyList() },
                 onCancel = {},
             )
         }

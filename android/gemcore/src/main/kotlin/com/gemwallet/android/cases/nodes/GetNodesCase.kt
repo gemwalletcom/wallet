@@ -6,4 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface GetNodesCase {
     suspend fun getNodes(chain: Chain): Flow<List<Node>>
+
+    fun canDeleteNode(chain: Chain, url: String): Boolean
+
+    fun getDefaultNodes(chain: Chain): List<Node>
 }

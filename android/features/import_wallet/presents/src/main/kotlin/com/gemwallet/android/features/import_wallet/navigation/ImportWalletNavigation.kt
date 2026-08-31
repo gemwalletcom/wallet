@@ -2,7 +2,7 @@ package com.gemwallet.android.features.import_wallet.navigation
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.cases.wallet.WalletImportResult
+import com.gemwallet.android.application.wallet_import.values.WalletImportResult
 import com.gemwallet.android.features.import_wallet.views.ImportScreen
 import com.gemwallet.android.features.import_wallet.views.SelectImportTypeScreen
 import com.gemwallet.android.model.ImportType

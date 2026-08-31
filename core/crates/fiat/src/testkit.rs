@@ -1,3 +1,16 @@
+use crate::model::FiatDeviceContext;
+use primitives::WalletType;
+
+impl FiatDeviceContext {
+    pub fn mock() -> Self {
+        Self::mock_with_wallet_type(WalletType::Multicoin)
+    }
+
+    pub fn mock_with_wallet_type(wallet_type: WalletType) -> Self {
+        Self::new(1, 2, wallet_type, "192.0.2.1".to_string())
+    }
+}
+
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 use crate::model::FiatMapping;
 #[cfg(all(test, feature = "fiat_integration_tests"))]
@@ -5,9 +18,13 @@ use crate::providers::{
     banxa::client::BanxaClient, mercuryo::client::MercuryoClient, moonpay::client::MoonPayClient, paybis::client::PaybisClient, transak::client::TransakClient,
 };
 #[cfg(all(test, feature = "fiat_integration_tests"))]
+use cacher::{AccessTokenCacherClient, CacherClient};
+#[cfg(all(test, feature = "fiat_integration_tests"))]
 use gem_client::ReqwestClient;
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 use settings::Settings;
+#[cfg(all(test, feature = "fiat_integration_tests"))]
+use std::sync::Arc;
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 fn get_test_settings() -> Settings {
@@ -16,16 +33,18 @@ fn get_test_settings() -> Settings {
 }
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]
-pub fn create_transak_test_client() -> TransakClient {
+pub async fn create_transak_test_client() -> Result<TransakClient, Box<dyn std::error::Error + Send + Sync>> {
     let settings = get_test_settings();
     let client = crate::request_client(settings.fiat.timeout);
-    TransakClient::new(
+    let cacher = CacherClient::new(&settings.redis.url).await?;
+    Ok(TransakClient::new(
         ReqwestClient::new(settings.fiat.transak.url, client.clone()),
         ReqwestClient::new(settings.fiat.transak.gateway.url, client),
         settings.fiat.transak.key.public,
         settings.fiat.transak.key.secret,
         settings.fiat.transak.referrer.domain,
-    )
+        Arc::new(AccessTokenCacherClient::new(cacher, TransakClient::NAME.id())),
+    ))
 }
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]

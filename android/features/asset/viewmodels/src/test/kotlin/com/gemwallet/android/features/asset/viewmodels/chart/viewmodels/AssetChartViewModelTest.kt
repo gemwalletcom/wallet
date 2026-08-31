@@ -1,13 +1,13 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
+import uniffi.gemstone.GemExplorerService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.coordinators.GetAssetById
-import com.gemwallet.android.application.assets.coordinators.GetAssetLinks
-import com.gemwallet.android.application.assets.coordinators.GetAssetMarket
-import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
-import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
-import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
+import com.gemwallet.android.application.assets.cases.GetAssetById
+import com.gemwallet.android.application.assets.cases.GetAssetLinks
+import com.gemwallet.android.application.assets.cases.GetAssetMarket
+import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockAssetMarket
@@ -47,8 +47,8 @@ class AssetChartViewModelTest {
     private val getAssetById = mockk<GetAssetById>(relaxed = true)
     private val getAssetLinks = mockk<GetAssetLinks>(relaxed = true)
     private val getAssetMarket = mockk<GetAssetMarket>(relaxed = true)
-    private val getCurrentBlockExplorer = mockk<GetCurrentBlockExplorer>(relaxed = true) {
-        every { getCurrentBlockExplorer(asset.id.chain) } returns "Solscan"
+    private val explorerService = mockk<GemExplorerService>(relaxed = true) {
+        every { getExplorerName(asset.id.chain.string) } returns "Solscan"
     }
     private val getPriceAlerts = mockk<GetPriceAlerts>(relaxed = true)
     private val getCurrentCurrency = mockk<GetCurrentCurrency>(relaxed = true) {
@@ -118,7 +118,7 @@ class AssetChartViewModelTest {
         getAssetById = getAssetById,
         getAssetLinks = getAssetLinks,
         getAssetMarket = getAssetMarket,
-        getCurrentBlockExplorer = getCurrentBlockExplorer,
+        explorerService = explorerService,
         getPriceAlerts = getPriceAlerts,
         getCurrentCurrency = getCurrentCurrency,
         assetId = asset.id,

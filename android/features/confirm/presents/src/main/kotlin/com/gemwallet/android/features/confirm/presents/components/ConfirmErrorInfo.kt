@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.confirm.presents.components
 
+import com.gemwallet.android.ui.LocalAssetConfigService
+import uniffi.gemstone.GemAcquireAssetFlow
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,7 +28,6 @@ import com.gemwallet.android.ui.components.list_item.WarningItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
 
 @Composable
 internal fun ConfirmErrorInfo(
@@ -35,6 +36,7 @@ internal fun ConfirmErrorInfo(
     isShowBottomSheetInfo: Boolean,
     onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
 ) {
+    val assetConfig = LocalAssetConfigService.current
     var isShowInfoSheet by remember(isShowBottomSheetInfo) { mutableStateOf(isShowBottomSheetInfo) }
     var isShowGetAssetSheet by remember { mutableStateOf(false) }
     var buyAmount by remember { mutableStateOf<Int?>(null) }
@@ -50,7 +52,7 @@ internal fun ConfirmErrorInfo(
     }
     val onSelectAcquireAsset: (Asset, Int?) -> Unit = { asset, amount ->
         isShowInfoSheet = false
-        if (asset.chain == Chain.Tron) {
+        if (assetConfig.acquireFlow(asset.chain.string) == GemAcquireAssetFlow.OPTIONS) {
             buyAmount = amount
             isShowGetAssetSheet = true
         } else {
@@ -124,7 +126,7 @@ private fun ConfirmError.toInfoSheetEntity(
 
 @Composable
 private fun Asset.acquireActionLabel(): String = stringResource(
-    if (chain == Chain.Tron) R.string.asset_get_asset else R.string.asset_buy_asset,
+    if (LocalAssetConfigService.current.acquireFlow(chain.string) == GemAcquireAssetFlow.OPTIONS) R.string.asset_get_asset else R.string.asset_buy_asset,
     symbol,
 )
 

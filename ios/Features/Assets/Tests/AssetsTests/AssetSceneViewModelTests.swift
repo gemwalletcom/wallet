@@ -1,18 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import Assets
-import AssetsServiceTestKit
-import BalanceServiceTestKit
-import BannerServiceTestKit
+import class Gemstone.GemDeeplinkService
+import protocol Gemstone.GemPriceAlertServiceProtocol
+import protocol Gemstone.GemStakeServiceProtocol
+import GemstonePrimitivesTestKit
+import GemstoneServicesTestKit
 import BigInt
-import PriceAlertServiceTestKit
-import PriceServiceTestKit
+import class Gemstone.GemTransactionFormatter
 import Primitives
 import PrimitivesTestKit
 @testable import Store
 import SwiftUI
+import PreferencesTestKit
 import Testing
-import TransactionsServiceTestKit
+import protocol Gemstone.GemSwapServiceProtocol
+import struct Gemstone.GemSwapPairSuggestion
 
 @MainActor
 struct AssetSceneViewModelTests {
@@ -30,35 +33,27 @@ struct AssetSceneViewModelTests {
     }
 
     @Test
-    func swapAssetTypeNative() {
-        let asset = Asset.mock(type: .native)
-        let model = AssetSceneViewModel.mock(.mock(asset: asset, balance: .zero))
+    func swapAssetTypeUsesTheAssetWhenCoreSuggestsNoReceiveAsset() {
+        let asset = Asset.mockEthereumUSDT()
+        let model = AssetSceneViewModel.mock(
+            .mock(asset: asset, balance: .mock()),
+            swapService: GemSwapServiceMock(assetPair: GemSwapPairSuggestion(payAssetId: asset.id.identifier, receiveAssetId: nil)),
+        )
 
         #expect(model.swapAssetType == .swap(asset, nil))
     }
 
     @Test
-    func swapAssetTypeTokenWithZeroBalance() {
+    func swapAssetTypePaysWithTheChainAssetWhenCoreSuggestsAReceiveAsset() {
         let asset = Asset.mockEthereumUSDT()
-        let model = AssetSceneViewModel.mock(.mock(asset: asset, balance: .zero))
+        let model = AssetSceneViewModel.mock(
+            .mock(asset: asset, balance: .zero),
+            swapService: GemSwapServiceMock(
+                assetPair: GemSwapPairSuggestion(payAssetId: asset.chain.assetId.identifier, receiveAssetId: asset.id.identifier),
+            ),
+        )
 
         #expect(model.swapAssetType == .swap(asset.chain.asset, asset))
-    }
-
-    @Test
-    func swapAssetTypeTokenWithBalance() {
-        let asset = Asset.mockEthereumUSDT()
-        let model = AssetSceneViewModel.mock(.mock(asset: asset, balance: .mock()))
-
-        #expect(model.swapAssetType == .swap(asset, nil))
-    }
-
-    @Test
-    func swapAssetTypeDoesNotSelectHiddenNativeAsset() {
-        let asset = Asset.mockTempoUSDC()
-        let model = AssetSceneViewModel.mock(.mock(asset: asset, balance: .zero))
-
-        #expect(model.swapAssetType == .swap(asset, nil))
     }
 
     @Test
@@ -79,11 +74,26 @@ struct AssetSceneViewModelTests {
 
     @Test
     func showProviderBalance() {
-        #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(isStakeEnabled: true))).showProviderBalance(for: .stake) == true)
-        #expect(AssetSceneViewModel.mock(.mock(balance: .mock(staked: BigInt(100)), metadata: .mock(isStakeEnabled: false))).showProviderBalance(for: .stake) == true)
-        #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(isStakeEnabled: false))).showProviderBalance(for: .stake) == false)
+        let shown = AssetSceneViewModel.mock(.mock(asset: .mockEthereum()), stakeService: GemStakeServiceMock(stakeBalanceShown: true))
+        let hidden = AssetSceneViewModel.mock(.mock(asset: .mockEthereum()), stakeService: GemStakeServiceMock(stakeBalanceShown: false))
+
+        #expect(shown.showProviderBalance(for: .stake) == true)
+        #expect(hidden.showProviderBalance(for: .stake) == false)
         #expect(AssetSceneViewModel.mock(.mock(balance: .mock(earn: BigInt(100)))).showProviderBalance(for: .earn) == true)
         #expect(AssetSceneViewModel.mock(.mock()).showProviderBalance(for: .earn) == false)
+    }
+
+    @Test
+    func balanceTextWithSymbol() {
+        let ethereum = AssetSceneViewModel.mock(
+            .mock(
+                asset: .mockEthereum(),
+                balance: .mock(earn: BigInt(4_000_000_000_000_000_000)),
+            ),
+            stakeService: GemStakeServiceMock(stakedValue: "6000000000000000000"),
+        )
+        #expect(ethereum.balanceTextWithSymbol(for: .stake) == "6 ETH")
+        #expect(ethereum.balanceTextWithSymbol(for: .earn) == "4 ETH")
     }
 
     @Test
@@ -104,15 +114,24 @@ struct AssetSceneViewModelTests {
 // MARK: - Mock Extensions
 
 extension AssetSceneViewModel {
-    static func mock(_ assetData: AssetData = AssetData.mock()) -> AssetSceneViewModel {
+    static func mock(
+        _ assetData: AssetData = AssetData.mock(),
+        swapService: any GemSwapServiceProtocol = GemSwapServiceMock(),
+        stakeService: any GemStakeServiceProtocol = GemStakeServiceMock(),
+    ) -> AssetSceneViewModel {
         let model = AssetSceneViewModel(
-            assetsEnabler: .mock(),
-            balanceService: .mock(),
-            assetsService: .mock(),
-            transactionsService: .mock(),
+            balanceService: GemBalanceServiceMock(),
+            assetsService: GemAssetsServiceMock(),
+            transactionsService: GemTransactionsServiceMock(),
             priceUpdater: .mock(),
-            priceAlertService: .mock(),
-            bannerService: .mock(),
+            priceAlertService: GemPriceAlertServiceMock(),
+            bannerService: GemBannerServiceMock(),
+            swapService: swapService,
+            stakeService: stakeService,
+            explorerService: GemExplorerServiceMock(),
+            transactionFormatter: GemTransactionFormatter(),
+            deeplinkService: GemDeeplinkService(),
+            preferences: .mock(),
             input: AssetSceneInput(
                 wallet: .mock(),
                 asset: assetData.asset,

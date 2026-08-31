@@ -22,10 +22,6 @@ public extension DelegationBase {
         BigInt(stringLiteral: balance)
     }
 
-    var sharesValue: BigInt {
-        BigInt(stringLiteral: shares)
-    }
-
     var rewardsValue: BigInt {
         BigInt(stringLiteral: rewards)
     }

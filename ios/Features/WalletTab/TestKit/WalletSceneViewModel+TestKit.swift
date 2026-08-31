@@ -1,25 +1,24 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceServiceTestKit
-import BannerServiceTestKit
-import DiscoverAssetsServiceTestKit
+import class Gemstone.GemWalletPreferencesService
+import class Gemstone.GemNftService
+import GemstoneServicesTestKit
 import Foundation
-import NFTServiceTestKit
 import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
-import WalletSessionService
-import WalletSessionServiceTestKit
+import GemstoneServices
+import GemstonePrimitivesTestKit
 import WalletTab
 
 public extension WalletSceneViewModel {
     static func mock(wallet: Wallet = .mock()) -> WalletSceneViewModel {
         WalletSceneViewModel(
-            assetDiscoveryService: .mock(),
-            balanceService: .mock(),
-            assetsEnabler: .mock(),
-            bannerService: .mock(),
-            nftService: .mock(),
+            assetDiscoveryService: GemAssetDiscoveryServiceMock(),
+            balanceService: GemBalanceServiceMock(),
+            bannerService: GemBannerServiceMock(),
+            nftService: GemNftService.mock(),
+            walletPreferencesService: GemWalletPreferencesService.mock(),
             observablePreferences: .mock(),
             wallet: wallet,
             isPresentingSelectedAssetInput: .constant(.none),

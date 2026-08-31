@@ -1,18 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
+import protocol Gemstone.GemPriceServiceProtocol
 import Components
-import DeviceService
+import GemstoneServices
 import Foundation
+import protocol Gemstone.GemDeviceServiceProtocol
 import Localization
-import PriceService
 import Primitives
 
 @Observable
 @MainActor
 public final class CurrencySceneViewModel {
     private var currencyStorage: CurrencyStorable
-    private let priceService: PriceService
-    private let deviceService: any DeviceServiceable
+    private let priceService: any GemPriceServiceProtocol
+    private let deviceService: any GemDeviceServiceProtocol
     private let defaultCurrencies: [Currency] = [.usd, .eur, .gbp, .cny, .jpy, .inr, .rub]
 
     private(set) var currency: Currency {
@@ -29,8 +31,8 @@ public final class CurrencySceneViewModel {
 
     public init(
         currencyStorage: CurrencyStorable,
-        priceService: PriceService,
-        deviceService: any DeviceServiceable,
+        priceService: any GemPriceServiceProtocol,
+        deviceService: any GemDeviceServiceProtocol,
     ) {
         self.currencyStorage = currencyStorage
         self.priceService = priceService
@@ -67,13 +69,17 @@ public final class CurrencySceneViewModel {
         ]
     }
 
-    func setCurrency(_ currency: Currency) throws {
+    func setCurrency(_ currency: Currency) async throws {
         self.currency = currency
-        try priceService.changeCurrency(currency: currency.rawValue)
+        try await priceService.changeCurrency(currency: currency.json())
     }
 
     func updateDevice() async {
-        try? await deviceService.update()
+        do {
+            try await deviceService.synchronizeIfNeeded()
+        } catch {
+            debugLog("currency scene: device synchronize error \(error)")
+        }
     }
 }
 

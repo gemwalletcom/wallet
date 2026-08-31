@@ -1,12 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import class Gemstone.GemFeeService
 import Components
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
+import class Gemstone.GemTransactionFormatter
 import Formatters
 import Foundation
+import protocol Gemstone.GemPreferencesServiceProtocol
 import InfoSheet
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
@@ -15,8 +17,10 @@ import SwiftUI
 @Observable
 @MainActor
 public final class TransactionSceneViewModel {
-    private let preferences: Preferences
-    private let explorerService: ExplorerService
+    private let preferencesService: any GemPreferencesServiceProtocol
+    private let explorerService: any GemExplorerServiceProtocol
+    private let transactionFormatter: GemTransactionFormatter
+    private let feeService: GemFeeService
     private let onHeaderAction: ((TransactionHeaderAction) -> Void)?
     private let onAddContact: ((AddContactType) -> Void)?
 
@@ -31,13 +35,17 @@ public final class TransactionSceneViewModel {
     public init(
         transaction: TransactionExtended,
         walletId: WalletId,
-        preferences: Preferences = Preferences.standard,
-        explorerService: ExplorerService = ExplorerService.standard,
+        preferencesService: any GemPreferencesServiceProtocol,
+        explorerService: any GemExplorerServiceProtocol,
+        transactionFormatter: GemTransactionFormatter,
+        feeService: GemFeeService,
         onHeaderAction: ((TransactionHeaderAction) -> Void)? = nil,
         onAddContact: ((AddContactType) -> Void)? = nil,
     ) {
-        self.preferences = preferences
+        self.preferencesService = preferencesService
         self.explorerService = explorerService
+        self.transactionFormatter = transactionFormatter
+        self.feeService = feeService
         self.onHeaderAction = onHeaderAction
         self.onAddContact = onAddContact
         query = ObservableQuery(TransactionRequest(walletId: walletId, transactionId: transaction.transaction.id), initialValue: transaction)
@@ -155,8 +163,9 @@ extension TransactionSceneViewModel {
     private var model: TransactionViewModel {
         TransactionViewModel(
             explorerService: explorerService,
+            transactionFormatter: transactionFormatter,
             transaction: transactionExtended,
-            currency: preferences.currency,
+            currency: preferencesService.currencyCode,
         )
     }
 
@@ -213,10 +222,11 @@ extension TransactionSceneViewModel {
     var feeDetailsViewModel: NetworkFeeSceneViewModel {
         NetworkFeeSceneViewModel(
             feeAsset: model.transaction.feeAsset,
-            currency: Currency(rawValue: preferences.currency) ?? .usd,
+            currency: preferencesService.currencyValue,
             selection: .preset(.normal),
             feeAssetPrice: model.transaction.feePrice,
             feeAmount: BigInt(model.transaction.transaction.fee),
+            feeService: feeService,
         )
     }
 }

@@ -60,7 +60,7 @@ internal fun AutocloseScene(
             vertical = if (isPercentBarVisible) paddingSmall else paddingDefault,
         ),
         mainAction = {
-            if (isPercentBarVisible && activeField != null) {
+            if (isPercentBarVisible) {
                 PercentSuggestionsBar(
                     suggestions = activeField.percentSuggestions,
                     onPercentSelected = { percent -> onAction(AutocloseAction.SelectPercent(activeField.type, percent)) },

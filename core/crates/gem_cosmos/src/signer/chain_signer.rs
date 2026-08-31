@@ -58,7 +58,7 @@ impl ChainSigner for CosmosChainSigner {
 
 impl CosmosChainSigner {
     fn chain(input: &SignerInput) -> Result<CosmosChain, SignerError> {
-        CosmosChain::from_chain(input.input_type.get_asset().chain).ok_or_else(|| SignerError::invalid_input("unsupported cosmos chain"))
+        CosmosChain::from_chain(input.input_type.get_asset().chain()).ok_or_else(|| SignerError::invalid_input("unsupported cosmos chain"))
     }
 
     fn pubkey_type(chain: CosmosChain) -> &'static str {

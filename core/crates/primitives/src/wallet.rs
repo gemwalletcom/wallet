@@ -1,5 +1,6 @@
-use crate::{Account, WalletId, WalletType};
+use crate::{Account, AddressChains, Chain, WalletId, WalletType};
 use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, BTreeSet};
 use strum::{AsRefStr, EnumString};
 use typeshare::typeshare;
 
@@ -27,4 +28,21 @@ pub struct Wallet {
     pub is_pinned: bool,
     pub image_url: Option<String>,
     pub source: WalletSource,
+}
+
+impl Wallet {
+    pub fn account(&self, chain: Chain) -> Option<&Account> {
+        self.accounts.iter().find(|account| account.chain == chain)
+    }
+
+    pub fn address_chains(&self) -> Vec<AddressChains> {
+        let mut chains_by_address: BTreeMap<&str, BTreeSet<Chain>> = BTreeMap::new();
+        for account in &self.accounts {
+            chains_by_address.entry(account.address.as_str()).or_default().insert(account.chain);
+        }
+        chains_by_address
+            .into_iter()
+            .map(|(address, chains)| AddressChains::new(address.to_string(), chains.into_iter().collect()))
+            .collect()
+    }
 }

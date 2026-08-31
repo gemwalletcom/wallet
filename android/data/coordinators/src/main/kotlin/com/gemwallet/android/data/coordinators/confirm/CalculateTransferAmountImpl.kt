@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.confirm
 
-import com.gemwallet.android.application.confirm.coordinators.CalculateTransferAmount
+import com.gemwallet.android.application.confirm.cases.CalculateTransferAmount
 import com.gemwallet.android.domains.confirm.BalanceRequirement
 import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.ext.toIdentifier
@@ -9,10 +9,12 @@ import com.gemwallet.android.model.ConfirmParams
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemTransferAmountException
 import uniffi.gemstone.GemTransferAmountInput
-import uniffi.gemstone.calculateTransferAmount
+import uniffi.gemstone.GemAmountService
 import java.math.BigInteger
 
-class CalculateTransferAmountImpl : CalculateTransferAmount {
+class CalculateTransferAmountImpl(
+    private val amountService: GemAmountService,
+) : CalculateTransferAmount {
 
     override fun invoke(
         params: ConfirmParams,
@@ -22,7 +24,7 @@ class CalculateTransferAmountImpl : CalculateTransferAmount {
     ): BigInteger {
         val input = transferAmountInput(params, availableValue, feeAssetInfo, fee)
         return try {
-            BigInteger(calculateTransferAmount(input).value)
+            BigInteger(amountService.calculate(input).value)
         } catch (error: GemTransferAmountException) {
             throw error.toConfirmError(params.asset, feeAssetInfo.asset)
         }

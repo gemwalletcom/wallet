@@ -7,6 +7,10 @@ import GemstonePrimitives
 public struct LeverageOption: WheelPickerDisplayable, Sendable {
     public static let allOptions: [LeverageOption] = PerpetualConfig.leverageOptions.map { .init(value: $0) }
 
+    public static func options(maxLeverage: UInt8) -> [LeverageOption] {
+        PerpetualConfig.leverageOptions(maxLeverage: maxLeverage).map { .init(value: $0) }
+    }
+
     public let value: UInt8
 
     public init(value: UInt8) {

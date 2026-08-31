@@ -123,9 +123,9 @@ async fn setup_queues(settings: &Settings) -> Result<(), Box<dyn std::error::Err
 
     let retry = streamer::Retry::new(settings.rabbitmq.retry.delay, settings.rabbitmq.retry.timeout);
     let rabbitmq_config = StreamProducerConfig::new(settings.rabbitmq.url.clone(), retry);
-    let stream_producer = StreamProducer::new(&rabbitmq_config, "setup", streamer::no_shutdown()).await.unwrap();
-    let _ = stream_producer.declare_queues(non_chain_queues).await;
-    let _ = stream_producer.declare_exchanges(exchanges.clone()).await;
+    let stream_producer = StreamProducer::new(&rabbitmq_config, "setup", streamer::no_shutdown()).await?;
+    stream_producer.declare_queues(non_chain_queues).await?;
+    stream_producer.declare_exchanges(exchanges.clone()).await?;
 
     info_with_fields!(
         "setup",
@@ -136,9 +136,9 @@ async fn setup_queues(settings: &Settings) -> Result<(), Box<dyn std::error::Err
 
     for queue in &chain_queues {
         let exchange_name = format!("{}_exchange", queue);
-        let _ = stream_producer.declare_exchange(&exchange_name, ExchangeKind::Topic).await;
+        stream_producer.declare_exchange(&exchange_name, ExchangeKind::Topic).await?;
         for chain in queue_supported_chains(queue, &chains) {
-            let _ = stream_producer.bind_queue_routing_key(queue.clone(), chain.as_ref()).await;
+            stream_producer.bind_queue_routing_key(queue.clone(), chain.as_ref()).await?;
         }
     }
 
@@ -156,7 +156,7 @@ async fn setup_queues(settings: &Settings) -> Result<(), Box<dyn std::error::Err
         for queue in &exchange_queues {
             for chain in queue_supported_chains(queue, &chains) {
                 let queue_name = format!("{}.{}", queue, chain.as_ref());
-                let _ = stream_producer.bind_queue(&queue_name, &exchange.to_string(), chain.as_ref()).await;
+                stream_producer.bind_queue(&queue_name, &exchange.to_string(), chain.as_ref()).await?;
             }
         }
     }

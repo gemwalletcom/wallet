@@ -144,14 +144,14 @@ impl Gateway {
             }
             if let Some((failed_index, status, reason)) = pending_failover.take() {
                 let failed = &route.endpoints[failed_index];
-                access.failover(&failed.name, &failed.remote_host, status);
+                access.failover(&failed.name, &failed.host, status);
                 self.metrics.record_failover(caller, &route.group, &route.service, &failed.name, &path, &reason);
             }
-            let remote_host = &endpoint.remote_host;
+            let host = &endpoint.host;
             let target = match route_match.target_url(endpoint) {
                 Ok(target) => target,
                 Err(error) => {
-                    access.response(&endpoint.name, remote_host, Status::BadRequest.code);
+                    access.response(&endpoint.name, host, Status::BadRequest.code);
                     self.metrics.record_response(caller, &route.group, &route.service, &path, Status::BadRequest.code);
                     return Err(GatewayError::new(Status::BadRequest, error.to_string()));
                 }
@@ -185,14 +185,14 @@ impl Gateway {
                         pending_failover = Some((endpoint_index, status, status.to_string()));
                         continue;
                     }
-                    access.response(&endpoint.name, remote_host, response.status);
+                    access.response(&endpoint.name, host, response.status);
                     self.metrics.record_response(caller, &route.group, &route.service, &path, response.status);
                     return Ok(response);
                 }
                 Err(reason) => {
                     self.metrics
                         .record_upstream_latency(caller, &route.group, &route.service, &endpoint.name, Status::BadGateway.code, started.elapsed());
-                    access.upstream_failed(&endpoint.name, remote_host, reason);
+                    access.upstream_failed(&endpoint.name, host, reason);
                     self.start_cooldown(
                         route,
                         endpoint,
@@ -211,7 +211,7 @@ impl Gateway {
 
         if let Some((response, endpoint_index)) = last_response {
             let endpoint = &route.endpoints[endpoint_index];
-            access.response(&endpoint.name, &endpoint.remote_host, response.status);
+            access.response(&endpoint.name, &endpoint.host, response.status);
             self.metrics.record_response(caller, &route.group, &route.service, &path, response.status);
             return Ok(response);
         }

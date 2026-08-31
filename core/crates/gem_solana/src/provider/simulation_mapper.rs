@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use num_bigint::BigInt;
-use primitives::{Asset, AssetId, Chain, SimulationBalanceChange, SimulationResult, SimulationWarning};
+use primitives::{Asset, AssetId, Chain, SimulationBalanceChange, SimulationHeader, SimulationResult, SimulationWarning};
 use serde_json::Value;
 
 use crate::models::{SimulateTransactionResult, TokenBalance};
@@ -11,17 +11,40 @@ pub fn map_simulation_result(account_keys: &[String], signer_addresses: &HashSet
         return SimulationResult::new(vec![simulation_error_warning(err)], vec![]);
     }
 
+    let balance_changes = map_balance_changes(
+        account_keys,
+        signer_addresses,
+        &simulation.pre_balances,
+        &simulation.post_balances,
+        &simulation.pre_token_balances.unwrap_or_default(),
+        &simulation.post_token_balances.unwrap_or_default(),
+    );
+    let header = outgoing_token_header(&balance_changes);
+
     SimulationResult {
-        balance_changes: map_balance_changes(
-            account_keys,
-            signer_addresses,
-            &simulation.pre_balances,
-            &simulation.post_balances,
-            &simulation.pre_token_balances.unwrap_or_default(),
-            &simulation.post_token_balances.unwrap_or_default(),
-        ),
+        balance_changes,
+        header,
         ..Default::default()
     }
+}
+
+fn outgoing_token_header(balance_changes: &[SimulationBalanceChange]) -> Option<SimulationHeader> {
+    let outgoing_tokens = balance_changes.iter().filter_map(|change| {
+        change.asset_id.token_id.as_ref()?;
+        let value = change.value.parse::<BigInt>().ok()?;
+        (value < BigInt::from(0)).then_some((change, -value))
+    });
+    let mut outgoing_tokens = outgoing_tokens.take(2);
+    let (change, value) = outgoing_tokens.next()?;
+    if outgoing_tokens.next().is_some() {
+        return None;
+    }
+
+    Some(SimulationHeader {
+        asset_id: change.asset_id.clone(),
+        value: value.to_string(),
+        is_unlimited: false,
+    })
 }
 
 fn simulation_error_warning(error: Value) -> SimulationWarning {
@@ -118,6 +141,41 @@ mod tests {
                 SimulationBalanceChange::mock(SOLANA_USDC_ASSET_ID.clone(), "-750000", 6),
             ]
         );
+    }
+
+    #[test]
+    fn test_map_simulation_result_uses_single_outgoing_token_as_header() {
+        let result = map_simulation_result(
+            &["wallet".to_string()],
+            &signers(&["wallet"]),
+            SimulateTransactionResult {
+                err: None,
+                pre_balances: vec![1_000_000_000],
+                post_balances: vec![999_995_000],
+                pre_token_balances: Some(vec![TokenBalance::mock(SOLANA_USDC_TOKEN_ID, "wallet", 20_000_000)]),
+                post_token_balances: Some(vec![TokenBalance::mock(SOLANA_USDC_TOKEN_ID, "wallet", 1_000_000)]),
+            },
+        );
+
+        assert_eq!(
+            result.header,
+            Some(SimulationHeader {
+                asset_id: SOLANA_USDC_ASSET_ID.clone(),
+                value: "19000000".to_string(),
+                is_unlimited: false,
+            })
+        );
+    }
+
+    #[test]
+    fn test_outgoing_token_header_rejects_ambiguous_assets() {
+        let other_asset = AssetId::from_token(Chain::Solana, "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB");
+        let changes = vec![
+            SimulationBalanceChange::mock(SOLANA_USDC_ASSET_ID.clone(), "-19000000", 6),
+            SimulationBalanceChange::mock(other_asset, "-1000000", 6),
+        ];
+
+        assert_eq!(outgoing_token_header(&changes), None);
     }
 
     #[test]

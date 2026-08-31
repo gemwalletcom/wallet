@@ -20,21 +20,6 @@ public extension Locale {
     static let ZH_Traditional = Locale(identifier: "zh-Hant")
     static let AR_SA = Locale(identifier: "ar_SA")
 
-    func deviceLocale() -> DeviceLocale {
-        guard let languageCode = language.languageCode else {
-            return .en
-        }
-        let identifier: String
-        if languageCode == .portuguese {
-            identifier = "pt-BR"
-        } else if languageCode == .chinese, let script = Locale.Language(identifier: language.maximalIdentifier).script {
-            identifier = "zh-\(script.identifier)"
-        } else {
-            identifier = languageCode.identifier
-        }
-        return DeviceLocale(rawValue: identifier) ?? .en
-    }
-
     internal func usageAppstoreLanguageIdentifier() -> String {
         guard let languageCode = language.languageCode else {
             return Locale.US.language.minimalIdentifier

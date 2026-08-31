@@ -12,17 +12,14 @@ struct FeeAssetProvider: FeeAssetProvidable {
     }
 
     func feeAssets(walletId: WalletId, chain: Chain) async throws -> [AssetData] {
-        switch chain {
-        case .tempo:
-            let assets = try assetStore.getAssetsData(
-                walletId: walletId,
-                filters: [.chains([chain.rawValue]), .hasBalance],
-            )
-            let supportedAssetIds = Set(chain.defaultAssets.map(\.id))
-            return assets.filter { supportedAssetIds.contains($0.asset.id) && $0.balance.available > .zero }
-        default:
-            return []
-        }
+        let feeAssetIds = chain.feeAssetIds
+        guard feeAssetIds.isNotEmpty else { return [] }
+        let assets = try assetStore.getAssetsData(
+            walletId: walletId,
+            filters: [.chainsOrAssets([], feeAssetIds.map(\.identifier))],
+            limit: nil,
+        )
+        return assets.filter { $0.balance.available > .zero }
     }
 
     func getAssetData(walletId: WalletId, assetId: AssetId) throws -> AssetData {

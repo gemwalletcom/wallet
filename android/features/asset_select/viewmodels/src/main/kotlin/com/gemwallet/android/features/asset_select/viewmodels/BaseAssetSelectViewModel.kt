@@ -4,15 +4,15 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
-import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
-import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
+import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
+import com.gemwallet.android.application.assets.cases.SetAssetPinned
+import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.NO_QUERY_LIMIT
 import com.gemwallet.android.model.RecentAssetsRequest
-import com.gemwallet.android.application.session.coordinators.GetSession
-import com.gemwallet.android.cases.tokens.SearchTokensCase
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.ext.assetType
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -30,6 +30,8 @@ import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
+import com.gemwallet.android.ext.toAssetId
+import uniffi.gemstone.GemAssetConfigService
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
@@ -58,9 +60,10 @@ open class BaseAssetSelectViewModel(
     private val getRecentAssets: GetRecentAssets,
     private val updateRecentAsset: UpdateRecentAsset,
     private val switchAssetVisibility: SwitchAssetVisibility,
-    private val toggleAssetPin: ToggleAssetPin,
-    private val searchTokensCase: SearchTokensCase,
+    private val setAssetPinned: SetAssetPinned,
+    private val searchTokensCase: SearchTokens,
     val search: SelectSearch,
+    protected val assetConfig: GemAssetConfigService,
     private val remoteSearch: Boolean = true,
 ) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
 
@@ -116,21 +119,20 @@ open class BaseAssetSelectViewModel(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>())
 
     val popular = assets.map { items ->
-        items.filter {
-            it.asset.id in listOf(AssetId(Chain.Ethereum), AssetId(Chain.Bitcoin), AssetId(Chain.Solana))
-        }.toImmutableList()
+        val popularIds = assetConfig.popularIds().mapNotNull { it.toAssetId() }
+        items.filter { it.asset.id in popularIds }.toImmutableList()
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>().toImmutableList())
 
     val pinned = assets.map { items ->
-        items.filter { it.pinned && it.balanceEnabled }.toImmutableList()
+        items.filter { it.pinned }.toImmutableList()
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>().toImmutableList())
 
     val unpinned = assets.map { items ->
-        items.filter { !it.pinned || !it.balanceEnabled }.toImmutableList()
+        items.filter { !it.pinned }.toImmutableList()
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>().toImmutableList())
@@ -175,7 +177,7 @@ open class BaseAssetSelectViewModel(
         session.wallet.getAccount(assetId.chain) ?: return@launch
         val item = assets.value.firstOrNull { it.asset.id == assetId }
         val willPin = item?.pinned != true
-        toggleAssetPin(assetId)
+        setAssetPinned(assetId, willPin)
         item?.let { emitToast(AssetToast.Pin(it.asset.name, willPin)) }
     }
 

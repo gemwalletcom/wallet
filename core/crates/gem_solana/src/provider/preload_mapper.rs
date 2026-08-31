@@ -130,7 +130,6 @@ pub fn calculate_fee_rates(input_type: &TransactionInputType, prioritization_fee
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::USDC_TOKEN_MINT;
     use primitives::swap::SwapData;
     use primitives::{Asset, AssetId, AssetType, Chain, DelegationValidator, SwapProvider, asset_constants::SOLANA_USDC_ASSET_ID};
 
@@ -145,8 +144,6 @@ mod tests {
         let gas_price_type = GasPriceType::eip1559(BigInt::from(5000u64), BigInt::from(15000u64));
         let input_type = TransactionInputType::Transfer(Asset {
             id: AssetId::from_chain(Chain::Solana),
-            chain: Chain::Solana,
-            token_id: None,
             name: "SOL".to_string(),
             symbol: "SOL".to_string(),
             decimals: 9,
@@ -198,8 +195,6 @@ mod tests {
         let fees = vec![SolanaPrioritizationFee { prioritization_fee: 150_000 }];
         let input_type = TransactionInputType::Transfer(Asset {
             id: AssetId::from_chain(Chain::Solana),
-            chain: Chain::Solana,
-            token_id: None,
             name: "SOL".to_string(),
             symbol: "SOL".to_string(),
             decimals: 9,
@@ -215,8 +210,6 @@ mod tests {
         let fees = vec![SolanaPrioritizationFee { prioritization_fee: 25_000 }];
         let input_type = TransactionInputType::Transfer(Asset {
             id: AssetId::from_chain(Chain::Solana),
-            chain: Chain::Solana,
-            token_id: None,
             name: "SOL".to_string(),
             symbol: "SOL".to_string(),
             decimals: 9,
@@ -245,8 +238,6 @@ mod tests {
         let fees = vec![];
         let input_type = TransactionInputType::Transfer(Asset {
             id: AssetId::from_chain(Chain::Solana),
-            chain: Chain::Solana,
-            token_id: None,
             name: "SOL".to_string(),
             symbol: "SOL".to_string(),
             decimals: 9,
@@ -265,8 +256,6 @@ mod tests {
         let fees = vec![SolanaPrioritizationFee { prioritization_fee: 80_000 }];
         let input_type = TransactionInputType::Transfer(Asset {
             id: AssetId::from_chain(Chain::Solana),
-            chain: Chain::Solana,
-            token_id: Some(USDC_TOKEN_MINT.to_string()),
             name: "USDC".to_string(),
             symbol: "USDC".to_string(),
             decimals: 6,
@@ -304,8 +293,6 @@ mod tests {
         ];
         let input_type = TransactionInputType::Transfer(Asset {
             id: AssetId::from_chain(Chain::Solana),
-            chain: Chain::Solana,
-            token_id: None,
             name: "SOL".to_string(),
             symbol: "SOL".to_string(),
             decimals: 9,
@@ -324,8 +311,6 @@ mod tests {
         let fees = vec![SolanaPrioritizationFee { prioritization_fee: 150_000 }];
         let input_type = TransactionInputType::Transfer(Asset {
             id: AssetId::from_chain(Chain::Solana),
-            chain: Chain::Solana,
-            token_id: None,
             name: "SOL".to_string(),
             symbol: "SOL".to_string(),
             decimals: 9,
@@ -343,8 +328,6 @@ mod tests {
         let gas_price_type = GasPriceType::eip1559(BigInt::from(5000u64), BigInt::from(15000u64));
         let asset = Asset {
             id: SOLANA_USDC_ASSET_ID.clone(),
-            chain: Chain::Solana,
-            token_id: Some(USDC_TOKEN_MINT.to_string()),
             name: "USDC".to_string(),
             symbol: "USDC".to_string(),
             decimals: 6,
@@ -363,8 +346,6 @@ mod tests {
         let gas_price_type = GasPriceType::eip1559(BigInt::from(5000u64), BigInt::from(15000u64));
         let asset = Asset {
             id: SOLANA_USDC_ASSET_ID.clone(),
-            chain: Chain::Solana,
-            token_id: Some(USDC_TOKEN_MINT.to_string()),
             name: "USDC".to_string(),
             symbol: "USDC".to_string(),
             decimals: 6,

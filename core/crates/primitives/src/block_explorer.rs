@@ -8,7 +8,6 @@ use crate::explorers::{
 use std::str::FromStr;
 use typeshare::typeshare;
 
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[derive(Debug, Default, Clone)]
 pub struct ExplorerInput {
     pub hash: String,
@@ -71,10 +70,9 @@ pub trait BlockExplorer: Send + Sync {
 }
 
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
-#[allow(dead_code)]
-struct BlockExplorerLink {
-    name: String,
-    link: String,
+pub struct BlockExplorerLink {
+    pub name: String,
+    pub link: String,
 }
 
 pub fn get_block_explorers_by_chain(chain: &str) -> Vec<Box<dyn BlockExplorer>> {

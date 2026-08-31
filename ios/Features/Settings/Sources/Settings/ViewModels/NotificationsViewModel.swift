@@ -1,11 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BannerService
+import protocol Gemstone.GemPreferencesServiceProtocol
+import protocol Gemstone.GemBannerServiceProtocol
+import struct Gemstone.GemBannerKey
+import GemstonePrimitives
+import GemstoneServices
 import Components
-import DeviceService
 import Foundation
+import protocol Gemstone.GemDeviceServiceProtocol
 import Localization
-import NotificationService
 import Preferences
 import Primitives
 import Style
@@ -13,22 +16,22 @@ import Style
 @Observable
 @MainActor
 public final class NotificationsViewModel {
-    private let deviceService: any DeviceServiceable
-    private let preferences: Preferences
+    private let deviceService: any GemDeviceServiceProtocol
+    private let preferencesService: any GemPreferencesServiceProtocol
     private let pushNotificationService: PushNotificationEnablerService
-    private let bannerService: BannerService
+    private let bannerService: any GemBannerServiceProtocol
 
     var isEnabled: Bool
 
     public init(
-        deviceService: any DeviceServiceable,
-        bannerService: BannerService,
-        preferences: Preferences = .standard,
+        deviceService: any GemDeviceServiceProtocol,
+        bannerService: any GemBannerServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
     ) {
         self.deviceService = deviceService
-        self.preferences = preferences
-        pushNotificationService = PushNotificationEnablerService(preferences: preferences)
-        isEnabled = preferences.isPushNotificationsEnabled
+        self.preferencesService = preferencesService
+        pushNotificationService = PushNotificationEnablerService(preferencesService: preferencesService)
+        isEnabled = preferencesService.isPushNotificationsEnabled()
         self.bannerService = bannerService
     }
 
@@ -52,22 +55,16 @@ extension NotificationsViewModel {
         switch isEnabled {
         case true:
             self.isEnabled = try await requestPermissionsOrOpenSettings()
-            if isEnabled {
-                try bannerService.closeBanner(id: BannerEvent.enableNotifications.rawValue)
-            }
+            try await deviceService.synchronizeIfNeeded()
         case false:
-            preferences.isPushNotificationsEnabled = isEnabled
+            try await deviceService.setPushEnabled(enabled: false)
         }
-        try await update()
     }
 }
 
 // MARK: - Private
 
 extension NotificationsViewModel {
-    private func update() async throws {
-        try await deviceService.update()
-    }
 
     private func requestPermissionsOrOpenSettings() async throws -> Bool {
         try await pushNotificationService.requestPermissionsOrOpenSettings()

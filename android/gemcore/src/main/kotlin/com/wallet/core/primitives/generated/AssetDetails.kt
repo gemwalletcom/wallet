@@ -47,9 +47,3 @@ data class AssetFull (
 	val market: AssetMarket? = null
 )
 
-@Serializable
-data class AssetMarketPrice (
-	val price: Price? = null,
-	val market: AssetMarket? = null
-)
-

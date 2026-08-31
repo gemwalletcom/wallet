@@ -34,11 +34,11 @@ public struct FiatScene: View {
         .frame(maxWidth: .infinity)
         .onChange(of: model.type, model.onChangeType)
         .onChange(of: model.inputValidationModel.text, model.onChangeAmountText)
-        .debouncedTask(id: model.fetchTrigger) {
-            await model.fetch()
+        .debouncedTask(id: model.loadTrigger, interval: model.quoteDebounce) {
+            await model.load()
         }
-        .onTimer(every: .minutes(5)) {
-            await model.fetch()
+        .onTimer(every: model.quoteRefreshInterval) {
+            await model.load()
         }
         .alertSheet($model.isPresentingAlertMessage)
     }

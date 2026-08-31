@@ -12,6 +12,7 @@ pub struct AssetsResponse {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BrokerAsset {
+    pub id: String,
     enabled: bool,
     direction: AssetDirection,
     pub ticker: String,
@@ -31,27 +32,20 @@ enum AssetDirection {
 }
 
 impl BrokerAsset {
-    fn supports_ingress(&self) -> bool {
+    pub(crate) fn supports_ingress(&self) -> bool {
         self.enabled && matches!(self.direction, AssetDirection::Both | AssetDirection::Ingress)
     }
 
-    fn supports_egress(&self) -> bool {
+    pub(crate) fn supports_egress(&self) -> bool {
         self.enabled && matches!(self.direction, AssetDirection::Both | AssetDirection::Egress)
     }
 }
 
 impl AssetsResponse {
-    pub fn minimum_amount(&self, source_asset: &ChainflipAsset, destination_asset: &ChainflipAsset) -> Option<BigUint> {
-        let source_asset = self
-            .assets
-            .iter()
-            .find(|broker_asset| broker_asset.network == source_asset.chain && broker_asset.ticker == source_asset.asset)
-            .filter(|broker_asset| broker_asset.supports_ingress())?;
+    pub(crate) fn asset(&self, asset: &ChainflipAsset) -> Option<&BrokerAsset> {
         self.assets
             .iter()
-            .find(|broker_asset| broker_asset.network == destination_asset.chain && broker_asset.ticker == destination_asset.asset)
-            .filter(|broker_asset| broker_asset.supports_egress())?;
-        Some(source_asset.minimal_amount_native.clone())
+            .find(|broker_asset| broker_asset.network == asset.chain && broker_asset.ticker == asset.asset)
     }
 }
 
@@ -71,26 +65,33 @@ mod tests {
     }
 
     #[test]
-    fn test_minimum_amount_requires_enabled_swap_directions() {
+    fn test_asset_swap_directions() {
         let source = asset("Ethereum", "ETH");
         let destination = asset("Tron", "TRX");
 
-        assert_eq!(response().minimum_amount(&source, &destination), Some(BigUint::from(10_000_000_000_000_000u64)));
+        let assets = response();
+        let source_asset = assets.asset(&source).unwrap();
+        let destination_asset = assets.asset(&destination).unwrap();
+        assert_eq!(source_asset.id, "eth.eth");
+        assert_eq!(source_asset.minimal_amount_native, BigUint::from(10_000_000_000_000_000u64));
+        assert_eq!(destination_asset.id, "trx.tron");
+        assert!(source_asset.supports_ingress());
+        assert!(destination_asset.supports_egress());
 
         let mut assets = response();
         assets.assets[0].enabled = false;
-        assert!(assets.minimum_amount(&source, &destination).is_none());
+        assert!(!assets.assets[0].supports_ingress());
 
         let mut assets = response();
         assets.assets[1].enabled = false;
-        assert!(assets.minimum_amount(&source, &destination).is_none());
+        assert!(!assets.assets[1].supports_egress());
 
         let mut assets = response();
         assets.assets[0].direction = AssetDirection::Egress;
-        assert!(assets.minimum_amount(&source, &destination).is_none());
+        assert!(!assets.assets[0].supports_ingress());
 
         let mut assets = response();
         assets.assets[1].direction = AssetDirection::Ingress;
-        assert!(assets.minimum_amount(&source, &destination).is_none());
+        assert!(!assets.assets[1].supports_egress());
     }
 }

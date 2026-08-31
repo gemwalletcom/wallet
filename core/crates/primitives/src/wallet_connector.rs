@@ -1,4 +1,4 @@
-use crate::{Chain, Wallet};
+use crate::{ApplicationMetadata, Chain, Wallet};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
@@ -9,7 +9,7 @@ pub struct WalletConnection {
     pub session: WalletConnectionSession,
     pub wallet: Wallet,
 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[typeshare(swift = "Hashable, Sendable")]
 #[serde(rename_all = "lowercase")]
 pub enum WalletConnectionState {
@@ -67,6 +67,35 @@ pub enum WalletConnectionMethods {
     TronSendTransaction,
 }
 
+impl WalletConnectionMethods {
+    pub fn all() -> Vec<Self> {
+        vec![
+            Self::EthChainId,
+            Self::PersonalSign,
+            Self::EthSignTypedData,
+            Self::EthSignTypedDataV4,
+            Self::EthSignTransaction,
+            Self::EthSendTransaction,
+            Self::EthSendRawTransaction,
+            Self::WalletSwitchEthereumChain,
+            Self::WalletAddEthereumChain,
+            Self::SolanaSignMessage,
+            Self::SolanaSignTransaction,
+            Self::SolanaSignAndSendTransaction,
+            Self::SolanaSignAllTransactions,
+            Self::SuiGetAccounts,
+            Self::SuiSignPersonalMessage,
+            Self::SuiSignTransaction,
+            Self::SuiSignAndExecuteTransaction,
+            Self::TonSendMessage,
+            Self::TonSignData,
+            Self::TronSignMessage,
+            Self::TronSignTransaction,
+            Self::TronSendTransaction,
+        ]
+    }
+}
+
 #[derive(Debug, Serialize)]
 #[typeshare(swift = "CaseIterable, Sendable")]
 pub enum WalletConnectionEvents {
@@ -80,6 +109,12 @@ pub enum WalletConnectionEvents {
     ChainChanged,
 }
 
+impl WalletConnectionEvents {
+    pub fn all() -> Vec<Self> {
+        vec![Self::Connect, Self::Disconnect, Self::AccountsChanged, Self::ChainChanged]
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
@@ -90,35 +125,7 @@ pub struct WalletConnectionSession {
     pub chains: Vec<Chain>,
     pub created_at: DateTime<Utc>,
     pub expire_at: DateTime<Utc>,
-    pub metadata: WalletConnectionSessionAppMetadata,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
-#[serde(rename_all = "camelCase")]
-pub struct WalletConnectionSessionAppMetadata {
-    pub name: String,
-    pub description: String,
-    pub url: String,
-    pub icon: String,
-}
-
-const SHORT_NAME_SEPARATORS: [char; 3] = ['-', ':', '|'];
-const SHORT_NAME_MAX_LENGTH: usize = 80;
-
-impl WalletConnectionSessionAppMetadata {
-    pub fn short_name(&self) -> String {
-        let name = self.name.trim();
-        for sep in SHORT_NAME_SEPARATORS {
-            if let Some(idx) = name.find(sep) {
-                return name[..idx].trim().to_string();
-            }
-        }
-        if name.len() > SHORT_NAME_MAX_LENGTH {
-            return name[..SHORT_NAME_MAX_LENGTH].to_string();
-        }
-        name.to_string()
-    }
+    pub metadata: ApplicationMetadata,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -127,7 +134,7 @@ impl WalletConnectionSessionAppMetadata {
 pub struct WalletConnectionSessionProposal {
     pub default_wallet: Wallet,
     pub wallets: Vec<Wallet>,
-    pub metadata: WalletConnectionSessionAppMetadata,
+    pub metadata: ApplicationMetadata,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

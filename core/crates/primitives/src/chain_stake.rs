@@ -53,6 +53,16 @@ impl StakeChain {
         self.config().change_amount_on_unstake
     }
 
+    /// Get if staking on the chain freezes the balance instead of delegating it
+    pub fn get_uses_freeze(&self) -> bool {
+        matches!(self, Self::Tron)
+    }
+
+    /// Get if the chain takes stake amounts in whole units
+    pub fn get_uses_whole_amounts(&self) -> bool {
+        matches!(self, Self::Tron)
+    }
+
     /// Get if chain support redelegate
     pub fn get_can_redelegate(&self) -> bool {
         self.config().can_redelegate
@@ -72,5 +82,15 @@ impl StakeChain {
 
     pub fn get_reserved_for_fees(&self) -> u64 {
         self.config().reserved_for_fees
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::StakeChain;
+
+    #[test]
+    fn test_ethereum_min_stake_amount() {
+        assert_eq!(StakeChain::Ethereum.get_min_stake_amount(), 10u64.pow(16));
     }
 }

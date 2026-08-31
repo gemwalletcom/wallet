@@ -4,12 +4,14 @@ import Foundation
 import Localization
 import Primitives
 import PrimitivesComponents
-import RewardsService
+import protocol Gemstone.GemRewardsServiceProtocol
+import GemstonePrimitives
+import GemstoneServices
 
 @Observable
 @MainActor
 final class CreateRewardsCodeViewModel: TextInputViewModelProtocol {
-    private let rewardsService: RewardsServiceable
+    private let rewardsService: any GemRewardsServiceProtocol
     private let wallet: Wallet
     private let onSuccess: (Rewards) -> Void
 
@@ -18,7 +20,7 @@ final class CreateRewardsCodeViewModel: TextInputViewModelProtocol {
     var errorMessage: String?
 
     init(
-        rewardsService: RewardsServiceable,
+        rewardsService: any GemRewardsServiceProtocol,
         wallet: Wallet,
         onSuccess: @escaping (Rewards) -> Void,
     ) {

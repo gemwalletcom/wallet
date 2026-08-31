@@ -1,0 +1,13 @@
+package com.gemwallet.android.data.coordinators.banner
+
+import com.gemwallet.android.application.banner.cases.HasMultiSign
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
+import com.wallet.core.primitives.Wallet
+import kotlinx.coroutines.flow.Flow
+
+class HasMultiSignImpl(
+    private val bannerStore: GemstoneBannerStore,
+) : HasMultiSign {
+
+    override fun hasMultiSign(wallet: Wallet): Flow<Boolean> = bannerStore.observeMultiSign(wallet.id.id)
+}

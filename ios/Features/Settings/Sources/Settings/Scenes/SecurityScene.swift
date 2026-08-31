@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Primitives
 import Components
 import Style
 import SwiftUI
@@ -60,6 +61,3 @@ extension SecurityScene {
     }
 }
 
-#Preview {
-    SecurityScene(model: .init())
-}

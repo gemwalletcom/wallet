@@ -28,7 +28,6 @@ android {
 }
 
 dependencies {
-    implementation(project(":data:repositories"))
     implementation(project(":gemcore"))
 
     implementation(platform(libs.walletconnect.bom))

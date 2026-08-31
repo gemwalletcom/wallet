@@ -95,7 +95,7 @@ impl<C> Squid<C>
 where
     C: Client + Clone + Send + Sync + std::fmt::Debug + 'static,
 {
-    async fn fetch_route(&self, request: &QuoteRequest, from_value: &str, quote_only: bool) -> Result<(SquidRouteResponse, u128, Option<String>), SwapperError> {
+    async fn get_route(&self, request: &QuoteRequest, from_value: &str, quote_only: bool) -> Result<(SquidRouteResponse, u128, Option<String>), SwapperError> {
         let fee_address = Self::get_fee_address(request);
         let value: u128 = from_value.parse().unwrap_or(0);
         let fee = if fee_address.is_some() { value * DEFAULT_SWAP_FEE_BPS as u128 / 10_000 } else { 0 };
@@ -125,7 +125,7 @@ where
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let from_value = request.value.clone();
-        let (response, _, _) = self.fetch_route(request, &from_value, true).await?;
+        let (response, _, _) = self.get_route(request, &from_value, true).await?;
 
         Ok(Quote {
             from_value,
@@ -146,7 +146,7 @@ where
     }
 
     async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
-        let (response, fee, fee_address) = self.fetch_route(&quote.request, &quote.from_value, false).await?;
+        let (response, fee, fee_address) = self.get_route(&quote.request, &quote.from_value, false).await?;
         let tx = response.route.transaction_request.ok_or(SwapperError::InvalidRoute)?;
 
         let swap_msg: serde_json::Value = serde_json::from_str(&tx.data).map_err(SwapperError::transaction_error)?;

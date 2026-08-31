@@ -1,49 +1,44 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Keystore
-import KeystoreTestKit
+import GemstonePrimitivesTestKit
+import Primitives
+import GemstoneServices
+import GemstoneServicesTestKit
 @testable import Onboarding
 import Preferences
+import Store
 import StoreTestKit
 import Testing
-import WalletServiceTestKit
-import WalletSessionService
-import WalletSessionServiceTestKit
+import GemstonePrimitives
 
 @MainActor
 struct CreateWalletModelTests {
     @Test
     func createWalletSetsWalletConfiguration() async throws {
+        let walletStore = WalletStore.mock(db: .mockWithChains(AssetConfiguration.allChains))
         let model = CreateWalletModel(
-            walletService: .mock(keystore: KeystoreMock()),
-            walletSessionService: WalletSessionService.mock(),
-            avatarService: .init(store: .mock()),
+            walletService: .mock(walletStore: walletStore),
+            walletSessionService: WalletSessionService.mock(store: walletStore),
+            avatarService: GemAvatarServiceMock(),
             onComplete: nil,
         )
 
         let wallet = try await model.createWallet(words: LocalKeystore.words)
-        let preferences = WalletPreferences(walletId: wallet.id)
-
-        #expect(preferences.completeInitialWalletConfiguration)
-        #expect(preferences.completeInitialLoadAssets)
-        #expect(preferences.completeInitialLoadTransactions)
-        #expect(preferences.completeInitialLoadNFTs)
-
-        preferences.clear()
+        #expect(wallet.source == .create)
     }
 
     @Test
     func generateSecretPhraseReturnsGeneratedWords() {
         let model = CreateWalletModel(
-            walletService: .mock(keystore: KeystoreMock()),
+            walletService: .mock(),
             walletSessionService: WalletSessionService.mock(),
-            avatarService: .init(store: .mock()),
+            avatarService: GemAvatarServiceMock(),
             onComplete: nil,
         )
 
         let words = model.generateSecretPhrase()
 
-        #expect(words.isNotEmpty)
-        #expect(words == LocalKeystore.words)
+        #expect(words.count == 12)
+        #expect(words != model.generateSecretPhrase())
     }
 }

@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.config
 
-import com.gemwallet.android.data.services.gemapi.GemApiClient
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.ConfigResponse
 import com.wallet.core.primitives.ConfigVersions
 import com.wallet.core.primitives.Release
@@ -11,13 +11,14 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemConfigService
 
 class GetRemoteConfigImplTest {
 
-    private val gemApiClient = mockk<GemApiClient>()
+    private val configService = mockk<GemConfigService>()
 
     private val subject = GetRemoteConfigImpl(
-        gemApiClient = gemApiClient,
+        configService = configService,
     )
 
     @Test
@@ -39,7 +40,7 @@ class GetRemoteConfigImplTest {
                 enabledProviders = emptyList(),
             ),
         )
-        coEvery { gemApiClient.getConfig() } returns config
+        coEvery { configService.updateConfig() } returns config.toJson()
 
         val result = subject.getRemoteConfig()
 

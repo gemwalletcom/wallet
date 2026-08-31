@@ -20,6 +20,7 @@
   <string name="common_wallet">钱包</string>
   <string name="common_show">显示%1$s</string>
   <string name="common_copied">已复制：%1$s</string>
+  <string name="common_copied_to_clipboard">已复制到剪贴板</string>
   <string name="common_recommended">推荐</string>
   <string name="common_all">全部</string>
   <string name="common_not_available">无法使用</string>
@@ -185,10 +186,14 @@
   <string name="errors_token_invalid_id">代币 ID 无效</string>
   <string name="errors_import_invalid_secret_phrase">助记词无效</string>
   <string name="errors_import_invalid_secret_phrase_word">助记词无效：%1$s</string>
+  <string name="errors_import_invalid_private_key">无效的私钥</string>
+  <string name="errors_keystore_access">无法在此设备上访问该钱包的密钥。如果你有助记词，请删除该钱包并重新导入以恢复访问。</string>
+  <string name="errors_wallet_account_missing">该钱包没有此网络的账户</string>
   <string name="errors_invalid_url">无效的网址</string>
   <string name="errors_error_occurred">出错了！</string>
   <string name="errors_invalid_network_id">网络 ID 无效</string>
   <string name="errors_error">错误</string>
+  <string name="errors_cancelled">已取消</string>
   <string name="errors_connections_user_cancelled">用户已取消</string>
   <string name="errors_not_supported">不支持</string>
   <string name="errors_permissions_not_granted">未授予权限</string>

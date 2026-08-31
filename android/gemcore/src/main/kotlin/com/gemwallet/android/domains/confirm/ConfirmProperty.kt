@@ -48,12 +48,10 @@ sealed interface ConfirmProperty {
                 is ConfirmParams.Stake.RedelegateParams,
                 is ConfirmParams.Stake.UndelegateParams,
                 is ConfirmParams.Stake.WithdrawParams -> Stake(data = validator?.name ?: "", address = validator?.id)
-                is ConfirmParams.TokenApprovalParams -> Provider(data = params.provider)
                 is ConfirmParams.NftParams,
-                is ConfirmParams.TransferParams.Token,
                 is ConfirmParams.TransferParams.Deposit,
                 is ConfirmParams.TransferParams.Withdrawal,
-                is ConfirmParams.TransferParams.Native -> {
+                is ConfirmParams.TransferParams.Transfer -> {
                     val destination = params.destination() ?: throw ConfirmError.RecipientEmpty
                     Transfer(
                         domain = destination.name ?: addressName?.name,
@@ -63,7 +61,7 @@ sealed interface ConfirmProperty {
                         imageUrl = addressName?.imageUrl,
                     )
                 }
-                is ConfirmParams.TransferParams.Generic -> Generic(params.name)
+                is ConfirmParams.TransferParams.Generic -> Generic(params.metadata.name)
             }
         }
     }

@@ -487,7 +487,7 @@ mod tests {
         assert_eq!(traces.traces.len(), 2);
 
         let transactions = map_trace_transactions(traces.traces);
-        let hashes = transactions.iter().map(|transaction| transaction.hash.as_str()).collect::<Vec<_>>();
+        let hashes = transactions.iter().map(|transaction| transaction.hash()).collect::<Vec<_>>();
 
         assert_eq!(hashes, vec![SUCCESS_SWAP_ROOT_TRANSACTION_HEX_HASH, FAILED_SWAP_ROOT_TRANSACTION_HEX_HASH]);
         assert_eq!(transactions[0].state, TransactionState::Confirmed);
@@ -518,7 +518,7 @@ mod tests {
         let transactions = map_trace_transactions(traces.traces);
 
         assert_eq!(transactions.len(), 1);
-        assert_eq!(transactions[0].hash, "9ba7d317aaed24089e5cc3b0df4432294cb88ed485d202768cc2766432aec3e0");
+        assert_eq!(transactions[0].hash(), "9ba7d317aaed24089e5cc3b0df4432294cb88ed485d202768cc2766432aec3e0");
         assert_eq!(transactions[0].state, TransactionState::Confirmed);
     }
 

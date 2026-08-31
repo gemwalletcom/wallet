@@ -49,18 +49,4 @@ impl NodeStatusState {
             Self::Error { .. } => false,
         }
     }
-
-    pub fn as_status(&self) -> Option<&NodeSyncStatus> {
-        match self {
-            Self::Healthy(status) => Some(status),
-            Self::Error { .. } => None,
-        }
-    }
-
-    pub fn error_message(&self) -> Option<&str> {
-        match self {
-            Self::Error { message } => Some(message.as_str()),
-            _ => None,
-        }
-    }
 }

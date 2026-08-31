@@ -6,16 +6,8 @@ import enum Gemstone.SwapperError
 import Localization
 import Primitives
 
-extension Gemstone.SwapperError: @retroactive RetryableError {
-    public var isRetryAvailable: Bool {
-        switch self {
-        case .NoQuoteAvailable, .ComputeQuoteError, .TransactionError: true
-        case .NotSupportedChain, .NotSupportedAsset, .NoAvailableProvider,
-             .InputAmountError, .InvalidRoute: false
-        }
-    }
-
-    public func message(asset: Asset) -> String {
+extension Gemstone.SwapperError {
+    func message(asset: Asset) -> String {
         switch self {
         case .NotSupportedChain, .NotSupportedAsset:
             return Localized.Errors.Swap.notSupportedAsset

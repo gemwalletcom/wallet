@@ -3,8 +3,8 @@ package com.gemwallet.android.features.create_wallet.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.blockchain.operators.CreateWalletOperator
-import com.gemwallet.android.cases.wallet.ImportWalletService
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.wallet_import.cases.ImportWalletService
+import uniffi.gemstone.GemWalletService
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateWalletViewModel @Inject constructor(
     private val createWalletOperator: CreateWalletOperator,
-    private val walletsRepository: WalletsRepository,
+    private val walletService: GemWalletService,
     private val importWalletService: ImportWalletService,
 ) : ViewModel() {
 
@@ -27,14 +27,14 @@ class CreateWalletViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val generatedNameIndex = walletsRepository.getNextWalletNumber()
+            val generatedNameIndex = walletService.nextWalletIndex()
             state.update { it.copy(generatedNameIndex = generatedNameIndex) }
             createWalletOperator()
                 .onSuccess { data ->
                     state.update { it.copy(data = data.split(" ")) }
                 }
                 .onFailure {  err ->
-                    state.update { it.copy(dataError = err.message ?: "Phrase doesn't create" ) }
+                    state.update { it.copy(dataError = err.message.orEmpty()) }
                 }
         }
     }
@@ -68,7 +68,7 @@ class CreateWalletViewModel @Inject constructor(
                 }
                 state.value.copy(loading = false)
             } catch (err: Throwable) {
-                state.value.copy(loading = false, dataError = err.message ?: "Unknown error")
+                state.value.copy(loading = false, dataError = err.message.orEmpty())
             }
             state.update { newState }
         }
@@ -80,7 +80,7 @@ data class CreateWalletViewModelState(
     val generatedNameIndex: Int = 0,
     val name: String = "",
     val data: List<String> = emptyList(),
-    val dataError: String = "",
+    val dataError: String? = null,
     val isShowSafeMessage: Boolean = false,
 ) {
     fun isExistingWallets() = generatedNameIndex > 1

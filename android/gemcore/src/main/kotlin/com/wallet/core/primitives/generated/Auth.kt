@@ -22,9 +22,3 @@ data class AuthPayload (
 	val signature: String
 )
 
-@Serializable
-data class AuthenticatedRequest<T> (
-	val auth: AuthPayload,
-	val data: T
-)
-

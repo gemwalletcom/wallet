@@ -1,15 +1,13 @@
+import protocol Gemstone.GemNameServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
-import enum Keystore.KeystoreImportType
-import enum Keystore.Mnemonic
 import Localization
 import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import WalletService
-import WalletSessionService
+import GemstoneServices
 
 @Observable
 @MainActor
@@ -34,7 +32,7 @@ final class ImportWalletSceneViewModel {
     init(
         walletService: WalletService,
         walletSessionService: any WalletSessionManageable,
-        nameService: any NameServiceable,
+        nameService: any GemNameServiceProtocol,
         type: ImportWalletType,
         onComplete: (@MainActor @Sendable (ImportWalletSceneResult) -> Void)?,
     ) {
@@ -129,7 +127,7 @@ extension ImportWalletSceneViewModel {
         switch importType {
         case .address:
             if let chain {
-                nameRecordViewModel?.resolve(name: newValue, chain: chain)
+                nameRecordViewModel?.getNameRecord(name: newValue, chain: chain)
             }
         case .phrase, .privateKey:
             nameRecordViewModel?.reset()
@@ -187,18 +185,14 @@ extension ImportWalletSceneViewModel {
 extension ImportWalletSceneViewModel {
     private func importWallet() async throws {
         let trimmedInput = input.trim()
-        let recipient: RecipientImport = {
-            if let result = nameRecordViewModel?.state.result {
-                return RecipientImport(name: result.name, address: result.address)
-            }
-            return RecipientImport(name: WalletNameGenerator(type: type, walletService: walletService).name, address: trimmedInput)
-        }()
+        let recipient: RecipientImport = if let result = nameRecordViewModel?.state.result {
+            RecipientImport(name: result.name, address: result.address)
+        } else {
+            RecipientImport(name: await WalletNameGenerator(type: type, walletService: walletService).name(), address: trimmedInput)
+        }
         switch importType {
         case .phrase:
             let words = trimmedInput.split(separator: " ").map { String($0) }
-            guard try validateForm(type: importType, address: recipient.address, words: words) else {
-                return
-            }
             switch type {
             case .multicoin:
                 try await importWallet(
@@ -212,23 +206,14 @@ extension ImportWalletSceneViewModel {
                 )
             }
         case .privateKey:
-            guard try validateForm(type: importType, address: recipient.address, words: [trimmedInput]) else {
-                return
-            }
             try await importWallet(name: recipient.name, keystoreType: .privateKey(text: trimmedInput, chain: chain!))
         case .address:
-            guard try validateForm(type: importType, address: recipient.address, words: []) else {
-                return
-            }
-            let chain = chain!
-            let address = chain.checksumAddress(recipient.address)
-
-            try await importWallet(name: recipient.name, keystoreType: .address(address: address, chain: chain))
+            try await importWallet(name: recipient.name, keystoreType: .address(address: recipient.address, chain: chain!))
         }
     }
 
     private func importWallet(name: String, keystoreType: KeystoreImportType) async throws {
-        let result = try await walletService.loadOrCreateWallet(name: name, type: keystoreType, source: .import)
+        let result = try await walletService.importWallet(name: name, type: keystoreType, source: .import)
 
         switch result {
         case let .new(wallet):
@@ -242,28 +227,11 @@ extension ImportWalletSceneViewModel {
 
     private func activateWallet(_ wallet: Wallet) async {
         walletService.acceptTerms()
-        await walletSessionService.setCurrent(wallet: wallet)
-        buttonState = .normal
-    }
-
-    private func validateForm(type: WalletImportType, address: String, words: [String]) throws -> Bool {
-        switch type {
-        case .phrase:
-            for word in words {
-                if !Mnemonic.isValidWord(word) {
-                    throw WalletImportError.invalidSecretPhraseWord(word: word)
-                }
-            }
-            guard Mnemonic.isValidWords(words) else {
-                throw WalletImportError.invalidSecretPhrase
-            }
-        case .privateKey:
-            return !words.joined().isEmpty
-        case .address:
-            guard chain!.isValidAddress(address) else {
-                throw WalletImportError.invalidAddress
-            }
+        do {
+            try await walletSessionService.setCurrent(wallet: wallet)
+        } catch {
+            isPresentingAlertMessage = AlertMessage(title: alertTitle, message: error.localizedDescription)
         }
-        return true
+        buttonState = .normal
     }
 }

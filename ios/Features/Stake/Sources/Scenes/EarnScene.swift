@@ -61,11 +61,11 @@ public struct EarnScene: View {
         .listSectionSpacing(.compact)
         .navigationTitle(model.title)
         .refreshable {
-            await model.fetch()
+            await model.load()
         }
         .taskOnce {
             Task {
-                await model.fetch()
+                await model.load()
             }
         }
     }

@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstonePrimitives
 import Localization
 import Preferences
@@ -14,6 +15,7 @@ import SwiftUI
 @MainActor
 public final class PreferencesViewModel {
     private let preferences: ObservablePreferences
+    private let preferencesService: any GemPreferencesServiceProtocol
     private let currencyModel: CurrencySceneViewModel
 
     var isPresentingLeveragePicker = false
@@ -22,10 +24,15 @@ public final class PreferencesViewModel {
 
     public init(
         currencyModel: CurrencySceneViewModel,
-        preferences: ObservablePreferences = .default,
+        preferencesService: any GemPreferencesServiceProtocol,
+        preferences: ObservablePreferences,
     ) {
         self.currencyModel = currencyModel
+        self.preferencesService = preferencesService
         self.preferences = preferences
+        perpetualLeverage = LeverageOption(value: preferencesService.getPerpetualLeverage())
+        perpetualTakeProfit = AutocloseOption(value: preferencesService.getPerpetualTakeProfitPercent())
+        perpetualStopLoss = AutocloseOption(value: preferencesService.getPerpetualStopLossPercent())
     }
 
     var title: String {
@@ -100,13 +107,8 @@ public final class PreferencesViewModel {
         AssetImage.image(Images.Settings.perpetuals)
     }
 
-    private var leverage: UInt8 {
-        preferences.perpetualLeverage == 0 ? PerpetualConfig.defaultLeverage : preferences.perpetualLeverage
-    }
-
     var perpetualLeverage: LeverageOption {
-        get { LeverageOption(value: leverage) }
-        set { preferences.perpetualLeverage = newValue.value }
+        didSet { persist { try preferencesService.setPerpetualLeverage(leverage: perpetualLeverage.value) } }
     }
 
     var defaultLeverageTitle: String {
@@ -114,7 +116,7 @@ public final class PreferencesViewModel {
     }
 
     var defaultLeverageValue: String {
-        "\(leverage)x"
+        "\(perpetualLeverage.value)x"
     }
 
     var leverageOptions: [LeverageOption] {
@@ -122,13 +124,19 @@ public final class PreferencesViewModel {
     }
 
     var perpetualTakeProfit: AutocloseOption {
-        get { AutocloseOption(value: preferences.perpetualTakeProfit) }
-        set { preferences.perpetualTakeProfit = newValue.value }
+        didSet { persist { try preferencesService.setPerpetualTakeProfitPercent(percent: perpetualTakeProfit.value) } }
     }
 
     var perpetualStopLoss: AutocloseOption {
-        get { AutocloseOption(value: preferences.perpetualStopLoss) }
-        set { preferences.perpetualStopLoss = newValue.value }
+        didSet { persist { try preferencesService.setPerpetualStopLossPercent(percent: perpetualStopLoss.value) } }
+    }
+
+    private func persist(_ write: () throws -> Void) {
+        do {
+            try write()
+        } catch {
+            debugLog("preferences write error: \(error)")
+        }
     }
 
     var defaultTakeProfitTitle: String {

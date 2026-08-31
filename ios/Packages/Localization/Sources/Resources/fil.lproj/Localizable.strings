@@ -18,6 +18,7 @@
 "common.wallet" = "Wallet";
 "common.show" = "Ipakita %@";
 "common.copied" = "Nakopya: %@";
+"common.copied_to_clipboard" = "Kinopya sa clipboard";
 "common.recommended" = "Inirerekomenda";
 "common.all" = "Lahat";
 "common.not_available" = "Hindi Magagamit";
@@ -178,10 +179,14 @@
 "errors.token.invalid_id" = "Di-wastong Token ID";
 "errors.import.invalid_secret_phrase" = "Di-wastong Lihim na Parirala";
 "errors.import.invalid_secret_phrase_word" = "Di-wastong Lihim na Parirala na salita: %@";
+"errors.import.invalid_private_key" = "Hindi wastong private key";
+"errors.keystore_access" = "Hindi ma-access ang mga key ng wallet na ito sa device na ito. Kung mayroon kang recovery phrase, alisin ang wallet na ito at i-import itong muli upang maibalik ang access.";
+"errors.wallet_account_missing" = "Walang account ang wallet na ito para sa network na ito";
 "errors.invalid_url" = "Di-wastong URL";
 "errors.error_occurred" = "May naganap na error!";
 "errors.invalid_network_id" = "Di-wastong Network ID";
 "errors.error" = "Error";
+"errors.cancelled" = "Nakansela";
 "errors.connections.user_cancelled" = "Kinansela ang user";
 "errors.not_supported" = "Hindi Sinusuportahan";
 "errors.permissions_not_granted" = "Hindi Ipinagkaloob ang Mga Pahintulot";
@@ -214,6 +219,8 @@
 "errors.swap.minimum_amount" = "Ang minimum na halaga ng kalakalan ay %@. Mangyaring maglagay ng mas mataas na halaga.";
 "errors.perpetual.trigger_price_lower" = "Dapat mas mababa sa presyo sa merkado ang trigger price";
 "errors.perpetual.trigger_price_higher" = "Dapat mas mataas sa presyo sa merkado ang trigger price";
+"errors.network_error" = "Error sa network: %@";
+"errors.network_offline" = "Mukhang offline ang koneksyon sa internet.";
 "errors.no_internet_connection" = "Walang koneksyon sa internet";
 "errors.no_service_connection" = "Walang koneksyon sa serbisyo";
 "errors.balances_activity_outdated" = "Maaaring luma na ang mga balanse at aktibidad.";

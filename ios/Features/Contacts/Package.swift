@@ -15,6 +15,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "Gemstone", path: "../../Packages/Gemstone"),
         .package(name: "Primitives", path: "../../Packages/Primitives"),
         .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
         .package(name: "Components", path: "../../Packages/Components"),
@@ -23,13 +24,14 @@ let package = Package(
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "Validators", path: "../../Packages/Validators"),
         .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
-        .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
+        .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
         .package(name: "QRScanner", path: "../../Packages/QRScanner"),
     ],
     targets: [
         .target(
             name: "Contacts",
             dependencies: [
+                "Gemstone",
                 "Primitives",
                 "PrimitivesComponents",
                 "Components",
@@ -39,19 +41,21 @@ let package = Package(
                 "Validators",
                 "GemstonePrimitives",
                 "QRScanner",
-                .product(name: "ContactService", package: "FeatureServices"),
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
             ],
             path: "Sources",
         ),
         .testTarget(
             name: "ContactsTests",
             dependencies: [
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "Contacts",
                 "Primitives",
                 "PrimitivesComponents",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "StoreTestKit", package: "Store"),
-                .product(name: "ContactService", package: "FeatureServices"),
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
             ],
         ),
     ],

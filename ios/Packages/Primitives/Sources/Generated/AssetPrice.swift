@@ -42,26 +42,6 @@ public struct AssetPrice: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
-public struct AssetPrices: Codable, Sendable {
-	public let currency: Currency
-	public let prices: [AssetPrice]
-
-	public init(currency: Currency, prices: [AssetPrice]) {
-		self.currency = currency
-		self.prices = prices
-	}
-}
-
-public struct AssetPricesRequest: Codable, Equatable, Sendable {
-	public let currency: Currency?
-	public let assetIds: [AssetId]
-
-	public init(currency: Currency?, assetIds: [AssetId]) {
-		self.currency = currency
-		self.assetIds = assetIds
-	}
-}
-
 public struct ChartValue: Codable, Equatable, Hashable, Sendable {
 	public let timestamp: Int32
 	public let value: Float

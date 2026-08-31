@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels
 
+import uniffi.gemstone.GemRecipient
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -10,7 +11,6 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
@@ -32,14 +32,18 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.math.BigInteger
+import uniffi.gemstone.GemAmountLimits
+import uniffi.gemstone.GemAmountService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountViewModelTest {
+
 
     private val testDispatcher = StandardTestDispatcher()
     private val asset = mockAssetCosmos()
@@ -48,6 +52,8 @@ class AmountViewModelTest {
         mockAssetInfo(asset = asset).copy(price = mockAssetPriceInfo(price = 10.0))
     )
     private val availableBalanceFlow = MutableStateFlow(HundredAtom)
+    private val limitsFlow = MutableStateFlow<GemAmountLimits?>(null)
+    private val reserveForFeeFlow = MutableStateFlow(BigInteger.ZERO)
 
     private val builtAmounts = mutableListOf<Crypto>()
     private val builtIsMax = mutableListOf<Boolean>()
@@ -57,10 +63,11 @@ class AmountViewModelTest {
         every { assetInfo } returns assetInfoFlow
         every { availableBalance } returns availableBalanceFlow
         every { minimumValue } returns MutableStateFlow(BigInteger.ZERO)
-        every { canChangeValue } returns true
+        every { canChangeValue } returns MutableStateFlow(true)
         every { canSwitchInputType } returns true
-        every { reserveForFee } returns BigInteger.ZERO
-        every { shouldReserveFee(any()) } returns false
+        every { reserveForFee } returns reserveForFeeFlow
+        every { limits } returns limitsFlow
+        every { maxValue() } answers { availableBalanceFlow.value }
         coEvery { buildConfirmParams(capture(builtAmounts), capture(builtIsMax)) } returns confirmParams
     }
     private val factory = mockk<AmountProviderFactory> { every { create(any(), any()) } returns provider }
@@ -122,9 +129,9 @@ class AmountViewModelTest {
     }
 
     @Test
-    fun `onNext marks isMax from the max flag`() = viewModelTest { viewModel ->
+    fun `onNext marks isMax when the amount equals the max value`() = viewModelTest { viewModel ->
         availableBalanceFlow.value = OneAtom
-        viewModel.setAmount("0.4", isMax = true)
+        viewModel.setAmount("1")
 
         viewModel.confirm()
 
@@ -166,8 +173,9 @@ class AmountViewModelTest {
     @Test
     fun `onMaxAmount reserves the network fee from the balance`() = viewModelTest { viewModel ->
         availableBalanceFlow.value = BigInteger("2000000")
-        every { provider.shouldReserveFee(true) } returns true
-        every { provider.reserveForFee } returns BigInteger("500000")
+        every { provider.limits } returns MutableStateFlow(GemAmountLimits(availableValue = "2000000", maxValue = "1500000", reservesFee = true))
+        every { provider.reserveForFee } returns MutableStateFlow(BigInteger("500000"))
+        every { provider.maxValue() } returns BigInteger("1500000")
 
         viewModel.onMaxAmount()
         runCurrent()
@@ -175,9 +183,23 @@ class AmountViewModelTest {
         assertEquals("1.5", viewModel.amount)
     }
 
+    @Test
+    fun `typing the max amount by hand shows the reserved fee note`() = viewModelTest { viewModel ->
+        availableBalanceFlow.value = BigInteger("2000000")
+        limitsFlow.value = GemAmountLimits(availableValue = "2000000", maxValue = "1500000", reservesFee = true)
+        reserveForFeeFlow.value = BigInteger("500000")
+        every { provider.maxValue() } returns BigInteger("1500000")
+
+        viewModel.setAmount("1")
+        assertNull(viewModel.reserveForFeeFormatted.value)
+
+        viewModel.setAmount("1.5")
+        assertNotNull(viewModel.reserveForFeeFormatted.value)
+    }
+
     private fun viewModelTest(block: suspend TestScope.(AmountViewModel) -> Unit) = runTest(testDispatcher) {
-        val params = AmountParams.Transfer(asset.id, DestinationAddress(address = "to", name = null))
-        val viewModel = AmountViewModel(factory, SavedStateHandle(mapOf(RouteArgument.Params.key to params.pack())))
+        val params = AmountParams.Transfer(asset.id, GemRecipient(address = "to", name = null))
+        val viewModel = AmountViewModel(factory, SavedStateHandle(mapOf(RouteArgument.Params.key to params.pack())), GemAmountService())
         try {
             runCurrent()
             block(viewModel)
@@ -193,8 +215,8 @@ class AmountViewModelTest {
         return confirmed
     }
 
-    private fun AmountViewModel.setAmount(value: String, isMax: Boolean = false) {
-        updateAmount(value, isMax)
+    private fun AmountViewModel.setAmount(value: String) {
+        updateAmount(value)
         Snapshot.sendApplyNotifications()
         testDispatcher.scheduler.runCurrent()
     }

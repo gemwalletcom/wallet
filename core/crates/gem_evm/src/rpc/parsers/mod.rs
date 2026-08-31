@@ -14,17 +14,9 @@ use super::model::{Transaction, TransactionReceipt};
 use crate::ethereum_address_checksum;
 use primitives::{AssetId, Chain, Transaction as PrimitivesTransaction, TransactionSwapMetadata, TransactionType};
 
-use self::{
-    across::AcrossParser,
-    mayan::MayanParser,
-    okx::OkxParser,
-    pancakeswap::PancakeSwapParser,
-    staking::{EverstakeParser, MonadStakingParser, SmartChainStakingParser},
-    universal_router::UniversalRouterParser,
-    yo::YoParser,
-};
+use self::{across::AcrossParser, mayan::MayanParser, okx::OkxParser, pancakeswap::PancakeSwapParser, universal_router::UniversalRouterParser, yo::YoParser};
 
-const EVENT_WORD_SIZE: usize = 64;
+pub const EVENT_WORD_SIZE: usize = 64;
 
 pub struct ParseContext<'a> {
     pub chain: &'a Chain,
@@ -34,6 +26,17 @@ pub struct ParseContext<'a> {
 }
 
 impl ParseContext<'_> {
+    pub fn is_to(&self, address: &str) -> bool {
+        self.is_to_any(&[address])
+    }
+
+    pub fn is_to_any(&self, addresses: &[&str]) -> bool {
+        self.transaction
+            .to
+            .as_ref()
+            .is_some_and(|to| addresses.iter().any(|address| to.eq_ignore_ascii_case(address)))
+    }
+
     fn make_swap_transaction(&self, from: &str, to: &str, metadata: &TransactionSwapMetadata) -> Option<PrimitivesTransaction> {
         let from = ethereum_address_checksum(from).ok()?;
         let to = ethereum_address_checksum(to).ok()?;
@@ -57,33 +60,33 @@ impl ParseContext<'_> {
     }
 }
 
-pub trait ProtocolParser {
+pub trait ProtocolParser: Send + Sync {
     fn matches(&self, context: &ParseContext<'_>) -> bool;
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction>;
 }
 
-fn ethereum_value_from_log_data(data: &str, start: usize, end: usize) -> Option<BigUint> {
+pub fn ethereum_value_from_log_data(data: &str, start: usize, end: usize) -> Option<BigUint> {
     data.trim_start_matches("0x").get(start..end).and_then(|s| BigUint::from_str_radix(s, 16).ok())
 }
 
 pub struct ProtocolParsers;
 
 impl ProtocolParsers {
-    fn parsers() -> [&'static dyn ProtocolParser; 9] {
-        [
-            &EverstakeParser,
-            &MonadStakingParser,
-            &SmartChainStakingParser,
-            &AcrossParser,
-            &MayanParser,
-            &OkxParser,
-            &YoParser,
-            &PancakeSwapParser,
-            &UniversalRouterParser,
-        ]
+    fn default_parsers() -> [&'static dyn ProtocolParser; 6] {
+        [&AcrossParser, &MayanParser, &OkxParser, &YoParser, &PancakeSwapParser, &UniversalRouterParser]
     }
 
     pub fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt, created_at: DateTime<Utc>) -> Option<PrimitivesTransaction> {
+        Self::map_transaction_with_parsers(chain, transaction, receipt, created_at, &[])
+    }
+
+    pub fn map_transaction_with_parsers(
+        chain: &Chain,
+        transaction: &Transaction,
+        receipt: &TransactionReceipt,
+        created_at: DateTime<Utc>,
+        parsers: &[&'static dyn ProtocolParser],
+    ) -> Option<PrimitivesTransaction> {
         let context = ParseContext {
             chain,
             transaction,
@@ -91,8 +94,10 @@ impl ProtocolParsers {
             created_at,
         };
 
-        Self::parsers()
-            .into_iter()
+        parsers
+            .iter()
+            .copied()
+            .chain(Self::default_parsers())
             .filter(|parser| parser.matches(&context))
             .find_map(|parser| parser.parse(&context))
     }

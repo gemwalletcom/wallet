@@ -17,12 +17,6 @@ public extension Int32 {
     }
 }
 
-public enum RoundingMode {
-    case up
-    case down
-    case nearest
-}
-
 public extension Int {
     static func from(string: String) throws -> Self {
         guard let value = Self(string) else {
@@ -35,28 +29,8 @@ public extension Int {
         self >= lowerBound && self <= upperBound
     }
 
-    func roundToNearest(multipleOf base: Int, mode: RoundingMode) -> Int {
-        guard base > 0 else { return base }
-        switch mode {
-        case .up:
-            return ((self + base - 1) / base) * base
-        case .down:
-            return (self / base) * base
-        case .nearest:
-            return ((self + base / 2) / base) * base
-        }
-    }
-
     var asInt32: Int32 {
         Int32(self)
-    }
-
-    var asUInt32: UInt32 {
-        UInt32(self)
-    }
-
-    var asUInt64: UInt64 {
-        UInt64(self)
     }
 
     var asString: String {

@@ -63,7 +63,7 @@ public struct SupportChatScene: View {
         }
         .interactiveDismissDisabled()
         .task {
-            await model.fetch()
+            await model.load()
         }
         .onChange(of: scenePhase, model.onScenePhaseChange)
         .onDisappear { model.onDisappear() }

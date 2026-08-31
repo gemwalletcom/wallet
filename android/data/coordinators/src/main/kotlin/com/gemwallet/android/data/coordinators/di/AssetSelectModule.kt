@@ -1,14 +1,14 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.asset_select.coordinators.ClearRecentAssets
-import com.gemwallet.android.application.asset_select.coordinators.GetChainAssets
-import com.gemwallet.android.application.asset_select.coordinators.GetRecentAssets
-import com.gemwallet.android.application.asset_select.coordinators.GetSelectAssetsInfo
-import com.gemwallet.android.application.asset_select.coordinators.SearchListAssets
-import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
-import com.gemwallet.android.application.asset_select.coordinators.SwitchAssetVisibility
-import com.gemwallet.android.application.asset_select.coordinators.UpdateRecentAsset
-import com.gemwallet.android.application.assets.coordinators.EnableAsset
+import com.gemwallet.android.application.asset_select.cases.ClearRecentAssets
+import com.gemwallet.android.application.asset_select.cases.GetChainAssets
+import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
+import com.gemwallet.android.application.asset_select.cases.SearchListAssets
+import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
+import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
+import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
+import com.gemwallet.android.application.assets.cases.EnableAsset
 import com.gemwallet.android.data.coordinators.asset_select.ClearRecentAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.GetChainAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.GetRecentAssetsImpl
@@ -17,15 +17,18 @@ import com.gemwallet.android.data.coordinators.asset_select.SearchListAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.SearchSelectAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.SwitchAssetVisibilityImpl
 import com.gemwallet.android.data.coordinators.asset_select.UpdateRecentAssetImpl
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.assets.AssetsSearchService
-import com.gemwallet.android.data.repositories.assets.RecentAssetsService
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.application.session.cases.GetSession
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import com.gemwallet.android.application.assets.cases.SyncBalances
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -46,14 +49,16 @@ object AssetSelectModule {
     @Provides
     @Singleton
     fun provideGetChainAssets(
-        assetsRepository: AssetsRepository,
-    ): GetChainAssets = GetChainAssetsImpl(assetsRepository)
+        assetStore: GemstoneAssetStore,
+        getCurrentWalletId: GetCurrentWalletId,
+        syncBalances: SyncBalances,
+    ): GetChainAssets = GetChainAssetsImpl(assetStore, getCurrentWalletId, syncBalances)
 
     @Provides
     @Singleton
     fun provideGetSelectAssetsInfo(
-        assetsRepository: AssetsRepository,
-    ): GetSelectAssetsInfo = GetSelectAssetsInfoImpl(assetsRepository)
+        getWalletAssets: GetWalletAssets,
+    ): GetSelectAssetsInfo = GetSelectAssetsInfoImpl(getWalletAssets)
 
     @Provides
     @Singleton
@@ -65,20 +70,19 @@ object AssetSelectModule {
     @Singleton
     fun provideSwitchAssetVisibility(
         enableAsset: EnableAsset,
-        assetsRepository: AssetsRepository,
-    ): SwitchAssetVisibility = SwitchAssetVisibilityImpl(enableAsset, assetsRepository)
+    ): SwitchAssetVisibility = SwitchAssetVisibilityImpl(enableAsset)
 
     @Provides
     @Singleton
     fun provideUpdateRecentAsset(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         recentAssetsService: RecentAssetsService,
-    ): UpdateRecentAsset = UpdateRecentAssetImpl(sessionRepository, recentAssetsService)
+    ): UpdateRecentAsset = UpdateRecentAssetImpl(getSession, recentAssetsService)
 
     @Provides
     @Singleton
     fun provideClearRecentAssets(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         recentAssetsService: RecentAssetsService,
-    ): ClearRecentAssets = ClearRecentAssetsImpl(sessionRepository, recentAssetsService)
+    ): ClearRecentAssets = ClearRecentAssetsImpl(getSession, recentAssetsService)
 }

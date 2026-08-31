@@ -49,7 +49,7 @@ futures.workspace = true
 bs58 = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
-solana-primitives = "0.2.5"
+solana-primitives = { workspace = true }
 bigdecimal.workspace = true
 rand.workspace = true
 

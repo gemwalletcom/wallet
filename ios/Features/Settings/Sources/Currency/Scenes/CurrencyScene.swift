@@ -42,14 +42,14 @@ extension CurrencyScene {
     private func onSelectCurrency(_ currency: Currency) {
         guard currency != model.currency else { return }
 
-        do {
-            try model.setCurrency(currency)
-        } catch {
-            return
-        }
         Task {
+            do {
+                try await model.setCurrency(currency)
+            } catch {
+                return
+            }
             await model.updateDevice()
+            dismiss()
         }
-        dismiss()
     }
 }

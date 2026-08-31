@@ -184,6 +184,7 @@ mod chain_integration_tests {
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Sui)),
+            references: vec![],
         };
 
         let _metadata = client.get_transaction_preload(input).await?;

@@ -46,8 +46,8 @@ public struct FiatTransactionsScene: View {
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
         .bindQuery(model.query)
-        .refreshable { await model.fetch() }
+        .refreshable { await model.load() }
         .navigationTitle(model.title)
-        .task { await model.fetch() }
+        .task { await model.load() }
     }
 }

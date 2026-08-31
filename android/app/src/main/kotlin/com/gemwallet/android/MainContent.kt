@@ -10,11 +10,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
+import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.WalletApp
+import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.wallet.core.primitives.AssetId
 
@@ -32,7 +33,7 @@ internal fun MainContent(
     onWalletConnectPairingToastShown: () -> Unit,
     onScanErrorShown: () -> Unit,
     onWalletConnectError: (String) -> Unit,
-    onWalletConnectErrorDismiss: () -> Unit,
+    onErrorDismiss: () -> Unit,
 ) {
     val pendingRoutes = (pendingNavigation as? PendingNavigation.Routes)?.routes.orEmpty()
     val canAttemptSystemAuth = !systemAuthEnrollmentMissing
@@ -71,6 +72,14 @@ internal fun MainContent(
                 )
             }
 
+            if (isWalletUnlocked && pendingNavigation is PendingNavigation.Loading) {
+                LoadingScene(
+                    title = stringResource(R.string.transfer_review_request),
+                    onCancel = onPendingNavigationConsumed,
+                    closeIcon = true,
+                )
+            }
+
             when {
                 isEnrollmentRequired -> SystemAuthEnrollmentRequired(
                     onOpenSettings = onOpenSystemAuthSettings,
@@ -91,9 +100,9 @@ internal fun MainContent(
             message = R.string.errors_not_supported,
             onShown = onScanErrorShown,
         )
-        WalletConnectErrorDialog(
-            error = state.walletConnectError ?: unsupportedWalletConnectError,
-            onDismiss = onWalletConnectErrorDismiss,
+        ErrorDialog(
+            error = state.navigationError ?: state.walletConnectError ?: unsupportedWalletConnectError,
+            onDismiss = onErrorDismiss,
         )
     }
 }

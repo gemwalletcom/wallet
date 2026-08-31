@@ -1,10 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceService
+import protocol Gemstone.GemBalanceServiceProtocol
+import protocol Gemstone.GemPreferencesServiceProtocol
+import GemstoneServices
 import Components
 import Foundation
 import Localization
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
@@ -14,9 +15,8 @@ import SwiftUI
 @Observable
 @MainActor
 public final class NetworkAssetsSceneViewModel: AssetActions {
-    let balanceService: BalanceService
-    let assetsEnabler: any AssetsEnabler
-    private let preferences: Preferences
+    let balanceService: any GemBalanceServiceProtocol
+    private let preferencesService: any GemPreferencesServiceProtocol
     let wallet: Wallet
     private let onManageAssetsAction: () -> Void
 
@@ -28,15 +28,13 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     public init(
         wallet: Wallet,
         chain: Chain,
-        balanceService: BalanceService,
-        assetsEnabler: any AssetsEnabler,
-        preferences: Preferences = .standard,
+        balanceService: any GemBalanceServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
         onManageAssets: @escaping () -> Void,
     ) {
         self.wallet = wallet
         self.balanceService = balanceService
-        self.assetsEnabler = assetsEnabler
-        self.preferences = preferences
+        self.preferencesService = preferencesService
         onManageAssetsAction = onManageAssets
         activeQuery = ObservableQuery(
             AssetsRequest(walletId: wallet.id, filters: [.chains([chain.rawValue]), .enabledBalance]),
@@ -61,7 +59,7 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     }
 
     var currencyCode: String {
-        preferences.currency
+        preferencesService.currencyCode
     }
 
     var active: [AssetData] {
@@ -109,7 +107,11 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     }
 
     func updateBalances() async {
-        await balanceService.updateBalance(for: wallet, assetIds: assetIds)
+        do {
+            try await balanceService.update(walletId: wallet.id.id, assetIds: assetIds.ids)
+        } catch {
+            debugLog("update balance error: \(error)")
+        }
     }
 
     func onCopyAddress(_ message: String) {

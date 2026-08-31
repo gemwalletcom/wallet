@@ -1,14 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceService
+import protocol Gemstone.GemPreferencesServiceProtocol
+import protocol Gemstone.GemRewardsServiceProtocol
+import GemstonePrimitives
+import GemstoneServices
 import Components
 import Foundation
-import GemstonePrimitives
 import Localization
 import Preferences
 import Primitives
 import PrimitivesComponents
-import RewardsService
 import Style
 
 @Observable
@@ -22,8 +23,8 @@ public final class RewardsViewModel: Sendable {
         return formatter
     }()
 
-    private let rewardsService: RewardsServiceable
-    private let assetsEnabler: any AssetsEnabler
+    private let rewardsService: any GemRewardsServiceProtocol
+    private let preferencesService: any GemPreferencesServiceProtocol
     private let activateCode: String?
 
     private(set) var selectedWallet: Wallet
@@ -35,14 +36,14 @@ public final class RewardsViewModel: Sendable {
     var isPresentingAlert: AlertMessage?
 
     public init(
-        rewardsService: RewardsServiceable,
-        assetsEnabler: any AssetsEnabler,
+        rewardsService: any GemRewardsServiceProtocol,
         wallet: Wallet,
         wallets: [Wallet],
         activateCode: String? = nil,
+        preferencesService: any GemPreferencesServiceProtocol,
     ) {
         self.rewardsService = rewardsService
-        self.assetsEnabler = assetsEnabler
+        self.preferencesService = preferencesService
         selectedWallet = wallet
         self.wallets = wallets
         self.activateCode = activateCode
@@ -115,13 +116,13 @@ public final class RewardsViewModel: Sendable {
 
     var shareText: String? {
         guard let code = rewards?.code else { return nil }
-        let link = rewardsService.generateReferralLink(code: code).absoluteString
+        let link = (try? rewardsService.referralLink(code: code).absoluteString) ?? ""
         return Localized.Rewards.shareText(link)
     }
 
     var referralLink: String? {
         guard let code = rewards?.code else { return nil }
-        return rewardsService.generateReferralLink(code: code).absoluteString
+        return (try? rewardsService.referralLink(code: code).absoluteString) ?? ""
     }
 
     var hasReferralCode: Bool {
@@ -220,7 +221,7 @@ public final class RewardsViewModel: Sendable {
         ) { [weak self] _ in
             guard let self else { return }
             showActivatedToast()
-            Task { await self.fetch() }
+            Task { await self.load() }
         }
     }
 
@@ -228,15 +229,15 @@ public final class RewardsViewModel: Sendable {
 
     func selectWallet(_ wallet: Wallet) {
         selectedWallet = wallet
-        Task { await fetch(wallet: wallet) }
+        Task { await load(wallet: wallet) }
     }
 
-    func fetch() async {
-        await fetch(wallet: selectedWallet)
+    func load() async {
+        await load(wallet: selectedWallet)
     }
 
     func onTaskOnce() async {
-        await fetch()
+        await load()
 
         if wallets.count == 1, activateCode != nil {
             await useReferralCode()
@@ -248,9 +249,9 @@ public final class RewardsViewModel: Sendable {
     private func useReferralCode() async {
         guard let code = activateCode else { return }
         do {
-            try await rewardsService.useReferralCode(wallet: selectedWallet, referralCode: code)
+            try await rewardsService.useReferralCode(wallet: selectedWallet, code: code)
             showActivatedToast()
-            await fetch()
+            await load()
         } catch {
             showError(error.localizedDescription)
         }
@@ -259,9 +260,9 @@ public final class RewardsViewModel: Sendable {
     func activatePendingReferral() async {
         guard let code = rewards?.usedReferralCode else { return }
         do {
-            try await rewardsService.useReferralCode(wallet: selectedWallet, referralCode: code)
+            try await rewardsService.useReferralCode(wallet: selectedWallet, code: code)
             showActivatedToast()
-            await fetch()
+            await load()
         } catch {
             showError(error.localizedDescription)
         }
@@ -281,7 +282,7 @@ public final class RewardsViewModel: Sendable {
                 AlertAction(title: Localized.Transfer.confirm, isDefaultAction: true) { [weak self] in
                     Task {
                         await self?.redeem(option: option)
-                        await self?.fetch()
+                        await self?.load()
                     }
                 },
                 .cancel(title: Localized.Common.cancel),
@@ -291,17 +292,8 @@ public final class RewardsViewModel: Sendable {
 
     func redeem(option: RewardRedemptionOption) async {
         do {
-            let result = try await rewardsService.redeem(wallet: selectedWallet, redemptionId: option.id)
+            _ = try await rewardsService.redeem(wallet: selectedWallet, redemptionId: option.id)
             toastMessage = ToastMessage.success(Localized.Common.done)
-            if let asset = result.redemption.option.asset {
-                Task {
-                    do {
-                        try await assetsEnabler.enableAssets(wallet: selectedWallet, assetIds: [asset.id], enabled: true)
-                    } catch {
-                        debugLog("RewardsViewModel enable reward asset error: \(error)")
-                    }
-                }
-            }
         } catch {
             showError(error.localizedDescription)
         }
@@ -319,7 +311,7 @@ public final class RewardsViewModel: Sendable {
         )
     }
 
-    private func fetch(wallet: Wallet) async {
+    private func load(wallet: Wallet) async {
         state = .loading
         do {
             let rewards = try await rewardsService.getRewards(wallet: wallet)

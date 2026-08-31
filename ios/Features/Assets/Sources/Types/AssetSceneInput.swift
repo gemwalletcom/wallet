@@ -29,7 +29,6 @@ public struct AssetSceneInput: Sendable {
         bannersRequest = BannersRequest(
             walletId: wallet.id,
             assetId: asset.id,
-            chain: asset.id.chain,
             events: BannerEvent.allCases,
         )
     }

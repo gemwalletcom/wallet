@@ -21,14 +21,14 @@ interface PricesDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun setRates(rates: List<DbFiatRate>)
 
-    @Query("UPDATE prices SET value = usd_value * :rate WHERE currency = :currency")
+    @Query("UPDATE prices SET value = usd_value * :rate, currency = :currency")
     suspend fun updateValues(currency: Currency, rate: Double)
 
     @Query("SELECT * FROM prices")
     fun getAll(): Flow<List<DbPrice>>
 
     @Query("SELECT * FROM prices WHERE asset_id IN (:assetsId)")
-    suspend fun getByAssets(assetsId: List<String>): List<DbPrice>
+    fun getByAssets(assetsId: List<String>): List<DbPrice>
 
     @Query("SELECT usd_value FROM prices WHERE asset_id = :assetId LIMIT 1")
     fun getUsdPrice(assetId: String): Flow<Double?>

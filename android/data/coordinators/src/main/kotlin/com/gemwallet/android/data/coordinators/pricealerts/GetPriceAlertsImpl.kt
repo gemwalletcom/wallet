@@ -1,9 +1,9 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
 import androidx.compose.runtime.Stable
-import com.gemwallet.android.application.pricealerts.coordinators.GetPriceAlerts
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
+import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceAlertStore
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.ValueDirection
@@ -11,14 +11,17 @@ import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertType
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.ext.shouldDisplay
+import com.gemwallet.android.ext.id
+import com.gemwallet.android.ext.type
 import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.CurrencyFormatter
+import uniffi.gemstone.PriceAlertFormatter
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertDirection
+import com.wallet.core.primitives.PriceAlertNotificationType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -26,16 +29,17 @@ import kotlinx.coroutines.flow.mapLatest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetPriceAlertsImpl(
-    private val priceAlertRepository: PriceAlertRepository,
-    private val assetsRepository: AssetsRepository,
+    private val priceAlertStore: GemstonePriceAlertStore,
+    private val getWalletAssets: GetWalletAssets,
+    private val priceAlertFormatter: PriceAlertFormatter,
 ) : GetPriceAlerts {
     override fun invoke(assetId: AssetId?): Flow<List<PriceAlertDataAggregate>> {
-        return priceAlertRepository.getPriceAlerts(assetId)
+        return priceAlertStore.observePriceAlerts(assetId)
             .flatMapLatest { items ->
-                val index = items
-                    .filter { it.priceAlert.shouldDisplay }
+                val index = priceAlertFormatter.displayedAlertIds(items.map { it.priceAlert.toJson() })
+                    .mapNotNull { id -> items.firstOrNull { it.priceAlert.id == id } }
                     .groupBy { it.priceAlert.assetId.toIdentifier() }
-                assetsRepository.getTokensInfo(index.keys.toList()).mapLatest { assetInfos ->
+                getWalletAssets.byIdentifiers(index.keys.toList()).mapLatest { assetInfos ->
                     assetInfos.flatMap { assetInfo ->
                         index[assetInfo.id().toIdentifier()]?.map { item ->
                             PriceAlertDataAggregateImpl(
@@ -53,10 +57,10 @@ class GetPriceAlertsImpl(
 
 @Stable
 class PriceAlertDataAggregateImpl(
-    override val id: Int,
+    override val id: String,
     override val asset: Asset,
     val assetPrice: AssetPriceInfo?,
-    val priceAlert: PriceAlert
+    override val priceAlert: PriceAlert
 ) : PriceAlertDataAggregate {
     override val assetId: AssetId = asset.id
     override val title: String = asset.name
@@ -90,25 +94,20 @@ class PriceAlertDataAggregateImpl(
         get() = priceAlert.pricePercentChange?.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)
             ?: assetPrice?.price?.priceChangePercentage24h?.formatAsPercentage().orEmpty()
 
-    override val type: PriceAlertType get() {
-        val alertPrice = priceAlert.price
-        val percentage = priceAlert.pricePercentChange
-
-        return when {
-            percentage != null -> when (priceAlert.priceDirection) {
-                PriceAlertDirection.Up -> PriceAlertType.Increase
-                PriceAlertDirection.Down -> PriceAlertType.Decrease
-                null -> PriceAlertType.Auto
-            }
-            alertPrice != null -> when (priceAlert.priceDirection) {
-                PriceAlertDirection.Up -> PriceAlertType.Over
-                PriceAlertDirection.Down -> PriceAlertType.Under
-                null -> PriceAlertType.Auto
-            }
-            else -> PriceAlertType.Auto
+    override val type: PriceAlertType get() = when (priceAlert.type) {
+        PriceAlertNotificationType.Auto -> PriceAlertType.Auto
+        PriceAlertNotificationType.Price -> when (priceAlert.priceDirection) {
+            PriceAlertDirection.Up -> PriceAlertType.Over
+            PriceAlertDirection.Down -> PriceAlertType.Under
+            null -> PriceAlertType.Auto
+        }
+        PriceAlertNotificationType.PricePercentChange -> when (priceAlert.priceDirection) {
+            PriceAlertDirection.Up -> PriceAlertType.Increase
+            PriceAlertDirection.Down -> PriceAlertType.Decrease
+            null -> PriceAlertType.Auto
         }
     }
     override val hasTarget: Boolean
-        get() = priceAlert.price != null || priceAlert.priceDirection != null
+        get() = priceAlert.type != PriceAlertNotificationType.Auto
 
 }

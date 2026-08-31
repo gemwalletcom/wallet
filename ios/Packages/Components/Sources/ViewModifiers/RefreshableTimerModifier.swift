@@ -2,9 +2,14 @@
 
 import SwiftUI
 
+public enum RefreshSource: Sendable {
+    case timer
+    case user
+}
+
 private struct RefreshableTimerModifier: ViewModifier {
     let interval: TimeInterval
-    let action: @Sendable () async -> Void
+    let action: @Sendable (RefreshSource) async -> Void
 
     @State private var trigger = 0
 
@@ -12,20 +17,20 @@ private struct RefreshableTimerModifier: ViewModifier {
         content
             .refreshable {
                 trigger += 1
-                await action()
+                await action(.user)
             }
             .task(id: trigger) {
                 while !Task.isCancelled {
                     try? await Task.sleep(for: .seconds(interval))
                     guard !Task.isCancelled else { break }
-                    await action()
+                    await action(.timer)
                 }
             }
     }
 }
 
 public extension View {
-    func refreshableTimer(every interval: TimeInterval, action: @Sendable @escaping () async -> Void) -> some View {
+    func refreshableTimer(every interval: TimeInterval, action: @Sendable @escaping (RefreshSource) async -> Void) -> some View {
         modifier(RefreshableTimerModifier(interval: interval, action: action))
     }
 }

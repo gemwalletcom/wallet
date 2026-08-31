@@ -1,36 +1,35 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstoneServices
 import BigInt
-import Blockchain
 import Foundation
 import GemstonePrimitives
-import Preferences
 import Primitives
 import PrimitivesComponents
 
 public struct TransactionInputViewModel: Sendable {
     let data: TransferData
-    let transactionData: TransactionData?
+    let fee: Fee?
     let metaData: TransferDataMetadata?
     let transferAmount: TransferAmountValidation?
     let feeAsset: Asset
 
-    private let preferences: Preferences
+    private let currency: String
 
     public init(
         data: TransferData,
-        transactionData: TransactionData?,
+        fee: Fee?,
         metaData: TransferDataMetadata?,
         transferAmount: TransferAmountValidation?,
         feeAsset: Asset,
-        preferences: Preferences = Preferences.standard,
+        currency: String,
     ) {
-        self.transactionData = transactionData
+        self.fee = fee
         self.data = data
         self.metaData = metaData
         self.transferAmount = transferAmount
         self.feeAsset = feeAsset
-        self.preferences = preferences
+        self.currency = currency
     }
 
     var value: BigInt {
@@ -49,13 +48,13 @@ public struct TransactionInputViewModel: Sendable {
 
     var infoModel: TransactionInfoViewModel {
         TransactionInfoViewModel(
-            currency: preferences.currency,
+            currency: currency,
             asset: displayAsset,
             assetPrice: metaData?.assetPrice,
             feeAsset: feeAsset,
             feeAssetPrice: metaData?.feePrice,
             value: value,
-            feeValue: transactionData?.fee.fee,
+            feeValue: fee?.fee,
             direction: nil,
         )
     }
@@ -76,7 +75,7 @@ public struct TransactionInputViewModel: Sendable {
     }
 
     var networkFeeAmount: BigInt? {
-        transactionData?.fee.fee
+        fee?.fee
     }
 
     var headerType: TransactionHeaderType {

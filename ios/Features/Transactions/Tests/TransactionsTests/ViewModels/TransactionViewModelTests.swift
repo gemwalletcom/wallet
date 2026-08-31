@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitivesTestKit
 import Components
+import class Gemstone.GemTransactionFormatter
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
@@ -195,7 +197,8 @@ final class TransactionViewModelTests {
     @Test
     func titleExtraHidesEmptySender() {
         let model = TransactionViewModel(
-            explorerService: MockExplorerLink(),
+            explorerService: GemExplorerServiceMock(),
+            transactionFormatter: GemTransactionFormatter(),
             transaction: .mock(
                 transaction: .mock(
                     type: .transfer,
@@ -228,7 +231,8 @@ final class TransactionViewModelTests {
     }
 
     func testTransactionTitle(expectedTitle: String, transaction: Transaction) {
-        #expect(TransactionViewModel(explorerService: MockExplorerLink(), transaction: .mock(transaction: transaction), currency: "USD").titleTextValue.text == expectedTitle)
+        #expect(TransactionViewModel(explorerService: GemExplorerServiceMock(),
+            transactionFormatter: GemTransactionFormatter(), transaction: .mock(transaction: transaction), currency: "USD").titleTextValue.text == expectedTitle)
     }
 }
 
@@ -266,7 +270,8 @@ extension TransactionViewModel {
         )
 
         return TransactionViewModel(
-            explorerService: MockExplorerLink(),
+            explorerService: GemExplorerServiceMock(),
+            transactionFormatter: GemTransactionFormatter(),
             transaction: extended,
             currency: "USD",
         )

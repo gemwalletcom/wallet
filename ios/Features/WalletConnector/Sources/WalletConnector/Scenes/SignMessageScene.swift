@@ -62,7 +62,7 @@ public struct SignMessageScene: View {
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
-        .taskOnce { model.fetch() }
+        .taskOnce { model.load() }
         .safeAreaButton {
             StateButton(
                 text: model.buttonTitle,

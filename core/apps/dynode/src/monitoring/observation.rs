@@ -35,7 +35,8 @@ impl NodeStatusObservation {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::sync::{healthy_observation, not_in_sync_observation, url};
+    use crate::testkit::config::url;
+    use crate::testkit::sync::{healthy_observation, not_in_sync_observation};
 
     #[test]
     fn usability_respects_health_and_latency_threshold() {

@@ -5,12 +5,6 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-pub trait SecurePreferences: Send + Sync {
-    fn get(&self, key: String) -> Result<Option<String>, Box<dyn Error + Send + Sync>>;
-    fn set(&self, key: String, value: String) -> Result<(), Box<dyn Error + Send + Sync>>;
-    fn remove(&self, key: String) -> Result<(), Box<dyn Error + Send + Sync>>;
-}
-
 pub trait Preferences: Send + Sync {
     fn get(&self, key: String) -> Result<Option<String>, Box<dyn Error + Send + Sync>>;
     fn set(&self, key: String, value: String) -> Result<(), Box<dyn Error + Send + Sync>>;

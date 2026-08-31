@@ -1,6 +1,6 @@
 use crate::sign_type::SignDigestType;
 pub use gem_evm::transaction::EvmTransactionKind;
-use primitives::{Chain, TransferDataOutputType, WCEthereumTransaction};
+use primitives::{Chain, TransactionType, TransferDataOutputType, WCEthereumTransaction};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum WalletConnectAction {
@@ -96,6 +96,7 @@ pub enum WalletConnectTransaction {
     Solana {
         data: WCSolanaTransactionData,
         output_type: TransferDataOutputType,
+        transaction_type: TransactionType,
     },
     Sui {
         data: WCSuiTransactionData,

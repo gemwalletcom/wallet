@@ -1,42 +1,45 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemAppUpdateServiceProtocol
+import protocol Gemstone.GemAvatarServiceProtocol
+import protocol Gemstone.GemChainServiceProtocol
+import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemTransactionStateServiceProtocol
+import GemstonePrimitives
+import protocol Gemstone.GemAppStartServiceProtocol
 import AppService
-import AvatarService
+import GemstoneServices
 import Components
-import DeviceService
-import EventPresenterService
 import Foundation
+import protocol Gemstone.GemDeviceServiceProtocol
 import Localization
 import LockManager
 import Onboarding
 import Preferences
 import Primitives
+import PrimitivesComponents
 import SwiftUI
-import TransactionsService
-import TransactionStateService
 import WalletConnector
-import WalletService
-import WalletSessionService
 
 @Observable
 @MainActor
 final class RootSceneViewModel {
     private let onstartService: OnstartService
-    private let onstartWalletService: OnstartWalletService
-    private let transactionStateScheduler: TransactionStateScheduler
+    private let appStartService: any GemAppStartServiceProtocol
+    private let pushNotificationEnablerService: PushNotificationEnablerService
     private let appLifecycleService: AppLifecycleService
     private let navigationHandler: NavigationHandler
-    private let releaseAlertService: ReleaseAlertService
+    private let appUpdateService: any GemAppUpdateServiceProtocol
     private let rateService: RateService
-    private let eventPresenterService: EventPresenterService
-    private let deviceService: any DeviceServiceable
+    private let toastPresenter: ToastPresenter
+    private let deviceService: any GemDeviceServiceProtocol
 
     let observablePreferences: ObservablePreferences
-    let walletSetupService: WalletSetupService
     let walletService: WalletService
     let walletSessionService: any WalletSessionManageable
-    let nameService: any NameServiceable
-    let avatarService: AvatarService
+    let nameService: any GemNameServiceProtocol
+    let chainService: any GemChainServiceProtocol
+    let avatarService: any GemAvatarServiceProtocol
     let walletConnectorPresenter: WalletConnectorPresenter
     let lockManager: any LockWindowManageable
 
@@ -46,8 +49,8 @@ final class RootSceneViewModel {
     var updateVersionAlertMessage: AlertMessage?
 
     var isPresentingToastMessage: ToastMessage? {
-        get { eventPresenterService.toastPresenter.toastMessage }
-        set { eventPresenterService.toastPresenter.toastMessage = newValue }
+        get { toastPresenter.toastMessage }
+        set { toastPresenter.toastMessage = newValue }
     }
 
     var isPresentingConnectorError: String? {
@@ -76,36 +79,36 @@ final class RootSceneViewModel {
         observablePreferences: ObservablePreferences,
         walletConnectorPresenter: WalletConnectorPresenter,
         onstartService: OnstartService,
-        onstartWalletService: OnstartWalletService,
-        transactionStateScheduler: TransactionStateScheduler,
+        appStartService: any GemAppStartServiceProtocol,
+        pushNotificationEnablerService: PushNotificationEnablerService,
         appLifecycleService: AppLifecycleService,
         navigationHandler: NavigationHandler,
         lockWindowManager: any LockWindowManageable,
         walletService: WalletService,
         walletSessionService: any WalletSessionManageable,
-        walletSetupService: WalletSetupService,
-        nameService: any NameServiceable,
-        releaseAlertService: ReleaseAlertService,
+        nameService: any GemNameServiceProtocol,
+        chainService: any GemChainServiceProtocol,
+        appUpdateService: any GemAppUpdateServiceProtocol,
         rateService: RateService,
-        eventPresenterService: EventPresenterService,
-        avatarService: AvatarService,
-        deviceService: any DeviceServiceable,
+        toastPresenter: ToastPresenter,
+        avatarService: any GemAvatarServiceProtocol,
+        deviceService: any GemDeviceServiceProtocol,
     ) {
         self.observablePreferences = observablePreferences
         self.walletConnectorPresenter = walletConnectorPresenter
         self.onstartService = onstartService
-        self.onstartWalletService = onstartWalletService
-        self.transactionStateScheduler = transactionStateScheduler
+        self.appStartService = appStartService
+        self.pushNotificationEnablerService = pushNotificationEnablerService
         self.appLifecycleService = appLifecycleService
         self.navigationHandler = navigationHandler
         lockManager = lockWindowManager
         self.walletService = walletService
         self.walletSessionService = walletSessionService
-        self.walletSetupService = walletSetupService
         self.nameService = nameService
-        self.releaseAlertService = releaseAlertService
+        self.chainService = chainService
+        self.appUpdateService = appUpdateService
         self.rateService = rateService
-        self.eventPresenterService = eventPresenterService
+        self.toastPresenter = toastPresenter
         self.avatarService = avatarService
         self.deviceService = deviceService
     }
@@ -117,10 +120,8 @@ extension RootSceneViewModel {
     func setup() {
         rateService.perform()
         Task { await checkForUpdate() }
-        Task { try await deviceService.update() }
-        transactionStateScheduler.setup()
         Task { await appLifecycleService.setup() }
-        Task { await migrateV3KeystoresThenSetupChains() }
+        Task { await setupWallets() }
     }
 
     func onScenePhaseChanged(_: ScenePhase, _ newPhase: ScenePhase) {
@@ -167,41 +168,46 @@ extension RootSceneViewModel {
 
 extension RootSceneViewModel {
     private func setup(wallet: Wallet) {
-        onstartWalletService.setup(wallet: wallet)
-        do {
-            try walletSetupService.setup(wallet: wallet)
-        } catch {
-            debugLog("RootSceneViewModel setupWallet error: \(error)")
-        }
         Task {
+            for failure in await appStartService.setupWallet(wallet: wallet.json()) {
+                debugLog("wallet start \(failure.step) failed: \(failure.message)")
+            }
             await appLifecycleService.updateWalletConnections()
         }
     }
 
-    private func migrateV3KeystoresThenSetupChains() async {
+    private func setupWallets() async {
         await lockManager.lockModel.waitUntilUnlocked()
-        await onstartService.migrateV3KeystoresThenSetupChains()
+        await onstartService.setupWallets()
     }
 
     private func checkForUpdate() async {
-        guard let release = await releaseAlertService.checkForUpdate() else { return }
-        updateVersionAlertMessage = makeUpdateAlert(for: release)
+        do {
+            guard let release = try await appUpdateService.checkForUpdate() else { return }
+            updateVersionAlertMessage = makeUpdateAlert(for: release)
+        } catch {
+            debugLog("checkForUpdate error: \(error)")
+        }
     }
 
     private func makeUpdateAlert(for release: Release) -> AlertMessage {
         let skipAction = AlertAction(
             title: Localized.Common.skip,
             role: .cancel,
-            action: { [releaseAlertService] in
-                releaseAlertService.skipRelease(release)
+            action: { [appUpdateService] in
+                do {
+                    try appUpdateService.skip(version: release.version)
+                } catch {
+                    debugLog("skipRelease error: \(error)")
+                }
             },
         )
         let updateAction = AlertAction(
             title: Localized.UpdateApp.action,
             isDefaultAction: true,
-            action: { [releaseAlertService] in
+            action: {
                 Task { @MainActor in
-                    releaseAlertService.openAppStore()
+                    UIApplication.shared.open(AppUrl.page(.appStore))
                 }
             },
         )
@@ -216,7 +222,13 @@ extension RootSceneViewModel {
 
     private func requestPushPermissions() {
         Task {
-            await onstartWalletService.requestPushPermissions()
+            do {
+                if try await pushNotificationEnablerService.requestPermissionsIfNotDetermined() {
+                    try await deviceService.synchronizeIfNeeded()
+                }
+            } catch {
+                debugLog("requestPushPermissions error: \(error)")
+            }
         }
     }
 }

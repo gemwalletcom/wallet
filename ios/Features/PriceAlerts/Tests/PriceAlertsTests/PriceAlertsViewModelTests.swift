@@ -1,8 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import protocol Gemstone.GemPriceAlertServiceProtocol
+import GemstonePrimitivesTestKit
+import GemstoneServicesTestKit
 @testable import PriceAlerts
-import PriceAlertServiceTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -10,12 +12,12 @@ import Testing
 struct PriceAlertsViewModelTests {
     @Test @MainActor
     func testSections() {
-        let model = PriceAlertsSceneViewModel(priceAlertService: .mock())
+        let model = PriceAlertsSceneViewModel(priceAlertService: GemPriceAlertServiceMock(), preferencesService: GemPreferencesServiceMock())
 
         let autoAlert = PriceAlertData.mock()
         let manualAlert = PriceAlertData.mock(priceAlert: .mock(price: 5, priceDirection: .down))
-        let manualSolAlert = PriceAlertData.mock(asset: .mock(name: "Solana"), priceAlert: .mock(price: 5, priceDirection: .down))
-        let notifiedAlert = PriceAlertData.mock(priceAlert: .mock(price: 5, priceDirection: .down, lastNotifiedAt: Date()))
+        let manualSolAlert = PriceAlertData.mock(asset: .mockSolana(), priceAlert: .mock(assetId: .mockSolana(), price: 5, priceDirection: .down))
+        let notifiedAlert = PriceAlertData.mock(priceAlert: .mock(price: 7, priceDirection: .down, lastNotifiedAt: Date()))
 
         let sections = model.sections(for: [autoAlert, manualAlert, manualSolAlert, notifiedAlert])
 

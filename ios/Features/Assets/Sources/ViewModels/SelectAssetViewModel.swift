@@ -1,14 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ActivityService
-import AssetsService
-import BalanceService
+import protocol Gemstone.GemBalanceServiceProtocol
+import protocol Gemstone.GemPriceAlertServiceProtocol
 import Components
+import protocol Gemstone.GemSearchServiceProtocol
+import GemstoneServices
 import Foundation
+import protocol Gemstone.GemPreferencesServiceProtocol
+import class Gemstone.GemAssetConfigService
 import GemstonePrimitives
 import Localization
-import Preferences
-import PriceAlertService
 import Primitives
 import PrimitivesComponents
 import Recents
@@ -19,13 +20,13 @@ import SwiftUI
 @Observable
 @MainActor
 public final class SelectAssetViewModel {
-    let preferences: Preferences
+    let preferencesService: any GemPreferencesServiceProtocol
     let selectType: SelectAssetType
     let flow: SelectAssetFlow
-    let searchService: AssetSearchService
-    let assetsEnabler: any AssetsEnabler
-    let priceAlertService: PriceAlertService
-    let activityService: ActivityService
+    let searchService: any GemSearchServiceProtocol
+    let balanceService: any GemBalanceServiceProtocol
+    let priceAlertService: any GemPriceAlertServiceProtocol
+    let recentAssetsService: any RecentAssetsServiceable
 
     public let wallet: Wallet
 
@@ -42,30 +43,31 @@ public final class SelectAssetViewModel {
     var copyTypeViewModel: CopyTypeViewModel?
 
     public var isPresentingAddToken: Bool = false
-    public var assetSelection: AssetSelectionType?
+    public var assetSelection: SelectAssetInput?
 
     public var filterModel: AssetsFilterViewModel
     public var onSelectAssetAction: AssetAction
 
     public init(
-        preferences: Preferences = Preferences.standard,
         wallet: Wallet,
         selectType: SelectAssetType,
-        searchService: AssetSearchService,
-        assetsEnabler: any AssetsEnabler,
-        priceAlertService: PriceAlertService,
-        activityService: ActivityService,
+        searchService: any GemSearchServiceProtocol,
+        balanceService: any GemBalanceServiceProtocol,
+        priceAlertService: any GemPriceAlertServiceProtocol,
+        recentAssetsService: any RecentAssetsServiceable,
+        preferencesService: any GemPreferencesServiceProtocol,
+        assetConfig: GemAssetConfigService,
         selectAssetAction: AssetAction = .none,
         chains: [Chain] = [],
     ) {
-        self.preferences = preferences
+        self.preferencesService = preferencesService
         self.wallet = wallet
         self.selectType = selectType
         self.searchService = searchService
-        self.assetsEnabler = assetsEnabler
+        self.balanceService = balanceService
         self.priceAlertService = priceAlertService
-        self.activityService = activityService
-        flow = selectType.flow
+        self.recentAssetsService = recentAssetsService
+        flow = selectType.flow(assetConfig: assetConfig)
         onSelectAssetAction = selectAssetAction
 
         let filter = AssetsFilterViewModel(
@@ -74,6 +76,7 @@ public final class SelectAssetViewModel {
                 chains: wallet.chains,
                 selected: chains,
             ),
+            assetConfig: assetConfig,
         )
         filterModel = filter
 
@@ -82,7 +85,7 @@ public final class SelectAssetViewModel {
             walletId: wallet.id,
             types: selectType.recentActivityTypes,
             filters: filter.defaultFilters,
-            activityService: activityService,
+            recentAssetsService: recentAssetsService,
         )
     }
 
@@ -91,8 +94,10 @@ public final class SelectAssetViewModel {
     }
 
     var sections: AssetsSections {
-        AssetsSections.from(assets, enablePopular: flow.capabilities.contains(.popularSection))
+        AssetsSections.from(assets, popularIds: flow.capabilities.contains(.popularSection) ? Self.popularIds : [])
     }
+
+    private static let popularIds = Set(GemAssetConfigService().popularIds().compactMap { try? AssetId(id: $0) })
 
     var showPopularSection: Bool {
         sections.popular.isNotEmpty
@@ -151,33 +156,15 @@ public final class SelectAssetViewModel {
     }
 
     var currencyCode: String {
-        preferences.currency
+        preferencesService.currencyCode
     }
 }
 
 // MARK: - Business Logic
 
 extension SelectAssetViewModel {
-    public func updateRecent(assetId: AssetId) {
-        guard let data = selectType.recentActivityData(assetId: assetId) else { return }
-        do {
-            try activityService.updateRecent(data: data, walletId: wallet.id)
-        } catch {
-            debugLog("Failed to update recent activity: \(error)")
-        }
-    }
-
     func selectAsset(asset: Asset) {
-        switch flow.selectionEffect {
-        case .enablePriceAlert:
-            Task {
-                await setPriceAlert(assetId: asset.id, enabled: true)
-            }
-        case .recordRecent:
-            updateRecent(assetId: asset.id)
-        case .none:
-            break
-        }
+        applySelectionEffect(assetId: asset.id)
         onSelectAssetAction?(asset)
     }
 
@@ -193,7 +180,7 @@ extension SelectAssetViewModel {
         switch flow.rowSelection {
         case .toggle:
             do {
-                try await assetsEnabler.enableAssets(wallet: wallet, assetIds: [assetId], enabled: enabled)
+                try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: [assetId], enabled: enabled)
             } catch {
                 debugLog("SelectAssetViewModel handleAction error: \(error)")
             }
@@ -236,7 +223,8 @@ extension SelectAssetViewModel {
     }
 
     func onSelectAsset(_ assetData: AssetData) {
-        assetSelection = .regular(SelectAssetInput(type: selectType, assetData: assetData))
+        applySelectionEffect(assetId: assetData.asset.id)
+        assetSelection = SelectAssetInput(type: selectType, assetData: assetData)
     }
 
     func displayAssetData(_ assetData: AssetData) -> AssetData {
@@ -255,7 +243,7 @@ extension SelectAssetViewModel {
     public func onSelectRecent(_ asset: Asset) {
         switch flow.rowSelection {
         case .navigate:
-            assetSelection = .recent(SelectAssetInput(type: selectType, assetData: assetData(for: asset)))
+            assetSelection = SelectAssetInput(type: selectType, assetData: assetData(for: asset))
         case .select:
             onSelectAssetAction?(asset)
         case .toggle:
@@ -272,6 +260,28 @@ extension SelectAssetViewModel {
 // MARK: - Private
 
 extension SelectAssetViewModel {
+    private func applySelectionEffect(assetId: AssetId) {
+        switch flow.selectionEffect {
+        case .enablePriceAlert:
+            Task {
+                await setPriceAlert(assetId: assetId, enabled: true)
+            }
+        case .recordRecent:
+            updateRecent(assetId: assetId)
+        case .none:
+            break
+        }
+    }
+
+    private func updateRecent(assetId: AssetId) {
+        guard let data = selectType.recentActivityData(assetId: assetId) else { return }
+        do {
+            try recentAssetsService.add(data, walletId: wallet.id)
+        } catch {
+            debugLog("Failed to update recent activity: \(error)")
+        }
+    }
+
     private func assetData(for asset: Asset) -> AssetData {
         if let assetData = assets.first(where: { $0.asset.id == asset.id }) {
             return assetData
@@ -284,7 +294,7 @@ extension SelectAssetViewModel {
 
     private func searchAssets(query: String) async {
         do {
-            let assets = try await searchService.searchAssets(wallet: wallet, query: query)
+            let assets = try await searchService.searchAssets(wallet: wallet, query: query, currency: preferencesService.currencyCode)
             state = .data(assets)
         } catch {
             handle(error: error)
@@ -293,7 +303,7 @@ extension SelectAssetViewModel {
 
     private func setPriceAlert(assetId: AssetId, enabled: Bool) async {
         do {
-            let currency = try Currency(id: Preferences.standard.currency)
+            let currency = preferencesService.currencyValue
             if enabled {
                 try await priceAlertService.enable(priceAlert: .default(for: assetId, currency: currency))
             } else {

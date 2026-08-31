@@ -27,8 +27,6 @@ impl TransactionsResponse {
 #[typeshare(swift = "Sendable, Equatable, Hashable")]
 pub struct Transaction {
     pub id: TransactionId,
-    #[typeshare(skip)]
-    pub hash: String,
     #[serde(rename = "assetId")]
     pub asset_id: AssetId,
     pub from: String,
@@ -65,6 +63,10 @@ pub struct Transaction {
 }
 
 impl Transaction {
+    pub fn hash(&self) -> &str {
+        &self.id.hash
+    }
+
     pub fn new(
         hash: String,
         asset_id: AssetId,
@@ -81,8 +83,7 @@ impl Transaction {
         created_at: DateTime<Utc>,
     ) -> Self {
         Self {
-            id: TransactionId::new(asset_id.chain, hash.clone()),
-            hash,
+            id: TransactionId::new(asset_id.chain, hash),
             asset_id,
             from: from_address,
             to: to_address,
@@ -119,8 +120,7 @@ impl Transaction {
         created_at: DateTime<Utc>,
     ) -> Self {
         Self {
-            id: TransactionId::new(asset_id.chain, hash.clone()),
-            hash,
+            id: TransactionId::new(asset_id.chain, hash),
             asset_id,
             from: "".to_string(),
             to: "".to_string(),
@@ -264,7 +264,7 @@ impl Transaction {
         values.iter().filter(|x| addresses.contains(&x.address)).map(|x| &x.value).sum()
     }
 
-    fn swap_metadata(&self) -> Option<TransactionSwapMetadata> {
+    pub fn swap_metadata(&self) -> Option<TransactionSwapMetadata> {
         self.metadata.as_ref().and_then(|value| TransactionSwapMetadata::deserialize(value).ok())
     }
 
@@ -307,6 +307,15 @@ impl Transaction {
             asset_ids.extend(metadata.asset_transfers.into_iter().map(|transfer| transfer.asset_id));
         }
         asset_ids.into_iter().collect::<HashSet<_>>().into_iter().collect()
+    }
+
+    pub fn associated_asset_ids(&self) -> Vec<AssetId> {
+        self.asset_ids()
+            .into_iter()
+            .chain([self.asset_id.clone(), self.fee_asset_id.clone()])
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect()
     }
 
     pub fn assets_addresses(&self) -> Vec<AssetAddress> {

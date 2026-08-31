@@ -1,19 +1,23 @@
 package com.gemwallet.android.data.coordinators.swap
 
-import com.gemwallet.android.application.swap.coordinators.BuildSwapConfirmParams
-import com.gemwallet.android.application.swap.coordinators.GetSwapQuoteData
-import com.gemwallet.android.application.swap.coordinators.SwapNoQuoteException
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.swap.cases.BuildSwapConfirmParams
+import com.gemwallet.android.application.swap.cases.SwapNoQuoteException
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
-import com.gemwallet.android.model.toModel
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
+import com.wallet.core.primitives.swap.SwapData
+import com.wallet.core.primitives.swap.SwapQuote
+import com.wallet.core.primitives.swap.SwapQuoteData
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.firstOrNull
+import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.SwapperQuote
-import java.math.BigInteger
 
 class BuildSwapConfirmParamsImpl(
-    private val sessionRepository: SessionRepository,
-    private val getSwapQuoteData: GetSwapQuoteData,
+    private val getSession: GetSession,
+    private val swapService: GemSwapServiceInterface,
 ) : BuildSwapConfirmParams {
 
     override suspend fun invoke(
@@ -21,36 +25,25 @@ class BuildSwapConfirmParamsImpl(
         pay: AssetInfo,
         receive: AssetInfo,
     ): ConfirmParams.SwapParams? {
-        val wallet = sessionRepository.session().firstOrNull()?.wallet ?: return null
+        val wallet = getSession().firstOrNull()?.wallet ?: return null
+        val from = pay.owner ?: throw SwapNoQuoteException()
 
-        val swapData = try {
-            getSwapQuoteData(quote, wallet)
-        } catch (_: Throwable) {
-            throw SwapNoQuoteException()
+        val (transfer, swapQuote, swapData) = try {
+            val transfer = swapService.getTransfer(wallet.toJson(), quote)
+            Triple(transfer, transfer.quote.decodeJson<SwapQuote>(), transfer.data.decodeJson<SwapQuoteData>())
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            throw SwapNoQuoteException(error)
         }
 
-        val from = pay.owner ?: throw SwapNoQuoteException()
         return ConfirmParams.SwapParams(
             from = from,
             fromAsset = pay.asset,
             toAsset = receive.asset,
-            fromAmount = BigInteger(quote.fromValue),
-            minFromAmount = quote.minFromValue?.toBigIntegerOrNull(),
-            toAmount = BigInteger(quote.toValue),
-            swapData = swapData.data,
-            providerId = quote.data.provider.id,
-            protocol = quote.data.provider.protocol,
-            providerName = quote.data.provider.name,
-            protocolId = quote.data.provider.protocolId,
-            toAddress = swapData.to,
-            value = swapData.value,
-            approval = swapData.approval?.toModel(),
-            gasLimit = swapData.gasLimit?.toBigIntegerOrNull(),
-            useMaxAmount = quote.request.options.useMaxAmount,
-            etaInSeconds = quote.etaInSeconds,
-            slippageBps = quote.data.slippageBps,
-            memo = swapData.memo,
-            dataType = swapData.dataType,
+            swapData = SwapData(quote = swapQuote, data = swapData),
+            amount = transfer.value.toBigInteger(),
+            useMaxAmount = transfer.useMaxAmount,
         )
     }
 }

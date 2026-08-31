@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemFeeService
 import BigInt
 import Foundation
 @testable import Primitives
@@ -52,6 +53,7 @@ struct ConfirmNetworkFeeViewModelTests {
             feeAssetPrice: .mock(price: 1),
             feeAmount: 1,
             feeAssets: [pathUSD, usdc],
+            feeService: GemFeeService(),
             onSelectFeeAsset: { _ in },
         )
         let model = ConfirmNetworkFeeViewModel(
@@ -82,6 +84,7 @@ struct ConfirmNetworkFeeViewModelTests {
                 feeAssetPrice: .mock(price: 1),
                 feeAmount: 1,
                 feeAssets: [pathUSD, usdc],
+                feeService: GemFeeService(),
                 onSelectFeeAsset: { _ in },
             ),
             infoAction: {},
@@ -125,6 +128,7 @@ struct ConfirmNetworkFeeViewModelTests {
             selection: .preset(.normal),
             feeAssetPrice: feeAssetPrice,
             feeAmount: feeAmount,
+            feeService: GemFeeService(),
         )
     }
 }

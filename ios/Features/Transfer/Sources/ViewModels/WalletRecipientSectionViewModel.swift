@@ -16,17 +16,17 @@ struct WalletRecipientSectionViewModel {
         self.chain = chain
     }
 
-    var listItems: [ListItemValue<RecipientAddress>] {
+    var listItems: [ListItemValue<Recipient>] {
         wallets
             .filter(walletFilter)
-            .compactMap { wallet -> ListItemValue<RecipientAddress>? in
+            .compactMap { wallet -> ListItemValue<Recipient>? in
                 guard let account = wallet.accounts.first(where: { $0.chain == chain }) else {
                     return nil
                 }
                 return ListItemValue(
                     title: wallet.name,
                     subtitle: AddressFormatter(address: account.address, chain: account.chain).value(),
-                    value: RecipientAddress(name: wallet.name, address: account.address, memo: nil),
+                    value: Recipient(name: wallet.name, address: account.address, memo: nil),
                 )
             }
     }

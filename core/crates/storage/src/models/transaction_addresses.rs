@@ -4,16 +4,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::sql_types::{AssetId, ChainRow};
 
-#[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Clone)]
-#[diesel(table_name = crate::schema::transactions_addresses)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct TransactionAddressesRow {
-    pub id: i32,
-    pub transaction_id: i64,
-    pub asset_id: AssetId,
-    pub address: String,
-}
-
 #[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset, Clone, PartialEq, Eq, Hash)]
 #[diesel(table_name = crate::schema::transactions_addresses)]
 #[diesel(check_for_backend(diesel::pg::Pg))]

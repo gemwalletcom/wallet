@@ -4,7 +4,7 @@ import Components
 import GemstonePrimitives
 import Localization
 import Onboarding
-import PriceService
+import GemstoneServices
 import Primitives
 import Style
 import SwiftUI
@@ -62,6 +62,7 @@ struct RootScene: View {
                     walletSessionService: model.walletSessionService,
                     avatarService: model.avatarService,
                     nameService: model.nameService,
+                    chainService: model.chainService,
                     onComplete: model.dismissImportWallet,
                 ),
             )

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Debug};
+use std::{collections::HashMap, fmt::Debug, time::Duration};
 
 use async_trait::async_trait;
 use serde::{Serialize, de::DeserializeOwned};
@@ -22,7 +22,7 @@ pub mod client_config;
 pub mod query;
 
 pub use content_type::{CONTENT_TYPE, ContentType};
-pub use provider_config::{DEFAULT_REQUEST_TIMEOUT, RemoteProviderConfig};
+pub use provider_config::RemoteProviderConfig;
 pub use query::{build_path_with_query, build_request_url};
 pub use types::{ClientError, Response, decode_json_byte_array, deserialize_response};
 
@@ -35,6 +35,7 @@ pub use retry::{default_should_retry, retry, retry_policy};
 #[cfg(feature = "reqwest")]
 pub use client_config::{builder, reqwest_client};
 
+pub const DEFAULT_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 pub const X_CACHE_TTL: &str = "x-gem-cache-ttl";
 
 #[async_trait]
@@ -90,6 +91,23 @@ pub trait ClientExt: Client {
         R: DeserializeOwned + Send,
     {
         self.post_with(path, body, headers).await
+    }
+
+    async fn get_or_error<R, E>(&self, path: &str) -> Result<R, ClientError<Option<E>>>
+    where
+        R: DeserializeOwned + Send,
+        E: DeserializeOwned + Send,
+    {
+        self.get(path).await.map_err(ClientError::decode_body)
+    }
+
+    async fn post_or_error<T, R, E>(&self, path: &str, body: &T) -> Result<R, ClientError<Option<E>>>
+    where
+        T: Serialize + Send + Sync,
+        R: DeserializeOwned + Send,
+        E: DeserializeOwned + Send,
+    {
+        self.post(path, body).await.map_err(ClientError::decode_body)
     }
 }
 

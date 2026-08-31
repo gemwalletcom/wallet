@@ -1,63 +1,34 @@
 package com.gemwallet.android.data.coordinators.di
 
-import android.content.Context
+import uniffi.gemstone.GemAssetConfigService
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
-import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
-import com.gemwallet.android.application.swap.coordinators.BuildSwapConfirmParams
-import com.gemwallet.android.application.swap.coordinators.GetSwapAssets
-import com.gemwallet.android.application.swap.coordinators.GetSwapQuoteData
-import com.gemwallet.android.application.swap.coordinators.GetSwapQuotes
-import com.gemwallet.android.application.swap.coordinators.GetSwapSupported
-import com.gemwallet.android.application.swap.coordinators.RequestSwapQuotes
-import com.gemwallet.android.application.swap.coordinators.SearchSwapAssets
-import com.gemwallet.android.application.swap.coordinators.SyncSwapAssets
-import com.gemwallet.android.blockchain.services.GemSignMessageOperator
+import com.gemwallet.android.application.swap.cases.BuildSwapConfirmParams
+import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
+import com.gemwallet.android.application.swap.cases.SearchSwapAssets
 import com.gemwallet.android.data.coordinators.swap.BuildSwapConfirmParamsImpl
-import com.gemwallet.android.data.coordinators.swap.GetSwapAssetsImpl
-import com.gemwallet.android.data.coordinators.swap.GetSwapQuoteDataImpl
-import com.gemwallet.android.data.coordinators.swap.GetSwapQuotesImpl
-import com.gemwallet.android.data.coordinators.swap.GetSwapSupportedImpl
 import com.gemwallet.android.data.coordinators.swap.RequestSwapQuotesImpl
 import com.gemwallet.android.data.coordinators.swap.SearchSwapAssetsImpl
-import com.gemwallet.android.data.coordinators.swap.SyncSwapAssetsImpl
-import com.gemwallet.android.data.repositories.assets.AssetsAvailabilityService
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.assets.AssetsSearchService
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.service.store.ConfigStore
-import com.gemwallet.android.data.services.gemapi.GemApiClient
+import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
+import com.gemwallet.android.application.session.cases.GetSession
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.AlienProvider
-import uniffi.gemstone.GemSwapper
-import javax.inject.Qualifier
 import javax.inject.Singleton
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class SwapConfigStore
+import uniffi.gemstone.AlienProvider
+import uniffi.gemstone.GemKeystore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneSwapStore
+import com.gemwallet.android.data.service.store.database.AssetsDao
+import com.gemwallet.android.data.service.store.database.TransactionsDao
+import uniffi.gemstone.GemSwapService
+import uniffi.gemstone.GemSwapServiceInterface
+import uniffi.gemstone.GemSwapper
 
 @InstallIn(SingletonComponent::class)
 @Module
 object SwapModule {
 
-    @Provides
-    @Singleton
-    @SwapConfigStore
-    fun provideSwapConfigStore(
-        @ApplicationContext context: Context,
-    ): ConfigStore {
-        return ConfigStore(
-            context.getSharedPreferences(
-                "swap_config",
-                Context.MODE_PRIVATE,
-            )
-        )
-    }
 
     @Singleton
     @Provides
@@ -67,77 +38,50 @@ object SwapModule {
 
     @Singleton
     @Provides
-    fun provideGetSwapQuotes(
+    fun provideGemSwapService(
         gemSwapper: GemSwapper,
-    ): GetSwapQuotes = GetSwapQuotesImpl(gemSwapper)
-
-    @Singleton
-    @Provides
-    fun provideGetSwapSupported(
-        gemSwapper: GemSwapper,
-    ): GetSwapSupported = GetSwapSupportedImpl(gemSwapper)
-
-    @Singleton
-    @Provides
-    fun provideGetSwapQuoteData(
-        gemSwapper: GemSwapper,
+        gemKeystore: GemKeystore,
         passwordStore: PasswordStore,
-        signMessageOperator: GemSignMessageOperator,
-    ): GetSwapQuoteData = GetSwapQuoteDataImpl(
-        gemSwapper = gemSwapper,
-        passwordStore = passwordStore,
-        signMessageOperator = signMessageOperator,
+        assetsDao: AssetsDao,
+        transactionsDao: TransactionsDao,
+    ): GemSwapServiceInterface = GemSwapService(
+        swapper = gemSwapper,
+        keystore = gemKeystore,
+        password = GemstoneKeystorePassword(passwordStore),
+        store = GemstoneSwapStore(assetsDao, transactionsDao),
     )
 
     @Singleton
     @Provides
     fun provideRequestSwapQuotes(
-        getSwapQuotes: GetSwapQuotes,
-    ): RequestSwapQuotes = RequestSwapQuotesImpl(getSwapQuotes)
+        getSession: GetSession,
+        swapService: GemSwapServiceInterface,
+    ): RequestSwapQuotes = RequestSwapQuotesImpl(
+        getSession = getSession,
+        swapService = swapService,
+    )
 
     @Singleton
     @Provides
     fun provideBuildSwapConfirmParams(
-        sessionRepository: SessionRepository,
-        getSwapQuoteData: GetSwapQuoteData,
+        getSession: GetSession,
+        swapService: GemSwapServiceInterface,
     ): BuildSwapConfirmParams = BuildSwapConfirmParamsImpl(
-        sessionRepository = sessionRepository,
-        getSwapQuoteData = getSwapQuoteData,
+        getSession = getSession,
+        swapService = swapService,
     )
 
     @Singleton
     @Provides
     fun provideSearchSwapAssets(
         searchService: AssetsSearchService,
-        getSwapSupported: GetSwapSupported,
+        swapService: GemSwapServiceInterface,
+        assetConfig: GemAssetConfigService,
     ): SearchSwapAssets = SearchSwapAssetsImpl(
         searchService = searchService,
-        getSwapSupported = getSwapSupported,
+        swapService = swapService,
+        assetConfig = assetConfig,
     )
 
-    @Singleton
-    @Provides
-    fun provideGetSwapAssets(
-        gemApiClient: GemApiClient,
-    ): GetSwapAssets = GetSwapAssetsImpl(
-        gemApiClient = gemApiClient,
-    )
 
-    @Singleton
-    @Provides
-    fun provideSyncSwapAssets(
-        @SwapConfigStore configStore: ConfigStore,
-        getRemoteConfig: GetRemoteConfig,
-        getSwapAssets: GetSwapAssets,
-        assetsRepository: AssetsRepository,
-        availabilityService: AssetsAvailabilityService,
-        prefetchAssets: PrefetchAssets,
-    ): SyncSwapAssets = SyncSwapAssetsImpl(
-        configStore = configStore,
-        getRemoteConfig = getRemoteConfig,
-        getSwapAssets = getSwapAssets,
-        assetsRepository = assetsRepository,
-        availabilityService = availabilityService,
-        prefetchAssets = prefetchAssets,
-    )
 }

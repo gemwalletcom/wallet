@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemExplorerServiceProtocol
+import class Gemstone.GemTransactionFormatter
 import Components
 import Primitives
 import SwiftUI
@@ -7,7 +9,8 @@ import SwiftUI
 public struct TransactionsList: View {
     let transactions: [Primitives.TransactionExtended]
     let showSections: Bool
-    let explorerService: any ExplorerLinkFetchable
+    let explorerService: any GemExplorerServiceProtocol
+    let transactionFormatter: GemTransactionFormatter
     let currency: String
 
     private var sections: [ListSection<Primitives.TransactionExtended>] {
@@ -15,12 +18,14 @@ public struct TransactionsList: View {
     }
 
     public init(
-        explorerService: any ExplorerLinkFetchable,
+        explorerService: any GemExplorerServiceProtocol,
+        transactionFormatter: GemTransactionFormatter,
         _ transactions: [Primitives.TransactionExtended],
         currency: String,
         showSections: Bool = true,
     ) {
         self.explorerService = explorerService
+        self.transactionFormatter = transactionFormatter
         self.transactions = transactions
         self.currency = currency
         self.showSections = showSections
@@ -32,6 +37,7 @@ public struct TransactionsList: View {
                 Section {
                     TransactionsListView(
                         explorerService: explorerService,
+                        transactionFormatter: transactionFormatter,
                         transactions: section.values,
                         currency: currency,
                     )
@@ -42,6 +48,7 @@ public struct TransactionsList: View {
         } else {
             TransactionsListView(
                 explorerService: explorerService,
+                transactionFormatter: transactionFormatter,
                 transactions: transactions,
                 currency: currency,
             )
@@ -51,14 +58,17 @@ public struct TransactionsList: View {
 
 private struct TransactionsListView: View {
     let transactions: [Primitives.TransactionExtended]
-    let explorerService: any ExplorerLinkFetchable
+    let explorerService: any GemExplorerServiceProtocol
+    let transactionFormatter: GemTransactionFormatter
     let currency: String
 
-    init(explorerService: any ExplorerLinkFetchable,
+    init(explorerService: any GemExplorerServiceProtocol,
+         transactionFormatter: GemTransactionFormatter,
          transactions: [Primitives.TransactionExtended],
          currency: String)
     {
         self.explorerService = explorerService
+        self.transactionFormatter = transactionFormatter
         self.transactions = transactions
         self.currency = currency
     }
@@ -69,6 +79,7 @@ private struct TransactionsListView: View {
                 TransactionView(
                     model: .init(
                         explorerService: explorerService,
+                        transactionFormatter: transactionFormatter,
                         transaction: transaction,
                         currency: currency,
                     ),

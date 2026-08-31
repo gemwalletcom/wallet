@@ -49,7 +49,6 @@ struct Migrations {
 
             // nodes
             try NodeRecord.create(db: db)
-            try NodeSelectedRecord.create(db: db)
 
             // stake
             try StakeValidatorRecord.create(db: db)
@@ -347,18 +346,6 @@ struct Migrations {
             }
         }
 
-        migrator.registerMigration("Migrate nodes_selected_v1 to \(NodeSelectedRecord.databaseTableName)") { db in
-            try? db.drop(table: NodeSelectedRecord.databaseTableName)
-            try? NodeSelectedRecord.create(db: db)
-            try? db.execute(sql: """
-                INSERT INTO \(NodeSelectedRecord.databaseTableName) (chain, nodeUrl)
-                SELECT ns.chain, n.url
-                FROM nodes_selected_v1 ns
-                INNER JOIN \(NodeRecord.databaseTableName) n ON ns.nodeId = n.id
-            """)
-            try? db.drop(table: "nodes_selected_v1")
-        }
-
         migrator.registerMigration("Create \(SearchRecord.databaseTableName) and drop assets_search") { db in
             try? SearchRecord.create(db: db)
             try? db.drop(table: "assets_search")
@@ -523,6 +510,16 @@ struct Migrations {
             try? db.alter(table: AddressRecord.databaseTableName) {
                 $0.add(column: AddressRecord.Columns.imageUrl.name, .text)
             }
+        }
+
+        migrator.registerMigration("Recreate \(BannerRecord.databaseTableName) without chain") { db in
+            try? db.drop(table: BannerRecord.databaseTableName)
+            try? BannerRecord.create(db: db)
+        }
+
+        migrator.registerMigration("Drop node selection tables") { db in
+            try? db.drop(table: "nodes_selected")
+            try? db.drop(table: "nodes_selected_v1")
         }
 
         try migrator.migrate(dbQueue)

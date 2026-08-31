@@ -1,15 +1,11 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
-import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
-import com.gemwallet.android.application.stake.coordinators.GetDelegation
-import com.gemwallet.android.application.stake.coordinators.GetDelegations
-import com.gemwallet.android.application.stake.coordinators.GetRecommendedValidator
-import com.gemwallet.android.application.stake.coordinators.GetStakeValidator
-import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.stake.cases.GetDelegation
+import com.gemwallet.android.application.stake.cases.GetDelegations
+import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
+import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.domains.stake.hasRewards
-import com.gemwallet.android.ext.byChain
-import com.gemwallet.android.ext.changeAmountOnUnstake
-import com.gemwallet.android.ext.freezed
 import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.features.transfer_amount.models.ValidatorsSource
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
@@ -20,8 +16,8 @@ import com.gemwallet.android.model.Crypto
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.Resource
-import com.wallet.core.primitives.StakeChain
 import kotlinx.coroutines.CoroutineScope
+import uniffi.gemstone.GemAmountService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,8 +33,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import uniffi.gemstone.Config
-import java.math.BigInteger
+import uniffi.gemstone.GemAmountStakeType
+import uniffi.gemstone.GemAmountType
+import com.gemwallet.android.serializer.toJson
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountStakeProvider(
@@ -48,62 +45,12 @@ class AmountStakeProvider(
     private val getDelegations: GetDelegations,
     private val getRecommendedValidator: GetRecommendedValidator,
     private val getStakeValidator: GetStakeValidator,
-    private val transactionBalanceService: TransactionBalanceService,
     scope: CoroutineScope,
-) : AmountDataProvider {
+    amountService: GemAmountService,
+) : AmountDataProvider(scope, amountService) {
 
     override val title: AmountTitle = AmountTitle.Stake(params)
     override val canSwitchInputType: Boolean = false
-
-    private val stakeConfig by lazy { Config().getStakeConfig(params.assetId.chain.string) }
-
-    override val canChangeValue: Boolean
-        get() = when (params) {
-            is AmountParams.Stake.Delegate,
-            is AmountParams.Stake.Redelegate,
-            is AmountParams.Stake.Freeze,
-            is AmountParams.Stake.Unfreeze -> true
-            is AmountParams.Stake.Undelegate -> params.assetId.chain.changeAmountOnUnstake
-            is AmountParams.Stake.Withdraw,
-            is AmountParams.Stake.Rewards -> false
-        }
-
-    override val showsAssetBalance: Boolean
-        get() = when (params) {
-            is AmountParams.Stake.Rewards -> true
-            else -> canChangeValue
-        }
-
-    override val minimumValue: StateFlow<BigInteger> = MutableStateFlow(
-        when (params) {
-            is AmountParams.Stake.Delegate,
-            is AmountParams.Stake.Freeze ->
-                BigInteger.valueOf(stakeConfig.minAmount.toLong())
-            is AmountParams.Stake.Redelegate -> when (StakeChain.byChain(params.assetId.chain)) {
-                StakeChain.SmartChain -> BigInteger.valueOf(stakeConfig.minAmount.toLong())
-                else -> BigInteger.ZERO
-            }
-            is AmountParams.Stake.Undelegate,
-            is AmountParams.Stake.Withdraw,
-            is AmountParams.Stake.Rewards,
-            is AmountParams.Stake.Unfreeze -> BigInteger.ZERO
-        }
-    )
-
-    override val reserveForFee: BigInteger
-        get() = when (params) {
-            is AmountParams.Stake.Delegate -> when (StakeChain.byChain(params.assetId.chain)?.freezed()) {
-                true -> BigInteger.ZERO
-                else -> BigInteger.valueOf(stakeConfig.reservedForFees.toLong())
-            }
-            is AmountParams.Stake.Freeze ->
-                BigInteger.valueOf(stakeConfig.reservedForFees.toLong())
-            is AmountParams.Stake.Undelegate,
-            is AmountParams.Stake.Redelegate,
-            is AmountParams.Stake.Withdraw,
-            is AmountParams.Stake.Rewards,
-            is AmountParams.Stake.Unfreeze -> BigInteger.ZERO
-        }
 
     override val assetInfo: StateFlow<AssetInfo?> =
         getAssetInfo(params.assetId)
@@ -213,23 +160,19 @@ class AmountStakeProvider(
         selectedValidatorId.update { id }
     }
 
-    override val availableBalance: StateFlow<BigInteger> =
-        combine(assetInfo.filterNotNull(), delegation, selectedResource) { current, currentDelegation, currentResource ->
-            transactionBalanceService.getBalance(current, params, delegation = currentDelegation, resource = currentResource)
-        }
-            .flowOn(Dispatchers.IO)
-            .stateIn(scope, SharingStarted.Eagerly, BigInteger.ZERO)
-
-    override fun shouldReserveFee(isMaxAmount: Boolean): Boolean {
-        if (!isMaxAmount || reserveForFee.signum() == 0) return false
-        return when (params) {
-            is AmountParams.Stake.Delegate, is AmountParams.Stake.Freeze -> {
-                val maxAfterFee = (availableBalance.value - reserveForFee).max(BigInteger.ZERO)
-                maxAfterFee > minimumValue.value
+    override val amountType: StateFlow<GemAmountType?> =
+        combine(delegation, selectedResource) { currentDelegation, currentResource ->
+            val stakeType = when (params) {
+                is AmountParams.Stake.Delegate -> GemAmountStakeType.Stake
+                is AmountParams.Stake.Undelegate -> currentDelegation?.let { GemAmountStakeType.Unstake(it.toJson()) }
+                is AmountParams.Stake.Redelegate -> currentDelegation?.let { GemAmountStakeType.Redelegate(it.toJson()) }
+                is AmountParams.Stake.Withdraw -> currentDelegation?.let { GemAmountStakeType.Withdraw(it.toJson()) }
+                is AmountParams.Stake.Rewards -> GemAmountStakeType.Rewards(listOfNotNull(currentDelegation).map { it.toJson() })
+                is AmountParams.Stake.Freeze -> GemAmountStakeType.Freeze(currentResource.toJson())
+                is AmountParams.Stake.Unfreeze -> GemAmountStakeType.Unfreeze(currentResource.toJson())
             }
-            else -> false
-        }
-    }
+            stakeType?.let { GemAmountType.Stake(it) }
+        }.stateIn(scope, SharingStarted.Eagerly, null)
 
     override suspend fun buildConfirmParams(amount: Crypto, isMax: Boolean): ConfirmParams {
         val current = assetInfo.value ?: error("assetInfo not loaded")

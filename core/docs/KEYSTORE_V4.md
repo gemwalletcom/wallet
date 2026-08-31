@@ -113,13 +113,16 @@ New mnemonics are generated in `gem_keystore` (`Mnemonic::generate`):
 
 iOS:
 
-- Password is stored as a lowercase hex string in Keychain.
+- The app-wide password is stored as a lowercase hex string in Keychain under the key `password`.
 - WalletCore v3 migration passes UTF-8 bytes of that hex string.
 - v4 APIs pass decoded raw bytes.
 
 Android:
 
-- Password is stored per wallet id as a hex string.
+- Wallets created before the app-wide-password rollout keep their password in the `wallet_password` secure-store namespace under their wallet id (`wallet.id.id`).
+- New wallets reuse the app-wide password stored in that namespace under the key `password`.
+- The app-wide value is also mirrored under each new wallet's id (`wallet.id.id`) so existing direct readers and Tink-based rollback builds remain compatible.
+- Password lookup prefers the wallet-id entry and falls back to the app-wide entry. Missing passwords may be created only while importing a new wallet.
 - WalletCore v3 migration passes decoded raw bytes.
 - v4 APIs pass decoded raw bytes.
 

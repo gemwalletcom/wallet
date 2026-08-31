@@ -1,11 +1,12 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use fiat::FiatProvider;
 use fiat::FiatProviderFactory;
 use gem_tracing::{error_with_fields, info_with_fields};
 use localizer::LanguageLocalizer;
-use primitives::{Device, FiatTransactionStatus, GorushNotification, PushNotification, TransactionId};
+use primitives::{AccessTokenCacher, Device, FiatTransactionStatus, GorushNotification, PushNotification, TransactionId};
 use settings::Settings;
 use storage::models::FiatTransactionRow;
 use storage::{AssetsRepository, Database, WalletsRepository};
@@ -21,8 +22,8 @@ pub struct FiatWebhookConsumer {
 }
 
 impl FiatWebhookConsumer {
-    pub fn new(database: Database, settings: Settings, stream_producer: StreamProducer) -> Self {
-        let providers = FiatProviderFactory::new_providers(settings);
+    pub fn new(database: Database, settings: Settings, stream_producer: StreamProducer, access_token_cacher: Arc<dyn AccessTokenCacher>) -> Self {
+        let providers = FiatProviderFactory::new_providers(settings, access_token_cacher);
 
         Self {
             database,

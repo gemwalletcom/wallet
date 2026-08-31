@@ -16,10 +16,7 @@ struct PriceUsdRequestTests {
         try fiatRateStore.add([FiatRate(symbol: .jpy, rate: 150)])
 
         let ethId = AssetId(chain: .ethereum)
-        try priceStore.updatePrice(
-            price: AssetPrice(assetId: ethId, price: 1100, priceChangePercentage24h: 0, updatedAt: .now),
-            currency: Currency.jpy.rawValue,
-        )
+        try priceStore.updatePrices([.mock(assetId: ethId, price: 1100, rate: 150)])
 
         try db.dbQueue.read { db in
             let result = try PriceUsdRequest(assetId: ethId).fetch(db)

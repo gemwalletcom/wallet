@@ -1,48 +1,75 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ActivityService
-import AddressNameService
-import Blockchain
-import ChainService
-import EventPresenterService
-import ExplorerService
-import Keystore
+import class Gemstone.GemFeeService
+import Store
+import GemstoneServices
+import struct Gemstone.GemConfirmData
+import enum Gemstone.GemConfirmError
+import class Gemstone.GemTransferService
+import protocol Gemstone.GemConfirmServiceProtocol
+import enum Gemstone.GemExecuteResult
+import protocol Gemstone.GemExplorerServiceProtocol
+import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemPerpetualServiceProtocol
+import protocol Gemstone.GemPreferencesServiceProtocol
+import struct Gemstone.GemSendInput
+import protocol Gemstone.GemTransactionSigner
+import protocol Gemstone.GemTransactionStateServiceProtocol
+import GemstonePrimitives
 import Primitives
+import PrimitivesComponents
 
 public struct ConfirmService: Sendable {
     private let metadataProvider: any TransferMetadataProvidable
     private let inputProvider: ConfirmTransferInputProvider
     private let simulationService: ConfirmSimulationService
-    private let transferExecutor: any TransferExecutable
-    private let activityService: ActivityService
-    private let eventPresenterService: EventPresenterService
+    private let gemConfirmService: any GemConfirmServiceProtocol
+    private let signer: any GemTransactionSigner
+    private let preferencesService: any GemPreferencesServiceProtocol
+    private let transactionStateService: any GemTransactionStateServiceProtocol
+    private let recentAssetsService: any RecentAssetsServiceable
+    private let toastPresenter: ToastPresenter
     private let keystore: any Keystore
-    private let chainService: any ChainServiceable
-    private let explorerService: any ExplorerLinkFetchable
-    private let addressNameService: AddressNameService
+    private let explorerService: any GemExplorerServiceProtocol
+    private let nameService: any GemNameServiceProtocol
+
+    private let feeService: GemFeeService
+    private let transferService: GemTransferService
+
+    public let perpetualService: any GemPerpetualServiceProtocol
 
     public init(
         metadataProvider: any TransferMetadataProvidable,
         inputProvider: ConfirmTransferInputProvider,
         simulationService: ConfirmSimulationService,
-        transferExecutor: any TransferExecutable,
-        activityService: ActivityService,
-        eventPresenterService: EventPresenterService,
+        gemConfirmService: any GemConfirmServiceProtocol,
+        signer: any GemTransactionSigner,
+        preferencesService: any GemPreferencesServiceProtocol,
+        transactionStateService: any GemTransactionStateServiceProtocol,
+        recentAssetsService: any RecentAssetsServiceable,
+        toastPresenter: ToastPresenter,
         keystore: any Keystore,
-        chainService: any ChainServiceable,
-        explorerService: any ExplorerLinkFetchable,
-        addressNameService: AddressNameService,
+        explorerService: any GemExplorerServiceProtocol,
+        nameService: any GemNameServiceProtocol,
+        feeService: GemFeeService,
+        transferService: GemTransferService,
+        perpetualService: any GemPerpetualServiceProtocol,
     ) {
+        self.perpetualService = perpetualService
         self.metadataProvider = metadataProvider
         self.inputProvider = inputProvider
         self.simulationService = simulationService
-        self.transferExecutor = transferExecutor
-        self.activityService = activityService
-        self.eventPresenterService = eventPresenterService
+        self.gemConfirmService = gemConfirmService
+        self.signer = signer
+        self.preferencesService = preferencesService
+        self.transactionStateService = transactionStateService
+        self.recentAssetsService = recentAssetsService
+        self.toastPresenter = toastPresenter
         self.keystore = keystore
-        self.chainService = chainService
         self.explorerService = explorerService
-        self.addressNameService = addressNameService
+        self.nameService = nameService
+        self.feeService = feeService
+        self.transferService = transferService
     }
 
     func simulationState(request: ConfirmTransferRequest) -> ConfirmSimulationState {
@@ -50,15 +77,19 @@ public struct ConfirmService: Sendable {
     }
 
     func metadata(request: ConfirmTransferRequest) throws -> TransferDataMetadata {
-        try metadataProvider.metadata(wallet: request.wallet, data: request.data)
+        try metadataProvider.metadata(wallet: request.wallet, data: request.data, transferService: transferService)
     }
 
     func load(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferData {
-        async let simulation = simulationService.updateState(data: request.data, simulation: request.simulation)
-        async let feeAssets = inputProvider.feeAssets(walletId: request.wallet.id, chain: request.data.chain)
-        let preload = try await preload(request: request, selection: selection, feeAssetSelection: feeAssetSelection)
+        async let availableFeeAssets = inputProvider.feeAssets(walletId: request.wallet.id, chain: request.data.chain)
+        async let preloadResult = preload(request: request, selection: selection, feeAssetSelection: feeAssetSelection)
 
-        return try await ConfirmTransferData(preload: preload, simulation: simulation, feeAssets: feeAssets)
+        let (preload, feeAssets) = try await (preloadResult, availableFeeAssets)
+        return await ConfirmTransferData(
+            preload: preload,
+            simulation: simulationService.updateState(data: request.data, simulation: request.simulation ?? preload.simulation),
+            feeAssets: feeAssets,
+        )
     }
 
     func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferPreload {
@@ -70,28 +101,65 @@ public struct ConfirmService: Sendable {
         )
     }
 
-    func confirm(request: ConfirmTransferRequest, transactionData: TransactionData, amount: TransferAmount) async throws {
-        let input = TransferConfirmationInput(
-            data: request.data,
-            wallet: request.wallet,
-            transactionData: transactionData,
-            amount: amount,
-            simulation: request.simulation,
-            delegate: request.delegate,
+    func confirm(request: ConfirmTransferRequest, confirmData: GemConfirmData, amount: TransferAmount, simulation: SimulationResult?) async throws {
+        let input = GemSendInput(
+            wallet: request.wallet.json(),
+            confirm: confirmData,
+            value: amount.value.description,
+            networkFee: amount.networkFee.description,
+            simulation: simulation?.json(),
         )
-        try await transferExecutor.execute(input: input)
-        await eventPresenterService.present(.transfer(request.data))
+        let result: GemExecuteResult
+        do {
+            result = try await gemConfirmService.execute(input: input, signer: signer)
+        } catch let GemConfirmError.Broadcast(hashes, msg) {
+            hashes.forEach { request.delegate?(.success($0)) }
+            trackPending()
+            throw GemConfirmError.Broadcast(hashes: hashes, msg: msg)
+        }
+        switch result {
+        case let .signed(data):
+            data.forEach { request.delegate?(.success($0)) }
+        case let .sent(hashes, transactions):
+            hashes.forEach { request.delegate?(.success($0)) }
+            track(wallet: request.wallet, transactions: try transactions.map { try Transaction($0) })
+        }
+        await toastPresenter.present(.transfer(for: request.data.type))
         if let recent = request.data.type.recentActivityData {
             updateRecent(data: recent, walletId: request.wallet.id)
         }
     }
 
+    private func trackPending() {
+        Task {
+            do {
+                try await transactionStateService.trackPending()
+            } catch {
+                debugLog("confirm: pending tracking failed \(error)")
+            }
+        }
+    }
+
+    private func track(wallet: Wallet, transactions: [Transaction]) {
+        Task {
+            do {
+                try await transactionStateService.track(walletId: wallet.id.id, transactions: transactions.map { $0.json() })
+            } catch {
+                debugLog("confirm: transaction tracking failed \(error)")
+            }
+        }
+    }
+
     public func explorerLink(chain: Chain, address: String) -> BlockExplorerLink {
-        explorerService.addressUrl(chain: chain, address: address)
+        BlockExplorerLink(explorerService.getAddressUrl(chain: chain.rawValue, address: address))
     }
 
     public func addressName(chain: Chain, address: String) throws -> AddressName? {
-        try addressNameService.getAddressName(chain: chain, address: address)
+        try nameService.addressName(chain: chain.rawValue, address: address).map { try AddressName($0) }
+    }
+
+    public var currency: Currency {
+        preferencesService.currencyValue
     }
 
     public func passwordAuthentication() throws -> KeystoreAuthentication {
@@ -99,16 +167,16 @@ public struct ConfirmService: Sendable {
     }
 
     public func defaultPriority(for type: TransferDataType) -> FeePriority {
-        chainService.defaultPriority(for: type)
+        (try? type.map()).map { feeService.defaultPriority(inputType: $0).map() } ?? .normal
     }
 }
 
 // MARK: - Private
 
-extension ConfirmService {
-    private func updateRecent(data: RecentActivityData, walletId: WalletId) {
+private extension ConfirmService {
+    func updateRecent(data: RecentActivityData, walletId: WalletId) {
         do {
-            try activityService.updateRecent(data: data, walletId: walletId)
+            try recentAssetsService.add(data, walletId: walletId)
         } catch {
             debugLog("Failed to update recent activity: \(error)")
         }

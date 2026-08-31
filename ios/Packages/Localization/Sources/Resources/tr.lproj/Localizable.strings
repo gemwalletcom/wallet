@@ -18,6 +18,7 @@
 "common.wallet" = "Cüzdan";
 "common.show" = "%@ göster";
 "common.copied" = "Kopyalandı: %@";
+"common.copied_to_clipboard" = "Panoya kopyalandı";
 "common.recommended" = "Tavsiye edilen";
 "common.all" = "Tümü";
 "common.not_available" = "Müsait değil";
@@ -178,10 +179,14 @@
 "errors.token.invalid_id" = "Geçersiz Jeton Kimliği";
 "errors.import.invalid_secret_phrase" = "Geçersiz Gizli İfade";
 "errors.import.invalid_secret_phrase_word" = "Geçersiz Gizli İfade kelimesi: %@";
+"errors.import.invalid_private_key" = "Geçersiz özel anahtar";
+"errors.keystore_access" = "Bu cihazda bu cüzdanın anahtarlarına erişilemedi. Kurtarma ifadeniz varsa bu cüzdanı kaldırıp yeniden içe aktararak erişimi geri kazanabilirsiniz.";
+"errors.wallet_account_missing" = "Bu cüzdanın bu ağ için hesabı yok";
 "errors.invalid_url" = "Geçersiz URL";
 "errors.error_occurred" = "Bir hata oluştu!";
 "errors.invalid_network_id" = "Geçersiz Ağ Kimliği";
 "errors.error" = "Hata";
+"errors.cancelled" = "İptal edildi";
 "errors.connections.user_cancelled" = "Kullanıcı iptal etti";
 "errors.not_supported" = "Desteklenmiyor";
 "errors.permissions_not_granted" = "İzinler Verilmedi";
@@ -214,6 +219,8 @@
 "errors.swap.minimum_amount" = "Minimum işlem tutarı %@. Lütfen daha yüksek bir tutar girin.";
 "errors.perpetual.trigger_price_lower" = "Tetikleme fiyatı piyasa fiyatından düşük olmalıdır";
 "errors.perpetual.trigger_price_higher" = "Tetikleme fiyatı piyasa fiyatından yüksek olmalıdır";
+"errors.network_error" = "Ağ hatası: %@";
+"errors.network_offline" = "İnternet bağlantısı kesilmiş gibi görünüyor.";
 "errors.no_internet_connection" = "İnternet bağlantısı yok";
 "errors.no_service_connection" = "Servis bağlantısı yok";
 "errors.balances_activity_outdated" = "Bakiyeler ve etkinlik güncel olmayabilir.";

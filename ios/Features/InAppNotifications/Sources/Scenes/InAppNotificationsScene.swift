@@ -31,7 +31,7 @@ public struct InAppNotificationsScene: View {
         }
         .navigationTitle(model.title)
         .bindQuery(model.query)
-        .task { await model.fetch() }
+        .task { await model.load() }
     }
 
     @ViewBuilder

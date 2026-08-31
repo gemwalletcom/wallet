@@ -5,15 +5,6 @@ import GemstonePrimitives
 import Primitives
 import SwiftUI
 
-enum AssetNavigationPolicy {
-    static func canOpen(_ assetId: AssetId) -> Bool {
-        switch assetId.type {
-        case .native: assetId.chain.hasNativeAsset
-        case .token: true
-        }
-    }
-}
-
 @Observable
 final class NavigationStateManager: Sendable {
     @MainActor
@@ -22,8 +13,6 @@ final class NavigationStateManager: Sendable {
     var activity = NavigationPathState()
     @MainActor
     var settings = NavigationPathState()
-    @MainActor
-    var markets = NavigationPathState()
 
     @MainActor
     var selectedTab: TabItem = .wallet
@@ -59,7 +48,6 @@ extension NavigationStateManager {
         case .wallet: wallet.reset()
         case .activity: activity.reset()
         case .settings: settings.reset()
-        case .markets: markets.reset()
         }
     }
 
@@ -70,7 +58,6 @@ extension NavigationStateManager {
     }
 
     func openAsset(_ asset: Asset) {
-        guard AssetNavigationPolicy.canOpen(asset.id) else { return }
         if asset.type == .perpetual {
             wallet.append(Scenes.Perpetual(asset))
         } else {

@@ -2,6 +2,7 @@
 
 import BigInt
 import Formatters
+import class Gemstone.GemSwapQuoteService
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -13,6 +14,7 @@ struct PriceImpactViewModel {
     let fromValue: String
     let toAssetPrice: AssetPriceValue
     let toValue: String
+    let swapQuoteService: GemSwapQuoteService
 
     private let valueFormatter = ValueFormatter(style: .full)
     private let percentFormatter = PercentFormatter.signed
@@ -79,7 +81,7 @@ extension PriceImpactViewModel {
             return nil
         }
 
-        return GemstonePrimitives.calculateSwapPriceImpact(payFiatValue: fromValue, receiveFiatValue: toValue)
+        return try? Primitives.SwapPriceImpact.calculate(payFiatValue: fromValue, receiveFiatValue: toValue, swapQuoteService: swapQuoteService)
     }
 
     private func getSwapAmount(value: String, decimals: Int) -> Double? {

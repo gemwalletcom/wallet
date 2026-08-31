@@ -29,6 +29,10 @@ impl GemKeystore {
         }))
     }
 
+    pub fn keystore_id(&self, wallet_id: String) -> String {
+        keystore_id_for_wallet(wallet_id)
+    }
+
     pub fn preview_import(&self, import: GemImportType) -> Result<GemWalletImport, GemstoneError> {
         match import {
             GemImportType::PrivateKey { value, chain } => {
@@ -127,6 +131,18 @@ impl GemKeystore {
         Ok(self.inner.delete(&keystore_id)?)
     }
 
+    pub fn exists(&self, keystore_id: String) -> bool {
+        matches!(self.inner.get_meta(&keystore_id), Ok(Some(_)))
+    }
+
+    pub fn has_stored_wallets(&self) -> Result<bool, GemstoneError> {
+        Ok(!self.inner.list()?.is_empty())
+    }
+
+    pub fn decode_password(&self, password: String) -> Vec<u8> {
+        decode_password(&password)
+    }
+
     pub fn sign(&self, keystore_id: String, chain: Chain, input: GemSignerInput, password: Vec<u8>) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
         GemChainSigner::new(chain).sign_input(input, self.signing_key(&keystore_id, chain, password)?)
     }
@@ -144,12 +160,17 @@ impl GemKeystore {
     }
 }
 
-#[uniffi::export]
-pub fn keystore_id_for_wallet(wallet_id: String) -> String {
+pub(crate) fn keystore_id_for_wallet(wallet_id: String) -> String {
     KeystoreId::from_wallet_id(&wallet_id).into_string()
 }
 
 impl GemKeystore {
+    pub(crate) fn delete_wallet_secrets(&self, wallet_id: String, legacy_id: String) -> Result<(), GemstoneError> {
+        self.inner.delete(&keystore_id_for_wallet(wallet_id))?;
+        self.inner.delete_v3(&legacy_id)?;
+        Ok(())
+    }
+
     pub(crate) fn signing_key(&self, keystore_id: &str, chain: Chain, password: Vec<u8>) -> Result<Zeroizing<Vec<u8>>, GemstoneError> {
         let password = Zeroizing::new(password);
         self.load_private_key(keystore_id, chain, &password)
@@ -236,6 +257,7 @@ fn derive_mnemonic_wallet(
 #[cfg(test)]
 mod migration_tests {
     use std::path::{Path, PathBuf};
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
     use primitives::{Chain, hex};
 
@@ -259,8 +281,9 @@ mod migration_tests {
     }
 
     fn prepare(name: &str, fixture: &str) -> (PathBuf, String) {
-        let base = std::env::temp_dir().join(format!("gemstone_migration_{name}"));
-        let _ = std::fs::remove_dir_all(&base);
+        static SEQUENCE: AtomicUsize = AtomicUsize::new(0);
+        let unique = SEQUENCE.fetch_add(1, Ordering::Relaxed);
+        let base = std::env::temp_dir().join(format!("gemstone_migration_{name}_{}_{unique}", std::process::id()));
         std::fs::create_dir_all(&base).unwrap();
         let v3_path = base.join("legacy.json");
         std::fs::write(&v3_path, fixture).unwrap();
@@ -415,5 +438,25 @@ mod migration_tests {
         assert_eq!(keystore.export_recovery_phrase(keystore_id, NEW_PASSWORD.to_vec()).unwrap().join(" "), EXPECTED_PHRASE);
 
         let _ = std::fs::remove_dir_all(&base);
+    }
+}
+
+pub fn decode_password(password: &str) -> Vec<u8> {
+    hex::decode(password.strip_prefix("0x").unwrap_or(password)).unwrap_or_else(|_| password.as_bytes().to_vec())
+}
+
+#[cfg(test)]
+mod password_tests {
+    use super::decode_password;
+
+    #[test]
+    fn test_password_decodes_as_hex_and_falls_back_to_utf8_for_legacy_wallets() {
+        assert_eq!(decode_password("000102"), vec![0x00, 0x01, 0x02]);
+        assert_eq!(decode_password("0x000102"), vec![0x00, 0x01, 0x02]);
+
+        // Wallets created before the hex generator stored a UUID, which WalletCore consumed as raw utf8.
+        let legacy = "9B2D3F14-7C58-4A21-93E0-5D6F8A0C1E77";
+        assert_eq!(decode_password(legacy), legacy.as_bytes());
+        assert_eq!(decode_password("abc"), b"abc", "odd-length hex is not hex");
     }
 }

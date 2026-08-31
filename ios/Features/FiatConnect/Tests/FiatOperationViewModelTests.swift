@@ -16,7 +16,7 @@ final class FiatOperationViewModelTests {
         var defaultAmount: Int = 50
         var emptyAmountTitle: String = "Mock Title"
 
-        func fetch(amount _: Double) async throws -> [FiatQuote] {
+        func load(amount _: Double) async throws -> [FiatQuote] {
             quotes
         }
 
@@ -129,7 +129,7 @@ final class FiatOperationViewModelTests {
         model.inputValidationModel.text = "invalid"
         model.quotesState = .loading
 
-        model.fetch()
+        model.load()
 
         #expect(model.quotesState.isNoData == true)
     }
@@ -140,7 +140,7 @@ final class FiatOperationViewModelTests {
         model.inputValidationModel.text = "0"
         model.quotesState = .loading
 
-        model.fetch()
+        model.load()
 
         #expect(model.quotesState.isNoData == true)
     }
@@ -151,7 +151,7 @@ final class FiatOperationViewModelTests {
         model.inputValidationModel.text = "20000"
         model.quotesState = .loading
 
-        model.fetch()
+        model.load()
 
         #expect(model.quotesState.isNoData == true)
     }
@@ -165,7 +165,7 @@ final class FiatOperationViewModelTests {
         model.selectedQuote = quote
         model.inputValidationModel.text = "20000"
 
-        model.fetch()
+        model.load()
 
         #expect(model.quotesState.value?.quotes.count == 1)
         #expect(model.selectedQuote == quote)
@@ -180,7 +180,7 @@ final class FiatOperationViewModelTests {
         model.selectedQuote = quote
         model.inputValidationModel.text = "20000"
 
-        model.fetch()
+        model.load()
 
         #expect(model.quotesState.isNoData == true)
     }
@@ -189,7 +189,7 @@ final class FiatOperationViewModelTests {
         var defaultAmount: Int = 50
         var emptyAmountTitle: String = "Mock Title"
 
-        func fetch(amount _: Double) async throws -> [FiatQuote] {
+        func load(amount _: Double) async throws -> [FiatQuote] {
             []
         }
 

@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.operators.MigrateKeystoreOperator
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.math.fromHex
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
@@ -18,15 +18,15 @@ import javax.inject.Singleton
 
 @Singleton
 class MigrateV3KeystoreService @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val walletsRepository: WalletsRepository,
+    @param:ApplicationContext private val context: Context,
+    private val getWallets: GetWallets,
     private val passwordStore: PasswordStore,
     private val migrateKeystoreOperator: MigrateKeystoreOperator,
 ) {
     private val baseDir: String get() = context.dataDir.toString()
 
     suspend operator fun invoke() = withContext(Dispatchers.IO) {
-        walletsRepository.getAll().firstOrNull().orEmpty().forEach { wallet ->
+        getWallets().firstOrNull().orEmpty().forEach { wallet ->
             if (needsMigration(wallet)) {
                 runCatching { migrate(wallet) }
                     .onFailure { Log.e(TAG, "v3 keystore migration failed for ${wallet.id.id}", it) }

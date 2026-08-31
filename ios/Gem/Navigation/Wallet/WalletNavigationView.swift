@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Assets
-import AssetsService
+import GemstoneServices
 import Components
 import InfoSheet
 import Localization
@@ -9,11 +9,9 @@ import MarketInsight
 import NFT
 import Perpetuals
 import PriceAlerts
-import PriceService
 import Primitives
 import PrimitivesComponents
 import QRScanner
-import StakeService
 import Store
 import SwiftUI
 import Transactions
@@ -21,22 +19,30 @@ import Transfer
 import WalletTab
 
 struct WalletNavigationView: View {
-    @Environment(\.assetsEnabler) private var assetsEnabler
+    @Environment(\.explorerService) private var explorerService
+    @Environment(\.feeService) private var feeService
+    @Environment(\.deeplinkService) private var deeplinkService
+    @Environment(\.transactionFormatter) private var transactionFormatter
     @Environment(\.balanceService) private var balanceService
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
     @Environment(\.priceService) private var priceService
+    @Environment(\.priceStore) private var priceStore
+    @Environment(\.chartService) private var chartService
     @Environment(\.portfolioService) private var portfolioService
     @Environment(\.priceAlertService) private var priceAlertService
+    @Environment(\.preferencesService) private var preferencesService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.transactionsService) private var transactionsService
     @Environment(\.bannerService) private var bannerService
+    @Environment(\.swapService) private var swapService
+    @Environment(\.stakeService) private var stakeService
     @Environment(\.streamSubscriptionService) private var streamSubscriptionService
     @Environment(\.perpetualService) private var perpetualService
     @Environment(\.hyperliquidObserverService) private var hyperliquidObserverService
-    @Environment(\.activityService) private var activityService
-    @Environment(\.walletSearchService) private var walletSearchService
+    @Environment(\.recentAssetsService) private var recentAssetsService
+    @Environment(\.searchService) private var searchService
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.avatarService) private var avatarService
     @Environment(\.nftService) private var nftService
@@ -57,10 +63,11 @@ struct WalletNavigationView: View {
                 WalletSearchScene(
                     model: WalletSearchSceneViewModel(
                         wallet: model.wallet,
-                        searchService: walletSearchService,
-                        activityService: activityService,
-                        assetsEnabler: assetsEnabler,
+                        searchService: searchService,
+                        recentAssetsService: recentAssetsService,
+                        balanceService: balanceService,
                         perpetualService: perpetualService,
+                        preferences: preferences,
                         onDismissSearch: model.onToggleSearch,
                         onSelectAssetAction: navigationState.openAsset,
                         onAddToken: model.onSelectAddCustomToken,
@@ -97,13 +104,18 @@ struct WalletNavigationView: View {
         .navigationDestination(for: Scenes.Asset.self) {
             AssetNavigationView(
                 model: AssetSceneViewModel(
-                    assetsEnabler: assetsEnabler,
                     balanceService: balanceService,
                     assetsService: assetsService,
                     transactionsService: transactionsService,
                     priceUpdater: streamSubscriptionService,
                     priceAlertService: priceAlertService,
                     bannerService: bannerService,
+                    swapService: swapService,
+                    stakeService: stakeService,
+                    explorerService: explorerService,
+                    transactionFormatter: transactionFormatter,
+                    deeplinkService: deeplinkService,
+                    preferences: preferences,
                     input: AssetSceneInput(
                         wallet: model.wallet,
                         asset: $0.asset,
@@ -118,8 +130,7 @@ struct WalletNavigationView: View {
                     wallet: model.wallet,
                     chain: destination.chain,
                     balanceService: balanceService,
-                    assetsEnabler: assetsEnabler,
-                    preferences: preferences.preferences,
+                    preferencesService: preferencesService,
                     onManageAssets: { model.onSelectManage(chains: [destination.chain]) },
                 ),
             )
@@ -129,6 +140,10 @@ struct WalletNavigationView: View {
                 model: TransactionSceneViewModel(
                     transaction: $0.transaction,
                     walletId: model.wallet.id,
+                    preferencesService: preferencesService,
+                    explorerService: explorerService,
+                    transactionFormatter: transactionFormatter,
+                    feeService: feeService,
                     onHeaderAction: onSelectTransactionHeaderAction,
                     onAddContact: { model.isPresentingSheet = .addContact($0) },
                 ),
@@ -141,6 +156,7 @@ struct WalletNavigationView: View {
                     assetData: $0.assetData,
                     avatarService: avatarService,
                     nftService: nftService,
+                    explorerService: explorerService,
                     isPresentingSelectedAssetInput: model.isPresentingSelectedAssetInput,
                 ),
             )
@@ -170,10 +186,13 @@ struct WalletNavigationView: View {
         .navigationDestination(for: Scenes.Price.self) {
             ChartScene(
                 model: ChartSceneViewModel(
-                    priceService: priceService,
+                    explorerService: explorerService,
+                    service: chartService,
+                    priceStore: priceStore,
                     assetModel: AssetViewModel(asset: $0.asset),
                     priceAlertService: priceAlertService,
                     walletId: model.wallet.id,
+                    preferencesService: preferencesService,
                     onSetPriceAlert: model.presentPriceAlert,
                 ),
             )
@@ -183,7 +202,7 @@ struct WalletNavigationView: View {
                 wallet: model.wallet,
                 perpetualService: perpetualService,
                 observerService: hyperliquidObserverService,
-                activityService: activityService,
+                recentAssetsService: recentAssetsService,
                 onSelectAssetType: { model.isPresentingSheet = .selectAsset($0, chains: []) },
                 onSelectAsset: navigationState.openAsset,
                 onSelectPortfolio: { model.isPresentingSheet = .portfolio(.perpetuals) },
@@ -211,6 +230,9 @@ struct WalletNavigationView: View {
                 perpetualService: perpetualService,
                 transactionsService: transactionsService,
                 observerService: hyperliquidObserverService,
+                explorerService: explorerService,
+                transactionFormatter: transactionFormatter,
+                preferencesService: preferencesService,
                 isPresentingSheet: $model.isPresentingSheet,
             )
         }
@@ -218,6 +240,7 @@ struct WalletNavigationView: View {
             AssetPriceAlertsScene(
                 model: AssetPriceAlertsViewModel(
                     priceAlertService: priceAlertService,
+                    preferencesService: preferencesService,
                     walletId: model.wallet.id,
                     asset: $0.asset,
                 ),
@@ -255,6 +278,7 @@ struct WalletNavigationView: View {
                             walletId: model.wallet.id,
                             asset: asset,
                             priceAlertService: priceAlertService,
+                            preferencesService: preferencesService,
                         ) { model.onSetPriceAlertComplete(message: $0) },
                     )
                 case .addAsset:
@@ -263,11 +287,7 @@ struct WalletNavigationView: View {
                     PortfolioScene(
                         model: PortfolioSceneViewModel(
                             wallet: model.wallet,
-                            service: PortfolioDataService(
-                                portfolioService: portfolioService,
-                                perpetualService: perpetualService,
-                                priceService: priceService,
-                            ),
+                            portfolioService: portfolioService,
                             preferences: preferences,
                             defaultType: defaultType,
                         ),

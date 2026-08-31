@@ -1,0 +1,35 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import Foundation
+import protocol Gemstone.GemSupportStore
+import typealias Gemstone.SupportMessage
+import typealias Gemstone.SupportTyping
+import GemstonePrimitives
+import Primitives
+import Store
+
+public final class GemstoneSupportStore: GemSupportStore, Sendable {
+    private let store: SupportChatStore
+
+    public let typing = SupportTypingState()
+
+    public init(store: SupportChatStore) {
+        self.store = store
+    }
+
+    public func saveMessages(messages: [Gemstone.SupportMessage]) async throws {
+        try store.addMessages(messages.map { try Primitives.SupportMessage($0) })
+    }
+
+    public func saveMessage(id: String, message: Gemstone.SupportMessage) async throws {
+        try store.replace(id: id, with: Primitives.SupportMessage(message))
+    }
+
+    public func updateTyping(typing: Gemstone.SupportTyping) throws {
+        self.typing.update(try Primitives.SupportTyping(typing))
+    }
+
+    public func clearTyping() throws {
+        typing.clear()
+    }
+}

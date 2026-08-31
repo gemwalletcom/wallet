@@ -10,18 +10,6 @@ public extension BigInt {
         Int(self)
     }
 
-    var asInt64: Int64 {
-        Int64(self)
-    }
-
-    var asUInt: UInt64 {
-        UInt64(self)
-    }
-
-    var asUInt32: UInt32 {
-        UInt32(self)
-    }
-
     func increase(byPercent percent: Int) -> BigInt {
         let multiplier = 100 + percent
         return self * BigInt(multiplier) / 100
@@ -41,27 +29,9 @@ public extension BigInt {
         self * BigInt(percent) / 100
     }
 
-    var hexString: String {
-        String(self, radix: 16)
-    }
-
-    /// little endian byte order
-    func littleEndianOrder(bytes: Int) -> Data {
-        // BigInt.serialize() returns a big endian array, so reverse it for little endian
-        var byteArray = Array(serialize().reversed())
-        // Ensure the array is bytes long, padding with 0s if necessary
-        while byteArray.count < bytes {
-            byteArray.append(0)
-        }
-        return Data(byteArray)
-    }
-
     func isBetween(_ lowerBound: BigInt, and upperBound: BigInt) -> Bool {
         self >= lowerBound && self <= upperBound
     }
-
-    /// 256 bit
-    static let MAX_256 = BigInt(hex: "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")!
 }
 
 public extension BigInt {
@@ -73,13 +43,6 @@ public extension BigInt {
         } else {
             .zero
         }
-    }
-
-    static func fromString(_ string: String) -> BigInt {
-        if let value = try? BigInt.from(string: string) {
-            return value
-        }
-        return .zero
     }
 
     static func fromHex(_ hex: String) throws -> BigInt {

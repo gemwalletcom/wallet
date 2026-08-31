@@ -1,44 +1,48 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ConnectionsService
+import protocol Gemstone.GemPerpetualServiceProtocol
+import protocol Gemstone.GemStreamSubscriptionServiceProtocol
+import protocol Gemstone.GemTransactionStateServiceProtocol
+import GemstonePrimitives
+import WalletConnectorService
 import ConnectionStatusService
-import DeviceService
+import GemstoneServices
 import Foundation
-import PerpetualService
-import Preferences
 import Primitives
 import StreamService
 import SwiftUI
-import WalletSessionService
 
 public actor AppLifecycleService: Sendable {
-    private let preferences: Preferences
-    private let connectionsService: ConnectionsService
+    private let walletConnector: any WalletConnectorServiceable
     private let connectionStatusObserver: ConnectionStatusObserver
     private let deviceObserverService: DeviceObserverService
     private let streamObserverService: StreamObserverService
-    private let streamSubscriptionService: StreamSubscriptionService
-    private let perpetualEnablerService: PerpetualEnablerService
+    private let streamSubscriptionService: any GemStreamSubscriptionServiceProtocol
+    private let perpetualService: any GemPerpetualServiceProtocol
+    private let perpetualObserver: any PerpetualObservable
     private let walletSessionService: any WalletSessionManageable
+    private let transactionStateService: any GemTransactionStateServiceProtocol
 
     public init(
-        preferences: Preferences,
-        connectionsService: ConnectionsService,
+        walletConnector: any WalletConnectorServiceable,
         connectionStatusObserver: ConnectionStatusObserver,
         deviceObserverService: DeviceObserverService,
         streamObserverService: StreamObserverService,
-        streamSubscriptionService: StreamSubscriptionService,
-        perpetualEnablerService: PerpetualEnablerService,
+        streamSubscriptionService: any GemStreamSubscriptionServiceProtocol,
+        perpetualService: any GemPerpetualServiceProtocol,
+        perpetualObserver: any PerpetualObservable,
         walletSessionService: any WalletSessionManageable,
+        transactionStateService: any GemTransactionStateServiceProtocol,
     ) {
-        self.preferences = preferences
-        self.connectionsService = connectionsService
+        self.walletConnector = walletConnector
         self.connectionStatusObserver = connectionStatusObserver
         self.deviceObserverService = deviceObserverService
         self.streamObserverService = streamObserverService
         self.streamSubscriptionService = streamSubscriptionService
-        self.perpetualEnablerService = perpetualEnablerService
+        self.perpetualService = perpetualService
+        self.perpetualObserver = perpetualObserver
         self.walletSessionService = walletSessionService
+        self.transactionStateService = transactionStateService
     }
 
     public func setup() async {
@@ -57,7 +61,13 @@ public actor AppLifecycleService: Sendable {
     }
 
     public func updatePerpetualConnection() async {
-        await perpetualEnablerService.updateEnablement(wallet: walletSessionService.currentWallet)
+        let wallet = walletSessionService.currentWallet
+        do {
+            let connect = try await perpetualService.syncEnablement(wallet: wallet?.json(), trigger: .scheduled)
+            await updatePerpetualObserver(wallet: wallet, connect: connect)
+        } catch {
+            debugLog("AppLifecycleService perpetual enablement error: \(error)")
+        }
     }
 
     public func handleScenePhase(_ phase: ScenePhase) async {
@@ -81,7 +91,10 @@ public actor AppLifecycleService: Sendable {
 extension AppLifecycleService {
     private func setupWalletConnect() async {
         do {
-            try await connectionsService.setup()
+            try walletConnector.configure()
+            if try await walletConnector.hasSessions() {
+                await walletConnector.setup()
+            }
         } catch {
             debugLog("AppLifecycleService setupWalletConnect error: \(error)")
         }
@@ -96,8 +109,9 @@ extension AppLifecycleService {
     }
 
     private func setupPriceAssets() async {
+        guard let walletId = walletSessionService.currentWalletId else { return }
         do {
-            try await streamSubscriptionService.setupAssets()
+            try await streamSubscriptionService.setupAssets(walletId: walletId.id)
         } catch {
             debugLog("AppLifecycleService setupPriceAssets error: \(error)")
         }
@@ -107,8 +121,16 @@ extension AppLifecycleService {
         async let connection: () = connectionStatusObserver.start()
         async let stream: () = connectStreamObserver()
         async let perpetual: () = connectPerpetual()
-        async let nodeAuthToken: () = deviceObserverService.startNodeAuthTokenUpdates()
-        _ = await (connection, stream, perpetual, nodeAuthToken)
+        async let pending: () = trackPendingTransactions()
+        _ = await (connection, stream, perpetual, pending)
+    }
+
+    private func trackPendingTransactions() async {
+        do {
+            try await transactionStateService.trackPending()
+        } catch {
+            debugLog("AppLifecycleService pending tracking error: \(error)")
+        }
     }
 
     private func connectStreamObserver() async {
@@ -116,9 +138,7 @@ extension AppLifecycleService {
             await streamObserverService.disconnect()
             return
         }
-        if preferences.isDeviceRegistered == false {
-            await registerDevice()
-        }
+        await registerDevice()
         await streamObserverService.connect()
     }
 
@@ -131,14 +151,24 @@ extension AppLifecycleService {
     }
 
     private func connectPerpetual() async {
-        await perpetualEnablerService.updateConnection(wallet: walletSessionService.currentWallet)
+        let wallet = walletSessionService.currentWallet
+        let connect = perpetualService.shouldConnectPerpetuals(wallet: wallet?.json())
+        await updatePerpetualObserver(wallet: wallet, connect: connect)
+    }
+
+    private func updatePerpetualObserver(wallet: Wallet?, connect: Bool) async {
+        if connect, let wallet {
+            await perpetualObserver.setup(for: wallet)
+        } else {
+            await perpetualObserver.disconnect()
+        }
     }
 
     private func disconnectObservers() async {
+        transactionStateService.stopTracking()
         async let connection: () = connectionStatusObserver.stop()
         async let price: () = streamObserverService.disconnect()
-        async let perpetual: () = perpetualEnablerService.disconnect()
-        async let nodeAuthToken: () = deviceObserverService.stopNodeAuthTokenUpdates()
-        _ = await (connection, price, perpetual, nodeAuthToken)
+        async let perpetual: () = perpetualObserver.disconnect()
+        _ = await (connection, price, perpetual)
     }
 }

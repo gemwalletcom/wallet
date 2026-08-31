@@ -21,26 +21,23 @@ struct AmountValidatorTests {
         let validator = AmountValidator.assetAmount(
             formatter: formatter,
             decimals: decimals,
-            validators: [PositiveValueValidator<BigInt>()],
+            validators: [BalanceValueValidator(available: BigInt(1_000_000_000), asset: asset)],
         )
         try validator.validate("123.456")
     }
 
     @Test
-    func assetAmountFailsMinimum() {
-        let min = BigInt(1_000_000)
+    func assetAmountFailsBalance() {
+        let available = BigInt(100)
         let validator = AmountValidator.assetAmount(
             formatter: formatter,
             decimals: decimals,
-            validators: [
-                MinimumValueValidator<BigInt>(
-                    minimumValue: min,
-                    asset: asset,
-                ),
-            ],
+            validators: [BalanceValueValidator(available: available, asset: asset)],
         )
-
-        #expect(throws: TransferError.minimumAmount(asset: asset, required: min)) {
+        #expect(throws: TransferAmountCalculatorError.insufficientBalance(
+            asset,
+            requirement: BalanceRequirement(required: BigInt(500_000), available: available),
+        )) {
             try validator.validate("0.5")
         }
     }
@@ -58,7 +55,7 @@ struct AmountValidatorTests {
             converter: AssetValueConverter(),
             price: price,
             decimals: decimals,
-            validators: [PositiveValueValidator<BigInt>()],
+            validators: [],
         )
         try validator.validate("10")
     }

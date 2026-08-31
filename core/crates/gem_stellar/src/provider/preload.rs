@@ -49,6 +49,7 @@ mod chain_integration_tests {
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Stellar)),
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
+            references: vec![],
         };
 
         let metadata = client.get_transaction_preload(input).await?;
@@ -67,6 +68,7 @@ mod chain_integration_tests {
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Stellar)),
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_EMPTY_ADDRESS.to_string(),
+            references: vec![],
         };
 
         let metadata = client.get_transaction_preload(input).await?;
@@ -85,6 +87,7 @@ mod chain_integration_tests {
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Stellar)),
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
+            references: vec![],
         };
 
         let metadata = client.get_transaction_preload(preload_input).await?;
@@ -116,6 +119,7 @@ mod chain_integration_tests {
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Stellar)),
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_EMPTY_ADDRESS.to_string(),
+            references: vec![],
         };
 
         let metadata = client.get_transaction_preload(preload_input).await?;

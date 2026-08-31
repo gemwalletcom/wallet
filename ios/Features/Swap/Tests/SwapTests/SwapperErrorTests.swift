@@ -8,15 +8,6 @@ import Testing
 
 struct SwapperErrorTests {
     @Test
-    func isRetryAvailable() {
-        #expect(SwapperError.NoQuoteAvailable.isRetryAvailable == true)
-        #expect(SwapperError.ComputeQuoteError("error").isRetryAvailable == true)
-
-        #expect(SwapperError.NotSupportedChain.isRetryAvailable == false)
-        #expect(SwapperError.InputAmountError(minAmount: nil).isRetryAvailable == false)
-    }
-
-    @Test
     func inputAmountErrorMessage() {
         #expect(
             SwapperError.InputAmountError(minAmount: "120966091866986").message(asset: .mockBNB()) ==

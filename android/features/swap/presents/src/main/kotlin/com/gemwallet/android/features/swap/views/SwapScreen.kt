@@ -1,5 +1,8 @@
 package com.gemwallet.android.features.swap.views
 
+import androidx.compose.ui.platform.LocalContext
+import com.gemwallet.android.model.AuthRequest
+import com.gemwallet.android.ui.requestAuth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,6 +31,7 @@ fun SwapScreen(
     onConfirm: (ConfirmParams) -> Unit,
     onCancel: () -> Unit,
 ) {
+    val context = LocalContext.current
     val pay by viewModel.payAsset.collectAsStateWithLifecycle()
     val receive by viewModel.receiveAsset.collectAsStateWithLifecycle()
     val fromEquivalent by viewModel.payEquivalentFormatted.collectAsStateWithLifecycle()
@@ -80,6 +84,7 @@ fun SwapScreen(
                 SwapSceneAction.Swap -> viewModel.onPrimaryAction(
                     onConfirm = onConfirm,
                     onShowPriceImpactWarning = { isShowPriceImpactAlert = true },
+                    authorize = { action -> context.requestAuth(AuthRequest.Confirmation, action) },
                 )
                 SwapSceneAction.Cancel -> onCancel()
             }
@@ -91,7 +96,7 @@ fun SwapScreen(
         priceImpact = swapDetails?.priceImpact,
         asset = pay?.asset,
         onDismiss = { isShowPriceImpactAlert = false },
-        onContinue = { viewModel.swap(onConfirm) },
+        onContinue = { context.requestAuth(AuthRequest.Confirmation) { viewModel.swap(onConfirm) } },
     )
 
     SwapDetailsBottomSheet(
@@ -103,9 +108,11 @@ fun SwapScreen(
         onProviderSelect = if (swapState.isQuoteInteractionEnabled) viewModel::setProvider else null,
     )
 
+    val defaultSlippageBps by viewModel.defaultSlippageBps.collectAsStateWithLifecycle()
     SwapSlippageBottomSheet(
         isVisible = isShowSlippage,
         currentBps = slippageSeedBps,
+        defaultBps = defaultSlippageBps,
         warningThresholdBps = viewModel.slippageWarningThresholdBps,
         onConfirm = viewModel::setSlippage,
         onDismiss = { isShowSlippage = false },

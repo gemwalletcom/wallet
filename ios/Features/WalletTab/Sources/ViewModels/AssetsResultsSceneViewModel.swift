@@ -1,13 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ActivityService
-import AssetsService
-import BalanceService
+import protocol Gemstone.GemPreferencesServiceProtocol
+import protocol Gemstone.GemBalanceServiceProtocol
+import protocol Gemstone.GemPerpetualServiceProtocol
 import Components
+import protocol Gemstone.GemSearchServiceProtocol
+import GemstonePrimitives
+import GemstoneServices
 import Foundation
 import Localization
-import PerpetualService
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
@@ -19,11 +20,11 @@ import SwiftUI
 public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinActions {
     public static let defaultLimit = 100
 
-    let assetsEnabler: any AssetsEnabler
-    private let preferences: Preferences
-    private let searchService: WalletSearchService
-    let perpetualService: PerpetualService
-    private let activityService: ActivityService
+    let balanceService: any GemBalanceServiceProtocol
+    private let preferencesService: any GemPreferencesServiceProtocol
+    private let searchService: any GemSearchServiceProtocol
+    let perpetualService: any GemPerpetualServiceProtocol
+    private let recentAssetsService: any RecentAssetsServiceable
     let wallet: Wallet
 
     let title: String
@@ -39,28 +40,28 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
 
     public init(
         wallet: Wallet,
-        assetsEnabler: any AssetsEnabler,
-        preferences: Preferences,
-        searchService: WalletSearchService,
-        perpetualService: PerpetualService,
-        activityService: ActivityService,
+        balanceService: any GemBalanceServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
+        searchService: any GemSearchServiceProtocol,
+        perpetualService: any GemPerpetualServiceProtocol,
+        recentAssetsService: any RecentAssetsServiceable,
         request: WalletSearchRequest,
         title: String,
         onSelectAsset: @escaping (Asset) -> Void,
     ) {
         self.wallet = wallet
-        self.assetsEnabler = assetsEnabler
-        self.preferences = preferences
+        self.balanceService = balanceService
+        self.preferencesService = preferencesService
         self.searchService = searchService
         self.perpetualService = perpetualService
-        self.activityService = activityService
+        self.recentAssetsService = recentAssetsService
         self.title = title
         searchQuery = ObservableQuery(request, initialValue: .empty)
         onSelectAssetAction = onSelectAsset
     }
 
     var currencyCode: String {
-        preferences.currency
+        preferencesService.currencyCode
     }
 
     var sections: WalletSearchSections {
@@ -84,7 +85,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     }
 
     var showPerpetuals: Bool {
-        searchQuery.request.scope.isList && sections.perpetuals.isNotEmpty && preferences.showPerpetuals(for: wallet)
+        searchQuery.request.scope.isList && sections.perpetuals.isNotEmpty && preferencesService.showPerpetuals(for: wallet)
     }
 
     var showEmpty: Bool {
@@ -117,7 +118,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
 // MARK: - Actions
 
 extension AssetsResultsSceneViewModel {
-    func fetch() {
+    func load() {
         Task { await refresh() }
     }
 
@@ -128,6 +129,7 @@ extension AssetsResultsSceneViewModel {
                 wallet: wallet,
                 query: searchQuery.request.searchBy,
                 scope: searchQuery.request.scope,
+                currency: preferencesService.currencyCode,
             )
             state = .data(true)
         } catch {
@@ -138,7 +140,7 @@ extension AssetsResultsSceneViewModel {
     func onSelectAsset(_ asset: Asset) {
         onSelectAssetAction?(asset)
         do {
-            try activityService.updateRecent(data: .search(asset), walletId: wallet.id)
+            try recentAssetsService.add(.search(asset), walletId: wallet.id)
         } catch {
             debugLog("AssetsResultsSceneViewModel update recent error: \(error)")
         }

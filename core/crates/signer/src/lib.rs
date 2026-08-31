@@ -8,6 +8,7 @@ mod secp256k1;
 #[cfg(test)]
 pub(crate) mod testkit {
     pub const TEST_PRIVATE_KEY: &str = "1e9d38b5274152a78dff1a86fa464ceadc1f4238ca2c17060c3c507349424a34";
+    pub const TEST_PRIVATE_KEY_ETHEREUM_ADDRESS: &str = "0x7785fAEe31d01cA1034076dB76aCd27d88C82795";
 }
 
 use zeroize::Zeroizing;
@@ -51,6 +52,10 @@ impl Signer {
     pub fn sign_ethereum_digest(digest: &[u8], private_key: &[u8]) -> Result<Vec<u8>, SignerError> {
         let private_key = Zeroizing::new(private_key.to_vec());
         secp256k1::sign_ethereum_digest(digest, private_key.as_slice())
+    }
+
+    pub fn recover_ethereum_address(digest: &[u8; 32], signature: &[u8]) -> Result<String, SignerError> {
+        secp256k1::recover_ethereum_address(digest, signature)
     }
 
     pub fn sign_eip712(typed_data_json: &str, private_key: &[u8]) -> Result<String, SignerError> {

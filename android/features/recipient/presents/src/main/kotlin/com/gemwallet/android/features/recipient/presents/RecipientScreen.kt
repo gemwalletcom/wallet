@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.recipient.presents
 
+import uniffi.gemstone.GemRecipient
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ButtonDefaults
@@ -19,7 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.cases.contacts.ContactRecipient
+import com.gemwallet.android.application.contacts.values.ContactRecipient
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.features.recipient.presents.components.RecipientHead
 import com.gemwallet.android.features.recipient.presents.components.contactsDestination
@@ -31,7 +32,6 @@ import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
-import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.QrCodeScannerModal
 import com.wallet.core.primitives.QRScanType
@@ -170,7 +170,7 @@ internal fun RecipientScreen(
                 onAction(RecipientAction.SetMemo(contact.memo ?: ""))
                 onAction(
                     RecipientAction.Select(
-                        DestinationAddress(
+                        GemRecipient(
                             address = contact.address,
                             name = contact.name,
                         )
@@ -180,7 +180,7 @@ internal fun RecipientScreen(
             walletsDestination(toChain = type.assetInfo.asset.chain, items = wallets) { wallet, account ->
                 onAction(
                     RecipientAction.Select(
-                        DestinationAddress(
+                        GemRecipient(
                             address = account.address,
                             name = wallet.name,
                         )

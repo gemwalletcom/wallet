@@ -2,15 +2,9 @@
 
 import Foundation
 
-public extension SimulationPayloadField {
-    var isPrimary: Bool {
-        display == .primary
-    }
-}
-
 public extension [SimulationPayloadField] {
     var primaryFields: [SimulationPayloadField] {
-        filter(\.isPrimary)
+        filter { $0.display == .primary }
     }
 
     var secondaryFields: [SimulationPayloadField] {

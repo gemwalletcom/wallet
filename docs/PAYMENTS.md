@@ -10,7 +10,7 @@ Open the scanner from the wallet screen and scan this page from another device. 
 |---|---|---|
 | Plain address and BIP-21-style URI | Raw addresses or recognized chain schemes with `amount` and `memo`. XRP accepts `xrp:`, `ripple:`, `xrpl:`, and destination tag `dt` | [BIP-21-style decoder](../core/crates/primitives/src/payment_decoder/bip21.rs) |
 | ERC-681 | EVM native transfers and token `transfer` with `address` and `uint256` | [ERC-681 decoder](../core/crates/primitives/src/payment_decoder/erc681.rs) |
-| Solana Pay | SOL and SPL-token transfers with `amount`, `spl-token`, and `memo` | [Solana Pay decoder](../core/crates/primitives/src/payment_decoder/solana_pay.rs) |
+| Solana Pay | SOL and SPL-token transfers with `amount`, `spl-token`, repeated `reference`, and `memo` | [Solana Pay decoder](../core/crates/primitives/src/payment_decoder/solana_pay.rs) |
 | TON transfer | Native TON transfer with atomic `amount` and text comment | [TON decoder](../core/crates/primitives/src/payment_decoder/ton_pay.rs) |
 
 ## How decoding works
@@ -27,21 +27,30 @@ flowchart TD
     Scheme -->|"ton:"| TON["TON transfer"]
     Scheme -->|"Supported chain scheme"| BIP21["BIP-21-style decoder"]
     Scheme -->|"No scheme"| Address["Plain address request<br/>No asset selected"]
+    Solana -->|"HTTPS transaction request"| PaymentReview["Open review request<br/>Loading"]
+    PaymentReview --> Gateway["Load merchant and transaction"]
+    Gateway --> Confirm["Open confirmation"]
+    Confirm --> Simulation["Preload and simulate concurrently"]
     ERC681 & Solana & TON & BIP21 & Address --> Request{"Payment request?"}
     Request -->|"No"| Reject["Not supported"]
     Request -->|"Yes"| Assets{"Matching wallet assets"}
     Assets -->|"None"| Reject
     Assets -->|"Multiple"| Select["Asset selection"]
-    Assets -->|"One, signable amount + memo when supported"| Confirm["Confirmation"]
-    Assets -->|"One, amount or memo missing/unusable"| Recipient["Recipient review"]
+    Assets -->|"One, signable amount + memo when required"| Confirm["Confirmation"]
+    Assets -->|"One, amount or required memo missing/unusable"| Recipient["Recipient review"]
 ```
 
-WalletConnect and Gem deeplinks are routed before payments. Solana transaction links decode as payment links, but the scanner currently routes only payment requests.
+Routing is decided in Core by [payment_destination](../core/gemstone/src/payment.rs): it matches wallet assets, validates and checksums the address, converts the amount exactly (excess precision is never rounded), and requires a memo only on chains where the QR tag identifies the deposit (Cosmos, TON, XRP, Stellar, Algorand). Solana Pay transfers confirm without a memo.
+
+WalletConnect and Gem deeplinks are routed before payments. Solana transaction links load the merchant and encoded transaction through the payment service before opening confirmation. Confirmation then preloads the transaction and simulates it concurrently using the same transaction simulation service as WalletConnect.
+
+Static Solana Pay transfer requests use the regular transfer flow. Each `reference` is preserved in URL order and added to the SOL or SPL-token transfer instruction as a read-only, non-signer account. A `memo` is emitted as the instruction immediately before the transfer.
 
 Core entry points:
 
 - [URL action routing](../core/crates/primitives/src/url_action.rs)
 - [Payment decoder dispatch](../core/crates/primitives/src/payment_decoder/decoder.rs)
+- [Payment service](../core/crates/payment/src/service.rs)
 - [UniFFI bridge](../core/gemstone/src/payment.rs)
 
 ## Payment flows

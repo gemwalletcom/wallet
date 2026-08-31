@@ -22,6 +22,7 @@ pub enum TransactionLoadMetadata {
         token_program: Option<SolanaTokenProgramId>,
         nft: Option<SolanaNftStandard>,
         block_hash: String,
+        references: Vec<String>,
     },
     Ton {
         sender_token_address: Option<String>,
@@ -196,6 +197,13 @@ impl TransactionLoadMetadata {
         }
     }
 
+    pub fn get_solana_references(&self) -> Result<&[String], Box<dyn std::error::Error + Send + Sync>> {
+        match self {
+            TransactionLoadMetadata::Solana { references, .. } => Ok(references),
+            _ => Err("Solana references not available for this metadata type".into()),
+        }
+    }
+
     pub fn get_message_bytes(&self) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
         match self {
             TransactionLoadMetadata::Sui { message_bytes, .. } => Ok(message_bytes.clone()),
@@ -255,6 +263,7 @@ mod tests {
             token_program: Some(SolanaTokenProgramId::Token2022),
             nft: None,
             block_hash: "block_hash".into(),
+            references: vec![],
         };
         assert_eq!(metadata.get_solana_token_program_id().unwrap(), Some(SolanaTokenProgramId::Token2022));
         assert_eq!(

@@ -55,9 +55,9 @@ impl ChartsStore for DatabaseClient {
     }
 
     fn get_charts(&mut self, price_id: &str, period: &ChartPeriod) -> Result<Vec<ChartResult>, Error> {
-        let date_selection = format!("date_bin('{}', created_at, timestamp '2000-01-01')", self.period_sql(period.clone()));
+        let date_selection = format!("date_bin('{}', created_at, timestamp '2000-01-01')", self.period_sql(*period));
         let granularity = Self::get_chart_granularity_for_period(period);
-        let created_at_filter = format!("created_at >= now() - INTERVAL '{} minutes'", self.period_minutes(period.clone()));
+        let created_at_filter = format!("created_at >= now() - INTERVAL '{} minutes'", self.period_minutes(*period));
         match granularity {
             ChartGranularity::Minute | ChartGranularity::Minute15 => charts
                 .select((sql::<diesel::sql_types::Timestamp>(date_selection.as_str()), sql::<diesel::sql_types::Double>("AVG(price)")))

@@ -1,97 +1,110 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ActivityService
-import AddressNameService
+import class Gemstone.GemAddressService
+import protocol Gemstone.GemTransactionStateServiceProtocol
+import class Gemstone.GemChainService
+import class Gemstone.GemReceiveService
+import class Gemstone.GemTransactionFormatter
+import class Gemstone.GemDeviceKeyService
+import protocol Gemstone.GemPerpetualServiceProtocol
+import protocol Gemstone.GemPreferencesServiceProtocol
+import protocol Gemstone.GemWalletPreferencesServiceProtocol
+import protocol Gemstone.GemSupportServiceProtocol
+import protocol Gemstone.GemContactServiceProtocol
+import protocol Gemstone.GemAppUpdateServiceProtocol
+import protocol Gemstone.GemAvatarServiceProtocol
+import class Gemstone.GemStreamSubscriptionService
+import protocol Gemstone.GemPriceAlertServiceProtocol
+import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemAppStartServiceProtocol
+import protocol Gemstone.GemPortfolioServiceProtocol
+import protocol Gemstone.GemRewardsServiceProtocol
+import protocol Gemstone.GemSearchServiceProtocol
+import protocol Gemstone.GemSwapServiceProtocol
+import protocol Gemstone.GemTransactionsServiceProtocol
+import protocol Gemstone.GemBalanceServiceProtocol
+import protocol Gemstone.GemBannerServiceProtocol
+import protocol Gemstone.GemFiatServiceProtocol
+import protocol Gemstone.GemNftServiceProtocol
+import class Gemstone.GemNodeService
+import GemstoneServices
 import AppService
-import AssetsService
-import AvatarService
-import BalanceService
-import BannerService
-import ChainService
-import ConnectionsService
+import WalletConnectorService
 import ConnectionStatusService
-import ContactService
-import DeviceService
-import DiscoverAssetsService
-import EventPresenterService
-import ExplorerService
-import FiatService
+import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
-import NFTService
-import NodeService
-import NotificationService
-import PerpetualService
-import PriceAlertService
-import PriceService
+import Preferences
+import protocol Gemstone.GemDeviceServiceProtocol
+import protocol Gemstone.GemAssetsServiceProtocol
+import protocol Gemstone.GemChartServiceProtocol
+import protocol Gemstone.GemPriceServiceProtocol
+import protocol Gemstone.GemStakeServiceProtocol
+import protocol Gemstone.GemNotificationServiceProtocol
+import protocol Gemstone.GemAssetDiscoveryServiceProtocol
 import Primitives
-import RewardsService
-import ScanService
-import ServiceStatusService
-import StakeService
+import PrimitivesComponents
+import protocol Gemstone.GemServiceStatusProtocol
 import StreamService
-import SupportChatService
-import SwapService
-import TransactionsService
-import TransactionStateService
 import WalletConnector
-import WalletService
-import WalletSessionService
 
 extension AppResolver {
     struct Services {
         // Environment-level services
-        let assetsService: AssetsService
-        let balanceService: BalanceService
-        let bannerService: BannerService
-        let chainServiceFactory: ChainServiceFactory
-        let connectionsService: ConnectionsService
+        let balanceService: any GemBalanceServiceProtocol
+        let bannerService: any GemBannerServiceProtocol
+        let walletConnector: WalletConnectorService
         let connectionStatusObserver: ConnectionStatusObserver
-        let deviceService: DeviceService
-        let nodeService: NodeService
-        let serviceStatusService: any ServiceStatusServiceable
+        let deviceService: any GemDeviceServiceProtocol
+        let nodeService: GemNodeService
+        let serviceStatusService: any GemServiceStatusProtocol
         let navigationHandler: NavigationHandler
         let navigationPresenter: NavigationPresenter
-        let priceAlertService: PriceAlertService
+        let priceAlertService: any GemPriceAlertServiceProtocol
         let streamObserverService: StreamObserverService
-        let streamSubscriptionService: StreamSubscriptionService
-        let priceService: PriceService
-        let stakeService: StakeService
-        let transactionsService: TransactionsService
-        let transactionStateScheduler: TransactionStateScheduler
+        let streamSubscriptionService: GemStreamSubscriptionService
+        let priceService: any GemPriceServiceProtocol
+        let chartService: any GemChartServiceProtocol
+        let marketService: any GemPriceServiceProtocol
+        let stakeService: any GemStakeServiceProtocol
+        let transactionsService: any GemTransactionsServiceProtocol
+        let transactionStateService: any GemTransactionStateServiceProtocol
         let walletService: WalletService
+        let walletPreferencesService: any GemWalletPreferencesServiceProtocol
+        let preferencesService: any GemPreferencesServiceProtocol
+        let deviceKeyService: GemDeviceKeyService
+        let observablePreferences: ObservablePreferences
         let walletSessionService: any WalletSessionManageable
-        let assetsEnabler: any AssetsEnabler
-        let assetDiscoveryService: any AssetDiscoverable
-        let walletSetupService: WalletSetupService
-        let explorerService: ExplorerService
-        let scanService: ScanService
-        let nftService: NFTService
-        let avatarService: AvatarService
-        let swapService: SwapService
-        let appReleaseService: AppReleaseService
-        let releaseAlertService: ReleaseAlertService
+        let assetDiscoveryService: any GemAssetDiscoveryServiceProtocol
+        let gemAssetsService: any GemAssetsServiceProtocol
+        let explorerService: any GemExplorerServiceProtocol
+        let gatewayService: GatewayService
+        let nftService: any GemNftServiceProtocol
+        let avatarService: any GemAvatarServiceProtocol
+        let swapService: any GemSwapServiceProtocol
+        let appUpdateService: any GemAppUpdateServiceProtocol
         let rateService: RateService
-        let subscriptionsService: SubscriptionService
         let deviceObserverService: DeviceObserverService
         let onstartService: OnstartService
-        let onstartAsyncService: OnstartAsyncService
-        let onstartWalletService: OnstartWalletService
-        let walletConnectorManager: WalletConnectorManager
-        let perpetualService: PerpetualService
+        let appStartService: any GemAppStartServiceProtocol
+        let pushNotificationEnablerService: PushNotificationEnablerService
+        let walletConnectorPresenter: WalletConnectorPresenter
+        let chainService: GemChainService
+        let receiveService: GemReceiveService
+        let transactionFormatter: GemTransactionFormatter
+        let perpetualService: any GemPerpetualServiceProtocol
         let hyperliquidObserverService: any PerpetualObservable
-        let nameService: any NameServiceable
-        let addressNameService: AddressNameService
-        let activityService: ActivityService
-        let eventPresenterService: EventPresenterService
+        let nameService: any GemNameServiceProtocol
+        let toastPresenter: ToastPresenter
+        let addressService: GemAddressService
         let viewModelFactory: ViewModelFactory
-        let rewardsService: RewardsService
-        let walletSearchService: WalletSearchService
-        let assetSearchService: AssetSearchService
+        let rewardsService: any GemRewardsServiceProtocol
+        let searchService: any GemSearchServiceProtocol
         let appLifecycleService: AppLifecycleService
-        let inAppNotificationService: InAppNotificationService
-        let portfolioService: PortfolioService
-        let fiatService: FiatService
-        let contactService: ContactService
-        let supportChatService: SupportChatService
+        let inAppNotificationService: any GemNotificationServiceProtocol
+        let portfolioService: any GemPortfolioServiceProtocol
+        let fiatService: any GemFiatServiceProtocol
+        let contactService: any GemContactServiceProtocol
+        let supportService: any GemSupportServiceProtocol
+        let supportStore: GemstoneSupportStore
     }
 }

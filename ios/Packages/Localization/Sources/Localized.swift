@@ -237,6 +237,8 @@ public enum Localized {
     public static func copied(_ p1: Any) -> String {
       return Localized.tr("Localizable", "common.copied", String(describing: p1), fallback: "Copied: %@")
     }
+    /// Copied to clipboard
+    public static let copiedToClipboard = Localized.tr("Localizable", "common.copied_to_clipboard", fallback: "Copied to clipboard")
     /// Copy
     public static let copy = Localized.tr("Localizable", "common.copy", fallback: "Copy")
     /// Delete
@@ -393,6 +395,8 @@ public enum Localized {
     public static let balancesActivityOutdated = Localized.tr("Localizable", "errors.balances_activity_outdated", fallback: "Balances and activity may be outdated.")
     /// Camera permission not granted. Please enable camera access in settings to scan QR code.
     public static let cameraPermissionsNotGranted = Localized.tr("Localizable", "errors.camera_permissions_not_granted", fallback: "Camera permission not granted. Please enable camera access in settings to scan QR code.")
+    /// Cancelled
+    public static let cancelled = Localized.tr("Localizable", "errors.cancelled", fallback: "Cancelled")
     /// Create Wallet Error: %@
     public static func createWallet(_ p1: Any) -> String {
       return Localized.tr("Localizable", "errors.create_wallet", String(describing: p1), fallback: "Create Wallet Error: %@")
@@ -423,6 +427,14 @@ public enum Localized {
     public static let invalidNetworkId = Localized.tr("Localizable", "errors.invalid_network_id", fallback: "Invalid Network ID")
     /// Invalid URL
     public static let invalidUrl = Localized.tr("Localizable", "errors.invalid_url", fallback: "Invalid URL")
+    /// Couldn't access this wallet's keys on this device. If you have your recovery phrase, remove this wallet and import it again to restore access.
+    public static let keystoreAccess = Localized.tr("Localizable", "errors.keystore_access", fallback: "Couldn't access this wallet's keys on this device. If you have your recovery phrase, remove this wallet and import it again to restore access.")
+    /// Network error: %@
+    public static func networkError(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "errors.network_error", String(describing: p1), fallback: "Network error: %@")
+    }
+    /// The Internet connection appears to be offline.
+    public static let networkOffline = Localized.tr("Localizable", "errors.network_offline", fallback: "The Internet connection appears to be offline.")
     /// No data available
     public static let noDataAvailable = Localized.tr("Localizable", "errors.no_data_available", fallback: "No data available")
     /// No internet connection
@@ -453,6 +465,8 @@ public enum Localized {
     public static func validation(_ p1: Any) -> String {
       return Localized.tr("Localizable", "errors.validation", String(describing: p1), fallback: "Validation Error: %@")
     }
+    /// This wallet has no account for this network
+    public static let walletAccountMissing = Localized.tr("Localizable", "errors.wallet_account_missing", fallback: "This wallet has no account for this network")
     public enum Connections {
       /// Invalid parameters provided for sending a transaction.
       public static let invalidSendParameters = Localized.tr("Localizable", "errors.connections.invalid_send_parameters", fallback: "Invalid parameters provided for sending a transaction.")
@@ -470,6 +484,8 @@ public enum Localized {
       public static let userCancelled = Localized.tr("Localizable", "errors.connections.user_cancelled", fallback: "User cancelled")
     }
     public enum Import {
+      /// Invalid private key
+      public static let invalidPrivateKey = Localized.tr("Localizable", "errors.import.invalid_private_key", fallback: "Invalid private key")
       /// Invalid Secret Phrase
       public static let invalidSecretPhrase = Localized.tr("Localizable", "errors.import.invalid_secret_phrase", fallback: "Invalid Secret Phrase")
       /// Invalid Secret Phrase word: %@

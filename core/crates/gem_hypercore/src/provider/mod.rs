@@ -21,6 +21,7 @@ pub mod transaction_state_mapper;
 pub mod transactions;
 pub mod transactions_mapper;
 pub mod websocket_mapper;
+pub mod websocket_subscriptions;
 
 pub struct BroadcastProvider;
 

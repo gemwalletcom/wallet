@@ -17,14 +17,11 @@ interface SessionDao {
     fun getSession(): DbSession?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun update(session: DbSession)
+    fun updateNow(session: DbSession)
 
-    @Query("UPDATE session SET currency = :currency WHERE id = 1")
-    suspend fun setCurrency(currency: Currency)
+    @Query("DELETE FROM session")
+    fun clearNow()
 
     @Query("SELECT currency FROM session WHERE id = 1")
     suspend fun getCurrency(): Currency?
-
-    @Query("DELETE FROM session")
-    suspend fun clear()
 }

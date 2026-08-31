@@ -1,13 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAddressService
+import class Gemstone.GemPaymentService
+import GemstonePrimitivesTestKit
 import Components
 import Formatters
 import Primitives
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
-import WalletSessionService
-import WalletSessionServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 
 @MainActor
 struct RecipientSceneViewModelTests {
@@ -152,11 +155,13 @@ extension RecipientSceneViewModel {
             wallet: wallet,
             asset: asset,
             walletSessionService: WalletSessionService.mock(),
-            nameService: .mock(),
+            nameService: GemNameServiceMock(nameRecord: .mock()),
             type: type,
             recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
+            addressService: GemAddressService(),
+            paymentService: GemPaymentService(),
         )
     }
 }

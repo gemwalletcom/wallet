@@ -2,7 +2,7 @@
 
 import Components
 import Contacts
-import ContactService
+import GemstoneServices
 import PrimitivesComponents
 import Style
 import SwiftUI
@@ -10,6 +10,7 @@ import SwiftUI
 struct AddContactNavigationView: View {
     @Environment(\.contactService) private var contactService
     @Environment(\.nameService) private var nameService
+    @Environment(\.addressService) private var addressService
 
     let action: AddContactType
 
@@ -18,9 +19,9 @@ struct AddContactNavigationView: View {
             Group {
                 switch action {
                 case let .new(recipient):
-                    ManageContactScene(model: ManageContactViewModel(service: contactService, nameService: nameService, mode: .add(recipient)))
+                    ManageContactScene(model: ManageContactViewModel(service: contactService, nameService: nameService, addressService: addressService, mode: .add(recipient)))
                 case let .existing(recipient):
-                    ContactsNavigationView(model: ContactsViewModel(service: contactService, nameService: nameService, mode: .addAddress(recipient)))
+                    ContactsNavigationView(model: ContactsViewModel(service: contactService, nameService: nameService, addressService: addressService, mode: .addAddress(recipient)))
                 }
             }
             .toolbarDismissItem(type: .close, placement: .cancellationAction)

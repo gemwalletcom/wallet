@@ -73,16 +73,6 @@ data class SupportTyping (
 )
 
 @Serializable
-sealed class SupportAction {
-	@Serializable
-	@SerialName("typing")
-	data class Typing(val data: SupportTypingStatus): SupportAction()
-	@Serializable
-	@SerialName("lastSeen")
-	object LastSeen: SupportAction()
-}
-
-@Serializable
 sealed class SupportStreamEvent {
 	@Serializable
 	@SerialName("message")

@@ -1,12 +1,13 @@
 package com.gemwallet.android.di
 
 import android.content.Context
-import com.gemwallet.android.cases.device.RequestPushToken
+import com.gemwallet.android.application.device.cases.RequestPushToken
 import com.gemwallet.android.flavors.StoreRequestPushToken
 import com.gemwallet.android.flavors.isNotificationsAvailable
 import com.gemwallet.android.model.BuildInfo
 import com.gemwallet.android.model.NotificationsAvailable
-import com.gemwallet.android.services.ShowSystemNotification
+import com.gemwallet.android.application.notifications.cases.ShowSystemNotification
+import com.gemwallet.android.services.ShowSystemNotificationImpl
 import com.wallet.core.primitives.PlatformStore
 import dagger.Module
 import dagger.Provides
@@ -41,8 +42,8 @@ object BuildInfoModule {
 
     @Provides
     @Singleton
-    fun provideShowSystemNotification(@ApplicationContext context: Context): com.gemwallet.android.cases.pushes.ShowSystemNotification {
-        return ShowSystemNotification(context)
+    fun provideShowSystemNotification(@ApplicationContext context: Context): ShowSystemNotification {
+        return ShowSystemNotificationImpl(context)
     }
 
     @Provides

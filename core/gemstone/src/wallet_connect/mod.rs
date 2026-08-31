@@ -5,11 +5,10 @@ use gem_wallet_connect::{
     WalletConnectTransactionType as WcWalletConnectTransactionType, WalletConnectVerifier, config_session_properties,
 };
 use primitives::{
-    Account, Chain, ChainAddress, TransferDataOutputType, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest, WalletConnectionSessionAppMetadata,
+    Account, Chain, ChainAddress, TransactionType, TransferDataOutputType, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest,
     WalletConnectionVerificationStatus,
 };
 use std::collections::HashMap;
-use std::str::FromStr;
 
 use crate::{
     GemstoneError,
@@ -17,9 +16,7 @@ use crate::{
     models::swap::GemApprovalData,
 };
 
-mod simulation;
-mod simulation_client;
-pub use simulation_client::WalletConnectSimulationClient;
+pub(crate) mod simulation;
 
 // UniFFI remote enum declaration
 #[uniffi::remote(Enum)]
@@ -37,7 +34,7 @@ pub enum WalletConnectLink {
     Session { topic: String },
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct WCEthereumTransactionData {
     pub chain_id: Option<u64>,
     pub from: String,
@@ -60,18 +57,18 @@ pub struct Account {
     pub extended_public_key: Option<String>,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct WCSolanaTransactionData {
     pub transaction: String,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct WCSuiTransactionData {
     pub transaction: String,
     pub wallet_address: String,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum WalletConnectAction {
     SignMessage {
         chain: Chain,
@@ -113,14 +110,14 @@ pub enum WalletConnectTransactionType {
     Tron { output_type: TransferDataOutputType },
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum WalletConnectChainOperation {
     AddChain,
     SwitchChain { chain: Chain },
     GetChainId,
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone)]
 #[allow(clippy::large_enum_variant)]
 pub enum WalletConnectTransaction {
     Ethereum {
@@ -130,6 +127,7 @@ pub enum WalletConnectTransaction {
     Solana {
         data: WCSolanaTransactionData,
         output_type: TransferDataOutputType,
+        transaction_type: TransactionType,
     },
     Sui {
         data: WCSuiTransactionData,
@@ -145,7 +143,7 @@ pub enum WalletConnectTransaction {
     },
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone)]
 pub enum EvmTransactionKind {
     Transfer,
     ContractCall,
@@ -301,9 +299,14 @@ impl From<WcWalletConnectTransaction> for WalletConnectTransaction {
                 data: data.into(),
                 kind: kind.into(),
             },
-            WcWalletConnectTransaction::Solana { data, output_type } => Self::Solana {
+            WcWalletConnectTransaction::Solana {
+                data,
+                output_type,
+                transaction_type,
+            } => Self::Solana {
                 data: WCSolanaTransactionData { transaction: data.transaction },
                 output_type,
+                transaction_type,
             },
             WcWalletConnectTransaction::Sui { data, output_type } => Self::Sui {
                 data: WCSuiTransactionData {
@@ -339,34 +342,36 @@ impl From<WcWalletConnectResponseType> for WalletConnectResponseType {
 
 // WalletConnect UniFFI object
 
-#[derive(uniffi::Object)]
-pub struct WalletConnect {}
-
-impl Default for WalletConnect {
-    fn default() -> Self {
-        Self::new()
-    }
+pub fn wallet_connect_namespace(chain: Chain) -> Option<String> {
+    WalletConnectCAIP2::get_namespace(chain)
 }
 
-#[uniffi::export]
+pub fn wallet_connect_reference(chain: Chain) -> Option<String> {
+    WalletConnectCAIP2::get_reference(chain)
+}
+
+pub fn wallet_connect_chain(chain_id: String) -> Option<Chain> {
+    WalletConnectCAIP2::parse_chain_id(chain_id)
+}
+
+#[derive(Default)]
+pub struct WalletConnect {}
+
 impl WalletConnect {
-    #[uniffi::constructor]
     pub fn new() -> Self {
         Self {}
     }
 
-    pub fn get_namespace(&self, chain: String) -> Option<String> {
-        let chain = Chain::from_str(&chain).ok()?;
-        WalletConnectCAIP2::get_namespace(chain)
+    pub fn validate_origin(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> WalletConnectionVerificationStatus {
+        WalletConnectVerifier::validate_origin(metadata_url, origin, validation)
     }
 
-    pub fn get_reference(&self, chain: String) -> Option<String> {
-        let chain = Chain::from_str(&chain).ok()?;
-        WalletConnectCAIP2::get_reference(chain)
-    }
-
-    pub fn parse_chain_id(&self, chain_id: String) -> Option<String> {
-        Some(WalletConnectCAIP2::parse_chain_id(chain_id)?.to_string())
+    pub fn config_session_properties(&self, properties: HashMap<String, String>, caip2_chains: Vec<String>, accounts: Vec<Account>) -> HashMap<String, String> {
+        let chains: Vec<Chain> = caip2_chains
+            .into_iter()
+            .filter_map(|caip2| WalletConnectCAIP2::get_chain_from_id(Some(caip2)).ok())
+            .collect();
+        config_session_properties(properties, &chains, &accounts)
     }
 
     pub fn parse_account(&self, account: String) -> Option<ChainAddress> {
@@ -383,10 +388,6 @@ impl WalletConnect {
         };
         let action = WalletConnectRequestHandler::parse_request(request).map_err(|e| GemstoneError::AnyError { msg: e })?;
         Ok(action.into())
-    }
-
-    pub fn validate_origin(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> WalletConnectionVerificationStatus {
-        WalletConnectVerifier::validate_origin(metadata_url, origin, validation)
     }
 
     pub fn encode_sign_message(&self, chain: Chain, signature: String) -> WalletConnectResponseType {
@@ -413,14 +414,6 @@ impl WalletConnect {
         simulation::decode_message(chain, sign_type, data)
     }
 
-    pub fn config_session_properties(&self, properties: HashMap<String, String>, caip2_chains: Vec<String>, accounts: Vec<Account>) -> HashMap<String, String> {
-        let chains: Vec<Chain> = caip2_chains
-            .into_iter()
-            .filter_map(|caip2| WalletConnectCAIP2::get_chain_from_id(Some(caip2)).ok())
-            .collect();
-        config_session_properties(properties, &chains, &accounts)
-    }
-
     pub fn decode_send_transaction(&self, transaction_type: WalletConnectTransactionType, data: String) -> Result<WalletConnectTransaction, GemstoneError> {
         let wc_type: WcWalletConnectTransactionType = transaction_type.into();
         let wc_result = WalletConnectRequestHandler::decode_send_transaction(wc_type, data).map_err(|e| GemstoneError::AnyError { msg: e })?;
@@ -428,46 +421,26 @@ impl WalletConnect {
     }
 }
 
-#[uniffi::export]
-pub fn wallet_connect_app_short_name(metadata: WalletConnectionSessionAppMetadata) -> String {
-    metadata.short_name()
-}
-
 #[cfg(test)]
 mod tests {
     use primitives::{Chain, ChainAddress, SimulationWarning, SimulationWarningType};
 
     #[test]
-    fn short_name_strips_separators() {
-        use primitives::WalletConnectionSessionAppMetadata;
-        let meta = |name: &str| WalletConnectionSessionAppMetadata {
-            name: name.to_string(),
-            description: String::new(),
-            url: String::new(),
-            icon: String::new(),
-        };
-        assert_eq!(meta("Polymarket - Buy & Sell").short_name(), "Polymarket");
-        assert_eq!(meta("Uniswap: Trade Crypto").short_name(), "Uniswap");
-        assert_eq!(meta("OpenSea | NFT Marketplace").short_name(), "OpenSea");
-        assert_eq!(meta("  Compound  ").short_name(), "Compound");
-        assert_eq!(meta("Sushiswap").short_name(), "Sushiswap");
-        assert_eq!(meta(&"A".repeat(100)).short_name(), "A".repeat(80));
+    fn parse_chain_id_uses_shared_caip2_parser() {
+        assert_eq!(super::wallet_connect_chain("eip155:8453".to_string()), Some(Chain::Base));
+        assert_eq!(super::wallet_connect_chain("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string()), Some(Chain::Solana));
+        assert_eq!(super::wallet_connect_chain("ton:-239".to_string()), Some(Chain::Ton));
+        assert_eq!(super::wallet_connect_chain("tron:0x2b6653dc".to_string()), Some(Chain::Tron));
+        assert_eq!(super::wallet_connect_chain("eip155:8453:extra".to_string()), None);
+        assert_eq!(super::wallet_connect_chain("eip155:99999".to_string()), None);
+        assert_eq!(super::wallet_connect_chain("bip122:000000000019d6689c085ae165831e93".to_string()), None);
     }
 
     #[test]
-    fn parse_chain_id_uses_shared_caip2_parser() {
-        let wallet_connect = super::WalletConnect::new();
-
-        assert_eq!(wallet_connect.parse_chain_id("eip155:8453".to_string()), Some(Chain::Base.to_string()));
-        assert_eq!(
-            wallet_connect.parse_chain_id("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string()),
-            Some(Chain::Solana.to_string())
-        );
-        assert_eq!(wallet_connect.parse_chain_id("ton:-239".to_string()), Some(Chain::Ton.to_string()));
-        assert_eq!(wallet_connect.parse_chain_id("tron:0x2b6653dc".to_string()), Some(Chain::Tron.to_string()));
-        assert_eq!(wallet_connect.parse_chain_id("eip155:8453:extra".to_string()), None);
-        assert_eq!(wallet_connect.parse_chain_id("eip155:99999".to_string()), None);
-        assert_eq!(wallet_connect.parse_chain_id("bip122:000000000019d6689c085ae165831e93".to_string()), None);
+    fn namespace_and_reference_come_from_the_chain_table() {
+        assert_eq!(super::wallet_connect_namespace(Chain::Base), Some("eip155".to_string()));
+        assert_eq!(super::wallet_connect_reference(Chain::Base), Some("8453".to_string()));
+        assert_eq!(super::wallet_connect_namespace(Chain::Solana), Some("solana".to_string()));
     }
 
     #[test]

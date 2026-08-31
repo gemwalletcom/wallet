@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ActivityService
+import GemstoneServices
 import Foundation
 import Primitives
 import PrimitivesComponents
@@ -12,7 +12,7 @@ public final class RecentAssetsModel {
     private static let sectionLimit: Int = 10
 
     private let walletId: WalletId
-    private let activityService: ActivityService
+    private let recentAssetsService: any RecentAssetsServiceable
 
     public let query: ObservableQuery<RecentActivityRequest>
     public var isPresenting: Bool = false
@@ -21,10 +21,10 @@ public final class RecentAssetsModel {
         walletId: WalletId,
         types: [RecentActivityType],
         filters: [AssetsRequestFilter] = [],
-        activityService: ActivityService,
+        recentAssetsService: any RecentAssetsServiceable,
     ) {
         self.walletId = walletId
-        self.activityService = activityService
+        self.recentAssetsService = recentAssetsService
         query = ObservableQuery(
             RecentActivityRequest(
                 walletId: walletId,
@@ -45,7 +45,7 @@ public final class RecentAssetsModel {
             walletId: walletId,
             types: query.request.types,
             filters: query.request.filters,
-            activityService: activityService,
+            recentAssetsService: recentAssetsService,
             onSelect: onSelect,
         )
     }

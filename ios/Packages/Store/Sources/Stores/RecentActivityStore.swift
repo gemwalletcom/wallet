@@ -11,6 +11,10 @@ public struct RecentActivityStore: Sendable {
         self.db = db.dbQueue
     }
 
+    public func add(_ data: RecentActivityData, walletId: WalletId) throws {
+        try add(assetId: data.assetId, toAssetId: data.toAssetId, walletId: walletId, type: data.type)
+    }
+
     public func add(
         assetId: AssetId,
         toAssetId: AssetId?,
@@ -26,6 +30,12 @@ public struct RecentActivityStore: Sendable {
                 type: type,
                 createdAt: createdAt,
             ).insert(db)
+        }
+    }
+
+    public func getRecent(walletId: WalletId, types: [RecentActivityType]) throws -> [RecentAsset] {
+        try db.read { db in
+            try RecentActivityRequest(walletId: walletId, types: types).fetch(db)
         }
     }
 

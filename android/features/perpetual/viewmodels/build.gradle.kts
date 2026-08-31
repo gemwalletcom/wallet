@@ -50,7 +50,7 @@ android {
 dependencies {
     api(project(":ui-models"))
     implementation(project(":ui"))
-    implementation(project(":data:repositories"))
+    implementation(project(":data:services:gemstone"))
 
     implementation(libs.lifecycle.viewmodel.savedstate)
 
@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.lifecycle.runtime.ktx)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk.android)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

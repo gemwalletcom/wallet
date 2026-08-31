@@ -1,12 +1,12 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
-import com.gemwallet.android.application.pricealerts.coordinators.HasAssetPriceAlerts
-import com.gemwallet.android.data.repositories.pricealerts.PriceAlertRepository
+import com.gemwallet.android.application.pricealerts.cases.HasAssetPriceAlerts
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceAlertStore
 import com.wallet.core.primitives.AssetId
 
 class HasAssetPriceAlertsImpl(
-    private val priceAlertRepository: PriceAlertRepository,
+    private val priceAlertStore: GemstonePriceAlertStore,
 ) : HasAssetPriceAlerts {
-    override suspend fun invoke(assetId: AssetId): Boolean =
-        priceAlertRepository.hasAssetPriceAlerts(assetId)
+
+    override suspend fun invoke(assetId: AssetId): Boolean = priceAlertStore.hasAssetPriceAlerts(assetId)
 }

@@ -1,120 +1,12 @@
 use std::collections::BTreeMap;
 use std::sync::LazyLock;
 
-use num_bigint::BigUint;
 use num_traits::ToPrimitive;
 use primitives::swap::SwapStatus;
 use primitives::{AssetId, Chain, TransactionSwapMetadata, known_assets::*};
 use serde::{Deserialize, Serialize};
-use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
 
 use crate::{SwapResult, SwapperChainAsset, SwapperProvider};
-
-const STATE_CHAIN_BLOCK_SECONDS: f64 = 6.0;
-const ORACLE_SLIPPAGE_DISABLE_BPS: u8 = 255;
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct QuoteRequest {
-    pub amount: String,
-    pub src_chain: String,
-    pub src_asset: String,
-    pub dest_chain: String,
-    pub dest_asset: String,
-    pub is_vault_swap: bool,
-    pub dca_enabled: bool,
-    pub broker_commission_bps: Option<u32>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct DcaParams {
-    pub number_of_chunks: u32,
-    pub chunk_interval_blocks: u32,
-}
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct QuoteResponse {
-    #[serde(deserialize_with = "deserialize_biguint_from_str", serialize_with = "serialize_biguint")]
-    pub egress_amount: BigUint,
-    pub recommended_slippage_tolerance_percent: f64,
-    #[serde(default)]
-    pub recommended_live_price_slippage_tolerance_percent: Option<f64>,
-    #[serde(default)]
-    pub recommended_retry_duration_minutes: Option<f64>,
-    pub estimated_duration_seconds: f64,
-    #[serde(rename = "type")]
-    pub quote_type: String,
-    pub deposit_amount: String,
-    pub is_vault_swap: bool,
-    pub boost_quote: Option<BoostQuote>,
-    pub estimated_price: String,
-    pub dca_params: Option<DcaParams>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct BoostQuote {
-    #[serde(deserialize_with = "deserialize_biguint_from_str", serialize_with = "serialize_biguint")]
-    pub egress_amount: BigUint,
-    pub recommended_slippage_tolerance_percent: f64,
-    #[serde(default)]
-    pub recommended_live_price_slippage_tolerance_percent: Option<f64>,
-    #[serde(default)]
-    pub recommended_retry_duration_minutes: Option<f64>,
-    pub estimated_duration_seconds: f64,
-    pub estimated_boost_fee_bps: u32,
-    pub max_boost_fee_bps: u32,
-    pub estimated_price: String,
-    pub dca_params: Option<DcaParams>,
-}
-
-impl QuoteResponse {
-    pub fn slippage_bps(&self) -> u32 {
-        (self.recommended_slippage_tolerance_percent * 100.0) as u32
-    }
-
-    pub fn live_price_slippage_bps(&self) -> Option<u8> {
-        recommended_live_price_slippage_bps(self.recommended_live_price_slippage_tolerance_percent)
-    }
-
-    pub fn retry_duration_blocks(&self) -> Option<u32> {
-        recommended_retry_duration_blocks(self.recommended_retry_duration_minutes)
-    }
-}
-
-impl BoostQuote {
-    pub fn slippage_bps(&self) -> u32 {
-        (self.recommended_slippage_tolerance_percent * 100.0) as u32
-    }
-
-    pub fn live_price_slippage_bps(&self) -> Option<u8> {
-        recommended_live_price_slippage_bps(self.recommended_live_price_slippage_tolerance_percent)
-    }
-
-    pub fn retry_duration_blocks(&self) -> Option<u32> {
-        recommended_retry_duration_blocks(self.recommended_retry_duration_minutes)
-    }
-}
-
-fn recommended_live_price_slippage_bps(percent: Option<f64>) -> Option<u8> {
-    let percent = percent?;
-    if !percent.is_finite() || percent < 0.0 {
-        return None;
-    }
-
-    let bps = (percent * 100.0).round() as u32;
-    if bps < ORACLE_SLIPPAGE_DISABLE_BPS as u32 { Some(bps as u8) } else { None }
-}
-
-fn recommended_retry_duration_blocks(minutes: Option<f64>) -> Option<u32> {
-    let minutes = minutes?;
-    if !minutes.is_finite() || minutes <= 0.0 {
-        return None;
-    }
-
-    Some((minutes * 60.0 / STATE_CHAIN_BLOCK_SECONDS).ceil() as u32)
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -269,37 +161,6 @@ pub mod test {
 
     fn swap_response(json: &str) -> SwapTxResponse {
         serde_json::from_str(json).unwrap()
-    }
-
-    #[test]
-    pub fn get_quote_response() {
-        let quote_response = serde_json::from_str::<Vec<QuoteResponse>>(include_str!("./test/btc_eth_quote.json")).unwrap();
-
-        assert!(quote_response[0].boost_quote.is_some());
-    }
-
-    #[test]
-    fn test_quote_recommendations_convert_to_broker_units() {
-        let cases: [(f64, f64, Option<u8>, Option<u32>); 2] = [(1.0, 5.0, Some(100), Some(50)), (2.55, 0.0, None, None)];
-
-        for (live_price_slippage_percent, retry_duration_minutes, expected_live_price_slippage_bps, expected_retry_duration_blocks) in cases {
-            let quote_response = serde_json::from_value::<QuoteResponse>(serde_json::json!({
-                "egressAmount": "1000",
-                "recommendedSlippageTolerancePercent": 0.5,
-                "recommendedLivePriceSlippageTolerancePercent": live_price_slippage_percent,
-                "recommendedRetryDurationMinutes": retry_duration_minutes,
-                "estimatedDurationSeconds": 60,
-                "type": "REGULAR",
-                "depositAmount": "100",
-                "isVaultSwap": true,
-                "estimatedPrice": "10"
-            }))
-            .unwrap();
-
-            assert_eq!(quote_response.slippage_bps(), 50);
-            assert_eq!(quote_response.live_price_slippage_bps(), expected_live_price_slippage_bps);
-            assert_eq!(quote_response.retry_duration_blocks(), expected_retry_duration_blocks);
-        }
     }
 
     #[test]

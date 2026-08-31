@@ -1,5 +1,7 @@
 package com.gemwallet.android.model
 
+import com.gemwallet.android.serializer.GemRecipientSerializer
+import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
 import com.gemwallet.android.serializer.packRoutePayload
 import com.gemwallet.android.serializer.unpackRoutePayload
@@ -23,8 +25,9 @@ sealed interface AmountParams {
     @SerialName("transfer")
     data class Transfer(
         override val assetId: AssetId,
-        val destination: DestinationAddress,
+        val destination: @Serializable(with = GemRecipientSerializer::class) GemRecipient,
         val memo: String? = null,
+        val references: List<String> = emptyList(),
         override val amount: String? = null,
     ) : AmountParams {
         override val transactionType: TransactionType get() = TransactionType.Transfer

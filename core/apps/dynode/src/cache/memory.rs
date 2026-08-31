@@ -122,8 +122,8 @@ impl CacheProvider for MemoryCache {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::Url;
     use crate::proxy::constants::JSON_CONTENT_TYPE;
+    use crate::testkit::config::chain_config;
     use primitives::{HOUR, MINUTE};
     use reqwest::StatusCode;
     fn create_test_cache_config() -> CacheConfig {
@@ -141,22 +141,8 @@ mod tests {
         .unwrap()
     }
 
-    fn create_chain_config(chain: Chain) -> ChainConfig {
-        ChainConfig {
-            chain,
-            poll_interval_seconds: None,
-            latency: None,
-            overrides: None,
-            allowlist: None,
-            urls: vec![Url {
-                url: "https://example.com".to_string(),
-                headers: None,
-            }],
-        }
-    }
-
     fn create_test_cache() -> MemoryCache {
-        let chains = [create_chain_config(Chain::Ethereum)];
+        let chains = [chain_config(Chain::Ethereum, "https://example.com")];
         MemoryCache::new(create_test_cache_config(), chains.iter())
     }
 
@@ -213,7 +199,7 @@ mod tests {
             }
         }))
         .unwrap();
-        let chains = [create_chain_config(Chain::Ethereum)];
+        let chains = [chain_config(Chain::Ethereum, "https://example.com")];
         let cache = MemoryCache::new(config, chains.iter());
         let chain = Chain::Ethereum;
 
@@ -258,7 +244,7 @@ mod tests {
             }
         }))
         .unwrap();
-        let chains = [create_chain_config(Chain::Aptos)];
+        let chains = [chain_config(Chain::Aptos, "https://example.com")];
         let cache = MemoryCache::new(config, chains.iter());
         let chain = Chain::Aptos;
 
@@ -299,7 +285,7 @@ mod tests {
     #[tokio::test]
     async fn test_eviction() {
         let config: CacheConfig = serde_json::from_value(serde_json::json!({ "max_memory": "0 B" })).unwrap();
-        let chains = [create_chain_config(Chain::Ethereum)];
+        let chains = [chain_config(Chain::Ethereum, "https://example.com")];
         let cache = MemoryCache::new(config, chains.iter());
         let chain = Chain::Ethereum;
 
@@ -335,7 +321,7 @@ mod tests {
             }
         }))
         .unwrap();
-        let chains = [create_chain_config(Chain::Ethereum)];
+        let chains = [chain_config(Chain::Ethereum, "https://example.com")];
         let cache = MemoryCache::new(config, chains.iter());
 
         assert_eq!(

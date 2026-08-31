@@ -94,7 +94,7 @@ impl RequestFailureSignal {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::sync::url;
+    use crate::testkit::config::url;
     use primitives::MINUTE;
 
     #[tokio::test]

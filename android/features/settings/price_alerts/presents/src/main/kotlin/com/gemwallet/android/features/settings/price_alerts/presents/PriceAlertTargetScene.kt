@@ -52,7 +52,6 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertTargetError
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlertDirection
@@ -78,7 +77,6 @@ fun PriceAlertTargetScene(
     assetPriceFormatted: String = "",
     assetPriceChangeFormatted: String = "",
     assetValueDirection: ValueDirection = ValueDirection.None,
-    error: PriceAlertTargetError?,
     buttonState: ButtonState,
     onType: (PriceAlertNotificationType) -> Unit,
     onDirection: (PriceAlertDirection) -> Unit,
@@ -273,7 +271,6 @@ fun PriceAlertTargetScenePricePreview() {
             resolvedDirection = PriceAlertDirection.Up,
             priceSuggestions = listOf("$850" to "850", "$950" to "950"),
             percentageSuggestions = listOf(3, 6, 9),
-            error = null,
             buttonState = ButtonState.Enabled,
             onType = {},
             onDirection = {},
@@ -296,7 +293,6 @@ fun PriceAlertTargetScenePercentagePreview() {
             resolvedDirection = PriceAlertDirection.Up,
             priceSuggestions = listOf("$850" to "850", "$950" to "950"),
             percentageSuggestions = listOf(3, 6, 9),
-            error = null,
             buttonState = ButtonState.Enabled,
             onType = {},
             onDirection = {},

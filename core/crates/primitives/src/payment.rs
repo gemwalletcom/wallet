@@ -27,6 +27,7 @@ pub struct PaymentRequest {
     pub address: String,
     pub amount: Option<PaymentAmount>,
     pub memo: Option<String>,
+    pub references: Option<Vec<String>>,
     pub asset_id: Option<AssetId>,
 }
 
@@ -34,5 +35,5 @@ pub struct PaymentRequest {
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(tag = "type", content = "content", rename_all = "camelCase")]
 pub enum PaymentLink {
-    SolanaPay(String),
+    SolanaPay { url: String },
 }

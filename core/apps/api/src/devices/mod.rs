@@ -371,7 +371,7 @@ pub async fn get_device_fiat_assets_v2(
 
 #[get("/devices/fiat/quotes/<quote_type>/<asset_id>?<amount>&<currency>&<provider>")]
 pub async fn get_fiat_quotes_v2(
-    _device: AuthenticatedDeviceWallet,
+    device: AuthenticatedDeviceWallet,
     quote_type: FiatQuoteTypeParam,
     asset_id: AssetIdParam,
     amount: f64,
@@ -380,15 +380,17 @@ pub async fn get_fiat_quotes_v2(
     ip: std::net::IpAddr,
     client: &State<FiatQuotesClient>,
 ) -> Result<ApiResponse<FiatQuotes>, ApiError> {
+    let ip_address = ip.to_string();
     let quote_request = FiatQuoteRequest {
         asset_id: asset_id.0,
         quote_type: quote_type.0,
         amount,
         currency: currency.0.as_ref().to_string(),
         provider_id: provider.map(|p| p.0.id().to_string()),
-        ip_address: ip.to_string(),
+        ip_address: ip_address.clone(),
     };
-    let quotes = client.get_quotes(quote_request).await?;
+    let context = fiat::FiatDeviceContext::new(device.device_row.id, device.wallet_id, device.wallet_type, ip_address);
+    let quotes = client.get_device_quotes(quote_request, &context).await?;
     Ok(quotes.into())
 }
 
@@ -401,7 +403,8 @@ pub async fn get_fiat_quote_url_v2(
 ) -> Result<ApiResponse<FiatQuoteUrl>, ApiError> {
     let locale = device.device_row.locale.as_ref();
     let ip_address = ip.to_string();
-    let url = client.get_quote_url(quote_id, device.wallet_id, device.device_row.id, &ip_address, locale).await?;
+    let context = fiat::FiatDeviceContext::new(device.device_row.id, device.wallet_id, device.wallet_type, ip_address);
+    let url = client.get_quote_url(quote_id, &context, locale).await?;
     Ok(url.into())
 }
 

@@ -1,10 +1,12 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
-import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
+import com.gemwallet.android.application.perpetual.cases.GetPerpetual
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.ext.PerpetualFormatter.toGemProvider
+import uniffi.gemstone.GemPerpetual
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
@@ -16,17 +18,17 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class GetPerpetualImpl @Inject constructor(
-    private val perpetualRepository: PerpetualRepository
+    private val perpetualStore: GemstonePerpetualStore
 ) : GetPerpetual {
 
     override fun getPerpetual(perpetualId: PerpetualId): Flow<PerpetualDetailsDataAggregate?> {
-        return perpetualRepository.getPerpetual(perpetualId).map {
+        return perpetualStore.observePerpetual(perpetualId).map {
             PerpetualDetailsDataAggregateImpl(it ?: return@map null)
         }
     }
 
     override fun getPerpetualByAssetId(assetId: AssetId): Flow<PerpetualDetailsDataAggregate?> {
-        return perpetualRepository.getPerpetualByAssetId(assetId).map {
+        return perpetualStore.observePerpetualByAssetId(assetId).map {
             PerpetualDetailsDataAggregateImpl(it ?: return@map null)
         }
     }
@@ -49,7 +51,7 @@ class PerpetualDetailsDataAggregateImpl(
 
     override val openInterest: String = abbreviatedFormatter.string(data.perpetual.openInterest)
 
-    override val funding: String = (data.perpetual.funding * HOURS_PER_YEAR).formatAsPercentage()
+    override val funding: String = GemPerpetual(data.perpetual.provider.toGemProvider()).use { it.fundingApr(data.perpetual.funding) }.formatAsPercentage()
 
     override val maxLeverage: Int = data.perpetual.maxLeverage.toInt()
 
@@ -58,8 +60,4 @@ class PerpetualDetailsDataAggregateImpl(
     override val identifier: String = data.perpetual.identifier
 
     override val isIsolatedOnly: Boolean = data.perpetual.isIsolatedOnly
-
-    private companion object {
-        const val HOURS_PER_YEAR = 24 * 365
-    }
 }

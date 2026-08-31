@@ -7,7 +7,6 @@ use rocket::http::Status;
 use super::route::Route;
 
 pub(super) struct AccessLog<'a> {
-    id: String,
     caller: &'a str,
     group: &'a str,
     service: &'a str,
@@ -19,7 +18,6 @@ pub(super) struct AccessLog<'a> {
 impl<'a> AccessLog<'a> {
     pub(super) fn new(caller: &'a str, route: &'a Route, method: &'a Method, uri: &'a str) -> Self {
         Self {
-            id: format!("{:016x}", rand::random::<u64>()),
             caller,
             group: &route.group,
             service: &route.service,
@@ -31,7 +29,6 @@ impl<'a> AccessLog<'a> {
 
     pub(super) fn rejected(method: &'a Method, uri: &'a str, status: u16, reason: &str) {
         let access = Self {
-            id: format!("{:016x}", rand::random::<u64>()),
             caller: "none",
             group: "none",
             service: "none",
@@ -46,7 +43,6 @@ impl<'a> AccessLog<'a> {
     pub(super) fn request(&self) {
         info_with_fields!(
             "Egress request",
-            id = self.id.as_str(),
             caller = self.caller,
             group = self.group,
             service = self.service,
@@ -55,15 +51,14 @@ impl<'a> AccessLog<'a> {
         );
     }
 
-    pub(super) fn failover(&self, endpoint: &str, remote_host: &str, status: u16) {
+    pub(super) fn failover(&self, endpoint: &str, host: &str, status: u16) {
         info_with_fields!(
             "Egress failover",
-            id = self.id.as_str(),
             caller = self.caller,
             group = self.group,
             service = self.service,
             endpoint = endpoint,
-            remote_host = remote_host,
+            host = host,
             method = self.method.as_str(),
             uri = self.uri,
             status = status,
@@ -71,15 +66,14 @@ impl<'a> AccessLog<'a> {
         );
     }
 
-    pub(super) fn upstream_failed(&self, endpoint: &str, remote_host: &str, reason: &str) {
+    pub(super) fn upstream_failed(&self, endpoint: &str, host: &str, reason: &str) {
         error_fields!(
             "Egress upstream failed",
-            id = self.id.as_str(),
             caller = self.caller,
             group = self.group,
             service = self.service,
             endpoint = endpoint,
-            remote_host = remote_host,
+            host = host,
             method = self.method.as_str(),
             uri = self.uri,
             status = Status::BadGateway.code,
@@ -91,7 +85,6 @@ impl<'a> AccessLog<'a> {
     pub(super) fn unavailable(&self, status: u16, reason: &str) {
         error_fields!(
             "Egress unavailable",
-            id = self.id.as_str(),
             caller = self.caller,
             group = self.group,
             service = self.service,
@@ -104,15 +97,14 @@ impl<'a> AccessLog<'a> {
         );
     }
 
-    pub(super) fn response(&self, endpoint: &str, remote_host: &str, status: u16) {
+    pub(super) fn response(&self, endpoint: &str, host: &str, status: u16) {
         info_with_fields!(
             "Egress response",
-            id = self.id.as_str(),
             caller = self.caller,
             group = self.group,
             service = self.service,
             endpoint = endpoint,
-            remote_host = remote_host,
+            host = host,
             method = self.method.as_str(),
             uri = self.uri,
             status = status,

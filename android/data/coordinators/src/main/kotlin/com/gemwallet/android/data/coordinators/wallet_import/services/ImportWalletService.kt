@@ -1,23 +1,8 @@
 package com.gemwallet.android.data.coordinators.wallet_import.services
 
-import com.gemwallet.android.application.transactions.coordinators.SyncTransactions
-import com.gemwallet.android.application.wallet_import.coordinators.GetAvailableAssetIds
-import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
-import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletConfiguration
-import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
+import com.gemwallet.android.application.wallet_import.cases.GetImportWalletState
+import com.gemwallet.android.application.wallet_import.cases.SyncWalletImport
 import com.gemwallet.android.application.wallet_import.values.ImportWalletState
-import com.gemwallet.android.cases.device.SyncDevice
-import com.gemwallet.android.cases.nft.SyncNfts
-import com.gemwallet.android.cases.tokens.SearchTokensCase
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.ext.type
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -26,21 +11,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemAssetDiscoveryService
+import uniffi.gemstone.GemDeviceService
 
 class ImportWalletService(
-    private val sessionRepository: SessionRepository,
-    private val getAvailableAssetIds: GetAvailableAssetIds,
-    private val searchTokensCase: SearchTokensCase,
-    private val assetsRepository: AssetsRepository,
-    private val syncDevice: SyncDevice,
-    private val syncTransactions: SyncTransactions,
-    private val syncNfts: SyncNfts,
-    private val walletConfigurationSync: SyncWalletConfiguration,
+    private val discoveryService: GemAssetDiscoveryService,
+    private val getCurrentCurrency: GetCurrentCurrency,
+    private val deviceService: GemDeviceService,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }),
 ) : SyncWalletImport, GetImportWalletState {
 
@@ -58,36 +40,12 @@ class ImportWalletService(
     }
 
     private suspend fun syncWallet(wallet: Wallet) {
-        syncDevice.syncDevice()
-        supervisorScope {
-            launch { walletConfigurationSync.sync(wallet.id) }
-            launch { discoverAssets(wallet) }
-            launch { syncTransactions.syncTransactions(wallet) }
-            launch { syncNfts.sync(wallet.id) }
-        }
+        deviceService.synchronizeIfNeeded()
+        discoverAssets(wallet)
     }
 
     private suspend fun discoverAssets(wallet: Wallet) {
-        val availableAssetsId = getAvailableAssetIds(wallet.id.id)
-        val assetIds = availableAssetsId.mapNotNull { it.toAssetId() }
-        val tokenIds = assetIds.filter { it.type() != AssetSubtype.NATIVE }
-
-        searchTokensCase.search(tokenIds, sessionRepository.getCurrentCurrency())
-        val assets = assetsRepository.getTokensInfo(assetIds.map { it.toIdentifier() }).firstOrNull().orEmpty()
-
-        val linkedIds = assets.mapNotNull { assetInfo ->
-            val asset = assetInfo.asset
-            wallet.getAccount(asset.chain) ?: return@mapNotNull null
-            assetsRepository.linkAssetToWallet(
-                walletId = wallet.id.id,
-                assetId = asset.id,
-                visible = true,
-            )
-            asset.id
-        }
-        if (linkedIds.isNotEmpty()) {
-            assetsRepository.updateBalances(*linkedIds.toTypedArray())
-        }
+        discoveryService.discover(wallet.id.id)
     }
 
     override fun getImportState(walletId: WalletId): Flow<ImportWalletState> = importingWalletIds.map { walletIds ->

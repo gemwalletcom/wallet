@@ -1,14 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AvatarService
+import protocol Gemstone.GemAvatarServiceProtocol
+import protocol Gemstone.GemNftServiceProtocol
+import GemstoneServices
 import Components
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
 import GemstonePrimitives
 import ImageGalleryService
 import InfoSheet
 import Localization
-import NFTService
 import Primitives
 import PrimitivesComponents
 import Style
@@ -18,11 +19,11 @@ import SwiftUI
 @MainActor
 public final class CollectibleViewModel {
     private let wallet: Wallet
-    private let avatarService: AvatarService
-    private let explorerService: ExplorerService
+    private let avatarService: any GemAvatarServiceProtocol
+    private let explorerService: any GemExplorerServiceProtocol
 
     let assetData: NFTAssetData
-    let nftService: NFTService
+    let nftService: any GemNftServiceProtocol
 
     var isPresentingAlertMessage: AlertMessage?
     var isPresentingToast: ToastMessage?
@@ -34,9 +35,9 @@ public final class CollectibleViewModel {
     public init(
         wallet: Wallet,
         assetData: NFTAssetData,
-        avatarService: AvatarService,
-        nftService: NFTService,
-        explorerService: ExplorerService = ExplorerService.standard,
+        avatarService: any GemAvatarServiceProtocol,
+        nftService: any GemNftServiceProtocol,
+        explorerService: any GemExplorerServiceProtocol,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
         self.wallet = wallet
@@ -88,7 +89,7 @@ public final class CollectibleViewModel {
     }
 
     var contractExplorerLink: BlockExplorerLink? {
-        explorerService.tokenUrl(chain: assetData.asset.chain, address: contractValue)
+        explorerService.getTokenUrl(chain: assetData.asset.chain.rawValue, address: contractValue).map { BlockExplorerLink($0) }
     }
 
     var contractExplorerContext: ExplorerContextData? {
@@ -120,11 +121,11 @@ public final class CollectibleViewModel {
     }
 
     var tokenIdExplorerLink: BlockExplorerLink? {
-        explorerService.nftUrl(
-            chain: assetData.asset.chain,
+        explorerService.getNftUrl(
+            chain: assetData.asset.chain.rawValue,
             contractAddress: contractValue,
             tokenId: tokenIdValue,
-        )
+        ).map { BlockExplorerLink($0) }
     }
 
     var tokenIdExplorerContext: ExplorerContextData? {
@@ -154,9 +155,7 @@ public final class CollectibleViewModel {
     }
 
     var isSendEnabled: Bool {
-        wallet.canSign &&
-            assetData.asset.chain.isNFTSupported &&
-            Self.enabledChainTypes.contains(assetData.asset.chain.type)
+        wallet.canSign && assetData.asset.chain.supportsNftTransfer
     }
 
     var headerButtons: [HeaderButton] {
@@ -284,7 +283,7 @@ extension CollectibleViewModel {
     func onSelectRefresh() {
         Task {
             do {
-                try await nftService.refreshAsset(wallet: wallet, assetId: assetData.asset.id)
+                try await nftService.refreshAsset(walletId: wallet.id.id, assetId: assetData.asset.id.identifier)
                 isPresentingToast = .success(Localized.Common.refresh)
             } catch {
                 debugLog("Refresh nft asset error: \(error)")
@@ -306,7 +305,6 @@ extension CollectibleViewModel {
 // MARK: - Private
 
 extension CollectibleViewModel {
-    private static let enabledChainTypes: Set<ChainType> = [.ethereum, .ton, .solana]
     private var contractValue: String {
         assetData.collection.contractAddress
     }
@@ -318,7 +316,7 @@ extension CollectibleViewModel {
 
     private func setWalletAvatar() async throws {
         guard let url = assetData.asset.images.preview.url.asURL else { return }
-        try await avatarService.save(url: url, for: wallet)
+        try await avatarService.setImage(url: url, for: wallet)
     }
 
     private func saveImageToGallery() async throws(ImageGalleryServiceError) {

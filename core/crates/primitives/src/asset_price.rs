@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use strum::{AsRefStr, EnumString};
 use typeshare::typeshare;
 
 use crate::currency::Currency;
@@ -24,6 +25,10 @@ impl AssetPrice {
             price_change_percentage_24h,
             updated_at,
         }
+    }
+
+    pub fn empty(asset_id: AssetId) -> Self {
+        Self::new(asset_id, 0.0, 0.0, Utc::now())
     }
 }
 
@@ -77,7 +82,6 @@ impl AssetMarket {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetPrices {
     pub currency: Currency,
@@ -85,7 +89,6 @@ pub struct AssetPrices {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetPricesRequest {
     pub currency: Option<Currency>,
@@ -117,9 +120,10 @@ impl PartialEq for ChartValue {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, AsRefStr, EnumString, PartialEq, Eq, Hash)]
 #[typeshare(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
 pub enum ChartPeriod {
     Hour,
     Day,

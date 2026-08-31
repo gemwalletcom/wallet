@@ -2,9 +2,10 @@ package com.gemwallet.android.data.coordinators.wallet
 
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.testkit.TEST_PHRASE
 import com.gemwallet.android.testkit.mockWallet
+import com.wallet.core.primitives.WalletType
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -20,12 +21,12 @@ import org.junit.Test
 
 class GetWalletSecretDataImplTest {
 
-    private val walletsRepository = mockk<WalletsRepository>()
+    private val walletStore = mockk<GemstoneWalletStore>()
     private val passwordStore = mockk<PasswordStore>()
     private val loadPrivateDataOperator = mockk<LoadPrivateDataOperator>()
 
     private val subject = GetWalletSecretDataImpl(
-        walletsRepository = walletsRepository,
+        walletStore = walletStore,
         passwordStore = passwordStore,
         loadPrivateDataOperator = loadPrivateDataOperator,
     )
@@ -33,7 +34,7 @@ class GetWalletSecretDataImplTest {
     @Test
     fun success_returnsPhrase_notError() = runTest {
         val wallet = mockWallet()
-        every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
+        every { walletStore.observeWallet(wallet.id) } returns flowOf(wallet)
         every { passwordStore.getPassword(wallet.id.id) } returns "0xdeadbeef"
         coEvery { loadPrivateDataOperator(wallet, "0xdeadbeef") } returns TEST_PHRASE
 
@@ -44,9 +45,22 @@ class GetWalletSecretDataImplTest {
     }
 
     @Test
+    fun privateKeyWallet_returnsKey_notPhrase() = runTest {
+        val wallet = mockWallet(type = WalletType.PrivateKey)
+        every { walletStore.observeWallet(wallet.id) } returns flowOf(wallet)
+        every { passwordStore.getPassword(wallet.id.id) } returns "0xdeadbeef"
+        coEvery { loadPrivateDataOperator(wallet, "0xdeadbeef") } returns "0xprivatekey"
+
+        val value = subject.getSecretData(wallet.id).first()
+
+        assertEquals("0xprivatekey", value.privateKey())
+        assertTrue(value.phrase().isEmpty())
+    }
+
+    @Test
     fun keystoreFailure_surfacesError_notBlankPhrase() = runTest {
         val wallet = mockWallet()
-        every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
+        every { walletStore.observeWallet(wallet.id) } returns flowOf(wallet)
         every { passwordStore.getPassword(wallet.id.id) } throws IllegalStateException("Password not found")
 
         val value = subject.getSecretData(wallet.id).first()
@@ -58,7 +72,7 @@ class GetWalletSecretDataImplTest {
     @Test
     fun cancellation_isNotMappedToError() = runTest {
         val wallet = mockWallet()
-        every { walletsRepository.getWallet(wallet.id) } returns flowOf(wallet)
+        every { walletStore.observeWallet(wallet.id) } returns flowOf(wallet)
         every { passwordStore.getPassword(wallet.id.id) } throws CancellationException("cancelled")
 
         val value = subject.getSecretData(wallet.id).firstOrNull()

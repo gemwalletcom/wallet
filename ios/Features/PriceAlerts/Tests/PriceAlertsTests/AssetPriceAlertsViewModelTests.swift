@@ -1,9 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPriceAlertServiceProtocol
+import GemstonePrimitivesTestKit
 import Foundation
 @testable import PriceAlerts
-import PriceAlertService
-import PriceAlertServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
@@ -28,12 +30,13 @@ struct AssetPriceAlertsViewModelTests {
 
 extension AssetPriceAlertsViewModel {
     static func mock(
-        priceAlertService: PriceAlertService = .mock(),
+        priceAlertService: any GemPriceAlertServiceProtocol = GemPriceAlertServiceMock(),
         walletId: WalletId = .mock(),
         asset: Asset = .mock(),
     ) -> AssetPriceAlertsViewModel {
         AssetPriceAlertsViewModel(
             priceAlertService: priceAlertService,
+            preferencesService: GemPreferencesServiceMock(),
             walletId: walletId,
             asset: asset,
         )

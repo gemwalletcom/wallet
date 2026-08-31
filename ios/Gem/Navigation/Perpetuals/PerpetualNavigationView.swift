@@ -1,11 +1,15 @@
+import protocol Gemstone.GemPerpetualServiceProtocol
+import protocol Gemstone.GemPreferencesServiceProtocol
+import protocol Gemstone.GemTransactionsServiceProtocol
+import protocol Gemstone.GemExplorerServiceProtocol
+import class Gemstone.GemTransactionFormatter
 import Components
 import Perpetuals
-import PerpetualService
+import GemstoneServices
 import Primitives
 import Store
 import Style
 import SwiftUI
-import TransactionsService
 import WalletTab
 
 public struct PerpetualNavigationView: View {
@@ -15,9 +19,12 @@ public struct PerpetualNavigationView: View {
     public init(
         asset: Asset,
         wallet: Wallet,
-        perpetualService: any PerpetualServiceable,
-        transactionsService: TransactionsService,
+        perpetualService: any GemPerpetualServiceProtocol,
+        transactionsService: any GemTransactionsServiceProtocol,
         observerService: any PerpetualObservable,
+        explorerService: any GemExplorerServiceProtocol,
+        transactionFormatter: GemTransactionFormatter,
+        preferencesService: any GemPreferencesServiceProtocol,
         isPresentingSheet: Binding<WalletSheetType?>,
     ) {
         _isPresentingSheet = isPresentingSheet
@@ -27,6 +34,9 @@ public struct PerpetualNavigationView: View {
             perpetualService: perpetualService,
             transactionsService: transactionsService,
             observerService: observerService,
+            explorerService: explorerService,
+            transactionFormatter: transactionFormatter,
+            preferencesService: preferencesService,
             onTransferData: { isPresentingSheet.wrappedValue = .transferData($0) },
             onPerpetualRecipientData: { isPresentingSheet.wrappedValue = .perpetualRecipientData($0) },
         ))
@@ -48,7 +58,7 @@ public struct PerpetualNavigationView: View {
                 guard newValue == nil else { return }
                 switch oldValue {
                 case .transferData, .perpetualRecipientData:
-                    Task { await model.fetch() }
+                    Task { await model.load() }
                 default:
                     break
                 }

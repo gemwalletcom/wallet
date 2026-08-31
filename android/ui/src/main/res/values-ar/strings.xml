@@ -20,6 +20,7 @@
   <string name="common_wallet">محفظة</string>
   <string name="common_show">إظهار %1$s</string>
   <string name="common_copied">تم النسخ: %1$s</string>
+  <string name="common_copied_to_clipboard">تم النسخ إلى الحافظة</string>
   <string name="common_recommended">مُستَحسَن</string>
   <string name="common_all">الجميع</string>
   <string name="common_not_available">غير متاح</string>
@@ -185,10 +186,14 @@
   <string name="errors_token_invalid_id">معرف الرمز المميز غير صالح</string>
   <string name="errors_import_invalid_secret_phrase">العبارة السرية غير صالحة</string>
   <string name="errors_import_invalid_secret_phrase_word">كلمة عبارة سرية غير صالحة: %1$s</string>
+  <string name="errors_import_invalid_private_key">مفتاح خاص غير صالح</string>
+  <string name="errors_keystore_access">تعذر الوصول إلى مفاتيح هذه المحفظة على هذا الجهاز. إذا كانت لديك عبارة الاسترداد، فاحذف هذه المحفظة واستوردها مرة أخرى لاستعادة الوصول.</string>
+  <string name="errors_wallet_account_missing">لا تحتوي هذه المحفظة على حساب لهذه الشبكة</string>
   <string name="errors_invalid_url">URL غير صالح</string>
   <string name="errors_error_occurred">حدث خطأ!</string>
   <string name="errors_invalid_network_id">معرف الشبكة غير صالح</string>
   <string name="errors_error">خطأ</string>
+  <string name="errors_cancelled">ملغى</string>
   <string name="errors_connections_user_cancelled">تم إلغاء المستخدم</string>
   <string name="errors_not_supported">غير مدعوم</string>
   <string name="errors_permissions_not_granted">لم يتم منح الأذونات</string>

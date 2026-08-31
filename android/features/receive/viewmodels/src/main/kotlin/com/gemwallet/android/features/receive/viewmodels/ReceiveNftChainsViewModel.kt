@@ -4,12 +4,13 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.ext.filter
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.isNftSupported
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
+import uniffi.gemstone.GemChainService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flowOn
@@ -19,10 +20,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ReceiveNftChainsViewModel @Inject constructor(
-    sessionRepository: SessionRepository,
+    getSession: GetSession,
+    private val chainService: GemChainService,
 ) : ViewModel() {
 
-    private val wallet = sessionRepository.session().value?.wallet
+    private val wallet = getSession().value?.wallet
 
     private val allChains: List<Chain> = Chain.entries
         .filter { it.isNftSupported() }
@@ -32,7 +34,7 @@ class ReceiveNftChainsViewModel @Inject constructor(
 
     val chains = snapshotFlow { chainFilter.text.toString() }
         .map { query ->
-            allChains.filter(query)
+            chainService.getMatchingChains(allChains.map { it.string }, query).mapNotNull { it.toChain() }
         }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, allChains)

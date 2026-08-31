@@ -1,6 +1,8 @@
 pub mod across;
 pub mod address;
 pub mod address_deserializer;
+#[cfg(all(feature = "rpc", feature = "reqwest"))]
+pub mod beacon;
 pub mod call_decoder;
 pub mod constants;
 pub mod contracts;
@@ -8,12 +10,10 @@ pub mod domain;
 pub mod eip712;
 pub mod encode;
 pub mod ether_conv;
-pub mod everstake;
 pub mod fee_calculator;
 pub mod jsonrpc;
 pub mod message;
 pub mod method;
-pub mod monad;
 pub mod multicall3;
 pub mod permit2;
 #[cfg(feature = "signer")]
@@ -21,6 +21,7 @@ pub mod signer;
 pub mod siwe;
 pub mod slippage;
 pub mod transaction;
+pub mod transaction_params;
 pub mod u256;
 pub mod uniswap;
 pub mod weth;

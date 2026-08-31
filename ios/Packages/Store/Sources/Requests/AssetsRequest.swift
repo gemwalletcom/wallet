@@ -3,20 +3,23 @@ import GRDB
 import Primitives
 
 public struct AssetsRequest: DatabaseQueryable {
-    static let defaultQueryLimit = 100
+    public static let defaultQueryLimit = 100
 
     public var walletId: WalletId
     public var searchBy: String
     public var filters: [AssetsRequestFilter]
+    public var limit: Int?
 
     public init(
         walletId: WalletId,
         searchBy: String = "",
         filters: [AssetsRequestFilter] = [],
+        limit: Int? = AssetsRequest.defaultQueryLimit,
     ) {
         self.walletId = walletId
         self.searchBy = searchBy
         self.filters = filters
+        self.limit = limit
     }
 
     public func fetch(_ db: Database) throws -> [AssetData] {
@@ -33,7 +36,7 @@ public struct AssetsRequest: DatabaseQueryable {
                 .map { $0.mapToEmptyAssetData() }
         }
 
-        return try fetchAssetsSearch(walletId: walletId, filters: filters)
+        return try loadAssetsSearch(walletId: walletId, filters: filters)
             .fetchAll(db)
             .map(\.assetData)
     }
@@ -44,6 +47,7 @@ public struct AssetsRequest: DatabaseQueryable {
             switch filter {
             case .enabled,
                  .buyable,
+                 .sellable,
                  .swappable,
                  .stakeable,
                  .chains,
@@ -52,6 +56,7 @@ public struct AssetsRequest: DatabaseQueryable {
                  .enabledBalance,
                  .disabledBalance,
                  .hasBalance,
+                 .hasAvailableBalance,
                  .priceAlerts:
                 request = Self.applyFilter(request: request, filter)
             }
@@ -99,10 +104,20 @@ extension AssetsRequest {
                 .filter(
                     TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.isEnabled] == true,
                 )
+        case .hasAvailableBalance:
+            return request
+                .filter(
+                    TableAlias(name: BalanceRecord.databaseTableName)[BalanceRecord.Columns.availableAmount] > 0,
+                )
         case .buyable:
             return request
                 .filter(
                     TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.isBuyable] == true,
+                )
+        case .sellable:
+            return request
+                .filter(
+                    TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.isSellable] == true,
                 )
         case .swappable:
             return request
@@ -138,7 +153,7 @@ extension AssetsRequest {
         }
     }
 
-    private func fetchAssetsSearch(
+    private func loadAssetsSearch(
         walletId: WalletId,
         filters: [AssetsRequestFilter],
     ) -> QueryInterfaceRequest<AssetRecordInfo> {
@@ -160,9 +175,8 @@ extension AssetsRequest {
                 (totalValue == 0).desc,
                 AssetRecord.Columns.rank.desc,
             )
-            .limit(Self.defaultQueryLimit)
 
-        return Self.applyFilters(request: request, filters)
+        return Self.applyFilters(request: limit.map { request.limit($0) } ?? request, filters)
             .asRequest(of: AssetRecordInfo.self)
     }
 }
@@ -191,3 +205,26 @@ extension AssetsRequest {
 }
 
 extension AssetsRequest: Equatable {}
+
+extension AssetsRequestFilter {
+    var referencesBalances: Bool {
+        switch self {
+        case .hasBalance,
+             .hasAvailableBalance,
+             .enabledBalance,
+             .disabledBalance:
+            true
+        case let .search(_, hasPriorityAssets):
+            hasPriorityAssets
+        case .enabled,
+             .buyable,
+             .sellable,
+             .swappable,
+             .stakeable,
+             .chains,
+             .chainsOrAssets,
+             .priceAlerts:
+            false
+        }
+    }
+}

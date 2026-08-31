@@ -68,7 +68,7 @@ mod chain_integration_tests {
             .await?
             .unwrap();
 
-        assert_eq!(transaction.hash, TEST_TRANSACTION_HEX_HASH);
+        assert_eq!(transaction.hash(), TEST_TRANSACTION_HEX_HASH);
         Ok(())
     }
 }

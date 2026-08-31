@@ -3,17 +3,13 @@ use std::{collections::HashSet, error::Error};
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
-use crate::{AssetBasic, AssetProperties, AssetScore, AssetSubtype, Chain, asset_id::AssetId, asset_type::AssetType};
+use crate::{AssetBasic, AssetProperties, AssetScore, Chain, asset_id::AssetId, asset_type::AssetType};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Asset {
     pub id: AssetId,
-    #[typeshare(skip)]
-    pub chain: Chain,
-    #[typeshare(skip)]
-    pub token_id: Option<String>,
     pub name: String,
     pub symbol: String,
     pub decimals: i32,
@@ -106,8 +102,6 @@ impl Chain {
     pub fn new_asset(&self, name: impl Into<String>, symbol: impl Into<String>, decimals: i32, asset_type: AssetType) -> Asset {
         Asset {
             id: self.as_asset_id(),
-            chain: *self,
-            token_id: None,
             name: name.into(),
             symbol: symbol.into(),
             decimals,
@@ -119,14 +113,16 @@ impl Chain {
 impl Asset {
     pub fn new(id: AssetId, name: String, symbol: String, decimals: i32, asset_type: AssetType) -> Asset {
         Asset {
-            id: id.clone(),
-            chain: id.chain,
-            token_id: id.token_id.clone(),
+            id,
             name,
             symbol,
             decimals,
             asset_type,
         }
+    }
+
+    pub fn token_id(&self) -> Option<&str> {
+        self.id.token_id.as_deref()
     }
 
     pub fn chain(&self) -> Chain {
@@ -142,10 +138,7 @@ impl Asset {
     }
 
     pub fn default_score(&self) -> AssetScore {
-        match self.id.token_subtype() {
-            AssetSubtype::NATIVE => AssetScore::new(self.id.chain.rank()),
-            AssetSubtype::TOKEN => AssetScore::default(),
-        }
+        AssetScore::new(self.id.default_rank())
     }
 
     pub fn from_chain(chain: Chain) -> Asset {
@@ -236,7 +229,30 @@ mod tests {
         let native = Asset::from_chain(Chain::Robinhood).as_basic_primitive();
         let token = Asset::new(AssetId::from_token(Chain::Robinhood, "0x123"), "Token".to_string(), "TKN".to_string(), 18, AssetType::ERC20).as_basic_primitive();
 
+        let known_token = crate::known_assets::SOLANA_USDC.as_basic_primitive();
+
         assert_eq!(native.score.rank, Chain::Robinhood.rank());
         assert_eq!(token.score.rank, AssetScore::default().rank);
+        assert!(known_token.score.rank > crate::asset_score::AssetRank::Trivial.threshold());
+    }
+}
+
+#[cfg(test)]
+mod asset_deserialize_tests {
+    use super::*;
+
+    #[test]
+    fn test_deserialize_derives_skipped_fields_from_id() {
+        let token: Asset =
+            serde_json::from_str(r#"{"id":"ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7","name":"Tether","symbol":"USDT","decimals":6,"type":"ERC20"}"#).unwrap();
+        assert_eq!(token.chain(), Chain::Ethereum);
+        assert_eq!(token.token_id(), Some("0xdAC17F958D2ee523a2206206994597C13D831ec7"));
+
+        let native: Asset = serde_json::from_str(r#"{"id":"ethereum","name":"Ethereum","symbol":"ETH","decimals":18,"type":"NATIVE"}"#).unwrap();
+        assert_eq!(native.chain(), Chain::Ethereum);
+        assert_eq!(native.token_id(), None);
+
+        let round_tripped: Asset = serde_json::from_str(&serde_json::to_string(&token).unwrap()).unwrap();
+        assert_eq!(round_tripped, token);
     }
 }

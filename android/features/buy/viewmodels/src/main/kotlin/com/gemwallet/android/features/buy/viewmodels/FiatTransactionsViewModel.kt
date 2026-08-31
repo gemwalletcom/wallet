@@ -2,8 +2,8 @@ package com.gemwallet.android.features.buy.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.fiat.coordinators.ObserveFiatTransactions
-import com.gemwallet.android.application.fiat.coordinators.SyncFiatTransactions
+import com.gemwallet.android.application.fiat.cases.ObserveFiatTransactions
+import com.gemwallet.android.application.fiat.cases.SyncFiatTransactions
 import com.wallet.core.primitives.FiatTransactionAssetData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers

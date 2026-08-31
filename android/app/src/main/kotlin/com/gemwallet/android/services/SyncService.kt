@@ -1,23 +1,20 @@
 package com.gemwallet.android.services
 
-import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
-import com.gemwallet.android.application.swap.coordinators.SyncSwapAssets
-import com.gemwallet.android.cases.device.SyncDevice
+import android.util.Log
+import com.gemwallet.android.serializer.toJson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemAppStartService
 import javax.inject.Inject
 
 class SyncService @Inject constructor(
-    private val syncFiatAssets: SyncFiatAssets,
-    private val syncSwapAssets: SyncSwapAssets,
-    private val syncDevice: SyncDevice,
+    private val appStartService: GemAppStartService,
 ) {
-
     suspend fun sync() {
         withContext(Dispatchers.IO) {
-            runCatching { syncFiatAssets() }
-            runCatching { syncSwapAssets() }
-            runCatching { syncDevice.syncDevice() }
+            appStartService.run().forEach { failure ->
+                Log.e("SyncService", "${failure.step} failed: ${failure.message}")
+            }
         }
     }
 }

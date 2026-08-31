@@ -80,6 +80,7 @@ mod chain_integration_tests {
                 input_type: input_type.clone(),
                 sender_address: TEST_ADDRESS.to_string(),
                 destination_address: TEST_ADDRESS.to_string(),
+                references: vec![],
             })
             .await?;
         let load = client

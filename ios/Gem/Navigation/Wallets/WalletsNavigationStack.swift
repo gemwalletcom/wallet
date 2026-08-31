@@ -6,13 +6,15 @@ import Onboarding
 import Primitives
 import Style
 import SwiftUI
-import WalletSessionService
+import GemstoneServices
 
 struct WalletsNavigationStack: View {
     @Environment(\.walletService) private var walletService
     @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.avatarService) private var avatarService
     @Environment(\.nameService) private var nameService
+    @Environment(\.chainService) private var chainService
+    @Environment(\.explorerService) private var explorerService
     @Environment(\.dismiss) private var dismiss
 
     @State private var navigationPath = NavigationPath()
@@ -37,6 +39,7 @@ struct WalletsNavigationStack: View {
                         navigationPath: $navigationPath,
                         wallet: $0.wallet,
                         walletService: walletService,
+                        explorerService: explorerService,
                     ),
                 )
             }
@@ -63,6 +66,7 @@ struct WalletsNavigationStack: View {
                         walletSessionService: walletSessionService,
                         avatarService: avatarService,
                         nameService: nameService,
+                        chainService: chainService,
                         onComplete: { dismiss() },
                     ),
                 )

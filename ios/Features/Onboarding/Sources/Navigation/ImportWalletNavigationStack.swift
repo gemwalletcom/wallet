@@ -3,7 +3,7 @@
 import Primitives
 import PrimitivesComponents
 import SwiftUI
-import WalletService
+import GemstoneServices
 
 public struct ImportWalletNavigationStack: View {
     @State private var model: ImportWalletViewModel
@@ -69,7 +69,7 @@ public struct ImportWalletNavigationStack: View {
     }
 
     private var importWalletTypeScene: some View {
-        ImportWalletTypeScene(model: ImportWalletTypeViewModel(walletService: model.walletService))
+        ImportWalletTypeScene(model: ImportWalletTypeViewModel(walletService: model.walletService, chainService: model.chainService))
     }
 }
 

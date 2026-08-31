@@ -3,6 +3,7 @@ package com.gemwallet.android.features.asset.viewmodels.chart.models
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.AssetMarket
 import com.wallet.core.primitives.Currency
 
@@ -12,6 +13,7 @@ class AssetMarketUIModel(
     val assetLinks: List<Link> = emptyList(),
     val currency: Currency = Currency.USD,
     val explorerName: String,
+    val tokenExplorerLink: BlockExplorerLink? = null,
     val marketInfo: AssetMarket? = null,
 ) {
     class Link(

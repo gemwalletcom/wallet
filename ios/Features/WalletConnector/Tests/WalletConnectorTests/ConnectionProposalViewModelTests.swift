@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemApplicationMetadataService
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -8,13 +9,14 @@ import Testing
 struct ConnectionProposalViewModelTests {
     @Test
     func appTextKeepsNameAndDomain() {
-        let metadata = WalletConnectionSessionAppMetadata.mock(
+        let metadata = ApplicationMetadata.mock(
             name: "PancakeSwap - Trade",
             url: "https://pancakeswap.finance/swap",
         )
         let model = ConnectionProposalViewModel(
             confirmTransferDelegate: { _ in },
             pairingProposal: .mock(proposal: .mock(metadata: metadata)),
+            applicationMetadataService: GemApplicationMetadataService(),
         )
 
         #expect(model.appText == "PancakeSwap (pancakeswap.finance)")

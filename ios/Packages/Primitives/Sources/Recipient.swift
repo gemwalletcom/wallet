@@ -4,11 +4,19 @@ public struct Recipient: Codable, Equatable, Hashable, Sendable {
     public let name: String?
     public let address: String
     public let memo: String?
+    public let references: [String]
 
-    public init(name: String?, address: String, memo: String?) {
+    public init(name: String?, address: String, memo: String?, references: [String] = []) {
         self.name = name
         self.address = address
         self.memo = memo
+        self.references = references
+    }
+}
+
+extension Recipient: Identifiable {
+    public var id: String {
+        [name ?? "", address, memo ?? ""].joined(separator: "_")
     }
 }
 

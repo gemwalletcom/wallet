@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
-import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.application.assets.cases.ToggleHideBalances
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
 
 class ToggleHideBalancesImpl(
     private val userConfig: UserConfig,

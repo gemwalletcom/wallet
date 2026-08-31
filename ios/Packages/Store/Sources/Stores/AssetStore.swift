@@ -14,7 +14,7 @@ public struct AssetStore: Sendable {
     public func insert(assets: [AssetBasic]) throws {
         try db.write { db in
             for asset in assets {
-                try asset.asset.record.insert(db, onConflict: .ignore)
+                try asset.record.insert(db, onConflict: .ignore)
             }
         }
     }
@@ -45,9 +45,9 @@ public struct AssetStore: Sendable {
         }
     }
 
-    public func getAssetsData(walletId: WalletId, filters: [AssetsRequestFilter]) throws -> [AssetData] {
+    public func getAssetsData(walletId: WalletId, filters: [AssetsRequestFilter], limit: Int? = AssetsRequest.defaultQueryLimit) throws -> [AssetData] {
         try db.read { db in
-            try AssetsRequest(walletId: walletId, filters: filters).fetch(db)
+            try AssetsRequest(walletId: walletId, filters: filters, limit: limit).fetch(db)
         }
     }
 
@@ -94,10 +94,32 @@ public struct AssetStore: Sendable {
         try setColumn(for: assetIds, column: AssetRecord.Columns.isStakeable, value: value)
     }
 
+    @discardableResult
+    public func updateBuyableAssets(assetIds: [String]) throws -> Int {
+        try updateColumn(column: AssetRecord.Columns.isBuyable, enabledAssetIds: assetIds)
+    }
+
+    @discardableResult
+    public func updateSellableAssets(assetIds: [String]) throws -> Int {
+        try updateColumn(column: AssetRecord.Columns.isSellable, enabledAssetIds: assetIds)
+    }
+
+    private func updateColumn(column: Column, enabledAssetIds: [String]) throws -> Int {
+        try db.write { db in
+            let enabled = try AssetRecord
+                .filter(enabledAssetIds.contains(AssetRecord.Columns.id) && column == false)
+                .updateAll(db, column.set(to: true))
+            let disabled = try AssetRecord
+                .filter(!enabledAssetIds.contains(AssetRecord.Columns.id) && column == true)
+                .updateAll(db, column.set(to: false))
+            return enabled + disabled
+        }
+    }
+
     private func setColumn(for assetIds: [String], column: Column, value: Bool) throws -> Int {
         try db.write { db in
             try AssetRecord
-                .filter(assetIds.contains(AssetRecord.Columns.id))
+                .filter(assetIds.contains(AssetRecord.Columns.id) && column != value)
                 .updateAll(db, column.set(to: value))
         }
     }

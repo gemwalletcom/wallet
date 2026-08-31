@@ -1,40 +1,40 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.assets.coordinators.EnableAsset
-import com.gemwallet.android.application.assets.coordinators.GemSearch
-import com.gemwallet.android.application.assets.coordinators.GetActiveAssetsInfo
-import com.gemwallet.android.application.assets.coordinators.GetAssetById
-import com.gemwallet.android.application.assets.coordinators.GetAssetChartData
-import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
-import com.gemwallet.android.application.assets.coordinators.GetAssetLinks
-import com.gemwallet.android.application.assets.coordinators.GetAssetMarket
-import com.gemwallet.android.application.assets.coordinators.GetAssetTokenInfo
-import com.gemwallet.android.application.assets.coordinators.GetChainAssetInfo
-import com.gemwallet.android.application.assets.coordinators.GetChartPeriod
-import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
-import com.gemwallet.android.application.assets.coordinators.GetImportInProgress
-import com.gemwallet.android.application.assets.coordinators.GetSearchLists
-import com.gemwallet.android.application.assets.coordinators.GetPortfolioData
-import com.gemwallet.android.application.assets.coordinators.GetShowWelcomeBanner
-import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
-import com.gemwallet.android.application.assets.coordinators.EnsureWalletAssets
-import com.gemwallet.android.application.assets.coordinators.HideAsset
-import com.gemwallet.android.application.assets.coordinators.HideWelcomeBanner
-import com.gemwallet.android.application.assets.coordinators.PrefetchAssets
-import com.gemwallet.android.application.assets.coordinators.SearchAssets
-import com.gemwallet.android.application.assets.coordinators.SetChartPeriod
-import com.gemwallet.android.application.assets.coordinators.SyncAssetInfo
-import com.gemwallet.android.application.assets.coordinators.SyncAssets
-import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
-import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
-import com.gemwallet.android.application.wallet_import.coordinators.GetImportWalletState
-import com.gemwallet.android.blockchain.services.PerpetualService
-import com.gemwallet.android.cases.banners.HasMultiSign
-import com.gemwallet.android.cases.tokens.SyncAssetPrices
+import com.gemwallet.android.application.assets.cases.EnableAsset
+import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
+import com.gemwallet.android.application.assets.cases.GetAssetById
+import com.gemwallet.android.application.assets.cases.GetAssetChartData
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.assets.cases.GetAssetLinks
+import com.gemwallet.android.application.assets.cases.GetAssetMarket
+import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
+import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
+import com.gemwallet.android.application.assets.cases.GetChartPeriod
+import com.gemwallet.android.application.assets.cases.GetHideBalancesState
+import com.gemwallet.android.application.assets.cases.GetImportInProgress
+import com.gemwallet.android.application.assets.cases.GetSearchLists
+import com.gemwallet.android.application.assets.cases.GetPortfolioData
+import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
+import uniffi.gemstone.GemBannerService
+import com.gemwallet.android.application.banner.cases.ApplyBannerAction
+import com.gemwallet.android.application.assets.cases.GetWalletSummary
+import com.gemwallet.android.application.assets.cases.HideAsset
+import com.gemwallet.android.application.assets.cases.HideWelcomeBanner
+import com.gemwallet.android.application.assets.cases.SyncMissingAssets
+import com.gemwallet.android.application.assets.cases.SetChartPeriod
+import com.gemwallet.android.application.assets.cases.SyncAssetInfo
+import com.gemwallet.android.application.assets.cases.SyncAssets
+import com.gemwallet.android.application.assets.cases.SetAssetPinned
+import com.gemwallet.android.application.assets.cases.ToggleHideBalances
+import com.gemwallet.android.application.wallet_import.cases.GetImportWalletState
+import com.gemwallet.android.application.banner.cases.HasMultiSign
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.data.coordinators.asset.EnableAssetImpl
 import com.gemwallet.android.data.coordinators.asset.GetActiveAssetsInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetByIdImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetChartDataImpl
+import uniffi.gemstone.BalanceCalculator
+import uniffi.gemstone.GemChartService
 import com.gemwallet.android.data.coordinators.asset.GetAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetLinksImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetMarketImpl
@@ -48,55 +48,54 @@ import com.gemwallet.android.data.coordinators.asset.GetPortfolioDataImpl
 import com.gemwallet.android.data.coordinators.asset.GetShowWelcomeBannerImpl
 import com.gemwallet.android.data.coordinators.asset.GetWalletSummaryImpl
 import com.gemwallet.android.data.coordinators.asset.DeviceAssetsSyncService
-import com.gemwallet.android.data.coordinators.asset.EnsureWalletAssetsImpl
 import com.gemwallet.android.data.coordinators.asset.HideAssetImpl
 import com.gemwallet.android.data.coordinators.asset.HideWelcomeBannerImpl
-import com.gemwallet.android.data.coordinators.asset.PrefetchAssetsImpl
-import com.gemwallet.android.data.coordinators.asset.SearchAssetsImpl
+import com.gemwallet.android.data.coordinators.asset.SyncMissingAssetsImpl
 import com.gemwallet.android.data.coordinators.asset.SetChartPeriodImpl
 import com.gemwallet.android.data.coordinators.asset.SyncAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.SyncAssetsImpl
-import com.gemwallet.android.data.coordinators.asset.ToggleAssetPinImpl
+import com.gemwallet.android.data.coordinators.asset.SetAssetPinnedImpl
 import com.gemwallet.android.data.coordinators.asset.ToggleHideBalancesImpl
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.assets.AssetsSearchService
-import com.gemwallet.android.data.repositories.assets.CurrencyRatesService
-import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.perpetual.ObservePerpetualWallet
-import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.stream.StreamSubscriptionService
-import com.gemwallet.android.data.services.gemapi.GemApiClient
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
+import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
+import com.gemwallet.android.data.services.gemstone.assets.CurrencyRatesService
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
+import uniffi.gemstone.GemAssetDiscoveryService
+import uniffi.gemstone.GemBalanceService
+import uniffi.gemstone.GemNftService
+import uniffi.gemstone.GemTransactionsService
+import uniffi.gemstone.GemDeviceApiClient
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemPriceService
+import uniffi.gemstone.GemWalletPreferencesService
+import uniffi.gemstone.GemPortfolioService
 import javax.inject.Singleton
+import uniffi.gemstone.GemStreamSubscriptionService
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import com.gemwallet.android.data.coordinators.asset.WalletAssetsCoordinator
+import com.gemwallet.android.data.coordinators.asset.SyncBalancesImpl
+import com.gemwallet.android.application.assets.cases.SyncBalances
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.data.coordinators.asset.GetWidgetAssetsImpl
+import com.gemwallet.android.application.tokens.cases.SearchTokens
+import com.gemwallet.android.application.assets.cases.GetWidgetAssets
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import com.gemwallet.android.application.session.cases.GetCurrentWallet
 
 @InstallIn(SingletonComponent::class)
 @Module
 object AssetModule {
     @Provides
     @Singleton
-    fun provideSearchAssetsImpl(
-        gemApiClient: GemApiClient,
-    ): SearchAssetsImpl = SearchAssetsImpl(
-        gemApiClient = gemApiClient,
-    )
-
-    @Provides
-    @Singleton
-    fun provideSearchAssets(impl: SearchAssetsImpl): SearchAssets = impl
-
-    @Provides
-    @Singleton
-    fun provideGemSearch(impl: SearchAssetsImpl): GemSearch = impl
-
-    @Provides
-    @Singleton
-    fun provideGetActiveAssetsInfo(assetsRepository: AssetsRepository): GetActiveAssetsInfo =
-        GetActiveAssetsInfoImpl(assetsRepository)
+    fun provideGetActiveAssetsInfo(getWalletAssets: GetWalletAssets): GetActiveAssetsInfo =
+        GetActiveAssetsInfoImpl(getWalletAssets)
 
     @Provides
     @Singleton
@@ -105,166 +104,172 @@ object AssetModule {
 
     @Provides
     @Singleton
-    fun provideGetAssetTokenInfo(assetsRepository: AssetsRepository): GetAssetTokenInfo =
-        GetAssetTokenInfoImpl(assetsRepository)
+    fun provideGetAssetTokenInfo(assetStore: GemstoneAssetStore, getCurrentWalletId: GetCurrentWalletId): GetAssetTokenInfo =
+        GetAssetTokenInfoImpl(assetStore, getCurrentWalletId)
 
     @Provides
     @Singleton
-    fun provideGetChainAssetInfo(assetsRepository: AssetsRepository): GetChainAssetInfo =
-        GetChainAssetInfoImpl(assetsRepository)
+    fun provideGetChainAssetInfo(getAssetTokenInfo: GetAssetTokenInfo): GetChainAssetInfo =
+        GetChainAssetInfoImpl(getAssetTokenInfo)
 
     @Provides
     @Singleton
-    fun provideGetAssetById(assetsRepository: AssetsRepository): GetAssetById =
-        GetAssetByIdImpl(assetsRepository)
+    fun provideGetAssetById(assetStore: GemstoneAssetStore): GetAssetById = GetAssetByIdImpl(assetStore)
 
     @Provides
     @Singleton
-    fun provideGetAssetInfo(assetsRepository: AssetsRepository): GetAssetInfo =
-        GetAssetInfoImpl(assetsRepository)
+    fun provideGetAssetInfo(assetStore: GemstoneAssetStore, getCurrentWalletId: GetCurrentWalletId): GetAssetInfo =
+        GetAssetInfoImpl(assetStore, getCurrentWalletId)
 
     @Provides
     @Singleton
-    fun provideGetAssetLinks(assetsRepository: AssetsRepository): GetAssetLinks =
-        GetAssetLinksImpl(assetsRepository)
+    fun provideGetAssetLinks(assetStore: GemstoneAssetStore): GetAssetLinks = GetAssetLinksImpl(assetStore)
 
     @Provides
     @Singleton
-    fun provideGetAssetMarket(assetsRepository: AssetsRepository): GetAssetMarket =
-        GetAssetMarketImpl(assetsRepository)
+    fun provideGetAssetMarket(assetStore: GemstoneAssetStore): GetAssetMarket = GetAssetMarketImpl(assetStore)
 
     @Provides
     @Singleton
     fun provideGetWalletSummary(
-        sessionRepository: SessionRepository,
-        assetsRepository: AssetsRepository,
-        perpetualRepository: PerpetualRepository,
-        observePerpetualWallet: ObservePerpetualWallet,
+        getSession: GetSession,
+        getWalletAssets: GetWalletAssets,
+        getPerpetualBalance: GetPerpetualBalance,
         hasMultiSign: HasMultiSign,
         userConfig: UserConfig,
+        balanceCalculator: BalanceCalculator,
     ): GetWalletSummary = GetWalletSummaryImpl(
-        sessionRepository = sessionRepository,
-        assetsRepository = assetsRepository,
-        perpetualRepository = perpetualRepository,
-        observePerpetualWallet = observePerpetualWallet,
+        getSession = getSession,
+        getWalletAssets = getWalletAssets,
+        getPerpetualBalance = getPerpetualBalance,
         hasMultiSign = hasMultiSign,
         userConfig = userConfig,
+        balanceCalculator = balanceCalculator,
     )
 
     @Provides
     @Singleton
     fun provideGetAssetChartData(
-        gemApiClient: GemApiClient,
-        assetsRepository: AssetsRepository,
-        currencyRatesService: CurrencyRatesService,
+        chartService: GemChartService,
     ): GetAssetChartData = GetAssetChartDataImpl(
-        gemApiClient = gemApiClient,
-        assetsRepository = assetsRepository,
-        currencyRatesService = currencyRatesService,
+        chartService = chartService,
     )
 
     @Provides
     @Singleton
     fun provideGetPortfolioData(
-        gemDeviceApiClient: GemDeviceApiClient,
-        assetsRepository: AssetsRepository,
-        currencyRatesService: CurrencyRatesService,
-        perpetualService: PerpetualService,
-        sessionRepository: SessionRepository,
+        portfolioService: GemPortfolioService,
+        getCurrentWallet: GetCurrentWallet,
     ): GetPortfolioData = GetPortfolioDataImpl(
-        gemDeviceApiClient = gemDeviceApiClient,
-        assetsRepository = assetsRepository,
-        currencyRatesService = currencyRatesService,
-        perpetualService = perpetualService,
-        sessionRepository = sessionRepository,
+        portfolioService = portfolioService,
+        getCurrentWallet = getCurrentWallet,
     )
 
     @Provides
     @Singleton
-    fun providePrefetchAssets(
-        gemApiClient: GemApiClient,
-        assetsRepository: AssetsRepository,
-    ): PrefetchAssets = PrefetchAssetsImpl(
-        gemApiClient = gemApiClient,
-        assetsRepository = assetsRepository,
+    fun provideSyncMissingAssets(
+        assetsService: GemAssetsService,
+    ): SyncMissingAssets = SyncMissingAssetsImpl(
+        assetsService = assetsService,
     )
 
     @Provides
     @Singleton
     fun provideEnableAsset(
-        sessionRepository: SessionRepository,
-        syncAssetPrices: SyncAssetPrices,
-        assetsRepository: AssetsRepository,
-    ): EnableAsset = EnableAssetImpl(
-        sessionRepository = sessionRepository,
-        syncAssetPrices = syncAssetPrices,
-        assetsRepository = assetsRepository,
-    )
-
-    @Provides
-    @Singleton
-    fun provideEnsureWalletAssets(
-        assetsRepository: AssetsRepository,
-        enableAsset: EnableAsset,
-    ): EnsureWalletAssets = EnsureWalletAssetsImpl(
-        assetsRepository = assetsRepository,
-        enableAsset = enableAsset,
-    )
+        balanceService: GemBalanceService,
+    ): EnableAsset = EnableAssetImpl(balanceService)
 
     @Provides
     @Singleton
     fun provideSyncAssetInfo(
-        gemApiClient: GemApiClient,
-        assetsRepository: AssetsRepository,
-        streamSubscriptionService: StreamSubscriptionService,
-        prefetchAssets: PrefetchAssets,
+        assetsService: GemAssetsService,
+        balanceService: GemBalanceService,
+        streamSubscriptionService: GemStreamSubscriptionService,
+        syncMissingAssets: SyncMissingAssets,
+        getCurrentCurrency: GetCurrentCurrency,
     ): SyncAssetInfo = SyncAssetInfoImpl(
-        gemApiClient = gemApiClient,
-        assetsRepository = assetsRepository,
+        assetsService = assetsService,
+        balanceService = balanceService,
         streamSubscriptionService = streamSubscriptionService,
-        prefetchAssets = prefetchAssets,
+        syncMissingAssets = syncMissingAssets,
+        getCurrentCurrency = getCurrentCurrency,
+    )
+
+    @Provides
+    @Singleton
+    fun provideGemAssetDiscoveryService(
+        apiClient: GemDeviceApiClient,
+        balanceService: GemBalanceService,
+        transactionsService: GemTransactionsService,
+        nftService: GemNftService,
+        walletStore: GemstoneWalletStore,
+        walletPreferencesService: GemWalletPreferencesService,
+    ): GemAssetDiscoveryService = GemAssetDiscoveryService(
+        apiClient,
+        balanceService,
+        transactionsService,
+        nftService,
+        walletStore,
+        walletPreferencesService,
     )
 
     @Provides
     @Singleton
     fun provideSyncAssets(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         deviceAssetsSyncService: DeviceAssetsSyncService,
-        assetsRepository: AssetsRepository,
+        getWalletAssets: GetWalletAssets,
+        syncBalances: SyncBalances,
     ): SyncAssets = SyncAssetsImpl(
-        sessionRepository = sessionRepository,
+        getSession = getSession,
         deviceAssetsSyncService = deviceAssetsSyncService,
-        assetsRepository = assetsRepository,
+        getWalletAssets = getWalletAssets,
+        syncBalances = syncBalances,
     )
 
     @Provides
     @Singleton
-    fun provideHideAsset(
-        sessionRepository: SessionRepository,
-        assetsRepository: AssetsRepository,
-    ): HideAsset = HideAssetImpl(sessionRepository, assetsRepository)
+    fun provideSyncBalances(balanceService: GemBalanceService): SyncBalances = SyncBalancesImpl(balanceService)
 
     @Provides
     @Singleton
-    fun provideToggleAssetPin(
-        sessionRepository: SessionRepository,
-        assetsRepository: AssetsRepository,
-    ): ToggleAssetPin = ToggleAssetPinImpl(sessionRepository, assetsRepository)
+    fun provideGetWidgetAssets(searchTokensCase: SearchTokens, getWalletAssets: GetWalletAssets): GetWidgetAssets =
+        GetWidgetAssetsImpl(searchTokensCase, getWalletAssets)
+
+    @Provides
+    @Singleton
+    fun provideGetWalletAssets(assetStore: GemstoneAssetStore, getCurrentWalletId: GetCurrentWalletId): GetWalletAssets =
+        WalletAssetsCoordinator(assetStore, getCurrentWalletId)
+
+    @Provides
+    @Singleton
+    fun provideHideAsset(
+        getSession: GetSession,
+        enableAsset: EnableAsset,
+    ): HideAsset = HideAssetImpl(getSession, enableAsset)
+
+    @Provides
+    @Singleton
+    fun provideSetAssetPinned(
+        getSession: GetSession,
+        balanceService: GemBalanceService,
+    ): SetAssetPinned = SetAssetPinnedImpl(getSession, balanceService)
 
     @Provides
     @Singleton
     fun provideGetShowWelcomeBanner(
-        sessionRepository: SessionRepository,
-        userConfig: UserConfig,
+        getSession: GetSession,
+        bannerStore: GemstoneBannerStore,
+        bannerService: GemBannerService,
         getActiveAssetsInfo: GetActiveAssetsInfo,
-    ): GetShowWelcomeBanner = GetShowWelcomeBannerImpl(sessionRepository, userConfig, getActiveAssetsInfo)
+    ): GetShowWelcomeBanner = GetShowWelcomeBannerImpl(getSession, bannerStore, bannerService, getActiveAssetsInfo)
 
     @Provides
     @Singleton
     fun provideHideWelcomeBanner(
-        sessionRepository: SessionRepository,
-        userConfig: UserConfig,
-    ): HideWelcomeBanner = HideWelcomeBannerImpl(sessionRepository, userConfig)
+        getSession: GetSession,
+        applyBannerAction: ApplyBannerAction,
+    ): HideWelcomeBanner = HideWelcomeBannerImpl(getSession, applyBannerAction)
 
     @Provides
     @Singleton
@@ -293,7 +298,7 @@ object AssetModule {
     @Provides
     @Singleton
     fun provideGetImportInProgress(
-        sessionRepository: SessionRepository,
+        getSession: GetSession,
         getImportWalletState: GetImportWalletState,
-    ): GetImportInProgress = GetImportInProgressImpl(sessionRepository, getImportWalletState)
+    ): GetImportInProgress = GetImportInProgressImpl(getSession, getImportWalletState)
 }

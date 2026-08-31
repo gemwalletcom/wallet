@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import ExplorerService
 import Foundation
 import GemstonePrimitives
 import Localization
@@ -13,14 +12,9 @@ import SwiftUI
 public struct ValidatorViewModel {
     public let validator: DelegationValidator
     private let imageFormatter = AssetImageFormatter()
-    private let exploreService: ExplorerService
 
-    public init(
-        validator: DelegationValidator,
-        exploreService: ExplorerService = .standard,
-    ) {
+    public init(validator: DelegationValidator) {
         self.validator = validator
-        self.exploreService = exploreService
     }
 
     public var name: String {
@@ -71,16 +65,6 @@ public struct ValidatorViewModel {
             )
         case .earn:
             AssetImage(placeholder: image)
-        }
-    }
-
-    public var url: URL? {
-        switch validator.providerType {
-        case .stake:
-            guard validator.id != DelegationValidator.systemId else { return nil }
-            return exploreService.validatorUrl(chain: validator.chain, address: validator.id)?.url
-        case .earn:
-            return nil
         }
     }
 }

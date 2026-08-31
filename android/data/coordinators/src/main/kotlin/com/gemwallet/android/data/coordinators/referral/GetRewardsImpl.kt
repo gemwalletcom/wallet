@@ -1,19 +1,22 @@
 package com.gemwallet.android.data.coordinators.referral
 
-import com.gemwallet.android.application.referral.coordinators.GetRewards
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
+import com.gemwallet.android.application.referral.cases.GetRewards
 import com.gemwallet.android.domains.referral.values.ReferralError
 import com.wallet.core.primitives.Rewards
 import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.GemRewardsService
+import com.gemwallet.android.serializer.decodeJson
 
 class GetRewardsImpl(
-    private val gemDeviceApiClient: GemDeviceApiClient,
+    private val rewardsService: GemRewardsService,
 ) : GetRewards {
     override suspend fun getRewards(walletId: WalletId): Rewards {
-        val response = gemDeviceApiClient.getRewards(walletId)
-        if (response?.code == null) {
+        val response = rewardsService.getRewards(walletId.id).decodeJson<Rewards>()
+        if (response.code == null) {
             throw ReferralError.NotCreated
         }
         return response
     }
+
+    override fun referralLink(code: String): String = rewardsService.referralLink(code)
 }

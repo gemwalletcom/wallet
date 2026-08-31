@@ -3,8 +3,8 @@ use std::str::FromStr;
 use primitives::{AssetId, Chain};
 pub use swapper::{
     AssetList as SwapperAssetList, FetchQuoteData, Options as SwapperOptions, ProviderData as SwapperProviderData, ProviderType as SwapperProviderType, Quote as SwapperQuote,
-    QuoteRequest as SwapperQuoteRequest, Route as SwapperRoute, SwapperProvider, SwapperProviderMode, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode, SwapperSwapResult,
-    SwapperSwapStatus, SwapperTransactionSwapMetadata, permit2_data::Permit2Data,
+    QuoteRequest as SwapperQuoteRequest, Route as SwapperRoute, SwapperProvider, SwapperProviderMode, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode,
+    permit2_data::Permit2Data,
 };
 
 pub use crate::models::swap::GemSwapQuoteData;
@@ -14,22 +14,6 @@ pub enum FetchQuoteData {
     Permit2(Permit2Data),
     EstimateGas,
     None,
-}
-
-#[uniffi::remote(Record)]
-pub struct SwapperTransactionSwapMetadata {
-    pub from_asset: AssetId,
-    pub from_value: String,
-    pub to_asset: AssetId,
-    pub to_value: String,
-    pub provider: Option<String>,
-}
-
-#[uniffi::remote(Record)]
-pub struct SwapperSwapResult {
-    pub status: SwapperSwapStatus,
-    pub metadata: Option<SwapperTransactionSwapMetadata>,
-    pub eta_in_seconds: Option<u32>,
 }
 
 #[uniffi::remote(Record)]
@@ -140,13 +124,6 @@ pub struct SwapperQuoteAsset {
     pub id: String,
     pub symbol: String,
     pub decimals: u32,
-}
-
-#[uniffi::remote(Enum)]
-pub enum SwapperSwapStatus {
-    Pending,
-    Completed,
-    Failed,
 }
 
 #[uniffi::export]

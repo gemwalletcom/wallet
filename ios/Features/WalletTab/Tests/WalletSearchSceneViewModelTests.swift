@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceServiceTestKit
+import GemstoneServicesTestKit
 import NFT
 import PreferencesTestKit
 import Primitives
@@ -111,14 +111,15 @@ struct WalletSearchSceneViewModelTests {
     }
 
     @Test
-    func pinAssetEnablesAsset() async {
-        let enabledAssetIds: [AssetId] = await withCheckedContinuation { continuation in
+    func pinAssetPinsThroughBalanceService() async {
+        let pinned: (assetId: String, pinned: Bool) = await withCheckedContinuation { continuation in
             let model = WalletSearchSceneViewModel.mock(
-                assetsEnabler: .mock(onEnableAssets: { _, assetIds, _ in continuation.resume(returning: assetIds) }),
+                balanceService: .mock(onSetAssetPinned: { _, assetId, pinned in continuation.resume(returning: (assetId, pinned)) }),
             )
             model.onPinAsset(.mock(), value: true)
         }
 
-        #expect(enabledAssetIds == [AssetId.mock()])
+        #expect(pinned.assetId == AssetId.mock().identifier)
+        #expect(pinned.pinned)
     }
 }

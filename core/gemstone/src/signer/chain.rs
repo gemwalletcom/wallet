@@ -253,8 +253,8 @@ mod tests {
     use super::*;
     use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_PRIVATE_KEY};
     use primitives::{
-        DelegationValidator, StakeType, SwapProvider, TransactionFee, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputType,
-        WalletConnectionSessionAppMetadata, contract_call_data::ContractCallData, nft::NFTAsset,
+        ApplicationMetadata, DelegationValidator, StakeType, SwapProvider, TransactionFee, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra,
+        TransferDataOutputType, contract_call_data::ContractCallData, nft::NFTAsset,
     };
 
     fn signed(data: Vec<String>, transaction_type: TransactionType) -> Vec<GemSignedTransaction> {
@@ -339,12 +339,7 @@ mod tests {
 
         let mut generic_extra = TransferDataExtra::mock_encoded_transaction(vec![0xab, 0xcd]);
         generic_extra.transaction_type = TransactionType::AssetActivation;
-        let generic: GemSignerInput = SignerInput::mock_evm(
-            TransactionInputType::Generic(Asset::mock(), WalletConnectionSessionAppMetadata::mock(), generic_extra),
-            "0",
-            100000,
-        )
-        .into();
+        let generic: GemSignerInput = SignerInput::mock_evm(TransactionInputType::Generic(Asset::mock(), ApplicationMetadata::mock(), generic_extra), "0", 100000).into();
         assert_eq!(
             sign_one(generic.clone()),
             signed(vec![signer.sign_data(generic, key.clone()).unwrap()], TransactionType::AssetActivation)

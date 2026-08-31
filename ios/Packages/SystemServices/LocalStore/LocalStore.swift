@@ -19,8 +19,22 @@ public struct LocalStore: Sendable {
         return documentPath.lastPathComponent
     }
 
+    public func store(_ data: Data, fileName: String) throws -> URL {
+        let url = url(for: fileName)
+        try data.write(to: url, options: .atomic)
+        return url
+    }
+
+    public func exists(_ fileName: String) -> Bool {
+        fileManager.fileExists(atPath: url(for: fileName).path())
+    }
+
+    public func url(for fileName: String) -> URL {
+        documentDirectory.appendingPathComponent(fileName)
+    }
+
     public func remove(_ fileName: String) throws {
-        let url = documentDirectory.appendingPathComponent(fileName)
+        let url = url(for: fileName)
         guard fileManager.fileExists(atPath: url.path()) else {
             return
         }

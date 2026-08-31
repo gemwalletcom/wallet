@@ -1,0 +1,15 @@
+[package]
+name = "gem_api"
+edition = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+primitives = { path = "../primitives" }
+gem_auth = { path = "../gem_auth" }
+serde = { workspace = true }
+serde_json = { workspace = true, features = ["raw_value"] }
+strum = { workspace = true }
+async-trait = { workspace = true }
+gem_client = { path = "../gem_client" }
+gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
+percent-encoding = { workspace = true }

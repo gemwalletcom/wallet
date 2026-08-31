@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitivesTestKit
+import protocol Gemstone.GemStakeServiceProtocol
 import Primitives
 import PrimitivesTestKit
 @testable import Stake
@@ -12,14 +14,16 @@ public extension DelegationSceneViewModel {
         rewards: String = .empty,
         providerType: StakeProviderType = .stake,
         validators: [DelegationValidator] = [],
+        stakeService: any GemStakeServiceProtocol = GemStakeServiceMock(),
     ) -> DelegationSceneViewModel {
         let validator = DelegationValidator.mock(chain, providerType: providerType)
         let base = DelegationBase.mock(state: state, assetId: .mock(chain), rewards: rewards)
         let delegation = Delegation.mock(state: state, validator: validator, base: base)
         return DelegationSceneViewModel(
             wallet: wallet,
-            model: DelegationViewModel(delegation: delegation, asset: chain.asset, currencyCode: "USD"),
+            model: DelegationViewModel(explorerService: GemExplorerServiceMock(), stakeService: stakeService, delegation: delegation, asset: chain.asset, currencyCode: "USD"),
             asset: chain.asset,
+            stakeService: stakeService,
             validators: validators,
             onAmountInputAction: nil,
             onTransferAction: nil,

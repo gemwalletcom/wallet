@@ -2,12 +2,13 @@ package com.gemwallet.android.model
 
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BalanceMetadata
+import uniffi.gemstone.GemStakeBalance
 import java.math.BigInteger
 
 data class AssetBalance(
     val asset: Asset,
-    val balance: Balance<String> = Balance("0", "0", "0", "0", "0", "0", "0", "0"),
-    val balanceAmount: Balance<Double> = Balance(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+    val balance: Balance<String> = Balance("0", "0", "0", "0", "0", "0", "0", "0", "0", "0"),
+    val balanceAmount: Balance<Double> = Balance(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
     val totalAmount: Double = 0.0,
     val fiatTotalAmount: Double = 0.0,
     val metadata: BalanceMetadata? = null,
@@ -25,10 +26,12 @@ data class AssetBalance(
             rewards: String = "0",
             reserved: String = "0",
             withdrawable: String = "0",
+            pendingUnconfirmed: String = "0",
+            earn: String = "0",
             metadata: BalanceMetadata? = null,
             isActive: Boolean = true,
         ): AssetBalance {
-            val balance = Balance(  // TODO: Check number is correct
+            val balance = Balance(
                 available = available,
                 frozen = frozen,
                 locked = locked,
@@ -37,6 +40,8 @@ data class AssetBalance(
                 rewards = rewards,
                 reserved = reserved,
                 withdrawable = withdrawable,
+                pendingUnconfirmed = pendingUnconfirmed,
+                earn = earn,
             )
             val balanceAmount = balance.createAmount(asset.decimals)
             return AssetBalance(
@@ -62,6 +67,8 @@ private fun Balance<String>.createAmount(decimals: Int) = Balance(
     rewards = Crypto(rewards).value(decimals).stripTrailingZeros().toDouble(),
     reserved = Crypto(reserved).value(decimals).stripTrailingZeros().toDouble(),
     withdrawable = Crypto(withdrawable).value(decimals).stripTrailingZeros().toDouble(),
+    pendingUnconfirmed = Crypto(pendingUnconfirmed).value(decimals).stripTrailingZeros().toDouble(),
+    earn = Crypto(earn).value(decimals).stripTrailingZeros().toDouble(),
 )
 
 fun Balance<String>.hasAvailable() = try {
@@ -72,23 +79,22 @@ fun Balance<String>.hasAvailable() = try {
 
 fun Balance<String>.rewardsBalance() = rewards.toBigIntegerOrNull() ?: BigInteger.ZERO
 
-fun Balance<Double>.getTotalAmount() = available + frozen + locked + staked + pending + rewards
-
-fun Balance<Double>.getStakedAmount() = frozen + staked + pending + rewards + locked
+fun Balance<Double>.getTotalAmount() = available + frozen + locked + staked + pending + rewards + earn
 
 fun Balance<String>.getTotalAmount() = BigInteger(available) +
         BigInteger(frozen) +
         BigInteger(locked) +
         BigInteger(staked) +
         BigInteger(pending) +
-        BigInteger(rewards)
-
-fun Balance<String>.getStakedAmount() = BigInteger(frozen) +
-        BigInteger(staked) +
-        BigInteger(pending) +
         BigInteger(rewards) +
-        BigInteger(locked)
+        BigInteger(earn)
 
-fun Balance<String>.getDelegatePreparedAmount() = BigInteger(locked) + BigInteger(staked)
+fun Balance<String>.toStakeBalance() = GemStakeBalance(
+    frozen = frozen,
+    locked = locked,
+    staked = staked,
+    pending = pending,
+    rewards = rewards,
+)
 
 fun Balance<String>.getFrozenResourceAmount() = BigInteger(frozen) + BigInteger(locked)

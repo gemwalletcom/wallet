@@ -1,50 +1,63 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AssetsService
-import BannerService
+import class Gemstone.GemDeeplinkService
+import class Gemstone.GemDeviceKeyService
+import protocol Gemstone.GemPerpetualServiceProtocol
+import protocol Gemstone.GemPreferencesServiceProtocol
+import protocol Gemstone.GemWalletPreferencesServiceProtocol
+import GemstoneServices
 import BigInt
 import Components
 import Foundation
 import GemstonePrimitives
 import Localization
-import PerpetualService
 import Preferences
-import PriceService
 import Primitives
 import PrimitivesComponents
-import StakeService
+import Store
 import SwiftUI
-import TransactionsService
 
 @Observable
 @MainActor
 public final class DeveloperViewModel {
     private let walletId: WalletId
-    private let transactionsService: TransactionsService
-    private let assetService: AssetsService
-    private let stakeService: StakeService
-    private let bannerService: BannerService
-    private let priceService: PriceService
-    private let perpetualService: PerpetualService
+    private let walletPreferencesService: any GemWalletPreferencesServiceProtocol
+    private let transactionStore: TransactionStore
+    private let assetStore: AssetStore
+    private let stakeStore: StakeStore
+    private let bannerStore: BannerStore
+    private let priceStore: PriceStore
+    private let perpetualService: any GemPerpetualServiceProtocol
+    private let deeplinkService: GemDeeplinkService
+    private let preferencesService: any GemPreferencesServiceProtocol
+    private let deviceKeyService: GemDeviceKeyService
 
     public var isPresentingToastMessage: ToastMessage?
 
     public init(
         walletId: WalletId,
-        transactionsService: TransactionsService,
-        assetService: AssetsService,
-        stakeService: StakeService,
-        bannerService: BannerService,
-        priceService: PriceService,
-        perpetualService: PerpetualService,
+        transactionStore: TransactionStore,
+        assetStore: AssetStore,
+        stakeStore: StakeStore,
+        bannerStore: BannerStore,
+        priceStore: PriceStore,
+        perpetualService: any GemPerpetualServiceProtocol,
+        walletPreferencesService: any GemWalletPreferencesServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
+        deviceKeyService: GemDeviceKeyService,
+        deeplinkService: GemDeeplinkService,
     ) {
         self.walletId = walletId
-        self.transactionsService = transactionsService
-        self.assetService = assetService
-        self.stakeService = stakeService
-        self.bannerService = bannerService
-        self.priceService = priceService
+        self.deeplinkService = deeplinkService
+        self.walletPreferencesService = walletPreferencesService
+        self.transactionStore = transactionStore
+        self.assetStore = assetStore
+        self.stakeStore = stakeStore
+        self.bannerStore = bannerStore
+        self.priceStore = priceStore
         self.perpetualService = perpetualService
+        self.preferencesService = preferencesService
+        self.deviceKeyService = deviceKeyService
     }
 
     var title: String {
@@ -52,7 +65,7 @@ public final class DeveloperViewModel {
     }
 
     var deviceId: String {
-        (try? SecurePreferences.standard.getDeviceId()) ?? .empty
+        (try? deviceKeyService.deviceId()) ?? .empty
     }
 
     var deviceToken: String {
@@ -62,7 +75,7 @@ public final class DeveloperViewModel {
     func reset() {
         do {
             try clearDocuments()
-            Preferences.standard.clear()
+            try preferencesService.clear()
             try SecurePreferences.standard.clear()
             fatalError()
         } catch {
@@ -78,71 +91,74 @@ public final class DeveloperViewModel {
 
     func clearTransactions() {
         performAction {
-            try transactionsService.transactionStore.clear()
+            try transactionStore.clear()
         }
     }
 
     func clearPendingTransactions() {
         performAction {
             let states = [TransactionState.pending, TransactionState.inTransit]
-            let transactionIds = try transactionsService.transactionStore.getTransactions(states: states).map(\.id.identifier)
-            _ = try transactionsService.transactionStore.deleteTransactionId(ids: transactionIds)
+            let transactionIds = try transactionStore.getTransactions(states: states).map(\.id.identifier)
+            _ = try transactionStore.deleteTransactionId(ids: transactionIds)
         }
     }
 
     func clearTransactionsTimestamp() {
         performAction {
-            let preferences = WalletPreferences(walletId: walletId)
-            preferences.transactionsTimestamp = 0
-            preferences.completeInitialLoadTransactions = false
+            try walletPreferencesService.resetTransactionsTimestamp(walletId: walletId)
         }
     }
 
     func clearWalletPreferences() {
         performAction {
-            WalletPreferences(walletId: walletId).clear()
+            try walletPreferencesService.deletePreferences(walletId: walletId)
         }
     }
 
     func clearAssets() {
         performAction {
-            try assetService.assetStore.clearTokens()
+            try assetStore.clearTokens()
         }
     }
 
     func clearDelegations() {
         performAction {
-            try stakeService.clearDelegations()
+            try stakeStore.clearDelegations()
         }
     }
 
     func clearValidators() {
         performAction {
-            try stakeService.clearValidators()
+            try stakeStore.clearValidators()
         }
     }
 
     func clearBanners() {
         performAction {
-            try bannerService.clearBanners()
+            _ = try bannerStore.clear()
         }
     }
 
     func activateAllCancelledBanners() {
         performAction {
-            try bannerService.activateAllCancelledBanners()
+            _ = try bannerStore.updateStates(from: .cancelled, to: .active)
         }
     }
 
     func clearPrices() {
         performAction {
-            try priceService.clear()
+            _ = try priceStore.clear()
         }
     }
 
     func clearPerpetuals() {
-        performAction {
-            try perpetualService.clearMarkets()
+        Task {
+            do {
+                try await perpetualService.clearMarkets()
+                showSuccess()
+            } catch {
+                debugLog("Developer action error: \(error)")
+            }
         }
     }
 
@@ -280,20 +296,12 @@ public final class DeveloperViewModel {
                 createdAt: element.createdAt,
             )
         }
-        try? transactionsService.transactionStore.addTransactions(walletId: walletId, transactions: transactions)
-    }
-
-    // preferences
-
-    func clearAssetsVersion() {
-        performAction {
-            Preferences.standard.swapAssetsVersion = 0
-        }
+        try? transactionStore.addTransactions(walletId: walletId, transactions: transactions)
     }
 
     func deeplink(deeplink: DeepLink) {
         Task { @MainActor in
-            await UIApplication.shared.open(deeplink.gemUrl, options: [:])
+            await UIApplication.shared.open(deeplink.gemUrl(deeplinkService: deeplinkService), options: [:])
         }
     }
 }

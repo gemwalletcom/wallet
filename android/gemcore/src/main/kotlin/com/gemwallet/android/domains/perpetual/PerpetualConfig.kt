@@ -29,6 +29,8 @@ object PerpetualConfig {
 
     val leverageOptions: List<Int> get() = config.leverageOptions.toUnsignedInts()
 
+    fun leverageOptions(maxLeverage: Int): List<Int> = Config().leverageOptions(maxLeverage.toUByte()).toUnsignedInts()
+
     val takeProfitOptions: List<Int> get() = config.takeProfitPercentOptions.toUnsignedInts()
 
     val stopLossOptions: List<Int> get() = config.stopLossPercentOptions.toUnsignedInts()

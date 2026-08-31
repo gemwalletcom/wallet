@@ -30,20 +30,6 @@ impl Balances {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Tokens {
-    pub tokens: Vec<Token>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Token {
-    pub name: String,
-    pub wei_decimals: i32,
-    pub index: i32,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct StakeBalance {
     pub delegated: String,
     pub undelegated: String,
@@ -82,13 +68,12 @@ impl Validator {
 }
 
 impl Validator {
-    pub fn max_apr(validators: Vec<Validator>) -> f64 {
-        validators
-            .into_iter()
-            .filter(|x| x.is_active)
-            .map(|x| x.stats.into_iter().map(|(_, stat)| stat.predicted_apr).fold(0.0, f64::max))
-            .fold(0.0, f64::max)
-            * 100.0
+    pub fn predicted_apr(&self) -> Option<f64> {
+        self.stats.iter().map(|(_, stat)| stat.predicted_apr).max_by(f64::total_cmp).map(|apr| apr * 100.0)
+    }
+
+    pub fn max_apr(validators: &[Validator]) -> f64 {
+        validators.iter().filter(|x| x.is_active).filter_map(|x| x.predicted_apr()).fold(0.0, f64::max)
     }
 }
 

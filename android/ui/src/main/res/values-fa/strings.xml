@@ -20,6 +20,7 @@
   <string name="common_wallet">کیف پول</string>
   <string name="common_show">نمایش %1$s</string>
   <string name="common_copied">%1$s کپی شد.</string>
+  <string name="common_copied_to_clipboard">در کلیپ‌بورد کپی شد</string>
   <string name="common_recommended">پیشنهاد شده</string>
   <string name="common_all">همه</string>
   <string name="common_not_available">در دسترس نیست</string>
@@ -185,10 +186,14 @@
   <string name="errors_token_invalid_id">شناسه توکن نامعتبر است.</string>
   <string name="errors_import_invalid_secret_phrase">عبارات خصوصی نامعتبر.</string>
   <string name="errors_import_invalid_secret_phrase_word">عبارت خصوصی نامعتبر: %1$s</string>
+  <string name="errors_import_invalid_private_key">کلید خصوصی نامعتبر</string>
+  <string name="errors_keystore_access">دسترسی به کلیدهای این کیف پول در این دستگاه ممکن نشد. اگر عبارت بازیابی خود را دارید، این کیف پول را حذف کنید و دوباره وارد کنید تا دسترسی بازیابی شود.</string>
+  <string name="errors_wallet_account_missing">این کیف پول برای این شبکه حسابی ندارد</string>
   <string name="errors_invalid_url">URL نامعتبر</string>
   <string name="errors_error_occurred">خطایی رخ داد!</string>
   <string name="errors_invalid_network_id">شناسه شبکه نامعتبر است.</string>
   <string name="errors_error">خطا</string>
+  <string name="errors_cancelled">لغو شد</string>
   <string name="errors_connections_user_cancelled">توسط کاربر لغو شد.</string>
   <string name="errors_not_supported">پشتیبانی نمی شود.</string>
   <string name="errors_permissions_not_granted">دسترسی داده نشده.</string>

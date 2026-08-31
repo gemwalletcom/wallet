@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemApplicationMetadataService
 import Foundation
 import Localization
 @testable import Primitives
@@ -11,11 +12,11 @@ import TransferTestKit
 struct ConfirmAppViewModelTests {
     @Test
     func generic() {
-        let metadata = WalletConnectionSessionAppMetadata.mock(
+        let metadata = ApplicationMetadata.mock(
             name: "PancakeSwap - Trade",
             url: "https://pancakeswap.finance/swap",
         )
-        let model = ConfirmAppViewModel(type: .generic(asset: .mock(), metadata: metadata, extra: .mock()))
+        let model = ConfirmAppViewModel(type: .generic(asset: .mock(), metadata: metadata, extra: .mock()), applicationMetadataService: GemApplicationMetadataService())
 
         guard case let .app(item) = model.itemModel else { return }
         #expect(item.title == Localized.WalletConnect.app)

@@ -32,6 +32,8 @@ data class DbAssetInfo(
     val isSwapEnabled: Boolean,
     val isStakeEnabled: Boolean,
     val stakingApr: Double?,
+    val isEarnEnabled: Boolean = false,
+    val earnApr: Double? = null,
     val assetRank: Int,
     val associations: List<AssetAssociation>,
     // account
@@ -62,6 +64,10 @@ data class DbAssetInfo(
     val balanceReservedAmount: Double?,
     val balanceWithdrawable: String?,
     val balanceWithdrawableAmount: Double?,
+    val balancePendingUnconfirmed: String? = null,
+    val balancePendingUnconfirmedAmount: Double? = null,
+    val balanceEarn: String? = null,
+    val balanceEarnAmount: Double? = null,
     val balanceTotalAmount: Double?,
     val balanceFiatTotalAmount: Double?,
     val votes: Long?,
@@ -97,6 +103,8 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
             rewards = entity.balanceRewards ?: "0",
             reserved = entity.balanceReserved ?: "0",
             withdrawable = entity.balanceWithdrawable ?: "0",
+            pendingUnconfirmed = entity.balancePendingUnconfirmed ?: "0",
+            earn = entity.balanceEarn ?: "0",
         ),
         balanceAmount = Balance(
             available = entity.balanceAvailableAmount ?: 0.0,
@@ -107,6 +115,8 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
             rewards = entity.balanceRewardsAmount ?: 0.0,
             reserved = entity.balanceReservedAmount ?: 0.0,
             withdrawable = entity.balanceWithdrawableAmount ?: 0.0,
+            pendingUnconfirmed = entity.balancePendingUnconfirmedAmount ?: 0.0,
+            earn = entity.balanceEarnAmount ?: 0.0,
         ),
         totalAmount = entity.balanceTotalAmount ?: 0.0,
         fiatTotalAmount = entity.balanceFiatTotalAmount ?: 0.0,
@@ -119,10 +129,7 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
                 bandwidthTotal = entity.bandwidthTotal?.toUInt() ?: 0U,
             )
         } else null,
-        isActive = when (assetId.chain) {
-            Chain.Xrp -> assetIsActive != false
-            else -> true
-        },
+        isActive = assetIsActive != false,
     )
 
     val account = if (entity.address.isNullOrEmpty()) null else Account(
@@ -156,9 +163,9 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
             rankScore = entity.assetRank,
             isActive = true,
             isBalanceEnabled = entity.visible == true,
-            isEarnEnabled = false,
+            isEarnEnabled = entity.isEarnEnabled,
             stakingApr = entity.stakingApr,
-            earnApr = null,
+            earnApr = entity.earnApr,
         ),
         walletId = walletId?.let(::WalletId),
         associations = entity.associations,

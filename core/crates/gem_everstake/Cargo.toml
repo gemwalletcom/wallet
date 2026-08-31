@@ -1,0 +1,30 @@
+[package]
+name = "gem_everstake"
+version = { workspace = true }
+edition = { workspace = true }
+
+[features]
+default = []
+rpc = ["gem_evm/rpc", "dep:async-trait", "dep:gem_client"]
+reqwest = ["rpc", "gem_evm/reqwest", "gem_client/reqwest", "dep:serde", "dep:serde_serializers"]
+chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
+
+[dependencies]
+primitives = { path = "../primitives" }
+gem_evm = { path = "../gem_evm" }
+serde_serializers = { path = "../serde_serializers", optional = true }
+
+gem_client = { path = "../gem_client", optional = true }
+async-trait = { workspace = true, optional = true }
+alloy-primitives = { workspace = true }
+alloy-sol-types = { workspace = true }
+num-bigint = { workspace = true }
+num-traits = { workspace = true }
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+gem_evm = { path = "../gem_evm", features = ["rpc", "testkit"] }
+primitives = { path = "../primitives", features = ["testkit"] }
+settings = { path = "../settings", features = ["testkit"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+chrono = { workspace = true }

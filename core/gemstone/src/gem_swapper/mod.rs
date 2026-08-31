@@ -1,6 +1,7 @@
 mod error;
 mod permit2;
-use error::SwapperError;
+pub use error::SwapperError;
+pub use permit2::permit2_data_to_eip712_json;
 use permit2::*;
 mod remote_types;
 use remote_types::*;
@@ -59,9 +60,5 @@ impl GemSwapper {
 
     pub async fn get_quote_data(&self, quote: &SwapperQuote, data: FetchQuoteData) -> Result<GemSwapQuoteData, SwapperError> {
         self.inner.get_quote_data(quote, data).await
-    }
-
-    pub async fn get_swap_result(&self, chain: Chain, provider: SwapperProvider, transaction_hash: &str) -> Result<SwapperSwapResult, SwapperError> {
-        self.inner.get_swap_result(chain, provider, transaction_hash).await
     }
 }

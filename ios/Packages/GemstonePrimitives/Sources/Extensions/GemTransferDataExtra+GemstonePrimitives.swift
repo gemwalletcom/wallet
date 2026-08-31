@@ -12,23 +12,25 @@ public extension GemTransferDataExtra {
             gasLimit: gasLimit.map { try BigInt.from(string: $0) },
             gasPrice: gasPrice?.map(),
             data: data,
-            outputType: outputType.map(),
-            outputAction: outputAction.map(),
-            transactionType: transactionType.map(),
+            outputType: Primitives.TransferDataOutputType(outputType),
+            outputAction: Primitives.TransferDataOutputAction(outputAction),
+            transactionType: Primitives.TransactionType(transactionType),
+            approval: approval.map { try Primitives.ApprovalData($0) },
         )
     }
 }
 
 public extension TransferDataExtra {
-    func map() -> GemTransferDataExtra {
+    func map() throws -> GemTransferDataExtra {
         GemTransferDataExtra(
             to: to,
             gasLimit: gasLimit?.description,
             gasPrice: gasPrice?.map(),
             data: data,
-            outputType: outputType.map(),
-            outputAction: outputAction.map(),
-            transactionType: transactionType.map(),
+            outputType: outputType.json(),
+            outputAction: outputAction.json(),
+            transactionType: transactionType.json(),
+            approval: approval?.json(),
         )
     }
 }

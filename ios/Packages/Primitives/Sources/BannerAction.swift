@@ -3,16 +3,18 @@
 import Foundation
 
 public struct BannerAction: Identifiable, Sendable {
-    public let id: String
+    public let banner: Banner
     public let type: BannerActionType
     public let url: URL?
 
+    public var id: String { banner.id }
+
     public init(
-        id: String,
+        banner: Banner,
         type: BannerActionType,
         url: URL?,
     ) {
-        self.id = id
+        self.banner = banner
         self.type = type
         self.url = url
     }

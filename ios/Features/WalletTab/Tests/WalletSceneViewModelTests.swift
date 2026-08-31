@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BannerServiceTestKit
+import GemstoneServicesTestKit
 import Observation
 import Primitives
 import PrimitivesTestKit
@@ -12,18 +12,6 @@ import WalletTabTestKit
 
 @MainActor
 struct WalletSceneViewModelTests {
-    @Test
-    func priorityBannerReturnsHighestPriority() {
-        let model = WalletSceneViewModel.mock()
-        model.bannersQuery.value = [
-            .mock(event: .stake, state: .active),
-            .mock(event: .enableNotifications, state: .cancelled),
-            .mock(event: .accountActivation, state: .alwaysActive),
-        ]
-
-        #expect(model.walletBannersModel.allBanners.first?.state == .alwaysActive)
-    }
-
     @Test
     func renameNotifiesWalletBar() async throws {
         let wallet = Wallet.mock(id: .multicoin(address: "0x1"), name: "First")

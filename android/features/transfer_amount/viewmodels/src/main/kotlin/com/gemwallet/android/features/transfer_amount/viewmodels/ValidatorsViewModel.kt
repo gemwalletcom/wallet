@@ -3,7 +3,9 @@ package com.gemwallet.android.features.transfer_amount.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.data.repositories.stake.StakeRepository
+import com.gemwallet.android.application.stake.cases.GetDelegations
+import com.gemwallet.android.application.stake.cases.GetRecommendedValidatorIds
+import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.features.transfer_amount.models.ValidatorsSource
 import com.gemwallet.android.features.transfer_amount.models.ValidatorsUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,7 +24,9 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ValidatorsViewModel @Inject constructor(
-    private val stakeRepository: StakeRepository,
+    private val getValidators: GetValidators,
+    private val getDelegations: GetDelegations,
+    private val getRecommendedValidatorIds: GetRecommendedValidatorIds,
     val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -31,8 +35,8 @@ class ValidatorsViewModel @Inject constructor(
     val validators = source.filterNotNull()
         .flatMapLatest { source ->
             when (source) {
-                is ValidatorsSource.ChainValidators -> stakeRepository.getValidators(source.assetId)
-                is ValidatorsSource.Rewards -> stakeRepository.getDelegations(source.walletId, source.assetId)
+                is ValidatorsSource.ChainValidators -> getValidators(source.assetId)
+                is ValidatorsSource.Rewards -> getDelegations(source.walletId, source.assetId)
                     .map { delegations ->
                         delegations
                             .filter { (it.base.rewards.toBigIntegerOrNull() ?: BigInteger.ZERO) > BigInteger.ZERO }
@@ -47,7 +51,7 @@ class ValidatorsViewModel @Inject constructor(
             source == null -> ValidatorsUIState.Loading
             validators.isNotEmpty() -> {
                 val recommended = when (source) {
-                    is ValidatorsSource.ChainValidators -> stakeRepository.getRecommendValidators(source.assetId)
+                    is ValidatorsSource.ChainValidators -> getRecommendedValidatorIds(source.assetId)
                     is ValidatorsSource.Rewards -> emptySet()
                 }
                 ValidatorsUIState.Loaded(

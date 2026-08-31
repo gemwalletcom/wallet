@@ -1,11 +1,14 @@
 package com.gemwallet.android.features.stake.viewmodels
 
+import uniffi.gemstone.GemStakeServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.stake.StakeRepository
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.stake.cases.GetDelegations
+import com.gemwallet.android.application.stake.cases.GetValidators
+import com.gemwallet.android.application.stake.cases.SyncStakeDelegations
 import com.gemwallet.android.domains.stake.hasRewards
 import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.domains.stake.sumRewardsBalance
@@ -16,7 +19,6 @@ import com.gemwallet.android.ext.claimAllAvailable
 import com.gemwallet.android.ext.canClaimRewards
 import com.gemwallet.android.ext.freezed
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.toGemStakeChain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AmountParams
@@ -55,9 +57,12 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class StakeViewModel @Inject constructor(
-    private val assetsRepository: AssetsRepository,
-    private val stakeRepository: StakeRepository,
-    sessionRepository: SessionRepository,
+    private val getAssetInfo: GetAssetInfo,
+    private val getDelegations: GetDelegations,
+    private val getValidators: GetValidators,
+    private val syncStakeDelegations: SyncStakeDelegations,
+    private val stakeService: GemStakeServiceInterface,
+    getSession: GetSession,
     stateHandle: SavedStateHandle,
 ): ViewModel() {
     private val initialAssetId = stateHandle.get<String>(RouteArgument.AssetId.key)?.toAssetId()
@@ -68,14 +73,14 @@ class StakeViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, initialAssetId)
 
     val assetInfo = assetId
-        .flatMapLatest { assetsRepository.getAssetInfo(it) }
+        .flatMapLatest { getAssetInfo(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val stakeInfoUrl = assetInfo
-        .mapLatest { it?.stakeChain?.let { chain -> AppUrl.docs(DocsUrl.Staking(chain.toGemStakeChain())) } }
+        .mapLatest { it?.stakeChain?.let { chain -> AppUrl.docs(DocsUrl.Staking(chain.string)) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val session = sessionRepository.session()
+    private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val walletType = session.mapLatest { it?.wallet?.type }
@@ -88,18 +93,20 @@ class StakeViewModel @Inject constructor(
     val delegations = session.filterNotNull().combine(assetId) { session, assetId ->
         session.wallet.id to assetId
     }
-        .flatMapLatest { (walletId, assetId) -> stakeRepository.getDelegations(walletId, assetId) }
+        .flatMapLatest { (walletId, assetId) -> getDelegations(walletId, assetId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val isStakeEnabled = assetId
-        .flatMapLatest { stakeRepository.getValidators(it) }
+        .flatMapLatest { getValidators(it) }
         .mapLatest { validators -> validators.isNotEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val stakeFrozenRequired = assetInfo
         .mapLatest { assetInfo ->
-            assetInfo?.stakeChain?.freezed() == true
-                && assetInfo.balance.balance.getFrozenResourceAmount() <= BigInteger.ZERO
+            assetInfo != null && stakeService.requiresFrozenBalance(
+                assetInfo.asset.chain.string,
+                assetInfo.balance.balance.getFrozenResourceAmount().toString(),
+            )
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
@@ -122,7 +129,7 @@ class StakeViewModel @Inject constructor(
             StakeAction.Freeze.takeIf { assetInfo.stakeChain?.freezed() == true },
             StakeAction.Unfreeze.takeIf { assetInfo.stakeChain?.freezed() == true },
             rewardsBalance
-                .takeIf { assetInfo.chain.canClaimRewards && rewardsBalance > BigInteger.ZERO }
+                .takeIf { stakeService.canClaimStakeRewards(assetInfo.asset.chain.string, rewardsBalance.toString()) }
                 ?.let {
                     StakeAction.Rewards(
                         data = ValueFormatter(style = ValueFormatter.Style.Auto)
@@ -156,11 +163,10 @@ class StakeViewModel @Inject constructor(
                 val account = account.filterNotNull().first()
                 val walletId = session.filterNotNull().first().wallet.id
                 emit(true)
-                stakeRepository.sync(
+                syncStakeDelegations.sync(
                     walletId = walletId,
                     assetId = assetInfo.asset.id,
                     address = account.address,
-                    apr = assetInfo.metadata?.stakingApr ?: 0.0,
                 )
                 emit(false)
                 sync.update { false }

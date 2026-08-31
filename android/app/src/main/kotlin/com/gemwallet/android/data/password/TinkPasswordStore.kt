@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.password
 
 import android.content.Context
+import com.gemwallet.android.application.PasswordNotFoundException
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.math.append0x
 import com.gemwallet.android.math.hex
@@ -38,20 +39,26 @@ class TinkPasswordStore internal constructor(
         random = SecureRandom(),
     )
 
-    override fun createPassword(key: String): String {
+    @Synchronized
+    override fun getOrCreatePassword(key: String): String {
+        encryptedStore.getOrMigrate(legacyStore, key)?.let { return it }
         val password = ByteArray(32)
-        random.nextBytes(password)
-        val value = password.hex.append0x()
-        encryptedStore.putString(key, value)
-        legacyStore.removeString(key)
-        return value
+        return try {
+            random.nextBytes(password)
+            val value = password.hex.append0x()
+            encryptedStore.putString(key, value)
+            legacyStore.removeString(key)
+            value
+        } finally {
+            password.fill(0)
+        }
     }
 
     override fun removePassword(key: String): Boolean =
         encryptedStore.removeString(key) and legacyStore.removeString(key)
 
     override fun getPassword(key: String): String =
-        encryptedStore.getOrMigrate(legacyStore, key) ?: throw IllegalStateException("Password not found")
+        encryptedStore.getOrMigrate(legacyStore, key) ?: throw PasswordNotFoundException()
 
     override fun putPassword(key: String, password: String) {
         encryptedStore.putString(key, password)

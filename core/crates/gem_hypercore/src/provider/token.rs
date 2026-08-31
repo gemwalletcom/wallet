@@ -21,8 +21,6 @@ impl<C: Client> ChainToken for HyperCoreClient<C> {
 
         Ok(Asset {
             id: asset_id.clone(),
-            chain: self.chain,
-            token_id: asset_id.token_id,
             name: token.name.clone(),
             symbol: token.name.clone(),
             decimals: token.wei_decimals,
@@ -44,8 +42,8 @@ mod tests {
 
         assert_eq!(asset.symbol, "USDC");
         assert_eq!(asset.decimals, 8);
-        assert_eq!(asset.chain, primitives::Chain::HyperCore);
+        assert_eq!(asset.chain(), primitives::Chain::HyperCore);
         assert_eq!(asset.asset_type, AssetType::TOKEN);
-        assert_eq!(asset.token_id, Some(USDC_TOKEN_ID.to_string()));
+        assert_eq!(asset.token_id(), Some(USDC_TOKEN_ID));
     }
 }

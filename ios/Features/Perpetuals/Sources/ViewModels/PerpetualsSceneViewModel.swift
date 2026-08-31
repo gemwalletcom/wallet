@@ -1,10 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ActivityService
+import GemstonePrimitives
+import enum Gemstone.GemMarketsRefreshTrigger
+import protocol Gemstone.GemPerpetualServiceProtocol
+import GemstoneServices
 import Components
 import Foundation
 import Localization
-import PerpetualService
 import Primitives
 import PrimitivesComponents
 import Recents
@@ -15,11 +17,10 @@ import SwiftUI
 @Observable
 @MainActor
 final class PerpetualsSceneViewModel {
-    private static let marketsUpdateIntervalHours = 1
 
     private let observerService: any PerpetualObservable
-    let perpetualService: PerpetualServiceable
-    let activityService: ActivityService
+    let perpetualService: any GemPerpetualServiceProtocol
+    let recentAssetsService: any RecentAssetsServiceable
 
     let wallet: Wallet
 
@@ -50,9 +51,9 @@ final class PerpetualsSceneViewModel {
 
     init(
         wallet: Wallet,
-        perpetualService: PerpetualServiceable,
+        perpetualService: any GemPerpetualServiceProtocol,
         observerService: any PerpetualObservable,
-        activityService: ActivityService,
+        recentAssetsService: any RecentAssetsServiceable,
         onSelectAssetType: ((SelectAssetType) -> Void)? = nil,
         onSelectAsset: ((Asset) -> Void)? = nil,
         onSelectPortfolio: (() -> Void)? = nil,
@@ -60,14 +61,17 @@ final class PerpetualsSceneViewModel {
         self.wallet = wallet
         self.perpetualService = perpetualService
         self.observerService = observerService
-        self.activityService = activityService
+        self.recentAssetsService = recentAssetsService
         self.onSelectAssetType = onSelectAssetType
         self.onSelectAsset = onSelectAsset
         self.onSelectPortfolio = onSelectPortfolio
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, searchQuery: ""), initialValue: [])
         perpetualsQuery = ObservableQuery(PerpetualsRequest(searchQuery: ""), initialValue: [])
-        walletBalanceQuery = ObservableQuery(PerpetualWalletBalanceRequest(walletId: wallet.id), initialValue: .zero)
-        recentModel = RecentAssetsModel(walletId: wallet.id, types: [.perpetual], activityService: activityService)
+        walletBalanceQuery = ObservableQuery(
+            PerpetualWalletBalanceRequest(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
+            initialValue: .zero,
+        )
+        recentModel = RecentAssetsModel(walletId: wallet.id, types: [.perpetual], recentAssetsService: recentAssetsService)
     }
 
     var navigationTitle: String {
@@ -133,9 +137,9 @@ final class PerpetualsSceneViewModel {
 // MARK: - Business Logic
 
 extension PerpetualsSceneViewModel {
-    func fetch() async {
-        async let updateObserver: () = observerService.update(for: wallet)
-        async let refreshMarkets: () = updateMarkets()
+    func load(source: RefreshSource = .timer) async {
+        async let updateObserver: PerpetualAccountMode? = observerService.update(for: wallet)
+        async let refreshMarkets: () = updateMarkets(source: source)
         _ = await (updateObserver, refreshMarkets)
     }
 
@@ -155,11 +159,9 @@ extension PerpetualsSceneViewModel {
         }
     }
 
-    func updateMarkets() async {
-        guard perpetualService.marketsUpdatedAt.isOutdated(byHours: Self.marketsUpdateIntervalHours) else { return }
-
+    func updateMarkets(source: RefreshSource) async {
         do {
-            try await perpetualService.updateMarkets()
+            try await perpetualService.updateMarkets(trigger: source.marketsRefreshTrigger)
         } catch {
             debugLog("Failed to update markets: \(error)")
         }
@@ -177,10 +179,12 @@ extension PerpetualsSceneViewModel {
     }
 
     func onPinPerpetual(_ perpetualData: PerpetualData) {
-        do {
-            try perpetualService.setPinned(!perpetualData.metadata.isPinned, perpetualId: perpetualData.perpetual.id)
-        } catch {
-            debugLog("PerpetualsSceneViewModel pin perpetual error: \(error)")
+        Task {
+            do {
+                try await perpetualService.setPinned(!perpetualData.metadata.isPinned, perpetualId: perpetualData.perpetual.id)
+            } catch {
+                debugLog("PerpetualsSceneViewModel pin perpetual error: \(error)")
+            }
         }
     }
 
@@ -203,8 +207,8 @@ extension PerpetualsSceneViewModel {
     func onSelectPerpetual(asset: Asset) {
         onSelectAsset?(asset)
         do {
-            try activityService.updateRecent(
-                data: RecentActivityData(type: .perpetual, assetId: asset.id, toAssetId: nil),
+            try recentAssetsService.add(
+                RecentActivityData(type: .perpetual, assetId: asset.id, toAssetId: nil),
                 walletId: wallet.id,
             )
         } catch {
@@ -219,5 +223,14 @@ extension PerpetualsSceneViewModel {
 
     func onSelectBalance() {
         onSelectPortfolio?()
+    }
+}
+
+private extension RefreshSource {
+    var marketsRefreshTrigger: GemMarketsRefreshTrigger {
+        switch self {
+        case .timer: .scheduled
+        case .user: .userRequested
+        }
     }
 }

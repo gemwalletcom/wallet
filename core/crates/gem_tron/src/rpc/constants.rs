@@ -1,7 +1,9 @@
+use primitives::contract_constants::TRON_BLACK_HOLE_ADDRESS;
+
 pub const NAME_SELECTOR: &str = "name()";
 pub const SYMBOL_SELECTOR: &str = "symbol()";
 pub const DECIMALS_SELECTOR: &str = "decimals()";
-pub const DEFAULT_OWNER_ADDRESS: &str = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";
+pub const DEFAULT_OWNER_ADDRESS: &str = TRON_BLACK_HOLE_ADDRESS;
 
 // Bandwidth estimate for TRON transactions
 pub const DEFAULT_BANDWIDTH_BYTES: u64 = 300;

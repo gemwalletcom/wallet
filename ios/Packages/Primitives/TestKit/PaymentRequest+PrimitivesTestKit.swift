@@ -7,8 +7,9 @@ public extension PaymentRequest {
         address: String = "0xcB3028d6120802148f03d6c884D6AD6A210Df62A",
         amount: PaymentAmount? = nil,
         memo: String? = nil,
+        references: [String]? = nil,
         assetId: AssetId? = nil,
     ) -> PaymentRequest {
-        PaymentRequest(address: address, amount: amount, memo: memo, assetId: assetId)
+        PaymentRequest(address: address, amount: amount, memo: memo, references: references, assetId: assetId)
     }
 }

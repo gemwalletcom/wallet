@@ -4,12 +4,11 @@ use swapper::SwapperProvider;
 
 use super::remote_types::GemExplorerInput;
 
-#[derive(uniffi::Object)]
 pub struct Explorer {
     pub chain: Chain,
 }
 
-#[derive(Debug, uniffi::Record)]
+#[derive(Debug)]
 pub struct ExplorerURL {
     pub name: String,
     pub url: String,
@@ -24,10 +23,8 @@ impl ExplorerURL {
     }
 }
 
-#[uniffi::export]
 impl Explorer {
-    #[uniffi::constructor]
-    fn new(chain: &str) -> Self {
+    pub fn new(chain: &str) -> Self {
         Self {
             chain: Chain::from_str(chain).unwrap(),
         }

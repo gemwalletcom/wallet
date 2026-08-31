@@ -20,6 +20,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "Gemstone", path: "../Gemstone"),
         .package(name: "Primitives", path: "../Primitives"),
         .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
         .package(name: "Localization", path: "../Localization"),
@@ -33,6 +34,7 @@ let package = Package(
         .target(
             name: "PrimitivesComponents",
             dependencies: [
+                "Gemstone",
                 "Primitives",
                 "GemstonePrimitives",
                 "Localization",
@@ -56,6 +58,7 @@ let package = Package(
         .testTarget(
             name: "PrimitivesComponentsTests",
             dependencies: [
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 "PrimitivesComponents",
                 "PrimitivesComponentsTestKit",

@@ -5,28 +5,27 @@ import Foundation
 
 public struct TransferData: Identifiable, Sendable, Hashable {
     public let type: TransferDataType
-    public let recipientData: RecipientData
-    public let amount: TransferAmountValue
+    public let recipient: Recipient
+    public let value: BigInt
+    public let useMaxAmount: Bool
     public let minimumValue: BigInt?
 
     public init(
         type: TransferDataType,
-        recipientData: RecipientData,
-        amount: TransferAmountValue,
+        recipient: Recipient,
+        value: BigInt,
+        useMaxAmount: Bool = false,
         minimumValue: BigInt? = nil,
     ) {
         self.type = type
-        self.recipientData = recipientData
-        self.amount = amount
+        self.recipient = recipient
+        self.value = value
+        self.useMaxAmount = useMaxAmount
         self.minimumValue = minimumValue
     }
 
-    public var value: BigInt {
-        amount.value
-    }
-
     public var id: String {
-        [type.transactionType.rawValue, recipientData.recipient.address, String(value)].joined(separator: "-")
+        [type.chain.rawValue, recipient.address, String(value)].joined(separator: "-")
     }
 
     public var chain: Chain {

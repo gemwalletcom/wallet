@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import class Gemstone.GemFeeService
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit
@@ -14,6 +15,7 @@ public extension NetworkFeeSceneViewModel {
         feeAssetPrice: Price? = nil,
         feeAmount: BigInt? = nil,
         feeAssets: [AssetData] = [],
+        feeService: GemFeeService = GemFeeService(),
         onSelect: (@MainActor (FeeSelection) -> Void)? = nil,
         onSelectFeeAsset: (@MainActor (AssetId) -> Void)? = nil,
     ) -> NetworkFeeSceneViewModel {
@@ -25,6 +27,7 @@ public extension NetworkFeeSceneViewModel {
             feeAssetPrice: feeAssetPrice,
             feeAmount: feeAmount,
             feeAssets: feeAssets,
+            feeService: feeService,
             onSelect: onSelect,
             onSelectFeeAsset: onSelectFeeAsset,
         )

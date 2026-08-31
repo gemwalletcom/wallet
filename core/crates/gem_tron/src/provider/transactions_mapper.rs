@@ -409,7 +409,7 @@ mod tests {
         let result = map_transaction(Chain::Tron, transaction, receipt);
         assert!(result.is_some());
         let transaction = result.unwrap();
-        assert_eq!(transaction.hash, TEST_TRANSACTION_ID);
+        assert_eq!(transaction.hash(), TEST_TRANSACTION_ID);
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
         assert_eq!(transaction.value, "25000000");
         assert_ne!(transaction.from, transaction.to);
@@ -454,7 +454,7 @@ mod tests {
         let receipt: TransactionReceiptData = serde_json::from_str(include_str!("../../testdata/transaction_gasfree_transfer_receipt.json")).unwrap();
         let transaction = map_transaction(Chain::Tron, transaction, receipt).unwrap();
 
-        assert_eq!(transaction.hash, "81f98d55de44617532d28fa8449f1b9a47952a55637e32d93c54e020b00b64db");
+        assert_eq!(transaction.hash(), "81f98d55de44617532d28fa8449f1b9a47952a55637e32d93c54e020b00b64db");
         assert_eq!(transaction.asset_id, AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
         assert_eq!(transaction.from, "TELzUTyXVWaEpnfmaMm6gUghqmL5EyY2kY");
@@ -467,7 +467,7 @@ mod tests {
         let activation_receipt: TransactionReceiptData = serde_json::from_str(include_str!("../../testdata/transaction_gasfree_activation_receipt.json")).unwrap();
         let activation = map_transaction(Chain::Tron, activation, activation_receipt).unwrap();
 
-        assert_eq!(activation.hash, "097fcb9ad088f99c102b656ef5a2b45b4c3b9f78b46729c087e45c42aa34805c");
+        assert_eq!(activation.hash(), "097fcb9ad088f99c102b656ef5a2b45b4c3b9f78b46729c087e45c42aa34805c");
         assert_eq!(activation.asset_id, AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
         assert_eq!(activation.transaction_type, TransactionType::Transfer);
         assert_eq!(activation.from, "TG54m1MyZ4iNXf4scDSc5Wg6uEJC2VMUNo");
@@ -486,7 +486,7 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(failed.hash, TEST_TOKEN_APPROVAL_TRANSACTION_ID);
+        assert_eq!(failed.hash(), TEST_TOKEN_APPROVAL_TRANSACTION_ID);
         assert_eq!(failed.asset_id, AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
         assert_eq!(failed.from, "TA7mCjHFfo68FG3wc6pDCeRGbJSPZkBfL7");
         assert_eq!(failed.to, "TA7mCjHFfo68FG3wc6pDCeRGbJSPZkBfL7");
@@ -593,7 +593,7 @@ mod tests {
 
         assert_eq!(transactions.len(), 1);
         let transaction = transactions.first().unwrap();
-        assert_eq!(transaction.hash, "10f1e5b04c0dd39f14d4b5ca270899b36ae9c52ac1b9b64b76360c7373cc0893");
+        assert_eq!(transaction.hash(), "10f1e5b04c0dd39f14d4b5ca270899b36ae9c52ac1b9b64b76360c7373cc0893");
         assert_eq!(transaction.asset_id, AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
         assert_eq!(transaction.from, "TWBPGLwQw2EbqYLLw1DJnTDt2ZQ9yJW1JJ");
         assert_eq!(transaction.to, "TViSMURdt2dda6Pf163UBZoSfbV9hECvvc");

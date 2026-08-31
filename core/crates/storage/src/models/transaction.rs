@@ -77,7 +77,6 @@ impl TransactionRow {
 
         Transaction {
             id: transaction_id.clone(),
-            hash: self.hash.clone(),
             asset_id,
             from: from.clone(),
             to: to_address.clone(),
@@ -117,6 +116,7 @@ impl NewTransactionRow {
         } else {
             serde_json::to_value(transaction.metadata.clone()).ok()
         };
+        let hash = transaction.hash().to_string();
         let from_address = if transaction.from.is_empty() { None } else { Some(transaction.from) };
         let to_address = if transaction.to.is_empty() { None } else { Some(transaction.to) };
         let memo = transaction.memo.map(|memo| memo.replace('\0', "")).filter(|memo| !memo.is_empty());
@@ -128,7 +128,7 @@ impl NewTransactionRow {
 
         Self {
             chain: transaction.asset_id.chain.into(),
-            hash: transaction.hash,
+            hash,
             memo,
             asset_id: transaction.asset_id.into(),
             value,

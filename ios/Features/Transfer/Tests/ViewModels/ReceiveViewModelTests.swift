@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AssetsServiceTestKit
-import BalanceServiceTestKit
+import GemstoneServicesTestKit
+import class Gemstone.GemReceiveService
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -31,8 +31,9 @@ struct ReceiveViewModelTests {
                 ],
             ),
             wallet: wallet,
-            assetsEnabler: .mock(),
-            assetsService: .mock(),
+            balanceService: .mock(),
+            assetsService: GemAssetsServiceMock(),
+            receiveService: GemReceiveService(),
         )
 
         #expect(model.networkAssetIds == [tronAsset.id, ethereumAsset.id])

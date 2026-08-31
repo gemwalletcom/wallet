@@ -2,6 +2,8 @@ package com.gemwallet.android.ext
 
 import com.gemwallet.android.model.GemNetworkError
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
 import org.junit.Test
 import uniffi.gemstone.AlienException
@@ -23,6 +25,8 @@ class NetworkErrorTest {
             GatewayException.NetworkException("Network error: certificate path failed") to
                 GemNetworkError.Display("Network error: certificate path failed"),
             AlienException.RequestException("request failed") to GemNetworkError.Generic("request failed"),
+            AlienException.Offline() to GemNetworkError.Offline,
+            GatewayException.Offline() to GemNetworkError.Offline,
             AlienException.ResponseException("response failed") to GemNetworkError.Generic("response failed"),
             IOException("unexpected end of stream", EOFException()) to GemNetworkError.Offline,
             IOException("unexpected end of stream on https://gemnodes.com/...") to
@@ -39,14 +43,13 @@ class NetworkErrorTest {
 
     @Test
     fun mapsOfflineConnectionErrors() {
-        val offline = "The Internet connection appears to be offline."
-
         listOf(
             UnknownHostException("api.example.com"),
             ConnectException("failed to connect"),
             NoRouteToHostException("no route to host"),
             IOException("unexpected end of stream", EOFException()),
-        ).forEach { assertEquals(offline, it.toGatewayNetworkMessage(offline)) }
+        ).forEach { assertTrue(it.isNetworkUnavailable()) }
+        assertFalse(SocketTimeoutException("timeout").isNetworkUnavailable())
     }
 
     @Test

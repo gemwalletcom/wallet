@@ -1,27 +1,33 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAmountService
 import BigInt
-import EarnService
 import Foundation
+import enum Gemstone.GemAmountType
+import protocol Gemstone.GemStakeServiceProtocol
+import GemstonePrimitives
 import Localization
 import Primitives
 
 public final class AmountEarnViewModel: AmountDataProvidable {
     let asset: Asset
     let action: EarnType
-    private let earnService: any EarnDataProvidable
+    private let stakeService: any GemStakeServiceProtocol
     private let wallet: Wallet
+    let amountService: GemAmountService
 
     init(
         asset: Asset,
         action: EarnType,
-        earnService: any EarnDataProvidable,
+        stakeService: any GemStakeServiceProtocol,
         wallet: Wallet,
+        amountService: GemAmountService,
     ) {
         self.asset = asset
         self.action = action
-        self.earnService = earnService
+        self.stakeService = stakeService
         self.wallet = wallet
+        self.amountService = amountService
     }
 
     var provider: DelegationValidator {
@@ -46,31 +52,11 @@ public final class AmountEarnViewModel: AmountDataProvidable {
         .earn(action)
     }
 
-    var minimumValue: BigInt {
-        .zero
-    }
-
-    var canChangeValue: Bool {
-        true
-    }
-
-    var reserveForFee: BigInt {
-        .zero
-    }
-
-    func shouldReserveFee(from _: AssetData) -> Bool {
-        false
-    }
-
-    func availableValue(from assetData: AssetData) -> BigInt {
+    var gemAmountType: GemAmountType {
         switch action {
-        case .deposit: assetData.balance.available
-        case let .withdraw(delegation): delegation.base.balanceValue
+        case .deposit: .earn(earnType: .deposit)
+        case let .withdraw(delegation): .earn(earnType: .withdraw(delegation: delegation.json()))
         }
-    }
-
-    func maxValue(from assetData: AssetData) -> BigInt {
-        availableValue(from: assetData)
     }
 
     func recipientData() -> RecipientData {
@@ -80,21 +66,19 @@ public final class AmountEarnViewModel: AmountDataProvidable {
         )
     }
 
-    func makeTransferData(amount: TransferAmountValue) async throws -> TransferData {
+    func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> TransferData {
         let address = try wallet.account(for: asset.chain).address
-        let earnData = try await earnService.getEarnData(
-            assetId: asset.id,
+        let earnData = try await ContractCallData(stakeService.getEarnData(
+            assetId: asset.id.identifier,
             address: address,
-            value: String(amount.value),
-            earnType: action,
-        )
+            value: String(value),
+            earnType: action.json(),
+        ))
         return TransferData(
             type: .earn(asset, action, earnData),
-            recipientData: RecipientData(
-                recipient: Recipient(name: provider.name, address: earnData.contractAddress, memo: nil),
-                amount: nil,
-            ),
-            amount: amount,
+            recipient: Recipient(name: provider.name, address: earnData.contractAddress, memo: nil),
+            value: value,
+            useMaxAmount: useMaxAmount,
         )
     }
 }

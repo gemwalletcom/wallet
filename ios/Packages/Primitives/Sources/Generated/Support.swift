@@ -121,48 +121,6 @@ public struct SupportTyping: Codable, Equatable, Sendable {
 	}
 }
 
-public enum SupportAction: Codable, Equatable, Sendable {
-	case typing(SupportTypingStatus)
-	case lastSeen
-
-	enum CodingKeys: String, CodingKey, Codable {
-		case typing,
-			lastSeen
-	}
-
-	private enum ContainerCodingKeys: String, CodingKey {
-		case type, data
-	}
-
-	public init(from decoder: Decoder) throws {
-		let container = try decoder.container(keyedBy: ContainerCodingKeys.self)
-		if let type = try? container.decode(CodingKeys.self, forKey: .type) {
-			switch type {
-			case .typing:
-				if let content = try? container.decode(SupportTypingStatus.self, forKey: .data) {
-					self = .typing(content)
-					return
-				}
-			case .lastSeen:
-				self = .lastSeen
-				return
-			}
-		}
-		throw DecodingError.typeMismatch(SupportAction.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for SupportAction"))
-	}
-
-	public func encode(to encoder: Encoder) throws {
-		var container = encoder.container(keyedBy: ContainerCodingKeys.self)
-		switch self {
-		case .typing(let content):
-			try container.encode(CodingKeys.typing, forKey: .type)
-			try container.encode(content, forKey: .data)
-		case .lastSeen:
-			try container.encode(CodingKeys.lastSeen, forKey: .type)
-		}
-	}
-}
-
 public enum SupportStreamEvent: Codable, Sendable {
 	case message(SupportMessage)
 	case typing(SupportTyping)

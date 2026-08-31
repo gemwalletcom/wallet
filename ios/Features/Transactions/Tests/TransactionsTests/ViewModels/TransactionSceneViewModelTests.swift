@@ -1,8 +1,12 @@
+import class Gemstone.GemFeeService
+import class Gemstone.GemExplorerService
+import GemstonePrimitivesTestKit
 import Components
 import Foundation
 import Localization
 import Preferences
 import PreferencesTestKit
+import class Gemstone.GemTransactionFormatter
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
@@ -48,7 +52,10 @@ struct TransactionSceneViewModelTests {
                 ),
             ),
             walletId: .mock(),
-            preferences: Preferences.standard,
+            preferencesService: GemPreferencesServiceMock(),
+            explorerService: GemExplorerService.mock(),
+            transactionFormatter: GemTransactionFormatter(),
+            feeService: GemFeeService(),
             onHeaderAction: { selectedAction = $0 },
         )
 
@@ -69,7 +76,10 @@ struct TransactionSceneViewModelTests {
                 ),
             ),
             walletId: .mock(),
-            preferences: Preferences.standard,
+            preferencesService: GemPreferencesServiceMock(),
+            explorerService: GemExplorerService.mock(),
+            transactionFormatter: GemTransactionFormatter(),
+            feeService: GemFeeService(),
         )
 
         #expect(model.onTransactionHeaderTap == nil)
@@ -312,7 +322,10 @@ struct TransactionSceneViewModelTests {
         let modelWithAddresses = TransactionSceneViewModel(
             transaction: transaction,
             walletId: .mock(),
-            preferences: Preferences.standard,
+            preferencesService: GemPreferencesServiceMock(),
+            explorerService: GemExplorerService.mock(),
+            transactionFormatter: GemTransactionFormatter(),
+            feeService: GemFeeService(),
         )
 
         if case let .participant(item) = modelWithAddresses.item(for: TransactionItem.participant) {
@@ -508,7 +521,10 @@ extension TransactionSceneViewModel {
                 confirmationEtaSeconds: confirmationEtaSeconds,
             ),
             walletId: .mock(),
-            preferences: Preferences.standard,
+            preferencesService: GemPreferencesServiceMock(),
+            explorerService: GemExplorerService.mock(),
+            transactionFormatter: GemTransactionFormatter(),
+            feeService: GemFeeService(),
         )
     }
 

@@ -35,6 +35,9 @@ pub enum RawSocketMessage {
     #[serde(rename = "subscriptionResponse")]
     SubscriptionResponse(SubscriptionResponseData),
 
+    #[serde(rename = "error")]
+    Error(String),
+
     #[serde(other)]
     Unknown,
 }
@@ -180,6 +183,9 @@ pub enum HyperliquidSocketMessage {
     },
     SubscriptionResponse {
         subscription_type: String,
+    },
+    Error {
+        message: String,
     },
     Unknown,
 }

@@ -51,8 +51,11 @@ interface PerpetualDao {
     @Query("SELECT * FROM perpetuals WHERE assetId = :assetId LIMIT 1")
     fun getPerpetualByAssetId(assetId: String): Flow<DbPerpetualData?>
 
-    @Query("UPDATE perpetuals SET isPinned = :isPinned WHERE id = :perpetualId")
-    suspend fun setPinned(perpetualId: String, isPinned: Boolean)
+    @Query("DELETE FROM perpetuals")
+    suspend fun deleteAll()
+
+    @Query("UPDATE perpetuals SET isPinned = :isPinned WHERE id IN (:perpetualIds)")
+    suspend fun setPinned(perpetualIds: List<String>, isPinned: Boolean)
 
     @Query(
         "UPDATE perpetuals SET price = :price, pricePercentChange24h = :pricePercentChange24h, " +

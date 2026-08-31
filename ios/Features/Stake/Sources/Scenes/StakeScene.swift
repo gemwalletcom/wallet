@@ -29,12 +29,12 @@ public struct StakeScene: View {
         }
         .listSectionSpacing(.compact)
         .refreshable {
-            await model.fetch()
+            await model.load()
         }
         .navigationTitle(model.title)
         .taskOnce {
             Task {
-                await model.fetch()
+                await model.load()
             }
         }
     }

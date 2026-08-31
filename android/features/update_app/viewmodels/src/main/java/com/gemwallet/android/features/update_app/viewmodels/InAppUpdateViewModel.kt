@@ -2,8 +2,8 @@ package com.gemwallet.android.features.update_app.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.update.coordinators.ObserveAppUpdateOffer
-import com.gemwallet.android.application.update.coordinators.SkipAppUpdate
+import com.gemwallet.android.application.update.cases.ObserveAppUpdateOffer
+import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.model.AppUpdateChannel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException

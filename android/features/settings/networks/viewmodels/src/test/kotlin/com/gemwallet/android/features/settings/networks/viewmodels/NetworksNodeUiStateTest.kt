@@ -48,7 +48,7 @@ class NetworksNodeUiStateTest {
     }
 
     @Test
-    fun `buildNodeRows uses provided default urls for delete eligibility`() {
+    fun `buildNodeRows marks rows the delete rule allows`() {
         val gemNode = Node(
             url = "https://gemnodes.com/bitcoin",
             status = NodeState.Active,
@@ -69,8 +69,8 @@ class NetworksNodeUiStateTest {
             nodes = listOf(gemNode, defaultNode, customNode),
             currentNode = gemNode,
             nodeStates = mapOf(customNode.url to NodeStatusState.Error),
-            defaultNodeUrls = setOf(defaultNode.url),
             gemNodeFlags = mapOf(gemNode.url to "🇺🇸"),
+            canDelete = { url -> url == customNode.url },
         )
 
         assertFalse(rows.first { it.node.url == gemNode.url }.canDelete)

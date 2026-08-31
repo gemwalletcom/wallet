@@ -1,98 +1,68 @@
 package com.gemwallet.android.blockchain.services
 
-import com.gemwallet.android.blockchain.gemstone.selectFeeRate
+import android.util.Log
 import com.gemwallet.android.blockchain.gemstone.toFee
-import com.gemwallet.android.blockchain.gemstone.toScanTransactionPayload
-import com.gemwallet.android.blockchain.gemstone.validate
-import com.gemwallet.android.ext.toFeePriority
+import com.gemwallet.android.domains.confirm.toConfirmInput
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.FeeAssetSelection
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.model.SignerParams
+import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.ScanTransaction
-import com.wallet.core.primitives.ScanTransactionPayload
+import com.wallet.core.primitives.FeePriority
+import com.wallet.core.primitives.SimulationResult
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemGatewayInterface
-import uniffi.gemstone.GemTransactionLoadInput
-import uniffi.gemstone.GemTransactionPreloadInput
+import uniffi.gemstone.GemConfirmFeeSelection
+import uniffi.gemstone.GemConfirmLoadOptions
+import uniffi.gemstone.GemConfirmServiceInterface
 
 class SignerPreloaderProxy(
-    private val gateway: GemGatewayInterface,
-    private val scanTransaction: suspend (ScanTransactionPayload) -> ScanTransaction? = { null },
+    private val confirmService: GemConfirmServiceInterface,
 ) {
+    private companion object {
+        const val TAG = "SignerPreloader"
+    }
+
+
+    data class Preload(
+        val signerParams: SignerParams,
+        val simulation: SimulationResult?,
+    )
 
     suspend fun preload(
         params: ConfirmParams,
         selection: FeeSelection,
         feeAssetSelection: FeeAssetSelection,
-    ): SignerParams = withContext(Dispatchers.IO) {
-        val assetId = params.assetId
-        val chain = assetId.chain
-        val gemChain = assetId.chain.string
-        val destination = requireNotNull(params.destination()?.address)
+    ): Preload = withContext(Dispatchers.IO) {
+        val result = confirmService.load(
+            input = params.toConfirmInput(),
+            options = GemConfirmLoadOptions(
+                feeSelection = when (selection) {
+                    is FeeSelection.Preset -> GemConfirmFeeSelection.Priority(selection.priority.toGem())
+                    is FeeSelection.Custom -> GemConfirmFeeSelection.Custom(selection.gasPrice.toString())
+                },
+                feeAssetId = when (feeAssetSelection) {
+                    FeeAssetSelection.Automatic -> null
+                    is FeeAssetSelection.Selected -> feeAssetSelection.assetId.toIdentifier()
+                },
+            ),
+        )
+        val selectedPriority = result.selectedPriority.toPrimitives()
+        val fee = result.fee.toFee(selectedPriority, AssetId(result.fee.feeAsset))
+        val rates = result.feeRates
 
-        val inputType = params.toDto()
-        val scanPayload = params.toScanTransactionPayload(destination)
-        coroutineScope {
-            val metadataDeferred = async {
-                gateway.getTransactionPreload(
-                    chain = gemChain,
-                    input = GemTransactionPreloadInput(
-                        inputType = inputType,
-                        senderAddress = params.from.address,
-                        destinationAddress = destination
-                    )
-                )
-            }
-            val feeRatesDeferred = async {
-                gateway.getFeeRates(
-                    chain = gemChain,
-                    input = inputType
-                )
-            }
-            val scanDeferred = async {
-                runCatching {
-                    scanTransaction(scanPayload)
-                }.getOrNull()
-            }
-            val metadata = metadataDeferred.await()
-            val feeRates = feeRatesDeferred.await()
-            val validFeeRates = feeRates.filter { it.priority.toFeePriority() != null }
-            val selectedRate = validFeeRates.selectFeeRate(selection)
-            val selectedPriority = requireNotNull(selectedRate.priority.toFeePriority())
-
-            val transactionLoadDeferred = async {
-                gateway.getTransactionLoad(
-                    chain = gemChain,
-                    input = GemTransactionLoadInput(
-                        inputType = inputType,
-                        senderAddress = params.from.address,
-                        destinationAddress = destination,
-                        value = params.amount.toString(),
-                        gasPrice = selectedRate.gasPriceType,
-                        memo = params.memo(),
-                        isMaxValue = params.useMaxAmount,
-                        metadata = metadata,
-                    ),
-                )
-            }
-            scanDeferred.await()?.validate(params)
-            val result = transactionLoadDeferred.await()
-            val feeAssetId = when (feeAssetSelection) {
-                FeeAssetSelection.Automatic -> AssetId(result.fee.feeAsset)
-                is FeeAssetSelection.Selected -> feeAssetSelection.assetId
-            }
-            val fee = result.fee.toFee(selectedPriority, feeAssetId)
-
-            SignerParams(
+        Preload(
+            signerParams = SignerParams(
                 input = params,
-                selectedData = SignerParams.Data(metadata = result.metadata, fee = fee),
-                feeRates = validFeeRates,
-            )
-        }
+                confirmData = result,
+                fee = fee,
+                feeRates = rates,
+            ),
+            simulation = result.simulation?.decodeJson(),
+        )
     }
 }

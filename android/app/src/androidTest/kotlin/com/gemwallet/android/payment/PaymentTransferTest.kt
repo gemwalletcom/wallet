@@ -1,12 +1,12 @@
 package com.gemwallet.android.payment
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.gemwallet.android.ext.decodePayment
+import uniffi.gemstone.GemPaymentService
 import com.gemwallet.android.ext.request
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.PaymentDestination
-import com.gemwallet.android.model.PaymentTransfer
 import com.gemwallet.android.testkit.includeGemstoneLibs
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
@@ -21,7 +21,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
-import uniffi.gemstone.paymentDecodeUrl
 import java.math.BigInteger
 
 private const val BITCOIN_ADDRESS = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
@@ -43,12 +42,13 @@ class PaymentTransferTest {
     private val solana = mockAssetInfo(asset = mockAssetSolana())
     private val ripple = mockAssetInfo(asset = mockAssetXrp())
     private val usdc = mockAssetInfo(asset = mockAssetSolanaUSDC())
+    private val paymentService = GemPaymentService()
 
     private fun decode(url: String): PaymentRequest =
-        requireNotNull(paymentDecodeUrl(url).toPrimitives().request) { "not a payment request: $url" }
+        requireNotNull(paymentService.decodePayment(url)?.request) { "not a payment request: $url" }
 
     private fun destination(assetInfo: AssetInfo, url: String): PaymentDestination.Transfer =
-        PaymentTransfer(assetInfo).destination(decode(url))
+        PaymentDestination.transfer(decode(url), assetInfo, paymentService)
 
     @Test
     fun destination_confirm() {
@@ -58,7 +58,7 @@ class PaymentTransferTest {
         val params = (confirm as PaymentDestination.Confirm).params
         assertEquals(BigInteger("10000"), params.amount)
         assertEquals(BITCOIN_ADDRESS, params.destination()?.address)
-        assertTrue(params is ConfirmParams.TransferParams.Native)
+        assertTrue(params is ConfirmParams.TransferParams.Transfer)
     }
 
     @Test
@@ -108,15 +108,15 @@ class PaymentTransferTest {
 
         assertEquals(
             PaymentDestination.SelectAsset(decode(EVM_ADDRESS), listOf(Chain.Ethereum, Chain.SmartChain)),
-            PaymentDestination.from(decode(EVM_ADDRESS), assets),
+            PaymentDestination.from(decode(EVM_ADDRESS), assets, paymentService),
         )
 
-        val confirm = PaymentDestination.from(decode("bitcoin:$BITCOIN_ADDRESS?amount=0.0001"), assets)
+        val confirm = PaymentDestination.from(decode("bitcoin:$BITCOIN_ADDRESS?amount=0.0001"), assets, paymentService)
         assertTrue("one payable asset must go straight to confirm, got $confirm", confirm is PaymentDestination.Confirm)
 
         assertEquals(
             PaymentDestination.Unsupported,
-            PaymentDestination.from(decode("ripple:$RIPPLE_ADDRESS"), assets),
+            PaymentDestination.from(decode("ripple:$RIPPLE_ADDRESS"), assets, paymentService),
         )
     }
 }

@@ -20,6 +20,7 @@
   <string name="common_wallet">Wallet</string>
   <string name="common_show">%1$s anzeigen</string>
   <string name="common_copied">Kopiert: %1$s</string>
+  <string name="common_copied_to_clipboard">In die Zwischenablage kopiert</string>
   <string name="common_recommended">Empfohlen</string>
   <string name="common_all">Alle</string>
   <string name="common_not_available">Nicht verfügbar</string>
@@ -185,10 +186,14 @@
   <string name="errors_token_invalid_id">Ungültige Token-ID</string>
   <string name="errors_import_invalid_secret_phrase">Ungültige geheime Phrase</string>
   <string name="errors_import_invalid_secret_phrase_word">Ungültiges geheimes Phrasenwort: %1$s</string>
+  <string name="errors_import_invalid_private_key">Ungültiger privater Schlüssel</string>
+  <string name="errors_keystore_access">Auf die Schlüssel dieser Wallet konnte auf diesem Gerät nicht zugegriffen werden. Wenn Sie Ihre Wiederherstellungsphrase haben, entfernen Sie diese Wallet und importieren Sie sie erneut, um den Zugriff wiederherzustellen.</string>
+  <string name="errors_wallet_account_missing">Diese Wallet hat kein Konto für dieses Netzwerk</string>
   <string name="errors_invalid_url">Ungültige URL</string>
   <string name="errors_error_occurred">Es ist ein Fehler aufgetreten!</string>
   <string name="errors_invalid_network_id">Ungültige Netzwerk-ID</string>
   <string name="errors_error">Fehler</string>
+  <string name="errors_cancelled">Abgebrochen</string>
   <string name="errors_connections_user_cancelled">Benutzer hat abgebrochen</string>
   <string name="errors_not_supported">Nicht unterstützt</string>
   <string name="errors_permissions_not_granted">Berechtigungen nicht erteilt</string>

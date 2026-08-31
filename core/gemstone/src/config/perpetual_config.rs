@@ -48,6 +48,10 @@ pub fn get_perpetual_config() -> PerpetualConfig {
     }
 }
 
+pub fn leverage_options(max_leverage: u8) -> Vec<u8> {
+    LEVERAGE_OPTIONS.iter().copied().filter(|&value| value <= max_leverage).collect()
+}
+
 pub fn select_leverage(desired: u8, options: &[u8]) -> u8 {
     options
         .iter()
@@ -108,5 +112,12 @@ mod tests {
         assert_eq!(get_autoclose_suggestions(5), vec![10, 15, 25]);
         assert_eq!(get_autoclose_suggestions(10), vec![15, 25, 50]);
         assert_eq!(get_autoclose_suggestions(25), vec![25, 50, 100]);
+    }
+
+    #[test]
+    fn test_leverage_options_stop_at_the_market_maximum() {
+        assert_eq!(leverage_options(3), vec![1, 2, 3]);
+        assert!(leverage_options(0).is_empty());
+        assert_eq!(leverage_options(u8::MAX), LEVERAGE_OPTIONS.to_vec());
     }
 }

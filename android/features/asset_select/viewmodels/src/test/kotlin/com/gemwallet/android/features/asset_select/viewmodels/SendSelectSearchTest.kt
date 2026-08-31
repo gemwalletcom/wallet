@@ -1,7 +1,8 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
-import com.gemwallet.android.application.asset_select.coordinators.GetSelectAssetsInfo
-import com.gemwallet.android.application.asset_select.coordinators.SearchSelectAssets
+import uniffi.gemstone.GemAssetConfigService
+import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
+import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.testkit.mockAsset
@@ -40,7 +41,7 @@ class SendSelectSearchTest {
     fun `empty query uses current wallet assets`() = runTest {
         val searchSelectAssets = searchCoordinator()
         val getSelectAssetsInfo = assetsInfoCoordinator()
-        val search = SendSelectSearch(searchSelectAssets, getSelectAssetsInfo)
+        val search = SendSelectSearch(searchSelectAssets, getSelectAssetsInfo, GemAssetConfigService())
         val filters = MutableStateFlow(
             SelectAssetFilters(
                 session = null,

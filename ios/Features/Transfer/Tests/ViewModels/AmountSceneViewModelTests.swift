@@ -1,7 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import EarnServiceTestKit
-import FiatServiceTestKit
+import class Gemstone.GemAmountService
+import GemstoneServicesTestKit
+import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
@@ -159,8 +160,8 @@ extension AmountSceneViewModel {
         let model = AmountSceneViewModel(
             input: AmountInput(type: type, asset: assetData.asset),
             wallet: .mock(),
-            service: AmountService(earnDataProvider: MockEarnService()),
-            fiatService: .mock(),
+            service: AmountService(stakeService: GemStakeServiceMock(), amountService: GemAmountService()),
+            preferencesService: GemPreferencesServiceMock(),
             onTransferAction: { _ in },
         )
         model.assetQuery.value = assetData

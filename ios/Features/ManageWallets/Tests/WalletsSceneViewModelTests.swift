@@ -7,10 +7,8 @@ import PrimitivesTestKit
 import StoreTestKit
 import SwiftUI
 import Testing
-import WalletService
-import WalletServiceTestKit
-import WalletSessionService
-import WalletSessionServiceTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 
 @MainActor
 struct WalletsSceneViewModelTests {
@@ -21,9 +19,10 @@ struct WalletsSceneViewModelTests {
             try walletStore.addWallet(.mock(id: .multicoin(address: address)))
         }
 
-        let walletSessionService = WalletSessionService.mock(store: walletStore)
-        let service = WalletService.mock(walletStore: walletStore, walletSessionService: walletSessionService)
-        walletSessionService.setCurrent(walletId: .multicoin(address: "0x1"))
+        let sessionStore = GemstoneWalletSessionStore.mock()
+        let walletSessionService = WalletSessionService.mock(store: walletStore, sessionStore: sessionStore)
+        let service = WalletService.mock(walletStore: walletStore, sessionStore: sessionStore)
+        try walletSessionService.setCurrent(walletId: .multicoin(address: "0x1"))
 
         let model = WalletsSceneViewModel.mock(walletService: service, walletSessionService: walletSessionService)
         model.walletsQuery.value = walletSessionService.wallets

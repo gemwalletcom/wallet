@@ -7,5 +7,5 @@ sealed interface ConfirmState {
     class Result(val transactionHash: String, val error: ConfirmError? = null) : ConfirmState
     class Error(val message: ConfirmError) : ConfirmState
     class BroadcastError(val message: ConfirmError) : ConfirmState
-    class FatalError(val message: String) : ConfirmState
+    class FatalError(val messageRes: Int) : ConfirmState
 }

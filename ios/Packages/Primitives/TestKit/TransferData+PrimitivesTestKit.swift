@@ -7,15 +7,39 @@ import Primitives
 public extension TransferData {
     static func mock(
         type: TransferDataType = .transfer(.mock()),
-        recipient: RecipientData = .mock(),
-        amount: TransferAmountValue = .exact(.zero),
+        recipient: Recipient = .mock(),
+        value: BigInt = .zero,
+        useMaxAmount: Bool = false,
         minimumValue: BigInt? = nil,
     ) -> TransferData {
         TransferData(
             type: type,
-            recipientData: recipient,
-            amount: amount,
+            recipient: recipient,
+            value: value,
+            useMaxAmount: useMaxAmount,
             minimumValue: minimumValue,
+        )
+    }
+
+    static func mockPayment(
+        asset: Asset = .mockSolana(),
+        transaction: String = "transaction",
+        recipient: Recipient = .mock(),
+        value: BigInt = .zero,
+    ) -> TransferData {
+        .mock(
+            type: .generic(
+                asset: asset,
+                metadata: .mock(source: .payment),
+                extra: .mock(
+                    data: Data(transaction.utf8),
+                    outputType: .encodedTransaction,
+                    outputAction: .send,
+                    transactionType: .transfer,
+                ),
+            ),
+            recipient: recipient,
+            value: value,
         )
     }
 }

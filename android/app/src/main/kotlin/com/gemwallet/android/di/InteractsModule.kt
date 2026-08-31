@@ -3,40 +3,34 @@ package com.gemwallet.android.di
 import android.content.Context
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.SecurityStore
-import com.gemwallet.android.application.wallet_import.coordinators.SyncWalletImport
-import com.gemwallet.android.blockchain.operators.AddAccountsOperator
-import com.gemwallet.android.blockchain.operators.CreateAccountOperator
+import com.gemwallet.android.application.wallet_import.cases.SyncWalletImport
 import com.gemwallet.android.blockchain.operators.CreateWalletOperator
-import com.gemwallet.android.blockchain.operators.DeleteKeyStoreOperator
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
 import com.gemwallet.android.blockchain.operators.MigrateKeystoreOperator
-import com.gemwallet.android.blockchain.operators.StorePhraseOperator
 import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
-import com.gemwallet.android.blockchain.operators.gemstone.GemAddAccountsOperator
-import com.gemwallet.android.blockchain.operators.gemstone.GemCreateAccountOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemCreateWalletOperator
-import com.gemwallet.android.blockchain.operators.gemstone.GemDeleteKeyStoreOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemLoadPrivateDataOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemMigrateKeystoreOperator
-import com.gemwallet.android.blockchain.operators.gemstone.GemStorePhraseOperator
+import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
 import com.gemwallet.android.blockchain.operators.gemstone.GemValidatePhraseOperator
-import com.gemwallet.android.blockchain.services.GemSignAuthOperator
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
-import com.gemwallet.android.blockchain.services.GemSignTransactionOperator
-import com.gemwallet.android.cases.device.SyncDevice
-import com.gemwallet.android.cases.wallet.ImportWalletService
+import com.gemwallet.android.blockchain.services.KeystoreTransactionSigner
+import uniffi.gemstone.GemTransactionSigner
+import com.gemwallet.android.application.wallet_import.cases.ImportWalletService
 import com.gemwallet.android.data.password.TinkPasswordStore
 import com.gemwallet.android.data.password.TinkSecurityStore
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.wallets.PhraseAddressImportWalletService
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
+import com.gemwallet.android.data.services.gemstone.wallets.PhraseAddressImportWalletService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemAppStartService
+import uniffi.gemstone.GemWalletService
 import javax.inject.Singleton
+import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemTransferService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -48,32 +42,17 @@ object InteractsModule {
 
     @Singleton
     @Provides
+    fun provideFindPhraseWord(): GemFindPhraseWord = GemFindPhraseWord()
+
+    @Singleton
+    @Provides
     fun provideCreateWalletInteract(): CreateWalletOperator = GemCreateWalletOperator()
-
-    @Singleton
-    @Provides
-    fun provideCreateAccountInteract(
-        @ApplicationContext context: Context,
-    ): CreateAccountOperator = GemCreateAccountOperator(context.dataDir.toString())
-
-    @Singleton
-    @Provides
-    fun provideAddAccountsInteract(
-        @ApplicationContext context: Context,
-    ): AddAccountsOperator = GemAddAccountsOperator(context.dataDir.toString())
 
     @Singleton
     @Provides
     fun provideMigrateKeystoreOperator(
         @ApplicationContext context: Context,
     ): MigrateKeystoreOperator = GemMigrateKeystoreOperator(context.dataDir.toString())
-
-    @Singleton
-    @Provides
-    fun provideStorePhraseInteract(
-        @ApplicationContext context: Context
-    ): StorePhraseOperator =
-        GemStorePhraseOperator(context.dataDir.toString())
 
     @Singleton
     @Provides
@@ -84,9 +63,11 @@ object InteractsModule {
 
     @Singleton
     @Provides
-    fun provideSignTransactionOperator(
+    fun provideTransactionSigner(
         @ApplicationContext context: Context,
-    ): GemSignTransactionOperator = GemSignTransactionOperator(context.dataDir.toString())
+        passwordStore: PasswordStore,
+        transferService: GemTransferService,
+    ): GemTransactionSigner = KeystoreTransactionSigner(context.dataDir.toString(), passwordStore, transferService)
 
     @Singleton
     @Provides
@@ -94,18 +75,6 @@ object InteractsModule {
         @ApplicationContext context: Context,
     ): GemSignMessageOperator = GemSignMessageOperator(context.dataDir.toString())
 
-    @Singleton
-    @Provides
-    fun provideSignAuthOperator(
-        @ApplicationContext context: Context,
-    ): GemSignAuthOperator = GemSignAuthOperator(context.dataDir.toString())
-
-    @Singleton
-    @Provides
-    fun provideDeleteKeyStoreOperator(
-        @ApplicationContext context: Context,
-        passwordStore: PasswordStore,
-    ): DeleteKeyStoreOperator = GemDeleteKeyStoreOperator(context.dataDir.toString(), passwordStore)
 
     @Provides
     @Singleton
@@ -120,22 +89,16 @@ object InteractsModule {
     @Singleton
     @Provides
     fun provideAddWalletInteract(
-        walletsRepository: WalletsRepository,
-        assetsRepository: AssetsRepository,
-        sessionRepository: SessionRepository,
-        storePhraseOperator: StorePhraseOperator,
-        phraseValidate: ValidatePhraseOperator,
-        passwordStore: PasswordStore,
-        syncDevice: SyncDevice,
+        walletService: GemWalletService,
+        setCurrentWallet: SetCurrentWallet,
+        appStartService: GemAppStartService,
+        deviceService: GemDeviceService,
         walletImportSync: SyncWalletImport,
     ): ImportWalletService = PhraseAddressImportWalletService(
-        walletsRepository = walletsRepository,
-        assetsRepository = assetsRepository,
-        sessionRepository = sessionRepository,
-        storePhraseOperator = storePhraseOperator,
-        phraseValidate = phraseValidate,
-        passwordStore = passwordStore,
-        syncDevice = syncDevice,
+        walletService = walletService,
+        setCurrentWallet = setCurrentWallet,
+        appStartService = appStartService,
+        deviceService = deviceService,
         walletImportSync = walletImportSync,
     )
 }

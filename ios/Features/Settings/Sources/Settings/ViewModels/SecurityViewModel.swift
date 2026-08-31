@@ -1,8 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Primitives
 import Components
 import Foundation
-import Keystore
+import GemstoneServices
 import Localization
 import Preferences
 import Store
@@ -37,7 +38,7 @@ public final class SecurityViewModel {
 
     public init(
         service: any BiometryAuthenticatable = BiometryAuthenticationService(),
-        preferences: ObservablePreferences = .default,
+        preferences: ObservablePreferences,
     ) {
         self.service = service
         self.preferences = preferences

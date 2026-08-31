@@ -2,7 +2,7 @@ import Components
 import Formatters
 import InfoSheet
 import Localization
-import PerpetualService
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Style
@@ -136,6 +136,7 @@ public struct PerpetualScene: View {
             if !model.transactions.isEmpty {
                 TransactionsList(
                     explorerService: model.explorerService,
+                    transactionFormatter: model.transactionFormatter,
                     model.transactions,
                     currency: model.currency,
                 )
@@ -158,7 +159,7 @@ public struct PerpetualScene: View {
             },
         )
         .refreshable {
-            await model.fetch()
+            await model.load()
         }
         .onAppear {
             Task { await model.onAppear() }

@@ -5,14 +5,10 @@ import Gemstone
 import Primitives
 
 public struct PerpetualFormatter {
-    private let perpetual: Gemstone.Perpetual
+    private let perpetual: Gemstone.GemPerpetual
 
     public init(provider: Primitives.PerpetualProvider) {
-        perpetual = Gemstone.Perpetual(provider: provider.map())
-    }
-
-    public func minimumOrderUsdAmount(price: Double, decimals: Int32, leverage: UInt8) -> UInt64 {
-        perpetual.minimumOrderUsdAmount(price: price, decimals: decimals, leverage: leverage)
+        perpetual = Gemstone.GemPerpetual(provider: provider.map())
     }
 
     public func formatPrice(_ price: Double, decimals: Int32) -> String {

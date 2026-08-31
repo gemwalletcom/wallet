@@ -15,7 +15,7 @@ struct ConnectivityServiceTests {
     @Test
     func observeDeliversCurrentThenUpdates() async throws {
         let (stream, continuation) = AsyncStream<ConnectivityState>.makeStream()
-        let service = ConnectivityService(monitor: ConnectivityMonitorMock(stream: stream))
+        let service = ConnectivityService.mock(monitor: ConnectivityMonitorMock(stream: stream))
         await service.start()
 
         var iterator = await service.observe().makeAsyncIterator()

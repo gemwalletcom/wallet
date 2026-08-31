@@ -1,12 +1,22 @@
 use chrono::{DateTime, Utc};
-use primitives::{Chain, TransactionChange, TransactionMetadata, TransactionState, TransactionUpdate, chain_transaction_timeout, swap_transaction_timeout};
+use primitives::{
+    Chain, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionStateRequest, TransactionSwapMetadata, TransactionType, TransactionUpdate,
+    chain_transaction_timeout, swap_transaction_timeout,
+};
 use std::sync::Arc;
 use swapper::{SwapResult, SwapperProvider, swapper::GemSwapper};
 
 use crate::gateway::ChainClientFactory;
-use crate::models::{GemTransactionStateRequest, GemTransactionSwapStateRequest};
+use crate::gateway::map_network_error;
 
 use super::TransactionStatusError;
+
+pub struct SwapStateRequest {
+    pub transaction: TransactionStateRequest,
+    pub state: TransactionState,
+    pub swap_provider: SwapperProvider,
+    pub destination_chain: Chain,
+}
 
 pub struct StatusProvider {
     chain_factory: Arc<ChainClientFactory>,
@@ -18,27 +28,60 @@ impl StatusProvider {
         Self { chain_factory, swapper }
     }
 
-    pub async fn get(&self, chain: Chain, request: GemTransactionStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
+    pub async fn get(&self, chain: Chain, request: TransactionStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
         let created_at = request.created_at;
         let result = self.chain_status(chain, request).await;
         get_transaction_update(chain, None, created_at, result)
     }
 
-    pub async fn get_swap_status(&self, chain: Chain, request: GemTransactionSwapStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
+    pub async fn get_swap_status(&self, chain: Chain, request: SwapStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
         let created_at = request.transaction.created_at;
         let destination_chain = request.destination_chain;
         let result = self.swap_transaction_status(chain, request).await;
         get_transaction_update(chain, Some(destination_chain), created_at, result)
     }
 
-    async fn swap_transaction_status(&self, chain: Chain, request: GemTransactionSwapStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
+    pub async fn get_update(&self, transaction: &Transaction) -> Result<TransactionUpdate, TransactionStatusError> {
+        let chain = transaction.asset_id.chain;
+        let request = TransactionStateRequest {
+            id: transaction.id.hash.clone(),
+            sender_address: transaction.from.clone(),
+            created_at: transaction.created_at,
+            block_number: transaction.block_number.as_deref().and_then(|number| number.parse().ok()).unwrap_or_default(),
+        };
+
+        let route = swap_route(transaction);
+        if route.is_none() && transaction.transaction_type == TransactionType::Swap && transaction.state == TransactionState::InTransit {
+            return Ok(TransactionUpdate::new_state(transaction.state));
+        }
+
+        let update = match route {
+            Some((swap_provider, destination_chain)) => {
+                let request = SwapStateRequest {
+                    transaction: request,
+                    state: transaction.state,
+                    swap_provider,
+                    destination_chain,
+                };
+                self.get_swap_status(chain, request).await?
+            }
+            None => self.get(chain, request).await?,
+        };
+
+        Ok(TransactionUpdate {
+            state: transaction.state.merged_with(update.state),
+            changes: update.changes,
+        })
+    }
+
+    async fn swap_transaction_status(&self, chain: Chain, request: SwapStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
         if !request.swap_provider.is_cross_chain() {
             return self.chain_status(chain, request.transaction).await;
         }
         self.cross_chain_swap_status(chain, request).await
     }
 
-    async fn cross_chain_swap_status(&self, chain: Chain, request: GemTransactionSwapStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
+    async fn cross_chain_swap_status(&self, chain: Chain, request: SwapStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
         match request.state {
             TransactionState::Pending => {
                 let source_chain_update = self.chain_status(chain, request.transaction).await?;
@@ -49,12 +92,12 @@ impl StatusProvider {
         }
     }
 
-    async fn chain_status(&self, chain: Chain, request: GemTransactionStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
+    async fn chain_status(&self, chain: Chain, request: TransactionStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
         let provider = self.chain_factory.create(chain).await?;
         provider
-            .get_transaction_status(request.into())
+            .get_transaction_status(request)
             .await
-            .map_err(|e| TransactionStatusError::NetworkError(e.to_string()))
+            .map_err(|e| TransactionStatusError::from(map_network_error(e)))
     }
 
     async fn swap_provider_status(&self, chain: Chain, provider: SwapperProvider, transaction_hash: &str) -> Result<TransactionUpdate, TransactionStatusError> {
@@ -122,7 +165,7 @@ fn get_transaction_update(
         } else {
             update
         }),
-        err @ Err(TransactionStatusError::NetworkError(_)) => err,
+        err @ Err(TransactionStatusError::Offline | TransactionStatusError::NetworkError(_)) => err,
         Err(_) if pending_expired => Ok(TransactionUpdate::new_state(TransactionState::Failed)),
         Err(err) => Err(err),
     }
@@ -228,5 +271,51 @@ mod tests {
         assert_eq!(pending.changes, vec![TransactionChange::ConfirmationEtaSeconds(120)]);
         assert_eq!(missing.changes, vec![TransactionChange::ConfirmationEtaSeconds(0)]);
         assert_eq!(completed.changes.last(), Some(&TransactionChange::ConfirmationEtaSeconds(0)));
+    }
+}
+
+fn swap_route(transaction: &Transaction) -> Option<(SwapperProvider, Chain)> {
+    let metadata: TransactionSwapMetadata = serde_json::from_value(transaction.metadata.clone()?).ok()?;
+    let provider = metadata.provider?.parse().ok()?;
+    Some((provider, metadata.to_asset.chain))
+}
+
+#[cfg(test)]
+mod swap_route_tests {
+    use super::swap_route;
+    use primitives::{AssetId, Chain, SwapProvider, Transaction, TransactionSwapMetadata};
+    use serde_json::json;
+
+    fn transaction_with_metadata(metadata: Option<serde_json::Value>) -> Transaction {
+        let mut transaction = Transaction::mock();
+        transaction.metadata = metadata;
+        transaction
+    }
+
+    #[test]
+    fn test_swap_route() {
+        assert!(swap_route(&transaction_with_metadata(None)).is_none());
+        assert!(
+            swap_route(&transaction_with_metadata(Some(
+                json!({"fromAsset":"ethereum","fromValue":"1","toAsset":"solana","toValue":"2"})
+            )))
+            .is_none()
+        );
+        assert!(
+            swap_route(&transaction_with_metadata(Some(
+                json!({"fromAsset":"ethereum","fromValue":"1","toAsset":"solana","toValue":"2","provider":"nope"})
+            )))
+            .is_none()
+        );
+
+        let metadata = TransactionSwapMetadata {
+            from_asset: AssetId::from_chain(Chain::Ethereum),
+            from_value: "1".into(),
+            to_asset: AssetId::from_chain(Chain::Solana),
+            to_value: "2".into(),
+            provider: Some(SwapProvider::Thorchain.as_ref().to_string()),
+        };
+        let route = swap_route(&transaction_with_metadata(Some(serde_json::to_value(metadata).unwrap())));
+        assert_eq!(route, Some((SwapProvider::Thorchain, Chain::Solana)));
     }
 }

@@ -1,38 +1,37 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Keystore
-import KeystoreTestKit
+import GemstonePrimitivesTestKit
+import protocol Gemstone.GemNameServiceProtocol
+import GemstoneServices
+import GemstoneServicesTestKit
 @testable import Onboarding
 import Primitives
 import PrimitivesTestKit
 import Store
 import StoreTestKit
 import Testing
-import WalletService
-import WalletServiceTestKit
-import WalletSessionService
-import WalletSessionServiceTestKit
 
 @MainActor
 struct ImportWalletSceneViewModelTests {
     @Test
     func existingImportSetsCurrentWallet() async throws {
         let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum]))
-        let walletSessionService = WalletSessionService.mock(store: walletStore)
-        let service = WalletService.mock(walletStore: walletStore, walletSessionService: walletSessionService)
+        let sessionStore = GemstoneWalletSessionStore.mock()
+        let walletSessionService = WalletSessionService.mock(store: walletStore, sessionStore: sessionStore)
+        let service = WalletService.mock(walletStore: walletStore, sessionStore: sessionStore)
 
-        let walletA = try await service.loadOrCreateWallet(
+        let walletA = try await service.importWallet(
             name: "Wallet A",
             type: .single(words: LocalKeystore.words, chain: .ethereum),
             source: .import,
         ).wallet
 
-        let walletB = try await service.loadOrCreateWallet(
+        let walletB = try await service.importWallet(
             name: "Wallet B",
             type: .single(words: service.createWallet(), chain: .ethereum),
             source: .import,
         ).wallet
-        await walletSessionService.setCurrent(wallet: walletB)
+        try await walletSessionService.setCurrent(wallet: walletB)
 
         #expect(walletSessionService.currentWalletId == walletB.id)
 
@@ -48,16 +47,16 @@ struct ImportWalletSceneViewModelTests {
 
     @Test
     func resolvesNameOnlyForAddressImport() async throws {
-        let nameService = MockNameService()
+        let nameService = GemNameServiceMock(nameRecord: .mock())
         let model = ImportWalletSceneViewModel.mock(nameService: nameService)
 
         try await enterName(in: model, importType: .privateKey)
 
-        #expect(await nameService.requests.isEmpty)
+        #expect(nameService.requestedNames.isEmpty)
 
         try await enterName(in: model, importType: .address)
 
-        #expect(await nameService.requests == ["vitalik.eth"])
+        #expect(nameService.requestedNames == ["vitalik.eth"])
     }
 
     private func enterName(in model: ImportWalletSceneViewModel, importType: WalletImportType) async throws {
@@ -72,12 +71,13 @@ private extension ImportWalletSceneViewModel {
     static func mock(
         walletService: WalletService? = nil,
         walletSessionService: (any WalletSessionManageable)? = nil,
-        nameService: any NameServiceable = MockNameService(),
+        nameService: any GemNameServiceProtocol = GemNameServiceMock(nameRecord: .mock()),
     ) -> ImportWalletSceneViewModel {
         let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum]))
-        let sessionService = walletSessionService ?? WalletSessionService.mock(store: walletStore)
+        let sessionStore = GemstoneWalletSessionStore.mock()
+        let sessionService = walletSessionService ?? WalletSessionService.mock(store: walletStore, sessionStore: sessionStore)
         return ImportWalletSceneViewModel(
-            walletService: walletService ?? .mock(walletStore: walletStore, walletSessionService: sessionService),
+            walletService: walletService ?? .mock(walletStore: walletStore, sessionStore: sessionStore),
             walletSessionService: sessionService,
             nameService: nameService,
             type: .chain(.ethereum),

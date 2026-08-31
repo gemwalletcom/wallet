@@ -116,7 +116,7 @@ public struct RecipientScene: View {
 // MARK: - Actions
 
 extension RecipientScene {
-    private func onSelectRecipient(_ recipient: RecipientAddress) {
+    private func onSelectRecipient(_ recipient: Recipient) {
         focusedField = nil
         model.onSelectRecipient(recipient)
     }

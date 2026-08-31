@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
 use typeshare::typeshare;
 
-use crate::{AssetId, NFTAssetId, PerpetualDirection, PerpetualProvider, stake_type::Resource};
+use crate::{AssetId, NFTAssetId, PerpetualDirection, PerpetualProvider, TransferDataOutputAction, stake_type::Resource};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[typeshare(swift = "Sendable")]
@@ -61,7 +61,6 @@ impl TransactionResourceTypeMetadata {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionSmartContractMetadata {
     pub method_name: String,
@@ -100,4 +99,11 @@ mod tests {
             serde_json::json!({ "assetId": serialized, "name": "NFT" })
         );
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare(swift = "Sendable")]
+#[serde(rename_all = "camelCase")]
+pub struct TransactionWalletConnectMetadata {
+    pub output_action: TransferDataOutputAction,
 }

@@ -1,44 +1,41 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPreferencesServiceProtocol
+import GemstonePrimitives
 import Primitives
 import SwiftUI
 
 @Observable
 public final class ObservablePreferences: Sendable {
-    public static let `default` = ObservablePreferences()
+    private let preferencesService: any GemPreferencesServiceProtocol
 
-    public let preferences: Preferences
-
-    public init(preferences: Preferences = .standard) {
-        self.preferences = preferences
+    public init(preferencesService: any GemPreferencesServiceProtocol) {
+        self.preferencesService = preferencesService
     }
 
-    public func invalidateSubscriptions() {
-        preferences.invalidateSubscriptions()
+    @ObservationIgnored
+    public var currency: String {
+        get {
+            access(keyPath: \.currency)
+            return preferencesService.currencyCode
+        }
+        set {
+            withMutation(keyPath: \.currency) {
+                guard let currency = Currency(rawValue: newValue) else { return }
+                write { try preferencesService.setCurrencyValue(currency) }
+            }
+        }
     }
 
     @ObservationIgnored
     public var isHideBalanceEnabled: Bool {
         get {
             access(keyPath: \.isHideBalanceEnabled)
-            return preferences.isHideBalanceEnabled
+            return preferencesService.isHideBalanceEnabled()
         }
         set {
             withMutation(keyPath: \.isHideBalanceEnabled) {
-                preferences.isHideBalanceEnabled = newValue
-            }
-        }
-    }
-
-    @ObservationIgnored
-    public var isPriceAlertsEnabled: Bool {
-        get {
-            access(keyPath: \.isPriceAlertsEnabled)
-            return preferences.isPriceAlertsEnabled
-        }
-        set {
-            withMutation(keyPath: \.isPriceAlertsEnabled) {
-                preferences.isPriceAlertsEnabled = newValue
+                write { try preferencesService.setHideBalanceEnabled(enabled: newValue) }
             }
         }
     }
@@ -47,38 +44,33 @@ public final class ObservablePreferences: Sendable {
     public var isDeveloperEnabled: Bool {
         get {
             access(keyPath: \.isDeveloperEnabled)
-            return preferences.isDeveloperEnabled
+            return preferencesService.isDeveloperEnabled()
         }
         set {
             withMutation(keyPath: \.isDeveloperEnabled) {
-                preferences.isDeveloperEnabled = newValue
-            }
-        }
-    }
-
-    @ObservationIgnored
-    public var currentWalletId: String? {
-        get {
-            access(keyPath: \.currentWalletId)
-            return preferences.currentWalletId
-        }
-        set {
-            withMutation(keyPath: \.currentWalletId) {
-                preferences.currentWalletId = newValue
+                write { try preferencesService.setDeveloperEnabled(enabled: newValue) }
             }
         }
     }
 
     @ObservationIgnored
     public var isAcceptTermsCompleted: Bool {
-        get {
-            access(keyPath: \.isAcceptTermsCompleted)
-            return preferences.isAcceptTermsCompleted
-        }
-        set {
-            withMutation(keyPath: \.isAcceptTermsCompleted) {
-                preferences.isAcceptTermsCompleted = newValue
-            }
+        access(keyPath: \.isAcceptTermsCompleted)
+        return preferencesService.isAcceptTermsCompleted()
+    }
+
+    public func reload() {
+        withMutation(keyPath: \.currency) {}
+        withMutation(keyPath: \.isHideBalanceEnabled) {}
+        withMutation(keyPath: \.isDeveloperEnabled) {}
+        withMutation(keyPath: \.isAcceptTermsCompleted) {}
+        withMutation(keyPath: \.isPerpetualEnabled) {}
+        withMutation(keyPath: \.appearance) {}
+    }
+
+    public func acceptTerms() {
+        withMutation(keyPath: \.isAcceptTermsCompleted) {
+            write { try preferencesService.setAcceptTermsCompleted() }
         }
     }
 
@@ -86,50 +78,11 @@ public final class ObservablePreferences: Sendable {
     public var isPerpetualEnabled: Bool {
         get {
             access(keyPath: \.isPerpetualEnabled)
-            return preferences.isPerpetualEnabled
+            return preferencesService.isPerpetualEnabled()
         }
         set {
             withMutation(keyPath: \.isPerpetualEnabled) {
-                preferences.isPerpetualEnabled = newValue
-            }
-        }
-    }
-
-    @ObservationIgnored
-    public var perpetualLeverage: UInt8 {
-        get {
-            access(keyPath: \.perpetualLeverage)
-            return preferences.perpetualLeverage
-        }
-        set {
-            withMutation(keyPath: \.perpetualLeverage) {
-                preferences.perpetualLeverage = newValue
-            }
-        }
-    }
-
-    @ObservationIgnored
-    public var perpetualTakeProfit: UInt8 {
-        get {
-            access(keyPath: \.perpetualTakeProfit)
-            return preferences.perpetualTakeProfit
-        }
-        set {
-            withMutation(keyPath: \.perpetualTakeProfit) {
-                preferences.perpetualTakeProfit = newValue
-            }
-        }
-    }
-
-    @ObservationIgnored
-    public var perpetualStopLoss: UInt8 {
-        get {
-            access(keyPath: \.perpetualStopLoss)
-            return preferences.perpetualStopLoss
-        }
-        set {
-            withMutation(keyPath: \.perpetualStopLoss) {
-                preferences.perpetualStopLoss = newValue
+                write { try preferencesService.setPerpetualEnabled(enabled: newValue) }
             }
         }
     }
@@ -138,23 +91,25 @@ public final class ObservablePreferences: Sendable {
     public var appearance: Appearance {
         get {
             access(keyPath: \.appearance)
-            return preferences.appearance
+            return preferencesService.appearanceValue
         }
         set {
             withMutation(keyPath: \.appearance) {
-                preferences.appearance = newValue
+                write { try preferencesService.setAppearanceValue(newValue) }
             }
         }
     }
 
     public func showPerpetuals(for wallet: Wallet) -> Bool {
         access(keyPath: \.isPerpetualEnabled)
-        return preferences.showPerpetuals(for: wallet)
+        return preferencesService.showPerpetuals(wallet: wallet.json())
     }
-}
 
-// MARK: - EnvironmentValues
-
-public extension EnvironmentValues {
-    @Entry var observablePreferences: ObservablePreferences = .default
+    private func write(_ operation: () throws -> Void) {
+        do {
+            try operation()
+        } catch {
+            debugLog("preferences write error: \(error)")
+        }
+    }
 }

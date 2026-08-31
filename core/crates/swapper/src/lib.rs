@@ -65,6 +65,3 @@ pub type SwapperQuoteAsset = primitives::swap::QuoteAsset;
 pub type SwapperSlippage = primitives::swap::Slippage;
 pub type SwapperSlippageMode = primitives::swap::SlippageMode;
 pub type SwapperQuoteData = primitives::swap::SwapQuoteData;
-pub type SwapperSwapStatus = primitives::swap::SwapStatus;
-pub type SwapperTransactionSwapMetadata = primitives::TransactionSwapMetadata;
-pub type SwapperSwapResult = primitives::swap::SwapResult;

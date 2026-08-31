@@ -1,113 +1,20 @@
 package com.gemwallet.android.domains.asset
 
-import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.NFTAsset
-import com.wallet.core.primitives.NFTAttributeType
-import com.wallet.core.primitives.NFTType
 import com.wallet.core.primitives.UTXO
-import uniffi.gemstone.Chain
-import uniffi.gemstone.GemAsset
-import uniffi.gemstone.GemAssetType
-import uniffi.gemstone.GemNftAsset
-import uniffi.gemstone.GemNftAttribute
-import uniffi.gemstone.GemNftAttributeType
-import uniffi.gemstone.GemNftImages
-import uniffi.gemstone.GemNftResource
-import uniffi.gemstone.GemNftType
-import uniffi.gemstone.GemUtxo
+import uniffi.gemstone.Asset as GemAsset
 
-fun Asset.toGem() = GemAsset(
-    id = id.toIdentifier(),
-    chain = id.chain.string,
-    tokenId = id.tokenId,
-    name = name,
-    symbol = symbol,
-    decimals = decimals,
-    assetType = when (type) {
-        AssetType.NATIVE -> GemAssetType.NATIVE
-        AssetType.ERC20 -> GemAssetType.ERC20
-        AssetType.BEP20 -> GemAssetType.BEP20
-        AssetType.SPL -> GemAssetType.SPL
-        AssetType.SPL2022 -> GemAssetType.SPL2022
-        AssetType.TRC20 -> GemAssetType.TRC20
-        AssetType.TIP20 -> GemAssetType.TIP20
-        AssetType.TOKEN -> GemAssetType.TOKEN
-        AssetType.IBC -> GemAssetType.IBC
-        AssetType.JETTON -> GemAssetType.JETTON
-        AssetType.SYNTH -> GemAssetType.SYNTH
-        AssetType.ASA -> GemAssetType.ASA
-        AssetType.PERPETUAL -> GemAssetType.PERPETUAL
-        AssetType.SPOT -> throw IllegalAccessException()
-    }
-)
+fun Asset.toGem(): GemAsset = toJson()
 
-fun NFTAsset.toGem() = GemNftAsset(
-    id = id.toIdentifier(),
-    collectionId = collectionId.toIdentifier(),
-    contractAddress = contractAddress,
-    tokenId = tokenId,
-    tokenType = when (tokenType) {
-        NFTType.ERC721 -> GemNftType.ERC721
-        NFTType.ERC1155 -> GemNftType.ERC1155
-        NFTType.SPL -> GemNftType.SPL
-        NFTType.JETTON -> GemNftType.JETTON
-    },
-    name = name,
-    description = description,
-    chain = chain.string,
-    resource = GemNftResource(
-        resource.url,
-        resource.mimeType,
-    ),
-    images = GemNftImages(
-        GemNftResource(images.preview.url, images.preview.mimeType)
-    ),
-    attributes = attributes.map {
-        GemNftAttribute(
-            name = it.name,
-            value = it.value,
-            valueType = it.valueType?.toGemNftAttributeType(),
-            percentage = it.percentage,
-        )
-    }
-)
+fun GemAsset.toPrimitives(): Asset? = runCatching { decodeJson<Asset>() }.getOrNull()
 
-private fun NFTAttributeType.toGemNftAttributeType() = when (this) {
-    NFTAttributeType.String -> GemNftAttributeType.STRING
-    NFTAttributeType.Timestamp -> GemNftAttributeType.TIMESTAMP
-}
+fun GemAsset.toDTO(): Asset = decodeJson()
 
-fun GemAsset.toDTO() = Asset(
-    id = AssetId(id),
-    name = name,
-    symbol = symbol,
-    decimals = decimals,
-    type = when (assetType) {
-        GemAssetType.NATIVE -> AssetType.NATIVE
-        GemAssetType.ERC20 -> AssetType.ERC20
-        GemAssetType.BEP20 -> AssetType.BEP20
-        GemAssetType.SPL -> AssetType.SPL
-        GemAssetType.SPL2022 -> AssetType.SPL2022
-        GemAssetType.TRC20 -> AssetType.TRC20
-        GemAssetType.TIP20 -> AssetType.TIP20
-        GemAssetType.TOKEN -> AssetType.TOKEN
-        GemAssetType.IBC -> AssetType.IBC
-        GemAssetType.JETTON -> AssetType.JETTON
-        GemAssetType.SYNTH -> AssetType.SYNTH
-        GemAssetType.ASA -> AssetType.ASA
-        GemAssetType.PERPETUAL -> AssetType.PERPETUAL
-        GemAssetType.SPOT -> AssetType.SPOT
-    }
-)
+fun NFTAsset.toGem(): String = toJson()
 
-fun UTXO.toGem(): GemUtxo = GemUtxo(
-    transaction_id,
-    vout,
-    value,
-    address
-)
+fun UTXO.toGem(): String = toJson()
 
 fun List<UTXO>.toGem() = map { it.toGem() }

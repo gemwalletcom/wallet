@@ -19,7 +19,7 @@ private const val DEVICE_MASTER_KEY_ALIAS = "gem_device_master_key"
 private const val DEVICE_KEYS_PREFERENCES_FILE_NAME = "gem_device_keys"
 private const val DEVICE_KEYS_NAMESPACE = "device_keys"
 
-private val DEVICE_KEYS_STORE_CONFIG = TinkStoreConfig(
+internal val DEVICE_KEYS_STORE_CONFIG = TinkStoreConfig(
     preferencesFileName = DEVICE_KEYS_PREFERENCES_FILE_NAME,
     namespace = DEVICE_KEYS_NAMESPACE,
     keysetName = DEVICE_KEYSET_NAME,

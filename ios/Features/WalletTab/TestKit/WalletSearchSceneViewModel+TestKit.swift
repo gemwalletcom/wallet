@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ActivityService
-import ActivityServiceTestKit
-import AssetsService
-import AssetsServiceTestKit
-import BalanceService
-import BalanceServiceTestKit
-import PerpetualService
-import PerpetualServiceTestKit
+import protocol Gemstone.GemBalanceServiceProtocol
+import protocol Gemstone.GemPerpetualServiceProtocol
+import Store
+import StoreTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
+import protocol Gemstone.GemSearchServiceProtocol
+import GemstonePrimitivesTestKit
 import Preferences
 import PreferencesTestKit
 import Primitives
@@ -18,17 +18,17 @@ public extension WalletSearchSceneViewModel {
     @MainActor
     static func mock(
         wallet: Wallet = .mock(),
-        searchService: WalletSearchService = .mock(),
-        activityService: ActivityService = .mock(),
-        assetsEnabler: any AssetsEnabler = .mock(),
-        perpetualService: PerpetualService = .mock(),
+        searchService: any GemSearchServiceProtocol = GemSearchServiceMock(),
+        recentAssetsService: any RecentAssetsServiceable = RecentAssetsService(store: .mock()),
+        balanceService: any GemBalanceServiceProtocol = .mock(),
+        perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
         preferences: ObservablePreferences = .mock(),
     ) -> WalletSearchSceneViewModel {
         WalletSearchSceneViewModel(
             wallet: wallet,
             searchService: searchService,
-            activityService: activityService,
-            assetsEnabler: assetsEnabler,
+            recentAssetsService: recentAssetsService,
+            balanceService: balanceService,
             perpetualService: perpetualService,
             preferences: preferences,
             onDismissSearch: {},

@@ -5,10 +5,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.device.coordinators.EnableDevicePush
-import com.gemwallet.android.application.pricealerts.coordinators.IncludePriceAlert
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.domains.pricealerts.direction
+import com.gemwallet.android.application.device.cases.EnableDevicePush
+import com.gemwallet.android.application.pricealerts.cases.IncludePriceAlert
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.domains.pricealerts.formatAmount
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.ValueDirection
@@ -16,11 +15,12 @@ import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.NumericFormatter
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertConfirmResult
-import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertTargetError
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.requireAssetId
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlertDirection
@@ -41,13 +41,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PriceAlertTargetViewModel @Inject constructor(
-    private val assetsRepository: AssetsRepository,
+    private val getAssetInfo: GetAssetInfo,
     private val includePriceAlert: IncludePriceAlert,
     private val enableDevicePush: EnableDevicePush,
+    private val priceAlertFormatter: PriceAlertFormatter,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val priceAlertFormatter = PriceAlertFormatter()
     private val numericFormatter = NumericFormatter()
     private val suggestionOffsetPercent = 5.0
 
@@ -55,7 +55,7 @@ class PriceAlertTargetViewModel @Inject constructor(
 
     val assetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
 
-    val assetInfo = assetsRepository.getAssetInfo(assetId)
+    val assetInfo = getAssetInfo(assetId)
     val currency = assetInfo.map { it?.price?.currency ?: Currency.USD }
         .stateIn(viewModelScope, SharingStarted.Eagerly, Currency.USD)
     val currentPrice = assetInfo.map { info ->
@@ -93,32 +93,21 @@ class PriceAlertTargetViewModel @Inject constructor(
     private val _type = MutableStateFlow(PriceAlertNotificationType.Price)
     val type: StateFlow<PriceAlertNotificationType> = _type
 
-    private data class ResolvedInput(val inputValue: Double, val direction: PriceAlertDirection?)
-
-    private val resolvedInput: StateFlow<ResolvedInput> = combine(
+    val resolvedDirection: StateFlow<PriceAlertDirection?> = combine(
         snapshotFlow { value.text }, currentPriceValue, _type, _direction,
     ) { text, currentPrice, type, selectedDirection ->
-        val inputValue = numericFormatter.double(text.toString()) ?: 0.0
-        val direction = if (inputValue <= 0.0) null else type.direction(currentPrice, inputValue, selectedDirection)
-        ResolvedInput(inputValue, direction)
+        priceAlertFormatter.alertDirection(
+            notificationType = type.toJson(),
+            inputValue = numericFormatter.double(text.toString()),
+            currentPrice = currentPrice,
+            selectedDirection = selectedDirection.toJson(),
+        )?.decodeJson<PriceAlertDirection>()
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, ResolvedInput(0.0, null))
-
-    val resolvedDirection: StateFlow<PriceAlertDirection?> = resolvedInput.map { it.direction }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val error: StateFlow<PriceAlertTargetError?> = resolvedInput.map {
-        when {
-            it.inputValue <= 0.0 -> PriceAlertTargetError.Zero
-            it.direction == null -> PriceAlertTargetError.Undecided
-            else -> null
-        }
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, PriceAlertTargetError.Zero)
-
-    val buttonState: StateFlow<ButtonState> = error
-        .map { buttonState(enabled = it == null) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, buttonState(enabled = error.value == null))
+    val buttonState: StateFlow<ButtonState> = resolvedDirection
+        .map { buttonState(enabled = it != null) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, buttonState(enabled = false))
 
     fun onDirection(direction: PriceAlertDirection) {
         _direction.update { direction }
@@ -131,11 +120,11 @@ class PriceAlertTargetViewModel @Inject constructor(
     fun onConfirm(): PriceAlertConfirmResult? {
         val inputValue = numericFormatter.double(value.text.toString()) ?: return null
         val type = type.value
-        val direction = resolvedInput.value.direction ?: return null
+        val direction = resolvedDirection.value ?: return null
         val price = if (type == PriceAlertNotificationType.Price) inputValue else null
         val percentage = if (type == PriceAlertNotificationType.PricePercentChange) inputValue else null
         viewModelScope.launch(Dispatchers.IO) {
-            includePriceAlert(
+            includePriceAlert.includePriceAlert(
                 assetId = assetId,
                 currency = currency.value,
                 price = price,

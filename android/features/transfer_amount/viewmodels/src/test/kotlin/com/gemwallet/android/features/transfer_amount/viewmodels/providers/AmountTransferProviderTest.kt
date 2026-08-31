@@ -1,13 +1,12 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
-import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
-import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
+import uniffi.gemstone.GemRecipient
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.DestinationAddress
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
 import io.mockk.coEvery
@@ -20,6 +19,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
+import uniffi.gemstone.GemAmountService
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -32,21 +32,18 @@ class AmountTransferProviderTest {
     private val getAssetInfo = mockk<GetAssetInfo> {
         every { this@mockk.invoke(asset.id) } returns flowOf(assetInfo)
     }
-    private val balanceService = mockk<TransactionBalanceService> {
-        coEvery { getBalance(any(), any<AmountParams>(), any(), any()) } returns BigInteger("1000000")
-    }
     private val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
     private val params = AmountParams.Transfer(
         assetId = asset.id,
-        destination = DestinationAddress(address = "to", name = null),
+        destination = GemRecipient(address = "to", name = null),
         memo = "memo",
     )
 
     private fun makeProvider() = AmountTransferProvider(
         params = params,
         getAssetInfo = getAssetInfo,
-        transactionBalanceService = balanceService,
         scope = scope,
+        amountService = GemAmountService(),
     )
 
     @Test
@@ -57,7 +54,7 @@ class AmountTransferProviderTest {
     @Test
     fun `canChangeValue and canSwitchInputType are both true`() {
         val provider = makeProvider()
-        assertTrue(provider.canChangeValue)
+        assertTrue(provider.canChangeValue.value)
         assertTrue(provider.canSwitchInputType)
     }
 
@@ -65,7 +62,7 @@ class AmountTransferProviderTest {
     fun `minimumValue and reserveForFee are zero`() {
         val provider = makeProvider()
         assertEquals(BigInteger.ZERO, provider.minimumValue.value)
-        assertEquals(BigInteger.ZERO, provider.reserveForFee)
+        assertEquals(BigInteger.ZERO, provider.reserveForFee.value)
     }
 
     @Test
@@ -85,8 +82,8 @@ class AmountTransferProviderTest {
         val provider = AmountTransferProvider(
             params = AmountParams.Deposit(asset.id),
             getAssetInfo = getAssetInfo,
-            transactionBalanceService = balanceService,
             scope = scope,
+            amountService = GemAmountService(),
         )
         assertEquals(AmountTitle.Deposit, provider.title)
     }
@@ -96,8 +93,8 @@ class AmountTransferProviderTest {
         val provider = AmountTransferProvider(
             params = AmountParams.Withdraw(asset.id),
             getAssetInfo = getAssetInfo,
-            transactionBalanceService = balanceService,
             scope = scope,
+            amountService = GemAmountService(),
         )
         assertEquals(AmountTitle.Withdraw, provider.title)
     }
@@ -114,8 +111,8 @@ class AmountTransferProviderTest {
         val provider = AmountTransferProvider(
             params = AmountParams.Withdraw(asset.id),
             getAssetInfo = getInfo,
-            transactionBalanceService = balanceService,
             scope = scope,
+            amountService = GemAmountService(),
         )
         assertEquals(BigInteger("5000000"), provider.availableBalance.first { it != BigInteger.ZERO })
     }
@@ -125,8 +122,8 @@ class AmountTransferProviderTest {
         val provider = AmountTransferProvider(
             params = AmountParams.Withdraw(asset.id),
             getAssetInfo = getAssetInfo,
-            transactionBalanceService = balanceService,
             scope = scope,
+            amountService = GemAmountService(),
         )
         val owner = provider.assetInfo.filterNotNull().first().owner
         val confirm = provider.buildConfirmParams(amount = Crypto(BigInteger.ONE), isMax = false)

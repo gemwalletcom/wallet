@@ -20,6 +20,7 @@
   <string name="common_wallet">กระเป๋าเงิน</string>
   <string name="common_show">แสดง %1$s</string>
   <string name="common_copied">คัดลอกแล้ว: %1$s</string>
+  <string name="common_copied_to_clipboard">คัดลอกไปยังคลิปบอร์ดแล้ว</string>
   <string name="common_recommended">แนะนำ</string>
   <string name="common_all">ทั้งหมด</string>
   <string name="common_not_available">ไม่สามารถใช้ได้</string>
@@ -185,10 +186,14 @@
   <string name="errors_token_invalid_id">รหัสโทเค็นไม่ถูกต้อง</string>
   <string name="errors_import_invalid_secret_phrase">วลีลับไม่ถูกต้อง</string>
   <string name="errors_import_invalid_secret_phrase_word">คำวลีลับไม่ถูกต้อง: %1$s</string>
+  <string name="errors_import_invalid_private_key">คีย์ส่วนตัวไม่ถูกต้อง</string>
+  <string name="errors_keystore_access">ไม่สามารถเข้าถึงคีย์ของกระเป๋าเงินนี้บนอุปกรณ์นี้ได้ หากคุณมีวลีกู้คืน ให้ลบกระเป๋าเงินนี้แล้วนำเข้าใหม่เพื่อกู้คืนการเข้าถึง</string>
+  <string name="errors_wallet_account_missing">กระเป๋าเงินนี้ไม่มีบัญชีสำหรับเครือข่ายนี้</string>
   <string name="errors_invalid_url">URL ไม่ถูกต้อง</string>
   <string name="errors_error_occurred">เกิดข้อผิดพลาด!</string>
   <string name="errors_invalid_network_id">รหัสเครือข่ายไม่ถูกต้อง</string>
   <string name="errors_error">เกิดข้อผิดพลาด</string>
+  <string name="errors_cancelled">ยกเลิกแล้ว</string>
   <string name="errors_connections_user_cancelled">ผู้ใช้ยกเลิก</string>
   <string name="errors_not_supported">ไม่รองรับ</string>
   <string name="errors_permissions_not_granted">ไม่ได้รับสิทธิ์</string>

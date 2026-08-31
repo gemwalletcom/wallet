@@ -95,7 +95,7 @@ fiat:
       key:
         secret: ""
 swap:
-  near_intents:
+  nearintents:
     url: "https://1click.chaindefuser.com"
   okx:
     url: "https://web3.okx.com"
@@ -104,7 +104,7 @@ swap:
       secret: ""
     passphrase: ""
     project: ""
-  swaps_xyz:
+  swapsxyz:
     url: "https://api-v2.swaps.xyz/api"
 
 prices:
@@ -149,6 +149,8 @@ coinmarketcap:
   url: "https://pro-api.coinmarketcap.com"
   key:
     secret: ""
+everstake:
+  url: "https://eth-api-b2c.everstake.one"
 
 name:
   max_name_length: 20
@@ -309,6 +311,9 @@ security:
       secret: ""
   goplus:
     url: "https://api.gopluslabs.io"
+    key:
+      public: ""
+      secret: ""
   hashdit:
     url: "https://api.hashdit.io"
     key:

@@ -1,9 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemContactServiceProtocol
+import protocol Gemstone.GemNameServiceProtocol
 import Components
-import ContactService
+import GemstoneServices
 import Foundation
 import Localization
+import class Gemstone.GemAddressService
 import Primitives
 import PrimitivesComponents
 import Store
@@ -17,8 +20,9 @@ public final class ContactsViewModel {
         case addAddress(ChainRecipient)
     }
 
-    let service: ContactService
-    let nameService: any NameServiceable
+    let service: any GemContactServiceProtocol
+    let nameService: any GemNameServiceProtocol
+    let addressService: GemAddressService
     let mode: Mode
 
     public let query: ObservableQuery<ContactsRequest>
@@ -29,12 +33,14 @@ public final class ContactsViewModel {
     var isPresentingAddContact = false
 
     public init(
-        service: ContactService,
-        nameService: any NameServiceable,
+        service: any GemContactServiceProtocol,
+        nameService: any GemNameServiceProtocol,
+        addressService: GemAddressService,
         mode: Mode = .list,
     ) {
         self.service = service
         self.nameService = nameService
+        self.addressService = addressService
         self.mode = mode
         query = ObservableQuery(ContactsRequest(), initialValue: [])
     }
@@ -43,13 +49,29 @@ public final class ContactsViewModel {
         Localized.Contacts.title
     }
 
+    var addContactMode: ManageContactViewModel.Mode {
+        switch mode {
+        case .list: .add()
+        case let .addAddress(recipient): .add(recipient)
+        }
+    }
+
     func add(to contact: ContactData) {
         guard case let .addAddress(recipient) = mode else { return }
-        let updated = contact.addAddress(from: recipient)
-        do {
-            try service.updateContact(updated.contact, addresses: updated.addresses)
-        } catch {
-            debugLog("ContactsViewModel add error: \(error)")
+        Task {
+            do {
+                let addresses = try service.addAddress(
+                    contact.addresses,
+                    contactId: contact.contact.id,
+                    chain: recipient.chain,
+                    address: recipient.recipient.address,
+                    memo: recipient.recipient.memo,
+                    replacingId: nil,
+                )
+                try await service.updateContact(contact.contact, addresses: addresses)
+            } catch {
+                debugLog("ContactsViewModel add error: \(error)")
+            }
         }
     }
 
@@ -69,12 +91,15 @@ public final class ContactsViewModel {
     }
 
     func deleteContacts(at offsets: IndexSet) {
-        do {
-            for index in offsets {
-                try service.deleteContact(contacts[index].contact)
+        let selected = offsets.map { contacts[$0].contact }
+        Task {
+            do {
+                for contact in selected {
+                    try await service.deleteContact(contact)
+                }
+            } catch {
+                debugLog("ContactsViewModel deleteContacts error: \(error)")
             }
-        } catch {
-            debugLog("ContactsViewModel deleteContacts error: \(error)")
         }
     }
 }

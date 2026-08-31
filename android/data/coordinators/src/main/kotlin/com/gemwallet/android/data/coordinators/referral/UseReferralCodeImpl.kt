@@ -1,26 +1,19 @@
 package com.gemwallet.android.data.coordinators.referral
 
-import com.gemwallet.android.application.GetAuthPayload
-import com.gemwallet.android.application.referral.coordinators.UseReferralCode
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
-import com.wallet.core.primitives.AuthenticatedRequest
-import com.wallet.core.primitives.ReferralCode
+import com.gemwallet.android.application.referral.cases.UseReferralCode
 import com.wallet.core.primitives.Wallet
+import uniffi.gemstone.GemRewardsService
+import com.gemwallet.android.serializer.toJson
 
 class UseReferralCodeImpl(
-    private val gemDeviceApiClient: GemDeviceApiClient,
-    private val getAuthPayload: GetAuthPayload,
+    private val rewardsService: GemRewardsService,
 ) : UseReferralCode {
 
 
     override suspend fun useReferralCode(code: String, wallet: Wallet): Boolean {
-        val auth = getAuthPayload.getAuthPayload(wallet)
-        gemDeviceApiClient.useReferralCode(
-            walletId = wallet.id,
-            body = AuthenticatedRequest(
-                auth = auth,
-                data = ReferralCode(code)
-            )
+        rewardsService.useReferralCode(
+            wallet = wallet.toJson(),
+            code = code,
         )
         return true
     }

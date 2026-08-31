@@ -1,31 +1,34 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceService
-import BannerService
+import protocol Gemstone.GemWalletPreferencesServiceProtocol
+import protocol Gemstone.GemBalanceServiceProtocol
+import struct Gemstone.GemBannerContent
+import struct Gemstone.GemBannerContext
+import protocol Gemstone.GemBannerServiceProtocol
+import protocol Gemstone.GemNftServiceProtocol
+import GemstoneServices
 import Components
-import DiscoverAssetsService
 import Formatters
 import Foundation
+import protocol Gemstone.GemAssetDiscoveryServiceProtocol
 import GemstonePrimitives
 import InfoSheet
 import Localization
 import NFT
-import NFTService
 import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
-import WalletSessionService
 
 @Observable
 @MainActor
 public final class WalletSceneViewModel: Sendable, AssetActions {
-    private let assetDiscoveryService: any AssetDiscoverable
-    let balanceService: BalanceService
-    let assetsEnabler: any AssetsEnabler
-    private let bannerService: BannerService
+    private let assetDiscoveryService: any GemAssetDiscoveryServiceProtocol
+    let balanceService: any GemBalanceServiceProtocol
+    private let bannerService: any GemBannerServiceProtocol
+    private let walletPreferencesService: any GemWalletPreferencesServiceProtocol
     private let balanceCalculator = BalanceCalculator()
 
     let observablePreferences: ObservablePreferences
@@ -53,11 +56,11 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     public var isLoadingAssets = false
 
     public init(
-        assetDiscoveryService: any AssetDiscoverable,
-        balanceService: BalanceService,
-        assetsEnabler: any AssetsEnabler,
-        bannerService: BannerService,
-        nftService: NFTService,
+        assetDiscoveryService: any GemAssetDiscoveryServiceProtocol,
+        balanceService: any GemBalanceServiceProtocol,
+        bannerService: any GemBannerServiceProtocol,
+        nftService: any GemNftServiceProtocol,
+        walletPreferencesService: any GemWalletPreferencesServiceProtocol,
         observablePreferences: ObservablePreferences,
         wallet: Wallet,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
@@ -65,8 +68,8 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     ) {
         self.assetDiscoveryService = assetDiscoveryService
         self.balanceService = balanceService
-        self.assetsEnabler = assetsEnabler
         self.bannerService = bannerService
+        self.walletPreferencesService = walletPreferencesService
         self.observablePreferences = observablePreferences
         collectionsModel = CollectionsViewModel(
             nftService: nftService,
@@ -78,12 +81,13 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
             AssetFiatValuesRequest(
                 walletId: wallet.id,
                 type: .wallet,
-                perpetualAccountMode: WalletPreferences(walletId: wallet.id).perpetualAccountMode,
+                perpetualAssetId: Chain.hyperCore.defaultAsset(type: .perpetual).id,
+                includesPerpetualCollateral: walletPreferencesService.includesPerpetualCollateral(walletId: wallet.id.id),
             ),
             initialValue: [],
         )
         assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: [.enabledBalance]), initialValue: [])
-        bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.id, assetId: .none, chain: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
+        bannersQuery = ObservableQuery(BannersRequest(walletId: wallet.id, assetId: .none, events: [.accountBlockedMultiSignature, .onboarding]), initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
         self.isPresentingWallets = isPresentingWallets
     }
@@ -145,7 +149,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     }
 
     var currencyCode: String {
-        observablePreferences.preferences.currency
+        observablePreferences.currency
     }
 
     var sections: AssetsSections {
@@ -169,10 +173,25 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         )
     }
 
-    var walletBannersModel: WalletSceneBannersViewModel {
-        WalletSceneBannersViewModel(
-            banners: banners,
-            totalFiatValue: totalFiatValue.value,
+    var visibleBanners: [Banner] {
+        (try? bannerService.visibleBanners(banners, walletId: wallet.id, asset: .none, context: bannerContext)) ?? []
+    }
+
+    func bannerContent(for banner: Banner) -> GemBannerContent {
+        bannerService.content(for: banner)
+    }
+
+    private var bannerContext: GemBannerContext {
+        GemBannerContext(
+            hasWallet: true,
+            hasAsset: false,
+            isStakeable: false,
+            hasStakeBalance: false,
+            hasAvailableBalance: false,
+            isAssetActivated: true,
+            assetRankScore: .none,
+            hasPerpetualsSupport: wallet.hasPerpetualsSupport,
+            isWalletEmpty: totalFiatValue.value.isZero,
         )
     }
 }
@@ -180,12 +199,12 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
 // MARK: - Business Logic
 
 public extension WalletSceneViewModel {
-    internal func fetch() async {
+    internal func load() async {
         await updateWallet(for: wallet)
     }
 
-    internal func fetchOnce() async {
-        await fetchOnce(wallet: wallet)
+    internal func loadOnce() async {
+        await loadOnce(wallet: wallet)
     }
 
     func onSelectWalletBar() {
@@ -222,7 +241,7 @@ public extension WalletSceneViewModel {
     }
 
     internal func onCloseBanner(banner: Banner) {
-        bannerService.onClose(banner)
+        Task { try await bannerService.close(key: banner.gemKey) }
     }
 
     internal func onSelectWatchWalletInfo() {
@@ -277,7 +296,7 @@ public extension WalletSceneViewModel {
 // MARK: - Private
 
 extension WalletSceneViewModel {
-    private func fetchOnce(wallet: Wallet) async {
+    private func loadOnce(wallet: Wallet) async {
         let shouldShowLoadingAssets = shouldShowInitialLoadingAssets(for: wallet)
 
         if shouldShowLoadingAssets {
@@ -293,25 +312,26 @@ extension WalletSceneViewModel {
 
     private func updateWallet(for wallet: Wallet) async {
         let assetIds = assets.map(\.asset.id)
-        async let balance: () = balanceService.updateBalance(for: wallet, assetIds: assetIds)
+        async let balance: Void? = try? balanceService.update(walletId: wallet.id.id, assetIds: assetIds.ids)
         async let discovery: () = discoverAssets(wallet: wallet)
         _ = await (balance, discovery)
     }
 
     private func discoverAssets(wallet: Wallet) async {
         do {
-            try await assetDiscoveryService.discoverAssets(wallet: wallet)
+            _ = try await assetDiscoveryService.discover(walletId: wallet.id.id)
         } catch {
             debugLog("WalletSceneViewModel discoverAssets error: \(error)")
         }
     }
 
     private func shouldShowInitialLoadingAssets(for wallet: Wallet) -> Bool {
-        let preferences = WalletPreferences(walletId: wallet.id)
-        return !preferences.completeInitialLoadAssets && preferences.assetsTimestamp == .zero
+        let completed = (try? walletPreferencesService.isInitialLoadCompleted(walletId: wallet.id, step: .assets)) ?? false
+        let timestamp = walletPreferencesService.getAssetsTimestamp(walletId: wallet.id)
+        return !completed && timestamp == 0
     }
 
     private func handleBanner(action: BannerAction) async throws {
-        try await bannerService.handleAction(action)
+        try await bannerService.applyAction(key: action.banner.gemKey, action: action.type.gemAction)
     }
 }

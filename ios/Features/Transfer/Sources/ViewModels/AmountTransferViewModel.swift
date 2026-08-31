@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAmountService
 import BigInt
 import Foundation
+import enum Gemstone.GemAmountType
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -22,8 +24,10 @@ enum TransferAction {
 public final class AmountTransferViewModel: AmountDataProvidable {
     let asset: Asset
     let action: TransferAction
+    let amountService: GemAmountService
 
-    init(asset: Asset, action: TransferAction) {
+    init(asset: Asset, action: TransferAction, amountService: GemAmountService) {
+        self.amountService = amountService
         self.asset = asset
         self.action = action
     }
@@ -51,30 +55,11 @@ public final class AmountTransferViewModel: AmountDataProvidable {
         }
     }
 
-    var minimumValue: BigInt {
+    var gemAmountType: GemAmountType {
         switch action {
-        case .send: .zero
-        case .deposit: asset.symbol == "USDC" ? PerpetualConfig.minDeposit : .zero
-        case .withdraw: asset.symbol == "USDC" ? PerpetualConfig.minWithdraw : .zero
-        }
-    }
-
-    var canChangeValue: Bool {
-        true
-    }
-
-    var reserveForFee: BigInt {
-        .zero
-    }
-
-    func shouldReserveFee(from _: AssetData) -> Bool {
-        false
-    }
-
-    func availableValue(from assetData: AssetData) -> BigInt {
-        switch action {
-        case .send, .deposit: assetData.balance.available
-        case .withdraw: assetData.balance.withdrawable
+        case .send: .transfer
+        case .deposit: .deposit
+        case .withdraw: .withdraw
         }
     }
 
@@ -82,7 +67,7 @@ public final class AmountTransferViewModel: AmountDataProvidable {
         action.recipient
     }
 
-    func makeTransferData(amount: TransferAmountValue) throws -> TransferData {
+    func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> TransferData {
         let transferType: TransferDataType = switch action {
         case .send: .transfer(asset)
         case .deposit: .deposit(asset)
@@ -90,8 +75,9 @@ public final class AmountTransferViewModel: AmountDataProvidable {
         }
         return TransferData(
             type: transferType,
-            recipientData: action.recipient,
-            amount: amount,
+            recipient: action.recipient.recipient,
+            value: value,
+            useMaxAmount: useMaxAmount,
         )
     }
 }

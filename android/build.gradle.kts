@@ -55,6 +55,14 @@ subprojects {
         }
         dependencies.add("testImplementation", "net.java.dev.jna:jna:5.18.1")
     }
+    plugins.withId("com.android.application") {
+        extensions.configure(com.android.build.api.dsl.ApplicationExtension::class.java) {
+            testOptions.unitTests.all {
+                it.systemProperty("jna.library.path", File(rootDir, "../core/target/debug").absolutePath)
+            }
+        }
+        dependencies.add("testImplementation", "net.java.dev.jna:jna:5.18.1")
+    }
 }
 
 tasks.register("clean", Delete::class) {

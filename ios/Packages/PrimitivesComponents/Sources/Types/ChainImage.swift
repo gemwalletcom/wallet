@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
@@ -12,22 +13,27 @@ public struct ChainImage: Sendable {
     }
 
     public var image: Image {
+        Self.asset(for: chain.iconChain)
+    }
+
+    private static func asset(for chain: Chain) -> Image {
         switch chain {
         case .bitcoin: Images.Chains.bitcoin
         case .bitcoinCash: Images.Chains.bitcoincash
         case .litecoin: Images.Chains.litecoin
-        case .ethereum,
-             .base,
-             .optimism,
-             .zkSync,
-             .abstract,
-             .unichain,
-             .ink,
-             .linea,
-             .arbitrum,
-             .blast,
-             .world,
-             .robinhood: Images.Chains.ethereum
+        case .ethereum: Images.Chains.ethereum
+        case .base: Images.Chains.base
+        case .optimism: Images.Chains.optimism
+        case .zkSync: Images.Chains.zksync
+        case .abstract: Images.Chains.abstract
+        case .unichain: Images.Chains.unichain
+        case .ink: Images.Chains.ink
+        case .linea: Images.Chains.linea
+        case .arbitrum: Images.Chains.arbitrum
+        case .blast: Images.Chains.blast
+        case .world: Images.Chains.world
+        case .robinhood: Images.Chains.robinhood
+        case .seiEvm: Images.Chains.sei
         case .smartChain: Images.Chains.smartchain
         case .celo: Images.Chains.celo
         case .solana: Images.Chains.solana
@@ -48,7 +54,7 @@ public struct ChainImage: Sendable {
         case .gnosis: Images.Chains.gnosis
         case .celestia: Images.Chains.celestia
         case .injective: Images.Chains.injective
-        case .sei, .seiEvm: Images.Chains.sei
+        case .sei: Images.Chains.sei
         case .manta: Images.Chains.manta
         case .noble: Images.Chains.noble
         case .mantle: Images.Chains.mantle
@@ -75,22 +81,7 @@ public struct ChainImage: Sendable {
     }
 
     public var l2Image: Image? {
-        switch chain {
-        case .optimism: Images.Chains.optimism
-        case .base: Images.Chains.base
-        case .zkSync: Images.Chains.zksync
-        case .arbitrum: Images.Chains.arbitrum
-        case .abstract: Images.Chains.abstract
-        case .unichain: Images.Chains.unichain
-        case .ink: Images.Chains.ink
-        case .linea: Images.Chains.linea
-        case .opBNB: Images.Chains.opbnb
-        case .blast: Images.Chains.blast
-        case .world: Images.Chains.world
-        case .manta: Images.Chains.manta
-        case .robinhood: Images.Chains.robinhood
-        default: nil
-        }
+        chain.badgeChain.map { Self.asset(for: $0) }
     }
 }
 

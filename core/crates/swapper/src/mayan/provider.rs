@@ -7,6 +7,7 @@ use super::{
     tx_builder::{fast_mctp, mctp, mono_chain, swift},
     wormhole_chain,
 };
+use crate::amount_to_value;
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
     SwapperProvider, SwapperQuoteData,
@@ -110,21 +111,19 @@ where
         let referral_fees = default_referral_fees();
         let routes = self
             .price_client
-            .get_quotes(
-                QuoteParams {
-                    amount_in64: from_value.clone(),
-                    from_token: token_id_for_asset(&from_asset)?,
-                    from_chain: wormhole_chain::name_for_chain(from_asset.chain)?.to_string(),
-                    to_token: token_id_for_asset(&to_asset)?,
-                    to_chain: wormhole_chain::name_for_chain(to_asset.chain)?.to_string(),
-                    referrer: default_referral_address(Chain::Solana),
-                    referrer_bps: referral_fees.bps_for_chain(from_asset.chain),
-                    slippage_bps: request.options.slippage.bps.min(MAYAN_MAX_SLIPPAGE_BPS),
-                    slippage_mode: request.options.slippage.mode,
-                },
-                request.from_asset.decimals,
-            )
-            .await?;
+            .get_quotes(QuoteParams {
+                amount_in64: from_value.clone(),
+                from_token: token_id_for_asset(&from_asset)?,
+                from_chain: wormhole_chain::name_for_chain(from_asset.chain)?.to_string(),
+                to_token: token_id_for_asset(&to_asset)?,
+                to_chain: wormhole_chain::name_for_chain(to_asset.chain)?.to_string(),
+                referrer: default_referral_address(Chain::Solana),
+                referrer_bps: referral_fees.bps_for_chain(from_asset.chain),
+                slippage_bps: request.options.slippage.bps.min(MAYAN_MAX_SLIPPAGE_BPS),
+                slippage_mode: request.options.slippage.mode,
+            })
+            .await
+            .map_err(|error| map_quote_error(error, request.from_asset.decimals))?;
         let route = Self::select_route(&routes, from_asset.chain, to_asset.chain).ok_or(SwapperError::NoQuoteAvailable)?;
         let to_value = route.common().expected_output_value(request.to_asset.decimals)?;
 
@@ -240,9 +239,32 @@ where
     }
 }
 
+fn map_quote_error(error: SwapperError, decimals: u32) -> SwapperError {
+    match error {
+        SwapperError::InputAmountError { min_amount: Some(min_amount) } => SwapperError::InputAmountError {
+            min_amount: amount_to_value(&min_amount, decimals),
+        },
+        other => other,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_map_quote_error() {
+        let error = SwapperError::InputAmountError {
+            min_amount: Some("1,234.5".to_string()),
+        };
+        assert_eq!(
+            map_quote_error(error, 6),
+            SwapperError::InputAmountError {
+                min_amount: Some("1234500000".to_string())
+            }
+        );
+        assert_eq!(map_quote_error(SwapperError::NoQuoteAvailable, 6), SwapperError::NoQuoteAvailable);
+    }
     use crate::mayan::model::{MayanFastMctpQuote, MayanMctpQuote};
     use crate::models::Options;
     use crate::{SwapperQuoteAsset, alien::mock::ProviderMock};

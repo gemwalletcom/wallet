@@ -23,9 +23,8 @@ pub struct TempoProvider<C: Client + Clone> {
 
 impl<C: Client + Clone + 'static> TempoProvider<C> {
     pub fn new(client: EthereumClient<C>) -> Self {
-        let fee_calculator = Box::new(TempoFeeCalculator::new(client.clone()));
         Self {
-            provider: EthereumProvider::new_rpc_only_with_fee_calculator(client, fee_calculator),
+            provider: EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(TempoFeeCalculator::new(client))),
         }
     }
 
@@ -281,6 +280,7 @@ mod chain_integration_tests {
                 input_type: input_type.clone(),
                 sender_address: TEMPO_TEST_ADDRESS.to_string(),
                 destination_address: TEMPO_TEST_ADDRESS.to_string(),
+                references: vec![],
             })
             .await?;
 

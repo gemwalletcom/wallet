@@ -10,7 +10,7 @@ pub enum XrpRpc {
     GetAccountTransactions { address: String, limit: usize },
     GetFees,
     GetLedger(u64),
-    GetLedgerCurrent,
+    GetLatestValidatedLedger,
     GetTransaction(String),
     SubmitTransaction(String),
 }
@@ -22,8 +22,7 @@ impl ToJsonRpcRequest for XrpRpc {
             Self::GetAccountObjects(_) => method::ACCOUNT_OBJECTS,
             Self::GetAccountTransactions { .. } => method::ACCOUNT_TRANSACTIONS,
             Self::GetFees => method::FEE,
-            Self::GetLedger(_) => method::LEDGER,
-            Self::GetLedgerCurrent => method::LEDGER_CURRENT,
+            Self::GetLedger(_) | Self::GetLatestValidatedLedger => method::LEDGER,
             Self::GetTransaction(_) => method::TRANSACTION,
             Self::SubmitTransaction(_) => method::SUBMIT,
         }
@@ -47,12 +46,13 @@ impl ToJsonRpcRequest for XrpRpc {
                 "ledger_index_max": -1,
                 "ledger_index_min": -1
             }]),
-            Self::GetFees | Self::GetLedgerCurrent => json!([{}]),
+            Self::GetFees => json!([{}]),
             Self::GetLedger(block_number) => json!([{
                 "ledger_index": block_number,
                 "transactions": true,
                 "expand": true
             }]),
+            Self::GetLatestValidatedLedger => json!([{"ledger_index": "validated"}]),
             Self::GetTransaction(transaction_id) => json!([{"transaction": transaction_id}]),
             Self::SubmitTransaction(data) => json!([{
                 "tx_blob": data,
@@ -94,5 +94,10 @@ mod tests {
             method::SUBMIT,
             json!([{"tx_blob": "signed-transaction", "fail_hard": true}]),
         );
+    }
+
+    #[test]
+    fn builds_latest_validated_ledger_request() {
+        assert_request(XrpRpc::GetLatestValidatedLedger, method::LEDGER, json!([{"ledger_index": "validated"}]));
     }
 }

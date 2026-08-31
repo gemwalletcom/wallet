@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ActivityServiceTestKit
+import class Gemstone.GemAssetConfigService
+import protocol Gemstone.GemBalanceServiceProtocol
+import GemstoneServicesTestKit
 @testable import Assets
-import AssetsServiceTestKit
-import BalanceService
-import BalanceServiceTestKit
+import GemstoneServices
 import Components
 import Foundation
-import PriceAlertServiceTestKit
+import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
@@ -19,15 +19,17 @@ public extension SelectAssetViewModel {
         selectType: SelectAssetType = .manage,
         assets: [AssetData] = [],
         state: StateViewType<[AssetBasic]> = .noData,
-        assetsEnabler: any AssetsEnabler = .mock(),
+        balanceService: any GemBalanceServiceProtocol = .mock(),
     ) -> SelectAssetViewModel {
         let model = SelectAssetViewModel(
             wallet: wallet,
             selectType: selectType,
-            searchService: .mock(),
-            assetsEnabler: assetsEnabler,
-            priceAlertService: .mock(),
-            activityService: .mock(),
+            searchService: GemSearchServiceMock(),
+            balanceService: balanceService,
+            priceAlertService: GemPriceAlertServiceMock(),
+            recentAssetsService: RecentAssetsService(store: .mock()),
+            preferencesService: GemPreferencesServiceMock(),
+            assetConfig: GemAssetConfigService(),
         )
         model.assetsQuery.value = assets
         model.state = state

@@ -9,9 +9,10 @@ import Transfer
 
 struct SelectedAssetNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.assetsEnabler) private var assetsEnabler
+    @Environment(\.balanceService) private var balanceService
     @Environment(\.assetsService) private var assetsService
-    @Environment(\.activityService) private var activityService
+    @Environment(\.receiveService) private var receiveService
+    @Environment(\.recentAssetsService) private var recentAssetsService
 
     @State private var navigationPath = NavigationPath()
 
@@ -53,8 +54,9 @@ struct SelectedAssetNavigationStack: View {
                         model: ReceiveViewModel(
                             assetData: input.assetData,
                             wallet: wallet,
-                            assetsEnabler: assetsEnabler,
+                            balanceService: balanceService,
                             assetsService: assetsService,
+                            receiveService: receiveService,
                         ),
                     )
                 case let .buy(_, amount):
@@ -82,7 +84,7 @@ struct SelectedAssetNavigationStack: View {
                                 wallet: wallet,
                                 pairSelector: SwapPairSelectorViewModel(
                                     fromAssetId: fromAsset.id,
-                                    toAssetId: toAsset?.id ?? SwapPairSelectorViewModel.defaultSwapPair(for: fromAsset).toAssetId,
+                                    toAssetId: toAsset?.id,
                                 ),
                             ),
                             onSwap: {
@@ -134,7 +136,7 @@ struct SelectedAssetNavigationStack: View {
 extension SelectedAssetNavigationStack {
     private func updateRecent() {
         if let data = input.type.recentActivityData(assetId: input.asset.id) {
-            try? activityService.updateRecent(data: data, walletId: wallet.id)
+            try? recentAssetsService.add(data, walletId: wallet.id)
         }
     }
 }

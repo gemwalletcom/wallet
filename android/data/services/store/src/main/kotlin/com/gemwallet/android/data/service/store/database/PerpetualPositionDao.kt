@@ -25,6 +25,9 @@ interface PerpetualPositionDao {
         upsertPositions(items)
     }
 
+    @Query("DELETE FROM perpetuals_positions")
+    suspend fun deleteAll()
+
     @Query("DELETE FROM perpetuals_positions WHERE walletId = :walletId AND id IN (:ids)")
     suspend fun deleteByIds(walletId: String, ids: List<String>)
 
@@ -55,10 +58,6 @@ interface PerpetualPositionDao {
     fun getPositionsData(walletId: String): Flow<List<DbPerpetualPositionData>>
 
     @Transaction
-    @Query("SELECT * FROM perpetuals_positions WHERE id = :positionId")
-    fun getPositionData(positionId: String): Flow<DbPerpetualPositionData?>
-
-    @Transaction
-    @Query("SELECT * FROM perpetuals_positions WHERE perpetualId = :perpetualId LIMIT 1")
-    fun getPositionDataByPerpetual(perpetualId: String): Flow<DbPerpetualPositionData?>
+    @Query("SELECT * FROM perpetuals_positions WHERE walletId = :walletId AND perpetualId = :perpetualId LIMIT 1")
+    fun getPositionDataByPerpetual(walletId: String, perpetualId: String): Flow<DbPerpetualPositionData?>
 }

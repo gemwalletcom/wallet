@@ -1,12 +1,13 @@
 package com.gemwallet.android.domains.transaction.aggregates
 
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.PerpetualDirection
-import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
+import uniffi.gemstone.GemAmountSign
+import uniffi.gemstone.GemTransactionSubtitle
+import uniffi.gemstone.GemTransactionTitle
 
 interface TransactionDataAggregate {
     val id: TransactionId
@@ -16,15 +17,13 @@ interface TransactionDataAggregate {
         get() = null
     val value: String
     val equivalentValue: String?
+    val title: GemTransactionTitle
+    val subtitle: GemTransactionSubtitle
+    val valueSign: GemAmountSign
+
     val type: TransactionType
     val direction: TransactionDirection
-    val perpetualDirection: PerpetualDirection?
-        get() = null
-    val perpetualPrice: Double?
-        get() = null
     val pnl: Double?
-        get() = null
-    val resourceType: Resource?
         get() = null
     val state: TransactionState
     val nftImageUrl: String?

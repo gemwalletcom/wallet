@@ -20,6 +20,7 @@
   <string name="common_wallet">Cüzdan</string>
   <string name="common_show">%1$s göster</string>
   <string name="common_copied">Kopyalandı: %1$s</string>
+  <string name="common_copied_to_clipboard">Panoya kopyalandı</string>
   <string name="common_recommended">Tavsiye edilen</string>
   <string name="common_all">Tümü</string>
   <string name="common_not_available">Müsait değil</string>
@@ -185,10 +186,14 @@
   <string name="errors_token_invalid_id">Geçersiz Jeton Kimliği</string>
   <string name="errors_import_invalid_secret_phrase">Geçersiz Gizli İfade</string>
   <string name="errors_import_invalid_secret_phrase_word">Geçersiz Gizli İfade kelimesi: %1$s</string>
+  <string name="errors_import_invalid_private_key">Geçersiz özel anahtar</string>
+  <string name="errors_keystore_access">Bu cihazda bu cüzdanın anahtarlarına erişilemedi. Kurtarma ifadeniz varsa bu cüzdanı kaldırıp yeniden içe aktararak erişimi geri kazanabilirsiniz.</string>
+  <string name="errors_wallet_account_missing">Bu cüzdanın bu ağ için hesabı yok</string>
   <string name="errors_invalid_url">Geçersiz URL</string>
   <string name="errors_error_occurred">Bir hata oluştu!</string>
   <string name="errors_invalid_network_id">Geçersiz Ağ Kimliği</string>
   <string name="errors_error">Hata</string>
+  <string name="errors_cancelled">İptal edildi</string>
   <string name="errors_connections_user_cancelled">Kullanıcı iptal etti</string>
   <string name="errors_not_supported">Desteklenmiyor</string>
   <string name="errors_permissions_not_granted">İzinler Verilmedi</string>

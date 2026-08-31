@@ -1,44 +1,46 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.perpetual.coordinators.BuildPerpetualParams
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetual
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualAccountMode
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalance
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualBalances
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualChartData
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualChartPeriod
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPosition
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetualPositions
-import com.gemwallet.android.application.perpetual.coordinators.GetPerpetuals
-import com.gemwallet.android.application.perpetual.coordinators.SetPerpetualChartPeriod
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetualPositions
-import com.gemwallet.android.application.perpetual.coordinators.SyncPerpetuals
-import com.gemwallet.android.application.perpetual.coordinators.TogglePerpetualPin
-import com.gemwallet.android.blockchain.services.PerpetualService
+import com.gemwallet.android.application.perpetual.cases.BuildPerpetualParams
+import com.gemwallet.android.application.perpetual.cases.GetPerpetual
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualAccountMode
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualChartData
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualChartPeriod
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualPosition
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
+import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
+import com.gemwallet.android.application.perpetual.cases.PerpetualCandles
+import com.gemwallet.android.application.perpetual.cases.SetPerpetualChartPeriod
+import com.gemwallet.android.application.perpetual.cases.SyncPerpetualPositions
+import com.gemwallet.android.application.perpetual.cases.SyncPerpetuals
+import com.gemwallet.android.application.perpetual.cases.SetPerpetualPinned
 import com.gemwallet.android.data.coordinators.perpetuals.BuildPerpetualParamsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualAccountModeImpl
-import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualBalanceImpl
-import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualBalancesImpl
+import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
+import com.gemwallet.android.data.coordinators.perpetuals.PerpetualBalanceCoordinator
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualChartDataImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualChartPeriodImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualPositionImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualPositionsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualsImpl
+import com.gemwallet.android.data.coordinators.perpetuals.PerpetualCandlesImpl
 import com.gemwallet.android.data.coordinators.perpetuals.SetPerpetualChartPeriodImpl
 import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualPositionsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualsImpl
-import com.gemwallet.android.data.coordinators.perpetuals.TogglePerpetualPinImpl
-import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.perpetual.PerpetualRepository
-import com.gemwallet.android.data.repositories.prices.PricesRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.wallet.core.primitives.Chain
+import com.gemwallet.android.data.coordinators.perpetuals.SetPerpetualPinnedImpl
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
+import com.gemwallet.android.application.session.cases.GetSession
+import uniffi.gemstone.GemPerpetualService
+import uniffi.gemstone.GemWalletPreferencesService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualPositionByAssetImpl
+import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByAsset
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -46,126 +48,117 @@ object PerpetualModule {
     @Provides
     @Singleton
     fun provideSyncPerpetuals(
-        perpetualService: PerpetualService,
-        perpetualRepository: PerpetualRepository,
-        pricesRepository: PricesRepository,
+        perpetualService: GemPerpetualService,
     ): SyncPerpetuals {
-        return SyncPerpetualsImpl(
-            perpetualService = perpetualService,
-            perpetualRepository = perpetualRepository,
-            pricesRepository = pricesRepository,
-            chains = listOf(Chain.HyperCore)
-        )
+        return SyncPerpetualsImpl(perpetualService = perpetualService)
     }
 
     @Provides
     @Singleton
     fun provideGetPerpetualAccountMode(
-        perpetualService: PerpetualService,
-        userConfig: UserConfig,
+        perpetualService: GemPerpetualService,
     ): GetPerpetualAccountMode {
-        return GetPerpetualAccountModeImpl(
-            perpetualService = perpetualService,
-            userConfig = userConfig,
-        )
+        return GetPerpetualAccountModeImpl(perpetualService)
     }
 
     @Provides
     @Singleton
     fun provideSyncPerpetualPositions(
-        sessionRepository: SessionRepository,
-        perpetualService: PerpetualService,
-        perpetualRepository: PerpetualRepository,
+        getSession: GetSession,
+        perpetualService: GemPerpetualService,
     ): SyncPerpetualPositions {
         return SyncPerpetualPositionsImpl(
-            sessionRepository = sessionRepository,
+            getSession = getSession,
             perpetualService = perpetualService,
-            perpetualRepository = perpetualRepository,
         )
     }
 
     @Provides
     @Singleton
     fun provideGetPerpetualPositions(
-        sessionRepository: SessionRepository,
-        perpetualRepository: PerpetualRepository,
+        getSession: GetSession,
+        perpetualStore: GemstonePerpetualStore,
     ): GetPerpetualPositions {
         return GetPerpetualPositionsImpl(
-            sessionRepository = sessionRepository,
-            perpetualRepository = perpetualRepository,
+            getSession = getSession,
+            perpetualStore = perpetualStore,
         )
     }
 
     @Provides
     @Singleton
+    fun provideGetPerpetualPositionByAsset(
+        perpetualStore: GemstonePerpetualStore,
+    ): GetPerpetualPositionByAsset = GetPerpetualPositionByAssetImpl(perpetualStore)
+
+    @Provides
+    @Singleton
     fun provideGetPerpetualPosition(
-        perpetualRepository: PerpetualRepository,
+        perpetualStore: GemstonePerpetualStore,
     ): GetPerpetualPosition {
         return GetPerpetualPositionImpl(
-            perpetualRepository = perpetualRepository,
+            perpetualStore = perpetualStore,
         )
     }
 
     @Provides
     @Singleton
     fun provideGetPerpetuals(
-        perpetualRepository: PerpetualRepository,
+        perpetualStore: GemstonePerpetualStore,
     ): GetPerpetuals {
         return GetPerpetualsImpl(
-            perpetualRepository = perpetualRepository,
+            perpetualStore = perpetualStore,
         )
     }
 
     @Provides
     @Singleton
     fun provideGetPerpetual(
-        perpetualRepository: PerpetualRepository,
+        perpetualStore: GemstonePerpetualStore,
     ): GetPerpetual {
         return GetPerpetualImpl(
-            perpetualRepository = perpetualRepository,
-        )
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetPerpetualBalances(
-        sessionRepository: SessionRepository,
-        perpetualRepository: PerpetualRepository,
-    ): GetPerpetualBalances {
-        return GetPerpetualBalancesImpl(
-            sessionRepository = sessionRepository,
-            perpetualRepository = perpetualRepository,
+            perpetualStore = perpetualStore,
         )
     }
 
     @Provides
     @Singleton
     fun provideGetPerpetualBalance(
-        perpetualRepository: PerpetualRepository,
-        sessionRepository: SessionRepository,
+        perpetualStore: GemstonePerpetualStore,
+        getSession: GetSession,
+        observePerpetualWallet: ObservePerpetualWallet,
+        walletPreferencesService: GemWalletPreferencesService,
     ): GetPerpetualBalance {
-        return GetPerpetualBalanceImpl(
-            perpetualRepository = perpetualRepository,
-            sessionRepository = sessionRepository,
+        return PerpetualBalanceCoordinator(
+            perpetualStore = perpetualStore,
+            getSession = getSession,
+            observePerpetualWallet = observePerpetualWallet,
+            walletPreferencesService = walletPreferencesService,
         )
     }
 
     @Provides
     @Singleton
-    fun provideTogglePerpetualPin(
-        perpetualRepository: PerpetualRepository,
-    ): TogglePerpetualPin {
-        return TogglePerpetualPinImpl(
-            perpetualRepository = perpetualRepository,
-        )
+    fun provideSetPerpetualPinned(perpetualService: GemPerpetualService): SetPerpetualPinned {
+        return SetPerpetualPinnedImpl(perpetualService)
     }
 
     @Provides
     @Singleton
     fun provideGetPerpetualChartData(
-        perpetualService: PerpetualService,
+        perpetualService: GemPerpetualService,
     ): GetPerpetualChartData {
         return GetPerpetualChartDataImpl(
+            perpetualService = perpetualService,
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun providePerpetualCandles(
+        perpetualService: GemPerpetualService,
+    ): PerpetualCandles {
+        return PerpetualCandlesImpl(
             perpetualService = perpetualService,
         )
     }
@@ -193,12 +186,12 @@ object PerpetualModule {
     @Provides
     @Singleton
     fun provideBuildPerpetualParams(
-        perpetualRepository: PerpetualRepository,
-        sessionRepository: SessionRepository,
+        perpetualStore: GemstonePerpetualStore,
+        getSession: GetSession,
     ): BuildPerpetualParams {
         return BuildPerpetualParamsImpl(
-            perpetualRepository = perpetualRepository,
-            sessionRepository = sessionRepository,
+            perpetualStore = perpetualStore,
+            getSession = getSession,
         )
     }
 }

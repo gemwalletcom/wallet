@@ -19,7 +19,7 @@ fun LazyListScope.manageAssetItem(
     onPin: () -> Unit,
     onAdd: () -> Unit,
 ) {
-    if (assetInfo.metadata?.isBalanceEnabled == true || assetInfo.metadata?.isEnabled != true) {
+    if (assetInfo.metadata.isBalanceEnabled || !assetInfo.metadata.isEnabled) {
         return
     }
 

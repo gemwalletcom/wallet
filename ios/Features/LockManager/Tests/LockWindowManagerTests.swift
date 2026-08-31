@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Keystore
+import GemstoneServices
 @testable import LockManager
 import SwiftUI
 import Testing
@@ -39,7 +39,7 @@ struct LockWindowManagerTests {
         manager.toggleLock(show: true)
 
         manager.lockModel.state = .unlocked
-        manager.lockModel.lastUnlockTime = .distantFuture
+        manager.lockModel.backgroundedAt = nil
         manager.toggleLock(show: false)
 
         #expect(manager.overlayWindow != nil)
@@ -89,13 +89,13 @@ struct LockWindowManagerTests {
     func backgroundSchedulesAutoLock() {
         let manager = LockWindowManagerMock.mock(lockPeriod: .oneMinute)
         manager.lockModel.state = .unlocked
-        manager.lockModel.lastUnlockTime = .distantFuture
+        manager.lockModel.backgroundedAt = nil
 
         manager.setPhase(phase: .background)
 
-        let expected = Date().addingTimeInterval(TimeInterval(manager.lockModel.lockPeriod.value))
+        let elapsed = manager.lockModel.backgroundedAt.map { (ContinuousClock.now - $0).milliseconds } ?? .max
 
-        #expect(abs(manager.lockModel.lastUnlockTime.timeIntervalSince(expected)) < 1)
+        #expect(elapsed < 1000, "backgrounding stamps the countdown start")
     }
 
     @Test

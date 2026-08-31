@@ -1,65 +1,69 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ActivityService
-import AddressNameService
-import AssetsService
-import BalanceService
-import ChainService
-import EventPresenterService
-import ExplorerService
+import protocol Gemstone.GemPreferencesServiceProtocol
+import Store
+import protocol Gemstone.GemAssetsServiceProtocol
+import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemTransactionStateServiceProtocol
+import GemstoneServices
+import protocol Gemstone.GemExplorerServiceProtocol
+import protocol Gemstone.GemPerpetualServiceProtocol
 import Foundation
-import Keystore
-import PriceService
+import class Gemstone.GemTransferService
+import protocol Gemstone.GemConfirmServiceProtocol
+import class Gemstone.GemSimulationFormatter
+import class Gemstone.GemAmountService
+import class Gemstone.GemFeeService
+import Preferences
 import Primitives
-import ScanService
-import Signer
-import TransactionStateService
+import PrimitivesComponents
 
 public enum ConfirmServiceFactory {
     public static func create(
+        explorerService: any GemExplorerServiceProtocol,
         keystore: any Keystore,
-        chainServiceFactory: any ChainServiceFactorable,
-        assetsEnabler: any AssetsEnabler,
-        scanService: ScanService,
-        balanceService: BalanceService,
-        assetsService: AssetsService,
-        priceService: PriceService,
-        transactionStateScheduler: TransactionStateScheduler,
-        addressNameService: AddressNameService,
-        activityService: ActivityService,
-        eventPresenterService: EventPresenterService,
-        chain: Chain,
+        gemConfirmService: any GemConfirmServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
+        assetStore: AssetStore,
+        assetsService: any GemAssetsServiceProtocol,
+        transactionStateService: any GemTransactionStateServiceProtocol,
+        nameService: any GemNameServiceProtocol,
+        recentAssetsService: any RecentAssetsServiceable,
+        toastPresenter: ToastPresenter,
+        feeService: GemFeeService,
+        transferService: GemTransferService,
+        amountService: GemAmountService,
+        simulationFormatter: GemSimulationFormatter,
+        perpetualService: any GemPerpetualServiceProtocol,
     ) -> ConfirmService {
-        let chainService = chainServiceFactory.service(for: chain)
-
         return ConfirmService(
-            metadataProvider: TransferMetadataProvider(
-                balanceService: balanceService,
-                priceService: priceService,
-            ),
+            metadataProvider: TransferMetadataProvider(confirmService: gemConfirmService),
             inputProvider: ConfirmTransferInputProvider(
                 transferTransactionProvider: TransferTransactionProvider(
-                    chainService: chainService,
-                    scanService: scanService,
+                    confirmService: gemConfirmService,
                 ),
-                feeAssetProvider: FeeAssetProvider(assetStore: assetsService.assetStore),
+                feeAssetProvider: FeeAssetProvider(assetStore: assetStore),
+                feeService: feeService,
+                transferService: transferService,
+                amountService: amountService,
             ),
             simulationService: ConfirmSimulationService(
-                addressNameService: addressNameService,
+                nameService: nameService,
                 assetsService: assetsService,
+                simulationFormatter: simulationFormatter,
             ),
-            transferExecutor: TransferExecutor(
-                signer: TransactionSigner(keystore: keystore),
-                chainService: chainService,
-                assetsEnabler: assetsEnabler,
-                transactionStateScheduler: transactionStateScheduler,
-            ),
-            activityService: activityService,
-            eventPresenterService: eventPresenterService,
+            gemConfirmService: gemConfirmService,
+            signer: KeystoreTransactionSigner(keystore: keystore),
+            preferencesService: preferencesService,
+            transactionStateService: transactionStateService,
+            recentAssetsService: recentAssetsService,
+            toastPresenter: toastPresenter,
             keystore: keystore,
-            chainService: chainService,
-            explorerService: ExplorerService.standard,
-            addressNameService: addressNameService,
+            explorerService: explorerService,
+            nameService: nameService,
+            feeService: feeService,
+            transferService: transferService,
+            perpetualService: perpetualService,
         )
     }
 }

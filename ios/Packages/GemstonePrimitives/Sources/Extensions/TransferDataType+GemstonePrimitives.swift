@@ -1,9 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemTransactionInputType
+import class Gemstone.GemTransferService
 import Primitives
 
 public extension TransferDataType {
+    var inputType: GemTransactionInputType {
+        do {
+            return try map()
+        } catch {
+            preconditionFailure("Unencodable transfer data type: \(error)")
+        }
+    }
+
     var asset: Asset {
         switch self {
         case let .transfer(asset),
@@ -15,26 +25,44 @@ public extension TransferDataType {
              let .perpetual(asset, _),
              let .earn(asset, _, _),
              let .tokenApprove(asset, _),
-             let .generic(asset, _, _):
-            asset
-        case let .transferNft(asset):
-            asset.chain.asset
+             let .generic(asset, _, _): asset
+        case let .transferNft(nftAsset): Asset(nftAsset.chain)
         }
     }
 
-    var feeAsset: Asset {
-        let asset = asset
-        if case .perpetual = self, asset.chain == .hyperCore {
-            return Chain.hyperCore.defaultAsset(type: .perpetual)
+    func feeAsset(transferService: GemTransferService) -> Asset {
+        do {
+            return try Asset(transferService.feeAsset(inputType: inputType))
+        } catch {
+            preconditionFailure("Undecodable transfer fee asset: \(error)")
         }
-        return switch asset.chain {
-        case .tempo: asset
-        case .hyperCore: Chain.hyperCore.defaultAsset(type: .token)
-        default:
-            switch asset.id.type {
-            case .native: asset
-            case .token: asset.chain.asset
-            }
+    }
+
+    func transactionType(transferService: GemTransferService) -> TransactionType {
+        do {
+            return try TransactionType(transferService.transactionType(inputType: inputType))
+        } catch {
+            preconditionFailure("Undecodable transaction type: \(error)")
         }
+    }
+
+    func assetIds(transferService: GemTransferService) -> [AssetId] {
+        transferService.assetIds(inputType: inputType).compactMap { try? AssetId(id: $0) }
+    }
+
+    func outputType(transferService: GemTransferService) -> TransferDataOutputType {
+        (try? TransferDataOutputType(transferService.output(inputType: inputType).outputType)) ?? .encodedTransaction
+    }
+
+    func outputAction(transferService: GemTransferService) -> TransferDataOutputAction {
+        (try? TransferDataOutputAction(transferService.output(inputType: inputType).outputAction)) ?? .sign
+    }
+
+    func metadata(transferService: GemTransferService) throws -> AnyCodableValue? {
+        try transferService.metadata(inputType: inputType).map { try JSONDecoder().decode(AnyCodableValue.self, from: Data($0.utf8)) }
+    }
+
+    func approvalData(for transactionType: TransactionType, transferService: GemTransferService) throws -> ApprovalData? {
+        try transferService.approval(inputType: inputType, transactionType: transactionType.json()).map { try ApprovalData($0) }
     }
 }

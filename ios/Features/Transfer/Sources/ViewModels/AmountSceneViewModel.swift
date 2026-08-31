@@ -2,14 +2,14 @@
 
 import BigInt
 import Components
-import FiatService
+import GemstoneServices
 import Formatters
 import Foundation
+import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstoneFormatters
 import InfoSheet
 import Localization
 import Perpetuals
-import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
@@ -21,7 +21,6 @@ import Validators
 public final class AmountSceneViewModel {
     private let wallet: Wallet
     private let onTransferAction: TransferDataAction
-    let fiatService: FiatService
 
     private let formatter = ValueFormatter(style: .full)
     private let amountFormatter = ValueFormatter.auto
@@ -47,15 +46,13 @@ public final class AmountSceneViewModel {
         input: AmountInput,
         wallet: Wallet,
         service: AmountService,
-        fiatService: FiatService,
-        preferences: Preferences = .standard,
+        preferencesService: any GemPreferencesServiceProtocol,
         onTransferAction: TransferDataAction,
     ) {
         self.wallet = wallet
         self.onTransferAction = onTransferAction
-        self.fiatService = fiatService
-        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferences.currency)
-        provider = .make(from: input, wallet: wallet, service: service)
+        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferencesService.currencyCode)
+        provider = .make(from: input, wallet: wallet, service: service, preferencesService: preferencesService)
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
         amountInputModel = InputValidationViewModel(mode: .onDemand, validators: [])
         amountInputModel.update(validators: inputValidators)
@@ -157,7 +154,7 @@ extension AmountSceneViewModel {
 
     public func onSelectNextButton() {
         Task {
-            await fetch()
+            await load()
         }
     }
 
@@ -244,12 +241,11 @@ private extension AmountSceneViewModel {
         amountInputModel.update(validators: inputValidators)
     }
 
-    func fetch() async {
+    func load() async {
         do {
             transferState = .loading
             let value = try amountTransferValue
-            let amount: TransferAmountValue = value == provider.maxValue(from: assetData) ? .max(value) : .exact(value)
-            let transfer = try await provider.makeTransferData(amount: amount)
+            let transfer = try await provider.makeTransferData(value: value, useMaxAmount: value == provider.maxValue(from: assetData))
             transferState = .noData
             onTransferAction?(transfer)
         } catch {
@@ -274,9 +270,7 @@ private extension AmountSceneViewModel {
                 source: source,
                 decimals: asset.decimals.asInt,
                 validators: [
-                    PositiveValueValidator<BigInt>().silent,
-                    MinimumValueValidator<BigInt>(minimumValue: provider.minimumValue, asset: asset),
-                    BalanceValueValidator(available: provider.availableValue(from: assetData), asset: asset),
+                    AmountValueValidator(asset: asset, available: provider.availableValue(from: assetData), minimum: provider.minimumValue, amountService: provider.amountService),
                 ],
             ),
         ]

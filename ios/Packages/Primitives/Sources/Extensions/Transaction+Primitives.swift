@@ -48,10 +48,6 @@ public extension Transaction {
         }
     }
 
-    var associatedAssetIds: [AssetId] {
-        (assetIds + [assetId, feeAssetId]).unique()
-    }
-
     var swapProvider: String? {
         metadata?.decode(TransactionSwapMetadata.self)?.provider
     }

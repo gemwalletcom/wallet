@@ -34,7 +34,6 @@ impl GemJobConfiguration {
     }
 }
 
-#[uniffi::export]
 pub fn transaction_state_config(chain: Chain) -> GemJobConfiguration {
     JobConfiguration::transaction_state(chain).into()
 }

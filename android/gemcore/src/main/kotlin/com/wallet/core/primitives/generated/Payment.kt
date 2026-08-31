@@ -22,6 +22,7 @@ data class PaymentRequest (
 	val address: String,
 	val amount: PaymentAmount? = null,
 	val memo: String? = null,
+	val references: List<String>? = null,
 	val assetId: AssetId? = null
 )
 
@@ -35,10 +36,16 @@ sealed class Payment {
 	data class Link(val content: PaymentLink): Payment()
 }
 
+/// Generated type representing the anonymous struct variant `SolanaPay` of the `PaymentLink` Rust enum
+@Serializable
+data class PaymentLinkSolanaPayInner (
+	val url: String
+)
+
 @Serializable
 sealed class PaymentLink {
 	@Serializable
 	@SerialName("solanaPay")
-	data class SolanaPay(val content: String): PaymentLink()
+	data class SolanaPay(val content: PaymentLinkSolanaPayInner): PaymentLink()
 }
 

@@ -1,5 +1,8 @@
+import protocol Gemstone.GemPreferencesServiceProtocol
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAmountService
+import enum Gemstone.GemAmountType
 import BigInt
 import Primitives
 
@@ -13,25 +16,30 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
         from input: AmountInput,
         wallet: Wallet,
         service: AmountService,
+        preferencesService: any GemPreferencesServiceProtocol,
     ) -> AmountDataProvider {
         switch input.type {
         case let .transfer(recipient):
-            .transfer(AmountTransferViewModel(asset: input.asset, action: .send(recipient)))
+            .transfer(AmountTransferViewModel(asset: input.asset, action: .send(recipient), amountService: service.amountService))
         case let .deposit(recipient):
-            .transfer(AmountTransferViewModel(asset: input.asset, action: .deposit(recipient)))
+            .transfer(AmountTransferViewModel(asset: input.asset, action: .deposit(recipient), amountService: service.amountService))
         case let .withdraw(recipient):
-            .transfer(AmountTransferViewModel(asset: input.asset, action: .withdraw(recipient)))
+            .transfer(AmountTransferViewModel(asset: input.asset, action: .withdraw(recipient), amountService: service.amountService))
         case let .stake(stakeType):
-            .stake(AmountStakeViewModel(asset: input.asset, type: stakeType))
+            .stake(AmountStakeViewModel(asset: input.asset, type: stakeType, amountService: service.amountService))
         case let .perpetual(data):
-            .perpetual(AmountPerpetualViewModel(asset: input.asset, data: data))
+            .perpetual(AmountPerpetualViewModel(asset: input.asset, data: data, preferencesService: preferencesService, amountService: service.amountService))
         case let .earn(earnType):
-            .earn(AmountEarnViewModel(asset: input.asset, action: earnType, earnService: service.earnDataProvider, wallet: wallet))
+            .earn(AmountEarnViewModel(asset: input.asset, action: earnType, stakeService: service.stakeService, wallet: wallet, amountService: service.amountService))
         }
     }
 
     var asset: Asset {
         provider.asset
+    }
+
+    var amountService: GemAmountService {
+        provider.amountService
     }
 
     var title: String {
@@ -42,40 +50,16 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
         provider.amountType
     }
 
-    var minimumValue: BigInt {
-        provider.minimumValue
-    }
-
-    var canChangeValue: Bool {
-        provider.canChangeValue
-    }
-
-    var showsAssetBalance: Bool {
-        provider.showsAssetBalance
-    }
-
-    var reserveForFee: BigInt {
-        provider.reserveForFee
-    }
-
-    func availableValue(from assetData: AssetData) -> BigInt {
-        provider.availableValue(from: assetData)
-    }
-
-    func shouldReserveFee(from assetData: AssetData) -> Bool {
-        provider.shouldReserveFee(from: assetData)
-    }
-
-    func maxValue(from assetData: AssetData) -> BigInt {
-        provider.maxValue(from: assetData)
+    var gemAmountType: GemAmountType {
+        provider.gemAmountType
     }
 
     func recipientData() -> RecipientData {
         provider.recipientData()
     }
 
-    func makeTransferData(amount: TransferAmountValue) async throws -> TransferData {
-        try await provider.makeTransferData(amount: amount)
+    func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> TransferData {
+        try await provider.makeTransferData(value: value, useMaxAmount: useMaxAmount)
     }
 }
 

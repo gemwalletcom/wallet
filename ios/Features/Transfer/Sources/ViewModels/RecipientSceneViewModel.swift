@@ -1,18 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNameServiceProtocol
+import class Gemstone.GemRecipientService
 import Components
 import Foundation
 import GemstonePrimitives
-import Keystore
+import GemstoneServices
 import Localization
-import NodeService
+import class Gemstone.GemAddressService
+import class Gemstone.GemPaymentService
 import Primitives
 import PrimitivesComponents
-import ScanService
 import Store
 import Style
 import SwiftUI
-import WalletSessionService
 
 public typealias RecipientDataAction = ((RecipientData) -> Void)?
 
@@ -26,6 +27,8 @@ public final class RecipientSceneViewModel {
     public let onTransferAction: TransferDataAction
 
     private let walletSessionService: any WalletSessionManageable
+    private let addressService: GemAddressService
+    private let paymentService: GemPaymentService
     private let onRecipientDataAction: RecipientDataAction
     private let assetImageFormatter: AssetImageFormatter
 
@@ -39,16 +42,20 @@ public final class RecipientSceneViewModel {
         contactsQuery.value
     }
 
+    private let recipientService: GemRecipientService
+
     public init(
         wallet: Wallet,
         asset: Asset,
         walletSessionService: any WalletSessionManageable,
-        nameService: any NameServiceable,
+        nameService: any GemNameServiceProtocol,
         type: RecipientAssetType,
         assetImageFormatter: AssetImageFormatter = .shared,
         recipient: RecipientData? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
+        addressService: GemAddressService,
+        paymentService: GemPaymentService,
     ) {
         self.wallet = wallet
         self.asset = asset
@@ -57,14 +64,18 @@ public final class RecipientSceneViewModel {
         self.type = type
         self.onRecipientDataAction = onRecipientDataAction
         self.onTransferAction = onTransferAction
+        self.addressService = addressService
+        self.paymentService = paymentService
+        recipientService = nameService.recipients()
 
         addressInputModel = AddressInputViewModel(
             chain: asset.chain,
             nameService: nameService,
             placeholder: recipientField,
+            addressService: addressService,
             validators: [
                 .required(requireName: recipientField),
-                .address(asset),
+                .address(asset, addressService: addressService),
             ],
         )
 
@@ -113,7 +124,7 @@ public final class RecipientSceneViewModel {
         asset.chain
     }
 
-    var recipientSections: [ListItemValueSection<RecipientAddress>] {
+    var recipientSections: [ListItemValueSection<Recipient>] {
         RecipientAddressType.allCases
             .map {
                 ListItemValueSection(
@@ -139,16 +150,16 @@ extension RecipientSceneViewModel {
     func onContinue() {
         guard addressInputModel.validate() else { return }
 
-        handle(
-            recipientData: RecipientData(
-                recipient: Recipient(
-                    name: addressInputModel.nameResolveState.result?.name,
-                    address: addressInputModel.resolvedAddress,
-                    memo: memo,
+        do {
+            handle(
+                recipientData: RecipientData(
+                    recipient: try addressInputModel.recipient(memo: memo, references: recipientData?.recipient.references ?? []),
+                    amount: recipientData?.amount,
                 ),
-                amount: recipientData?.amount,
-            ),
-        )
+            )
+        } catch {
+            addressInputModel.update(error: error)
+        }
     }
 
     func onSelectScan(field: RecipientScene.Field) {
@@ -174,24 +185,31 @@ extension RecipientSceneViewModel {
         recipientData = .none
     }
 
-    func onSelectRecipient(_ recipient: RecipientAddress) {
-        handle(
-            recipientData: RecipientData(
-                recipient: Recipient(
-                    name: recipient.name,
-                    address: asset.chain.checksumAddress(recipient.address),
-                    memo: recipient.memo,
+    func onSelectRecipient(_ recipient: Recipient) {
+        do {
+            let validated = try Recipient(recipientService.recipient(
+                chain: asset.chain.rawValue,
+                input: recipient.address,
+                nameRecord: nil,
+                memo: recipient.memo,
+                references: [],
+            ))
+            handle(
+                recipientData: RecipientData(
+                    recipient: Recipient(name: recipient.name, address: validated.address, memo: validated.memo),
+                    amount: .none,
                 ),
-                amount: .none,
-            ),
-        )
+            )
+        } catch {
+            addressInputModel.text = recipient.address
+        }
     }
 }
 
 // MARK: - Private
 
 extension RecipientSceneViewModel {
-    private func sectionRecipients(for section: RecipientAddressType) -> [ListItemValue<RecipientAddress>] {
+    private func sectionRecipients(for section: RecipientAddressType) -> [ListItemValue<Recipient>] {
         switch section {
         case .contacts:
             ContactRecipientSectionViewModel(contacts: contacts).listItems
@@ -223,7 +241,7 @@ extension RecipientSceneViewModel {
     }
 
     private func handleAddressScan(_ string: String) throws {
-        switch try PaymentURLDecoder.decode(string) {
+        switch try Primitives.Payment.decode(string, paymentService: paymentService) {
         case let .request(payment):
             try handle(payment: payment)
         case .link:
@@ -234,14 +252,14 @@ extension RecipientSceneViewModel {
     private func handle(payment: PaymentRequest) throws {
         switch type {
         case let .asset(asset):
-            switch try PaymentTransfer(asset: asset).destination(for: payment) {
+            switch try PaymentDestinationBuilder.transfer(payment: payment, asset: asset, addressService: addressService, paymentService: paymentService) {
             case let .confirm(data): handle(transferData: data)
             case let .recipient(data): update(from: data)
             }
         case .nft:
             update(
                 from: RecipientData(
-                    recipient: Recipient(name: .none, address: chain.checksumAddress(payment.address), memo: payment.memo),
+                    recipient: Recipient(name: .none, address: chain.checksumAddress(payment.address, addressService: addressService), memo: payment.memo),
                     amount: .none,
                 ),
             )
@@ -262,7 +280,7 @@ extension RecipientSceneViewModel {
         case .asset:
             onRecipientDataAction?(recipientData)
         case let .nft(asset):
-            handle(transferData: TransferData(type: .transferNft(asset), recipientData: recipientData, amount: .exact(.zero)))
+            handle(transferData: TransferData(type: .transferNft(asset), recipient: recipientData.recipient, value: .zero))
         }
     }
 

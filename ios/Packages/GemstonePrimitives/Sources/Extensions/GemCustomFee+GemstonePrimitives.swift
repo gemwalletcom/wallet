@@ -22,8 +22,9 @@ public extension CustomFeeEstimate {
         baseTotal: BigInt,
         normalTotal: BigInt,
         maxMultiplier: Int,
+        feeService: GemFeeService,
     ) throws -> CustomFeeEstimate {
-        try Gemstone.customFeeEstimate(
+        try feeService.customFeeEstimate(
             rate: rate?.description,
             loadedFee: loadedFee.description,
             baseTotal: baseTotal.description,

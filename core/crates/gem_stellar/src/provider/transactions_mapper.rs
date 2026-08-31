@@ -31,7 +31,7 @@ pub fn map_transaction_by_hash(chain: Chain, transactions: Vec<Payment>, hash: &
     transactions
         .into_iter()
         .filter_map(|transaction| map_transaction(chain, transaction))
-        .find(|transaction| transaction.hash == hash)
+        .find(|transaction| transaction.hash() == hash)
 }
 
 pub fn map_transaction(chain: Chain, transaction: Payment) -> Option<Transaction> {
@@ -116,7 +116,7 @@ mod tests {
         let payments: Embedded<Payment> = serde_json::from_str(include_str!("../../testdata/transaction_by_hash.json")).unwrap();
         let transaction = map_transaction_by_hash(Chain::Stellar, payments._embedded.records, TEST_TRANSACTION_ID).unwrap();
 
-        assert_eq!(transaction.hash, TEST_TRANSACTION_ID);
+        assert_eq!(transaction.hash(), TEST_TRANSACTION_ID);
         assert_eq!(transaction.from, "GFROM");
         assert_eq!(transaction.to, "GTO");
         assert_eq!(transaction.memo, Some("49639518".to_string()));

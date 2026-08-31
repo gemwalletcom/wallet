@@ -4,7 +4,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -14,6 +13,7 @@ import com.gemwallet.android.ui.components.list_item.LinkItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.features.settings.develop.viewmodels.DevelopViewModel
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
 fun DevelopScene(
@@ -23,7 +23,7 @@ fun DevelopScene(
     viewModel: DevelopViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val clipboardManager = LocalClipboard.current.nativeClipboard
+    val clipboardManager = LocalContext.current.clipboardManager()
     val deviceId by viewModel.deviceId.collectAsState()
     val notificationsAvailable = viewModel.notificationsAvailable
     Scene(

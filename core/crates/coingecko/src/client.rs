@@ -25,7 +25,7 @@ impl CoinGeckoClient<ReqwestClient> {
         }
         let reqwest_client = gem_client::builder().default_headers(headers).build().unwrap();
 
-        let client = ReqwestClient::new(config.url, reqwest_client).with_request_timeout(config.timeout);
+        let client = ReqwestClient::new(config.url, reqwest_client);
         Self { client }
     }
 }

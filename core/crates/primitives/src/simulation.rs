@@ -1,11 +1,11 @@
 use num_bigint::BigInt;
 use serde::{Deserialize, Serialize};
+use serde_serializers::{deserialize_option_bigint_from_str, serialize_option_bigint};
 use typeshare::typeshare;
 
 use crate::{Asset, AssetId};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct SimulationInput {
     #[serde(alias = "transaction")]
@@ -42,6 +42,7 @@ pub enum SimulationSeverity {
 #[serde(rename_all = "camelCase")]
 pub struct SimulationWarningApproval {
     pub asset_id: AssetId,
+    #[serde(default, serialize_with = "serialize_option_bigint", deserialize_with = "deserialize_option_bigint_from_str")]
     pub value: Option<BigInt>,
 }
 
@@ -54,7 +55,7 @@ pub enum SimulationWarningType {
     ExternallyOwnedSpender,
     NftCollectionApproval(AssetId),
     PermitApproval(SimulationWarningApproval),
-    PermitBatchApproval(Option<BigInt>),
+    PermitBatchApproval(#[serde(serialize_with = "serialize_option_bigint", deserialize_with = "deserialize_option_bigint_from_str")] Option<BigInt>),
     ValidationError,
 }
 

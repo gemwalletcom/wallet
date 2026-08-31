@@ -1,21 +1,26 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAmountService
 import BigInt
 import Formatters
 import Foundation
+import protocol Gemstone.GemPreferencesServiceProtocol
+import enum Gemstone.GemAmountType
+import enum Gemstone.GemAmountPerpetualPosition
 import GemstonePrimitives
 import Localization
 import Perpetuals
-import PerpetualService
-import Preferences
+import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Style
+import class Gemstone.GemAutocloseEstimator
 
 @Observable
 public final class AmountPerpetualViewModel: AmountDataProvidable {
     let asset: Asset
     let data: PerpetualRecipientData
+    let amountService: GemAmountService
     let leverageSelection: SelectionState<LeverageOption>?
     let leverageTextStyle: TextStyle
     let currencyFormatter: CurrencyFormatter
@@ -28,13 +33,14 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     private let stopLossPercent: UInt8
     private var isAutocloseEdited = false
 
-    init(asset: Asset, data: PerpetualRecipientData, preferences: Preferences = .standard) {
+    init(asset: Asset, data: PerpetualRecipientData, preferencesService: any GemPreferencesServiceProtocol, amountService: GemAmountService) {
+        self.amountService = amountService
         self.asset = asset
         self.data = data
-        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferences.currency)
-        takeProfitPercent = preferences.perpetualTakeProfit
-        stopLossPercent = preferences.perpetualStopLoss
-        (leverageSelection, leverageTextStyle) = Self.makeLeverageSelection(data: data, preferences: preferences)
+        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferencesService.currencyCode)
+        takeProfitPercent = preferencesService.getPerpetualTakeProfitPercent()
+        stopLossPercent = preferencesService.getPerpetualStopLossPercent()
+        (leverageSelection, leverageTextStyle) = Self.makeLeverageSelection(data: data, leverage: preferencesService.getPerpetualLeverage())
         (takeProfit, stopLoss) = Self.makeDefaultAutoclose(
             data: data,
             leverage: leverageSelection?.selected.value ?? data.positionAction.transferData.leverage,
@@ -91,45 +97,24 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         .perpetual(data)
     }
 
-    var minimumValue: BigInt {
-        BigInt(
-            PerpetualFormatter(provider: .hypercore).minimumOrderUsdAmount(
-                price: transferData.price,
-                decimals: transferData.asset.decimals,
-                leverage: leverage,
-            ),
-        )
-    }
-
-    var canChangeValue: Bool {
-        true
-    }
-
-    var reserveForFee: BigInt {
-        .zero
-    }
-
-    func shouldReserveFee(from _: AssetData) -> Bool {
-        false
-    }
-
-    func availableValue(from assetData: AssetData) -> BigInt {
-        switch data.positionAction {
-        case .open, .increase: assetData.balance.available
-        case let .reduce(_, available, _): available
+    var gemAmountType: GemAmountType {
+        let position: GemAmountPerpetualPosition = switch data.positionAction {
+        case .open: .open
+        case .increase: .increase
+        case let .reduce(_, available, _): .reduce(available: available.description)
         }
+        return .perpetual(position: position, price: transferData.price, leverage: leverage, sizeDecimals: transferData.asset.decimals)
     }
 
     func recipientData() -> RecipientData {
         data.recipient
     }
 
-    func makeTransferData(amount: TransferAmountValue) throws -> TransferData {
+    func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> TransferData {
         let formatter = PerpetualFormatter(provider: .hypercore)
 
-        let perpetualType = PerpetualOrderFactory().makePerpetualOrder(
-            positionAction: data.positionAction,
-            usdcAmount: amount.value,
+        let perpetualType = try data.positionAction.order(
+            usdcValue: value,
             usdcDecimals: asset.decimals.asInt,
             leverage: leverage,
             takeProfit: takeProfit
@@ -142,8 +127,9 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
 
         return TransferData(
             type: .perpetual(transferData.asset, perpetualType),
-            recipientData: data.recipient,
-            amount: amount,
+            recipient: data.recipient.recipient,
+            value: value,
+            useMaxAmount: useMaxAmount,
         )
     }
 
@@ -179,16 +165,15 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
 
     private static func makeLeverageSelection(
         data: PerpetualRecipientData,
-        preferences: Preferences,
+        leverage: UInt8,
     ) -> (SelectionState<LeverageOption>?, TextStyle) {
         guard case let .open(openData) = data.positionAction else {
             return (nil, .callout)
         }
 
         let transferData = data.positionAction.transferData
-        let options = LeverageOption.allOptions.filter { $0.value <= transferData.leverage }
-        let desiredLeverage = preferences.perpetualLeverage == 0 ? PerpetualConfig.defaultLeverage : preferences.perpetualLeverage
-        let selected = LeverageOption.option(desiredValue: desiredLeverage, from: options)
+        let options = LeverageOption.options(maxLeverage: transferData.leverage)
+        let selected = LeverageOption.option(desiredValue: leverage, from: options)
         let textStyle = TextStyle(
             font: .callout,
             color: PerpetualDirectionViewModel(direction: openData.direction).color,
@@ -218,17 +203,17 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         }
 
         let transferData = data.positionAction.transferData
-        let estimator = AutocloseEstimator(
+        let estimator = GemAutocloseEstimator(
             entryPrice: transferData.price,
             positionSize: 0,
-            direction: transferData.direction,
+            direction: transferData.direction.json(),
             leverage: leverage,
         )
         let formatter = PerpetualFormatter(provider: .hypercore)
         func price(_ percent: UInt8, _ type: TpslType) -> String? {
             guard percent > 0 else { return nil }
             return formatter.formatInputPrice(
-                estimator.calculateTargetPriceFromROE(roePercent: Int(percent), type: type),
+                estimator.targetPriceFromRoe(roePercent: Int32(percent), triggerType: type.map()),
                 decimals: transferData.asset.decimals,
             )
         }

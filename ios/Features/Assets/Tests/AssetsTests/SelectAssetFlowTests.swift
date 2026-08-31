@@ -1,59 +1,65 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import Assets
+import class Gemstone.GemAssetConfigService
 import Primitives
 import Store
 import Testing
 
 struct SelectAssetFlowTests {
+    let assetConfig = GemAssetConfigService()
+
     @Test
     func rowSelection() {
-        #expect(SelectAssetType.send(.none).flow.rowSelection == .navigate)
-        #expect(SelectAssetType.receive(.asset).flow.rowSelection == .navigate)
-        #expect(SelectAssetType.receive(.collection).flow.rowSelection == .navigate)
-        #expect(SelectAssetType.buy.flow.rowSelection == .navigate)
-        #expect(SelectAssetType.deposit.flow.rowSelection == .navigate)
-        #expect(SelectAssetType.withdraw.flow.rowSelection == .navigate)
-        #expect(SelectAssetType.manage.flow.rowSelection == .toggle)
-        #expect(SelectAssetType.swap(.pay).flow.rowSelection == .select)
-        #expect(SelectAssetType.swap(.receive(chains: [], assetIds: [])).flow.rowSelection == .select)
-        #expect(SelectAssetType.priceAlert.flow.rowSelection == .select)
+        #expect(SelectAssetType.send(.none).flow(assetConfig: assetConfig).rowSelection == .navigate)
+        #expect(SelectAssetType.receive(.asset).flow(assetConfig: assetConfig).rowSelection == .navigate)
+        #expect(SelectAssetType.receive(.collection).flow(assetConfig: assetConfig).rowSelection == .navigate)
+        #expect(SelectAssetType.buy.flow(assetConfig: assetConfig).rowSelection == .navigate)
+        #expect(SelectAssetType.deposit.flow(assetConfig: assetConfig).rowSelection == .navigate)
+        #expect(SelectAssetType.withdraw.flow(assetConfig: assetConfig).rowSelection == .navigate)
+        #expect(SelectAssetType.manage.flow(assetConfig: assetConfig).rowSelection == .toggle)
+        #expect(SelectAssetType.swap(.pay).flow(assetConfig: assetConfig).rowSelection == .select)
+        #expect(SelectAssetType.swap(.receive(chains: [], assetIds: [])).flow(assetConfig: assetConfig).rowSelection == .select)
+        #expect(SelectAssetType.priceAlert.flow(assetConfig: assetConfig).rowSelection == .select)
     }
 
     @Test
     func selectionEffect() {
-        #expect(SelectAssetType.priceAlert.flow.selectionEffect == .enablePriceAlert)
-        #expect(SelectAssetType.swap(.pay).flow.selectionEffect == .recordRecent)
-        #expect(SelectAssetType.swap(.receive(chains: [], assetIds: [])).flow.selectionEffect == .recordRecent)
+        #expect(SelectAssetType.priceAlert.flow(assetConfig: assetConfig).selectionEffect == .enablePriceAlert)
+        #expect(SelectAssetType.swap(.pay).flow(assetConfig: assetConfig).selectionEffect == .recordRecent)
+        #expect(SelectAssetType.swap(.receive(chains: [], assetIds: [])).flow(assetConfig: assetConfig).selectionEffect == .recordRecent)
+        #expect(SelectAssetType.receive(.asset).flow(assetConfig: assetConfig).selectionEffect == .recordRecent)
+        #expect(SelectAssetType.receive(.collection).flow(assetConfig: assetConfig).selectionEffect == .recordRecent)
+        #expect(SelectAssetType.buy.flow(assetConfig: assetConfig).selectionEffect == .recordRecent)
     }
 
     @Test
     func capabilities() {
-        #expect(SelectAssetType.send(.none).flow.capabilities == [.chainFilter, .recents])
-        #expect(SelectAssetType.receive(.asset).flow.capabilities == [.networkSearch, .chainFilter, .recents])
-        #expect(SelectAssetType.receive(.collection).flow.capabilities == [.networkSearch, .recents])
-        #expect(SelectAssetType.buy.flow.capabilities == [.networkSearch, .chainFilter, .recents, .popularSection])
-        #expect(SelectAssetType.swap(.pay).flow.capabilities == [.chainFilter, .recents])
-        #expect(SelectAssetType.swap(.receive(chains: [], assetIds: [])).flow.capabilities == [.networkSearch, .chainFilter, .recents])
-        #expect(SelectAssetType.manage.flow.capabilities == [.networkSearch, .chainFilter, .balanceFilter, .addCustomToken])
-        #expect(SelectAssetType.priceAlert.flow.capabilities == [.networkSearch, .chainFilter, .popularSection])
-        #expect(SelectAssetType.deposit.flow.capabilities.isEmpty == true)
-        #expect(SelectAssetType.withdraw.flow.capabilities == [.depositAssetDisplay])
+        #expect(SelectAssetType.send(.none).flow(assetConfig: assetConfig).capabilities == [.chainFilter, .recents])
+        #expect(SelectAssetType.receive(.asset).flow(assetConfig: assetConfig).capabilities == [.networkSearch, .chainFilter, .recents])
+        #expect(SelectAssetType.receive(.collection).flow(assetConfig: assetConfig).capabilities == [.networkSearch, .recents])
+        #expect(SelectAssetType.buy.flow(assetConfig: assetConfig).capabilities == [.networkSearch, .chainFilter, .recents, .popularSection])
+        #expect(SelectAssetType.swap(.pay).flow(assetConfig: assetConfig).capabilities == [.chainFilter, .recents])
+        #expect(SelectAssetType.swap(.receive(chains: [], assetIds: [])).flow(assetConfig: assetConfig).capabilities == [.networkSearch, .chainFilter, .recents])
+        #expect(SelectAssetType.manage.flow(assetConfig: assetConfig).capabilities == [.networkSearch, .chainFilter, .balanceFilter, .addCustomToken])
+        #expect(SelectAssetType.priceAlert.flow(assetConfig: assetConfig).capabilities == [.networkSearch, .chainFilter, .popularSection])
+        #expect(SelectAssetType.deposit.flow(assetConfig: assetConfig).capabilities.isEmpty == true)
+        #expect(SelectAssetType.withdraw.flow(assetConfig: assetConfig).capabilities == [.depositAssetDisplay])
     }
 
     @Test
     func defaultFilters() {
-        #expect(SelectAssetType.send(.none).flow.defaultFilters == [.enabled, .hasBalance])
-        #expect(SelectAssetType.receive(.asset).flow.defaultFilters == [.enabled])
-        #expect(SelectAssetType.buy.flow.defaultFilters == [.enabled, .buyable])
-        #expect(SelectAssetType.swap(.pay).flow.defaultFilters == [.enabled, .swappable, .hasBalance])
-        #expect(SelectAssetType.manage.flow.defaultFilters == [.enabled])
-        #expect(SelectAssetType.priceAlert.flow.defaultFilters == [.enabled, .priceAlerts])
+        #expect(SelectAssetType.send(.none).flow(assetConfig: assetConfig).defaultFilters == [.enabled, .hasBalance])
+        #expect(SelectAssetType.receive(.asset).flow(assetConfig: assetConfig).defaultFilters == [.enabled])
+        #expect(SelectAssetType.buy.flow(assetConfig: assetConfig).defaultFilters == [.enabled, .buyable])
+        #expect(SelectAssetType.swap(.pay).flow(assetConfig: assetConfig).defaultFilters == [.enabled, .swappable, .hasAvailableBalance])
+        #expect(SelectAssetType.manage.flow(assetConfig: assetConfig).defaultFilters == [.enabled])
+        #expect(SelectAssetType.priceAlert.flow(assetConfig: assetConfig).defaultFilters == [.enabled, .priceAlerts])
     }
 
     @Test
     func collectionFiltersRestrictToNftChains() {
-        let filters = SelectAssetType.receive(.collection).flow.defaultFilters
+        let filters = SelectAssetType.receive(.collection).flow(assetConfig: assetConfig).defaultFilters
         let chains = filters.flatMap { filter -> [String] in
             guard case let .chainsOrAssets(_, assets) = filter else { return [] }
             return assets
@@ -69,12 +75,12 @@ struct SelectAssetFlowTests {
         let filters = SelectAssetType.swap(.receive(
             chains: [.ethereum],
             assetIds: [AssetId(chain: .smartChain, tokenId: "0x123")],
-        )).flow.defaultFilters
+        )).flow(assetConfig: assetConfig).defaultFilters
 
         #expect(filters == [
             .enabled,
-            .chainsOrAssets(["ethereum"], ["smartchain_0x123"]),
             .swappable,
+            .chainsOrAssets(["ethereum"], ["smartchain_0x123"]),
         ])
     }
 }

@@ -3,11 +3,11 @@ package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.coordinators.GetAssetChartData
-import com.gemwallet.android.application.assets.coordinators.GetAssetTokenInfo
-import com.gemwallet.android.application.assets.coordinators.GetChartPeriod
-import com.gemwallet.android.application.assets.coordinators.SetChartPeriod
-import com.gemwallet.android.application.session.coordinators.GetCurrentCurrency
+import com.gemwallet.android.application.assets.cases.GetAssetChartData
+import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
+import com.gemwallet.android.application.assets.cases.GetChartPeriod
+import com.gemwallet.android.application.assets.cases.SetChartPeriod
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetChartState
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.MinChartPoints

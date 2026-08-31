@@ -1,12 +1,12 @@
 package com.gemwallet.android
 
 import android.text.format.DateUtils
-import com.gemwallet.android.data.repositories.bridge.WalletConnectEvent
-import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionProposal
-import com.gemwallet.android.data.repositories.bridge.ActiveWalletConnectRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectValidation
-import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
-import com.gemwallet.android.data.repositories.config.UserConfig
+import com.gemwallet.android.application.wallet_connect.WalletConnectEvent
+import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
+import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectValidation
+import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -16,6 +16,8 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+
+import uniffi.gemstone.GemSecurityService
 
 class LockTimerTest {
 
@@ -81,7 +83,7 @@ class LockTimerTest {
         val userConfig = mockk<UserConfig>()
         every { userConfig.authRequired() } returns authRequired
         every { userConfig.getLockInterval() } returns flowOf(lockIntervalMinutes)
-        return LockTimer(userConfig, activeRequest)
+        return LockTimer(userConfig, activeRequest, GemSecurityService())
     }
 
     private fun activeWalletConnectRequest(vararg events: WalletConnectEvent) = ActiveWalletConnectRequest(

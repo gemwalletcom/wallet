@@ -1,16 +1,16 @@
 package com.gemwallet.android.features.assets.viewmodels
 
-import com.gemwallet.android.application.assets.coordinators.GetActiveAssetsInfo
-import com.gemwallet.android.application.assets.coordinators.GetHideBalancesState
-import com.gemwallet.android.application.assets.coordinators.GetImportInProgress
-import com.gemwallet.android.application.assets.coordinators.GetShowWelcomeBanner
-import com.gemwallet.android.application.assets.coordinators.GetWalletSummary
-import com.gemwallet.android.application.assets.coordinators.HideAsset
-import com.gemwallet.android.application.assets.coordinators.HideWelcomeBanner
-import com.gemwallet.android.application.assets.coordinators.SyncAssets
-import com.gemwallet.android.application.assets.coordinators.ToggleAssetPin
-import com.gemwallet.android.application.assets.coordinators.ToggleHideBalances
-import com.gemwallet.android.application.session.coordinators.GetSession
+import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
+import com.gemwallet.android.application.assets.cases.GetHideBalancesState
+import com.gemwallet.android.application.assets.cases.GetImportInProgress
+import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
+import com.gemwallet.android.application.assets.cases.GetWalletSummary
+import com.gemwallet.android.application.assets.cases.HideAsset
+import com.gemwallet.android.application.assets.cases.HideWelcomeBanner
+import com.gemwallet.android.application.assets.cases.SyncAssets
+import com.gemwallet.android.application.assets.cases.SetAssetPinned
+import com.gemwallet.android.application.assets.cases.ToggleHideBalances
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAsset
@@ -48,7 +48,7 @@ class AssetsViewModelTest {
 
     private val syncAssets = mockk<SyncAssets>(relaxed = true)
     private val hideAsset = mockk<HideAsset>(relaxed = true)
-    private val toggleAssetPin = mockk<ToggleAssetPin>(relaxed = true)
+    private val setAssetPinned = mockk<SetAssetPinned>(relaxed = true)
     private val toggleHideBalances = mockk<ToggleHideBalances>(relaxed = true)
     private val hideWelcomeBanner = mockk<HideWelcomeBanner>(relaxed = true)
     private val getImportInProgress = object : GetImportInProgress {
@@ -105,7 +105,7 @@ class AssetsViewModelTest {
     private fun createViewModel() = AssetsViewModel(
         syncAssets = syncAssets,
         hideAsset = hideAsset,
-        toggleAssetPin = toggleAssetPin,
+        setAssetPinned = setAssetPinned,
         toggleHideBalances = toggleHideBalances,
         hideWelcomeBanner = hideWelcomeBanner,
         getImportInProgress = getImportInProgress,

@@ -19,10 +19,6 @@ public extension GemGasPriceType {
 }
 
 public extension GasPriceType {
-    static func custom(base: GasPriceType, gasPrice: BigInt) throws -> GasPriceType {
-        try Gemstone.customGasPrice(base: base.map(), gasPrice: gasPrice.description).map()
-    }
-
     func map() -> GemGasPriceType {
         switch self {
         case let .regular(gasPrice):

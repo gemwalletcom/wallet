@@ -24,12 +24,6 @@ data class SimulationHeader (
 )
 
 @Serializable
-data class SimulationInput (
-	val encodedTransaction: String,
-	val signerAddress: String? = null
-)
-
-@Serializable
 enum class SimulationPayloadFieldKind(val string: String) {
 	@SerialName("contract")
 	Contract("contract"),

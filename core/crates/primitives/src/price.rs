@@ -11,6 +11,7 @@ pub struct Price {
     pub price_change_percentage_24h: f64,
     pub updated_at: DateTime<Utc>,
     #[typeshare(skip)]
+    #[serde(default)]
     pub provider: PriceProvider,
 }
 

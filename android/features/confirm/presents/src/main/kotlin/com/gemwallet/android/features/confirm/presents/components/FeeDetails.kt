@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.confirm.presents.components
 
+import com.gemwallet.android.ext.toGem
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -69,6 +70,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
 import uniffi.gemstone.GemFeeRate
+import uniffi.gemstone.GemFeeService
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,6 +79,7 @@ fun FeeDetails(
     currentFee: FeeUIModel.FeeInfo?,
     selection: FeeSelection,
     feeRates: List<GemFeeRate>,
+    feeService: GemFeeService,
     feeAssetInfo: AssetInfo?,
     feeAssets: List<AssetInfo>,
     onSelect: (FeeSelection) -> Unit,
@@ -95,11 +98,26 @@ fun FeeDetails(
     val maxMultiplier = feeConfig.maxMultiplier.toInt()
     val minimumCustomFeeRate = feeConfig.minimumCustomFeeRate?.toLong()?.toBigInteger()
 
+    val selectedTotalFee = feeRates.firstOrNull { it.priority == currentFee.priority.toGem() }
+        ?.let { feeService.totalFee(it.gasPriceType).toBigInteger() }
+    val feeRateModels = feeRates.map { rate ->
+        FeeRateUIModel(
+            feeRate = rate,
+            feeAsset = feeAssetInfo,
+            feeUnitType = feeUnitType,
+            feeRateDecimals = decimals,
+            totalFee = feeService.totalFee(rate.gasPriceType).toBigInteger(),
+            selectedTotalFee = selectedTotalFee,
+            selectedFeeAmount = currentFee.amount,
+            unitSymbol = unitSymbol,
+        )
+    }
+
     val selectedCustomRate = (selection as? FeeSelection.Custom)?.gasPrice
     val showFeeAssets = feeAssets.any { it.asset.id != currentFee.feeAsset.id }
     var page by remember(isVisible) { mutableStateOf(FeeDetailsPage.Details) }
     val customModel = remember(page, currentFee, feeRates, selection) {
-        NetworkFeeCustomViewModel(currentFee, feeRates, selection, decimals, maxMultiplier, minimumCustomFeeRate, selectedCustomRate)
+        NetworkFeeCustomViewModel(currentFee, feeRates, selection, decimals, maxMultiplier, minimumCustomFeeRate, selectedCustomRate, feeService)
     }
     val navigateToDetails: () -> Unit = { page = FeeDetailsPage.Details }
     val confirmCustomFee: () -> Unit = {
@@ -142,10 +160,8 @@ fun FeeDetails(
             FeeDetailsPage.Details -> FeeRates(
                 currentFee = currentFee,
                 selection = selection,
-                feeRates = feeRates,
+                feeRateModels = feeRateModels,
                 feeAssetInfo = feeAssetInfo,
-                feeUnitType = feeUnitType,
-                decimals = decimals,
                 unitSymbol = unitSymbol,
                 supportsCustomFee = supportsCustomFee,
                 customRateText = selectedCustomRate?.let { CustomFee.formatRate(it, decimals, unitSymbol) },
@@ -176,10 +192,8 @@ fun FeeDetails(
 private fun FeeRates(
     currentFee: FeeUIModel.FeeInfo,
     selection: FeeSelection,
-    feeRates: List<GemFeeRate>,
+    feeRateModels: List<FeeRateUIModel>,
     feeAssetInfo: AssetInfo,
-    feeUnitType: FeeUnitType?,
-    decimals: Int,
     unitSymbol: String,
     supportsCustomFee: Boolean,
     customRateText: String?,
@@ -189,7 +203,6 @@ private fun FeeRates(
     onCustom: () -> Unit,
     onFeeAssets: () -> Unit,
 ) {
-    val selectedRate = feeRates.firstOrNull { it.priority == currentFee.priority.string }
     LazyColumn {
         if (showFeeAssets) {
             item { SubheaderItem(R.string.swap_you_pay) }
@@ -203,10 +216,9 @@ private fun FeeRates(
                 )
             }
         }
-        if (feeRates.size > 1) {
-            val totalCount = feeRates.size + if (supportsCustomFee) 1 else 0
-            itemsPositioned(feeRates, totalCount = totalCount) { position, item ->
-                val feeRate = FeeRateUIModel(item, feeAssetInfo, feeUnitType, decimals, selectedRate, currentFee.amount, unitSymbol)
+        if (feeRateModels.size > 1) {
+            val totalCount = feeRateModels.size + if (supportsCustomFee) 1 else 0
+            itemsPositioned(feeRateModels, totalCount = totalCount) { position, feeRate ->
                 FeeRow(
                     emoji = feeRate.emoji,
                     title = feeRate.priority.title(),
@@ -225,7 +237,7 @@ private fun FeeRates(
                         rate = customRateText,
                         fiat = customFiat,
                         isSelected = selection is FeeSelection.Custom,
-                        position = ListPosition.getPosition(feeRates.size, totalCount),
+                        position = ListPosition.getPosition(feeRateModels.size, totalCount),
                         onClick = onCustom,
                     )
                 }

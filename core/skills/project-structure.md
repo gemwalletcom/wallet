@@ -14,7 +14,7 @@ skills/         # Agent guidance documents (this directory)
 
 ## Applications (`apps/`)
 
-- **API Server** (`apps/api/`): REST API with WebSocket price streaming
+- **API Server** (`apps/api/`): REST API with authenticated device WebSocket streaming
 - **Daemon** (`apps/daemon/`): Background services for asset updates, push notifications, transaction indexing
 - **Dynode** (`apps/dynode/`): Dynamic blockchain node proxy with caching, monitoring, and metrics
 
@@ -29,7 +29,7 @@ Shared Rust library compiled to iOS Swift Package and Android AAR using UniFFI b
 
 Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 - **Bitcoin family** (`gem_bitcoin`): Bitcoin, Bitcoin Cash, Litecoin, Dogecoin
-- **EVM chains** (`gem_evm`, `gem_bsc`): Ethereum, Polygon, Arbitrum, Optimism, Base, zkSync, Linea, BSC
+- **EVM chains** (`gem_evm`, `gem_optimism`, `gem_bsc`, `gem_everstake`, `gem_monad`): Ethereum, Polygon, Arbitrum, Optimism, Base, zkSync, Linea, BSC, Monad
 - **Alternative L1s**: Solana (`gem_solana`), Sui (`gem_sui`), TON (`gem_ton`), Aptos (`gem_aptos`), NEAR (`gem_near`), Stellar (`gem_stellar`), Algorand (`gem_algorand`), Tron (`gem_tron`), XRP (`gem_xrp`), Cardano (`gem_cardano`), Polkadot (`gem_polkadot`)
 - **Cosmos ecosystem** (`gem_cosmos`): Cosmos Hub, Osmosis, Celestia, Injective, Sei, Noble
 

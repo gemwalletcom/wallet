@@ -1,73 +1,111 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ActivityService
+import class Gemstone.GemAddressService
+import class Gemstone.GemApplicationMetadataService
+import class Gemstone.GemAssetConfigService
+import class Gemstone.GemDeeplinkService
+import class Gemstone.GemFeeService
+import class Gemstone.GemChainService
+import class Gemstone.GemReceiveService
+import class Gemstone.GemTransactionFormatter
+import protocol Gemstone.GemSwapServiceProtocol
+import class Gemstone.GemDeviceKeyService
+import protocol Gemstone.GemPerpetualServiceProtocol
+import protocol Gemstone.GemPreferencesServiceProtocol
+import protocol Gemstone.GemDeviceServiceProtocol
+import protocol Gemstone.GemWalletPreferencesServiceProtocol
+import protocol Gemstone.GemSupportServiceProtocol
+import protocol Gemstone.GemContactServiceProtocol
+import protocol Gemstone.GemAppUpdateServiceProtocol
+import protocol Gemstone.GemAvatarServiceProtocol
+import class Gemstone.GemStreamSubscriptionService
+import protocol Gemstone.GemPriceAlertServiceProtocol
+import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemAssetsServiceProtocol
+import protocol Gemstone.GemBannerServiceProtocol
+import protocol Gemstone.GemPortfolioServiceProtocol
+import protocol Gemstone.GemRewardsServiceProtocol
+import protocol Gemstone.GemSearchServiceProtocol
+import protocol Gemstone.GemTransactionsServiceProtocol
+import protocol Gemstone.GemBalanceServiceProtocol
+import protocol Gemstone.GemNftServiceProtocol
+import class Gemstone.GemNodeService
+import GemstoneServices
 import AppService
-import AssetsService
-import AvatarService
-import BalanceService
-import BannerService
-import ChainService
-import ConnectionsService
+import WalletConnectorService
 import ConnectionStatusService
-import ContactService
-import DeviceService
-import DiscoverAssetsService
 import Foundation
+import Preferences
+import protocol Gemstone.GemChartServiceProtocol
+import protocol Gemstone.GemPriceServiceProtocol
+import protocol Gemstone.GemExplorerServiceProtocol
+import protocol Gemstone.GemStakeServiceProtocol
+import protocol Gemstone.GemNotificationServiceProtocol
+import protocol Gemstone.GemAssetDiscoveryServiceProtocol
 import GRDB
-import NFTService
-import NodeService
-import NotificationService
-import PerpetualService
-import PriceAlertService
-import PriceService
 import Primitives
-import RewardsService
-import ServiceStatusService
-import StakeService
+import protocol Gemstone.GemServiceStatusProtocol
 import Store
 import StreamService
-import SupportChatService
 import SwiftUI
-import TransactionsService
 import WalletConnector
-import WalletService
-import WalletSessionService
 
 extension EnvironmentValues {
     @Entry var navigationState: NavigationStateManager = AppResolver.main.navigation
-    @Entry var nodeService: NodeService = AppResolver.main.services.nodeService
-    @Entry var serviceStatusService: any ServiceStatusServiceable = AppResolver.main.services.serviceStatusService
-    @Entry var priceService: PriceService = AppResolver.main.services.priceService
-    @Entry var streamSubscriptionService: StreamSubscriptionService = AppResolver.main.services.streamSubscriptionService
-    @Entry var assetsEnabler: any AssetsEnabler = AppResolver.main.services.assetsEnabler
-    @Entry var assetDiscoveryService: any AssetDiscoverable = AppResolver.main.services.assetDiscoveryService
+    @Entry var nodeService: GemNodeService = AppResolver.main.services.nodeService
+    @Entry var serviceStatusService: any GemServiceStatusProtocol = AppResolver.main.services.serviceStatusService
+    @Entry var priceService: any GemPriceServiceProtocol = AppResolver.main.services.priceService
+    @Entry var priceStore: PriceStore = AppResolver.main.storages.storeManager.priceStore
+    @Entry var chartService: any GemChartServiceProtocol = AppResolver.main.services.chartService
+    @Entry var marketService: any GemPriceServiceProtocol = AppResolver.main.services.marketService
+    @Entry var streamSubscriptionService: GemStreamSubscriptionService = AppResolver.main.services.streamSubscriptionService
+    @Entry var assetDiscoveryService: any GemAssetDiscoveryServiceProtocol = AppResolver.main.services.assetDiscoveryService
     @Entry var walletService: WalletService = AppResolver.main.services.walletService
+    @Entry var walletPreferencesService: any GemWalletPreferencesServiceProtocol = AppResolver.main.services.walletPreferencesService
+    @Entry var observablePreferences: ObservablePreferences = AppResolver.main.services.observablePreferences
+    @Entry var preferencesService: any GemPreferencesServiceProtocol = AppResolver.main.services.preferencesService
+    @Entry var deviceKeyService: GemDeviceKeyService = AppResolver.main.services.deviceKeyService
     @Entry var walletSessionService: any WalletSessionManageable = AppResolver.main.services.walletSessionService
-    @Entry var priceAlertService: PriceAlertService = AppResolver.main.services.priceAlertService
-    @Entry var deviceService: DeviceService = AppResolver.main.services.deviceService
-    @Entry var balanceService: BalanceService = AppResolver.main.services.balanceService
-    @Entry var bannerService: BannerService = AppResolver.main.services.bannerService
-    @Entry var transactionsService: TransactionsService = AppResolver.main.services.transactionsService
-    @Entry var assetsService: AssetsService = AppResolver.main.services.assetsService
+    @Entry var priceAlertService: any GemPriceAlertServiceProtocol = AppResolver.main.services.priceAlertService
+    @Entry var deviceService: any GemDeviceServiceProtocol = AppResolver.main.services.deviceService
+    @Entry var balanceService: any GemBalanceServiceProtocol = AppResolver.main.services.balanceService
+    @Entry var bannerService: any GemBannerServiceProtocol = AppResolver.main.services.bannerService
+    @Entry var bannerStore: BannerStore = AppResolver.main.storages.storeManager.bannerStore
+    @Entry var transactionsService: any GemTransactionsServiceProtocol = AppResolver.main.services.transactionsService
+    @Entry var transactionStore: TransactionStore = AppResolver.main.storages.storeManager.transactionStore
+    @Entry var assetsService: any GemAssetsServiceProtocol = AppResolver.main.services.gemAssetsService
+    @Entry var assetStore: AssetStore = AppResolver.main.storages.storeManager.assetStore
     @Entry var navigationPresenter: NavigationPresenter = AppResolver.main.services.navigationPresenter
     @Entry var navigationHandler: NavigationHandler = AppResolver.main.services.navigationHandler
-    @Entry var stakeService: StakeService = AppResolver.main.services.stakeService
-    @Entry var connectionsService: ConnectionsService = AppResolver.main.services.connectionsService
+    @Entry var stakeService: any GemStakeServiceProtocol = AppResolver.main.services.stakeService
+    @Entry var stakeStore: StakeStore = AppResolver.main.storages.storeManager.stakeStore
+    @Entry var explorerService: any GemExplorerServiceProtocol = AppResolver.main.services.explorerService
+    @Entry var gatewayService: GatewayService = AppResolver.main.services.gatewayService
+    @Entry var walletConnector: WalletConnectorService = AppResolver.main.services.walletConnector
     @Entry var connectionStatus: ConnectionStatusObserver = AppResolver.main.services.connectionStatusObserver
-    @Entry var walletConnectorManager: WalletConnectorManager = AppResolver.main.services.walletConnectorManager
-    @Entry var chainServiceFactory: ChainServiceFactory = AppResolver.main.services.chainServiceFactory
-    @Entry var nftService: NFTService = AppResolver.main.services.nftService
-    @Entry var avatarService: AvatarService = AppResolver.main.services.avatarService
-    @Entry var releaseService: AppReleaseService = AppResolver.main.services.appReleaseService
-    @Entry var perpetualService: PerpetualService = AppResolver.main.services.perpetualService
+    @Entry var walletConnectorPresenter: WalletConnectorPresenter = AppResolver.main.services.walletConnectorPresenter
+    @Entry var chainService: GemChainService = AppResolver.main.services.chainService
+    @Entry var receiveService: GemReceiveService = AppResolver.main.services.receiveService
+    @Entry var transactionFormatter: GemTransactionFormatter = AppResolver.main.services.transactionFormatter
+    @Entry var swapService: any GemSwapServiceProtocol = AppResolver.main.services.swapService
+    @Entry var nftService: any GemNftServiceProtocol = AppResolver.main.services.nftService
+    @Entry var avatarService: any GemAvatarServiceProtocol = AppResolver.main.services.avatarService
+    @Entry var appUpdateService: any GemAppUpdateServiceProtocol = AppResolver.main.services.appUpdateService
+    @Entry var perpetualService: any GemPerpetualServiceProtocol = AppResolver.main.services.perpetualService
     @Entry var hyperliquidObserverService: any PerpetualObservable = AppResolver.main.services.hyperliquidObserverService
-    @Entry var nameService: any NameServiceable = AppResolver.main.services.nameService
-    @Entry var activityService: ActivityService = AppResolver.main.services.activityService
+    @Entry var nameService: any GemNameServiceProtocol = AppResolver.main.services.nameService
+    @Entry var recentAssetsService: any RecentAssetsServiceable = RecentAssetsService(store: AppResolver.main.storages.storeManager.recentActivityStore)
+    @Entry var addressService: GemAddressService = AppResolver.main.services.addressService
+    @Entry var feeService: GemFeeService = AppResolver.main.services.viewModelFactory.feeService
+    @Entry var applicationMetadataService: GemApplicationMetadataService = AppResolver.main.services.viewModelFactory.applicationMetadataService
+    @Entry var deeplinkService: GemDeeplinkService = AppResolver.main.services.viewModelFactory.deeplinkService
+    @Entry var assetConfig: GemAssetConfigService = AppResolver.main.services.viewModelFactory.assetConfig
     @Entry var viewModelFactory: ViewModelFactory = AppResolver.main.services.viewModelFactory
-    @Entry var rewardsService: RewardsService = AppResolver.main.services.rewardsService
-    @Entry var walletSearchService: WalletSearchService = AppResolver.main.services.walletSearchService
-    @Entry var inAppNotificationService: InAppNotificationService = AppResolver.main.services.inAppNotificationService
-    @Entry var portfolioService: PortfolioService = AppResolver.main.services.portfolioService
-    @Entry var contactService: ContactService = AppResolver.main.services.contactService
-    @Entry var supportChatService: SupportChatService = AppResolver.main.services.supportChatService
+    @Entry var rewardsService: any GemRewardsServiceProtocol = AppResolver.main.services.rewardsService
+    @Entry var searchService: any GemSearchServiceProtocol = AppResolver.main.services.searchService
+    @Entry var inAppNotificationService: any GemNotificationServiceProtocol = AppResolver.main.services.inAppNotificationService
+    @Entry var portfolioService: any GemPortfolioServiceProtocol = AppResolver.main.services.portfolioService
+    @Entry var contactService: any GemContactServiceProtocol = AppResolver.main.services.contactService
+    @Entry var supportService: any GemSupportServiceProtocol = AppResolver.main.services.supportService
+    @Entry var supportStore: GemstoneSupportStore = AppResolver.main.services.supportStore
 }

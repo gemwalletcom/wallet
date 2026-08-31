@@ -7,9 +7,6 @@ use chrono::{SecondsFormat, Utc};
 use gem_client::{Client, ClientExt};
 use std::fmt::Debug;
 
-const AGGREGATOR_QUOTE_PATH: &str = "/api/v6/dex/aggregator/quote";
-const AGGREGATOR_SWAP_PATH: &str = "/api/v6/dex/aggregator/swap";
-
 #[derive(Clone, Debug)]
 pub(super) struct OkxDexClient<C> {
     client: C,
@@ -28,14 +25,14 @@ where
     where
         R: serde::de::DeserializeOwned + Send,
     {
-        self.signed_get(AGGREGATOR_QUOTE_PATH, params).await
+        self.signed_get("/api/v6/dex/aggregator/quote", params).await
     }
 
     pub async fn swap<R>(&self, params: &SwapParams) -> Result<R, SwapperError>
     where
         R: serde::de::DeserializeOwned + Send,
     {
-        self.signed_get(AGGREGATOR_SWAP_PATH, params).await
+        self.signed_get("/api/v6/dex/aggregator/swap", params).await
     }
 
     async fn signed_get<P, R>(&self, path: &str, params: &P) -> Result<R, SwapperError>

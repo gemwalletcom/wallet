@@ -13,7 +13,7 @@ use crate::{models::balance::Validator, provider::staking_mapper, rpc::client::H
 impl<C: Client> ChainStaking for HyperCoreClient<C> {
     async fn get_staking_apy(&self) -> Result<Option<f64>, Box<dyn Error + Sync + Send>> {
         let validators = self.get_validators().await?;
-        let apy = Validator::max_apr(validators);
+        let apy = Validator::max_apr(&validators);
         Ok(Some(apy))
     }
 

@@ -17,7 +17,7 @@ use crate::config::{EndpointConfig, RateConfig};
 pub(super) struct Endpoint {
     pub(super) name: String,
     pub(super) url: Url,
-    pub(super) remote_host: String,
+    pub(super) host: String,
     pub(super) query: HashMap<String, String>,
     client: Client,
     proxy_available: Option<Arc<AtomicBool>>,
@@ -46,11 +46,11 @@ impl Endpoint {
             .map(|(name, value)| Ok((HeaderName::from_bytes(name.as_bytes())?, HeaderValue::from_str(&value)?)))
             .collect::<Result<HeaderMap, BoxError>>()?;
         let url = Url::parse(&config.url)?;
-        let remote_host = url.host_str().ok_or_else(|| ConfigError::Message("endpoint URL must include a host".into()))?.to_string();
+        let host = url.host_str().ok_or_else(|| ConfigError::Message("endpoint URL must include a host".into()))?.to_string();
         Ok(Self {
             name: config.name,
             url,
-            remote_host,
+            host,
             client,
             query: config.query.unwrap_or_default(),
             proxy_available,
@@ -154,7 +154,7 @@ mod tests {
         let endpoint = Endpoint {
             name: "key_1".to_string(),
             url: Url::parse("https://tonapi.io").unwrap(),
-            remote_host: "tonapi.io".to_string(),
+            host: "tonapi.io".to_string(),
             client: Client::new(),
             query: HashMap::new(),
             proxy_available: None,

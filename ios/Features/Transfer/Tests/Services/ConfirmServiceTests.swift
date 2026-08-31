@@ -1,33 +1,77 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ActivityServiceTestKit
-import AddressNameServiceTestKit
-import AssetsServiceTestKit
-import BalanceServiceTestKit
+import enum Gemstone.GemConfirmError
+import enum Gemstone.GemExecuteResult
+import GemstoneServicesTestKit
+import GemstoneServices
 import BigInt
-import BlockchainTestKit
-import ChainServiceTestKit
-import EventPresenterServiceTestKit
 import Foundation
-import GemAPITestKit
-import KeystoreTestKit
-import PriceServiceTestKit
+import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
-import ScanServiceTestKit
 import Store
 import StoreTestKit
 import Testing
-import TransactionStateServiceTestKit
+import class Gemstone.GemSimulationFormatter
 @testable import Transfer
 
 struct ConfirmServiceTests {
     @Test
+    func confirmReportsEveryHashAndTracksSentTransactions() async throws {
+        let tracked = Primitives.Transaction.mock()
+        let gemConfirmService = GemConfirmServiceMock(execute: .success(.sent(hashes: ["hash-1", "hash-2"], transactions: [tracked.json()])))
+        let reported = ReportedValues()
+
+        try await ConfirmService.mock(gemConfirmService: gemConfirmService).confirm(
+            request: .mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) }),
+            confirmData: .mock(),
+            amount: .mock(),
+            simulation: nil,
+        )
+
+        #expect(reported.values == ["hash-1", "hash-2"])
+        #expect(gemConfirmService.executedInputs.count == 1)
+    }
+
+    @Test
+    func confirmReportsSignedDataWithoutTracking() async throws {
+        let gemConfirmService = GemConfirmServiceMock(execute: .success(.signed(data: ["signed"])))
+        let reported = ReportedValues()
+
+        try await ConfirmService.mock(gemConfirmService: gemConfirmService).confirm(
+            request: .mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) }),
+            confirmData: .mock(),
+            amount: .mock(),
+            simulation: nil,
+        )
+
+        #expect(reported.values == ["signed"])
+    }
+
+    @Test
+    func partialBroadcastReportsBroadcastHashesAndRethrows() async throws {
+        let gemConfirmService = GemConfirmServiceMock(execute: .failure(GemConfirmError.Broadcast(hashes: ["hash-1"], msg: "second leg failed")))
+        let reported = ReportedValues()
+
+        await #expect(throws: GemConfirmError.self) {
+            try await ConfirmService.mock(gemConfirmService: gemConfirmService).confirm(
+                request: .mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) }),
+                confirmData: .mock(),
+                amount: .mock(),
+                simulation: nil,
+            )
+        }
+
+        #expect(reported.values == ["hash-1"])
+    }
+
+    @Test
     func simulationStateUsesTransferApprovalValue() {
         let service = ConfirmSimulationService(
-            addressNameService: .mock(addressStore: .mock()),
-            assetsService: .mock(),
+            nameService: GemNameServiceMock(),
+            assetsService: GemAssetsServiceMock(),
+            simulationFormatter: GemSimulationFormatter(),
         )
 
         let state = service.makeState(
@@ -48,8 +92,9 @@ struct ConfirmServiceTests {
         try assetStore.add(assets: [.mock(asset: .mockEthereumUSDT())])
 
         let service = ConfirmSimulationService(
-            addressNameService: .mock(addressStore: .mock()),
-            assetsService: .mock(assetStore: assetStore),
+            nameService: GemNameServiceMock(),
+            assetsService: GemAssetsServiceMock(store: GemstoneAssetStore(assetStore: assetStore, balanceStore: .mock())),
+            simulationFormatter: GemSimulationFormatter(),
         )
 
         let state = await service.updateState(
@@ -66,8 +111,9 @@ struct ConfirmServiceTests {
         try assetStore.add(assets: [.mock(asset: .mockEthereumUSDT())])
 
         let service = ConfirmSimulationService(
-            addressNameService: .mock(addressStore: .mock()),
-            assetsService: .mock(assetStore: assetStore),
+            nameService: GemNameServiceMock(),
+            assetsService: GemAssetsServiceMock(store: GemstoneAssetStore(assetStore: assetStore, balanceStore: .mock())),
+            simulationFormatter: GemSimulationFormatter(),
         )
 
         let state = service.makeState(
@@ -96,8 +142,9 @@ struct ConfirmServiceTests {
         try assetStore.add(assets: [.mock(asset: solana), .mock(asset: usdc)])
 
         let service = ConfirmSimulationService(
-            addressNameService: .mock(addressStore: .mock()),
-            assetsService: .mock(assetStore: assetStore),
+            nameService: GemNameServiceMock(),
+            assetsService: GemAssetsServiceMock(store: GemstoneAssetStore(assetStore: assetStore, balanceStore: .mock())),
+            simulationFormatter: GemSimulationFormatter(),
         )
 
         let state = service.makeState(
@@ -131,9 +178,14 @@ struct ConfirmServiceTests {
             SimulationAssetChange(asset: dust, value: 2_244_508_455),
         ]
 
+        let assetStore = AssetStore.mock()
         let fetchedState = await ConfirmSimulationService(
-            addressNameService: .mock(addressStore: .mock()),
-            assetsService: .mock(assetsProvider: GemAPIAssetsServiceMock(assetsResult: [.mock(asset: dust)])),
+            nameService: GemNameServiceMock(),
+            assetsService: GemAssetsServiceMock(
+                assetsResult: [.mock(asset: dust)],
+                store: GemstoneAssetStore(assetStore: assetStore, balanceStore: .mock()),
+            ),
+            simulationFormatter: GemSimulationFormatter(),
         ).updateState(
             data: TransferData.mock(type: .transfer(.mock())),
             simulation: simulation,
@@ -145,11 +197,9 @@ struct ConfirmServiceTests {
     @Test
     func simulationStateIgnoresAddressNameLookupFailure() async {
         let service = ConfirmSimulationService(
-            addressNameService: .mock(
-                addressStore: .mock(),
-                apiService: GemAPIAddressNamesServiceMock(error: NSError(domain: "test", code: 404)),
-            ),
-            assetsService: .mock(),
+            nameService: GemNameServiceMock(error: NSError(domain: "test", code: 404)),
+            assetsService: GemAssetsServiceMock(),
+            simulationFormatter: GemSimulationFormatter(),
         )
 
         let state = await service.updateState(
@@ -162,5 +212,17 @@ struct ConfirmServiceTests {
         #expect(state.payload.primaryFields.count == 1)
         #expect(state.payload.secondaryFields.isEmpty)
         #expect(state.payload.addressNames.isEmpty)
+    }
+}
+
+private final class ReportedValues: @unchecked Sendable {
+    private let lock = NSLock()
+    private var storage: [String] = []
+
+    var values: [String] { lock.withLock { storage } }
+
+    func append(_ value: String?) {
+        guard let value else { return }
+        lock.withLock { storage.append(value) }
     }
 }

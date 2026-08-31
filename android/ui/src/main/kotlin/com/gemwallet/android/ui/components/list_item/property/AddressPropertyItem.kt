@@ -9,7 +9,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
@@ -22,6 +21,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.BlockExplorerLink
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
 fun AddressPropertyItem(
@@ -34,7 +34,7 @@ fun AddressPropertyItem(
     listPosition: ListPosition = ListPosition.Middle,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
-    val clipboardManager = LocalClipboard.current.nativeClipboard
+    val clipboardManager = LocalContext.current.clipboardManager()
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 

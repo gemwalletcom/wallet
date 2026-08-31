@@ -40,7 +40,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionState
 import com.gemwallet.android.AppUrl
 import uniffi.gemstone.DocsUrl
-import uniffi.gemstone.GemStakeChain
+import com.wallet.core.primitives.StakeChain
 
 internal val infoSheetIconSize = 120.dp
 
@@ -142,7 +142,7 @@ sealed class InfoSheetEntity(
         icon = icon,
         title = R.string.info_stake_frozen_required_title,
         description = R.string.info_stake_frozen_required_description,
-        infoUrl = { AppUrl.docs(DocsUrl.Staking(GemStakeChain.TRON)) },
+        infoUrl = { AppUrl.docs(DocsUrl.Staking(StakeChain.Tron.string)) },
     )
 
     class TransactionInfo(icon: Any, state: TransactionState) : InfoSheetEntity(
@@ -305,7 +305,7 @@ fun InfoBottomSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = paddingDefault),
-                text = parseMarkdownToAnnotatedString(resolveText(shownItem.title, shownItem.titleText, shownItem.titleArgs)),
+                text = parseMarkdownToAnnotatedString(infoText(shownItem.title, shownItem.titleText, shownItem.titleArgs)),
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.headlineMedium,
@@ -313,7 +313,7 @@ fun InfoBottomSheet(
             )
             Text(
                 modifier = Modifier.padding(vertical = paddingSmall, horizontal = paddingDefault),
-                text = parseMarkdownToAnnotatedString(resolveText(shownItem.description, shownItem.descriptionText, shownItem.descriptionArgs)),
+                text = parseMarkdownToAnnotatedString(infoText(shownItem.description, shownItem.descriptionText, shownItem.descriptionArgs)),
                 color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
@@ -354,13 +354,13 @@ private fun InfoSheetIcon(item: InfoSheetEntity) {
 }
 
 @Composable
-private fun resolveStringResource(@StringRes resId: Int, args: List<Any>?): String {
+private fun formattedStringResource(@StringRes resId: Int, args: List<Any>?): String {
     return args?.takeIf { it.isNotEmpty() }
         ?.let { stringResource(resId, *it.toTypedArray()) }
         ?: stringResource(resId)
 }
 
 @Composable
-private fun resolveText(@StringRes resId: Int?, text: String?, args: List<Any>?): String {
-    return text ?: resolveStringResource(requireNotNull(resId), args)
+private fun infoText(@StringRes resId: Int?, text: String?, args: List<Any>?): String {
+    return text ?: formattedStringResource(requireNotNull(resId), args)
 }

@@ -2,6 +2,7 @@ package com.gemwallet.android.data.service.store.database.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.gemwallet.android.ext.id
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.PriceAlertInfo
@@ -13,14 +14,13 @@ import kotlinx.coroutines.flow.map
 
 @Entity(tableName = "price_alerts")
 data class DbPriceAlert(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey val id: String,
     val assetId: String,
     val currency: Currency,
     val price: Double? = null,
     val pricePercentChange: Double? = null,
     val priceDirection: PriceAlertDirection? = null,
     val lastNotifiedAt: Long? = null,
-    val enabled: Boolean,
 )
 
 fun DbPriceAlert.toDTO(): PriceAlertInfo {
@@ -39,11 +39,11 @@ fun DbPriceAlert.toDTO(): PriceAlertInfo {
 
 fun PriceAlert.toRecord(): DbPriceAlert {
     return DbPriceAlert(
+        id = id,
         assetId = assetId.toIdentifier(),
         price = price,
         pricePercentChange = pricePercentChange,
         priceDirection = priceDirection,
-        enabled = true,
         currency = currency,
         lastNotifiedAt = lastNotifiedAt,
     )

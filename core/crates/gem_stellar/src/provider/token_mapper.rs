@@ -5,8 +5,6 @@ use primitives::{Asset, AssetId, AssetType, Chain};
 pub fn map_token_data(asset: &StellarAsset, token_id: String, chain: Chain) -> Asset {
     Asset {
         id: AssetId::from(chain, Some(token_id.clone())),
-        chain,
-        token_id: Some(token_id),
         name: asset.asset_code.clone(),
         symbol: asset.asset_code.clone(),
         decimals: STELLAR_TOKEN_DECIMALS,
@@ -31,6 +29,6 @@ mod tests {
 
         let result = map_token_data(&stellar_asset, token_id, chain);
         assert_eq!(result.symbol, "USDC");
-        assert_eq!(result.chain, Chain::Stellar);
+        assert_eq!(result.chain(), Chain::Stellar);
     }
 }

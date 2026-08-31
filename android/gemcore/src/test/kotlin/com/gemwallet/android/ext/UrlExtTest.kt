@@ -15,10 +15,4 @@ class UrlExtTest {
         assertNull(" ".getShortUrl())
     }
 
-    @Test
-    fun walletConnectAppName_fallsBackToNormalizedHost() {
-        assertEquals("Venice.ai", walletConnectAppName("Venice.ai", "https://www.venice.ai"))
-        assertEquals("venice.ai", walletConnectAppName("", "https://www.venice.ai/path"))
-        assertEquals("", walletConnectAppName("", ""))
-    }
 }

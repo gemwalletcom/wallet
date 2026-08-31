@@ -91,8 +91,8 @@ private fun VerificationBadgeIcon(@DrawableRes icon: Int) {
 }
 
 private class VerificationStatusDisplay(
-    @StringRes val labelRes: Int,
-    @DrawableRes val badgeIconRes: Int,
+    @param:StringRes val labelRes: Int,
+    @param:DrawableRes val badgeIconRes: Int,
     val infoSheetEntity: InfoSheetEntity,
 )
 

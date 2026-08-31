@@ -3,31 +3,6 @@
 import Foundation
 
 public extension Array {
-    func toMap<Key: Hashable>(_ transform: (Element) -> Key) -> [Key: Element] {
-        reduce(into: [:]) { result, element in
-            let key = transform(element)
-            result[key] = element
-        }
-    }
-
-    func toMap<Key: Hashable>(_ transform: (Element) throws -> Key) rethrows -> [Key: Element] {
-        try reduce(into: [:]) { result, element in
-            let key = try transform(element)
-            result[key] = element
-        }
-    }
-
-    func toMapArray<Key: Hashable>(_ transform: (Element) -> Key) -> [Key: [Element]] {
-        reduce(into: [:]) { result, element in
-            let key = transform(element)
-            if let ar = result[key] {
-                result[key] = ar + [element]
-            } else {
-                result[key] = [element]
-            }
-        }
-    }
-
     func splitInSubArrays(into size: Int) -> [[Element]] {
         (0 ..< size).map {
             stride(from: $0, to: count, by: size).map { self[$0] }
@@ -68,18 +43,7 @@ public extension Sequence where Iterator.Element: Hashable {
     }
 }
 
-public enum ArrayError: Error {
-    case indexOutOfBounds(Int)
-}
-
 public extension Array {
-    func getElement(safe index: Int) throws -> Element {
-        guard indices.contains(index) else {
-            throw ArrayError.indexOutOfBounds(index)
-        }
-        return self[index]
-    }
-
     func element(at index: Int) -> Element? {
         indices.contains(index) ? self[index] : nil
     }

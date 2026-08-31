@@ -387,20 +387,6 @@ mod tests {
         )
     }
 
-    fn create_chain_config(chain: Chain, url: &str) -> ChainConfig {
-        ChainConfig {
-            chain,
-            poll_interval_seconds: None,
-            latency: None,
-            overrides: None,
-            allowlist: None,
-            urls: vec![Url {
-                url: url.to_string(),
-                headers: None,
-            }],
-        }
-    }
-
     fn create_request(host: &str, chain: Chain) -> ProxyRequest {
         ProxyRequest::new(
             Method::POST,
@@ -440,7 +426,7 @@ mod tests {
 
     #[test]
     fn test_get_chain_config_found() {
-        let chains = HashMap::from([(Chain::Bitcoin, create_chain_config(Chain::Bitcoin, "https://bitcoin.example.com"))]);
+        let chains = HashMap::from([(Chain::Bitcoin, testkit::chain_config(Chain::Bitcoin, "https://bitcoin.example.com"))]);
         let service = create_service(chains);
         let request = create_request("any.host.com", Chain::Bitcoin);
 
@@ -451,7 +437,7 @@ mod tests {
 
     #[test]
     fn test_get_chain_config_not_found() {
-        let chains = HashMap::from([(Chain::Bitcoin, create_chain_config(Chain::Bitcoin, "https://bitcoin.example.com"))]);
+        let chains = HashMap::from([(Chain::Bitcoin, testkit::chain_config(Chain::Bitcoin, "https://bitcoin.example.com"))]);
         let service = create_service(chains);
         let request = create_request("unknown", Chain::Ethereum);
 
@@ -462,7 +448,7 @@ mod tests {
 
     #[test]
     fn test_matches_retry_status_codes() {
-        let chains = HashMap::from([(Chain::Ethereum, create_chain_config(Chain::Ethereum, "https://ethereum.example.com"))]);
+        let chains = HashMap::from([(Chain::Ethereum, testkit::chain_config(Chain::Ethereum, "https://ethereum.example.com"))]);
         let service = create_service_with_retry(chains, testkit::retry_config(true, vec![429], vec![]));
 
         let request = create_request("ethereum.example.com", Chain::Ethereum);
@@ -473,7 +459,7 @@ mod tests {
 
     #[test]
     fn test_matches_retry_jsonrpc_messages() {
-        let chains = HashMap::from([(Chain::Ethereum, create_chain_config(Chain::Ethereum, "https://ethereum.example.com"))]);
+        let chains = HashMap::from([(Chain::Ethereum, testkit::chain_config(Chain::Ethereum, "https://ethereum.example.com"))]);
         let service = create_service_with_retry(chains, testkit::retry_config(true, vec![], vec!["Exceeded the quota usage"]));
 
         let request = ProxyRequest::new(
@@ -497,7 +483,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_handle_request_denies_disallowed_jsonrpc_method() {
-        let chains = HashMap::from([(Chain::Ethereum, create_chain_config(Chain::Ethereum, "https://ethereum.example.com"))]);
+        let chains = HashMap::from([(Chain::Ethereum, testkit::chain_config(Chain::Ethereum, "https://ethereum.example.com"))]);
         let service = create_service_with_config(chains, testkit::retry_config(false, vec![], vec![]), ethereum_chain_types());
         let request = create_jsonrpc_request(Chain::Ethereum, "unsupported_method");
 
@@ -516,7 +502,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_handle_request_allowed_jsonrpc_reaches_proxy_path() {
-        let chains = HashMap::from([(Chain::Ethereum, create_chain_config(Chain::Ethereum, "http://127.0.0.1:9"))]);
+        let chains = HashMap::from([(Chain::Ethereum, testkit::chain_config(Chain::Ethereum, "http://127.0.0.1:9"))]);
         let service = create_service_with_config(chains, testkit::retry_config(false, vec![], vec![]), ethereum_chain_types());
         let request = create_jsonrpc_request(Chain::Ethereum, "eth_chainId");
 
@@ -527,7 +513,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_handle_request_hides_upstream_url_on_retry_failure() {
-        let mut chain_config = create_chain_config(Chain::Solana, "http://127.0.0.1:9/secret-key");
+        let mut chain_config = testkit::chain_config(Chain::Solana, "http://127.0.0.1:9/secret-key");
         chain_config.urls.push(Url {
             url: "http://127.0.0.1:10/other-secret-key".to_string(),
             headers: None,

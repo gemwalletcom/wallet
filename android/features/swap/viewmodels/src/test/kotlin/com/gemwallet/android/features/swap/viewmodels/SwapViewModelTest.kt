@@ -3,23 +3,26 @@ package com.gemwallet.android.features.swap.viewmodels
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
-import com.gemwallet.android.application.assets.coordinators.EnableAsset
-import com.gemwallet.android.application.swap.coordinators.BuildSwapConfirmParams
-import com.gemwallet.android.application.swap.coordinators.RequestSwapQuotes
-import com.gemwallet.android.application.swap.coordinators.SwapNoQuoteException
-import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestKey
-import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestParams
-import com.gemwallet.android.application.swap.coordinators.SwapQuotesResult
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.config.UserConfig
-import com.gemwallet.android.data.repositories.session.SessionRepository
+import com.gemwallet.android.application.assets.cases.EnableAsset
+import com.gemwallet.android.application.swap.cases.BuildSwapConfirmParams
+import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
+import com.gemwallet.android.application.swap.cases.SwapNoQuoteException
+import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
+import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
+import com.gemwallet.android.application.swap.cases.SwapQuotesResult
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.swap.viewmodels.models.SwapActionState
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.testkit.mockSwapParams
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetInfo
@@ -31,15 +34,21 @@ import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapPriceImpactUIModel
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModel
-import com.gemwallet.android.domains.swap.AssetRatePair
-import io.mockk.coEvery
-import io.mockk.coVerify
+import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.swap.SwapPriceImpactType
+import com.wallet.core.primitives.swap.SwapQuoteDataType
 import io.mockk.clearMocks
+import io.mockk.coEvery
+import uniffi.gemstone.GemSwapPairSuggestion
+import uniffi.gemstone.GemSwapServiceInterface
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.slot
 import io.mockk.unmockkObject
+import java.math.BigDecimal
+import java.math.BigInteger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -50,6 +59,8 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -57,11 +68,11 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemSwapQuoteDataType
 import uniffi.gemstone.SwapperOptions
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.SwapperProviderData
@@ -73,10 +84,10 @@ import uniffi.gemstone.SwapperQuoteRequest
 import uniffi.gemstone.SwapperRoute
 import uniffi.gemstone.SwapperSlippage
 import uniffi.gemstone.SwapperSlippageMode
-import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.swap.SwapPriceImpactType
-import java.math.BigDecimal
-import java.math.BigInteger
+import uniffi.gemstone.GemSwapButtonAction
+import uniffi.gemstone.GemStreamSubscriptionService
+import uniffi.gemstone.GemSwapQuoteService
+import uniffi.gemstone.SwapperException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SwapViewModelTest {
@@ -91,12 +102,12 @@ class SwapViewModelTest {
     )
     private val usdcInfo = mockAssetInfo(asset = usdcAsset)
 
-    private val sessionRepository = mockk<SessionRepository>(relaxed = true) {
-        every { session() } returns MutableStateFlow(null)
+    private val getSession = mockk<GetSession>(relaxed = true) {
+        every { this@mockk() } returns MutableStateFlow(null)
     }
-    private val assetsRepository = mockk<AssetsRepository>(relaxed = true) {
-        every { getAssetInfo(solAsset.id) } returns flowOf(solInfo)
-        every { getAssetInfo(usdcAsset.id) } returns flowOf(usdcInfo)
+    private val getAssetInfo = mockk<GetAssetInfo>(relaxed = true) {
+        every { this@mockk(solAsset.id) } returns flowOf(solInfo)
+        every { this@mockk(usdcAsset.id) } returns flowOf(usdcInfo)
     }
     private val enableAsset = mockk<EnableAsset>(relaxed = true)
     private val buildSwapConfirmParams = mockk<BuildSwapConfirmParams>(relaxed = true)
@@ -104,34 +115,46 @@ class SwapViewModelTest {
         every { swapSlippageBps() } returns flowOf(null)
     }
     private val requestSwapQuotes = mockk<RequestSwapQuotes>(relaxed = true)
+    private val swapService = mockk<GemSwapServiceInterface> {
+        coEvery { suggestPair(any(), any()) } returns null
+    }
+
+    private val streamSubscriptionService = mockk<GemStreamSubscriptionService>(relaxed = true)
+
+    private val createdViewModels = mutableListOf<SwapViewModel>()
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         mockkObject(SwapDetailsUIModelFactory)
-        clearMocks(sessionRepository, assetsRepository, buildSwapConfirmParams, requestSwapQuotes)
-        every { sessionRepository.session() } returns MutableStateFlow(null)
-        every { assetsRepository.getAssetInfo(solAsset.id) } returns flowOf(solInfo)
-        every { assetsRepository.getAssetInfo(usdcAsset.id) } returns flowOf(usdcInfo)
+        clearMocks(getSession, getAssetInfo, buildSwapConfirmParams, requestSwapQuotes)
+        every { getSession() } returns MutableStateFlow(null)
+        every { getAssetInfo(solAsset.id) } returns flowOf(solInfo)
+        every { getAssetInfo(usdcAsset.id) } returns flowOf(usdcInfo)
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns emptyFlow()
-        every { SwapDetailsUIModelFactory.create(any()) } returns mockk(relaxed = true)
+        every { SwapDetailsUIModelFactory.create(any(), any()) } returns mockk(relaxed = true)
     }
 
     @After
     fun tearDown() {
+        createdViewModels.forEach { it.viewModelScope.cancel() }
+        createdViewModels.clear()
         Dispatchers.resetMain()
         unmockkObject(SwapDetailsUIModelFactory)
     }
 
     private fun createViewModel(savedStateHandle: SavedStateHandle) = SwapViewModel(
-        sessionRepository = sessionRepository,
-        assetsRepository = assetsRepository,
+        getSession = getSession,
+        getAssetInfo = getAssetInfo,
         enableAsset = enableAsset,
         buildSwapConfirmParams = buildSwapConfirmParams,
         userConfig = userConfig,
+        swapService = swapService,
         requestSwapQuotes = requestSwapQuotes,
+        swapQuoteService = GemSwapQuoteService(),
+        streamSubscriptionService = streamSubscriptionService,
         savedStateHandle = savedStateHandle,
-    )
+    ).also { createdViewModels += it }
 
     private fun swapSavedState(
         from: String = solAsset.id.toIdentifier(),
@@ -142,6 +165,49 @@ class SwapViewModelTest {
             RouteArgument.ToAssetId.key to to,
         )
     )
+
+    @Test
+    fun `both legs of the pair are subscribed for live prices`() = runTest(testDispatcher) {
+        val wallet = mockWallet(
+            accounts = listOf(mockAccount(chain = solAsset.id.chain), mockAccount(chain = usdcAsset.id.chain)),
+        )
+        every { getSession() } returns MutableStateFlow(Session(wallet = wallet, currency = Currency.USD))
+
+        createViewModel(swapSavedState())
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { streamSubscriptionService.addPrices(listOf(solAsset.id.toIdentifier())) }
+        coVerify(exactly = 1) { streamSubscriptionService.addPrices(listOf(usdcAsset.id.toIdentifier())) }
+    }
+
+    @Test
+    fun `init keeps an already selected pair and asks for no suggestion`() = runTest(testDispatcher) {
+        val savedState = swapSavedState()
+
+        createViewModel(savedState)
+        advanceUntilIdle()
+
+        coVerify(exactly = 0) { swapService.suggestPair(any(), any()) }
+        assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.FromAssetId.key))
+        assertEquals(usdcAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.ToAssetId.key))
+    }
+
+    @Test
+    fun `init applies the suggested pair when the screen opens empty`() = runTest(testDispatcher) {
+        val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
+        every { getSession() } returns MutableStateFlow(Session(wallet = wallet, currency = Currency.USD))
+        coEvery { swapService.suggestPair(wallet.id.id, null) } returns GemSwapPairSuggestion(
+            payAssetId = solAsset.id.toIdentifier(),
+            receiveAssetId = usdcAsset.id.toIdentifier(),
+        )
+        val savedState = SavedStateHandle()
+
+        createViewModel(savedState)
+        advanceUntilIdle()
+
+        assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.FromAssetId.key))
+        assertEquals(usdcAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.ToAssetId.key))
+    }
 
     @Test
     fun `setSlippage persists user preference`() = runTest(testDispatcher) {
@@ -240,7 +306,7 @@ class SwapViewModelTest {
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
-        every { sessionRepository.session() } returns MutableStateFlow(
+        every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
 
@@ -277,7 +343,7 @@ class SwapViewModelTest {
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
-        every { sessionRepository.session() } returns MutableStateFlow(
+        every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
         coEvery { buildSwapConfirmParams(any(), any(), any()) } throws SwapNoQuoteException()
@@ -303,7 +369,7 @@ class SwapViewModelTest {
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
-        every { sessionRepository.session() } returns MutableStateFlow(
+        every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
         coEvery { buildSwapConfirmParams(any(), any(), any()) } throws SwapNoQuoteException()
@@ -339,7 +405,7 @@ class SwapViewModelTest {
         } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
-        every { sessionRepository.session() } returns MutableStateFlow(
+        every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
 
@@ -407,7 +473,7 @@ class SwapViewModelTest {
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
-        every { sessionRepository.session() } returns MutableStateFlow(
+        every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
         val confirmParamsGate = CompletableDeferred<Unit>()
@@ -438,7 +504,7 @@ class SwapViewModelTest {
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
-        every { sessionRepository.session() } returns MutableStateFlow(
+        every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
         val confirmParamsGate = CompletableDeferred<Unit>()
@@ -461,12 +527,39 @@ class SwapViewModelTest {
         confirmParamsGate.complete(Unit)
         awaitCondition { confirmParams != null }
 
-        assertEquals(BigInteger("1000000000"), confirmParams?.fromAmount)
+        assertEquals(BigInteger("1000000000"), confirmParams?.amount)
+    }
+
+    @Test
+    fun `onPrimaryAction does not build swap params until authorize runs`() = runTest(testDispatcher) {
+        val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
+
+        val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
+        every { getSession() } returns MutableStateFlow(Session(wallet = wallet, currency = Currency.USD))
+
+        var swapCalls = 0
+        stubBuildConfirmParams { swapCalls += 1 }
+
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+        seedReadyQuote(viewModel, quotesFlow)
+
+        var authorized: (() -> Unit)? = null
+        viewModel.onPrimaryAction(
+            onConfirm = {},
+            onShowPriceImpactWarning = {},
+            authorize = { action -> authorized = action },
+        )
+        advanceUntilIdle()
+
+        assertNotNull("the swap must be handed to authorize, not run directly", authorized)
+        assertEquals(0, swapCalls)
     }
 
     @Test
     fun `onPrimaryAction shows price impact warning before swap`() = runTest(testDispatcher) {
-        every { SwapDetailsUIModelFactory.create(any()) } returns SwapDetailsUIModel(
+        every { SwapDetailsUIModelFactory.create(any(), any()) } returns SwapDetailsUIModel(
             provider = SwapProviderUIModel(
                 id = SwapperProvider.UNISWAP_V3,
                 title = "Uniswap v3",
@@ -489,7 +582,7 @@ class SwapViewModelTest {
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
-        every { sessionRepository.session() } returns MutableStateFlow(
+        every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
 
@@ -508,6 +601,7 @@ class SwapViewModelTest {
         viewModel.onPrimaryAction(
             onConfirm = { confirmCalls += 1 },
             onShowPriceImpactWarning = { showWarningCalls += 1 },
+            authorize = { it() },
         )
         advanceUntilIdle()
 
@@ -517,32 +611,95 @@ class SwapViewModelTest {
         assertEquals(SwapActionState.Ready, viewModel.uiState.value.action)
     }
 
+    @Test
+    fun `amount above the balance blocks the button before any quote`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+
+        viewModel.payValue.setTextAndPlaceCursorAtEnd("2")
+        Snapshot.sendApplyNotifications()
+        awaitCondition { viewModel.uiState.value.buttonAction == GemSwapButtonAction.InsufficientBalance }
+
+        assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
+
+        viewModel.payValue.setTextAndPlaceCursorAtEnd("1")
+        Snapshot.sendApplyNotifications()
+        awaitCondition { viewModel.uiState.value.buttonAction == GemSwapButtonAction.Swap }
+    }
+
+    @Test
+    fun `minimum amount is offered only when the balance covers it`() = runTest(testDispatcher) {
+        val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
+
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+
+        failQuote(viewModel, quotesFlow, SwapperException.InputAmountException("2000000000"))
+        awaitCondition { viewModel.uiState.value.buttonAction == GemSwapButtonAction.InsufficientBalance }
+        assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
+
+        failQuote(viewModel, quotesFlow, SwapperException.InputAmountException("500000000"))
+        awaitCondition { viewModel.uiState.value.buttonAction == GemSwapButtonAction.UseMinimumAmount("500000000") }
+        assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
+
+        viewModel.onPrimaryAction(onConfirm = {}, onShowPriceImpactWarning = {}, authorize = { it() })
+        advanceUntilIdle()
+
+        assertEquals("0.5", viewModel.payValue.text.toString())
+    }
+
+    @Test
+    fun `only retryable quote failures offer a retry`() = runTest(testDispatcher) {
+        val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
+
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+
+        failQuote(viewModel, quotesFlow, SwapperException.NoQuoteAvailable())
+        awaitCondition { viewModel.uiState.value.buttonAction == GemSwapButtonAction.RetryQuote }
+        assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
+
+        failQuote(viewModel, quotesFlow, SwapperException.NoAvailableProvider())
+        awaitCondition { viewModel.uiState.value.buttonAction == GemSwapButtonAction.Swap }
+        assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
+    }
+
+    private suspend fun failQuote(
+        viewModel: SwapViewModel,
+        quotesFlow: MutableSharedFlow<SwapQuotesResult?>,
+        error: Throwable,
+    ) {
+        viewModel.payValue.setTextAndPlaceCursorAtEnd("1")
+        Snapshot.sendApplyNotifications()
+        testDispatcher.scheduler.advanceUntilIdle()
+        quotesFlow.emit(
+            SwapQuotesResult(
+                requestKey = SwapQuoteRequestParams(BigDecimal.ONE, solInfo, usdcInfo).key,
+                pay = solInfo,
+                receive = usdcInfo,
+                err = error,
+            )
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+    }
+
     private fun stubBuildConfirmParams(beforeReturn: suspend () -> Unit = {}) {
         coEvery { buildSwapConfirmParams(any(), any(), any()) } coAnswers {
             beforeReturn()
             val quote = firstArg<SwapperQuote>()
             val pay = secondArg<AssetInfo>()
             val receive = thirdArg<AssetInfo>()
-            ConfirmParams.SwapParams(
+            mockSwapParams(
                 from = pay.owner!!,
                 fromAsset = pay.asset,
-                toAsset = receive.asset,
                 fromAmount = BigInteger(quote.fromValue),
+                toAsset = receive.asset,
                 toAmount = BigInteger(quote.toValue),
-                swapData = "0x",
-                providerId = quote.data.provider.id,
-                protocol = quote.data.provider.protocol,
-                providerName = quote.data.provider.name,
-                protocolId = quote.data.provider.protocolId,
-                toAddress = "0xconfirm",
-                value = "0",
-                approval = null,
-                gasLimit = BigInteger("210000"),
                 useMaxAmount = quote.request.options.useMaxAmount,
-                etaInSeconds = quote.etaInSeconds,
-                slippageBps = quote.data.slippageBps,
-                memo = null,
-                dataType = GemSwapQuoteDataType.CONTRACT,
+                toAddress = "0xconfirm",
+                dataType = SwapQuoteDataType.Contract,
             )
         }
     }

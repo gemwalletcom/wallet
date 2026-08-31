@@ -1,22 +1,26 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import protocol Gemstone.GemSupportServiceProtocol
+import GemstonePrimitives
 import Localization
 import PhotosUI
 import Primitives
 import Store
-import SupportChatService
+import GemstoneServices
 import SwiftUI
 
 @Observable
 @MainActor
 public final class SupportChatSceneViewModel {
-    private let service: SupportChatService
+    private let service: any GemSupportServiceProtocol
+    private let typing: SupportTypingState
     public let query: ObservableQuery<SupportMessagesRequest>
     var previewURL: URL?
 
-    public init(service: SupportChatService) {
+    public init(service: any GemSupportServiceProtocol, typing: SupportTypingState) {
         self.service = service
+        self.typing = typing
         query = ObservableQuery(SupportMessagesRequest(), initialValue: [])
     }
 
@@ -24,7 +28,7 @@ public final class SupportChatSceneViewModel {
     var emptyTitle: String { Localized.Support.stateEmptyTitle }
     var emptyDescription: String { Localized.Support.stateEmptyDescription }
     var isEmpty: Bool { query.value.isEmpty }
-    var typingAgentName: String? { service.typing.agent?.name }
+    var typingAgentName: String? { typing.agent?.name }
 
     @ObservationIgnored
     private(set) lazy var inputBarModel = SupportMessageInputBarViewModel(
@@ -40,23 +44,23 @@ public final class SupportChatSceneViewModel {
         ).build()
     }
 
-    func fetch() async {
+    func load() async {
         let fromTimestamp = query.value.last { $0.sender.isAgent }.map { Int($0.createdAt.timeIntervalSince1970) } ?? 0
-        await perform("fetch") {
+        await perform("load") {
             try await service.syncMessages(fromTimestamp: fromTimestamp)
         }
     }
 
     func onScenePhaseChange(_: ScenePhase, _ newPhase: ScenePhase) {
         switch newPhase {
-        case .active: Task { await fetch() }
+        case .active: Task { await load() }
         case .inactive, .background: break
         @unknown default: break
         }
     }
 
     func onDisappear() {
-        service.typing.clear()
+        typing.clear()
     }
 
     func sendText(_ content: String) {
@@ -90,7 +94,7 @@ public final class SupportChatSceneViewModel {
         guard let url = image.url.asURL else { return }
         Task {
             await perform("preview") {
-                previewURL = try await service.imageFile(for: url)
+                previewURL = URL(fileURLWithPath: try await service.imageFile(url: url.absoluteString))
             }
         }
     }

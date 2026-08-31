@@ -29,13 +29,3 @@ public struct AuthPayload: Codable, Sendable {
 		self.signature = signature
 	}
 }
-
-public struct AuthenticatedRequest<T: Codable & Sendable>: Codable, Sendable {
-	public let auth: AuthPayload
-	public let data: T
-
-	public init(auth: AuthPayload, data: T) {
-		self.auth = auth
-		self.data = data
-	}
-}

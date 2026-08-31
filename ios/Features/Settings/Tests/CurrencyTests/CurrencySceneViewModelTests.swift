@@ -1,9 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import DeviceServiceTestKit
+import GemstonePrimitives
+import class Gemstone.GemPriceService
+import GemstonePrimitivesTestKit
+import GemstoneServicesTestKit
 import Foundation
-import PriceService
-import PriceServiceTestKit
+import GemstoneServices
 import Primitives
 @testable import Settings
 import Testing
@@ -22,7 +24,7 @@ struct CurrencySceneViewModelTests {
     @Test
     func uSDCurrencyValue() {
         let usdCurrencyStorage = MockCurrencyStorage()
-        let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, priceService: .mock(), deviceService: DeviceServiceMock())
+        let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, priceService: GemPriceService.mock(), deviceService: GemDeviceServiceMock())
 
         #expect(viewModel.selectedCurrencyValue == "🇺🇸 USD")
     }
@@ -30,23 +32,23 @@ struct CurrencySceneViewModelTests {
     @Test
     func gBPCurrencyValue() {
         let gbpCurrencyStorage = MockCurrencyStorage(currency: "GBP")
-        let viewModel = CurrencySceneViewModel(currencyStorage: gbpCurrencyStorage, priceService: .mock(), deviceService: DeviceServiceMock())
+        let viewModel = CurrencySceneViewModel(currencyStorage: gbpCurrencyStorage, priceService: GemPriceService.mock(), deviceService: GemDeviceServiceMock())
         #expect(viewModel.selectedCurrencyValue == "🇬🇧 GBP")
     }
 
     @Test
     func setNewCurrency() async throws {
-        let priceService: PriceService = .mock()
-        try priceService.addRates([FiatRate(symbol: .ars, rate: 1200)])
+        let priceService = GemPriceService.mock()
+        try await priceService.updateRates(rates: [FiatRate(symbol: .ars, rate: 1200).json()], currency: Currency.ars.json())
         let usdCurrencyStorage = MockCurrencyStorage()
-        let deviceService = DeviceServiceMock()
+        let deviceService = GemDeviceServiceMock()
         let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, priceService: priceService, deviceService: deviceService)
 
-        try viewModel.setCurrency(.ars)
+        try await viewModel.setCurrency(.ars)
         await viewModel.updateDevice()
 
         #expect(usdCurrencyStorage.currency == Currency.ars.id)
         #expect(usdCurrencyStorage.currency == viewModel.currency.id)
-        #expect(await deviceService.updateCalls == 1)
+        #expect(await deviceService.synchronizeIfNeededCalls == 1)
     }
 }

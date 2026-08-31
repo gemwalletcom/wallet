@@ -11,10 +11,6 @@ public enum Scenes {
         }
     }
 
-    public struct ImportWallet: Hashable, Codable {
-        public init() {}
-    }
-
     public struct ImportWalletType: Hashable, Codable {
         public init() {}
     }

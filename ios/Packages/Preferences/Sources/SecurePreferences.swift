@@ -15,7 +15,6 @@ public final class SecurePreferences: Sendable {
         case deviceToken
         case devicePrivateKey
         case devicePublicKey
-        case authToken
     }
 
     public static let standard = SecurePreferences()
@@ -48,39 +47,6 @@ public final class SecurePreferences: Sendable {
 
     public func delete(key: SecurePreferences.Keys) throws {
         try keychain.remove(key: key.rawValue)
-    }
-
-    @discardableResult
-    public func getOrCreateDeviceKeyPair() throws -> (privateKey: Data, publicKey: Data) {
-        if let privateKey = try getData(key: .devicePrivateKey),
-           let publicKey = try getData(key: .devicePublicKey)
-        {
-            return try (set(value: privateKey, key: .devicePrivateKey), publicKey)
-        }
-
-        let keyPair = generateDeviceKeyPair()
-        let publicKey = try set(value: keyPair.publicKey, key: .devicePublicKey)
-        let privateKeyData = try set(value: keyPair.privateKey, key: .devicePrivateKey)
-        return (privateKeyData, publicKey)
-    }
-
-    public func getDeviceId() throws -> String {
-        let keyPair = try getOrCreateDeviceKeyPair()
-        let deviceId = keyPair.publicKey.hex
-        if try get(key: .deviceId) != deviceId {
-            try set(value: deviceId, key: .deviceId)
-        }
-        return deviceId
-    }
-
-    public func setNodeAuthToken(_ token: DeviceToken) throws {
-        let data = try JSONEncoder().encode(token)
-        try set(value: data, key: .authToken)
-    }
-
-    public func nodeAuthToken() throws -> DeviceToken? {
-        guard let data = try getData(key: .authToken) else { return nil }
-        return try JSONDecoder().decode(DeviceToken.self, from: data)
     }
 
     public func clear() throws {

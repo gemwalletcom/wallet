@@ -1,10 +1,13 @@
 package com.gemwallet.android.features.confirm.presents
 
 import androidx.activity.compose.BackHandler
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -19,8 +22,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.title
@@ -37,7 +42,7 @@ import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.features.confirm.presents.components.FeeDetails
 import com.gemwallet.android.features.confirm.presents.components.PropertyDestination
 import com.gemwallet.android.features.confirm.viewmodels.ConfirmViewModel
-import com.gemwallet.android.features.confirm.viewmodels.reorderWalletConnectProperties
+import com.gemwallet.android.features.confirm.viewmodels.reorderRequestProperties
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.ValueFormatter
@@ -48,6 +53,7 @@ import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsSummaryItem
 import com.gemwallet.android.ui.components.perpetual.title
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.ApplicationMetadataSource
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.image.walletImageModel
 import com.gemwallet.android.ui.components.list_head.AmountListHead
@@ -92,7 +98,7 @@ fun ConfirmScreen(
 ) {
     val context = LocalContext.current
     val amountModel by viewModel.amountUIModel.collectAsStateWithLifecycle()
-    val txProperties by viewModel.txProperties.collectAsStateWithLifecycle()
+    val transactionProperties by viewModel.transactionProperties.collectAsStateWithLifecycle()
     val feeModel by viewModel.feeUIModel.collectAsStateWithLifecycle()
     val feeValue by viewModel.feeValue.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -104,11 +110,13 @@ fun ConfirmScreen(
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val payloadAddressNames by viewModel.payloadAddressNames.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
-    val isWalletConnect = params is ConfirmParams.TransferParams.Generic
-    val displayTxProperties = if (isWalletConnect) txProperties.reorderWalletConnectProperties() else txProperties
+    val request = params as? ConfirmParams.TransferParams.Generic
+    val isExternalRequest = request != null
+    val isPayment = request?.metadata?.source == ApplicationMetadataSource.Payment
+    val displayTransactionProperties = if (isExternalRequest) transactionProperties.reorderRequestProperties() else transactionProperties
 
     var showSelectTxSpeed by remember { mutableStateOf(false) }
-    var showWalletConnectDetails by remember { mutableStateOf(false) }
+    var showSimulationDetails by remember { mutableStateOf(false) }
     var selectedDetailElement by remember(params) { mutableStateOf<ConfirmDetailElement?>(null) }
     var isShowedBroadcastError by remember((state as? ConfirmState.BroadcastError)?.message) {
         mutableStateOf(state is ConfirmState.BroadcastError)
@@ -131,8 +139,8 @@ fun ConfirmScreen(
 
     val perpetualType by viewModel.perpetualType.collectAsStateWithLifecycle()
     Scene(
-        title = confirmTitle(isWalletConnect, amountModel?.transactionType, perpetualType),
-        closeIcon = isWalletConnect,
+        title = confirmTitle(isExternalRequest, amountModel?.transactionType, perpetualType),
+        closeIcon = isExternalRequest,
         onClose = { cancelAction() },
         mainAction = {
             MainActionButton(
@@ -152,6 +160,14 @@ fun ConfirmScreen(
         ) {
             item {
                 when {
+                    isPayment && simulation.headerAsset == null && state is ConfirmState.Prepare -> Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .alpha(0f)
+                            .clearAndSetSemantics { },
+                    ) {
+                        AmountListHead(amount = "", icon = params.asset)
+                    }
                     simulation.headerAsset != null -> {
                         val asset = requireNotNull(simulation.headerAsset)
                         val title = if (simulation.headerIsUnlimited) {
@@ -194,8 +210,8 @@ fun ConfirmScreen(
                     )
                 }
             }
-            val sectionSize = displayTxProperties.size + detailElements.size
-            itemsIndexed(displayTxProperties) { index, item ->
+            val sectionSize = displayTransactionProperties.size + detailElements.size
+            itemsIndexed(displayTransactionProperties) { index, item ->
                 val listPosition = ListPosition.getPosition(index, sectionSize)
                 when (item) {
                     is ConfirmProperty.Destination -> PropertyDestination(
@@ -219,7 +235,7 @@ fun ConfirmScreen(
                 }
             }
             itemsIndexed(detailElements) { index, item ->
-                val listPosition = ListPosition.getPosition(displayTxProperties.size + index, sectionSize)
+                val listPosition = ListPosition.getPosition(displayTransactionProperties.size + index, sectionSize)
                 ConfirmDetailElementRow(
                     item = item,
                     listPosition = listPosition,
@@ -232,7 +248,7 @@ fun ConfirmScreen(
                 addressNames = payloadAddressNames,
                 onDetailsClick = simulation.secondaryPayloadFields
                     .takeIf { it.isNotEmpty() }
-                    ?.let { { showWalletConnectDetails = true } },
+                    ?.let { { showSimulationDetails = true } },
             )
             confirmBalanceChangesContent(simulation.balanceChanges)
             item {
@@ -281,6 +297,7 @@ fun ConfirmScreen(
             currentFee = feeModel as? FeeUIModel.FeeInfo,
             selection = feeSelection,
             feeRates = feeRates,
+            feeService = viewModel.feeService,
             feeAssetInfo = feeAssetInfo,
             feeAssets = feeAssets,
             onSelect = viewModel::changeFeeSelection,
@@ -289,8 +306,8 @@ fun ConfirmScreen(
         )
 
         ModalBottomSheet(
-            isVisible = showWalletConnectDetails,
-            onDismissRequest = { showWalletConnectDetails = false },
+            isVisible = showSimulationDetails,
+            onDismissRequest = { showSimulationDetails = false },
             skipPartiallyExpanded = true,
             title = stringResource(R.string.common_details),
         ) {
@@ -381,7 +398,7 @@ fun ConfirmState.buttonLabel(): String {
     return when (this) {
         is ConfirmState.BroadcastError,
         is ConfirmState.Error -> stringResource(R.string.common_try_again)
-        is ConfirmState.FatalError -> message
+        is ConfirmState.FatalError -> stringResource(messageRes)
         ConfirmState.Prepare,
         ConfirmState.Ready,
         is ConfirmState.Result,
@@ -409,11 +426,33 @@ fun ConfirmError.toLabel() = when (this) {
 
 @Composable
 private fun confirmTitle(
-    isWalletConnect: Boolean,
+    isExternalRequest: Boolean,
     transactionType: TransactionType?,
     perpetualType: PerpetualType?,
 ): String = when {
-    isWalletConnect -> stringResource(R.string.transfer_review_request)
+    isExternalRequest -> stringResource(R.string.transfer_review_request)
     perpetualType != null -> perpetualType.title()
-    else -> stringResource(transactionType?.getTitle() ?: R.string.transfer_title)
+    else -> stringResource(transactionType?.titleRes() ?: R.string.transfer_title)
+}
+
+@StringRes
+private fun TransactionType.titleRes(): Int = when (this) {
+    TransactionType.EarnDeposit,
+    TransactionType.StakeDelegate -> R.string.transfer_stake_title
+    TransactionType.EarnWithdraw,
+    TransactionType.StakeWithdraw -> R.string.transfer_withdraw_title
+    TransactionType.StakeUndelegate -> R.string.transfer_unstake_title
+    TransactionType.StakeRedelegate -> R.string.transfer_redelegate_title
+    TransactionType.StakeRewards -> R.string.transfer_rewards_title
+    TransactionType.Transfer,
+    TransactionType.TransferNFT -> R.string.transfer_send_title
+    TransactionType.Swap -> R.string.wallet_swap
+    TransactionType.TokenApproval -> R.string.transfer_approve_title
+    TransactionType.AssetActivation -> R.string.transfer_activate_asset_title
+    TransactionType.SmartContractCall -> R.string.transfer_smart_contract_title
+    TransactionType.PerpetualOpenPosition -> R.string.perpetual_position
+    TransactionType.PerpetualClosePosition -> R.string.perpetual_close_position
+    TransactionType.StakeFreeze -> R.string.transfer_freeze_title
+    TransactionType.StakeUnfreeze -> R.string.transfer_unfreeze_title
+    TransactionType.PerpetualModifyPosition -> R.string.perpetual_modify
 }

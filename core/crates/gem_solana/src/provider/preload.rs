@@ -34,6 +34,7 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
             input_type,
             sender_address,
             destination_address,
+            references,
         } = input;
 
         let (sender_lookup, recipient_lookup) = match input_type {
@@ -87,6 +88,7 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
             token_program,
             nft,
             block_hash: block_hash.value.blockhash,
+            references,
         })
     }
 
@@ -147,10 +149,12 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_get_solana_transaction_preload_transfer_sol() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_solana_test_client();
+        let references = vec!["11111111111111111111111111111111".to_string()];
         let input = TransactionPreloadInput {
             input_type: TransactionInputType::Transfer(Asset::mock_sol()),
             sender_address: TEST_SOLANA_SENDER.to_string(),
             destination_address: TEST_SOLANA_SENDER.to_string(),
+            references: references.clone(),
         };
         let result = client.get_transaction_preload(input).await?;
 
@@ -159,6 +163,7 @@ mod chain_integration_tests {
         assert!(result.get_block_hash()?.len() == 44);
         assert!(result.get_sender_token_address()?.is_none());
         assert!(result.get_recipient_token_address()?.is_none());
+        assert_eq!(result.get_solana_references()?, references);
 
         Ok(())
     }
@@ -170,6 +175,7 @@ mod chain_integration_tests {
             input_type: TransactionInputType::Transfer(Asset::mock_spl_token()),
             sender_address: TEST_SOLANA_SENDER.to_string(),
             destination_address: "4BgapREafMMprtU6CehRmH8LUY26PRFmGf7K4S44oSMW".to_string(),
+            references: vec![],
         };
 
         let result = client.get_transaction_preload(input).await?;
@@ -191,6 +197,7 @@ mod chain_integration_tests {
             input_type: TransactionInputType::Swap(Asset::mock_spl_token().clone(), Asset::mock_ethereum_usdc().clone(), swap_data),
             sender_address: TEST_SOLANA_SENDER.to_string(),
             destination_address: TEST_SOLANA_SENDER.to_string(),
+            references: vec![],
         };
 
         let result = client.get_transaction_preload(input).await?;
@@ -217,6 +224,7 @@ mod chain_integration_tests {
             input_type: TransactionInputType::Swap(Asset::mock_spl_token(), Asset::mock_spl_token(), swap_data),
             sender_address: TEST_SOLANA_SENDER.to_string(),
             destination_address: TEST_EMPTY_ADDRESS.to_string(),
+            references: vec![],
         };
 
         let result = client.get_transaction_preload(input).await?;

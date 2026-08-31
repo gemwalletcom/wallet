@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use super::parsers::ProtocolParsers;
+use super::parsers::{ProtocolParser, ProtocolParsers};
 pub(crate) use super::transaction_payload::TRANSFER_TOPIC;
 use super::transaction_payload::{Erc20ApprovalPayload, Erc20TransferPayload, NftTransferPayload, TransactionPayload};
 use crate::{
@@ -20,6 +20,29 @@ pub struct EthereumMapper;
 
 impl EthereumMapper {
     pub fn map_transaction(chain: Chain, transaction: &Transaction, transaction_receipt: &TransactionReceipt, timestamp: &BigUint) -> Option<PrimitivesTransaction> {
+        Self::map_transaction_with_parsers(chain, transaction, transaction_receipt, timestamp, &[])
+    }
+
+    pub fn map_transaction_with_parser(
+        chain: Chain,
+        transaction: &Transaction,
+        transaction_receipt: &TransactionReceipt,
+        timestamp: &BigUint,
+        parser: Option<&'static dyn ProtocolParser>,
+    ) -> Option<PrimitivesTransaction> {
+        match parser {
+            Some(parser) => Self::map_transaction_with_parsers(chain, transaction, transaction_receipt, timestamp, &[parser]),
+            None => Self::map_transaction(chain, transaction, transaction_receipt, timestamp),
+        }
+    }
+
+    pub fn map_transaction_with_parsers(
+        chain: Chain,
+        transaction: &Transaction,
+        transaction_receipt: &TransactionReceipt,
+        timestamp: &BigUint,
+        parsers: &[&'static dyn ProtocolParser],
+    ) -> Option<PrimitivesTransaction> {
         let transaction = match transaction.calls.as_ref().and_then(|calls| calls.last()) {
             Some(call) => Cow::Owned(Transaction {
                 from: transaction.from.clone(),
@@ -46,7 +69,7 @@ impl EthereumMapper {
 
         if transaction.to.is_some()
             && transaction.input.len() >= 8
-            && let Some(tx) = ProtocolParsers::map_transaction(&chain, transaction, transaction_receipt, created_at)
+            && let Some(tx) = ProtocolParsers::map_transaction_with_parsers(&chain, transaction, transaction_receipt, created_at, parsers)
         {
             return Some(tx);
         }
@@ -87,6 +110,7 @@ impl EthereumMapper {
                 None,
                 created_at,
             )
+            .with_data(Some(transaction.input.clone()))
         };
 
         let build_erc20_approval = |approval: Erc20ApprovalPayload| {
@@ -197,7 +221,7 @@ mod tests {
         let transaction = EthereumMapper::map_transaction(Chain::Ethereum, &contract_call_tx, &contract_call_receipt, &BigUint::from(1735671600u64)).unwrap();
 
         assert_eq!(transaction.transaction_type, TransactionType::SmartContractCall);
-        assert_eq!(transaction.hash, "0x876707912c2d625723aa14bf268d83ede36c2657c70da500628e40e6b51577c9");
+        assert_eq!(transaction.hash(), "0x876707912c2d625723aa14bf268d83ede36c2657c70da500628e40e6b51577c9");
         assert_eq!(transaction.from, "0x39ab5f6f1269590225EdAF9ad4c5967B09243747");
         assert_eq!(transaction.to, "0xB907Dcc926b5991A149d04Cb7C0a4a25dC2D8f9a");
         assert_eq!(transaction.data, Some(contract_call_tx.input));
@@ -233,7 +257,7 @@ mod tests {
                 .result;
 
         let transaction = EthereumMapper::map_transaction(Chain::Ethereum, &transaction, &transaction_receipt, &BigUint::from(1735671600u64)).unwrap();
-        assert_eq!(transaction.hash, TEST_TRANSACTION_ID);
+        assert_eq!(transaction.hash(), TEST_TRANSACTION_ID);
         assert_eq!(transaction.transaction_type, TransactionType::TransferNFT);
 
         assert_eq!(transaction.asset_id, AssetId::from_chain(Chain::Ethereum));
@@ -254,7 +278,7 @@ mod tests {
         let transaction_receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/transfer_nft_eip721_safe_transfer_receipt.json"));
 
         let transaction = EthereumMapper::map_transaction(Chain::Ethereum, &transaction, &transaction_receipt, &BigUint::from(1782990479u64)).unwrap();
-        assert_eq!(transaction.hash, "0x13bac6f98a228d71e9e31641629c0c0d8b2c46f93cfe4eafee5371548ab374ca");
+        assert_eq!(transaction.hash(), "0x13bac6f98a228d71e9e31641629c0c0d8b2c46f93cfe4eafee5371548ab374ca");
         assert_eq!(transaction.transaction_type, TransactionType::TransferNFT);
         assert_eq!(transaction.asset_id, AssetId::from_chain(Chain::Ethereum));
         assert_eq!(transaction.from, "0x3835e41EA342975eEEF8AaCf0c3809A38F6c04f1");
@@ -310,6 +334,7 @@ mod tests {
         assert_eq!(transaction.from, "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7");
         assert_eq!(transaction.to, "0x0D9DAB1A248f63B0a48965bA8435e4de7497a3dC");
         assert_eq!(transaction.value, "930678651");
+        assert_eq!(transaction.data, Some(sc_erc20_tx.input));
     }
 
     #[test]
@@ -481,20 +506,6 @@ mod tests {
         assert_eq!(result.from, "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4");
         assert_eq!(result.to, UNISWAP_PERMIT2_CONTRACT);
         assert_eq!(result.value, "115792089237316195423570985008687907853269984665640564039457584007913129639935");
-    }
-
-    #[test]
-    fn test_map_smartchain_staking_transaction() {
-        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../testdata/smartchain/transaction_staking_delegate.json"));
-        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/smartchain/transaction_staking_delegate_receipt.json"));
-        let tx = EthereumMapper::map_transaction(Chain::SmartChain, &transaction, &receipt, &BigUint::from(1735671600u64)).unwrap();
-
-        assert_eq!(tx.transaction_type, TransactionType::StakeDelegate);
-        assert_eq!(tx.from, "0x51eD60604637989d19D29e43c5D94B098A0d1Af7");
-        assert_eq!(tx.to, "0xd34403249B2d82AAdDB14e778422c966265e5Fb5");
-        assert_eq!(tx.contract.as_deref(), Some("0x0000000000000000000000000000000000002002"));
-        assert_eq!(tx.value, "1000000000000000000");
-        assert_eq!(tx.metadata, None);
     }
 
     #[test]

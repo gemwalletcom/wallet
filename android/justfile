@@ -23,7 +23,10 @@ install-ndk:
     @cd ../core && just gemstone install-ndk
 
 clean:
-    @./gradlew clean
+    #!/usr/bin/env bash
+    set -euo pipefail
+    find . ../core/gemstone/android -type d \( -name build -o -name .gradle -o -name .kotlin -o -name .cxx -o -name .externalNativeBuild \) -prune -exec rm -rf {} +
+    echo "Android build folders cleaned"
 
 build:
     @./gradlew assembleGoogleDebug

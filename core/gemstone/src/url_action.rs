@@ -7,18 +7,15 @@ pub enum UrlAction {
     WalletConnect { link: WalletConnectLink },
 }
 
-#[uniffi::export]
-pub fn url_action(url: &str) -> Option<UrlAction> {
-    UrlAction::from_url(url)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::deeplink::GemDeeplinkService;
     use primitives::{AssetId, Chain, PaymentLink};
 
     #[test]
     fn test_url_action() {
+        let url_action = |url: &str| GemDeeplinkService::new().url_action(url.to_string());
         assert_eq!(
             url_action("https://gemwallet.com/tokens/bitcoin"),
             Some(UrlAction::Deeplink {
@@ -36,7 +33,9 @@ mod tests {
         assert_eq!(
             url_action("solana:https%3A%2F%2Fapi.spherepay.co%2Fv1%2Fpublic%2FpaymentLink%2Fpay%2FpaymentLink_1"),
             Some(UrlAction::Payment {
-                payment: Payment::Link(PaymentLink::SolanaPay("https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1".to_string(),)),
+                payment: Payment::Link(PaymentLink::SolanaPay {
+                    url: "https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1".to_string(),
+                }),
             })
         );
         assert_eq!(url_action("https://example.com"), None);

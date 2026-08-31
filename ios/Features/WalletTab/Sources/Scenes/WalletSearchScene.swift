@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AssetsService
+import GemstoneServices
 import Components
 import Localization
 import NFT
@@ -42,7 +42,7 @@ public struct WalletSearchScene: View {
             model.onAppear()
         }
         .taskOnce {
-            model.fetch()
+            model.load()
         }
         .toast(message: $model.isPresentingToastMessage)
         .recentAssetsSheet(model: model.recentModel, onSelect: model.onSelectRecent)

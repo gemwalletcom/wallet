@@ -28,16 +28,16 @@ data class TransactionResourceTypeMetadata (
 )
 
 @Serializable
-data class TransactionSmartContractMetadata (
-	val methodName: String
-)
-
-@Serializable
 data class TransactionSwapMetadata (
 	val fromAsset: AssetId,
 	val fromValue: String,
 	val toAsset: AssetId,
 	val toValue: String,
 	val provider: String? = null
+)
+
+@Serializable
+data class TransactionWalletConnectMetadata (
+	val outputAction: TransferDataOutputAction
 )
 

@@ -1,15 +1,9 @@
 package com.gemwallet.android.flavors
 
-import android.content.Context
-import com.gemwallet.android.cases.device.RequestPushToken
-import com.google.firebase.FirebaseApp
+import com.gemwallet.android.application.device.cases.RequestPushToken
 import com.google.firebase.messaging.FirebaseMessaging
 
 class StoreRequestPushToken : RequestPushToken {
-
-    override fun initRequester(context: Context) {
-        FirebaseApp.initializeApp(context)
-    }
 
     override suspend fun requestToken(callback: (String) -> Unit) {
         try {
@@ -23,6 +17,5 @@ class StoreRequestPushToken : RequestPushToken {
     }
 
 }
-
 
 fun isNotificationsAvailable() = true

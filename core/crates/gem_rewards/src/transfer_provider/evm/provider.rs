@@ -64,6 +64,7 @@ impl EvmTransferProvider {
             input_type: TransactionInputType::Transfer(asset.clone()),
             sender_address: wallet.address.clone(),
             destination_address: request.recipient_address.clone(),
+            references: vec![],
         };
         let metadata = client.get_transaction_preload(preload_input).await?;
 

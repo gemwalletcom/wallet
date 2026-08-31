@@ -16,8 +16,10 @@ where
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LedgerCurrent {
-    pub ledger_current_index: i64,
+pub struct LedgerInfo {
+    pub ledger_index: u64,
+    #[serde(default)]
+    pub validated: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

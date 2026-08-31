@@ -1,12 +1,11 @@
 use std::collections::HashMap;
 
-use chrono::{DateTime, Utc};
 use gem_hypercore::models::order::OpenOrder;
 use gem_hypercore::models::websocket::{HyperliquidSocketMessage, PositionsDiff};
 use primitives::{
-    Asset, AssetId, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualMarketData, PerpetualOrderType, PerpetualPosition, PerpetualProvider, PerpetualTriggerOrder,
+    PerpetualMarginType, PerpetualMarketData, PerpetualOrderType, PerpetualPosition, PerpetualTriggerOrder,
     chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue},
-    perpetual::{Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualMetadata, PerpetualPositionsSummary},
+    perpetual::{PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualMetadata, PerpetualPositionsSummary},
 };
 
 pub type GemHyperliquidOpenOrder = OpenOrder;
@@ -17,7 +16,6 @@ pub type GemPerpetualPositionsSummary = PerpetualPositionsSummary;
 pub type GemPerpetualBalance = PerpetualBalance;
 pub type GemPerpetualAccountMode = PerpetualAccountMode;
 pub type GemPerpetualPosition = PerpetualPosition;
-pub type GemPerpetual = Perpetual;
 pub type GemPerpetualMetadata = PerpetualMetadata;
 pub type GemChartCandleStick = ChartCandleStick;
 pub type GemChartCandleUpdate = ChartCandleUpdate;
@@ -25,125 +23,7 @@ pub type GemChartDateValue = ChartDateValue;
 pub type GemPerpetualData = PerpetualData;
 pub type GemPerpetualMarketData = PerpetualMarketData;
 
-#[uniffi::remote(Enum)]
-pub enum GemPerpetualMarginType {
-    Cross,
-    Isolated,
-}
-
-#[uniffi::remote(Enum)]
-pub enum GemPerpetualOrderType {
-    Market,
-    Limit,
-}
-
 pub type GemPerpetualTriggerOrder = PerpetualTriggerOrder;
-
-#[uniffi::remote(Record)]
-pub struct GemPerpetualTriggerOrder {
-    pub price: f64,
-    pub order_type: PerpetualOrderType,
-    pub order_id: String,
-}
-
-#[uniffi::remote(Record)]
-pub struct GemPerpetualPositionsSummary {
-    pub positions: Vec<PerpetualPosition>,
-    pub balance: PerpetualBalance,
-}
-
-#[uniffi::remote(Enum)]
-pub enum GemPerpetualAccountMode {
-    Standard,
-    Unified,
-}
-
-#[uniffi::remote(Record)]
-pub struct GemPerpetualBalance {
-    pub available: f64,
-    pub reserved: f64,
-    pub withdrawable: f64,
-}
-
-#[uniffi::remote(Record)]
-pub struct GemPerpetualPosition {
-    pub id: String,
-    pub perpetual_id: PerpetualId,
-    pub asset_id: AssetId,
-    pub size: f64,
-    pub size_value: f64,
-    pub leverage: u8,
-    pub entry_price: f64,
-    pub liquidation_price: Option<f64>,
-    pub margin_type: PerpetualMarginType,
-    pub direction: PerpetualDirection,
-    pub margin_amount: f64,
-    pub take_profit: Option<PerpetualTriggerOrder>,
-    pub stop_loss: Option<PerpetualTriggerOrder>,
-    pub pnl: f64,
-    pub funding: Option<f32>,
-}
-
-#[uniffi::remote(Record)]
-pub struct GemPerpetualData {
-    pub perpetual: Perpetual,
-    pub asset: Asset,
-    pub metadata: PerpetualMetadata,
-}
-
-#[uniffi::remote(Record)]
-pub struct GemPerpetualMarketData {
-    pub coin: String,
-    pub price: f64,
-    pub price_percent_change_24h: f64,
-    pub open_interest: f64,
-    pub volume_24h: f64,
-    pub funding: f64,
-}
-
-#[uniffi::remote(Record)]
-pub struct GemPerpetual {
-    pub id: PerpetualId,
-    pub name: String,
-    pub provider: PerpetualProvider,
-    pub asset_id: AssetId,
-    pub identifier: String,
-    pub price: f64,
-    pub price_percent_change_24h: f64,
-    pub open_interest: f64,
-    pub volume_24h: f64,
-    pub funding: f64,
-    pub max_leverage: u8,
-    pub is_isolated_only: bool,
-}
-
-#[uniffi::remote(Record)]
-pub struct GemPerpetualMetadata {
-    pub is_pinned: bool,
-}
-
-#[uniffi::remote(Record)]
-pub struct GemChartCandleStick {
-    pub date: DateTime<Utc>,
-    pub open: f64,
-    pub high: f64,
-    pub low: f64,
-    pub close: f64,
-    pub volume: f64,
-}
-
-#[uniffi::remote(Record)]
-pub struct GemChartCandleUpdate {
-    pub coin: String,
-    pub interval: String,
-    pub candle: ChartCandleStick,
-}
-
-#[uniffi::remote(Record)]
-pub struct GemChartDateValue {
-    pub date: DateTime<Utc>,
-    pub value: f64,
-}
 
 #[uniffi::remote(Record)]
 pub struct GemPositionsDiff {
@@ -159,12 +39,6 @@ pub struct GemHyperliquidOpenOrder {
     pub limit_px: Option<f64>,
     pub is_position_tpsl: bool,
     pub order_type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, uniffi::Enum)]
-pub enum GemSubscriptionMethod {
-    Subscribe,
-    Unsubscribe,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, uniffi::Enum)]
@@ -202,6 +76,9 @@ pub enum GemHyperliquidSocketMessage {
     },
     SubscriptionResponse {
         subscription_type: String,
+    },
+    Error {
+        message: String,
     },
     Unknown,
 }

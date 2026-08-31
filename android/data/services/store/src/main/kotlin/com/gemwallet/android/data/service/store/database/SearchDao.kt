@@ -24,14 +24,20 @@ interface SearchDao {
     suspend fun deleteLists(query: String)
 
     @Transaction
-    suspend fun put(records: List<DbSearch>) {
-        val first = records.firstOrNull() ?: return
-        when {
-            first.assetId != null -> deleteAssets(first.query)
-            first.perpetualId != null -> deletePerpetuals(first.query)
-            first.listId != null -> deleteLists(first.query)
-            else -> return
-        }
+    suspend fun putAssets(query: String, records: List<DbSearch>) {
+        deleteAssets(query)
+        insert(records)
+    }
+
+    @Transaction
+    suspend fun putPerpetuals(query: String, records: List<DbSearch>) {
+        deletePerpetuals(query)
+        insert(records)
+    }
+
+    @Transaction
+    suspend fun putLists(query: String, records: List<DbSearch>) {
+        deleteLists(query)
         insert(records)
     }
 

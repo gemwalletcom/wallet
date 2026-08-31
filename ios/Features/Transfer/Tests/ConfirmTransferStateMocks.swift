@@ -7,10 +7,12 @@ import PrimitivesComponents
 
 extension ConfirmSimulationState {
     static func mock(
+        result: SimulationResult? = nil,
         warnings: [SimulationWarning] = [],
         headerData: AssetValueHeaderData? = nil,
     ) -> ConfirmSimulationState {
         ConfirmSimulationState(
+            result: result,
             warnings: warnings,
             payload: SimulationPayloadModel(chain: .ethereum, primaryFields: [], secondaryFields: []),
             headerData: headerData,

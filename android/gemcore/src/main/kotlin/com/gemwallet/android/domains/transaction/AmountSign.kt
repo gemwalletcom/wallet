@@ -1,21 +1,20 @@
 package com.gemwallet.android.domains.transaction
 
-import com.wallet.core.primitives.TransactionDirection
+import uniffi.gemstone.GemAmountSign
+import uniffi.gemstone.GemTransactionValue
 
-enum class AmountSign {
-    None, Incoming, Outgoing;
+fun GemAmountSign.format(amount: String): String = when (this) {
+    GemAmountSign.INCOMING -> "+$amount"
+    GemAmountSign.OUTGOING -> "-$amount"
+    GemAmountSign.NONE -> amount
+}
 
-    fun format(amount: String): String = when (this) {
-        Incoming -> "+$amount"
-        Outgoing -> "-$amount"
-        None -> amount
-    }
-
-    companion object {
-        operator fun invoke(direction: TransactionDirection): AmountSign = when (direction) {
-            TransactionDirection.Incoming -> Incoming
-            TransactionDirection.Outgoing -> Outgoing
-            TransactionDirection.SelfTransfer -> None
-        }
-    }
+fun GemTransactionValue.sign(): GemAmountSign = when (this) {
+    is GemTransactionValue.Amount -> sign
+    GemTransactionValue.SwapReceived -> GemAmountSign.INCOMING
+    GemTransactionValue.SwapSpent -> GemAmountSign.OUTGOING
+    GemTransactionValue.AssetSymbol,
+    GemTransactionValue.PerpetualNotional,
+    is GemTransactionValue.PerpetualPnl,
+    GemTransactionValue.None -> GemAmountSign.NONE
 }

@@ -1,10 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ActivityService
-import ActivityServiceTestKit
+import Components
+import GemstonePrimitivesTestKit
+import protocol Gemstone.GemPerpetualServiceProtocol
+import Store
+import StoreTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 @testable import Perpetuals
-import PerpetualService
-import PerpetualServiceTestKit
 import PerpetualsTestKit
 import Primitives
 import PrimitivesTestKit
@@ -19,21 +22,36 @@ struct PerpetualsSceneViewModelTests {
 
         #expect(model.headerViewModel.walletType == .multicoin)
     }
+
+    @Test
+    func pullToRefreshUpdatesMarketsThatTheTimerWouldSkip() async {
+        let perpetuals = GemPerpetualServiceMock()
+        let model = PerpetualsSceneViewModel.mock(perpetualService: perpetuals)
+
+        await model.updateMarkets(source: .timer)
+        #expect(perpetuals.syncMarketsCount == 1)
+
+        await model.updateMarkets(source: .timer)
+        #expect(perpetuals.syncMarketsCount == 1)
+
+        await model.updateMarkets(source: .user)
+        #expect(perpetuals.syncMarketsCount == 2)
+    }
 }
 
 extension PerpetualsSceneViewModel {
     @MainActor
     static func mock(
         wallet: Wallet = .mock(),
-        perpetualService: PerpetualServiceable = PerpetualService.mock(),
+        perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
         observerService: any PerpetualObservable = PerpetualObserverMock(),
-        activityService: ActivityService = .mock(),
+        recentAssetsService: any RecentAssetsServiceable = RecentAssetsService(store: .mock()),
     ) -> PerpetualsSceneViewModel {
         PerpetualsSceneViewModel(
             wallet: wallet,
             perpetualService: perpetualService,
             observerService: observerService,
-            activityService: activityService,
+            recentAssetsService: recentAssetsService,
         )
     }
 }

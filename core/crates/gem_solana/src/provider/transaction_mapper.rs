@@ -2,9 +2,9 @@ use chrono::DateTime;
 use num_bigint::{BigUint, Sign};
 
 use crate::{
-    COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM,
-    TOKEN_PROGRAM_2022,
-    models::{BlockTransaction, BlockTransactions},
+    COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS,
+    TOKEN_PROGRAM, TOKEN_PROGRAM_2022,
+    models::{BlockTransaction, BlockTransactions, Instruction},
 };
 use primitives::{AssetId, Chain, NFTAssetId, SwapProvider, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType};
 
@@ -21,6 +21,15 @@ struct MetaplexCoreNftTransfer {
     new_owner: String,
     asset: String,
     collection: String,
+}
+
+fn map_memo(instructions: &[Instruction], account_keys: &[String]) -> Option<String> {
+    instructions.iter().find_map(|instruction| {
+        if account_keys.get(instruction.program_id_index).map(String::as_str) != Some(MEMO_PROGRAM_ID) {
+            return None;
+        }
+        String::from_utf8(bs58::decode(&instruction.data).into_vec().ok()?).ok().filter(|memo| !memo.is_empty())
+    })
 }
 
 fn map_metaplex_core_nft_transfer(transaction: &BlockTransaction, account_keys: &[String]) -> Option<MetaplexCoreNftTransfer> {
@@ -159,6 +168,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
     };
     let fee_asset_id = chain.as_asset_id();
     let created_at = DateTime::from_timestamp(block_time, 0)?;
+    let memo = map_memo(&transaction.transaction.message.instructions, account_keys);
 
     if (account_keys.len() == 3 && account_keys.last()? == SYSTEM_PROGRAM_ID)
         || (account_keys.len() == 4 && account_keys.iter().any(|key| key == SYSTEM_PROGRAM_ID) && account_keys.iter().any(|key| key == COMPUTE_BUDGET_PROGRAM_ID))
@@ -178,7 +188,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
             fee.to_string(),
             fee_asset_id,
             value.to_string(),
-            None,
+            memo,
             None,
             created_at,
         );
@@ -244,7 +254,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
                 fee.to_string(),
                 fee_asset_id,
                 value.to_string(),
-                None,
+                memo,
                 metadata,
                 created_at,
             );
@@ -266,7 +276,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
             fee.to_string(),
             fee_asset_id,
             "0".to_string(),
-            None,
+            memo,
             serde_json::to_value(metadata).ok(),
             created_at,
         ));
@@ -287,7 +297,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
             fee.to_string(),
             chain.as_asset_id(),
             swap.from_value.clone(),
-            None,
+            memo,
             serde_json::to_value(swap).ok(),
             created_at,
         );
@@ -316,7 +326,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         fee.to_string(),
         fee_asset_id,
         value.to_string(),
-        None,
+        memo,
         None,
         created_at,
     ))
@@ -567,6 +577,28 @@ mod tests {
             None,
             None,
             DateTime::from_timestamp(1753346616, 0).unwrap(),
+        );
+
+        assert_eq!(transaction, expected);
+    }
+
+    #[test]
+    fn test_transaction_solana_pay_usdc_transfer() {
+        let transaction = map_single_transaction(include_str!("../../testdata/solana_pay_usdc_transfer.json"));
+        let expected = Transaction::new(
+            "4sk4xbQPfT4YAmKHFCAxfkFvkEfuJhjf4kWHsPCGFmJS5VDRRDP3LX6P2QAbAfJcwAtYoXTXKm1R6wtr6PC2taeU".to_string(),
+            SOLANA_USDC_ASSET_ID.clone(),
+            "2xLHHcLBbiTHT6QmyrW9ayjFxrbAUpH91nSZKEv8ZLST".to_string(),
+            "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n".to_string(),
+            None,
+            TransactionType::Transfer,
+            TransactionState::Confirmed,
+            "5000".to_string(),
+            Chain::Solana.as_asset_id(),
+            "19000000".to_string(),
+            Some("ck:262:operator:m:1787598390".to_string()),
+            None,
+            DateTime::from_timestamp(1787598395, 0).unwrap(),
         );
 
         assert_eq!(transaction, expected);

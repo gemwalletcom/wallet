@@ -2,6 +2,7 @@
 
 import Components
 import Formatters
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
@@ -20,13 +21,17 @@ public struct TotalValueViewModel {
     }
 
     public var pnlAmountText: String? {
-        guard totalValue.pnlAmount != 0 else { return nil }
+        guard showsPnl else { return nil }
         return PriceChangeViewModel(value: totalValue.pnlAmount, currencyFormatter: currencyFormatter).text
     }
 
     public var pnlPercentageText: String? {
-        guard totalValue.pnlAmount != 0 else { return nil }
+        guard showsPnl else { return nil }
         return PercentFormatter.unsigned.string(totalValue.pnlPercentage)
+    }
+
+    private var showsPnl: Bool {
+        totalValue.showsPnl
     }
 
     public var pnlColor: Color {

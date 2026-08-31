@@ -58,8 +58,8 @@ android {
         applicationId = "com.gemwallet.android"
         minSdk = 28
         targetSdk = 37
-        versionCode = 823
-        versionName = "2.114.10"
+        versionCode = 824
+        versionName = "2.114.11"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -204,7 +204,7 @@ android {
 dependencies {
     implementation(project(":blockchain"))
     implementation(project(":ui"))
-    implementation(project(":data:repositories"))
+    implementation(project(":data:services:gemstone"))
     implementation(project(":data:coordinators"))
 
     // Features

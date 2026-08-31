@@ -5,16 +5,16 @@ import Primitives
 
 public extension WalletConnectionSession {
     static func mock(
-        id: String = .empty,
+        id: String? = .none,
         sessionId: String = .empty,
         state: WalletConnectionState = .active,
         chains: [Chain] = [.ethereum],
         createdAt: Date = .now,
         expireAt: Date = .distantFuture,
-        metadata: WalletConnectionSessionAppMetadata = .mock(),
+        metadata: ApplicationMetadata = .mock(),
     ) -> WalletConnectionSession {
         WalletConnectionSession(
-            id: id,
+            id: id ?? sessionId,
             sessionId: sessionId,
             state: state,
             chains: chains,
@@ -25,18 +25,20 @@ public extension WalletConnectionSession {
     }
 }
 
-public extension WalletConnectionSessionAppMetadata {
+public extension ApplicationMetadata {
     static func mock(
         name: String = "",
         description: String = "",
         url: String = "",
         icon: String = "",
-    ) -> WalletConnectionSessionAppMetadata {
-        WalletConnectionSessionAppMetadata(
+        source: ApplicationMetadataSource = .walletConnect,
+    ) -> ApplicationMetadata {
+        ApplicationMetadata(
             name: name,
             description: description,
             url: url,
             icon: icon,
+            source: source,
         )
     }
 }

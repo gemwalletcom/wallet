@@ -1,8 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import Assets
+import GemstonePrimitivesTestKit
 import AssetsTestKit
-import BalanceServiceTestKit
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -48,12 +49,12 @@ struct SelectAssetViewModelTests {
     @Test
     func toggleFlowEnablesAssets() async {
         await confirmation { enabledAssets in
-            let enabler: AssetsEnablerMock = .mock(onEnableAssets: { _, assetIds, enabled in
-                #expect(assetIds == [.mock()])
+            let enabler: GemBalanceServiceMock = .mock(onSetAssetsEnabled: { _, assetIds, enabled in
+                #expect(assetIds == [AssetId.mock().identifier])
                 #expect(enabled == true)
                 enabledAssets()
             })
-            await SelectAssetViewModel.mock(selectType: .manage, assetsEnabler: enabler)
+            await SelectAssetViewModel.mock(selectType: .manage, balanceService: enabler)
                 .handleAction(assetId: .mock(), enabled: true)
         }
     }
@@ -61,8 +62,8 @@ struct SelectAssetViewModelTests {
     @Test
     func nonToggleFlowNeverEnablesAssets() async {
         await confirmation(expectedCount: 0) { enabledAssets in
-            let enabler: AssetsEnablerMock = .mock(onEnableAssets: { _, _, _ in enabledAssets() })
-            await SelectAssetViewModel.mock(selectType: .receive(.asset), assetsEnabler: enabler)
+            let enabler: GemBalanceServiceMock = .mock(onSetAssetsEnabled: { _, _, _ in enabledAssets() })
+            await SelectAssetViewModel.mock(selectType: .receive(.asset), balanceService: enabler)
                 .handleAction(assetId: .mock(), enabled: true)
         }
     }

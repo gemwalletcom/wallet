@@ -15,9 +15,6 @@ import com.wallet.core.primitives.StakeChain
 val Asset.chain: Chain
     get() = id.chain
 
-val Asset.isStakeable: Boolean
-    get() = id.type() == AssetSubtype.NATIVE && StakeChain.isStaked(id.chain) && id.chain != Chain.Tron
-
 val Asset.title: String
     get() = "${id.chain.asset().name} (${symbol})"
 

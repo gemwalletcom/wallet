@@ -4,14 +4,15 @@ mod preferences;
 
 pub use chain_factory::ChainClientFactory;
 pub use error::GatewayError;
-use error::map_network_error;
+pub(crate) use error::map_network_error;
 #[cfg(test)]
 pub use preferences::EmptyPreferences;
-pub use preferences::GemPreferences;
-pub(crate) use preferences::PreferencesWrapper;
+pub(crate) use preferences::{PreferencesWrapper, SecureStoreWrapper};
+
+use crate::services::chain::rules as chain_rules;
+use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
 
 use crate::alien::{AlienProvider, AlienProviderWrapper, coalescing_provider};
-use crate::api_client::GemApiClient;
 use crate::models::*;
 use crate::transaction_state::StatusProvider;
 use chain_traits::ChainTraits;
@@ -20,11 +21,11 @@ use std::sync::Arc;
 use swapper::swapper::GemSwapper as Swapper;
 use yielder::Yielder;
 
-use primitives::{AssetId, Chain, ChartPeriod, ScanAddressTarget, ScanTransactionPayload, TransactionPreloadInput};
+use primitives::perpetual::{PerpetualData, PerpetualPositionsSummary};
+use primitives::{AssetBalance, AssetId, Chain, ChartPeriod, Transaction, TransactionUpdate};
 
 #[derive(uniffi::Object)]
 pub struct GemGateway {
-    pub api_client: GemApiClient,
     chain_factory: Arc<ChainClientFactory>,
     yielder: Yielder,
     status_provider: StatusProvider,
@@ -32,51 +33,75 @@ pub struct GemGateway {
 
 impl std::fmt::Debug for GemGateway {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("GemGateway").field("api_client", &self.api_client).finish()
+        f.debug_struct("GemGateway").finish()
     }
 }
 
 impl GemGateway {
+    pub async fn get_positions(&self, chain: Chain, address: String) -> Result<PerpetualPositionsSummary, GatewayError> {
+        self.with_provider(chain, |provider| async move { provider.get_positions(address).await }).await
+    }
+
+    pub async fn get_perpetuals_data(&self, chain: Chain) -> Result<Vec<PerpetualData>, GatewayError> {
+        self.with_provider(chain, |provider| async move { provider.get_perpetuals_data().await }).await
+    }
+
+    pub async fn get_balance_coin(&self, chain: Chain, address: String) -> Result<AssetBalance, GatewayError> {
+        self.with_provider(chain, |provider| async move { provider.get_balance_coin(address).await }).await
+    }
+
+    pub async fn get_balance_tokens(&self, chain: Chain, address: String, token_ids: Vec<String>) -> Result<Vec<AssetBalance>, GatewayError> {
+        self.with_provider(chain, |provider| async move { provider.get_balance_tokens(address, token_ids).await })
+            .await
+    }
+
+    pub async fn get_balance_staking(&self, chain: Chain, address: String) -> Result<Option<AssetBalance>, GatewayError> {
+        self.with_provider(chain, |provider| async move { provider.get_balance_staking(address).await }).await
+    }
+
+    pub async fn get_balance_earn(&self, chain: Chain, address: String, token_ids: Vec<String>) -> Result<Vec<AssetBalance>, GatewayError> {
+        Ok(self.yielder.get_balance(chain, &address, &token_ids).await)
+    }
+
+    pub async fn get_transaction_update(&self, transaction: Transaction) -> Result<TransactionUpdate, GatewayError> {
+        Ok(self.status_provider.get_update(&transaction).await?)
+    }
+
     async fn with_provider<T, F, Fut>(&self, chain: Chain, call: F) -> Result<T, GatewayError>
     where
         F: FnOnce(Arc<dyn ChainTraits>) -> Fut,
         Fut: Future<Output = Result<T, Box<dyn std::error::Error + Send + Sync>>>,
     {
         let provider = self.chain_factory.create(chain).await?;
-        call(provider).await.map_err(|e| GatewayError::NetworkError { msg: e.to_string() })
+        call(provider).await.map_err(map_network_error)
+    }
+    pub fn get_earn_providers(&self, asset_id: AssetId) -> Vec<GemDelegationValidator> {
+        self.yielder.get_providers(&asset_id)
+    }
+
+    pub async fn get_earn_positions(&self, address: String, asset_id: AssetId) -> Result<Vec<GemDelegationBase>, GatewayError> {
+        self.yielder
+            .get_positions(&address, &asset_id)
+            .await
+            .map_err(|e| GatewayError::NetworkError { msg: e.to_string() })
     }
 }
 
 #[uniffi::export]
 impl GemGateway {
     #[uniffi::constructor]
-    pub fn new(provider: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferences>, secure_preferences: Arc<dyn GemPreferences>, api_url: String) -> Self {
+    pub fn new(provider: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferencesStore>, secure_preferences: Arc<dyn GemSecureStore>) -> Self {
         let provider = coalescing_provider(provider);
-        let api_client = GemApiClient::new(api_url, provider.clone());
         let chain_factory = Arc::new(ChainClientFactory::new(provider.clone(), preferences, secure_preferences));
         let alien_wrapper = Arc::new(AlienProviderWrapper::new(provider));
         let yielder = Yielder::new(alien_wrapper.clone());
         let swapper = Swapper::new(alien_wrapper);
         let status_provider = StatusProvider::new(chain_factory.clone(), swapper);
         Self {
-            api_client,
             chain_factory,
             yielder,
             status_provider,
         }
-    }
-
-    pub async fn get_balance_coin(&self, chain: Chain, address: String) -> Result<GemAssetBalance, GatewayError> {
-        self.with_provider(chain, |provider| async move { provider.get_balance_coin(address).await }).await
-    }
-
-    pub async fn get_balance_tokens(&self, chain: Chain, address: String, token_ids: Vec<String>) -> Result<Vec<GemAssetBalance>, GatewayError> {
-        self.with_provider(chain, |provider| async move { provider.get_balance_tokens(address, token_ids).await })
-            .await
-    }
-
-    pub async fn get_balance_staking(&self, chain: Chain, address: String) -> Result<Option<GemAssetBalance>, GatewayError> {
-        self.with_provider(chain, |provider| async move { provider.get_balance_staking(address).await }).await
     }
 
     pub async fn get_staking_validators(&self, chain: Chain, apy: Option<f64>) -> Result<Vec<GemDelegationValidator>, GatewayError> {
@@ -95,14 +120,6 @@ impl GemGateway {
     pub async fn transaction_broadcast(&self, chain: Chain, data: String, options: GemBroadcastOptions) -> Result<String, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.transaction_broadcast(data, options).await })
             .await
-    }
-
-    pub async fn get_transaction_status(&self, chain: Chain, request: GemTransactionStateRequest) -> Result<GemTransactionUpdate, GatewayError> {
-        Ok(self.status_provider.get(chain, request).await?)
-    }
-
-    pub async fn get_transaction_swap_status(&self, chain: Chain, request: GemTransactionSwapStateRequest) -> Result<GemTransactionUpdate, GatewayError> {
-        Ok(self.status_provider.get_swap_status(chain, request).await?)
     }
 
     pub async fn get_chain_id(&self, chain: Chain) -> Result<String, GatewayError> {
@@ -132,29 +149,6 @@ impl GemGateway {
         Ok(metadata)
     }
 
-    pub async fn get_transaction_scan(&self, _chain: Chain, input: GemTransactionPreloadInput) -> Result<Option<GemScanTransaction>, GatewayError> {
-        let preload_input: TransactionPreloadInput = input.into();
-
-        let Some(scan_type) = preload_input.scan_type() else {
-            return Ok(None);
-        };
-
-        let payload = ScanTransactionPayload {
-            origin: ScanAddressTarget {
-                asset_id: preload_input.input_type.get_asset().id.clone(),
-                address: preload_input.sender_address.clone(),
-            },
-            target: ScanAddressTarget {
-                asset_id: preload_input.input_type.get_recipient_asset().id.clone(),
-                address: preload_input.destination_address.clone(),
-            },
-            website: preload_input.get_website(),
-            transaction_type: scan_type,
-        };
-
-        self.api_client.scan_transaction(payload).await.map(Some).map_err(|e| GatewayError::NetworkError { msg: e })
-    }
-
     pub async fn get_transaction_load(&self, chain: Chain, input: GemTransactionLoadInput) -> Result<GemTransactionData, GatewayError> {
         let load_data = self
             .with_provider(chain, |chain_provider| async move { chain_provider.get_transaction_load(input.into()).await })
@@ -166,26 +160,20 @@ impl GemGateway {
         })
     }
 
-    pub async fn get_positions(&self, chain: Chain, address: String) -> Result<GemPerpetualPositionsSummary, GatewayError> {
-        self.with_provider(chain, |provider| async move { provider.get_positions(address).await }).await
-    }
-
     pub async fn get_perpetual_account_mode(&self, chain: Chain, address: String) -> Result<GemPerpetualAccountMode, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.get_perpetual_account_mode(address).await })
             .await
     }
 
-    pub async fn get_perpetuals_data(&self, chain: Chain) -> Result<Vec<GemPerpetualData>, GatewayError> {
-        self.with_provider(chain, |provider| async move { provider.get_perpetuals_data().await }).await
-    }
-
     pub async fn get_perpetual_candlesticks(&self, chain: Chain, symbol: String, period: String) -> Result<Vec<GemChartCandleStick>, GatewayError> {
-        let chart_period = ChartPeriod::new(period).unwrap();
+        let chart_period = ChartPeriod::new(period.clone()).ok_or(GatewayError::PlatformError {
+            msg: format!("Unknown chart period: {}", period),
+        })?;
         self.with_provider(chain, |provider| async move { provider.get_perpetual_candlesticks(symbol, chart_period).await })
             .await
     }
 
-    pub async fn get_perpetual_portfolio(&self, chain: Chain, address: String) -> Result<GemPerpetualPortfolio, GatewayError> {
+    pub async fn get_perpetual_portfolio(&self, chain: Chain, address: String) -> Result<primitives::portfolio::PerpetualPortfolio, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.get_perpetual_portfolio(address).await }).await
     }
 
@@ -197,10 +185,6 @@ impl GemGateway {
         Ok(self.chain_factory.create(chain).await?.get_is_token_address(&token_id))
     }
 
-    pub async fn get_balance_earn(&self, chain: Chain, address: String, token_ids: Vec<String>) -> Result<Vec<GemAssetBalance>, GatewayError> {
-        Ok(self.yielder.get_balance(chain, &address, &token_ids).await)
-    }
-
     pub async fn get_earn_data(&self, asset_id: AssetId, address: String, value: String, earn_type: GemEarnType) -> Result<GemContractCallData, GatewayError> {
         self.yielder
             .get_data(&asset_id, &address, &value, &earn_type)
@@ -208,17 +192,20 @@ impl GemGateway {
             .map_err(|e| GatewayError::NetworkError { msg: e.to_string() })
     }
 
-    pub fn get_earn_providers(&self, asset_id: AssetId) -> Vec<GemDelegationValidator> {
-        self.yielder.get_providers(&asset_id)
-    }
-
-    pub async fn get_earn_positions(&self, address: String, asset_id: AssetId) -> Vec<GemDelegationBase> {
-        self.yielder.get_positions(&address, &asset_id).await
-    }
-
     pub async fn get_node_status(&self, chain: Chain, url: &str) -> Result<GemNodeStatus, GatewayError> {
         let provider = self.chain_factory.create_with_url(chain, url.to_string()).await?;
         provider.get_nodes_status().await.map_err(map_network_error)
+    }
+
+    pub async fn check_node(&self, chain: Chain, url: &str) -> Result<GemNodeStatus, GatewayError> {
+        let status = self.get_node_status(chain, url).await?;
+        if !chain_rules::is_valid_network_id(chain, &status.chain_id) {
+            return Err(GatewayError::NetworkIdMismatch {
+                chain: chain.to_string(),
+                network_id: status.chain_id,
+            });
+        }
+        Ok(status)
     }
 }
 
@@ -230,15 +217,16 @@ mod tests {
     #[test]
     fn test_get_node_status_http_404_error() {
         let provider: Arc<dyn AlienProvider> = Arc::new(TestAlienProvider::with_status(404));
-        let preferences: Arc<dyn GemPreferences> = Arc::new(EmptyPreferences {});
-        let gateway = GemGateway::new(provider, preferences.clone(), preferences.clone(), "https://example.invalid".to_string());
+        let preferences: Arc<dyn GemPreferencesStore> = Arc::new(EmptyPreferences {});
+        let secure: Arc<dyn GemSecureStore> = Arc::new(EmptyPreferences {});
+        let gateway = GemGateway::new(provider, preferences.clone(), secure);
 
         let result = futures::executor::block_on(gateway.get_node_status(Chain::Bitcoin, "https://httpbin.org/status/404"));
 
         match result {
             Ok(status) => panic!("expected network error for 404 response, got {:?}", status),
             Err(GatewayError::NetworkError { msg }) => assert_eq!(msg, "HTTP error: status 404"),
-            Err(GatewayError::PlatformError { .. }) => panic!("expected NetworkError, got PlatformError"),
+            Err(error) => panic!("expected NetworkError, got {error:?}"),
         }
     }
 }

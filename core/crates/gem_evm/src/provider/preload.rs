@@ -1,10 +1,10 @@
 use crate::constants::{DEFAULT_SWAP_GAS_LIMIT, TOKEN_TRANSFER_GAS_LIMIT, TRANSFER_GAS_LIMIT};
 use crate::fee_calculator::{get_fee_history_blocks, get_reward_percentiles};
 use crate::provider::preload_mapper::{
-    TransactionParams, bigint_to_hex_string, bytes_to_hex_string, calculate_gas_limit_with_increase, get_extra_fee_gas_limit, get_transaction_params, map_transaction_fee_rates,
+    bigint_to_hex_string, bytes_to_hex_string, calculate_gas_limit_with_increase, get_extra_fee_gas_limit, get_transaction_params, map_transaction_fee_rates,
     map_transaction_preload,
 };
-use crate::rpc::{EthereumClient, EthereumProvider, EvmFeeCalculator};
+use crate::rpc::EthereumProvider;
 #[cfg(feature = "rpc")]
 use async_trait::async_trait;
 #[cfg(feature = "rpc")]
@@ -54,7 +54,10 @@ impl<C: Client + Clone> ChainTransactionLoad for EthereumProvider<C> {
 #[cfg(feature = "rpc")]
 impl<C: Client + Clone> EthereumProvider<C> {
     pub async fn map_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
-        let params = get_transaction_params(self.chain, &input)?;
+        let params = match &input.input_type {
+            TransactionInputType::Stake(_, stake_type) => self.provider.encode_stake(stake_type, &input.value_as_bigint()?)?,
+            _ => get_transaction_params(self.chain, &input)?,
+        };
 
         let gas_estimate = {
             let estimate = self
@@ -68,7 +71,7 @@ impl<C: Client + Clone> EthereumProvider<C> {
             bigint_from_hex_str(&estimate)?
         };
         let gas_limit = calculate_gas_limit_with_increase(gas_estimate);
-        let fee = self.fee_calculator.calculate_fee(&input, &params, &gas_limit).await?;
+        let fee = self.provider.calculate_fee(&input, &params, &gas_limit).await?;
 
         let metadata = if let TransactionInputType::Stake(_, _) = &input.input_type {
             match input.metadata {
@@ -93,14 +96,6 @@ impl<C: Client + Clone> EthereumProvider<C> {
 }
 
 #[cfg(feature = "rpc")]
-#[async_trait]
-impl<C: Client + Clone> EvmFeeCalculator for EthereumClient<C> {
-    async fn calculate_fee(&self, input: &TransactionLoadInput, _params: &TransactionParams, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
-        calculate_fee(input, gas_limit)
-    }
-}
-
-#[cfg(feature = "rpc")]
 pub fn calculate_fee(input: &TransactionLoadInput, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
     let fee_gas_limit = gas_limit + get_extra_fee_gas_limit(input)?;
     let fee = input.gas_price.total_fee() * fee_gas_limit;
@@ -110,7 +105,7 @@ pub fn calculate_fee(input: &TransactionLoadInput, gas_limit: &BigInt) -> Result
         fee,
         gas_limit.clone(),
         HashMap::new(),
-        AssetId::from_chain(input.input_type.get_asset().chain),
+        AssetId::from_chain(input.input_type.get_asset().chain()),
     ))
 }
 
@@ -149,6 +144,7 @@ mod chain_integration_tests {
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Ethereum)),
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
+            references: vec![],
         };
 
         let metadata = client.get_transaction_preload(input).await?;
@@ -168,6 +164,7 @@ mod chain_integration_tests {
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::SmartChain)),
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
+            references: vec![],
         };
 
         let metadata = client.get_transaction_preload(input).await?;
@@ -245,6 +242,7 @@ mod chain_integration_tests {
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Ethereum)),
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
+            references: vec![],
         };
         let metadata = client.get_transaction_preload(preload_input.clone()).await?;
 
@@ -285,6 +283,7 @@ mod chain_integration_tests {
             input_type: TransactionInputType::Transfer(Asset::mock_erc20()),
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
+            references: vec![],
         };
         let metadata = client.get_transaction_preload(preload_input.clone()).await?;
 

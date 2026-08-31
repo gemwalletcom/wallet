@@ -1,276 +1,87 @@
 package com.gemwallet.android.features.bridge.viewmodels.model
 
-import com.gemwallet.android.ext.asset
+import uniffi.gemstone.GemApplicationMetadataService
+import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
 import com.gemwallet.android.ext.getShortUrl
 import com.gemwallet.android.ext.shortName
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.math.hexToBigInteger
-import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.domains.confirm.toGenericParams
 import com.gemwallet.android.model.ConfirmParams.TransferParams.Generic
-import com.gemwallet.android.model.DestinationAddress
-import com.gemwallet.android.model.toModel
+import com.gemwallet.android.serializer.decodeJsonOrNull
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
-import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionRequest
+import uniffi.gemstone.GemExplorerService
 import com.wallet.core.primitives.Account
+import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.WalletConnectionSessionAppMetadata
-import uniffi.gemstone.MessageSigner
-import com.gemwallet.android.blockchain.services.GemSignMessageOperator
-import com.gemwallet.android.blockchain.gemstone.toGem
-import com.gemwallet.android.blockchain.gemstone.toPrimitives
+import com.wallet.core.primitives.SimulationPayloadField
 import com.wallet.core.primitives.SimulationResult
 import com.wallet.core.primitives.SimulationWarning
-import com.wallet.core.primitives.TransactionType
-import com.wallet.core.primitives.swap.ApprovalData
-import uniffi.gemstone.EvmTransactionKind
-import uniffi.gemstone.TransferDataOutputType
-import uniffi.gemstone.WalletConnect
-import uniffi.gemstone.WalletConnectAction
-import uniffi.gemstone.WalletConnectResponseType
-import uniffi.gemstone.WalletConnectTransaction
-import uniffi.gemstone.WalletConnectTransactionType
-import java.math.BigInteger
+import com.wallet.core.primitives.Wallet
+import com.wallet.core.primitives.TransferDataOutputAction
+import uniffi.gemstone.MessageSigner
 
 sealed class WCRequest(
-    internal val sessionRequest: WalletConnectSessionRequest,
-    internal val account: Account,
-    private val appMetadata: WalletConnectionSessionAppMetadata,
+    internal val pending: WalletConnectPendingRequest,
+    private val applicationMetadataService: GemApplicationMetadataService,
 ) {
-    internal val walletConnect = WalletConnect()
-
-    val requestId: Long get() = sessionRequest.request.id
-
-    val topic: String get() = sessionRequest.topic
-
-    val name: String get() = appMetadata.shortName
+    val wallet: Wallet get() = pending.wallet
+    val account: Account get() = pending.account
+    val appMetadata: ApplicationMetadata get() = pending.appMetadata
+    val simulation: SimulationResult get() = pending.simulation
+    val name: String get() = appMetadata.shortName(applicationMetadataService)
     val icon: String get() = appMetadata.icon
     val description: String get() = appMetadata.description
     val url: String get() = appMetadata.url
     val uri: String get() = url.getShortUrl() ?: url
+    val chain: Chain get() = pending.chain
 
-    val chain: Chain get() = account.chain
+    fun approve(result: String) = pending.approve(result)
+
+    fun reject() = pending.reject()
 
     class SignMessage(
-        sessionRequest: WalletConnectSessionRequest,
-        account: Account,
-        appMetadata: WalletConnectionSessionAppMetadata,
-        val action: WalletConnectAction.SignMessage,
-        val simulation: SimulationResult,
-        private val explorerName: String?,
-    ) : WCRequest(sessionRequest, account, appMetadata), WalletConnectReviewModel {
-
-        private val signer by lazy {
-            runCatching {
-                MessageSigner(walletConnect.decodeSignMessage(action.chain, action.signType, action.data))
-            }
-        }
+        private val request: WalletConnectPendingRequest.SignMessage,
+        private val explorerService: GemExplorerService?,
+        applicationMetadataService: GemApplicationMetadataService,
+    ) : WCRequest(request, applicationMetadataService), WalletConnectReviewModel {
+        val signer: MessageSigner by lazy { MessageSigner(request.message) }
 
         private val payloadPreview by lazy {
-            signer.getOrNull()?.let { signer ->
-                runCatching { signer.payloadPreview(simulation.payload.map { it.toGem() }) }.getOrNull()
-            }
+            runCatching { signer.payloadPreview(simulation.payload.map { it.toJson() }) }.getOrNull()
         }
 
         override val message: String
-            get() = signer.getOrNull()?.plainPreview() ?: action.data
+            get() = runCatching { signer.plainPreview() }.getOrNull() ?: request.message.data.joinToString(separator = "", prefix = "0x") { "%02x".format(it) }
 
         override val warnings: List<SimulationWarning>
             get() = simulation.warnings
 
         override val primaryPayloadFields: List<PayloadField> by lazy {
             payloadPreview?.primary
-                ?.map { it.toPrimitives() }
+                ?.mapNotNull { it.decodeJsonOrNull<SimulationPayloadField>() }
                 .orEmpty()
-                .withExplorerLinks(chain, explorerName)
+                .withExplorerLinks(chain, explorerService)
         }
 
         override val secondaryPayloadFields: List<PayloadField> by lazy {
             payloadPreview?.secondary
-                ?.map { it.toPrimitives() }
+                ?.mapNotNull { it.decodeJsonOrNull<SimulationPayloadField>() }
                 .orEmpty()
-                .withExplorerLinks(chain, explorerName)
-        }
-
-        suspend fun execute(
-            signMessageOperator: GemSignMessageOperator,
-            wallet: com.wallet.core.primitives.Wallet,
-            password: String,
-        ): String {
-            val signature = signMessageOperator.sign(signer.getOrThrow(), wallet, password)
-            return walletConnect.encodeSignMessage(chain.string, signature).payload()
+                .withExplorerLinks(chain, explorerService)
         }
     }
 
-    abstract class Transaction(
-        sessionRequest: WalletConnectSessionRequest,
-        account: Account,
-        appMetadata: WalletConnectionSessionAppMetadata,
-        val isSendable: Boolean,
-        val inputType: ConfirmParams.TransferParams.InputType,
-        val transactionType: WalletConnectTransactionType,
-        val data: String,
-        val simulation: SimulationResult,
-    ) : WCRequest(sessionRequest, account, appMetadata) {
+    class Transaction(
+        private val request: WalletConnectPendingRequest.Transaction,
+        applicationMetadataService: GemApplicationMetadataService,
+    ) : WCRequest(request, applicationMetadataService) {
+        val isSendable: Boolean get() = request.isSendable
 
-        open val confirmParams: Generic
-            get() = walletConnect.decodeSendTransaction(transactionType, data).map(this, isSendable)
+        val outputAction: TransferDataOutputAction
+            get() = if (isSendable) TransferDataOutputAction.Send else TransferDataOutputAction.Sign
 
-        abstract fun execute(result: String): String
-
-        abstract class Signing(
-            sessionRequest: WalletConnectSessionRequest,
-            account: Account,
-            appMetadata: WalletConnectionSessionAppMetadata,
-            transactionType: WalletConnectTransactionType,
-            data: String,
-            simulation: SimulationResult,
-        ) : Transaction(
-            sessionRequest = sessionRequest,
-            account = account,
-            appMetadata = appMetadata,
-            isSendable = false,
-            inputType = ConfirmParams.TransferParams.InputType.Signature,
-            transactionType = transactionType,
-            data = data,
-            simulation = simulation,
-        )
-
-        class SignTransaction(
-            sessionRequest: WalletConnectSessionRequest,
-            account: Account,
-            appMetadata: WalletConnectionSessionAppMetadata,
-            val action: WalletConnectAction.SignTransaction,
-            simulation: SimulationResult,
-        ) : Signing(
-            sessionRequest = sessionRequest,
-            account = account,
-            appMetadata = appMetadata,
-            transactionType = action.transactionType,
-            data = action.data,
-            simulation = simulation,
-        ) {
-
-            override fun execute(result: String): String =
-                walletConnect.encodeSignTransaction(action.chain, result).payload()
-        }
-
-        class SignAllTransactions(
-            sessionRequest: WalletConnectSessionRequest,
-            account: Account,
-            appMetadata: WalletConnectionSessionAppMetadata,
-            transactionType: WalletConnectTransactionType,
-            data: String,
-            simulation: SimulationResult,
-        ) : Signing(
-            sessionRequest = sessionRequest,
-            account = account,
-            appMetadata = appMetadata,
-            transactionType = transactionType,
-            data = data,
-            simulation = simulation,
-        ) {
-
-            override fun execute(result: String): String =
-                walletConnect.encodeSignAllTransactions(listOf(result)).payload()
-        }
-
-        class SendTransaction(
-            sessionRequest: WalletConnectSessionRequest,
-            account: Account,
-            appMetadata: WalletConnectionSessionAppMetadata,
-            val action: WalletConnectAction.SendTransaction,
-            simulation: SimulationResult,
-        ) : Transaction(
-            sessionRequest = sessionRequest,
-            account = account,
-            appMetadata = appMetadata,
-            isSendable = true,
-            inputType = ConfirmParams.TransferParams.InputType.EncodeTransaction,
-            transactionType = action.transactionType,
-            data = action.data,
-            simulation = simulation,
-        ) {
-
-            override fun execute(result: String): String =
-                walletConnect.encodeSendTransaction(action.chain, result).payload()
-        }
+        val confirmParams: Generic
+            get() = request.transfer.toGenericParams(account)
     }
 }
-
-internal fun WalletConnectResponseType.payload(): String = when (this) {
-    is WalletConnectResponseType.Object -> json
-    is WalletConnectResponseType.String -> value
-}
-
-private fun WalletConnectTransaction.map(
-    request: WCRequest.Transaction,
-    isSendable: Boolean,
-): Generic {
-    return when (this) {
-        is WalletConnectTransaction.Ethereum -> Generic(
-            requestId = request.requestId.toString(),
-            asset = request.chain.asset(),
-            from = request.account,
-            memo = data.data,
-            name = request.name,
-            description = request.description,
-            url = request.url,
-            icon = request.icon,
-            gasLimit = data.gasLimit,
-            inputType = request.inputType,
-            destination = DestinationAddress(data.to),
-            amount = data.value?.hexToBigInteger() ?: BigInteger.ZERO,
-            isSendable = isSendable,
-            decodedTransactionType = kind.transactionType,
-            approval = kind.approvalData,
-        )
-        is WalletConnectTransaction.Solana ->
-            buildEncodedTransactionParams(request, data.transaction, outputType, isSendable)
-        is WalletConnectTransaction.Sui ->
-            buildEncodedTransactionParams(request, data.transaction, outputType, isSendable)
-        is WalletConnectTransaction.Ton ->
-            buildEncodedTransactionParams(request, data, outputType, isSendable)
-        is WalletConnectTransaction.Tron ->
-            buildEncodedTransactionParams(request, data, outputType, isSendable)
-    }
-}
-
-private val EvmTransactionKind.transactionType: TransactionType
-    get() = when (this) {
-        EvmTransactionKind.Transfer -> TransactionType.Transfer
-        EvmTransactionKind.ContractCall -> TransactionType.SmartContractCall
-        is EvmTransactionKind.TokenApproval -> TransactionType.TokenApproval
-    }
-
-private val EvmTransactionKind.approvalData: ApprovalData?
-    get() = when (this) {
-        EvmTransactionKind.Transfer,
-        EvmTransactionKind.ContractCall,
-        -> null
-        is EvmTransactionKind.TokenApproval -> approval.toModel()
-    }
-
-private fun buildEncodedTransactionParams(
-    request: WCRequest.Transaction,
-    encodedTransaction: String,
-    outputType: TransferDataOutputType,
-    isSendable: Boolean,
-): Generic = Generic(
-    requestId = request.requestId.toString(),
-    asset = request.chain.asset(),
-    from = request.account,
-    memo = encodedTransaction,
-    name = request.name,
-    description = request.description,
-    url = request.url,
-    icon = request.icon,
-    gasLimit = "",
-    inputType = when (outputType) {
-        TransferDataOutputType.ENCODED_TRANSACTION -> ConfirmParams.TransferParams.InputType.EncodeTransaction
-        TransferDataOutputType.SIGNATURE -> ConfirmParams.TransferParams.InputType.Signature
-    },
-    destination = DestinationAddress(""),
-    amount = BigInteger.ZERO,
-    isSendable = isSendable,
-)

@@ -71,13 +71,11 @@ impl AssetPriceMetadata {
     }
 }
 
-#[typeshare(swift = "Sendable")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AssetMarketPrice {
     pub price: Option<Price>,
     pub market: Option<AssetMarket>,
-    #[typeshare(skip)]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prices: Option<Vec<Price>>,
 }

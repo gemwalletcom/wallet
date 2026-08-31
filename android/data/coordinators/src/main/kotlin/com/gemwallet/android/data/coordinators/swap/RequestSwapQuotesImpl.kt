@@ -1,12 +1,13 @@
 package com.gemwallet.android.data.coordinators.swap
 
-import com.gemwallet.android.application.swap.coordinators.GetSwapQuotes
-import com.gemwallet.android.application.swap.coordinators.RequestSwapQuotes
-import com.gemwallet.android.application.swap.coordinators.RequestSwapQuotes.Companion.QUOTE_DEBOUNCE_MS
-import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestKey
-import com.gemwallet.android.application.swap.coordinators.SwapQuoteRequestParams
-import com.gemwallet.android.application.swap.coordinators.SwapQuotesResult
+import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
+import com.gemwallet.android.application.swap.cases.RequestSwapQuotes.Companion.QUOTE_DEBOUNCE_MS
+import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
+import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
+import com.gemwallet.android.application.swap.cases.SwapQuotesResult
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.serializer.toJson
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,10 +22,12 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.isActive
+import uniffi.gemstone.GemSwapServiceInterface
 import java.math.BigInteger
 
 class RequestSwapQuotesImpl(
-    private val getSwapQuotes: GetSwapQuotes,
+    private val getSession: GetSession,
+    private val swapService: GemSwapServiceInterface,
 ) : RequestSwapQuotes {
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -50,7 +53,7 @@ class RequestSwapQuotesImpl(
                         while (currentCoroutineContext().isActive) {
                             delay(QUOTE_DEBOUNCE_MS)
                             onFetchStarted(params.key)
-                            val data = fetchQuotes(params)
+                            val data = requestQuotes(params)
                             emit(data)
                             if (data.err != null) {
                                 break
@@ -63,16 +66,14 @@ class RequestSwapQuotesImpl(
         .flowOn(Dispatchers.IO)
     }
 
-    private suspend fun fetchQuotes(params: SwapQuoteRequestParams): SwapQuotesResult = try {
-        val payOwner = checkNotNull(params.pay.owner) { "Swap pay asset has no account" }
-        val receiveOwner = checkNotNull(params.receive.owner) { "Swap receive asset has no account" }
+    private suspend fun requestQuotes(params: SwapQuoteRequestParams): SwapQuotesResult = try {
+        val wallet = checkNotNull(getSession().value?.wallet) { "Swap has no active wallet" }
         val amount = Crypto(params.value, params.pay.asset.decimals).atomicValue
-        val quotes = getSwapQuotes.getQuotes(
-            from = params.pay.asset,
-            to = params.receive.asset,
-            ownerAddress = payOwner.address,
-            destination = receiveOwner.address,
-            amount = amount.toString(),
+        val quotes = swapService.getQuotes(
+            wallet = wallet.toJson(),
+            fromAsset = params.pay.asset.toJson(),
+            toAsset = params.receive.asset.toJson(),
+            value = amount.toString(),
             useMaxAmount = BigInteger(params.pay.balance.balance.available) == amount,
             slippageBps = params.slippageBps,
         )

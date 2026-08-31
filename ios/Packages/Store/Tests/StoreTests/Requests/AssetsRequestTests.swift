@@ -179,12 +179,9 @@ struct AssetsRequestTests {
         try fiatRateStore.add([FiatRate(symbol: .usd, rate: 1)])
 
         let assets = [AssetBasic].mock()
-        try priceStore.updatePrices(
-            prices: assets.map {
-                .mock(assetId: $0.asset.id, price: 1, priceChangePercentage24h: 0)
-            },
-            currency: Currency.usd.rawValue,
-        )
+        try priceStore.updatePrices(assets.map {
+            .mock(assetId: $0.asset.id, price: 1, priceChangePercentage24h: 0)
+        })
 
         let query = "usdt"
         try searchStore.add(type: .asset, query: query, ids: assets.map(\.asset.id.identifier))
@@ -221,15 +218,7 @@ struct AssetsRequestTests {
 
         try fiatRateStore.add([FiatRate(symbol: .usd, rate: 1)])
 
-        try priceStore.updatePrice(
-            price: AssetPrice(
-                assetId: AssetId(chain: .tron),
-                price: 100,
-                priceChangePercentage24h: 100,
-                updatedAt: .now,
-            ),
-            currency: Currency.usd.rawValue,
-        )
+        try priceStore.updatePrices([.mock(assetId: AssetId(chain: .tron), price: 100, priceChangePercentage24h: 100)])
 
         try db.dbQueue.read { db in
             let assets = try AssetsRequest.mock().fetch(db)

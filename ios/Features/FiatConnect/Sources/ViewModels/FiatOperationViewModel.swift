@@ -4,7 +4,6 @@ import BigInt
 import Components
 import Formatters
 import Foundation
-import GemAPI
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -20,7 +19,7 @@ final class FiatOperationViewModel {
 
     var quotesState: StateViewType<FiatQuotes> = .loading
     var selectedQuote: FiatQuote?
-    var fetchTask: Task<Void, Never>?
+    var loadTask: Task<Void, Never>?
     var amount: String
     var loadingAmount: Double?
     var inputValidationModel: InputValidationViewModel
@@ -57,7 +56,7 @@ final class FiatOperationViewModel {
         inputValidationModel.text.isEmptyOrZero ? operation.emptyAmountTitle : Localized.Buy.noResults
     }
 
-    func fetch() {
+    func load() {
         guard let amount = Double(inputValidationModel.text), amount > 0 else {
             quotesState = .noData
             return
@@ -75,15 +74,15 @@ final class FiatOperationViewModel {
             return
         }
 
-        fetchTask?.cancel()
+        loadTask?.cancel()
         loadingAmount = amount
 
-        fetchTask = Task {
+        loadTask = Task {
             setLoadingState()
             selectedQuote = nil
 
             do {
-                let quotes = try await operation.fetch(amount: amount)
+                let quotes = try await operation.load(amount: amount)
                 try Task.checkCancellation()
 
                 if quotes.isNotEmpty {

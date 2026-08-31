@@ -6,7 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
-import com.gemwallet.android.cases.contacts.ContactRecipient
+import com.gemwallet.android.application.contacts.values.ContactRecipient
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Contact
 import com.wallet.core.primitives.ContactAddress

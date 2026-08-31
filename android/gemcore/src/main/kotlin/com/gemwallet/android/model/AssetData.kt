@@ -20,7 +20,7 @@ data class AssetData(
     val account: Account,
     val walletId: WalletId,
     val price: AssetPriceInfo? = null,
-    val metadata: AssetMetaData? = null,
+    val metadata: AssetMetaData,
     val associations: List<AssetAssociation> = emptyList(),
 ) {
     fun toAssetInfo(): AssetInfo = AssetInfo(

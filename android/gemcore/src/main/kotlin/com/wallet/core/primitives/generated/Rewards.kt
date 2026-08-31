@@ -62,26 +62,6 @@ data class ReferralCode (
 )
 
 @Serializable
-data class ReferralLeader (
-	val username: String,
-	val referrals: Int,
-	val points: Int
-)
-
-@Serializable
-data class ReferralLeaderboard (
-	val daily: List<ReferralLeader>,
-	val weekly: List<ReferralLeader>,
-	val monthly: List<ReferralLeader>
-)
-
-@Serializable
-data class RewardEvent (
-	val points: Int,
-	val createdAt: SerializedDate
-)
-
-@Serializable
 enum class RewardStatus(val string: String) {
 	@SerialName("unverified")
 	Unverified("unverified"),

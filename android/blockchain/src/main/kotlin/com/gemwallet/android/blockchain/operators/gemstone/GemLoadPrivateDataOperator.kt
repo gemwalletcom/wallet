@@ -1,7 +1,6 @@
 package com.gemwallet.android.blockchain.operators.gemstone
 
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
-import com.gemwallet.android.ext.keystoreId
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
 
@@ -14,9 +13,9 @@ class GemLoadPrivateDataOperator(
             if (wallet.type == WalletType.PrivateKey) {
                 val chain = wallet.accounts.firstOrNull()?.chain
                     ?: throw IllegalStateException("No accounts found for wallet ${wallet.id.id}")
-                keystore.exportPrivateKey(wallet.keystoreId, chain.string, passwordBytes)
+                keystore.exportPrivateKey(keystore.keystoreId(wallet.id.id), chain.string, passwordBytes)
             } else {
-                keystore.exportRecoveryPhrase(wallet.keystoreId, passwordBytes).joinToString(" ")
+                keystore.exportRecoveryPhrase(keystore.keystoreId(wallet.id.id), passwordBytes).joinToString(" ")
             }
         }
 }

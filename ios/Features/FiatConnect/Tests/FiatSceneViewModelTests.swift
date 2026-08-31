@@ -1,10 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BalanceServiceTestKit
+import GemstonePrimitivesTestKit
+import protocol Gemstone.GemFiatServiceProtocol
+import GemstoneServicesTestKit
 import BigInt
 @testable import FiatConnect
-import FiatService
-import FiatServiceTestKit
+import GemstoneServices
 import Formatters
 import Foundation
 import Primitives
@@ -15,7 +16,7 @@ import Testing
 @MainActor
 final class FiatSceneViewModelTests {
     private static func mock(
-        fiatService: FiatService = .mock(),
+        fiatService: any GemFiatServiceProtocol = GemFiatServiceMock(),
         currencyFormatter: CurrencyFormatter = .init(locale: Locale.US, currencyCode: Currency.usd.rawValue),
         assetAddress: AssetAddress = .mock(),
         wallet: Wallet = .mock(),
@@ -27,7 +28,7 @@ final class FiatSceneViewModelTests {
             currencyFormatter: currencyFormatter,
             assetAddress: assetAddress,
             wallet: wallet,
-            assetsEnabler: .mock(),
+            balanceService: .mock(),
             type: type,
             amount: amount,
         )
@@ -259,42 +260,42 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
-    func fetchTriggerOnChangeTypeIsImmediate() {
+    func loadTriggerOnChangeTypeIsImmediate() {
         let model = FiatSceneViewModelTests.mock()
 
         model.onChangeType(oldType: .buy, newType: .sell)
 
-        #expect(model.fetchTrigger.type == .sell)
-        #expect(model.fetchTrigger.isImmediate == true)
+        #expect(model.loadTrigger.type == .sell)
+        #expect(model.loadTrigger.isImmediate == true)
     }
 
     @Test
-    func fetchTriggerOnSelectAmountIsImmediate() {
+    func loadTriggerOnSelectAmountIsImmediate() {
         let model = FiatSceneViewModelTests.mock()
 
         model.onSelect(amount: 250)
 
-        #expect(model.fetchTrigger.amount == "250")
-        #expect(model.fetchTrigger.isImmediate == true)
+        #expect(model.loadTrigger.amount == "250")
+        #expect(model.loadTrigger.isImmediate == true)
     }
 
     @Test
-    func fetchTriggerOnChangeAmountTextIsDebounced() {
+    func loadTriggerOnChangeAmountTextIsDebounced() {
         let model = FiatSceneViewModelTests.mock()
 
         model.onChangeAmountText("", text: "123")
 
-        #expect(model.fetchTrigger.amount == "123")
-        #expect(model.fetchTrigger.isImmediate == false)
+        #expect(model.loadTrigger.amount == "123")
+        #expect(model.loadTrigger.isImmediate == false)
     }
 
     @Test
-    func fetchTriggerOnSelectRandomAmountIsImmediate() {
+    func loadTriggerOnSelectRandomAmountIsImmediate() {
         let model = FiatSceneViewModelTests.mock()
 
         model.onSelectRandomAmount()
 
-        #expect(model.fetchTrigger.isImmediate == true)
+        #expect(model.loadTrigger.isImmediate == true)
     }
 
     @Test
@@ -307,21 +308,21 @@ final class FiatSceneViewModelTests {
         #expect(model.buyViewModel.amount == "250")
         #expect(model.buyViewModel.inputValidationModel.text == "250")
         #expect(model.buyViewModel.quotesState.isLoading == true)
-        #expect(model.fetchTrigger.amount == "250")
-        #expect(model.fetchTrigger.isImmediate == true)
+        #expect(model.loadTrigger.amount == "250")
+        #expect(model.loadTrigger.isImmediate == true)
 
         model.onChangeAmountText("", text: "250")
 
-        #expect(model.fetchTrigger.amount == "250")
-        #expect(model.fetchTrigger.isImmediate == true)
+        #expect(model.loadTrigger.amount == "250")
+        #expect(model.loadTrigger.isImmediate == true)
     }
 
     @Test
-    func sellSceneUsesSellDefaultFetchTriggerAmount() {
+    func sellSceneUsesSellDefaultLoadTriggerAmount() {
         let model = FiatSceneViewModelTests.mock(type: .sell)
 
-        #expect(model.fetchTrigger.type == .sell)
-        #expect(model.fetchTrigger.amount == "100")
+        #expect(model.loadTrigger.type == .sell)
+        #expect(model.loadTrigger.amount == "100")
     }
 
     // MARK: - ShouldSkipFetch Tests

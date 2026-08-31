@@ -19,7 +19,6 @@ public enum EmptyContentType {
     case walletConnect
     case search(type: SearchType, action: (() -> Void)? = nil)
     case networkAssets(action: (() -> Void)? = nil)
-    case markets
     case recents
     case notifications
     case contacts

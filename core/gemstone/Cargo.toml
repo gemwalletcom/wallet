@@ -18,7 +18,9 @@ reqwest_provider = ["swapper/reqwest_provider"]
 swap_integration_tests = ["reqwest_provider"]
 
 [dependencies]
+rand = { workspace = true }
 swapper = { path = "../crates/swapper" }
+payment = { path = "../crates/payment" }
 primitives = { path = "../crates/primitives" }
 support = { path = "../crates/support", default-features = false }
 gem_cosmos = { path = "../crates/gem_cosmos", features = ["rpc", "signer"] }
@@ -27,11 +29,16 @@ gem_ton = { path = "../crates/gem_ton", features = ["rpc", "signer"] }
 gem_tron = { path = "../crates/gem_tron", features = ["rpc", "signer"] }
 gem_evm = { path = "../crates/gem_evm", features = ["rpc", "signer"] }
 gem_optimism = { path = "../crates/gem_optimism", features = ["rpc"] }
+gem_everstake = { path = "../crates/gem_everstake", features = ["rpc"] }
+gem_monad = { path = "../crates/gem_monad", features = ["rpc"] }
+gem_bsc = { path = "../crates/gem_bsc", features = ["rpc"] }
 gem_tempo = { path = "../crates/gem_tempo", features = ["rpc", "signer"] }
 simulation = { path = "../crates/simulation", features = ["rpc"] }
 gem_sui = { path = "../crates/gem_sui", features = ["rpc", "signer"] }
 gem_aptos = { path = "../crates/gem_aptos", features = ["rpc"] }
+gem_api = { path = "../crates/gem_api" }
 gem_auth = { path = "../crates/gem_auth" }
+gem_hash = { path = "../crates/gem_hash" }
 gem_jsonrpc = { path = "../crates/gem_jsonrpc", features = ["client"] }
 gem_client = { path = "../crates/gem_client" }
 gem_hypercore = { path = "../crates/gem_hypercore", features = ["signer"] }
@@ -58,11 +65,15 @@ base64 = { workspace = true }
 uniffi.workspace = true
 
 chrono = { workspace = true }
+uuid = { workspace = true }
 
+serde.workspace = true
 serde_json.workspace = true
 async-trait.workspace = true
 alloy-primitives.workspace = true
 hex.workspace = true
+strum = { workspace = true }
+url = { workspace = true }
 num-bigint.workspace = true
 futures.workspace = true
 bs58 = { workspace = true }

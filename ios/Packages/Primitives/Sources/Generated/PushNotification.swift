@@ -12,37 +12,12 @@ public struct PushNotificationAsset: Codable, Equatable, Sendable {
 	}
 }
 
-public enum PushNotificationTypes: String, Codable, Equatable, Sendable {
-	case test
-	case transaction
-	case asset
-	case priceAlert
-	case buyAsset
-	case swapAsset
-	case support
-	case rewards
-	case stake
-	case fiatTransaction
-}
-
-public struct PushNotificationPayloadType: Codable, Equatable, Sendable {
-	public let type: PushNotificationTypes
-
-	public init(type: PushNotificationTypes) {
-		self.type = type
-	}
-}
-
 public struct PushNotificationReward: Codable, Equatable, Sendable {
 	public let walletId: String
 
 	public init(walletId: String) {
 		self.walletId = walletId
 	}
-}
-
-public struct PushNotificationSupport: Codable, Equatable, Sendable {
-	public init() {}
 }
 
 public struct PushNotificationSwapAsset: Codable, Equatable, Sendable {
@@ -75,4 +50,17 @@ public struct PushNotificationWalletAsset: Codable, Equatable, Sendable {
 		self.walletId = walletId
 		self.assetId = assetId
 	}
+}
+
+public enum PushNotificationTypes: String, Codable, Equatable, Sendable {
+	case test
+	case transaction
+	case asset
+	case priceAlert
+	case buyAsset
+	case swapAsset
+	case support
+	case rewards
+	case stake
+	case fiatTransaction
 }

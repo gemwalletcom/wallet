@@ -25,7 +25,7 @@ let package = Package(
         .package(name: "Localization", path: "../../Packages/Localization"),
         .package(name: "Style", path: "../../Packages/Style"),
         .package(name: "Store", path: "../../Packages/Store"),
-        .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
+        .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
     ],
     targets: [
         .target(
@@ -37,7 +37,7 @@ let package = Package(
                 "Localization",
                 "Style",
                 "Store",
-                .product(name: "ActivityService", package: "FeatureServices"),
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
             ],
             path: "Sources",
         ),
@@ -46,7 +46,7 @@ let package = Package(
             dependencies: [
                 "Recents",
                 .product(name: "StoreTestKit", package: "Store"),
-                .product(name: "ActivityServiceTestKit", package: "FeatureServices"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
             ],
             path: "TestKit",
         ),

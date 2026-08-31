@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Components
 import Formatters
 import Foundation
@@ -101,8 +102,8 @@ public struct AssetDataViewModel: Sendable {
         balanceViewModel.availableBalanceTextWithSymbol
     }
 
-    public func balanceTextWithSymbol(for type: StakeProviderType) -> String {
-        balanceViewModel.balanceTextWithSymbol(for: type)
+    public func balanceTextWithSymbol(_ value: BigInt) -> String {
+        balanceViewModel.balanceTextWithSymbol(value)
     }
 
     public var hasReservedBalance: Bool {

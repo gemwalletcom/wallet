@@ -1,0 +1,44 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import Foundation
+import typealias Gemstone.BannerState
+import struct Gemstone.GemBannerKey
+import protocol Gemstone.GemBannerStore
+import func Gemstone.bannerIdentifier
+import GemstonePrimitives
+import Primitives
+import Store
+
+public final class GemstoneBannerStore: GemBannerStore, @unchecked Sendable {
+    private let store: BannerStore
+
+    public init(store: BannerStore) {
+        self.store = store
+    }
+
+    public func getState(key: GemBannerKey) async throws -> Gemstone.BannerState? {
+        try store.getBanner(id: bannerIdentifier(key: key))
+            .map { $0.state.json() }
+    }
+
+    public func setState(key: GemBannerKey, state: Gemstone.BannerState) async throws {
+        let state = try Primitives.BannerState(state)
+        try store.addBanners([newBanner(key: key, state: state)])
+        try store.updateState(bannerIdentifier(key: key), state: state)
+    }
+
+    public func addBanners(keys: [GemBannerKey], state: Gemstone.BannerState) async throws {
+        let state = try Primitives.BannerState(state)
+        try store.addBanners(keys.map { try newBanner(key: $0, state: state) })
+    }
+
+    private func newBanner(key: GemBannerKey, state: Primitives.BannerState) throws -> NewBanner {
+        try NewBanner(
+            id: bannerIdentifier(key: key),
+            walletId: key.walletId,
+            assetId: key.assetId.map { try Primitives.AssetId(id: $0) },
+            event: Primitives.BannerEvent(key.event),
+            state: state,
+        )
+    }
+}

@@ -18,6 +18,7 @@
 "common.wallet" = "ওয়ালেট";
 "common.show" = "দেখান %@";
 "common.copied" = "অনুলিপি করা হয়েছে: %@";
+"common.copied_to_clipboard" = "ক্লিপবোর্ডে কপি করা হয়েছে";
 "common.recommended" = "প্রস্তাবিত";
 "common.all" = "সব";
 "common.not_available" = "উপলব্ধ নয়";
@@ -178,10 +179,14 @@
 "errors.token.invalid_id" = "অবৈধ টোকেন আইডি";
 "errors.import.invalid_secret_phrase" = "অবৈধ গোপন বাক্যাংশ";
 "errors.import.invalid_secret_phrase_word" = "অবৈধ গোপন বাক্যাংশ শব্দ: %@";
+"errors.import.invalid_private_key" = "অবৈধ প্রাইভেট কী";
+"errors.keystore_access" = "এই ডিভাইসে এই ওয়ালেটের কী অ্যাক্সেস করা যায়নি। আপনার রিকভারি ফ্রেজ থাকলে, এই ওয়ালেটটি সরিয়ে আবার ইম্পোর্ট করে অ্যাক্সেস ফিরে পান।";
+"errors.wallet_account_missing" = "এই ওয়ালেটে এই নেটওয়ার্কের জন্য কোনো অ্যাকাউন্ট নেই";
 "errors.invalid_url" = "অবৈধ URL";
 "errors.error_occurred" = "একটি ত্রুটি ঘটেছে!";
 "errors.invalid_network_id" = "অবৈধ নেটওয়ার্ক আইডি";
 "errors.error" = "ত্রুটি";
+"errors.cancelled" = "বাতিল করা হয়েছে";
 "errors.connections.user_cancelled" = "ব্যবহারকারী বাতিল করা হয়েছে";
 "errors.not_supported" = "সমর্থিত নয়";
 "errors.permissions_not_granted" = "অনুমতি দেওয়া হয়নি";
@@ -214,6 +219,8 @@
 "errors.swap.minimum_amount" = "সর্বনিম্ন ট্রেডের পরিমাণ হল %@. অনুগ্রহ করে আরও বেশি পরিমাণ লিখুন।";
 "errors.perpetual.trigger_price_lower" = "ট্রিগার মূল্য বাজার মূল্যের চেয়ে কম হওয়া উচিত";
 "errors.perpetual.trigger_price_higher" = "ট্রিগার মূল্য বাজার মূল্যের চেয়ে বেশি হওয়া উচিত";
+"errors.network_error" = "নেটওয়ার্ক ত্রুটি: %@";
+"errors.network_offline" = "ইন্টারনেট সংযোগটি অফলাইন বলে মনে হচ্ছে।";
 "errors.no_internet_connection" = "ইন্টারনেট সংযোগ নেই";
 "errors.no_service_connection" = "পরিষেবা সংযোগ নেই";
 "errors.balances_activity_outdated" = "ব্যালেন্স এবং কার্যকলাপ পুরনো হতে পারে।";

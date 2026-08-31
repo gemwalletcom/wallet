@@ -1,16 +1,17 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.config.coordinators.GetRemoteConfig
-import com.gemwallet.android.application.update.coordinators.ObserveAppUpdateOffer
-import com.gemwallet.android.application.update.coordinators.SkipAppUpdate
-import com.gemwallet.android.application.update.coordinators.SyncAppUpdate
+import com.gemwallet.android.application.update.cases.ObserveAppUpdateOffer
+import com.gemwallet.android.application.update.cases.SkipAppUpdate
+import com.gemwallet.android.application.update.cases.SyncAppUpdate
 import com.gemwallet.android.data.coordinators.update.AppUpdateCoordinator
-import com.gemwallet.android.data.repositories.config.UserConfig
 import com.gemwallet.android.model.BuildInfo
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemAppUpdateService
+import uniffi.gemstone.GemConfigService
+import uniffi.gemstone.GemPreferencesService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -19,17 +20,17 @@ object UpdateModule {
 
     @Provides
     @Singleton
+    fun provideGemAppUpdateService(
+        configService: GemConfigService,
+        preferencesService: GemPreferencesService,
+    ): GemAppUpdateService = GemAppUpdateService(configService, preferencesService)
+
+    @Provides
+    @Singleton
     fun provideAppUpdateCoordinator(
-        getRemoteConfig: GetRemoteConfig,
-        userConfig: UserConfig,
+        appUpdateService: GemAppUpdateService,
         buildInfo: BuildInfo,
-    ): AppUpdateCoordinator {
-        return AppUpdateCoordinator(
-            getRemoteConfig = getRemoteConfig,
-            userConfig = userConfig,
-            buildInfo = buildInfo,
-        )
-    }
+    ): AppUpdateCoordinator = AppUpdateCoordinator(appUpdateService, buildInfo)
 
     @Provides
     @Singleton

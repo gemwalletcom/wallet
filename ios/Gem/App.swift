@@ -1,17 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import AppService
-import AssetsService
-import DeviceService
-import GemAPI
+import GemstoneServices
 import LockManager
-import NodeService
 import Preferences
 import Primitives
 import Store
 import Style
 import SwiftUI
-import WalletService
 
 @main
 struct GemApp: App {
@@ -27,21 +23,21 @@ struct GemApp: App {
         WindowGroup {
             RootScene(
                 model: RootSceneViewModel(
-                    observablePreferences: resolver.storages.observablePreferences,
-                    walletConnectorPresenter: resolver.services.walletConnectorManager.presenter,
+                    observablePreferences: resolver.services.observablePreferences,
+                    walletConnectorPresenter: resolver.services.walletConnectorPresenter,
                     onstartService: resolver.services.onstartService,
-                    onstartWalletService: resolver.services.onstartWalletService,
-                    transactionStateScheduler: resolver.services.transactionStateScheduler,
+                    appStartService: resolver.services.appStartService,
+                    pushNotificationEnablerService: resolver.services.pushNotificationEnablerService,
                     appLifecycleService: resolver.services.appLifecycleService,
                     navigationHandler: resolver.services.navigationHandler,
                     lockWindowManager: LockWindowManager(lockModel: LockSceneViewModel()),
                     walletService: resolver.services.walletService,
                     walletSessionService: resolver.services.walletSessionService,
-                    walletSetupService: resolver.services.walletSetupService,
                     nameService: resolver.services.nameService,
-                    releaseAlertService: resolver.services.releaseAlertService,
+                    chainService: resolver.services.chainService,
+                    appUpdateService: resolver.services.appUpdateService,
                     rateService: resolver.services.rateService,
-                    eventPresenterService: resolver.services.eventPresenterService,
+                    toastPresenter: resolver.services.toastPresenter,
                     avatarService: resolver.services.avatarService,
                     deviceService: resolver.services.deviceService,
                 ),
@@ -57,7 +53,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, UIWindowSceneDelegate {
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         AppResolver.main.services.onstartService.configure()
         Task {
-            await AppResolver.main.services.onstartAsyncService.run()
+            for failure in await AppResolver.main.services.appStartService.run() {
+                debugLog("app start \(failure.step) failed: \(failure.message)")
+            }
         }
         return true
     }
@@ -67,7 +65,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UIWindowSceneDelegate {
 
         Task {
             let _ = try SecurePreferences.standard.set(value: token, key: .deviceToken)
-            try await AppResolver.main.services.deviceService.update()
+            try await AppResolver.main.services.deviceService.synchronizeIfNeeded()
         }
     }
 

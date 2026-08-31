@@ -20,12 +20,12 @@ public struct PerpetualConfig {
         Config.shared.getPerpetualConfig().depositAssetId
     }
 
-    public static var depositAsset: Asset {
+    public static var depositAsset: Primitives.Asset {
         guard let assetId = try? AssetId(id: depositAssetId) else {
             preconditionFailure("Invalid perpetual deposit asset id: \(depositAssetId)")
         }
         let usdc = Chain.hyperCore.defaultAsset(type: .perpetual)
-        return Asset(id: assetId, name: usdc.name, symbol: usdc.symbol, decimals: usdc.decimals, type: .token)
+        return Primitives.Asset(id: assetId, name: usdc.name, symbol: usdc.symbol, decimals: usdc.decimals, type: .token)
     }
 
     public static var minDeposit: BigInt {
@@ -34,10 +34,6 @@ public struct PerpetualConfig {
 
     public static var minWithdraw: BigInt {
         BigInt(Config.shared.getPerpetualConfig().minWithdraw)
-    }
-
-    public static var pricesUpdateIntervalSeconds: TimeInterval {
-        TimeInterval(Config.shared.getPerpetualConfig().pricesUpdateIntervalSeconds)
     }
 
     public static var leverageOptions: [UInt8] {
@@ -50,6 +46,10 @@ public struct PerpetualConfig {
 
     public static var stopLossOptions: [UInt8] {
         Array(Config.shared.getPerpetualConfig().stopLossPercentOptions)
+    }
+
+    public static func leverageOptions(maxLeverage: UInt8) -> [UInt8] {
+        Array(Config.shared.leverageOptions(maxLeverage: maxLeverage))
     }
 
     public static func selectLeverage(desired: UInt8, options: [UInt8]) -> UInt8 {

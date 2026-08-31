@@ -7,7 +7,7 @@ use crate::models::{
     position::{AssetPositions, LeverageType, Position},
 };
 use primitives::{
-    Asset, AssetId, AssetType, Chain, Perpetual, PerpetualBalance, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualOrderType, PerpetualPosition, PerpetualProvider,
+    Asset, AssetId, AssetType, Perpetual, PerpetualBalance, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualOrderType, PerpetualPosition, PerpetualProvider,
     PerpetualTriggerOrder,
     chart::{ChartCandleStick, ChartDateValue},
     known_assets::USDC_SYMBOL,
@@ -156,8 +156,6 @@ pub fn map_perpetuals_data(metadata: HypercoreMetadataResponse, perp_dex_index: 
 
             let asset = Asset {
                 id: asset_id,
-                chain: Chain::HyperCore,
-                token_id: Some(universe_asset.name.clone()),
                 name: universe_asset.name.clone(),
                 symbol: universe_asset.name.clone(),
                 decimals: universe_asset.sz_decimals,

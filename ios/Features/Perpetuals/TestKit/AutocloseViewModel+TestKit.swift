@@ -4,6 +4,8 @@ import Formatters
 import Foundation
 import Perpetuals
 import Primitives
+import class Gemstone.GemAutocloseEstimator
+import GemstonePrimitives
 
 public extension AutocloseViewModel {
     static func mock(
@@ -17,7 +19,12 @@ public extension AutocloseViewModel {
         AutocloseViewModel(
             type: type,
             price: price,
-            estimator: .mock(positionSize: positionSize, leverage: leverage),
+            estimator: GemAutocloseEstimator(
+                entryPrice: 100.0,
+                positionSize: positionSize,
+                direction: Primitives.PerpetualDirection.long.json(),
+                leverage: leverage,
+            ),
             currencyFormatter: currencyFormatter,
             percentFormatter: percentFormatter,
         )

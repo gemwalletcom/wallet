@@ -62,37 +62,9 @@ struct ChainPolicyConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::Url;
+    use crate::testkit::config::{chain_config, jsonrpc};
     use primitives::Chain;
     use serde_json::json;
-
-    fn jsonrpc(method: &str) -> RequestType {
-        RequestType::from_request(
-            "POST",
-            "/".to_string(),
-            serde_json::to_vec(&json!({
-                "jsonrpc": "2.0",
-                "method": method,
-                "params": [],
-                "id": 1
-            }))
-            .unwrap(),
-        )
-    }
-
-    fn chain_config(chain: Chain) -> ChainConfig {
-        ChainConfig {
-            chain,
-            poll_interval_seconds: None,
-            latency: None,
-            overrides: None,
-            allowlist: None,
-            urls: vec![Url {
-                url: "https://example.com".to_string(),
-                headers: None,
-            }],
-        }
-    }
 
     #[test]
     fn test_allows_chain_type_policy() {
@@ -105,9 +77,9 @@ mod tests {
         }))
         .unwrap();
 
-        assert!(config.allows(&chain_config(Chain::Ethereum), &jsonrpc("eth_call")));
-        assert!(config.allows(&chain_config(Chain::Arbitrum), &jsonrpc("eth_call")));
-        assert!(!config.allows(&chain_config(Chain::Ethereum), &jsonrpc("unsupported_method")));
+        assert!(config.allows(&chain_config(Chain::Ethereum, "https://example.com"), &jsonrpc("eth_call")));
+        assert!(config.allows(&chain_config(Chain::Arbitrum, "https://example.com"), &jsonrpc("eth_call")));
+        assert!(!config.allows(&chain_config(Chain::Ethereum, "https://example.com"), &jsonrpc("unsupported_method")));
     }
 
     #[test]
@@ -117,8 +89,8 @@ mod tests {
         }))
         .unwrap();
 
-        assert!(config.allows(&chain_config(Chain::Tron), &jsonrpc("unknown_method")));
-        assert!(config.allows(&chain_config(Chain::Solana), &jsonrpc("unknown_method")));
+        assert!(config.allows(&chain_config(Chain::Tron, "https://example.com"), &jsonrpc("unknown_method")));
+        assert!(config.allows(&chain_config(Chain::Solana, "https://example.com"), &jsonrpc("unknown_method")));
     }
 
     #[test]
@@ -142,8 +114,8 @@ mod tests {
         let quote = RequestType::from_request("GET", "/thorchain/quote/swap?from_asset=SOL.SOL".to_string(), Vec::new());
         let denied = RequestType::from_request("GET", "/thorchain/vaults/asgard".to_string(), Vec::new());
 
-        assert!(config.allows(&chain_config(Chain::Thorchain), &balance));
-        assert!(config.allows(&chain_config(Chain::Thorchain), &quote));
-        assert!(!config.allows(&chain_config(Chain::Thorchain), &denied));
+        assert!(config.allows(&chain_config(Chain::Thorchain, "https://example.com"), &balance));
+        assert!(config.allows(&chain_config(Chain::Thorchain, "https://example.com"), &quote));
+        assert!(!config.allows(&chain_config(Chain::Thorchain, "https://example.com"), &denied));
     }
 }

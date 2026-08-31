@@ -3,20 +3,21 @@
 import Primitives
 import PrimitivesTestKit
 @testable import Stake
-import StakeService
-import StakeServiceTestKit
+import protocol Gemstone.GemStakeServiceProtocol
+import GemstonePrimitivesTestKit
 
 public extension StakeSceneViewModel {
     static func mock(
         wallet: Wallet = .mock(),
         chain: StakeChain = .tron,
-        stakeService: any StakeServiceable = MockStakeService(stakeApr: 13.5),
+        stakeService: any GemStakeServiceProtocol = GemStakeServiceMock(),
     ) -> StakeSceneViewModel {
         StakeSceneViewModel(
             wallet: wallet,
             chain: chain,
             currencyCode: "USD",
             stakeService: stakeService,
+            explorerService: GemExplorerServiceMock(),
         )
     }
 }

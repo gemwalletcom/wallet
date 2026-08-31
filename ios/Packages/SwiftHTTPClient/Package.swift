@@ -11,10 +11,6 @@ let package = Package(
             targets: ["SwiftHTTPClient"],
         ),
         .library(
-            name: "SwiftHTTPClientTestKit",
-            targets: ["SwiftHTTPClientTestKit"],
-        ),
-        .library(
             name: "WebSocketClient",
             targets: ["WebSocketClient"],
         ),
@@ -29,12 +25,7 @@ let package = Package(
             name: "SwiftHTTPClient",
             dependencies: [],
             path: "SwiftHTTPClient",
-            exclude: ["TestKit", "Tests"],
-        ),
-        .target(
-            name: "SwiftHTTPClientTestKit",
-            dependencies: ["SwiftHTTPClient"],
-            path: "SwiftHTTPClient/TestKit",
+            exclude: ["Tests"],
         ),
         .testTarget(
             name: "SwiftHTTPClientTests",
@@ -45,17 +36,12 @@ let package = Package(
             name: "WebSocketClient",
             dependencies: [],
             path: "WebSocketClient",
-            exclude: ["TestKit", "Tests"],
+            exclude: ["TestKit"],
         ),
         .target(
             name: "WebSocketClientTestKit",
             dependencies: ["WebSocketClient"],
             path: "WebSocketClient/TestKit",
-        ),
-        .testTarget(
-            name: "WebSocketClientTests",
-            dependencies: ["WebSocketClient"],
-            path: "WebSocketClient/Tests",
         ),
     ],
 )

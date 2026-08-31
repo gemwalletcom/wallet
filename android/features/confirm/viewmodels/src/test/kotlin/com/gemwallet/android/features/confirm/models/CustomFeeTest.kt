@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.confirm
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.wallet.core.primitives.Currency
@@ -9,14 +10,15 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemFeeRate
+import uniffi.gemstone.GemFeeService
 import uniffi.gemstone.GemGasPriceType
 import java.math.BigInteger
 
 class CustomFeeTest {
 
     private val feeRates = listOf(
-        GemFeeRate(FeePriority.Normal.string, GemGasPriceType.Regular(gasPrice = "2")),
-        GemFeeRate(FeePriority.Fast.string, GemGasPriceType.Regular(gasPrice = "3")),
+        GemFeeRate(FeePriority.Normal.toGem(), GemGasPriceType.Regular(gasPrice = "2")),
+        GemFeeRate(FeePriority.Fast.toGem(), GemGasPriceType.Regular(gasPrice = "3")),
     )
 
     private val currentFee = FeeUIModel.FeeInfo(
@@ -28,7 +30,7 @@ class CustomFeeTest {
     )
 
     private fun custom(input: String, decimals: Int = 0, minimumCustomFeeRate: BigInteger? = null, selection: FeeSelection = FeeSelection.Preset(FeePriority.Normal)) =
-        CustomFee.from(input, currentFee, feeRates, selection, decimals, maxMultiplier = 10, minimumCustomFeeRate)
+        CustomFee.from(input, currentFee, feeRates, selection, decimals, maxMultiplier = 10, minimumCustomFeeRate, GemFeeService())
 
     @Test
     fun customFeeFrom() {

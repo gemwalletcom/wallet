@@ -18,6 +18,7 @@
 "common.wallet" = "Billetera";
 "common.show" = "Mostrar %@";
 "common.copied" = "Copiado: %@";
+"common.copied_to_clipboard" = "Copiado al portapapeles";
 "common.recommended" = "Recomendado";
 "common.all" = "Todos";
 "common.not_available" = "No disponible";
@@ -178,10 +179,14 @@
 "errors.token.invalid_id" = "ID de token no válido";
 "errors.import.invalid_secret_phrase" = "Frase secreta no válida";
 "errors.import.invalid_secret_phrase_word" = "Palabra de frase secreta no válida: %@";
+"errors.import.invalid_private_key" = "Clave privada no válida";
+"errors.keystore_access" = "No se pudo acceder a las claves de esta billetera en este dispositivo. Si tienes tu frase de recuperación, elimina esta billetera e impórtala de nuevo para restaurar el acceso.";
+"errors.wallet_account_missing" = "Esta billetera no tiene una cuenta para esta red";
 "errors.invalid_url" = "URL invalida";
 "errors.error_occurred" = "¡Ocurrió un error!";
 "errors.invalid_network_id" = "ID de red no válida";
 "errors.error" = "Error";
+"errors.cancelled" = "Cancelado";
 "errors.connections.user_cancelled" = "Usuario cancelado";
 "errors.not_supported" = "No compatible";
 "errors.permissions_not_granted" = "Permisos no concedidos";
@@ -214,6 +219,8 @@
 "errors.swap.minimum_amount" = "La cantidad mínima de operación es %@. Introduce una cantidad mayor.";
 "errors.perpetual.trigger_price_lower" = "El precio de activación debe ser inferior al precio de mercado";
 "errors.perpetual.trigger_price_higher" = "El precio de activación debe ser superior al precio de mercado";
+"errors.network_error" = "Error de red: %@";
+"errors.network_offline" = "La conexión a Internet parece estar fuera de línea.";
 "errors.no_internet_connection" = "Sin conexión a internet";
 "errors.no_service_connection" = "Sin conexión al servicio";
 "errors.balances_activity_outdated" = "Los saldos y la actividad pueden estar desactualizados.";

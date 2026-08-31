@@ -8,8 +8,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.data.repositories.bridge.WalletConnectSessionRequest
-import com.gemwallet.android.data.repositories.bridge.WalletConnectVerifyContext
+import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.features.bridge.viewmodels.RequestSceneState
 import com.gemwallet.android.features.bridge.viewmodels.WCRequestViewModel
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
@@ -31,6 +31,8 @@ fun RequestScene(
 ) {
     val viewModel: WCRequestViewModel = hiltViewModel()
     val context = LocalContext.current
+    val unknownErrorMessage = stringResource(id = R.string.errors_unknown_try_again)
+    val reportError: (String) -> Unit = { message -> onError(message.ifBlank { unknownErrorMessage }) }
 
     DisposableEffect(request.topic, request.request.id) {
         viewModel.onRequest(
@@ -43,10 +45,9 @@ fun RequestScene(
                         R.string.errors_connections_malicious_origin,
                         Toast.LENGTH_LONG
                     ).show()
-                    else -> Unit
                 }
             },
-            onError = onError,
+            onError = reportError,
         )
 
         onDispose { viewModel.reset() }
@@ -68,13 +69,13 @@ fun RequestScene(
                     model = request,
                     buttonState = buttonState,
                     walletRow = { PropertyItem(R.string.common_wallet, sceneState.walletName, listPosition = ListPosition.First) },
-                    onApprove = { viewModel.onSign(onError) },
+                    onApprove = { viewModel.onSign(reportError) },
                     onReject = viewModel::onReject,
                 )
                 is WCRequest.Transaction -> ConfirmScreen(
                     params = request.confirmParams,
                     simulationResult = request.simulation,
-                    finishAction = { hash -> viewModel.onTransactionResult(hash, onError) },
+                    finishAction = { hash -> viewModel.onTransactionResult(hash) },
                     onAcquireAsset = onAcquireAsset,
                     cancelAction = viewModel::onReject,
                     handleSystemBack = true,

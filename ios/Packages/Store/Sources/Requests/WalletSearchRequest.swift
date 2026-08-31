@@ -39,10 +39,10 @@ public struct WalletSearchRequest: DatabaseQueryable, Hashable {
         let query = searchBy.trim()
         let searchKey = scope.searchKey(query: query)
 
-        let assets = types.contains(.asset) ? try fetchAssets(db, query: query, searchKey: searchKey, scope: scope) : []
-        let perpetuals = types.contains(.perpetual) ? try fetchPerpetuals(db, query: query, searchKey: searchKey, scope: scope) : []
-        let nfts = types.contains(.nft) && scope.isAll && query.isNotEmpty ? try fetchNFTs(db, query: query) : []
-        let lists = types.contains(.list) && scope.isAll ? try fetchLists(db, searchKey: searchKey) : []
+        let assets = types.contains(.asset) ? try loadAssets(db, query: query, searchKey: searchKey, scope: scope) : []
+        let perpetuals = types.contains(.perpetual) ? try loadPerpetuals(db, query: query, searchKey: searchKey, scope: scope) : []
+        let nfts = types.contains(.nft) && scope.isAll && query.isNotEmpty ? try loadNFTs(db, query: query) : []
+        let lists = types.contains(.list) && scope.isAll ? try loadLists(db, searchKey: searchKey) : []
 
         return WalletSearchResult(assets: assets, perpetuals: perpetuals, nfts: nfts, lists: lists)
     }
@@ -59,7 +59,7 @@ extension WalletSearchRequest {
             .fetchOne(db) != nil
     }
 
-    private func fetchAssets(_ db: Database, query: String, searchKey: String, scope: WalletSearchTag) throws -> [AssetData] {
+    private func loadAssets(_ db: Database, query: String, searchKey: String, scope: WalletSearchTag) throws -> [AssetData] {
         let hasPriority = try hasPriority(db, searchKey: searchKey, column: SearchRecord.Columns.assetId)
         guard hasPriority || scope.isAll else { return [] }
 
@@ -89,7 +89,7 @@ extension WalletSearchRequest {
         return try request.limit(limit).asRequest(of: AssetRecordInfo.self).fetchAll(db).map(\.assetData)
     }
 
-    private func fetchPerpetuals(_ db: Database, query: String, searchKey: String, scope: WalletSearchTag) throws -> [PerpetualData] {
+    private func loadPerpetuals(_ db: Database, query: String, searchKey: String, scope: WalletSearchTag) throws -> [PerpetualData] {
         let hasPriority = try hasPriority(db, searchKey: searchKey, column: SearchRecord.Columns.perpetualId)
         guard hasPriority || scope.isAll else { return [] }
 
@@ -111,7 +111,7 @@ extension WalletSearchRequest {
         return try request.limit(limit).asRequest(of: PerpetualInfo.self).fetchAll(db).map { $0.mapToPerpetualData() }
     }
 
-    private func fetchNFTs(_ db: Database, query: String) throws -> [NFTSearchItem] {
+    private func loadNFTs(_ db: Database, query: String) throws -> [NFTSearchItem] {
         let collections = try NFTRequest(walletId: walletId, filter: .all).fetch(db)
 
         let items = collections.flatMap { data -> [NFTSearchItem] in
@@ -127,7 +127,7 @@ extension WalletSearchRequest {
         return items.prefix(limit).asArray()
     }
 
-    private func fetchLists(_ db: Database, searchKey: String) throws -> [AssetList] {
+    private func loadLists(_ db: Database, searchKey: String) throws -> [AssetList] {
         let searchAlias = TableAlias(name: SearchRecord.databaseTableName)
 
         return try AssetListRecord

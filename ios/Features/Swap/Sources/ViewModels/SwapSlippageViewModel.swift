@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.Config
 import Formatters
 import Foundation
 import GemstonePrimitives
@@ -12,16 +13,14 @@ import Validators
 @MainActor
 @Observable
 public final class SwapSlippageViewModel {
-    private static let defaultBps: UInt32 = 100
-    private static let suggestionsBps: [UInt32] = [30, 50, 300]
-    static let minPercent: Double = 0.1
-    static let maxPercent: Double = 20
     private static let maxFractionDigits: Int = 2
-    private static let maxIntegerDigits: Int = String(Int(maxPercent)).count
     private static let formatter = NumericFormatter()
 
     private let onSelect: (SwapSlippage) -> Void
     private let highWarningBps: UInt32
+    private let suggestionsBps: [UInt32]
+    private let minPercent: Double
+    private let maxPercent: Double
 
     var isAuto: Bool
     var inputModel: InputValidationViewModel
@@ -29,19 +28,23 @@ public final class SwapSlippageViewModel {
 
     public init(slippage: SwapSlippage, onSelect: @escaping (SwapSlippage) -> Void) {
         self.onSelect = onSelect
-        highWarningBps = GemstoneConfig.shared.swapConfig().highSlippageWarningBps
+        let config = Config.shared.swapConfig()
+        highWarningBps = config.highSlippageWarningBps
+        suggestionsBps = config.slippageSuggestionsBps
+        minPercent = Double(config.minSlippageBps) / 100
+        maxPercent = Double(config.maxSlippageBps) / 100
         let bps: UInt32
         switch slippage {
         case .auto:
             isAuto = true
-            bps = Self.defaultBps
+            bps = config.defaultSlippage.bps
         case let .manual(value):
             isAuto = false
             bps = value
         }
         inputModel = InputValidationViewModel(
             mode: .onDemand,
-            validators: [PercentTextValidator(minimum: Self.minPercent, maximum: Self.maxPercent)],
+            validators: [PercentTextValidator(minimum: minPercent, maximum: maxPercent)],
         )
         inputModel.text = Self.format(bps: bps)
     }
@@ -59,7 +62,7 @@ public final class SwapSlippageViewModel {
     }
 
     var selectedBps: UInt32 {
-        Self.parseBps(inputModel.text)
+        parseBps(inputModel.text)
     }
 
     var errorText: String? {
@@ -76,7 +79,7 @@ public final class SwapSlippageViewModel {
     }
 
     var suggestions: [SlippageSuggestion] {
-        Self.suggestionsBps.map { SlippageSuggestion(bps: $0, percentText: Self.format(bps: $0)) }
+        suggestionsBps.map { SlippageSuggestion(bps: $0, percentText: Self.format(bps: $0)) }
     }
 
     func onSelect(suggestion: SlippageSuggestion) {
@@ -90,7 +93,7 @@ public final class SwapSlippageViewModel {
     func sanitize(_ text: String) -> String {
         NumberSanitizer(
             maximumFractionDigits: Self.maxFractionDigits,
-            maximumIntegerDigits: Self.maxIntegerDigits,
+            maximumIntegerDigits: String(Int(maxPercent)).count,
         ).sanitize(text)
     }
 
@@ -102,8 +105,8 @@ public final class SwapSlippageViewModel {
         (Double(bps) / 100).formatted(.number.precision(.fractionLength(0 ... 2)))
     }
 
-    private static func parseBps(_ text: String) -> UInt32 {
-        guard let percent = formatter.double(from: text), percent > 0 else { return 0 }
+    private func parseBps(_ text: String) -> UInt32 {
+        guard let percent = Self.formatter.double(from: text), percent > 0 else { return 0 }
         return UInt32((min(percent, maxPercent) * 100).rounded())
     }
 }

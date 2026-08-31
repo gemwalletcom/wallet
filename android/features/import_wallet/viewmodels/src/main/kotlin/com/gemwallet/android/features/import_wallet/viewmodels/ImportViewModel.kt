@@ -1,17 +1,20 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
+import com.gemwallet.android.blockchain.operators.InvalidWords
+import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
+import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.wallet.coordinators.SetCurrentWallet
-import com.gemwallet.android.cases.wallet.ImportError
-import com.gemwallet.android.cases.wallet.ImportWalletService
-import com.gemwallet.android.cases.wallet.WalletImportResult
-import com.gemwallet.android.cases.name.ResolveName
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
+import com.gemwallet.android.application.wallet_import.values.ImportError
+import com.gemwallet.android.application.wallet_import.cases.ImportWalletService
+import com.gemwallet.android.application.wallet_import.values.WalletImportResult
+import com.gemwallet.android.application.recipient.cases.GetNameRecord
+import uniffi.gemstone.GemWalletService
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.models.name.NameRecordState
-import com.gemwallet.android.ui.models.name.NameResolveController
+import com.gemwallet.android.ui.models.name.NameRecordController
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -27,21 +30,32 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ImportViewModel @Inject constructor(
-    private val walletsRepository: WalletsRepository,
+    private val walletService: GemWalletService,
     private val importWalletService: ImportWalletService,
     private val setCurrentWallet: SetCurrentWallet,
-    resolveName: ResolveName,
+    private val validatePhrase: ValidatePhraseOperator,
+    private val findPhraseWord: GemFindPhraseWord,
+    getNameRecord: GetNameRecord,
 ) : ViewModel() {
+
+    fun invalidPhraseWords(text: String): Set<String> =
+        (validatePhrase(text).exceptionOrNull() as? InvalidWords)
+            ?.words
+            .orEmpty()
+            .filter { it.isNotBlank() }
+            .toSet()
+
+    fun phraseSuggestions(word: String): List<String> = findPhraseWord(word)
 
     private val state = MutableStateFlow(ImportViewModelState())
     val uiState = state.map { it.toUIState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ImportUIState())
 
-    private val resolver = NameResolveController(resolveName, viewModelScope)
-    val nameResolveState: StateFlow<NameRecordState> = resolver.state
+    private val nameRecordController = NameRecordController(getNameRecord, viewModelScope)
+    val nameResolveState: StateFlow<NameRecordState> = nameRecordController.state
 
     fun chainType(walletType: WalletType) {
-        resolver.reset()
+        nameRecordController.reset()
         state.update {
             it.copy(
                 importType = it.importType.copy(walletType = walletType),
@@ -53,13 +67,13 @@ class ImportViewModel @Inject constructor(
     fun onInput(value: String) {
         val importType = state.value.importType
         when (importType.walletType) {
-            WalletType.View -> resolver.resolve(value, importType.chain)
-            else -> resolver.reset()
+            WalletType.View -> nameRecordController.getNameRecord(value, importType.chain)
+            else -> nameRecordController.reset()
         }
     }
 
     fun importSelect(importType: ImportType) = viewModelScope.launch {
-        val generatedNameIndex = walletsRepository.getNextWalletNumber()
+        val generatedNameIndex = walletService.nextWalletIndex()
         val chainName = if (importType.walletType == WalletType.Multicoin) "" else importType.chain?.networkName().orEmpty()
         state.update {
             it.copy(
@@ -78,7 +92,7 @@ class ImportViewModel @Inject constructor(
         if (state.value.loading) {
             return
         }
-        val nameRecord = resolver.state.value.nameRecord
+        val nameRecord = nameRecordController.state.value.nameRecord
         state.update { it.copy(loading = true) }
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -101,7 +115,7 @@ class ImportViewModel @Inject constructor(
                     }
                 }
             } catch (err: Throwable) {
-                state.update { it.copy(dataError = (err as? ImportError) ?: ImportError.CreateError("Unknown error"), loading = false) }
+                state.update { it.copy(dataError = (err as? ImportError) ?: ImportError.CreateError(err.message.orEmpty()), loading = false) }
             }
         }
     }

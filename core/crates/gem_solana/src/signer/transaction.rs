@@ -125,7 +125,7 @@ fn account_index(key_to_index: &HashMap<Pubkey, u8>, pubkey: Pubkey) -> Result<u
     key_to_index.get(&pubkey).copied().ok_or_else(|| SignerError::invalid_input("missing Solana account key"))
 }
 
-fn block_hash(input: &SignerInput) -> Result<[u8; 32], SignerError> {
+pub(super) fn block_hash(input: &SignerInput) -> Result<[u8; 32], SignerError> {
     let block_hash = input.metadata.get_block_hash()?;
     let bytes = bs58::decode(&block_hash).into_vec().map_err(|_| SignerError::invalid_input("invalid Solana block hash"))?;
     bytes.try_into().map_err(|_| SignerError::invalid_input("Solana block hash must be 32 bytes"))

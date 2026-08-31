@@ -152,8 +152,6 @@ mod tests {
                     chain: Chain::Ton,
                     token_id: token_id.clone(),
                 },
-                chain: Chain::Ton,
-                token_id,
                 name,
                 symbol,
                 decimals,
@@ -296,6 +294,7 @@ mod tests {
             input_type: TransactionInputType::Transfer(Asset::mock_ton_usdt()),
             sender_address: "sender".to_string(),
             destination_address: "recipient".to_string(),
+            references: vec![],
         };
         assert_eq!(get_recipient_jetton_wallet(&transfer), Some("recipient"));
 
@@ -304,6 +303,7 @@ mod tests {
             input_type: TransactionInputType::Swap(Asset::mock_ton_usdt(), Asset::from_chain(Chain::Ethereum), swap_data),
             sender_address: "sender".to_string(),
             destination_address: "0xrecipient".to_string(),
+            references: vec![],
         };
         assert_eq!(get_recipient_jetton_wallet(&transfer_swap), Some("ton_deposit_address"));
 
@@ -315,6 +315,7 @@ mod tests {
             ),
             sender_address: "sender".to_string(),
             destination_address: "recipient".to_string(),
+            references: vec![],
         };
         assert_eq!(get_recipient_jetton_wallet(&contract_swap), None);
     }

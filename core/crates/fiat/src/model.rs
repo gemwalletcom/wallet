@@ -1,7 +1,7 @@
 use chain_primitives::format_token_id;
 use primitives::fiat_assets::FiatAssetLimits;
 use primitives::{
-    Asset, AssetId, Chain, CosmosDenom, FiatAssetSymbol, FiatProviderName,
+    Asset, AssetId, Chain, CosmosDenom, FiatAssetSymbol, FiatProviderName, WalletType,
     asset_constants::WORLD_WETH_TOKEN_ID,
     contract_constants::{EVM_ZERO_ADDRESS, SOLANA_SYSTEM_PROGRAM_ID},
 };
@@ -51,6 +51,25 @@ impl FiatMapping {
 }
 
 pub type FiatMappingMap = HashMap<String, FiatMapping>;
+
+#[derive(Debug, Clone)]
+pub struct FiatDeviceContext {
+    pub device_id: i32,
+    pub wallet_id: i32,
+    pub wallet_type: WalletType,
+    pub ip_address: String,
+}
+
+impl FiatDeviceContext {
+    pub fn new(device_id: i32, wallet_id: i32, wallet_type: WalletType, ip_address: String) -> Self {
+        Self {
+            device_id,
+            wallet_id,
+            wallet_type,
+            ip_address,
+        }
+    }
+}
 
 // used to filter out fiat tokens that have specific token ids for native coins
 pub fn filter_token_id(chain: Option<Chain>, token_id: Option<String>) -> Option<String> {

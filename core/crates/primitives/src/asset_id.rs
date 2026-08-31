@@ -2,7 +2,7 @@ use std::{collections::HashSet, fmt};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 
-use crate::{AssetSubtype, chain::Chain};
+use crate::{AssetSubtype, chain::Chain, known_assets};
 
 pub const CHAIN_SEPARATOR: &str = "_";
 pub const TOKEN_ID_SEPARATOR: &str = "::";
@@ -132,6 +132,13 @@ impl AssetId {
 
     pub fn token_subtype(&self) -> AssetSubtype {
         if self.is_native() { AssetSubtype::NATIVE } else { AssetSubtype::TOKEN }
+    }
+
+    pub fn default_rank(&self) -> i32 {
+        match self.token_subtype() {
+            AssetSubtype::NATIVE => self.chain.rank(),
+            AssetSubtype::TOKEN => known_assets::default_token_rank(self),
+        }
     }
 
     pub fn token_components(&self) -> Option<(String, Option<String>, Option<i32>)> {

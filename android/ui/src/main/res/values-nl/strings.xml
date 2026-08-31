@@ -20,6 +20,7 @@
   <string name="common_wallet">Portemonnee</string>
   <string name="common_show">Toon %1$s</string>
   <string name="common_copied">Gekopieerd: %1$s</string>
+  <string name="common_copied_to_clipboard">Gekopieerd naar klembord</string>
   <string name="common_recommended">Aanbevolen</string>
   <string name="common_all">Allemaal</string>
   <string name="common_not_available">Niet beschikbaar</string>
@@ -185,10 +186,14 @@
   <string name="errors_token_invalid_id">Ongeldige token-ID</string>
   <string name="errors_import_invalid_secret_phrase">Ongeldige geheime zin</string>
   <string name="errors_import_invalid_secret_phrase_word">Ongeldig woord in geheime zin: %1$s</string>
+  <string name="errors_import_invalid_private_key">Ongeldige privésleutel</string>
+  <string name="errors_keystore_access">Kan de sleutels van deze portemonnee op dit apparaat niet openen. Als je je herstelzin hebt, verwijder deze portemonnee dan en importeer hem opnieuw om weer toegang te krijgen.</string>
+  <string name="errors_wallet_account_missing">Deze portemonnee heeft geen account voor dit netwerk</string>
   <string name="errors_invalid_url">Ongeldige URL</string>
   <string name="errors_error_occurred">Er is een fout opgetreden!</string>
   <string name="errors_invalid_network_id">Ongeldige netwerk-ID</string>
   <string name="errors_error">Fout</string>
+  <string name="errors_cancelled">Geannuleerd</string>
   <string name="errors_connections_user_cancelled">Gebruiker geannuleerd</string>
   <string name="errors_not_supported">Niet ondersteund</string>
   <string name="errors_permissions_not_granted">Machtigingen niet verleend</string>

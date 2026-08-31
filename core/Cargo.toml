@@ -1,5 +1,5 @@
 [workspace.package]
-version = "2.114.10"
+version = "2.114.11"
 edition = "2024"
 license = "MIT"
 homepage = "https://gemwallet.com/"
@@ -25,6 +25,7 @@ members = [
     "gemstone",
 
     "crates/primitives",
+    "crates/payment",
     "crates/fiat",
     "crates/cacher",
     "crates/name_resolver",
@@ -112,6 +113,7 @@ num-traits = { version = "0.2.19" }
 num-integer = { version = "0.1.46" }
 bigdecimal = "0.4.10"
 hmac = { version = "0.13.0" }
+sha1 = { version = "0.11.0" }
 sha2 = { version = "0.11.0" }
 sha3 = { version = "0.12.0" }
 ripemd = { version = "0.2.0" }
@@ -129,19 +131,17 @@ sui-types = { package = "sui-sdk-types", version = "0.3.2", features = [
     "hash",
     "serde",
 ] }
+solana-primitives = { version = "0.2.6" }
 k256 = { version = "0.14.0", features = ["ecdsa", "sha256"] }
 bip39 = { version = "2.2.2", default-features = false }
 
 uniffi = { version = "0.32.0" }
 regex = { version = "1.13.1" }
 
-alloy-primitives = { version = "1.6.1", features = ["k256"] }
+alloy-primitives = { version = "1.6.1" }
 alloy-sol-types = { version = "1.6.1", features = ["eip712-serde"] }
 alloy-dyn-abi = { version = "1.6.1", features = ["eip712"] }
 alloy-json-abi = { version = "1.6.1" }
-alloy-signer = { version = "2.2.0" }
-alloy-signer-local = { version = "2.2.0" }
-alloy-network = { version = "2.2.0" }
 alloy-consensus = { version = "2.2.0" }
 alloy-rlp = { version = "0.3.16" }
 jsonwebtoken = { version = "11.0.0", features = ["aws_lc_rs"] }

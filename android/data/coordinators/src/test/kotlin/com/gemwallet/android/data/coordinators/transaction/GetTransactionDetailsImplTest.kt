@@ -1,9 +1,11 @@
 package com.gemwallet.android.data.coordinators.transaction
 
-import com.gemwallet.android.cases.nodes.GetCurrentBlockExplorer
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.session.SessionRepository
-import com.gemwallet.android.data.repositories.transactions.TransactionRepository
+import com.gemwallet.android.ext.hash
+import uniffi.gemstone.GemBlockExplorerLink
+import uniffi.gemstone.GemExplorerService
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.transactions.cases.GetTransaction
 import com.gemwallet.android.serializer.jsonEncoder
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
@@ -28,22 +30,22 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
+import uniffi.gemstone.GemTransactionFormatter
 
 class GetTransactionDetailsImplTest {
 
-    private val sessionRepository = mockk<SessionRepository>()
-    private val transactionRepository = mockk<TransactionRepository>()
-    private val assetsRepository = mockk<AssetsRepository>()
-    private val getCurrentBlockExplorer = mockk<GetCurrentBlockExplorer>()
-    private val explorer = mockk<uniffi.gemstone.Explorer>()
+    private val getSession = mockk<GetSession>()
+    private val getTransaction = mockk<GetTransaction>()
+    private val getWalletAssets = mockk<GetWalletAssets>()
+    private val explorerService = mockk<GemExplorerService>()
 
     private val subject = GetTransactionDetailsImpl(
-        sessionRepository = sessionRepository,
-        transactionRepository = transactionRepository,
-        assetsRepository = assetsRepository,
-        getCurrentBlockExplorer = getCurrentBlockExplorer,
-        createExplorer = { explorer },
-    )
+        getSession = getSession,
+        getTransaction = getTransaction,
+        getWalletAssets = getWalletAssets,
+        explorerService = explorerService,
+            transactionFormatter = GemTransactionFormatter(),
+        )
 
     @Test
     fun getTransactionDetails_keepsSwapExplorerForTransactionWithoutCrashing() = runTest {
@@ -77,17 +79,16 @@ class GetTransactionDetailsImplTest {
             accounts = listOf(mockAccount(chain = Chain.Near, address = transaction.from)),
         )
 
-        every { sessionRepository.session() } returns MutableStateFlow(mockSession(wallet = wallet))
-        every { transactionRepository.getTransaction(transaction.id) } returns flowOf(transactionExtended)
-        every { assetsRepository.getAssetsInfo(any<List<AssetId>>()) } returns flowOf(
+        every { getSession() } returns MutableStateFlow(mockSession(wallet = wallet))
+        every { getTransaction(transaction.id) } returns flowOf(transactionExtended)
+        every { getWalletAssets(any<List<AssetId>>()) } returns flowOf(
             listOf(mockAssetInfo(asset = asset, owner = mockAccount(chain = Chain.Near, address = transaction.from)))
         )
-        every { getCurrentBlockExplorer.getBlockExplorerInfo(transaction) } returns Pair(
-            "https://explorer.near-intents.org/transactions/${transaction.to}",
+        every { explorerService.getTransactionLink(Chain.Near.string, transaction.hash, any(), any(), any()) } returns GemBlockExplorerLink(
             "NEAR Intents",
+            "https://explorer.near-intents.org/transactions/${transaction.to}",
         )
-        every { getCurrentBlockExplorer.getCurrentBlockExplorer(Chain.Near) } returns "Near"
-        every { explorer.getAddressUrl("Near", any()) } answers { "https://nearblocks.io/address/${secondArg<String>()}" }
+        every { explorerService.getAddressUrl(Chain.Near.string, any()) } answers { GemBlockExplorerLink("Near", "https://nearblocks.io/address/${secondArg<String>()}") }
 
         val result = subject.getTransactionDetails(transaction.id).first()
 
@@ -97,7 +98,6 @@ class GetTransactionDetailsImplTest {
             "https://explorer.near-intents.org/transactions/${transaction.to}",
             result?.explorer?.url,
         )
-        verify(exactly = 2) { explorer.getAddressUrl("Near", any()) }
-        verify(exactly = 0) { explorer.getAddressUrl("NEAR Intents", any()) }
+        verify(exactly = 2) { explorerService.getAddressUrl(Chain.Near.string, any()) }
     }
 }

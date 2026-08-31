@@ -4,11 +4,14 @@ use chain_traits::ChainTraits;
 use gem_algorand::rpc::{AlgorandClient, AlgorandProvider};
 use gem_aptos::rpc::client::AptosClient;
 use gem_bitcoin::rpc::client::BitcoinClient;
+use gem_bsc::BscStakingClient;
 use gem_cardano::rpc::client::CardanoClient;
 use gem_cosmos::rpc::client::CosmosClient;
+use gem_everstake::EverstakeStakingClient;
 use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
+use gem_monad::MonadStakingClient;
 use gem_near::rpc::{NearClient, NearProvider};
 use gem_optimism::OptimismGasOracle;
 use gem_polkadot::rpc::{PolkadotClient, PolkadotProvider};
@@ -21,18 +24,19 @@ use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_xrp::rpc::XrpClient;
 use primitives::{BitcoinChain, Chain, ChainType, EVMChain, chain_cosmos::CosmosChain};
 
-use super::{GatewayError, GemPreferences, PreferencesWrapper};
+use super::{GatewayError, PreferencesWrapper, SecureStoreWrapper};
 use crate::alien::{AlienProvider, AlienProviderWrapper, new_alien_client};
 use crate::network::JsonRpcClient;
+use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
 
 pub struct ChainClientFactory {
     alien: Arc<dyn AlienProvider>,
-    preferences: Arc<dyn GemPreferences>,
-    secure_preferences: Arc<dyn GemPreferences>,
+    preferences: Arc<dyn GemPreferencesStore>,
+    secure_preferences: Arc<dyn GemSecureStore>,
 }
 
 impl ChainClientFactory {
-    pub fn new(alien: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferences>, secure_preferences: Arc<dyn GemPreferences>) -> Self {
+    pub fn new(alien: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferencesStore>, secure_preferences: Arc<dyn GemSecureStore>) -> Self {
         Self {
             alien,
             preferences,
@@ -52,8 +56,8 @@ impl ChainClientFactory {
                 let preferences = Arc::new(PreferencesWrapper {
                     preferences: self.preferences.clone(),
                 });
-                let secure_preferences = Arc::new(PreferencesWrapper {
-                    preferences: self.secure_preferences.clone(),
+                let secure_preferences = Arc::new(SecureStoreWrapper {
+                    store: self.secure_preferences.clone(),
                 });
                 Ok(Arc::new(HyperCoreClient::new_with_preferences(alien_client, preferences, secure_preferences)))
             }
@@ -81,10 +85,14 @@ impl ChainClientFactory {
                 let client = EthereumClient::new(JsonRpcClient::new(alien_client), evm_chain);
                 let provider = TempoProvider::new_or_else(client, |client| {
                     if evm_chain.is_opstack() {
-                        let fee_calculator = Box::new(OptimismGasOracle::new(client.clone()));
-                        Box::new(EthereumProvider::new_rpc_only_with_fee_calculator(client, fee_calculator))
+                        Box::new(EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(OptimismGasOracle::new(client))))
                     } else {
-                        Box::new(EthereumProvider::new_rpc_only(client))
+                        Box::new(match evm_chain {
+                            EVMChain::Ethereum => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(EverstakeStakingClient::new(client, String::new()))),
+                            EVMChain::Monad => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(MonadStakingClient::new(client))),
+                            EVMChain::SmartChain => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(BscStakingClient::new(client))),
+                            _ => EthereumProvider::new_rpc_only(client),
+                        })
                     }
                 });
                 Ok(Arc::from(provider))

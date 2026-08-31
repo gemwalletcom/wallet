@@ -18,11 +18,11 @@ pub fn decode_message(chain: Chain, sign_type: SignDigestType, data: String) -> 
     }
 }
 
-pub(super) fn parse_eip712_message(data: &str) -> Option<gem_evm::eip712::EIP712Message> {
+pub(crate) fn parse_eip712_message(data: &str) -> Option<gem_evm::eip712::EIP712Message> {
     serde_json::from_str(data).ok().and_then(|value| gem_evm::eip712::parse_eip712_json(&value).ok())
 }
 
-pub(super) fn sign_message_validation_warnings(chain: Chain, sign_type: &WcSignDigestType, data: &str, session_domain: &str) -> Vec<SimulationWarning> {
+pub(crate) fn sign_message_validation_warnings(chain: Chain, sign_type: &WcSignDigestType, data: &str, session_domain: &str) -> Vec<SimulationWarning> {
     let input = SignMessageValidation {
         chain,
         sign_type,
@@ -33,7 +33,7 @@ pub(super) fn sign_message_validation_warnings(chain: Chain, sign_type: &WcSignD
     validate_sign_message(&input).err().into_iter().map(SimulationWarning::validation_error).collect()
 }
 
-pub(super) fn send_transaction_validation_warnings(transaction_type: &WcWalletConnectTransactionType, data: &str) -> Vec<SimulationWarning> {
+pub(crate) fn send_transaction_validation_warnings(transaction_type: &WcWalletConnectTransactionType, data: &str) -> Vec<SimulationWarning> {
     validate_send_transaction(transaction_type, data)
         .err()
         .into_iter()
@@ -41,7 +41,7 @@ pub(super) fn send_transaction_validation_warnings(transaction_type: &WcWalletCo
         .collect()
 }
 
-pub(super) fn decode_ethereum_transaction(data: &str) -> Result<WcEthereumTransactionData, String> {
+pub(crate) fn decode_ethereum_transaction(data: &str) -> Result<WcEthereumTransactionData, String> {
     let transaction = WalletConnectRequestHandler::decode_send_transaction(WcWalletConnectTransactionType::Ethereum, data.to_string())?;
     match transaction {
         WcWalletConnectTransaction::Ethereum { data, .. } => Ok(data),
@@ -49,7 +49,7 @@ pub(super) fn decode_ethereum_transaction(data: &str) -> Result<WcEthereumTransa
     }
 }
 
-pub(super) fn decode_ethereum_calldata(transaction: &WcEthereumTransactionData) -> Vec<u8> {
+pub(crate) fn decode_ethereum_calldata(transaction: &WcEthereumTransactionData) -> Vec<u8> {
     transaction.data.as_deref().and_then(|calldata| hex::decode_hex(calldata).ok()).unwrap_or_default()
 }
 

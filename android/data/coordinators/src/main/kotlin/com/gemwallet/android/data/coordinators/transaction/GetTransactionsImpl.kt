@@ -1,18 +1,17 @@
 package com.gemwallet.android.data.coordinators.transaction
 
 import androidx.compose.runtime.Stable
-import com.gemwallet.android.application.transactions.coordinators.GetTransactions
-import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
-import com.gemwallet.android.data.repositories.transactions.TransactionRepository
+import com.gemwallet.android.application.transactions.cases.GetTransactions
+import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
+import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStore
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.transaction.AmountSign
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.domains.asset.getImageUrl
 import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.getNftMetadata
 import com.gemwallet.android.ext.getPerpetualMetadata
-import com.gemwallet.android.ext.getResourceMetadata
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
@@ -22,12 +21,19 @@ import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.PriceChangeFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PerpetualDirection
-import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemAddressService
+import uniffi.gemstone.GemTransactionFormatter
+import com.gemwallet.android.domains.transaction.format
+import com.gemwallet.android.domains.transaction.sign
+import uniffi.gemstone.GemAmountSign
+import uniffi.gemstone.GemTransactionSubtitle
+import uniffi.gemstone.GemTransactionValue
+import uniffi.gemstone.GemTransactionTitle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -41,110 +47,74 @@ import java.math.BigInteger
 private val usdFiatFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
 
 class GetTransactionsImpl(
-    private val transactionsRepository: TransactionRepository,
+    private val getCurrentWalletId: GetCurrentWalletId,
+    private val transactionStore: GemstoneTransactionStore,
+    private val transactionFormatter: GemTransactionFormatter,
+    private val addressService: GemAddressService,
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetTransactions {
 
     private val transactions: StateFlow<List<TransactionDataAggregate>> =
-        transactionsRepository.getTransactions(emptyList())
-            .map { items -> items.map { TransactionDataAggregateImpl(it) } }
+        transactionStore.walletTransactions(getCurrentWalletId, emptyList())
+            .map { items -> items.map { TransactionDataAggregateImpl(it, transactionFormatter, addressService) } }
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     override fun transactions(): StateFlow<List<TransactionDataAggregate>> = transactions
 
     override fun getTransactions(
         filters: List<TransactionsRequestFilter>,
-    ): Flow<List<TransactionDataAggregate>> = transactionsRepository.getTransactions(filters)
-        .map { items -> items.map { TransactionDataAggregateImpl(it) } }
+    ): Flow<List<TransactionDataAggregate>> = transactionStore.walletTransactions(getCurrentWalletId, filters)
+        .map { items -> items.map { TransactionDataAggregateImpl(it, transactionFormatter, addressService) } }
         .flowOn(Dispatchers.IO)
 }
 
 @Stable
 class TransactionDataAggregateImpl(
     private val data: TransactionExtended,
+    private val transactionFormatter: GemTransactionFormatter,
+    private val addressService: GemAddressService,
 ) : TransactionDataAggregate {
 
     override val id: TransactionId = data.transaction.id
 
     override val asset: Asset = data.asset
 
-    override val addressName: String? = when (data.transaction.type) {
-        TransactionType.StakeDelegate,
-        TransactionType.StakeUndelegate,
-        TransactionType.StakeRedelegate,
-        TransactionType.EarnDeposit,
-        TransactionType.EarnWithdraw -> data.toAddress
-        else -> when (data.transaction.direction) {
-            TransactionDirection.Incoming -> data.fromAddress
-            TransactionDirection.Outgoing,
-            TransactionDirection.SelfTransfer -> data.toAddress
-        }
-    }?.name
+    override val subtitle: GemTransactionSubtitle = transactionFormatter.subtitle(data.transaction.toJson())
 
-    override val address: String get() = when (data.transaction.type) {
-        TransactionType.TransferNFT,
-        TransactionType.Transfer,
-        TransactionType.TokenApproval,
-        TransactionType.SmartContractCall -> when (data.transaction.direction) {
-            TransactionDirection.SelfTransfer,
-            TransactionDirection.Outgoing -> AddressFormatter(data.transaction.to, chain = data.transaction.assetId.chain).value()
-            TransactionDirection.Incoming -> AddressFormatter(data.transaction.from, chain = data.transaction.assetId.chain).value()
-        }
-        TransactionType.StakeDelegate,
-        TransactionType.StakeUndelegate,
-        TransactionType.StakeRedelegate,
-        TransactionType.EarnDeposit,
-        TransactionType.EarnWithdraw -> AddressFormatter(data.transaction.to, chain = data.transaction.assetId.chain).value()
-        TransactionType.Swap,
-        TransactionType.StakeWithdraw,
-        TransactionType.AssetActivation,
-        TransactionType.StakeRewards,
-        TransactionType.PerpetualOpenPosition,
-        TransactionType.StakeFreeze,
-        TransactionType.StakeUnfreeze,
-        TransactionType.PerpetualClosePosition,
-        TransactionType.PerpetualModifyPosition
-            -> ""
+    override val addressName: String? = subtitle.address()?.let { address ->
+        listOfNotNull(data.fromAddress, data.toAddress).firstOrNull { it.address == address }?.name
     }
 
-    override val value: String get() = when (data.transaction.type) {
-        TransactionType.Swap -> {
-            getSwapValue(true)?.let { (value, asset) ->
-                AmountSign.Incoming.format(formatter.string(value, asset))
-            } ?: ""
-        }
-        TransactionType.PerpetualOpenPosition -> usdFiatFormatter.string(
+    override val address: String = subtitle.address()
+        ?.let { AddressFormatter(addressService, it, chain = data.transaction.assetId.chain).value() }
+        .orEmpty()
+
+    private val coreValue: GemTransactionValue = transactionFormatter.value(data.transaction.toJson())
+
+    override val valueSign: GemAmountSign = coreValue.sign()
+
+    override val value: String = amount(coreValue).orEmpty()
+
+    override val equivalentValue: String? = amount(transactionFormatter.equivalentValue(data.transaction.toJson()))
+
+    private fun amount(value: GemTransactionValue): String? = when (value) {
+        GemTransactionValue.None -> null
+        GemTransactionValue.AssetSymbol -> data.asset.symbol
+        is GemTransactionValue.Amount -> value.sign.format(getFormattedValue())
+        GemTransactionValue.SwapReceived -> swapAmount(toAsset = true, sign = GemAmountSign.INCOMING)
+        GemTransactionValue.SwapSpent -> swapAmount(toAsset = false, sign = GemAmountSign.OUTGOING)
+        GemTransactionValue.PerpetualNotional -> usdFiatFormatter.string(
             CryptoFiatConverter.toFiat(Crypto(data.transaction.value), HypercoreUSDC.decimals, price = 1.0).atomicValue,
         )
-        TransactionType.PerpetualClosePosition -> pnl?.let {
-            PriceChangeFormatter(usdFiatFormatter).string(it)
-        } ?: ""
-        TransactionType.StakeUndelegate,
-        TransactionType.StakeRewards,
-        TransactionType.StakeRedelegate,
-        TransactionType.StakeWithdraw,
-        TransactionType.EarnWithdraw,
-        TransactionType.StakeDelegate,
-        TransactionType.EarnDeposit,
-        TransactionType.StakeFreeze,
-        TransactionType.StakeUnfreeze -> getFormattedValue()
-        TransactionType.Transfer -> AmountSign(data.transaction.direction).format(getFormattedValue())
-        TransactionType.TokenApproval -> data.asset.symbol
-        TransactionType.TransferNFT,
-        TransactionType.AssetActivation,
-        TransactionType.SmartContractCall,
-        TransactionType.PerpetualModifyPosition
-            -> ""
+        is GemTransactionValue.PerpetualPnl -> PriceChangeFormatter(usdFiatFormatter).string(value.value)
     }
 
-    override val equivalentValue: String? get() = when (data.transaction.type) {
-        TransactionType.Swap -> getSwapValue(false)?.let { (value, asset) ->
-            AmountSign.Outgoing.format(formatter.string(value, asset))
-        }
-        else -> null
-    }
+    private fun swapAmount(toAsset: Boolean, sign: GemAmountSign): String? =
+        getSwapValue(toAsset)?.let { (value, asset) -> sign.format(formatter.string(value, asset)) }
 
     override val nftImageUrl: String? = data.transaction.getNftMetadata()?.getImageUrl()
+
+    override val title: GemTransactionTitle = transactionFormatter.title(data.transaction.toJson())
 
     override val type: TransactionType = data.transaction.type
 
@@ -152,13 +122,7 @@ class TransactionDataAggregateImpl(
 
     private val perpetualMetadata = data.transaction.getPerpetualMetadata()
 
-    override val perpetualDirection: PerpetualDirection? = perpetualMetadata?.direction
-
-    override val perpetualPrice: Double? = perpetualMetadata?.price?.takeIf { it > 0 }
-
     override val pnl: Double? = perpetualMetadata?.pnl
-
-    override val resourceType: Resource? = data.transaction.getResourceMetadata()?.resourceType
 
     override val state: TransactionState = data.transaction.state
     override val createdAt: Long = data.transaction.createdAt
@@ -181,4 +145,13 @@ class TransactionDataAggregateImpl(
     private companion object {
         val formatter = ValueFormatter(style = ValueFormatter.Style.Short)
     }
+}
+
+fun GemTransactionSubtitle.address(): String? = when (this) {
+    is GemTransactionSubtitle.ToAddress -> address
+    is GemTransactionSubtitle.FromAddress -> address
+    is GemTransactionSubtitle.ToResource,
+    is GemTransactionSubtitle.FromResource,
+    is GemTransactionSubtitle.Price,
+    GemTransactionSubtitle.None -> null
 }

@@ -57,8 +57,8 @@ mod tests {
         assert_eq!(result.symbol, "USDC");
         assert_eq!(result.decimals, 6);
         assert_eq!(result.id.chain, Chain::Ethereum);
-        assert_eq!(result.chain, Chain::Ethereum);
-        assert_eq!(result.token_id, Some(TOKEN_USDC_ADDRESS.to_string()));
+        assert_eq!(result.chain(), Chain::Ethereum);
+        assert_eq!(result.token_id(), Some(TOKEN_USDC_ADDRESS));
         assert_eq!(result.asset_type, AssetType::ERC20);
     }
 

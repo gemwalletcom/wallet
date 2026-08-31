@@ -1,13 +1,13 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
-import com.gemwallet.android.application.assets.coordinators.GetAssetInfo
-import com.gemwallet.android.application.stake.coordinators.GetDelegation
-import com.gemwallet.android.application.stake.coordinators.GetDelegations
-import com.gemwallet.android.application.stake.coordinators.GetRecommendedValidator
-import com.gemwallet.android.application.stake.coordinators.GetStakeValidator
-import com.gemwallet.android.data.repositories.transactions.TransactionBalanceService
+import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.stake.cases.GetDelegation
+import com.gemwallet.android.application.stake.cases.GetDelegations
+import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
+import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.testkit.mockAssetCosmos
@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
+import uniffi.gemstone.GemAmountService
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -60,9 +61,6 @@ class AmountStakeProviderTest {
     private val getStakeValidator = mockk<GetStakeValidator> {
         coEvery { this@mockk.invoke(asset.id, "v1") } returns validator
     }
-    private val balanceService = mockk<TransactionBalanceService> {
-        coEvery { getBalance(any(), any<AmountParams>(), any(), any()) } returns BigInteger("100")
-    }
     private val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
 
     private fun makeProvider(params: AmountParams.Stake) = AmountStakeProvider(
@@ -72,8 +70,8 @@ class AmountStakeProviderTest {
         getDelegations = getDelegations,
         getRecommendedValidator = getRecommendedValidator,
         getStakeValidator = getStakeValidator,
-        transactionBalanceService = balanceService,
         scope = scope,
+        amountService = GemAmountService(),
     )
 
     @Test
@@ -124,10 +122,6 @@ class AmountStakeProviderTest {
         every { getAssetInfo(asset.id) } returns flowOf(mockAssetInfo(asset = asset, walletId = ownWalletId))
         every { getDelegation(ownWalletId, "v1", "d1") } returns flowOf(ownDelegation)
         every { getDelegation(otherWalletId, "v1", "d1") } returns flowOf(otherWalletDelegation)
-        coEvery {
-            balanceService.getBalance(any(), any<AmountParams>(), delegation = ownDelegation, resource = any())
-        } returns BigInteger("77")
-
         val provider = makeProvider(AmountParams.Stake.Undelegate(asset.id, validatorId = "v1", delegationId = "d1"))
         provider.assetInfo.filterNotNull().first()
         provider.validatorState.filterNotNull().first()
@@ -163,11 +157,12 @@ class AmountStakeProviderTest {
     }
 
     @Test
-    fun `canChangeValue is false for Withdraw and Rewards`() {
-        assertEquals(true, makeProvider(AmountParams.Stake.Delegate(asset.id)).canChangeValue)
-        assertEquals(true, makeProvider(AmountParams.Stake.Redelegate(asset.id, "v", "d")).canChangeValue)
-        assertEquals(false, makeProvider(AmountParams.Stake.Withdraw(asset.id, "v", "d")).canChangeValue)
-        assertEquals(false, makeProvider(AmountParams.Stake.Rewards(asset.id)).canChangeValue)
+    fun `canChangeValue is false for Withdraw and Rewards`() = runBlocking {
+        suspend fun canChangeValue(params: AmountParams.Stake) = makeProvider(params).rules.filterNotNull().first().canChangeValue
+        assertEquals(true, canChangeValue(AmountParams.Stake.Delegate(asset.id)))
+        assertEquals(true, canChangeValue(AmountParams.Stake.Redelegate(asset.id, "v", "d")))
+        assertEquals(false, canChangeValue(AmountParams.Stake.Withdraw(asset.id, "v", "d")))
+        assertEquals(false, canChangeValue(AmountParams.Stake.Rewards(asset.id)))
     }
 
     @Test
@@ -224,17 +219,14 @@ class AmountStakeProviderTest {
     fun `unfreeze has zero minimum and zero reserve`() {
         val provider = makeProvider(AmountParams.Stake.Unfreeze(asset.id, Resource.Bandwidth))
         assertEquals(BigInteger.ZERO, provider.minimumValue.value)
-        assertEquals(BigInteger.ZERO, provider.reserveForFee)
+        assertEquals(BigInteger.ZERO, provider.reserveForFee.value)
     }
 
     @Test
     fun `unfreeze availableBalance reflects live resource selection`() = runBlocking {
-        coEvery {
-            balanceService.getBalance(any(), any<AmountParams>(), any(), resource = Resource.Bandwidth)
-        } returns BigInteger("2000")
-        coEvery {
-            balanceService.getBalance(any(), any<AmountParams>(), any(), resource = Resource.Energy)
-        } returns BigInteger("3000")
+        every { getAssetInfo(asset.id) } returns flowOf(
+            mockAssetInfo(asset = asset, balance = AssetBalance.create(asset = asset, frozen = "2000", locked = "3000")),
+        )
 
         val provider = makeProvider(AmountParams.Stake.Unfreeze(asset.id, Resource.Bandwidth))
         assertEquals(BigInteger("2000"), provider.availableBalance.filterNotNull().first { it != BigInteger.ZERO })

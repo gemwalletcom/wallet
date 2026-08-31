@@ -19,12 +19,12 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "Gemstone", path: "../../Packages/Gemstone"),
         .package(name: "Primitives", path: "../../Packages/Primitives"),
         .package(name: "Components", path: "../../Packages/Components"),
         .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
         .package(name: "Localization", path: "../../Packages/Localization"),
-        .package(name: "ChainServices", path: "../../Packages/ChainServices"),
-        .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
+        .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
         .package(name: "Preferences", path: "../../Packages/Preferences"),
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "InfoSheet", path: "../InfoSheet"),
@@ -36,13 +36,12 @@ let package = Package(
         .target(
             name: "Stake",
             dependencies: [
+                "Gemstone",
                 "Primitives",
                 "Components",
                 "GemstonePrimitives",
                 "Localization",
-                .product(name: "StakeService", package: "ChainServices"),
-                .product(name: "ExplorerService", package: "ChainServices"),
-                .product(name: "EarnService", package: "FeatureServices"),
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
                 "Preferences",
                 "Store",
                 "InfoSheet",
@@ -55,18 +54,20 @@ let package = Package(
         .target(
             name: "StakeTestKit",
             dependencies: [
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "Stake",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
-                .product(name: "StakeServiceTestKit", package: "ChainServices"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
             ],
             path: "TestKit",
         ),
         .testTarget(
             name: "StakeTests",
             dependencies: [
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "StakeTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
-                .product(name: "StakeServiceTestKit", package: "ChainServices"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 "Stake",
             ],
             path: "Tests",

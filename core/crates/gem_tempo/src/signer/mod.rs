@@ -56,7 +56,7 @@ impl EvmSigner for TempoSigner {
 
 fn get_fee_token(input: &SignerInput) -> Result<Address, SignerError> {
     let fee_asset = &input.fee.fee_asset;
-    if fee_asset.chain != Chain::Tempo || input.input_type.get_asset().chain != Chain::Tempo {
+    if fee_asset.chain != Chain::Tempo || input.input_type.get_asset().chain() != Chain::Tempo {
         return Err(SignerError::invalid_input("mismatched Tempo fee asset"));
     }
     Address::from_str(fee_asset.get_token_id()?).map_err(SignerError::from_display)

@@ -7,7 +7,7 @@ import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.domains.swap.buildAssetRatePair
-import com.gemwallet.android.domains.swap.toPrimitives
+import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
@@ -15,7 +15,7 @@ import com.wallet.core.primitives.swap.SwapPriceImpact
 import java.math.BigInteger
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.SwapperProviderType
-import uniffi.gemstone.calculateSwapPriceImpact
+import uniffi.gemstone.GemSwapQuoteService
 
 object SwapProviderUIModelFactory {
     fun create(
@@ -69,9 +69,9 @@ object SwapDetailsUIModelFactory {
 
     private val rateFormatter = AssetRateFormatter()
 
-    fun create(input: SwapDetailsUIModelInput): SwapDetailsUIModel? {
+    fun create(input: SwapDetailsUIModelInput, swapQuoteService: GemSwapQuoteService): SwapDetailsUIModel? {
         return create(input) { payFiatValue, receiveFiatValue ->
-            calculateSwapPriceImpact(payFiatValue, receiveFiatValue)?.toPrimitives()
+            swapQuoteService.priceImpact(payFiatValue, receiveFiatValue)?.decodeJson()
         }
     }
 

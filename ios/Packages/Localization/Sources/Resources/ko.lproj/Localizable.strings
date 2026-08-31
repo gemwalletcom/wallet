@@ -18,6 +18,7 @@
 "common.wallet" = "지갑";
 "common.show" = "%@ 표시";
 "common.copied" = "복사됨: %@";
+"common.copied_to_clipboard" = "클립보드에 복사됨";
 "common.recommended" = "추천";
 "common.all" = "모두";
 "common.not_available" = "사용 불가";
@@ -178,10 +179,14 @@
 "errors.token.invalid_id" = "잘못된 토큰 ID";
 "errors.import.invalid_secret_phrase" = "잘못된 비밀번호 문구";
 "errors.import.invalid_secret_phrase_word" = "잘못된 비밀 문구 단어: %@";
+"errors.import.invalid_private_key" = "잘못된 개인 키";
+"errors.keystore_access" = "이 기기에서 이 지갑의 키에 접근할 수 없습니다. 복구 문구가 있다면 이 지갑을 삭제한 후 다시 가져와 접근 권한을 복구하세요.";
+"errors.wallet_account_missing" = "이 지갑에는 이 네트워크의 계정이 없습니다";
 "errors.invalid_url" = "잘못된 URL";
 "errors.error_occurred" = "오류가 발생했습니다!";
 "errors.invalid_network_id" = "잘못된 네트워크 ID";
 "errors.error" = "오류";
+"errors.cancelled" = "취소됨";
 "errors.connections.user_cancelled" = "사용자가 취소했습니다.";
 "errors.not_supported" = "지원되지 않음";
 "errors.permissions_not_granted" = "권한이 부여되지 않음";
@@ -214,6 +219,8 @@
 "errors.swap.minimum_amount" = "최소 거래 금액은 %@. 더 높은 금액을 입력해 주세요.";
 "errors.perpetual.trigger_price_lower" = "트리거 가격은 시장 가격보다 낮아야 합니다";
 "errors.perpetual.trigger_price_higher" = "트리거 가격은 시장 가격보다 높아야 합니다";
+"errors.network_error" = "네트워크 오류: %@";
+"errors.network_offline" = "인터넷 연결이 끊긴 것 같습니다.";
 "errors.no_internet_connection" = "인터넷 연결 없음";
 "errors.no_service_connection" = "서비스 연결 없음";
 "errors.balances_activity_outdated" = "잔액 및 활동이 최신이 아닐 수 있습니다.";

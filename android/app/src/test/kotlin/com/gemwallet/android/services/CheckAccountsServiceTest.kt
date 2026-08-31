@@ -1,113 +1,22 @@
 package com.gemwallet.android.services
 
-import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.blockchain.operators.AddAccountsOperator
-import com.gemwallet.android.data.repositories.assets.AssetsRepository
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
-import com.gemwallet.android.ext.available
-import com.gemwallet.android.testkit.mockAccount
-import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockWallet
-import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
-import io.mockk.coJustRun
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.unmockkAll
-import io.mockk.verify
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
-import org.junit.After
-import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.assetDefaultRank
+import uniffi.gemstone.GemAppStartService
 
 class CheckAccountsServiceTest {
-    private val walletsRepository = mockk<WalletsRepository>(relaxed = true)
-    private val assetsRepository = mockk<AssetsRepository>(relaxed = true)
-    private val addAccountsOperator = mockk<AddAccountsOperator>(relaxed = true)
-    private val passwordStore = mockk<PasswordStore>(relaxed = true)
 
-    private val subject = CheckAccountsService(
-        walletsRepository = walletsRepository,
-        assetsRepository = assetsRepository,
-        addAccountsOperator = addAccountsOperator,
-        passwordStore = passwordStore,
-    )
-
-    @Before
-    fun setUp() {
-        mockkStatic("uniffi.gemstone.GemstoneKt")
-        every { assetDefaultRank(any()) } returns 1
-    }
-
-    @After
-    fun tearDown() {
-        unmockkAll()
+    private val appStartService = mockk<GemAppStartService> {
+        coEvery { setupWallets() } returns emptyList()
     }
 
     @Test
-    fun invoke_repairsMissingNativeAssetsWithoutCreatingNewAccounts() = runBlocking {
-        val accounts = Chain.available().map { chain ->
-            mockAccount(chain = chain)
-        }
-        val wallet = mockWallet(
-            id = "wallet-1",
-            accounts = accounts,
-        )
-        val nativeAssets = Chain.available()
-            .filterNot { it == Chain.Ethereum }
-            .map { chain -> mockAsset(chain = chain) }
+    fun invoke_setsUpWalletsThroughCore() = runBlocking {
+        CheckAccountsService(appStartService).invoke()
 
-        every { walletsRepository.getAll() } returns flowOf(listOf(wallet))
-        coJustRun { assetsRepository.updateNativeAssetRanks() }
-        every { assetsRepository.invalidateDefault(wallet) } returns Job()
-        coJustRun { walletsRepository.updateWallet(any()) }
-        coJustRun { walletsRepository.updateAccounts(any()) }
-        coEvery { assetsRepository.getNativeAssets(wallet) } returns nativeAssets
-
-        subject()
-
-        coVerify(exactly = 1) { assetsRepository.updateNativeAssetRanks() }
-        verify(exactly = 1) { walletsRepository.getAll() }
-        coVerify(exactly = 1) { assetsRepository.getNativeAssets(wallet) }
-        verify(exactly = 1) { assetsRepository.invalidateDefault(wallet) }
-        coVerify(exactly = 1) { assetsRepository.ensureDefaultAssets(wallet) }
-        verify(exactly = 0) { passwordStore.getPassword(any()) }
-        coVerify(exactly = 0) { addAccountsOperator(any(), any(), any()) }
-        coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
-        coVerify(exactly = 0) { walletsRepository.updateAccounts(any()) }
-    }
-
-    @Test
-    fun invoke_doesNotRepairWhenExpectedNativeAssetsExist() = runBlocking {
-        mockkStatic("com.gemwallet.android.ext.ChainKt")
-        every { Chain.available() } returns setOf(Chain.Solana)
-
-        val wallet = mockWallet(
-            id = "wallet-1",
-            accounts = listOf(mockAccount(chain = Chain.Solana)),
-        )
-        val nativeAssets = listOf(
-            mockAsset(chain = Chain.Solana),
-            mockAsset(chain = Chain.Ethereum),
-        )
-
-        every { walletsRepository.getAll() } returns flowOf(listOf(wallet))
-        coJustRun { assetsRepository.updateNativeAssetRanks() }
-        coEvery { assetsRepository.getNativeAssets(wallet) } returns nativeAssets
-
-        subject()
-
-        coVerify(exactly = 1) { assetsRepository.getNativeAssets(wallet) }
-        verify(exactly = 0) { assetsRepository.invalidateDefault(any()) }
-        coVerify(exactly = 1) { assetsRepository.ensureDefaultAssets(wallet) }
-        verify(exactly = 0) { passwordStore.getPassword(any()) }
-        coVerify(exactly = 0) { addAccountsOperator(any(), any(), any()) }
-        coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
-        coVerify(exactly = 0) { walletsRepository.updateAccounts(any()) }
+        coVerify(exactly = 1) { appStartService.setupWallets() }
     }
 }

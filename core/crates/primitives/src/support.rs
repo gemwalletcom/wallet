@@ -104,7 +104,6 @@ pub enum SupportStreamEvent {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable, Equatable")]
 #[serde(tag = "type", content = "data", rename_all = "camelCase")]
 pub enum SupportAction {
     Typing(SupportTypingStatus),

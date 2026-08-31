@@ -1,6 +1,8 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
-import com.gemwallet.android.cases.name.ResolveName
+import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
+import com.gemwallet.android.blockchain.operators.gemstone.GemValidatePhraseOperator
+import com.gemwallet.android.application.recipient.cases.GetNameRecord
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.models.name.NameRecordState
@@ -35,20 +37,24 @@ class ImportViewModelTest {
         provider = NameProvider.Ens,
     )
 
-    private class FakeResolveName(private val result: NameRecord?) : ResolveName {
+    private class FakeGetNameRecord(private val result: NameRecord?) : GetNameRecord {
         val requests = mutableListOf<Pair<String, Chain>>()
 
-        override suspend fun resolveName(name: String, chain: Chain): NameRecord? {
+        override suspend fun getNameRecord(name: String, chain: Chain): NameRecord? {
             requests.add(name to chain)
             return result
         }
+
+        override fun isNameSupported(name: String): Boolean = name.split(".").size >= 2
     }
 
-    private fun viewModel(resolveName: ResolveName) = ImportViewModel(
-        walletsRepository = mockk(relaxed = true),
+    private fun viewModel(getNameRecord: GetNameRecord) = ImportViewModel(
+        walletService = mockk(relaxed = true),
         importWalletService = mockk(relaxed = true),
         setCurrentWallet = mockk(relaxed = true),
-        resolveName = resolveName,
+        validatePhrase = GemValidatePhraseOperator(),
+        findPhraseWord = GemFindPhraseWord(),
+        getNameRecord = getNameRecord,
     )
 
     @Before
@@ -66,30 +72,30 @@ class ImportViewModelTest {
     @Test
     fun privateKeyInputNeverReachesTheResolver() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-        val resolveName = FakeResolveName(record)
-        val viewModel = viewModel(resolveName)
+        val getNameRecord = FakeGetNameRecord(record)
+        val viewModel = viewModel(getNameRecord)
 
         viewModel.importSelect(ImportType(WalletType.PrivateKey, chain))
         advanceUntilIdle()
         viewModel.onInput("vitalik.eth")
         advanceUntilIdle()
 
-        assertEquals(emptyList<Pair<String, Chain>>(), resolveName.requests)
+        assertEquals(emptyList<Pair<String, Chain>>(), getNameRecord.requests)
         assertEquals(NameRecordState.None, viewModel.nameResolveState.value)
     }
 
     @Test
     fun viewAddressInputResolves() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-        val resolveName = FakeResolveName(record)
-        val viewModel = viewModel(resolveName)
+        val getNameRecord = FakeGetNameRecord(record)
+        val viewModel = viewModel(getNameRecord)
 
         viewModel.importSelect(ImportType(WalletType.View, chain))
         advanceUntilIdle()
         viewModel.onInput("vitalik.eth")
         advanceUntilIdle()
 
-        assertEquals(listOf("vitalik.eth" to chain), resolveName.requests)
+        assertEquals(listOf("vitalik.eth" to chain), getNameRecord.requests)
         assertEquals(NameRecordState.Complete(record), viewModel.nameResolveState.value)
     }
 }

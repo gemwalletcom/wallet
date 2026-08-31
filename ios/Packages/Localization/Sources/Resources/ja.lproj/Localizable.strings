@@ -18,6 +18,7 @@
 "common.wallet" = "ウォレット";
 "common.show" = "%@を表示";
 "common.copied" = "コピー済み: %@";
+"common.copied_to_clipboard" = "クリップボードにコピーしました";
 "common.recommended" = "推奨";
 "common.all" = "全て";
 "common.not_available" = "利用不可";
@@ -178,10 +179,14 @@
 "errors.token.invalid_id" = "無効なトークンID";
 "errors.import.invalid_secret_phrase" = "無効な秘密フレーズ";
 "errors.import.invalid_secret_phrase_word" = "無効なシークレットフレーズの単語: %@";
+"errors.import.invalid_private_key" = "無効な秘密鍵";
+"errors.keystore_access" = "このデバイスでこのウォレットの鍵にアクセスできませんでした。リカバリーフレーズをお持ちの場合は、このウォレットを削除して再度インポートするとアクセスを復元できます。";
+"errors.wallet_account_missing" = "このウォレットにはこのネットワークのアカウントがありません";
 "errors.invalid_url" = "無効なURL";
 "errors.error_occurred" = "エラーが発生しました！";
 "errors.invalid_network_id" = "無効なネットワークID";
 "errors.error" = "エラー";
+"errors.cancelled" = "キャンセルされました";
 "errors.connections.user_cancelled" = "ユーザーがキャンセルしました";
 "errors.not_supported" = "サポートされていません";
 "errors.permissions_not_granted" = "許可が得られていません";
@@ -214,6 +219,8 @@
 "errors.swap.minimum_amount" = "最低取引金額は %@。より高い金額を入力してください。";
 "errors.perpetual.trigger_price_lower" = "トリガー価格は市場価格より低くする必要があります";
 "errors.perpetual.trigger_price_higher" = "トリガー価格は市場価格より高くする必要があります";
+"errors.network_error" = "ネットワークエラー: %@";
+"errors.network_offline" = "インターネット接続が切断されているようです。";
 "errors.no_internet_connection" = "インターネット接続がありません";
 "errors.no_service_connection" = "サービス接続がありません";
 "errors.balances_activity_outdated" = "残高とアクティビティは最新でない場合があります。";

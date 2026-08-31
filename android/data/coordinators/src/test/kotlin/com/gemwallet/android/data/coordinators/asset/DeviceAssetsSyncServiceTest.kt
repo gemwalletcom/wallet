@@ -1,45 +1,37 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.cases.device.SyncDevice
-import com.gemwallet.android.data.service.store.WalletPreferences
-import com.gemwallet.android.data.service.store.WalletPreferencesFactory
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import io.mockk.coEvery
 import io.mockk.coVerifyOrder
-import io.mockk.every
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import com.wallet.core.primitives.Currency
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import uniffi.gemstone.GemAssetDiscoveryService
+import uniffi.gemstone.GemDeviceService
 
 class DeviceAssetsSyncServiceTest {
 
-    private val walletPreferences = mockk<WalletPreferences>(relaxed = true)
-    private val walletPreferencesFactory = mockk<WalletPreferencesFactory> {
-        every { create(any()) } returns walletPreferences
+    private val discoveryService = mockk<GemAssetDiscoveryService>()
+    private val getCurrentCurrency = mockk<GetCurrentCurrency> {
+        coEvery { getCurrentCurrency() } returns Currency.USD
     }
-    private val gemDeviceApiClient = mockk<GemDeviceApiClient>()
-    private val syncDevice = mockk<SyncDevice>(relaxed = true)
+    private val deviceService = mockk<GemDeviceService>(relaxed = true)
 
     private val subject = DeviceAssetsSyncService(
-        walletPreferencesFactory = walletPreferencesFactory,
-        gemDeviceApiClient = gemDeviceApiClient,
-        prefetchAssets = mockk(relaxed = true),
-        ensureWalletAssets = mockk(relaxed = true),
-        enableAsset = mockk(relaxed = true),
-        assetsRepository = mockk(relaxed = true),
-        walletsRepository = mockk(relaxed = true),
-        syncDevice = syncDevice,
+        deviceService = deviceService,
+        discoveryService = discoveryService,
     )
 
     @Test
-    fun sync_synchronizesDeviceBeforeRequestingAssets() = runTest {
-        coEvery { gemDeviceApiClient.getAssets(any(), any()) } returns emptyList()
+    fun sync_synchronizesDeviceBeforeDiscoveringAssets() = runTest {
+        coEvery { discoveryService.discover("wallet-1") } returns emptyList()
 
         subject.sync("wallet-1")
 
         coVerifyOrder {
-            syncDevice.syncDevice()
-            gemDeviceApiClient.getAssets(any(), any())
+            deviceService.synchronizeIfNeeded()
+            discoveryService.discover("wallet-1")
         }
     }
 }

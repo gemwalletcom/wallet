@@ -15,7 +15,23 @@ pub fn sender_address_for_key(private_key: &[u8]) -> String {
 }
 
 pub fn solana_metadata(sender_token_address: Option<&str>, recipient_token_address: Option<&str>, token_program: Option<SolanaTokenProgramId>) -> TransactionLoadMetadata {
-    TransactionLoadMetadata::mock_solana_token(sender_token_address, recipient_token_address, token_program)
+    solana_metadata_with_references(sender_token_address, recipient_token_address, token_program, &[])
+}
+
+pub fn solana_metadata_with_references(
+    sender_token_address: Option<&str>,
+    recipient_token_address: Option<&str>,
+    token_program: Option<SolanaTokenProgramId>,
+    references: &[&str],
+) -> TransactionLoadMetadata {
+    TransactionLoadMetadata::Solana {
+        sender_token_address: sender_token_address.map(String::from),
+        recipient_token_address: recipient_token_address.map(String::from),
+        token_program,
+        nft: None,
+        block_hash: "11111111111111111111111111111111".to_string(),
+        references: references.iter().map(|reference| (*reference).to_string()).collect(),
+    }
 }
 
 pub fn private_key_base58(value: &str) -> Vec<u8> {

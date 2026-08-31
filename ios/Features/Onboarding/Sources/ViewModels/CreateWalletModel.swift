@@ -1,20 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AvatarService
+import protocol Gemstone.GemAvatarServiceProtocol
+import GemstoneServices
 import Foundation
 import GemstonePrimitives
 import Preferences
 import Primitives
 import SwiftUI
-import WalletService
-import WalletSessionService
 
 @Observable
 @MainActor
 public final class CreateWalletModel {
     let walletService: WalletService
     let walletSessionService: any WalletSessionManageable
-    let avatarService: AvatarService
+    let avatarService: any GemAvatarServiceProtocol
     let hasExistingWallets: Bool
     let onComplete: VoidAction
 
@@ -23,7 +22,7 @@ public final class CreateWalletModel {
     public init(
         walletService: WalletService,
         walletSessionService: any WalletSessionManageable,
-        avatarService: AvatarService,
+        avatarService: any GemAvatarServiceProtocol,
         onComplete: VoidAction,
     ) {
         self.walletService = walletService
@@ -58,18 +57,21 @@ extension CreateWalletModel {
     }
 
     func createWallet(words: [String]) async throws -> Wallet {
-        let result = try await walletService.loadOrCreateWallet(
-            name: WalletNameGenerator(type: .multicoin, walletService: walletService).name,
+        let result = try await walletService.importWallet(
+            name: await WalletNameGenerator(type: .multicoin, walletService: walletService).name(),
             type: .phrase(words: words, chains: AssetConfiguration.allChains),
             source: .create,
         )
         walletService.acceptTerms()
-        WalletPreferences(walletId: result.wallet.id).completeInitialSynchronization()
         return result.wallet
     }
 
     func setupWalletComplete(wallet: Wallet) async {
         dismiss()
-        await walletSessionService.setCurrent(wallet: wallet)
+        do {
+            try await walletSessionService.setCurrent(wallet: wallet)
+        } catch {
+            debugLog("set current wallet error: \(error)")
+        }
     }
 }

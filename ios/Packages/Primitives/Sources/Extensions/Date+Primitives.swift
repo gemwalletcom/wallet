@@ -20,9 +20,3 @@ public extension Date? {
         isOutdated(by: TimeInterval(minutes * 60))
     }
 }
-
-public extension Date {
-    var millisecondsSince1970: Int64 {
-        Int64(timeIntervalSince1970 * 1000)
-    }
-}

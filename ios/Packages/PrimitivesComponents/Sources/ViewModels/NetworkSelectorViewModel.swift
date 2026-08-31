@@ -2,6 +2,8 @@
 
 import Components
 import Foundation
+import class Gemstone.GemChainService
+import protocol Gemstone.GemChainServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -10,13 +12,12 @@ import SwiftUI
 
 public struct NetworkSelectorViewModel: SelectableSheetViewable {
     public var selectionType: SelectionType
-    public var isSearchable: Bool {
-        true
-    }
 
     public let state: StateViewType<SelectableListType<Chain>>
 
     public var selectedItems: Set<Chain>
+
+    private let chainService: any GemChainServiceProtocol = GemChainService()
 
     public init(
         state: StateViewType<SelectableListType<Chain>>,
@@ -44,25 +45,18 @@ public struct NetworkSelectorViewModel: SelectableSheetViewable {
         Localized.Common.done
     }
 
-    public var noResultsTitle: String? {
-        Localized.Common.noResultsFound
-    }
-
     public var confirmButtonTitle: String {
         Localized.Transfer.confirm
     }
-}
 
-extension NetworkSelectorViewModel: ItemFilterable {
-    public var emptyContentModel: (any EmptyContentViewable)? {
-        EmptyContentTypeViewModel(type: .search(type: EmptyContentType.SearchType.networks))
+    public var search: ListSearch<Chain>? {
+        ListSearch(
+            filter: filter(chain:query:),
+            emptyContent: EmptyContentTypeViewModel(type: .search(type: EmptyContentType.SearchType.networks)),
+        )
     }
 
-    public var items: [Chain] {
-        state.value?.items ?? []
-    }
-
-    public func filter(_ chain: Chain, query: String) -> Bool {
-        chain.matches(query: query)
+    private func filter(chain: Chain, query: String) -> Bool {
+        !chainService.getMatchingChains(chains: [chain.rawValue], query: query).isEmpty
     }
 }

@@ -30,6 +30,7 @@ pub fn decode(scheme: Option<&str>, path: &str) -> Result<Payment> {
             address: path.to_string(),
             amount: None,
             memo: None,
+            references: None,
             asset_id,
         }));
     };
@@ -53,6 +54,7 @@ pub fn decode(scheme: Option<&str>, path: &str) -> Result<Payment> {
         address: address.to_string(),
         amount,
         memo,
+        references: None,
         asset_id,
     }))
 }
@@ -129,6 +131,7 @@ mod tests {
             address: XRP_ADDRESS.to_string(),
             amount: Some(PaymentAmount::ExactValue("10".to_string())),
             memo: Some("12345".to_string()),
+            references: None,
             asset_id: Some(AssetId::from_chain(Chain::Xrp)),
         });
 

@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import ConnectionsService
+import WalletConnectorService
 import Formatters
 import Foundation
 import Localization
@@ -10,7 +10,7 @@ public struct ConnectionSceneViewModel: Sendable {
     private static let dateFormatter = RelativeDateFormatter()
 
     let model: WalletConnectionViewModel
-    let service: ConnectionsService
+    let connector: any WalletConnectorServiceable
 
     var title: String {
         Localized.WalletConnect.Connection.title
@@ -37,6 +37,6 @@ public struct ConnectionSceneViewModel: Sendable {
     }
 
     func disconnect() async throws {
-        try await service.disconnect(session: model.connection.session)
+        try await connector.disconnect(sessionId: model.connection.session.sessionId)
     }
 }

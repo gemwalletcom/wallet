@@ -30,18 +30,22 @@ impl<C: Client + Clone> ChainBlockTransactions for EthereumProvider<C> {
 #[cfg(feature = "rpc")]
 impl<C: Client + Clone> EthereumProvider<C> {
     pub async fn get_transactions_by_block_with_receipts(&self, block_number: u64) -> Result<Vec<(Transaction, TransactionReceipt)>, Box<dyn Error + Sync + Send>> {
-        let block = self.get_block(block_number).await?;
+        let Some(block) = self.get_block(block_number).await? else {
+            return Err(format!("block {block_number} not available").into());
+        };
         if block.transactions.is_empty() {
             return Ok(Vec::new());
         }
 
         let receipts = self.get_block_receipts(block_number).await?;
-        let chain = self.get_chain();
         Ok(block
             .transactions
             .into_iter()
             .zip(receipts)
-            .filter_map(|(transaction, receipt)| EthereumMapper::map_transaction(chain, &transaction, &receipt, &block.timestamp).map(|transaction| (transaction, receipt)))
+            .filter_map(|(transaction, receipt)| {
+                EthereumMapper::map_transaction_with_parser(self.get_chain(), &transaction, &receipt, &block.timestamp, self.provider.protocol_parser())
+                    .map(|transaction| (transaction, receipt))
+            })
             .collect())
     }
 
@@ -83,7 +87,10 @@ impl<C: Client + Clone> EthereumProvider<C> {
             Some(timestamp) => timestamp,
             None => self.get_block_timestamp(receipt.block_number).await?,
         };
-        Ok(EthereumMapper::map_transaction(self.get_chain(), &transaction, &receipt, &timestamp).map(|transaction| (transaction, receipt)))
+        Ok(
+            EthereumMapper::map_transaction_with_parser(self.get_chain(), &transaction, &receipt, &timestamp, self.provider.protocol_parser())
+                .map(|transaction| (transaction, receipt)),
+        )
     }
 }
 
@@ -97,9 +104,9 @@ impl<C: Client + Clone> ChainTransaction for EthereumProvider<C> {
 
 #[cfg(all(test, feature = "rpc"))]
 mod tests {
-    use chain_traits::{ChainTransaction, TransactionIdRequest};
+    use chain_traits::{ChainBlockTransactions, ChainTransaction, TransactionIdRequest};
     use gem_client::{ClientError, testkit::MockClient};
-    use gem_jsonrpc::JsonRpcClient;
+    use gem_jsonrpc::{JsonRpcClient, testkit::mock_jsonrpc_client};
     use primitives::{Chain, EVMChain, testkit::json::load_json_rpc_result};
     use serde_json::{Value, json};
 
@@ -107,6 +114,16 @@ mod tests {
         method,
         rpc::{EthereumClient, EthereumProvider},
     };
+
+    #[tokio::test]
+    async fn test_get_transactions_by_block_null() {
+        let client = mock_jsonrpc_client(|_, _| Ok(Value::Null));
+        let provider = EthereumProvider::new_rpc_only(EthereumClient::new(client, EVMChain::Ink));
+
+        let error = provider.get_transactions_by_block(54181824).await.unwrap_err();
+
+        assert_eq!(error.to_string(), "block 54181824 not available");
+    }
 
     #[tokio::test]
     async fn test_get_transaction_by_hash_batches_known_block() {
@@ -142,7 +159,7 @@ mod tests {
             .unwrap()
             .unwrap();
 
-        assert_eq!(transaction.hash, "0xd6878ac03656ac15c9bc24cc4daf3ff276de637ec2d9708c420186f6cba9dc06");
+        assert_eq!(transaction.hash(), "0xd6878ac03656ac15c9bc24cc4daf3ff276de637ec2d9708c420186f6cba9dc06");
     }
 }
 
@@ -206,7 +223,7 @@ mod chain_integration_tests {
             .await?
             .unwrap();
 
-        assert_eq!(transaction.hash, TEST_TRANSACTION_ID);
+        assert_eq!(transaction.hash(), TEST_TRANSACTION_ID);
         Ok(())
     }
 }

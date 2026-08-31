@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitivesTestKit
 import BigInt
+import GemstonePrimitives
 import Preferences
 import Primitives
 import PrimitivesTestKit
@@ -13,10 +15,11 @@ struct TransactionInputViewModelTests {
     func valueWithAmount() {
         let viewModel = TransactionInputViewModel(
             data: .mock(),
-            transactionData: nil,
+            fee: nil,
             metaData: nil,
             transferAmount: .success(TransferAmount(value: 200, networkFee: 1, useMaxAmount: false)),
             feeAsset: .mock(),
+            currency: Currency.usd.rawValue,
         )
 
         #expect(viewModel.value == BigInt(200))
@@ -25,14 +28,15 @@ struct TransactionInputViewModelTests {
     @Test
     func valueWithError() {
         let viewModel = TransactionInputViewModel(
-            data: .mock(amount: .exact(100)),
-            transactionData: nil,
+            data: .mock(value: 100),
+            fee: nil,
             metaData: nil,
             transferAmount: .failure(TransferAmountCalculatorError.insufficientBalance(
                 .mock(),
                 requirement: BalanceRequirement(required: 1, available: 0),
             )),
             feeAsset: .mock(),
+            currency: Currency.usd.rawValue,
         )
 
         #expect(viewModel.value == 100)
@@ -42,10 +46,11 @@ struct TransactionInputViewModelTests {
     func valueWithNilResult() {
         let viewModel = TransactionInputViewModel(
             data: .mock(),
-            transactionData: nil,
+            fee: nil,
             metaData: nil,
             transferAmount: nil,
             feeAsset: .mock(),
+            currency: Currency.usd.rawValue,
         )
 
         #expect(viewModel.value == .zero)
@@ -55,10 +60,11 @@ struct TransactionInputViewModelTests {
     func testNetworkFeeText() {
         let viewModel = TransactionInputViewModel(
             data: .mock(),
-            transactionData: .mock(),
+            fee: .mock(fee: 1),
             metaData: nil,
             transferAmount: nil,
             feeAsset: .mock(),
+            currency: Currency.usd.rawValue,
         )
 
         #expect(viewModel.networkFeeText == "0.00000001 BTC")
@@ -69,10 +75,11 @@ struct TransactionInputViewModelTests {
         let feeAsset = Asset.mockEthereumUSDT()
         let viewModel = TransactionInputViewModel(
             data: .mock(),
-            transactionData: TransactionData(fee: .mock(fee: 1_000_000, feeAsset: feeAsset)),
+            fee: .mock(fee: 1_000_000, feeAsset: feeAsset),
             metaData: nil,
             transferAmount: nil,
             feeAsset: feeAsset,
+            currency: Currency.usd.rawValue,
         )
 
         #expect(viewModel.networkFeeText == "1 USDT")
@@ -89,10 +96,11 @@ struct TransactionInputViewModelTests {
         )
         let viewModel = TransactionInputViewModel(
             data: .mock(),
-            transactionData: .mock(),
+            fee: .mock(fee: 1),
             metaData: metaData,
             transferAmount: nil,
             feeAsset: .mock(),
+            currency: Currency.usd.rawValue,
         )
 
         #expect(viewModel.networkFeeFiatText == "$0.000000015")
@@ -102,10 +110,11 @@ struct TransactionInputViewModelTests {
     func nilFee() {
         let viewModel = TransactionInputViewModel(
             data: .mock(),
-            transactionData: nil,
+            fee: nil,
             metaData: nil,
             transferAmount: nil,
             feeAsset: .mock(),
+            currency: Currency.usd.rawValue,
         )
 
         #expect(viewModel.networkFeeText == "-")

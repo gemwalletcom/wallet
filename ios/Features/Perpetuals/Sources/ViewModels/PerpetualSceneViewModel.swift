@@ -1,35 +1,38 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPerpetualServiceProtocol
+import protocol Gemstone.GemPreferencesServiceProtocol
+import protocol Gemstone.GemTransactionsServiceProtocol
 import BigInt
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
+import class Gemstone.GemTransactionFormatter
 import Formatters
 import Foundation
-import enum Gemstone.GemPerpetualSubscription
 import GemstonePrimitives
 import InfoSheet
 import Localization
-import PerpetualService
+import GemstoneServices
 import Preferences
 import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
-import TransactionsService
 
 @Observable
 @MainActor
 public final class PerpetualSceneViewModel {
     private let observerService: any PerpetualObservable
-    private let transactionsService: TransactionsService
+    private let transactionsService: any GemTransactionsServiceProtocol
     private let onTransferData: TransferDataAction
     private let onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)?
-    private let perpetualOrderFactory = PerpetualOrderFactory()
     private let balanceCalculator = BalanceCalculator()
 
     public let wallet: Wallet
     public let asset: Asset
 
-    public let explorerService: any ExplorerLinkFetchable = ExplorerService.standard
+    public let explorerService: any GemExplorerServiceProtocol
+
+    let transactionFormatter: GemTransactionFormatter
 
     public let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
     public let perpetualQuery: ObservableQuery<PerpetualRequest>
@@ -58,15 +61,17 @@ public final class PerpetualSceneViewModel {
     public var isPresentingModifyAlert: Bool?
     public var isPresentingAutoclose: Bool = false
 
-    private let preferences: Preferences
+    private let preferencesService: any GemPreferencesServiceProtocol
 
     public init(
         wallet: Wallet,
         asset: Asset,
-        perpetualService: PerpetualServiceable,
-        transactionsService: TransactionsService,
+        perpetualService: any GemPerpetualServiceProtocol,
+        transactionsService: any GemTransactionsServiceProtocol,
         observerService: any PerpetualObservable,
-        preferences: Preferences = .standard,
+        explorerService: any GemExplorerServiceProtocol,
+        transactionFormatter: GemTransactionFormatter,
+        preferencesService: any GemPreferencesServiceProtocol,
         onTransferData: TransferDataAction = nil,
         onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)? = nil,
     ) {
@@ -74,18 +79,27 @@ public final class PerpetualSceneViewModel {
         self.asset = asset
         self.transactionsService = transactionsService
         self.observerService = observerService
-        self.preferences = preferences
+        self.explorerService = explorerService
+        self.transactionFormatter = transactionFormatter
+        self.preferencesService = preferencesService
         chart = PerpetualChartModel(
             perpetualService: perpetualService,
             observerService: observerService,
-            preferences: preferences,
+            preferencesService: preferencesService,
         )
         self.onTransferData = onTransferData
         self.onPerpetualRecipientData = onPerpetualRecipientData
 
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, filter: .assetId(asset.id)), initialValue: [])
         perpetualQuery = ObservableQuery(PerpetualRequest(assetId: asset.id), initialValue: .empty)
-        perpetualFiatValuesQuery = ObservableQuery(AssetFiatValuesRequest(walletId: wallet.id, type: .perpetual), initialValue: [])
+        perpetualFiatValuesQuery = ObservableQuery(
+            AssetFiatValuesRequest(
+                walletId: wallet.id,
+                type: .perpetual,
+                perpetualAssetId: Chain.hyperCore.defaultAsset(type: .perpetual).id,
+            ),
+            initialValue: [],
+        )
         transactionsQuery = ObservableQuery(
             TransactionsRequest.perpetualScene(
                 walletId: wallet.id,
@@ -101,7 +115,7 @@ public final class PerpetualSceneViewModel {
     }
 
     public var currency: String {
-        preferences.currency
+        preferencesService.currencyCode
     }
 
     public var hasOpenPosition: Bool {
@@ -179,15 +193,15 @@ public final class PerpetualSceneViewModel {
 // MARK: - Actions
 
 public extension PerpetualSceneViewModel {
-    func fetch() async {
-        async let updateObserver: () = observerService.update(for: wallet)
+    func load() async {
+        async let updateObserver: PerpetualAccountMode? = observerService.update(for: wallet)
         async let refreshTransactions: () = updateTransactions()
         async let refreshCandlesticks: () = chart.refresh(symbol: perpetual.coin)
         _ = await (updateObserver, refreshTransactions, refreshCandlesticks)
     }
 
     func onAppear() async {
-        async let refresh: () = fetch()
+        async let refresh: () = load()
         await chart.onAppear(symbol: perpetual.coin)
         await subscribeMarket(perpetual.coin)
         _ = await refresh
@@ -248,21 +262,21 @@ public extension PerpetualSceneViewModel {
             let assetIndex = UInt32(perpetual.identifier)
         else { return }
 
-        let data = perpetualOrderFactory.makeCloseOrder(
-            assetIndex: Int32(assetIndex),
-            perpetual: perpetual,
-            position: position,
-            asset: asset,
-            baseAsset: Chain.hyperCore.defaultAsset(type: .perpetual),
-        )
-
-        let transferData = TransferData(
-            type: .perpetual(asset, .close(data)),
-            recipientData: .hyperliquid(),
-            amount: .exact(.zero),
-        )
-
-        onTransferData?(transferData)
+        do {
+            let data = try position.closeOrder(
+                assetIndex: Int32(assetIndex),
+                perpetual: perpetual,
+                asset: asset,
+                baseAsset: Chain.hyperCore.defaultAsset(type: .perpetual),
+            )
+            onTransferData?(TransferData(
+                type: .perpetual(asset, .close(data)),
+                recipient: .hyperliquidProvider,
+                value: .zero,
+            ))
+        } catch {
+            debugLog("perpetual scene: close position error \(error)")
+        }
     }
 
     func onOpenLongPosition() {
@@ -374,9 +388,9 @@ private extension PerpetualSceneViewModel {
 
     func updateTransactions() async {
         do {
-            try await transactionsService.updateForAsset(walletId: wallet.id, assetId: asset.id)
+            try await transactionsService.sync(walletId: wallet.id.id, assetId: asset.id.identifier)
         } catch {
-            debugLog("perpetual scene: fetchTransactions error \(error)")
+            debugLog("perpetual scene: loadTransactions error \(error)")
         }
     }
 }

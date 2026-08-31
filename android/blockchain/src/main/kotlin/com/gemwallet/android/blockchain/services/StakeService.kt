@@ -1,6 +1,6 @@
 package com.gemwallet.android.blockchain.services
 
-import com.gemwallet.android.blockchain.gemstone.toDTO
+import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.DelegationBase
 import com.wallet.core.primitives.DelegationValidator
@@ -21,7 +21,7 @@ class StakeService(
         } catch (_: Throwable) {
             return emptyList()
         }
-        return result.mapNotNull { it.toDTO() }
+        return result.map { it.decodeJson() }
     }
 
     suspend fun getDelegationValidators(
@@ -36,7 +36,7 @@ class StakeService(
         } catch (_: Throwable) {
             return emptyList()
         }
-        return result.mapNotNull { it.toDTO() }
+        return result.map { it.decodeJson() }
     }
 
     suspend fun getStakeDelegations(
@@ -51,6 +51,6 @@ class StakeService(
         } catch (_: Throwable) {
             return null
         }
-        return result.mapNotNull { it.toDTO() }
+        return result.map { it.decodeJson() }
     }
 }

@@ -9,6 +9,8 @@ data class Balance<T>(
     val rewards: T,
     val reserved: T,
     val withdrawable: T,
+    val pendingUnconfirmed: T,
+    val earn: T,
 ) {
     override fun equals(other: Any?): Boolean {
         return other is Balance<*>
@@ -20,6 +22,8 @@ data class Balance<T>(
                 && other.rewards == rewards
                 && other.reserved == reserved
                 && other.withdrawable == withdrawable
+                && other.pendingUnconfirmed == pendingUnconfirmed
+                && other.earn == earn
     }
 
     override fun hashCode(): Int {
@@ -32,6 +36,8 @@ data class Balance<T>(
         result = 31 * result + rewards.hashCode()
         result = 31 * result + reserved.hashCode()
         result = 31 * result + withdrawable.hashCode()
+        result = 31 * result + pendingUnconfirmed.hashCode()
+        result = 31 * result + earn.hashCode()
         return result
     }
 }

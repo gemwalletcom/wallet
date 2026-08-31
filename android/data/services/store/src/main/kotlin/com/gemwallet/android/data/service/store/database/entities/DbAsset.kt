@@ -36,6 +36,8 @@ data class DbAsset(
     @ColumnInfo("is_swap_enabled") val isSwapEnabled: Boolean = false,
     @ColumnInfo("is_stake_enabled") val isStakeEnabled: Boolean = false,
     @ColumnInfo("staking_apr") val stakingApr: Double? = null,
+    @ColumnInfo("is_earn_enabled", defaultValue = "0") val isEarnEnabled: Boolean = false,
+    @ColumnInfo("earn_apr") val earnApr: Double? = null,
     @ColumnInfo("rank") val rank: Int = 0,
     @ColumnInfo("updated_at") val updatedAt: Long = 0,
     @ColumnInfo("associations", defaultValue = "[]") val associations: List<AssetAssociation> = emptyList(),
@@ -54,6 +56,8 @@ data class DbAssetBasicUpdate(
     @ColumnInfo("is_swap_enabled") val isSwapEnabled: Boolean = false,
     @ColumnInfo("is_stake_enabled") val isStakeEnabled: Boolean = false,
     @ColumnInfo("staking_apr") val stakingApr: Double? = null,
+    @ColumnInfo("is_earn_enabled", defaultValue = "0") val isEarnEnabled: Boolean = false,
+    @ColumnInfo("earn_apr") val earnApr: Double? = null,
     @ColumnInfo("rank") val rank: Int = 0,
 )
 
@@ -147,11 +151,14 @@ fun AssetFull.toRecord() = DbAsset(
     symbol = asset.symbol,
     decimals = asset.decimals,
     type = asset.type,
+    isEnabled = properties.isEnabled,
     isBuyEnabled = properties.isBuyable,
     isSellEnabled = properties.isSellable,
     isStakeEnabled = properties.isStakeable,
     isSwapEnabled = properties.isSwapable,
     stakingApr = properties.stakingApr,
+    isEarnEnabled = properties.isEarnable,
+    earnApr = properties.earnApr,
     rank = score.rank,
     associations = associations,
 )
@@ -178,6 +185,8 @@ fun AssetBasic.toRecord() = DbAsset(
     isStakeEnabled = properties.isStakeable,
     isSwapEnabled = properties.isSwapable,
     stakingApr = properties.stakingApr,
+    isEarnEnabled = properties.isEarnable,
+    earnApr = properties.earnApr,
     rank = score.rank,
 )
 
@@ -194,6 +203,8 @@ fun AssetBasic.toUpdateRecord() = DbAssetBasicUpdate(
     isSwapEnabled = properties.isSwapable,
     isStakeEnabled = properties.isStakeable,
     stakingApr = properties.stakingApr,
+    isEarnEnabled = properties.isEarnable,
+    earnApr = properties.earnApr,
     rank = score.rank,
 )
 
@@ -204,8 +215,6 @@ fun AssetLink.toRecord(assetId: AssetId) = DbAssetLink(
     name = name,
     url = url,
 )
-
-fun List<AssetFull>.toAssetFullRecord() = map { it.toRecord() }
 
 fun List<DbAssetLink>.toAssetLinksModel() = map { it.toDTO() }
 
@@ -237,8 +246,6 @@ fun AssetMarket.toRecord(assetId: AssetId, rate: Double) = copy(
     allTimeHighValue = allTimeHighValue?.withRate(rate),
     allTimeLowValue = allTimeLowValue?.withRate(rate),
 ).toRecord(assetId)
-
-fun AssetFull.toMarketRecord(rate: Double) = market?.toRecord(asset.id, rate)
 
 fun  DbAssetMarket.toDTO() = AssetMarket(
     marketCap = marketCap,

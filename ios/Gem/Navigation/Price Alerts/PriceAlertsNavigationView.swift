@@ -7,7 +7,7 @@ import PriceAlerts
 import Primitives
 import Style
 import SwiftUI
-import WalletSessionService
+import GemstoneServices
 
 struct PriceAlertsNavigationView: View {
     @Environment(\.walletSessionService) private var walletSessionService

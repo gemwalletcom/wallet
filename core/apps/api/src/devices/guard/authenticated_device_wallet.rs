@@ -1,4 +1,4 @@
-use primitives::WalletId;
+use primitives::{WalletId, WalletType};
 use rocket::Request;
 use rocket::outcome::Outcome::Success;
 use rocket::request::{FromRequest, Outcome};
@@ -13,6 +13,7 @@ pub struct AuthenticatedDeviceWallet {
     pub device_row: DeviceRow,
     pub wallet_id: i32,
     pub wallet_identifier: WalletId,
+    pub wallet_type: WalletType,
 }
 
 #[rocket::async_trait]
@@ -38,6 +39,7 @@ impl<'r> FromRequest<'r> for AuthenticatedDeviceWallet {
             device_row,
             wallet_id: wallet_row.id,
             wallet_identifier: wallet_row.wallet_id.0,
+            wallet_type: wallet_row.wallet_type.0,
         })
     }
 }

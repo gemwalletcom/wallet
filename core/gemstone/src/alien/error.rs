@@ -5,4 +5,5 @@ pub enum AlienError {
     RequestError { msg: String },
     ResponseError { msg: String },
     Http { status: u16, len: u32 },
+    Offline,
 }

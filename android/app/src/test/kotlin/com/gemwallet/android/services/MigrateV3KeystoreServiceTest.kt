@@ -3,7 +3,7 @@ package com.gemwallet.android.services
 import android.content.Context
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.blockchain.operators.MigrateKeystoreOperator
-import com.gemwallet.android.data.repositories.wallets.WalletsRepository
+import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.testkit.KEYSTORE_TEST_ETH_ADDRESS
 import com.gemwallet.android.testkit.KEYSTORE_TEST_PASSWORD
@@ -29,7 +29,7 @@ class MigrateV3KeystoreServiceTest {
 
     private lateinit var baseDir: File
     private lateinit var passwordStore: PasswordStore
-    private lateinit var walletsRepository: WalletsRepository
+    private lateinit var getWallets: GetWallets
     private lateinit var migrateKeystoreOperator: MigrateKeystoreOperator
     private lateinit var service: MigrateV3KeystoreService
 
@@ -40,9 +40,9 @@ class MigrateV3KeystoreServiceTest {
             every { dataDir } returns baseDir
         }
         passwordStore = mockk()
-        walletsRepository = mockk()
+        getWallets = mockk()
         migrateKeystoreOperator = mockk()
-        service = MigrateV3KeystoreService(context, walletsRepository, passwordStore, migrateKeystoreOperator)
+        service = MigrateV3KeystoreService(context, getWallets, passwordStore, migrateKeystoreOperator)
     }
 
     @After
@@ -54,7 +54,7 @@ class MigrateV3KeystoreServiceTest {
     fun migrateWallet_invokesOperatorWithDecodedPasswordAndZeroizesIt() = runBlocking {
         val walletId = WalletId("privateKey_ethereum_$KEYSTORE_TEST_ETH_ADDRESS")
         val current = mockWallet(id = walletId.id, type = WalletType.PrivateKey, source = WalletSource.Import)
-        every { walletsRepository.getAll() } answers { flowOf(listOf(current)) }
+        every { getWallets() } answers { flowOf(listOf(current)) }
         prepareV3File(walletId)
         var capturedLegacyPassword = byteArrayOf()
         var capturedNewPassword = byteArrayOf()
@@ -73,7 +73,6 @@ class MigrateV3KeystoreServiceTest {
         }
         assertTrue(capturedLegacyPassword.all { it == 0.toByte() })
         assertTrue(capturedNewPassword.all { it == 0.toByte() })
-        coVerify(exactly = 0) { walletsRepository.updateWallet(any()) }
     }
 
     @Test
@@ -83,7 +82,7 @@ class MigrateV3KeystoreServiceTest {
             baseDir.mkdirs()
             val walletId = WalletId("privateKey_ethereum_$KEYSTORE_TEST_ETH_ADDRESS")
             val current = mockWallet(id = walletId.id, type = WalletType.PrivateKey, source = WalletSource.Import)
-            every { walletsRepository.getAll() } answers { flowOf(listOf(current)) }
+            every { getWallets() } answers { flowOf(listOf(current)) }
             prepareV3File(walletId, password)
 
             service()

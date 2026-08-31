@@ -8,20 +8,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 @Serializable
-enum class WebSocketPriceActionType(val string: String) {
-	@SerialName("subscribe")
-	Subscribe("subscribe"),
-	@SerialName("add")
-	Add("add"),
-}
-
-@Serializable
-data class WebSocketPriceAction (
-	val action: WebSocketPriceActionType,
-	val assets: List<AssetId>? = null
-)
-
-@Serializable
 data class WebSocketPricePayload (
 	val prices: List<AssetPrice>,
 	val rates: List<FiatRate>

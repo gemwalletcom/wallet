@@ -3,6 +3,8 @@
 import Foundation
 
 public struct SilentValidationError: LocalizedError {
+    public init() {}
+
     public var errorDescription: String? {
         nil
     }

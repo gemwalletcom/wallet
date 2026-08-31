@@ -1,19 +1,23 @@
 package com.gemwallet.android.di
 
-import com.gemwallet.android.application.fiat.coordinators.SyncFiatAssets
-import com.gemwallet.android.application.swap.coordinators.SyncSwapAssets
-import com.gemwallet.android.blockchain.services.BroadcastService
 import com.gemwallet.android.blockchain.services.NodeStatusService
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
-import com.gemwallet.android.cases.device.SyncDevice
-import com.gemwallet.android.data.services.gemapi.GemDeviceApiClient
 import com.gemwallet.android.services.SyncService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemBalanceService
+import uniffi.gemstone.GemConfirmService
+import uniffi.gemstone.GemConfirmServiceInterface
+import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemPriceService
+import uniffi.gemstone.GemScanService
+import uniffi.gemstone.GemTransactionStateService
+import uniffi.gemstone.TransactionSimulationService
 import javax.inject.Singleton
+import uniffi.gemstone.GemDeviceService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -21,22 +25,21 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun providesBroadcastProxy(
+    fun provideConfirmService(
         gateway: GemGateway,
-    ): BroadcastService = BroadcastService(
-        gateway = gateway,
-    )
+        simulationService: TransactionSimulationService,
+        scanService: GemScanService,
+        transactionStateService: GemTransactionStateService,
+        balanceService: GemBalanceService,
+        priceService: GemPriceService,
+    ): GemConfirmServiceInterface = GemConfirmService(gateway, simulationService, scanService, transactionStateService, balanceService, priceService)
 
     @Provides
     @Singleton
     fun provideSignerPreloader(
-        gateway: GemGateway,
-        gemDeviceApiClient: GemDeviceApiClient,
+        confirmService: GemConfirmServiceInterface,
     ): SignerPreloaderProxy {
-        return SignerPreloaderProxy(
-            gateway = gateway,
-            scanTransaction = gemDeviceApiClient::getScanTransaction,
-        )
+        return SignerPreloaderProxy(confirmService)
     }
 
     @Singleton
@@ -50,14 +53,6 @@ object DataModule {
     @Singleton
     @Provides
     fun provideSyncService(
-        syncFiatAssets: SyncFiatAssets,
-        syncSwapAssets: SyncSwapAssets,
-        syncDevice: SyncDevice,
-    ): SyncService {
-        return SyncService(
-            syncFiatAssets = syncFiatAssets,
-            syncSwapAssets = syncSwapAssets,
-            syncDevice = syncDevice,
-        )
-    }
+        appStartService: GemAppStartService,
+    ): SyncService = SyncService(appStartService = appStartService)
 }

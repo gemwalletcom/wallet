@@ -1,12 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AddressNameService
+import class Gemstone.GemApplicationMetadataService
+import protocol Gemstone.GemNameServiceProtocol
+import GemstoneServices
 import Components
-import ExplorerService
+import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
 import class Gemstone.MessageSigner
 import GemstonePrimitives
-import Keystore
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -16,13 +17,14 @@ import WalletConnectorService
 @Observable
 @MainActor
 public final class SignMessageSceneViewModel {
-    private let explorerService: ExplorerService = .standard
+    private let explorerService: any GemExplorerServiceProtocol
     private let keystore: any Keystore
-    private let addressNameService: AddressNameService
+    private let nameService: any GemNameServiceProtocol
     private let payload: SignMessagePayload
     private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate
     private let signer: MessageSigner
     private let plainMessage: String
+    private let applicationMetadataService: GemApplicationMetadataService
     public let messageDisplayType: SignMessageDisplayType
 
     public var isPresentingUrl: URL?
@@ -30,27 +32,35 @@ public final class SignMessageSceneViewModel {
     private var payloadAddressNames: [ChainAddress: AddressName] = [:]
 
     public init(
+        explorerService: any GemExplorerServiceProtocol,
         keystore: any Keystore,
-        addressNameService: AddressNameService,
+        nameService: any GemNameServiceProtocol,
         payload: SignMessagePayload,
         confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
+        applicationMetadataService: GemApplicationMetadataService,
     ) {
+        self.applicationMetadataService = applicationMetadataService
+        self.explorerService = explorerService
         self.keystore = keystore
-        self.addressNameService = addressNameService
+        self.nameService = nameService
         self.payload = payload
         let signer = MessageSigner(message: payload.message)
         self.signer = signer
         let plainMessage = signer.plainPreview()
         self.plainMessage = plainMessage
         let messageDisplayType: SignMessageDisplayType = {
-            guard let payloadPreview = try? signer.payloadPreview(simulationPayload: payload.simulation.payload.map { $0.map() }) else {
+            do {
+                let simulationPayload = payload.simulation.payload.map { $0.json() }
+                guard let preview = try signer.payloadPreview(simulationPayload: simulationPayload) else {
+                    return .text(plainMessage)
+                }
+                return try .payload(
+                    primary: preview.primary.map { try SimulationPayloadField($0) },
+                    secondary: preview.secondary.map { try SimulationPayloadField($0) },
+                )
+            } catch {
                 return .text(plainMessage)
             }
-
-            return .payload(
-                primary: payloadPreview.primary.map { $0.map() },
-                secondary: payloadPreview.secondary.map { $0.map() },
-            )
         }()
         self.messageDisplayType = messageDisplayType
         self.confirmTransferDelegate = confirmTransferDelegate
@@ -73,11 +83,14 @@ public final class SignMessageSceneViewModel {
     }
 
     public var connectionViewModel: WalletConnectionViewModel {
-        WalletConnectionViewModel(connection: WalletConnection(session: payload.session, wallet: payload.wallet))
+        WalletConnectionViewModel(
+            connection: WalletConnection(session: payload.session, wallet: payload.wallet),
+            applicationMetadataService: applicationMetadataService,
+        )
     }
 
     public var appName: String {
-        payload.session.metadata.shortName
+        payload.session.metadata.shortName(applicationMetadataService: applicationMetadataService)
     }
 
     public var appUrl: URL? {
@@ -151,7 +164,7 @@ public final class SignMessageSceneViewModel {
 // MARK: - Actions
 
 public extension SignMessageSceneViewModel {
-    func fetch() {
+    func load() {
         Task {
             await loadPayloadAddressNamesIfNeeded()
         }
@@ -160,7 +173,7 @@ public extension SignMessageSceneViewModel {
     func contextMenuItems(for field: SimulationPayloadField) -> [ContextMenuItemType] {
         payloadModel.contextMenuItems(
             for: field,
-            explorerLink: { explorerService.addressUrl(chain: payload.chain, address: $0) },
+            explorerLink: { BlockExplorerLink(explorerService.getAddressUrl(chain: payload.chain.rawValue, address: $0)) },
             onOpenURL: { [weak self] in self?.isPresentingUrl = $0 },
         )
     }
@@ -178,6 +191,6 @@ private extension SignMessageSceneViewModel {
     func loadPayloadAddressNamesIfNeeded() async {
         guard payloadAddressNames.isEmpty, payloadModel.hasFields else { return }
 
-        payloadAddressNames = await (try? addressNameService.getAddressNames(requests: payloadModel.addressRequests)) ?? [:]
+        payloadAddressNames = await (try? nameService.addressNames(requests: payloadModel.addressRequests)) ?? [:]
     }
 }

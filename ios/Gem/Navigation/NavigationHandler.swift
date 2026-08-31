@@ -1,59 +1,99 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AssetsService
+import Store
+import GemstoneServices
 import Components
-import ConnectionsService
-import EventPresenterService
+import WalletConnectorService
 import Foundation
+import protocol Gemstone.GemAssetsServiceProtocol
+import protocol Gemstone.GemTransactionStateServiceProtocol
+import enum Gemstone.GemPushNotification
+import protocol Gemstone.GemPushNotificationServiceProtocol
+import class Gemstone.GemPaymentLinkService
 import GemstonePrimitives
 import Localization
+import class Gemstone.GemAddressService
+import class Gemstone.GemPaymentService
 import Primitives
 import PrimitivesComponents
+import Style
 import SwiftUI
-import TransactionsService
 import WalletConnector
-import WalletSessionService
 
 @Observable
 final class NavigationHandler: Sendable {
     private let navigationState: NavigationStateManager
     private let presenter: NavigationPresenter
 
-    private let assetsService: AssetsService
-    private let connectionsService: ConnectionsService
-    private let eventPresenterService: EventPresenterService
-    private let transactionsService: TransactionsService
+    private let assetsService: any GemAssetsServiceProtocol
+    private let assetStore: AssetStore
+    private let walletConnector: any WalletConnectorServiceable
+    private let toastPresenter: ToastPresenter
+    private let paymentLinkService: GemPaymentLinkService
+    private let pushNotificationService: any GemPushNotificationServiceProtocol
+    private let transactionStore: TransactionStore
+    private let urlParser: URLParser
+    private let addressService: GemAddressService
+    private let paymentService: GemPaymentService
+    private let transactionStateService: any GemTransactionStateServiceProtocol
     private let walletConnectorPresenter: WalletConnectorPresenter
     private let walletSessionService: any WalletSessionManageable
 
     init(
         navigationState: NavigationStateManager,
         presenter: NavigationPresenter,
-        assetsService: AssetsService,
-        connectionsService: ConnectionsService,
-        eventPresenterService: EventPresenterService,
-        transactionsService: TransactionsService,
+        assetsService: any GemAssetsServiceProtocol,
+        assetStore: AssetStore,
+        walletConnector: any WalletConnectorServiceable,
+        toastPresenter: ToastPresenter,
+        paymentLinkService: GemPaymentLinkService,
+        pushNotificationService: any GemPushNotificationServiceProtocol,
+        transactionStore: TransactionStore,
+        urlParser: URLParser,
+        addressService: GemAddressService,
+        paymentService: GemPaymentService,
+        transactionStateService: any GemTransactionStateServiceProtocol,
         walletConnectorPresenter: WalletConnectorPresenter,
         walletSessionService: any WalletSessionManageable,
     ) {
         self.navigationState = navigationState
         self.presenter = presenter
         self.assetsService = assetsService
-        self.connectionsService = connectionsService
-        self.eventPresenterService = eventPresenterService
-        self.transactionsService = transactionsService
+        self.assetStore = assetStore
+        self.walletConnector = walletConnector
+        self.toastPresenter = toastPresenter
+        self.paymentLinkService = paymentLinkService
+        self.pushNotificationService = pushNotificationService
+        self.transactionStore = transactionStore
+        self.urlParser = urlParser
+        self.addressService = addressService
+        self.paymentService = paymentService
+        self.transactionStateService = transactionStateService
         self.walletConnectorPresenter = walletConnectorPresenter
         self.walletSessionService = walletSessionService
     }
 
     @MainActor
     func handlePush(_ userInfo: [AnyHashable: Any]) async {
+        guard
+            let notificationType = userInfo["type"] as? String,
+            let notification = pushNotificationService.parse(
+                notificationType: notificationType,
+                data: Self.payload(userInfo["data"]),
+            )
+        else {
+            return
+        }
         do {
-            let notification = try PushNotification(from: userInfo)
             try await handle(notification)
         } catch {
             debugLog("NavigationHandler push error: \(error)")
         }
+    }
+
+    private static func payload(_ data: Any?) -> String? {
+        guard let data, JSONSerialization.isValidJSONObject(data) else { return .none }
+        return (try? JSONSerialization.data(withJSONObject: data)).map { String(decoding: $0, as: UTF8.self) }
     }
 
     @MainActor
@@ -63,7 +103,7 @@ final class NavigationHandler: Sendable {
 
     @MainActor
     func handle(code: String) async {
-        guard let action = try? URLParser.from(code: code) else {
+        guard let action = try? urlParser.from(code: code) else {
             return showError(AnyError(Localized.Errors.notSupported))
         }
         await handle(action)
@@ -74,13 +114,14 @@ final class NavigationHandler: Sendable {
         do {
             try await handleURLAction(action)
         } catch {
+            toastPresenter.toastMessage = nil
             showError(error)
         }
     }
 
     @MainActor
     func open(url: URL) -> Bool {
-        guard let action = try? URLParser.from(url: url) else { return false }
+        guard let action = try? urlParser.from(url: url) else { return false }
         Task { await handle(action) }
         return true
     }
@@ -93,7 +134,7 @@ extension NavigationHandler {
     private func handleURLAction(_ action: URLAction) async throws {
         switch action {
         case let .deeplink(deeplink): try await handleDeepLink(deeplink)
-        case let .payment(payment): try handlePayment(payment)
+        case let .payment(payment): try await handlePayment(payment)
         case let .walletConnect(action): await handleWalletConnect(action)
         }
     }
@@ -130,14 +171,22 @@ extension NavigationHandler {
 
 @MainActor
 extension NavigationHandler {
-    private func handlePayment(_ payment: Payment) throws {
+    private func handlePayment(_ payment: Payment) async throws {
         guard let wallet = walletSessionService.currentWallet else { return }
-        guard case let .request(request) = payment else {
-            throw AnyError(Localized.Errors.notSupported)
+        switch payment {
+        case let .request(request):
+            let assets = try assetStore.getAssetsData(walletId: wallet.id, filters: [])
+            presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(payment: request, assets: assets, addressService: addressService, paymentService: paymentService)
+        case let .link(link):
+            toastPresenter.toastMessage = ToastMessage(title: Localized.Common.loading, image: SystemImage.network)
+            let addresses = wallet.accounts.map { ChainAddress(chain: $0.chain, address: $0.address) }
+            let transaction = try await paymentLinkService.load(link: link, addresses: addresses)
+            let chain = try Primitives.ChainAddress(transaction.account).chain
+            let assetId = try transaction.request?.map().assetId ?? chain.asset.id
+            let asset = try await assetsService.ensureTokenAsset(for: assetId)
+            toastPresenter.toastMessage = nil
+            presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(transaction: transaction, asset: asset, addressService: addressService, paymentService: paymentService)
         }
-        let assets = try assetsService.assetStore.getAssetsData(walletId: wallet.id, filters: [])
-
-        presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(payment: request, assets: assets)
     }
 }
 
@@ -151,11 +200,11 @@ extension NavigationHandler {
         do {
             switch action {
             case let .connect(uri):
-                try await connectionsService.pair(uri: uri)
+                try await walletConnector.pair(uri: uri)
             case .request:
                 break
             case .session:
-                connectionsService.updateSessions()
+                walletConnector.updateSessions()
             }
         } catch {
             debugLog("NavigationHandler walletConnect error: \(error)")
@@ -168,27 +217,27 @@ extension NavigationHandler {
 
 @MainActor
 extension NavigationHandler {
-    private func handle(_ notification: PushNotification) async throws {
+    private func handle(_ notification: GemPushNotification) async throws {
         switch notification {
-        case let .asset(assetId):
-            try await navigateToAsset(assetId)
-        case let .walletAsset(walletId, assetId):
-            try await navigateToAsset(walletId: walletId, assetId: assetId)
+        case let .asset(assetId), let .priceAlert(assetId):
+            try await navigateToAsset(Primitives.AssetId(id: assetId))
+        case let .fiatTransaction(walletId, assetId), let .stake(walletId, assetId):
+            try await navigateToAsset(walletId: Primitives.WalletId.from(id: walletId), assetId: Primitives.AssetId(id: assetId))
         case let .transaction(walletId, assetId, transaction):
-            try await navigateToTransaction(walletId: walletId, assetId: assetId, transaction: transaction)
-        case let .priceAlert(assetId):
-            try await navigateToAsset(assetId)
-        case let .buyAsset(assetId, amount):
-            try await presentFiat(type: .buy, assetId: assetId, amount: amount)
-        case let .swapAsset(fromId, toId):
-            try await presentSwap(from: fromId, to: toId)
+            try await navigateToTransaction(
+                walletId: Primitives.WalletId.from(id: walletId),
+                assetId: Primitives.AssetId(id: assetId),
+                transaction: Primitives.Transaction(transaction),
+            )
+        case let .buyAsset(assetId):
+            try await presentFiat(type: .buy, assetId: Primitives.AssetId(id: assetId), amount: .none)
+        case let .swapAsset(fromAssetId, toAssetId):
+            try await presentSwap(from: Primitives.AssetId(id: fromAssetId), to: Primitives.AssetId(id: toAssetId))
         case .support:
             presenter.isPresentingSupport.wrappedValue = true
         case .rewards:
-            navigationState.settings.append(Scenes.Referral(code: nil))
-        case .stake: break
-        // TODO: Select wallet and open stake screen of an asset
-        case .test, .unknown: break
+            navigationState.settings.append(Scenes.Referral(code: .none))
+        case .test: break
         }
 
         selectTab(for: notification.selectTab)
@@ -201,7 +250,7 @@ extension NavigationHandler {
 extension NavigationHandler {
     private func showError(_ error: any Error) {
         debugLog("NavigationHandler error: \(error)")
-        eventPresenterService.toastPresenter.toastMessage = .error(error.localizedDescription)
+        toastPresenter.toastMessage = .error(error.localizedDescription)
     }
 
     private func selectTab(for tab: TabItem?) {
@@ -210,14 +259,18 @@ extension NavigationHandler {
     }
 
     private func navigateToAsset(_ assetId: AssetId) async throws {
-        guard let asset = try await preparedAssetForNavigation(assetId: assetId, wallet: walletSessionService.currentWallet) else {
+        guard let wallet = walletSessionService.currentWallet,
+              let asset = try await assetsService.openWalletAsset(wallet: wallet, assetId: assetId)
+        else {
             return
         }
         navigationState.openAsset(asset)
     }
 
     private func navigateToAsset(walletId: WalletId, assetId: AssetId) async throws {
-        guard let asset = try await assetForWalletNavigation(walletId: walletId, assetId: assetId) else {
+        guard let wallet = try? walletSessionService.getWallet(walletId: walletId),
+              let asset = try await assetsService.openWalletAsset(wallet: wallet, assetId: assetId)
+        else {
             return
         }
 
@@ -225,13 +278,28 @@ extension NavigationHandler {
         navigationState.openAsset(asset)
     }
 
+    private func trackNotificationTransaction(walletId: WalletId, transaction: Primitives.Transaction) {
+        Task {
+            do {
+                try await transactionStateService.track(walletId: walletId.id, transactions: [transaction.json()])
+            } catch {
+                debugLog("navigation: transaction tracking failed \(error)")
+            }
+        }
+    }
+
     private func navigateToTransaction(walletId: WalletId, assetId: AssetId, transaction: Primitives.Transaction) async throws {
-        guard let asset = try await assetForWalletNavigation(walletId: walletId, assetId: assetId) else {
+        guard let wallet = try? walletSessionService.getWallet(walletId: walletId),
+              let asset = try await transactionStateService.addNotificationTransaction(
+                  wallet: wallet.json(),
+                  assetId: assetId.identifier,
+                  transaction: transaction.json(),
+              ).map({ try Asset($0) })
+        else {
             return
         }
-
-        try transactionsService.addTransaction(walletId: walletId, transaction: transaction)
-        let transaction = try transactionsService.getTransaction(walletId: walletId, transactionId: transaction.id)
+        trackNotificationTransaction(walletId: walletId, transaction: transaction)
+        let transaction = try transactionStore.getTransaction(walletId: walletId, transactionId: transaction.id)
 
         await selectWalletIfNeeded(walletId)
         switch asset.type {
@@ -244,31 +312,17 @@ extension NavigationHandler {
         navigationState.selectedTab = .wallet
     }
 
-    private func assetForWalletNavigation(walletId: WalletId, assetId: AssetId) async throws -> Asset? {
-        guard let wallet = try? walletSessionService.getWallet(walletId: walletId) else {
-            return nil
-        }
-        return try await preparedAssetForNavigation(assetId: assetId, wallet: wallet)
-    }
-
-    private func preparedAssetForNavigation(assetId: AssetId, wallet: Wallet?) async throws -> Asset? {
-        guard AssetNavigationPolicy.canOpen(assetId),
-              let wallet,
-              wallet.accounts.contains(where: { $0.chain == assetId.chain })
-        else {
-            return nil
-        }
-        let asset = try await assetsService.getOrFetchAsset(for: assetId)
-        try assetsService.addBalancesIfMissing(walletId: wallet.id, assetIds: [asset.id])
-        return asset
-    }
-
     private func selectWalletIfNeeded(_ walletId: WalletId) async {
         guard walletSessionService.currentWalletId != walletId else {
             return
         }
 
-        walletSessionService.setCurrent(walletId: walletId)
+        do {
+            try walletSessionService.setCurrent(walletId: walletId)
+        } catch {
+            debugLog("set current wallet error: \(error)")
+            return
+        }
         await withCheckedContinuation { continuation in
             RunLoop.main.perform(inModes: [.common]) {
                 continuation.resume()
@@ -282,7 +336,7 @@ extension NavigationHandler {
     }
 
     private func presentFiat(type: FiatQuoteType, assetId: AssetId, amount: Int?) async throws {
-        let asset = try await assetsService.getOrFetchAsset(for: assetId)
+        let asset = try await assetsService.ensureAsset(for: assetId)
         let selectedType: SelectedAssetType = switch type {
         case .buy: .buy(asset, amount: amount)
         case .sell: .sell(asset, amount: amount)
@@ -291,7 +345,7 @@ extension NavigationHandler {
     }
 
     private func presentReceive(assetId: AssetId) async throws {
-        let asset = try await assetsService.getOrFetchAsset(for: assetId)
+        let asset = try await assetsService.ensureAsset(for: assetId)
         try presentAssetInput(type: .receive(.asset), for: asset)
     }
 
@@ -318,13 +372,13 @@ private extension DeepLink {
     }
 }
 
-private extension PushNotification {
+private extension GemPushNotification {
     var selectTab: TabItem? {
         switch self {
-        case .transaction, .asset, .walletAsset, .priceAlert, .stake: .wallet
+        case .transaction, .asset, .fiatTransaction, .priceAlert, .stake: .wallet
         case .buyAsset, .swapAsset: nil
         case .support, .rewards: .settings
-        case .test, .unknown: nil
+        case .test: nil
         }
     }
 }

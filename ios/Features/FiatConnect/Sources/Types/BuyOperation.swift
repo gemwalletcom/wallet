@@ -1,16 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemFiatServiceProtocol
 import BigInt
 import Formatters
 import Foundation
-import GemAPI
+import GemstoneServices
 import GemstonePrimitives
 import Localization
 import Primitives
 import Validators
 
 struct BuyOperation: FiatOperation {
-    private let service: any GemAPIFiatService
+    private let service: any GemFiatServiceProtocol
     private let asset: Asset
     private let currencyFormatter: CurrencyFormatter
     private let walletId: WalletId
@@ -30,7 +31,7 @@ struct BuyOperation: FiatOperation {
     }
 
     init(
-        service: any GemAPIFiatService,
+        service: any GemFiatServiceProtocol,
         asset: Asset,
         currencyFormatter: CurrencyFormatter,
         walletId: WalletId,
@@ -41,9 +42,15 @@ struct BuyOperation: FiatOperation {
         self.walletId = walletId
     }
 
-    func fetch(amount: Double) async throws -> [FiatQuote] {
+    func load(amount: Double) async throws -> [FiatQuote] {
         let request = FiatQuoteRequest(amount: amount, currency: currencyFormatter.currencyCode)
-        return try await service.getQuotes(walletId: walletId, type: .buy, assetId: asset.id, request: request)
+        return try await service.getQuotes(
+            walletId: walletId.id,
+            quoteType: FiatQuoteType.buy.json(),
+            assetId: asset.id.identifier,
+            amount: request.amount,
+            currency: Currency(id: request.currency).json(),
+        ).map { try FiatQuote($0) }
     }
 
     func validators(

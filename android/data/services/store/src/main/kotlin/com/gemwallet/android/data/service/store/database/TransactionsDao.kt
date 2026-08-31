@@ -6,13 +6,14 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RawQuery
 import androidx.sqlite.db.SupportSQLiteQuery
-import com.gemwallet.android.application.transactions.coordinators.TransactionsRequestFilter
+import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.data.service.store.database.entities.DbAddress
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
+import com.gemwallet.android.data.service.store.database.entities.DbSwapPair
 import com.gemwallet.android.data.service.store.database.entities.DbTransaction
 import com.gemwallet.android.data.service.store.database.entities.DbTransactionExtended
-import com.gemwallet.android.data.service.store.database.entities.DbTxSwapMetadata
+import com.gemwallet.android.data.service.store.database.entities.DbTransactionSwapMetadata
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.WalletId
@@ -82,7 +83,7 @@ interface TransactionsDao {
             DbTransaction::class,
             DbAsset::class,
             DbPrice::class,
-            DbTxSwapMetadata::class,
+            DbTransactionSwapMetadata::class,
             DbAddress::class,
         ]
     )
@@ -109,8 +110,14 @@ interface TransactionsDao {
     @Query("SELECT $EXTENDED_COLUMNS $EXTENDED_SOURCE AND tx.id = :id")
     fun getExtendedTransaction(walletId: WalletId, id: TransactionId): Flow<DbTransactionExtended?>
 
+    @Query("SELECT * FROM transactions WHERE state IN (:states)")
+    fun getTransactionsByStates(states: List<TransactionState>): List<DbTransaction>
+
     @Query("SELECT state FROM transactions WHERE id = :id AND walletId = :walletId")
     fun getTransactionState(id: TransactionId, walletId: WalletId): TransactionState?
+
+    @Query("SELECT * FROM transactions WHERE id = :id AND walletId = :walletId")
+    fun getTransaction(id: TransactionId, walletId: WalletId): DbTransaction?
 
     @Query("UPDATE transactions SET id = :newId, hash = :hash, updatedAt = :updatedAt WHERE id = :oldId AND walletId = :walletId")
     fun updateTransactionId(
@@ -121,34 +128,35 @@ interface TransactionsDao {
         updatedAt: Long = System.currentTimeMillis(),
     )
 
-    @Query("UPDATE transactions SET state = :state, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
-    fun updateState(id: TransactionId, walletId: WalletId, state: TransactionState, updatedAt: Long = System.currentTimeMillis())
-
-    @Query("UPDATE transactions SET fee = :fee, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
-    fun updateFee(id: TransactionId, walletId: WalletId, fee: String, updatedAt: Long = System.currentTimeMillis())
-
-    @Query("UPDATE transactions SET metadata = :metadata, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
-    fun updateMetadata(id: TransactionId, walletId: WalletId, metadata: String, updatedAt: Long = System.currentTimeMillis())
-
-    @Query("UPDATE transactions SET state = :state, fee = :fee, metadata = :metadata, estimatedConfirmationInSeconds = :confirmationEtaSeconds, updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId")
-    fun updateTransaction(
+    @Query(
+        "UPDATE transactions SET state = :state, fee = COALESCE(:fee, fee), blockNumber = COALESCE(:blockNumber, blockNumber), " +
+            "metadata = COALESCE(:metadata, metadata), estimatedConfirmationInSeconds = COALESCE(:confirmationEtaSeconds, estimatedConfirmationInSeconds), " +
+            "updatedAt = :updatedAt WHERE id = :id AND walletId = :walletId"
+    )
+    fun updateTransactionState(
         id: TransactionId,
         walletId: WalletId,
         state: TransactionState,
-        fee: String,
+        fee: String?,
+        blockNumber: String?,
         metadata: String?,
         confirmationEtaSeconds: Long?,
         updatedAt: Long = System.currentTimeMillis(),
     ): Int
 
-    @Insert(entity = DbTxSwapMetadata::class, onConflict = OnConflictStrategy.REPLACE)
-    fun addSwapMetadata(metadata: List<DbTxSwapMetadata>)
+    @Insert(entity = DbTransactionSwapMetadata::class, onConflict = OnConflictStrategy.REPLACE)
+    fun addSwapMetadata(metadata: List<DbTransactionSwapMetadata>)
 
-    @Query("DELETE FROM tx_swap_metadata WHERE tx_id = :transactionId")
-    fun deleteSwapMetadata(transactionId: String)
+    @Query("DELETE FROM tx_swap_metadata WHERE tx_id = :transactionId AND NOT EXISTS (SELECT 1 FROM transactions WHERE transactions.id = :transactionId)")
+    fun deleteUnreferencedSwapMetadata(transactionId: String)
 
-    @Query("UPDATE tx_swap_metadata SET tx_id = :newTransactionId WHERE tx_id = :oldTransactionId")
-    fun updateSwapMetadataTransactionId(oldTransactionId: String, newTransactionId: String)
+    @Query("""
+        SELECT swap.from_asset_id AS fromAssetId, swap.to_asset_id AS toAssetId
+        FROM tx_swap_metadata AS swap
+        JOIN transactions AS tx ON tx.id = swap.tx_id
+        WHERE tx.walletId = :walletId
+        """)
+    suspend fun getSwapPairs(walletId: String): List<DbSwapPair>
 
     @Query("DELETE FROM transactions WHERE state = :state")
     fun deleteByState(state: TransactionState)

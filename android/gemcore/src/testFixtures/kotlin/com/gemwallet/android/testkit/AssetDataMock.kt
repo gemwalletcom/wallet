@@ -12,7 +12,7 @@ fun mockAssetData(
     wallet: Wallet = mockWallet(accounts = listOf(mockAccount(chain = asset.id.chain))),
     account: Account = mockAccount(chain = asset.id.chain),
     balance: AssetBalance = AssetBalance.create(asset),
-    metadata: AssetMetaData? = null,
+    metadata: AssetMetaData = mockAssetMetaData(),
 ) = AssetData.from(
     assetInfo = mockAssetInfo(
         asset = asset,

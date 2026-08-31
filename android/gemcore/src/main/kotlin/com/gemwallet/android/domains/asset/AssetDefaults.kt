@@ -10,16 +10,12 @@ import com.wallet.core.primitives.AssetProperties
 import com.wallet.core.primitives.AssetScore
 import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.assetDefaultRank
-import uniffi.gemstone.assetIsSwapable
-import uniffi.gemstone.defaultTokenRank
-import uniffi.gemstone.walletDefaultAssets
+import uniffi.gemstone.GemAssetConfigService
 
-val Chain.defaultAssetRank: Int
-    get() = assetDefaultRank(string)
+private val assetConfig = GemAssetConfigService()
 
 val Chain.defaultAssets: List<Asset>
-    get() = walletDefaultAssets(string).map { it.toDTO() }
+    get() = assetConfig.walletDefaultAssets(string).map { it.toDTO() }
 
 val Asset.defaultBasic: AssetBasic
     get() {
@@ -32,7 +28,7 @@ val Asset.defaultBasic: AssetBasic
                 isEnabled = isEnabled,
                 isBuyable = false,
                 isSellable = false,
-                isSwapable = assetIsSwapable(id.toIdentifier()),
+                isSwapable = assetConfig.isSwapable(id.toIdentifier()),
                 isStakeable = isEnabled && isNative && id.chain.isStakeSupported(),
                 isEarnable = false,
                 hasImage = false,
@@ -42,9 +38,4 @@ val Asset.defaultBasic: AssetBasic
     }
 
 private val AssetId.defaultScore: AssetScore
-    get() = AssetScore(
-        rank = when (type()) {
-            AssetSubtype.NATIVE -> chain.defaultAssetRank
-            AssetSubtype.TOKEN -> defaultTokenRank()
-        }
-    )
+    get() = AssetScore(rank = assetConfig.defaultRank(toIdentifier()))

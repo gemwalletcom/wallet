@@ -12,13 +12,13 @@ struct ContactRecipientSectionViewModel {
         self.contacts = contacts
     }
 
-    var listItems: [ListItemValue<RecipientAddress>] {
+    var listItems: [ListItemValue<Recipient>] {
         contacts.flatMap { contactData in
             contactData.addresses.map { address in
                 ListItemValue(
                     title: contactData.contact.name,
                     subtitle: AddressFormatter(address: address.address, chain: address.chain).value(),
-                    value: RecipientAddress(name: contactData.contact.name, address: address.address, memo: address.memo),
+                    value: Recipient(name: contactData.contact.name, address: address.address, memo: address.memo),
                 )
             }
         }

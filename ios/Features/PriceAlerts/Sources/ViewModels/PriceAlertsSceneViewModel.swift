@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemPreferencesServiceProtocol
+import protocol Gemstone.GemPriceAlertServiceProtocol
+import GemstoneServices
 import Localization
-import Preferences
-import PriceAlertService
-import PriceService
 import Primitives
 import PrimitivesComponents
 import Store
@@ -12,20 +12,23 @@ import SwiftUI
 @Observable
 @MainActor
 public final class PriceAlertsSceneViewModel: Sendable {
-    private let preferences: ObservablePreferences
-    private let priceAlertService: PriceAlertService
+    private let priceAlertService: any GemPriceAlertServiceProtocol
+    private let preferencesService: any GemPreferencesServiceProtocol
 
     public let query: ObservableQuery<PriceAlertsRequest>
     var priceAlerts: [PriceAlertData] {
         query.value
     }
 
+    var isPriceAlertsEnabled: Bool
+
     public init(
-        preferences: ObservablePreferences = .default,
-        priceAlertService: PriceAlertService,
+        priceAlertService: any GemPriceAlertServiceProtocol,
+        preferencesService: any GemPreferencesServiceProtocol,
     ) {
-        self.preferences = preferences
         self.priceAlertService = priceAlertService
+        self.preferencesService = preferencesService
+        isPriceAlertsEnabled = priceAlertService.isEnabled()
         query = ObservableQuery(PriceAlertsRequest(), initialValue: [])
     }
 
@@ -33,17 +36,12 @@ public final class PriceAlertsSceneViewModel: Sendable {
         Localized.Settings.PriceAlerts.title
     }
 
-    var enableTitle: String {
-        Localized.Settings.enableValue("")
+    var currencyCode: String {
+        preferencesService.currencyCode
     }
 
-    var isPriceAlertsEnabled: Bool {
-        get {
-            preferences.isPriceAlertsEnabled
-        }
-        set {
-            preferences.isPriceAlertsEnabled = newValue
-        }
+    var enableTitle: String {
+        Localized.Settings.enableValue("")
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {
@@ -51,12 +49,11 @@ public final class PriceAlertsSceneViewModel: Sendable {
     }
 
     func sections(for alerts: [PriceAlertData]) -> PriceAlertsSections {
-        let (autoAlerts, manualGroups) = alerts.reduce(into: ([PriceAlertData](), [Asset: [PriceAlertData]]())) { result, alert in
+        let (autoAlerts, manualGroups) = alerts.displayedAlerts.reduce(into: ([PriceAlertData](), [Asset: [PriceAlertData]]())) { result, alert in
             switch alert.priceAlert.type {
             case .auto:
                 result.0.append(alert)
             case .price, .pricePercentChange:
-                guard alert.priceAlert.lastNotifiedAt == nil else { return }
                 result.1[alert.asset, default: []].append(alert)
             }
         }
@@ -71,9 +68,9 @@ public final class PriceAlertsSceneViewModel: Sendable {
 // MARK: - Business Logic
 
 extension PriceAlertsSceneViewModel {
-    public func fetch() async {
+    public func load() async {
         do {
-            try await priceAlertService.update()
+            try await priceAlertService.sync(assetId: nil)
         } catch {
             debugLog("getPriceAlerts error: \(error)")
         }
@@ -88,29 +85,11 @@ extension PriceAlertsSceneViewModel {
     }
 
     func handleAlertsEnabled(enabled: Bool) async {
-        if enabled {
-            await updateNotifications()
-        }
-        await deviceUpdate()
-    }
-
-    private func updateNotifications() async {
         do {
-            preferences.preferences.isPushNotificationsEnabled = try await requestPermissions()
+            try await priceAlertService.setEnabled(enabled: enabled)
         } catch {
-            debugLog("pushesUpdate error: \(error)")
+            isPriceAlertsEnabled = priceAlertService.isEnabled()
+            debugLog("setPriceAlertsEnabled error: \(error)")
         }
-    }
-
-    private func deviceUpdate() async {
-        do {
-            try await priceAlertService.deviceUpdate()
-        } catch {
-            debugLog("deviceUpdate error: \(error)")
-        }
-    }
-
-    private func requestPermissions() async throws -> Bool {
-        try await priceAlertService.requestPermissions()
     }
 }

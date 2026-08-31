@@ -69,7 +69,7 @@ mod chain_integration_tests {
             .await?
             .ok_or("expected NEAR transaction")?;
 
-        assert_eq!(transaction.hash, hash);
+        assert_eq!(transaction.hash(), hash);
         assert_eq!(transaction.block_number.as_deref(), Some("211048907"));
         assert_eq!(transaction.asset_id, NEAR_USDT_ASSET_ID.clone());
         assert_eq!(transaction.value, "99500026");

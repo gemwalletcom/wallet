@@ -1,11 +1,11 @@
 #[cfg(feature = "signer")]
 use gem_evm::constants::{DEFAULT_SWAP_GAS_LIMIT, TOKEN_TRANSFER_GAS_LIMIT};
+use primitives::{ApplicationMetadata, TransactionInputType, TransferDataExtra, known_assets::TEMPO_PATHUSD};
 #[cfg(feature = "signer")]
 use primitives::{
     Asset, AssetId, Chain, SignerInput, TransactionLoadMetadata,
     swap::{ApprovalData, SwapData, SwapQuoteData},
 };
-use primitives::{TransactionInputType, TransferDataExtra, WalletConnectionSessionAppMetadata, known_assets::TEMPO_PATHUSD};
 
 #[cfg(feature = "rpc")]
 pub(crate) const TEMPO_TEST_ADDRESS: &str = "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7";
@@ -14,7 +14,7 @@ pub(crate) const TEMPO_TEST_ROUTER_ADDRESS: &str = "0xA2Dc7d0266f0CC50b3eEaF36c9
 pub(crate) fn mock_tempo_generic_input(to: &str, data: Vec<u8>) -> TransactionInputType {
     TransactionInputType::Generic(
         TEMPO_PATHUSD.clone(),
-        WalletConnectionSessionAppMetadata::mock(),
+        ApplicationMetadata::mock(),
         TransferDataExtra {
             to: to.to_string(),
             data: Some(data),

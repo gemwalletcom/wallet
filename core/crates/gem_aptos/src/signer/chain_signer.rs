@@ -171,7 +171,7 @@ fn sequence_from_metadata(metadata: &TransactionLoadMetadata) -> Result<u64, Sig
 
 fn token_transfer_payload(input: &SignerInput) -> Result<(EntryFunctionPayload, &'static [&'static str]), SignerError> {
     let asset = input.input_type.get_asset();
-    let token_id = asset.token_id.as_ref().ok_or_else(|| SignerError::invalid_input("Missing Aptos token id"))?;
+    let token_id = asset.token_id().ok_or_else(|| SignerError::invalid_input("Missing Aptos token id"))?;
     if !is_fungible_asset_token_id(token_id) {
         return Err(SignerError::invalid_input("Invalid Aptos token ID format"));
     }

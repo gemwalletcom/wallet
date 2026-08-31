@@ -4,9 +4,7 @@ use crate::stake_type::StakeType;
 use crate::swap::{ApprovalData, SwapData, SwapQuoteDataType};
 use crate::transaction_fee::TransactionFee;
 use crate::transaction_load_metadata::TransactionLoadMetadata;
-use crate::{
-    Asset, AssetId, GasPriceType, PerpetualType, SignerError, TransactionType, TransferDataExtra, WalletConnectionSessionAppMetadata, nft::NFTAsset, perpetual::AccountDataType,
-};
+use crate::{ApplicationMetadata, Asset, AssetId, GasPriceType, PerpetualType, SignerError, TransactionType, TransferDataExtra, nft::NFTAsset, perpetual::AccountDataType};
 use num_bigint::BigInt;
 use num_traits::ToPrimitive;
 use serde::{Deserialize, Serialize};
@@ -24,7 +22,7 @@ pub enum TransactionInputType {
     Swap(Asset, Asset, SwapData),
     Stake(Asset, StakeType),
     TokenApprove(Asset, ApprovalData),
-    Generic(Asset, WalletConnectionSessionAppMetadata, TransferDataExtra),
+    Generic(Asset, ApplicationMetadata, TransferDataExtra),
     TransferNft(Asset, NFTAsset),
     Account(Asset, AccountDataType),
     Perpetual(Asset, PerpetualType),
@@ -57,6 +55,13 @@ impl TransactionInputType {
     pub fn get_generic_data(&self) -> Result<&TransferDataExtra, &'static str> {
         match self {
             TransactionInputType::Generic(_, _, extra) => Ok(extra),
+            _ => Err("expected generic transaction"),
+        }
+    }
+
+    pub fn get_application_metadata(&self) -> Result<&ApplicationMetadata, &'static str> {
+        match self {
+            TransactionInputType::Generic(_, metadata, _) => Ok(metadata),
             _ => Err("expected generic transaction"),
         }
     }
@@ -167,7 +172,7 @@ impl TransactionLoadInput {
             gas_price_type: self.gas_price.clone(),
             gas_limit: 0.into(),
             options: HashMap::new(),
-            fee_asset: AssetId::from_chain(self.input_type.get_asset().chain),
+            fee_asset: AssetId::from_chain(self.input_type.get_asset().chain()),
         }
     }
 }

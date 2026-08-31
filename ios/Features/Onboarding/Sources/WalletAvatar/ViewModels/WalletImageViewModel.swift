@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AvatarService
+import protocol Gemstone.GemAvatarServiceProtocol
+import GemstoneServices
 import Components
 import Foundation
 import Localization
@@ -24,7 +25,7 @@ public final class WalletImageViewModel: Sendable {
     }
 
     public let source: Source
-    private let avatarService: AvatarService
+    private let avatarService: any GemAvatarServiceProtocol
 
     public let walletQuery: ObservableQuery<WalletRequest>
     public let nftQuery: ObservableQuery<NFTRequest>
@@ -43,7 +44,7 @@ public final class WalletImageViewModel: Sendable {
     public init(
         wallet: Wallet,
         source: Source = .wallet,
-        avatarService: AvatarService,
+        avatarService: any GemAvatarServiceProtocol,
     ) {
         self.source = source
         self.avatarService = avatarService
@@ -95,17 +96,19 @@ public final class WalletImageViewModel: Sendable {
 
     public func setImage(from url: URL) async {
         do {
-            try await avatarService.save(url: url, for: wallet)
+            try await avatarService.setImage(url: url, for: wallet)
         } catch {
             debugLog("Set nft image error: \(error)")
         }
     }
 
     public func onRemoveAvatar() {
-        do {
-            try avatarService.remove(for: wallet)
-        } catch {
-            debugLog("Setting default avatar error: \(error)")
+        Task {
+            do {
+                try await avatarService.removeImage(for: wallet)
+            } catch {
+                debugLog("Setting default avatar error: \(error)")
+            }
         }
     }
 
@@ -122,13 +125,15 @@ public final class WalletImageViewModel: Sendable {
     }
 
     private func setImage(_ image: UIImage) {
-        do {
-            guard let data = image.compress() else {
-                throw AnyError("Compression image failed")
+        Task {
+            do {
+                guard let data = image.compress() else {
+                    throw AnyError("Compression image failed")
+                }
+                try await avatarService.setImage(data: data, for: wallet)
+            } catch {
+                debugLog("Set image error: \(error)")
             }
-            try avatarService.save(data: data, for: wallet)
-        } catch {
-            debugLog("Set image error: \(error)")
         }
     }
 }

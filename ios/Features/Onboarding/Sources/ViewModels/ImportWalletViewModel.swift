@@ -1,21 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import AvatarService
+import protocol Gemstone.GemAvatarServiceProtocol
+import protocol Gemstone.GemChainServiceProtocol
+import protocol Gemstone.GemNameServiceProtocol
+import GemstoneServices
 import Foundation
-import enum Keystore.KeystoreImportType
 import Primitives
 import PrimitivesComponents
 import SwiftUI
-import WalletService
-import WalletSessionService
 
 @Observable
 @MainActor
 public final class ImportWalletViewModel {
     let walletService: WalletService
     let walletSessionService: any WalletSessionManageable
-    let avatarService: AvatarService
-    let nameService: any NameServiceable
+    let avatarService: any GemAvatarServiceProtocol
+    let nameService: any GemNameServiceProtocol
+    let chainService: any GemChainServiceProtocol
     let onComplete: VoidAction
 
     var isPresentingSelectImageWallet: Wallet?
@@ -23,14 +24,16 @@ public final class ImportWalletViewModel {
     public init(
         walletService: WalletService,
         walletSessionService: any WalletSessionManageable,
-        avatarService: AvatarService,
-        nameService: any NameServiceable,
+        avatarService: any GemAvatarServiceProtocol,
+        nameService: any GemNameServiceProtocol,
+        chainService: any GemChainServiceProtocol,
         onComplete: VoidAction,
     ) {
         self.walletService = walletService
         self.walletSessionService = walletSessionService
         self.avatarService = avatarService
         self.nameService = nameService
+        self.chainService = chainService
         self.onComplete = onComplete
     }
 

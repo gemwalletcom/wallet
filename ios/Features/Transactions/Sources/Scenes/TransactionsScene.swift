@@ -20,6 +20,7 @@ public struct TransactionsScene: View {
             List {
                 TransactionsList(
                     explorerService: model.explorerService,
+                    transactionFormatter: model.transactionFormatter,
                     model.transactions,
                     currency: model.currency,
                 )
@@ -27,8 +28,8 @@ public struct TransactionsScene: View {
             }
             .listSectionSpacing(.compact)
             .scrollContentBackground(.hidden)
-            .refreshableTimer(every: .minutes(5)) {
-                await model.fetch()
+            .refreshableTimer(every: .minutes(5)) { _ in
+                await model.load()
             }
         }
         .background { Colors.insetGroupedListStyle.ignoresSafeArea() }
@@ -38,6 +39,6 @@ public struct TransactionsScene: View {
                     .padding(.horizontal, .medium)
             }
         }
-        .task { await model.fetch() }
+        .task { await model.load() }
     }
 }

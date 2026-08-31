@@ -15,6 +15,8 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
+        .package(name: "Gemstone", path: "../../Packages/Gemstone"),
         .package(name: "Primitives", path: "../../Packages/Primitives"),
         .package(name: "Localization", path: "../../Packages/Localization"),
         .package(name: "Formatters", path: "../../Packages/Formatters"),
@@ -23,8 +25,7 @@ let package = Package(
         .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "Preferences", path: "../../Packages/Preferences"),
-        .package(name: "ChainServices", path: "../../Packages/ChainServices"),
-        .package(name: "FeatureServices", path: "../../Packages/FeatureServices"),
+        .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
         .package(name: "InfoSheet", path: "../InfoSheet"),
         .package(name: "BigInt", path: "../../Submodules/BigInt"),
     ],
@@ -32,6 +33,8 @@ let package = Package(
         .target(
             name: "Transactions",
             dependencies: [
+                "GemstonePrimitives",
+                "Gemstone",
                 .product(name: "BigInt", package: "BigInt"),
                 "Primitives",
                 "Localization",
@@ -40,9 +43,7 @@ let package = Package(
                 "Style",
                 "Components",
                 "PrimitivesComponents",
-                .product(name: "ExplorerService", package: "ChainServices"),
-                .product(name: "TransactionsService", package: "FeatureServices"),
-                .product(name: "WalletSessionService", package: "FeatureServices"),
+                .product(name: "GemstoneServices", package: "GemstoneServices"),
                 "Preferences",
                 "InfoSheet",
             ],
@@ -51,6 +52,7 @@ let package = Package(
         .testTarget(
             name: "TransactionsTests",
             dependencies: [
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "PreferencesTestKit", package: "Preferences"),
                 "Transactions",
