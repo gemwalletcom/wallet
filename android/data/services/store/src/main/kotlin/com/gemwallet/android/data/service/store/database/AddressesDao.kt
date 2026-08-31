@@ -28,7 +28,7 @@ interface AddressesDao {
 
     @Query(
         "UPDATE addresses SET name = :name, type = :type, status = :status, imageUrl = :imageUrl " +
-            "WHERE chain = :chain AND address = :address AND type NOT IN (:localTypes)"
+            "WHERE chain = :chain AND address = :address AND type NOT IN (:reservedTypes)"
     )
     suspend fun updateAddressName(
         chain: Chain,
@@ -37,7 +37,7 @@ interface AddressesDao {
         type: AddressType,
         status: VerificationStatus,
         imageUrl: String?,
-        localTypes: List<AddressType> = AddressType.entries.filter { it.isLocal },
+        reservedTypes: List<AddressType> = AddressType.entries.filter { it.isLocal && it != type },
     )
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)

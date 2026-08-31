@@ -23,13 +23,15 @@ public struct AddressStore: Sendable {
         if addressNames.isEmpty {
             return
         }
-        let localTypes = AddressType.allCases.filter(\.isLocal).map(\.rawValue)
         try db.write { db in
             for addressName in addressNames {
+                let reservedTypes = AddressType.allCases
+                    .filter { $0.isLocal && $0 != addressName.type }
+                    .map(\.rawValue)
                 try AddressRecord
                     .filter(AddressRecord.Columns.chain == addressName.chain.rawValue)
                     .filter(AddressRecord.Columns.address == addressName.address)
-                    .filter(!localTypes.contains(AddressRecord.Columns.type))
+                    .filter(!reservedTypes.contains(AddressRecord.Columns.type))
                     .updateAll(db, [
                         AddressRecord.Columns.name.set(to: addressName.name),
                         AddressRecord.Columns.type.set(to: addressName.type.rawValue),
