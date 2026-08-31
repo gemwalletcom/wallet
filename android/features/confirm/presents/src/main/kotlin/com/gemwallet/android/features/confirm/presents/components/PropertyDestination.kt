@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.confirm.presents.components
 
+import com.gemwallet.android.ui.LocalAddressService
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,7 +33,7 @@ fun PropertyDestination(
             }
             AddressPropertyItem(
                 title = R.string.transaction_recipient,
-                displayText = model.domain ?: AddressFormatter(model.address, chain = model.chain).value(),
+                displayText = model.domain ?: AddressFormatter(LocalAddressService.current, model.address, chain = model.chain).value(),
                 copyValue = model.address,
                 icon = icon,
                 placeholderText = initials,

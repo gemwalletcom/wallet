@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.settings.contacts.presents
 
+import com.gemwallet.android.ui.LocalAddressService
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -143,7 +144,7 @@ private fun ContactAddressItem(
         title = { ListItemTitleText(text = address.chain.networkName()) },
         subtitle = {
             Text(
-                text = AddressFormatter(address = address.address, chain = address.chain).value(),
+                text = AddressFormatter(LocalAddressService.current, address = address.address, chain = address.chain).value(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.secondary,
             )

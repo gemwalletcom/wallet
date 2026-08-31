@@ -1,5 +1,7 @@
 package com.gemwallet.android.ui.components.simulation
 
+import com.gemwallet.android.ui.LocalAddressService
+import uniffi.gemstone.GemAddressService
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import com.gemwallet.android.ext.AddressFormatter
@@ -32,19 +34,19 @@ fun LazyListScope.simulationPayloadFieldsContent(
         when {
             titleRes != null && field.fieldType == SimulationPayloadFieldType.Address -> AddressPropertyItem(
                 title = titleRes,
-                displayText = addressDisplay(payload, addressNames),
+                displayText = addressDisplay(payload, addressNames, LocalAddressService.current),
                 copyValue = field.value,
                 explorerLink = payload.explorerLink,
                 listPosition = listPosition,
             )
             titleRes != null -> PropertyItem(
                 title = titleRes,
-                data = fieldValue(payload, addressNames),
+                data = fieldValue(payload, addressNames, LocalAddressService.current),
                 listPosition = listPosition,
             )
             else -> PropertyItem(
                 title = field.label.orEmpty(),
-                data = fieldValue(payload, addressNames),
+                data = fieldValue(payload, addressNames, LocalAddressService.current),
                 listPosition = listPosition,
             )
         }
@@ -81,14 +83,14 @@ private fun fieldTitleRes(field: SimulationPayloadField): Int? = when (field.kin
     else -> null
 }
 
-private fun fieldValue(payload: PayloadField, addressNames: Map<String, String>): String = when (payload.field.fieldType) {
-    SimulationPayloadFieldType.Address -> addressDisplay(payload, addressNames)
+private fun fieldValue(payload: PayloadField, addressNames: Map<String, String>, addressService: GemAddressService): String = when (payload.field.fieldType) {
+    SimulationPayloadFieldType.Address -> addressDisplay(payload, addressNames, addressService)
     SimulationPayloadFieldType.Timestamp -> payload.field.value.toTimestampText()
     else -> payload.field.value
 }
 
-private fun addressDisplay(payload: PayloadField, addressNames: Map<String, String>): String {
-    val address = AddressFormatter(payload.field.value, chain = payload.chain).value()
+private fun addressDisplay(payload: PayloadField, addressNames: Map<String, String>, addressService: GemAddressService): String {
+    val address = AddressFormatter(addressService, payload.field.value, chain = payload.chain).value()
     val name = addressNames[payload.field.value.lowercase()]
     return if (name.isNullOrEmpty()) address else "$name ($address)"
 }

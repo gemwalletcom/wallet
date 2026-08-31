@@ -4,9 +4,8 @@ import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAddressFormatStyle
 import uniffi.gemstone.GemAddressService
 
-private val addressService = GemAddressService()
-
 class AddressFormatter(
+    private val addressService: GemAddressService,
     private val address: String,
     private val chain: Chain? = null,
     private val style: Style = Style.Short,

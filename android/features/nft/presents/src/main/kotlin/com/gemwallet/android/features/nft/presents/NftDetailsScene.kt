@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.nft.presents
 
+import com.gemwallet.android.ui.LocalAddressService
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -140,7 +141,7 @@ private fun LazyListScope.generalInfo(model: NftAssetDetailsData) {
         model.asset.contractAddress?.let {
             AddressPropertyItem(
                 title = R.string.asset_contract,
-                displayText = AddressFormatter(it, chain = model.collection.chain).value(),
+                displayText = AddressFormatter(LocalAddressService.current, it, chain = model.collection.chain).value(),
                 copyValue = it,
                 explorerLink = model.contractExplorerLink,
                 listPosition = ListPosition.Middle,
@@ -148,7 +149,7 @@ private fun LazyListScope.generalInfo(model: NftAssetDetailsData) {
         }
         val tokenId = model.asset.tokenId
         val tokenIdDisplayText = if (tokenId.length > 16) {
-            AddressFormatter(tokenId, chain = model.collection.chain).value()
+            AddressFormatter(LocalAddressService.current, tokenId, chain = model.collection.chain).value()
         } else {
             "#$tokenId"
         }

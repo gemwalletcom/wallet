@@ -7,6 +7,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
+import com.gemwallet.android.ui.LocalAddressService
+import uniffi.gemstone.GemAddressService
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -35,6 +37,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
 
     @Inject lateinit var connectionStatusObserver: ConnectionStatusObserver
     @Inject lateinit var activeWalletConnectRequest: ActiveWalletConnectRequest
+    @Inject lateinit var addressService: GemAddressService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -67,7 +70,10 @@ class MainActivity : FragmentActivity(), AuthRequester {
             }
             LaunchedEffect(darkTheme) { applySystemBarsAppearance(darkTheme) }
 
-            CompositionLocalProvider(LocalConnectionBannerState provides connectionBannerState) {
+            CompositionLocalProvider(
+                LocalConnectionBannerState provides connectionBannerState,
+                LocalAddressService provides addressService,
+            ) {
                 MainContent(
                     state = state,
                     darkTheme = darkTheme,
