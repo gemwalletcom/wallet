@@ -52,6 +52,17 @@ class DbAssetInfoTest {
     }
 
     @Test
+    fun toDTO_usesStoredBalanceActiveFlag() {
+        val inactive = mockDbAssetInfo(chain = Chain.Algorand, assetIsActive = false).toDTO()
+        val active = mockDbAssetInfo(chain = Chain.Stellar, assetIsActive = true).toDTO()
+        val unknown = mockDbAssetInfo(chain = Chain.Ethereum, assetIsActive = null).toDTO()
+
+        assertEquals(false, inactive?.balance?.isActive)
+        assertEquals(true, active?.balance?.isActive)
+        assertEquals(true, unknown?.balance?.isActive)
+    }
+
+    @Test
     fun toDTO_includesAssociations() {
         val associations = listOf(AssetAssociation(AssetId(Chain.Ethereum), AssetAssociationType.Official))
         val assetInfo = mockDbAssetInfo(associations = associations).toDTO()

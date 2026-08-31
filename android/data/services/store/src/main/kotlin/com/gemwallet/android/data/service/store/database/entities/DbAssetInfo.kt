@@ -129,10 +129,7 @@ fun DbAssetInfo.toDTO(): AssetInfo? {
                 bandwidthTotal = entity.bandwidthTotal?.toUInt() ?: 0U,
             )
         } else null,
-        isActive = when (assetId.chain) {
-            Chain.Xrp -> assetIsActive != false
-            else -> true
-        },
+        isActive = assetIsActive != false,
     )
 
     val account = if (entity.address.isNullOrEmpty()) null else Account(
