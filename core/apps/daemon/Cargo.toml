@@ -42,6 +42,7 @@ gem_client = { path = "../../crates/gem_client", features = ["reqwest"] }
 gem_evm = { path = "../../crates/gem_evm", features = ["rpc", "reqwest"] }
 gem_jsonrpc = { path = "../../crates/gem_jsonrpc", features = ["client", "reqwest"] }
 swapper = { path = "../../crates/swapper", features = ["reqwest_provider"] }
+security_provider = { path = "../../crates/security_provider" }
 
 [dev-dependencies]
 primitives = { path = "../../crates/primitives", features = ["testkit"] }

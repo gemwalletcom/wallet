@@ -37,8 +37,8 @@ use cacher::{AccessTokenCacherClient, CacherClient};
 use config::ConfigClient;
 use devices::DevicesClient;
 use devices::{
-    AddressNamesClient, FiatQuotesClient, NotificationsClient, PortfolioClient, RewardsClient, RewardsRedemptionClient, ScanClient, ScanProviderFactory, TransactionsClient,
-    WalletConfigurationClient, WalletsClient,
+    AddressNamesClient, FiatQuotesClient, NotificationsClient, PortfolioClient, RewardsClient, RewardsRedemptionClient, ScanClient, TransactionsClient, WalletConfigurationClient,
+    WalletsClient, scan_providers,
 };
 use gem_auth::AuthClient;
 use gem_rewards::{AbuseIPDBClient, IpApiClient, IpCheckProvider, IpSecurityClient};
@@ -151,6 +151,7 @@ fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
                 admin::devices::get_device_transactions,
                 admin::devices::get_device_fiat_transactions,
                 admin::assets::add_asset,
+                admin::assets::fetch_asset_status,
                 admin::assets::add_asset_associations,
                 admin::transactions::get_transactions_by_hash,
                 admin::transactions::add_transaction,
@@ -226,8 +227,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let stream_producer = StreamProducer::new(&rabbitmq_config, "api", streamer::no_shutdown()).await.unwrap();
     let wallets_client = WalletsClient::new(database.clone(), stream_producer.clone());
 
-    let security_providers = ScanProviderFactory::create_providers(&settings_clone, cacher_client.clone());
-    let scan_client = ScanClient::new(database.clone(), security_providers);
+    let scan_client = ScanClient::new(database.clone(), scan_providers(&settings_clone, cacher_client.clone())?);
     let wallet_configuration_client = WalletConfigurationClient::new(database.clone(), ChainProviders::from_settings(&settings, &user_agent), cacher_client.clone());
     let assets_client = AssetsClient::new(database.clone(), price_config);
     let search_index_config = SearchIndexConfig {
