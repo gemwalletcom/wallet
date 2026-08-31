@@ -1,6 +1,5 @@
 mod broadcast_providers;
 mod chain_providers;
-mod node_check;
 mod provider_config;
 
 use std::{collections::HashMap, sync::Arc};
@@ -36,7 +35,6 @@ use settings::Settings;
 pub use broadcast_providers::BroadcastProviders;
 pub use chain_providers::ChainProviders;
 pub use chain_traits::{TransactionFeeEstimate, TransactionFeeEstimates, TransactionIdRequest, TransactionsRequest, TransactionsResult};
-pub use node_check::node_check_request;
 pub use provider_config::ProviderConfig;
 
 pub struct ProviderFactory {}

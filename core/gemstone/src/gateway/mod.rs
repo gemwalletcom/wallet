@@ -205,7 +205,7 @@ impl GemGateway {
             });
         }
         if let Some(address) = chain_rules::node_verification_address(chain) {
-            provider.get_balance_coin(address.to_string()).await.map_err(map_network_error)?;
+            provider.get_balance_coin(address).await.map_err(map_network_error)?;
         }
         Ok(status)
     }
