@@ -66,7 +66,7 @@ extension NotificationsViewModel {
 
 extension NotificationsViewModel {
     private func update() async throws {
-        _ = try await deviceService.synchronize()
+        try await deviceService.synchronizeIfNeeded()
     }
 
     private func requestPermissionsOrOpenSettings() async throws -> Bool {

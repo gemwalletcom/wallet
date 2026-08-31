@@ -123,7 +123,7 @@ extension RootSceneViewModel {
     func setup() {
         rateService.perform()
         Task { await checkForUpdate() }
-        Task { _ = try await deviceService.synchronize() }
+        Task { try await deviceService.synchronizeIfNeeded() }
         Task {
             do {
                 try await transactionStateService.trackPending()
@@ -235,7 +235,7 @@ extension RootSceneViewModel {
         Task {
             do {
                 if try await pushNotificationEnablerService.requestPermissionsIfNotDetermined() {
-                    _ = try await deviceService.synchronize()
+                    try await deviceService.synchronizeIfNeeded()
                 }
             } catch {
                 debugLog("requestPushPermissions error: \(error)")
