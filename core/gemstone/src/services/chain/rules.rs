@@ -32,6 +32,13 @@ pub fn is_valid_network_id(chain: Chain, network_id: &str) -> bool {
     chain.network_id() == network_id
 }
 
+pub fn node_verification_address(chain: Chain) -> Option<&'static str> {
+    match chain {
+        Chain::Polkadot => Some(gem_polkadot::constants::TREASURY_ADDRESS),
+        _ => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
