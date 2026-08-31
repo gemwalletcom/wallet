@@ -72,7 +72,6 @@
 "wallet.scan" = "اسکین کریں۔";
 "wallet.scan_hint" = "بھیجیں، ادائیگی کریں یا DApp سے منسلک ہوں";
 "wallet.scan_hint_address" = "والیٹ کا پتہ";
-"wallet.scan_hint_node" = "نوڈ کا URL";
 "wallet.default_name" = "والیٹ #%d";
 "wallet.default_name_chain" = "%@ والیٹ #%d";
 "wallet.copy_address" = "ایڈریس کاپی کریں۔";

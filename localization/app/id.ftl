@@ -83,7 +83,6 @@ wallet_scan_qr_code = Pindai Kode QR
 wallet_scan = Pindai
 wallet_scan_hint = Kirim, bayar, atau hubungkan ke DApp
 wallet_scan_hint_address = Alamat dompet
-wallet_scan_hint_node = URL node
 wallet_default_name = Dompet %d
 wallet_default_name_chain = Dompet %@ #%d
 wallet_copy_address = Salin Alamat

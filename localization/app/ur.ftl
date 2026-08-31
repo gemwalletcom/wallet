@@ -83,7 +83,6 @@ wallet_scan_qr_code = کیو آر کوڈ اسکین کریں۔
 wallet_scan = اسکین کریں۔
 wallet_scan_hint = بھیجیں، ادائیگی کریں یا DApp سے منسلک ہوں
 wallet_scan_hint_address = والیٹ کا پتہ
-wallet_scan_hint_node = نوڈ کا URL
 wallet_default_name = والیٹ #%d
 wallet_default_name_chain = %@ والیٹ #%d
 wallet_copy_address = ایڈریس کاپی کریں۔

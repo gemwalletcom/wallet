@@ -77,7 +77,6 @@
   <string name="wallet_scan">Skenovat</string>
   <string name="wallet_scan_hint">Pošlete, zaplaťte nebo se připojte k DApp</string>
   <string name="wallet_scan_hint_address">Adresa peněženky</string>
-  <string name="wallet_scan_hint_node">URL uzlu</string>
   <string name="wallet_default_name">Peněženka č. %1$d</string>
   <string name="wallet_default_name_chain">%1$s Peněženka č.%2$d</string>
   <string name="wallet_copy_address">Kopírovat adresu</string>

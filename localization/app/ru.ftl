@@ -83,7 +83,6 @@ wallet_scan_qr_code = Сканировать QR-код
 wallet_scan = Сканировать
 wallet_scan_hint = Отправьте, оплатите или подключитесь к DApp
 wallet_scan_hint_address = Адрес кошелька
-wallet_scan_hint_node = URL-адрес ноды
 wallet_default_name = Кошелек № %d
 wallet_default_name_chain = %@ Кошелек № %d
 wallet_copy_address = Копировать адрес

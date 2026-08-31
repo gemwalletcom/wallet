@@ -83,7 +83,6 @@ wallet_scan_qr_code = Quét mã QR
 wallet_scan = Quét
 wallet_scan_hint = Gửi, thanh toán hoặc kết nối với DApp
 wallet_scan_hint_address = Địa chỉ ví
-wallet_scan_hint_node = URL của node
 wallet_default_name = Ví #%d
 wallet_default_name_chain = %@ Ví #%d
 wallet_copy_address = Sao chép địa chỉ

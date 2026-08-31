@@ -83,7 +83,6 @@ wallet_scan_qr_code = Escanear código QR
 wallet_scan = Escanear
 wallet_scan_hint = Envía, paga o conéctate a una DApp
 wallet_scan_hint_address = Dirección de la billetera
-wallet_scan_hint_node = URL del nodo
 wallet_default_name = Billetera #%d
 wallet_default_name_chain = Billetera %@ #%d
 wallet_copy_address = Copiar dirección

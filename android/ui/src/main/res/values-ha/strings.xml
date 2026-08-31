@@ -77,7 +77,6 @@
   <string name="wallet_scan">Duba</string>
   <string name="wallet_scan_hint">Aika, biya ko haɗa da DApp</string>
   <string name="wallet_scan_hint_address">Adireshin wallet</string>
-  <string name="wallet_scan_hint_node">URL na node</string>
   <string name="wallet_default_name">Wallet #%1$d</string>
   <string name="wallet_default_name_chain">%1$s Wallet #%2$d</string>
   <string name="wallet_copy_address">Kwafi Adireshin</string>

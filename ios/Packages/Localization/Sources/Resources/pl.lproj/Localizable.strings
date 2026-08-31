@@ -72,7 +72,6 @@
 "wallet.scan" = "Skanowanie";
 "wallet.scan_hint" = "Wyślij, zapłać lub połącz z DApp";
 "wallet.scan_hint_address" = "Adres portfela";
-"wallet.scan_hint_node" = "Adres URL węzła";
 "wallet.default_name" = "Portfel #%d";
 "wallet.default_name_chain" = "%@ Portfel #%d";
 "wallet.copy_address" = "Skopiuj adres";

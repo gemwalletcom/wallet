@@ -72,7 +72,6 @@
 "wallet.scan" = "اسکن کن";
 "wallet.scan_hint" = "ارسال، پرداخت یا اتصال به DApp";
 "wallet.scan_hint_address" = "آدرس کیف پول";
-"wallet.scan_hint_node" = "URL نود";
 "wallet.default_name" = "کیف پول %d";
 "wallet.default_name_chain" = "%@ کیف پول %d";
 "wallet.copy_address" = "کپی کردن آدرس";

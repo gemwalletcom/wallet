@@ -72,7 +72,6 @@
 "wallet.scan" = "I-scan";
 "wallet.scan_hint" = "Magpadala, magbayad, o kumonekta sa DApp";
 "wallet.scan_hint_address" = "Address ng wallet";
-"wallet.scan_hint_node" = "URL ng node";
 "wallet.default_name" = "Wallet #%d";
 "wallet.default_name_chain" = "%@ Wallet #%d";
 "wallet.copy_address" = "Kopyahin ang Address";

@@ -83,7 +83,6 @@ wallet_scan_qr_code = Zeskanuj kod QR
 wallet_scan = Skanowanie
 wallet_scan_hint = Wyślij, zapłać lub połącz z DApp
 wallet_scan_hint_address = Adres portfela
-wallet_scan_hint_node = Adres URL węzła
 wallet_default_name = Portfel #%d
 wallet_default_name_chain = %@ Portfel #%d
 wallet_copy_address = Skopiuj adres

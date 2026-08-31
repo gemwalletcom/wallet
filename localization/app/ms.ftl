@@ -83,7 +83,6 @@ wallet_scan_qr_code = Imbas Kod QR
 wallet_scan = Imbas
 wallet_scan_hint = Hantar, bayar atau sambung ke DApp
 wallet_scan_hint_address = Alamat dompet
-wallet_scan_hint_node = URL nod
 wallet_default_name = Dompet #%d
 wallet_default_name_chain = %@ Dompet #%d
 wallet_copy_address = Salin Alamat

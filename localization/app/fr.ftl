@@ -83,7 +83,6 @@ wallet_scan_qr_code = Scanner le code QR
 wallet_scan = Scanner
 wallet_scan_hint = Envoyez, payez ou connectez-vous à une DApp
 wallet_scan_hint_address = Adresse du portefeuille
-wallet_scan_hint_node = URL du nœud
 wallet_default_name = Portefeuille #%d
 wallet_default_name_chain = %@ Portefeuille #%d
 wallet_copy_address = Copier l'adresse

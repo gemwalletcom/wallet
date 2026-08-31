@@ -9,7 +9,7 @@ public enum QRScanType: String, Codable, CaseIterable, Equatable, Sendable {
 	case walletConnect
 	case address
 	case memo
-	case nodeUrl
+	case url
 	case tokenContract
 	case secretPhrase
 	case privateKey

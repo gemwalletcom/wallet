@@ -83,7 +83,6 @@ wallet_scan_qr_code = QRコードをスキャン
 wallet_scan = スキャン
 wallet_scan_hint = 送金、支払い、またはDAppに接続
 wallet_scan_hint_address = ウォレットアドレス
-wallet_scan_hint_node = ノードURL
 wallet_default_name = ウォレット #%d
 wallet_default_name_chain = %@ ウォレット #%d
 wallet_copy_address = アドレスをコピー

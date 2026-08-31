@@ -72,7 +72,6 @@
 "wallet.scan" = "Escanear";
 "wallet.scan_hint" = "Envie, pague ou conecte-se a um DApp";
 "wallet.scan_hint_address" = "Endereço da carteira";
-"wallet.scan_hint_node" = "URL do nó";
 "wallet.default_name" = "Carteira #%d";
 "wallet.default_name_chain" = "%@ Carteira #%d";
 "wallet.copy_address" = "Copiar endereço";

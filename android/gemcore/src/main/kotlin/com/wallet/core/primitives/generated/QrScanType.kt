@@ -17,8 +17,8 @@ enum class QRScanType(val string: String) {
 	Address("address"),
 	@SerialName("memo")
 	Memo("memo"),
-	@SerialName("nodeUrl")
-	NodeUrl("nodeUrl"),
+	@SerialName("url")
+	Url("url"),
 	@SerialName("tokenContract")
 	TokenContract("tokenContract"),
 	@SerialName("secretPhrase")

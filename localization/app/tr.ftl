@@ -83,7 +83,6 @@ wallet_scan_qr_code = QR Kodunu Tara
 wallet_scan = Tara
 wallet_scan_hint = Gönderin, ödeyin veya bir DApp'e bağlanın
 wallet_scan_hint_address = Cüzdan adresi
-wallet_scan_hint_node = Düğüm URL'si
 wallet_default_name = Cüzdan # %d
 wallet_default_name_chain = %@ Cüzdan # %d
 wallet_copy_address = Adresi Kopyala

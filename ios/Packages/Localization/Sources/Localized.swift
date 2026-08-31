@@ -1644,8 +1644,6 @@ public enum Localized {
     public static let scanHint = Localized.tr("Localizable", "wallet.scan_hint", fallback: "Send, pay, or connect to a DApp")
     /// Wallet address
     public static let scanHintAddress = Localized.tr("Localizable", "wallet.scan_hint_address", fallback: "Wallet address")
-    /// Node URL
-    public static let scanHintNode = Localized.tr("Localizable", "wallet.scan_hint_node", fallback: "Node URL")
     /// Scan QR Code
     public static let scanQrCode = Localized.tr("Localizable", "wallet.scan_qr_code", fallback: "Scan QR Code")
     /// Sell

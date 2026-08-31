@@ -77,7 +77,6 @@
   <string name="wallet_scan">Skanowanie</string>
   <string name="wallet_scan_hint">Wyślij, zapłać lub połącz z DApp</string>
   <string name="wallet_scan_hint_address">Adres portfela</string>
-  <string name="wallet_scan_hint_node">Adres URL węzła</string>
   <string name="wallet_default_name">Portfel #%1$d</string>
   <string name="wallet_default_name_chain">%1$s Portfel #%2$d</string>
   <string name="wallet_copy_address">Skopiuj adres</string>

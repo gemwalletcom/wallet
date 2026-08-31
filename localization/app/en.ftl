@@ -168,8 +168,6 @@ wallet_scan = Scan
 wallet_scan_hint = Send, pay, or connect to a DApp
 # Hint under the QR scanner frame when scanning a recipient or contact address.
 wallet_scan_hint_address = Wallet address
-# Hint under the QR scanner frame when scanning a node URL in chain settings.
-wallet_scan_hint_node = Node URL
 # Generated wallet name. %d is the wallet number.
 wallet_default_name = Wallet #%d
 # Generated chain wallet name. %@ is the chain name, %d is the wallet number.

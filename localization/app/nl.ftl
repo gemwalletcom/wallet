@@ -83,7 +83,6 @@ wallet_scan_qr_code = QR-code scannen
 wallet_scan = Scannen
 wallet_scan_hint = Verstuur, betaal of verbind met een DApp
 wallet_scan_hint_address = Portemonnee-adres
-wallet_scan_hint_node = Node-URL
 wallet_default_name = Portemonnee #%d
 wallet_default_name_chain = %@ Portemonnee #%d
 wallet_copy_address = Kopieer adres

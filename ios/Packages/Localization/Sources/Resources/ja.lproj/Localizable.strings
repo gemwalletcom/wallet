@@ -72,7 +72,6 @@
 "wallet.scan" = "スキャン";
 "wallet.scan_hint" = "送金、支払い、またはDAppに接続";
 "wallet.scan_hint_address" = "ウォレットアドレス";
-"wallet.scan_hint_node" = "ノードURL";
 "wallet.default_name" = "ウォレット #%d";
 "wallet.default_name_chain" = "%@ ウォレット #%d";
 "wallet.copy_address" = "アドレスをコピー";

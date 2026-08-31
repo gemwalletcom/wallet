@@ -72,7 +72,6 @@
 "wallet.scan" = "Tara";
 "wallet.scan_hint" = "Gönderin, ödeyin veya bir DApp'e bağlanın";
 "wallet.scan_hint_address" = "Cüzdan adresi";
-"wallet.scan_hint_node" = "Düğüm URL'si";
 "wallet.default_name" = "Cüzdan # %d";
 "wallet.default_name_chain" = "%@ Cüzdan # %d";
 "wallet.copy_address" = "Adresi Kopyala";

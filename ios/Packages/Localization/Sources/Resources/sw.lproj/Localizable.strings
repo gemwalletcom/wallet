@@ -72,7 +72,6 @@
 "wallet.scan" = "Changanua";
 "wallet.scan_hint" = "Tuma, lipa au unganisha na DApp";
 "wallet.scan_hint_address" = "Anwani ya mkoba";
-"wallet.scan_hint_node" = "URL ya nodi";
 "wallet.default_name" = "Wallet #%d";
 "wallet.default_name_chain" = "%@ Wallet #%d";
 "wallet.copy_address" = "Nakili Anwani";

@@ -128,7 +128,7 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
 
     QrCodeScannerModal(
         isVisible = isShowQRScan,
-        scanType = QRScanType.NodeUrl,
+        scanType = QRScanType.Url,
         onDismissRequest = { isShowQRScan = false },
         onResult = {
             isShowQRScan = false

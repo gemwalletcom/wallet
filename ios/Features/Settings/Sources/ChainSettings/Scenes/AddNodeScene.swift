@@ -50,7 +50,7 @@ struct AddNodeScene: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarDismissItem(type: .close, placement: .topBarLeading)
         .sheet(isPresented: $model.isPresentingScanner) {
-            ScanQRCodeNavigationStack(scanType: .nodeUrl, action: onHandleScan(_:))
+            ScanQRCodeNavigationStack(scanType: .url, action: onHandleScan(_:))
         }
         .alertSheet($model.isPresentingAlertMessage)
     }

@@ -77,7 +77,6 @@
   <string name="wallet_scan">স্ক্যান করুন</string>
   <string name="wallet_scan_hint">পাঠান, পে করুন বা DApp-এ সংযুক্ত হন</string>
   <string name="wallet_scan_hint_address">ওয়ালেটের ঠিকানা</string>
-  <string name="wallet_scan_hint_node">নোডের URL</string>
   <string name="wallet_default_name">ওয়ালেট #%1$d</string>
   <string name="wallet_default_name_chain">%1$s ওয়ালেট #%2$d</string>
   <string name="wallet_copy_address">কপি ঠিকানা</string>

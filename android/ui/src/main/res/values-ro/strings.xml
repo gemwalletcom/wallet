@@ -77,7 +77,6 @@
   <string name="wallet_scan">Scanează</string>
   <string name="wallet_scan_hint">Trimite, plătește sau conectează-te la un DApp</string>
   <string name="wallet_scan_hint_address">Adresa portofelului</string>
-  <string name="wallet_scan_hint_node">URL-ul nodului</string>
   <string name="wallet_default_name">Portofelul #%1$d</string>
   <string name="wallet_default_name_chain">%1$s Portofelul #%2$d</string>
   <string name="wallet_copy_address">Copiați adresa</string>

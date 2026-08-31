@@ -72,7 +72,6 @@
 "wallet.scan" = "Сканировать";
 "wallet.scan_hint" = "Отправьте, оплатите или подключитесь к DApp";
 "wallet.scan_hint_address" = "Адрес кошелька";
-"wallet.scan_hint_node" = "URL-адрес ноды";
 "wallet.default_name" = "Кошелек № %d";
 "wallet.default_name_chain" = "%@ Кошелек № %d";
 "wallet.copy_address" = "Копировать адрес";

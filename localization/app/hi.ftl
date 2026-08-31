@@ -83,7 +83,6 @@ wallet_scan_qr_code = QR कोड स्कैन करें
 wallet_scan = स्कैन करें
 wallet_scan_hint = भेजें, भुगतान करें या DApp से कनेक्ट करें
 wallet_scan_hint_address = बटुए का पता
-wallet_scan_hint_node = नोड यूआरएल
 wallet_default_name = वॉलेट #%d
 wallet_default_name_chain = %@ वॉलेट #%d
 wallet_copy_address = पता कॉपी करें

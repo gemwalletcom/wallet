@@ -77,7 +77,6 @@
   <string name="wallet_scan">스캔</string>
   <string name="wallet_scan_hint">전송, 결제 또는 DApp 연결</string>
   <string name="wallet_scan_hint_address">지갑 주소</string>
-  <string name="wallet_scan_hint_node">노드 URL</string>
   <string name="wallet_default_name">지갑 #%1$d</string>
   <string name="wallet_default_name_chain">%1$s 지갑 #%2$d</string>
   <string name="wallet_copy_address">주소 복사</string>

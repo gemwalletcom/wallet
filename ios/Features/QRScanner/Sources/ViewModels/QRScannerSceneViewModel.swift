@@ -33,7 +33,7 @@ final class QRScannerSceneViewModel {
         case .walletConnect: Localized.WalletConnect.title
         case .address: Localized.Wallet.scanHintAddress
         case .memo: Localized.Transfer.memo
-        case .nodeUrl: Localized.Wallet.scanHintNode
+        case .url: Localized.Common.url
         case .tokenContract: Localized.Wallet.Import.contractAddressField
         case .secretPhrase: Localized.Common.secretPhrase
         case .privateKey: Localized.Common.privateKey

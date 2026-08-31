@@ -83,7 +83,6 @@ wallet_scan_qr_code = I-scan ang QR Code
 wallet_scan = I-scan
 wallet_scan_hint = Magpadala, magbayad, o kumonekta sa DApp
 wallet_scan_hint_address = Address ng wallet
-wallet_scan_hint_node = URL ng node
 wallet_default_name = Wallet #%d
 wallet_default_name_chain = %@ Wallet #%d
 wallet_copy_address = Kopyahin ang Address

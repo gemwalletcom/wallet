@@ -83,7 +83,6 @@ wallet_scan_qr_code = Naskenujte QR kód
 wallet_scan = Skenovat
 wallet_scan_hint = Pošlete, zaplaťte nebo se připojte k DApp
 wallet_scan_hint_address = Adresa peněženky
-wallet_scan_hint_node = URL uzlu
 wallet_default_name = Peněženka č. %d
 wallet_default_name_chain = %@ Peněženka č.%d
 wallet_copy_address = Kopírovat adresu

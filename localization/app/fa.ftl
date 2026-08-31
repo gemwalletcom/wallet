@@ -83,7 +83,6 @@ wallet_scan_qr_code = کد QR را اسکن کنید
 wallet_scan = اسکن کن
 wallet_scan_hint = ارسال، پرداخت یا اتصال به DApp
 wallet_scan_hint_address = آدرس کیف پول
-wallet_scan_hint_node = URL نود
 wallet_default_name = کیف پول %d
 wallet_default_name_chain = %@ کیف پول %d
 wallet_copy_address = کپی کردن آدرس

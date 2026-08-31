@@ -83,7 +83,6 @@ wallet_scan_qr_code = مسح رمز الاستجابة السريعة
 wallet_scan = مسح
 wallet_scan_hint = أرسل، ادفع أو اتصل بـ DApp
 wallet_scan_hint_address = عنوان المحفظة
-wallet_scan_hint_node = عنوان URL للعقدة
 wallet_default_name = المحفظة #%d
 wallet_default_name_chain = %@ المحفظة رقم %d
 wallet_copy_address = نسخ العنوان

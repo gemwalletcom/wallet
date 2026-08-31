@@ -83,7 +83,6 @@ wallet_scan_qr_code = Scan QR-kode
 wallet_scan = Scan
 wallet_scan_hint = Send, betal eller opret forbindelse til en DApp
 wallet_scan_hint_address = Tegnebogsadresse
-wallet_scan_hint_node = Node-URL
 wallet_default_name = Tegnebog #%d
 wallet_default_name_chain = %@ tegnebog #%d
 wallet_copy_address = Kopiér adresse

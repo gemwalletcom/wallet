@@ -83,7 +83,6 @@ wallet_scan_qr_code = Duba lambar QR
 wallet_scan = Duba
 wallet_scan_hint = Aika, biya ko haɗa da DApp
 wallet_scan_hint_address = Adireshin wallet
-wallet_scan_hint_node = URL na node
 wallet_default_name = Wallet #%d
 wallet_default_name_chain = %@ Wallet #%d
 wallet_copy_address = Kwafi Adireshin

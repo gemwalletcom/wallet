@@ -77,7 +77,6 @@
   <string name="wallet_scan">扫码</string>
   <string name="wallet_scan_hint">发送、支付或连接 DApp</string>
   <string name="wallet_scan_hint_address">钱包地址</string>
-  <string name="wallet_scan_hint_node">节点网址</string>
   <string name="wallet_default_name">钱包 #%1$d</string>
   <string name="wallet_default_name_chain">%1$s 钱包 #%2$d</string>
   <string name="wallet_copy_address">复制地址</string>

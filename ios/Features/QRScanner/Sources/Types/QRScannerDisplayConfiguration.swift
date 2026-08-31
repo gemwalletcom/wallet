@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Style
 import SwiftUI
 
 struct QRScannerDisplayConfiguration {
@@ -50,6 +51,6 @@ extension QRScannerDisplayConfiguration {
         overlayColor: .black,
         bracketColor: .white,
         captionColor: .white,
-        captionSpacing: 24,
+        captionSpacing: .large,
     )
 }

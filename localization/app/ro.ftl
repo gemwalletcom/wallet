@@ -83,7 +83,6 @@ wallet_scan_qr_code = Scanați codul QR
 wallet_scan = Scanează
 wallet_scan_hint = Trimite, plătește sau conectează-te la un DApp
 wallet_scan_hint_address = Adresa portofelului
-wallet_scan_hint_node = URL-ul nodului
 wallet_default_name = Portofelul #%d
 wallet_default_name_chain = %@ Portofelul #%d
 wallet_copy_address = Copiați adresa

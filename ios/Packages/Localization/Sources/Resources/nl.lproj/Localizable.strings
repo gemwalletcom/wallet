@@ -72,7 +72,6 @@
 "wallet.scan" = "Scannen";
 "wallet.scan_hint" = "Verstuur, betaal of verbind met een DApp";
 "wallet.scan_hint_address" = "Portemonnee-adres";
-"wallet.scan_hint_node" = "Node-URL";
 "wallet.default_name" = "Portemonnee #%d";
 "wallet.default_name_chain" = "%@ Portemonnee #%d";
 "wallet.copy_address" = "Kopieer adres";

@@ -83,7 +83,6 @@ wallet_scan_qr_code = สแกนรหัส QR
 wallet_scan = สแกน
 wallet_scan_hint = ส่ง จ่าย หรือเชื่อมต่อกับ DApp
 wallet_scan_hint_address = ที่อยู่กระเป๋าเงิน
-wallet_scan_hint_node = URL ของโหนด
 wallet_default_name = กระเป๋าเงิน #%d
 wallet_default_name_chain = %@ กระเป๋าเงิน #%d
 wallet_copy_address = คัดลอกที่อยู่

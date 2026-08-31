@@ -83,7 +83,6 @@ wallet_scan_qr_code = Сканувати QR-код
 wallet_scan = Сканувати
 wallet_scan_hint = Надішліть, оплатіть або підключіться до DApp
 wallet_scan_hint_address = Адреса гаманця
-wallet_scan_hint_node = URL-адреса ноди
 wallet_default_name = Гаманець № %d
 wallet_default_name_chain = %@ Гаманець № %d
 wallet_copy_address = Копіювати адресу

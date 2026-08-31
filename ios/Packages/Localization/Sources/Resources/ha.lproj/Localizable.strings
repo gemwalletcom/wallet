@@ -72,7 +72,6 @@
 "wallet.scan" = "Duba";
 "wallet.scan_hint" = "Aika, biya ko haɗa da DApp";
 "wallet.scan_hint_address" = "Adireshin wallet";
-"wallet.scan_hint_node" = "URL na node";
 "wallet.default_name" = "Wallet #%d";
 "wallet.default_name_chain" = "%@ Wallet #%d";
 "wallet.copy_address" = "Kwafi Adireshin";

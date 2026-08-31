@@ -9,7 +9,7 @@ pub enum QRScanType {
     WalletConnect,
     Address,
     Memo,
-    NodeUrl,
+    Url,
     TokenContract,
     SecretPhrase,
     PrivateKey,

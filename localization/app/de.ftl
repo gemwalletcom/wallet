@@ -83,7 +83,6 @@ wallet_scan_qr_code = QR-Code scannen
 wallet_scan = Scannen
 wallet_scan_hint = Senden, bezahlen oder mit einer DApp verbinden
 wallet_scan_hint_address = Wallet-Adresse
-wallet_scan_hint_node = Node-URL
 wallet_default_name = Wallet #%d
 wallet_default_name_chain = %@ Wallet #%d
 wallet_copy_address = Adresse kopieren

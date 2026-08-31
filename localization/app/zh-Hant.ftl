@@ -83,7 +83,6 @@ wallet_scan_qr_code = 掃描二維碼
 wallet_scan = 掃描
 wallet_scan_hint = 傳送、支付或連接 DApp
 wallet_scan_hint_address = 錢包地址
-wallet_scan_hint_node = 節點網址
 wallet_default_name = 錢包 #%d
 wallet_default_name_chain = %@ 錢包 #%d
 wallet_copy_address = 複製地址

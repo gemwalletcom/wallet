@@ -66,6 +66,7 @@ import com.gemwallet.android.ui.theme.alpha50
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.padding16
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space24
 import com.wallet.core.primitives.QRScanType
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -86,7 +87,7 @@ import kotlin.math.min
 private val QR_ANALYSIS_RESOLUTION = Size(1280, 720)
 private const val SCAN_FROM_GALLERY_TAG = "scanFromGallery"
 private const val FINDER_SCALE = 0.66f
-private val HINT_SPACING = 24.dp
+private val HINT_SPACING = space24
 private val HINT_HORIZONTAL_PADDING = 32.dp
 private val FINDER_CORNER_RADIUS = 25.dp
 private val FINDER_CORNER_LENGTH = 25.dp
@@ -396,7 +397,7 @@ private fun QRScanType.hintRes(): Int = when (this) {
     QRScanType.WalletConnect -> R.string.wallet_connect_title
     QRScanType.Address -> R.string.wallet_scan_hint_address
     QRScanType.Memo -> R.string.transfer_memo
-    QRScanType.NodeUrl -> R.string.wallet_scan_hint_node
+    QRScanType.Url -> R.string.common_url
     QRScanType.TokenContract -> R.string.wallet_import_contract_address_field
     QRScanType.SecretPhrase -> R.string.common_secret_phrase
     QRScanType.PrivateKey -> R.string.common_private_key
