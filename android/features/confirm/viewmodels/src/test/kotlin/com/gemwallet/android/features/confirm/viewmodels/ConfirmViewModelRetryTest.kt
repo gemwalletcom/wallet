@@ -72,7 +72,11 @@ class ConfirmViewModelRetryTest {
         var calls = 0
         coEvery { preloader.preload(any(), any(), any()) } answers {
             calls += 1
-            if (calls == 1) throw IllegalStateException("preload failed") else mockk<SignerPreloaderProxy.Preload>(relaxed = true)
+            if (calls == 1) {
+                throw IllegalStateException("preload failed")
+            } else {
+                SignerPreloaderProxy.Preload(signerParams = mockk(relaxed = true), simulation = null)
+            }
         }
         return ConfirmViewModel(
             getSession = mockk<GetSession> {
