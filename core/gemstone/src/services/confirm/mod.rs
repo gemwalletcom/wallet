@@ -86,6 +86,27 @@ impl GemConfirmService {
         Ok(rules::selectable_fee_assets(assets, balances, prices))
     }
 
+    pub async fn preload(&self, wallet_id: WalletId, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmPreload, GemConfirmError> {
+        let asset_id = input.transfer.input_type.asset().id.clone();
+        let confirm_data = self.load(input, options).await?;
+        let fee_asset_id = confirm_data.fee.fee_asset.clone();
+        let metadata = self.metadata(wallet_id.clone(), asset_id, fee_asset_id.clone(), Vec::new())?;
+        let fee_asset = self
+            .assets
+            .assets(vec![fee_asset_id.clone()])
+            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?
+            .into_iter()
+            .next()
+            .ok_or(GemConfirmError::BalanceMissing { asset_id: fee_asset_id.clone() })?;
+        let amount = rules::preload_amount(&confirm_data, &metadata, &fee_asset)?;
+        Ok(GemConfirmPreload {
+            confirm_data,
+            metadata,
+            fee_asset,
+            amount,
+        })
+    }
+
     pub async fn execute(&self, input: GemSendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {
         let transactions = signer.sign(input.wallet.clone(), rules::signer_input(&input)?).await?;
         if transactions.is_empty() {

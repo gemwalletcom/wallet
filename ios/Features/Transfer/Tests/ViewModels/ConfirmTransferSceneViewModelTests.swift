@@ -265,10 +265,10 @@ struct ConfirmTransferSceneViewModelTests {
             FeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 30)),
         ]
         let model = ConfirmTransferSceneViewModel.mock(
-            confirmService: .mock(transaction: .success(.mock(feeRates: [
+            confirmService: .mock(gemConfirmService: GemConfirmServiceMock(preload: .success(.mock(confirmData: .mock(feeRates: [
                 GemFeeRate(priority: .normal, gasPriceType: .regular(gasPrice: "20")),
                 GemFeeRate(priority: .fast, gasPriceType: .regular(gasPrice: "30")),
-            ]))),
+            ]))))),
         )
 
         await model.load()
@@ -287,7 +287,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func fetchIgnoresErrorAfterCancellation() async {
         let model = ConfirmTransferSceneViewModel.mock(
-            confirmService: .mock(transaction: .failure(AnyError("network"))),
+            confirmService: .mock(gemConfirmService: GemConfirmServiceMock(preload: .failure(AnyError("network")))),
         )
 
         let task = Task { await model.load() }
@@ -681,13 +681,13 @@ struct ConfirmTransferSceneViewModelTests {
 
 private extension ConfirmTransferSceneViewModel {
     static func mock(
-        wallet: Wallet = .mock(),
+        wallet: Wallet? = nil,
         data: TransferData = .mock(),
         confirmService: ConfirmService,
     ) -> ConfirmTransferSceneViewModel {
         ConfirmTransferSceneViewModel(
             request: ConfirmTransferRequest(
-                wallet: wallet,
+                wallet: wallet ?? .mock(accounts: [.mock(chain: data.chain)]),
                 data: data,
                 simulation: nil,
             ),

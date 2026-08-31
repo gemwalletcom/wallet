@@ -2,6 +2,11 @@
 
 public import enum Gemstone.FeePriority
 public import struct Gemstone.GemConfirmData
+public import struct Gemstone.GemConfirmPreload
+public import struct Gemstone.GemConfirmMetadata
+public import struct Gemstone.GemAssetBalance
+public import enum Gemstone.GemTransferAmountResult
+public import struct Gemstone.GemTransferAmount
 public import struct Gemstone.GemConfirmInput
 public import struct Gemstone.GemFeeOptions
 public import struct Gemstone.GemFeeRate
@@ -47,6 +52,45 @@ public extension GemTransactionLoadFee {
             gasLimit: gasLimit,
             options: options,
             feeAsset: feeAsset,
+        )
+    }
+}
+
+public extension GemConfirmPreload {
+    static func mock(
+        confirmData: GemConfirmData = .mock(),
+        metadata: GemConfirmMetadata? = nil,
+        feeAsset: Primitives.Asset = .mockEthereum(),
+        amount: GemTransferAmountResult = .amount(amount: GemTransferAmount(value: "1", networkFee: "1", isMaxAmount: false)),
+    ) -> GemConfirmPreload {
+        GemConfirmPreload(
+            confirmData: confirmData,
+            metadata: metadata ?? GemConfirmMetadata(
+                assetBalance: .mock(assetId: feeAsset.id.identifier),
+                feeAssetBalance: .mock(assetId: feeAsset.id.identifier),
+                prices: [],
+            ),
+            feeAsset: feeAsset.json(),
+            amount: amount,
+        )
+    }
+}
+
+public extension GemAssetBalance {
+    static func mock(assetId: String) -> GemAssetBalance {
+        GemAssetBalance(
+            assetId: assetId,
+            available: "0",
+            frozen: "0",
+            locked: "0",
+            staked: "0",
+            pending: "0",
+            pendingUnconfirmed: "0",
+            rewards: "0",
+            reserved: "0",
+            withdrawable: "0",
+            earn: "0",
+            metadata: nil,
         )
     }
 }

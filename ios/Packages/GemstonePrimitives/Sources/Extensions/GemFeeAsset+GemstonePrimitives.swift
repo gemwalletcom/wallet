@@ -4,6 +4,7 @@ import BigInt
 import Foundation
 import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemAssetPrice
+import struct Gemstone.GemConfirmMetadata
 import struct Gemstone.GemFeeAsset
 import Primitives
 
@@ -31,6 +32,29 @@ public extension GemFeeAsset {
             asset: Primitives.Asset(asset),
             balance: Primitives.Balance(balance),
             price: price.map { Primitives.Price(price: $0.price, priceChangePercentage24h: $0.priceChangePercentage24h, updatedAt: Date(timeIntervalSince1970: TimeInterval($0.updatedAt))) }
+        )
+    }
+}
+
+public extension Primitives.Price {
+    init(_ price: GemAssetPrice) {
+        self.init(
+            price: price.price,
+            priceChangePercentage24h: price.priceChangePercentage24h,
+            updatedAt: Date(timeIntervalSince1970: TimeInterval(price.updatedAt)),
+        )
+    }
+}
+
+public extension GemConfirmMetadata {
+    func map(assetId: Primitives.AssetId, feeAssetId: Primitives.AssetId) throws -> Primitives.TransferDataMetadata {
+        let prices = try prices.map { try (Primitives.AssetId(id: $0.assetId), Primitives.Price($0)) }
+        return try Primitives.TransferDataMetadata(
+            assetId: assetId,
+            feeAssetId: feeAssetId,
+            assetBalance: Primitives.Balance(assetBalance),
+            assetFeeBalance: Primitives.Balance(feeAssetBalance),
+            assetPrices: Dictionary(uniqueKeysWithValues: prices),
         )
     }
 }

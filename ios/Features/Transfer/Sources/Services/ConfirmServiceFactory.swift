@@ -39,10 +39,6 @@ public enum ConfirmServiceFactory {
         return ConfirmService(
             metadataProvider: TransferMetadataProvider(confirmService: gemConfirmService),
             inputProvider: ConfirmTransferInputProvider(
-                transferTransactionProvider: TransferTransactionProvider(
-                    confirmService: gemConfirmService,
-                ),
-                assetStore: assetStore,
                 confirmService: gemConfirmService,
                 feeService: feeService,
                 transferService: transferService,

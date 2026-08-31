@@ -51,15 +51,6 @@ public final class TransferMetadataProvider: TransferMetadataProvidable {
             feeAssetId: feeAssetId.identifier,
             extraAssetIds: extraIds.map(\.identifier),
         )
-        let prices = try metadata.prices.map { price in
-            try (AssetId(id: price.assetId), Price(price: price.price, priceChangePercentage24h: price.priceChangePercentage24h, updatedAt: Date(timeIntervalSince1970: TimeInterval(price.updatedAt))))
-        }
-        return TransferDataMetadata(
-            assetId: assetId,
-            feeAssetId: feeAssetId,
-            assetBalance: try Balance(metadata.assetBalance),
-            assetFeeBalance: try Balance(metadata.feeAssetBalance),
-            assetPrices: Dictionary(uniqueKeysWithValues: prices),
-        )
+        return try metadata.map(assetId: assetId, feeAssetId: feeAssetId)
     }
 }

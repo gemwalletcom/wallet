@@ -6,6 +6,7 @@ use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetada
 use crate::services::balance::GemAssetBalance;
 use crate::services::price::GemAssetPrice;
 use crate::services::transfer::GemTransferData;
+use crate::transfer_amount::{GemTransferAmount, GemTransferAmountError};
 use primitives::FeePriority;
 use primitives::{Account, Asset, AssetId, SimulationResult, Transaction, Wallet};
 
@@ -78,4 +79,18 @@ pub struct GemFeeAsset {
     pub asset: Asset,
     pub balance: GemAssetBalance,
     pub price: Option<GemAssetPrice>,
+}
+
+#[derive(Debug, Clone, uniffi::Enum)]
+pub enum GemTransferAmountResult {
+    Amount { amount: GemTransferAmount },
+    Error { error: GemTransferAmountError },
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemConfirmPreload {
+    pub confirm_data: GemConfirmData,
+    pub metadata: GemConfirmMetadata,
+    pub fee_asset: Asset,
+    pub amount: GemTransferAmountResult,
 }

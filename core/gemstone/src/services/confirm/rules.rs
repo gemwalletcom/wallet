@@ -5,13 +5,15 @@ use primitives::{
 };
 
 use super::error::GemConfirmError;
-use super::model::{GemAcquireAssetFlow, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemFeeAsset, GemSendInput};
+use super::model::{GemAcquireAssetFlow, GemConfirmData, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemFeeAsset, GemSendInput, GemTransferAmountResult};
 use crate::fee::custom_gas_price;
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput};
 use crate::services::balance::GemAssetBalance;
 use crate::services::price::GemAssetPrice;
+use crate::services::transfer::GemTransferBalance;
 use crate::services::transfer::{GemPendingTransactionInput, rules as transfer_rules};
+use crate::transfer_amount::{GemTransferAmountInput, calculate_transfer_amount};
 
 pub fn signer_input(input: &GemSendInput) -> Result<GemSignerInput, GemConfirmError> {
     let GemConfirmInput { from, transfer } = &input.confirm.input;
@@ -54,6 +56,36 @@ pub fn metadata_asset_ids(asset_id: &AssetId, fee_asset_id: &AssetId, extra_asse
         }
     }
     asset_ids
+}
+
+fn transfer_balance(balance: &GemAssetBalance) -> GemTransferBalance {
+    GemTransferBalance {
+        available: balance.available.clone().into(),
+        frozen: balance.frozen.clone().into(),
+        locked: balance.locked.clone().into(),
+        withdrawable: balance.withdrawable.clone().into(),
+        votes: 0,
+    }
+}
+
+pub fn preload_amount(data: &GemConfirmData, metadata: &GemConfirmMetadata, fee_asset: &Asset) -> Result<GemTransferAmountResult, GemConfirmError> {
+    let transfer = &data.input.transfer;
+    let balance = transfer_balance(&metadata.asset_balance);
+    let available_value = transfer_rules::available_value(transfer, &balance).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+    let input = GemTransferAmountInput {
+        input_type: transfer.input_type.clone(),
+        value: transfer.value.clone(),
+        available_value,
+        fee_asset: fee_asset.id.clone(),
+        fee_asset_balance: metadata.fee_asset_balance.available.clone().into(),
+        fee: data.fee.fee.clone(),
+        is_max_amount: transfer.use_max_amount,
+        minimum_value: transfer.minimum_value.clone(),
+    };
+    Ok(match calculate_transfer_amount(input) {
+        Ok(amount) => GemTransferAmountResult::Amount { amount },
+        Err(error) => GemTransferAmountResult::Error { error },
+    })
 }
 
 pub fn selectable_fee_assets(assets: Vec<Asset>, balances: Vec<GemAssetBalance>, prices: Vec<GemAssetPrice>) -> Vec<GemFeeAsset> {
@@ -738,6 +770,30 @@ mod tests {
         let selectable = selectable_fee_assets(assets, balances, vec![]);
 
         assert_eq!(selectable.iter().map(|fee| fee.asset.id.clone()).collect::<Vec<_>>(), vec![funded.id]);
+    }
+
+    #[test]
+    fn test_preload_reports_the_amount_error_instead_of_failing_the_whole_preload() {
+        let chain = Chain::Solana;
+        let asset = Asset::from_chain(chain);
+        let mut data = send_input_from(chain, GemTransactionInputType::Transfer { asset: asset.clone() }, "sender").confirm;
+        data.input.transfer.use_max_amount = false;
+        data.input.transfer.value = BigInt::from(1_000);
+        data.fee.fee = BigInt::from(1);
+
+        let short = GemConfirmMetadata {
+            asset_balance: balance(&asset.id, 10),
+            fee_asset_balance: balance(&asset.id, 10),
+            prices: vec![],
+        };
+        let funded = GemConfirmMetadata {
+            asset_balance: balance(&asset.id, 2_000_000),
+            fee_asset_balance: balance(&asset.id, 2_000_000),
+            prices: vec![],
+        };
+
+        assert!(matches!(preload_amount(&data, &short, &asset).unwrap(), GemTransferAmountResult::Error { .. }));
+        assert!(matches!(preload_amount(&data, &funded, &asset).unwrap(), GemTransferAmountResult::Amount { .. }));
     }
 
     fn balance(asset_id: &AssetId, available: u32) -> GemAssetBalance {
