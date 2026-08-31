@@ -267,10 +267,17 @@ struct ServicesFactory {
             walletService: walletService,
         )
 
-        let hyperliquidObserverService = HyperliquidObserverService(
-            webSocketURL: nodeService.webSocketNode(for: .hyperCore) ?? Chain.hyperCore.defaultBaseUrl,
-            perpetualService: perpetualService,
+        let hyperliquidWebSocket = WebSocketConnection(
+            url: nodeService.webSocketNode(for: .hyperCore),
             reconnection: connectionService,
+        )
+        let hyperliquidObserverService = HyperliquidObserverService(
+            webSocket: hyperliquidWebSocket,
+            perpetualService: perpetualService,
+            streamService: Gemstone.GemPerpetualStreamService(
+                perpetual: perpetualService,
+                connection: PerpetualStreamConnection(webSocket: hyperliquidWebSocket),
+            ),
         )
 
         let gemNameService = Gemstone.GemNameService(api: gemDeviceApiClient, store: gemAddressStore)

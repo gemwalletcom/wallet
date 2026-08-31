@@ -540,6 +540,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     public var isPerpetualEnabled = true
     public private(set) var syncMarketsCount = 0
     public private(set) var clearMarketsCount = 0
+    public var connectionFailures = 0
     private var updatedAt: Int64?
 
     public init(marketsUpdatedAt: Int64? = nil) {
@@ -591,6 +592,10 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     }
 
     public func connection(wallet: Gemstone.Wallet) async throws -> Gemstone.GemPerpetualConnection? {
+        if connectionFailures > 0 {
+            connectionFailures -= 1
+            throw AnyError("connection unavailable")
+        }
         guard let account = try Primitives.Wallet(wallet).hyperliquidAccount else { return nil }
         return try Gemstone.GemPerpetualConnection(
             address: account.address,

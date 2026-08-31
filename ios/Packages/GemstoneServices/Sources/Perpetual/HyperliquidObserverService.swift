@@ -3,7 +3,7 @@
 import GemstonePrimitives
 import class Gemstone.GemPerpetualService
 import protocol Gemstone.GemPerpetualServiceProtocol
-import class Gemstone.GemPerpetualStreamService
+import protocol Gemstone.GemPerpetualStreamServiceProtocol
 import Foundation
 import struct Gemstone.GemPerpetualConnection
 import enum Gemstone.GemPerpetualSubscription
@@ -13,7 +13,7 @@ import WebSocketClient
 public actor HyperliquidObserverService: PerpetualObservable {
     private let perpetualService: any GemPerpetualServiceProtocol
     private let webSocket: any WebSocketConnectable
-    private let streamService: GemPerpetualStreamService
+    private let streamService: any GemPerpetualStreamServiceProtocol
 
     private var observeTask: Task<Void, Never>?
     private var currentWallet: Wallet?
@@ -21,18 +21,15 @@ public actor HyperliquidObserverService: PerpetualObservable {
     public let chartService: any ChartStreamable
 
     public init(
-        webSocketURL: URL,
-        perpetualService: GemPerpetualService,
-        reconnection: any Reconnectable,
+        webSocket: any WebSocketConnectable,
+        perpetualService: any GemPerpetualServiceProtocol,
+        streamService: any GemPerpetualStreamServiceProtocol,
+        chartService: any ChartStreamable = ChartObserverService(),
     ) {
-        let webSocket = WebSocketConnection(url: webSocketURL, reconnection: reconnection)
         self.webSocket = webSocket
-        chartService = ChartObserverService()
         self.perpetualService = perpetualService
-        streamService = GemPerpetualStreamService(
-            perpetual: perpetualService,
-            connection: PerpetualStreamConnection(webSocket: webSocket),
-        )
+        self.streamService = streamService
+        self.chartService = chartService
     }
 
     deinit {
@@ -81,7 +78,6 @@ public actor HyperliquidObserverService: PerpetualObservable {
         guard currentWallet?.id != wallet.id else { return }
 
         await disconnect()
-        currentWallet = wallet
 
         let connection: GemPerpetualConnection?
         do {
@@ -92,8 +88,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
         }
         guard let connection, let mode = try? PerpetualAccountMode(connection.mode) else { return }
 
-        guard observeTask == nil else { return }
-
+        currentWallet = wallet
         observeTask = Task { [weak self] in
             guard let self else { return }
             await observeConnection(walletId: wallet.id, address: connection.address, mode: mode)
