@@ -2,7 +2,6 @@
 
 import protocol Gemstone.GemNameServiceProtocol
 import class Gemstone.GemAmountService
-import class Gemstone.GemTransferService
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import struct Gemstone.GemConfirmData
 import GemstonePrimitivesTestKit
@@ -14,11 +13,7 @@ import Store
 import StoreTestKit
 @testable import Transfer
 import TransferTestKit
-import class Gemstone.GemFeeService
 import class Gemstone.GemSimulationFormatter
-import class Gemstone.GemAssetConfigService
-import class Gemstone.GemSwapQuoteService
-import class Gemstone.GemApplicationMetadataService
 
 @MainActor
 extension ConfirmTransferSceneViewModel {
@@ -38,23 +33,17 @@ extension ConfirmTransferSceneViewModel {
                 data: data,
                 simulation: simulation,
             ),
-            gemConfirmService: gemConfirmService,
+            service: GemConfirmSceneServiceMock(
+                confirm: gemConfirmService,
+                names: nameService,
+                transactionState: transactionStateService,
+            ),
             signer: GemTransactionSignerMock(),
             keystore: KeystoreMock(),
-            explorerService: GemExplorerServiceMock(),
-            nameService: nameService,
-            assetsService: GemAssetsServiceMock(),
-            transactionStateService: transactionStateService,
             recentAssetsService: RecentAssetsService(store: .mock()),
             toastPresenter: ToastPresenter(),
-            perpetualService: GemPerpetualServiceMock(),
             preferencesService: GemPreferencesServiceMock(),
-            transferService: GemTransferService(),
             onComplete: onComplete,
-            assetConfig: GemAssetConfigService(),
-            feeService: GemFeeService(),
-            swapQuoteService: GemSwapQuoteService(),
-            applicationMetadataService: GemApplicationMetadataService(),
         )
     }
 }

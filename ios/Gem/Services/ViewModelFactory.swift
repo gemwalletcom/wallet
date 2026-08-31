@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemTransactionStateServiceProtocol
-import protocol Gemstone.GemPerpetualServiceProtocol
+import class Gemstone.GemPerpetualService
 import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import protocol Gemstone.GemAssetsServiceProtocol
@@ -16,10 +16,11 @@ import protocol Gemstone.GemAddressServiceProtocol
 import Assets
 import FiatConnect
 import Foundation
-import protocol Gemstone.GemExplorerServiceProtocol
+import class Gemstone.GemExplorerService
 import protocol Gemstone.GemStakeServiceProtocol
 import protocol Gemstone.GemSwapServiceProtocol
 import class Gemstone.GemConfirmService
+import class Gemstone.GemConfirmSceneService
 import class Gemstone.GemApplicationMetadataService
 import class Gemstone.GemChainService
 import class Gemstone.GemContactService
@@ -53,7 +54,7 @@ public struct ViewModelFactory: Sendable {
     let priceUpdater: any PriceUpdater
     let walletSessionService: any WalletSessionManageable
     let stakeService: any GemStakeServiceProtocol
-    let explorerService: any GemExplorerServiceProtocol
+    let explorerService: GemExplorerService
     let preferencesService: any GemPreferencesServiceProtocol
     let amountService: AmountService
     let nameService: any GemNameServiceProtocol
@@ -69,7 +70,7 @@ public struct ViewModelFactory: Sendable {
     let assetStore: AssetStore
     let priceAlertService: any GemPriceAlertServiceProtocol
     let searchService: any GemSearchServiceProtocol
-    let perpetualService: any GemPerpetualServiceProtocol
+    let perpetualService: GemPerpetualService
     let feeService: GemFeeService
     let transferService: GemTransferService
     let addressService: GemAddressService
@@ -157,23 +158,26 @@ public struct ViewModelFactory: Sendable {
                 simulation: simulation,
                 delegate: confirmTransferDelegate,
             ),
-            gemConfirmService: gemConfirmService,
+            service: confirmSceneService(),
             signer: KeystoreTransactionSigner(keystore: keystore),
             keystore: keystore,
-            explorerService: explorerService,
-            nameService: gemNameService,
-            assetsService: assetsService,
-            transactionStateService: transactionStateService,
             recentAssetsService: recentAssetsService,
             toastPresenter: toastPresenter,
-            perpetualService: perpetualService,
             preferencesService: preferencesService,
-            transferService: transferService,
             onComplete: onComplete,
+        )
+    }
+
+    private func confirmSceneService() -> GemConfirmSceneService {
+        GemConfirmSceneService(
+            confirm: gemConfirmService,
+            explorer: explorerService,
+            names: gemNameService,
             assetConfig: assetConfig,
-            feeService: feeService,
-            swapQuoteService: swapQuoteService,
-            applicationMetadataService: applicationMetadataService,
+            transfer: transferService,
+            fee: feeService,
+            swapQuote: swapQuoteService,
+            applicationMetadata: applicationMetadataService,
         )
     }
 

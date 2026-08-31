@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemSwapQuoteService
 import Localization
 import GemstonePrimitivesTestKit
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -12,7 +12,7 @@ import TransferTestKit
 struct ConfirmDetailsViewModelTests {
     @Test
     func swap() {
-        let model = ConfirmDetailsViewModel(type: .swap(.mock(), .mock(), .mock()), metadata: nil, currency: Currency.usd.rawValue, perpetualService: GemPerpetualServiceMock(), swapQuoteService: GemSwapQuoteService())
+        let model = ConfirmDetailsViewModel(type: .swap(.mock(), .mock(), .mock()), metadata: nil, currency: Currency.usd.rawValue, service: GemConfirmSceneServiceMock())
 
         guard case .swapDetails = model.itemModel else {
             Issue.record("Expected .swapDetails")
@@ -22,7 +22,7 @@ struct ConfirmDetailsViewModelTests {
 
     @Test
     func transfer() {
-        let model = ConfirmDetailsViewModel(type: .transfer(.mock()), metadata: nil, currency: Currency.usd.rawValue, perpetualService: GemPerpetualServiceMock(), swapQuoteService: GemSwapQuoteService())
+        let model = ConfirmDetailsViewModel(type: .transfer(.mock()), metadata: nil, currency: Currency.usd.rawValue, service: GemConfirmSceneServiceMock())
 
         guard case .empty = model.itemModel else {
             Issue.record("Expected .empty")
@@ -32,7 +32,7 @@ struct ConfirmDetailsViewModelTests {
 
     @Test
     func perpetual() {
-        let model = ConfirmDetailsViewModel(type: .perpetual(.mock(), .open(.mock())), metadata: nil, currency: Currency.usd.rawValue, perpetualService: GemPerpetualServiceMock(), swapQuoteService: GemSwapQuoteService())
+        let model = ConfirmDetailsViewModel(type: .perpetual(.mock(), .open(.mock())), metadata: nil, currency: Currency.usd.rawValue, service: GemConfirmSceneServiceMock())
 
         guard case .perpetualDetails = model.itemModel else {
             Issue.record("Expected .perpetualDetails")

@@ -18,6 +18,7 @@ public import typealias Gemstone.WalletId
 public import protocol Gemstone.GemConfirmServiceProtocol
 public import enum Gemstone.GemExecuteResult
 public import struct Gemstone.GemSendInput
+public import typealias Gemstone.Transaction
 public import protocol Gemstone.GemTransactionSigner
 import Foundation
 import GemstonePrimitives
@@ -82,6 +83,14 @@ public final class GemConfirmServiceMock: GemConfirmServiceProtocol, @unchecked 
     public func feeAssets(walletId _: WalletId, chain _: Chain) throws -> [GemFeeAsset] {
         feeAssetRows
     }
+
+    public func syncMissingAssets(assetIds: [AssetId]) async throws -> [AssetId] {
+        assetIds
+    }
+
+    public func trackPending() async throws {}
+
+    public func track(walletId _: WalletId, transactions _: [Transaction]) async throws {}
 
     public func execute(input: GemSendInput, signer _: any GemTransactionSigner) async throws -> GemExecuteResult {
         lock.withLock { inputs.append(input) }

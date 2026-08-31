@@ -1,6 +1,7 @@
 mod error;
 mod model;
 pub(crate) mod rules;
+mod scene;
 mod signer;
 
 use std::sync::Arc;
@@ -9,6 +10,7 @@ use std::time::Duration;
 pub use error::GemConfirmError;
 pub use model::*;
 pub use rules::acquire_asset_flow;
+pub use scene::GemConfirmSceneService;
 pub use signer::GemTransactionSigner;
 
 use crate::gateway::GemGateway;
@@ -69,6 +71,18 @@ impl GemConfirmService {
             .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
         let prices = self.price.prices(asset_ids).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
         rules::build_metadata(asset_id, fee_asset_id, balances, prices)
+    }
+
+    pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, crate::services::error::GemServiceError> {
+        self.assets.sync_missing_assets(asset_ids).await
+    }
+
+    pub async fn track_pending(&self) -> Result<(), crate::services::error::GemServiceError> {
+        self.transaction_state.track_pending().await
+    }
+
+    pub async fn track(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), crate::services::error::GemServiceError> {
+        self.transaction_state.track(wallet_id, transactions).await
     }
 
     pub fn fee_assets(&self, wallet_id: WalletId, chain: Chain) -> Result<Vec<GemFeeAsset>, GemConfirmError> {

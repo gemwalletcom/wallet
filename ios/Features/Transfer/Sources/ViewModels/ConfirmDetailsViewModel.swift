@@ -2,9 +2,9 @@
 
 import GemstonePrimitives
 import struct Gemstone.GemConfirmMetadata
+import protocol Gemstone.GemConfirmSceneServiceProtocol
 import Components
 import class Gemstone.GemSwapQuoteService
-import protocol Gemstone.GemPerpetualServiceProtocol
 import Primitives
 import PrimitivesComponents
 import Swap
@@ -13,21 +13,18 @@ public struct ConfirmDetailsViewModel {
     private let type: TransferDataType
     private let metadata: GemConfirmMetadata?
     private let currency: String
-    private let perpetualService: any GemPerpetualServiceProtocol
-    private let swapQuoteService: GemSwapQuoteService
+    private let service: any GemConfirmSceneServiceProtocol
 
     init(
         type: TransferDataType,
         metadata: GemConfirmMetadata?,
         currency: String,
-        perpetualService: any GemPerpetualServiceProtocol,
-        swapQuoteService: GemSwapQuoteService,
+        service: any GemConfirmSceneServiceProtocol,
     ) {
         self.type = type
         self.metadata = metadata
         self.currency = currency
-        self.perpetualService = perpetualService
-        self.swapQuoteService = swapQuoteService
+        self.service = service
     }
 }
 
@@ -44,7 +41,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
                     selectedQuote: swapData.quote,
                     slippage: .manual(bps: swapData.quote.slippageBps),
                     currency: currency,
-                    swapQuoteService: swapQuoteService,
+                    swapQuoteService: service.swapQuote(),
                 ),
             )
         case let .perpetual(_, perpetualType):
@@ -52,7 +49,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
             case .open, .close, .increase, .reduce:
                 .perpetualDetails(PerpetualDetailsViewModel(type: PerpetualDetailsType(perpetualType)))
             case let .modify(data):
-                .perpetualModifyPosition(PerpetualModifyViewModel(data: data, perpetualService: perpetualService))
+                .perpetualModifyPosition(PerpetualModifyViewModel(data: data, service: service))
             }
         case .transfer,
              .deposit,
