@@ -39,6 +39,8 @@ class GemstoneBalanceStore(
                     assetId = update.assetId,
                     available = type.available.value,
                     availableAmount = type.available.amount,
+                    frozen = type.frozen.value,
+                    frozenAmount = type.frozen.amount,
                     reserved = type.reserved.value,
                     reservedAmount = type.reserved.amount,
                     pendingUnconfirmed = type.pendingUnconfirmed.value,
