@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemApplicationMetadataService
 import Foundation
 import Primitives
 import PrimitivesTestKit
@@ -17,7 +18,7 @@ struct ConnectionsViewModelTests {
             .mock(wallet: .mock(name: "Alpha", index: 1)),
             .mock(wallet: .mock(name: "Beta", index: 3)),
         ]
-        let model = ConnectionsViewModel(connector: WalletConnectorServiceMock())
+        let model = ConnectionsViewModel(connector: WalletConnectorServiceMock(), applicationMetadataService: GemApplicationMetadataService())
         model.query.value = connections
 
         #expect(model.sections.count == 3)
@@ -37,7 +38,7 @@ struct ConnectionsViewModelTests {
             .mock(session: .mock(createdAt: newestDate)),
             .mock(session: .mock(createdAt: recentDate)),
         ]
-        let model = ConnectionsViewModel(connector: WalletConnectorServiceMock())
+        let model = ConnectionsViewModel(connector: WalletConnectorServiceMock(), applicationMetadataService: GemApplicationMetadataService())
         model.query.value = connections
 
         #expect(model.sections.count == 1)

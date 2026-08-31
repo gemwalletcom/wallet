@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemConfirmData
+import class Gemstone.GemApplicationMetadataService
 import class Gemstone.GemAssetConfigService
 import class Gemstone.GemFeeService
 import class Gemstone.GemSwapQuoteService
@@ -56,6 +57,7 @@ public final class ConfirmTransferSceneViewModel {
     private let transferService: GemTransferService
     private let feeService: GemFeeService
     private let swapQuoteService: GemSwapQuoteService
+    private let applicationMetadataService: GemApplicationMetadataService
 
     public init(
         request: ConfirmTransferRequest,
@@ -65,12 +67,14 @@ public final class ConfirmTransferSceneViewModel {
         assetConfig: GemAssetConfigService,
         feeService: GemFeeService,
         swapQuoteService: GemSwapQuoteService,
+        applicationMetadataService: GemApplicationMetadataService,
     ) {
         self.request = request
         self.confirmService = confirmService
         self.transferService = transferService
         self.feeService = feeService
         self.swapQuoteService = swapQuoteService
+        self.applicationMetadataService = applicationMetadataService
         self.onComplete = onComplete
 
         let currency = confirmService.currency
@@ -209,7 +213,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         case .warnings:
             ConfirmTransferItemModel.warnings(simulationWarnings)
         case .app:
-            ConfirmAppViewModel(type: request.data.type)
+            ConfirmAppViewModel(type: request.data.type, applicationMetadataService: applicationMetadataService)
         case .sender:
             ConfirmSenderViewModel(wallet: request.wallet)
         case .network:

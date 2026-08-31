@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemApplicationMetadataService
 import Components
 import Foundation
 import GemstonePrimitives
@@ -9,8 +10,10 @@ import PrimitivesComponents
 
 public struct ConfirmAppViewModel: ItemModelProvidable {
     private let type: TransferDataType
+    private let applicationMetadataService: GemApplicationMetadataService
 
-    init(type: TransferDataType) {
+    init(type: TransferDataType, applicationMetadataService: GemApplicationMetadataService) {
+        self.applicationMetadataService = applicationMetadataService
         self.type = type
     }
 }
@@ -35,7 +38,7 @@ public extension ConfirmAppViewModel {
 
 extension ConfirmAppViewModel {
     private var appValue: String? {
-        type.applicationMetadata?.shortName
+        type.applicationMetadata?.shortName(applicationMetadataService: applicationMetadataService)
     }
 
     private var assetImage: AssetImage? {

@@ -1,3 +1,4 @@
+import class Gemstone.GemTransferService
 import Foundation
 import class Gemstone.GemMnemonic
 @testable import GemstoneServices
@@ -87,12 +88,12 @@ struct LocalKeystoreTests {
             .appending(path: directory, directoryHint: .isDirectory)
         defer { try? FileManager.default.removeItem(at: baseDir) }
 
-        let keystore = LocalKeystore(directory: directory, keystorePassword: MockKeystorePassword(memoryPassword: ""))
+        let keystore = LocalKeystore(directory: directory, keystorePassword: MockKeystorePassword(memoryPassword: ""), transferService: GemTransferService())
         #expect(throws: Never.self) { try keystore.keystorePassword(createIfMissing: true) }
 
         _ = try keystore.importWallet(name: "test", type: .phrase(words: LocalKeystore.words, chains: [.ethereum]))
 
-        let lostPassword = LocalKeystore(directory: directory, keystorePassword: MockKeystorePassword(memoryPassword: ""))
+        let lostPassword = LocalKeystore(directory: directory, keystorePassword: MockKeystorePassword(memoryPassword: ""), transferService: GemTransferService())
         #expect(throws: Error.self) { try lostPassword.keystorePassword(createIfMissing: true) }
 
         let storedPassword = try keystore.keystorePassword(createIfMissing: false)

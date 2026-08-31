@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.GemAddressService
+import class Gemstone.GemApplicationMetadataService
 import class Gemstone.GemFeeService
 import class Gemstone.GemChainService
 import class Gemstone.GemReceiveService
@@ -94,6 +95,7 @@ extension EnvironmentValues {
     @Entry var recentAssetsService: any RecentAssetsServiceable = RecentAssetsService(store: AppResolver.main.storages.storeManager.recentActivityStore)
     @Entry var addressService: GemAddressService = AppResolver.main.services.addressService
     @Entry var feeService: GemFeeService = AppResolver.main.services.viewModelFactory.feeService
+    @Entry var applicationMetadataService: GemApplicationMetadataService = AppResolver.main.services.viewModelFactory.applicationMetadataService
     @Entry var viewModelFactory: ViewModelFactory = AppResolver.main.services.viewModelFactory
     @Entry var rewardsService: any GemRewardsServiceProtocol = AppResolver.main.services.rewardsService
     @Entry var searchService: any GemSearchServiceProtocol = AppResolver.main.services.searchService

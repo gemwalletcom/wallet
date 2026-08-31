@@ -20,6 +20,7 @@ import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
 import protocol Gemstone.GemSwapServiceProtocol
 import class Gemstone.GemConfirmService
+import class Gemstone.GemApplicationMetadataService
 import class Gemstone.GemAssetConfigService
 import class Gemstone.GemSwapQuoteService
 import class Gemstone.GemSimulationFormatter
@@ -66,6 +67,7 @@ public struct ViewModelFactory: Sendable {
     let transferService: GemTransferService
     let addressService: GemAddressService
     let paymentService: GemPaymentService
+    let applicationMetadataService: GemApplicationMetadataService
     let simulationFormatter: GemSimulationFormatter
     let assetConfig: GemAssetConfigService
 
@@ -145,6 +147,7 @@ public struct ViewModelFactory: Sendable {
             assetConfig: assetConfig,
             feeService: feeService,
             swapQuoteService: swapQuoteService,
+            applicationMetadataService: applicationMetadataService,
         )
     }
 
@@ -278,6 +281,7 @@ public struct ViewModelFactory: Sendable {
             nameService: gemNameService,
             payload: payload,
             confirmTransferDelegate: confirmTransferDelegate,
+            applicationMetadataService: applicationMetadataService,
         )
     }
 }

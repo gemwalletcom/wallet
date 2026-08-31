@@ -3,10 +3,8 @@
 import class Gemstone.GemApplicationMetadataService
 import Primitives
 
-private let applicationMetadataService = GemApplicationMetadataService()
-
 public extension Primitives.ApplicationMetadata {
-    var shortName: String {
-        return applicationMetadataService.shortName(metadata: json())
+    func shortName(applicationMetadataService: GemApplicationMetadataService) -> String {
+        applicationMetadataService.shortName(metadata: json())
     }
 }

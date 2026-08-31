@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemTransferService
 import Foundation
 import class Gemstone.GemKeystore
 import GemstonePrimitives
@@ -55,7 +56,7 @@ struct MigrateV3KeystoreTests {
         defer { try? FileManager.default.removeItem(at: baseDir) }
 
         let mockPassword = MockKeystorePassword(memoryPassword: Self.password)
-        let keystore = LocalKeystore(directory: directory, keystorePassword: mockPassword)
+        let keystore = LocalKeystore(directory: directory, keystorePassword: mockPassword, transferService: GemTransferService())
         let migrated = Wallet.mock(
             id: .privateKey(chain: .ethereum, address: Self.ethereumAddress),
             type: .privateKey,
@@ -78,6 +79,7 @@ struct MigrateV3KeystoreTests {
         let keystore = LocalKeystore(
             directory: directory,
             keystorePassword: MockKeystorePassword(memoryPassword: ""),
+            transferService: GemTransferService(),
         )
         let legacy = Wallet.mock(
             id: .privateKey(chain: .ethereum, address: Self.ethereumAddress),
@@ -107,6 +109,7 @@ struct MigrateV3KeystoreTests {
         let keystore = LocalKeystore(
             directory: directory,
             keystorePassword: mockPassword,
+            transferService: GemTransferService(),
         )
 
         let fixtureURL = try #require(Bundle.module.url(forResource: fixture, withExtension: "json"))

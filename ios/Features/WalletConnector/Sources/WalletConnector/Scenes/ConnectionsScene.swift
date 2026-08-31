@@ -35,7 +35,7 @@ public struct ConnectionsScene: View {
                 Section(section.title.or(.empty)) {
                     ForEach(section.values) { connection in
                         NavigationLink(value: connection) {
-                            ConnectionView(model: WalletConnectionViewModel(connection: connection))
+                            ConnectionView(model: model.connectionViewModel(connection: connection))
                                 .swipeActions(edge: .trailing) {
                                     Button(
                                         model.disconnectTitle,
