@@ -10162,13 +10162,10 @@ dependencies = [
  "alloy-sol-types",
  "async-trait",
  "futures",
- "gem_client",
  "gem_evm",
  "gem_jsonrpc",
  "num-bigint 0.5.1",
  "primitives",
- "reqwest 0.13.4",
- "tokio",
 ]
 
 [[package]]

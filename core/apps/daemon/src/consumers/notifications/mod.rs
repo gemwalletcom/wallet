@@ -12,20 +12,11 @@ use std::error::Error;
 use std::sync::Arc;
 use storage::Database;
 use streamer::{
-    ConsumerConfig, ConsumerStatusReporter, InAppNotificationPayload, NotificationsFailedPayload, NotificationsPayload, QueueName, ShutdownReceiver, StreamProducer,
-    StreamProducerConfig, StreamReader, run_consumer,
+    ConsumerStatusReporter, InAppNotificationPayload, NotificationsFailedPayload, NotificationsPayload, QueueName, ShutdownReceiver, StreamProducer, StreamProducerConfig,
+    StreamReader, run_consumer,
 };
 
-use crate::consumers::reader_config;
-
-fn consumer_config(consumer: &settings::Consumer) -> ConsumerConfig {
-    ConsumerConfig {
-        timeout_on_error: consumer.error.timeout,
-        skip_on_error: consumer.error.skip,
-        delay: consumer.delay,
-        retries: consumer.error.retries,
-    }
-}
+use crate::consumers::{consumer_config, reader_config};
 
 pub async fn run(settings: Settings, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let database = Database::new(&settings.postgres.url, settings.postgres.pool);
