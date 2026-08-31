@@ -57,14 +57,14 @@ impl TransactionRow {
         vec![self.from_address.clone(), self.to_address.clone()].into_iter().flatten().collect()
     }
 
-    pub fn as_primitive(&self, addresses: Vec<String>) -> Transaction {
+    pub fn as_primitive(&self, addresses: Vec<String>) -> Result<Transaction, serde_json::Error> {
         let chain = self.chain();
         let transaction_id = TransactionId::new(chain, self.hash.clone());
         let asset_id = self.asset_id.0.clone();
         let from = self.from_address.clone().unwrap_or_default();
         let to_address = self.to_address.clone().unwrap_or_default();
-        let inputs: Option<Vec<TransactionUtxoInput>> = serde_json::from_value(self.utxo_inputs.clone().into()).ok();
-        let outputs: Option<Vec<TransactionUtxoInput>> = serde_json::from_value(self.utxo_outputs.clone().into()).ok();
+        let inputs: Option<Vec<TransactionUtxoInput>> = serde_json::from_value(self.utxo_inputs.clone().into())?;
+        let outputs: Option<Vec<TransactionUtxoInput>> = serde_json::from_value(self.utxo_outputs.clone().into())?;
 
         let direction = if addresses.contains(&from) {
             TransactionDirection::Outgoing
@@ -75,7 +75,7 @@ impl TransactionRow {
         };
         let transaction_type = self.kind.0.clone();
 
-        Transaction {
+        Ok(Transaction {
             id: transaction_id.clone(),
             asset_id,
             from: from.clone(),
@@ -95,7 +95,7 @@ impl TransactionRow {
             metadata: self.metadata.clone(),
             data: None,
             created_at: self.created_at.and_utc(),
-        }
+        })
     }
 }
 

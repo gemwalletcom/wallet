@@ -101,7 +101,7 @@ impl InTransitUpdater {
         vault_addresses: &DepositAddressMap,
     ) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let chain = row.chain();
-        let transaction = row.as_primitive(row.get_addresses());
+        let transaction = row.as_primitive(row.get_addresses())?;
         let elapsed = match (now.naive_utc() - row.created_at).to_std() {
             Ok(duration) => DurationMs(duration),
             Err(_) => DurationMs(Duration::default()),
@@ -190,7 +190,7 @@ impl InTransitUpdater {
         };
         self.database.transactions()?.update_transaction(chain.as_ref(), &row.hash, updates)?;
 
-        let transaction = row.as_primitive(row.get_addresses()).with_swap_state(state.clone().into(), metadata.clone());
+        let transaction = row.as_primitive(row.get_addresses())?.with_swap_state(state.clone().into(), metadata.clone());
         self.stream_producer
             .publish_transactions(TransactionsPayload::new_state_change_with_notify(chain, vec![transaction]))
             .await?;
