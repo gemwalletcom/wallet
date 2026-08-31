@@ -56,6 +56,7 @@ public final class SelectAssetViewModel {
         priceAlertService: any GemPriceAlertServiceProtocol,
         recentAssetsService: any RecentAssetsServiceable,
         preferencesService: any GemPreferencesServiceProtocol,
+        assetConfig: GemAssetConfigService,
         selectAssetAction: AssetAction = .none,
         chains: [Chain] = [],
     ) {
@@ -66,7 +67,7 @@ public final class SelectAssetViewModel {
         self.balanceService = balanceService
         self.priceAlertService = priceAlertService
         self.recentAssetsService = recentAssetsService
-        flow = selectType.flow
+        flow = selectType.flow(assetConfig: assetConfig)
         onSelectAssetAction = selectAssetAction
 
         let filter = AssetsFilterViewModel(
@@ -75,6 +76,7 @@ public final class SelectAssetViewModel {
                 chains: wallet.chains,
                 selected: chains,
             ),
+            assetConfig: assetConfig,
         )
         filterModel = filter
 

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAssetConfigService
 import Components
 import Localization
 import Primitives
@@ -10,12 +11,18 @@ import SwiftUI
 
 public struct AssetsFilterViewModel: Sendable, Equatable {
     private let type: SelectAssetType
+    private let assetConfig: GemAssetConfigService
     var chainsFilter: ChainsFilterViewModel
     var hasBalance: Bool = false
 
-    public init(type: SelectAssetType, model: ChainsFilterViewModel) {
+    public init(type: SelectAssetType, model: ChainsFilterViewModel, assetConfig: GemAssetConfigService) {
+        self.assetConfig = assetConfig
         self.type = type
         chainsFilter = model
+    }
+
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.type == rhs.type && lhs.chainsFilter == rhs.chainsFilter && lhs.hasBalance == rhs.hasBalance
     }
 
     public var isAnyFilterSpecified: Bool {
@@ -39,11 +46,11 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
     }
 
     public var defaultFilters: [AssetsRequestFilter] {
-        type.flow.defaultFilters
+        type.flow(assetConfig: assetConfig).defaultFilters
     }
 
     var showHasBalanceToggle: Bool {
-        type.flow.capabilities.contains(.balanceFilter)
+        type.flow(assetConfig: assetConfig).capabilities.contains(.balanceFilter)
     }
 
     var title: String {

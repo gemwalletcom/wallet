@@ -88,6 +88,7 @@ public struct ViewModelFactory: Sendable {
             priceAlertService: priceAlertService,
             recentAssetsService: recentAssetsService,
             preferencesService: preferencesService,
+            assetConfig: assetConfig,
             selectAssetAction: selectAssetAction,
             chains: chains,
         )

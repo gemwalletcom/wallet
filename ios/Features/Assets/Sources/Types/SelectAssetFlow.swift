@@ -9,8 +9,6 @@ import Primitives
 import PrimitivesComponents
 import Store
 
-private let assetConfig = GemAssetConfigService()
-
 public struct SelectAssetFlow: Sendable {
     public enum RowSelection: Sendable, Equatable {
         case navigate
@@ -68,7 +66,7 @@ public struct SelectAssetFlow: Sendable {
 }
 
 private extension [AssetsRequestFilter] {
-    static func filters(for action: GemAssetAction) -> [AssetsRequestFilter] {
+    static func filters(for action: GemAssetAction, assetConfig: GemAssetConfigService) -> [AssetsRequestFilter] {
         assetConfig.actionFilters(action: action).map { filter in
             switch filter {
             case .enabled: .enabled
@@ -85,13 +83,13 @@ private extension [AssetsRequestFilter] {
 // MARK: - Models extensions
 
 public extension SelectAssetType {
-    var flow: SelectAssetFlow {
+    func flow(assetConfig: GemAssetConfigService) -> SelectAssetFlow {
         switch self {
         case .send:
             SelectAssetFlow(
                 title: Localized.Wallet.send,
                 listType: .view,
-                defaultFilters: .filters(for: .send),
+                defaultFilters: .filters(for: .send, assetConfig: assetConfig),
                 rowSelection: .navigate,
                 capabilities: [.chainFilter, .recents],
             )
@@ -124,7 +122,7 @@ public extension SelectAssetType {
             SelectAssetFlow(
                 title: Localized.Wallet.buy,
                 listType: .view,
-                defaultFilters: .filters(for: .buy),
+                defaultFilters: .filters(for: .buy, assetConfig: assetConfig),
                 rowSelection: .navigate,
                 selectionEffect: .recordRecent,
                 capabilities: [.networkSearch, .chainFilter, .recents, .popularSection],
@@ -135,7 +133,7 @@ public extension SelectAssetType {
                 SelectAssetFlow(
                     title: Localized.Swap.youPay,
                     listType: .view,
-                    defaultFilters: .filters(for: .swapPay),
+                    defaultFilters: .filters(for: .swapPay, assetConfig: assetConfig),
                     rowSelection: .select,
                     selectionEffect: .recordRecent,
                     capabilities: [.chainFilter, .recents],
@@ -144,7 +142,7 @@ public extension SelectAssetType {
                 SelectAssetFlow(
                     title: Localized.Swap.youReceive,
                     listType: .view,
-                    defaultFilters: .filters(for: .swapReceive) + [.chainsOrAssets(chains.map(\.rawValue), assetIds.map(\.identifier))],
+                    defaultFilters: .filters(for: .swapReceive, assetConfig: assetConfig) + [.chainsOrAssets(chains.map(\.rawValue), assetIds.map(\.identifier))],
                     rowSelection: .select,
                     selectionEffect: .recordRecent,
                     capabilities: [.networkSearch, .chainFilter, .recents],
