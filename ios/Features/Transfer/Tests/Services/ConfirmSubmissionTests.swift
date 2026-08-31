@@ -20,15 +20,17 @@ import Testing
 import class Gemstone.GemSimulationFormatter
 @testable import Transfer
 
-struct ConfirmServiceTests {
+@MainActor
+struct ConfirmSubmissionTests {
     @Test
     func confirmReportsEveryHashAndTracksSentTransactions() async throws {
         let tracked = Primitives.Transaction.mock()
         let gemConfirmService = GemConfirmServiceMock(execute: .success(.sent(hashes: ["hash-1", "hash-2"], transactions: [tracked.json()])))
         let reported = ReportedValues()
 
-        try await ConfirmService.mock(gemConfirmService: gemConfirmService).confirm(
-            request: .mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) }),
+        let request = ConfirmTransferRequest.mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) })
+        try await ConfirmTransferSceneViewModel.mock(request: request, gemConfirmService: gemConfirmService).submit(
+            request: request,
             confirmData: .mock(),
             amount: .mock(),
             simulation: nil,
@@ -43,8 +45,9 @@ struct ConfirmServiceTests {
         let gemConfirmService = GemConfirmServiceMock(execute: .success(.signed(data: ["signed"])))
         let reported = ReportedValues()
 
-        try await ConfirmService.mock(gemConfirmService: gemConfirmService).confirm(
-            request: .mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) }),
+        let request = ConfirmTransferRequest.mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) })
+        try await ConfirmTransferSceneViewModel.mock(request: request, gemConfirmService: gemConfirmService).submit(
+            request: request,
             confirmData: .mock(),
             amount: .mock(),
             simulation: nil,
@@ -59,8 +62,9 @@ struct ConfirmServiceTests {
         let reported = ReportedValues()
 
         await #expect(throws: GemConfirmError.self) {
-            try await ConfirmService.mock(gemConfirmService: gemConfirmService).confirm(
-                request: .mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) }),
+            let request = ConfirmTransferRequest.mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) })
+            try await ConfirmTransferSceneViewModel.mock(request: request, gemConfirmService: gemConfirmService).submit(
+                request: request,
                 confirmData: .mock(),
                 amount: .mock(),
                 simulation: nil,
@@ -73,7 +77,7 @@ struct ConfirmServiceTests {
     @Test
     func simulationStateMapsTheResolvedHeader() {
         let usdt = Asset.mockEthereumUSDT()
-        let service = ConfirmService.mock(gemConfirmService: GemConfirmServiceMock(
+        let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
             simulation: GemConfirmSimulation(
                 payloadFields: [],
                 header: GemSimulationValue(asset: usdt.json(), value: .exact(value: "1000000")),
@@ -81,7 +85,7 @@ struct ConfirmServiceTests {
             ),
         ))
 
-        let state = service.simulationState(request: .mock())
+        let state = service.state.simulation
 
         #expect(state.headerData == AssetValueHeaderData(asset: usdt, value: .exact(1_000_000)))
         #expect(state.payload.primaryFields.isEmpty)
@@ -91,7 +95,7 @@ struct ConfirmServiceTests {
     @Test
     func simulationStateMapsAnUnlimitedHeader() {
         let usdt = Asset.mockEthereumUSDT()
-        let service = ConfirmService.mock(gemConfirmService: GemConfirmServiceMock(
+        let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
             simulation: GemConfirmSimulation(
                 payloadFields: [],
                 header: GemSimulationValue(asset: usdt.json(), value: .unlimited),
@@ -99,17 +103,17 @@ struct ConfirmServiceTests {
             ),
         ))
 
-        #expect(service.simulationState(request: .mock()).headerData == AssetValueHeaderData(asset: usdt, value: .unlimited))
+        #expect(service.state.simulation.headerData == AssetValueHeaderData(asset: usdt, value: .unlimited))
     }
 
     @Test
     func simulationStateSplitsPayloadFieldsByDisplay() {
         let primary = SimulationPayloadField.standard(kind: .contract, value: "0x1", fieldType: .text, display: .primary)
-        let service = ConfirmService.mock(gemConfirmService: GemConfirmServiceMock(
+        let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
             simulation: GemConfirmSimulation(payloadFields: [primary.json()], header: nil, balanceChanges: []),
         ))
 
-        let state = service.simulationState(request: .mock())
+        let state = service.state.simulation
 
         #expect(state.payload.primaryFields.count == 1)
         #expect(state.payload.primaryFields.first?.kind == .contract)
@@ -119,7 +123,7 @@ struct ConfirmServiceTests {
     @Test
     func simulationStateMapsResolvedBalanceChanges() {
         let usdt = Asset.mockEthereumUSDT()
-        let service = ConfirmService.mock(gemConfirmService: GemConfirmServiceMock(
+        let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
             simulation: GemConfirmSimulation(
                 payloadFields: [],
                 header: nil,
@@ -127,13 +131,13 @@ struct ConfirmServiceTests {
             ),
         ))
 
-        #expect(service.simulationState(request: .mock()).balanceChanges == [SimulationAssetChange(asset: usdt, value: -25)])
+        #expect(service.state.simulation.balanceChanges == [SimulationAssetChange(asset: usdt, value: -25)])
     }
 
     @Test
     func simulationStateIgnoresAddressNameLookupFailure() async throws {
         let field = SimulationPayloadField.standard(kind: .contract, value: "0x123", fieldType: .address, display: .primary)
-        let service = ConfirmService.mock(
+        let service = ConfirmTransferSceneViewModel.mock(
             gemConfirmService: GemConfirmServiceMock(
                 metadata: .success(GemConfirmMetadata(
                     assetBalance: .mock(assetId: Asset.mock().id.identifier),

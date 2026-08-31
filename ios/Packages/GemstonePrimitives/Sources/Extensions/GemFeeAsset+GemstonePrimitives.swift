@@ -48,18 +48,6 @@ public extension Primitives.Price {
     }
 }
 
-public extension GemConfirmMetadata {
-    func map(assetId: Primitives.AssetId, feeAssetId: Primitives.AssetId) throws -> Primitives.TransferDataMetadata {
-        let prices = try prices.map { try (Primitives.AssetId(id: $0.assetId), Primitives.Price($0)) }
-        return try Primitives.TransferDataMetadata(
-            assetId: assetId,
-            feeAssetId: feeAssetId,
-            assetBalance: Primitives.Balance(assetBalance),
-            assetFeeBalance: Primitives.Balance(feeAssetBalance),
-            assetPrices: Dictionary(uniqueKeysWithValues: prices),
-        )
-    }
-}
 
 public extension GemTransferAmountError {
     var assetId: Primitives.AssetId? {
@@ -73,10 +61,40 @@ public extension GemTransferAmountError {
 }
 
 public extension GemApprovalValue {
-    func map() -> Primitives.ApprovalValue {
+    func map() throws -> Primitives.ApprovalValue {
         switch self {
-        case let .exact(value): .exact((try? BigInt.from(string: value)) ?? .zero)
+        case let .exact(value): .exact(try BigInt.from(string: value))
         case .unlimited: .unlimited
         }
+    }
+}
+
+public extension GemConfirmMetadata {
+    var assetId: Primitives.AssetId? { try? Primitives.AssetId(id: assetBalance.assetId) }
+    var feeAssetId: Primitives.AssetId? { try? Primitives.AssetId(id: feeAssetBalance.assetId) }
+
+    var available: BigInt { (try? BigInt.from(string: assetBalance.available)) ?? .zero }
+    var feeAvailable: String { feeAssetBalance.available }
+
+    var assetPrice: Primitives.Price? { price(for: assetBalance.assetId) }
+    var feePrice: Primitives.Price? { price(for: feeAssetBalance.assetId) }
+
+    var balance: Primitives.Balance? { try? Primitives.Balance(assetBalance) }
+    var feeBalance: Primitives.Balance? { try? Primitives.Balance(feeAssetBalance) }
+
+    func price(for assetId: String) -> Primitives.Price? {
+        prices.first { $0.assetId == assetId }.map { Primitives.Price($0) }
+    }
+
+    func price(for assetId: Primitives.AssetId) -> Primitives.Price? {
+        price(for: assetId.identifier)
+    }
+}
+
+public extension GemConfirmMetadata {
+    var assetPrices: [Primitives.AssetId: Primitives.Price] {
+        Dictionary(uniqueKeysWithValues: prices.compactMap { price in
+            (try? Primitives.AssetId(id: price.assetId)).map { ($0, Primitives.Price(price)) }
+        })
     }
 }

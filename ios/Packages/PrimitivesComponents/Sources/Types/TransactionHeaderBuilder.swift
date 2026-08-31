@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
+import struct Gemstone.GemConfirmMetadata
 import BigInt
 import Foundation
 import Primitives
@@ -48,7 +50,7 @@ public enum TransactionHeaderTypeBuilder {
     public static func build(
         infoModel: TransactionInfoViewModel,
         dataType: TransferDataType,
-        metadata: TransferDataMetadata?,
+        metadata: GemConfirmMetadata?,
     ) -> TransactionHeaderType {
         let inputType: TransactionHeaderInputType = {
             switch dataType {

@@ -265,10 +265,10 @@ struct ConfirmTransferSceneViewModelTests {
             FeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 30)),
         ]
         let model = ConfirmTransferSceneViewModel.mock(
-            confirmService: .mock(gemConfirmService: GemConfirmServiceMock(preload: .success(.mock(confirmData: .mock(feeRates: [
+            gemConfirmService: GemConfirmServiceMock(preload: .success(.mock(confirmData: .mock(feeRates: [
                 GemFeeRate(priority: .normal, gasPriceType: .regular(gasPrice: "20")),
                 GemFeeRate(priority: .fast, gasPriceType: .regular(gasPrice: "30")),
-            ]))))),
+            ])))),
         )
 
         await model.load()
@@ -287,7 +287,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func fetchIgnoresErrorAfterCancellation() async {
         let model = ConfirmTransferSceneViewModel.mock(
-            confirmService: .mock(gemConfirmService: GemConfirmServiceMock(preload: .failure(AnyError("network")))),
+            gemConfirmService: GemConfirmServiceMock(preload: .failure(AnyError("network"))),
         )
 
         let task = Task { await model.load() }
@@ -676,66 +676,5 @@ struct ConfirmTransferSceneViewModelTests {
         if case .empty = model.itemModel {
             Issue.record("Expected non-empty model")
         }
-    }
-}
-
-private extension ConfirmTransferSceneViewModel {
-    static func mock(
-        wallet: Wallet? = nil,
-        data: TransferData = .mock(),
-        confirmService: ConfirmService,
-    ) -> ConfirmTransferSceneViewModel {
-        ConfirmTransferSceneViewModel(
-            request: ConfirmTransferRequest(
-                wallet: wallet ?? .mock(accounts: [.mock(chain: data.chain)]),
-                data: data,
-                simulation: nil,
-            ),
-            confirmService: confirmService,
-            transferService: GemTransferService(),
-            onComplete: {},
-            assetConfig: GemAssetConfigService(),
-            feeService: GemFeeService(),
-            swapQuoteService: GemSwapQuoteService(),
-            applicationMetadataService: GemApplicationMetadataService(),
-        )
-    }
-
-    static func mock(
-        wallet: Wallet = .mock(),
-        data: TransferData = .mock(),
-        nameService: any GemNameServiceProtocol = GemNameServiceMock(),
-        simulation: SimulationResult? = nil,
-    ) -> ConfirmTransferSceneViewModel {
-        ConfirmTransferSceneViewModel(
-            request: ConfirmTransferRequest(
-                wallet: wallet,
-                data: data,
-                simulation: simulation,
-            ),
-            confirmService: ConfirmServiceFactory.create(
-                explorerService: GemExplorerServiceMock(),
-                keystore: KeystoreMock(),
-                gemConfirmService: GemConfirmServiceMock(),
-                preferencesService: GemPreferencesServiceMock(),
-                assetStore: .mock(),
-                assetsService: GemAssetsServiceMock(),
-                transactionStateService: GemTransactionStateServiceMock(),
-                nameService: nameService,
-                recentAssetsService: RecentAssetsService(store: .mock()),
-                toastPresenter: ToastPresenter(),
-                feeService: GemFeeService(),
-                transferService: GemTransferService(),
-                amountService: GemAmountService(),
-                simulationFormatter: GemSimulationFormatter(),
-                perpetualService: GemPerpetualServiceMock(),
-            ),
-            transferService: GemTransferService(),
-            onComplete: {},
-            assetConfig: GemAssetConfigService(),
-            feeService: GemFeeService(),
-            swapQuoteService: GemSwapQuoteService(),
-            applicationMetadataService: GemApplicationMetadataService(),
-        )
     }
 }

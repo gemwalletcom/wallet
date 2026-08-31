@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
+import struct Gemstone.GemConfirmMetadata
 import Components
 import class Gemstone.GemSwapQuoteService
 import protocol Gemstone.GemPerpetualServiceProtocol
@@ -9,14 +11,14 @@ import Swap
 
 public struct ConfirmDetailsViewModel {
     private let type: TransferDataType
-    private let metadata: TransferDataMetadata?
+    private let metadata: GemConfirmMetadata?
     private let currency: String
     private let perpetualService: any GemPerpetualServiceProtocol
     private let swapQuoteService: GemSwapQuoteService
 
     init(
         type: TransferDataType,
-        metadata: TransferDataMetadata?,
+        metadata: GemConfirmMetadata?,
         currency: String,
         perpetualService: any GemPerpetualServiceProtocol,
         swapQuoteService: GemSwapQuoteService,

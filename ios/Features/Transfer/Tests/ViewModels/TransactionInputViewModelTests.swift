@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemAssetPrice
+import struct Gemstone.GemConfirmMetadata
 import GemstonePrimitivesTestKit
 import BigInt
 import GemstonePrimitives
@@ -87,12 +89,11 @@ struct TransactionInputViewModelTests {
 
     @Test
     func testNetworkFeeFiatText() {
-        let metaData = TransferDataMetadata(
-            assetId: .mock(),
-            feeAssetId: .mock(),
-            assetBalance: .zero,
-            assetFeeBalance: .zero,
-            assetPrices: [.mock(): .mock()],
+        let assetId = AssetId.mock()
+        let metaData = GemConfirmMetadata(
+            assetBalance: .mock(assetId: assetId.identifier),
+            feeAssetBalance: .mock(assetId: assetId.identifier),
+            prices: [GemAssetPrice(assetId: assetId.identifier, price: Price.mock().price, priceChangePercentage24h: 0, updatedAt: 0)],
         )
         let viewModel = TransactionInputViewModel(
             data: .mock(),

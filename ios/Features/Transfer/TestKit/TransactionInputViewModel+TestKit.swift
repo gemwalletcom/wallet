@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemConfirmMetadata
 import BigInt
 import Foundation
 import GemstonePrimitives
@@ -12,7 +13,7 @@ public extension TransactionInputViewModel {
     static func mock(
         data: TransferData = .mock(),
         fee: Fee? = nil,
-        metaData: TransferDataMetadata? = nil,
+        metaData: GemConfirmMetadata? = nil,
         transferAmount: TransferAmountValidation? = nil,
         feeAsset: Asset = .mock(),
         currency: String = Currency.usd.rawValue,
