@@ -66,7 +66,7 @@ public extension GemManageContactServiceProtocol {
     }
 
     var defaultContactChain: Chain {
-        Chain.decoded(defaultChain())
+        Chain(core: defaultChain())
     }
 }
 
@@ -77,11 +77,3 @@ private extension GemContactAddressInput {
     }
 }
 
-private extension Chain {
-    static func decoded(_ rawValue: String) -> Chain {
-        guard let chain = Chain(rawValue: rawValue) else {
-            preconditionFailure("Undecodable chain: \(rawValue)")
-        }
-        return chain
-    }
-}

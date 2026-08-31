@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-public import protocol Gemstone.GemConfirmSceneServiceProtocol
+public import protocol Gemstone.GemConfirmTransferServiceProtocol
 public import protocol Gemstone.GemConfirmServiceProtocol
 public import protocol Gemstone.GemNameServiceProtocol
 public import protocol Gemstone.GemAssetsServiceProtocol
@@ -35,11 +35,12 @@ public import typealias Gemstone.Transaction
 public import typealias Gemstone.WalletId
 public import typealias Gemstone.Asset
 public import typealias Gemstone.TransactionType
+public import typealias Gemstone.TransferDataOutputAction
 import Foundation
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 
-public final class GemConfirmSceneServiceMock: GemConfirmSceneServiceProtocol, @unchecked Sendable {
+public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProtocol, @unchecked Sendable {
     private let confirm: any GemConfirmServiceProtocol
     private let names: any GemNameServiceProtocol
     private let assets: any GemAssetsServiceProtocol
@@ -136,6 +137,17 @@ public final class GemConfirmSceneServiceMock: GemConfirmSceneServiceProtocol, @
         nil
     }
 
+    public func applicationShortName(inputType: GemTransactionInputType) -> String? {
+        if case let .generic(_, metadata, _) = inputType {
+            return applicationMetadataService.shortName(metadata: metadata)
+        }
+        return nil
+    }
+
+    public func outputAction(inputType: GemTransactionInputType) -> TransferDataOutputAction {
+        transferService.output(inputType: inputType).outputAction
+    }
+
     public func acquireAssetFlow(chain: Chain) -> GemAcquireAssetFlow {
         assetConfig.acquireFlow(chain: chain)
     }
@@ -144,7 +156,5 @@ public final class GemConfirmSceneServiceMock: GemConfirmSceneServiceProtocol, @
 
     public func swapQuote() -> GemSwapQuoteService { swapQuoteService }
 
-    public func applicationMetadata() -> GemApplicationMetadataService { applicationMetadataService }
 
-    public func transfer() -> GemTransferService { transferService }
 }

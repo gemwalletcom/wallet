@@ -13,9 +13,21 @@ private enum JsonCodableEncoder {
 
 public protocol JsonCodable: Codable {}
 
+
 public extension JsonCodable {
     init(_ json: String) throws {
         self = try JSONDateDecoder.standard.decode(Self.self, from: Data(json.utf8))
+    }
+
+    /// A value Core produced. Core and the app generate this type from the same Rust
+    /// definition, so it always decodes — a failure here means the generated models are
+    /// stale, which is a build problem rather than a runtime one.
+    init(core json: String) {
+        do {
+            self = try Self(json)
+        } catch {
+            preconditionFailure("failed to decode \(Self.self) from Core: \(error)")
+        }
     }
 
     func json() -> String {

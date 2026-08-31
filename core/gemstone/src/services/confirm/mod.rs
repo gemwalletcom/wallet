@@ -1,8 +1,8 @@
 mod error;
 mod model;
 pub(crate) mod rules;
-mod scene;
 mod signer;
+mod transfer;
 
 use std::sync::Arc;
 use std::time::Duration;
@@ -10,8 +10,8 @@ use std::time::Duration;
 pub use error::GemConfirmError;
 pub use model::*;
 pub use rules::acquire_asset_flow;
-pub use scene::GemConfirmSceneService;
 pub use signer::GemTransactionSigner;
+pub use transfer::GemConfirmTransferService;
 
 use crate::gateway::GemGateway;
 use crate::models::asset::chain_fee_asset_ids;

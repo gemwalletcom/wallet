@@ -33,7 +33,7 @@ extension ConfirmTransferSceneViewModel {
                 data: data,
                 simulation: simulation,
             ),
-            service: GemConfirmSceneServiceMock(
+            service: GemConfirmTransferServiceMock(
                 confirm: gemConfirmService,
                 names: nameService,
                 transactionState: transactionStateService,

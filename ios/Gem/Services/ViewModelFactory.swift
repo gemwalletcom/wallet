@@ -8,7 +8,7 @@ import class Gemstone.GemAssetsService
 import class Gemstone.GemAvatarService
 import class Gemstone.GemBalanceService
 import class Gemstone.GemChainService
-import class Gemstone.GemConfirmSceneService
+import class Gemstone.GemConfirmTransferService
 import class Gemstone.GemConfirmService
 import class Gemstone.GemContactsService
 import class Gemstone.GemManageContactService
@@ -220,7 +220,7 @@ public struct ViewModelFactory: Sendable {
                 simulation: simulation,
                 delegate: confirmTransferDelegate,
             ),
-            service: confirmSceneService(),
+            service: confirmTransferService(),
             signer: KeystoreTransactionSigner(keystore: keystore),
             keystore: keystore,
             recentAssetsService: recentAssetsService,
@@ -230,8 +230,8 @@ public struct ViewModelFactory: Sendable {
         )
     }
 
-    private func confirmSceneService() -> GemConfirmSceneService {
-        GemConfirmSceneService(
+    private func confirmTransferService() -> GemConfirmTransferService {
+        GemConfirmTransferService(
             confirm: confirmService,
             explorer: explorerService,
             names: nameService,

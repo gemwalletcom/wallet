@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemConfirmSceneServiceProtocol
+import struct Gemstone.GemAutocloseSummary
 import Components
 import Formatters
 import Foundation
@@ -9,20 +9,18 @@ import Localization
 import Primitives
 
 public struct PerpetualModifyViewModel: Sendable {
-    private let data: PerpetualModifyConfirmData
-    private let service: any GemConfirmSceneServiceProtocol
+    private let summary: GemAutocloseSummary?
     private let autocloseFormatter = AutocloseFormatter(
         takeProfitLabel: Localized.Perpetual.takeProfit,
         stopLossLabel: Localized.Perpetual.stopLoss,
     )
 
-    public init(data: PerpetualModifyConfirmData, service: any GemConfirmSceneServiceProtocol) {
-        self.data = data
-        self.service = service
+    public init(summary: GemAutocloseSummary?) {
+        self.summary = summary
     }
 
     public var listItemModel: ListItemModel? {
-        guard let summary = service.autocloseSummary(data: data.json()) else {
+        guard let summary else {
             return nil
         }
         let autoclose = autocloseFormatter.format(

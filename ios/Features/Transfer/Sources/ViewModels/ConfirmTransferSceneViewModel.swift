@@ -8,7 +8,7 @@ import struct Gemstone.GemSendInput
 import enum Gemstone.GemConfirmError
 import enum Gemstone.GemTransferAmountResult
 import enum Gemstone.GemExecuteResult
-import protocol Gemstone.GemConfirmSceneServiceProtocol
+import protocol Gemstone.GemConfirmTransferServiceProtocol
 import protocol Gemstone.GemTransactionSigner
 import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstoneServices
@@ -57,7 +57,7 @@ public final class ConfirmTransferSceneViewModel {
     private let currency: Currency
     private let onComplete: VoidAction
 
-    private let service: any GemConfirmSceneServiceProtocol
+    private let service: any GemConfirmTransferServiceProtocol
     private let signer: any GemTransactionSigner
     private let keystore: any Keystore
     private let recentAssetsService: any RecentAssetsServiceable
@@ -65,7 +65,7 @@ public final class ConfirmTransferSceneViewModel {
 
     public init(
         request: ConfirmTransferRequest,
-        service: any GemConfirmSceneServiceProtocol,
+        service: any GemConfirmTransferServiceProtocol,
         signer: any GemTransactionSigner,
         keystore: any Keystore,
         recentAssetsService: any RecentAssetsServiceable,
@@ -105,7 +105,7 @@ public final class ConfirmTransferSceneViewModel {
                 addressNames: [:],
             ),
             metadata: sceneState.metadata,
-            feeAsset: request.data.type.feeAsset(transferService: service.transfer()),
+            feeAsset: Asset(core: sceneState.feeAsset),
             transaction: .loading,
         )
     }
@@ -225,7 +225,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         case .warnings:
             ConfirmTransferItemModel.warnings(simulationWarnings)
         case .app:
-            ConfirmAppViewModel(type: request.data.type, applicationMetadataService: service.applicationMetadata())
+            ConfirmAppViewModel(type: request.data.type, shortName: service.applicationShortName(inputType: request.data.type.inputType))
         case .sender:
             ConfirmSenderViewModel(wallet: request.wallet)
         case .network:
@@ -235,7 +235,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
                 model: dataModel,
                 addressName: recipientAddressNameQuery.value,
                 addressLink: explorerLink(chain: dataModel.chain, address: dataModel.recipient.address),
-                transferService: service.transfer(),
+                outputAction: service.outputAction(for: request.data.type),
                 onAddContact: onSelectAddRecipientToContacts,
             )
         case .memo:

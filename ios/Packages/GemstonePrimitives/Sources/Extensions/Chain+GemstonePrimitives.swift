@@ -23,6 +23,15 @@ public extension Gemstone.Chain {
 }
 
 public extension Primitives.Chain {
+    /// A chain Core produced. Chain crosses as its raw value rather than JSON, and both
+    /// sides generate the same cases, so it always resolves.
+    init(core rawValue: String) {
+        guard let chain = Primitives.Chain(rawValue: rawValue) else {
+            preconditionFailure("failed to decode Chain from Core: \(rawValue)")
+        }
+        self = chain
+    }
+
     func map() -> Gemstone.Chain {
         rawValue
     }

@@ -7,11 +7,7 @@ import Primitives
 
 public extension TransferDataType {
     var inputType: GemTransactionInputType {
-        do {
-            return try map()
-        } catch {
-            preconditionFailure("Unencodable transfer data type: \(error)")
-        }
+        try! map()
     }
 
     var asset: Asset {
@@ -31,31 +27,23 @@ public extension TransferDataType {
     }
 
     func feeAsset(transferService: GemTransferService) -> Asset {
-        do {
-            return try Asset(transferService.feeAsset(inputType: inputType))
-        } catch {
-            preconditionFailure("Undecodable transfer fee asset: \(error)")
-        }
+        Asset(core: transferService.feeAsset(inputType: inputType))
     }
 
     func transactionType(transferService: GemTransferService) -> TransactionType {
-        do {
-            return try TransactionType(transferService.transactionType(inputType: inputType))
-        } catch {
-            preconditionFailure("Undecodable transaction type: \(error)")
-        }
+        TransactionType(core: transferService.transactionType(inputType: inputType))
     }
 
     func assetIds(transferService: GemTransferService) -> [AssetId] {
-        transferService.assetIds(inputType: inputType).compactMap { try? AssetId(id: $0) }
+        transferService.assetIds(inputType: inputType).map { try! AssetId(id: $0) }
     }
 
     func outputType(transferService: GemTransferService) -> TransferDataOutputType {
-        (try? TransferDataOutputType(transferService.output(inputType: inputType).outputType)) ?? .encodedTransaction
+        TransferDataOutputType(core: transferService.output(inputType: inputType).outputType)
     }
 
     func outputAction(transferService: GemTransferService) -> TransferDataOutputAction {
-        (try? TransferDataOutputAction(transferService.output(inputType: inputType).outputAction)) ?? .sign
+        TransferDataOutputAction(core: transferService.output(inputType: inputType).outputAction)
     }
 
     func metadata(transferService: GemTransferService) throws -> AnyCodableValue? {

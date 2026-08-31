@@ -2,7 +2,7 @@
 
 import GemstonePrimitives
 import struct Gemstone.GemConfirmMetadata
-import protocol Gemstone.GemConfirmSceneServiceProtocol
+import protocol Gemstone.GemConfirmTransferServiceProtocol
 import Components
 import class Gemstone.GemSwapQuoteService
 import Primitives
@@ -13,13 +13,13 @@ public struct ConfirmDetailsViewModel {
     private let type: TransferDataType
     private let metadata: GemConfirmMetadata?
     private let currency: String
-    private let service: any GemConfirmSceneServiceProtocol
+    private let service: any GemConfirmTransferServiceProtocol
 
     init(
         type: TransferDataType,
         metadata: GemConfirmMetadata?,
         currency: String,
-        service: any GemConfirmSceneServiceProtocol,
+        service: any GemConfirmTransferServiceProtocol,
     ) {
         self.type = type
         self.metadata = metadata
@@ -49,7 +49,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
             case .open, .close, .increase, .reduce:
                 .perpetualDetails(PerpetualDetailsViewModel(type: PerpetualDetailsType(perpetualType)))
             case let .modify(data):
-                .perpetualModifyPosition(PerpetualModifyViewModel(data: data, service: service))
+                .perpetualModifyPosition(PerpetualModifyViewModel(summary: service.autocloseSummary(data: data.json())))
             }
         case .transfer,
              .deposit,

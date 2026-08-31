@@ -3,7 +3,6 @@
 import Components
 import Foundation
 import Localization
-import class Gemstone.GemTransferService
 import Primitives
 import PrimitivesComponents
 
@@ -12,19 +11,19 @@ struct ConfirmRecipientViewModel {
     private let addressName: AddressName?
     private let addressLink: BlockExplorerLink
     private let onAddContact: ((AddContactType) -> Void)?
-    private let transferService: GemTransferService
+    private let outputAction: TransferDataOutputAction
 
     init(
         model: TransferDataViewModel,
         addressName: AddressName?,
         addressLink: BlockExplorerLink,
-        transferService: GemTransferService,
+        outputAction: TransferDataOutputAction,
         onAddContact: ((AddContactType) -> Void)? = nil,
     ) {
         self.model = model
         self.addressName = addressName
         self.addressLink = addressLink
-        self.transferService = transferService
+        self.outputAction = outputAction
         self.onAddContact = onAddContact
     }
 }
@@ -78,7 +77,7 @@ extension ConfirmRecipientViewModel {
             case .freeze, .unfreeze: Localized.Stake.resource
             }
         case .generic:
-            switch model.type.outputAction(transferService: transferService) {
+            switch outputAction {
             case .sign: Localized.Asset.contract
             case .send: Localized.Transfer.Recipient.title
             }
@@ -101,7 +100,7 @@ extension ConfirmRecipientViewModel {
              .perpetual: false
         case .earn: true
         case .generic:
-            switch model.type.outputAction(transferService: transferService) {
+            switch outputAction {
             case .sign: false
             case .send: true
             }

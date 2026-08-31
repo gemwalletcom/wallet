@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use primitives::{AddressName, AssetId, Chain, ChainAddress, PerpetualModifyConfirmData, SimulationResult, Transaction, TransactionType, WalletId};
+use primitives::{AddressName, AssetId, Chain, ChainAddress, PerpetualModifyConfirmData, SimulationResult, Transaction, TransactionType, TransferDataOutputAction, WalletId};
 
 use crate::application::GemApplicationMetadataService;
 use crate::block_explorer::GemBlockExplorerLink;
@@ -20,7 +20,7 @@ use crate::services::swap::config::GemSwapQuoteService;
 use crate::services::transfer::GemTransferService;
 
 #[derive(uniffi::Object)]
-pub struct GemConfirmSceneService {
+pub struct GemConfirmTransferService {
     confirm: Arc<GemConfirmService>,
     explorer: Arc<GemExplorerService>,
     names: Arc<GemNameService>,
@@ -32,7 +32,7 @@ pub struct GemConfirmSceneService {
 }
 
 #[uniffi::export]
-impl GemConfirmSceneService {
+impl GemConfirmTransferService {
     #[uniffi::constructor]
     #[allow(clippy::too_many_arguments)]
     pub fn new(
@@ -131,6 +131,17 @@ impl GemConfirmSceneService {
         autoclose_summary(&data)
     }
 
+    pub fn application_short_name(&self, input_type: GemTransactionInputType) -> Option<String> {
+        match input_type {
+            GemTransactionInputType::Generic { metadata, .. } => Some(self.application_metadata.short_name(metadata)),
+            _ => None,
+        }
+    }
+
+    pub fn output_action(&self, input_type: GemTransactionInputType) -> TransferDataOutputAction {
+        self.transfer.output(&input_type).output_action
+    }
+
     pub fn acquire_asset_flow(&self, chain: Chain) -> GemAcquireAssetFlow {
         self.asset_config.acquire_flow(chain)
     }
@@ -141,13 +152,5 @@ impl GemConfirmSceneService {
 
     pub fn swap_quote(&self) -> Arc<GemSwapQuoteService> {
         self.swap_quote.clone()
-    }
-
-    pub fn application_metadata(&self) -> Arc<GemApplicationMetadataService> {
-        self.application_metadata.clone()
-    }
-
-    pub fn transfer(&self) -> Arc<GemTransferService> {
-        self.transfer.clone()
     }
 }

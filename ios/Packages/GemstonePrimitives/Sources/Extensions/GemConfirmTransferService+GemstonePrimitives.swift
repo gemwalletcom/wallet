@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import protocol Gemstone.GemConfirmSceneServiceProtocol
+import protocol Gemstone.GemConfirmTransferServiceProtocol
 import struct Gemstone.GemConfirmMetadata
 import Primitives
 
-public extension GemConfirmSceneServiceProtocol {
+public extension GemConfirmTransferServiceProtocol {
     func addressName(chain: Primitives.Chain, address: String) throws -> Primitives.AddressName? {
         try addressName(chain: chain.rawValue, address: address).map { try Primitives.AddressName($0) }
     }
@@ -31,4 +31,9 @@ public extension GemConfirmSceneServiceProtocol {
     func metadata(walletId: Primitives.WalletId, type: TransferDataType) throws -> GemConfirmMetadata {
         try metadata(walletId: walletId.id, inputType: type.inputType)
     }
+
+    func outputAction(for type: TransferDataType) -> Primitives.TransferDataOutputAction {
+        Primitives.TransferDataOutputAction(core: outputAction(inputType: type.inputType))
+    }
 }
+
