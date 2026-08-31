@@ -6,7 +6,6 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.GetPushToken
-import com.gemwallet.android.application.device.cases.IsDeviceRegistered
 import com.gemwallet.android.application.device.cases.RequestPushToken
 import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
@@ -49,7 +48,6 @@ class GemstoneDevicePlatform(
     GetPushEnabled,
     GetPushToken,
     SetPushToken,
-    IsDeviceRegistered,
     GemDevicePlatform
 {
     private val Context.dataStore by preferencesDataStore(name = "device_config")
@@ -57,23 +55,20 @@ class GemstoneDevicePlatform(
     private val pushEnabledState = MutableStateFlow(notificationsAvailable && preferencesService.isPushNotificationsEnabled())
 
     override suspend fun switchPushEnabled(enabled: Boolean) {
-        setPushEnabled(enabled && notificationsAvailable)
+        val isEnabled = enabled && notificationsAvailable
+        pushEnabledState.value = isEnabled
         try {
-            deviceService.get().synchronizeIfNeeded()
+            deviceService.get().setPushEnabled(isEnabled)
         } catch (_: Throwable) {}
     }
 
     override fun getPushEnabled(): Flow<Boolean> = pushEnabledState.onStart { migratePushEnabled() }
 
-    private fun setPushEnabled(enabled: Boolean) {
-        preferencesService.setPushNotificationsEnabled(enabled)
-        pushEnabledState.value = enabled
-    }
-
     private suspend fun migratePushEnabled() {
         val stored = context.dataStore.data.map { it[Key.PushEnabled] }.firstOrNull() ?: return
         if (stored && !preferencesService.isPushNotificationsEnabled()) {
-            setPushEnabled(notificationsAvailable)
+            preferencesService.setPushNotificationsEnabled(notificationsAvailable)
+            pushEnabledState.value = notificationsAvailable
         }
         context.dataStore.edit { it.remove(Key.PushEnabled) }
     }
@@ -83,8 +78,6 @@ class GemstoneDevicePlatform(
     }
 
     override suspend fun getPushToken(): String = configStore.getString(ConfigKey.PushToken.string)
-
-    override suspend fun isDeviceRegistered(): Boolean = deviceService.get().isRegistered()
 
     override suspend fun deviceId(): String = deviceKeyService.deviceId()
 

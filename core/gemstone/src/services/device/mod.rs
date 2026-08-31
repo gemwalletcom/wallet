@@ -57,6 +57,11 @@ impl GemDeviceService {
         self.sync(self.current_device().await?).await
     }
 
+    pub async fn set_push_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
+        self.preferences.set_push_notifications_enabled(enabled)?;
+        self.synchronize_if_needed().await
+    }
+
     pub async fn synchronize_if_needed(&self) -> Result<(), GemServiceError> {
         let _guard = self.sync_lock.lock().await;
         let device = self.current_device().await?;

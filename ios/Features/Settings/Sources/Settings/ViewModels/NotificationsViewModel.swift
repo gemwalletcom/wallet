@@ -55,19 +55,16 @@ extension NotificationsViewModel {
         switch isEnabled {
         case true:
             self.isEnabled = try await requestPermissionsOrOpenSettings()
+            try await deviceService.synchronizeIfNeeded()
         case false:
-            try preferencesService.setPushNotificationsEnabled(enabled: isEnabled)
+            try await deviceService.setPushEnabled(enabled: false)
         }
-        try await update()
     }
 }
 
 // MARK: - Private
 
 extension NotificationsViewModel {
-    private func update() async throws {
-        try await deviceService.synchronizeIfNeeded()
-    }
 
     private func requestPermissionsOrOpenSettings() async throws -> Bool {
         try await pushNotificationService.requestPermissionsOrOpenSettings()

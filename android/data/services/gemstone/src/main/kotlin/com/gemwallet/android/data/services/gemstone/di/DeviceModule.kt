@@ -3,7 +3,6 @@ package com.gemwallet.android.data.services.gemstone.di
 import android.content.Context
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.GetPushToken
-import com.gemwallet.android.application.device.cases.IsDeviceRegistered
 import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.data.services.gemstone.device.DeviceObserverService
@@ -83,9 +82,6 @@ object DeviceModule {
 
     @Provides
     fun provideGetPushTokenCase(repository: GemstoneDevicePlatform): GetPushToken = repository
-
-    @Provides
-    fun provideIsDeviceRegisteredCase(repository: GemstoneDevicePlatform): IsDeviceRegistered = repository
 
     @Provides
     @Singleton
