@@ -297,7 +297,7 @@ fun ConfirmScreen(
             currentFee = feeModel as? FeeUIModel.FeeInfo,
             selection = feeSelection,
             feeRates = feeRates,
-            feeService = viewModel.feeService,
+            feeDetailsModel = viewModel::feeDetailsModel,
             feeAssetInfo = feeAssetInfo,
             feeAssets = feeAssets,
             onSelect = viewModel::changeFeeSelection,

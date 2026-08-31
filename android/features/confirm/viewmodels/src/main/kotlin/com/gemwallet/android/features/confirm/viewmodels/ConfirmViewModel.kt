@@ -12,6 +12,7 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.domains.confirm.toTransferData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import uniffi.gemstone.GemFeeRate
 import uniffi.gemstone.GemFeeService
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.SyncMissingAssets
@@ -49,6 +50,7 @@ import com.gemwallet.android.features.confirm.models.PerpetualModifyAutocloseFac
 import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.domains.confirm.ConfirmState
 import com.gemwallet.android.domains.confirm.toConfirmError
+import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChainAddress
@@ -98,7 +100,7 @@ class ConfirmViewModel @Inject constructor(
     private val getAddressName: GetAddressName,
     private val getAddressNames: GetAddressNames,
     private val savedStateHandle: SavedStateHandle,
-    val feeService: GemFeeService,
+    private val feeService: GemFeeService,
     private val transferService: GemTransferService,
     private val simulationFormatter: GemSimulationFormatter,
     private val perpetualService: GemPerpetualService,
@@ -352,6 +354,13 @@ class ConfirmViewModel @Inject constructor(
             savedStateHandle[RouteArgument.Params.key] = pack
         }
     }
+
+    fun feeDetailsModel(
+        currentFee: FeeUIModel.FeeInfo,
+        feeAssetInfo: AssetInfo,
+        feeRates: List<GemFeeRate>,
+        unitSymbol: String,
+    ): FeeDetailsModel = FeeDetailsModel.from(currentFee, feeAssetInfo, feeRates, unitSymbol, feeService)
 
     fun changeFeeSelection(selection: FeeSelection) {
         if (selection == feeSelection.value) return

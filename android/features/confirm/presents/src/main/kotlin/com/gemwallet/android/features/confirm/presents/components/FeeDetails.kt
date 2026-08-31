@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.domains.confirm.CustomFee
+import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeRateUIModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.ext.feeRateDecimals
@@ -79,7 +80,7 @@ fun FeeDetails(
     currentFee: FeeUIModel.FeeInfo?,
     selection: FeeSelection,
     feeRates: List<GemFeeRate>,
-    feeService: GemFeeService,
+    feeDetailsModel: (FeeUIModel.FeeInfo, AssetInfo, List<GemFeeRate>, String) -> FeeDetailsModel,
     feeAssetInfo: AssetInfo?,
     feeAssets: List<AssetInfo>,
     onSelect: (FeeSelection) -> Unit,
@@ -88,36 +89,18 @@ fun FeeDetails(
 ) {
     currentFee ?: return
     feeAssetInfo ?: return
-    val chain = feeAssetInfo.asset.chain
-    val feeUnitType = chain.feeUnitType()
-    val unitSuffix = feeUnitSuffix(feeUnitType, feeAssetInfo.asset.symbol)
+    val unitSuffix = feeUnitSuffix(feeAssetInfo.asset.chain.feeUnitType(), feeAssetInfo.asset.symbol)
     val unitSymbol = unitSuffix.trim()
-    val feeConfig = remember(chain) { Config().getFeeConfig(chain.string) }
-    val supportsCustomFee = feeConfig.customFeeEnabled && feeRates.size > 1
-    val decimals = feeRateDecimals(feeUnitType, feeConfig, feeAssetInfo.asset.decimals)
-    val maxMultiplier = feeConfig.maxMultiplier.toInt()
-    val minimumCustomFeeRate = feeConfig.minimumCustomFeeRate?.toLong()?.toBigInteger()
-
-    val selectedTotalFee = feeRates.firstOrNull { it.priority == currentFee.priority.toGem() }
-        ?.let { feeService.totalFee(it.gasPriceType).toBigInteger() }
-    val feeRateModels = feeRates.map { rate ->
-        FeeRateUIModel(
-            feeRate = rate,
-            feeAsset = feeAssetInfo,
-            feeUnitType = feeUnitType,
-            feeRateDecimals = decimals,
-            totalFee = feeService.totalFee(rate.gasPriceType).toBigInteger(),
-            selectedTotalFee = selectedTotalFee,
-            selectedFeeAmount = currentFee.amount,
-            unitSymbol = unitSymbol,
-        )
+    val model = remember(currentFee, feeAssetInfo, feeRates, unitSymbol) {
+        feeDetailsModel(currentFee, feeAssetInfo, feeRates, unitSymbol)
     }
+    val decimals = model.decimals
 
     val selectedCustomRate = (selection as? FeeSelection.Custom)?.gasPrice
     val showFeeAssets = feeAssets.any { it.asset.id != currentFee.feeAsset.id }
     var page by remember(isVisible) { mutableStateOf(FeeDetailsPage.Details) }
-    val customModel = remember(page, currentFee, feeRates, selection) {
-        NetworkFeeCustomViewModel(currentFee, feeRates, selection, decimals, maxMultiplier, minimumCustomFeeRate, selectedCustomRate, feeService)
+    val customModel = remember(page, model, selection) {
+        NetworkFeeCustomViewModel(model, selection, selectedCustomRate)
     }
     val navigateToDetails: () -> Unit = { page = FeeDetailsPage.Details }
     val confirmCustomFee: () -> Unit = {
@@ -160,10 +143,10 @@ fun FeeDetails(
             FeeDetailsPage.Details -> FeeRates(
                 currentFee = currentFee,
                 selection = selection,
-                feeRateModels = feeRateModels,
+                feeRateModels = model.feeRateModels,
                 feeAssetInfo = feeAssetInfo,
                 unitSymbol = unitSymbol,
-                supportsCustomFee = supportsCustomFee,
+                supportsCustomFee = model.supportsCustomFee,
                 customRateText = selectedCustomRate?.let { CustomFee.formatRate(it, decimals, unitSymbol) },
                 customFiat = selectedCustomRate?.let { currentFee.fiatAmount },
                 showFeeAssets = showFeeAssets,
