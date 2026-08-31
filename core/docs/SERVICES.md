@@ -297,6 +297,25 @@ Each entry is one batch. Work it end to end: put the rule in Core with a test th
 
 Row 2 is glue on both sides, not duplication: iOS lifts Core's JSON into `Primitives`, Android composes the observed session into a `StateFlow`. The one shared sequence, changing currency, is the same three Core calls on each platform. The re-exports are worth keeping: deleting them pushes `try Wallet($0)` to every call site.
 
+### What is left, and what each needs
+
+Everything below was checked against the code, not inherited from the survey. Nothing here is blocked on more investigation.
+
+**Needs a decision. Each is one sentence, and I have a recommendation.**
+
+| Item | The question | Recommendation |
+|---|---|---|
+| Row 3, `FeeAssetProvider` | Does Core model the whole `AssetData` — asset, account, balance, price, `AssetMetaData`, price alerts, associations — or does the fee picker stay app-side? | Leave it app-side. The fee-asset *rule* is already Core's (`chainFeeAssetIds`), and the rest is rendering. A narrow record renders correctly today and hands later readers default metadata. |
+| S1 | Make the keystore password genuinely per-wallet (a re-encrypt migration), or drop `wallet_id` from `GemKeystorePassword`? | Drop the parameter. Neither platform honours it, so the contract currently promises something untrue; re-adding it later is cheap, a bad migration is not. |
+| S8 | Should Android get the privacy-lock setting iOS has? | Product call, no engineering preference. |
+| S9 | Should iOS get WalletConnect one-click auth (SIWE)? | Product call. Note its rules live in Android UI code today, so whoever takes it should move them to Core first. |
+| N1 | Who owns the three-state notification permission decision? | Core owns the decision; Android needs an activity-scoped requester so the adapter can tell "never asked" from "denied". |
+| Push re-enable after opt-out | Where does "the user said no" live? | A preference in `GemPreferencesService`, checked before the 30-day re-ask. Nothing records it today, which is why the opt-out is reversed. |
+
+**Needs no decision, but is wide.** Ten file-scope `Gem*Service()` holders remain. Two are done (`GemPaymentService`, and the asset config in `TransactionsRequestFilter`) — both had non-UI callers that already injected. The rest are read by value-type extensions that Compose calls, and the chain runs component → list → scene → view model: `AddressFormatter` is built at twelve sites and `WalletItem` alone has three callers that are themselves components. Do it feature by feature; moving the call one hop up just relocates the holder.
+
+Worth knowing: these are stateless Core objects, so a second instance costs nothing at runtime. The reason to finish it is the second half of the rule — a call site reaching for a service is where an app-side variant later creeps in.
+
 ### Surveyed divergences — the consolidation backlog
 
 Rows were verified against the code and adversarially re-checked; **V5, N4, N6, V7 and T4 were examined and found wrong — do not re-add them**; **S5 and S6 were stale — both are already done**: both platforms call `GemWalletConnectService.shouldProcessMessage` for replay suppression and `isOriginRejected` for origin rejection, so do not re-add them (the one real gap S5 still had, Android not deduping session *proposals*, is fixed); V6 was half wrong and is now closed (its "recents include hidden assets" claim is false — the recents query already applies `asset.rank >= 0`, which is exactly how Android derives `isEnabled`, so `recentFilter` leaving ENABLED unmapped is correct; the real half, fully-staked balances in swap recents, is fixed). Read each row's action, not just its description.
