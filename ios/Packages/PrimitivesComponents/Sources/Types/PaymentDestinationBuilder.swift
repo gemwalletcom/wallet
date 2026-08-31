@@ -4,11 +4,10 @@ import BigInt
 import Foundation
 import Gemstone
 import class Gemstone.GemAddressService
+import class Gemstone.GemPaymentService
 import GemstonePrimitives
 import Localization
 import Primitives
-
-private let paymentService = GemPaymentService()
 
 public enum PaymentDestinationBuilder {
     public enum TransferDestination: Sendable {
@@ -16,7 +15,12 @@ public enum PaymentDestinationBuilder {
         case recipient(RecipientData)
     }
 
-    public static func transfer(payment: Primitives.PaymentRequest, asset: Primitives.Asset, addressService: GemAddressService) throws -> TransferDestination {
+    public static func transfer(
+        payment: Primitives.PaymentRequest,
+        asset: Primitives.Asset,
+        addressService: GemAddressService,
+        paymentService: GemPaymentService,
+    ) throws -> TransferDestination {
         switch paymentService.transferDestination(request: payment.json(), asset: asset.paymentWalletAsset) {
         case let .confirm(transfer):
             return try .confirm(transferData(transfer: transfer, asset: asset))
@@ -27,7 +31,12 @@ public enum PaymentDestinationBuilder {
         }
     }
 
-    public static func build(payment: Primitives.PaymentRequest, assets: [AssetData], addressService: GemAddressService) throws -> PaymentDestination {
+    public static func build(
+        payment: Primitives.PaymentRequest,
+        assets: [AssetData],
+        addressService: GemAddressService,
+        paymentService: GemPaymentService,
+    ) throws -> PaymentDestination {
         switch paymentService.destination(request: payment.json(), assets: assets.map { $0.asset.paymentWalletAsset }) {
         case let .confirm(transfer):
             guard let assetData = assetData(for: transfer.assetId, in: assets) else {
@@ -52,7 +61,12 @@ public enum PaymentDestinationBuilder {
         }
     }
 
-    public static func build(transaction: GemPaymentTransaction, asset: Primitives.Asset, addressService: GemAddressService) throws -> PaymentDestination {
+    public static func build(
+        transaction: GemPaymentTransaction,
+        asset: Primitives.Asset,
+        addressService: GemAddressService,
+        paymentService: GemPaymentService,
+    ) throws -> PaymentDestination {
         let type = try TransferDataType.generic(
             asset: asset,
             metadata: Primitives.ApplicationMetadata(transaction.merchant),

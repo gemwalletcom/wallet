@@ -8,6 +8,7 @@ import GemstonePrimitives
 import GemstoneServices
 import Localization
 import class Gemstone.GemAddressService
+import class Gemstone.GemPaymentService
 import Primitives
 import PrimitivesComponents
 import Store
@@ -27,6 +28,7 @@ public final class RecipientSceneViewModel {
 
     private let walletSessionService: any WalletSessionManageable
     private let addressService: GemAddressService
+    private let paymentService: GemPaymentService
     private let onRecipientDataAction: RecipientDataAction
     private let assetImageFormatter: AssetImageFormatter
 
@@ -53,6 +55,7 @@ public final class RecipientSceneViewModel {
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
         addressService: GemAddressService,
+        paymentService: GemPaymentService,
     ) {
         self.wallet = wallet
         self.asset = asset
@@ -62,6 +65,7 @@ public final class RecipientSceneViewModel {
         self.onRecipientDataAction = onRecipientDataAction
         self.onTransferAction = onTransferAction
         self.addressService = addressService
+        self.paymentService = paymentService
         recipientService = nameService.recipients()
 
         addressInputModel = AddressInputViewModel(
@@ -230,7 +234,7 @@ extension RecipientSceneViewModel {
     }
 
     private func handleAddressScan(_ string: String) throws {
-        switch try Primitives.Payment.decode(string) {
+        switch try Primitives.Payment.decode(string, paymentService: paymentService) {
         case let .request(payment):
             try handle(payment: payment)
         case .link:
@@ -241,7 +245,7 @@ extension RecipientSceneViewModel {
     private func handle(payment: PaymentRequest) throws {
         switch type {
         case let .asset(asset):
-            switch try PaymentDestinationBuilder.transfer(payment: payment, asset: asset, addressService: addressService) {
+            switch try PaymentDestinationBuilder.transfer(payment: payment, asset: asset, addressService: addressService, paymentService: paymentService) {
             case let .confirm(data): handle(transferData: data)
             case let .recipient(data): update(from: data)
             }

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.GemAddressService
+import class Gemstone.GemPaymentService
 import GemstonePrimitivesTestKit
 import Components
 import Formatters
@@ -160,6 +161,7 @@ extension RecipientSceneViewModel {
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
             addressService: GemAddressService(),
+            paymentService: GemPaymentService(),
         )
     }
 }

@@ -24,6 +24,7 @@ import class Gemstone.GemAssetConfigService
 import class Gemstone.GemSwapQuoteService
 import class Gemstone.GemSimulationFormatter
 import class Gemstone.GemFeeService
+import class Gemstone.GemPaymentService
 import Preferences
 import Primitives
 import PrimitivesComponents
@@ -64,6 +65,7 @@ public struct ViewModelFactory: Sendable {
     let feeService: GemFeeService
     let transferService: GemTransferService
     let addressService: GemAddressService
+    let paymentService: GemPaymentService
     let simulationFormatter: GemSimulationFormatter
     let assetConfig: GemAssetConfigService
 
@@ -165,6 +167,7 @@ public struct ViewModelFactory: Sendable {
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
             addressService: addressService,
+            paymentService: paymentService,
         )
     }
 

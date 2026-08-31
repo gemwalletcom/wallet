@@ -99,7 +99,8 @@ struct ServicesFactory {
             preferences: walletPreferencesService,
         )
         let gemScanService = Gemstone.GemScanService(api: gemDeviceApiClient)
-        let paymentService = GemPaymentLinkService(provider: nativeProvider)
+        let paymentLinkService = GemPaymentLinkService(provider: nativeProvider)
+        let paymentService = Gemstone.GemPaymentService()
         let transactionSimulationService = TransactionSimulationService(provider: nativeProvider)
         let serviceStatusConfiguration = URLSessionConfiguration.default
         serviceStatusConfiguration.timeoutIntervalForRequest = TimeInterval(serviceStatusTimeoutSeconds())
@@ -301,11 +302,12 @@ struct ServicesFactory {
             assetStore: storeManager.assetStore,
             walletConnector: walletConnector,
             toastPresenter: toastPresenter,
-            paymentService: paymentService,
+            paymentLinkService: paymentLinkService,
             pushNotificationService: pushNotificationService,
             transactionStore: storeManager.transactionStore,
             urlParser: URLParser(deeplinkService: Gemstone.GemDeeplinkService()),
             addressService: Gemstone.GemAddressService(),
+            paymentService: paymentService,
             transactionStateService: gemTransactionStateService,
             walletConnectorPresenter: walletConnectorPresenter,
             walletSessionService: walletSessionService,
@@ -376,6 +378,7 @@ struct ServicesFactory {
             feeService: Gemstone.GemFeeService(),
             transferService: Gemstone.GemTransferService(),
             addressService: Gemstone.GemAddressService(),
+            paymentService: paymentService,
             simulationFormatter: Gemstone.GemSimulationFormatter(),
             assetConfig: Gemstone.GemAssetConfigService(),
         )
