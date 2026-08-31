@@ -2,6 +2,7 @@ package com.gemwallet.android.payment
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.ext.decodePayment
+import uniffi.gemstone.GemPaymentService
 import com.gemwallet.android.ext.request
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
@@ -41,9 +42,10 @@ class PaymentTransferTest {
     private val solana = mockAssetInfo(asset = mockAssetSolana())
     private val ripple = mockAssetInfo(asset = mockAssetXrp())
     private val usdc = mockAssetInfo(asset = mockAssetSolanaUSDC())
+    private val paymentService = GemPaymentService()
 
     private fun decode(url: String): PaymentRequest =
-        requireNotNull(decodePayment(url)?.request) { "not a payment request: $url" }
+        requireNotNull(paymentService.decodePayment(url)?.request) { "not a payment request: $url" }
 
     private fun destination(assetInfo: AssetInfo, url: String): PaymentDestination.Transfer =
         PaymentDestination.transfer(decode(url), assetInfo)

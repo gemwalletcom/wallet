@@ -42,6 +42,7 @@ import com.wallet.core.primitives.NFTAsset
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.NameRecord
 import uniffi.gemstone.GemRecipientException
+import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemRecipientService
 import com.wallet.core.primitives.PaymentRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -77,6 +78,7 @@ class RecipientViewModel @Inject constructor(
     private val getNameRecord: GetNameRecord,
     savedStateHandle: SavedStateHandle,
     private val recipientService: GemRecipientService,
+    private val paymentService: GemPaymentService,
 ) : ViewModel() {
 
     private val addressInput = AddressInputModel(
@@ -233,7 +235,7 @@ class RecipientViewModel @Inject constructor(
     }
 
     private fun scannedDestination(type: RecipientType, data: String): PaymentDestination.Transfer {
-        val request = decodePayment(data)?.request ?: return PaymentDestination.Unsupported
+        val request = paymentService.decodePayment(data)?.request ?: return PaymentDestination.Unsupported
 
         return when (type) {
             is RecipientType.Nft -> PaymentDestination.Recipient(type.assetInfo.asset.id, request.copy(amount = null))
