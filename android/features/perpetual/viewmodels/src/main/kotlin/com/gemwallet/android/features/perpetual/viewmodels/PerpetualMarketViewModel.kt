@@ -22,6 +22,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetualSubscription
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -78,7 +79,7 @@ class PerpetualMarketViewModel @Inject constructor(
         sceneState.update { PerpetualMarketSceneState.Refreshing }
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                syncPerpetuals.syncPerpetuals()
+                syncPerpetuals.syncPerpetuals(GemMarketsRefreshTrigger.USER_REQUESTED)
             }
             withContext(Dispatchers.IO) {
                 syncPerpetualPositions.syncPerpetualPositions()

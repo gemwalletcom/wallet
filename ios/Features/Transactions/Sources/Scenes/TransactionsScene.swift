@@ -28,7 +28,7 @@ public struct TransactionsScene: View {
             }
             .listSectionSpacing(.compact)
             .scrollContentBackground(.hidden)
-            .refreshableTimer(every: .minutes(5)) {
+            .refreshableTimer(every: .minutes(5)) { _ in
                 await model.load()
             }
         }

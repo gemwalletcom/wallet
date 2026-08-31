@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstonePrimitives
+import enum Gemstone.GemMarketsRefreshTrigger
 import protocol Gemstone.GemPerpetualServiceProtocol
 import GemstoneServices
 import Components
@@ -136,9 +137,9 @@ final class PerpetualsSceneViewModel {
 // MARK: - Business Logic
 
 extension PerpetualsSceneViewModel {
-    func load() async {
+    func load(source: RefreshSource = .timer) async {
         async let updateObserver: PerpetualAccountMode? = observerService.update(for: wallet)
-        async let refreshMarkets: () = updateMarkets()
+        async let refreshMarkets: () = updateMarkets(source: source)
         _ = await (updateObserver, refreshMarkets)
     }
 
@@ -158,9 +159,9 @@ extension PerpetualsSceneViewModel {
         }
     }
 
-    func updateMarkets() async {
+    func updateMarkets(source: RefreshSource) async {
         do {
-            try await perpetualService.updateMarkets()
+            try await perpetualService.updateMarkets(trigger: source.marketsRefreshTrigger)
         } catch {
             debugLog("Failed to update markets: \(error)")
         }
@@ -222,5 +223,14 @@ extension PerpetualsSceneViewModel {
 
     func onSelectBalance() {
         onSelectPortfolio?()
+    }
+}
+
+private extension RefreshSource {
+    var marketsRefreshTrigger: GemMarketsRefreshTrigger {
+        switch self {
+        case .timer: .scheduled
+        case .user: .userRequested
+        }
     }
 }

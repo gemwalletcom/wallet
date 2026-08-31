@@ -8,7 +8,7 @@ use primitives::{
     WalletType,
 };
 
-use super::model::{GemAutocloseSummary, GemPerpetualCloseInput, GemPerpetualOrderAction, GemPerpetualOrderInput};
+use super::model::{GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualCloseInput, GemPerpetualOrderAction, GemPerpetualOrderInput};
 use crate::perpetual::GemPerpetual;
 use crate::services::error::GemServiceError;
 use num_bigint::BigInt;
@@ -127,6 +127,13 @@ pub fn show_perpetuals(enabled: bool, wallet: &Wallet) -> bool {
 
 pub fn is_markets_stale(updated_at: Option<i64>, now: i64) -> bool {
     updated_at.is_none_or(|updated_at| now - updated_at >= MARKETS_REFRESH_INTERVAL_SECONDS)
+}
+
+pub fn should_sync_markets(trigger: GemMarketsRefreshTrigger, updated_at: Option<i64>, now: i64) -> bool {
+    match trigger {
+        GemMarketsRefreshTrigger::UserRequested => true,
+        GemMarketsRefreshTrigger::Scheduled => is_markets_stale(updated_at, now),
+    }
 }
 
 pub fn balance_update(balance: &PerpetualBalance) -> Result<GemBalanceUpdate, NumberFormatterError> {
@@ -319,6 +326,14 @@ mod tests {
         assert!(is_markets_stale(None, 10_000));
         assert!(!is_markets_stale(Some(10_000 - 3_599), 10_000));
         assert!(is_markets_stale(Some(10_000 - 3_600), 10_000));
+    }
+
+    #[test]
+    fn test_a_user_requested_refresh_syncs_markets_that_a_scheduled_one_would_skip() {
+        let just_synced = Some(10_000 - 1);
+
+        assert!(!should_sync_markets(GemMarketsRefreshTrigger::Scheduled, just_synced, 10_000));
+        assert!(should_sync_markets(GemMarketsRefreshTrigger::UserRequested, just_synced, 10_000));
     }
 
     fn position(id: &str) -> PerpetualPosition {

@@ -382,9 +382,12 @@ Found while landing the batches above, not yet fixed:
 | What | Where | Why it matters |
 |---|---|---|
 | Android silently re-enables push 30 days after a deliberate opt-out | `SettingsViewModel.kt:123-128` calls `stopAskNotifications()` on **disable**, restarting the 30-day timer; `AppViewModel.kt:83-89` then re-asks and `PushRequest.kt:25-29` finds `POST_NOTIFICATIONS` still granted, so it enables with no dialog | Reverses an explicit privacy choice. Needs somewhere to record "the user said no", which does not exist yet |
-| Pull-to-refresh on perpetual markets is a no-op for up to an hour, both platforms | `MARKETS_REFRESH_INTERVAL_SECONDS = 3600` throttles both the Android pull and iOS's 1-minute timer | An explicit user pull should arguably bypass the staleness gate |
 
 **The swap-pay recents row was stale.** `referencesBalances` already covers `.hasAvailableBalance`, so the join is added, and `swapPayKeepsOnlyAssetsWithAnAvailableBalance` exercises the exact filter set. Nothing to fix.
+
+**Pull-to-refresh on perpetual markets is fixed.** Both platforms ran their user pull through the same call as their background timer, so `MARKETS_REFRESH_INTERVAL_SECONDS = 3600` swallowed it — pulling did nothing for up to an hour. Core now takes the caller's intent rather than a boolean: `GemMarketsRefreshTrigger { Scheduled, UserRequested }`, with `sync_markets_if_needed` and `sync_enablement` taking it and `rules::should_sync_markets` deciding what each means. The apps say what happened, not what to do. On iOS the modifier was the bug — `refreshableTimer` fired one closure for both the pull and the tick, so its action now takes a `RefreshSource`; three other screens ignore it. Covered by `should_sync_markets` in Core, `pullToRefreshUpdatesMarketsThatTheTimerWouldSkip` on iOS and `pull to refresh asks core for a user requested markets sync` on Android, all three mutation-checked.
+
+Worth knowing for the next Android view-model test: the first version passed in isolation and failed in the full run. `onRefresh` hands its work to `Dispatchers.IO`, which `advanceUntilIdle()` does not wait for — a `CompletableDeferred` completed inside the mock is deterministic. It then failed a second time with `Dispatchers.Main is used concurrently with setting it`, the same cause as the earlier `SwapViewModelTest` flake: teardown must cancel `viewModelScope` before `resetMain()`, or the eagerly-started `stateIn` flows outlive the dispatcher.
 
 #### Tests that cannot fail
 

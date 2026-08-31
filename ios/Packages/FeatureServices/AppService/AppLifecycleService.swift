@@ -63,7 +63,7 @@ public actor AppLifecycleService: Sendable {
     public func updatePerpetualConnection() async {
         let wallet = walletSessionService.currentWallet
         do {
-            let connect = try await perpetualService.syncEnablement(wallet: wallet?.json())
+            let connect = try await perpetualService.syncEnablement(wallet: wallet?.json(), trigger: .scheduled)
             await updatePerpetualObserver(wallet: wallet, connect: connect)
         } catch {
             debugLog("AppLifecycleService perpetual enablement error: \(error)")

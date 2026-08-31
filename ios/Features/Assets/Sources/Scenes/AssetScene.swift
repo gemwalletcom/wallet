@@ -199,7 +199,7 @@ public struct AssetScene: View {
                 .cleanListRow()
             }
         }
-        .refreshableTimer(every: .minutes(5)) {
+        .refreshableTimer(every: .minutes(5)) { _ in
             await model.load()
         }
         .taskOnce(model.loadOnce)

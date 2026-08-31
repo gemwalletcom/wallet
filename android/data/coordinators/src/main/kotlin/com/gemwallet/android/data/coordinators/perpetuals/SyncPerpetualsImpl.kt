@@ -4,13 +4,14 @@ import com.gemwallet.android.application.perpetual.cases.SyncPerpetuals
 import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
 import javax.inject.Inject
-import uniffi.gemstone.GemPerpetualService
+import uniffi.gemstone.GemMarketsRefreshTrigger
+import uniffi.gemstone.GemPerpetualServiceInterface
 
 class SyncPerpetualsImpl @Inject constructor(
-    private val perpetualService: GemPerpetualService,
+    private val perpetualService: GemPerpetualServiceInterface,
 ) : SyncPerpetuals {
-    override suspend fun syncPerpetuals() {
-        runCatchingCancellable { perpetualService.syncEnablement(null) }
+    override suspend fun syncPerpetuals(trigger: GemMarketsRefreshTrigger) {
+        runCatchingCancellable { perpetualService.syncEnablement(null, trigger) }
             .onFailure { Log.e("SyncPerpetuals", "perpetual markets sync failed", it) }
     }
 }
