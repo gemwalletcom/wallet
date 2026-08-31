@@ -26,10 +26,11 @@ extension ConfirmService {
             metadataProvider: TransferMetadataProviderMock(metadataResult: .success(.mock())),
             inputProvider: ConfirmTransferInputProvider(
                 transferTransactionProvider: TransferTransactionProviderMock(result: transaction),
-                feeAssetProvider: FeeAssetProviderMock(),
+                assetStore: AssetStore(db: .mockAssets()),
+                confirmService: gemConfirmService,
                 feeService: GemFeeService(),
-            transferService: GemTransferService(),
-            amountService: GemAmountService(),
+                transferService: GemTransferService(),
+                amountService: GemAmountService(),
             ),
             simulationService: ConfirmSimulationService(
                 nameService: GemNameServiceMock(),

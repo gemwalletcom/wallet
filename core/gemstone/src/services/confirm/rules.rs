@@ -1,11 +1,11 @@
 use num_bigint::BigInt;
 use primitives::{
-    ApplicationMetadataSource, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, Transaction, TransactionPreloadInput,
+    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, Transaction, TransactionPreloadInput,
     TransferDataOutputAction, Wallet,
 };
 
 use super::error::GemConfirmError;
-use super::model::{GemAcquireAssetFlow, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemSendInput};
+use super::model::{GemAcquireAssetFlow, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemFeeAsset, GemSendInput};
 use crate::fee::custom_gas_price;
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput};
@@ -56,11 +56,15 @@ pub fn metadata_asset_ids(asset_id: &AssetId, fee_asset_id: &AssetId, extra_asse
     asset_ids
 }
 
-pub fn selectable_fee_assets(balances: Vec<GemAssetBalance>) -> Vec<AssetId> {
+pub fn selectable_fee_assets(assets: Vec<Asset>, balances: Vec<GemAssetBalance>, prices: Vec<GemAssetPrice>) -> Vec<GemFeeAsset> {
     balances
         .into_iter()
         .filter(|balance| balance.available > num_bigint::BigUint::from(0u32))
-        .map(|balance| balance.asset_id)
+        .filter_map(|balance| {
+            let asset = assets.iter().find(|asset| asset.id == balance.asset_id)?.clone();
+            let price = prices.iter().find(|price| price.asset_id == balance.asset_id).cloned();
+            Some(GemFeeAsset { asset, balance, price })
+        })
         .collect()
 }
 
@@ -726,12 +730,14 @@ mod tests {
 
     #[test]
     fn test_a_fee_asset_with_no_available_balance_is_not_selectable() {
-        let funded = AssetId::from_chain(Chain::Tempo);
-        let empty = AssetId::from_chain(Chain::Ethereum);
+        let funded = Asset::from_chain(Chain::Tempo);
+        let empty = Asset::from_chain(Chain::Ethereum);
+        let assets = vec![funded.clone(), empty.clone()];
+        let balances = vec![balance(&funded.id, 1), balance(&empty.id, 0)];
 
-        let selectable = selectable_fee_assets(vec![balance(&funded, 1), balance(&empty, 0)]);
+        let selectable = selectable_fee_assets(assets, balances, vec![]);
 
-        assert_eq!(selectable, vec![funded]);
+        assert_eq!(selectable.iter().map(|fee| fee.asset.id.clone()).collect::<Vec<_>>(), vec![funded.id]);
     }
 
     fn balance(asset_id: &AssetId, available: u32) -> GemAssetBalance {

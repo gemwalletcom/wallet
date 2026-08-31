@@ -15,7 +15,7 @@ public struct NetworkFeeSceneViewModel {
     private let rates: [FeeRate]
     private let feeAssetPrice: Price?
     private let feeAmount: BigInt?
-    private let feeAssets: [AssetData]
+    private let feeAssets: [FeeAssetItem]
     private let feeService: GemFeeService
     private let onSelect: (@MainActor (FeeSelection) -> Void)?
     private let onSelectFeeAsset: (@MainActor (AssetId) -> Void)?
@@ -27,7 +27,7 @@ public struct NetworkFeeSceneViewModel {
         rates: [FeeRate] = [],
         feeAssetPrice: Price? = nil,
         feeAmount: BigInt? = nil,
-        feeAssets: [AssetData] = [],
+        feeAssets: [FeeAssetItem] = [],
         feeService: GemFeeService,
         onSelect: (@MainActor (FeeSelection) -> Void)? = nil,
         onSelectFeeAsset: (@MainActor (AssetId) -> Void)? = nil,
@@ -59,15 +59,13 @@ public struct NetworkFeeSceneViewModel {
     }
 
     var selectedFeeAssetItem: FeeAssetItem {
-        feeAssetItem(
-            feeAssets.first(where: { $0.asset.id == feeAsset.id }) ?? .with(asset: feeAsset),
-            isSelected: false,
-        )
+        feeAssets.first(where: { $0.asset.id == feeAsset.id })
+            ?? FeeAssetItem(asset: feeAsset, balance: .zero, price: nil, currency: currency, isSelected: false)
     }
 
     var feeAssetsViewModel: FeeAssetsViewModel {
         FeeAssetsViewModel(
-            state: .data(.plain(feeAssets.map { feeAssetItem($0, isSelected: $0.asset.id == feeAsset.id) })),
+            state: .data(.plain(feeAssets.map { $0.selected($0.asset.id == feeAsset.id) })),
         )
     }
 
@@ -189,7 +187,4 @@ private extension NetworkFeeSceneViewModel {
         )
     }
 
-    func feeAssetItem(_ assetData: AssetData, isSelected: Bool) -> FeeAssetItem {
-        FeeAssetItem(assetData: assetData, currency: currency, isSelected: isSelected)
-    }
 }

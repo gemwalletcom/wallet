@@ -63,21 +63,3 @@ public final class TransferMetadataProvider: TransferMetadataProvidable {
         )
     }
 }
-
-private extension Balance {
-    init(_ balance: GemAssetBalance) throws {
-        self.init(
-            available: try BigInt.from(string: balance.available),
-            frozen: try BigInt.from(string: balance.frozen),
-            locked: try BigInt.from(string: balance.locked),
-            staked: try BigInt.from(string: balance.staked),
-            pending: try BigInt.from(string: balance.pending),
-            pendingUnconfirmed: try BigInt.from(string: balance.pendingUnconfirmed),
-            rewards: try BigInt.from(string: balance.rewards),
-            reserved: try BigInt.from(string: balance.reserved),
-            withdrawable: try BigInt.from(string: balance.withdrawable),
-            earn: try BigInt.from(string: balance.earn),
-            metadata: try balance.metadata.map { try BalanceMetadata($0) },
-        )
-    }
-}

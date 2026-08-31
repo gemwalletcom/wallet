@@ -42,7 +42,8 @@ public enum ConfirmServiceFactory {
                 transferTransactionProvider: TransferTransactionProvider(
                     confirmService: gemConfirmService,
                 ),
-                feeAssetProvider: FeeAssetProvider(assetStore: assetStore),
+                assetStore: assetStore,
+                confirmService: gemConfirmService,
                 feeService: feeService,
                 transferService: transferService,
                 amountService: amountService,

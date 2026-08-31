@@ -39,9 +39,9 @@ object ConfirmModule {
     fun provideGetFeeAssets(
         assetStore: GemstoneAssetStore,
         getCurrentWalletId: GetCurrentWalletId,
-        assetConfig: GemAssetConfigService,
+        confirmService: GemConfirmServiceInterface,
     ): GetFeeAssets = GetFeeAssetsImpl(
-        providers = mapOf(Chain.Tempo to ChainFeeAssetProvider(Chain.Tempo, assetStore, getCurrentWalletId, assetConfig)),
+        providers = mapOf(Chain.Tempo to ChainFeeAssetProvider(Chain.Tempo, assetStore, getCurrentWalletId, confirmService)),
     )
 
     @Provides

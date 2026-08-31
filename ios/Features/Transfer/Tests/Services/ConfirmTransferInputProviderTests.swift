@@ -6,6 +6,9 @@ import struct Gemstone.GemConfirmData
 import struct Gemstone.GemFeeRate
 import GemstonePrimitivesTestKit
 @testable import Primitives
+import GemstoneServicesTestKit
+import StoreTestKit
+import Store
 import PrimitivesTestKit
 import class Gemstone.GemTransferService
 import Testing
@@ -38,7 +41,8 @@ struct ConfirmTransferInputProviderTests {
             transferTransactionProvider: TransferTransactionProviderMock(result: .success(
                 .mock(input: TransferData.mock().confirmInput(from: .mock()), fee: .mock(feeAsset: feeAsset.id.identifier)),
             )),
-            feeAssetProvider: FeeAssetProviderMock(asset: feeAsset, balance: feeAssetBalance, price: feeAssetPrice),
+            assetStore: AssetStore(db: seededDB(asset: feeAsset, balance: feeAssetBalance, price: feeAssetPrice)),
+            confirmService: GemConfirmServiceMock(),
             feeService: GemFeeService(),
             transferService: GemTransferService(),
             amountService: GemAmountService(),
@@ -49,7 +53,7 @@ struct ConfirmTransferInputProviderTests {
         #expect(result.input.feeAsset == feeAsset)
         #expect(result.metadata.assetFeeBalance == feeAssetBalance)
         #expect(result.metadata.feeAssetId == feeAsset.id)
-        #expect(result.metadata.feePrice == feeAssetPrice)
+        #expect(result.metadata.feePrice?.price == feeAssetPrice.price)
     }
 
     @Test
@@ -60,11 +64,8 @@ struct ConfirmTransferInputProviderTests {
         ))
         let provider = ConfirmTransferInputProvider(
             transferTransactionProvider: transferProvider,
-            feeAssetProvider: FeeAssetProviderMock(
-                asset: selectedAsset,
-                balance: .mock(available: 42),
-                price: .mock(price: 1),
-            ),
+            assetStore: AssetStore(db: seededDB(asset: selectedAsset, balance: .mock(available: 42), price: .mock(price: 1))),
+            confirmService: GemConfirmServiceMock(),
             feeService: GemFeeService(),
             transferService: GemTransferService(),
             amountService: GemAmountService(),
@@ -127,7 +128,8 @@ struct ConfirmTransferInputProviderTests {
             transferTransactionProvider: TransferTransactionProviderMock(result: .success(
                 .mock(input: TransferData.mock().confirmInput(from: .mock())),
             )),
-            feeAssetProvider: FeeAssetProviderMock(error: "fee asset"),
+            assetStore: AssetStore(db: .mock()),
+            confirmService: GemConfirmServiceMock(),
             feeService: GemFeeService(),
             transferService: GemTransferService(),
             amountService: GemAmountService(),
@@ -156,10 +158,19 @@ private extension ConfirmTransferInputProvider {
     static func mock(transaction: Result<GemConfirmData, Error>) -> ConfirmTransferInputProvider {
         ConfirmTransferInputProvider(
             transferTransactionProvider: TransferTransactionProviderMock(result: transaction),
-            feeAssetProvider: FeeAssetProviderMock(),
+            assetStore: AssetStore(db: .mockAssets()),
+            confirmService: GemConfirmServiceMock(),
             feeService: GemFeeService(),
             transferService: GemTransferService(),
             amountService: GemAmountService(),
         )
     }
+}
+
+private func seededDB(asset: Asset, balance: Balance, price: Price) -> DB {
+    let db = DB.mockAssets(assets: [.mock(asset: asset)])
+    try? BalanceStore(db: db).updateBalances([.mockCoin(assetId: asset.id, available: Double(balance.available.description) ?? 0)], for: .mock())
+    try? FiatRateStore(db: db).add([.mock()])
+    try? PriceStore(db: db).updatePrices([.mock(assetId: asset.id, price: price.price)])
+    return db
 }

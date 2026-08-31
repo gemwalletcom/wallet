@@ -3,16 +3,20 @@
 import Foundation
 import class Gemstone.GemTransferService
 import struct Gemstone.GemConfirmData
+import struct Gemstone.GemFeeAsset
+import protocol Gemstone.GemConfirmServiceProtocol
 import class Gemstone.GemAmountService
 import class Gemstone.GemFeeService
 import GemstonePrimitives
 import Primitives
+import Store
 import PrimitivesComponents
 import Validators
 
 public struct ConfirmTransferInputProvider: Sendable {
     private let transferTransactionProvider: any TransferTransactionProvidable
-    private let feeAssetProvider: any FeeAssetProvidable
+    private let assetStore: AssetStore
+    private let confirmService: any GemConfirmServiceProtocol
 
     private let feeService: GemFeeService
     private let transferService: GemTransferService
@@ -20,13 +24,15 @@ public struct ConfirmTransferInputProvider: Sendable {
 
     public init(
         transferTransactionProvider: any TransferTransactionProvidable,
-        feeAssetProvider: any FeeAssetProvidable,
+        assetStore: AssetStore,
+        confirmService: any GemConfirmServiceProtocol,
         feeService: GemFeeService,
         transferService: GemTransferService,
         amountService: GemAmountService,
     ) {
         self.transferTransactionProvider = transferTransactionProvider
-        self.feeAssetProvider = feeAssetProvider
+        self.assetStore = assetStore
+        self.confirmService = confirmService
         self.feeService = feeService
         self.transferService = transferService
         self.amountService = amountService
@@ -51,7 +57,7 @@ public struct ConfirmTransferInputProvider: Sendable {
         }
         let fee = try confirmData.fee.map()
         let feeAssetId = fee.feeAssetId
-        let feeAssetData = try feeAssetProvider.getAssetData(walletId: request.wallet.id, assetId: feeAssetId)
+        let feeAssetData = try assetStore.getAssetData(walletId: request.wallet.id, assetId: feeAssetId)
         let assetPrices = if let feeAssetPrice = feeAssetData.price {
             metadata.assetPrices.merging([feeAssetId: feeAssetPrice]) { _, feeAssetPrice in feeAssetPrice }
         } else {
@@ -84,8 +90,8 @@ public struct ConfirmTransferInputProvider: Sendable {
         )
     }
 
-    func feeAssets(walletId: WalletId, chain: Chain) async throws -> [AssetData] {
-        try await feeAssetProvider.feeAssets(walletId: walletId, chain: chain)
+    func feeAssets(walletId: WalletId, chain: Chain) throws -> [GemFeeAsset] {
+        try confirmService.feeAssets(walletId: walletId.id, chain: chain.rawValue)
     }
 
     private func preloadFailureError(metadata: TransferDataMetadata) -> TransferAmountCalculatorError? {

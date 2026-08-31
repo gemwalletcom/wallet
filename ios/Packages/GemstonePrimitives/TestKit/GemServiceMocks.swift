@@ -795,3 +795,30 @@ public extension GemWalletPreferencesService {
         GemWalletPreferencesService(store: GemWalletPreferencesStoreMock())
     }
 }
+
+public extension Gemstone.GemFeeAsset {
+    static func mock(
+        asset: Primitives.Asset,
+        balance: Gemstone.GemAssetBalance? = nil,
+        price: Gemstone.GemAssetPrice? = nil,
+    ) -> Gemstone.GemFeeAsset {
+        Gemstone.GemFeeAsset(
+            asset: asset.json(),
+            balance: balance ?? Gemstone.GemAssetBalance(
+                assetId: asset.id.identifier,
+                available: "0",
+                frozen: "0",
+                locked: "0",
+                staked: "0",
+                pending: "0",
+                pendingUnconfirmed: "0",
+                rewards: "0",
+                reserved: "0",
+                withdrawable: "0",
+                earn: "0",
+                metadata: nil,
+            ),
+            price: price,
+        )
+    }
+}

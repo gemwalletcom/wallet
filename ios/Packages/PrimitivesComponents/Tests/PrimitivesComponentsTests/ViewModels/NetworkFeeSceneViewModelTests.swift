@@ -18,8 +18,8 @@ struct NetworkFeeSceneViewModelTests {
 
     @Test
     func showFeeAssetsOnlyWhenAlternativeAssetIsSelectable() {
-        let pathUSD = AssetData.mock(asset: .mockTempoPathUSD())
-        let usdc = AssetData.mock(asset: .mockTempoUSDC())
+        let pathUSD = FeeAssetItem.mock(asset: .mockTempoPathUSD())
+        let usdc = FeeAssetItem.mock(asset: .mockTempoUSDC())
         let onSelect: @MainActor (AssetId) -> Void = { _ in }
         let selectable = NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset, feeAssets: [pathUSD, usdc], onSelectFeeAsset: onSelect)
 
@@ -32,8 +32,8 @@ struct NetworkFeeSceneViewModelTests {
 
     @Test
     func feeAssetSymbolShownOnlyWhenSelectable() {
-        let pathUSD = AssetData.mock(asset: .mockTempoPathUSD())
-        let usdc = AssetData.mock(asset: .mockTempoUSDC())
+        let pathUSD = FeeAssetItem.mock(asset: .mockTempoPathUSD())
+        let usdc = FeeAssetItem.mock(asset: .mockTempoUSDC())
         let onSelect: @MainActor (AssetId) -> Void = { _ in }
 
         #expect(NetworkFeeSceneViewModel.mock(feeAsset: pathUSD.asset).feeAssetSymbol == nil)
@@ -53,8 +53,8 @@ struct NetworkFeeSceneViewModelTests {
 
     @Test
     func selectFeeAssetForwardsAssetIdToOwner() async {
-        let pathUSD = AssetData.mock(asset: .mockTempoPathUSD())
-        let usdc = AssetData.mock(asset: .mockTempoUSDC())
+        let pathUSD = FeeAssetItem.mock(asset: .mockTempoPathUSD())
+        let usdc = FeeAssetItem.mock(asset: .mockTempoUSDC())
 
         await confirmation { selected in
             let model = NetworkFeeSceneViewModel.mock(
@@ -65,7 +65,7 @@ struct NetworkFeeSceneViewModelTests {
                     selected()
                 },
             )
-            model.selectFeeAsset(FeeAssetItem(assetData: usdc, currency: .usd, isSelected: false))
+            model.selectFeeAsset(usdc)
         }
     }
 

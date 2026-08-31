@@ -5,6 +5,7 @@ import BigInt
 import Foundation
 @testable import Primitives
 import PrimitivesComponents
+import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
@@ -44,8 +45,8 @@ struct ConfirmNetworkFeeViewModelTests {
 
     @Test
     func loadedWithSelectableFeeAssetShowsSymbolOnRight() {
-        let pathUSD = AssetData.mock(asset: .mockTempoPathUSD())
-        let usdc = AssetData.mock(asset: .mockTempoUSDC())
+        let pathUSD = FeeAssetItem.mock(asset: .mockTempoPathUSD())
+        let usdc = FeeAssetItem.mock(asset: .mockTempoUSDC())
         let feeModel = NetworkFeeSceneViewModel(
             feeAsset: pathUSD.asset,
             currency: .usd,
@@ -73,8 +74,8 @@ struct ConfirmNetworkFeeViewModelTests {
 
     @Test
     func error() {
-        let pathUSD = AssetData.mock(asset: .mockTempoPathUSD())
-        let usdc = AssetData.mock(asset: .mockTempoUSDC())
+        let pathUSD = FeeAssetItem.mock(asset: .mockTempoPathUSD())
+        let usdc = FeeAssetItem.mock(asset: .mockTempoUSDC())
         let model = ConfirmNetworkFeeViewModel(
             state: .error(AnyError("test")),
             feeModel: NetworkFeeSceneViewModel(

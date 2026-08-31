@@ -6,6 +6,7 @@ public import struct Gemstone.GemConfirmLoadOptions
 public import struct Gemstone.GemConfirmMetadata
 public import enum Gemstone.GemConfirmError
 public import typealias Gemstone.AssetId
+public import struct Gemstone.GemFeeAsset
 public import typealias Gemstone.Chain
 public import typealias Gemstone.WalletId
 public import protocol Gemstone.GemConfirmServiceProtocol
@@ -17,7 +18,7 @@ import Foundation
 public final class GemConfirmServiceMock: GemConfirmServiceProtocol, @unchecked Sendable {
     private let executeResult: Result<GemExecuteResult, any Error>
     private let metadataResult: Result<GemConfirmMetadata, any Error>
-    private let feeAssetIds: [AssetId]
+    private let feeAssetRows: [GemFeeAsset]
     private let lock = NSLock()
     private var inputs: [GemSendInput] = []
 
@@ -26,11 +27,11 @@ public final class GemConfirmServiceMock: GemConfirmServiceProtocol, @unchecked 
     public init(
         execute: Result<GemExecuteResult, any Error> = .success(.sent(hashes: [], transactions: [])),
         metadata: Result<GemConfirmMetadata, any Error> = .failure(GemConfirmError.BalanceMissing(assetId: "")),
-        feeAssetIds: [AssetId] = [],
+        feeAssets: [GemFeeAsset] = [],
     ) {
         executeResult = execute
         metadataResult = metadata
-        self.feeAssetIds = feeAssetIds
+        feeAssetRows = feeAssets
     }
 
     public func load(input _: GemConfirmInput, options _: GemConfirmLoadOptions) async throws -> GemConfirmData {
@@ -41,8 +42,8 @@ public final class GemConfirmServiceMock: GemConfirmServiceProtocol, @unchecked 
         try metadataResult.get()
     }
 
-    public func feeAssets(walletId _: WalletId, chain _: Chain) throws -> [AssetId] {
-        feeAssetIds
+    public func feeAssets(walletId _: WalletId, chain _: Chain) throws -> [GemFeeAsset] {
+        feeAssetRows
     }
 
     public func execute(input: GemSendInput, signer _: any GemTransactionSigner) async throws -> GemExecuteResult {

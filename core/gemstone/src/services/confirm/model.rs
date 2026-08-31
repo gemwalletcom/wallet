@@ -7,7 +7,7 @@ use crate::services::balance::GemAssetBalance;
 use crate::services::price::GemAssetPrice;
 use crate::services::transfer::GemTransferData;
 use primitives::FeePriority;
-use primitives::{Account, AssetId, SimulationResult, Transaction, Wallet};
+use primitives::{Account, Asset, AssetId, SimulationResult, Transaction, Wallet};
 
 pub type GemAccount = Account;
 
@@ -71,4 +71,11 @@ pub struct GemConfirmMetadata {
     pub asset_balance: GemAssetBalance,
     pub fee_asset_balance: GemAssetBalance,
     pub prices: Vec<GemAssetPrice>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemFeeAsset {
+    pub asset: Asset,
+    pub balance: GemAssetBalance,
+    pub price: Option<GemAssetPrice>,
 }

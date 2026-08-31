@@ -349,6 +349,7 @@ struct ServicesFactory {
             transactionState: gemTransactionStateService,
             balance: gemBalanceService,
             price: gemPriceService,
+            assets: gemAssetsService,
         )
         let viewModelFactory = ViewModelFactory(
             keystore: storages.keystore,

@@ -16,6 +16,7 @@ use crate::models::asset::chain_fee_asset_ids;
 use crate::models::gateway::GemTransactionPreloadInput;
 use crate::models::transaction::{GemSignedTransaction, GemTransactionInputType, GemTransactionLoadInput};
 use crate::services::GemScanService;
+use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::clock::sleep;
 use crate::services::price::GemPriceService;
@@ -32,6 +33,7 @@ pub struct GemConfirmService {
     transaction_state: Arc<GemTransactionStateService>,
     balance: Arc<GemBalanceService>,
     price: Arc<GemPriceService>,
+    assets: Arc<GemAssetsService>,
 }
 
 #[uniffi::export]
@@ -44,6 +46,7 @@ impl GemConfirmService {
         transaction_state: Arc<GemTransactionStateService>,
         balance: Arc<GemBalanceService>,
         price: Arc<GemPriceService>,
+        assets: Arc<GemAssetsService>,
     ) -> Self {
         Self {
             gateway,
@@ -52,6 +55,7 @@ impl GemConfirmService {
             transaction_state,
             balance,
             price,
+            assets,
         }
     }
 
@@ -65,16 +69,21 @@ impl GemConfirmService {
         rules::build_metadata(asset_id, fee_asset_id, balances, prices)
     }
 
-    pub fn fee_assets(&self, wallet_id: WalletId, chain: Chain) -> Result<Vec<AssetId>, GemConfirmError> {
+    pub fn fee_assets(&self, wallet_id: WalletId, chain: Chain) -> Result<Vec<GemFeeAsset>, GemConfirmError> {
         let fee_asset_ids = chain_fee_asset_ids(chain);
         if fee_asset_ids.is_empty() {
             return Ok(Vec::new());
         }
+        let assets = self
+            .assets
+            .assets(fee_asset_ids.clone())
+            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
         let balances = self
             .balance
-            .balances(wallet_id, fee_asset_ids)
+            .balances(wallet_id, fee_asset_ids.clone())
             .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
-        Ok(rules::selectable_fee_assets(balances))
+        let prices = self.price.prices(fee_asset_ids).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        Ok(rules::selectable_fee_assets(assets, balances, prices))
     }
 
     pub async fn execute(&self, input: GemSendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {
