@@ -323,7 +323,6 @@ Found by reading both platforms side by side. Ranked within each group by value:
 
 | # | What | iOS | Android | The difference |
 |---|---|---|---|---|
-| T2 | Socket keepalive | none | `WebSocketConnection.kt:42,45,113` — 30 s OkHttp ping | iOS sits on a half-open socket until a read fails, so price and candle streams can stall silently. |
 | T3 | Swap quote refresh | `SwapScene.swift:89` 30 s, debounce 250 ms, keeps retrying after an error | `RequestSwapQuotes.kt:15-16` 30 s / 500 ms, **breaks the loop on error** | Two hardcoded cadences, a debounce that has already drifted (also 250 vs 500 ms for name resolution), and different behaviour after a failed quote. |
 | T5 | In-app polling | four hardcoded timers (positions 1 min, charts 1 min, asset 5 min, activity 5 min) | none — pull-to-refresh only | iOS polls on top of the live socket; Android trusts the stream. Core's own `PRICES_UPDATE_INTERVAL_SECONDS` is exposed to both and used by neither. |
 | T6 | Pending-transaction tracking | started twice, never stopped | `TransactionStateTracker.kt:27-33` start/stop on process lifecycle | iOS keeps polling while backgrounded. |
