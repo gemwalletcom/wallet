@@ -112,11 +112,11 @@ Node-switch metrics use the same stable reasons as request retries: `status=<cod
 
 ## Code map
 
-- [Monitoring worker](../apps/dynode/src/monitoring/worker.rs): creates one monitor per eligible chain.
-- [Chain monitor](../apps/dynode/src/monitoring/chain_monitor.rs): schedules periodic and failure-triggered checks.
-- [Node health evaluator](../apps/dynode/src/monitoring/evaluator.rs): observes eligible URLs and applies switches.
-- [Node observer](../apps/dynode/src/monitoring/node_observer.rs): creates one chain-provider observation.
-- [Selection policy](../apps/dynode/src/monitoring/selection.rs): applies configured priority and recovery behavior.
-- [Telemetry](../apps/dynode/src/monitoring/telemetry.rs): records observations and switch outcomes.
-- [Node service](../apps/dynode/src/node_service.rs): routes requests through the active URL and handles per-request retries.
-- [URL construction](../crates/gem_client/src/query.rs): joins base endpoints and request paths.
+- [Monitoring worker](../core/apps/dynode/src/monitoring/worker.rs): creates one monitor per eligible chain.
+- [Chain monitor](../core/apps/dynode/src/monitoring/chain_monitor.rs): schedules periodic and failure-triggered checks.
+- [Node health evaluator](../core/apps/dynode/src/monitoring/evaluator.rs): observes eligible URLs and applies switches.
+- [Node observer](../core/apps/dynode/src/monitoring/node_observer.rs): creates one chain-provider observation.
+- [Selection policy](../core/apps/dynode/src/monitoring/selection.rs): applies configured priority and recovery behavior.
+- [Telemetry](../core/apps/dynode/src/monitoring/telemetry.rs): records observations and switch outcomes.
+- [Node service](../core/apps/dynode/src/node_service.rs): routes requests through the active URL and handles per-request retries.
+- [URL construction](../core/crates/gem_client/src/query.rs): joins base endpoints and request paths.

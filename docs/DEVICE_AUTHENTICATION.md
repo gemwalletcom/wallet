@@ -48,7 +48,7 @@ Authorization: Gem base64(abc123...def456.1706000000000..e3b0c44...b855.aabb11..
 
 ## Implementation
 
-- Request signature verification: [`apps/api/src/devices/signature.rs`](../apps/api/src/devices/signature.rs)
-- Cryptographic verification: [`crates/gem_auth/src/device_signature.rs`](../crates/gem_auth/src/device_signature.rs)
-- Request guards: [`apps/api/src/devices/guard/`](../apps/api/src/devices/guard/)
-- Error handling: [`apps/api/src/devices/error.rs`](../apps/api/src/devices/error.rs)
+- Request signature verification: [`apps/api/src/devices/signature.rs`](../core/apps/api/src/devices/signature.rs)
+- Cryptographic verification: [`crates/gem_auth/src/device_signature.rs`](../core/crates/gem_auth/src/device_signature.rs)
+- Request guards: [`apps/api/src/devices/guard/`](../core/apps/api/src/devices/guard/)
+- Error handling: [`apps/api/src/devices/error.rs`](../core/apps/api/src/devices/error.rs)

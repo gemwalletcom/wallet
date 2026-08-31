@@ -1,10 +1,10 @@
 # Gemstone Services
 
-Core-owned services live in [`core/gemstone/src/services/`](../gemstone/src/services/) as `<name>/{mod,model,rules,store}.rs` (only the files a service needs); every service and store returns the shared [`GemServiceError`](../gemstone/src/services/error.rs). A service owns the flow (API + rules); each app implements the `Gem*Store` trait over its database or preferences and constructs the service in DI ([`ServicesFactory.swift`](../../ios/Gem/Services/ServicesFactory.swift), Hilt modules under [`android/data/repositories/.../di`](../../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/di/) and [`android/data/coordinators/.../di`](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/di/)). Read [How a service is built](#how-a-service-is-built) before adding or changing one.
+Core-owned services live in [`core/gemstone/src/services/`](../core/gemstone/src/services/) as `<name>/{mod,model,rules,store}.rs` (only the files a service needs); every service and store returns the shared [`GemServiceError`](../core/gemstone/src/services/error.rs). A service owns the flow (API + rules); each app implements the `Gem*Store` trait over its database or preferences and constructs the service in DI ([`ServicesFactory.swift`](../ios/Gem/Services/ServicesFactory.swift), Hilt modules under [`android/data/repositories/.../di`](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/di/) and [`android/data/coordinators/.../di`](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/di/)). Read [How a service is built](#how-a-service-is-built) before adding or changing one.
 
 ## How a service is built
 
-[`GemPriceAlertService`](../gemstone/src/services/price_alert/mod.rs) is the reference: it calls the device API, reads a preference, writes a database table and asks the platform for a permission, so it exercises every seam a service can have. New services copy its shape; existing ones move toward it.
+[`GemPriceAlertService`](../core/gemstone/src/services/price_alert/mod.rs) is the reference: it calls the device API, reads a preference, writes a database table and asks the platform for a permission, so it exercises every seam a service can have. New services copy its shape; existing ones move toward it.
 
 ### 1. Core owns the flow
 
@@ -16,7 +16,7 @@ Core-owned services live in [`core/gemstone/src/services/`](../gemstone/src/serv
 | `rules.rs` | the decisions, as pure functions with unit tests |
 | `store.rs` | the `#[uniffi::export(rust, foreign)]` trait the apps implement |
 | `model.rs` | the `uniffi::Record`/`uniffi::Enum` types the service returns |
-| `error.rs` | only when [`GemServiceError`](../gemstone/src/services/error.rs) cannot express a case |
+| `error.rs` | only when [`GemServiceError`](../core/gemstone/src/services/error.rs) cannot express a case |
 
 The service holds `Arc`s of other Core services and of store traits — never an app type:
 
@@ -55,10 +55,10 @@ Know the cost before choosing it. A rule reachable only through an I/O service c
 
 | What the service needs | Trait | Shape | iOS | Android |
 | --- | --- | --- | --- | --- |
-| rows in the database | one `Gem<Name>Store` per service ([example](../gemstone/src/services/price_alert/store.rs)) | `async`, every method returns `Result<_, GemServiceError>` | GRDB store under [`GemstoneServices/Sources/Stores/`](../../ios/Packages/GemstoneServices/Sources/Stores/) | Room DAO under [`data/repositories/.../gemstone/`](../../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/stores/) |
-| a value the user set | [`GemPreferencesStore`](../gemstone/src/services/preferences/store.rs) through `GemPreferencesService` | sync; `get` returns `Option<String>` and **cannot fail** | `GemstonePreferencesStore` over `UserDefaults` | `GemstonePreferencesStore` over `SharedPreferences` |
+| rows in the database | one `Gem<Name>Store` per service ([example](../core/gemstone/src/services/price_alert/store.rs)) | `async`, every method returns `Result<_, GemServiceError>` | GRDB store under [`GemstoneServices/Sources/Stores/`](../ios/Packages/GemstoneServices/Sources/Stores/) | Room DAO under [`data/repositories/.../gemstone/`](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/stores/) |
+| a value the user set | [`GemPreferencesStore`](../core/gemstone/src/services/preferences/store.rs) through `GemPreferencesService` | sync; `get` returns `Option<String>` and **cannot fail** | `GemstonePreferencesStore` over `UserDefaults` | `GemstonePreferencesStore` over `SharedPreferences` |
 | the same, per wallet | `GemWalletPreferencesStore` through `GemWalletPreferencesService` | sync, keyed by `WalletId` | same file layout | same file layout |
-| a secret | [`GemSecureStore`](../gemstone/src/services/preferences/store.rs) | sync; **every read can fail** | `GemstoneSecurePreferencesStore` over the Keychain | `TinkGemPreferences` over Tink |
+| a secret | [`GemSecureStore`](../core/gemstone/src/services/preferences/store.rs) | sync; **every read can fail** | `GemstoneSecurePreferencesStore` over the Keychain | `TinkGemPreferences` over Tink |
 | something only the OS can do | a foreign trait of its own (`GemNotificationPermissions`, `GemStreamConnection`) | whatever the platform needs | app class | app class |
 
 - One trait per table. A second trait over the same rows is how the two apps drift apart.
@@ -97,7 +97,7 @@ The two adapters are mirrors: same methods, same conflict behaviour (upsert wher
 
 ### 4. Construct it once
 
-iOS builds the store and the service in [`ServicesFactory.swift`](../../ios/Gem/Services/ServicesFactory.swift) and publishes the service through `AppResolver` and an `@Entry` on the environment:
+iOS builds the store and the service in [`ServicesFactory.swift`](../ios/Gem/Services/ServicesFactory.swift) and publishes the service through `AppResolver` and an `@Entry` on the environment:
 
 ```swift
 let gemPriceAlertStore = GemstonePriceAlertStore(store: storeManager.priceAlertStore)
@@ -110,7 +110,7 @@ let priceAlertService = Gemstone.GemPriceAlertService(
 )
 ```
 
-Android provides the store and the service from one Hilt module ([`PriceAlertsModule`](../../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/di/PriceAlertsModule.kt)):
+Android provides the store and the service from one Hilt module ([`PriceAlertsModule`](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/di/PriceAlertsModule.kt)):
 
 ```kotlin
 @Singleton @Provides
@@ -213,7 +213,7 @@ class PriceAlertViewModel @Inject constructor(
 }
 ```
 
-A case may compose other cases ([`SyncAssetPriceAlertsImpl`](../../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/pricealerts/SyncAssetPriceAlertsImpl.kt) calls `HasAssetPriceAlerts` and `UpdatePriceAlerts`), and it holds the `Gemstone*Store` adapter when the screen needs an observed read — never the DAO, and never a repository for data a Core service owns. The repositories left in the graph are legacy and shrink as services land; `SessionRepository` is the one still in wide use, and Core's `GemWalletSessionService` is replacing it.
+A case may compose other cases ([`SyncAssetPriceAlertsImpl`](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/pricealerts/SyncAssetPriceAlertsImpl.kt) calls `HasAssetPriceAlerts` and `UpdatePriceAlerts`), and it holds the `Gemstone*Store` adapter when the screen needs an observed read — never the DAO, and never a repository for data a Core service owns. The repositories left in the graph are legacy and shrink as services land; `SessionRepository` is the one still in wide use, and Core's `GemWalletSessionService` is replacing it.
 
 **A screen asks one thing, and the thing it asks is a Core service.** A view model that takes a `Gem*Service` *and* a rule service and combines them is doing the feature's job in the view layer — but the answer is not an app-side wrapper around both. Put the decision in Core and let the screen call it.
 
@@ -236,7 +236,7 @@ The precedent that made this work: `GemWalletStore.get_wallets`/`get_wallet` are
 
 **Observed reads.** Core has no observation primitive, so a screen that must update as rows change observes the app's own database — iOS with `ObservableQuery` over a GRDB request, Android with a Room `Flow` returned by the case. Everything else — writes, remote sync, point reads, every decision — goes through the service.
 
-**Tests.** iOS mocks the protocol from [`GemstoneServices/TestKit`](../../ios/Packages/GemstoneServices/TestKit/); Android fakes the case interface, or mocks `Gem*Service` with MockK, using fixtures from `gemcore` `testFixtures`. Never mock a constructible service (`GemAssetConfigService`, `GemChainService`, …) — construct the real one, or the test asserts the mock. Never fabricate I/O to reach a rule either: an offline `AlienProvider`, in-memory preference and secure stores and empty row stores, stood up so a test can touch rules that use none of them, is always the wrong answer — pass the answer in from the caller that owns the service, or mock the service and state the premise plainly. Neither app tests a rule that lives in Core — that test belongs in `rules.rs`.
+**Tests.** iOS mocks the protocol from [`GemstoneServices/TestKit`](../ios/Packages/GemstoneServices/TestKit/); Android fakes the case interface, or mocks `Gem*Service` with MockK, using fixtures from `gemcore` `testFixtures`. Never mock a constructible service (`GemAssetConfigService`, `GemChainService`, …) — construct the real one, or the test asserts the mock. Never fabricate I/O to reach a rule either: an offline `AlienProvider`, in-memory preference and secure stores and empty row stores, stood up so a test can touch rules that use none of them, is always the wrong answer — pass the answer in from the caller that owns the service, or mock the service and state the premise plainly. Neither app tests a rule that lives in Core — that test belongs in `rules.rs`.
 
 ### Done means
 
@@ -253,10 +253,10 @@ What stays on the app side, because it is a platform concern with no Core counte
 
 | Service | Notes |
 | --- | --- |
-| [`AppService/RateService`](../../ios/Packages/FeatureServices/AppService/RateService.swift) | App Store review prompt |
-| [`AppService/AppLifecycleService`](../../ios/Packages/FeatureServices/AppService/AppLifecycleService.swift) | Scene phase orchestration of observers |
-| [`ConnectionStatusService`](../../ios/Packages/FeatureServices/ConnectionStatusService) | Connectivity |
-| [`SystemServices`](../../ios/Packages/SystemServices) | Connectivity, image gallery, local store |
+| [`AppService/RateService`](../ios/Packages/FeatureServices/AppService/RateService.swift) | App Store review prompt |
+| [`AppService/AppLifecycleService`](../ios/Packages/FeatureServices/AppService/AppLifecycleService.swift) | Scene phase orchestration of observers |
+| [`ConnectionStatusService`](../ios/Packages/FeatureServices/ConnectionStatusService) | Connectivity |
+| [`SystemServices`](../ios/Packages/SystemServices) | Connectivity, image gallery, local store |
 
 Every other app service is gone and its callers hold the Core service. Every `Gem*Service` Core exports is referenced by both apps — there is no Core service without an app consumer, and no app missing one.
 
@@ -267,6 +267,8 @@ Every other app service is gone and its callers hold the Core service. Every `Ge
 - iOS `Primitives` keeps hand-written views of Core types (`GasPriceType`, `FeeRate`, `Fee`, `FeeSelection`, `CustomFeeEstimate`, `TransferAmount`, `BalanceRequirement`, and ids such as `WalletId`/`TransactionId`/`AssetId`). They stay: they are typed views bridged once at the seam, not a second source of truth.
 
 ## TODO — finish Core as the single owner of logic
+
+The target shape every item below converges on is [ARCHITECTURE.md](ARCHITECTURE.md) — read it first.
 
 Only open work lives here. When an item lands, delete its line in the same commit — do not leave "done" notes. When the list empties, audit again and write a new one.
 

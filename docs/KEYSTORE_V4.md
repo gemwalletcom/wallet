@@ -35,7 +35,7 @@ File path:
 
 ## v4 File Format
 
-JSON layout (see [crates/gem_keystore/README.md](../crates/gem_keystore/README.md) for the full example):
+JSON layout (see [crates/gem_keystore/README.md](../core/crates/gem_keystore/README.md) for the full example):
 
 ```json
 {

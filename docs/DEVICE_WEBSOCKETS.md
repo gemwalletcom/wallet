@@ -108,7 +108,7 @@ Transaction updates include affected assets so clients can refresh the correspon
 
 ## Implementation
 
-- Stream handler: [`apps/api/src/websocket_stream/stream.rs`](../apps/api/src/websocket_stream/stream.rs)
-- Client logic: [`apps/api/src/websocket_stream/client.rs`](../apps/api/src/websocket_stream/client.rs)
-- Message types: [`crates/primitives/src/stream.rs`](../crates/primitives/src/stream.rs)
-- Price payload: [`crates/primitives/src/websocket.rs`](../crates/primitives/src/websocket.rs)
+- Stream handler: [`apps/api/src/websocket_stream/stream.rs`](../core/apps/api/src/websocket_stream/stream.rs)
+- Client logic: [`apps/api/src/websocket_stream/client.rs`](../core/apps/api/src/websocket_stream/client.rs)
+- Message types: [`crates/primitives/src/stream.rs`](../core/crates/primitives/src/stream.rs)
+- Price payload: [`crates/primitives/src/websocket.rs`](../core/crates/primitives/src/websocket.rs)
