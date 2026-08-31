@@ -328,8 +328,9 @@ Found by reading both platforms side by side. Ranked within each group by value:
 | T5 | In-app polling | four hardcoded timers (positions 1 min, charts 1 min, asset 5 min, activity 5 min) | none — pull-to-refresh only | iOS polls on top of the live socket; Android trusts the stream. Core's own `PRICES_UPDATE_INTERVAL_SECONDS` is exposed to both and used by neither. |
 | T6 | Pending-transaction tracking | started twice, never stopped | `TransactionStateTracker.kt:27-33` start/stop on process lifecycle | iOS keeps polling while backgrounded. |
 | T7 | Live price subscription | `PriceUpdater.swift` called from the asset screen **and both swap legs** | `SyncAssetInfoImpl.kt:35` only | Swap-screen fiat values only move on Android if something else subscribed the asset. Core should decide when prices are subscribed; then `PriceUpdater.swift` goes. |
-| T8 | Perpetual connect gate | Core `shouldConnectPerpetuals` / `syncEnablement` | `ObservePerpetualWallet.kt:18-23` re-implements it over Android's own `UserConfig` | Android never gets `clear_markets`/`sync_markets_if_stale` from the connect path. |
 | T12 | App-start ordering | `OnstartService` + `RootSceneViewModel`, device sync raced, wallet setup gated on unlock | `SyncService.kt:16-24` sequential, no unlock gate | `GemAppStartService.run()` covers only config/banners/assets; everything else is bolted on per platform in a different order. |
+
+**T8 was half wrong.** Android does get `clear_markets` and `sync_markets_if_stale` — through `SyncPerpetualsImpl`, which calls `syncEnablement(null)`, not through the connect path the row was looking at. The real problem was smaller: `ObservePerpetualWallet` ANDed its own `isPerpetualEnabled()` with `showPerpetuals(wallet)`, which already ANDs that same flag inside Core, so the enabled state was read from two places and could disagree. The flag is now only the change trigger and Core decides.
 
 Found while landing the batches above, not yet fixed:
 
