@@ -60,6 +60,10 @@ public final class SwapSceneViewModel {
     private let onSwap: TransferDataAction
     private let swapService: any GemSwapServiceProtocol
     private let swapQuoteService: GemSwapQuoteService
+
+    var quoteRefreshInterval: TimeInterval {
+        TimeInterval(swapQuoteService.refreshIntervalMilliseconds()) / 1000
+    }
     private let preferencesService: any GemPreferencesServiceProtocol
     private let formatter = SwapValueFormatter(valueFormatter: .full)
     private let toValueFormatter = SwapValueFormatter(valueFormatter: ValueFormatter(style: .auto))

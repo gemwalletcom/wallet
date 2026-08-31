@@ -17,6 +17,10 @@ impl GemSwapQuoteService {
         Self {}
     }
 
+    pub fn refresh_interval_milliseconds(&self) -> u64 {
+        rules::quote_refresh_interval_milliseconds()
+    }
+
     pub fn quote(&self, quote: Quote) -> SwapQuote {
         rules::swap_quote(&quote)
     }
