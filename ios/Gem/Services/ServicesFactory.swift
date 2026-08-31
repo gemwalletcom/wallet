@@ -336,6 +336,7 @@ struct ServicesFactory {
             perpetualService: perpetualService,
             perpetualObserver: hyperliquidObserverService,
             walletSessionService: walletSessionService,
+            transactionStateService: gemTransactionStateService,
         )
 
         let gemConfirmService = gatewayService.confirmService(
