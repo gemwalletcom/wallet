@@ -1,9 +1,12 @@
 package com.gemwallet.android.model
 
+import uniffi.gemstone.GemTransferService
 import org.junit.Assert.assertNull
 import org.junit.Test
 
 class NavigationParamsTest {
+
+    private val transferService = GemTransferService()
 
     @Test
     fun amountParamsUnpack_returnsNullForInvalidRoutePayload() {
@@ -12,6 +15,6 @@ class NavigationParamsTest {
 
     @Test
     fun confirmParamsUnpack_returnsNullForInvalidRoutePayload() {
-        assertNull(ConfirmParams.unpack("invalid"))
+        assertNull(ConfirmParams.unpack("invalid", transferService))
     }
 }

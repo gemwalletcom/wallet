@@ -22,11 +22,13 @@ import kotlinx.coroutines.flow.first
 import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemPaymentLinkServiceInterface
 import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemTransferService
 
 class PaymentNavigation @Inject constructor(
     private val getSelectAssetsInfo: GetSelectAssetsInfo,
     private val paymentLinkService: GemPaymentLinkServiceInterface,
     private val paymentService: GemPaymentService,
+    private val transferService: GemTransferService,
 ) {
 
     suspend fun routes(payment: Payment): List<NavKey> = when (payment) {
@@ -37,7 +39,7 @@ class PaymentNavigation @Inject constructor(
     private suspend fun requestRoutes(request: PaymentRequest): List<NavKey> =
         when (val destination = PaymentDestination.from(request, getSelectAssetsInfo().first())) {
             PaymentDestination.Unsupported -> emptyList()
-            is PaymentDestination.Confirm -> listOfNotNull(destination.params.pack()?.let(::ConfirmRoute))
+            is PaymentDestination.Confirm -> listOfNotNull(destination.params.pack(transferService)?.let(::ConfirmRoute))
             is PaymentDestination.Recipient -> listOf(
                 RecipientInputRoute(destination.assetId, nftAssetId = null, payment = destination.request)
             )
@@ -72,6 +74,6 @@ class PaymentNavigation @Inject constructor(
             gasLimit = null,
             decodedTransactionType = payment.transactionType.decodeJson(),
         )
-        return listOfNotNull(params.pack()?.let(::ConfirmRoute))
+        return listOfNotNull(params.pack(transferService)?.let(::ConfirmRoute))
     }
 }

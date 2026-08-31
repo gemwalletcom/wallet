@@ -1,5 +1,6 @@
 package com.gemwallet.android
 
+import uniffi.gemstone.GemTransferService
 import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.checksumAddress
@@ -43,6 +44,8 @@ import uniffi.gemstone.GemPaymentService
 
 class PaymentNavigationTest {
 
+    private val transferService = GemTransferService()
+
     @After
     fun tearDown() = unmockkStatic("com.gemwallet.android.ext.ChainKt")
 
@@ -68,14 +71,14 @@ class PaymentNavigationTest {
             memo = "payment-memo",
             request = request,
         )
-        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentLinkService, GemPaymentService())
+        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentLinkService, GemPaymentService(), GemTransferService())
 
         val routes = navigation.routes(
             Payment.Link(PaymentLink.SolanaPay(PaymentLinkSolanaPayInner("https://example.com/pay")))
         )
 
         val route = routes.single() as ConfirmRoute
-        val params = ConfirmParams.unpack(route.params) as ConfirmParams.TransferParams.Generic
+        val params = ConfirmParams.unpack(route.params, transferService) as ConfirmParams.TransferParams.Generic
         assertEquals("encoded-transaction", params.data)
         assertEquals("payment-memo", params.memo)
         assertEquals(assetInfo.asset.id, params.asset.id)
@@ -106,14 +109,14 @@ class PaymentNavigationTest {
             memo = null,
             request = request,
         )
-        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentLinkService, GemPaymentService())
+        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentLinkService, GemPaymentService(), GemTransferService())
 
         val routes = navigation.routes(
             Payment.Link(PaymentLink.SolanaPay(PaymentLinkSolanaPayInner("https://example.com/pay")))
         )
 
         val route = routes.single() as ConfirmRoute
-        val params = ConfirmParams.unpack(route.params) as ConfirmParams.TransferParams.Generic
+        val params = ConfirmParams.unpack(route.params, transferService) as ConfirmParams.TransferParams.Generic
         assertEquals("encoded-transaction", params.data)
         assertEquals(null, params.memo)
         assertEquals(assetInfo.asset.id, params.asset.id)
@@ -144,14 +147,14 @@ class PaymentNavigationTest {
                 assetId = AssetId(Chain.Solana),
             ),
         )
-        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentLinkService, GemPaymentService())
+        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentLinkService, GemPaymentService(), GemTransferService())
 
         val routes = navigation.routes(
             Payment.Link(PaymentLink.SolanaPay(PaymentLinkSolanaPayInner("https://example.com/pay")))
         )
 
         val route = routes.single() as ConfirmRoute
-        val params = ConfirmParams.unpack(route.params) as ConfirmParams.TransferParams.Generic
+        val params = ConfirmParams.unpack(route.params, transferService) as ConfirmParams.TransferParams.Generic
         assertEquals("encoded-transaction", params.data)
         assertEquals("payment-memo", params.memo)
         assertEquals(account.chain, params.asset.id.chain)

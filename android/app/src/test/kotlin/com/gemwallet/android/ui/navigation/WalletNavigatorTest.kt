@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.navigation
 
+import uniffi.gemstone.GemTransferService
 import androidx.compose.runtime.mutableStateOf
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
@@ -562,6 +563,7 @@ class WalletNavigatorTest {
             backStack = NavBackStack(*routes),
             currentTab = mutableStateOf(assetsRoute),
             assetNavigationPolicy = assetNavigationPolicy,
+            transferService = GemTransferService(),
         )
     }
 }

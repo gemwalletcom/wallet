@@ -44,6 +44,7 @@ import uniffi.gemstone.GemAmountService
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountViewModelTest {
 
+
     private val testDispatcher = StandardTestDispatcher()
     private val asset = mockAssetCosmos()
 

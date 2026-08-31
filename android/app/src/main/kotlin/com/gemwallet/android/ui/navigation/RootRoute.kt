@@ -1,5 +1,7 @@
 package com.gemwallet.android.ui.navigation
 
+import com.gemwallet.android.ui.LocalTransferService
+import uniffi.gemstone.GemTransferService
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.key
@@ -110,13 +112,15 @@ fun rememberWalletNavigationState(
     currentTab: MutableState<String>,
     assetNavigationPolicy: AssetNavigationPolicy,
 ): WalletNavigator {
+    val transferService = LocalTransferService.current
     return key(startDestination) {
         val backStack = rememberWalletNavBackStack(startDestination)
-        remember(backStack, currentTab, assetNavigationPolicy) {
+        remember(backStack, currentTab, assetNavigationPolicy, transferService) {
             WalletNavigator(
                 backStack = backStack,
                 currentTab = currentTab,
                 assetNavigationPolicy = assetNavigationPolicy,
+                transferService = transferService,
             )
         }
     }
@@ -126,6 +130,7 @@ class WalletNavigator(
     val backStack: NavBackStack<NavKey>,
     val currentTab: MutableState<String>,
     private val assetNavigationPolicy: AssetNavigationPolicy,
+    private val transferService: GemTransferService,
 ) {
     private val toastMessages = mutableStateMapOf<NavKey, String>()
     private val swapSelections = mutableStateMapOf<NavKey, SwapSelection>()
@@ -295,7 +300,7 @@ class WalletNavigator(
     }
     fun openFiatTransactions() = push(FiatTransactionsRoute)
     fun openConfirm(params: ConfirmParams) {
-        val pack = params.pack() ?: return
+        val pack = params.pack(transferService) ?: return
         push(ConfirmRoute(pack))
     }
     fun openNftList() = push(NftListRoute)

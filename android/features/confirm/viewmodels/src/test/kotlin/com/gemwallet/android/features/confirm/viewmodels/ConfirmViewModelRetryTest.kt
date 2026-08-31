@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
+import uniffi.gemstone.GemTransferService
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
@@ -36,6 +37,8 @@ import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConfirmViewModelRetryTest {
+
+    private val transferService = GemTransferService()
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val asset = mockAssetHyperCoreUBTC()
@@ -97,7 +100,7 @@ class ConfirmViewModelRetryTest {
             explorerService = mockk(relaxed = true),
             getAddressName = mockk(relaxed = true),
             getAddressNames = mockk(relaxed = true),
-            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(params.pack()))),
+            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(params.pack(transferService)))),
             feeService = uniffi.gemstone.GemFeeService(),
             transferService = uniffi.gemstone.GemTransferService(),
             simulationFormatter = mockk(relaxed = true),

@@ -113,7 +113,7 @@ class ConfirmViewModel @Inject constructor(
 
     private val request = savedStateHandle.getStateFlow<String?>(RouteArgument.Params.key, null)
         .filterNotNull()
-        .mapNotNull { paramsPack -> ConfirmParams.unpack(paramsPack) }
+        .mapNotNull { paramsPack -> ConfirmParams.unpack(paramsPack, transferService) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val session = getSession()
@@ -275,7 +275,7 @@ class ConfirmViewModel @Inject constructor(
         }
 
         AmountUIModel(
-            transactionType = request.getTransactionType(),
+            transactionType = request.getTransactionType(transferService),
             amount = amount.atomicValue,
             asset = assetInfo,
             fromAsset = assetInfo,
@@ -346,7 +346,7 @@ class ConfirmViewModel @Inject constructor(
             syncMissingAssets.syncMissingAssets(assetIds.distinct())
         }
         viewModelScope.launch(Dispatchers.IO) {
-            val pack = params.pack()
+            val pack = params.pack(transferService)
             if (savedStateHandle.get<String?>(RouteArgument.Params.key) == pack) {
                 return@launch
             }
@@ -484,7 +484,7 @@ private fun SimulationResult.simulationAssetIds(): List<AssetId> =
 
 private fun ConfirmParams?.approvalAssetId(transferService: GemTransferService): AssetId? =
     (this as? ConfirmParams.TransferParams.Generic)
-        ?.takeIf { it.getTransactionType() == TransactionType.TokenApproval }
+        ?.takeIf { it.getTransactionType(transferService) == TransactionType.TokenApproval }
         ?.let { generic ->
             transferService
                 .approval(generic.toTransferData().inputType, TransactionType.TokenApproval.toJson())

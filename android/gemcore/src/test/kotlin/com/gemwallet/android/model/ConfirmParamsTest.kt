@@ -1,5 +1,6 @@
 package com.gemwallet.android.model
 
+import uniffi.gemstone.GemTransferService
 import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.testkit.mockAccount
@@ -30,6 +31,8 @@ import org.junit.Test
 import uniffi.gemstone.GemTransactionInputType
 
 class ConfirmParamsTest {
+
+    private val transferService = GemTransferService()
 
     @Test
     fun genericInputPreservesDecodedTransactionType() {
@@ -112,12 +115,12 @@ class ConfirmParamsTest {
         )
 
         variants.forEach { original ->
-            val packed = original.pack()
+            val packed = original.pack(transferService)
             assertNotNull(packed)
-            val decoded = ConfirmParams.unpack(requireNotNull(packed))
+            val decoded = ConfirmParams.unpack(requireNotNull(packed), transferService)
             assertNotNull(decoded)
             assertEquals(original::class, decoded!!::class)
-            assertEquals(packed, decoded.pack())
+            assertEquals(packed, decoded.pack(transferService))
         }
     }
 
@@ -131,7 +134,7 @@ class ConfirmParamsTest {
         )
 
         variants.forEach { original ->
-            val decoded = ConfirmParams.unpack(requireNotNull(original.pack()))
+            val decoded = ConfirmParams.unpack(requireNotNull(original.pack(transferService)), transferService)
 
             assertEquals(original::class, decoded!!::class)
             assertEquals("memo", decoded.memo())

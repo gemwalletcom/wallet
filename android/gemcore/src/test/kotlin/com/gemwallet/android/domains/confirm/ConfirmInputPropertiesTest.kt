@@ -17,6 +17,8 @@ import java.math.BigInteger
 
 class ConfirmInputPropertiesTest {
 
+    private val transferService = GemTransferService()
+
     private val properties = ConfirmInputProperties(GemTransferService())
     private val codec = ConfirmInputCodec(GemTransferService())
 
@@ -27,7 +29,7 @@ class ConfirmInputPropertiesTest {
 
             assertEquals(params.assetId, properties.assetId(input))
             assertEquals(params.asset, properties.asset(input))
-            assertEquals(params.getTransactionType(), properties.transactionType(input))
+            assertEquals(params.getTransactionType(transferService), properties.transactionType(input))
         }
     }
 
@@ -53,7 +55,7 @@ class ConfirmInputPropertiesTest {
     @Test
     fun codecProducesTheSameRouteStringAsConfirmParams() {
         variants().forEach { params ->
-            assertEquals(params.pack(), codec.pack(params.toConfirmInput()))
+            assertEquals(params.pack(transferService), codec.pack(params.toConfirmInput()))
         }
     }
 
