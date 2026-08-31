@@ -4,6 +4,7 @@ use std::fmt;
 #[derive(Debug, Clone)]
 pub enum DatabaseError {
     NotFound { resource: &'static str, lookup: NotFoundLookup },
+    ConnectionPool,
     Error(String),
 }
 
@@ -24,6 +25,7 @@ impl fmt::Display for DatabaseError {
                 resource,
                 lookup: NotFoundLookup::Internal(_),
             } => write!(f, "{resource} not found"),
+            DatabaseError::ConnectionPool => write!(f, "Failed to create database connection pool"),
             DatabaseError::Error(msg) => write!(f, "{}", msg),
         }
     }

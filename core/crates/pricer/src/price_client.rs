@@ -92,8 +92,7 @@ impl PriceClient {
         let rate = self.get_fiat_rate(&currency)?.rate;
         let prices = self
             .get_cache_prices(asset_ids)
-            .await
-            .unwrap_or_default()
+            .await?
             .into_iter()
             .map(|x| x.as_asset_price_primitive_with_rate(rate))
             .collect();

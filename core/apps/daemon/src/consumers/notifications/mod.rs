@@ -19,7 +19,7 @@ use streamer::{
 use crate::consumers::{consumer_config, reader_config};
 
 pub async fn run(settings: Settings, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
-    let database = Database::new(&settings.postgres.url, settings.postgres.pool);
+    let database = Database::new(&settings.postgres.url, settings.postgres.pool)?;
     let settings = Arc::new(settings);
     let database = Arc::new(database);
 

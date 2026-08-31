@@ -52,7 +52,7 @@ pub async fn run_consumer_indexer(
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
     use IndexerConsumer::*;
 
-    let database = Database::new(&settings.postgres.url, settings.postgres.pool);
+    let database = Database::new(&settings.postgres.url, settings.postgres.pool)?;
     let settings = Arc::new(settings);
 
     let selected = match only {

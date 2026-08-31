@@ -192,7 +192,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let postgres_url = settings.postgres.url.as_str();
     let settings_clone = settings.clone();
 
-    let database = Database::new(postgres_url, settings.postgres.pool);
+    let database = Database::new(postgres_url, settings.postgres.pool)?;
     let cacher_client = CacherClient::new(redis_url).await?;
     let config_cacher = storage::ConfigCacher::new(database.clone());
     let price_config = PriceConfig {
@@ -338,7 +338,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
 
 async fn rocket_ws_stream(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error + Send + Sync>> {
     let cacher_client = CacherClient::new(&settings.redis.url).await?;
-    let database = storage::Database::new(&settings.postgres.url, settings.postgres.pool);
+    let database = storage::Database::new(&settings.postgres.url, settings.postgres.pool)?;
     let config_cacher = storage::ConfigCacher::new(database.clone());
     let price_client = PriceClient::new(database.clone(), cacher_client.clone());
     let stream_observer_config = websocket_stream::StreamObserverConfig {
