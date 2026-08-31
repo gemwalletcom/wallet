@@ -54,11 +54,5 @@ object DataModule {
     @Provides
     fun provideSyncService(
         appStartService: GemAppStartService,
-        deviceService: GemDeviceService,
-    ): SyncService {
-        return SyncService(
-            appStartService = appStartService,
-            deviceService = deviceService,
-        )
-    }
+    ): SyncService = SyncService(appStartService = appStartService)
 }

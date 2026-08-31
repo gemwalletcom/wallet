@@ -13,13 +13,9 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
-import uniffi.gemstone.GemDeviceService
 
 @AndroidEntryPoint
 class FCM : FirebaseMessagingService() {
-
-    @Inject
-    lateinit var deviceService: GemDeviceService
     @Inject
     lateinit var getPushEnabled: GetPushEnabled
     @Inject
@@ -45,9 +41,6 @@ class FCM : FirebaseMessagingService() {
 
     @Deprecated("Deprecated in Java")
     override fun onNewToken(token: String) {
-        scope.launch {
-            setPushToken.setPushToken(token)
-            deviceService.synchronizeIfNeeded()
-        }
+        setPushToken.setPushToken(token)
     }
 }

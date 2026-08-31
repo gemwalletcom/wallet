@@ -37,7 +37,7 @@ mod tests {
 
     #[test]
     fn client_errors_map_to_reasons() {
-        let cases = [
+        let cases: [(ClientError, FailureReason); 4] = [
             (ClientError::Timeout, FailureReason::Timeout),
             (ClientError::Http { status: 503, body: Vec::new() }, FailureReason::Status(503)),
             (ClientError::Network("request failed".to_string()), FailureReason::RequestError),

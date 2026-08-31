@@ -10,7 +10,7 @@ extension GemNodeService: @retroactive NodeURLProvidable {
         URL(string: nodeUrl(chain: chain.rawValue)) ?? chain.defaultBaseUrl
     }
 
-    public func webSocketNode(for chain: Chain) -> URL? {
-        URL(string: websocketNodeUrl(chain: chain.rawValue))
+    public func webSocketNode(for chain: Chain) -> URL {
+        URL(string: websocketNodeUrl(chain: chain.rawValue)) ?? chain.defaultBaseUrl
     }
 }

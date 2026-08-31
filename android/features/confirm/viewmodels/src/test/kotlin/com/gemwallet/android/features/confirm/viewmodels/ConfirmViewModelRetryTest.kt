@@ -22,6 +22,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
@@ -60,7 +61,7 @@ class ConfirmViewModelRetryTest {
         runCurrent()
         coVerify(timeout = 5_000, exactly = 1) { preloader.preload(any(), any(), any()) }
 
-        assertTrue(viewModel.state.value is ConfirmState.Error)
+        assertTrue(viewModel.state.first { it is ConfirmState.Error } is ConfirmState.Error)
 
         viewModel.send(FinishConfirmAction { _ -> })
         runCurrent()
@@ -72,7 +73,11 @@ class ConfirmViewModelRetryTest {
         var calls = 0
         coEvery { preloader.preload(any(), any(), any()) } answers {
             calls += 1
-            if (calls == 1) throw IllegalStateException("preload failed") else mockk<SignerPreloaderProxy.Preload>(relaxed = true)
+            if (calls == 1) {
+                throw IllegalStateException("preload failed")
+            } else {
+                SignerPreloaderProxy.Preload(signerParams = mockk(relaxed = true), simulation = null)
+            }
         }
         return ConfirmViewModel(
             getSession = mockk<GetSession> {

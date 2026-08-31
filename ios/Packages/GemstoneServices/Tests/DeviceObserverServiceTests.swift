@@ -9,7 +9,7 @@ import Testing
 
 struct DeviceObserverServiceTests {
     @Test
-    func handleSubscriptionsChangeUpdatesDevice() async throws {
+    func handleSubscriptionsChangeAsksCoreWhetherASyncIsNeeded() async throws {
         let deviceService = GemDeviceServiceMock()
         let observerService = DeviceObserverService(
             deviceService: deviceService,
@@ -18,6 +18,7 @@ struct DeviceObserverServiceTests {
 
         try await observerService.handleSubscriptionsChange()
 
-        #expect(await deviceService.synchronizeCalls == 1)
+        #expect(await deviceService.synchronizeIfNeededCalls == 1)
+        #expect(await deviceService.synchronizeCalls == 0)
     }
 }

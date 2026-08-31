@@ -70,7 +70,10 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `rewards shown before wallets load`() = runTest(testDispatcher) {
+    fun `rewards stay available while no wallets are loaded`() = runTest(testDispatcher) {
+        wallets.value = emptyList()
+        advanceUntilIdle()
+
         assertTrue(viewModel.isRewardsAvailable.value)
     }
 

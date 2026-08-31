@@ -20,6 +20,10 @@ impl GemConnectionService {
         rules::offline_debounce_milliseconds()
     }
 
+    pub fn ping_interval_milliseconds(&self) -> u64 {
+        rules::ping_interval_milliseconds()
+    }
+
     pub fn resets_component_health(&self, component: GemConnectionComponent, is_healthy: bool, was_healthy: Option<bool>) -> bool {
         rules::resets_component_health(component, is_healthy, was_healthy)
     }

@@ -49,6 +49,6 @@ struct CurrencySceneViewModelTests {
 
         #expect(usdCurrencyStorage.currency == Currency.ars.id)
         #expect(usdCurrencyStorage.currency == viewModel.currency.id)
-        #expect(await deviceService.synchronizeCalls == 1)
+        #expect(await deviceService.synchronizeIfNeededCalls == 1)
     }
 }

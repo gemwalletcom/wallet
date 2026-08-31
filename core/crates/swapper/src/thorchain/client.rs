@@ -1,7 +1,7 @@
 use super::{
     THORChainNetwork,
     asset::THORChainAsset,
-    model::{AsgardVault, InboundAddress, QuoteSwapRequest, QuoteSwapResponse, TransactionStatus},
+    model::{AsgardVault, ErrorResponse, InboundAddress, QuoteSwapRequest, QuoteSwapResponse, TransactionStatus},
 };
 use crate::SwapperError;
 use gem_client::{Client, ClientExt};
@@ -46,7 +46,7 @@ where
         };
         let query = serde_urlencoded::to_string(params).map_err(SwapperError::from)?;
         let path = format!("/{}/quote/swap?{query}", self.network);
-        self.client.get(&path).await.map_err(SwapperError::from)
+        self.client.get_or_error::<_, ErrorResponse>(&path).await.map_err(SwapperError::from)
     }
 
     pub async fn get_inbound_addresses(&self) -> Result<Vec<InboundAddress>, SwapperError> {

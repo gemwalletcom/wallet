@@ -58,7 +58,6 @@ class AmountViewModel @Inject constructor(
 
     val amountInputType = MutableStateFlow(AmountInputType.Crypto)
     val amountError = MutableStateFlow<AmountError>(AmountError.None)
-    private val maxAmount = MutableStateFlow(false)
 
     val availableBalanceFormatted: StateFlow<String> = combine(
         provider.availableBalance,
@@ -69,12 +68,16 @@ class AmountViewModel @Inject constructor(
 
     val reserveForFeeFormatted: StateFlow<String?> = combine(
         provider.assetInfo,
-        maxAmount,
+        snapshotFlow { amount },
         provider.limits,
         provider.reserveForFee,
-    ) { current, isMax, limits, reserve ->
-        if (!isMax || limits?.reservesFee != true || reserve.signum() == 0) null
-        else current?.asset?.let { valueFormatter.string(reserve, it) }
+    ) { current, input, limits, reserve ->
+        val asset = current?.asset
+        when {
+            asset == null || limits?.reservesFee != true || reserve.signum() == 0 -> null
+            input != maxAmountInput(asset) -> null
+            else -> valueFormatter.string(reserve, asset)
+        }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val amountEquivalent: StateFlow<String> = combine(
@@ -118,15 +121,17 @@ class AmountViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
-    fun updateAmount(input: String, isMax: Boolean = false) {
+    fun updateAmount(input: String) {
         amount = input
-        maxAmount.update { isMax }
     }
 
     fun onMaxAmount() = viewModelScope.launch {
         val current = provider.assetInfo.value ?: return@launch
-        updateAmount(Crypto(provider.maxValue()).value(current.asset.decimals).stripTrailingZeros().toPlainString(), isMax = true)
+        updateAmount(maxAmountInput(current.asset))
     }
+
+    private fun maxAmountInput(asset: Asset): String =
+        Crypto(provider.maxValue()).value(asset.decimals).stripTrailingZeros().toPlainString()
 
     fun switchInputType() {
         amountInputType.update { if (it == AmountInputType.Crypto) AmountInputType.Fiat else AmountInputType.Crypto }

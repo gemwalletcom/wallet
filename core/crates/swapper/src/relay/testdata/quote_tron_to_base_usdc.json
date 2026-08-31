@@ -1,0 +1,48 @@
+{
+  "steps": [
+    {
+      "id": "deposit",
+      "kind": "transaction",
+      "items": [
+        {
+          "data": {
+            "parameter": {
+              "owner_address": "41f70da97812cb96acdf810712aa562db8dfa3dbef",
+              "contract_address": "41f0623e1012177482912fb057e44e1a9769b1f588",
+              "call_value": 10000000,
+              "data": "49290c1c000000000000000000000000f70da97812cb96acdf810712aa562db8dfa3dbefe9150b968a284f8d016394c97e0fbe320bc5b6df21af4b963df9a994234001e5"
+            },
+            "type": "TriggerSmartContract"
+          }
+        }
+      ]
+    }
+  ],
+  "details": {
+    "currencyOut": {
+      "amount": "3394533"
+    },
+    "timeEstimate": 3,
+    "slippageTolerance": {
+      "total": "100",
+      "origin": {
+        "usd": "0.000000",
+        "value": "0",
+        "percent": "0.00"
+      },
+      "destination": {
+        "usd": "0.009668",
+        "value": "33945",
+        "percent": "0.99"
+      }
+    },
+    "swapImpact": {
+      "percent": "-0.10"
+    }
+  },
+  "fees": {
+    "gas": {
+      "amount": "0"
+    }
+  }
+}

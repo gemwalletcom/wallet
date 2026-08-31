@@ -161,9 +161,9 @@ impl GemSwapper {
     }
 
     pub async fn get_quote(&self, request: &QuoteRequest) -> Result<Vec<Quote>, SwapperError> {
-        let SwapQuotes { quotes, .. } = self.get_quotes(request).await?;
+        let SwapQuotes { quotes, errors } = self.get_quotes(request).await?;
         if quotes.is_empty() {
-            return Err(SwapperError::NoQuoteAvailable);
+            return Err(Self::quote_error(errors));
         }
         Ok(quotes)
     }
@@ -187,12 +187,31 @@ impl GemSwapper {
         for result in quote_results {
             match result {
                 Ok(quote) => quotes.push(quote),
-                Err((provider_id, err)) => errors.push(SwapQuoteError::new(Some(provider_id), err.to_string())),
+                Err((provider_id, error)) => errors.push(SwapQuoteError::new(Some(provider_id), error)),
             }
         }
 
         Self::sort_quotes_by_output_amount(&mut quotes);
         Ok(SwapQuotes { quotes, errors })
+    }
+
+    fn quote_error(errors: Vec<SwapQuoteError>) -> SwapperError {
+        let min_amounts: Vec<Option<BigInt>> = errors
+            .into_iter()
+            .filter_map(|error| match error.error {
+                SwapperError::InputAmountError { min_amount } => Some(min_amount.and_then(|amount| amount.parse().ok())),
+                _ => None,
+            })
+            .collect();
+        if min_amounts.is_empty() {
+            return SwapperError::NoQuoteAvailable;
+        }
+        let min_amount = min_amounts
+            .into_iter()
+            .collect::<Option<Vec<BigInt>>>()
+            .and_then(|amounts| amounts.into_iter().min())
+            .map(|amount| amount.to_string());
+        SwapperError::InputAmountError { min_amount }
     }
 
     pub async fn get_quote_by_provider(&self, provider: SwapperProvider, request: QuoteRequest) -> Result<Quote, SwapperError> {
@@ -421,7 +440,57 @@ mod tests {
             ])
         );
         let pancake_error = result.errors.iter().find(|e| e.provider.as_deref() == Some(SwapperProvider::PancakeswapV3.id())).unwrap();
-        assert!(pancake_error.error.contains("1264000"));
+        assert!(pancake_error.error.to_string().contains("1264000"));
+    }
+
+    #[tokio::test]
+    async fn test_get_quote_aggregates_provider_errors() {
+        let request = mock_quote(
+            SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
+            SwapperQuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone()),
+        );
+        let swapper_with = |swappers: Vec<Box<dyn Swapper>>| GemSwapper {
+            rpc_provider: Arc::new(NativeProvider::default()),
+            swappers,
+        };
+
+        let known_minimums = swapper_with(vec![
+            Box::new(MockSwapper::new(SwapperProvider::PancakeswapV3, || {
+                Err(SwapperError::InputAmountError {
+                    min_amount: Some("5000000".into()),
+                })
+            })),
+            Box::new(MockSwapper::new(SwapperProvider::UniswapV4, || {
+                Err(SwapperError::InputAmountError {
+                    min_amount: Some("1264000".into()),
+                })
+            })),
+            Box::new(MockSwapper::new(SwapperProvider::Jupiter, || Err(SwapperError::NoQuoteAvailable))),
+        ]);
+        assert_eq!(
+            known_minimums.get_quote(&request).await.unwrap_err(),
+            SwapperError::InputAmountError {
+                min_amount: Some("1264000".into())
+            }
+        );
+
+        let unknown_minimum = swapper_with(vec![
+            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, || Err(SwapperError::InputAmountError { min_amount: None }))),
+            Box::new(MockSwapper::new(SwapperProvider::UniswapV4, || {
+                Err(SwapperError::InputAmountError {
+                    min_amount: Some("1264000".into()),
+                })
+            })),
+        ]);
+        assert_eq!(unknown_minimum.get_quote(&request).await.unwrap_err(), SwapperError::InputAmountError { min_amount: None });
+
+        let route_errors = swapper_with(vec![
+            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, || Err(SwapperError::NoQuoteAvailable))),
+            Box::new(MockSwapper::new(SwapperProvider::Jupiter, || {
+                Err(SwapperError::ComputeQuoteError("HTTP error: status 500".into()))
+            })),
+        ]);
+        assert_eq!(route_errors.get_quote(&request).await.unwrap_err(), SwapperError::NoQuoteAvailable);
     }
 
     #[test]

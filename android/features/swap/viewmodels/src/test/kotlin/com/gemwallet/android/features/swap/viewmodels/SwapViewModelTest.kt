@@ -59,6 +59,8 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -83,6 +85,7 @@ import uniffi.gemstone.SwapperRoute
 import uniffi.gemstone.SwapperSlippage
 import uniffi.gemstone.SwapperSlippageMode
 import uniffi.gemstone.GemSwapButtonAction
+import uniffi.gemstone.GemStreamSubscriptionService
 import uniffi.gemstone.GemSwapQuoteService
 import uniffi.gemstone.SwapperException
 
@@ -116,6 +119,10 @@ class SwapViewModelTest {
         coEvery { suggestPair(any(), any()) } returns null
     }
 
+    private val streamSubscriptionService = mockk<GemStreamSubscriptionService>(relaxed = true)
+
+    private val createdViewModels = mutableListOf<SwapViewModel>()
+
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
@@ -130,6 +137,8 @@ class SwapViewModelTest {
 
     @After
     fun tearDown() {
+        createdViewModels.forEach { it.viewModelScope.cancel() }
+        createdViewModels.clear()
         Dispatchers.resetMain()
         unmockkObject(SwapDetailsUIModelFactory)
     }
@@ -143,8 +152,9 @@ class SwapViewModelTest {
         swapService = swapService,
         requestSwapQuotes = requestSwapQuotes,
         swapQuoteService = GemSwapQuoteService(),
+        streamSubscriptionService = streamSubscriptionService,
         savedStateHandle = savedStateHandle,
-    )
+    ).also { createdViewModels += it }
 
     private fun swapSavedState(
         from: String = solAsset.id.toIdentifier(),
@@ -155,6 +165,20 @@ class SwapViewModelTest {
             RouteArgument.ToAssetId.key to to,
         )
     )
+
+    @Test
+    fun `both legs of the pair are subscribed for live prices`() = runTest(testDispatcher) {
+        val wallet = mockWallet(
+            accounts = listOf(mockAccount(chain = solAsset.id.chain), mockAccount(chain = usdcAsset.id.chain)),
+        )
+        every { getSession() } returns MutableStateFlow(Session(wallet = wallet, currency = Currency.USD))
+
+        createViewModel(swapSavedState())
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { streamSubscriptionService.addPrices(listOf(solAsset.id.toIdentifier())) }
+        coVerify(exactly = 1) { streamSubscriptionService.addPrices(listOf(usdcAsset.id.toIdentifier())) }
+    }
 
     @Test
     fun `init keeps an already selected pair and asks for no suggestion`() = runTest(testDispatcher) {

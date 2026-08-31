@@ -23,15 +23,11 @@ public actor DeviceObserverService {
         }
     }
 
-    public func isRegistered() async throws -> Bool {
-        try await deviceService.isRegistered()
-    }
-
     public func synchronizeIfNeeded() async throws {
         try await deviceService.synchronizeIfNeeded()
     }
 
     func handleSubscriptionsChange() async throws {
-        _ = try await deviceService.synchronize()
+        try await deviceService.synchronizeIfNeeded()
     }
 }

@@ -9,7 +9,7 @@ import Primitives
 @MainActor
 public final class NameRecordViewModel {
     private let nameService: any GemNameServiceProtocol
-    private var nameRecordTask: Task<Void, Never>?
+    private(set) var nameRecordTask: Task<Void, Never>?
 
     public var state: NameRecordState = .none
 

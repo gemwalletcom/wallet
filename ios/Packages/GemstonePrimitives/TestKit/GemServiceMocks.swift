@@ -10,6 +10,7 @@ public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
     private let syncError: Error?
     public private(set) var synchronizeCalls = 0
     public private(set) var synchronizeIfNeededCalls = 0
+    public private(set) var pushEnabledValues: [Bool] = []
 
     public init(syncError: Error? = nil) {
         self.syncError = syncError
@@ -24,6 +25,13 @@ public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
     }
 
     public func isRegistered() async throws -> Bool { true }
+
+    public func setPushEnabled(enabled: Bool) async throws {
+        pushEnabledValues.append(enabled)
+        if let syncError {
+            throw syncError
+        }
+    }
 
     public func synchronizeIfNeeded() async throws {
         synchronizeIfNeededCalls += 1
@@ -296,6 +304,10 @@ public final class GemFiatServiceMock: GemFiatServiceProtocol, @unchecked Sendab
         self.quotes = quotes
     }
 
+    public func quoteDebounceMilliseconds() -> UInt64 { 250 }
+
+    public func quoteRefreshIntervalMilliseconds() -> UInt64 { 300_000 }
+
     public func syncTransactions(walletId _: String) async throws {}
 
     public func getQuotes(walletId _: String, quoteType _: Gemstone.FiatQuoteType, assetId _: String, amount _: Double, currency _: String) async throws -> [Gemstone.FiatQuote] {
@@ -540,6 +552,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     public var isPerpetualEnabled = true
     public private(set) var syncMarketsCount = 0
     public private(set) var clearMarketsCount = 0
+    public var connectionFailures = 0
     private var updatedAt: Int64?
 
     public init(marketsUpdatedAt: Int64? = nil) {
@@ -591,6 +604,10 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     }
 
     public func connection(wallet: Gemstone.Wallet) async throws -> Gemstone.GemPerpetualConnection? {
+        if connectionFailures > 0 {
+            connectionFailures -= 1
+            throw AnyError("connection unavailable")
+        }
         guard let account = try Primitives.Wallet(wallet).hyperliquidAccount else { return nil }
         return try Gemstone.GemPerpetualConnection(
             address: account.address,

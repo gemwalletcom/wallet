@@ -40,10 +40,9 @@ class WebSocketConnection(
     private val requestProvider: suspend () -> WebSocketRequest,
     client: OkHttpClient,
     private val connectionService: GemConnectionService,
-    private val pingInterval: Long = PING_INTERVAL_MS,
 ) : WebSocketConnectable {
     private val client = client.newBuilder()
-        .pingInterval(pingInterval, TimeUnit.MILLISECONDS)
+        .pingInterval(connectionService.pingIntervalMilliseconds().toLong(), TimeUnit.MILLISECONDS)
         .build()
     private val activeWebSocket = AtomicReference<WebSocket?>()
 
@@ -111,6 +110,5 @@ class WebSocketConnection(
 
     companion object {
         private const val TAG = "WebSocketConnection"
-        private const val PING_INTERVAL_MS = 30_000L
     }
 }

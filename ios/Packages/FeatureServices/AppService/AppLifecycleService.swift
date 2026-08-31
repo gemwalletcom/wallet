@@ -2,6 +2,7 @@
 
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemStreamSubscriptionServiceProtocol
+import protocol Gemstone.GemTransactionStateServiceProtocol
 import GemstonePrimitives
 import WalletConnectorService
 import ConnectionStatusService
@@ -20,6 +21,7 @@ public actor AppLifecycleService: Sendable {
     private let perpetualService: any GemPerpetualServiceProtocol
     private let perpetualObserver: any PerpetualObservable
     private let walletSessionService: any WalletSessionManageable
+    private let transactionStateService: any GemTransactionStateServiceProtocol
 
     public init(
         walletConnector: any WalletConnectorServiceable,
@@ -30,6 +32,7 @@ public actor AppLifecycleService: Sendable {
         perpetualService: any GemPerpetualServiceProtocol,
         perpetualObserver: any PerpetualObservable,
         walletSessionService: any WalletSessionManageable,
+        transactionStateService: any GemTransactionStateServiceProtocol,
     ) {
         self.walletConnector = walletConnector
         self.connectionStatusObserver = connectionStatusObserver
@@ -39,6 +42,7 @@ public actor AppLifecycleService: Sendable {
         self.perpetualService = perpetualService
         self.perpetualObserver = perpetualObserver
         self.walletSessionService = walletSessionService
+        self.transactionStateService = transactionStateService
     }
 
     public func setup() async {
@@ -117,7 +121,16 @@ extension AppLifecycleService {
         async let connection: () = connectionStatusObserver.start()
         async let stream: () = connectStreamObserver()
         async let perpetual: () = connectPerpetual()
-        _ = await (connection, stream, perpetual)
+        async let pending: () = trackPendingTransactions()
+        _ = await (connection, stream, perpetual, pending)
+    }
+
+    private func trackPendingTransactions() async {
+        do {
+            try await transactionStateService.trackPending()
+        } catch {
+            debugLog("AppLifecycleService pending tracking error: \(error)")
+        }
     }
 
     private func connectStreamObserver() async {
@@ -125,16 +138,7 @@ extension AppLifecycleService {
             await streamObserverService.disconnect()
             return
         }
-        let isRegistered: Bool
-        do {
-            isRegistered = try await deviceObserverService.isRegistered()
-        } catch {
-            debugLog("device registration read failed: \(error)")
-            isRegistered = false
-        }
-        if !isRegistered {
-            await registerDevice()
-        }
+        await registerDevice()
         await streamObserverService.connect()
     }
 
@@ -161,6 +165,7 @@ extension AppLifecycleService {
     }
 
     private func disconnectObservers() async {
+        transactionStateService.stopTracking()
         async let connection: () = connectionStatusObserver.stop()
         async let price: () = streamObserverService.disconnect()
         async let perpetual: () = perpetualObserver.disconnect()

@@ -1,10 +1,13 @@
 use std::collections::BTreeSet;
 
 use gem_evm::{address::ethereum_address_checksum, provider::preload_mapper::calculate_gas_limit_with_increase};
+use gem_tron::models::{TriggerSmartContractData, TronContractType};
 use num_bigint::BigInt;
 use primitives::swap::SwapStatus;
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_option_bigint_from_str, serialize_option_bigint};
+
+use crate::{SwapperError, error::ProviderErrorResponse};
 
 const STEP_SWAP: &str = "swap";
 const STEP_DEPOSIT: &str = "deposit";
@@ -22,6 +25,8 @@ pub struct RelayQuoteRequest {
     pub amount: String,
     pub recipient: String,
     pub trade_type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub slippage_tolerance: Option<String>,
     pub refund_to: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub referrer: Option<String>,
@@ -66,6 +71,20 @@ impl RelayQuoteResponse {
             .and_then(Step::step_data)
     }
 
+    pub fn get_evm_step(&self) -> Option<&EvmStepData> {
+        match self.step_data()? {
+            StepData::Evm(evm) => Some(evm),
+            StepData::Tron(_) => None,
+        }
+    }
+
+    pub fn get_tron_step(&self) -> Option<&TronStepData> {
+        match self.step_data()? {
+            StepData::Evm(_) => None,
+            StepData::Tron(tron) => Some(tron),
+        }
+    }
+
     pub fn router_address(&self) -> Option<String> {
         self.steps.iter().filter(|step| step.id != STEP_APPROVE).find_map(Step::to_address)
     }
@@ -85,7 +104,7 @@ impl Step {
     }
 
     pub fn to_address(&self) -> Option<String> {
-        Some(self.step_data()?.to_address())
+        self.step_data()?.to_address()
     }
 }
 
@@ -99,12 +118,14 @@ pub struct StepItem {
 #[serde(untagged)]
 pub enum StepData {
     Evm(EvmStepData),
+    Tron(TronStepData),
 }
 
 impl StepData {
-    pub fn to_address(&self) -> String {
+    pub fn to_address(&self) -> Option<String> {
         match self {
-            Self::Evm(evm) => evm.to.clone(),
+            Self::Evm(evm) => Some(evm.to.clone()),
+            Self::Tron(tron) => Some(tron.trigger_smart_contract()?.contract_address.clone()),
         }
     }
 }
@@ -130,14 +151,36 @@ impl EvmStepData {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct TronStepData {
+    pub parameter: TriggerSmartContractData,
+    #[serde(rename = "type")]
+    pub transaction_type: TronContractType,
+}
+
+impl TronStepData {
+    pub fn trigger_smart_contract(&self) -> Option<&TriggerSmartContractData> {
+        (self.transaction_type == TronContractType::TriggerSmart).then_some(&self.parameter)
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QuoteDetails {
     pub currency_out: CurrencyAmount,
     pub time_estimate: Option<f64>,
-    pub swap_impact: Option<SwapImpact>,
+    pub slippage_tolerance: Option<RelaySlippageTolerance>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct RelaySlippageTolerance {
+    pub total: String,
 }
 
 impl QuoteDetails {
+    pub fn slippage_bps(&self) -> Option<u32> {
+        self.slippage_tolerance.as_ref()?.total.parse().ok()
+    }
+
     pub fn time_estimate_u32(&self) -> Option<u32> {
         let value = self.time_estimate?;
         if !value.is_finite() || value < 0.0 || value > u32::MAX as f64 {
@@ -145,23 +188,41 @@ impl QuoteDetails {
         }
         Some(value.ceil() as u32)
     }
-
-    pub fn slippage_bps(&self) -> Option<u32> {
-        let percent: f64 = self.swap_impact.as_ref()?.percent.as_ref()?.parse().ok()?;
-        Some((percent.abs() * 100.0) as u32)
-    }
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SwapImpact {
-    pub percent: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CurrencyAmount {
     pub amount: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum RelayErrorCode {
+    AmountTooLow,
+    NoQuotes,
+    NoSwapRoutesFound,
+    #[default]
+    #[serde(other)]
+    Unknown,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RelayErrorResponse {
+    #[serde(default)]
+    pub error_code: RelayErrorCode,
+    pub message: Option<String>,
+}
+
+impl ProviderErrorResponse for RelayErrorResponse {
+    fn into_swapper_error(self) -> Option<SwapperError> {
+        match self.error_code {
+            RelayErrorCode::AmountTooLow => Some(SwapperError::InputAmountError { min_amount: None }),
+            RelayErrorCode::NoQuotes | RelayErrorCode::NoSwapRoutesFound => Some(SwapperError::NoQuoteAvailable),
+            RelayErrorCode::Unknown => self.message.filter(|message| !message.is_empty()).map(SwapperError::ComputeQuoteError),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -314,9 +375,20 @@ mod tests {
         assert_eq!(response.steps.len(), 2);
         assert_eq!(response.steps[0].id, "approve");
 
-        let StepData::Evm(evm) = response.step_data().unwrap();
+        let evm = response.get_evm_step().unwrap();
         assert_eq!(evm.gas, Some(BigInt::from(482935)));
         assert_eq!(evm.gas_limit_with_buffer().as_deref(), Some("724402"));
+
+        let response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_tron_usdt_to_base_usdc.json")).unwrap();
+        let tron = response.get_tron_step().unwrap();
+        let contract = tron.trigger_smart_contract().unwrap();
+        assert_eq!(contract.contract_address, "41f0623e1012177482912fb057e44e1a9769b1f588");
+        assert_eq!(contract.call_value, None);
+        assert_eq!(response.details.currency_out.amount, "976767");
+
+        let response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_tron_to_base_usdc.json")).unwrap();
+        let tron = response.get_tron_step().unwrap();
+        assert_eq!(tron.trigger_smart_contract().unwrap().call_value, Some(10_000_000));
     }
 
     #[test]

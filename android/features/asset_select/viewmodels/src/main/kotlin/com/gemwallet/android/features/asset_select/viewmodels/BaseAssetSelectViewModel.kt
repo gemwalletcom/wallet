@@ -126,13 +126,13 @@ open class BaseAssetSelectViewModel(
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>().toImmutableList())
 
     val pinned = assets.map { items ->
-        items.filter { it.pinned && it.balanceEnabled }.toImmutableList()
+        items.filter { it.pinned }.toImmutableList()
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>().toImmutableList())
 
     val unpinned = assets.map { items ->
-        items.filter { !it.pinned || !it.balanceEnabled }.toImmutableList()
+        items.filter { !it.pinned }.toImmutableList()
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>().toImmutableList())
