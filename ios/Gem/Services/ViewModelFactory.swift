@@ -21,6 +21,7 @@ import protocol Gemstone.GemStakeServiceProtocol
 import protocol Gemstone.GemSwapServiceProtocol
 import class Gemstone.GemConfirmService
 import class Gemstone.GemApplicationMetadataService
+import class Gemstone.GemChainService
 import class Gemstone.GemDeeplinkService
 import class Gemstone.GemAssetConfigService
 import class Gemstone.GemSwapQuoteService
@@ -70,6 +71,7 @@ public struct ViewModelFactory: Sendable {
     let paymentService: GemPaymentService
     let applicationMetadataService: GemApplicationMetadataService
     let deeplinkService: GemDeeplinkService
+    let chainService: GemChainService
     let simulationFormatter: GemSimulationFormatter
     let assetConfig: GemAssetConfigService
 
@@ -89,6 +91,7 @@ public struct ViewModelFactory: Sendable {
             recentAssetsService: recentAssetsService,
             preferencesService: preferencesService,
             assetConfig: assetConfig,
+            chainService: chainService,
             selectAssetAction: selectAssetAction,
             chains: chains,
         )

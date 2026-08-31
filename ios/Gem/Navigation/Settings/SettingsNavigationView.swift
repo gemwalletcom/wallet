@@ -220,7 +220,7 @@ struct SettingsNavigationView: View {
         }
         .navigationDestination(for: Scenes.Contacts.self) { _ in
             ContactsNavigationView(
-                model: ContactsViewModel(service: contactService, nameService: nameService, addressService: addressService),
+                model: ContactsViewModel(service: contactService, nameService: nameService, addressService: addressService, chainService: chainService),
             )
         }
         .sheet(isPresented: $isPresentingSupport) {

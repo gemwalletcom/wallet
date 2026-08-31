@@ -56,6 +56,14 @@ pub fn metadata_asset_ids(asset_id: &AssetId, fee_asset_id: &AssetId, extra_asse
     asset_ids
 }
 
+pub fn selectable_fee_assets(balances: Vec<GemAssetBalance>) -> Vec<AssetId> {
+    balances
+        .into_iter()
+        .filter(|balance| balance.available > num_bigint::BigUint::from(0u32))
+        .map(|balance| balance.asset_id)
+        .collect()
+}
+
 pub fn build_metadata(asset_id: AssetId, fee_asset_id: AssetId, balances: Vec<GemAssetBalance>, prices: Vec<GemAssetPrice>) -> Result<GemConfirmMetadata, GemConfirmError> {
     Ok(GemConfirmMetadata {
         asset_balance: asset_balance(&balances, &asset_id)?,
@@ -714,6 +722,16 @@ mod tests {
             Err(GemConfirmError::ScanMemoRequired { symbol }) => assert_eq!(symbol, "USDT"),
             result => panic!("expected a required memo, got {result:?}"),
         }
+    }
+
+    #[test]
+    fn test_a_fee_asset_with_no_available_balance_is_not_selectable() {
+        let funded = AssetId::from_chain(Chain::Tempo);
+        let empty = AssetId::from_chain(Chain::Ethereum);
+
+        let selectable = selectable_fee_assets(vec![balance(&funded, 1), balance(&empty, 0)]);
+
+        assert_eq!(selectable, vec![funded]);
     }
 
     fn balance(asset_id: &AssetId, available: u32) -> GemAssetBalance {

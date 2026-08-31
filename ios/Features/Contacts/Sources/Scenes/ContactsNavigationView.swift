@@ -42,6 +42,7 @@ public struct ContactsNavigationView: View {
                 service: model.service,
                 nameService: model.nameService,
                 addressService: model.addressService,
+                chainService: model.chainService,
                 mode: mode,
             ),
         )

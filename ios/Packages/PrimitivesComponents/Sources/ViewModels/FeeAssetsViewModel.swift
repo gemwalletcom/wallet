@@ -12,8 +12,8 @@ struct FeeAssetsViewModel: SelectableListAdoptable {
 
     init(
         state: StateViewType<SelectableListType<FeeAssetItem>>,
-        selectedItems: [FeeAssetItem],
-        selectionType: SelectionType,
+        selectedItems: [FeeAssetItem] = [],
+        selectionType: SelectionType = .navigationLink,
     ) {
         self.state = state
         self.selectedItems = Set(selectedItems)

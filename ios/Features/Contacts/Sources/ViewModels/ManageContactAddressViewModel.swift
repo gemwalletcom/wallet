@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemChainServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import Components
 import Foundation
@@ -42,6 +43,7 @@ public final class ManageContactAddressViewModel {
     }
 
     private let mode: Mode
+    let chainService: any GemChainServiceProtocol
     private let onComplete: (Input) -> Void
 
     var addressInputModel: AddressInputViewModel
@@ -53,9 +55,11 @@ public final class ManageContactAddressViewModel {
         nameService: any GemNameServiceProtocol,
         mode: Mode,
         addressService: GemAddressService,
+        chainService: any GemChainServiceProtocol,
         onComplete: @escaping (Input) -> Void,
     ) {
         self.mode = mode
+        self.chainService = chainService
         self.onComplete = onComplete
         title = Localized.Common.address
 
@@ -100,6 +104,7 @@ public final class ManageContactAddressViewModel {
             state: .data(.plain(Chain.allCases)),
             selectedItems: [chain],
             selectionType: .checkmark,
+            chainService: chainService,
         )
     }
 

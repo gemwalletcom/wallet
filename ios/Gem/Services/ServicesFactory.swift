@@ -381,6 +381,7 @@ struct ServicesFactory {
             paymentService: paymentService,
             applicationMetadataService: Gemstone.GemApplicationMetadataService(),
             deeplinkService: Gemstone.GemDeeplinkService(),
+            chainService: Gemstone.GemChainService(),
             simulationFormatter: Gemstone.GemSimulationFormatter(),
             assetConfig: Gemstone.GemAssetConfigService(),
         )

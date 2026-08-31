@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemChainService
 import class Gemstone.GemAssetConfigService
 import protocol Gemstone.GemBalanceServiceProtocol
 import GemstoneServicesTestKit
@@ -30,6 +31,7 @@ public extension SelectAssetViewModel {
             recentAssetsService: RecentAssetsService(store: .mock()),
             preferencesService: GemPreferencesServiceMock(),
             assetConfig: GemAssetConfigService(),
+            chainService: GemChainService(),
         )
         model.assetsQuery.value = assets
         model.state = state

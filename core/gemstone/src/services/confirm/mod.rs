@@ -12,6 +12,7 @@ pub use rules::acquire_asset_flow;
 pub use signer::GemTransactionSigner;
 
 use crate::gateway::GemGateway;
+use crate::models::asset::chain_fee_asset_ids;
 use crate::models::gateway::GemTransactionPreloadInput;
 use crate::models::transaction::{GemSignedTransaction, GemTransactionInputType, GemTransactionLoadInput};
 use crate::services::GemScanService;
@@ -62,6 +63,18 @@ impl GemConfirmService {
             .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
         let prices = self.price.prices(asset_ids).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
         rules::build_metadata(asset_id, fee_asset_id, balances, prices)
+    }
+
+    pub fn fee_assets(&self, wallet_id: WalletId, chain: Chain) -> Result<Vec<AssetId>, GemConfirmError> {
+        let fee_asset_ids = chain_fee_asset_ids(chain);
+        if fee_asset_ids.is_empty() {
+            return Ok(Vec::new());
+        }
+        let balances = self
+            .balance
+            .balances(wallet_id, fee_asset_ids)
+            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        Ok(rules::selectable_fee_assets(balances))
     }
 
     pub async fn execute(&self, input: GemSendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {

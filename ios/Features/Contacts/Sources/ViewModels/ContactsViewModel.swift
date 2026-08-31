@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemChainServiceProtocol
 import protocol Gemstone.GemContactServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import Components
@@ -23,6 +24,7 @@ public final class ContactsViewModel {
     let service: any GemContactServiceProtocol
     let nameService: any GemNameServiceProtocol
     let addressService: GemAddressService
+    let chainService: any GemChainServiceProtocol
     let mode: Mode
 
     public let query: ObservableQuery<ContactsRequest>
@@ -36,11 +38,13 @@ public final class ContactsViewModel {
         service: any GemContactServiceProtocol,
         nameService: any GemNameServiceProtocol,
         addressService: GemAddressService,
+        chainService: any GemChainServiceProtocol,
         mode: Mode = .list,
     ) {
         self.service = service
         self.nameService = nameService
         self.addressService = addressService
+        self.chainService = chainService
         self.mode = mode
         query = ObservableQuery(ContactsRequest(), initialValue: [])
     }

@@ -17,13 +17,15 @@ public struct NetworkSelectorViewModel: SelectableSheetViewable {
 
     public var selectedItems: Set<Chain>
 
-    private let chainService: any GemChainServiceProtocol = GemChainService()
+    private let chainService: any GemChainServiceProtocol
 
     public init(
         state: StateViewType<SelectableListType<Chain>>,
-        selectedItems: [Chain],
-        selectionType: SelectionType,
+        selectedItems: [Chain] = [],
+        selectionType: SelectionType = .navigationLink,
+        chainService: any GemChainServiceProtocol,
     ) {
+        self.chainService = chainService
         self.selectionType = selectionType
         self.state = state
         self.selectedItems = Set(selectedItems)

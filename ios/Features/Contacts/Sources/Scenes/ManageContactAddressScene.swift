@@ -50,6 +50,7 @@ public struct ManageContactAddressScene: View {
         .navigationDestination(for: Scenes.NetworksSelector.self) { _ in
             ChainSelectorView(
                 chain: model.chain,
+                chainService: model.chainService,
                 onSelectChain: model.onSelectChain,
             )
         }

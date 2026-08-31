@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemChainService
 import Components
 import Primitives
 import PrimitivesComponents
@@ -10,6 +11,7 @@ struct NetworkSelectorViewModelTests {
         state: .data(.plain([.bitcoin, .ethereum])),
         selectedItems: [],
         selectionType: .checkmark,
+        chainService: GemChainService(),
     )
 
     @Test

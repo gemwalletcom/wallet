@@ -71,6 +71,7 @@ public struct ManageContactScene: View {
                 nameService: model.nameService,
                 mode: mode,
                 addressService: model.addressService,
+                chainService: model.chainService,
                 onComplete: model.onAddressComplete,
             ),
         )

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemChainServiceProtocol
 import protocol Gemstone.GemContactServiceProtocol
 import enum Gemstone.GemContactAvatar
 import protocol Gemstone.GemNameServiceProtocol
@@ -47,6 +48,7 @@ public final class ManageContactViewModel {
     let contactId: String
     let nameService: any GemNameServiceProtocol
     let addressService: GemAddressService
+    let chainService: any GemChainServiceProtocol
 
     var nameInputModel: InputValidationViewModel
     var description: String = ""
@@ -61,11 +63,13 @@ public final class ManageContactViewModel {
         service: any GemContactServiceProtocol,
         nameService: any GemNameServiceProtocol,
         addressService: GemAddressService,
+        chainService: any GemChainServiceProtocol,
         mode: Mode,
     ) {
         self.service = service
         self.nameService = nameService
         self.addressService = addressService
+        self.chainService = chainService
         self.mode = mode
 
         nameInputModel = InputValidationViewModel(
