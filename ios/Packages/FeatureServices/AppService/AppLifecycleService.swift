@@ -125,16 +125,7 @@ extension AppLifecycleService {
             await streamObserverService.disconnect()
             return
         }
-        let isRegistered: Bool
-        do {
-            isRegistered = try await deviceObserverService.isRegistered()
-        } catch {
-            debugLog("device registration read failed: \(error)")
-            isRegistered = false
-        }
-        if !isRegistered {
-            await registerDevice()
-        }
+        await registerDevice()
         await streamObserverService.connect()
     }
 

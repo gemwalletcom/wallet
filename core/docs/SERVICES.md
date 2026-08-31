@@ -329,7 +329,6 @@ Found by reading both platforms side by side. Ranked within each group by value:
 | T6 | Pending-transaction tracking | started twice, never stopped | `TransactionStateTracker.kt:27-33` start/stop on process lifecycle | iOS keeps polling while backgrounded. |
 | T7 | Live price subscription | `PriceUpdater.swift` called from the asset screen **and both swap legs** | `SyncAssetInfoImpl.kt:35` only | Swap-screen fiat values only move on Android if something else subscribed the asset. Core should decide when prices are subscribed; then `PriceUpdater.swift` goes. |
 | T8 | Perpetual connect gate | Core `shouldConnectPerpetuals` / `syncEnablement` | `ObservePerpetualWallet.kt:18-23` re-implements it over Android's own `UserConfig` | Android never gets `clear_markets`/`sync_markets_if_stale` from the connect path. |
-| T11 | Stream registration gate | reads `isRegistered()`, syncs only if unregistered | syncs unconditionally on every foreground | Same intent, two preconditions. |
 | T12 | App-start ordering | `OnstartService` + `RootSceneViewModel`, device sync raced, wallet setup gated on unlock | `SyncService.kt:16-24` sequential, no unlock gate | `GemAppStartService.run()` covers only config/banners/assets; everything else is bolted on per platform in a different order. |
 
 Found while landing the batches above, not yet fixed:
