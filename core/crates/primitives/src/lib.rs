@@ -152,6 +152,8 @@ pub mod job_configuration;
 pub use self::job_configuration::JobConfiguration;
 pub mod username_status;
 pub use self::username_status::UsernameStatus;
+pub mod qr_scan_type;
+pub use self::qr_scan_type::QRScanType;
 pub mod recent_activity_type;
 pub use self::recent_activity_type::RecentActivityType;
 pub mod transaction_direction;

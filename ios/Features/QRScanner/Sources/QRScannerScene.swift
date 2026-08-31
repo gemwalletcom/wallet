@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Primitives
 import PhotosUI
 import SwiftUI
 
@@ -12,9 +13,9 @@ public struct QRScannerScene: View {
 
     private let action: (String) -> Void
 
-    public init(resources: QRScannerResources, action: @escaping (String) -> Void) {
+    public init(resources: QRScannerResources, scanType: QRScanType, action: @escaping (String) -> Void) {
         self.action = action
-        _model = State(initialValue: QRScannerSceneViewModel(scannerState: .idle, imageState: .empty, resources: resources))
+        _model = State(initialValue: QRScannerSceneViewModel(scannerState: .idle, imageState: .empty, resources: resources, scanType: scanType))
     }
 
     public var body: some View {
@@ -23,6 +24,7 @@ public struct QRScannerScene: View {
             case .idle, .scanning:
                 QRScannerDisplayView(
                     configuration: model.overlayConfig,
+                    hint: model.hint,
                     isScannerReady: $model.isScannerReady,
                     scanResult: onHandleScanResult,
                 )

@@ -75,6 +75,8 @@
   <string name="wallet_manage_token_list">Керування токенами</string>
   <string name="wallet_scan_qr_code">Сканувати QR-код</string>
   <string name="wallet_scan">Сканувати</string>
+  <string name="wallet_scan_hint">Надішліть, оплатіть або підключіться до DApp</string>
+  <string name="wallet_scan_hint_address">Адреса гаманця</string>
   <string name="wallet_default_name">Гаманець № %1$d</string>
   <string name="wallet_default_name_chain">%1$s Гаманець № %2$d</string>
   <string name="wallet_copy_address">Копіювати адресу</string>

@@ -70,6 +70,8 @@
 "wallet.manage_token_list" = "ٹوکنز کا نظم کریں۔";
 "wallet.scan_qr_code" = "کیو آر کوڈ اسکین کریں۔";
 "wallet.scan" = "اسکین کریں۔";
+"wallet.scan_hint" = "بھیجیں، ادائیگی کریں یا DApp سے منسلک ہوں";
+"wallet.scan_hint_address" = "والیٹ کا پتہ";
 "wallet.default_name" = "والیٹ #%d";
 "wallet.default_name_chain" = "%@ والیٹ #%d";
 "wallet.copy_address" = "ایڈریس کاپی کریں۔";

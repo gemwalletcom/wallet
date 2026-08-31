@@ -70,6 +70,8 @@
 "wallet.manage_token_list" = "Управление токенами";
 "wallet.scan_qr_code" = "Сканировать QR-код";
 "wallet.scan" = "Сканировать";
+"wallet.scan_hint" = "Отправьте, оплатите или подключитесь к DApp";
+"wallet.scan_hint_address" = "Адрес кошелька";
 "wallet.default_name" = "Кошелек № %d";
 "wallet.default_name_chain" = "%@ Кошелек № %d";
 "wallet.copy_address" = "Копировать адрес";

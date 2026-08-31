@@ -70,6 +70,8 @@
 "wallet.manage_token_list" = "Zarządzaj tokenami";
 "wallet.scan_qr_code" = "Zeskanuj kod QR";
 "wallet.scan" = "Skanowanie";
+"wallet.scan_hint" = "Wyślij, zapłać lub połącz z DApp";
+"wallet.scan_hint_address" = "Adres portfela";
 "wallet.default_name" = "Portfel #%d";
 "wallet.default_name_chain" = "%@ Portfel #%d";
 "wallet.copy_address" = "Skopiuj adres";

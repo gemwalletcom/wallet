@@ -70,6 +70,8 @@
 "wallet.manage_token_list" = "토큰 관리";
 "wallet.scan_qr_code" = "QR 코드 스캔";
 "wallet.scan" = "스캔";
+"wallet.scan_hint" = "전송, 결제 또는 DApp 연결";
+"wallet.scan_hint_address" = "지갑 주소";
 "wallet.default_name" = "지갑 #%d";
 "wallet.default_name_chain" = "%@ 지갑 #%d";
 "wallet.copy_address" = "주소 복사";

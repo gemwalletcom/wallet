@@ -70,6 +70,8 @@
 "wallet.manage_token_list" = "Kelola Token";
 "wallet.scan_qr_code" = "Pindai Kode QR";
 "wallet.scan" = "Pindai";
+"wallet.scan_hint" = "Kirim, bayar, atau hubungkan ke DApp";
+"wallet.scan_hint_address" = "Alamat dompet";
 "wallet.default_name" = "Dompet %d";
 "wallet.default_name_chain" = "Dompet %@ #%d";
 "wallet.copy_address" = "Salin Alamat";

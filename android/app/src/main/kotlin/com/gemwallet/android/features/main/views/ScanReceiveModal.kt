@@ -22,6 +22,7 @@ import com.gemwallet.android.ui.components.QrCodeRequest
 import com.gemwallet.android.ui.components.ScanReceiveMode
 import com.gemwallet.android.ui.components.ScanReceiveSwitcher
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.wallet.core.primitives.QRScanType
 
 private const val RECEIVE_SHEET_HEIGHT = 0.93f
 
@@ -52,6 +53,7 @@ fun ScanReceiveModal(
         Box(modifier = Modifier.fillMaxSize()) {
             when (mode) {
                 ScanReceiveMode.Scan -> QrCodeRequest(
+                    scanType = QRScanType.Universal,
                     onCancel = onDismissRequest,
                     titleContent = { ScanReceiveSwitcher(mode = mode, onModeChange = { mode = it }) },
                     onResult = onScan,

@@ -26,6 +26,7 @@ import com.gemwallet.android.features.settings.networks.viewmodels.AddNodeViewMo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.QrCodeScannerModal
+import com.wallet.core.primitives.QRScanType
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.fields.TransferTextFieldActions
@@ -127,6 +128,7 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
 
     QrCodeScannerModal(
         isVisible = isShowQRScan,
+        scanType = QRScanType.Url,
         onDismissRequest = { isShowQRScan = false },
         onResult = {
             isShowQRScan = false

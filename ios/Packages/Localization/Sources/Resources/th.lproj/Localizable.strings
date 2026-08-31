@@ -70,6 +70,8 @@
 "wallet.manage_token_list" = "จัดการโทเค็น";
 "wallet.scan_qr_code" = "สแกนรหัส QR";
 "wallet.scan" = "สแกน";
+"wallet.scan_hint" = "ส่ง จ่าย หรือเชื่อมต่อกับ DApp";
+"wallet.scan_hint_address" = "ที่อยู่กระเป๋าเงิน";
 "wallet.default_name" = "กระเป๋าเงิน #%d";
 "wallet.default_name_chain" = "%@ กระเป๋าเงิน #%d";
 "wallet.copy_address" = "คัดลอกที่อยู่";
