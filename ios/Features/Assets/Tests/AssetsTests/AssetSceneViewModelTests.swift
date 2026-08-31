@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import Assets
+import class Gemstone.GemDeeplinkService
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitivesTestKit
@@ -129,6 +130,7 @@ extension AssetSceneViewModel {
             stakeService: stakeService,
             explorerService: GemExplorerServiceMock(),
             transactionFormatter: GemTransactionFormatter(),
+            deeplinkService: GemDeeplinkService(),
             preferences: .mock(),
             input: AssetSceneInput(
                 wallet: .mock(),

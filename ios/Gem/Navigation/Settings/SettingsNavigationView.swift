@@ -20,6 +20,7 @@ struct SettingsNavigationView: View {
     @Environment(\.navigationState) private var navigationState
     @Environment(\.addressService) private var addressService
     @Environment(\.applicationMetadataService) private var applicationMetadataService
+    @Environment(\.deeplinkService) private var deeplinkService
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.transactionsService) private var transactionsService
     @Environment(\.assetStore) private var assetStore
@@ -166,6 +167,7 @@ struct SettingsNavigationView: View {
                 walletPreferencesService: walletPreferencesService,
                 preferencesService: preferencesService,
                 deviceKeyService: deviceKeyService,
+                deeplinkService: deeplinkService,
             ))
         }
         .navigationDestination(for: Scenes.DeveloperPayments.self) { _ in

@@ -380,6 +380,7 @@ struct ServicesFactory {
             addressService: Gemstone.GemAddressService(),
             paymentService: paymentService,
             applicationMetadataService: Gemstone.GemApplicationMetadataService(),
+            deeplinkService: Gemstone.GemDeeplinkService(),
             simulationFormatter: Gemstone.GemSimulationFormatter(),
             assetConfig: Gemstone.GemAssetConfigService(),
         )
@@ -494,6 +495,7 @@ extension ServicesFactory {
                 signer: interactor,
                 session: gemWalletSessionService,
             ),
+            chainService: Gemstone.GemChainService(),
         )
     }
 

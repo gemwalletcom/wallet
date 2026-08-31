@@ -21,6 +21,7 @@ import WalletTab
 struct WalletNavigationView: View {
     @Environment(\.explorerService) private var explorerService
     @Environment(\.feeService) private var feeService
+    @Environment(\.deeplinkService) private var deeplinkService
     @Environment(\.transactionFormatter) private var transactionFormatter
     @Environment(\.balanceService) private var balanceService
     @Environment(\.navigationHandler) private var navigationHandler
@@ -113,6 +114,7 @@ struct WalletNavigationView: View {
                     stakeService: stakeService,
                     explorerService: explorerService,
                     transactionFormatter: transactionFormatter,
+                    deeplinkService: deeplinkService,
                     preferences: preferences,
                     input: AssetSceneInput(
                         wallet: model.wallet,

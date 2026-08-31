@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemDeeplinkService
 import class Gemstone.GemDeviceKeyService
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
@@ -27,6 +28,7 @@ public final class DeveloperViewModel {
     private let bannerStore: BannerStore
     private let priceStore: PriceStore
     private let perpetualService: any GemPerpetualServiceProtocol
+    private let deeplinkService: GemDeeplinkService
     private let preferencesService: any GemPreferencesServiceProtocol
     private let deviceKeyService: GemDeviceKeyService
 
@@ -43,8 +45,10 @@ public final class DeveloperViewModel {
         walletPreferencesService: any GemWalletPreferencesServiceProtocol,
         preferencesService: any GemPreferencesServiceProtocol,
         deviceKeyService: GemDeviceKeyService,
+        deeplinkService: GemDeeplinkService,
     ) {
         self.walletId = walletId
+        self.deeplinkService = deeplinkService
         self.walletPreferencesService = walletPreferencesService
         self.transactionStore = transactionStore
         self.assetStore = assetStore
@@ -297,7 +301,7 @@ public final class DeveloperViewModel {
 
     func deeplink(deeplink: DeepLink) {
         Task { @MainActor in
-            await UIApplication.shared.open(deeplink.gemUrl, options: [:])
+            await UIApplication.shared.open(deeplink.gemUrl(deeplinkService: deeplinkService), options: [:])
         }
     }
 }

@@ -21,6 +21,7 @@ import protocol Gemstone.GemStakeServiceProtocol
 import protocol Gemstone.GemSwapServiceProtocol
 import class Gemstone.GemConfirmService
 import class Gemstone.GemApplicationMetadataService
+import class Gemstone.GemDeeplinkService
 import class Gemstone.GemAssetConfigService
 import class Gemstone.GemSwapQuoteService
 import class Gemstone.GemSimulationFormatter
@@ -68,6 +69,7 @@ public struct ViewModelFactory: Sendable {
     let addressService: GemAddressService
     let paymentService: GemPaymentService
     let applicationMetadataService: GemApplicationMetadataService
+    let deeplinkService: GemDeeplinkService
     let simulationFormatter: GemSimulationFormatter
     let assetConfig: GemAssetConfigService
 

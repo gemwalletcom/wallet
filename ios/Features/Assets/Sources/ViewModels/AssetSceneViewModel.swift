@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemDeeplinkService
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import BigInt
 import Components
@@ -30,6 +31,7 @@ import UIKit
 public final class AssetSceneViewModel: Sendable {
     private let balanceService: any GemBalanceServiceProtocol
     private let assetsService: any GemAssetsServiceProtocol
+    private let deeplinkService: GemDeeplinkService
     private let transactionsService: any GemTransactionsServiceProtocol
     private let priceUpdater: any PriceUpdater
     private let bannerService: any GemBannerServiceProtocol
@@ -64,12 +66,14 @@ public final class AssetSceneViewModel: Sendable {
         stakeService: any GemStakeServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
         transactionFormatter: GemTransactionFormatter,
+        deeplinkService: GemDeeplinkService,
         preferences: ObservablePreferences,
         input: AssetSceneInput,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
         self.balanceService = balanceService
         self.assetsService = assetsService
+        self.deeplinkService = deeplinkService
         self.transactionsService = transactionsService
         self.priceUpdater = priceUpdater
         self.priceAlertService = priceAlertService
@@ -283,7 +287,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     public var shareAssetUrl: URL {
-        DeepLink.asset(assetDataModel.asset.id).url
+        DeepLink.asset(assetDataModel.asset.id).url(deeplinkService: deeplinkService)
     }
 
     public var assetModel: AssetViewModel {
@@ -436,7 +440,7 @@ public extension AssetSceneViewModel {
                 }
             case .suspiciousAsset: break
             case .tradePerpetuals:
-                UIApplication.shared.open(DeepLink.perpetuals.gemUrl)
+                UIApplication.shared.open(DeepLink.perpetuals.gemUrl(deeplinkService: deeplinkService))
                 preferences.isPerpetualEnabled = true
             }
         case let .button(bannerButton):
