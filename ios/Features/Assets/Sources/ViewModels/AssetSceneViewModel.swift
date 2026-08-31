@@ -154,7 +154,7 @@ public final class AssetSceneViewModel: Sendable {
                 return .asset(asset.chain.asset)
             }
         }
-        if AssetConfiguration.supportedChainsWithTokens.contains(asset.chain) {
+        if asset.chain.isTokenSupported {
             return .assets(asset.chain)
         }
         return nil

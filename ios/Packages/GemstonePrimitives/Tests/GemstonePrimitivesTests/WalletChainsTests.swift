@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -24,12 +25,20 @@ final class WalletChainsTests {
         let wallet = Wallet.mock(accounts: [
             .mock(chain: .bitcoin),
             .mock(chain: .doge),
+            .mock(chain: .near),
+            .mock(chain: .xrp),
             .mock(chain: .ethereum),
         ])
 
         let result = wallet.chainsWithTokens
-        let expectedChains: [Chain] = [.ethereum]
+        let expectedChains: [Chain] = [.ethereum, .xrp, .near]
         #expect(result == expectedChains)
+    }
+
+    @Test
+    func hasTokenSupport() {
+        #expect(Wallet.mock(accounts: [.mock(chain: .bitcoin), .mock(chain: .doge)]).hasTokenSupport == false)
+        #expect(Wallet.mock(accounts: [.mock(chain: .bitcoin), .mock(chain: .stellar)]).hasTokenSupport == true)
     }
 
     @Test
