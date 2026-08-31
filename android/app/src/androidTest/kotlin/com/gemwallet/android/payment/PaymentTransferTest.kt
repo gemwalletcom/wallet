@@ -48,7 +48,7 @@ class PaymentTransferTest {
         requireNotNull(paymentService.decodePayment(url)?.request) { "not a payment request: $url" }
 
     private fun destination(assetInfo: AssetInfo, url: String): PaymentDestination.Transfer =
-        PaymentDestination.transfer(decode(url), assetInfo)
+        PaymentDestination.transfer(decode(url), assetInfo, paymentService)
 
     @Test
     fun destination_confirm() {
@@ -108,15 +108,15 @@ class PaymentTransferTest {
 
         assertEquals(
             PaymentDestination.SelectAsset(decode(EVM_ADDRESS), listOf(Chain.Ethereum, Chain.SmartChain)),
-            PaymentDestination.from(decode(EVM_ADDRESS), assets),
+            PaymentDestination.from(decode(EVM_ADDRESS), assets, paymentService),
         )
 
-        val confirm = PaymentDestination.from(decode("bitcoin:$BITCOIN_ADDRESS?amount=0.0001"), assets)
+        val confirm = PaymentDestination.from(decode("bitcoin:$BITCOIN_ADDRESS?amount=0.0001"), assets, paymentService)
         assertTrue("one payable asset must go straight to confirm, got $confirm", confirm is PaymentDestination.Confirm)
 
         assertEquals(
             PaymentDestination.Unsupported,
-            PaymentDestination.from(decode("ripple:$RIPPLE_ADDRESS"), assets),
+            PaymentDestination.from(decode("ripple:$RIPPLE_ADDRESS"), assets, paymentService),
         )
     }
 }

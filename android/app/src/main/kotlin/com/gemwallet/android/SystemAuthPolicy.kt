@@ -13,8 +13,6 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 
 internal object SystemAuthPolicy {
-    private val securityService = GemSecurityService()
-
     val authRequestTimeout = 5.minutes
     val authRequestRestartDelay = 500.milliseconds
 
@@ -24,7 +22,7 @@ internal object SystemAuthPolicy {
         BIOMETRIC_WEAK or DEVICE_CREDENTIAL
     }
 
-    fun initialRetryDelay(errorCode: Int): Duration? =
+    fun initialRetryDelay(errorCode: Int, securityService: GemSecurityService): Duration? =
         securityService.authRetryDelayMilliseconds(promptOutcome(errorCode))?.toLong()?.milliseconds
 
     private fun promptOutcome(errorCode: Int): GemAuthPromptOutcome = when (errorCode) {

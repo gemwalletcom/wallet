@@ -37,7 +37,7 @@ class PaymentNavigation @Inject constructor(
     }
 
     private suspend fun requestRoutes(request: PaymentRequest): List<NavKey> =
-        when (val destination = PaymentDestination.from(request, getSelectAssetsInfo().first())) {
+        when (val destination = PaymentDestination.from(request, getSelectAssetsInfo().first(), paymentService)) {
             PaymentDestination.Unsupported -> emptyList()
             is PaymentDestination.Confirm -> listOfNotNull(destination.params.pack(transferService)?.let(::ConfirmRoute))
             is PaymentDestination.Recipient -> listOf(

@@ -241,7 +241,7 @@ class RecipientViewModel @Inject constructor(
 
         return when (type) {
             is RecipientType.Nft -> PaymentDestination.Recipient(type.assetInfo.asset.id, request.copy(amount = null))
-            is RecipientType.Asset -> PaymentDestination.transfer(request, type.assetInfo)
+            is RecipientType.Asset -> PaymentDestination.transfer(request, type.assetInfo, paymentService)
         }
     }
 
