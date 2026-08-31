@@ -128,8 +128,8 @@ class PaymentNavigationTest {
         val paymentLinkService = mockk<GemPaymentLinkServiceInterface>()
         val account = requireNotNull(assetInfo.owner)
         mockkStatic("com.gemwallet.android.ext.ChainKt")
-        every { account.chain.checksumAddress(any()) } answers { secondArg() }
-        every { account.chain.isValidAddress(any()) } returns true
+        every { account.chain.checksumAddress(any(), any()) } answers { secondArg() }
+        every { account.chain.isValidAddress(any(), any()) } returns true
         every { account.chain.isMemoSupport() } returns true
         every { account.chain.asset() } returns mockAssetSolana()
         every { getSelectAssetsInfo() } returns flowOf(listOf(assetInfo))

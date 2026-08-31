@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.recipient.viewmodel
 
+import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemRecipient
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -79,6 +80,7 @@ class RecipientViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val recipientService: GemRecipientService,
     private val paymentService: GemPaymentService,
+    private val addressService: GemAddressService,
 ) : ViewModel() {
 
     private val addressInput = AddressInputModel(
@@ -244,7 +246,7 @@ class RecipientViewModel @Inject constructor(
     }
 
     private fun updateFrom(request: PaymentRequest) {
-        addressInput.applyExternalAddress(assetId.chain.checksumAddress(request.address))
+        addressInput.applyExternalAddress(assetId.chain.checksumAddress(request.address, addressService))
         request.memo?.let { _memo.value = it }
         references = request.references.orEmpty()
         requestedAmount = request.exactAmount

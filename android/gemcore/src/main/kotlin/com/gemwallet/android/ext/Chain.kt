@@ -15,8 +15,6 @@ import uniffi.gemstone.GemAssetConfigService
 
 private val assetConfig = GemAssetConfigService()
 
-private val addressService = GemAddressService()
-
 private val chainAssetCache: Map<Chain, ChainAsset> by lazy {
     Chain.entries.associateWith { chain ->
         assetConfig.chainAsset(chain.string).decodeJson()
@@ -72,9 +70,11 @@ fun Chain.feeUnitType() = FeeUnitType.entries.firstOrNull {
 
 fun Chain.isMemoSupport() = Config().getChainConfig(string).isMemoSupported
 
-fun Chain.isValidAddress(address: String): Boolean = addressService.validate(checksumAddress(address), string)
+fun Chain.isValidAddress(address: String, addressService: GemAddressService): Boolean =
+    addressService.validate(checksumAddress(address, addressService), string)
 
-fun Chain.checksumAddress(address: String): String = addressService.checksum(address = address, chain = string)
+fun Chain.checksumAddress(address: String, addressService: GemAddressService): String =
+    addressService.checksum(address = address, chain = string)
 
 fun Chain.isPrivateKeyImportSupported(): Boolean = supportsPrivateKeyImport(string)
 
