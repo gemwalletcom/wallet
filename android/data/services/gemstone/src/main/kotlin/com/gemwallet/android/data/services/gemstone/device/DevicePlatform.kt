@@ -9,23 +9,16 @@ import com.gemwallet.android.ext.model
 import com.gemwallet.android.ext.os
 import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.serializer.toJson
-import dagger.Lazy
 import com.wallet.core.primitives.Platform
 import com.wallet.core.primitives.PlatformStore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import uniffi.gemstone.GemDeviceInfo
 import uniffi.gemstone.GemDevicePlatform
 import uniffi.gemstone.GemDeviceKeyService
-import uniffi.gemstone.GemDeviceService
 import java.util.Locale
 import uniffi.gemstone.GemPreferencesService
 
 class GemstoneDevicePlatform(
     private val context: Context,
-    private val deviceService: Lazy<GemDeviceService>,
     private val getPushToken: GetPushToken,
     private val setPushToken: SetPushToken,
     private val requestPushToken: RequestPushToken,
@@ -34,7 +27,6 @@ class GemstoneDevicePlatform(
     private val versionName: String,
     private val deviceKeyService: GemDeviceKeyService,
     private val preferencesService: GemPreferencesService,
-    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : GemDevicePlatform {
 
     override suspend fun deviceId(): String = deviceKeyService.deviceId()
@@ -54,7 +46,6 @@ class GemstoneDevicePlatform(
             requestPushToken.requestToken { requested ->
                 if (requested.isNotEmpty()) {
                     setPushToken.setPushToken(requested)
-                    scope.launch { runCatching { deviceService.get().synchronizeIfNeeded() } }
                 }
             }
         }

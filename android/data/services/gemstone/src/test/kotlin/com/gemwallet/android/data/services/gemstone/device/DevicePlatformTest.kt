@@ -31,14 +31,8 @@ import uniffi.gemstone.GemPreferencesService
 class DevicePlatformTest {
 
     @Test
-    fun emptyRecoveredToken_doesNotSynchronizeAgain() = runTest {
-        val configStore = mockk<ConfigStore> {
-            every { getString("push_token", any()) } returns ""
-        }
-        val deviceService = mockk<GemDeviceService>(relaxed = true)
-        val lazyDeviceService = mockk<Lazy<GemDeviceService>> {
-            every { get() } returns deviceService
-        }
+    fun emptyRecoveredToken_isNotStored() = runTest {
+        val setPushToken = mockk<SetPushToken>(relaxed = true)
         val requestPushToken = mockk<RequestPushToken> {
             coEvery { requestToken(any()) } answers {
                 firstArg<(String) -> Unit>()("")
@@ -46,24 +40,21 @@ class DevicePlatformTest {
         }
         val subject = GemstoneDevicePlatform(
             context = mockk<Context>(relaxed = true),
-            deviceService = lazyDeviceService,
             getPushToken = mockk<GetPushToken> { coEvery { getPushToken() } returns "" },
-            setPushToken = mockk<SetPushToken>(relaxed = true),
+            setPushToken = setPushToken,
             requestPushToken = requestPushToken,
             platformStore = PlatformStore.GooglePlay,
             notificationsAvailable = true,
             versionName = "1.0",
             deviceKeyService = mockk<GemDeviceKeyService>(relaxed = true),
             preferencesService = mockk<GemPreferencesService>(relaxed = true),
-            scope = this,
         )
 
         assertEquals("", subject.pushToken())
         advanceUntilIdle()
 
         coVerify(exactly = 1) { requestPushToken.requestToken(any()) }
-        verify(exactly = 0) { configStore.putString(any(), any(), any()) }
-        coVerify(exactly = 0) { deviceService.synchronizeIfNeeded() }
+        verify(exactly = 0) { setPushToken.setPushToken(any()) }
     }
 
     @Test
@@ -87,9 +78,8 @@ class DevicePlatformTest {
         }
     }
 
-    private fun TestScope.platform(preferencesService: GemPreferencesService) = GemstoneDevicePlatform(
+    private fun platform(preferencesService: GemPreferencesService) = GemstoneDevicePlatform(
         context = mockk<Context>(relaxed = true),
-        deviceService = mockk<Lazy<GemDeviceService>>(relaxed = true),
         getPushToken = mockk<GetPushToken>(relaxed = true),
         setPushToken = mockk<SetPushToken>(relaxed = true),
         requestPushToken = mockk<RequestPushToken>(relaxed = true),
@@ -98,6 +88,5 @@ class DevicePlatformTest {
         versionName = "1.0",
         deviceKeyService = mockk<GemDeviceKeyService>(relaxed = true),
         preferencesService = preferencesService,
-        scope = this,
     )
 }

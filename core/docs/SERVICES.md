@@ -316,7 +316,6 @@ Found by reading both platforms side by side. Ranked within each group by value:
 | # | What | iOS | Android | The difference |
 |---|---|---|---|---|
 | N1 | Permission prompt | `NotificationPermissions.swift:13-15` + `PushNotificationService.swift:25-40` — granted → register, undetermined → prompt, denied → Settings | `NotificationPermissions.kt:12-22` — anything but "already enabled" jumps to system Settings; the runtime prompt lives in the UI gate instead | Partly fixed: Core refuses to enable when permission is refused, and the Android gate asks before acting instead of after, so a fresh install no longer gets Settings and the prompt at once. Still open: the adapter opens Settings for a user who has never been asked, because it holds an application Context and cannot tell that from a denial — it needs an activity-scoped requester, and Core should own the three-state decision rather than a single boolean. |
-| N5 | Lazy token recovery | none | `DevicePlatform.kt:109-119` re-requests a missing token from inside the trait call, then re-enters Core | Android self-heals a lost token, iOS registers with an empty one. Android's re-entry runs against Core's own `sync_lock`. |
 | N9 | Build capability flag | none | `NotificationsAvailable.kt` per flavour, consumed in about forty places | Core cannot reason about "this build can never have a token". The dead `RequestPushToken.initRequester` is gone. |
 
 #### Timers, reconnects and refresh cadence — all silently drifting

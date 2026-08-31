@@ -69,7 +69,6 @@ object DeviceModule {
     fun provideDevicePlatform(
         @ApplicationContext context: Context,
         buildInfo: BuildInfo,
-        deviceService: Lazy<GemDeviceService>,
         deviceKeyService: GemDeviceKeyService,
         preferencesService: GemPreferencesService,
         notificationsAvailable: NotificationsAvailable,
@@ -77,7 +76,6 @@ object DeviceModule {
     ): GemstoneDevicePlatform {
         return GemstoneDevicePlatform(
             context = context,
-            deviceService = deviceService,
             deviceKeyService = deviceKeyService,
             getPushToken = pushSettings,
             setPushToken = pushSettings,
