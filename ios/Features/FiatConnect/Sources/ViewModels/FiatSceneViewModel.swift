@@ -24,6 +24,10 @@ public final class FiatSceneViewModel {
     var quoteDebounce: Duration {
         .milliseconds(fiatService.quoteDebounceMilliseconds())
     }
+
+    var quoteRefreshInterval: TimeInterval {
+        TimeInterval(fiatService.quoteRefreshIntervalMilliseconds()) / 1000
+    }
     private let wallet: Wallet
     private let balanceService: any GemBalanceServiceProtocol
     private let assetAddress: AssetAddress

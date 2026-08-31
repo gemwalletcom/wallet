@@ -306,6 +306,8 @@ public final class GemFiatServiceMock: GemFiatServiceProtocol, @unchecked Sendab
 
     public func quoteDebounceMilliseconds() -> UInt64 { 250 }
 
+    public func quoteRefreshIntervalMilliseconds() -> UInt64 { 300_000 }
+
     public func syncTransactions(walletId _: String) async throws {}
 
     public func getQuotes(walletId _: String, quoteType _: Gemstone.FiatQuoteType, assetId _: String, amount _: Double, currency _: String) async throws -> [Gemstone.FiatQuote] {

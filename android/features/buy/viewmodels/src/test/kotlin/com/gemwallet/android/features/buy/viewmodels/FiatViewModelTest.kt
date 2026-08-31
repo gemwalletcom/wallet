@@ -62,6 +62,7 @@ class FiatViewModelTest {
     private val assetPriceUsdFlow = MutableStateFlow<Double?>(100.0)
     private val fiatService = mockk<GemFiatServiceInterface> {
         every { quoteDebounceMilliseconds() } returns 250uL
+        every { quoteRefreshIntervalMilliseconds() } returns 300_000uL
     }
 
     private val getAssetPriceUsd = object : GetAssetPriceUsd {

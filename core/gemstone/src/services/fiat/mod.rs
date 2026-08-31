@@ -12,6 +12,7 @@ use crate::services::assets::GemAssetsService;
 pub use store::GemFiatStore;
 
 const QUOTE_DEBOUNCE_MILLISECONDS: u64 = 250;
+const QUOTE_REFRESH_INTERVAL_MILLISECONDS: u64 = 5 * 60 * 1_000;
 
 #[derive(uniffi::Object)]
 pub struct GemFiatService {
@@ -29,6 +30,10 @@ impl GemFiatService {
 
     pub fn quote_debounce_milliseconds(&self) -> u64 {
         QUOTE_DEBOUNCE_MILLISECONDS
+    }
+
+    pub fn quote_refresh_interval_milliseconds(&self) -> u64 {
+        QUOTE_REFRESH_INTERVAL_MILLISECONDS
     }
 
     pub async fn sync_transactions(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {

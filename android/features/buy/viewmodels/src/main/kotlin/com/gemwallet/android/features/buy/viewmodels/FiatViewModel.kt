@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.buy.viewmodels
 
-import android.text.format.DateUtils
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import uniffi.gemstone.GemFiatServiceInterface
@@ -136,7 +135,7 @@ class FiatViewModel @Inject constructor(
         .flatMapLatest { operationFor(it).state }
         .stateIn(viewModelScope, SharingStarted.Eagerly, FiatSceneState.Ready)
 
-    private val ticker = tickerFlow(5 * DateUtils.MINUTE_IN_MILLIS) {}
+    private val ticker = tickerFlow(fiatService.quoteRefreshIntervalMilliseconds().toLong()) {}
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
     init {

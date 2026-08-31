@@ -37,7 +37,7 @@ public struct FiatScene: View {
         .debouncedTask(id: model.loadTrigger, interval: model.quoteDebounce) {
             await model.load()
         }
-        .onTimer(every: .minutes(5)) {
+        .onTimer(every: model.quoteRefreshInterval) {
             await model.load()
         }
         .alertSheet($model.isPresentingAlertMessage)
