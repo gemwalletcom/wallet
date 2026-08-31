@@ -4,6 +4,7 @@ import Store
 import GemstoneServices
 import Components
 import WalletConnectorService
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
@@ -37,7 +38,7 @@ final class NavigationHandler: Sendable {
     private let paymentService: GemPaymentService
     private let transactionStateService: any GemTransactionStateServiceProtocol
     private let walletConnectorPresenter: WalletConnectorPresenter
-    private let walletSessionService: any WalletSessionManageable
+    private let walletSessionService: any GemWalletSessionServiceProtocol
 
     init(
         navigationState: NavigationStateManager,
@@ -54,7 +55,7 @@ final class NavigationHandler: Sendable {
         paymentService: GemPaymentService,
         transactionStateService: any GemTransactionStateServiceProtocol,
         walletConnectorPresenter: WalletConnectorPresenter,
-        walletSessionService: any WalletSessionManageable,
+        walletSessionService: any GemWalletSessionServiceProtocol,
     ) {
         self.navigationState = navigationState
         self.presenter = presenter

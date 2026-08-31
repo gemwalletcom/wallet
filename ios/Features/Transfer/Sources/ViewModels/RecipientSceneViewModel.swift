@@ -3,6 +3,7 @@
 import protocol Gemstone.GemNameServiceProtocol
 import class Gemstone.GemRecipientService
 import Components
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import GemstonePrimitives
 import GemstoneServices
@@ -26,7 +27,7 @@ public final class RecipientSceneViewModel {
 
     public let onTransferAction: TransferDataAction
 
-    private let walletSessionService: any WalletSessionManageable
+    private let walletSessionService: any GemWalletSessionServiceProtocol
     private let addressService: any GemAddressServiceProtocol
     private let paymentService: GemPaymentService
     private let onRecipientDataAction: RecipientDataAction
@@ -47,7 +48,7 @@ public final class RecipientSceneViewModel {
     public init(
         wallet: Wallet,
         asset: Asset,
-        walletSessionService: any WalletSessionManageable,
+        walletSessionService: any GemWalletSessionServiceProtocol,
         nameService: any GemNameServiceProtocol,
         type: RecipientAssetType,
         assetImageFormatter: AssetImageFormatter = .shared,

@@ -5,21 +5,21 @@ import Foundation
 import struct Gemstone.GemWalletConnectRequest
 import protocol Gemstone.GemWalletConnectServiceProtocol
 import GemstonePrimitives
-import protocol GemstoneServices.WalletSessionManageable
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Primitives
 @preconcurrency import ReownWalletKit
 @preconcurrency import WalletConnectPairing
 
 public final class WalletConnectorService {
     private let interactor = WCConnectionsInteractor()
-    private let walletSessionService: any WalletSessionManageable
+    private let walletSessionService: any GemWalletSessionServiceProtocol
     private let walletConnectorInteractor: any WalletConnectorInteractable
     private let service: any GemWalletConnectServiceProtocol
     private let chainService: GemChainService
     private let setupState = SetupState()
 
     public init(
-        walletSessionService: any WalletSessionManageable,
+        walletSessionService: any GemWalletSessionServiceProtocol,
         interactor: any WalletConnectorInteractable,
         service: any GemWalletConnectServiceProtocol,
         chainService: GemChainService,

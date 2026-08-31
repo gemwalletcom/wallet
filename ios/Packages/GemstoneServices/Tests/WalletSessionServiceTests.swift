@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemWalletSessionService
+import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
 import Store
@@ -24,7 +26,7 @@ struct WalletSessionServiceTests {
         )
         try store.addWallet(first)
         try store.addWallet(second)
-        let service = WalletSessionService.mock(store: store)
+        let service = GemWalletSessionService.mock(store: store)
 
         try service.setCurrent(walletId: second.id)
 

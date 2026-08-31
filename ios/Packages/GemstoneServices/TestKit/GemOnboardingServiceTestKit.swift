@@ -67,9 +67,15 @@ public extension GemWalletService {
 
 public extension GemWalletSessionService {
     static func mock(
-        walletStore: WalletStore = .mock(),
+        store: WalletStore = .mock(),
         sessionStore: GemstoneWalletSessionStore = .mock(),
     ) -> GemWalletSessionService {
-        GemWalletSessionService(store: sessionStore, wallets: GemstoneWalletStore(store: walletStore))
+        GemWalletSessionService(store: sessionStore, wallets: GemstoneWalletStore(store: store))
+    }
+
+    static func mock(wallet: Wallet) throws -> GemWalletSessionService {
+        let store = WalletStore.mock(db: .mock())
+        try store.addWallet(wallet)
+        return GemWalletSessionService(store: GemstoneWalletSessionStore.mock(), wallets: GemstoneWalletStore(store: store))
     }
 }

@@ -60,9 +60,9 @@ public extension GemWalletSessionServiceProtocol {
         }
     }
 
-    func showsRewards() -> Bool {
+    var showsRewardsValue: Bool {
         do {
-            return try showsRewards() as Bool
+            return try showsRewards()
         } catch {
             debugLog("rewards availability unavailable: \(error)")
             return false

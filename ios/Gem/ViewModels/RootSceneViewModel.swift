@@ -8,6 +8,7 @@ import protocol Gemstone.GemAppStartServiceProtocol
 import AppService
 import GemstoneServices
 import Components
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import protocol Gemstone.GemDeviceServiceProtocol
 import Localization
@@ -34,7 +35,7 @@ final class RootSceneViewModel {
 
     let observablePreferences: ObservablePreferences
     private let onboardingService: any GemOnboardingServiceProtocol
-    let walletSessionService: any WalletSessionManageable
+    let walletSessionService: any GemWalletSessionServiceProtocol
     let walletConnectorPresenter: WalletConnectorPresenter
     let lockManager: any LockWindowManageable
 
@@ -80,7 +81,7 @@ final class RootSceneViewModel {
         navigationHandler: NavigationHandler,
         lockWindowManager: any LockWindowManageable,
         onboardingService: any GemOnboardingServiceProtocol,
-        walletSessionService: any WalletSessionManageable,
+        walletSessionService: any GemWalletSessionServiceProtocol,
         appUpdateService: any GemAppUpdateServiceProtocol,
         rateService: RateService,
         toastPresenter: ToastPresenter,

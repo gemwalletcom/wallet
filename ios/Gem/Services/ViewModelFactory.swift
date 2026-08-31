@@ -15,6 +15,7 @@ import class Gemstone.GemTransferService
 import protocol Gemstone.GemAddressServiceProtocol
 import Assets
 import FiatConnect
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import class Gemstone.GemExplorerService
 import protocol Gemstone.GemStakeServiceProtocol
@@ -63,7 +64,7 @@ public struct ViewModelFactory: Sendable {
     let swapService: any GemSwapServiceProtocol
     let swapQuoteService: GemSwapQuoteService
     let priceUpdater: any PriceUpdater
-    let walletSessionService: any WalletSessionManageable
+    let walletSessionService: any GemWalletSessionServiceProtocol
     let stakeService: any GemStakeServiceProtocol
     let explorerService: GemExplorerService
     let preferencesService: any GemPreferencesServiceProtocol

@@ -105,7 +105,6 @@ struct ServicesFactory {
             provider: NativeProvider(session: URLSession(configuration: serviceStatusConfiguration), url: Constants.apiURL),
         )
         let gemWalletSessionService = Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(store: preferencesStore), wallets: gemWalletStore)
-        let walletSessionService = WalletSessionService(service: gemWalletSessionService)
         let gemWalletService = Gemstone.GemWalletService(
             keystore: storages.keystore.gemKeystore,
             password: GemstoneKeystorePassword(keystore: storages.keystore),
@@ -223,7 +222,6 @@ struct ServicesFactory {
         let walletConnectorInteractor = WalletConnectorInteractor(presenter: walletConnectorPresenter)
         let walletConnector = Self.makeWalletConnector(
             connectionsStore: storeManager.connectionsStore,
-            walletSessionService: walletSessionService,
             interactor: walletConnectorInteractor,
             transactionSimulationService: transactionSimulationService,
             gemWalletSessionService: gemWalletSessionService,
@@ -304,7 +302,7 @@ struct ServicesFactory {
             paymentService: paymentService,
             transactionStateService: gemTransactionStateService,
             walletConnectorPresenter: walletConnectorPresenter,
-            walletSessionService: walletSessionService,
+            walletSessionService: gemWalletSessionService,
         )
         let searchService = Gemstone.GemSearchService(
             assets: gemAssetsService,
@@ -341,7 +339,7 @@ struct ServicesFactory {
             streamSubscriptionService: streamSubscriptionService,
             perpetualService: perpetualService,
             perpetualObserver: hyperliquidObserverService,
-            walletSessionService: walletSessionService,
+            walletSessionService: gemWalletSessionService,
             transactionStateService: gemTransactionStateService,
         )
 
@@ -364,7 +362,7 @@ struct ServicesFactory {
             swapService: swapService,
             swapQuoteService: Gemstone.GemSwapQuoteService(),
             priceUpdater: streamSubscriptionService,
-            walletSessionService: walletSessionService,
+            walletSessionService: gemWalletSessionService,
             stakeService: stakeService,
             explorerService: explorerService,
             preferencesService: preferencesService,
@@ -419,7 +417,7 @@ struct ServicesFactory {
             preferencesService: preferencesService,
             deviceKeyService: deviceKeyService,
             observablePreferences: observablePreferences,
-            walletSessionService: walletSessionService,
+            walletSessionService: gemWalletSessionService,
             assetDiscoveryService: assetDiscoveryService,
             gemAssetsService: gemAssetsService,
             explorerService: explorerService,
@@ -481,14 +479,13 @@ extension ServicesFactory {
 
     private static func makeWalletConnector(
         connectionsStore: ConnectionsStore,
-        walletSessionService: WalletSessionService,
         interactor: WalletConnectorInteractor,
         transactionSimulationService: TransactionSimulationService,
         gemWalletSessionService: GemWalletSessionService,
         chainService: Gemstone.GemChainService,
     ) -> WalletConnectorService {
         WalletConnectorService(
-            walletSessionService: walletSessionService,
+            walletSessionService: gemWalletSessionService,
             interactor: interactor,
             service: GemWalletConnectService(
                 simulation: transactionSimulationService,

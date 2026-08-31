@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import enum Gemstone.SocialUrl
 import GemstonePrimitives
@@ -16,12 +17,12 @@ import GemstoneServices
 @MainActor
 public final class SettingsViewModel {
     private let walletId: WalletId
-    private let walletSessionService: any WalletSessionManageable
+    private let walletSessionService: any GemWalletSessionServiceProtocol
     private let observablePreferences: ObservablePreferences
 
     public init(
         walletId: WalletId,
-        walletSessionService: any WalletSessionManageable,
+        walletSessionService: any GemWalletSessionServiceProtocol,
         observablePreferences: ObservablePreferences,
     ) {
         self.walletId = walletId
@@ -95,7 +96,7 @@ public final class SettingsViewModel {
     }
 
     var showsRewards: Bool {
-        walletSessionService.showsRewards()
+        walletSessionService.showsRewardsValue
     }
 
     var aboutUsTitle: String {

@@ -32,6 +32,7 @@ import AppService
 import WalletConnectorService
 import ConnectionStatusService
 import protocol Gemstone.GemExplorerServiceProtocol
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import Preferences
 import protocol Gemstone.GemDeviceServiceProtocol
@@ -73,7 +74,7 @@ extension AppResolver {
         let preferencesService: any GemPreferencesServiceProtocol
         let deviceKeyService: GemDeviceKeyService
         let observablePreferences: ObservablePreferences
-        let walletSessionService: any WalletSessionManageable
+        let walletSessionService: any GemWalletSessionServiceProtocol
         let assetDiscoveryService: any GemAssetDiscoveryServiceProtocol
         let gemAssetsService: any GemAssetsServiceProtocol
         let explorerService: any GemExplorerServiceProtocol
