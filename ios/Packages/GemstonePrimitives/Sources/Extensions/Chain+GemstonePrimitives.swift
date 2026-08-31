@@ -9,8 +9,6 @@ import Primitives
 
 private let assetConfig = GemAssetConfigService()
 
-private let addressService = GemAddressService()
-
 private let chainAssets: [Primitives.Chain: Primitives.ChainAsset] = Primitives.Chain.allCases.reduce(into: [:]) { result, chain in
     guard let chainAsset = try? Primitives.ChainAsset(assetConfig.chainAsset(chain: chain.rawValue)) else {
         preconditionFailure("Invalid chain asset for \(chain)")
@@ -149,11 +147,11 @@ public extension Primitives.Chain {
         return asset
     }
 
-    func isValidAddress(_ address: String) -> Bool {
-        addressService.validate(address: checksumAddress(address), chain: rawValue)
+    func isValidAddress(_ address: String, addressService: GemAddressService) -> Bool {
+        addressService.validate(address: checksumAddress(address, addressService: addressService), chain: rawValue)
     }
 
-    func checksumAddress(_ address: String) -> String {
+    func checksumAddress(_ address: String, addressService: GemAddressService) -> String {
         addressService.checksum(address: address, chain: rawValue)
     }
 

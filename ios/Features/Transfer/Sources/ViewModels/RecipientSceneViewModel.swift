@@ -7,6 +7,7 @@ import Foundation
 import GemstonePrimitives
 import GemstoneServices
 import Localization
+import class Gemstone.GemAddressService
 import Primitives
 import PrimitivesComponents
 import Store
@@ -25,6 +26,7 @@ public final class RecipientSceneViewModel {
     public let onTransferAction: TransferDataAction
 
     private let walletSessionService: any WalletSessionManageable
+    private let addressService: GemAddressService
     private let onRecipientDataAction: RecipientDataAction
     private let assetImageFormatter: AssetImageFormatter
 
@@ -50,6 +52,7 @@ public final class RecipientSceneViewModel {
         recipient: RecipientData? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
+        addressService: GemAddressService,
     ) {
         self.wallet = wallet
         self.asset = asset
@@ -58,15 +61,17 @@ public final class RecipientSceneViewModel {
         self.type = type
         self.onRecipientDataAction = onRecipientDataAction
         self.onTransferAction = onTransferAction
+        self.addressService = addressService
         recipientService = nameService.recipients()
 
         addressInputModel = AddressInputViewModel(
             chain: asset.chain,
             nameService: nameService,
             placeholder: recipientField,
+            addressService: addressService,
             validators: [
                 .required(requireName: recipientField),
-                .address(asset),
+                .address(asset, addressService: addressService),
             ],
         )
 
@@ -236,14 +241,14 @@ extension RecipientSceneViewModel {
     private func handle(payment: PaymentRequest) throws {
         switch type {
         case let .asset(asset):
-            switch try PaymentDestinationBuilder.transfer(payment: payment, asset: asset) {
+            switch try PaymentDestinationBuilder.transfer(payment: payment, asset: asset, addressService: addressService) {
             case let .confirm(data): handle(transferData: data)
             case let .recipient(data): update(from: data)
             }
         case .nft:
             update(
                 from: RecipientData(
-                    recipient: Recipient(name: .none, address: chain.checksumAddress(payment.address), memo: payment.memo),
+                    recipient: Recipient(name: .none, address: chain.checksumAddress(payment.address, addressService: addressService), memo: payment.memo),
                     amount: .none,
                 ),
             )

@@ -70,6 +70,7 @@ public struct ManageContactScene: View {
                 defaultChain: model.defaultChain,
                 nameService: model.nameService,
                 mode: mode,
+                addressService: model.addressService,
                 onComplete: model.onAddressComplete,
             ),
         )

@@ -5,6 +5,7 @@ import Components
 import Foundation
 import GemstonePrimitives
 import Localization
+import class Gemstone.GemAddressService
 import Primitives
 import PrimitivesComponents
 import Style
@@ -51,6 +52,7 @@ public final class ManageContactAddressViewModel {
         defaultChain: Chain,
         nameService: any GemNameServiceProtocol,
         mode: Mode,
+        addressService: GemAddressService,
         onComplete: @escaping (Input) -> Void,
     ) {
         self.mode = mode
@@ -62,7 +64,8 @@ public final class ManageContactAddressViewModel {
             chain: chain,
             nameService: nameService,
             placeholder: title,
-            validators: [.required(requireName: title), .address(Asset(chain))],
+            addressService: addressService,
+            validators: [.required(requireName: title), .address(Asset(chain), addressService: addressService)],
         )
 
         if let address = mode.contactAddress {

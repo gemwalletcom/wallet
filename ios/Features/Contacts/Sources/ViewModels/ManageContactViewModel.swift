@@ -8,6 +8,7 @@ import GemstoneServices
 import Foundation
 import GemstonePrimitives
 import Localization
+import class Gemstone.GemAddressService
 import Primitives
 import PrimitivesComponents
 import Style
@@ -45,6 +46,7 @@ public final class ManageContactViewModel {
 
     let contactId: String
     let nameService: any GemNameServiceProtocol
+    let addressService: GemAddressService
 
     var nameInputModel: InputValidationViewModel
     var description: String = ""
@@ -58,10 +60,12 @@ public final class ManageContactViewModel {
     public init(
         service: any GemContactServiceProtocol,
         nameService: any GemNameServiceProtocol,
+        addressService: GemAddressService,
         mode: Mode,
     ) {
         self.service = service
         self.nameService = nameService
+        self.addressService = addressService
         self.mode = mode
 
         nameInputModel = InputValidationViewModel(

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAddressService
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import class Gemstone.GemChainService
 import class Gemstone.GemReceiveService
@@ -94,6 +95,7 @@ extension AppResolver {
         let hyperliquidObserverService: any PerpetualObservable
         let nameService: any GemNameServiceProtocol
         let toastPresenter: ToastPresenter
+        let addressService: GemAddressService
         let viewModelFactory: ViewModelFactory
         let rewardsService: any GemRewardsServiceProtocol
         let searchService: any GemSearchServiceProtocol

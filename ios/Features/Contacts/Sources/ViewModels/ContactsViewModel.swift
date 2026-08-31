@@ -6,6 +6,7 @@ import Components
 import GemstoneServices
 import Foundation
 import Localization
+import class Gemstone.GemAddressService
 import Primitives
 import PrimitivesComponents
 import Store
@@ -21,6 +22,7 @@ public final class ContactsViewModel {
 
     let service: any GemContactServiceProtocol
     let nameService: any GemNameServiceProtocol
+    let addressService: GemAddressService
     let mode: Mode
 
     public let query: ObservableQuery<ContactsRequest>
@@ -33,10 +35,12 @@ public final class ContactsViewModel {
     public init(
         service: any GemContactServiceProtocol,
         nameService: any GemNameServiceProtocol,
+        addressService: GemAddressService,
         mode: Mode = .list,
     ) {
         self.service = service
         self.nameService = nameService
+        self.addressService = addressService
         self.mode = mode
         query = ObservableQuery(ContactsRequest(), initialValue: [])
     }

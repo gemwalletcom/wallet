@@ -12,6 +12,7 @@ import protocol Gemstone.GemPushNotificationServiceProtocol
 import class Gemstone.GemPaymentLinkService
 import GemstonePrimitives
 import Localization
+import class Gemstone.GemAddressService
 import Primitives
 import PrimitivesComponents
 import Style
@@ -31,6 +32,7 @@ final class NavigationHandler: Sendable {
     private let pushNotificationService: any GemPushNotificationServiceProtocol
     private let transactionStore: TransactionStore
     private let urlParser: URLParser
+    private let addressService: GemAddressService
     private let transactionStateService: any GemTransactionStateServiceProtocol
     private let walletConnectorPresenter: WalletConnectorPresenter
     private let walletSessionService: any WalletSessionManageable
@@ -46,6 +48,7 @@ final class NavigationHandler: Sendable {
         pushNotificationService: any GemPushNotificationServiceProtocol,
         transactionStore: TransactionStore,
         urlParser: URLParser,
+        addressService: GemAddressService,
         transactionStateService: any GemTransactionStateServiceProtocol,
         walletConnectorPresenter: WalletConnectorPresenter,
         walletSessionService: any WalletSessionManageable,
@@ -60,6 +63,7 @@ final class NavigationHandler: Sendable {
         self.pushNotificationService = pushNotificationService
         self.transactionStore = transactionStore
         self.urlParser = urlParser
+        self.addressService = addressService
         self.transactionStateService = transactionStateService
         self.walletConnectorPresenter = walletConnectorPresenter
         self.walletSessionService = walletSessionService
@@ -168,7 +172,7 @@ extension NavigationHandler {
         switch payment {
         case let .request(request):
             let assets = try assetStore.getAssetsData(walletId: wallet.id, filters: [])
-            presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(payment: request, assets: assets)
+            presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(payment: request, assets: assets, addressService: addressService)
         case let .link(link):
             toastPresenter.toastMessage = ToastMessage(title: Localized.Common.loading, image: SystemImage.network)
             let addresses = wallet.accounts.map { ChainAddress(chain: $0.chain, address: $0.address) }
@@ -177,7 +181,7 @@ extension NavigationHandler {
             let assetId = try transaction.request?.map().assetId ?? chain.asset.id
             let asset = try await assetsService.ensureTokenAsset(for: assetId)
             toastPresenter.toastMessage = nil
-            presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(transaction: transaction, asset: asset)
+            presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(transaction: transaction, asset: asset, addressService: addressService)
         }
     }
 }

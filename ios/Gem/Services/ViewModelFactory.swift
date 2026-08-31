@@ -12,6 +12,7 @@ import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemFiatServiceProtocol
 import GemstoneServices
 import class Gemstone.GemTransferService
+import class Gemstone.GemAddressService
 import Assets
 import FiatConnect
 import Foundation
@@ -62,6 +63,7 @@ public struct ViewModelFactory: Sendable {
     let perpetualService: any GemPerpetualServiceProtocol
     let feeService: GemFeeService
     let transferService: GemTransferService
+    let addressService: GemAddressService
     let simulationFormatter: GemSimulationFormatter
     let assetConfig: GemAssetConfigService
 
@@ -160,6 +162,7 @@ public struct ViewModelFactory: Sendable {
             recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
+            addressService: addressService,
         )
     }
 

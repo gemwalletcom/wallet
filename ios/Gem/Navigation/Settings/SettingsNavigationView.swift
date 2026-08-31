@@ -18,6 +18,7 @@ import WalletConnector
 
 struct SettingsNavigationView: View {
     @Environment(\.navigationState) private var navigationState
+    @Environment(\.addressService) private var addressService
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.transactionsService) private var transactionsService
     @Environment(\.assetStore) private var assetStore
@@ -215,7 +216,7 @@ struct SettingsNavigationView: View {
         }
         .navigationDestination(for: Scenes.Contacts.self) { _ in
             ContactsNavigationView(
-                model: ContactsViewModel(service: contactService, nameService: nameService),
+                model: ContactsViewModel(service: contactService, nameService: nameService, addressService: addressService),
             )
         }
         .sheet(isPresented: $isPresentingSupport) {
