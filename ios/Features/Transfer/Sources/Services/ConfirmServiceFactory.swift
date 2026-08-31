@@ -12,6 +12,7 @@ import Foundation
 import class Gemstone.GemTransferService
 import protocol Gemstone.GemConfirmServiceProtocol
 import class Gemstone.GemSimulationFormatter
+import class Gemstone.GemAmountService
 import class Gemstone.GemFeeService
 import Preferences
 import Primitives
@@ -31,6 +32,7 @@ public enum ConfirmServiceFactory {
         toastPresenter: ToastPresenter,
         feeService: GemFeeService,
         transferService: GemTransferService,
+        amountService: GemAmountService,
         simulationFormatter: GemSimulationFormatter,
         perpetualService: any GemPerpetualServiceProtocol,
     ) -> ConfirmService {
@@ -43,6 +45,7 @@ public enum ConfirmServiceFactory {
                 feeAssetProvider: FeeAssetProvider(assetStore: assetStore),
                 feeService: feeService,
                 transferService: transferService,
+                amountService: amountService,
             ),
             simulationService: ConfirmSimulationService(
                 nameService: nameService,

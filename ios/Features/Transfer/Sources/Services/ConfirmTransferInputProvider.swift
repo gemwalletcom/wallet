@@ -3,6 +3,7 @@
 import Foundation
 import class Gemstone.GemTransferService
 import struct Gemstone.GemConfirmData
+import class Gemstone.GemAmountService
 import class Gemstone.GemFeeService
 import GemstonePrimitives
 import Primitives
@@ -15,17 +16,20 @@ public struct ConfirmTransferInputProvider: Sendable {
 
     private let feeService: GemFeeService
     private let transferService: GemTransferService
+    private let amountService: GemAmountService
 
     public init(
         transferTransactionProvider: any TransferTransactionProvidable,
         feeAssetProvider: any FeeAssetProvidable,
         feeService: GemFeeService,
         transferService: GemTransferService,
+        amountService: GemAmountService,
     ) {
         self.transferTransactionProvider = transferTransactionProvider
         self.feeAssetProvider = feeAssetProvider
         self.feeService = feeService
         self.transferService = transferService
+        self.amountService = amountService
     }
 
     func load(
@@ -63,7 +67,7 @@ public struct ConfirmTransferInputProvider: Sendable {
         let input = ConfirmTransferInput(
             confirmData: confirmData,
             fee: fee,
-            transferAmount: TransferAmountCalculator().validate(
+            transferAmount: TransferAmountCalculator(amountService: amountService).validate(
                 transferData: request.data,
                 availableValue: try request.data.availableValue(balance: metadata.assetBalance, transferService: transferService),
                 feeAsset: feeAssetData.asset,

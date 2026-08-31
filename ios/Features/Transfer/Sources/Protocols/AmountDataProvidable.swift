@@ -11,10 +11,9 @@ import enum Gemstone.GemAmountType
 import GemstonePrimitives
 import Primitives
 
-private let amountService = GemAmountService()
-
 protocol AmountDataProvidable {
     var asset: Asset { get }
+    var amountService: GemAmountService { get }
     var title: String { get }
     var amountType: AmountType { get }
     var gemAmountType: GemAmountType { get }

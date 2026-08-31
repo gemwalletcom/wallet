@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAmountService
 import class Gemstone.GemTransferService
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import struct Gemstone.GemConfirmData
@@ -28,6 +29,7 @@ extension ConfirmService {
                 feeAssetProvider: FeeAssetProviderMock(),
                 feeService: GemFeeService(),
             transferService: GemTransferService(),
+            amountService: GemAmountService(),
             ),
             simulationService: ConfirmSimulationService(
                 nameService: GemNameServiceMock(),

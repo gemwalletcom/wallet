@@ -360,7 +360,7 @@ struct ServicesFactory {
             stakeService: stakeService,
             explorerService: explorerService,
             preferencesService: preferencesService,
-            amountService: AmountService(stakeService: stakeService),
+            amountService: AmountService(stakeService: stakeService, amountService: Gemstone.GemAmountService()),
             nameService: gemNameService,
             balanceService: balanceService,
             addressStore: storeManager.addressStore,

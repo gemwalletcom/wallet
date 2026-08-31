@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import class Gemstone.GemAmountService
 import GemstonePrimitives
 import Primitives
 import Validators
@@ -8,7 +9,11 @@ import Validators
 public typealias TransferAmountValidation = Result<TransferAmount, TransferAmountCalculatorError>
 
 public struct TransferAmountCalculator {
-    public init() {}
+    private let amountService: GemAmountService
+
+    public init(amountService: GemAmountService) {
+        self.amountService = amountService
+    }
 
     public func validate(
         transferData: TransferData,
@@ -26,6 +31,7 @@ public struct TransferAmountCalculator {
                     feeAssetId: feeAsset.id,
                     assetFeeBalance: assetFeeBalance,
                     fee: fee,
+                    amountService: amountService,
                 )
             )
         } catch let error as TransferAmountError {

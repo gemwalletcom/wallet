@@ -1,6 +1,7 @@
 import protocol Gemstone.GemPreferencesServiceProtocol
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAmountService
 import enum Gemstone.GemAmountType
 import BigInt
 import Primitives
@@ -19,22 +20,26 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
     ) -> AmountDataProvider {
         switch input.type {
         case let .transfer(recipient):
-            .transfer(AmountTransferViewModel(asset: input.asset, action: .send(recipient)))
+            .transfer(AmountTransferViewModel(asset: input.asset, action: .send(recipient), amountService: service.amountService))
         case let .deposit(recipient):
-            .transfer(AmountTransferViewModel(asset: input.asset, action: .deposit(recipient)))
+            .transfer(AmountTransferViewModel(asset: input.asset, action: .deposit(recipient), amountService: service.amountService))
         case let .withdraw(recipient):
-            .transfer(AmountTransferViewModel(asset: input.asset, action: .withdraw(recipient)))
+            .transfer(AmountTransferViewModel(asset: input.asset, action: .withdraw(recipient), amountService: service.amountService))
         case let .stake(stakeType):
-            .stake(AmountStakeViewModel(asset: input.asset, type: stakeType))
+            .stake(AmountStakeViewModel(asset: input.asset, type: stakeType, amountService: service.amountService))
         case let .perpetual(data):
-            .perpetual(AmountPerpetualViewModel(asset: input.asset, data: data, preferencesService: preferencesService))
+            .perpetual(AmountPerpetualViewModel(asset: input.asset, data: data, preferencesService: preferencesService, amountService: service.amountService))
         case let .earn(earnType):
-            .earn(AmountEarnViewModel(asset: input.asset, action: earnType, stakeService: service.stakeService, wallet: wallet))
+            .earn(AmountEarnViewModel(asset: input.asset, action: earnType, stakeService: service.stakeService, wallet: wallet, amountService: service.amountService))
         }
     }
 
     var asset: Asset {
         provider.asset
+    }
+
+    var amountService: GemAmountService {
+        provider.amountService
     }
 
     var title: String {

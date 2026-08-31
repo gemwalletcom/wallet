@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAmountService
 import Foundation
 import struct Gemstone.GemConfirmData
 import struct Gemstone.GemFeeRate
@@ -40,6 +41,7 @@ struct ConfirmTransferInputProviderTests {
             feeAssetProvider: FeeAssetProviderMock(asset: feeAsset, balance: feeAssetBalance, price: feeAssetPrice),
             feeService: GemFeeService(),
             transferService: GemTransferService(),
+            amountService: GemAmountService(),
         )
 
         let result = try await provider.load()
@@ -65,6 +67,7 @@ struct ConfirmTransferInputProviderTests {
             ),
             feeService: GemFeeService(),
             transferService: GemTransferService(),
+            amountService: GemAmountService(),
         )
 
         let result = try await provider.load(
@@ -127,6 +130,7 @@ struct ConfirmTransferInputProviderTests {
             feeAssetProvider: FeeAssetProviderMock(error: "fee asset"),
             feeService: GemFeeService(),
             transferService: GemTransferService(),
+            amountService: GemAmountService(),
         )
         let metadata = TransferDataMetadata.mock(
             feeAssetId: AssetId(chain: .ethereum, tokenId: nil),
@@ -155,6 +159,7 @@ private extension ConfirmTransferInputProvider {
             feeAssetProvider: FeeAssetProviderMock(),
             feeService: GemFeeService(),
             transferService: GemTransferService(),
+            amountService: GemAmountService(),
         )
     }
 }

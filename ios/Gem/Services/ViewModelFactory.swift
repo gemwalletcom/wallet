@@ -139,6 +139,7 @@ public struct ViewModelFactory: Sendable {
                 toastPresenter: toastPresenter,
                 feeService: feeService,
                 transferService: transferService,
+                amountService: amountService.amountService,
                 simulationFormatter: simulationFormatter,
                 perpetualService: perpetualService,
             ),

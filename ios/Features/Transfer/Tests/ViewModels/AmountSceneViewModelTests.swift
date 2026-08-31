@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAmountService
 import GemstoneServicesTestKit
 import GemstonePrimitivesTestKit
 import Primitives
@@ -159,7 +160,7 @@ extension AmountSceneViewModel {
         let model = AmountSceneViewModel(
             input: AmountInput(type: type, asset: assetData.asset),
             wallet: .mock(),
-            service: AmountService(stakeService: GemStakeServiceMock()),
+            service: AmountService(stakeService: GemStakeServiceMock(), amountService: GemAmountService()),
             preferencesService: GemPreferencesServiceMock(),
             onTransferAction: { _ in },
         )
