@@ -2,6 +2,7 @@
 
 import Foundation
 import protocol Gemstone.GemConfirmSceneServiceProtocol
+import struct Gemstone.GemConfirmMetadata
 import Primitives
 
 public extension GemConfirmSceneServiceProtocol {
@@ -23,19 +24,11 @@ public extension GemConfirmSceneServiceProtocol {
         BlockExplorerLink(addressUrl(chain: chain.rawValue, address: address))
     }
 
-    func feeAsset(for type: TransferDataType) -> Primitives.Asset {
-        do {
-            return try Primitives.Asset(feeAsset(inputType: type.inputType))
-        } catch {
-            preconditionFailure("Undecodable transfer fee asset: \(error)")
-        }
-    }
-
-    func assetIds(for type: TransferDataType) -> [Primitives.AssetId] {
-        assetIds(inputType: type.inputType).compactMap { try? Primitives.AssetId(id: $0) }
-    }
-
     func track(walletId: Primitives.WalletId, transactions: [Primitives.Transaction]) async throws {
         try await track(walletId: walletId.id, transactions: transactions.map { $0.json() })
+    }
+
+    func metadata(walletId: Primitives.WalletId, type: TransferDataType) throws -> GemConfirmMetadata {
+        try metadata(walletId: walletId.id, inputType: type.inputType)
     }
 }

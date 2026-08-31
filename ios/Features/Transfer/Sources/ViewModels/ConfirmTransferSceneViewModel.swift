@@ -83,7 +83,12 @@ public final class ConfirmTransferSceneViewModel {
 
         let currency = preferencesService.currencyValue
         self.currency = currency
-        feeSelection = .preset(service.defaultFeePriority(inputType: request.data.type.inputType).map())
+        let sceneState = service.sceneState(
+            walletId: request.wallet.id.id,
+            inputType: request.data.type.inputType,
+            simulation: request.simulation?.json(),
+        )
+        feeSelection = .preset(sceneState.feePriority.map())
         feeAssetSelection = .automatic
 
         let recipientAddress = request.data.recipient.address
@@ -93,9 +98,14 @@ public final class ConfirmTransferSceneViewModel {
         )
 
         state = ConfirmTransferState(
-            simulation: Self.simulationState(request: request, service: service),
-            metadata: try? Self.metadata(request: request, service: service),
-            feeAsset: service.feeAsset(for: request.data.type),
+            simulation: ConfirmSimulationState(
+                data: request.data,
+                simulation: request.simulation,
+                resolved: sceneState.simulation,
+                addressNames: [:],
+            ),
+            metadata: sceneState.metadata,
+            feeAsset: request.data.type.feeAsset(transferService: service.transfer()),
             transaction: .loading,
         )
     }
@@ -416,24 +426,6 @@ extension ConfirmTransferSceneViewModel {
 // MARK: - Confirm
 
 extension ConfirmTransferSceneViewModel {
-    static func metadata(request: ConfirmTransferRequest, service: any GemConfirmSceneServiceProtocol) throws -> GemConfirmMetadata {
-        try service.metadata(
-            walletId: request.wallet.id.id,
-            assetId: request.data.type.asset.id.identifier,
-            feeAssetId: service.feeAsset(for: request.data.type).id.identifier,
-            extraAssetIds: service.assetIds(for: request.data.type).map(\.identifier),
-        )
-    }
-
-    static func simulationState(request: ConfirmTransferRequest, service: any GemConfirmSceneServiceProtocol) -> ConfirmSimulationState {
-        ConfirmSimulationState(
-            data: request.data,
-            simulation: request.simulation,
-            resolved: try? service.simulation(inputType: request.data.type.inputType, simulation: request.simulation?.json()),
-            addressNames: [:],
-        )
-    }
-
     func explorerLink(chain: Chain, address: String) -> BlockExplorerLink {
         service.explorerLink(chain: chain, address: address)
     }
@@ -449,7 +441,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferPreload {
-        let metadata = try Self.metadata(request: request, service: service)
+        let metadata = try service.metadata(walletId: request.wallet.id, type: request.data.type)
         let account = try request.wallet.account(for: request.data.chain)
         let preload: GemConfirmPreload
         do {

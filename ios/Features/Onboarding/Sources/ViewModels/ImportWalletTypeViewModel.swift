@@ -4,14 +4,14 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import SwiftUI
-import GemstoneServices
+import Preferences
 
 public struct ImportWalletTypeViewModel {
-    let walletService: WalletService
+    private let preferences: ObservablePreferences
     public let chainService: any GemChainServiceProtocol
 
-    public init(walletService: WalletService, chainService: any GemChainServiceProtocol) {
-        self.walletService = walletService
+    public init(preferences: ObservablePreferences, chainService: any GemChainServiceProtocol) {
+        self.preferences = preferences
         self.chainService = chainService
     }
 
@@ -24,7 +24,7 @@ public struct ImportWalletTypeViewModel {
     }
 
     func acceptTerms() {
-        walletService.acceptTerms()
+        preferences.acceptTerms()
     }
 }
 

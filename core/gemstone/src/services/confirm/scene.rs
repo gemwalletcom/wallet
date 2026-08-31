@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use primitives::{AddressName, Asset, AssetId, Chain, ChainAddress, PerpetualModifyConfirmData, SimulationResult, Transaction, TransactionType, WalletId};
+use primitives::{AddressName, AssetId, Chain, ChainAddress, PerpetualModifyConfirmData, SimulationResult, Transaction, TransactionType, WalletId};
 
 use crate::application::GemApplicationMetadataService;
 use crate::block_explorer::GemBlockExplorerLink;
@@ -8,8 +8,8 @@ use crate::fee::GemFeeService;
 use crate::models::transaction::GemTransactionInputType;
 use crate::services::assets::config::GemAssetConfigService;
 use crate::services::confirm::{
-    GemAcquireAssetFlow, GemConfirmError, GemConfirmInput, GemConfirmLoadOptions, GemConfirmMetadata, GemConfirmPreload, GemConfirmService, GemConfirmSimulation, GemExecuteResult,
-    GemFeeAsset, GemSendInput, GemTransactionSigner,
+    GemAcquireAssetFlow, GemConfirmError, GemConfirmInput, GemConfirmLoadOptions, GemConfirmMetadata, GemConfirmPreload, GemConfirmSceneState, GemConfirmService,
+    GemConfirmSimulation, GemExecuteResult, GemFeeAsset, GemSendInput, GemTransactionSigner,
 };
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
@@ -57,8 +57,22 @@ impl GemConfirmSceneService {
         }
     }
 
-    pub fn metadata(&self, wallet_id: WalletId, asset_id: AssetId, fee_asset_id: AssetId, extra_asset_ids: Vec<AssetId>) -> Result<GemConfirmMetadata, GemConfirmError> {
-        self.confirm.metadata(wallet_id, asset_id, fee_asset_id, extra_asset_ids)
+    pub fn metadata(&self, wallet_id: WalletId, input_type: GemTransactionInputType) -> Result<GemConfirmMetadata, GemConfirmError> {
+        self.confirm.metadata(
+            wallet_id,
+            self.transfer.asset(&input_type).id,
+            self.transfer.fee_asset(&input_type).id,
+            self.transfer.asset_ids(&input_type),
+        )
+    }
+
+    pub fn scene_state(&self, wallet_id: WalletId, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> GemConfirmSceneState {
+        GemConfirmSceneState {
+            fee_priority: self.fee.default_priority(input_type.clone()),
+            fee_asset: self.transfer.fee_asset(&input_type),
+            metadata: self.metadata(wallet_id, input_type.clone()).ok(),
+            simulation: self.confirm.simulation(input_type, simulation).ok(),
+        }
     }
 
     pub fn fee_assets(&self, wallet_id: WalletId, chain: Chain) -> Result<Vec<GemFeeAsset>, GemConfirmError> {
@@ -107,14 +121,6 @@ impl GemConfirmSceneService {
 
     pub fn is_insufficient_network_fee(&self, fee_asset_id: AssetId, fee_available: String) -> bool {
         self.fee.is_insufficient_network_fee(fee_asset_id, fee_available)
-    }
-
-    pub fn fee_asset(&self, input_type: GemTransactionInputType) -> Asset {
-        self.transfer.fee_asset(&input_type)
-    }
-
-    pub fn asset_ids(&self, input_type: GemTransactionInputType) -> Vec<AssetId> {
-        self.transfer.asset_ids(&input_type)
     }
 
     pub fn transaction_type(&self, input_type: GemTransactionInputType) -> TransactionType {

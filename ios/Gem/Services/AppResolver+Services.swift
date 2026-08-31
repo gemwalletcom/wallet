@@ -3,6 +3,7 @@
 import protocol Gemstone.GemAddressServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import class Gemstone.GemChainService
+import class Gemstone.GemOnboardingService
 import class Gemstone.GemReceiveService
 import class Gemstone.GemTransactionFormatter
 import class Gemstone.GemDeviceKeyService
@@ -67,7 +68,7 @@ extension AppResolver {
         let stakeService: any GemStakeServiceProtocol
         let transactionsService: any GemTransactionsServiceProtocol
         let transactionStateService: any GemTransactionStateServiceProtocol
-        let walletService: WalletService
+        let onboardingService: GemOnboardingService
         let walletPreferencesService: any GemWalletPreferencesServiceProtocol
         let preferencesService: any GemPreferencesServiceProtocol
         let deviceKeyService: GemDeviceKeyService

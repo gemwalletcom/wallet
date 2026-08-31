@@ -2,11 +2,11 @@
 
 import Foundation
 
-enum WalletSessionServiceError: LocalizedError {
+public enum WalletSessionServiceError: LocalizedError {
     case noWallet
     case noWalletId
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .noWallet: "No wallet found"
         case .noWalletId: "No wallet id"

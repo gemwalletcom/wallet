@@ -22,6 +22,12 @@ import protocol Gemstone.GemSwapServiceProtocol
 import class Gemstone.GemConfirmService
 import class Gemstone.GemConfirmSceneService
 import class Gemstone.GemApplicationMetadataService
+import class Gemstone.GemWalletService
+import class Gemstone.GemWalletSessionService
+import class Gemstone.GemOnboardingService
+import class Gemstone.GemAvatarService
+import ManageWallets
+import Onboarding
 import class Gemstone.GemChainService
 import class Gemstone.GemContactService
 import class Gemstone.GemManageContactService
@@ -48,6 +54,11 @@ import WalletTab
 
 public struct ViewModelFactory: Sendable {
     let keystore: any Keystore
+    let gemWalletService: GemWalletService
+    let gemWalletSessionService: GemWalletSessionService
+    let onboardingService: GemOnboardingService
+    let avatarService: GemAvatarService
+    let observablePreferences: ObservablePreferences
     let gemConfirmService: GemConfirmService
     let swapService: any GemSwapServiceProtocol
     let swapQuoteService: GemSwapQuoteService
@@ -81,6 +92,49 @@ public struct ViewModelFactory: Sendable {
     let contactService: GemContactService
     let simulationFormatter: GemSimulationFormatter
     let assetConfig: GemAssetConfigService
+
+    @MainActor
+    public func walletsScene(
+        navigationPath: Binding<NavigationPath>,
+        isPresentingCreateWalletSheet: Binding<Bool>,
+        isPresentingImportWalletSheet: Binding<Bool>,
+    ) -> WalletsSceneViewModel {
+        WalletsSceneViewModel(
+            navigationPath: navigationPath,
+            walletService: gemWalletService,
+            session: gemWalletSessionService,
+            preferences: observablePreferences,
+            isPresentingCreateWalletSheet: isPresentingCreateWalletSheet,
+            isPresentingImportWalletSheet: isPresentingImportWalletSheet,
+        )
+    }
+
+    @MainActor
+    public func walletDetailScene(navigationPath: Binding<NavigationPath>, wallet: Wallet) -> WalletDetailViewModel {
+        WalletDetailViewModel(
+            navigationPath: navigationPath,
+            wallet: wallet,
+            walletService: gemWalletService,
+            keystore: keystore,
+            preferences: observablePreferences,
+            explorerService: explorerService,
+        )
+    }
+
+    @MainActor
+    public func walletImageScene(wallet: Wallet) -> WalletImageViewModel {
+        WalletImageViewModel(wallet: wallet, avatarService: avatarService)
+    }
+
+    @MainActor
+    public func createWalletScene(onComplete: VoidAction) -> CreateWalletModel {
+        CreateWalletModel(service: onboardingService, preferences: observablePreferences, onComplete: onComplete)
+    }
+
+    @MainActor
+    public func importWalletScene(onComplete: VoidAction) -> ImportWalletViewModel {
+        ImportWalletViewModel(service: onboardingService, preferences: observablePreferences, onComplete: onComplete)
+    }
 
     @MainActor
     public func contactsScene(mode: ContactsViewModel.Mode = .list) -> ContactsViewModel {

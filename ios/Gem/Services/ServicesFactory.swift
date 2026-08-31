@@ -116,12 +116,6 @@ struct ServicesFactory {
             preferences: walletPreferencesService,
         )
         let avatarService = Gemstone.GemAvatarService(wallets: gemWalletStore, files: gemFileStore, provider: nativeProvider)
-        let walletService = WalletService(
-            service: gemWalletService,
-            keystore: storages.keystore,
-            walletSessionService: walletSessionService,
-            preferences: observablePreferences,
-        )
         let webSocket = Self.makeWebSocket(deviceKeyService: deviceKeyService, reconnection: connectionService)
         let gemPriceAlertStore = GemstonePriceAlertStore(store: storeManager.priceAlertStore)
         let streamSubscriptionService = Gemstone.GemStreamSubscriptionService(
@@ -265,7 +259,8 @@ struct ServicesFactory {
         let onStartService = OnstartService(
             appStartService: appStartService,
             preferencesService: preferencesService,
-            walletService: walletService,
+            keystore: storages.keystore,
+            session: gemWalletSessionService,
         )
 
         let hyperliquidWebSocket = WebSocketConnection(
@@ -324,6 +319,14 @@ struct ServicesFactory {
             preferences: walletPreferencesService,
         )
 
+        let onboardingService = Gemstone.GemOnboardingService(
+            wallets: gemWalletService,
+            session: gemWalletSessionService,
+            avatars: avatarService,
+            names: gemNameService,
+            chains: chainService,
+        )
+
         let contactService = Gemstone.GemContactService(
             store: GemstoneContactStore(store: storeManager.contactStore),
             addressStore: gemAddressStore,
@@ -352,6 +355,11 @@ struct ServicesFactory {
         )
         let viewModelFactory = ViewModelFactory(
             keystore: storages.keystore,
+            gemWalletService: gemWalletService,
+            gemWalletSessionService: gemWalletSessionService,
+            onboardingService: onboardingService,
+            avatarService: avatarService,
+            observablePreferences: observablePreferences,
             gemConfirmService: gemConfirmService,
             swapService: swapService,
             swapQuoteService: Gemstone.GemSwapQuoteService(),
@@ -406,7 +414,7 @@ struct ServicesFactory {
             stakeService: stakeService,
             transactionsService: transactionsService,
             transactionStateService: gemTransactionStateService,
-            walletService: walletService,
+            onboardingService: onboardingService,
             walletPreferencesService: walletPreferencesService,
             preferencesService: preferencesService,
             deviceKeyService: deviceKeyService,

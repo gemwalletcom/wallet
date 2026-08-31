@@ -1,5 +1,6 @@
 pub mod error;
 pub mod model;
+pub mod onboarding;
 pub mod password;
 mod rules;
 pub mod store;
@@ -417,6 +418,44 @@ mod tests {
             assert!(!context.keystore_path(&kept).exists());
             assert_eq!(context.service.session.get_current_wallet_id().unwrap(), None);
             assert_eq!(context.store.preferences.lock().unwrap().get("is_developer_enabled"), None);
+        });
+    }
+
+    #[test]
+    fn test_every_wallet_change_bumps_the_subscriptions_version() {
+        block_on(async {
+            let context = TestContext::new();
+            context.service.app_preferences.set_subscriptions_version(4).unwrap();
+
+            let wallet = context.import("Imported", PHRASE).await;
+            assert_eq!(context.service.app_preferences.get_subscriptions_version(), 5, "import must bump");
+
+            context.service.setup_chains(vec![Chain::Ethereum, Chain::Solana]).await.unwrap();
+            assert_eq!(context.service.app_preferences.get_subscriptions_version(), 6, "adding a chain must bump");
+
+            let before = context.service.app_preferences.get_subscriptions_version();
+            context.service.setup_chains(vec![Chain::Ethereum, Chain::Solana]).await.unwrap();
+            assert_eq!(
+                context.service.app_preferences.get_subscriptions_version(),
+                before,
+                "a setup that adds no chain must not bump"
+            );
+
+            let second = context.import("Second", OTHER_PHRASE).await;
+            let before = context.service.app_preferences.get_subscriptions_version();
+            context.service.delete_wallet(second.id.clone()).await.unwrap();
+            assert_eq!(
+                context.service.app_preferences.get_subscriptions_version(),
+                before + 1,
+                "deleting one of several wallets must bump"
+            );
+
+            context.service.delete_wallet(wallet.id.clone()).await.unwrap();
+            assert_eq!(
+                context.service.app_preferences.get_subscriptions_version(),
+                1,
+                "deleting the last wallet clears preferences first, so the bump restarts from zero"
+            );
         });
     }
 

@@ -9,6 +9,11 @@ import SwiftUI
 import Testing
 import GemstoneServices
 import GemstoneServicesTestKit
+import class Gemstone.GemOnboardingService
+import class Gemstone.GemWalletService
+import class Gemstone.GemWalletSessionService
+import Preferences
+import PreferencesTestKit
 
 @MainActor
 struct WalletsSceneViewModelTests {
@@ -20,12 +25,12 @@ struct WalletsSceneViewModelTests {
         }
 
         let sessionStore = GemstoneWalletSessionStore.mock()
-        let walletSessionService = WalletSessionService.mock(store: walletStore, sessionStore: sessionStore)
-        let service = WalletService.mock(walletStore: walletStore, sessionStore: sessionStore)
-        try walletSessionService.setCurrent(walletId: .multicoin(address: "0x1"))
+        let session = GemWalletSessionService(store: sessionStore, wallets: GemstoneWalletStore(store: walletStore))
+        let service = GemWalletService.mock(walletStore: walletStore, sessionStore: sessionStore)
+        try session.setCurrent(walletId: .multicoin(address: "0x1"))
 
-        let model = WalletsSceneViewModel.mock(walletService: service, walletSessionService: walletSessionService)
-        model.walletsQuery.value = walletSessionService.wallets
+        let model = WalletsSceneViewModel.mock(walletService: service, session: session)
+        model.walletsQuery.value = session.wallets
 
         #expect(model.currentWalletId == .multicoin(address: "0x1"))
 
@@ -48,15 +53,16 @@ struct WalletsSceneViewModelTests {
 extension WalletsSceneViewModel {
     static func mock(
         navigationPath: Binding<NavigationPath> = .constant(NavigationPath()),
-        walletService: WalletService = .mock(),
-        walletSessionService: any WalletSessionManageable = WalletSessionService.mock(),
+        walletService: GemWalletService = .mock(),
+        session: GemWalletSessionService = .mock(),
         isPresentingCreateWalletSheet: Binding<Bool> = .constant(false),
         isPresentingImportWalletSheet: Binding<Bool> = .constant(false),
     ) -> WalletsSceneViewModel {
         WalletsSceneViewModel(
             navigationPath: navigationPath,
             walletService: walletService,
-            walletSessionService: walletSessionService,
+            session: session,
+            preferences: .mock(),
             isPresentingCreateWalletSheet: isPresentingCreateWalletSheet,
             isPresentingImportWalletSheet: isPresentingImportWalletSheet,
         )

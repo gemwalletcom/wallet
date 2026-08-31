@@ -27,14 +27,7 @@ public struct CreateWalletNavigationStack: View {
                     )
                 }
                 .navigationDestination(for: Scenes.WalletProfile.self) { scene in
-                    SetupWalletScene(
-                        model: SetupWalletViewModel(
-                            wallet: scene.wallet,
-                            walletService: model.walletService,
-                            onSelectImage: { model.presentSelectImage(wallet: $0) },
-                            onComplete: onSetupWalletComplete,
-                        ),
-                    )
+                    SetupWalletScene(model: model.setupWalletModel(wallet: scene.wallet, onComplete: onSetupWalletComplete))
                     .navigationBarBackButtonHidden()
                     .interactiveDismissDisabled()
                 }
@@ -51,13 +44,7 @@ public struct CreateWalletNavigationStack: View {
                 }
                 .sheet(item: $model.isPresentingSelectImageWallet) { wallet in
                     NavigationStack {
-                        WalletImageScene(
-                            model: WalletImageViewModel(
-                                wallet: wallet,
-                                source: .onboarding,
-                                avatarService: model.avatarService,
-                            ),
-                        )
+                        WalletImageScene(model: model.walletImageModel(wallet: wallet))
                         .toolbarDismissItem(type: .close, placement: .topBarLeading)
                     }
                 }

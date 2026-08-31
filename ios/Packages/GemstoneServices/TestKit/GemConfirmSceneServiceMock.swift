@@ -12,6 +12,7 @@ public import struct Gemstone.GemConfirmLoadOptions
 public import struct Gemstone.GemConfirmMetadata
 public import struct Gemstone.GemConfirmPreload
 public import struct Gemstone.GemConfirmSimulation
+public import struct Gemstone.GemConfirmSceneState
 public import struct Gemstone.GemFeeAsset
 public import struct Gemstone.GemSendInput
 public import struct Gemstone.GemAutocloseSummary
@@ -61,8 +62,22 @@ public final class GemConfirmSceneServiceMock: GemConfirmSceneServiceProtocol, @
         self.transactionState = transactionState
     }
 
-    public func metadata(walletId: WalletId, assetId: AssetId, feeAssetId: AssetId, extraAssetIds: [AssetId]) throws -> GemConfirmMetadata {
-        try confirm.metadata(walletId: walletId, assetId: assetId, feeAssetId: feeAssetId, extraAssetIds: extraAssetIds)
+    public func metadata(walletId: WalletId, inputType: GemTransactionInputType) throws -> GemConfirmMetadata {
+        try confirm.metadata(
+            walletId: walletId,
+            assetId: transferService.asset(inputType: inputType),
+            feeAssetId: transferService.feeAsset(inputType: inputType),
+            extraAssetIds: transferService.assetIds(inputType: inputType),
+        )
+    }
+
+    public func sceneState(walletId: WalletId, inputType: GemTransactionInputType, simulation result: SimulationResult?) -> GemConfirmSceneState {
+        GemConfirmSceneState(
+            feePriority: feeService.defaultPriority(inputType: inputType),
+            feeAsset: transferService.feeAsset(inputType: inputType),
+            metadata: try? metadata(walletId: walletId, inputType: inputType),
+            simulation: try? simulation(inputType: inputType, simulation: result),
+        )
     }
 
     public func feeAssets(walletId: WalletId, chain: Chain) throws -> [GemFeeAsset] {
@@ -111,14 +126,6 @@ public final class GemConfirmSceneServiceMock: GemConfirmSceneServiceProtocol, @
 
     public func isInsufficientNetworkFee(feeAssetId: AssetId, feeAvailable: String) -> Bool {
         feeService.isInsufficientNetworkFee(feeAssetId: feeAssetId, feeAvailable: feeAvailable)
-    }
-
-    public func feeAsset(inputType: GemTransactionInputType) -> Asset {
-        transferService.feeAsset(inputType: inputType)
-    }
-
-    public func assetIds(inputType: GemTransactionInputType) -> [AssetId] {
-        transferService.assetIds(inputType: inputType)
     }
 
     public func transactionType(inputType: GemTransactionInputType) -> TransactionType {

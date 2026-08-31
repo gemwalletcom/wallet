@@ -5,6 +5,7 @@ import GemstoneServices
 import Foundation
 import protocol Gemstone.GemAppStartServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Primitives
 import UIKit
 
@@ -13,16 +14,19 @@ import UIKit
 public struct OnstartService: Sendable {
     private let appStartService: any GemAppStartServiceProtocol
     private let preferencesService: any GemPreferencesServiceProtocol
-    private let walletService: WalletService
+    private let keystore: any Keystore
+    private let session: any GemWalletSessionServiceProtocol
 
     public init(
         appStartService: any GemAppStartServiceProtocol,
         preferencesService: any GemPreferencesServiceProtocol,
-        walletService: WalletService,
+        keystore: any Keystore,
+        session: any GemWalletSessionServiceProtocol,
     ) {
         self.appStartService = appStartService
         self.preferencesService = preferencesService
-        self.walletService = walletService
+        self.keystore = keystore
+        self.session = session
     }
 
     @MainActor
@@ -44,7 +48,10 @@ public struct OnstartService: Sendable {
 
     public func setupWallets() async {
         do {
-            try await walletService.migrateV3Keystores()
+            let failures = try await keystore.migrateV3Keystores(for: session.getWallets())
+            for failure in failures {
+                debugLog("v3 keystore migration failed for \(failure.walletId.id): \(failure.error)")
+            }
         } catch {
             debugLog("v3 keystore migration could not enumerate wallets: \(error)")
         }
