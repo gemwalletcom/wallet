@@ -52,14 +52,6 @@ where
     }
 }
 
-pub fn deserialize_option_bigint_or_none<'de, D>(deserializer: D) -> Result<Option<BigInt>, D::Error>
-where
-    D: de::Deserializer<'de>,
-{
-    let value: Option<String> = Option::deserialize(deserializer)?;
-    Ok(value.and_then(|value| parse_bigint_str(&value).ok()))
-}
-
 pub fn bigint_from_hex_str(hex_str: &str) -> Result<BigInt, Box<dyn std::error::Error + Send + Sync>> {
     parse_bigint_hex(hex_str).map_err(|err| err.into())
 }
@@ -107,27 +99,6 @@ mod tests {
         ];
         for (json, expected) in hex_cases {
             let deserialized: TestStruct = serde_json::from_str(json).unwrap();
-            assert_eq!(deserialized.value, expected);
-        }
-    }
-
-    #[test]
-    fn test_deserialize_option_bigint_or_none() {
-        #[derive(Deserialize)]
-        struct LenientStruct {
-            #[serde(default, deserialize_with = "deserialize_option_bigint_or_none")]
-            value: Option<BigInt>,
-        }
-
-        let cases = [
-            (r#"{"value":"123"}"#, Some(BigInt::from(123))),
-            (r#"{"value":"0xff"}"#, Some(BigInt::from(255))),
-            (r#"{"value":"frozen does not exist for this runtime"}"#, None),
-            (r#"{"value":null}"#, None),
-            (r#"{}"#, None),
-        ];
-        for (json, expected) in cases {
-            let deserialized: LenientStruct = serde_json::from_str(json).unwrap();
             assert_eq!(deserialized.value, expected);
         }
     }

@@ -3,8 +3,7 @@ pub mod bigint;
 mod visitors;
 #[cfg(feature = "bigint")]
 pub use bigint::{
-    bigint_from_hex_str, deserialize_bigint_from_str, deserialize_bigint_vec_from_hex_str, deserialize_option_bigint_from_str, deserialize_option_bigint_or_none, serialize_bigint,
-    serialize_option_bigint,
+    bigint_from_hex_str, deserialize_bigint_from_str, deserialize_bigint_vec_from_hex_str, deserialize_option_bigint_from_str, serialize_bigint, serialize_option_bigint,
 };
 #[cfg(feature = "bigint")]
 pub mod biguint;
