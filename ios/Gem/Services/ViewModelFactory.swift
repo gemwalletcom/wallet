@@ -136,6 +136,7 @@ public struct ViewModelFactory: Sendable {
                 simulationFormatter: simulationFormatter,
                 perpetualService: perpetualService,
             ),
+            transferService: transferService,
             onComplete: onComplete,
             assetConfig: assetConfig,
         )

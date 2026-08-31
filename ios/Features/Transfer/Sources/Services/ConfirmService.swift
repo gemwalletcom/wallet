@@ -5,6 +5,7 @@ import Store
 import GemstoneServices
 import struct Gemstone.GemConfirmData
 import enum Gemstone.GemConfirmError
+import class Gemstone.GemTransferService
 import protocol Gemstone.GemConfirmServiceProtocol
 import enum Gemstone.GemExecuteResult
 import protocol Gemstone.GemExplorerServiceProtocol
@@ -33,6 +34,7 @@ public struct ConfirmService: Sendable {
     private let nameService: any GemNameServiceProtocol
 
     private let feeService: GemFeeService
+    private let transferService: GemTransferService
 
     public let perpetualService: any GemPerpetualServiceProtocol
 
@@ -50,6 +52,7 @@ public struct ConfirmService: Sendable {
         explorerService: any GemExplorerServiceProtocol,
         nameService: any GemNameServiceProtocol,
         feeService: GemFeeService,
+        transferService: GemTransferService,
         perpetualService: any GemPerpetualServiceProtocol,
     ) {
         self.perpetualService = perpetualService
@@ -66,6 +69,7 @@ public struct ConfirmService: Sendable {
         self.explorerService = explorerService
         self.nameService = nameService
         self.feeService = feeService
+        self.transferService = transferService
     }
 
     func simulationState(request: ConfirmTransferRequest) -> ConfirmSimulationState {
@@ -73,7 +77,7 @@ public struct ConfirmService: Sendable {
     }
 
     func metadata(request: ConfirmTransferRequest) throws -> TransferDataMetadata {
-        try metadataProvider.metadata(wallet: request.wallet, data: request.data)
+        try metadataProvider.metadata(wallet: request.wallet, data: request.data, transferService: transferService)
     }
 
     func load(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferData {

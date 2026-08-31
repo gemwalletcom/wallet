@@ -2,6 +2,7 @@
 
 import struct Gemstone.GemConfirmData
 import class Gemstone.GemAssetConfigService
+import class Gemstone.GemTransferService
 import GemstoneServices
 import BigInt
 import Components
@@ -50,15 +51,18 @@ public final class ConfirmTransferSceneViewModel {
     private let onComplete: VoidAction
 
     private let assetConfig: GemAssetConfigService
+    private let transferService: GemTransferService
 
     public init(
         request: ConfirmTransferRequest,
         confirmService: ConfirmService,
+        transferService: GemTransferService,
         onComplete: VoidAction,
         assetConfig: GemAssetConfigService,
     ) {
         self.request = request
         self.confirmService = confirmService
+        self.transferService = transferService
         self.onComplete = onComplete
 
         let currency = confirmService.currency
@@ -75,7 +79,7 @@ public final class ConfirmTransferSceneViewModel {
         state = ConfirmTransferState(
             simulation: confirmService.simulationState(request: request),
             metadata: try? confirmService.metadata(request: request),
-            feeAsset: request.data.type.feeAsset,
+            feeAsset: request.data.type.feeAsset(transferService: transferService),
             transaction: .loading,
         )
         self.assetConfig = assetConfig
@@ -200,6 +204,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
                 model: dataModel,
                 addressName: recipientAddressNameQuery.value,
                 addressLink: confirmService.explorerLink(chain: dataModel.chain, address: dataModel.recipient.address),
+                transferService: transferService,
                 onAddContact: onSelectAddRecipientToContacts,
             )
         case .memo:

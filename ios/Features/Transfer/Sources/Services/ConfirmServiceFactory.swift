@@ -59,6 +59,7 @@ public enum ConfirmServiceFactory {
             explorerService: explorerService,
             nameService: nameService,
             feeService: feeService,
+            transferService: transferService,
             perpetualService: perpetualService,
         )
     }

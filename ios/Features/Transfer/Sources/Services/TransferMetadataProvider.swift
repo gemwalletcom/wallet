@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import class Gemstone.GemTransferService
 import protocol Gemstone.GemConfirmServiceProtocol
 import struct Gemstone.GemAssetBalance
 import Foundation
@@ -20,12 +21,13 @@ public extension TransferMetadataProvidable {
     func metadata(
         wallet: Wallet,
         data: TransferData,
+        transferService: GemTransferService,
     ) throws -> TransferDataMetadata {
         try metadata(
             walletId: wallet.id,
             assetId: data.type.asset.id,
-            feeAssetId: data.type.feeAsset.id,
-            extraIds: data.type.assetIds,
+            feeAssetId: data.type.feeAsset(transferService: transferService).id,
+            extraIds: data.type.assetIds(transferService: transferService),
         )
     }
 }

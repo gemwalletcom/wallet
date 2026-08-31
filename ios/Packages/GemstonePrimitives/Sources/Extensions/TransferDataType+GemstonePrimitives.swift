@@ -5,8 +5,6 @@ import enum Gemstone.GemTransactionInputType
 import class Gemstone.GemTransferService
 import Primitives
 
-private let transferService = GemTransferService()
-
 public extension TransferDataType {
     var inputType: GemTransactionInputType {
         do {
@@ -32,7 +30,7 @@ public extension TransferDataType {
         }
     }
 
-    var feeAsset: Asset {
+    func feeAsset(transferService: GemTransferService) -> Asset {
         do {
             return try Asset(transferService.feeAsset(inputType: inputType))
         } catch {
@@ -40,7 +38,7 @@ public extension TransferDataType {
         }
     }
 
-    var transactionType: TransactionType {
+    func transactionType(transferService: GemTransferService) -> TransactionType {
         do {
             return try TransactionType(transferService.transactionType(inputType: inputType))
         } catch {
@@ -48,23 +46,23 @@ public extension TransferDataType {
         }
     }
 
-    var assetIds: [AssetId] {
+    func assetIds(transferService: GemTransferService) -> [AssetId] {
         transferService.assetIds(inputType: inputType).compactMap { try? AssetId(id: $0) }
     }
 
-    var outputType: TransferDataOutputType {
+    func outputType(transferService: GemTransferService) -> TransferDataOutputType {
         (try? TransferDataOutputType(transferService.output(inputType: inputType).outputType)) ?? .encodedTransaction
     }
 
-    var outputAction: TransferDataOutputAction {
+    func outputAction(transferService: GemTransferService) -> TransferDataOutputAction {
         (try? TransferDataOutputAction(transferService.output(inputType: inputType).outputAction)) ?? .sign
     }
 
-    func metadata() throws -> AnyCodableValue? {
+    func metadata(transferService: GemTransferService) throws -> AnyCodableValue? {
         try transferService.metadata(inputType: inputType).map { try JSONDecoder().decode(AnyCodableValue.self, from: Data($0.utf8)) }
     }
 
-    func approvalData(for transactionType: TransactionType) throws -> ApprovalData? {
+    func approvalData(for transactionType: TransactionType, transferService: GemTransferService) throws -> ApprovalData? {
         try transferService.approval(inputType: inputType, transactionType: transactionType.json()).map { try ApprovalData($0) }
     }
 }

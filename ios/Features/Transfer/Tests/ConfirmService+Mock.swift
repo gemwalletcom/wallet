@@ -44,6 +44,7 @@ extension ConfirmService {
             explorerService: GemExplorerServiceMock(),
             nameService: GemNameServiceMock(),
             feeService: GemFeeService(),
+            transferService: GemTransferService(),
             perpetualService: GemPerpetualServiceMock(),
         )
     }

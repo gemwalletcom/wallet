@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemTransferService
 import BigInt
 import Primitives
 import PrimitivesTestKit
@@ -7,6 +8,8 @@ import Testing
 @testable import Transfer
 
 struct AmountStakeViewModelTests {
+    private let transferService = GemTransferService()
+
     @Test
     func title() {
         #expect(AmountStakeViewModel(asset: .mockBNB(), type: .stake(validators: [.mock()], recommended: nil)).title == "Stake")
@@ -131,12 +134,12 @@ struct AmountStakeViewModelTests {
         let freeze = try AmountStakeViewModel(asset: .mockTron(), type: .freeze(.bandwidth)).makeTransferData(value: 100, useMaxAmount: false)
         let unfreeze = try AmountStakeViewModel(asset: .mockTron(), type: .unfreeze(.energy)).makeTransferData(value: 100, useMaxAmount: false)
 
-        #expect(stake.type.transactionType == .stakeDelegate)
-        #expect(unstake.type.transactionType == .stakeUndelegate)
-        #expect(redelegate.type.transactionType == .stakeRedelegate)
-        #expect(withdraw.type.transactionType == .stakeWithdraw)
-        #expect(freeze.type.transactionType == .stakeFreeze)
-        #expect(unfreeze.type.transactionType == .stakeUnfreeze)
+        #expect(stake.type.transactionType(transferService: transferService) == .stakeDelegate)
+        #expect(unstake.type.transactionType(transferService: transferService) == .stakeUndelegate)
+        #expect(redelegate.type.transactionType(transferService: transferService) == .stakeRedelegate)
+        #expect(withdraw.type.transactionType(transferService: transferService) == .stakeWithdraw)
+        #expect(freeze.type.transactionType(transferService: transferService) == .stakeFreeze)
+        #expect(unfreeze.type.transactionType(transferService: transferService) == .stakeUnfreeze)
         #expect(stake.value == 100)
         #expect(unstake.value == 100)
         #expect(redelegate.value == 100)

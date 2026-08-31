@@ -14,6 +14,8 @@ import Validators
 import class Gemstone.GemFeeService
 
 struct ConfirmTransferInputProviderTests {
+    private let transferService = GemTransferService()
+
     @Test
     func loadReturnsInputWithRatesAndFee() async throws {
         let provider = ConfirmTransferInputProvider.mock(transaction: .success(

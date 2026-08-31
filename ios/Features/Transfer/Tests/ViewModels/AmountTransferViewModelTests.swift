@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemTransferService
 import BigInt
 import GemstonePrimitives
 import Primitives
@@ -8,6 +9,8 @@ import Testing
 @testable import Transfer
 
 struct AmountTransferViewModelTests {
+    private let transferService = GemTransferService()
+
     @Test
     func title() {
         #expect(AmountTransferViewModel(asset: .mock(), action: .send(.mock())).title == "Send")
@@ -57,9 +60,9 @@ struct AmountTransferViewModelTests {
         let deposit = try AmountTransferViewModel(asset: .mock(), action: .deposit(.mock())).makeTransferData(value: 200, useMaxAmount: false)
         let withdraw = try AmountTransferViewModel(asset: .mock(), action: .withdraw(.mock())).makeTransferData(value: 300, useMaxAmount: false)
 
-        #expect(send.type.transactionType == .transfer)
-        #expect(deposit.type.transactionType == .transfer)
-        #expect(withdraw.type.transactionType == .transfer)
+        #expect(send.type.transactionType(transferService: transferService) == .transfer)
+        #expect(deposit.type.transactionType(transferService: transferService) == .transfer)
+        #expect(withdraw.type.transactionType(transferService: transferService) == .transfer)
         #expect(send.value == 100)
         #expect(deposit.value == 200)
         #expect(withdraw.value == 300)

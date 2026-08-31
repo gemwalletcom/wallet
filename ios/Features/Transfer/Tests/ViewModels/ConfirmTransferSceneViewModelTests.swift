@@ -689,6 +689,7 @@ private extension ConfirmTransferSceneViewModel {
                 simulation: nil,
             ),
             confirmService: confirmService,
+            transferService: GemTransferService(),
             onComplete: {},
             assetConfig: GemAssetConfigService(),
         )
@@ -722,6 +723,7 @@ private extension ConfirmTransferSceneViewModel {
                 simulationFormatter: GemSimulationFormatter(),
                 perpetualService: GemPerpetualServiceMock(),
             ),
+            transferService: GemTransferService(),
             onComplete: {},
             assetConfig: GemAssetConfigService(),
         )
