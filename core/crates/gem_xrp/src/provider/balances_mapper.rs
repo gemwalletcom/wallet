@@ -74,33 +74,22 @@ mod tests {
     use crate::models::rpc::AccountInfo;
     use primitives::{AssetId, Chain};
 
-    fn account_info(balance: u64, owner_count: u32) -> AccountInfo {
-        AccountInfo {
-            balance,
-            sequence: 100,
-            owner_count,
-            account: None,
-            flags: None,
-            ledger_entry_type: None,
-        }
-    }
-
     #[test]
     fn test_map_balance_coin() {
         let asset_id = AssetId::from_chain(Chain::Xrp);
         let base_reserve = 1_000_000;
         let owner_reserve = 200_000;
 
-        let with_owned_objects = map_balance_coin(Some(account_info(35_892_065, 2)), asset_id.clone(), base_reserve, owner_reserve).unwrap();
+        let with_owned_objects = map_balance_coin(Some(AccountInfo::mock_with_balance(35_892_065, 2)), asset_id.clone(), base_reserve, owner_reserve).unwrap();
         assert_eq!(with_owned_objects.asset_id, asset_id);
         assert_eq!(with_owned_objects.balance.available, BigUint::from(34_492_065_u64));
         assert_eq!(with_owned_objects.balance.reserved, BigUint::from(1_400_000_u64));
 
-        let without_owned_objects = map_balance_coin(Some(account_info(10_000_000, 0)), asset_id.clone(), base_reserve, owner_reserve).unwrap();
+        let without_owned_objects = map_balance_coin(Some(AccountInfo::mock_with_balance(10_000_000, 0)), asset_id.clone(), base_reserve, owner_reserve).unwrap();
         assert_eq!(without_owned_objects.balance.available, BigUint::from(9_000_000_u64));
         assert_eq!(without_owned_objects.balance.reserved, BigUint::from(1_000_000_u64));
 
-        let balance_below_reserve = map_balance_coin(Some(account_info(500_000, 2)), asset_id.clone(), base_reserve, owner_reserve).unwrap();
+        let balance_below_reserve = map_balance_coin(Some(AccountInfo::mock_with_balance(500_000, 2)), asset_id.clone(), base_reserve, owner_reserve).unwrap();
         assert_eq!(balance_below_reserve.balance.available, BigUint::ZERO);
         assert_eq!(balance_below_reserve.balance.reserved, BigUint::from(1_400_000_u64));
     }
