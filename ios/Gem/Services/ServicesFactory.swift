@@ -304,6 +304,7 @@ struct ServicesFactory {
             paymentService: paymentService,
             pushNotificationService: pushNotificationService,
             transactionStore: storeManager.transactionStore,
+            urlParser: URLParser(deeplinkService: Gemstone.GemDeeplinkService()),
             transactionStateService: gemTransactionStateService,
             walletConnectorPresenter: walletConnectorPresenter,
             walletSessionService: walletSessionService,

@@ -30,6 +30,7 @@ final class NavigationHandler: Sendable {
     private let paymentService: GemPaymentLinkService
     private let pushNotificationService: any GemPushNotificationServiceProtocol
     private let transactionStore: TransactionStore
+    private let urlParser: URLParser
     private let transactionStateService: any GemTransactionStateServiceProtocol
     private let walletConnectorPresenter: WalletConnectorPresenter
     private let walletSessionService: any WalletSessionManageable
@@ -44,6 +45,7 @@ final class NavigationHandler: Sendable {
         paymentService: GemPaymentLinkService,
         pushNotificationService: any GemPushNotificationServiceProtocol,
         transactionStore: TransactionStore,
+        urlParser: URLParser,
         transactionStateService: any GemTransactionStateServiceProtocol,
         walletConnectorPresenter: WalletConnectorPresenter,
         walletSessionService: any WalletSessionManageable,
@@ -57,6 +59,7 @@ final class NavigationHandler: Sendable {
         self.paymentService = paymentService
         self.pushNotificationService = pushNotificationService
         self.transactionStore = transactionStore
+        self.urlParser = urlParser
         self.transactionStateService = transactionStateService
         self.walletConnectorPresenter = walletConnectorPresenter
         self.walletSessionService = walletSessionService
@@ -92,7 +95,7 @@ final class NavigationHandler: Sendable {
 
     @MainActor
     func handle(code: String) async {
-        guard let action = try? URLParser.from(code: code) else {
+        guard let action = try? urlParser.from(code: code) else {
             return showError(AnyError(Localized.Errors.notSupported))
         }
         await handle(action)
@@ -110,7 +113,7 @@ final class NavigationHandler: Sendable {
 
     @MainActor
     func open(url: URL) -> Bool {
-        guard let action = try? URLParser.from(url: url) else { return false }
+        guard let action = try? urlParser.from(url: url) else { return false }
         Task { await handle(action) }
         return true
     }
