@@ -1,46 +1,45 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemTransactionStateServiceProtocol
-import class Gemstone.GemPerpetualService
-import protocol Gemstone.GemPreferencesServiceProtocol
-import protocol Gemstone.GemPriceAlertServiceProtocol
-import protocol Gemstone.GemAssetsServiceProtocol
-import protocol Gemstone.GemPriceServiceProtocol
-import protocol Gemstone.GemSearchServiceProtocol
-import protocol Gemstone.GemNameServiceProtocol
-import protocol Gemstone.GemBalanceServiceProtocol
-import protocol Gemstone.GemFiatServiceProtocol
-import GemstoneServices
-import class Gemstone.GemTransferService
-import protocol Gemstone.GemAddressServiceProtocol
-import Assets
-import FiatConnect
-import protocol Gemstone.GemWalletSessionServiceProtocol
-import Foundation
-import class Gemstone.GemExplorerService
-import protocol Gemstone.GemStakeServiceProtocol
-import protocol Gemstone.GemSwapServiceProtocol
-import class Gemstone.GemConfirmService
-import class Gemstone.GemConfirmSceneService
+import class Gemstone.GemAddressService
+import class Gemstone.GemAmountService
 import class Gemstone.GemApplicationMetadataService
-import class Gemstone.GemWalletService
-import class Gemstone.GemWalletSessionService
-import class Gemstone.GemOnboardingService
+import class Gemstone.GemAssetConfigService
+import class Gemstone.GemAssetsService
 import class Gemstone.GemAvatarService
-import ManageWallets
-import Onboarding
+import class Gemstone.GemBalanceService
 import class Gemstone.GemChainService
+import class Gemstone.GemConfirmSceneService
+import class Gemstone.GemConfirmService
 import class Gemstone.GemContactService
+import class Gemstone.GemDeeplinkService
+import class Gemstone.GemExplorerService
+import class Gemstone.GemFeeService
+import class Gemstone.GemFiatService
 import class Gemstone.GemManageContactService
 import class Gemstone.GemNameService
-import class Gemstone.GemAddressService
-import Contacts
-import class Gemstone.GemDeeplinkService
-import class Gemstone.GemAssetConfigService
-import class Gemstone.GemSwapQuoteService
-import class Gemstone.GemSimulationFormatter
-import class Gemstone.GemFeeService
+import class Gemstone.GemOnboardingService
 import class Gemstone.GemPaymentService
+import class Gemstone.GemPerpetualService
+import class Gemstone.GemPreferencesService
+import class Gemstone.GemPriceAlertService
+import class Gemstone.GemPriceService
+import class Gemstone.GemSearchService
+import class Gemstone.GemSimulationFormatter
+import class Gemstone.GemStakeService
+import class Gemstone.GemStreamSubscriptionService
+import class Gemstone.GemSwapQuoteService
+import class Gemstone.GemSwapService
+import class Gemstone.GemTransactionStateService
+import class Gemstone.GemTransferService
+import class Gemstone.GemWalletService
+import class Gemstone.GemWalletSessionService
+import Assets
+import Contacts
+import FiatConnect
+import Foundation
+import GemstoneServices
+import ManageWallets
+import Onboarding
 import Preferences
 import Primitives
 import PrimitivesComponents
@@ -54,45 +53,48 @@ import WalletConnectorService
 import WalletTab
 
 public struct ViewModelFactory: Sendable {
-    let keystore: any Keystore
-    let gemWalletService: GemWalletService
-    let gemWalletSessionService: GemWalletSessionService
-    let onboardingService: GemOnboardingService
-    let avatarService: GemAvatarService
-    let observablePreferences: ObservablePreferences
-    let gemConfirmService: GemConfirmService
-    let swapService: any GemSwapServiceProtocol
-    let swapQuoteService: GemSwapQuoteService
-    let priceUpdater: any PriceUpdater
-    let walletSessionService: any GemWalletSessionServiceProtocol
-    let stakeService: any GemStakeServiceProtocol
-    let explorerService: GemExplorerService
-    let preferencesService: any GemPreferencesServiceProtocol
-    let amountService: AmountService
-    let nameService: any GemNameServiceProtocol
-    let balanceService: any GemBalanceServiceProtocol
-    let addressStore: AddressStore
-    let priceService: any GemPriceServiceProtocol
-    let transactionStateService: any GemTransactionStateServiceProtocol
-    let gemNameService: GemNameService
-    let recentAssetsService: RecentAssetsService
-    let toastPresenter: ToastPresenter
-    let fiatService: any GemFiatServiceProtocol
-    let assetsService: any GemAssetsServiceProtocol
-    let assetStore: AssetStore
-    let priceAlertService: any GemPriceAlertServiceProtocol
-    let searchService: any GemSearchServiceProtocol
-    let perpetualService: GemPerpetualService
-    let feeService: GemFeeService
-    let transferService: GemTransferService
+    // Core services
     let addressService: GemAddressService
-    let paymentService: GemPaymentService
     let applicationMetadataService: GemApplicationMetadataService
-    let deeplinkService: GemDeeplinkService
-    let chainService: GemChainService
-    let contactService: GemContactService
-    let simulationFormatter: GemSimulationFormatter
     let assetConfig: GemAssetConfigService
+    let assetsService: GemAssetsService
+    let avatarService: GemAvatarService
+    let balanceService: GemBalanceService
+    let chainService: GemChainService
+    let confirmService: GemConfirmService
+    let contactService: GemContactService
+    let deeplinkService: GemDeeplinkService
+    let explorerService: GemExplorerService
+    let feeService: GemFeeService
+    let fiatService: GemFiatService
+    let nameService: GemNameService
+    let onboardingService: GemOnboardingService
+    let paymentService: GemPaymentService
+    let perpetualService: GemPerpetualService
+    let preferencesService: GemPreferencesService
+    let priceAlertService: GemPriceAlertService
+    let priceService: GemPriceService
+    let searchService: GemSearchService
+    let simulationFormatter: GemSimulationFormatter
+    let stakeService: GemStakeService
+    let streamSubscriptionService: GemStreamSubscriptionService
+    let swapQuoteService: GemSwapQuoteService
+    let swapService: GemSwapService
+    let transactionStateService: GemTransactionStateService
+    let transferService: GemTransferService
+    let walletService: GemWalletService
+    let walletSessionService: GemWalletSessionService
+
+    // Platform services Core cannot own
+    let keystore: any Keystore
+    let observablePreferences: ObservablePreferences
+    let recentAssetsService: RecentAssetsService
+    let amountService: AmountService
+    let toastPresenter: ToastPresenter
+
+    // Stores
+    let addressStore: AddressStore
+    let assetStore: AssetStore
 
     @MainActor
     public func walletsScene(
@@ -102,8 +104,8 @@ public struct ViewModelFactory: Sendable {
     ) -> WalletsSceneViewModel {
         WalletsSceneViewModel(
             navigationPath: navigationPath,
-            walletService: gemWalletService,
-            session: gemWalletSessionService,
+            walletService: walletService,
+            session: walletSessionService,
             preferences: observablePreferences,
             isPresentingCreateWalletSheet: isPresentingCreateWalletSheet,
             isPresentingImportWalletSheet: isPresentingImportWalletSheet,
@@ -115,7 +117,7 @@ public struct ViewModelFactory: Sendable {
         WalletDetailViewModel(
             navigationPath: navigationPath,
             wallet: wallet,
-            walletService: gemWalletService,
+            walletService: walletService,
             keystore: keystore,
             preferences: observablePreferences,
             explorerService: explorerService,
@@ -150,7 +152,7 @@ public struct ViewModelFactory: Sendable {
     private func manageContactService() -> GemManageContactService {
         GemManageContactService(
             contacts: contactService,
-            names: gemNameService,
+            names: nameService,
             addresses: addressService,
             chains: chainService,
         )
@@ -225,9 +227,9 @@ public struct ViewModelFactory: Sendable {
 
     private func confirmSceneService() -> GemConfirmSceneService {
         GemConfirmSceneService(
-            confirm: gemConfirmService,
+            confirm: confirmService,
             explorer: explorerService,
-            names: gemNameService,
+            names: nameService,
             assetConfig: assetConfig,
             transfer: transferService,
             fee: feeService,
@@ -300,7 +302,7 @@ public struct ViewModelFactory: Sendable {
             preferencesService: preferencesService,
             input: input,
             balanceService: balanceService,
-            priceUpdater: priceUpdater,
+            priceUpdater: streamSubscriptionService,
             swapService: swapService,
             swapQuoteService: swapQuoteService,
             onSwap: onSwap,
@@ -363,7 +365,7 @@ public struct ViewModelFactory: Sendable {
         SignMessageSceneViewModel(
             explorerService: explorerService,
             keystore: keystore,
-            nameService: gemNameService,
+            nameService: nameService,
             payload: payload,
             confirmTransferDelegate: confirmTransferDelegate,
             applicationMetadataService: applicationMetadataService,

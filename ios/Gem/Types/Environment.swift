@@ -57,7 +57,6 @@ extension EnvironmentValues {
     @Entry var priceService: any GemPriceServiceProtocol = AppResolver.main.services.priceService
     @Entry var priceStore: PriceStore = AppResolver.main.storages.storeManager.priceStore
     @Entry var chartService: any GemChartServiceProtocol = AppResolver.main.services.chartService
-    @Entry var marketService: any GemPriceServiceProtocol = AppResolver.main.services.marketService
     @Entry var streamSubscriptionService: GemStreamSubscriptionService = AppResolver.main.services.streamSubscriptionService
     @Entry var assetDiscoveryService: any GemAssetDiscoveryServiceProtocol = AppResolver.main.services.assetDiscoveryService
     @Entry var walletPreferencesService: any GemWalletPreferencesServiceProtocol = AppResolver.main.services.walletPreferencesService
@@ -72,7 +71,7 @@ extension EnvironmentValues {
     @Entry var bannerStore: BannerStore = AppResolver.main.storages.storeManager.bannerStore
     @Entry var transactionsService: any GemTransactionsServiceProtocol = AppResolver.main.services.transactionsService
     @Entry var transactionStore: TransactionStore = AppResolver.main.storages.storeManager.transactionStore
-    @Entry var assetsService: any GemAssetsServiceProtocol = AppResolver.main.services.gemAssetsService
+    @Entry var assetsService: any GemAssetsServiceProtocol = AppResolver.main.services.assetsService
     @Entry var assetStore: AssetStore = AppResolver.main.storages.storeManager.assetStore
     @Entry var navigationPresenter: NavigationPresenter = AppResolver.main.services.navigationPresenter
     @Entry var navigationHandler: NavigationHandler = AppResolver.main.services.navigationHandler

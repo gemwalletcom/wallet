@@ -65,7 +65,6 @@ extension AppResolver {
         let streamSubscriptionService: GemStreamSubscriptionService
         let priceService: any GemPriceServiceProtocol
         let chartService: any GemChartServiceProtocol
-        let marketService: any GemPriceServiceProtocol
         let stakeService: any GemStakeServiceProtocol
         let transactionsService: any GemTransactionsServiceProtocol
         let transactionStateService: any GemTransactionStateServiceProtocol
@@ -76,7 +75,7 @@ extension AppResolver {
         let observablePreferences: ObservablePreferences
         let walletSessionService: any GemWalletSessionServiceProtocol
         let assetDiscoveryService: any GemAssetDiscoveryServiceProtocol
-        let gemAssetsService: any GemAssetsServiceProtocol
+        let assetsService: any GemAssetsServiceProtocol
         let explorerService: any GemExplorerServiceProtocol
         let gatewayService: GatewayService
         let nftService: any GemNftServiceProtocol

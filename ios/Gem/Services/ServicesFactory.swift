@@ -44,17 +44,17 @@ struct ServicesFactory {
         }
         let deviceRegistrationClient = Self.makeDeviceApiClient(provider: nativeProvider, devicePrivateKey: devicePrivateKey)
 
-        let gemWalletStore = GemstoneWalletStore(store: storeManager.walletStore)
+        let gemstoneWalletStore = GemstoneWalletStore(store: storeManager.walletStore)
         let walletPreferencesService = Gemstone.GemWalletPreferencesService(store: GemstoneWalletPreferencesStore())
         let deviceService = Gemstone.GemDeviceService(
             api: deviceRegistrationClient,
-            subscriptions: Gemstone.GemSubscriptionService(api: deviceRegistrationClient, store: gemWalletStore),
-            walletStore: gemWalletStore,
+            subscriptions: Gemstone.GemSubscriptionService(api: deviceRegistrationClient, store: gemstoneWalletStore),
+            walletStore: gemstoneWalletStore,
             platform: MainActor.assumeIsolated { GemstoneDevicePlatform(preferencesService: preferencesService, deviceKeyService: deviceKeyService, securePreferences: securePreferences) },
             preferences: preferencesService,
         )
-        let gemDeviceApiClient = Self.makeDeviceApiClient(provider: nativeProvider, devicePrivateKey: devicePrivateKey)
-        gemDeviceApiClient.setDeviceSyncPreflight(device: deviceService)
+        let deviceApiClient = Self.makeDeviceApiClient(provider: nativeProvider, devicePrivateKey: devicePrivateKey)
+        deviceApiClient.setDeviceSyncPreflight(device: deviceService)
         let deviceObserverService = Self.makeDeviceObserverService(
             deviceService: deviceService,
             walletStore: storeManager.walletStore,
@@ -68,34 +68,32 @@ struct ServicesFactory {
                 InternetConnectionMonitor(connectionService: connectionService),
             ],
         )
-        let gemApiClient = Gemstone.GemApiClient(provider: nativeProvider, baseUrl: Constants.apiURL.absoluteString)
-        let gemStaticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider, baseUrl: Constants.assetsURL.absoluteString)
-        let gemPriceService = Gemstone.GemPriceService(
-            api: gemApiClient,
+        let apiClient = Gemstone.GemApiClient(provider: nativeProvider, baseUrl: Constants.apiURL.absoluteString)
+        let staticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider, baseUrl: Constants.assetsURL.absoluteString)
+        let priceService = Gemstone.GemPriceService(
+            api: apiClient,
             store: GemstonePriceStore(priceStore: storeManager.priceStore, fiatRateStore: storeManager.fiatRateStore),
         )
-        let marketService = gemPriceService
-        let priceService = gemPriceService
-        let chartService = Gemstone.GemChartService(api: gemApiClient, price: gemPriceService)
-        let gemAssetStore = GemstoneAssetStore(assetStore: storeManager.assetStore, balanceStore: storeManager.balanceStore)
-        let gemFileStore = GemstoneFileStore()
-        let gemAddressStore = GemstoneAddressStore(store: storeManager.addressStore)
-        let gemBannerStore = GemstoneBannerStore(store: storeManager.bannerStore)
-        let gemNotificationStore = GemstoneNotificationStore(store: storeManager.inAppNotificationStore)
+        let chartService = Gemstone.GemChartService(api: apiClient, price: priceService)
+        let gemstoneAssetStore = GemstoneAssetStore(assetStore: storeManager.assetStore, balanceStore: storeManager.balanceStore)
+        let gemstoneFileStore = GemstoneFileStore()
+        let gemstoneAddressStore = GemstoneAddressStore(store: storeManager.addressStore)
+        let gemstoneBannerStore = GemstoneBannerStore(store: storeManager.bannerStore)
+        let gemstoneNotificationStore = GemstoneNotificationStore(store: storeManager.inAppNotificationStore)
         let gatewayService = GatewayService(
             provider: nativeProvider,
             preferences: GemstonePreferencesStore(namespace: "gateway"),
             securePreferences: GemstoneSecurePreferencesStore(namespace: "gateway"),
         )
-        let gemAssetsService = gatewayService.assetsService(api: gemApiClient, store: gemAssetStore, price: gemPriceService, preferences: preferencesService)
-        let gemTransactionsService = Gemstone.GemTransactionsService(
-            api: gemDeviceApiClient,
-            assets: gemAssetsService,
+        let assetsService = gatewayService.assetsService(api: apiClient, store: gemstoneAssetStore, price: priceService, preferences: preferencesService)
+        let transactionsService = Gemstone.GemTransactionsService(
+            api: deviceApiClient,
+            assets: assetsService,
             store: GemstoneTransactionStore(store: storeManager.transactionStore),
-            addressStore: gemAddressStore,
+            addressStore: gemstoneAddressStore,
             preferences: walletPreferencesService,
         )
-        let gemScanService = Gemstone.GemScanService(api: gemDeviceApiClient)
+        let scanService = Gemstone.GemScanService(api: deviceApiClient)
         let paymentLinkService = GemPaymentLinkService(provider: nativeProvider)
         let paymentService = Gemstone.GemPaymentService()
         let transactionSimulationService = TransactionSimulationService(provider: nativeProvider)
@@ -104,96 +102,90 @@ struct ServicesFactory {
         let serviceStatusService = Gemstone.GemServiceStatus(
             provider: NativeProvider(session: URLSession(configuration: serviceStatusConfiguration), url: Constants.apiURL),
         )
-        let gemWalletSessionService = Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(store: preferencesStore), wallets: gemWalletStore)
-        let gemWalletService = Gemstone.GemWalletService(
+        let walletSessionService = Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(store: preferencesStore), wallets: gemstoneWalletStore)
+        let walletService = Gemstone.GemWalletService(
             keystore: storages.keystore.gemKeystore,
             password: GemstoneKeystorePassword(keystore: storages.keystore),
-            store: gemWalletStore,
-            session: gemWalletSessionService,
+            store: gemstoneWalletStore,
+            session: walletSessionService,
             appPreferences: preferencesService,
-            files: gemFileStore,
+            files: gemstoneFileStore,
             preferences: walletPreferencesService,
         )
-        let avatarService = Gemstone.GemAvatarService(wallets: gemWalletStore, files: gemFileStore, provider: nativeProvider)
+        let avatarService = Gemstone.GemAvatarService(wallets: gemstoneWalletStore, files: gemstoneFileStore, provider: nativeProvider)
         let webSocket = Self.makeWebSocket(deviceKeyService: deviceKeyService, reconnection: connectionService)
-        let gemPriceAlertStore = GemstonePriceAlertStore(store: storeManager.priceAlertStore)
+        let gemstonePriceAlertStore = GemstonePriceAlertStore(store: storeManager.priceAlertStore)
         let streamSubscriptionService = Gemstone.GemStreamSubscriptionService(
-            price: gemPriceService,
-            alerts: gemPriceAlertStore,
+            price: priceService,
+            alerts: gemstonePriceAlertStore,
             connection: GemstoneStreamConnection(webSocket: webSocket),
         )
-        let gemBalanceService = gatewayService.balanceService(
-            walletStore: gemWalletStore,
-            assetStore: gemAssetStore,
+        let balanceService = gatewayService.balanceService(
+            walletStore: gemstoneWalletStore,
+            assetStore: gemstoneAssetStore,
             store: GemstoneBalanceStore(store: storeManager.balanceStore),
-            assets: gemAssetsService,
-            price: gemPriceService,
+            assets: assetsService,
+            price: priceService,
             stream: streamSubscriptionService,
             preferences: preferencesService,
         )
-        let balanceService = gemBalanceService
-        let gemStakeService = gatewayService.stakeService(
-            staticApi: gemStaticApiClient,
+        let stakeService = gatewayService.stakeService(
+            staticApi: staticApiClient,
             store: GemstoneStakeStore(store: storeManager.stakeStore),
-            addressStore: gemAddressStore,
+            addressStore: gemstoneAddressStore,
         )
-        let stakeService = gemStakeService
-        let gemNftService = Gemstone.GemNftService(api: gemDeviceApiClient, store: GemstoneNftStore(store: storeManager.nftStore))
-        let nftService = gemNftService
-        let transactionsService = gemTransactionsService
-        let gemTransactionStateService = gatewayService.transactionStateService(
+        let nftService = Gemstone.GemNftService(api: deviceApiClient, store: GemstoneNftStore(store: storeManager.nftStore))
+        let transactionStateService = gatewayService.transactionStateService(
             store: GemstoneTransactionStateStore(store: storeManager.transactionStore),
-            assets: gemAssetsService,
-            balance: gemBalanceService,
-            stake: gemStakeService,
-            nft: gemNftService,
+            assets: assetsService,
+            balance: balanceService,
+            stake: stakeService,
+            nft: nftService,
         )
 
         let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService)
-        let bannerService = Gemstone.GemBannerService(store: gemBannerStore)
+        let bannerService = Gemstone.GemBannerService(store: gemstoneBannerStore)
         let navigationPresenter = NavigationPresenter()
-        let gemPerpetualStore = GemstonePerpetualStore(store: storeManager.perpetualStore, balanceStore: storeManager.balanceStore)
-        let gemPerpetualService = gatewayService.perpetualService(
-            price: gemPriceService,
-            store: gemPerpetualStore,
-            assetStore: gemAssetStore,
+        let gemstonePerpetualStore = GemstonePerpetualStore(store: storeManager.perpetualStore, balanceStore: storeManager.balanceStore)
+        let perpetualService = gatewayService.perpetualService(
+            price: priceService,
+            store: gemstonePerpetualStore,
+            assetStore: gemstoneAssetStore,
             preferences: preferencesService,
-            balance: gemBalanceService,
+            balance: balanceService,
             walletPreferences: walletPreferencesService,
         )
-        let perpetualService = gemPerpetualService
         let portfolioService = Gemstone.GemPortfolioService(
-            api: gemDeviceApiClient,
+            api: deviceApiClient,
             store: GemstonePortfolioStore(assetStore: storeManager.assetStore),
-            price: gemPriceService,
-            perpetual: gemPerpetualService,
+            price: priceService,
+            perpetual: perpetualService,
         )
         let priceAlertService = Gemstone.GemPriceAlertService(
-            api: gemDeviceApiClient,
+            api: deviceApiClient,
             preferences: preferencesService,
-            store: gemPriceAlertStore,
+            store: gemstonePriceAlertStore,
             device: deviceService,
             permissions: GemstoneNotificationPermissions(service: pushNotificationEnablerService),
         )
-        let gemFiatService = Gemstone.GemFiatService(
-            api: gemDeviceApiClient,
-            assets: gemAssetsService,
+        let fiatService = Gemstone.GemFiatService(
+            api: deviceApiClient,
+            assets: assetsService,
             store: GemstoneFiatStore(store: storeManager.fiatTransactionStore),
         )
-        let fiatService = gemFiatService
-        let gemSupportStore = GemstoneSupportStore(store: storeManager.supportChatStore)
-        let supportService = Gemstone.GemSupportService(api: gemDeviceApiClient, store: gemSupportStore, files: gemFileStore, provider: nativeProvider)
+        let gemstoneSupportStore = GemstoneSupportStore(store: storeManager.supportChatStore)
+        let supportService = Gemstone.GemSupportService(api: deviceApiClient, store: gemstoneSupportStore, files: gemstoneFileStore, provider: nativeProvider)
         let streamService = Gemstone.GemStreamService(
-            price: gemPriceService,
+            price: priceService,
             priceAlert: priceAlertService,
-            balance: gemBalanceService,
-            transactions: gemTransactionsService,
-            nft: gemNftService,
-            perpetual: gemPerpetualService,
-            fiat: gemFiatService,
-            notifications: gemNotificationStore,
-            support: gemSupportStore,
-            walletStore: gemWalletStore,
+            balance: balanceService,
+            transactions: transactionsService,
+            nft: nftService,
+            perpetual: perpetualService,
+            fiat: fiatService,
+            notifications: gemstoneNotificationStore,
+            support: gemstoneSupportStore,
+            walletStore: gemstoneWalletStore,
         )
         let streamObserverService = StreamObserverService(
             subscriptionService: streamSubscriptionService,
@@ -202,9 +194,9 @@ struct ServicesFactory {
             webSocket: webSocket,
         )
         let explorerService = Gemstone.GemExplorerService(preferences: preferencesService)
-        let gemSwapper = GemSwapper(rpcProvider: NativeProvider(nodeProvider: nodeProvider))
+        let swapper = GemSwapper(rpcProvider: NativeProvider(nodeProvider: nodeProvider))
         let swapService = Gemstone.GemSwapService(
-            swapper: gemSwapper,
+            swapper: swapper,
             keystore: storages.keystore.gemKeystore,
             password: GemstoneKeystorePassword(keystore: storages.keystore),
             store: GemstoneSwapStore(
@@ -224,33 +216,33 @@ struct ServicesFactory {
             connectionsStore: storeManager.connectionsStore,
             interactor: walletConnectorInteractor,
             transactionSimulationService: transactionSimulationService,
-            gemWalletSessionService: gemWalletSessionService,
+            walletSessionService: walletSessionService,
             chainService: chainService,
         )
 
         let assetDiscoveryService = Gemstone.GemAssetDiscoveryService(
-            api: gemDeviceApiClient,
-            balance: gemBalanceService,
-            transactions: gemTransactionsService,
-            nft: gemNftService,
-            walletStore: gemWalletStore,
+            api: deviceApiClient,
+            balance: balanceService,
+            transactions: transactionsService,
+            nft: nftService,
+            walletStore: gemstoneWalletStore,
             preferences: walletPreferencesService,
         )
 
-        let gemConfigService = Gemstone.GemConfigService(api: gemApiClient, preferences: preferencesService)
-        let appUpdateService = Gemstone.GemAppUpdateService(config: gemConfigService, preferences: preferencesService)
+        let configService = Gemstone.GemConfigService(api: apiClient, preferences: preferencesService)
+        let appUpdateService = Gemstone.GemAppUpdateService(config: configService, preferences: preferencesService)
         let rateService = RateService(preferencesService: preferencesService)
 
         let appStartService = Gemstone.GemAppStartService(
-            config: gemConfigService,
+            config: configService,
             banners: bannerService,
-            assets: gemAssetsService,
+            assets: assetsService,
             walletConfiguration: Gemstone.GemWalletConfigurationService(
-                api: gemDeviceApiClient,
-                banners: gemBannerStore,
+                api: deviceApiClient,
+                banners: gemstoneBannerStore,
                 preferences: walletPreferencesService,
             ),
-            wallet: gemWalletService,
+            wallet: walletService,
             device: deviceService,
         )
 
@@ -258,7 +250,7 @@ struct ServicesFactory {
             appStartService: appStartService,
             preferencesService: preferencesService,
             keystore: storages.keystore,
-            session: gemWalletSessionService,
+            session: walletSessionService,
         )
 
         let hyperliquidWebSocket = WebSocketConnection(
@@ -274,23 +266,23 @@ struct ServicesFactory {
             ),
         )
 
-        let gemNameService = Gemstone.GemNameService(api: gemDeviceApiClient, store: gemAddressStore)
+        let nameService = Gemstone.GemNameService(api: deviceApiClient, store: gemstoneAddressStore)
         let rewardsService = Gemstone.GemRewardsService(
-            api: gemDeviceApiClient,
+            api: deviceApiClient,
             auth: Gemstone.GemAuthService(
-                api: gemDeviceApiClient,
+                api: deviceApiClient,
                 keystore: storages.keystore.gemKeystore,
                 password: GemstoneKeystorePassword(keystore: storages.keystore),
                 devicePrivateKey: devicePrivateKey,
             ),
-            balance: gemBalanceService
+            balance: balanceService
         )
         let toastPresenter = ToastPresenter()
         let pushNotificationService = Gemstone.GemPushNotificationService()
         let navigationHandler = NavigationHandler(
             navigationState: navigation,
             presenter: navigationPresenter,
-            assetsService: gemAssetsService,
+            assetsService: assetsService,
             assetStore: storeManager.assetStore,
             walletConnector: walletConnector,
             toastPresenter: toastPresenter,
@@ -300,35 +292,35 @@ struct ServicesFactory {
             urlParser: URLParser(deeplinkService: Gemstone.GemDeeplinkService()),
             addressService: addressService,
             paymentService: paymentService,
-            transactionStateService: gemTransactionStateService,
+            transactionStateService: transactionStateService,
             walletConnectorPresenter: walletConnectorPresenter,
-            walletSessionService: gemWalletSessionService,
+            walletSessionService: walletSessionService,
         )
         let searchService = Gemstone.GemSearchService(
-            assets: gemAssetsService,
-            assetStore: gemAssetStore,
-            price: gemPriceService,
-            perpetualStore: gemPerpetualStore,
+            assets: assetsService,
+            assetStore: gemstoneAssetStore,
+            price: priceService,
+            perpetualStore: gemstonePerpetualStore,
             store: GemstoneSearchStore(store: storeManager.searchStore, assetListStore: storeManager.assetListStore),
         )
         let inAppNotificationService = Gemstone.GemNotificationService(
-            api: gemDeviceApiClient,
-            store: gemNotificationStore,
+            api: deviceApiClient,
+            store: gemstoneNotificationStore,
             preferences: walletPreferencesService,
         )
 
         let onboardingService = Gemstone.GemOnboardingService(
-            wallets: gemWalletService,
-            session: gemWalletSessionService,
+            wallets: walletService,
+            session: walletSessionService,
             avatars: avatarService,
-            names: gemNameService,
+            names: nameService,
             chains: chainService,
         )
 
         let contactService = Gemstone.GemContactService(
             store: GemstoneContactStore(store: storeManager.contactStore),
-            addressStore: gemAddressStore,
-            files: gemFileStore,
+            addressStore: gemstoneAddressStore,
+            files: gemstoneFileStore,
         )
 
         let appLifecycleService = AppLifecycleService(
@@ -339,58 +331,56 @@ struct ServicesFactory {
             streamSubscriptionService: streamSubscriptionService,
             perpetualService: perpetualService,
             perpetualObserver: hyperliquidObserverService,
-            walletSessionService: gemWalletSessionService,
-            transactionStateService: gemTransactionStateService,
+            walletSessionService: walletSessionService,
+            transactionStateService: transactionStateService,
         )
 
-        let gemConfirmService = gatewayService.confirmService(
+        let confirmService = gatewayService.confirmService(
             simulation: transactionSimulationService,
-            scanner: gemScanService,
-            transactionState: gemTransactionStateService,
-            balance: gemBalanceService,
-            price: gemPriceService,
-            assets: gemAssetsService,
+            scanner: scanService,
+            transactionState: transactionStateService,
+            balance: balanceService,
+            price: priceService,
+            assets: assetsService,
         )
         let viewModelFactory = ViewModelFactory(
-            keystore: storages.keystore,
-            gemWalletService: gemWalletService,
-            gemWalletSessionService: gemWalletSessionService,
-            onboardingService: onboardingService,
-            avatarService: avatarService,
-            observablePreferences: observablePreferences,
-            gemConfirmService: gemConfirmService,
-            swapService: swapService,
-            swapQuoteService: Gemstone.GemSwapQuoteService(),
-            priceUpdater: streamSubscriptionService,
-            walletSessionService: gemWalletSessionService,
-            stakeService: stakeService,
-            explorerService: explorerService,
-            preferencesService: preferencesService,
-            amountService: AmountService(stakeService: stakeService, amountService: Gemstone.GemAmountService()),
-            nameService: gemNameService,
-            balanceService: balanceService,
-            addressStore: storeManager.addressStore,
-            priceService: priceService,
-            transactionStateService: gemTransactionStateService,
-            gemNameService: gemNameService,
-            recentAssetsService: RecentAssetsService(store: storeManager.recentActivityStore),
-            toastPresenter: toastPresenter,
-            fiatService: fiatService,
-            assetsService: gemAssetsService,
-            assetStore: storeManager.assetStore,
-            priceAlertService: priceAlertService,
-            searchService: searchService,
-            perpetualService: perpetualService,
-            feeService: Gemstone.GemFeeService(),
-            transferService: Gemstone.GemTransferService(),
             addressService: addressService,
-            paymentService: paymentService,
             applicationMetadataService: Gemstone.GemApplicationMetadataService(),
-            deeplinkService: Gemstone.GemDeeplinkService(),
-            chainService: chainService,
-            contactService: contactService,
-            simulationFormatter: Gemstone.GemSimulationFormatter(),
             assetConfig: Gemstone.GemAssetConfigService(),
+            assetsService: assetsService,
+            avatarService: avatarService,
+            balanceService: balanceService,
+            chainService: chainService,
+            confirmService: confirmService,
+            contactService: contactService,
+            deeplinkService: Gemstone.GemDeeplinkService(),
+            explorerService: explorerService,
+            feeService: Gemstone.GemFeeService(),
+            fiatService: fiatService,
+            nameService: nameService,
+            onboardingService: onboardingService,
+            paymentService: paymentService,
+            perpetualService: perpetualService,
+            preferencesService: preferencesService,
+            priceAlertService: priceAlertService,
+            priceService: priceService,
+            searchService: searchService,
+            simulationFormatter: Gemstone.GemSimulationFormatter(),
+            stakeService: stakeService,
+            streamSubscriptionService: streamSubscriptionService,
+            swapQuoteService: Gemstone.GemSwapQuoteService(),
+            swapService: swapService,
+            transactionStateService: transactionStateService,
+            transferService: Gemstone.GemTransferService(),
+            walletService: walletService,
+            walletSessionService: walletSessionService,
+            keystore: storages.keystore,
+            observablePreferences: observablePreferences,
+            recentAssetsService: RecentAssetsService(store: storeManager.recentActivityStore),
+            amountService: AmountService(stakeService: stakeService, amountService: Gemstone.GemAmountService()),
+            toastPresenter: toastPresenter,
+            addressStore: storeManager.addressStore,
+            assetStore: storeManager.assetStore,
         )
 
         return AppResolver.Services(
@@ -408,18 +398,17 @@ struct ServicesFactory {
             streamSubscriptionService: streamSubscriptionService,
             priceService: priceService,
             chartService: chartService,
-            marketService: marketService,
             stakeService: stakeService,
             transactionsService: transactionsService,
-            transactionStateService: gemTransactionStateService,
+            transactionStateService: transactionStateService,
             onboardingService: onboardingService,
             walletPreferencesService: walletPreferencesService,
             preferencesService: preferencesService,
             deviceKeyService: deviceKeyService,
             observablePreferences: observablePreferences,
-            walletSessionService: gemWalletSessionService,
+            walletSessionService: walletSessionService,
             assetDiscoveryService: assetDiscoveryService,
-            gemAssetsService: gemAssetsService,
+            assetsService: assetsService,
             explorerService: explorerService,
             gatewayService: gatewayService,
             nftService: nftService,
@@ -437,7 +426,7 @@ struct ServicesFactory {
             transactionFormatter: transactionFormatter,
             perpetualService: perpetualService,
             hyperliquidObserverService: hyperliquidObserverService,
-            nameService: gemNameService,
+            nameService: nameService,
             toastPresenter: toastPresenter,
             addressService: addressService,
             viewModelFactory: viewModelFactory,
@@ -448,7 +437,7 @@ struct ServicesFactory {
             portfolioService: portfolioService,
             fiatService: fiatService,
             supportService: supportService,
-            supportStore: gemSupportStore,
+            supportStore: gemstoneSupportStore,
         )
     }
 }
@@ -481,17 +470,17 @@ extension ServicesFactory {
         connectionsStore: ConnectionsStore,
         interactor: WalletConnectorInteractor,
         transactionSimulationService: TransactionSimulationService,
-        gemWalletSessionService: GemWalletSessionService,
+        walletSessionService: GemWalletSessionService,
         chainService: Gemstone.GemChainService,
     ) -> WalletConnectorService {
         WalletConnectorService(
-            walletSessionService: gemWalletSessionService,
+            walletSessionService: walletSessionService,
             interactor: interactor,
             service: GemWalletConnectService(
                 simulation: transactionSimulationService,
                 store: GemstoneConnectionStore(store: connectionsStore),
                 signer: interactor,
-                session: gemWalletSessionService,
+                session: walletSessionService,
             ),
             chainService: chainService,
         )
