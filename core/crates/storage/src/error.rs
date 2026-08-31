@@ -25,7 +25,7 @@ impl fmt::Display for DatabaseError {
                 resource,
                 lookup: NotFoundLookup::Internal(_),
             } => write!(f, "{resource} not found"),
-            DatabaseError::ConnectionPool => write!(f, "Failed to create database connection pool"),
+            DatabaseError::ConnectionPool => write!(f, "Database connection pool unavailable"),
             DatabaseError::Error(msg) => write!(f, "{}", msg),
         }
     }
@@ -210,8 +210,8 @@ impl From<serde_json::Error> for DatabaseError {
 }
 
 impl From<r2d2::Error> for DatabaseError {
-    fn from(error: r2d2::Error) -> Self {
-        DatabaseError::Error(error.to_string())
+    fn from(_: r2d2::Error) -> Self {
+        DatabaseError::ConnectionPool
     }
 }
 

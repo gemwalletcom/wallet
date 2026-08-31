@@ -73,6 +73,7 @@ impl From<DatabaseError> for ApiError {
     fn from(error: DatabaseError) -> Self {
         match error {
             DatabaseError::NotFound { .. } => ApiError::NotFound(error.to_string()),
+            DatabaseError::ConnectionPool => ApiError::InternalServerError(error.to_string()),
             DatabaseError::Error(msg) => ApiError::InternalServerError(msg),
         }
     }

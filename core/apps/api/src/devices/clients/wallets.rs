@@ -121,38 +121,40 @@ impl WalletsClient {
             return Ok(0);
         }
 
-        let mut store = self.database.wallets()?;
+        let count = {
+            let mut store = self.database.wallets()?;
 
-        let identifiers: Vec<String> = wallet_subscriptions.iter().map(|x| x.wallet_id.id()).collect();
-        let mut wallet_ids: HashMap<String, i32> = store.get_wallets(identifiers)?.into_iter().map(|x| (x.wallet_id.id(), x.id)).collect();
+            let identifiers: Vec<String> = wallet_subscriptions.iter().map(|x| x.wallet_id.id()).collect();
+            let mut wallet_ids: HashMap<String, i32> = store.get_wallets(identifiers)?.into_iter().map(|x| (x.wallet_id.id(), x.id)).collect();
 
-        let new_wallets: Vec<NewWalletRow> = wallet_subscriptions
-            .iter()
-            .filter(|x| !wallet_ids.contains_key(&x.wallet_id.id()))
-            .map(|x| NewWalletRow {
-                identifier: x.wallet_id.id(),
-                wallet_type: WalletType::from(x.wallet_id.wallet_type()),
-                source: storage::sql_types::WalletSource::from(x.source.clone().unwrap_or(WalletSource::Import)),
-            })
-            .collect();
+            let new_wallets: Vec<NewWalletRow> = wallet_subscriptions
+                .iter()
+                .filter(|x| !wallet_ids.contains_key(&x.wallet_id.id()))
+                .map(|x| NewWalletRow {
+                    identifier: x.wallet_id.id(),
+                    wallet_type: WalletType::from(x.wallet_id.wallet_type()),
+                    source: storage::sql_types::WalletSource::from(x.source.clone().unwrap_or(WalletSource::Import)),
+                })
+                .collect();
 
-        if !new_wallets.is_empty() {
-            let new_identifiers: Vec<String> = new_wallets.iter().map(|x| x.identifier.clone()).collect();
-            store.create_wallets(new_wallets)?;
-            wallet_ids.extend(store.get_wallets(new_identifiers)?.into_iter().map(|x| (x.wallet_id.id(), x.id)));
-        }
+            if !new_wallets.is_empty() {
+                let new_identifiers: Vec<String> = new_wallets.iter().map(|x| x.identifier.clone()).collect();
+                store.create_wallets(new_wallets)?;
+                wallet_ids.extend(store.get_wallets(new_identifiers)?.into_iter().map(|x| (x.wallet_id.id(), x.id)));
+            }
 
-        let subscriptions: Vec<(i32, Chain, String)> = wallet_subscriptions
-            .iter()
-            .filter_map(|ws| {
-                wallet_ids
-                    .get(&ws.wallet_id.id())
-                    .map(|&wallet_id| ws.chain_addresses().into_iter().map(move |ca| (wallet_id, ca.chain, ca.address)))
-            })
-            .flatten()
-            .collect();
+            let subscriptions: Vec<(i32, Chain, String)> = wallet_subscriptions
+                .iter()
+                .filter_map(|ws| {
+                    wallet_ids
+                        .get(&ws.wallet_id.id())
+                        .map(|&wallet_id| ws.chain_addresses().into_iter().map(move |ca| (wallet_id, ca.chain, ca.address)))
+                })
+                .flatten()
+                .collect();
 
-        let count = store.add_subscriptions(device_row_id, subscriptions)?;
+            store.add_subscriptions(device_row_id, subscriptions)?
+        };
 
         let payload: Vec<ChainAddressPayload> = wallet_subscriptions
             .into_iter()
