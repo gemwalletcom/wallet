@@ -312,9 +312,25 @@ Everything below was checked against the code, not inherited from the survey. No
 | N1 | Who owns the three-state notification permission decision? | Core owns the decision; Android needs an activity-scoped requester so the adapter can tell "never asked" from "denied". |
 | Push re-enable after opt-out | Where does "the user said no" live? | A preference in `GemPreferencesService`, checked before the 30-day re-ask. Nothing records it today, which is why the opt-out is reversed. |
 
-**Needs no decision, but is wide.** Ten file-scope `Gem*Service()` holders remain. Two are done (`GemPaymentService`, and the asset config in `TransactionsRequestFilter`) — both had non-UI callers that already injected. The rest are read by value-type extensions that Compose calls, and the chain runs component → list → scene → view model: `AddressFormatter` is built at twelve sites and `WalletItem` alone has three callers that are themselves components. Do it feature by feature; moving the call one hop up just relocates the holder.
+**Needs no decision, but is wide.** Eight of the twelve file-scope `Gem*Service()` holders are gone. The pattern is settled — copy it rather than reinventing:
 
-Worth knowing: these are stateless Core objects, so a second instance costs nothing at runtime. The reason to finish it is the second half of the rule — a call site reaching for a service is where an app-side variant later creeps in.
+- a view model, coordinator or other injected class → constructor injection
+- a Compose scene → one instance provided at `MainActivity` through `CompositionLocalProvider`, read as `LocalAddressService.current` (see `LocalAddressService`, `LocalApplicationMetadataService`, `LocalTransferService`)
+- a plain helper inside a Compose file → an explicit parameter, because a `CompositionLocal` cannot be read outside a `@Composable`
+- a value type or namespace of statics → make it an instance that is handed the service (`URLParser`)
+
+Done: `GemPaymentService`, `GemAssetConfigService` in `TransactionsRequestFilter`, `GemAddressService` (Android), `GemApplicationMetadataService`, `GemTransferService` in `ConfirmParams`, `GemDeeplinkService` (iOS `URLParser`), `GemTransferService` in iOS `TransferData+`, plus a dead `Chain.defaultAssetRank`.
+
+The four left were each measured, and they are all 50+ sites:
+
+| Holder | Size | Why it is its own pass |
+|---|---|---|
+| `TransferDataType+GemstonePrimitives` (iOS) | app-wide | Backs `feeAsset`, `assetIds`, `outputType`, `outputAction`, `metadata`, `approvalData` — computed properties on a core domain type. |
+| `AddressFormatter` (iOS) | 23 uses, ~60 construction sites | Used by value-type view models (`WalletViewModel` 20 sites, `CopyTypeViewModel` 11) that are built inside view bodies, so the service threads through each. |
+| `ext/Chain.kt` (Android) | ~52 callers | `assetConfig` backs a `by lazy` table read by `Chain.asset()` and `Chain.networkName()`. |
+| `Chain+GemstonePrimitives` (iOS) | mirrors the above | Same table, same shape. |
+
+On the two `Chain.asset()` table cases specifically: that service is used once, to build an immutable lookup at first access — not reached per call. Threading a dependency through fifty-odd sites so a pure `Chain.asset()` can read a constant makes every caller carry a parameter for nothing at runtime. The rule's stated reason is that a call site reaching for a service is where an app-side variant creeps in, and a frozen table cannot drift. Worth deciding whether the rule should carve this out before spending the change.
 
 ### Surveyed divergences — the consolidation backlog
 
