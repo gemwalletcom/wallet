@@ -198,12 +198,16 @@ impl GemGateway {
     }
 
     pub async fn check_node(&self, chain: Chain, url: &str) -> Result<GemNodeStatus, GatewayError> {
-        let status = self.get_node_status(chain, url).await?;
+        let provider = self.chain_factory.create_with_url(chain, url.to_string()).await?;
+        let status = provider.get_nodes_status().await.map_err(map_network_error)?;
         if !chain_rules::is_valid_network_id(chain, &status.chain_id) {
             return Err(GatewayError::NetworkIdMismatch {
                 chain: chain.to_string(),
                 network_id: status.chain_id,
             });
+        }
+        if let Some(address) = chain_rules::node_verification_address(chain) {
+            provider.get_balance_coin(address).await.map_err(map_network_error)?;
         }
         Ok(status)
     }

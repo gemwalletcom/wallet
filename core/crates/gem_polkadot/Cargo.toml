@@ -16,6 +16,7 @@ rpc = [
     "dep:rand",
 ]
 reqwest = ["gem_client/reqwest"]
+testkit = []
 chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
 
 [dependencies]

@@ -35,11 +35,13 @@ interface BalancesDao {
         UPDATE balances SET
             available = :available,
             available_amount = :availableAmount,
+            frozen = :frozen,
+            frozen_amount = :frozenAmount,
             reserved = :reserved,
             reserved_amount = :reservedAmount,
             pending_unconfirmed = :pendingUnconfirmed,
             pending_unconfirmed_amount = :pendingUnconfirmedAmount,
-            total_amount = :availableAmount + frozen_amount + locked_amount + staked_amount + pending_amount + rewards_amount + earn_amount,
+            total_amount = :availableAmount + :frozenAmount + locked_amount + staked_amount + pending_amount + rewards_amount + earn_amount,
             updated_at = :updatedAt,
             is_active = :isActive
         WHERE wallet_id = :walletId AND asset_id = :assetId
@@ -49,6 +51,8 @@ interface BalancesDao {
         assetId: String,
         available: String,
         availableAmount: Double,
+        frozen: String,
+        frozenAmount: Double,
         reserved: String,
         reservedAmount: Double,
         pendingUnconfirmed: String,
