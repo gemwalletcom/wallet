@@ -7,17 +7,17 @@ import class Gemstone.GemAmountService
 import Primitives
 import Validators
 
-private let amountService = GemAmountService()
-
 struct AmountValueValidator: ValueValidator {
     private let asset: Asset
     private let available: BigInt
     private let minimum: BigInt
+    private let amountService: GemAmountService
 
-    init(asset: Asset, available: BigInt, minimum: BigInt) {
+    init(asset: Asset, available: BigInt, minimum: BigInt, amountService: GemAmountService) {
         self.asset = asset
         self.available = available
         self.minimum = minimum
+        self.amountService = amountService
     }
 
     func validate(_ value: BigInt) throws {

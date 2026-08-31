@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import class Gemstone.GemFeeService
 import Components
 import Localization
 import Primitives
@@ -14,7 +15,8 @@ public struct NetworkFeeSceneViewModel {
     private let rates: [FeeRate]
     private let feeAssetPrice: Price?
     private let feeAmount: BigInt?
-    private let feeAssets: [AssetData]
+    private let feeAssets: [FeeAssetItem]
+    private let feeService: GemFeeService
     private let onSelect: (@MainActor (FeeSelection) -> Void)?
     private let onSelectFeeAsset: (@MainActor (AssetId) -> Void)?
 
@@ -25,7 +27,8 @@ public struct NetworkFeeSceneViewModel {
         rates: [FeeRate] = [],
         feeAssetPrice: Price? = nil,
         feeAmount: BigInt? = nil,
-        feeAssets: [AssetData] = [],
+        feeAssets: [FeeAssetItem] = [],
+        feeService: GemFeeService,
         onSelect: (@MainActor (FeeSelection) -> Void)? = nil,
         onSelectFeeAsset: (@MainActor (AssetId) -> Void)? = nil,
     ) {
@@ -36,6 +39,7 @@ public struct NetworkFeeSceneViewModel {
         self.feeAssetPrice = feeAssetPrice
         self.feeAmount = feeAmount
         self.feeAssets = feeAssets
+        self.feeService = feeService
         self.onSelect = onSelect
         self.onSelectFeeAsset = onSelectFeeAsset
     }
@@ -55,15 +59,13 @@ public struct NetworkFeeSceneViewModel {
     }
 
     var selectedFeeAssetItem: FeeAssetItem {
-        feeAssetItem(
-            feeAssets.first(where: { $0.asset.id == feeAsset.id }) ?? .with(asset: feeAsset),
-            isSelected: false,
-        )
+        feeAssets.first(where: { $0.asset.id == feeAsset.id })
+            ?? FeeAssetItem(asset: feeAsset, balance: .zero, price: nil, currency: currency, isSelected: false)
     }
 
     var feeAssetsViewModel: FeeAssetsViewModel {
         FeeAssetsViewModel(
-            state: .data(.plain(feeAssets.map { feeAssetItem($0, isSelected: $0.asset.id == feeAsset.id) })),
+            state: .data(.plain(feeAssets.map { $0.selected($0.asset.id == feeAsset.id) })),
         )
     }
 
@@ -126,6 +128,7 @@ public struct NetworkFeeSceneViewModel {
             baseTotal: selectedBaseTotalFee,
             normalTotal: (rates.first(where: { $0.priority == .normal }) ?? rates.first)?.gasPriceType.totalFee ?? selectedBaseTotalFee,
             initialRate: selection.customRate,
+            feeService: feeService,
             onSelect: { onSelect?(.custom($0)) },
         )
     }
@@ -184,7 +187,4 @@ private extension NetworkFeeSceneViewModel {
         )
     }
 
-    func feeAssetItem(_ assetData: AssetData, isSelected: Bool) -> FeeAssetItem {
-        FeeAssetItem(assetData: assetData, currency: currency, isSelected: isSelected)
-    }
 }

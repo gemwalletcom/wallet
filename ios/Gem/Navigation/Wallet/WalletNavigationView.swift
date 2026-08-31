@@ -20,6 +20,8 @@ import WalletTab
 
 struct WalletNavigationView: View {
     @Environment(\.explorerService) private var explorerService
+    @Environment(\.feeService) private var feeService
+    @Environment(\.deeplinkService) private var deeplinkService
     @Environment(\.transactionFormatter) private var transactionFormatter
     @Environment(\.balanceService) private var balanceService
     @Environment(\.navigationHandler) private var navigationHandler
@@ -39,7 +41,7 @@ struct WalletNavigationView: View {
     @Environment(\.streamSubscriptionService) private var streamSubscriptionService
     @Environment(\.perpetualService) private var perpetualService
     @Environment(\.hyperliquidObserverService) private var hyperliquidObserverService
-    @Environment(\.recentActivityStore) private var recentActivityStore
+    @Environment(\.recentAssetsService) private var recentAssetsService
     @Environment(\.searchService) private var searchService
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.avatarService) private var avatarService
@@ -62,7 +64,7 @@ struct WalletNavigationView: View {
                     model: WalletSearchSceneViewModel(
                         wallet: model.wallet,
                         searchService: searchService,
-                        recentActivityStore: recentActivityStore,
+                        recentAssetsService: recentAssetsService,
                         balanceService: balanceService,
                         perpetualService: perpetualService,
                         preferences: preferences,
@@ -112,6 +114,7 @@ struct WalletNavigationView: View {
                     stakeService: stakeService,
                     explorerService: explorerService,
                     transactionFormatter: transactionFormatter,
+                    deeplinkService: deeplinkService,
                     preferences: preferences,
                     input: AssetSceneInput(
                         wallet: model.wallet,
@@ -139,7 +142,8 @@ struct WalletNavigationView: View {
                     walletId: model.wallet.id,
                     preferencesService: preferencesService,
                     explorerService: explorerService,
-                        transactionFormatter: transactionFormatter,
+                    transactionFormatter: transactionFormatter,
+                    feeService: feeService,
                     onHeaderAction: onSelectTransactionHeaderAction,
                     onAddContact: { model.isPresentingSheet = .addContact($0) },
                 ),
@@ -198,7 +202,7 @@ struct WalletNavigationView: View {
                 wallet: model.wallet,
                 perpetualService: perpetualService,
                 observerService: hyperliquidObserverService,
-                recentActivityStore: recentActivityStore,
+                recentAssetsService: recentAssetsService,
                 onSelectAssetType: { model.isPresentingSheet = .selectAsset($0, chains: []) },
                 onSelectAsset: navigationState.openAsset,
                 onSelectPortfolio: { model.isPresentingSheet = .portfolio(.perpetuals) },
@@ -242,7 +246,7 @@ struct WalletNavigationView: View {
                 ),
             )
         }
-        .scanQRCodeSheet(isPresented: $model.isPresentingScanner, action: onScan)
+        .scanQRCodeSheet(isPresented: $model.isPresentingScanner, scanType: .universal, action: onScan)
         .sheet(item: $model.isPresentingSheet) { sheet in
             Group {
                 switch sheet {

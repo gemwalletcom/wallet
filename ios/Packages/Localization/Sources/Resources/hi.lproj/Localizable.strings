@@ -70,6 +70,8 @@
 "wallet.manage_token_list" = "टोकन प्रबंधित करें";
 "wallet.scan_qr_code" = "QR कोड स्कैन करें";
 "wallet.scan" = "स्कैन करें";
+"wallet.scan_hint" = "भेजें, भुगतान करें या DApp से कनेक्ट करें";
+"wallet.scan_hint_address" = "बटुए का पता";
 "wallet.default_name" = "वॉलेट #%d";
 "wallet.default_name_chain" = "%@ वॉलेट #%d";
 "wallet.copy_address" = "पता कॉपी करें";

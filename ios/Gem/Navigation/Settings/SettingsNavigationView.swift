@@ -18,6 +18,9 @@ import WalletConnector
 
 struct SettingsNavigationView: View {
     @Environment(\.navigationState) private var navigationState
+    @Environment(\.addressService) private var addressService
+    @Environment(\.applicationMetadataService) private var applicationMetadataService
+    @Environment(\.deeplinkService) private var deeplinkService
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.transactionsService) private var transactionsService
     @Environment(\.assetStore) private var assetStore
@@ -45,8 +48,7 @@ struct SettingsNavigationView: View {
     @Environment(\.walletConnectorPresenter) private var walletConnectorPresenter
     @Environment(\.rewardsService) private var rewardsService
     @Environment(\.inAppNotificationService) private var inAppNotificationService
-    @Environment(\.contactService) private var contactService
-    @Environment(\.nameService) private var nameService
+    @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.supportService) private var supportService
     @Environment(\.walletPreferencesService) private var walletPreferencesService
     @Environment(\.supportStore) private var supportStore
@@ -89,7 +91,7 @@ struct SettingsNavigationView: View {
         )
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(for: Scenes.Security.self) { _ in
-            SecurityScene(model: SecurityViewModel(preferences: observablePreferences))
+            SecurityScene(model: viewModelFactory.securityScene())
         }
         .navigationDestination(for: Scenes.Notifications.self) { _ in
             NotificationsScene(
@@ -147,6 +149,7 @@ struct SettingsNavigationView: View {
             ConnectionsScene(
                 model: ConnectionsViewModel(
                     connector: walletConnector,
+                    applicationMetadataService: applicationMetadataService,
                     walletConnectorPresenter: walletConnectorPresenter,
                 ),
             )
@@ -163,6 +166,7 @@ struct SettingsNavigationView: View {
                 walletPreferencesService: walletPreferencesService,
                 preferencesService: preferencesService,
                 deviceKeyService: deviceKeyService,
+                deeplinkService: deeplinkService,
             ))
         }
         .navigationDestination(for: Scenes.DeveloperPayments.self) { _ in
@@ -214,9 +218,7 @@ struct SettingsNavigationView: View {
             )
         }
         .navigationDestination(for: Scenes.Contacts.self) { _ in
-            ContactsNavigationView(
-                model: ContactsViewModel(service: contactService, nameService: nameService),
-            )
+            ContactsNavigationView(model: viewModelFactory.contactsScene())
         }
         .sheet(isPresented: $isPresentingSupport) {
             NavigationStack {

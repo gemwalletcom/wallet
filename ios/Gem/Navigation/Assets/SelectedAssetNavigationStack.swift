@@ -12,7 +12,7 @@ struct SelectedAssetNavigationStack: View {
     @Environment(\.balanceService) private var balanceService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.receiveService) private var receiveService
-    @Environment(\.recentActivityStore) private var recentActivityStore
+    @Environment(\.recentAssetsService) private var recentAssetsService
 
     @State private var navigationPath = NavigationPath()
 
@@ -136,7 +136,7 @@ struct SelectedAssetNavigationStack: View {
 extension SelectedAssetNavigationStack {
     private func updateRecent() {
         if let data = input.type.recentActivityData(assetId: input.asset.id) {
-            try? recentActivityStore.add(data, walletId: wallet.id)
+            try? recentAssetsService.add(data, walletId: wallet.id)
         }
     }
 }

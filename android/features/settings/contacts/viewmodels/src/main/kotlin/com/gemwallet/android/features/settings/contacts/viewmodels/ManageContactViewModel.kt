@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemContactAvatar
+import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemRecipientService
 import java.util.UUID
 import javax.inject.Inject
@@ -45,6 +46,7 @@ class ManageContactViewModel @Inject constructor(
     private val addContactAddress: AddContactAddress,
     @param:ApplicationContext private val context: Context,
     private val recipientService: GemRecipientService,
+    private val paymentService: GemPaymentService,
     getNameRecord: GetNameRecord,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -171,7 +173,7 @@ class ManageContactViewModel @Inject constructor(
     fun pasteAddress(data: String) = applyExternalAddress(data)
 
     private fun applyExternalAddress(data: String) {
-        val decoded = decodePayment(data)?.request
+        val decoded = paymentService.decodePayment(data)?.request
         val address = (decoded?.address?.ifBlank { null } ?: data).trim()
         val memo = decoded?.memo
         addressInput.applyExternalAddress(address)

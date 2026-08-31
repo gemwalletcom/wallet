@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemApplicationMetadataService
 import protocol Gemstone.GemNameServiceProtocol
 import GemstoneServices
 import Components
@@ -23,6 +24,7 @@ public final class SignMessageSceneViewModel {
     private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate
     private let signer: MessageSigner
     private let plainMessage: String
+    private let applicationMetadataService: GemApplicationMetadataService
     public let messageDisplayType: SignMessageDisplayType
 
     public var isPresentingUrl: URL?
@@ -35,7 +37,9 @@ public final class SignMessageSceneViewModel {
         nameService: any GemNameServiceProtocol,
         payload: SignMessagePayload,
         confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
+        applicationMetadataService: GemApplicationMetadataService,
     ) {
+        self.applicationMetadataService = applicationMetadataService
         self.explorerService = explorerService
         self.keystore = keystore
         self.nameService = nameService
@@ -79,11 +83,14 @@ public final class SignMessageSceneViewModel {
     }
 
     public var connectionViewModel: WalletConnectionViewModel {
-        WalletConnectionViewModel(connection: WalletConnection(session: payload.session, wallet: payload.wallet))
+        WalletConnectionViewModel(
+            connection: WalletConnection(session: payload.session, wallet: payload.wallet),
+            applicationMetadataService: applicationMetadataService,
+        )
     }
 
     public var appName: String {
-        payload.session.metadata.shortName
+        payload.session.metadata.shortName(applicationMetadataService: applicationMetadataService)
     }
 
     public var appUrl: URL? {

@@ -33,9 +33,9 @@ impl GemBannerService {
     }
 
     pub async fn apply_action(&self, key: GemBannerKey, action: GemBannerAction) -> Result<(), GemServiceError> {
-        match action {
-            GemBannerAction::Close => self.close(key).await,
-            GemBannerAction::Event { .. } | GemBannerAction::Button => Ok(()),
+        match action.is_dismissal() {
+            true => self.close(key).await,
+            false => Ok(()),
         }
     }
 

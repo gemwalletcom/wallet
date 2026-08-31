@@ -75,6 +75,8 @@
   <string name="wallet_manage_token_list">Управление токенами</string>
   <string name="wallet_scan_qr_code">Сканировать QR-код</string>
   <string name="wallet_scan">Сканировать</string>
+  <string name="wallet_scan_hint">Отправьте, оплатите или подключитесь к DApp</string>
+  <string name="wallet_scan_hint_address">Адрес кошелька</string>
   <string name="wallet_default_name">Кошелек № %1$d</string>
   <string name="wallet_default_name_chain">%1$s Кошелек № %2$d</string>
   <string name="wallet_copy_address">Копировать адрес</string>

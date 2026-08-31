@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import protocol Gemstone.GemChainServiceProtocol
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -20,9 +21,9 @@ public struct AddAssetScene: View {
 
     var action: ((Asset) -> Void)?
 
-    public init(model: AddAssetSceneViewModel, action: ((Asset) -> Void)? = nil) {
+    public init(model: AddAssetSceneViewModel, chainService: any GemChainServiceProtocol, action: ((Asset) -> Void)? = nil) {
         _model = State(initialValue: model)
-        _networksModel = State(initialValue: NetworkSelectorViewModel(state: .data(.plain(model.chains))))
+        _networksModel = State(initialValue: NetworkSelectorViewModel(state: .data(.plain(model.chains)), chainService: chainService))
         self.action = action
     }
 
@@ -54,7 +55,7 @@ public struct AddAssetScene: View {
                 )
             }
             .sheet(isPresented: $model.isPresentingScanner) {
-                ScanQRCodeNavigationStack(action: onHandleScan(_:))
+                ScanQRCodeNavigationStack(scanType: .tokenContract, action: onHandleScan(_:))
             }
             .safariSheet(url: $isPresentingUrl)
     }

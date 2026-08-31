@@ -1,5 +1,6 @@
 package com.gemwallet.android.model
 
+import uniffi.gemstone.GemTransferService
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetHyperCoreUBTC
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
@@ -14,6 +15,8 @@ import org.junit.Test
 import java.math.BigInteger
 
 class ConfirmParamsPerpetualTest {
+
+    private val transferService = GemTransferService()
 
     private val asset = mockAssetHyperCoreUBTC()
     private val account = mockAccount(chain = Chain.HyperCore)
@@ -33,7 +36,7 @@ class ConfirmParamsPerpetualTest {
         val original: ConfirmParams = perpetualParams(
             PerpetualType.Open(mockPerpetualConfirmData(direction = PerpetualDirection.Long)),
         )
-        assertEquals(original, ConfirmParams.unpack(requireNotNull(original.pack())))
+        assertEquals(original, ConfirmParams.unpack(requireNotNull(original.pack(transferService)), transferService))
     }
 
     @Test
@@ -41,7 +44,7 @@ class ConfirmParamsPerpetualTest {
         val original: ConfirmParams = perpetualParams(
             PerpetualType.Close(mockPerpetualConfirmData(direction = PerpetualDirection.Short)),
         )
-        assertEquals(original, ConfirmParams.unpack(requireNotNull(original.pack())))
+        assertEquals(original, ConfirmParams.unpack(requireNotNull(original.pack(transferService)), transferService))
     }
 
     @Test
@@ -49,7 +52,7 @@ class ConfirmParamsPerpetualTest {
         val original: ConfirmParams = perpetualParams(
             PerpetualType.Increase(mockPerpetualConfirmData()),
         )
-        assertEquals(original, ConfirmParams.unpack(requireNotNull(original.pack())))
+        assertEquals(original, ConfirmParams.unpack(requireNotNull(original.pack(transferService)), transferService))
     }
 
     @Test
@@ -57,7 +60,7 @@ class ConfirmParamsPerpetualTest {
         val original: ConfirmParams = perpetualParams(
             PerpetualType.Reduce(mockPerpetualReduceData(positionDirection = PerpetualDirection.Long)),
         )
-        assertEquals(original, ConfirmParams.unpack(requireNotNull(original.pack())))
+        assertEquals(original, ConfirmParams.unpack(requireNotNull(original.pack(transferService)), transferService))
     }
 
     @Test
@@ -79,19 +82,19 @@ class ConfirmParamsPerpetualTest {
     fun getTransactionType_mapsEachPerpetualVariantCorrectly() {
         assertEquals(
             TransactionType.PerpetualOpenPosition,
-            perpetualParams(PerpetualType.Open(mockPerpetualConfirmData())).getTransactionType(),
+            perpetualParams(PerpetualType.Open(mockPerpetualConfirmData())).getTransactionType(transferService),
         )
         assertEquals(
             TransactionType.PerpetualClosePosition,
-            perpetualParams(PerpetualType.Close(mockPerpetualConfirmData())).getTransactionType(),
+            perpetualParams(PerpetualType.Close(mockPerpetualConfirmData())).getTransactionType(transferService),
         )
         assertEquals(
             TransactionType.PerpetualOpenPosition,
-            perpetualParams(PerpetualType.Increase(mockPerpetualConfirmData())).getTransactionType(),
+            perpetualParams(PerpetualType.Increase(mockPerpetualConfirmData())).getTransactionType(transferService),
         )
         assertEquals(
             TransactionType.PerpetualClosePosition,
-            perpetualParams(PerpetualType.Reduce(mockPerpetualReduceData())).getTransactionType(),
+            perpetualParams(PerpetualType.Reduce(mockPerpetualReduceData())).getTransactionType(transferService),
         )
     }
 }

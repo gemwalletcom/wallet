@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import GemstonePrimitivesTestKit
 import protocol Gemstone.GemPerpetualServiceProtocol
 import Store
@@ -21,6 +22,21 @@ struct PerpetualsSceneViewModelTests {
 
         #expect(model.headerViewModel.walletType == .multicoin)
     }
+
+    @Test
+    func pullToRefreshUpdatesMarketsThatTheTimerWouldSkip() async {
+        let perpetuals = GemPerpetualServiceMock()
+        let model = PerpetualsSceneViewModel.mock(perpetualService: perpetuals)
+
+        await model.updateMarkets(source: .timer)
+        #expect(perpetuals.syncMarketsCount == 1)
+
+        await model.updateMarkets(source: .timer)
+        #expect(perpetuals.syncMarketsCount == 1)
+
+        await model.updateMarkets(source: .user)
+        #expect(perpetuals.syncMarketsCount == 2)
+    }
 }
 
 extension PerpetualsSceneViewModel {
@@ -29,13 +45,13 @@ extension PerpetualsSceneViewModel {
         wallet: Wallet = .mock(),
         perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
         observerService: any PerpetualObservable = PerpetualObserverMock(),
-        recentActivityStore: RecentActivityStore = .mock(),
+        recentAssetsService: any RecentAssetsServiceable = RecentAssetsService(store: .mock()),
     ) -> PerpetualsSceneViewModel {
         PerpetualsSceneViewModel(
             wallet: wallet,
             perpetualService: perpetualService,
             observerService: observerService,
-            recentActivityStore: recentActivityStore,
+            recentAssetsService: recentAssetsService,
         )
     }
 }

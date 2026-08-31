@@ -11,6 +11,8 @@ import SwiftUI
 struct AddAssetNavigationStack: View {
     let wallet: Wallet
     @Environment(\.gatewayService) private var gatewayService
+    @Environment(\.assetConfig) private var assetConfig
+    @Environment(\.chainService) private var chainService
     @Environment(\.explorerService) private var explorerService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.balanceService) private var balanceService
@@ -23,7 +25,9 @@ struct AddAssetNavigationStack: View {
                     wallet: wallet,
                     gatewayService: gatewayService,
                     explorerService: explorerService,
+                    assetConfig: assetConfig,
                 ),
+                chainService: chainService,
                 action: addAsset,
             )
             .navigationTitle(Localized.Settings.Networks.title)

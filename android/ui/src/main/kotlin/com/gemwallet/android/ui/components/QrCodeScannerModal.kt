@@ -6,10 +6,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.wallet.core.primitives.QRScanType
 
 @Composable
 fun QrCodeScannerModal(
     isVisible: Boolean,
+    scanType: QRScanType,
     onDismissRequest: () -> Unit,
     onResult: (String) -> Unit,
 ) {
@@ -21,7 +23,7 @@ fun QrCodeScannerModal(
         dragHandle = null,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            QrCodeRequest(onCancel = onDismissRequest, onResult = onResult)
+            QrCodeRequest(scanType = scanType, onCancel = onDismissRequest, onResult = onResult)
         }
     }
 }

@@ -40,6 +40,12 @@ pub fn swap_transfer(wallet: &Wallet, quote: &Quote, data: SwapQuoteData) -> Res
     })
 }
 
+const QUOTE_REFRESH_INTERVAL_MILLISECONDS: u64 = 30_000;
+
+pub fn quote_refresh_interval_milliseconds() -> u64 {
+    QUOTE_REFRESH_INTERVAL_MILLISECONDS
+}
+
 pub fn swap_quote(quote: &Quote) -> SwapQuote {
     SwapQuote {
         from_address: quote.request.wallet_address.clone(),

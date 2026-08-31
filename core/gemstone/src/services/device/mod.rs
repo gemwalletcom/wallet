@@ -17,6 +17,9 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::subscription::GemSubscriptionService;
 use crate::services::wallet::GemWalletStore;
 use futures::lock::Mutex;
+use gem_api::WalletRequestPreflight;
+use gem_client::ClientError;
+use std::sync::Weak;
 
 #[derive(uniffi::Object)]
 pub struct GemDeviceService {
@@ -55,6 +58,11 @@ impl GemDeviceService {
     pub async fn synchronize(&self) -> Result<Device, GemServiceError> {
         let _guard = self.sync_lock.lock().await;
         self.sync(self.current_device().await?).await
+    }
+
+    pub async fn set_push_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
+        self.preferences.set_push_notifications_enabled(enabled)?;
+        self.synchronize_if_needed().await
     }
 
     pub async fn synchronize_if_needed(&self) -> Result<(), GemServiceError> {
@@ -161,5 +169,20 @@ impl GemDeviceService {
             .map_err(GemApiError::from)?;
         self.preferences.set_device_registered(true)?;
         Ok(added)
+    }
+}
+
+#[derive(Debug)]
+pub(crate) struct DeviceSyncPreflight {
+    pub(crate) service: Weak<GemDeviceService>,
+}
+
+#[async_trait::async_trait]
+impl WalletRequestPreflight for DeviceSyncPreflight {
+    async fn prepare(&self) -> Result<(), ClientError> {
+        let Some(service) = self.service.upgrade() else {
+            return Ok(());
+        };
+        service.synchronize_if_needed().await.map_err(|error| ClientError::Network(error.to_string()))
     }
 }

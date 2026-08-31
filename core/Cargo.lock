@@ -2294,6 +2294,7 @@ dependencies = [
  "reqwest 0.13.4",
  "rocket",
  "search_index",
+ "security_provider",
  "serde",
  "serde_json",
  "settings",
@@ -7741,7 +7742,6 @@ dependencies = [
  "primitives",
  "serde",
  "serde_json",
- "settings",
  "sha1 0.11.0",
  "sha2 0.11.0",
  "tokio",
@@ -10162,13 +10162,10 @@ dependencies = [
  "alloy-sol-types",
  "async-trait",
  "futures",
- "gem_client",
  "gem_evm",
  "gem_jsonrpc",
  "num-bigint 0.5.1",
  "primitives",
- "reqwest 0.13.4",
- "tokio",
 ]
 
 [[package]]

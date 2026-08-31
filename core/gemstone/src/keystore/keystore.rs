@@ -257,6 +257,7 @@ fn derive_mnemonic_wallet(
 #[cfg(test)]
 mod migration_tests {
     use std::path::{Path, PathBuf};
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
     use primitives::{Chain, hex};
 
@@ -280,8 +281,9 @@ mod migration_tests {
     }
 
     fn prepare(name: &str, fixture: &str) -> (PathBuf, String) {
-        let base = std::env::temp_dir().join(format!("gemstone_migration_{name}"));
-        let _ = std::fs::remove_dir_all(&base);
+        static SEQUENCE: AtomicUsize = AtomicUsize::new(0);
+        let unique = SEQUENCE.fetch_add(1, Ordering::Relaxed);
+        let base = std::env::temp_dir().join(format!("gemstone_migration_{name}_{}_{unique}", std::process::id()));
         std::fs::create_dir_all(&base).unwrap();
         let v3_path = base.join("legacy.json");
         std::fs::write(&v3_path, fixture).unwrap();

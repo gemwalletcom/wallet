@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAddressService
+import protocol Gemstone.GemAddressServiceProtocol
 import Foundation
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -15,7 +17,7 @@ struct AddressInputViewModelTests {
     func validate() {
         let model = AddressInputViewModel.mock(validators: [
             .required(requireName: "Address"),
-            .address(Asset(.ethereum)),
+            .address(Asset(.ethereum), addressService: GemAddressService()),
         ])
 
         model.inputModel.text = "gemcoder"
@@ -78,6 +80,7 @@ extension AddressInputViewModel {
             chain: chain,
             nameService: GemNameServiceMock(nameRecord: .mock()),
             placeholder: "Address",
+            addressService: GemAddressService(),
             validators: validators,
         )
     }

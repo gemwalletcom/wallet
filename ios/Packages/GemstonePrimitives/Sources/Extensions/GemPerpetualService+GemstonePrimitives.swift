@@ -1,13 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemMarketsRefreshTrigger
 import enum Gemstone.GemPerpetualSocketUpdate
 import protocol Gemstone.GemPerpetualServiceProtocol
 import Primitives
 
 public extension GemPerpetualServiceProtocol {
-    func updateMarkets() async throws {
-        _ = try await syncMarketsIfStale(chain: Chain.hyperCore.rawValue)
+    func updateMarkets(trigger: GemMarketsRefreshTrigger) async throws {
+        _ = try await syncMarketsIfNeeded(chain: Chain.hyperCore.rawValue, trigger: trigger)
     }
 
     func candlesticks(symbol: String, period: ChartPeriod) async throws -> [ChartCandleStick] {

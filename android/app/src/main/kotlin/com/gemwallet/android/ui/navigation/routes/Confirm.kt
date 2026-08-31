@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.navigation.routes
 
+import com.gemwallet.android.ui.LocalTransferService
 import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
@@ -24,7 +25,8 @@ fun EntryProviderScope<NavKey>.confirm(
     entry<ConfirmRoute>(
         metadata = { key -> routeArguments(paramsArgument(key.params)) },
     ) { key ->
-        val params = remember(key.params) { ConfirmParams.unpack(key.params) }
+        val transferService = LocalTransferService.current
+        val params = remember(key.params, transferService) { ConfirmParams.unpack(key.params, transferService) }
         ConfirmScreen(
             params = params,
             cancelAction = cancelAction,

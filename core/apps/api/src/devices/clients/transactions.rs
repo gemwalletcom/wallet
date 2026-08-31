@@ -56,7 +56,10 @@ impl TransactionsClient {
     }
 
     fn transactions_response(&self, rows: Vec<TransactionRow>, addresses: Vec<String>) -> Result<TransactionsResponse, Box<dyn Error + Send + Sync>> {
-        let transactions = rows.into_iter().map(|x| x.as_primitive(addresses.clone()).finalize(addresses.clone())).collect::<Vec<_>>();
+        let transactions = rows
+            .into_iter()
+            .map(|row| row.as_primitive(addresses.clone()).map(|transaction| transaction.finalize(addresses.clone())))
+            .collect::<Result<Vec<_>, _>>()?;
 
         let address_names = self
             .database
@@ -70,7 +73,7 @@ impl TransactionsClient {
     }
 
     pub fn get_transaction_by_id(&self, id: &TransactionId) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
-        Ok(self.database.transactions()?.get_transaction_by_id(id)?.as_primitive(vec![]))
+        Ok(self.database.transactions()?.get_transaction_by_id(id)?.as_primitive(vec![])?)
     }
 
     pub fn get_transaction_by_wallet_id(&self, device_row_id: i32, wallet_id: i32, id: &TransactionId) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
@@ -81,7 +84,12 @@ impl TransactionsClient {
             .into_iter()
             .map(|(_, address)| address.address)
             .collect::<Vec<_>>();
-        Ok(self.database.transactions()?.get_transaction_by_id(id)?.as_primitive(addresses.clone()).finalize(addresses))
+        Ok(self
+            .database
+            .transactions()?
+            .get_transaction_by_id(id)?
+            .as_primitive(addresses.clone())?
+            .finalize(addresses))
     }
 
     pub fn get_transactions_by_hash(&self, hash: &str) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
@@ -91,6 +99,6 @@ impl TransactionsClient {
             .get_transactions_by_hash(hash)?
             .into_iter()
             .map(|row| row.as_primitive(vec![]))
-            .collect())
+            .collect::<Result<Vec<_>, _>>()?)
     }
 }

@@ -9,8 +9,8 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
     private let securityService: GemSecurityService
 
     public init(
-        keystorePassword: KeystorePassword = LocalKeystorePassword(),
-        securityService: GemSecurityService = GemSecurityService(),
+        keystorePassword: KeystorePassword,
+        securityService: GemSecurityService,
     ) {
         self.keystorePassword = keystorePassword
         self.securityService = securityService
@@ -37,7 +37,7 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
         do {
             return try keystorePassword.getPrivacyLockStatus() == .enabled
         } catch {
-            return false
+            return true
         }
     }
 

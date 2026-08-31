@@ -60,6 +60,10 @@ public final class SwapSceneViewModel {
     private let onSwap: TransferDataAction
     private let swapService: any GemSwapServiceProtocol
     private let swapQuoteService: GemSwapQuoteService
+
+    var quoteRefreshInterval: TimeInterval {
+        TimeInterval(swapQuoteService.refreshIntervalMilliseconds()) / 1000
+    }
     private let preferencesService: any GemPreferencesServiceProtocol
     private let formatter = SwapValueFormatter(valueFormatter: .full)
     private let toValueFormatter = SwapValueFormatter(valueFormatter: ValueFormatter(style: .auto))
@@ -105,7 +109,7 @@ public final class SwapSceneViewModel {
     }
 
     public var swapDetailsViewModel: SwapDetailsViewModel? {
-        guard let selectedSwapQuote, let fromAsset, let toAsset, let selectedQuote = try? selectedSwapQuote.map() else { return nil }
+        guard let selectedSwapQuote, let fromAsset, let toAsset, let selectedQuote = try? selectedSwapQuote.map(swapQuoteService: swapQuoteService) else { return nil }
         return SwapDetailsViewModel(
             state: swapState.quotes,
             fromAssetPrice: AssetPriceValue(asset: fromAsset.asset, price: fromAsset.price),
@@ -114,6 +118,7 @@ public final class SwapSceneViewModel {
             slippage: selectedSlippage,
             currency: preferencesService.currencyCode,
             isProviderSelectionEnabled: isQuoteInteractionEnabled,
+            swapQuoteService: swapQuoteService,
             swapProviderSelectAction: { [weak self] quote in
                 self?.onFinishSwapProviderSelection(quote)
             },

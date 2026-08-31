@@ -9,6 +9,7 @@ import WalletConnector
 
 struct WalletConnectorNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
+    @Environment(\.applicationMetadataService) private var applicationMetadataService
 
     private let type: WalletConnectorSheetType
     private let presenter: WalletConnectorPresenter
@@ -48,6 +49,7 @@ struct WalletConnectorNavigationStack: View {
                         model: ConnectionProposalViewModel(
                             confirmTransferDelegate: data.delegate,
                             pairingProposal: data.payload,
+                            applicationMetadataService: applicationMetadataService,
                         ),
                         onComplete: { presenter.complete(type: type) },
                     )

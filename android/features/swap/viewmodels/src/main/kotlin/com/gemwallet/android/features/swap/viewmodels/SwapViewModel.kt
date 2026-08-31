@@ -78,6 +78,7 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.Config
 import uniffi.gemstone.GemSwapButtonAction
 import uniffi.gemstone.GemSwapButtonInput
+import uniffi.gemstone.GemStreamSubscriptionService
 import uniffi.gemstone.GemSwapQuoteService
 import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.SwapperException
@@ -99,6 +100,7 @@ class SwapViewModel @Inject constructor(
     requestSwapQuotes: RequestSwapQuotes,
     private val savedStateHandle: SavedStateHandle,
     private val swapQuoteService: GemSwapQuoteService,
+    private val streamSubscriptionService: GemStreamSubscriptionService,
 ) : ViewModel() {
 
     private val session = MutableStateFlow(SwapQuoteSession())
@@ -162,6 +164,7 @@ class SwapViewModel @Inject constructor(
             refreshRequests = refreshRequests,
             refreshEnabled = quoteRefreshEnabled,
             onFetchStarted = ::onQuoteFetchStarted,
+            refreshIntervalMillis = swapQuoteService.refreshIntervalMilliseconds().toLong(),
         ),
     ) { params, results ->
         results?.takeIf { it.matches(params) }
@@ -374,6 +377,7 @@ class SwapViewModel @Inject constructor(
         val currentSession = getSession().firstOrNull() ?: return@launch
         currentSession.wallet.getAccount(id.chain) ?: return@launch
         enableAsset(currentSession.wallet.id, id)
+        runCatchingCancellable { streamSubscriptionService.addPrices(listOf(id.toIdentifier())) }
     }
 
     private fun onQuoteRequestParamsChanged(params: SwapQuoteRequestParams?) {

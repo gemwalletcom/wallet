@@ -27,7 +27,7 @@ public struct ContactsNavigationView: View {
             }
             .sheet(isPresented: $model.isPresentingAddContact) {
                 NavigationStack {
-                    manageContact(for: .add())
+                    manageContact(for: model.addContactMode)
                         .toolbarDismissItem(type: .close, placement: .cancellationAction)
                 }
             }
@@ -37,12 +37,6 @@ public struct ContactsNavigationView: View {
     }
 
     func manageContact(for mode: ManageContactViewModel.Mode) -> some View {
-        ManageContactScene(
-            model: ManageContactViewModel(
-                service: model.service,
-                nameService: model.nameService,
-                mode: mode,
-            ),
-        )
+        ManageContactScene(model: model.manageContactModel(mode: mode))
     }
 }

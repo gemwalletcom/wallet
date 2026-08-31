@@ -86,7 +86,7 @@ public struct SwapScene: View {
             }
         }
         .onChange(of: model.selectedSwapQuote, model.onChangeSwapQuote)
-        .onTimer(every: 30, id: model.loadTrigger) {
+        .onTimer(every: model.quoteRefreshInterval, id: model.loadTrigger) {
             await model.load()
         }
         .onAppear {

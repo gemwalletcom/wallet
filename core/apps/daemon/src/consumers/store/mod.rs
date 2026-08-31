@@ -26,7 +26,7 @@ use store_prices_consumer::StorePricesConsumer;
 use wallet_stream_consumer::WalletStreamConsumer;
 
 pub async fn run_consumer_store(settings: Settings, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
-    let database = Database::new(&settings.postgres.url, settings.postgres.pool);
+    let database = Database::new(&settings.postgres.url, settings.postgres.pool)?;
     let settings = Arc::new(settings);
 
     tokio::try_join!(

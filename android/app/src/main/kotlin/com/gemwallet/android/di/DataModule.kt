@@ -7,6 +7,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemConfirmService
 import uniffi.gemstone.GemConfirmServiceInterface
@@ -32,7 +33,8 @@ object DataModule {
         transactionStateService: GemTransactionStateService,
         balanceService: GemBalanceService,
         priceService: GemPriceService,
-    ): GemConfirmServiceInterface = GemConfirmService(gateway, simulationService, scanService, transactionStateService, balanceService, priceService)
+        assetsService: GemAssetsService,
+    ): GemConfirmServiceInterface = GemConfirmService(gateway, simulationService, scanService, transactionStateService, balanceService, priceService, assetsService)
 
     @Provides
     @Singleton
@@ -54,11 +56,5 @@ object DataModule {
     @Provides
     fun provideSyncService(
         appStartService: GemAppStartService,
-        deviceService: GemDeviceService,
-    ): SyncService {
-        return SyncService(
-            appStartService = appStartService,
-            deviceService = deviceService,
-        )
-    }
+    ): SyncService = SyncService(appStartService = appStartService)
 }

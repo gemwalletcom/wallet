@@ -24,7 +24,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     private let preferencesService: any GemPreferencesServiceProtocol
     private let searchService: any GemSearchServiceProtocol
     let perpetualService: any GemPerpetualServiceProtocol
-    private let recentActivityStore: RecentActivityStore
+    private let recentAssetsService: any RecentAssetsServiceable
     let wallet: Wallet
 
     let title: String
@@ -44,7 +44,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
         preferencesService: any GemPreferencesServiceProtocol,
         searchService: any GemSearchServiceProtocol,
         perpetualService: any GemPerpetualServiceProtocol,
-        recentActivityStore: RecentActivityStore,
+        recentAssetsService: any RecentAssetsServiceable,
         request: WalletSearchRequest,
         title: String,
         onSelectAsset: @escaping (Asset) -> Void,
@@ -54,7 +54,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
         self.preferencesService = preferencesService
         self.searchService = searchService
         self.perpetualService = perpetualService
-        self.recentActivityStore = recentActivityStore
+        self.recentAssetsService = recentAssetsService
         self.title = title
         searchQuery = ObservableQuery(request, initialValue: .empty)
         onSelectAssetAction = onSelectAsset
@@ -140,7 +140,7 @@ extension AssetsResultsSceneViewModel {
     func onSelectAsset(_ asset: Asset) {
         onSelectAssetAction?(asset)
         do {
-            try recentActivityStore.add(.search(asset), walletId: wallet.id)
+            try recentAssetsService.add(.search(asset), walletId: wallet.id)
         } catch {
             debugLog("AssetsResultsSceneViewModel update recent error: \(error)")
         }

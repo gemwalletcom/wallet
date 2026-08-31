@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.coordinators.di
 
 import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemTransactionFormatter
 import com.gemwallet.android.application.transactions.cases.GetTransactionDetails
 import com.gemwallet.android.application.transactions.cases.GetTransactions
@@ -16,6 +17,7 @@ import com.gemwallet.android.data.coordinators.transaction.ClearPendingTransacti
 import com.gemwallet.android.data.coordinators.transaction.GetPendingTransactionsCountImpl
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionImpl
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStore
+import uniffi.gemstone.GemAssetConfigService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -34,7 +36,8 @@ object TransactionModule {
         getCurrentWalletId: GetCurrentWalletId,
         transactionStore: GemstoneTransactionStore,
         transactionFormatter: GemTransactionFormatter,
-    ): GetTransactions = GetTransactionsImpl(getCurrentWalletId, transactionStore, transactionFormatter)
+        addressService: GemAddressService,
+    ): GetTransactions = GetTransactionsImpl(getCurrentWalletId, transactionStore, transactionFormatter, addressService)
 
     @Provides
     @Singleton
@@ -48,7 +51,8 @@ object TransactionModule {
     fun provideGetPendingTransactionsCount(
         getCurrentWalletId: GetCurrentWalletId,
         transactionStore: GemstoneTransactionStore,
-    ): GetPendingTransactionsCount = GetPendingTransactionsCountImpl(getCurrentWalletId, transactionStore)
+        assetConfig: GemAssetConfigService,
+    ): GetPendingTransactionsCount = GetPendingTransactionsCountImpl(getCurrentWalletId, transactionStore, assetConfig)
 
     @Provides
     @Singleton

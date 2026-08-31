@@ -3,11 +3,11 @@
 import BigInt
 import Foundation
 import Gemstone
+import protocol Gemstone.GemAddressServiceProtocol
+import class Gemstone.GemPaymentService
 import GemstonePrimitives
 import Localization
 import Primitives
-
-private let paymentService = GemPaymentService()
 
 public enum PaymentDestinationBuilder {
     public enum TransferDestination: Sendable {
@@ -15,18 +15,28 @@ public enum PaymentDestinationBuilder {
         case recipient(RecipientData)
     }
 
-    public static func transfer(payment: Primitives.PaymentRequest, asset: Primitives.Asset) throws -> TransferDestination {
+    public static func transfer(
+        payment: Primitives.PaymentRequest,
+        asset: Primitives.Asset,
+        addressService: any GemAddressServiceProtocol,
+        paymentService: GemPaymentService,
+    ) throws -> TransferDestination {
         switch paymentService.transferDestination(request: payment.json(), asset: asset.paymentWalletAsset) {
         case let .confirm(transfer):
             return try .confirm(transferData(transfer: transfer, asset: asset))
         case .recipient:
-            return .recipient(recipientData(for: payment, chain: asset.chain))
+            return .recipient(recipientData(for: payment, chain: asset.chain, addressService: addressService))
         case .selectAsset, .unsupported:
             throw AnyError(Localized.Errors.notSupported)
         }
     }
 
-    public static func build(payment: Primitives.PaymentRequest, assets: [AssetData]) throws -> PaymentDestination {
+    public static func build(
+        payment: Primitives.PaymentRequest,
+        assets: [AssetData],
+        addressService: any GemAddressServiceProtocol,
+        paymentService: GemPaymentService,
+    ) throws -> PaymentDestination {
         switch paymentService.destination(request: payment.json(), assets: assets.map { $0.asset.paymentWalletAsset }) {
         case let .confirm(transfer):
             guard let assetData = assetData(for: transfer.assetId, in: assets) else {
@@ -41,24 +51,29 @@ public enum PaymentDestinationBuilder {
                 SelectedAssetInput(
                     type: .send(.asset(assetData.asset)),
                     assetData: assetData,
-                    recipient: recipientData(for: payment, chain: assetData.asset.chain),
+                    recipient: recipientData(for: payment, chain: assetData.asset.chain, addressService: addressService),
                 ),
             )
         case let .selectAsset(chains):
-            return .selectAsset(.send(recipientData(for: payment)), chains: chains.compactMap { Primitives.Chain(rawValue: $0) })
+            return .selectAsset(.send(recipientData(for: payment, addressService: addressService)), chains: chains.compactMap { Primitives.Chain(rawValue: $0) })
         case .unsupported:
             throw AnyError(Localized.Errors.notSupported)
         }
     }
 
-    public static func build(transaction: GemPaymentTransaction, asset: Primitives.Asset) throws -> PaymentDestination {
+    public static func build(
+        transaction: GemPaymentTransaction,
+        asset: Primitives.Asset,
+        addressService: any GemAddressServiceProtocol,
+        paymentService: GemPaymentService,
+    ) throws -> PaymentDestination {
         let type = try TransferDataType.generic(
             asset: asset,
             metadata: Primitives.ApplicationMetadata(transaction.merchant),
             extra: TransferDataExtra(
                 to: transaction.request
                     .map { try Primitives.PaymentRequest($0).address }
-                    .map { asset.chain.checksumAddress($0) } ?? "",
+                    .map { asset.chain.checksumAddress($0, addressService: addressService) } ?? "",
                 data: Data(transaction.transaction.utf8),
                 outputType: .encodedTransaction,
                 outputAction: .send,
@@ -98,8 +113,8 @@ public enum PaymentDestinationBuilder {
         )
     }
 
-    private static func recipientData(for payment: Primitives.PaymentRequest, chain: Primitives.Chain? = nil) -> RecipientData {
-        let address = chain.map { $0.checksumAddress(payment.address) } ?? payment.address
+    private static func recipientData(for payment: Primitives.PaymentRequest, chain: Primitives.Chain? = nil, addressService: any GemAddressServiceProtocol) -> RecipientData {
+        let address = chain.map { $0.checksumAddress(payment.address, addressService: addressService) } ?? payment.address
         return RecipientData(
             recipient: Recipient(name: .none, address: address, memo: payment.memo, references: payment.references ?? []),
             amount: payment.exactAmount,

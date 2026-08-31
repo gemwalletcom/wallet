@@ -1,5 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAddressService
+import protocol Gemstone.GemAddressServiceProtocol
+import class Gemstone.GemPaymentService
 import GemstonePrimitivesTestKit
 import Components
 import Formatters
@@ -7,6 +10,7 @@ import Primitives
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
+import class Gemstone.GemWalletSessionService
 import GemstoneServices
 import GemstoneServicesTestKit
 
@@ -152,12 +156,14 @@ extension RecipientSceneViewModel {
         RecipientSceneViewModel(
             wallet: wallet,
             asset: asset,
-            walletSessionService: WalletSessionService.mock(),
+            walletSessionService: GemWalletSessionService.mock(),
             nameService: GemNameServiceMock(nameRecord: .mock()),
             type: type,
             recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
+            addressService: GemAddressService(),
+            paymentService: GemPaymentService(),
         )
     }
 }

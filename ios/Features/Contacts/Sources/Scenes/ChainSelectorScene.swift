@@ -11,12 +11,8 @@ struct ChainSelectorScene: View {
 
     private let onSelectChain: (Chain) -> Void
 
-    init(chain: Chain?, onSelectChain: @escaping (Chain) -> Void) {
-        _model = State(initialValue: NetworkSelectorViewModel(
-            state: .data(.plain(Chain.allCases)),
-            selectedItems: [chain].compactMap(\.self),
-            selectionType: .checkmark,
-        ))
+    init(model: NetworkSelectorViewModel, onSelectChain: @escaping (Chain) -> Void) {
+        _model = State(initialValue: model)
         self.onSelectChain = onSelectChain
     }
 

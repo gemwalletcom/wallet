@@ -5,15 +5,9 @@ import enum Gemstone.GemTransactionInputType
 import class Gemstone.GemTransferService
 import Primitives
 
-private let transferService = GemTransferService()
-
 public extension TransferDataType {
     var inputType: GemTransactionInputType {
-        do {
-            return try map()
-        } catch {
-            preconditionFailure("Unencodable transfer data type: \(error)")
-        }
+        try! map()
     }
 
     var asset: Asset {
@@ -32,39 +26,31 @@ public extension TransferDataType {
         }
     }
 
-    var feeAsset: Asset {
-        do {
-            return try Asset(transferService.feeAsset(inputType: inputType))
-        } catch {
-            preconditionFailure("Undecodable transfer fee asset: \(error)")
-        }
+    func feeAsset(transferService: GemTransferService) -> Asset {
+        Asset(core: transferService.feeAsset(inputType: inputType))
     }
 
-    var transactionType: TransactionType {
-        do {
-            return try TransactionType(transferService.transactionType(inputType: inputType))
-        } catch {
-            preconditionFailure("Undecodable transaction type: \(error)")
-        }
+    func transactionType(transferService: GemTransferService) -> TransactionType {
+        TransactionType(core: transferService.transactionType(inputType: inputType))
     }
 
-    var assetIds: [AssetId] {
-        transferService.assetIds(inputType: inputType).compactMap { try? AssetId(id: $0) }
+    func assetIds(transferService: GemTransferService) -> [AssetId] {
+        transferService.assetIds(inputType: inputType).map { try! AssetId(id: $0) }
     }
 
-    var outputType: TransferDataOutputType {
-        (try? TransferDataOutputType(transferService.output(inputType: inputType).outputType)) ?? .encodedTransaction
+    func outputType(transferService: GemTransferService) -> TransferDataOutputType {
+        TransferDataOutputType(core: transferService.output(inputType: inputType).outputType)
     }
 
-    var outputAction: TransferDataOutputAction {
-        (try? TransferDataOutputAction(transferService.output(inputType: inputType).outputAction)) ?? .sign
+    func outputAction(transferService: GemTransferService) -> TransferDataOutputAction {
+        TransferDataOutputAction(core: transferService.output(inputType: inputType).outputAction)
     }
 
-    func metadata() throws -> AnyCodableValue? {
+    func metadata(transferService: GemTransferService) throws -> AnyCodableValue? {
         try transferService.metadata(inputType: inputType).map { try JSONDecoder().decode(AnyCodableValue.self, from: Data($0.utf8)) }
     }
 
-    func approvalData(for transactionType: TransactionType) throws -> ApprovalData? {
+    func approvalData(for transactionType: TransactionType, transferService: GemTransferService) throws -> ApprovalData? {
         try transferService.approval(inputType: inputType, transactionType: transactionType.json()).map { try ApprovalData($0) }
     }
 }

@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-use crate::models::custom_types::GemBigInt;
+use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
 use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::balance::GemAssetBalance;
 use crate::services::price::GemAssetPrice;
 use crate::services::transfer::GemTransferData;
-use primitives::FeePriority;
-use primitives::{Account, AssetId, SimulationResult, Transaction, Wallet};
+use crate::transfer_amount::{GemTransferAmount, GemTransferAmountError};
+use primitives::{Account, Asset, AssetId, FeePriority, SimulationPayloadField, SimulationResult, Transaction, Wallet};
 
 pub type GemAccount = Account;
 
@@ -15,6 +15,14 @@ pub type GemAccount = Account;
 pub struct GemConfirmInput {
     pub from: GemAccount,
     pub transfer: GemTransferData,
+}
+
+#[derive(uniffi::Record)]
+pub struct GemConfirmSceneState {
+    pub fee_priority: FeePriority,
+    pub fee_asset: Asset,
+    pub metadata: Option<GemConfirmMetadata>,
+    pub simulation: Option<GemConfirmSimulation>,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]
@@ -71,4 +79,50 @@ pub struct GemConfirmMetadata {
     pub asset_balance: GemAssetBalance,
     pub fee_asset_balance: GemAssetBalance,
     pub prices: Vec<GemAssetPrice>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemFeeAsset {
+    pub asset: Asset,
+    pub balance: GemAssetBalance,
+    pub price: Option<GemAssetPrice>,
+}
+
+#[derive(Debug, Clone, uniffi::Enum)]
+pub enum GemTransferAmountResult {
+    Amount { amount: GemTransferAmount },
+    Error { error: GemTransferAmountError },
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemConfirmPreload {
+    pub confirm_data: GemConfirmData,
+    pub metadata: GemConfirmMetadata,
+    pub fee_asset: Asset,
+    pub amount: GemTransferAmountResult,
+}
+
+#[derive(Debug, Clone, uniffi::Enum)]
+pub enum GemApprovalValue {
+    Exact { value: GemBigUint },
+    Unlimited,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemSimulationValue {
+    pub asset: Asset,
+    pub value: GemApprovalValue,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemSimulationBalanceChange {
+    pub asset: Asset,
+    pub value: GemBigInt,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemConfirmSimulation {
+    pub payload_fields: Vec<SimulationPayloadField>,
+    pub header: Option<GemSimulationValue>,
+    pub balance_changes: Vec<GemSimulationBalanceChange>,
 }

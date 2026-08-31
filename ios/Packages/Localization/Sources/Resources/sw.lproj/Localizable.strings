@@ -70,6 +70,8 @@
 "wallet.manage_token_list" = "Dhibiti Tokeni";
 "wallet.scan_qr_code" = "Changanua Msimbo wa QR";
 "wallet.scan" = "Changanua";
+"wallet.scan_hint" = "Tuma, lipa au unganisha na DApp";
+"wallet.scan_hint_address" = "Anwani ya mkoba";
 "wallet.default_name" = "Wallet #%d";
 "wallet.default_name_chain" = "%@ Wallet #%d";
 "wallet.copy_address" = "Nakili Anwani";

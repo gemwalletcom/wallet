@@ -28,7 +28,7 @@ public struct ChartListView<Model: ChartListViewable, Content: View>: View {
         .task(id: model.selectedPeriod) {
             await model.load()
         }
-        .refreshableTimer(every: .minutes(1)) { @MainActor in
+        .refreshableTimer(every: .minutes(1)) { @MainActor _ in
             await model.load()
         }
     }

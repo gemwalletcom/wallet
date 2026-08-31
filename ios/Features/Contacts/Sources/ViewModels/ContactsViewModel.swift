@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemContactServiceProtocol
-import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemContactsServiceProtocol
 import Components
 import GemstoneServices
 import Foundation
@@ -19,9 +18,14 @@ public final class ContactsViewModel {
         case addAddress(ChainRecipient)
     }
 
-    let service: any GemContactServiceProtocol
-    let nameService: any GemNameServiceProtocol
-    let mode: Mode
+    enum RowAction {
+        case navigate
+        case select
+    }
+
+    private let service: any GemContactsServiceProtocol
+    private let manageContact: @MainActor (ManageContactViewModel.Mode) -> ManageContactViewModel
+    private let mode: Mode
 
     public let query: ObservableQuery<ContactsRequest>
     var contacts: [ContactData] {
@@ -31,18 +35,36 @@ public final class ContactsViewModel {
     var isPresentingAddContact = false
 
     public init(
-        service: any GemContactServiceProtocol,
-        nameService: any GemNameServiceProtocol,
+        service: any GemContactsServiceProtocol,
+        manageContact: @escaping @MainActor (ManageContactViewModel.Mode) -> ManageContactViewModel,
         mode: Mode = .list,
     ) {
         self.service = service
-        self.nameService = nameService
+        self.manageContact = manageContact
         self.mode = mode
         query = ObservableQuery(ContactsRequest(), initialValue: [])
     }
 
     var title: String {
         Localized.Contacts.title
+    }
+
+    var rowAction: RowAction {
+        switch mode {
+        case .list: .navigate
+        case .addAddress: .select
+        }
+    }
+
+    func manageContactModel(mode: ManageContactViewModel.Mode) -> ManageContactViewModel {
+        manageContact(mode)
+    }
+
+    var addContactMode: ManageContactViewModel.Mode {
+        switch mode {
+        case .list: .add()
+        case let .addAddress(recipient): .add(recipient)
+        }
     }
 
     func add(to contact: ContactData) {

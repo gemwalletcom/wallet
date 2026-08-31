@@ -6,8 +6,6 @@ import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 import uniffi.gemstone.GemAssetConfigService
 
-private val assetConfig = GemAssetConfigService()
-
 sealed interface TransactionsRequestFilter {
     data class Chains(val chains: List<Chain>) : TransactionsRequestFilter
     data class Types(val types: List<TransactionType>) : TransactionsRequestFilter
@@ -16,7 +14,7 @@ sealed interface TransactionsRequestFilter {
     data class States(val states: List<TransactionState>) : TransactionsRequestFilter
 
     companion object {
-        fun activityDefaults(): List<TransactionsRequestFilter> = listOf(
+        fun activityDefaults(assetConfig: GemAssetConfigService): List<TransactionsRequestFilter> = listOf(
             AssetRankGreaterThan(assetConfig.defaultTokenRank()),
         )
     }

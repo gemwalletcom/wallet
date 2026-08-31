@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemApplicationMetadataService
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -15,6 +16,7 @@ struct ConnectionProposalViewModelTests {
         let model = ConnectionProposalViewModel(
             confirmTransferDelegate: { _ in },
             pairingProposal: .mock(proposal: .mock(metadata: metadata)),
+            applicationMetadataService: GemApplicationMetadataService(),
         )
 
         #expect(model.appText == "PancakeSwap (pancakeswap.finance)")

@@ -1,29 +1,33 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemChainService
 import Foundation
 import struct Gemstone.GemWalletConnectRequest
 import protocol Gemstone.GemWalletConnectServiceProtocol
 import GemstonePrimitives
-import protocol GemstoneServices.WalletSessionManageable
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Primitives
 @preconcurrency import ReownWalletKit
 @preconcurrency import WalletConnectPairing
 
 public final class WalletConnectorService {
     private let interactor = WCConnectionsInteractor()
-    private let walletSessionService: any WalletSessionManageable
+    private let walletSessionService: any GemWalletSessionServiceProtocol
     private let walletConnectorInteractor: any WalletConnectorInteractable
     private let service: any GemWalletConnectServiceProtocol
+    private let chainService: GemChainService
     private let setupState = SetupState()
 
     public init(
-        walletSessionService: any WalletSessionManageable,
+        walletSessionService: any GemWalletSessionServiceProtocol,
         interactor: any WalletConnectorInteractable,
         service: any GemWalletConnectServiceProtocol,
+        chainService: GemChainService,
     ) {
         self.walletSessionService = walletSessionService
         walletConnectorInteractor = interactor
         self.service = service
+        self.chainService = chainService
     }
 }
 
@@ -266,10 +270,10 @@ extension WalletConnectorService {
         let approval = try service.sessionApproval(wallet: wallet)
         let sessionNamespaces = try AutoNamespaces.build(
             sessionProposal: proposal,
-            chains: approval.chains.compactMap(\.blockchain),
+            chains: approval.chains.compactMap { $0.blockchain(chainService: chainService) },
             methods: approval.methods,
             events: approval.events,
-            accounts: approval.accounts.compactMap(\.blockchain),
+            accounts: approval.accounts.compactMap { $0.blockchain(chainService: chainService) },
         )
         let caip2Chains = sessionNamespaces.values.flatMap { $0.chains ?? [] }.map(\.absoluteString)
         let sessionProperties = service.configSessionProperties(

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemChainServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import Components
@@ -21,12 +22,13 @@ import SwiftUI
 @MainActor
 public final class SelectAssetViewModel {
     let preferencesService: any GemPreferencesServiceProtocol
+    private let chainService: any GemChainServiceProtocol
     let selectType: SelectAssetType
     let flow: SelectAssetFlow
     let searchService: any GemSearchServiceProtocol
     let balanceService: any GemBalanceServiceProtocol
     let priceAlertService: any GemPriceAlertServiceProtocol
-    let recentActivityStore: RecentActivityStore
+    let recentAssetsService: any RecentAssetsServiceable
 
     public let wallet: Wallet
 
@@ -54,8 +56,10 @@ public final class SelectAssetViewModel {
         searchService: any GemSearchServiceProtocol,
         balanceService: any GemBalanceServiceProtocol,
         priceAlertService: any GemPriceAlertServiceProtocol,
-        recentActivityStore: RecentActivityStore,
+        recentAssetsService: any RecentAssetsServiceable,
         preferencesService: any GemPreferencesServiceProtocol,
+        assetConfig: GemAssetConfigService,
+        chainService: any GemChainServiceProtocol,
         selectAssetAction: AssetAction = .none,
         chains: [Chain] = [],
     ) {
@@ -65,8 +69,9 @@ public final class SelectAssetViewModel {
         self.searchService = searchService
         self.balanceService = balanceService
         self.priceAlertService = priceAlertService
-        self.recentActivityStore = recentActivityStore
-        flow = selectType.flow
+        self.recentAssetsService = recentAssetsService
+        self.chainService = chainService
+        flow = selectType.flow(assetConfig: assetConfig)
         onSelectAssetAction = selectAssetAction
 
         let filter = AssetsFilterViewModel(
@@ -75,6 +80,8 @@ public final class SelectAssetViewModel {
                 chains: wallet.chains,
                 selected: chains,
             ),
+            assetConfig: assetConfig,
+            chainService: chainService,
         )
         filterModel = filter
 
@@ -83,7 +90,7 @@ public final class SelectAssetViewModel {
             walletId: wallet.id,
             types: selectType.recentActivityTypes,
             filters: filter.defaultFilters,
-            recentActivityStore: recentActivityStore,
+            recentAssetsService: recentAssetsService,
         )
     }
 
@@ -274,7 +281,7 @@ extension SelectAssetViewModel {
     private func updateRecent(assetId: AssetId) {
         guard let data = selectType.recentActivityData(assetId: assetId) else { return }
         do {
-            try recentActivityStore.add(data, walletId: wallet.id)
+            try recentAssetsService.add(data, walletId: wallet.id)
         } catch {
             debugLog("Failed to update recent activity: \(error)")
         }

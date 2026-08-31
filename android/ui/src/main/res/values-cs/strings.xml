@@ -75,6 +75,8 @@
   <string name="wallet_manage_token_list">Správa tokenů</string>
   <string name="wallet_scan_qr_code">Naskenujte QR kód</string>
   <string name="wallet_scan">Skenovat</string>
+  <string name="wallet_scan_hint">Pošlete, zaplaťte nebo se připojte k DApp</string>
+  <string name="wallet_scan_hint_address">Adresa peněženky</string>
   <string name="wallet_default_name">Peněženka č. %1$d</string>
   <string name="wallet_default_name_chain">%1$s Peněženka č.%2$d</string>
   <string name="wallet_copy_address">Kopírovat adresu</string>

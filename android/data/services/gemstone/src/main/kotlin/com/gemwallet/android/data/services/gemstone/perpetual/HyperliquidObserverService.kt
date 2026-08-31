@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPerpetualStreamService
 import uniffi.gemstone.GemPerpetualSubscription
@@ -64,7 +65,7 @@ class HyperliquidObserverService(
                 .distinctUntilChangedBy { it?.id?.id }
                 .collectLatest { wallet ->
                     if (wallet == null) return@collectLatest
-                    runCatching { syncPerpetuals.syncPerpetuals() }
+                    runCatching { syncPerpetuals.syncPerpetuals(GemMarketsRefreshTrigger.SCHEDULED) }
                 }
         }
     }

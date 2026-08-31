@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAmountService
 import BigInt
 import Formatters
 import Foundation
@@ -19,6 +20,7 @@ import class Gemstone.GemAutocloseEstimator
 public final class AmountPerpetualViewModel: AmountDataProvidable {
     let asset: Asset
     let data: PerpetualRecipientData
+    let amountService: GemAmountService
     let leverageSelection: SelectionState<LeverageOption>?
     let leverageTextStyle: TextStyle
     let currencyFormatter: CurrencyFormatter
@@ -31,7 +33,8 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     private let stopLossPercent: UInt8
     private var isAutocloseEdited = false
 
-    init(asset: Asset, data: PerpetualRecipientData, preferencesService: any GemPreferencesServiceProtocol) {
+    init(asset: Asset, data: PerpetualRecipientData, preferencesService: any GemPreferencesServiceProtocol, amountService: GemAmountService) {
+        self.amountService = amountService
         self.asset = asset
         self.data = data
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferencesService.currencyCode)

@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.filters
 
+import com.gemwallet.android.ui.LocalChainService
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.ColumnScope
@@ -131,9 +132,10 @@ fun TransactionsFilter(
             onDismiss = { showedSubFilter = null },
         ) { selectedItems, onToggle ->
             val query = rememberTextFieldState()
+            val chainService = LocalChainService.current
             SearchBar(query)
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                selectFilterChain(availableChains, selectedItems, query.text.toString(), onToggle)
+                selectFilterChain(availableChains, selectedItems, query.text.toString(), chainService, onToggle)
             }
         }
         FilterType.ByTypes -> SubFilterDialog(

@@ -21,6 +21,7 @@ import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemTransactionFormatter
 
 class TransactionDataAggregateImplTest {
@@ -132,7 +133,7 @@ class TransactionDataAggregateImplTest {
     )
 
     private fun createAggregate(transaction: TransactionExtended): TransactionDataAggregate =
-        TransactionDataAggregateImpl(transaction, GemTransactionFormatter())
+        TransactionDataAggregateImpl(transaction, GemTransactionFormatter(), GemAddressService())
 
     @Test
     fun testBasicPropertyDelegation() {

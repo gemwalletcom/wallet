@@ -3,17 +3,17 @@ import Foundation
 import GemstonePrimitives
 import Primitives
 
-private let transferService = GemTransferService()
-
 public final class LocalKeystore: Keystore, @unchecked Sendable {
     public let gemKeystore: GemKeystore
     private let keystoreURL: URL
     private let keystorePassword: KeystorePassword
     private let queue = DispatchQueue(label: "com.gemwallet.keystore", qos: .userInitiated)
+    private let transferService: GemTransferService
 
     public init(
         directory: String = "keystore",
         keystorePassword: KeystorePassword = LocalKeystorePassword(),
+        transferService: GemTransferService,
     ) {
         do {
             // migrate keystore from documents directory to application support directory
@@ -32,6 +32,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         }
 
         self.keystorePassword = keystorePassword
+        self.transferService = transferService
     }
 
     public func keystorePassword(createIfMissing: Bool) throws -> String {

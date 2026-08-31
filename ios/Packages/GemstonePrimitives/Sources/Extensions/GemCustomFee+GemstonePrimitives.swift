@@ -5,8 +5,6 @@ import Foundation
 import Gemstone
 import Primitives
 
-private let feeService = GemFeeService()
-
 public extension GemCustomFee {
     func map() throws -> CustomFeeEstimate {
         try CustomFeeEstimate(
@@ -24,6 +22,7 @@ public extension CustomFeeEstimate {
         baseTotal: BigInt,
         normalTotal: BigInt,
         maxMultiplier: Int,
+        feeService: GemFeeService,
     ) throws -> CustomFeeEstimate {
         try feeService.customFeeEstimate(
             rate: rate?.description,

@@ -24,6 +24,16 @@ pub fn spot_token_id_for_asset_id(asset_id: &AssetId) -> Option<String> {
     (!symbol.is_empty()).then(|| format!("{symbol}:{contract}"))
 }
 
+pub fn is_spot_token_id(token_id: &str) -> bool {
+    let parts = AssetId::decode_token_id(token_id);
+    match parts.as_slice() {
+        [symbol, contract, index] => {
+            !symbol.is_empty() && contract.strip_prefix("0x").is_some_and(|hex| !hex.is_empty() && hex.chars().all(|c| c.is_ascii_hexdigit())) && index.parse::<u32>().is_ok()
+        }
+        _ => false,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -42,6 +52,18 @@ mod tests {
 
         assert_eq!(asset_id.chain, Chain::HyperCore);
         assert_eq!(asset_id.token_id, Some(HYPERCORE_SPOT_USDC_TOKEN_ID.to_string()));
+    }
+
+    #[test]
+    fn test_is_spot_token_id() {
+        assert!(is_spot_token_id(HYPERCORE_SPOT_USDC_TOKEN_ID));
+
+        assert!(!is_spot_token_id("USDC"));
+        assert!(!is_spot_token_id("perpetual::BTC"));
+        assert!(!is_spot_token_id("USDC:0x6d1e7cde53ba9467b783cb7c530ce054"));
+        assert!(!is_spot_token_id("USDC::6d1e7cde53ba9467b783cb7c530ce054::0"));
+        assert!(!is_spot_token_id("USDC::0x6d1e7cde53ba9467b783cb7c530ce054::x"));
+        assert!(!is_spot_token_id(""));
     }
 
     #[test]

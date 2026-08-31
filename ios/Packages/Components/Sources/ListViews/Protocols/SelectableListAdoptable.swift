@@ -12,16 +12,13 @@ public protocol SelectableListAdoptable {
     var emptyStateTitle: String? { get }
     var errorTitle: String? { get }
 
-    init(state: StateViewType<SelectableListType<Item>>, selectedItems: [Item], selectionType: SelectionType)
-    init(state: StateViewType<SelectableListType<Item>>)
-
     mutating func reset()
     mutating func toggle(item: Item)
 }
 
 public extension SelectableListAdoptable {
-    init(state: StateViewType<SelectableListType<Item>>) {
-        self.init(state: state, selectedItems: [], selectionType: .navigationLink)
+    var items: [Item] {
+        state.value?.items ?? []
     }
 
     var shouldResetOnToggle: Bool {

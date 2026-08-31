@@ -10,6 +10,7 @@ public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
     private let syncError: Error?
     public private(set) var synchronizeCalls = 0
     public private(set) var synchronizeIfNeededCalls = 0
+    public private(set) var pushEnabledValues: [Bool] = []
 
     public init(syncError: Error? = nil) {
         self.syncError = syncError
@@ -24,6 +25,13 @@ public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
     }
 
     public func isRegistered() async throws -> Bool { true }
+
+    public func setPushEnabled(enabled: Bool) async throws {
+        pushEnabledValues.append(enabled)
+        if let syncError {
+            throw syncError
+        }
+    }
 
     public func synchronizeIfNeeded() async throws {
         synchronizeIfNeededCalls += 1
@@ -217,17 +225,33 @@ public final class GemTransactionsServiceMock: GemTransactionsServiceProtocol, @
 
 }
 
-public final class GemContactServiceMock: GemContactServiceProtocol, @unchecked Sendable {
-    private let service = GemContactService(
+public final class StubAlienProvider: AlienProvider, @unchecked Sendable {
+    public init() {}
+
+    public func request(target: AlienTarget) async throws -> AlienResponse {
+        throw AnyError("StubAlienProvider does not perform requests")
+    }
+
+    public func getEndpoint(chain: Gemstone.Chain) throws -> String {
+        throw AnyError("StubAlienProvider has no endpoints")
+    }
+}
+
+private func contactService() -> GemContactService {
+    GemContactService(
         store: GemContactStoreMock(),
         addressStore: GemAddressStoreMock(),
         files: GemFileStoreMock(),
     )
+}
+
+public final class GemContactsServiceMock: GemContactsServiceProtocol, @unchecked Sendable {
+    private let service = GemContactsService(contacts: contactService())
 
     public init() {}
 
-    public func saveContact(input: GemContactInput) async throws -> Gemstone.Contact {
-        try await service.saveContact(input: input)
+    public func addAddress(addresses: [Gemstone.ContactAddress], input: GemContactAddressInput) -> [Gemstone.ContactAddress] {
+        service.addAddress(addresses: addresses, input: input)
     }
 
     public func updateContact(contact: Gemstone.Contact, addresses: [Gemstone.ContactAddress]) async throws {
@@ -237,13 +261,53 @@ public final class GemContactServiceMock: GemContactServiceProtocol, @unchecked 
     public func deleteContact(contact: Gemstone.Contact) async throws {
         try await service.deleteContact(contact: contact)
     }
+}
+
+public final class GemManageContactServiceMock: GemManageContactServiceProtocol, @unchecked Sendable {
+    private let service: GemManageContactService
+
+    public init() {
+        service = GemManageContactService(
+            contacts: contactService(),
+            addresses: GemAddressService(),
+            names: GemNameService(
+                api: GemDeviceApiClient(
+                    provider: StubAlienProvider(),
+                    baseUrl: "https://localhost",
+                    devicePrivateKey: Data(),
+                ),
+                store: GemAddressStoreMock(),
+            ),
+            chains: GemChainService(),
+        )
+    }
+
+    public func names() -> GemNameService {
+        service.names()
+    }
+
+    public func addresses() -> GemAddressService {
+        service.addresses()
+    }
+
+    public func chains() -> GemChainService {
+        service.chains()
+    }
+
+    public func defaultChain() -> Gemstone.Chain {
+        service.defaultChain()
+    }
 
     public func addAddress(addresses: [Gemstone.ContactAddress], input: GemContactAddressInput) -> [Gemstone.ContactAddress] {
         service.addAddress(addresses: addresses, input: input)
     }
 
-    public func defaultChain() -> Gemstone.Chain {
-        service.defaultChain()
+    public func saveContact(input: GemContactInput) async throws -> Gemstone.Contact {
+        try await service.saveContact(input: input)
+    }
+
+    public func formatAddress(address: String, chain: Gemstone.Chain, style: GemAddressFormatStyle) -> String {
+        service.formatAddress(address: address, chain: chain, style: style)
     }
 }
 
@@ -295,6 +359,10 @@ public final class GemFiatServiceMock: GemFiatServiceProtocol, @unchecked Sendab
     public init(quotes: [Primitives.FiatQuote] = []) {
         self.quotes = quotes
     }
+
+    public func quoteDebounceMilliseconds() -> UInt64 { 250 }
+
+    public func quoteRefreshIntervalMilliseconds() -> UInt64 { 300_000 }
 
     public func syncTransactions(walletId _: String) async throws {}
 
@@ -540,6 +608,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     public var isPerpetualEnabled = true
     public private(set) var syncMarketsCount = 0
     public private(set) var clearMarketsCount = 0
+    public var connectionFailures = 0
     private var updatedAt: Int64?
 
     public init(marketsUpdatedAt: Int64? = nil) {
@@ -558,9 +627,9 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         .none
     }
 
-    public func syncEnablement(wallet: Gemstone.Wallet?) async throws -> Bool {
+    public func syncEnablement(wallet: Gemstone.Wallet?, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
         if isPerpetualEnabled {
-            try await syncMarkets(chain: "hypercore")
+            _ = try await syncMarketsIfNeeded(chain: "hypercore", trigger: trigger)
         } else {
             try await clearMarkets()
         }
@@ -571,7 +640,10 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         isPerpetualEnabled && (wallet.flatMap { try? Primitives.Wallet($0).hasPerpetualsSupport } ?? false)
     }
 
-    public func syncMarketsIfStale(chain: Gemstone.Chain) async throws -> Bool {
+    public func syncMarketsIfNeeded(chain: Gemstone.Chain, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
+        if trigger == .scheduled, updatedAt != nil {
+            return false
+        }
         try await syncMarkets(chain: chain)
         return true
     }
@@ -591,6 +663,10 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     }
 
     public func connection(wallet: Gemstone.Wallet) async throws -> Gemstone.GemPerpetualConnection? {
+        if connectionFailures > 0 {
+            connectionFailures -= 1
+            throw AnyError("connection unavailable")
+        }
         guard let account = try Primitives.Wallet(wallet).hyperliquidAccount else { return nil }
         return try Gemstone.GemPerpetualConnection(
             address: account.address,
@@ -773,5 +849,32 @@ public final class GemWalletPreferencesStoreMock: GemWalletPreferencesStore, @un
 public extension GemWalletPreferencesService {
     static func mock() -> GemWalletPreferencesService {
         GemWalletPreferencesService(store: GemWalletPreferencesStoreMock())
+    }
+}
+
+public extension Gemstone.GemFeeAsset {
+    static func mock(
+        asset: Primitives.Asset,
+        balance: Gemstone.GemAssetBalance? = nil,
+        price: Gemstone.GemAssetPrice? = nil,
+    ) -> Gemstone.GemFeeAsset {
+        Gemstone.GemFeeAsset(
+            asset: asset.json(),
+            balance: balance ?? Gemstone.GemAssetBalance(
+                assetId: asset.id.identifier,
+                available: "0",
+                frozen: "0",
+                locked: "0",
+                staked: "0",
+                pending: "0",
+                pendingUnconfirmed: "0",
+                rewards: "0",
+                reserved: "0",
+                withdrawable: "0",
+                earn: "0",
+                metadata: nil,
+            ),
+            price: price,
+        )
     }
 }

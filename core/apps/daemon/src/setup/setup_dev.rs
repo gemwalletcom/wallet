@@ -25,7 +25,7 @@ use storage::{
 pub async fn run_setup_dev(settings: Settings) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     info_with_fields!("setup_dev", step = "init");
 
-    let database = Database::new(&settings.postgres.url, settings.postgres.pool);
+    let database = Database::new(&settings.postgres.url, settings.postgres.pool)?;
     run_migrations(&database, "setup_dev")?;
     setup_database(&database)?;
 

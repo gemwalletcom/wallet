@@ -28,18 +28,14 @@ struct GemApp: App {
                     onstartService: resolver.services.onstartService,
                     appStartService: resolver.services.appStartService,
                     pushNotificationEnablerService: resolver.services.pushNotificationEnablerService,
-                    transactionStateService: resolver.services.transactionStateService,
                     appLifecycleService: resolver.services.appLifecycleService,
                     navigationHandler: resolver.services.navigationHandler,
-                    lockWindowManager: LockWindowManager(lockModel: LockSceneViewModel()),
-                    walletService: resolver.services.walletService,
+                    lockWindowManager: LockWindowManager(lockModel: resolver.services.viewModelFactory.lockScene()),
+                    onboardingService: resolver.services.onboardingService,
                     walletSessionService: resolver.services.walletSessionService,
-                    nameService: resolver.services.nameService,
-                    chainService: resolver.services.chainService,
                     appUpdateService: resolver.services.appUpdateService,
                     rateService: resolver.services.rateService,
                     toastPresenter: resolver.services.toastPresenter,
-                    avatarService: resolver.services.avatarService,
                     deviceService: resolver.services.deviceService,
                 ),
             )
@@ -66,7 +62,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UIWindowSceneDelegate {
 
         Task {
             let _ = try SecurePreferences.standard.set(value: token, key: .deviceToken)
-            _ = try await AppResolver.main.services.deviceService.synchronize()
+            try await AppResolver.main.services.deviceService.synchronizeIfNeeded()
         }
     }
 

@@ -65,14 +65,7 @@ public struct ManageContactScene: View {
     }
 
     private func contactAddressScene(mode: ManageContactAddressViewModel.Mode) -> some View {
-        ManageContactAddressScene(
-            model: ManageContactAddressViewModel(
-                defaultChain: model.defaultChain,
-                nameService: model.nameService,
-                mode: mode,
-                onComplete: model.onAddressComplete,
-            ),
-        )
+        ManageContactAddressScene(model: model.addressModel(mode: mode))
     }
 }
 

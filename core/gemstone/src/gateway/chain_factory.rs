@@ -100,3 +100,28 @@ impl ChainClientFactory {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::gateway::preferences::EmptyPreferences;
+    use crate::testkit::TestAlienProvider;
+    use futures::executor::block_on;
+
+    #[test]
+    fn test_get_is_token_address_matches_chain_config() {
+        let factory = ChainClientFactory::new(Arc::new(TestAlienProvider::with_status(404)), Arc::new(EmptyPreferences {}), Arc::new(EmptyPreferences {}));
+        for chain in Chain::all() {
+            let client = block_on(factory.create(chain)).unwrap();
+            let is_token_supported = chain.default_asset_type().is_some();
+            match chain.chain_type().mock_token_id() {
+                Some(token_id) => assert_eq!(
+                    client.get_is_token_address(token_id),
+                    is_token_supported,
+                    "{chain}: get_is_token_address({token_id}) disagrees with default_asset_type in chain config"
+                ),
+                None => assert!(!is_token_supported, "{chain} declares token support in chain config but has no token id fixture"),
+            }
+        }
+    }
+}

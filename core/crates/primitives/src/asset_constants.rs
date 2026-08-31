@@ -299,6 +299,8 @@ pub static GNOSIS_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::f
 pub const STELLAR_USDC_TOKEN_ID: &str = "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN::USDC";
 pub static STELLAR_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Stellar, STELLAR_USDC_TOKEN_ID));
 
+pub const XRP_RLUSD_TOKEN_ID: &str = "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De";
+
 pub const XLAYER_USDC_TOKEN_ID: &str = "0x74b7f16337b8972027F6196A17a631aC6dE26d22";
 pub static XLAYER_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::XLayer, XLAYER_USDC_TOKEN_ID));
 

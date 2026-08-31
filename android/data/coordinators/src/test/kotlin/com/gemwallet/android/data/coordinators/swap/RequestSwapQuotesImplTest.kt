@@ -55,6 +55,7 @@ class RequestSwapQuotesImplTest {
                 refreshRequests = refreshRequests,
                 refreshEnabled = refreshEnabled,
                 onFetchStarted = {},
+                refreshIntervalMillis = 30_000,
             ).collect { results += it }
         }
 
@@ -79,6 +80,7 @@ class RequestSwapQuotesImplTest {
                 refreshRequests = refreshRequests,
                 refreshEnabled = refreshEnabled,
                 onFetchStarted = {},
+                refreshIntervalMillis = 30_000,
             ).collect { results += it }
         }
 
@@ -203,6 +205,7 @@ class RequestSwapQuotesImplTest {
                 refreshRequests = refreshRequests,
                 refreshEnabled = refreshEnabled,
                 onFetchStarted = {},
+                refreshIntervalMillis = 30_000,
             ).collect { results += it }
         }
 
@@ -226,6 +229,7 @@ class RequestSwapQuotesImplTest {
                 refreshRequests = refreshRequests,
                 refreshEnabled = refreshEnabled,
                 onFetchStarted = {},
+                refreshIntervalMillis = 30_000,
             ).collect { results += it }
         }
 

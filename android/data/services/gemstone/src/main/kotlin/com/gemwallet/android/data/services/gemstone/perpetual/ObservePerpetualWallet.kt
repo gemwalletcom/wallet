@@ -18,7 +18,7 @@ class ObservePerpetualWallet @Inject constructor(
     operator fun invoke(): Flow<Wallet?> = combine(
         getCurrentWallet.observe(),
         userConfig.isPerpetualEnabled(),
-    ) { wallet, isEnabled ->
-        wallet?.takeIf { isEnabled && preferencesService.showPerpetuals(it.toJson()) }
+    ) { wallet, _ ->
+        wallet?.takeIf { preferencesService.showPerpetuals(it.toJson()) }
     }.distinctUntilChanged()
 }

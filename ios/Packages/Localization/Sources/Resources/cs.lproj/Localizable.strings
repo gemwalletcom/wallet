@@ -70,6 +70,8 @@
 "wallet.manage_token_list" = "Správa tokenů";
 "wallet.scan_qr_code" = "Naskenujte QR kód";
 "wallet.scan" = "Skenovat";
+"wallet.scan_hint" = "Pošlete, zaplaťte nebo se připojte k DApp";
+"wallet.scan_hint_address" = "Adresa peněženky";
 "wallet.default_name" = "Peněženka č. %d";
 "wallet.default_name_chain" = "%@ Peněženka č.%d";
 "wallet.copy_address" = "Kopírovat adresu";

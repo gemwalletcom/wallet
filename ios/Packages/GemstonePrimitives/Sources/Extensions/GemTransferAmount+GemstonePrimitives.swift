@@ -5,8 +5,6 @@ import Foundation
 import Gemstone
 import Primitives
 
-private let amountService = GemAmountService()
-
 public extension TransferAmount {
     static func calculate(
         transferData: TransferData,
@@ -14,6 +12,7 @@ public extension TransferAmount {
         feeAssetId: Primitives.AssetId,
         assetFeeBalance: BigInt,
         fee: BigInt,
+        amountService: GemAmountService,
     ) throws -> TransferAmount {
         let input = try GemTransferAmountInput(
             inputType: transferData.type.map(),

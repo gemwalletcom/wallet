@@ -1,30 +1,50 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemTransactionStateServiceProtocol
-import protocol Gemstone.GemPerpetualServiceProtocol
-import protocol Gemstone.GemPreferencesServiceProtocol
-import protocol Gemstone.GemPriceAlertServiceProtocol
-import protocol Gemstone.GemAssetsServiceProtocol
-import protocol Gemstone.GemPriceServiceProtocol
-import protocol Gemstone.GemSearchServiceProtocol
-import protocol Gemstone.GemNameServiceProtocol
-import protocol Gemstone.GemBalanceServiceProtocol
-import protocol Gemstone.GemFiatServiceProtocol
-import GemstoneServices
+import class Gemstone.GemAddressService
+import class Gemstone.GemAmountService
+import class Gemstone.GemApplicationMetadataService
+import class Gemstone.GemAssetConfigService
+import class Gemstone.GemAssetsService
+import class Gemstone.GemAvatarService
+import class Gemstone.GemBalanceService
+import class Gemstone.GemChainService
+import class Gemstone.GemConfirmTransferService
+import class Gemstone.GemConfirmService
+import class Gemstone.GemContactsService
+import class Gemstone.GemManageContactService
+import class Gemstone.GemDeeplinkService
+import class Gemstone.GemExplorerService
+import class Gemstone.GemFeeService
+import class Gemstone.GemFiatService
+import class Gemstone.GemNameService
+import class Gemstone.GemOnboardingService
+import class Gemstone.GemPaymentService
+import class Gemstone.GemPerpetualService
+import class Gemstone.GemPreferencesService
+import class Gemstone.GemPriceAlertService
+import class Gemstone.GemPriceService
+import class Gemstone.GemSearchService
+import class Gemstone.GemSimulationFormatter
+import class Gemstone.GemStakeService
+import class Gemstone.GemStreamSubscriptionService
+import class Gemstone.GemSwapQuoteService
+import class Gemstone.GemSwapService
+import class Gemstone.GemTransactionStateService
+import class Gemstone.GemTransferService
+import class Gemstone.GemWalletService
+import class Gemstone.GemWalletSessionService
 import Assets
+import Contacts
 import FiatConnect
 import Foundation
-import protocol Gemstone.GemExplorerServiceProtocol
-import protocol Gemstone.GemStakeServiceProtocol
-import protocol Gemstone.GemSwapServiceProtocol
-import class Gemstone.GemConfirmService
-import class Gemstone.GemAssetConfigService
-import class Gemstone.GemSwapQuoteService
-import class Gemstone.GemSimulationFormatter
-import class Gemstone.GemFeeService
+import GemstoneServices
+import LockManager
+import ManageWallets
+import Onboarding
 import Preferences
 import Primitives
 import PrimitivesComponents
+import Settings
 import Stake
 import Store
 import Swap
@@ -35,33 +55,113 @@ import WalletConnectorService
 import WalletTab
 
 public struct ViewModelFactory: Sendable {
-    let keystore: any Keystore
-    let gemConfirmService: GemConfirmService
-    let swapService: any GemSwapServiceProtocol
-    let swapQuoteService: GemSwapQuoteService
-    let priceUpdater: any PriceUpdater
-    let walletSessionService: any WalletSessionManageable
-    let stakeService: any GemStakeServiceProtocol
-    let explorerService: any GemExplorerServiceProtocol
-    let preferencesService: any GemPreferencesServiceProtocol
-    let amountService: AmountService
-    let nameService: any GemNameServiceProtocol
-    let balanceService: any GemBalanceServiceProtocol
-    let addressStore: AddressStore
-    let priceService: any GemPriceServiceProtocol
-    let transactionStateService: any GemTransactionStateServiceProtocol
-    let gemNameService: any GemNameServiceProtocol
-    let recentActivityStore: RecentActivityStore
-    let toastPresenter: ToastPresenter
-    let fiatService: any GemFiatServiceProtocol
-    let assetsService: any GemAssetsServiceProtocol
-    let assetStore: AssetStore
-    let priceAlertService: any GemPriceAlertServiceProtocol
-    let searchService: any GemSearchServiceProtocol
-    let perpetualService: any GemPerpetualServiceProtocol
-    let feeService: GemFeeService
-    let simulationFormatter: GemSimulationFormatter
+    // Core services
+    let addressService: GemAddressService
+    let applicationMetadataService: GemApplicationMetadataService
     let assetConfig: GemAssetConfigService
+    let assetsService: GemAssetsService
+    let avatarService: GemAvatarService
+    let balanceService: GemBalanceService
+    let chainService: GemChainService
+    let confirmService: GemConfirmService
+    let contactsService: GemContactsService
+    let manageContactService: GemManageContactService
+    let deeplinkService: GemDeeplinkService
+    let explorerService: GemExplorerService
+    let feeService: GemFeeService
+    let fiatService: GemFiatService
+    let nameService: GemNameService
+    let onboardingService: GemOnboardingService
+    let paymentService: GemPaymentService
+    let perpetualService: GemPerpetualService
+    let preferencesService: GemPreferencesService
+    let priceAlertService: GemPriceAlertService
+    let priceService: GemPriceService
+    let searchService: GemSearchService
+    let simulationFormatter: GemSimulationFormatter
+    let stakeService: GemStakeService
+    let streamSubscriptionService: GemStreamSubscriptionService
+    let swapQuoteService: GemSwapQuoteService
+    let swapService: GemSwapService
+    let transactionStateService: GemTransactionStateService
+    let transferService: GemTransferService
+    let walletService: GemWalletService
+    let walletSessionService: GemWalletSessionService
+
+    // Platform services Core cannot own
+    let biometryService: any BiometryAuthenticatable
+    let keystore: any Keystore
+    let observablePreferences: ObservablePreferences
+    let recentAssetsService: RecentAssetsService
+    let amountService: AmountService
+    let toastPresenter: ToastPresenter
+
+    // Stores
+    let addressStore: AddressStore
+    let assetStore: AssetStore
+
+    @MainActor
+    public func lockScene() -> LockSceneViewModel {
+        LockSceneViewModel(service: biometryService)
+    }
+
+    @MainActor
+    public func securityScene() -> SecurityViewModel {
+        SecurityViewModel(service: biometryService, preferences: observablePreferences)
+    }
+
+    @MainActor
+    public func walletsScene(
+        navigationPath: Binding<NavigationPath>,
+        isPresentingCreateWalletSheet: Binding<Bool>,
+        isPresentingImportWalletSheet: Binding<Bool>,
+    ) -> WalletsSceneViewModel {
+        WalletsSceneViewModel(
+            navigationPath: navigationPath,
+            walletService: walletService,
+            session: walletSessionService,
+            preferences: observablePreferences,
+            isPresentingCreateWalletSheet: isPresentingCreateWalletSheet,
+            isPresentingImportWalletSheet: isPresentingImportWalletSheet,
+        )
+    }
+
+    @MainActor
+    public func walletDetailScene(navigationPath: Binding<NavigationPath>, wallet: Wallet) -> WalletDetailViewModel {
+        WalletDetailViewModel(
+            navigationPath: navigationPath,
+            wallet: wallet,
+            walletService: walletService,
+            keystore: keystore,
+            preferences: observablePreferences,
+            explorerService: explorerService,
+        )
+    }
+
+    @MainActor
+    public func walletImageScene(wallet: Wallet) -> WalletImageViewModel {
+        WalletImageViewModel(wallet: wallet, avatarService: avatarService)
+    }
+
+    @MainActor
+    public func createWalletScene(onComplete: VoidAction) -> CreateWalletModel {
+        CreateWalletModel(service: onboardingService, preferences: observablePreferences, onComplete: onComplete)
+    }
+
+    @MainActor
+    public func importWalletScene(onComplete: VoidAction) -> ImportWalletViewModel {
+        ImportWalletViewModel(service: onboardingService, preferences: observablePreferences, onComplete: onComplete)
+    }
+
+    @MainActor
+    public func contactsScene(mode: ContactsViewModel.Mode = .list) -> ContactsViewModel {
+        ContactsViewModel(service: contactsService, manageContact: manageContactScene, mode: mode)
+    }
+
+    @MainActor
+    public func manageContactScene(mode: ManageContactViewModel.Mode) -> ManageContactViewModel {
+        ManageContactViewModel(service: manageContactService, mode: mode)
+    }
 
     @MainActor
     public func selectAssetScene(
@@ -76,8 +176,10 @@ public struct ViewModelFactory: Sendable {
             searchService: searchService,
             balanceService: balanceService,
             priceAlertService: priceAlertService,
-            recentActivityStore: recentActivityStore,
+            recentAssetsService: recentAssetsService,
             preferencesService: preferencesService,
+            assetConfig: assetConfig,
+            chainService: chainService,
             selectAssetAction: selectAssetAction,
             chains: chains,
         )
@@ -96,7 +198,7 @@ public struct ViewModelFactory: Sendable {
             preferencesService: preferencesService,
             searchService: searchService,
             perpetualService: perpetualService,
-            recentActivityStore: recentActivityStore,
+            recentAssetsService: recentAssetsService,
             request: request,
             title: title,
             onSelectAsset: onSelectAsset,
@@ -118,23 +220,26 @@ public struct ViewModelFactory: Sendable {
                 simulation: simulation,
                 delegate: confirmTransferDelegate,
             ),
-            confirmService: ConfirmServiceFactory.create(
-                explorerService: explorerService,
-                keystore: keystore,
-                gemConfirmService: gemConfirmService,
-                preferencesService: preferencesService,
-                assetStore: assetStore,
-                assetsService: assetsService,
-                transactionStateService: transactionStateService,
-                nameService: gemNameService,
-                recentActivityStore: recentActivityStore,
-                toastPresenter: toastPresenter,
-                feeService: feeService,
-                simulationFormatter: simulationFormatter,
-                perpetualService: perpetualService,
-            ),
+            service: confirmTransferService(),
+            signer: KeystoreTransactionSigner(keystore: keystore),
+            keystore: keystore,
+            recentAssetsService: recentAssetsService,
+            toastPresenter: toastPresenter,
+            preferencesService: preferencesService,
             onComplete: onComplete,
+        )
+    }
+
+    private func confirmTransferService() -> GemConfirmTransferService {
+        GemConfirmTransferService(
+            confirm: confirmService,
+            explorer: explorerService,
+            names: nameService,
             assetConfig: assetConfig,
+            transfer: transferService,
+            fee: feeService,
+            swapQuote: swapQuoteService,
+            applicationMetadata: applicationMetadataService,
         )
     }
 
@@ -156,6 +261,8 @@ public struct ViewModelFactory: Sendable {
             recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
+            addressService: addressService,
+            paymentService: paymentService,
         )
     }
 
@@ -200,7 +307,7 @@ public struct ViewModelFactory: Sendable {
             preferencesService: preferencesService,
             input: input,
             balanceService: balanceService,
-            priceUpdater: priceUpdater,
+            priceUpdater: streamSubscriptionService,
             swapService: swapService,
             swapQuoteService: swapQuoteService,
             onSwap: onSwap,
@@ -263,9 +370,10 @@ public struct ViewModelFactory: Sendable {
         SignMessageSceneViewModel(
             explorerService: explorerService,
             keystore: keystore,
-            nameService: gemNameService,
+            nameService: nameService,
             payload: payload,
             confirmTransferDelegate: confirmTransferDelegate,
+            applicationMetadataService: applicationMetadataService,
         )
     }
 }

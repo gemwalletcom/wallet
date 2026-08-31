@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemConfirmMetadata
 import GemstoneServices
 import BigInt
 import Foundation
@@ -10,7 +11,7 @@ import PrimitivesComponents
 public struct TransactionInputViewModel: Sendable {
     let data: TransferData
     let fee: Fee?
-    let metaData: TransferDataMetadata?
+    let metaData: GemConfirmMetadata?
     let transferAmount: TransferAmountValidation?
     let feeAsset: Asset
 
@@ -19,7 +20,7 @@ public struct TransactionInputViewModel: Sendable {
     public init(
         data: TransferData,
         fee: Fee?,
-        metaData: TransferDataMetadata?,
+        metaData: GemConfirmMetadata?,
         transferAmount: TransferAmountValidation?,
         feeAsset: Asset,
         currency: String,

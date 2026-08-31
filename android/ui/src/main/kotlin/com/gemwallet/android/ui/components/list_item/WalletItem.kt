@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.list_item
 
+import com.gemwallet.android.ui.LocalAddressService
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -79,7 +80,7 @@ fun WalletItem(
             val subtitle = when (type) {
                 WalletType.Multicoin -> stringResource(R.string.wallet_multicoin)
                 else -> walletAddress?.let {
-                    AddressFormatter(it, chain = walletChain, style = AddressFormatter.Style.Extra(1)).value()
+                    AddressFormatter(LocalAddressService.current, it, chain = walletChain, style = AddressFormatter.Style.Extra(1)).value()
                 } ?: ""
             }
             ListItemSupportText(subtitle)

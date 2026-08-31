@@ -9,8 +9,10 @@ import PrimitivesComponents
 
 public struct ConfirmAppViewModel: ItemModelProvidable {
     private let type: TransferDataType
+    private let shortName: String?
 
-    init(type: TransferDataType) {
+    init(type: TransferDataType, shortName: String?) {
+        self.shortName = shortName
         self.type = type
     }
 }
@@ -35,7 +37,7 @@ public extension ConfirmAppViewModel {
 
 extension ConfirmAppViewModel {
     private var appValue: String? {
-        type.applicationMetadata?.shortName
+        shortName
     }
 
     private var assetImage: AssetImage? {

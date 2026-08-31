@@ -1,5 +1,6 @@
 package com.gemwallet.android
 
+import uniffi.gemstone.GemSecurityService
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
@@ -24,6 +25,7 @@ import kotlinx.coroutines.launch
 internal class SystemAuthenticator(
     private val activity: FragmentActivity,
     private val viewModel: MainViewModel,
+    private val securityService: GemSecurityService,
 ) {
     private val _enrollmentMissing = MutableStateFlow(false)
     private val authRequests = AuthRequestQueue()
@@ -117,7 +119,7 @@ internal class SystemAuthenticator(
     }
 
     private fun handleInitialAuthError(errorCode: Int) {
-        val retryDelay = SystemAuthPolicy.initialRetryDelay(errorCode)
+        val retryDelay = SystemAuthPolicy.initialRetryDelay(errorCode, securityService)
         if (retryDelay == null) {
             activity.finishAffinity()
             return

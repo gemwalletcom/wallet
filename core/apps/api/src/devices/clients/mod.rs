@@ -15,7 +15,7 @@ pub use notifications::NotificationsClient;
 pub use portfolio::PortfolioClient;
 pub use rewards::RewardsClient;
 pub use rewards_redemption::RewardsRedemptionClient;
-pub use scan::{ScanClient, ScanProviderFactory};
+pub use scan::{ScanClient, scan_providers};
 pub use transactions::TransactionsClient;
 pub use wallet_configuration::WalletConfigurationClient;
 pub use wallets::WalletsClient;

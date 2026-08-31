@@ -13,8 +13,8 @@ struct FiatProvidersViewModel: SelectableListAdoptable {
 
     init(
         state: StateViewType<SelectableListType<FiatQuoteViewModel>>,
-        selectedItems: [FiatQuoteViewModel],
-        selectionType: SelectionType,
+        selectedItems: [FiatQuoteViewModel] = [],
+        selectionType: SelectionType = .navigationLink,
     ) {
         self.state = state
         self.selectedItems = Set(selectedItems)

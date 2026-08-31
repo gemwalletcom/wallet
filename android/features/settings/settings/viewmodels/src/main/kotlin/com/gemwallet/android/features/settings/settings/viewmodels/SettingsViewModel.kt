@@ -13,6 +13,7 @@ import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import uniffi.gemstone.GemWalletSessionServiceInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,6 +33,7 @@ class SettingsViewModel @Inject constructor(
     private val switchPushEnabled: SwitchPushEnabled,
     private val getPushEnabled: GetPushEnabled,
     val notificationsAvailable: NotificationsAvailable,
+    private val walletSessionService: GemWalletSessionServiceInterface,
 ) : ViewModel() {
 
     private val session = getSession()
@@ -40,9 +42,7 @@ class SettingsViewModel @Inject constructor(
     val uiState = state.asStateFlow()
 
     val isRewardsAvailable = wallets
-        .map { items ->
-            items.isEmpty() || items.any { it.type == WalletType.Multicoin }
-        }
+        .map { walletSessionService.showsRewards() }
         .stateIn(
             viewModelScope,
             SharingStarted.Eagerly,

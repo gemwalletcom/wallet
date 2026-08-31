@@ -16,12 +16,11 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemChainService
 
-private val chainService = GemChainService()
-
 fun LazyListScope.selectFilterChain(
     availableChains: List<Chain>,
     chainFilter: List<Chain>,
     query: String,
+    chainService: GemChainService,
     onFilter: (Chain) -> Unit,
 ) {
     if (availableChains.size < 2) {

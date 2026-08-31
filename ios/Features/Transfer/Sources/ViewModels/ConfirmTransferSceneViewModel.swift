@@ -1,7 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemConfirmData
-import class Gemstone.GemAssetConfigService
+import struct Gemstone.GemConfirmMetadata
+import struct Gemstone.GemConfirmPreload
+import struct Gemstone.GemConfirmLoadOptions
+import struct Gemstone.GemSendInput
+import enum Gemstone.GemConfirmError
+import enum Gemstone.GemTransferAmountResult
+import enum Gemstone.GemExecuteResult
+import protocol Gemstone.GemConfirmTransferServiceProtocol
+import protocol Gemstone.GemTransactionSigner
+import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstoneServices
 import BigInt
 import Components
@@ -45,40 +54,60 @@ public final class ConfirmTransferSceneViewModel {
     public let recipientAddressNameQuery: ObservableQuery<AddressNameRequest>
 
     private let request: ConfirmTransferRequest
-    private let confirmService: ConfirmService
     private let currency: Currency
     private let onComplete: VoidAction
 
-    private let assetConfig: GemAssetConfigService
+    private let service: any GemConfirmTransferServiceProtocol
+    private let signer: any GemTransactionSigner
+    private let keystore: any Keystore
+    private let recentAssetsService: any RecentAssetsServiceable
+    private let toastPresenter: ToastPresenter
 
     public init(
         request: ConfirmTransferRequest,
-        confirmService: ConfirmService,
+        service: any GemConfirmTransferServiceProtocol,
+        signer: any GemTransactionSigner,
+        keystore: any Keystore,
+        recentAssetsService: any RecentAssetsServiceable,
+        toastPresenter: ToastPresenter,
+        preferencesService: any GemPreferencesServiceProtocol,
         onComplete: VoidAction,
-        assetConfig: GemAssetConfigService,
     ) {
         self.request = request
-        self.confirmService = confirmService
+        self.service = service
+        self.signer = signer
+        self.keystore = keystore
+        self.recentAssetsService = recentAssetsService
+        self.toastPresenter = toastPresenter
         self.onComplete = onComplete
 
-        let currency = confirmService.currency
+        let currency = preferencesService.currencyValue
         self.currency = currency
-        feeSelection = .preset(confirmService.defaultPriority(for: request.data.type))
+        let sceneState = service.sceneState(
+            walletId: request.wallet.id.id,
+            inputType: request.data.type.inputType,
+            simulation: request.simulation?.json(),
+        )
+        feeSelection = .preset(sceneState.feePriority.map())
         feeAssetSelection = .automatic
 
         let recipientAddress = request.data.recipient.address
         recipientAddressNameQuery = ObservableQuery(
             AddressNameRequest(chain: request.data.chain, address: recipientAddress),
-            initialValue: try? confirmService.addressName(chain: request.data.chain, address: recipientAddress),
+            initialValue: try? service.addressName(chain: request.data.chain, address: recipientAddress),
         )
 
         state = ConfirmTransferState(
-            simulation: confirmService.simulationState(request: request),
-            metadata: try? confirmService.metadata(request: request),
-            feeAsset: request.data.type.feeAsset,
+            simulation: ConfirmSimulationState(
+                data: request.data,
+                simulation: request.simulation,
+                resolved: sceneState.simulation,
+                addressNames: [:],
+            ),
+            metadata: sceneState.metadata,
+            feeAsset: Asset(core: sceneState.feeAsset),
             transaction: .loading,
         )
-        self.assetConfig = assetConfig
     }
 
     var preloadSelection: ConfirmPreloadSelection {
@@ -100,7 +129,7 @@ public final class ConfirmTransferSceneViewModel {
     var senderExplorerContext: ExplorerContextData {
         ExplorerContextData(
             copyValue: .address(value: senderAddress, chain: dataModel.chain),
-            explorerLink: confirmService.explorerLink(chain: dataModel.chain, address: senderAddress),
+            explorerLink: explorerLink(chain: dataModel.chain, address: senderAddress),
         )
     }
 
@@ -132,14 +161,19 @@ public final class ConfirmTransferSceneViewModel {
     var confirmButtonModel: ConfirmButtonViewModel {
         ConfirmButtonViewModel(
             state: state.transaction,
-            authentication: try? confirmService.passwordAuthentication(),
+            authentication: try? keystore.getPasswordAuthentication(),
             isDisabled: isButtonDisabled,
             onAction: { [weak self] in self?.onSelectConfirm() },
         )
     }
 
     public var detailsViewModel: ConfirmDetailsViewModel {
-        ConfirmDetailsViewModel(type: request.data.type, metadata: state.metadata, currency: currency.rawValue, perpetualService: confirmService.perpetualService)
+        ConfirmDetailsViewModel(
+            type: request.data.type,
+            metadata: state.metadata,
+            currency: currency.rawValue,
+            service: service,
+        )
     }
 
     var balanceChangeModels: [ConfirmBalanceChangeViewModel] {
@@ -154,7 +188,8 @@ public final class ConfirmTransferSceneViewModel {
             rates: state.feeRates,
             feeAssetPrice: state.metadata?.feePrice,
             feeAmount: state.transaction.value?.fee.fee,
-            feeAssets: state.feeAssets,
+            feeAssets: state.feeAssets.compactMap { try? $0.feeAssetItem(currency: currency) },
+            feeService: service.fee(),
             onSelect: { [weak self] in self?.feeSelection = $0 },
             onSelectFeeAsset: { [weak self] in self?.selectFeeAsset($0) },
         )
@@ -190,7 +225,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         case .warnings:
             ConfirmTransferItemModel.warnings(simulationWarnings)
         case .app:
-            ConfirmAppViewModel(type: request.data.type)
+            ConfirmAppViewModel(type: request.data.type, shortName: service.applicationShortName(inputType: request.data.type.inputType))
         case .sender:
             ConfirmSenderViewModel(wallet: request.wallet)
         case .network:
@@ -199,7 +234,8 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             ConfirmRecipientViewModel(
                 model: dataModel,
                 addressName: recipientAddressNameQuery.value,
-                addressLink: confirmService.explorerLink(chain: dataModel.chain, address: dataModel.recipient.address),
+                addressLink: explorerLink(chain: dataModel.chain, address: dataModel.recipient.address),
+                outputAction: service.outputAction(for: request.data.type),
                 onAddContact: onSelectAddRecipientToContacts,
             )
         case .memo:
@@ -246,7 +282,7 @@ extension ConfirmTransferSceneViewModel {
     public func contextMenuItems(for field: SimulationPayloadField) -> [ContextMenuItemType] {
         payloadModel.contextMenuItems(
             for: field,
-            explorerLink: { confirmService.explorerLink(chain: dataModel.chain, address: $0) },
+            explorerLink: { explorerLink(chain: dataModel.chain, address: $0) },
             onOpenURL: { [weak self] in self?.isPresentingSheet = .url($0) },
         )
     }
@@ -289,14 +325,14 @@ extension ConfirmTransferSceneViewModel {
         state.transaction = .loading
         do {
             if state.feeRates.isEmpty {
-                let data = try await confirmService.load(
+                let data = try await load(
                     request: request,
                     selection: feeSelection,
                     feeAssetSelection: feeAssetSelection,
                 )
                 state = .loaded(data)
             } else {
-                let preload = try await confirmService.preload(
+                let preload = try await preload(
                     request: request,
                     selection: feeSelection,
                     feeAssetSelection: feeAssetSelection,
@@ -330,7 +366,7 @@ extension ConfirmTransferSceneViewModel {
 
 extension ConfirmTransferSceneViewModel {
     private func onSelectGetAsset(_ asset: Asset, buyAmount: Int? = nil) {
-        switch assetConfig.acquireFlow(chain: asset.chain.rawValue) {
+        switch service.acquireAssetFlow(chain: asset.chain.rawValue) {
         case .options:
             isPresentingSheet = .getAsset(asset, buyAmount: buyAmount)
         case .fiat:
@@ -347,7 +383,7 @@ extension ConfirmTransferSceneViewModel {
         state.confirmation = .confirming
         Task {
             do {
-                try await confirmService.confirm(
+                try await submit(
                     request: request,
                     confirmData: confirmData,
                     amount: amount,
@@ -384,5 +420,154 @@ extension ConfirmTransferSceneViewModel {
 
     private var dataModel: TransferDataViewModel {
         TransferDataViewModel(data: request.data)
+    }
+}
+
+// MARK: - Confirm
+
+extension ConfirmTransferSceneViewModel {
+    func explorerLink(chain: Chain, address: String) -> BlockExplorerLink {
+        service.explorerLink(chain: chain, address: address)
+    }
+
+    func load(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferData {
+        let feeAssets = try service.feeAssets(walletId: request.wallet.id.id, chain: request.data.chain.rawValue)
+        let preload = try await preload(request: request, selection: selection, feeAssetSelection: feeAssetSelection)
+        return ConfirmTransferData(
+            preload: preload,
+            simulation: await updatedSimulationState(data: request.data, simulation: request.simulation ?? preload.simulation),
+            feeAssets: feeAssets,
+        )
+    }
+
+    func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferPreload {
+        let metadata = try service.metadata(walletId: request.wallet.id, type: request.data.type)
+        let account = try request.wallet.account(for: request.data.chain)
+        let preload: GemConfirmPreload
+        do {
+            preload = try await service.preload(
+                walletId: request.wallet.id.id,
+                input: request.data.confirmInput(from: account),
+                options: GemConfirmLoadOptions(
+                    feeSelection: selection.map(),
+                    feeAssetId: feeAssetSelection.selectedAssetId?.identifier,
+                ),
+            )
+        } catch let error as GemConfirmError {
+            throw preloadFailureError(metadata: metadata) ?? error
+        }
+        let feeAsset = try Asset(preload.feeAsset)
+        return try ConfirmTransferPreload(
+            metadata: preload.metadata,
+            input: ConfirmTransferInput(
+                confirmData: preload.confirmData,
+                fee: preload.confirmData.fee.map(),
+                transferAmount: preload.amount.map(asset: request.data.type.asset, feeAsset: feeAsset),
+                feeAsset: feeAsset,
+            ),
+            feeRates: preload.confirmData.feeRates.map { try $0.map() },
+            simulation: preload.confirmData.simulation.map { try Primitives.SimulationResult($0) },
+        )
+    }
+
+    func preloadFailureError(metadata: GemConfirmMetadata) -> TransferAmountCalculatorError? {
+        guard service.isInsufficientNetworkFee(feeAssetId: metadata.feeAssetBalance.assetId, feeAvailable: metadata.feeAvailable) else {
+            return nil
+        }
+        guard let feeAssetId = try? AssetId(id: metadata.feeAssetBalance.assetId) else { return nil }
+        return .insufficientNetworkFee(feeAssetId.chain.asset, requirement: nil)
+    }
+
+    func updatedSimulationState(data: TransferData, simulation: Primitives.SimulationResult?) async -> ConfirmSimulationState {
+        do {
+            try await service.syncMissingAssets(for: simulation?.simulationAssetIds ?? [])
+        } catch {
+            debugLog("simulation asset preload error: \(error)")
+        }
+        let resolved = try? service.simulation(inputType: data.type.inputType, simulation: simulation?.json())
+        let requests = ConfirmSimulationState(data: data, simulation: simulation, resolved: resolved, addressNames: [:]).payload.addressRequests
+        let names = (try? await service.addressNames(requests: requests)) ?? [:]
+        return ConfirmSimulationState(data: data, simulation: simulation, resolved: resolved, addressNames: names)
+    }
+
+    func submit(request: ConfirmTransferRequest, confirmData: GemConfirmData, amount: TransferAmount, simulation: Primitives.SimulationResult?) async throws {
+        let input = GemSendInput(
+            wallet: request.wallet.json(),
+            confirm: confirmData,
+            value: amount.value.description,
+            networkFee: amount.networkFee.description,
+            simulation: simulation?.json(),
+        )
+        let result: GemExecuteResult
+        do {
+            result = try await service.execute(input: input, signer: signer)
+        } catch let GemConfirmError.Broadcast(hashes, msg) {
+            hashes.forEach { request.delegate?(.success($0)) }
+            trackPending()
+            throw GemConfirmError.Broadcast(hashes: hashes, msg: msg)
+        }
+        switch result {
+        case let .signed(data):
+            data.forEach { request.delegate?(.success($0)) }
+        case let .sent(hashes, transactions):
+            hashes.forEach { request.delegate?(.success($0)) }
+            track(wallet: request.wallet, transactions: try transactions.map { try Primitives.Transaction($0) })
+        }
+        await toastPresenter.present(.transfer(for: request.data.type))
+        if let recent = request.data.type.recentActivityData {
+            do {
+                try recentAssetsService.add(recent, walletId: request.wallet.id)
+            } catch {
+                debugLog("Failed to update recent activity: \(error)")
+            }
+        }
+    }
+
+    func trackPending() {
+        Task {
+            do {
+                try await service.trackPending()
+            } catch {
+                debugLog("confirm: pending tracking failed \(error)")
+            }
+        }
+    }
+
+    func track(wallet: Wallet, transactions: [Primitives.Transaction]) {
+        Task {
+            do {
+                try await service.track(walletId: wallet.id, transactions: transactions)
+            } catch {
+                debugLog("confirm: transaction tracking failed \(error)")
+            }
+        }
+    }
+}
+
+private extension Primitives.SimulationResult {
+    var simulationAssetIds: [AssetId] {
+        balanceChanges.map(\.assetId) + [header?.assetId].compactMap(\.self)
+    }
+}
+
+private extension GemTransferAmountResult {
+    func map(asset: Primitives.Asset, feeAsset: Primitives.Asset) -> Result<Primitives.TransferAmount, TransferAmountCalculatorError> {
+        switch self {
+        case let .amount(amount):
+            guard let value = try? BigInt.from(string: amount.value), let networkFee = try? BigInt.from(string: amount.networkFee) else {
+                return .failure(failure(.insufficientBalance(assetId: asset.id, requirement: BalanceRequirement(required: .zero, available: .zero)), asset, feeAsset))
+            }
+            return .success(Primitives.TransferAmount(value: value, networkFee: networkFee, useMaxAmount: amount.isMaxAmount))
+        case let .error(error):
+            let mapped = (try? error.map()) ?? .insufficientBalance(
+                assetId: error.assetId ?? asset.id,
+                requirement: BalanceRequirement(required: .zero, available: .zero),
+            )
+            return .failure(failure(mapped, asset, feeAsset))
+        }
+    }
+
+    private func failure(_ error: TransferAmountError, _ asset: Primitives.Asset, _ feeAsset: Primitives.Asset) -> TransferAmountCalculatorError {
+        TransferAmountCalculatorError(error, asset: asset, assetFee: feeAsset)
     }
 }

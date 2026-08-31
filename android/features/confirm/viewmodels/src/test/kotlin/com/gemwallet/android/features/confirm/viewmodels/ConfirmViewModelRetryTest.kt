@@ -1,5 +1,8 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
+import uniffi.gemstone.GemTransferAmount
+import uniffi.gemstone.GemTransferAmountResult
+import uniffi.gemstone.GemTransferService
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
@@ -22,6 +25,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
@@ -35,6 +39,8 @@ import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConfirmViewModelRetryTest {
+
+    private val transferService = GemTransferService()
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private val asset = mockAssetHyperCoreUBTC()
@@ -58,21 +64,30 @@ class ConfirmViewModelRetryTest {
         )
         val viewModel = viewModel(params)
         runCurrent()
-        coVerify(timeout = 5_000, exactly = 1) { preloader.preload(any(), any(), any()) }
+        coVerify(timeout = 5_000, exactly = 1) { preloader.preload(any(), any(), any(), any()) }
 
-        assertTrue(viewModel.state.value is ConfirmState.Error)
+        assertTrue(viewModel.state.first { it is ConfirmState.Error } is ConfirmState.Error)
 
         viewModel.send(FinishConfirmAction { _ -> })
         runCurrent()
 
-        coVerify(timeout = 5_000, exactly = 2) { preloader.preload(any(), any(), any()) }
+        coVerify(timeout = 5_000, exactly = 2) { preloader.preload(any(), any(), any(), any()) }
     }
 
     private fun viewModel(params: ConfirmParams): ConfirmViewModel {
         var calls = 0
-        coEvery { preloader.preload(any(), any(), any()) } answers {
+        coEvery { preloader.preload(any(), any(), any(), any()) } answers {
             calls += 1
-            if (calls == 1) throw IllegalStateException("preload failed") else mockk<SignerPreloaderProxy.Preload>(relaxed = true)
+            if (calls == 1) {
+                throw IllegalStateException("preload failed")
+            } else {
+                SignerPreloaderProxy.Preload(
+                    signerParams = mockk(relaxed = true),
+                    simulation = null,
+                    amount = GemTransferAmountResult.Amount(GemTransferAmount(value = "1", networkFee = "1", isMaxAmount = false)),
+                    feeAsset = asset,
+                )
+            }
         }
         return ConfirmViewModel(
             getSession = mockk<GetSession> {
@@ -85,14 +100,13 @@ class ConfirmViewModelRetryTest {
             syncMissingAssets = mockk(relaxed = true),
             confirmLoader = ConfirmLoader(preloader),
             transactionBalanceService = mockk(relaxed = true),
-            calculateTransferAmount = mockk(relaxed = true),
             getFeeAssets = mockk(relaxed = true),
             confirmTransaction = mockk(relaxed = true),
             buildConfirmProperties = mockk(relaxed = true),
             explorerService = mockk(relaxed = true),
             getAddressName = mockk(relaxed = true),
             getAddressNames = mockk(relaxed = true),
-            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(params.pack()))),
+            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(params.pack(transferService)))),
             feeService = uniffi.gemstone.GemFeeService(),
             transferService = uniffi.gemstone.GemTransferService(),
             simulationFormatter = mockk(relaxed = true),

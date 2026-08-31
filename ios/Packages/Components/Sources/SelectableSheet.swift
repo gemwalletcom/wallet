@@ -3,14 +3,12 @@
 import Style
 import SwiftUI
 
-public protocol SelectableSheetViewable: SelectableListAdoptable, ItemFilterable {
+public protocol SelectableSheetViewable: SelectableSearchable {
     var title: String { get }
     var cancelButtonTitle: String { get }
     var clearButtonTitle: String { get }
     var doneButtonTitle: String { get }
     var confirmButtonTitle: String { get }
-
-    var isSearchable: Bool { get }
 }
 
 public struct SelectableSheet<ViewModel: SelectableSheetViewable, Content: View>: View {
@@ -35,21 +33,11 @@ public struct SelectableSheet<ViewModel: SelectableSheetViewable, Content: View>
 
     public var body: some View {
         NavigationStack {
-            Group {
-                if model.isSearchable {
-                    SearchableSelectableListView(
-                        model: $model,
-                        onFinishSelection: { onFinish(items: $0, isConfirmed: false) },
-                        listContent: listContent,
-                    )
-                } else {
-                    SelectableListView(
-                        model: $model,
-                        onFinishSelection: { onFinish(items: $0, isConfirmed: false) },
-                        listContent: listContent,
-                    )
-                }
-            }
+            SearchableSelectableListView(
+                model: $model,
+                onFinishSelection: { onFinish(items: $0, isConfirmed: false) },
+                listContent: listContent,
+            )
             .safeAreaButton {
                 StateButton(
                     text: model.confirmButtonTitle,

@@ -1,3 +1,5 @@
+#[cfg(test)]
+use crate::models::rpc::AccountInfo;
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use crate::rpc::XrpClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
@@ -21,4 +23,18 @@ pub fn create_xrp_test_client() -> XrpClient<ReqwestClient> {
     let reqwest_client = ReqwestClient::new(settings.chains.xrp.url, gem_client::reqwest_client());
     let rpc_client = JsonRpcClient::new(reqwest_client);
     XrpClient::new(rpc_client)
+}
+
+#[cfg(test)]
+impl AccountInfo {
+    pub fn mock_with_balance(balance: u64, owner_count: u32) -> Self {
+        Self {
+            balance,
+            sequence: 100,
+            owner_count,
+            account: None,
+            flags: None,
+            ledger_entry_type: None,
+        }
+    }
 }

@@ -19,6 +19,8 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemConfirmFeeSelection
 import uniffi.gemstone.GemConfirmLoadOptions
 import uniffi.gemstone.GemConfirmServiceInterface
+import uniffi.gemstone.GemTransferAmountResult
+import com.wallet.core.primitives.Asset
 
 class SignerPreloaderProxy(
     private val confirmService: GemConfirmServiceInterface,
@@ -31,14 +33,18 @@ class SignerPreloaderProxy(
     data class Preload(
         val signerParams: SignerParams,
         val simulation: SimulationResult?,
+        val amount: GemTransferAmountResult,
+        val feeAsset: Asset,
     )
 
     suspend fun preload(
+        walletId: String,
         params: ConfirmParams,
         selection: FeeSelection,
         feeAssetSelection: FeeAssetSelection,
     ): Preload = withContext(Dispatchers.IO) {
-        val result = confirmService.load(
+        val preload = confirmService.preload(
+            walletId = walletId,
             input = params.toConfirmInput(),
             options = GemConfirmLoadOptions(
                 feeSelection = when (selection) {
@@ -51,6 +57,7 @@ class SignerPreloaderProxy(
                 },
             ),
         )
+        val result = preload.confirmData
         val selectedPriority = result.selectedPriority.toPrimitives()
         val fee = result.fee.toFee(selectedPriority, AssetId(result.fee.feeAsset))
         val rates = result.feeRates
@@ -63,6 +70,8 @@ class SignerPreloaderProxy(
                 feeRates = rates,
             ),
             simulation = result.simulation?.decodeJson(),
+            amount = preload.amount,
+            feeAsset = preload.feeAsset.decodeJson(),
         )
     }
 }

@@ -3,10 +3,13 @@
 import protocol Gemstone.GemNameServiceProtocol
 import class Gemstone.GemRecipientService
 import Components
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import GemstonePrimitives
 import GemstoneServices
 import Localization
+import protocol Gemstone.GemAddressServiceProtocol
+import class Gemstone.GemPaymentService
 import Primitives
 import PrimitivesComponents
 import Store
@@ -24,7 +27,9 @@ public final class RecipientSceneViewModel {
 
     public let onTransferAction: TransferDataAction
 
-    private let walletSessionService: any WalletSessionManageable
+    private let walletSessionService: any GemWalletSessionServiceProtocol
+    private let addressService: any GemAddressServiceProtocol
+    private let paymentService: GemPaymentService
     private let onRecipientDataAction: RecipientDataAction
     private let assetImageFormatter: AssetImageFormatter
 
@@ -43,13 +48,15 @@ public final class RecipientSceneViewModel {
     public init(
         wallet: Wallet,
         asset: Asset,
-        walletSessionService: any WalletSessionManageable,
+        walletSessionService: any GemWalletSessionServiceProtocol,
         nameService: any GemNameServiceProtocol,
         type: RecipientAssetType,
         assetImageFormatter: AssetImageFormatter = .shared,
         recipient: RecipientData? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
+        addressService: any GemAddressServiceProtocol,
+        paymentService: GemPaymentService,
     ) {
         self.wallet = wallet
         self.asset = asset
@@ -58,15 +65,18 @@ public final class RecipientSceneViewModel {
         self.type = type
         self.onRecipientDataAction = onRecipientDataAction
         self.onTransferAction = onTransferAction
+        self.addressService = addressService
+        self.paymentService = paymentService
         recipientService = nameService.recipients()
 
         addressInputModel = AddressInputViewModel(
             chain: asset.chain,
             nameService: nameService,
             placeholder: recipientField,
+            addressService: addressService,
             validators: [
                 .required(requireName: recipientField),
-                .address(asset),
+                .address(asset, addressService: addressService),
             ],
         )
 
@@ -125,6 +135,13 @@ public final class RecipientSceneViewModel {
                 )
             }
             .filter(\.values.isNotEmpty)
+    }
+
+    public func scanType(for field: RecipientScene.Field) -> QRScanType {
+        switch field {
+        case .address: .address
+        case .memo: .memo
+        }
     }
 }
 
@@ -225,7 +242,7 @@ extension RecipientSceneViewModel {
     }
 
     private func handleAddressScan(_ string: String) throws {
-        switch try Primitives.Payment.decode(string) {
+        switch try Primitives.Payment.decode(string, paymentService: paymentService) {
         case let .request(payment):
             try handle(payment: payment)
         case .link:
@@ -236,14 +253,14 @@ extension RecipientSceneViewModel {
     private func handle(payment: PaymentRequest) throws {
         switch type {
         case let .asset(asset):
-            switch try PaymentDestinationBuilder.transfer(payment: payment, asset: asset) {
+            switch try PaymentDestinationBuilder.transfer(payment: payment, asset: asset, addressService: addressService, paymentService: paymentService) {
             case let .confirm(data): handle(transferData: data)
             case let .recipient(data): update(from: data)
             }
         case .nft:
             update(
                 from: RecipientData(
-                    recipient: Recipient(name: .none, address: chain.checksumAddress(payment.address), memo: payment.memo),
+                    recipient: Recipient(name: .none, address: chain.checksumAddress(payment.address, addressService: addressService), memo: payment.memo),
                     amount: .none,
                 ),
             )

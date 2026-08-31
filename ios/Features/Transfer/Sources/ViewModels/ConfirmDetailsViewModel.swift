@@ -1,27 +1,30 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
+import struct Gemstone.GemConfirmMetadata
+import protocol Gemstone.GemConfirmTransferServiceProtocol
 import Components
-import protocol Gemstone.GemPerpetualServiceProtocol
+import class Gemstone.GemSwapQuoteService
 import Primitives
 import PrimitivesComponents
 import Swap
 
 public struct ConfirmDetailsViewModel {
     private let type: TransferDataType
-    private let metadata: TransferDataMetadata?
+    private let metadata: GemConfirmMetadata?
     private let currency: String
-    private let perpetualService: any GemPerpetualServiceProtocol
+    private let service: any GemConfirmTransferServiceProtocol
 
     init(
         type: TransferDataType,
-        metadata: TransferDataMetadata?,
+        metadata: GemConfirmMetadata?,
         currency: String,
-        perpetualService: any GemPerpetualServiceProtocol,
+        service: any GemConfirmTransferServiceProtocol,
     ) {
         self.type = type
         self.metadata = metadata
         self.currency = currency
-        self.perpetualService = perpetualService
+        self.service = service
     }
 }
 
@@ -38,6 +41,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
                     selectedQuote: swapData.quote,
                     slippage: .manual(bps: swapData.quote.slippageBps),
                     currency: currency,
+                    swapQuoteService: service.swapQuote(),
                 ),
             )
         case let .perpetual(_, perpetualType):
@@ -45,7 +49,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
             case .open, .close, .increase, .reduce:
                 .perpetualDetails(PerpetualDetailsViewModel(type: PerpetualDetailsType(perpetualType)))
             case let .modify(data):
-                .perpetualModifyPosition(PerpetualModifyViewModel(data: data, perpetualService: perpetualService))
+                .perpetualModifyPosition(PerpetualModifyViewModel(summary: service.autocloseSummary(data: data.json())))
             }
         case .transfer,
              .deposit,

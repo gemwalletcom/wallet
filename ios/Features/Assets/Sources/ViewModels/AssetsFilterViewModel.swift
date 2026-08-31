@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemChainServiceProtocol
+import class Gemstone.GemAssetConfigService
 import Components
 import Localization
 import Primitives
@@ -10,12 +12,20 @@ import SwiftUI
 
 public struct AssetsFilterViewModel: Sendable, Equatable {
     private let type: SelectAssetType
+    private let assetConfig: GemAssetConfigService
+    private let chainService: any GemChainServiceProtocol
     var chainsFilter: ChainsFilterViewModel
     var hasBalance: Bool = false
 
-    public init(type: SelectAssetType, model: ChainsFilterViewModel) {
+    public init(type: SelectAssetType, model: ChainsFilterViewModel, assetConfig: GemAssetConfigService, chainService: any GemChainServiceProtocol) {
+        self.assetConfig = assetConfig
+        self.chainService = chainService
         self.type = type
         chainsFilter = model
+    }
+
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.type == rhs.type && lhs.chainsFilter == rhs.chainsFilter && lhs.hasBalance == rhs.hasBalance
     }
 
     public var isAnyFilterSpecified: Bool {
@@ -39,11 +49,11 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
     }
 
     public var defaultFilters: [AssetsRequestFilter] {
-        type.flow.defaultFilters
+        type.flow(assetConfig: assetConfig).defaultFilters
     }
 
     var showHasBalanceToggle: Bool {
-        type.flow.capabilities.contains(.balanceFilter)
+        type.flow(assetConfig: assetConfig).capabilities.contains(.balanceFilter)
     }
 
     var title: String {
@@ -67,6 +77,7 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
             state: .data(.plain(chainsFilter.allChains)),
             selectedItems: chainsFilter.selectedChains,
             selectionType: .multiSelection,
+            chainService: chainService,
         )
     }
 }

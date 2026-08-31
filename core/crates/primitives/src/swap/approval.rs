@@ -98,7 +98,6 @@ pub struct SwapProviderData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub enum SwapStatus {
     Pending,

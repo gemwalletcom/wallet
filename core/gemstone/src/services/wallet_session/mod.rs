@@ -1,3 +1,4 @@
+pub mod rules;
 pub mod store;
 
 use std::sync::Arc;
@@ -38,6 +39,10 @@ impl GemWalletSessionService {
             Some(wallet_id) => self.wallets.get_wallet(wallet_id),
             None => Ok(None),
         }
+    }
+
+    pub fn shows_rewards(&self) -> Result<bool, GemServiceError> {
+        Ok(rules::shows_rewards(&self.get_wallets()?))
     }
 
     pub fn get_wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {

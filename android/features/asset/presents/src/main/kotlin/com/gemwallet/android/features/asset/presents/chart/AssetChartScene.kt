@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset.presents.chart
 
+import com.gemwallet.android.ui.LocalAddressService
 import android.content.Context
 import androidx.compose.foundation.clickable
 import com.gemwallet.android.ext.AddressFormatter
@@ -288,7 +289,7 @@ private fun LazyListScope.marketProperties(asset: Asset, items: List<MarketInfoU
             MarketInfoUIModel.MarketInfoTypeUIModel.Contract -> {
                 AddressPropertyItem(
                     title = R.string.asset_contract,
-                    displayText = AddressFormatter(item.value, chain = asset.chain).value(),
+                    displayText = AddressFormatter(LocalAddressService.current, item.value, chain = asset.chain).value(),
                     copyValue = item.value,
                     explorerLink = item.explorerLink,
                     listPosition = position,

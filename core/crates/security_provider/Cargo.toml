@@ -17,10 +17,4 @@ gem_client = { path = "../gem_client", features = ["reqwest"] }
 
 [dev-dependencies]
 gem_client = { path = "../gem_client", features = ["testkit"] }
-serde_json = { workspace = true }
-settings = { path = "../settings" }
 tokio = { workspace = true }
-
-[[test]]
-name = "integration_test"
-test = false

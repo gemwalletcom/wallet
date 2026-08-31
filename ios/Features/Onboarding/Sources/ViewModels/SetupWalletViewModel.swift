@@ -7,12 +7,13 @@ import Primitives
 import PrimitivesComponents
 import Store
 import Style
-import GemstoneServices
+import protocol Gemstone.GemOnboardingServiceProtocol
+import GemstonePrimitives
 
 @MainActor
 @Observable
 public final class SetupWalletViewModel: Sendable {
-    private let walletService: WalletService
+    private let service: any GemOnboardingServiceProtocol
     private let onSelectImageAction: (Wallet) -> Void
     private let onCompleteAction: (Wallet) -> Void
 
@@ -25,11 +26,11 @@ public final class SetupWalletViewModel: Sendable {
 
     public init(
         wallet: Wallet,
-        walletService: WalletService,
+        service: any GemOnboardingServiceProtocol,
         onSelectImage: @escaping (Wallet) -> Void,
         onComplete: @escaping (Wallet) -> Void,
     ) {
-        self.walletService = walletService
+        self.service = service
         nameInput = wallet.name
         query = ObservableQuery(WalletRequest(walletId: wallet.id), initialValue: wallet)
         onSelectImageAction = onSelectImage
@@ -63,7 +64,7 @@ public final class SetupWalletViewModel: Sendable {
 
     func onChangeWalletName() async {
         do {
-            try await walletService.rename(walletId: wallet.id, newName: nameInput)
+            try await service.rename(walletId: wallet.id, newName: nameInput)
         } catch {
             debugLog("Rename wallet error: \(error)")
         }

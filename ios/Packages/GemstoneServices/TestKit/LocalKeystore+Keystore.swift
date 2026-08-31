@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemTransferService
 import Foundation
 import enum Gemstone.GemImportType
 import GemstonePrimitives
@@ -26,6 +27,7 @@ public extension LocalKeystore {
         LocalKeystore(
             directory: UUID().uuidString,
             keystorePassword: keystorePassword,
+            transferService: GemTransferService(),
         )
     }
 
@@ -39,6 +41,7 @@ public extension LocalKeystore {
         let keystore = LocalKeystore(
             directory: directory,
             keystorePassword: keystorePassword,
+            transferService: GemTransferService(),
         )
         return LocalKeystoreMockContext(
             keystore: keystore,

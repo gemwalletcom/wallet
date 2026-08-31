@@ -63,3 +63,9 @@ pub struct GemAutocloseSummary {
     pub take_profit_cleared: bool,
     pub stop_loss_cleared: bool,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+pub enum GemMarketsRefreshTrigger {
+    Scheduled,
+    UserRequested,
+}

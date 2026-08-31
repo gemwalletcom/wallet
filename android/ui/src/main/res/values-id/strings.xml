@@ -75,6 +75,8 @@
   <string name="wallet_manage_token_list">Kelola Token</string>
   <string name="wallet_scan_qr_code">Pindai Kode QR</string>
   <string name="wallet_scan">Pindai</string>
+  <string name="wallet_scan_hint">Kirim, bayar, atau hubungkan ke DApp</string>
+  <string name="wallet_scan_hint_address">Alamat dompet</string>
   <string name="wallet_default_name">Dompet %1$d</string>
   <string name="wallet_default_name_chain">Dompet %1$s #%2$d</string>
   <string name="wallet_copy_address">Salin Alamat</string>

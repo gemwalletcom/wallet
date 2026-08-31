@@ -5,23 +5,21 @@ import class Gemstone.GemChainService
 import Primitives
 import struct WalletConnectUtils.Blockchain
 
-private let chainService = GemChainService()
-
 extension Primitives.Chain {
     /// CAIP-2 https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md
-    var namespace: String? {
+    func namespace(chainService: GemChainService) -> String? {
         chainService.caip2Namespace(chain: rawValue)
     }
 
     /// CAIP-20 https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-20.md
-    var reference: String? {
+    func reference(chainService: GemChainService) -> String? {
         chainService.caip2Reference(chain: rawValue)
     }
 
-    var blockchain: Blockchain? {
-        if let namespace, let reference {
-            return Blockchain(namespace: namespace, reference: reference)
+    func blockchain(chainService: GemChainService) -> Blockchain? {
+        guard let namespace = namespace(chainService: chainService), let reference = reference(chainService: chainService) else {
+            return .none
         }
-        return .none
+        return Blockchain(namespace: namespace, reference: reference)
     }
 }

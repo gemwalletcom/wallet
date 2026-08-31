@@ -75,6 +75,8 @@
   <string name="wallet_manage_token_list">จัดการโทเค็น</string>
   <string name="wallet_scan_qr_code">สแกนรหัส QR</string>
   <string name="wallet_scan">สแกน</string>
+  <string name="wallet_scan_hint">ส่ง จ่าย หรือเชื่อมต่อกับ DApp</string>
+  <string name="wallet_scan_hint_address">ที่อยู่กระเป๋าเงิน</string>
   <string name="wallet_default_name">กระเป๋าเงิน #%1$d</string>
   <string name="wallet_default_name_chain">%1$s กระเป๋าเงิน #%2$d</string>
   <string name="wallet_copy_address">คัดลอกที่อยู่</string>

@@ -9,12 +9,7 @@ import SwiftUI
 import GemstoneServices
 
 struct WalletsNavigationStack: View {
-    @Environment(\.walletService) private var walletService
-    @Environment(\.walletSessionService) private var walletSessionService
-    @Environment(\.avatarService) private var avatarService
-    @Environment(\.nameService) private var nameService
-    @Environment(\.chainService) private var chainService
-    @Environment(\.explorerService) private var explorerService
+    @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.dismiss) private var dismiss
 
     @State private var navigationPath = NavigationPath()
@@ -25,51 +20,23 @@ struct WalletsNavigationStack: View {
     var body: some View {
         NavigationStack(path: $navigationPath) {
             WalletsScene(
-                model: WalletsSceneViewModel(
+                model: viewModelFactory.walletsScene(
                     navigationPath: $navigationPath,
-                    walletService: walletService,
-                    walletSessionService: walletSessionService,
                     isPresentingCreateWalletSheet: $isPresentingCreateWalletSheet,
                     isPresentingImportWalletSheet: $isPresentingImportWalletSheet,
                 ),
             )
             .navigationDestination(for: Scenes.WalletDetail.self) {
-                WalletDetailScene(
-                    model: WalletDetailViewModel(
-                        navigationPath: $navigationPath,
-                        wallet: $0.wallet,
-                        walletService: walletService,
-                        explorerService: explorerService,
-                    ),
-                )
+                WalletDetailScene(model: viewModelFactory.walletDetailScene(navigationPath: $navigationPath, wallet: $0.wallet))
             }
             .navigationDestination(for: Scenes.WalletSelectImage.self) {
-                WalletImageScene(model: WalletImageViewModel(
-                    wallet: $0.wallet,
-                    avatarService: avatarService,
-                ))
+                WalletImageScene(model: viewModelFactory.walletImageScene(wallet: $0.wallet))
             }
             .sheet(isPresented: $isPresentingCreateWalletSheet) {
-                CreateWalletNavigationStack(
-                    model: CreateWalletModel(
-                        walletService: walletService,
-                        walletSessionService: walletSessionService,
-                        avatarService: avatarService,
-                        onComplete: { dismiss() },
-                    ),
-                )
+                CreateWalletNavigationStack(model: viewModelFactory.createWalletScene(onComplete: { dismiss() }))
             }
             .sheet(isPresented: $isPresentingImportWalletSheet) {
-                ImportWalletNavigationStack(
-                    model: ImportWalletViewModel(
-                        walletService: walletService,
-                        walletSessionService: walletSessionService,
-                        avatarService: avatarService,
-                        nameService: nameService,
-                        chainService: chainService,
-                        onComplete: { dismiss() },
-                    ),
-                )
+                ImportWalletNavigationStack(model: viewModelFactory.importWalletScene(onComplete: { dismiss() }))
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {

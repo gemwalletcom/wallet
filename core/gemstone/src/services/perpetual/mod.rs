@@ -18,7 +18,7 @@ use std::collections::HashMap;
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
 use crate::services::preferences::GemPreferencesService;
 
-pub use model::{GemAutocloseSummary, GemPerpetualSocketUpdate};
+pub use model::{GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualSocketUpdate};
 pub use store::GemPerpetualStore;
 
 use crate::gateway::GemGateway;
@@ -91,20 +91,20 @@ impl GemPerpetualService {
         self.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp()))
     }
 
-    pub async fn sync_markets_if_stale(&self, chain: Chain) -> Result<bool, GemServiceError> {
-        if !rules::is_markets_stale(self.markets_updated_at()?, Utc::now().timestamp()) {
+    pub async fn sync_markets_if_needed(&self, chain: Chain, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
+        if !rules::should_sync_markets(trigger, self.markets_updated_at()?, Utc::now().timestamp()) {
             return Ok(false);
         }
         self.sync_markets(chain).await?;
         Ok(true)
     }
 
-    pub async fn sync_enablement(&self, wallet: Option<Wallet>) -> Result<bool, GemServiceError> {
+    pub async fn sync_enablement(&self, wallet: Option<Wallet>, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
         if !self.preferences.is_perpetual_enabled() {
             self.clear_markets().await?;
             return Ok(false);
         }
-        self.sync_markets_if_stale(Chain::HyperCore).await?;
+        self.sync_markets_if_needed(Chain::HyperCore, trigger).await?;
         Ok(self.should_connect_perpetuals(wallet))
     }
 

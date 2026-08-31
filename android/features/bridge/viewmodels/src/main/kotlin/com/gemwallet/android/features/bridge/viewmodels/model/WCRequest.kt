@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.bridge.viewmodels.model
 
+import uniffi.gemstone.GemApplicationMetadataService
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
 import com.gemwallet.android.ext.getShortUrl
 import com.gemwallet.android.ext.shortName
@@ -22,12 +23,13 @@ import uniffi.gemstone.MessageSigner
 
 sealed class WCRequest(
     internal val pending: WalletConnectPendingRequest,
+    private val applicationMetadataService: GemApplicationMetadataService,
 ) {
     val wallet: Wallet get() = pending.wallet
     val account: Account get() = pending.account
     val appMetadata: ApplicationMetadata get() = pending.appMetadata
     val simulation: SimulationResult get() = pending.simulation
-    val name: String get() = appMetadata.shortName
+    val name: String get() = appMetadata.shortName(applicationMetadataService)
     val icon: String get() = appMetadata.icon
     val description: String get() = appMetadata.description
     val url: String get() = appMetadata.url
@@ -41,7 +43,8 @@ sealed class WCRequest(
     class SignMessage(
         private val request: WalletConnectPendingRequest.SignMessage,
         private val explorerService: GemExplorerService?,
-    ) : WCRequest(request), WalletConnectReviewModel {
+        applicationMetadataService: GemApplicationMetadataService,
+    ) : WCRequest(request, applicationMetadataService), WalletConnectReviewModel {
         val signer: MessageSigner by lazy { MessageSigner(request.message) }
 
         private val payloadPreview by lazy {
@@ -71,7 +74,8 @@ sealed class WCRequest(
 
     class Transaction(
         private val request: WalletConnectPendingRequest.Transaction,
-    ) : WCRequest(request) {
+        applicationMetadataService: GemApplicationMetadataService,
+    ) : WCRequest(request, applicationMetadataService) {
         val isSendable: Boolean get() = request.isSendable
 
         val outputAction: TransferDataOutputAction

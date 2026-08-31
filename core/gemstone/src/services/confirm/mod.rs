@@ -2,6 +2,7 @@ mod error;
 mod model;
 pub(crate) mod rules;
 mod signer;
+mod transfer;
 
 use std::sync::Arc;
 use std::time::Duration;
@@ -10,17 +11,20 @@ pub use error::GemConfirmError;
 pub use model::*;
 pub use rules::acquire_asset_flow;
 pub use signer::GemTransactionSigner;
+pub use transfer::GemConfirmTransferService;
 
 use crate::gateway::GemGateway;
+use crate::models::asset::chain_fee_asset_ids;
 use crate::models::gateway::GemTransactionPreloadInput;
 use crate::models::transaction::{GemSignedTransaction, GemTransactionInputType, GemTransactionLoadInput};
 use crate::services::GemScanService;
+use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::clock::sleep;
 use crate::services::price::GemPriceService;
 use crate::services::transaction_state::GemTransactionStateService;
 use crate::signer::GemSignerError;
-use crate::transaction_simulation::TransactionSimulationService;
+use crate::transaction_simulation::{GemSimulationFormatter, TransactionSimulationService};
 use primitives::{AssetId, Chain, SimulationResult, Transaction, TransferDataOutputAction, WalletId};
 
 #[derive(uniffi::Object)]
@@ -31,6 +35,8 @@ pub struct GemConfirmService {
     transaction_state: Arc<GemTransactionStateService>,
     balance: Arc<GemBalanceService>,
     price: Arc<GemPriceService>,
+    assets: Arc<GemAssetsService>,
+    simulation_formatter: GemSimulationFormatter,
 }
 
 #[uniffi::export]
@@ -43,6 +49,7 @@ impl GemConfirmService {
         transaction_state: Arc<GemTransactionStateService>,
         balance: Arc<GemBalanceService>,
         price: Arc<GemPriceService>,
+        assets: Arc<GemAssetsService>,
     ) -> Self {
         Self {
             gateway,
@@ -51,6 +58,8 @@ impl GemConfirmService {
             transaction_state,
             balance,
             price,
+            assets,
+            simulation_formatter: GemSimulationFormatter::new(),
         }
     }
 
@@ -62,6 +71,92 @@ impl GemConfirmService {
             .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
         let prices = self.price.prices(asset_ids).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
         rules::build_metadata(asset_id, fee_asset_id, balances, prices)
+    }
+
+    pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, crate::services::error::GemServiceError> {
+        self.assets.sync_missing_assets(asset_ids).await
+    }
+
+    pub async fn track_pending(&self) -> Result<(), crate::services::error::GemServiceError> {
+        self.transaction_state.track_pending().await
+    }
+
+    pub async fn track(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), crate::services::error::GemServiceError> {
+        self.transaction_state.track(wallet_id, transactions).await
+    }
+
+    pub fn fee_assets(&self, wallet_id: WalletId, chain: Chain) -> Result<Vec<GemFeeAsset>, GemConfirmError> {
+        let fee_asset_ids = chain_fee_asset_ids(chain);
+        if fee_asset_ids.is_empty() {
+            return Ok(Vec::new());
+        }
+        let assets = self
+            .assets
+            .assets(fee_asset_ids.clone())
+            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        let balances = self
+            .balance
+            .balances(wallet_id, fee_asset_ids.clone())
+            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        let prices = self.price.prices(fee_asset_ids).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        Ok(rules::selectable_fee_assets(assets, balances, prices))
+    }
+
+    pub fn simulation(&self, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> Result<GemConfirmSimulation, GemConfirmError> {
+        let asset_ids = rules::simulation_asset_ids(&simulation);
+        let assets = self.assets.assets(asset_ids).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        let approval = rules::approval_value(&input_type);
+        let shows_header = self.simulation_formatter.shows_header(simulation.clone(), approval.is_some());
+        let payload_fields = self
+            .simulation_formatter
+            .payload_fields(simulation.clone().map(|simulation| simulation.payload).unwrap_or_default(), shows_header);
+        let header = match approval {
+            Some((asset_id, value)) => assets
+                .iter()
+                .find(|asset| asset.id == asset_id)
+                .map(|asset| GemSimulationValue { asset: asset.clone(), value }),
+            None => self.simulation_formatter.header(simulation.clone()).and_then(|header| {
+                assets.iter().find(|asset| asset.id == header.asset_id).map(|asset| GemSimulationValue {
+                    asset: asset.clone(),
+                    value: rules::gem_approval_value(&header.value, header.is_unlimited),
+                })
+            }),
+        };
+        let balance_changes = self
+            .simulation_formatter
+            .balance_changes(simulation, assets.iter().map(|asset| asset.id.clone()).collect())
+            .into_iter()
+            .filter_map(|change| {
+                let asset = assets.iter().find(|asset| asset.id == change.asset_id)?.clone();
+                Some(GemSimulationBalanceChange { asset, value: change.value })
+            })
+            .collect();
+        Ok(GemConfirmSimulation {
+            payload_fields,
+            header,
+            balance_changes,
+        })
+    }
+
+    pub async fn preload(&self, wallet_id: WalletId, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmPreload, GemConfirmError> {
+        let asset_id = input.transfer.input_type.asset().id.clone();
+        let confirm_data = self.load(input, options).await?;
+        let fee_asset_id = confirm_data.fee.fee_asset.clone();
+        let metadata = self.metadata(wallet_id.clone(), asset_id, fee_asset_id.clone(), Vec::new())?;
+        let fee_asset = self
+            .assets
+            .assets(vec![fee_asset_id.clone()])
+            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?
+            .into_iter()
+            .next()
+            .ok_or(GemConfirmError::BalanceMissing { asset_id: fee_asset_id.clone() })?;
+        let amount = rules::preload_amount(&confirm_data, &metadata, &fee_asset)?;
+        Ok(GemConfirmPreload {
+            confirm_data,
+            metadata,
+            fee_asset,
+            amount,
+        })
     }
 
     pub async fn execute(&self, input: GemSendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {

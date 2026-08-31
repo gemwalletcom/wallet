@@ -1,5 +1,6 @@
 package com.gemwallet.android.payment
 
+import uniffi.gemstone.GemTransferService
 import uniffi.gemstone.GemRecipient
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.model.ConfirmParams
@@ -24,6 +25,8 @@ import java.math.BigInteger
 @RunWith(AndroidJUnit4::class)
 class ConfirmInputCodecTest {
 
+    private val transferService = GemTransferService()
+
     companion object {
         init {
             includeGemstoneLibs()
@@ -40,7 +43,7 @@ class ConfirmInputCodecTest {
                 references = listOf("reference"),
             )
 
-        val unpacked = ConfirmParams.unpack(requireNotNull(original.pack()))
+        val unpacked = ConfirmParams.unpack(requireNotNull(original.pack(transferService)), transferService)
 
         assertTrue(unpacked is ConfirmParams.TransferParams.Transfer)
         val params = unpacked as ConfirmParams.TransferParams.Transfer
@@ -78,7 +81,7 @@ class ConfirmInputCodecTest {
             approval = approval,
         )
 
-        val unpacked = ConfirmParams.unpack(requireNotNull(original.pack()))
+        val unpacked = ConfirmParams.unpack(requireNotNull(original.pack(transferService)), transferService)
 
         assertTrue(unpacked is ConfirmParams.TransferParams.Generic)
         val params = unpacked as ConfirmParams.TransferParams.Generic
@@ -119,7 +122,7 @@ class ConfirmInputCodecTest {
             decodedTransactionType = TransactionType.SmartContractCall,
         )
 
-        val unpacked = ConfirmParams.unpack(requireNotNull(original.pack()))
+        val unpacked = ConfirmParams.unpack(requireNotNull(original.pack(transferService)), transferService)
 
         assertTrue(unpacked is ConfirmParams.TransferParams.Generic)
         val params = unpacked as ConfirmParams.TransferParams.Generic
@@ -135,7 +138,7 @@ class ConfirmInputCodecTest {
         val original = ConfirmParams.Builder(mockAssetSolana(), account, BigInteger.ONE)
             .transfer(destination = GemRecipient("recipient"))
 
-        val unpacked = ConfirmParams.unpack(requireNotNull(original.pack()))
+        val unpacked = ConfirmParams.unpack(requireNotNull(original.pack(transferService)), transferService)
 
         assertTrue(unpacked is ConfirmParams.TransferParams.Transfer)
         val params = unpacked as ConfirmParams.TransferParams.Transfer

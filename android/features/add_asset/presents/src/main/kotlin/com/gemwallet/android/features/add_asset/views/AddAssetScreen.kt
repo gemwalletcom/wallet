@@ -9,6 +9,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.QrCodeScannerModal
+import com.wallet.core.primitives.QRScanType
 import com.gemwallet.android.ui.components.screen.SelectChain
 import com.gemwallet.android.features.add_asset.viewmodels.AddAssetViewModel
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState
@@ -70,6 +71,7 @@ fun AddAssetScreen(
 
     QrCodeScannerModal(
         isVisible = uiState.scene == AddAssetUIState.Scene.QrScanner,
+        scanType = QRScanType.TokenContract,
         onDismissRequest = viewModel::cancelScan,
         onResult = viewModel::setQrData,
     )

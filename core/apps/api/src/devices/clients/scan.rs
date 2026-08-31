@@ -1,48 +1,41 @@
 use cacher::{AccessTokenCacherClient, CacherClient};
 use gem_client::ReqwestClient;
 use gem_tracing::{error_with_fields, info_with_fields};
-use primitives::{AssetId, ChainAddress, ScanTransaction, ScanTransactionPayload};
+use primitives::{AssetId, ChainAddress, ScanTransaction, ScanTransactionPayload, asset_score::AssetRank};
 use rocket::futures::future;
 use security_provider::providers::goplus::GoPlusProvider;
-use security_provider::providers::hashdit::HashDitProvider;
-use security_provider::{AddressTarget, ScanProvider, ScanResult, TokenTarget};
+use security_provider::{AddressTarget, ScanProviderConfig, ScanProviderFactory, ScanProviderRemoteConfig, ScanProviders, ScanResult};
 use settings::Settings;
 use std::error::Error;
 use std::sync::Arc;
-use storage::{Database, ScanAddressesRepository};
+use storage::{AssetsRepository, Database, ScanAddressesRepository};
 
-pub struct ScanProviderFactory {}
-
-impl ScanProviderFactory {
-    pub fn create_providers(settings: &Settings, cacher: CacherClient) -> Vec<Box<dyn ScanProvider + Send + Sync>> {
-        let client = gem_client::builder().timeout(settings.security.timeout).build().unwrap();
-
-        vec![
-            Box::new(GoPlusProvider::new(
-                ReqwestClient::new(settings.security.goplus.url.clone(), client.clone()),
-                &settings.security.goplus.key.public,
-                &settings.security.goplus.key.secret,
-                Some(Arc::new(AccessTokenCacherClient::new(cacher, GoPlusProvider::<ReqwestClient>::NAME))),
-            )),
-            Box::new(HashDitProvider::new(
-                ReqwestClient::new(settings.security.hashdit.url.clone(), client.clone()),
-                &settings.security.hashdit.key.public,
-                &settings.security.hashdit.key.secret,
-            )),
-        ]
-    }
+pub fn scan_providers(settings: &Settings, cacher: CacherClient) -> Result<ScanProviders, Box<dyn Error + Send + Sync>> {
+    let config = ScanProviderConfig {
+        timeout: settings.security.timeout,
+        goplus: ScanProviderRemoteConfig {
+            url: settings.security.goplus.url.clone(),
+            public_key: settings.security.goplus.key.public.clone(),
+            secret_key: settings.security.goplus.key.secret.clone(),
+        },
+        hashdit: ScanProviderRemoteConfig {
+            url: settings.security.hashdit.url.clone(),
+            public_key: settings.security.hashdit.key.public.clone(),
+            secret_key: settings.security.hashdit.key.secret.clone(),
+        },
+    };
+    ScanProviderFactory::new_providers(config, Arc::new(AccessTokenCacherClient::new(cacher, GoPlusProvider::<ReqwestClient>::NAME)))
 }
 
 #[derive(Clone)]
 pub struct ScanClient {
     database: Database,
-    pub security_providers: Vec<Arc<dyn ScanProvider + Send + Sync>>,
+    providers: ScanProviders,
 }
 
 impl ScanClient {
-    pub fn new(database: Database, security_providers: Vec<Box<dyn ScanProvider + Send + Sync>>) -> Self {
-        let security_providers = security_providers.into_iter().map(Arc::from).collect();
-        Self { database, security_providers }
+    pub fn new(database: Database, providers: ScanProviders) -> Self {
+        Self { database, providers }
     }
 
     pub async fn get_scan_transaction(&self, payload: ScanTransactionPayload) -> Result<ScanTransaction, Box<dyn Error + Send + Sync>> {
@@ -55,12 +48,7 @@ impl ScanClient {
             chain: payload.origin.asset_id.chain,
             address: payload.origin.address.clone(),
         };
-        let token_targets = Self::token_targets(&payload);
-        let (address_scans, token_scans) = future::join(
-            self.scan_address_providers(target),
-            future::join_all(token_targets.into_iter().map(|target| self.scan_token_providers(target))),
-        )
-        .await;
+        let address_scans = self.scan_address_providers(target).await;
 
         let malicious_addresses = address_scans
             .iter()
@@ -69,24 +57,14 @@ impl ScanClient {
             .then_some(ChainAddress::new(payload.origin.asset_id.chain, payload.origin.address))
             .into_iter()
             .collect::<Vec<_>>();
-        let malicious_assets = token_scans
-            .iter()
-            .filter_map(|scans| {
-                scans
-                    .iter()
-                    .flatten()
-                    .find(|scan| scan.is_malicious)
-                    .map(|scan| AssetId::from_token(scan.target.chain, &scan.target.token_id))
-            })
-            .collect::<Vec<_>>();
-        let is_scan_complete = address_scans.iter().all(Option::is_some) && token_scans.iter().flatten().all(Option::is_some);
+        let is_scan_complete = address_scans.iter().all(Option::is_some);
 
         Ok(ScanTransaction {
-            is_malicious: Some(!malicious_addresses.is_empty() || !malicious_assets.is_empty()),
+            is_malicious: Some(!malicious_addresses.is_empty()),
             is_memo_required: local_scan.is_memo_required,
             is_scan_complete,
             malicious_addresses: Some(malicious_addresses),
-            malicious_assets: Some(malicious_assets),
+            malicious_assets: local_scan.malicious_assets,
             malicious_website: None,
         })
     }
@@ -97,35 +75,38 @@ impl ScanClient {
             (payload.target.asset_id.chain, payload.target.address.as_str()),
         ];
         let addresses = self.database.scan_addresses()?.get_scan_addresses(&queries)?;
+        let token_asset_ids = Self::token_asset_ids(&payload);
+        let token_assets = self.database.assets()?.get_assets_basic(token_asset_ids)?;
         let malicious_addresses = addresses
             .iter()
             .filter(|address| address.is_fraudulent)
             .map(|address| ChainAddress::new(address.chain.0, address.address.clone()))
             .collect::<Vec<_>>();
         let is_memo_required = addresses.iter().any(|address| address.is_memo_required);
+        let malicious_assets = token_assets
+            .into_iter()
+            .filter(|asset| asset.score.rank_type() == AssetRank::Fraudulent)
+            .map(|asset| asset.asset.id)
+            .collect::<Vec<_>>();
 
         Ok(ScanTransaction {
-            is_malicious: Some(!malicious_addresses.is_empty()),
+            is_malicious: Some(!malicious_addresses.is_empty() || !malicious_assets.is_empty()),
             is_memo_required: Some(is_memo_required),
             is_scan_complete: true,
             malicious_addresses: Some(malicious_addresses),
-            malicious_assets: Some(vec![]),
+            malicious_assets: Some(malicious_assets),
             malicious_website: None,
         })
     }
 
-    fn token_targets(payload: &ScanTransactionPayload) -> Vec<TokenTarget> {
+    fn token_asset_ids(payload: &ScanTransactionPayload) -> Vec<AssetId> {
         let mut targets = Vec::new();
         for asset_id in [&payload.origin.asset_id, &payload.target.asset_id] {
-            let Some(token_id) = &asset_id.token_id else {
+            if asset_id.is_native() {
                 continue;
-            };
-            let target = TokenTarget {
-                token_id: token_id.clone(),
-                chain: asset_id.chain,
-            };
-            if !targets.iter().any(|value: &TokenTarget| value.chain == target.chain && value.token_id == target.token_id) {
-                targets.push(target);
+            }
+            if !targets.contains(asset_id) {
+                targets.push(asset_id.clone());
             }
         }
         targets
@@ -133,7 +114,7 @@ impl ScanClient {
 
     pub async fn scan_address_providers(&self, target: AddressTarget) -> Vec<Option<ScanResult<AddressTarget>>> {
         future::join_all(
-            self.security_providers
+            self.providers
                 .iter()
                 .filter(|provider| provider.supports_address_chain(target.chain))
                 .map(|provider| async { (provider.name(), provider.scan_address(&target).await) }),
@@ -154,43 +135,6 @@ impl ScanClient {
             }
             Err(error) => {
                 error_with_fields!("security scan failed", error.as_ref(), kind = "address", provider = provider, chain = target.chain.as_ref());
-                None
-            }
-        })
-        .collect()
-    }
-
-    async fn scan_token_providers(&self, target: TokenTarget) -> Vec<Option<ScanResult<TokenTarget>>> {
-        future::join_all(
-            self.security_providers
-                .iter()
-                .filter(|provider| provider.supports_token_chain(target.chain))
-                .map(|provider| async { (provider.name(), provider.scan_token(&target).await) }),
-        )
-        .await
-        .into_iter()
-        .map(|(provider, result)| match result {
-            Ok(result) => {
-                info_with_fields!(
-                    "security scan result",
-                    kind = "token",
-                    provider = result.provider.as_str(),
-                    chain = result.target.chain.as_ref(),
-                    token_id = result.target.token_id.as_str(),
-                    malicious = result.is_malicious,
-                    reason = result.reason.as_deref().unwrap_or_default()
-                );
-                Some(result)
-            }
-            Err(error) => {
-                error_with_fields!(
-                    "security scan failed",
-                    error.as_ref(),
-                    kind = "token",
-                    provider = provider,
-                    chain = target.chain.as_ref(),
-                    token_id = target.token_id.as_str()
-                );
                 None
             }
         })
@@ -219,22 +163,22 @@ mod tests {
     }
 
     #[test]
-    fn test_native_assets_do_not_create_token_targets() {
+    fn test_native_assets_do_not_create_token_asset_ids() {
         let payload = payload(AssetId::from_chain(Chain::Ethereum), AssetId::from_chain(Chain::Ethereum), TransactionType::Transfer);
 
-        assert!(ScanClient::token_targets(&payload).is_empty());
+        assert!(ScanClient::token_asset_ids(&payload).is_empty());
     }
 
     #[test]
-    fn test_same_token_from_and_to_is_scanned_once() {
+    fn test_same_token_is_looked_up_once() {
         let token = AssetId::from_token(Chain::SmartChain, "0x123");
         let payload = payload(token.clone(), token, TransactionType::Transfer);
 
-        assert_eq!(ScanClient::token_targets(&payload).len(), 1);
+        assert_eq!(ScanClient::token_asset_ids(&payload).len(), 1);
     }
 
     #[test]
-    fn test_swap_scans_both_distinct_token_assets() {
+    fn test_swap_looks_up_both_distinct_token_assets() {
         let payload = payload(
             AssetId::from_token(Chain::Ethereum, "0x123"),
             AssetId::from_token(Chain::SmartChain, "0x456"),
@@ -242,17 +186,8 @@ mod tests {
         );
 
         assert_eq!(
-            ScanClient::token_targets(&payload),
-            vec![
-                TokenTarget {
-                    token_id: "0x123".into(),
-                    chain: Chain::Ethereum,
-                },
-                TokenTarget {
-                    token_id: "0x456".into(),
-                    chain: Chain::SmartChain,
-                },
-            ]
+            ScanClient::token_asset_ids(&payload),
+            vec![AssetId::from_token(Chain::Ethereum, "0x123"), AssetId::from_token(Chain::SmartChain, "0x456"),]
         );
     }
 }

@@ -3,10 +3,10 @@ package com.gemwallet.android.data.services.gemstone.di
 import android.content.Context
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.GetPushToken
-import com.gemwallet.android.application.device.cases.IsDeviceRegistered
 import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.data.services.gemstone.device.DeviceObserverService
+import com.gemwallet.android.data.services.gemstone.device.DevicePushSettings
 import com.gemwallet.android.data.services.gemstone.device.GemstoneDevicePlatform
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.application.wallet.cases.GetWallets
@@ -51,19 +51,34 @@ object DeviceModule {
 
     @Provides
     @Singleton
+    fun provideDevicePushSettings(
+        @ApplicationContext context: Context,
+        notificationsAvailable: NotificationsAvailable,
+        preferencesService: GemPreferencesService,
+        deviceService: Lazy<GemDeviceService>,
+    ): DevicePushSettings = DevicePushSettings(
+        context = context,
+        configStore = ConfigStore(context.getSharedPreferences("device-info", Context.MODE_PRIVATE)),
+        notificationsAvailable = notificationsAvailable,
+        preferencesService = preferencesService,
+        deviceService = deviceService,
+    )
+
+    @Provides
+    @Singleton
     fun provideDevicePlatform(
         @ApplicationContext context: Context,
         buildInfo: BuildInfo,
-        deviceService: Lazy<GemDeviceService>,
         deviceKeyService: GemDeviceKeyService,
         preferencesService: GemPreferencesService,
         notificationsAvailable: NotificationsAvailable,
+        pushSettings: DevicePushSettings,
     ): GemstoneDevicePlatform {
         return GemstoneDevicePlatform(
             context = context,
-            deviceService = deviceService,
             deviceKeyService = deviceKeyService,
-            configStore = ConfigStore(context.getSharedPreferences("device-info", Context.MODE_PRIVATE)),
+            getPushToken = pushSettings,
+            setPushToken = pushSettings,
             requestPushToken = buildInfo.requestPushToken,
             platformStore = buildInfo.platformStore,
             notificationsAvailable = notificationsAvailable,
@@ -73,19 +88,16 @@ object DeviceModule {
     }
 
     @Provides
-    fun provideSwitchPushEnabledCase(repository: GemstoneDevicePlatform): SwitchPushEnabled = repository
+    fun provideSwitchPushEnabledCase(pushSettings: DevicePushSettings): SwitchPushEnabled = pushSettings
 
     @Provides
-    fun provideGetPushEnabledCase(repository: GemstoneDevicePlatform): GetPushEnabled = repository
+    fun provideGetPushEnabledCase(pushSettings: DevicePushSettings): GetPushEnabled = pushSettings
 
     @Provides
-    fun provideSetPushTokenCase(repository: GemstoneDevicePlatform): SetPushToken = repository
+    fun provideSetPushTokenCase(pushSettings: DevicePushSettings): SetPushToken = pushSettings
 
     @Provides
-    fun provideGetPushTokenCase(repository: GemstoneDevicePlatform): GetPushToken = repository
-
-    @Provides
-    fun provideIsDeviceRegisteredCase(repository: GemstoneDevicePlatform): IsDeviceRegistered = repository
+    fun provideGetPushTokenCase(pushSettings: DevicePushSettings): GetPushToken = pushSettings
 
     @Provides
     @Singleton

@@ -4,6 +4,7 @@ import BigInt
 import Localization
 @testable import Primitives
 import PrimitivesTestKit
+import class Gemstone.GemTransferService
 import Testing
 @testable import Transfer
 
@@ -29,8 +30,8 @@ struct TransferDataViewModelTests {
     func availableValueForUnfreeze() throws {
         let balance = Balance(available: 1000, frozen: 500, locked: 300)
 
-        #expect(try TransferData.mock(type: .stake(.mock(), .unfreeze(.bandwidth))).availableValue(balance: balance) == BigInt(500))
-        #expect(try TransferData.mock(type: .stake(.mock(), .unfreeze(.energy))).availableValue(balance: balance) == BigInt(300))
+        #expect(try TransferData.mock(type: .stake(.mock(), .unfreeze(.bandwidth))).availableValue(balance: balance, transferService: GemTransferService()) == BigInt(500))
+        #expect(try TransferData.mock(type: .stake(.mock(), .unfreeze(.energy))).availableValue(balance: balance, transferService: GemTransferService()) == BigInt(300))
     }
 }
 

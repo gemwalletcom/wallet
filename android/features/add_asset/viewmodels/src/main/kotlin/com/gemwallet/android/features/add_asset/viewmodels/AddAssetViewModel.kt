@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.add_asset.viewmodels
 
+import uniffi.gemstone.GemAddressService
 import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toChain
@@ -45,6 +46,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AddAssetViewModel @Inject constructor(
+    private val addressService: GemAddressService,
     private val searchCustomToken: SearchCustomToken,
     private val observeToken: ObserveToken,
     private val addCustomToken: AddCustomToken,
@@ -82,7 +84,7 @@ class AddAssetViewModel @Inject constructor(
     val addressQuery = snapshotFlow { addressState.value }
 
     private val customAssetId = addressQuery.combine(selectedChain) { address, chain ->
-        AssetId(chain, chain.checksumAddress(address))
+        AssetId(chain, chain.checksumAddress(address, addressService))
     }
 
     val searchState = customAssetId.flatMapLatest { assetId ->

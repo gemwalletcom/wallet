@@ -80,6 +80,12 @@ pub enum GemBannerAction {
     Close,
 }
 
+impl GemBannerAction {
+    pub fn is_dismissal(&self) -> bool {
+        matches!(self, Self::Close)
+    }
+}
+
 #[uniffi::export]
 pub fn banner_identifier(key: GemBannerKey) -> String {
     [
@@ -97,6 +103,13 @@ pub fn banner_identifier(key: GemBannerKey) -> String {
 mod tests {
     use super::*;
     use primitives::Chain;
+
+    #[test]
+    fn test_only_the_close_action_dismisses_a_banner() {
+        assert!(GemBannerAction::Close.is_dismissal());
+        assert!(!GemBannerAction::Button.is_dismissal());
+        assert!(!GemBannerAction::Event { event: BannerEvent::Stake }.is_dismissal());
+    }
 
     #[test]
     fn test_banner_identifier() {

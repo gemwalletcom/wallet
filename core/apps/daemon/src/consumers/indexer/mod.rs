@@ -1,5 +1,6 @@
 pub mod fetch_address_transactions_consumer;
 pub mod fetch_asset_associations_consumer;
+pub mod fetch_asset_status_consumer;
 pub mod fetch_assets_consumer;
 pub mod fetch_blocks_consumer;
 pub mod fetch_coin_addresses_consumer;
@@ -14,16 +15,20 @@ use std::error::Error;
 use std::sync::Arc;
 
 use ::nft::{NFTClient, NFTProviderConfig};
-use cacher::CacherClient;
+use cacher::{AccessTokenCacherClient, CacherClient};
 use coingecko::CoinGeckoClient;
+use futures::future;
+use gem_client::ReqwestClient;
 use lists::{CoinGeckoListProvider, ListsClient};
 use pricer::PriceClient;
-use primitives::{Chain, NFTChain, PriceProvider, TransactionIdRequest};
+use primitives::{AssetId, Chain, NFTChain, PriceProvider, TransactionIdRequest};
+use security_provider::providers::goplus::GoPlusProvider;
+use security_provider::{ScanProviderConfig, ScanProviderFactory, ScanProviderRemoteConfig, ScanProviders};
 use settings::Settings;
 use storage::{ConfigCacher, Database};
 use streamer::{
     ChainAddressPayload, ConsumerStatusReporter, FetchAssetAssociationsPayload, FetchAssetsPayload, FetchBlocksPayload, FetchListPayload, FetchNFTAssetPayload, FetchPricesPayload,
-    QueueName, ShutdownReceiver, StreamConnection, StreamReader, run_consumer,
+    QueueName, ShutdownReceiver, StreamConnection, StreamProducer, StreamReader, run_consumer,
 };
 
 use crate::asset_spam::AssetClassificationRules;
@@ -33,6 +38,7 @@ use crate::model::{IndexerConsumer, IndexerService};
 
 use fetch_address_transactions_consumer::FetchAddressTransactionsConsumer;
 use fetch_asset_associations_consumer::FetchAssetAssociationsConsumer;
+use fetch_asset_status_consumer::FetchAssetStatusConsumer;
 use fetch_assets_consumer::FetchAssetsConsumer;
 use fetch_blocks_consumer::FetchBlocksConsumer;
 use fetch_coin_addresses_consumer::FetchCoinAddressesConsumer;
@@ -52,7 +58,7 @@ pub async fn run_consumer_indexer(
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
     use IndexerConsumer::*;
 
-    let database = Database::new(&settings.postgres.url, settings.postgres.pool);
+    let database = Database::new(&settings.postgres.url, settings.postgres.pool)?;
     let settings = Arc::new(settings);
 
     let selected = match only {
@@ -72,6 +78,7 @@ pub async fn run_consumer_indexer(
                 match kind {
                     FetchBlocks => run_fetch_blocks(settings, database, shutdown_rx, reporter).await,
                     FetchAssets => run_fetch_assets(settings, database, shutdown_rx, reporter).await,
+                    FetchAssetStatus => run_fetch_asset_status(settings, database, shutdown_rx, reporter).await,
                     FetchAssetAssociations => run_fetch_asset_associations(settings, database, shutdown_rx, reporter).await,
                     FetchLists => run_fetch_lists(settings, database, shutdown_rx, reporter).await,
                     FetchPrices => run_fetch_prices(settings, database, shutdown_rx, reporter).await,
@@ -86,7 +93,7 @@ pub async fn run_consumer_indexer(
         })
         .collect();
 
-    for handle in futures::future::join_all(handles).await {
+    for handle in future::join_all(handles).await {
         handle??;
     }
     Ok(())
@@ -150,6 +157,7 @@ async fn run_fetch_assets(
     let connection = StreamConnection::new(&settings.rabbitmq.url, name.clone()).await?;
     let config = reader_config(&settings.rabbitmq, name.clone());
     let stream_reader = StreamReader::from_connection(&connection, config).await?;
+    let stream_producer = StreamProducer::from_connection(&connection, shutdown_rx.clone()).await?;
     let cacher = CacherClient::new(&settings.redis.url).await?;
     let classification_rules = AssetClassificationRules::from_config(&ConfigCacher::new(database.clone()))?;
     let consumer = FetchAssetsConsumer {
@@ -157,8 +165,43 @@ async fn run_fetch_assets(
         database,
         cacher,
         classification_rules,
+        stream_producer,
     };
     run_consumer::<FetchAssetsPayload, FetchAssetsConsumer, usize>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
+}
+
+async fn run_fetch_asset_status(
+    settings: Arc<Settings>,
+    database: Database,
+    shutdown_rx: ShutdownReceiver,
+    reporter: Arc<dyn ConsumerStatusReporter>,
+) -> Result<(), Box<dyn Error + Send + Sync>> {
+    let queue = QueueName::FetchAssetStatus;
+    let name = queue.to_string();
+    let connection = StreamConnection::new(&settings.rabbitmq.url, name.clone()).await?;
+    let config = reader_config(&settings.rabbitmq, name.clone());
+    let stream_reader = StreamReader::from_connection(&connection, config).await?;
+    let cacher = CacherClient::new(&settings.redis.url).await?;
+    let providers = scan_providers(&settings, cacher)?;
+    let consumer = FetchAssetStatusConsumer { database, providers };
+    run_consumer::<AssetId, _, bool>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
+}
+
+fn scan_providers(settings: &Settings, cacher: CacherClient) -> Result<ScanProviders, Box<dyn Error + Send + Sync>> {
+    let config = ScanProviderConfig {
+        timeout: settings.security.timeout,
+        goplus: ScanProviderRemoteConfig {
+            url: settings.security.goplus.url.clone(),
+            public_key: settings.security.goplus.key.public.clone(),
+            secret_key: settings.security.goplus.key.secret.clone(),
+        },
+        hashdit: ScanProviderRemoteConfig {
+            url: settings.security.hashdit.url.clone(),
+            public_key: settings.security.hashdit.key.public.clone(),
+            secret_key: settings.security.hashdit.key.secret.clone(),
+        },
+    };
+    ScanProviderFactory::new_providers(config, Arc::new(AccessTokenCacherClient::new(cacher, GoPlusProvider::<ReqwestClient>::NAME)))
 }
 
 async fn run_fetch_lists(

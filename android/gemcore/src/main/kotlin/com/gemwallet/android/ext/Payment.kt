@@ -6,8 +6,6 @@ import com.wallet.core.primitives.PaymentAmount
 import com.wallet.core.primitives.PaymentRequest
 import uniffi.gemstone.GemPaymentService
 
-private val paymentService = GemPaymentService()
-
 val Payment.request: PaymentRequest?
     get() = when (this) {
         is Payment.Request -> content
@@ -20,5 +18,5 @@ val PaymentRequest.exactAmount: String?
         is PaymentAmount.AtomicValue, null -> null
     }
 
-fun decodePayment(url: String): Payment? =
-    runCatching { paymentService.decodeUrl(url) }.getOrNull()?.decodeJson()
+fun GemPaymentService.decodePayment(url: String): Payment? =
+    runCatching { decodeUrl(url) }.getOrNull()?.decodeJson()

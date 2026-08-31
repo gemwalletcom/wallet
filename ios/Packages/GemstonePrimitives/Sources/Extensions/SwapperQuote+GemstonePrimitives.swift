@@ -7,10 +7,8 @@ import struct Gemstone.SwapperQuote
 import class Gemstone.GemSwapQuoteService
 import Primitives
 
-private let swapQuoteService = GemSwapQuoteService()
-
 public extension Gemstone.SwapperQuote {
-    func map() throws -> Primitives.SwapQuote {
+    func map(swapQuoteService: GemSwapQuoteService) throws -> Primitives.SwapQuote {
         try Primitives.SwapQuote(swapQuoteService.quote(quote: self))
     }
 

@@ -1,3 +1,4 @@
+import protocol Gemstone.GemOnboardingServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import Components
 import Foundation
@@ -7,13 +8,13 @@ import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import GemstoneServices
+import Preferences
 
 @Observable
 @MainActor
 final class ImportWalletSceneViewModel {
-    private let walletService: WalletService
-    private let walletSessionService: any WalletSessionManageable
+    private let service: any GemOnboardingServiceProtocol
+    private let preferences: ObservablePreferences
     private let wordSuggester = WordSuggester()
     let type: ImportWalletType
 
@@ -30,14 +31,14 @@ final class ImportWalletSceneViewModel {
     private let onComplete: (@MainActor @Sendable (ImportWalletSceneResult) -> Void)?
 
     init(
-        walletService: WalletService,
-        walletSessionService: any WalletSessionManageable,
+        service: any GemOnboardingServiceProtocol,
+        preferences: ObservablePreferences,
         nameService: any GemNameServiceProtocol,
         type: ImportWalletType,
         onComplete: (@MainActor @Sendable (ImportWalletSceneResult) -> Void)?,
     ) {
-        self.walletService = walletService
-        self.walletSessionService = walletSessionService
+        self.service = service
+        self.preferences = preferences
         self.type = type
         self.onComplete = onComplete
         nameRecordViewModel = switch type {
@@ -188,7 +189,7 @@ extension ImportWalletSceneViewModel {
         let recipient: RecipientImport = if let result = nameRecordViewModel?.state.result {
             RecipientImport(name: result.name, address: result.address)
         } else {
-            RecipientImport(name: await WalletNameGenerator(type: type, walletService: walletService).name(), address: trimmedInput)
+            RecipientImport(name: await WalletNameGenerator(type: type, service: service).name(), address: trimmedInput)
         }
         switch importType {
         case .phrase:
@@ -213,7 +214,7 @@ extension ImportWalletSceneViewModel {
     }
 
     private func importWallet(name: String, keystoreType: KeystoreImportType) async throws {
-        let result = try await walletService.importWallet(name: name, type: keystoreType, source: .import)
+        let result = try await service.importWallet(name: name, type: keystoreType, source: .import)
 
         switch result {
         case let .new(wallet):
@@ -226,9 +227,9 @@ extension ImportWalletSceneViewModel {
     }
 
     private func activateWallet(_ wallet: Wallet) async {
-        walletService.acceptTerms()
+        preferences.acceptTerms()
         do {
-            try await walletSessionService.setCurrent(wallet: wallet)
+            try await service.session().setCurrent(wallet: wallet)
         } catch {
             isPresentingAlertMessage = AlertMessage(title: alertTitle, message: error.localizedDescription)
         }

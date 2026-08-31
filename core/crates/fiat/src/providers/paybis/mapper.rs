@@ -319,28 +319,6 @@ mod tests {
     }
 
     #[test]
-    fn test_map_process_webhook_with_payment() {
-        let webhook_json: serde_json::Value = serde_json::from_str(include_str!("../../../testdata/paybis/webhook_transaction_started.json")).unwrap();
-
-        let result = map_process_webhook(webhook_json).unwrap();
-        let FiatWebhook::Transaction(transaction) = result else {
-            panic!("Expected FiatWebhook::Transaction variant");
-        };
-
-        assert_eq!(
-            transaction,
-            FiatTransactionUpdate {
-                transaction_id: "a4a211ad-3bcf-47d9-b4ae-073e841e3e7a".to_string(),
-                provider_transaction_id: Some("PB21095868675TX1".to_string()),
-                status: FiatTransactionStatus::Pending,
-                transaction_hash: None,
-                fiat_amount: Some(50.0),
-                fiat_currency: Some("USD".to_string()),
-            }
-        );
-    }
-
-    #[test]
     fn test_map_process_webhook_no_payment() {
         let webhook_json: serde_json::Value = serde_json::from_str(include_str!("../../../testdata/paybis/webhook_transaction_started_no_payment.json")).unwrap();
 

@@ -20,6 +20,7 @@ import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemAssetStore
 import uniffi.gemstone.GemPerpetualService
+import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualStreamService
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemWalletPreferencesService
@@ -58,6 +59,10 @@ object PerpetualModule {
         walletPreferencesService: GemWalletPreferencesService,
     ): GemPerpetualService =
         GemPerpetualService(gateway, priceService, perpetualStore, assetStore, preferencesService, balanceService, walletPreferencesService)
+
+    @Provides
+    @Singleton
+    fun provideGemPerpetualServiceInterface(service: GemPerpetualService): GemPerpetualServiceInterface = service
 
     @Provides
     @Singleton

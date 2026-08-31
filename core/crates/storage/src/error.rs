@@ -4,6 +4,7 @@ use std::fmt;
 #[derive(Debug, Clone)]
 pub enum DatabaseError {
     NotFound { resource: &'static str, lookup: NotFoundLookup },
+    ConnectionPool,
     Error(String),
 }
 
@@ -24,6 +25,7 @@ impl fmt::Display for DatabaseError {
                 resource,
                 lookup: NotFoundLookup::Internal(_),
             } => write!(f, "{resource} not found"),
+            DatabaseError::ConnectionPool => write!(f, "Database connection pool unavailable"),
             DatabaseError::Error(msg) => write!(f, "{}", msg),
         }
     }
@@ -208,8 +210,8 @@ impl From<serde_json::Error> for DatabaseError {
 }
 
 impl From<r2d2::Error> for DatabaseError {
-    fn from(error: r2d2::Error) -> Self {
-        DatabaseError::Error(error.to_string())
+    fn from(_: r2d2::Error) -> Self {
+        DatabaseError::ConnectionPool
     }
 }
 

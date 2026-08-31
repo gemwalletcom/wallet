@@ -5,7 +5,6 @@ import com.gemwallet.android.Constants
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.password.TinkGemPreferences
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePreferencesStore
-import com.gemwallet.android.services.DeviceSyncPreflight
 import com.gemwallet.android.math.fromHex
 import kotlinx.coroutines.runBlocking
 import com.gemwallet.android.data.services.nativeprovider.NativeProvider
@@ -27,6 +26,7 @@ import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassw
 import uniffi.gemstone.GemKeystore
 import uniffi.gemstone.GemDeviceApiClient as GemstoneDeviceApiClient
 import uniffi.gemstone.GemFiatService
+import uniffi.gemstone.GemFiatServiceInterface
 import uniffi.gemstone.GemFiatStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import uniffi.gemstone.GemAssetStore
@@ -127,12 +127,11 @@ object GatewayModule {
         alienProvider: AlienProvider,
         deviceKeyService: GemDeviceKeyService,
         deviceService: Lazy<GemDeviceService>,
-    ): GemstoneDeviceApiClient = GemstoneDeviceApiClient.withPreflight(
+    ): GemstoneDeviceApiClient = GemstoneDeviceApiClient(
         alienProvider,
         Constants.API_URL,
         deviceKeyService.keyPair().privateKey,
-        DeviceSyncPreflight(deviceService),
-    )
+    ).apply { setDeviceSyncPreflight(deviceService.get()) }
 
 
 
@@ -177,7 +176,8 @@ object GatewayModule {
         assetsService: GemAssetsService,
         walletConfigurationService: GemWalletConfigurationService,
         walletService: GemWalletService,
-    ): GemAppStartService = GemAppStartService(configService, bannerService, assetsService, walletConfigurationService, walletService)
+        deviceService: GemDeviceService,
+    ): GemAppStartService = GemAppStartService(configService, bannerService, assetsService, walletConfigurationService, walletService, deviceService)
 
 
     @Provides
@@ -205,6 +205,10 @@ object GatewayModule {
         assetsService: GemAssetsService,
         store: GemFiatStore,
     ): GemFiatService = GemFiatService(apiClient, assetsService, store)
+
+    @Provides
+    @Singleton
+    fun provideGemFiatServiceInterface(service: GemFiatService): GemFiatServiceInterface = service
 
 
     @Provides

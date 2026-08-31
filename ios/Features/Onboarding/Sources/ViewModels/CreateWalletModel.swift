@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemAvatarServiceProtocol
+import protocol Gemstone.GemOnboardingServiceProtocol
 import GemstoneServices
 import Foundation
 import GemstonePrimitives
@@ -11,29 +11,39 @@ import SwiftUI
 @Observable
 @MainActor
 public final class CreateWalletModel {
-    let walletService: WalletService
-    let walletSessionService: any WalletSessionManageable
-    let avatarService: any GemAvatarServiceProtocol
+    private let service: any GemOnboardingServiceProtocol
+    private let preferences: ObservablePreferences
     let hasExistingWallets: Bool
     let onComplete: VoidAction
 
     var isPresentingSelectImageWallet: Wallet?
 
     public init(
-        walletService: WalletService,
-        walletSessionService: any WalletSessionManageable,
-        avatarService: any GemAvatarServiceProtocol,
+        service: any GemOnboardingServiceProtocol,
+        preferences: ObservablePreferences,
         onComplete: VoidAction,
     ) {
-        self.walletService = walletService
-        self.walletSessionService = walletSessionService
-        self.avatarService = avatarService
+        self.service = service
+        self.preferences = preferences
         self.onComplete = onComplete
-        hasExistingWallets = walletSessionService.wallets.isNotEmpty
+        hasExistingWallets = ((try? service.getWallets()) ?? []).isNotEmpty
     }
 
     public var isAcceptTermsCompleted: Bool {
-        walletService.isAcceptTermsCompleted
+        preferences.isAcceptTermsCompleted
+    }
+
+    func setupWalletModel(wallet: Wallet, onComplete: @escaping (Wallet) -> Void) -> SetupWalletViewModel {
+        SetupWalletViewModel(
+            wallet: wallet,
+            service: service,
+            onSelectImage: { [weak self] in self?.presentSelectImage(wallet: $0) },
+            onComplete: onComplete,
+        )
+    }
+
+    func walletImageModel(wallet: Wallet) -> WalletImageViewModel {
+        WalletImageViewModel(wallet: wallet, source: .onboarding, avatarService: service.avatars())
     }
 
     func dismiss() {
@@ -50,26 +60,26 @@ extension CreateWalletModel {
 
     func generateSecretPhrase() -> [String] {
         do {
-            return try walletService.createWallet()
+            return try service.createWallet()
         } catch {
             fatalError("Unable to create wallet")
         }
     }
 
     func createWallet(words: [String]) async throws -> Wallet {
-        let result = try await walletService.importWallet(
-            name: await WalletNameGenerator(type: .multicoin, walletService: walletService).name(),
+        let result = try await service.importWallet(
+            name: await WalletNameGenerator(type: .multicoin, service: service).name(),
             type: .phrase(words: words, chains: AssetConfiguration.allChains),
             source: .create,
         )
-        walletService.acceptTerms()
+        preferences.acceptTerms()
         return result.wallet
     }
 
     func setupWalletComplete(wallet: Wallet) async {
         dismiss()
         do {
-            try await walletSessionService.setCurrent(wallet: wallet)
+            try await service.session().setCurrent(wallet: wallet)
         } catch {
             debugLog("set current wallet error: \(error)")
         }

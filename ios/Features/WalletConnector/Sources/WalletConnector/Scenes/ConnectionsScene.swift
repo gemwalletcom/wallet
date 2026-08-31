@@ -35,7 +35,7 @@ public struct ConnectionsScene: View {
                 Section(section.title.or(.empty)) {
                     ForEach(section.values) { connection in
                         NavigationLink(value: connection) {
-                            ConnectionView(model: WalletConnectionViewModel(connection: connection))
+                            ConnectionView(model: model.connectionViewModel(connection: connection))
                                 .swipeActions(edge: .trailing) {
                                     Button(
                                         model.disconnectTitle,
@@ -61,7 +61,7 @@ public struct ConnectionsScene: View {
             ConnectionScene(model: model.connectionSceneModel(connection: connection))
         }
         .sheet(isPresented: $model.isPresentingScanner) {
-            ScanQRCodeNavigationStack(action: model.onHandleScan(_:))
+            ScanQRCodeNavigationStack(scanType: .walletConnect, action: model.onHandleScan(_:))
         }
         .toolbarInfoButton(url: model.docsUrl)
         .alertSheet($model.isPresentingAlertMessage)

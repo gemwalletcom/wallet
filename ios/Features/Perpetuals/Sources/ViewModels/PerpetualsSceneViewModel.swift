@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstonePrimitives
+import enum Gemstone.GemMarketsRefreshTrigger
 import protocol Gemstone.GemPerpetualServiceProtocol
 import GemstoneServices
 import Components
@@ -19,7 +20,7 @@ final class PerpetualsSceneViewModel {
 
     private let observerService: any PerpetualObservable
     let perpetualService: any GemPerpetualServiceProtocol
-    let recentActivityStore: RecentActivityStore
+    let recentAssetsService: any RecentAssetsServiceable
 
     let wallet: Wallet
 
@@ -52,7 +53,7 @@ final class PerpetualsSceneViewModel {
         wallet: Wallet,
         perpetualService: any GemPerpetualServiceProtocol,
         observerService: any PerpetualObservable,
-        recentActivityStore: RecentActivityStore,
+        recentAssetsService: any RecentAssetsServiceable,
         onSelectAssetType: ((SelectAssetType) -> Void)? = nil,
         onSelectAsset: ((Asset) -> Void)? = nil,
         onSelectPortfolio: (() -> Void)? = nil,
@@ -60,7 +61,7 @@ final class PerpetualsSceneViewModel {
         self.wallet = wallet
         self.perpetualService = perpetualService
         self.observerService = observerService
-        self.recentActivityStore = recentActivityStore
+        self.recentAssetsService = recentAssetsService
         self.onSelectAssetType = onSelectAssetType
         self.onSelectAsset = onSelectAsset
         self.onSelectPortfolio = onSelectPortfolio
@@ -70,7 +71,7 @@ final class PerpetualsSceneViewModel {
             PerpetualWalletBalanceRequest(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
             initialValue: .zero,
         )
-        recentModel = RecentAssetsModel(walletId: wallet.id, types: [.perpetual], recentActivityStore: recentActivityStore)
+        recentModel = RecentAssetsModel(walletId: wallet.id, types: [.perpetual], recentAssetsService: recentAssetsService)
     }
 
     var navigationTitle: String {
@@ -136,9 +137,9 @@ final class PerpetualsSceneViewModel {
 // MARK: - Business Logic
 
 extension PerpetualsSceneViewModel {
-    func load() async {
+    func load(source: RefreshSource = .timer) async {
         async let updateObserver: PerpetualAccountMode? = observerService.update(for: wallet)
-        async let refreshMarkets: () = updateMarkets()
+        async let refreshMarkets: () = updateMarkets(source: source)
         _ = await (updateObserver, refreshMarkets)
     }
 
@@ -158,9 +159,9 @@ extension PerpetualsSceneViewModel {
         }
     }
 
-    func updateMarkets() async {
+    func updateMarkets(source: RefreshSource) async {
         do {
-            try await perpetualService.updateMarkets()
+            try await perpetualService.updateMarkets(trigger: source.marketsRefreshTrigger)
         } catch {
             debugLog("Failed to update markets: \(error)")
         }
@@ -206,7 +207,7 @@ extension PerpetualsSceneViewModel {
     func onSelectPerpetual(asset: Asset) {
         onSelectAsset?(asset)
         do {
-            try recentActivityStore.add(
+            try recentAssetsService.add(
                 RecentActivityData(type: .perpetual, assetId: asset.id, toAssetId: nil),
                 walletId: wallet.id,
             )
@@ -222,5 +223,14 @@ extension PerpetualsSceneViewModel {
 
     func onSelectBalance() {
         onSelectPortfolio?()
+    }
+}
+
+private extension RefreshSource {
+    var marketsRefreshTrigger: GemMarketsRefreshTrigger {
+        switch self {
+        case .timer: .scheduled
+        case .user: .userRequested
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.recipient.presents.components
 
+import com.gemwallet.android.ui.LocalAddressService
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyListScope
@@ -87,7 +88,7 @@ private fun WalletRecipient(
         title = { PropertyTitleText(wallet.name) },
         data = {
             PropertyDataText(
-                AddressFormatter(account.address, chain = account.chain).value(),
+                AddressFormatter(LocalAddressService.current, account.address, chain = account.chain).value(),
                 badge = { DataBadgeChevron() },
             )
         },

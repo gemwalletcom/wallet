@@ -26,8 +26,8 @@ struct ReceiveNetworkSelectorViewModel: SelectableListAdoptable, SelectableListN
 
     init(
         state: StateViewType<SelectableListType<ReceiveNetworkItem>>,
-        selectedItems: [ReceiveNetworkItem],
-        selectionType: SelectionType,
+        selectedItems: [ReceiveNetworkItem] = [],
+        selectionType: SelectionType = .navigationLink,
     ) {
         self.state = state
         self.selectedItems = Set(selectedItems)

@@ -14,9 +14,6 @@ import uniffi.gemstone.GemAssetConfigService
 
 private val assetConfig = GemAssetConfigService()
 
-val Chain.defaultAssetRank: Int
-    get() = assetConfig.defaultRank(AssetId(this).toIdentifier())
-
 val Chain.defaultAssets: List<Asset>
     get() = assetConfig.walletDefaultAssets(string).map { it.toDTO() }
 

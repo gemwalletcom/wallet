@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemAssetConfigService
 import GemstoneServices
 import protocol Gemstone.GemExplorerServiceProtocol
 import Components
@@ -23,10 +24,10 @@ public final class AddAssetSceneViewModel {
     var isPresentingScanner = false
     var loadTrigger: AddAssetLoadTrigger?
 
-    public init(wallet: Wallet, gatewayService: GatewayService, explorerService: any GemExplorerServiceProtocol) {
+    public init(wallet: Wallet, gatewayService: GatewayService, explorerService: any GemExplorerServiceProtocol, assetConfig: GemAssetConfigService) {
         self.gatewayService = gatewayService
         self.explorerService = explorerService
-        input = AddAssetInput(chains: wallet.chainsWithTokens)
+        input = AddAssetInput(chains: wallet.chainsWithTokens, assetConfig: assetConfig)
     }
 
     var title: String {

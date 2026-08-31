@@ -1,4 +1,4 @@
-use super::model::GemLockPeriod;
+use super::model::{GemAuthPromptOutcome, GemLockPeriod};
 
 const MILLISECONDS_PER_MINUTE: u32 = 60 * 1_000;
 
@@ -44,9 +44,43 @@ pub fn should_relock(elapsed_milliseconds: i64, lock_interval_minutes: u32, auth
     auth_required && !has_pending_request && elapsed_milliseconds > i64::from(lock_period_milliseconds(period))
 }
 
+pub fn is_auth_cancelled(outcome: GemAuthPromptOutcome) -> bool {
+    matches!(outcome, GemAuthPromptOutcome::CancelledByUser | GemAuthPromptOutcome::CancelledBySystem)
+}
+
+pub fn auth_retry_delay_milliseconds(outcome: GemAuthPromptOutcome) -> Option<u32> {
+    match outcome {
+        GemAuthPromptOutcome::CancelledByUser | GemAuthPromptOutcome::CancelledBySystem => Some(500),
+        GemAuthPromptOutcome::Transient => Some(1_000),
+        GemAuthPromptOutcome::LockedOut => Some(30_000),
+        GemAuthPromptOutcome::Unavailable | GemAuthPromptOutcome::Failed => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_only_a_recoverable_prompt_outcome_is_retried() {
+        assert_eq!(auth_retry_delay_milliseconds(GemAuthPromptOutcome::CancelledByUser), Some(500));
+        assert_eq!(auth_retry_delay_milliseconds(GemAuthPromptOutcome::Transient), Some(1_000));
+        assert_eq!(auth_retry_delay_milliseconds(GemAuthPromptOutcome::LockedOut), Some(30_000));
+        assert_eq!(
+            auth_retry_delay_milliseconds(GemAuthPromptOutcome::Unavailable),
+            None,
+            "no enrolled biometry cannot be retried into working"
+        );
+        assert_eq!(auth_retry_delay_milliseconds(GemAuthPromptOutcome::Failed), None);
+    }
+
+    #[test]
+    fn test_cancellation_covers_both_the_user_and_the_system() {
+        assert!(is_auth_cancelled(GemAuthPromptOutcome::CancelledByUser));
+        assert!(is_auth_cancelled(GemAuthPromptOutcome::CancelledBySystem));
+        assert!(!is_auth_cancelled(GemAuthPromptOutcome::LockedOut));
+        assert!(!is_auth_cancelled(GemAuthPromptOutcome::Failed));
+    }
 
     #[test]
     fn test_lock_periods_carry_the_same_minutes_on_both_platforms() {

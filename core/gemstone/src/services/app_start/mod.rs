@@ -9,6 +9,7 @@ pub use model::{GemAppStartFailure, GemAppStartStep};
 use crate::services::assets::GemAssetsService;
 use crate::services::banner::GemBannerService;
 use crate::services::config::GemConfigService;
+use crate::services::device::GemDeviceService;
 use crate::services::error::GemServiceError;
 use crate::services::failures::record;
 use crate::services::wallet::GemWalletService;
@@ -21,6 +22,7 @@ pub struct GemAppStartService {
     assets: Arc<GemAssetsService>,
     wallet_configuration: Arc<GemWalletConfigurationService>,
     wallet: Arc<GemWalletService>,
+    device: Arc<GemDeviceService>,
 }
 
 #[uniffi::export]
@@ -32,6 +34,7 @@ impl GemAppStartService {
         assets: Arc<GemAssetsService>,
         wallet_configuration: Arc<GemWalletConfigurationService>,
         wallet: Arc<GemWalletService>,
+        device: Arc<GemDeviceService>,
     ) -> Self {
         Self {
             config,
@@ -39,6 +42,7 @@ impl GemAppStartService {
             assets,
             wallet_configuration,
             wallet,
+            device,
         }
     }
 
@@ -56,6 +60,7 @@ impl GemAppStartService {
         record(&mut failures, GemAppStartStep::UpdateConfig, async { self.config.update_config().await.map(|_| ()) }).await;
         record(&mut failures, GemAppStartStep::SetupBanners, self.banners.setup()).await;
         record(&mut failures, GemAppStartStep::SyncAssets, self.sync_assets()).await;
+        record(&mut failures, GemAppStartStep::SyncDevice, self.device.synchronize_if_needed()).await;
         failures
     }
 

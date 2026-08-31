@@ -1,15 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.GemAssetConfigService
-import class Gemstone.GemAddressService
+import protocol Gemstone.GemAddressServiceProtocol
 import BigInt
 import Foundation
 import Gemstone
 import Primitives
 
 private let assetConfig = GemAssetConfigService()
-
-private let addressService = GemAddressService()
 
 private let chainAssets: [Primitives.Chain: Primitives.ChainAsset] = Primitives.Chain.allCases.reduce(into: [:]) { result, chain in
     guard let chainAsset = try? Primitives.ChainAsset(assetConfig.chainAsset(chain: chain.rawValue)) else {
@@ -25,6 +23,15 @@ public extension Gemstone.Chain {
 }
 
 public extension Primitives.Chain {
+    /// A chain Core produced. Chain crosses as its raw value rather than JSON, and both
+    /// sides generate the same cases, so it always resolves.
+    init(core rawValue: String) {
+        guard let chain = Primitives.Chain(rawValue: rawValue) else {
+            preconditionFailure("failed to decode Chain from Core: \(rawValue)")
+        }
+        self = chain
+    }
+
     func map() -> Gemstone.Chain {
         rawValue
     }
@@ -54,6 +61,10 @@ public extension Primitives.Chain {
 
     var isSwapSupported: Bool {
         ChainConfig.config(chain: self).isSwapSupported
+    }
+
+    var isTokenSupported: Bool {
+        ChainConfig.config(chain: self).isTokenSupported
     }
 
     var isStakeSupported: Bool {
@@ -149,11 +160,11 @@ public extension Primitives.Chain {
         return asset
     }
 
-    func isValidAddress(_ address: String) -> Bool {
-        addressService.validate(address: checksumAddress(address), chain: rawValue)
+    func isValidAddress(_ address: String, addressService: any GemAddressServiceProtocol) -> Bool {
+        addressService.validate(address: checksumAddress(address, addressService: addressService), chain: rawValue)
     }
 
-    func checksumAddress(_ address: String) -> String {
+    func checksumAddress(_ address: String, addressService: any GemAddressServiceProtocol) -> String {
         addressService.checksum(address: address, chain: rawValue)
     }
 

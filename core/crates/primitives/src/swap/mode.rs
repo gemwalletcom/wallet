@@ -1,11 +1,9 @@
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 use crate::Chain;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(tag = "type", content = "content")]
-#[typeshare]
 pub enum SwapProviderMode {
     OnChain,
     CrossChain,

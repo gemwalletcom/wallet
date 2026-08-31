@@ -11,6 +11,7 @@ use crate::{
 #[async_trait::async_trait]
 pub trait StreamProducerQueue {
     async fn publish_fetch_assets(&self, asset_ids: Vec<AssetId>) -> Result<bool, Box<dyn Error + Send + Sync>>;
+    async fn publish_fetch_asset_status(&self, asset_id: AssetId) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_fetch_asset_associations(&self, payload: FetchAssetAssociationsPayload) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_fetch_nft_asset(&self, asset_id: NFTAssetId) -> Result<bool, Box<dyn Error + Send + Sync>>;
     async fn publish_fetch_nft_assets(&self, asset_ids: Vec<NFTAssetId>) -> Result<bool, Box<dyn Error + Send + Sync>>;
@@ -43,6 +44,10 @@ impl StreamProducerQueue for StreamProducer {
             self.publish(QueueName::FetchAssets, &payload).await?;
         }
         Ok(true)
+    }
+
+    async fn publish_fetch_asset_status(&self, asset_id: AssetId) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        self.publish(QueueName::FetchAssetStatus, &asset_id).await
     }
 
     async fn publish_fetch_asset_associations(&self, payload: FetchAssetAssociationsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {

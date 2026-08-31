@@ -28,6 +28,13 @@ import uniffi.gemstone.GemTransactionLoadFee
 import uniffi.gemstone.GemTransactionLoadMetadata
 import java.math.BigInteger
 import android.util.Log
+import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.ext.toIdentifier
+import uniffi.gemstone.GemAssetBalance
+import uniffi.gemstone.GemConfirmMetadata
+import uniffi.gemstone.GemConfirmPreload
+import uniffi.gemstone.GemTransferAmount
+import uniffi.gemstone.GemTransferAmountResult
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
@@ -63,8 +70,8 @@ class SignerPreloaderProxyTest {
             GemFeeRate(FeePriority.Normal.toGem(), GemGasPriceType.Eip1559(gasPrice = "2", priorityFee = "3")),
             GemFeeRate(FeePriority.Fast.toGem(), GemGasPriceType.Eip1559(gasPrice = "1", priorityFee = "1")),
         )
-        coEvery { confirmService.load(capture(confirmInput), capture(options)) } coAnswers {
-            GemConfirmData(
+        coEvery { confirmService.preload(any(), capture(confirmInput), capture(options)) } coAnswers {
+            val confirmData = GemConfirmData(
                 fee = GemTransactionLoadFee(
                     fee = "21000",
                     gasPriceType = feeRates[0].gasPriceType,
@@ -78,9 +85,20 @@ class SignerPreloaderProxyTest {
                 simulation = null,
                 input = confirmInput.captured,
             )
+            GemConfirmPreload(
+                confirmData = confirmData,
+                metadata = GemConfirmMetadata(
+                    assetBalance = gemBalance(asset.id.toIdentifier()),
+                    feeAssetBalance = gemBalance(asset.id.toIdentifier()),
+                    prices = emptyList(),
+                ),
+                feeAsset = asset.toJson(),
+                amount = GemTransferAmountResult.Amount(GemTransferAmount(value = "1", networkFee = "1", isMaxAmount = false)),
+            )
         }
 
         val result = subject.preload(
+            walletId = "wallet",
             params = params,
             selection = FeeSelection.Custom(BigInteger("42")),
             feeAssetSelection = FeeAssetSelection.Selected(mockAssetTempoUSDCe().id),
@@ -95,3 +113,18 @@ class SignerPreloaderProxyTest {
         assertEquals(null, result.simulation)
     }
 }
+
+private fun gemBalance(assetId: String) = GemAssetBalance(
+    assetId = assetId,
+    available = "0",
+    frozen = "0",
+    locked = "0",
+    staked = "0",
+    pending = "0",
+    pendingUnconfirmed = "0",
+    rewards = "0",
+    reserved = "0",
+    withdrawable = "0",
+    earn = "0",
+    metadata = null,
+)
