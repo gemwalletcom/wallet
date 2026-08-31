@@ -6,6 +6,7 @@ import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemAssetPrice
 import struct Gemstone.GemConfirmMetadata
 import struct Gemstone.GemFeeAsset
+import enum Gemstone.GemTransferAmountError
 import Primitives
 
 public extension Primitives.Balance {
@@ -56,5 +57,16 @@ public extension GemConfirmMetadata {
             assetFeeBalance: Primitives.Balance(feeAssetBalance),
             assetPrices: Dictionary(uniqueKeysWithValues: prices),
         )
+    }
+}
+
+public extension GemTransferAmountError {
+    var assetId: Primitives.AssetId? {
+        switch self {
+        case let .InsufficientBalance(assetId, _, _),
+             let .InsufficientNetworkFee(assetId, _, _),
+             let .MinimumAccountBalanceTooLow(assetId, _, _):
+            try? Primitives.AssetId(id: assetId)
+        }
     }
 }

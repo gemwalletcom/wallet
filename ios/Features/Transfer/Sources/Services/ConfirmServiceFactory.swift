@@ -37,18 +37,6 @@ public enum ConfirmServiceFactory {
         perpetualService: any GemPerpetualServiceProtocol,
     ) -> ConfirmService {
         return ConfirmService(
-            metadataProvider: TransferMetadataProvider(confirmService: gemConfirmService),
-            inputProvider: ConfirmTransferInputProvider(
-                confirmService: gemConfirmService,
-                feeService: feeService,
-                transferService: transferService,
-                amountService: amountService,
-            ),
-            simulationService: ConfirmSimulationService(
-                nameService: nameService,
-                assetsService: assetsService,
-                simulationFormatter: simulationFormatter,
-            ),
             gemConfirmService: gemConfirmService,
             signer: KeystoreTransactionSigner(keystore: keystore),
             preferencesService: preferencesService,
@@ -58,6 +46,7 @@ public enum ConfirmServiceFactory {
             keystore: keystore,
             explorerService: explorerService,
             nameService: nameService,
+            assetsService: assetsService,
             feeService: feeService,
             transferService: transferService,
             perpetualService: perpetualService,

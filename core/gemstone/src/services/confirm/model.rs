@@ -8,7 +8,7 @@ use crate::services::price::GemAssetPrice;
 use crate::services::transfer::GemTransferData;
 use crate::transfer_amount::{GemTransferAmount, GemTransferAmountError};
 use primitives::FeePriority;
-use primitives::{Account, Asset, AssetId, SimulationResult, Transaction, Wallet};
+use primitives::{Account, Asset, AssetId, SimulationPayloadField, SimulationResult, Transaction, Wallet};
 
 pub type GemAccount = Account;
 
@@ -93,4 +93,24 @@ pub struct GemConfirmPreload {
     pub metadata: GemConfirmMetadata,
     pub fee_asset: Asset,
     pub amount: GemTransferAmountResult,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemSimulationValue {
+    pub asset: Asset,
+    pub value: String,
+    pub is_unlimited: bool,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemSimulationBalanceChange {
+    pub asset: Asset,
+    pub value: GemBigInt,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemConfirmSimulation {
+    pub payload_fields: Vec<SimulationPayloadField>,
+    pub header: Option<GemSimulationValue>,
+    pub balance_changes: Vec<GemSimulationBalanceChange>,
 }

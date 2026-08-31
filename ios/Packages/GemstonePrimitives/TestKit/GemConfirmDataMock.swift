@@ -94,3 +94,13 @@ public extension GemAssetBalance {
         )
     }
 }
+
+public extension GemConfirmMetadata {
+    static func mock(assetId: String = Primitives.Asset.mock().id.identifier) -> GemConfirmMetadata {
+        GemConfirmMetadata(
+            assetBalance: .mock(assetId: assetId),
+            feeAssetBalance: .mock(assetId: assetId),
+            prices: [],
+        )
+    }
+}

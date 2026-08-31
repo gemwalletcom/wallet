@@ -1,5 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemConfirmSimulation
+import struct Gemstone.GemConfirmMetadata
+import struct Gemstone.GemSimulationValue
+import struct Gemstone.GemSimulationBalanceChange
 import enum Gemstone.GemConfirmError
 import enum Gemstone.GemExecuteResult
 import GemstoneServicesTestKit
@@ -67,147 +71,83 @@ struct ConfirmServiceTests {
     }
 
     @Test
-    func simulationStateUsesTransferApprovalValue() {
-        let service = ConfirmSimulationService(
-            nameService: GemNameServiceMock(),
-            assetsService: GemAssetsServiceMock(),
-            simulationFormatter: GemSimulationFormatter(),
-        )
+    func simulationStateMapsTheResolvedHeader() {
+        let usdt = Asset.mockEthereumUSDT()
+        let service = ConfirmService.mock(gemConfirmService: GemConfirmServiceMock(
+            simulation: GemConfirmSimulation(
+                payloadFields: [],
+                header: GemSimulationValue(asset: usdt.json(), value: "1000000", isUnlimited: false),
+                balanceChanges: [],
+            ),
+        ))
 
-        let state = service.makeState(
-            data: TransferData.mock(type: .tokenApprove(.mockEthereumUSDT(), ApprovalData(token: "", spender: "", value: "1000000", isUnlimited: false))),
-            simulation: SimulationResult.mock(payload: [
-                SimulationPayloadField.standard(kind: .value, value: "1000000", fieldType: .text, display: .primary),
-            ]),
-        )
+        let state = service.simulationState(request: .mock())
 
-        #expect(state.headerData == AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .exact(1_000_000)))
+        #expect(state.headerData == AssetValueHeaderData(asset: usdt, value: .exact(1_000_000)))
         #expect(state.payload.primaryFields.isEmpty)
         #expect(state.payload.secondaryFields.isEmpty)
     }
 
     @Test
-    func genericApprovalHeaderUsesCachedAsset() async throws {
-        let assetStore = AssetStore.mock()
-        try assetStore.add(assets: [.mock(asset: .mockEthereumUSDT())])
+    func simulationStateMapsAnUnlimitedHeader() {
+        let usdt = Asset.mockEthereumUSDT()
+        let service = ConfirmService.mock(gemConfirmService: GemConfirmServiceMock(
+            simulation: GemConfirmSimulation(
+                payloadFields: [],
+                header: GemSimulationValue(asset: usdt.json(), value: "0", isUnlimited: true),
+                balanceChanges: [],
+            ),
+        ))
 
-        let service = ConfirmSimulationService(
-            nameService: GemNameServiceMock(),
-            assetsService: GemAssetsServiceMock(store: GemstoneAssetStore(assetStore: assetStore, balanceStore: .mock())),
-            simulationFormatter: GemSimulationFormatter(),
-        )
-
-        let state = await service.updateState(
-            data: TransferData.mock(type: .generic(asset: .mockBNB(), metadata: .mock(), extra: .mock())),
-            simulation: SimulationResult.mock(header: SimulationHeader(assetId: Asset.mockEthereumUSDT().id, value: "0", isUnlimited: true)),
-        )
-
-        #expect(state.headerData == AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .unlimited))
+        #expect(service.simulationState(request: .mock()).headerData == AssetValueHeaderData(asset: usdt, value: .unlimited))
     }
 
     @Test
-    func simulationStateUsesGenericCachedHeaderAndHidesValueField() throws {
-        let assetStore = AssetStore.mock()
-        try assetStore.add(assets: [.mock(asset: .mockEthereumUSDT())])
+    func simulationStateSplitsPayloadFieldsByDisplay() {
+        let primary = SimulationPayloadField.standard(kind: .contract, value: "0x1", fieldType: .text, display: .primary)
+        let service = ConfirmService.mock(gemConfirmService: GemConfirmServiceMock(
+            simulation: GemConfirmSimulation(payloadFields: [primary.json()], header: nil, balanceChanges: []),
+        ))
 
-        let service = ConfirmSimulationService(
-            nameService: GemNameServiceMock(),
-            assetsService: GemAssetsServiceMock(store: GemstoneAssetStore(assetStore: assetStore, balanceStore: .mock())),
-            simulationFormatter: GemSimulationFormatter(),
-        )
+        let state = service.simulationState(request: .mock())
 
-        let state = service.makeState(
-            data: TransferData.mock(type: .generic(asset: .mockBNB(), metadata: .mock(), extra: .mock())),
-            simulation: SimulationResult.mock(
-                payload: [
-                    SimulationPayloadField.standard(kind: .contract, value: "0x123", fieldType: .address, display: .primary),
-                    SimulationPayloadField.standard(kind: .value, value: "1", fieldType: .text, display: .primary),
-                ],
-                header: SimulationHeader(assetId: Asset.mockEthereumUSDT().id, value: "0", isUnlimited: true),
-            ),
-        )
-
-        #expect(state.headerData == AssetValueHeaderData(asset: .mockEthereumUSDT(), value: .unlimited))
         #expect(state.payload.primaryFields.count == 1)
         #expect(state.payload.primaryFields.first?.kind == .contract)
         #expect(state.payload.secondaryFields.isEmpty)
     }
 
     @Test
-    func simulationStateMapsResolvedBalanceChanges() throws {
-        let solana = Asset.mock(id: .mockSolana(), name: "Solana", symbol: "SOL", decimals: 9, type: .native)
-        let usdc = Asset.mock(id: .mockSolanaUSDC(), name: "USD Coin", symbol: "USDC", decimals: 6, type: .spl)
-        let unknownAssetId = AssetId(chain: .solana, tokenId: "MissingMint111111111111111111111111111111111")
-        let assetStore = AssetStore.mock()
-        try assetStore.add(assets: [.mock(asset: solana), .mock(asset: usdc)])
-
-        let service = ConfirmSimulationService(
-            nameService: GemNameServiceMock(),
-            assetsService: GemAssetsServiceMock(store: GemstoneAssetStore(assetStore: assetStore, balanceStore: .mock())),
-            simulationFormatter: GemSimulationFormatter(),
-        )
-
-        let state = service.makeState(
-            data: TransferData.mock(type: .transfer(solana)),
-            simulation: SimulationResult.mock(balanceChanges: [
-                SimulationBalanceChange(assetId: solana.id, value: "-100005000", decimals: 9, name: "Solana", symbol: "SOL"),
-                SimulationBalanceChange(assetId: usdc.id, value: "750000", decimals: 6, name: "USD Coin", symbol: "USDC"),
-                SimulationBalanceChange(assetId: unknownAssetId, value: "-42", decimals: 2, name: nil, symbol: nil),
-            ]),
-        )
-
-        #expect(state.balanceChanges == [
-            SimulationAssetChange(asset: solana, value: -100_005_000),
-            SimulationAssetChange(asset: usdc, value: 750_000),
-        ])
-    }
-
-    @Test
-    func simulationStatePrefetchesBalanceChangeAsset() async {
-        let dust = Asset.mock(
-            id: AssetId(chain: .ton, tokenId: "EQBlqsm144Dq6SjbPI4jjZvA1hqTIP3CvHovbIfW_t-SCALE"),
-            name: "DeDust",
-            symbol: "DUST",
-            decimals: 9,
-            type: .jetton,
-        )
-        let simulation = SimulationResult.mock(balanceChanges: [
-            SimulationBalanceChange(assetId: dust.id, value: "2244508455", decimals: 0, name: nil, symbol: nil),
-        ])
-        let expected = [
-            SimulationAssetChange(asset: dust, value: 2_244_508_455),
-        ]
-
-        let assetStore = AssetStore.mock()
-        let fetchedState = await ConfirmSimulationService(
-            nameService: GemNameServiceMock(),
-            assetsService: GemAssetsServiceMock(
-                assetsResult: [.mock(asset: dust)],
-                store: GemstoneAssetStore(assetStore: assetStore, balanceStore: .mock()),
+    func simulationStateMapsResolvedBalanceChanges() {
+        let usdt = Asset.mockEthereumUSDT()
+        let service = ConfirmService.mock(gemConfirmService: GemConfirmServiceMock(
+            simulation: GemConfirmSimulation(
+                payloadFields: [],
+                header: nil,
+                balanceChanges: [GemSimulationBalanceChange(asset: usdt.json(), value: "-25")],
             ),
-            simulationFormatter: GemSimulationFormatter(),
-        ).updateState(
-            data: TransferData.mock(type: .transfer(.mock())),
-            simulation: simulation,
-        )
+        ))
 
-        #expect(fetchedState.balanceChanges == expected)
+        #expect(service.simulationState(request: .mock()).balanceChanges == [SimulationAssetChange(asset: usdt, value: -25)])
     }
 
     @Test
-    func simulationStateIgnoresAddressNameLookupFailure() async {
-        let service = ConfirmSimulationService(
+    func simulationStateIgnoresAddressNameLookupFailure() async throws {
+        let field = SimulationPayloadField.standard(kind: .contract, value: "0x123", fieldType: .address, display: .primary)
+        let service = ConfirmService.mock(
+            gemConfirmService: GemConfirmServiceMock(
+                metadata: .success(GemConfirmMetadata(
+                    assetBalance: .mock(assetId: Asset.mock().id.identifier),
+                    feeAssetBalance: .mock(assetId: Asset.mock().id.identifier),
+                    prices: [],
+                )),
+                preload: .success(.mock()),
+                simulation: GemConfirmSimulation(payloadFields: [field.json()], header: nil, balanceChanges: []),
+            ),
             nameService: GemNameServiceMock(error: NSError(domain: "test", code: 404)),
-            assetsService: GemAssetsServiceMock(),
-            simulationFormatter: GemSimulationFormatter(),
         )
 
-        let state = await service.updateState(
-            data: TransferData.mock(type: .generic(asset: .mockBNB(), metadata: .mock(), extra: .mock())),
-            simulation: SimulationResult.mock(payload: [
-                SimulationPayloadField.standard(kind: .contract, value: "0x123", fieldType: .address, display: .primary),
-            ]),
-        )
+        let request = ConfirmTransferRequest.mock(wallet: .mock(accounts: [.mock(chain: TransferData.mock().chain)]))
+        let state = try await service.load(request: request, selection: FeeSelection.preset(.normal), feeAssetSelection: FeeAssetSelection.automatic).simulation
 
         #expect(state.payload.primaryFields.count == 1)
         #expect(state.payload.secondaryFields.isEmpty)

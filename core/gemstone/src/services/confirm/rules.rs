@@ -1,7 +1,7 @@
 use num_bigint::BigInt;
 use primitives::{
-    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, Transaction, TransactionPreloadInput,
-    TransferDataOutputAction, Wallet,
+    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationResult, Transaction,
+    TransactionPreloadInput, TransferDataOutputAction, Wallet,
 };
 
 use super::error::GemConfirmError;
@@ -65,6 +65,25 @@ fn transfer_balance(balance: &GemAssetBalance) -> GemTransferBalance {
         locked: balance.locked.clone().into(),
         withdrawable: balance.withdrawable.clone().into(),
         votes: 0,
+    }
+}
+
+pub fn simulation_asset_ids(simulation: &Option<SimulationResult>) -> Vec<AssetId> {
+    let Some(simulation) = simulation else {
+        return Vec::new();
+    };
+    simulation
+        .balance_changes
+        .iter()
+        .map(|change| change.asset_id.clone())
+        .chain(simulation.header.as_ref().map(|header| header.asset_id.clone()))
+        .collect()
+}
+
+pub fn approval_value(input_type: &GemTransactionInputType) -> Option<(AssetId, String, bool)> {
+    match input_type {
+        GemTransactionInputType::TokenApprove { asset, approval_data } => Some((asset.id.clone(), approval_data.value.clone(), approval_data.is_unlimited)),
+        _ => None,
     }
 }
 
@@ -794,6 +813,47 @@ mod tests {
 
         assert!(matches!(preload_amount(&data, &short, &asset).unwrap(), GemTransferAmountResult::Error { .. }));
         assert!(matches!(preload_amount(&data, &funded, &asset).unwrap(), GemTransferAmountResult::Amount { .. }));
+    }
+
+    #[test]
+    fn test_only_a_token_approval_carries_an_approval_header_value() {
+        let asset = Asset::from_chain(Chain::Ethereum);
+        let approval = GemTransactionInputType::TokenApprove {
+            asset: asset.clone(),
+            approval_data: primitives::swap::ApprovalData {
+                token: String::new(),
+                spender: String::new(),
+                value: "42".to_string(),
+                is_unlimited: true,
+            },
+        };
+
+        assert_eq!(approval_value(&approval), Some((asset.id.clone(), "42".to_string(), true)));
+        assert_eq!(approval_value(&GemTransactionInputType::Transfer { asset }), None);
+    }
+
+    #[test]
+    fn test_simulation_assets_cover_balance_changes_and_the_header() {
+        let changed = AssetId::from_chain(Chain::Ethereum);
+        let header = AssetId::from_chain(Chain::Solana);
+        let simulation = SimulationResult {
+            balance_changes: vec![primitives::SimulationBalanceChange {
+                asset_id: changed.clone(),
+                value: "1".to_string(),
+                name: None,
+                symbol: None,
+                decimals: 0,
+            }],
+            header: Some(primitives::SimulationHeader {
+                asset_id: header.clone(),
+                value: "2".to_string(),
+                is_unlimited: false,
+            }),
+            ..SimulationResult::default()
+        };
+
+        assert_eq!(simulation_asset_ids(&Some(simulation)), vec![changed, header]);
+        assert!(simulation_asset_ids(&None).is_empty());
     }
 
     fn balance(asset_id: &AssetId, available: u32) -> GemAssetBalance {

@@ -22,7 +22,7 @@ use crate::services::clock::sleep;
 use crate::services::price::GemPriceService;
 use crate::services::transaction_state::GemTransactionStateService;
 use crate::signer::GemSignerError;
-use crate::transaction_simulation::TransactionSimulationService;
+use crate::transaction_simulation::{GemSimulationFormatter, TransactionSimulationService};
 use primitives::{AssetId, Chain, SimulationResult, Transaction, TransferDataOutputAction, WalletId};
 
 #[derive(uniffi::Object)]
@@ -34,6 +34,7 @@ pub struct GemConfirmService {
     balance: Arc<GemBalanceService>,
     price: Arc<GemPriceService>,
     assets: Arc<GemAssetsService>,
+    simulation_formatter: GemSimulationFormatter,
 }
 
 #[uniffi::export]
@@ -56,6 +57,7 @@ impl GemConfirmService {
             balance,
             price,
             assets,
+            simulation_formatter: GemSimulationFormatter::new(),
         }
     }
 
@@ -84,6 +86,44 @@ impl GemConfirmService {
             .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
         let prices = self.price.prices(fee_asset_ids).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
         Ok(rules::selectable_fee_assets(assets, balances, prices))
+    }
+
+    pub fn simulation(&self, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> Result<GemConfirmSimulation, GemConfirmError> {
+        let asset_ids = rules::simulation_asset_ids(&simulation);
+        let assets = self.assets.assets(asset_ids).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        let approval = rules::approval_value(&input_type);
+        let shows_header = self.simulation_formatter.shows_header(simulation.clone(), approval.is_some());
+        let payload_fields = self
+            .simulation_formatter
+            .payload_fields(simulation.clone().map(|simulation| simulation.payload).unwrap_or_default(), shows_header);
+        let header = match approval {
+            Some((asset_id, value, is_unlimited)) => assets.iter().find(|asset| asset.id == asset_id).map(|asset| GemSimulationValue {
+                asset: asset.clone(),
+                value,
+                is_unlimited,
+            }),
+            None => self.simulation_formatter.header(simulation.clone()).and_then(|header| {
+                assets.iter().find(|asset| asset.id == header.asset_id).map(|asset| GemSimulationValue {
+                    asset: asset.clone(),
+                    value: header.value,
+                    is_unlimited: header.is_unlimited,
+                })
+            }),
+        };
+        let balance_changes = self
+            .simulation_formatter
+            .balance_changes(simulation, assets.iter().map(|asset| asset.id.clone()).collect())
+            .into_iter()
+            .filter_map(|change| {
+                let asset = assets.iter().find(|asset| asset.id == change.asset_id)?.clone();
+                Some(GemSimulationBalanceChange { asset, value: change.value })
+            })
+            .collect();
+        Ok(GemConfirmSimulation {
+            payload_fields,
+            header,
+            balance_changes,
+        })
     }
 
     pub async fn preload(&self, wallet_id: WalletId, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmPreload, GemConfirmError> {
