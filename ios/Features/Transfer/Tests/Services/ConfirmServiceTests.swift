@@ -76,7 +76,7 @@ struct ConfirmServiceTests {
         let service = ConfirmService.mock(gemConfirmService: GemConfirmServiceMock(
             simulation: GemConfirmSimulation(
                 payloadFields: [],
-                header: GemSimulationValue(asset: usdt.json(), value: "1000000", isUnlimited: false),
+                header: GemSimulationValue(asset: usdt.json(), value: .exact(value: "1000000")),
                 balanceChanges: [],
             ),
         ))
@@ -94,7 +94,7 @@ struct ConfirmServiceTests {
         let service = ConfirmService.mock(gemConfirmService: GemConfirmServiceMock(
             simulation: GemConfirmSimulation(
                 payloadFields: [],
-                header: GemSimulationValue(asset: usdt.json(), value: "0", isUnlimited: true),
+                header: GemSimulationValue(asset: usdt.json(), value: .unlimited),
                 balanceChanges: [],
             ),
         ))

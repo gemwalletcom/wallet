@@ -5,6 +5,7 @@ import Foundation
 import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemAssetPrice
 import struct Gemstone.GemConfirmMetadata
+import enum Gemstone.GemApprovalValue
 import struct Gemstone.GemFeeAsset
 import enum Gemstone.GemTransferAmountError
 import Primitives
@@ -67,6 +68,15 @@ public extension GemTransferAmountError {
              let .InsufficientNetworkFee(assetId, _, _),
              let .MinimumAccountBalanceTooLow(assetId, _, _):
             try? Primitives.AssetId(id: assetId)
+        }
+    }
+}
+
+public extension GemApprovalValue {
+    func map() -> Primitives.ApprovalValue {
+        switch self {
+        case let .exact(value): .exact((try? BigInt.from(string: value)) ?? .zero)
+        case .unlimited: .unlimited
         }
     }
 }

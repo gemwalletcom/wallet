@@ -5,7 +5,6 @@ import com.gemwallet.android.Constants
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.password.TinkGemPreferences
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePreferencesStore
-import com.gemwallet.android.services.DeviceSyncPreflight
 import com.gemwallet.android.math.fromHex
 import kotlinx.coroutines.runBlocking
 import com.gemwallet.android.data.services.nativeprovider.NativeProvider
@@ -128,12 +127,11 @@ object GatewayModule {
         alienProvider: AlienProvider,
         deviceKeyService: GemDeviceKeyService,
         deviceService: Lazy<GemDeviceService>,
-    ): GemstoneDeviceApiClient = GemstoneDeviceApiClient.withPreflight(
+    ): GemstoneDeviceApiClient = GemstoneDeviceApiClient(
         alienProvider,
         Constants.API_URL,
         deviceKeyService.keyPair().privateKey,
-        DeviceSyncPreflight(deviceService),
-    )
+    ).apply { setDeviceSyncPreflight(deviceService.get()) }
 
 
 

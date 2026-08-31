@@ -254,9 +254,7 @@ private extension ConfirmService {
             warnings: simulation?.warnings ?? [],
             payload: payload,
             headerData: resolved?.header.flatMap { header in
-                (try? Asset(header.asset)).flatMap { asset in
-                    ApprovalValue(value: header.value, isUnlimited: header.isUnlimited).map { AssetValueHeaderData(asset: asset, value: $0) }
-                }
+                (try? Asset(header.asset)).map { AssetValueHeaderData(asset: $0, value: header.value.map()) }
             },
             balanceChanges: resolved?.balanceChanges.compactMap { change in
                 guard let asset = try? Asset(change.asset), let value = BigInt(change.value, radix: 10) else { return nil }

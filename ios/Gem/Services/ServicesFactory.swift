@@ -53,11 +53,8 @@ struct ServicesFactory {
             platform: MainActor.assumeIsolated { GemstoneDevicePlatform(preferencesService: preferencesService, deviceKeyService: deviceKeyService, securePreferences: securePreferences) },
             preferences: preferencesService,
         )
-        let gemDeviceApiClient = Self.makeDeviceApiClient(
-            provider: nativeProvider,
-            devicePrivateKey: devicePrivateKey,
-            preflight: DeviceSyncPreflight(deviceService: deviceService),
-        )
+        let gemDeviceApiClient = Self.makeDeviceApiClient(provider: nativeProvider, devicePrivateKey: devicePrivateKey)
+        gemDeviceApiClient.setDeviceSyncPreflight(device: deviceService)
         let deviceObserverService = Self.makeDeviceObserverService(
             deviceService: deviceService,
             walletStore: storeManager.walletStore,
@@ -454,16 +451,7 @@ extension ServicesFactory {
     private static func makeDeviceApiClient(
         provider: NativeProvider,
         devicePrivateKey: Data,
-        preflight: (any GemWalletRequestPreflight)? = nil,
     ) -> Gemstone.GemDeviceApiClient {
-        if let preflight {
-            return Gemstone.GemDeviceApiClient.withPreflight(
-                provider: provider,
-                baseUrl: Constants.apiURL.absoluteString,
-                devicePrivateKey: devicePrivateKey,
-                preflight: preflight,
-            )
-        }
         return Gemstone.GemDeviceApiClient(
             provider: provider,
             baseUrl: Constants.apiURL.absoluteString,
