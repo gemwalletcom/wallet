@@ -355,8 +355,7 @@ Found while landing the batches above, not yet fixed:
 
 #### Tests that cannot fail
 
-- `SettingsViewModelTest.kt:72-75` asserts the `stateIn` seed under `StandardTestDispatcher` with no `advanceUntilIdle`, so it does not cover the clause it appears to protect.
-- `Migration_88_89Test.kt:35` seeds a multi-sig banner with `asset_id NULL`, the pre-`46889318bc` contract.
+- `Migration_88_89Test.kt:35` seeds a multi-sig banner with `asset_id NULL`, the pre-`46889318bc` contract, and only calls `runMigrationsAndValidate`, which checks the schema and never asserts the row survived — so it cannot fail on data loss either. Still open: it is an `androidTest`, so fixing it means running it on a device, which no one has done here.
 
 Pure duplication, no divergence found (lower priority, still one rule each): swap slippage bounds, min-receive BPS math, swap ETA truncation, the critical-warning gate, collections availability, and the custom-fee minimum check — each written once per platform on top of a Core call that already exists.
 
