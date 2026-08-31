@@ -178,7 +178,7 @@ impl GemAssetsService {
     }
 
     pub async fn search_tokens(&self, token_id: String, chains: Vec<Chain>) -> Vec<AssetBasic> {
-        let lookups = chains.into_iter().map(|chain| {
+        let lookups = chains.into_iter().filter(|chain| chain.default_asset_type().is_some()).map(|chain| {
             let token_id = token_id.clone();
             async move {
                 if self.gateway.get_is_token_address(chain, token_id.clone()).await.ok()? {

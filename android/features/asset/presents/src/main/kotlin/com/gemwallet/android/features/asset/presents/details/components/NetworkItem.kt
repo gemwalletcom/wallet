@@ -2,8 +2,8 @@ package com.gemwallet.android.features.asset.presents.details.components
 
 import androidx.compose.foundation.lazy.LazyListScope
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ext.assetType
 import com.gemwallet.android.ext.hasNativeAsset
+import com.gemwallet.android.ext.isTokenSupported
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.features.asset.presents.details.AssetDetailsAction
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
@@ -31,7 +31,7 @@ internal fun Asset.networkNavigationAction(
     hasNativeAsset: Boolean = chain.hasNativeAsset(),
 ): AssetDetailsAction.Navigation? {
     val networkAssetId = AssetId(chain)
-    val networkAssetsAction = chain.assetType()?.let { AssetDetailsAction.OpenNetworkAssets(chain) }
+    val networkAssetsAction = if (chain.isTokenSupported()) AssetDetailsAction.OpenNetworkAssets(chain) else null
     return when (id.type()) {
         AssetSubtype.NATIVE -> networkAssetsAction
         AssetSubtype.TOKEN -> if (hasNativeAsset) AssetDetailsAction.OpenNetwork(networkAssetId) else networkAssetsAction

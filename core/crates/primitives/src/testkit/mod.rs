@@ -5,6 +5,7 @@ pub mod address_name_mock;
 pub mod application_metadata_mock;
 pub mod asset_details_mock;
 pub mod asset_mock;
+pub mod chain_type_mock;
 pub mod contract_call_data_mock;
 pub mod delegation_mock;
 pub mod device_mock;

@@ -17,10 +17,6 @@ public extension Wallet {
         type == .multicoin
     }
 
-    var hasTokenSupport: Bool {
-        accounts.map(\.chain).asSet().intersection(AssetConfiguration.supportedChainsWithTokens).isNotEmpty
-    }
-
     func account(for chain: Chain) throws -> Account {
         guard let account = accounts.filter({ $0.chain == chain }).first else {
             throw AnyError("account not found for chain: \(chain.rawValue)")
