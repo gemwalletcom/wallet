@@ -12,9 +12,6 @@ import SwiftUI
 
 public struct NetworkSelectorViewModel: SelectableSheetViewable {
     public var selectionType: SelectionType
-    public var isSearchable: Bool {
-        true
-    }
 
     public let state: StateViewType<SelectableListType<Chain>>
 
@@ -48,25 +45,18 @@ public struct NetworkSelectorViewModel: SelectableSheetViewable {
         Localized.Common.done
     }
 
-    public var noResultsTitle: String? {
-        Localized.Common.noResultsFound
-    }
-
     public var confirmButtonTitle: String {
         Localized.Transfer.confirm
     }
-}
 
-extension NetworkSelectorViewModel: ItemFilterable {
-    public var emptyContentModel: (any EmptyContentViewable)? {
-        EmptyContentTypeViewModel(type: .search(type: EmptyContentType.SearchType.networks))
+    public var search: ListSearch<Chain>? {
+        ListSearch(
+            filter: filter(chain:query:),
+            emptyContent: EmptyContentTypeViewModel(type: .search(type: EmptyContentType.SearchType.networks)),
+        )
     }
 
-    public var items: [Chain] {
-        state.value?.items ?? []
-    }
-
-    public func filter(_ chain: Chain, query: String) -> Bool {
+    private func filter(chain: Chain, query: String) -> Bool {
         !chainService.getMatchingChains(chains: [chain.rawValue], query: query).isEmpty
     }
 }

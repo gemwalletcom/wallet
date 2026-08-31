@@ -8,10 +8,6 @@ import Style
 import SwiftUI
 
 public struct TransactionTypesSelectorViewModel: SelectableSheetViewable {
-    public var items: [TransactionFilterType] {
-        state.value?.items ?? []
-    }
-
     public let selectionType: SelectionType
     public let state: StateViewType<SelectableListType<TransactionFilterType>>
 
@@ -27,8 +23,8 @@ public struct TransactionTypesSelectorViewModel: SelectableSheetViewable {
         self.selectedItems = Set(selectedItems)
     }
 
-    public var isSearchable: Bool {
-        false
+    public var search: ListSearch<TransactionFilterType>? {
+        .none
     }
 
     public var title: String {
@@ -45,10 +41,6 @@ public struct TransactionTypesSelectorViewModel: SelectableSheetViewable {
 
     public var doneButtonTitle: String {
         Localized.Common.done
-    }
-
-    public var emptyContentModel: (any EmptyContentViewable)? {
-        .none
     }
 
     public var confirmButtonTitle: String {
