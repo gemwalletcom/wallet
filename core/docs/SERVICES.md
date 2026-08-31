@@ -336,9 +336,7 @@ Found by reading both platforms side by side. Ranked within each group by value:
 
 | # | What | iOS | Android | The difference |
 |---|---|---|---|---|
-| V10 | Stake row | `isStakeEnabled \|\| staked balance > 0` | `type == NATIVE && StakeChain.isStaked(chain)` | An asset with staking disabled still shows a Stake row on Android, with an APR string iOS never shows. |
 | V14 | Reserved-fee hint | shown when the typed amount equals max | only when the Max button was pressed | Typing the max by hand shows the note on iOS only. |
-| V15 | Pinned section | `metadata.isPinned` | `pinned && balanceEnabled` in the picker, plain `pinned` on home — inconsistent with itself | A pinned-but-hidden asset lands in different sections. |
 
 Found while landing the batches above, not yet fixed:
 
