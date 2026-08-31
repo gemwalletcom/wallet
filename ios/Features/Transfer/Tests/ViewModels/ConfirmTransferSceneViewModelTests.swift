@@ -714,7 +714,7 @@ private extension ConfirmTransferSceneViewModel {
                 assetsService: GemAssetsServiceMock(),
                 transactionStateService: GemTransactionStateServiceMock(),
                 nameService: nameService,
-                recentActivityStore: .mock(),
+                recentAssetsService: RecentAssetsService(store: .mock()),
                 toastPresenter: ToastPresenter(),
                 feeService: GemFeeService(),
                 simulationFormatter: GemSimulationFormatter(),

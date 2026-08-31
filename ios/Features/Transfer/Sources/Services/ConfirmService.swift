@@ -26,7 +26,7 @@ public struct ConfirmService: Sendable {
     private let signer: any GemTransactionSigner
     private let preferencesService: any GemPreferencesServiceProtocol
     private let transactionStateService: any GemTransactionStateServiceProtocol
-    private let recentActivityStore: RecentActivityStore
+    private let recentAssetsService: any RecentAssetsServiceable
     private let toastPresenter: ToastPresenter
     private let keystore: any Keystore
     private let explorerService: any GemExplorerServiceProtocol
@@ -44,7 +44,7 @@ public struct ConfirmService: Sendable {
         signer: any GemTransactionSigner,
         preferencesService: any GemPreferencesServiceProtocol,
         transactionStateService: any GemTransactionStateServiceProtocol,
-        recentActivityStore: RecentActivityStore,
+        recentAssetsService: any RecentAssetsServiceable,
         toastPresenter: ToastPresenter,
         keystore: any Keystore,
         explorerService: any GemExplorerServiceProtocol,
@@ -60,7 +60,7 @@ public struct ConfirmService: Sendable {
         self.signer = signer
         self.preferencesService = preferencesService
         self.transactionStateService = transactionStateService
-        self.recentActivityStore = recentActivityStore
+        self.recentAssetsService = recentAssetsService
         self.toastPresenter = toastPresenter
         self.keystore = keystore
         self.explorerService = explorerService
@@ -172,7 +172,7 @@ public struct ConfirmService: Sendable {
 private extension ConfirmService {
     func updateRecent(data: RecentActivityData, walletId: WalletId) {
         do {
-            try recentActivityStore.add(data, walletId: walletId)
+            try recentAssetsService.add(data, walletId: walletId)
         } catch {
             debugLog("Failed to update recent activity: \(error)")
         }

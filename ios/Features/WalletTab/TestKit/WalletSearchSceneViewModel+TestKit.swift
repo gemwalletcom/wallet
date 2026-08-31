@@ -19,7 +19,7 @@ public extension WalletSearchSceneViewModel {
     static func mock(
         wallet: Wallet = .mock(),
         searchService: any GemSearchServiceProtocol = GemSearchServiceMock(),
-        recentActivityStore: RecentActivityStore = .mock(),
+        recentAssetsService: any RecentAssetsServiceable = RecentAssetsService(store: .mock()),
         balanceService: any GemBalanceServiceProtocol = .mock(),
         perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
         preferences: ObservablePreferences = .mock(),
@@ -27,7 +27,7 @@ public extension WalletSearchSceneViewModel {
         WalletSearchSceneViewModel(
             wallet: wallet,
             searchService: searchService,
-            recentActivityStore: recentActivityStore,
+            recentAssetsService: recentAssetsService,
             balanceService: balanceService,
             perpetualService: perpetualService,
             preferences: preferences,

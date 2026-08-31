@@ -89,7 +89,7 @@ extension EnvironmentValues {
     @Entry var perpetualService: any GemPerpetualServiceProtocol = AppResolver.main.services.perpetualService
     @Entry var hyperliquidObserverService: any PerpetualObservable = AppResolver.main.services.hyperliquidObserverService
     @Entry var nameService: any GemNameServiceProtocol = AppResolver.main.services.nameService
-    @Entry var recentActivityStore: RecentActivityStore = AppResolver.main.storages.storeManager.recentActivityStore
+    @Entry var recentAssetsService: any RecentAssetsServiceable = RecentAssetsService(store: AppResolver.main.storages.storeManager.recentActivityStore)
     @Entry var viewModelFactory: ViewModelFactory = AppResolver.main.services.viewModelFactory
     @Entry var rewardsService: any GemRewardsServiceProtocol = AppResolver.main.services.rewardsService
     @Entry var searchService: any GemSearchServiceProtocol = AppResolver.main.services.searchService

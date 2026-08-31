@@ -21,7 +21,7 @@ import SwiftUI
 @MainActor
 public final class WalletSearchSceneViewModel: Sendable, AssetActions, PerpetualPinActions {
     private let searchService: any GemSearchServiceProtocol
-    private let recentActivityStore: RecentActivityStore
+    private let recentAssetsService: any RecentAssetsServiceable
     let balanceService: any GemBalanceServiceProtocol
     let perpetualService: any GemPerpetualServiceProtocol
     private let preferences: ObservablePreferences
@@ -51,7 +51,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     public init(
         wallet: Wallet,
         searchService: any GemSearchServiceProtocol,
-        recentActivityStore: RecentActivityStore,
+        recentAssetsService: any RecentAssetsServiceable,
         balanceService: any GemBalanceServiceProtocol,
         perpetualService: any GemPerpetualServiceProtocol,
         preferences: ObservablePreferences,
@@ -61,7 +61,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     ) {
         self.wallet = wallet
         self.searchService = searchService
-        self.recentActivityStore = recentActivityStore
+        self.recentAssetsService = recentAssetsService
         self.balanceService = balanceService
         self.perpetualService = perpetualService
         self.preferences = preferences
@@ -81,7 +81,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         recentModel = RecentAssetsModel(
             walletId: wallet.id,
             types: WalletSearchModel.recentActivityTypes,
-            recentActivityStore: recentActivityStore,
+            recentAssetsService: recentAssetsService,
         )
     }
 
@@ -274,7 +274,7 @@ extension WalletSearchSceneViewModel {
 extension WalletSearchSceneViewModel {
     private func updateRecent(_ asset: Asset) {
         do {
-            try recentActivityStore.add(.search(asset), walletId: wallet.id)
+            try recentAssetsService.add(.search(asset), walletId: wallet.id)
         } catch {
             debugLog("UpdateRecent error: \(error)")
         }

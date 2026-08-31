@@ -51,7 +51,7 @@ public struct ViewModelFactory: Sendable {
     let priceService: any GemPriceServiceProtocol
     let transactionStateService: any GemTransactionStateServiceProtocol
     let gemNameService: any GemNameServiceProtocol
-    let recentActivityStore: RecentActivityStore
+    let recentAssetsService: RecentAssetsService
     let toastPresenter: ToastPresenter
     let fiatService: any GemFiatServiceProtocol
     let assetsService: any GemAssetsServiceProtocol
@@ -76,7 +76,7 @@ public struct ViewModelFactory: Sendable {
             searchService: searchService,
             balanceService: balanceService,
             priceAlertService: priceAlertService,
-            recentActivityStore: recentActivityStore,
+            recentAssetsService: recentAssetsService,
             preferencesService: preferencesService,
             selectAssetAction: selectAssetAction,
             chains: chains,
@@ -96,7 +96,7 @@ public struct ViewModelFactory: Sendable {
             preferencesService: preferencesService,
             searchService: searchService,
             perpetualService: perpetualService,
-            recentActivityStore: recentActivityStore,
+            recentAssetsService: recentAssetsService,
             request: request,
             title: title,
             onSelectAsset: onSelectAsset,
@@ -127,7 +127,7 @@ public struct ViewModelFactory: Sendable {
                 assetsService: assetsService,
                 transactionStateService: transactionStateService,
                 nameService: gemNameService,
-                recentActivityStore: recentActivityStore,
+                recentAssetsService: recentAssetsService,
                 toastPresenter: toastPresenter,
                 feeService: feeService,
                 simulationFormatter: simulationFormatter,

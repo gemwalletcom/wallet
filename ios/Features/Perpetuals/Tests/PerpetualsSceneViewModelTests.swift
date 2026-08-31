@@ -29,13 +29,13 @@ extension PerpetualsSceneViewModel {
         wallet: Wallet = .mock(),
         perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
         observerService: any PerpetualObservable = PerpetualObserverMock(),
-        recentActivityStore: RecentActivityStore = .mock(),
+        recentAssetsService: any RecentAssetsServiceable = RecentAssetsService(store: .mock()),
     ) -> PerpetualsSceneViewModel {
         PerpetualsSceneViewModel(
             wallet: wallet,
             perpetualService: perpetualService,
             observerService: observerService,
-            recentActivityStore: recentActivityStore,
+            recentAssetsService: recentAssetsService,
         )
     }
 }

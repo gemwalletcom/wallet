@@ -363,7 +363,7 @@ struct ServicesFactory {
             priceService: priceService,
             transactionStateService: gemTransactionStateService,
             gemNameService: gemNameService,
-            recentActivityStore: storeManager.recentActivityStore,
+            recentAssetsService: RecentAssetsService(store: storeManager.recentActivityStore),
             toastPresenter: toastPresenter,
             fiatService: fiatService,
             assetsService: gemAssetsService,

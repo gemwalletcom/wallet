@@ -39,7 +39,7 @@ struct WalletNavigationView: View {
     @Environment(\.streamSubscriptionService) private var streamSubscriptionService
     @Environment(\.perpetualService) private var perpetualService
     @Environment(\.hyperliquidObserverService) private var hyperliquidObserverService
-    @Environment(\.recentActivityStore) private var recentActivityStore
+    @Environment(\.recentAssetsService) private var recentAssetsService
     @Environment(\.searchService) private var searchService
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.avatarService) private var avatarService
@@ -62,7 +62,7 @@ struct WalletNavigationView: View {
                     model: WalletSearchSceneViewModel(
                         wallet: model.wallet,
                         searchService: searchService,
-                        recentActivityStore: recentActivityStore,
+                        recentAssetsService: recentAssetsService,
                         balanceService: balanceService,
                         perpetualService: perpetualService,
                         preferences: preferences,
@@ -198,7 +198,7 @@ struct WalletNavigationView: View {
                 wallet: model.wallet,
                 perpetualService: perpetualService,
                 observerService: hyperliquidObserverService,
-                recentActivityStore: recentActivityStore,
+                recentAssetsService: recentAssetsService,
                 onSelectAssetType: { model.isPresentingSheet = .selectAsset($0, chains: []) },
                 onSelectAsset: navigationState.openAsset,
                 onSelectPortfolio: { model.isPresentingSheet = .portfolio(.perpetuals) },

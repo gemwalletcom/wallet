@@ -36,7 +36,7 @@ extension ConfirmService {
             signer: GemTransactionSignerMock(),
             preferencesService: GemPreferencesServiceMock(),
             transactionStateService: transactionStateService,
-            recentActivityStore: .mock(),
+            recentAssetsService: RecentAssetsService(store: .mock()),
             toastPresenter: ToastPresenter(),
             keystore: KeystoreMock(),
             explorerService: GemExplorerServiceMock(),
