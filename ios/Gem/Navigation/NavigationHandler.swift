@@ -12,7 +12,7 @@ import protocol Gemstone.GemPushNotificationServiceProtocol
 import class Gemstone.GemPaymentLinkService
 import GemstonePrimitives
 import Localization
-import class Gemstone.GemAddressService
+import protocol Gemstone.GemAddressServiceProtocol
 import class Gemstone.GemPaymentService
 import Primitives
 import PrimitivesComponents
@@ -33,7 +33,7 @@ final class NavigationHandler: Sendable {
     private let pushNotificationService: any GemPushNotificationServiceProtocol
     private let transactionStore: TransactionStore
     private let urlParser: URLParser
-    private let addressService: GemAddressService
+    private let addressService: any GemAddressServiceProtocol
     private let paymentService: GemPaymentService
     private let transactionStateService: any GemTransactionStateServiceProtocol
     private let walletConnectorPresenter: WalletConnectorPresenter
@@ -50,7 +50,7 @@ final class NavigationHandler: Sendable {
         pushNotificationService: any GemPushNotificationServiceProtocol,
         transactionStore: TransactionStore,
         urlParser: URLParser,
-        addressService: GemAddressService,
+        addressService: any GemAddressServiceProtocol,
         paymentService: GemPaymentService,
         transactionStateService: any GemTransactionStateServiceProtocol,
         walletConnectorPresenter: WalletConnectorPresenter,

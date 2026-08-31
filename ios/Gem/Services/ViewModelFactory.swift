@@ -12,7 +12,7 @@ import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemFiatServiceProtocol
 import GemstoneServices
 import class Gemstone.GemTransferService
-import class Gemstone.GemAddressService
+import protocol Gemstone.GemAddressServiceProtocol
 import Assets
 import FiatConnect
 import Foundation
@@ -22,6 +22,11 @@ import protocol Gemstone.GemSwapServiceProtocol
 import class Gemstone.GemConfirmService
 import class Gemstone.GemApplicationMetadataService
 import class Gemstone.GemChainService
+import class Gemstone.GemContactService
+import class Gemstone.GemManageContactService
+import class Gemstone.GemNameService
+import class Gemstone.GemAddressService
+import Contacts
 import class Gemstone.GemDeeplinkService
 import class Gemstone.GemAssetConfigService
 import class Gemstone.GemSwapQuoteService
@@ -56,7 +61,7 @@ public struct ViewModelFactory: Sendable {
     let addressStore: AddressStore
     let priceService: any GemPriceServiceProtocol
     let transactionStateService: any GemTransactionStateServiceProtocol
-    let gemNameService: any GemNameServiceProtocol
+    let gemNameService: GemNameService
     let recentAssetsService: RecentAssetsService
     let toastPresenter: ToastPresenter
     let fiatService: any GemFiatServiceProtocol
@@ -72,8 +77,28 @@ public struct ViewModelFactory: Sendable {
     let applicationMetadataService: GemApplicationMetadataService
     let deeplinkService: GemDeeplinkService
     let chainService: GemChainService
+    let contactService: GemContactService
     let simulationFormatter: GemSimulationFormatter
     let assetConfig: GemAssetConfigService
+
+    @MainActor
+    public func contactsScene(mode: ContactsViewModel.Mode = .list) -> ContactsViewModel {
+        ContactsViewModel(service: manageContactService(), mode: mode)
+    }
+
+    @MainActor
+    public func manageContactScene(mode: ManageContactViewModel.Mode) -> ManageContactViewModel {
+        ManageContactViewModel(service: manageContactService(), mode: mode)
+    }
+
+    private func manageContactService() -> GemManageContactService {
+        GemManageContactService(
+            contacts: contactService,
+            names: gemNameService,
+            addresses: addressService,
+            chains: chainService,
+        )
+    }
 
     @MainActor
     public func selectAssetScene(

@@ -5,7 +5,7 @@ import class Gemstone.GemRecipientService
 import struct Gemstone.GemRecipientValidation
 import Components
 import Foundation
-import class Gemstone.GemAddressService
+import protocol Gemstone.GemAddressServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -19,7 +19,7 @@ public final class AddressInputViewModel {
     let placeholder: String
     public let nameRecordViewModel: NameRecordViewModel
     private let recipientService: GemRecipientService
-    private let addressService: GemAddressService
+    private let addressService: any GemAddressServiceProtocol
 
     public var chain: Chain {
         didSet { onChangeChain() }
@@ -31,7 +31,7 @@ public final class AddressInputViewModel {
         chain: Chain,
         nameService: any GemNameServiceProtocol,
         placeholder: String,
-        addressService: GemAddressService,
+        addressService: any GemAddressServiceProtocol,
         validators: [any TextValidator] = [],
     ) {
         self.chain = chain

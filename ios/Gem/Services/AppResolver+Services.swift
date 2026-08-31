@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAddressService
+import protocol Gemstone.GemAddressServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import class Gemstone.GemChainService
 import class Gemstone.GemReceiveService
@@ -10,7 +10,6 @@ import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemWalletPreferencesServiceProtocol
 import protocol Gemstone.GemSupportServiceProtocol
-import protocol Gemstone.GemContactServiceProtocol
 import protocol Gemstone.GemAppUpdateServiceProtocol
 import protocol Gemstone.GemAvatarServiceProtocol
 import class Gemstone.GemStreamSubscriptionService
@@ -95,7 +94,7 @@ extension AppResolver {
         let hyperliquidObserverService: any PerpetualObservable
         let nameService: any GemNameServiceProtocol
         let toastPresenter: ToastPresenter
-        let addressService: GemAddressService
+        let addressService: any GemAddressServiceProtocol
         let viewModelFactory: ViewModelFactory
         let rewardsService: any GemRewardsServiceProtocol
         let searchService: any GemSearchServiceProtocol
@@ -103,7 +102,6 @@ extension AppResolver {
         let inAppNotificationService: any GemNotificationServiceProtocol
         let portfolioService: any GemPortfolioServiceProtocol
         let fiatService: any GemFiatServiceProtocol
-        let contactService: any GemContactServiceProtocol
         let supportService: any GemSupportServiceProtocol
         let supportStore: GemstoneSupportStore
     }

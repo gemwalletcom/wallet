@@ -26,8 +26,6 @@ impl GemDeviceApiClient {
     /// Wallet-scoped requests through this client synchronize the device first.
     /// Never install this on the client the device service itself uses, or the sync recurses.
     pub fn set_device_sync_preflight(&self, device: Arc<GemDeviceService>) {
-        self.client.set_preflight(Arc::new(DeviceSyncPreflight {
-            service: Arc::downgrade(&device),
-        }));
+        self.client.set_preflight(Arc::new(DeviceSyncPreflight { service: Arc::downgrade(&device) }));
     }
 }

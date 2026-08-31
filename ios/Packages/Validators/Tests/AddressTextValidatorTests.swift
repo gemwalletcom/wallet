@@ -2,6 +2,7 @@
 
 import Foundation
 import class Gemstone.GemAddressService
+import protocol Gemstone.GemAddressServiceProtocol
 import PrimitivesTestKit
 import Testing
 @testable import Validators

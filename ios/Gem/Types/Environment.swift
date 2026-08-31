@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAddressService
+import protocol Gemstone.GemAddressServiceProtocol
 import class Gemstone.GemApplicationMetadataService
 import class Gemstone.GemAssetConfigService
 import class Gemstone.GemDeeplinkService
@@ -15,7 +15,6 @@ import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemDeviceServiceProtocol
 import protocol Gemstone.GemWalletPreferencesServiceProtocol
 import protocol Gemstone.GemSupportServiceProtocol
-import protocol Gemstone.GemContactServiceProtocol
 import protocol Gemstone.GemAppUpdateServiceProtocol
 import protocol Gemstone.GemAvatarServiceProtocol
 import class Gemstone.GemStreamSubscriptionService
@@ -95,7 +94,7 @@ extension EnvironmentValues {
     @Entry var hyperliquidObserverService: any PerpetualObservable = AppResolver.main.services.hyperliquidObserverService
     @Entry var nameService: any GemNameServiceProtocol = AppResolver.main.services.nameService
     @Entry var recentAssetsService: any RecentAssetsServiceable = RecentAssetsService(store: AppResolver.main.storages.storeManager.recentActivityStore)
-    @Entry var addressService: GemAddressService = AppResolver.main.services.addressService
+    @Entry var addressService: any GemAddressServiceProtocol = AppResolver.main.services.addressService
     @Entry var feeService: GemFeeService = AppResolver.main.services.viewModelFactory.feeService
     @Entry var applicationMetadataService: GemApplicationMetadataService = AppResolver.main.services.viewModelFactory.applicationMetadataService
     @Entry var deeplinkService: GemDeeplinkService = AppResolver.main.services.viewModelFactory.deeplinkService
@@ -105,7 +104,6 @@ extension EnvironmentValues {
     @Entry var searchService: any GemSearchServiceProtocol = AppResolver.main.services.searchService
     @Entry var inAppNotificationService: any GemNotificationServiceProtocol = AppResolver.main.services.inAppNotificationService
     @Entry var portfolioService: any GemPortfolioServiceProtocol = AppResolver.main.services.portfolioService
-    @Entry var contactService: any GemContactServiceProtocol = AppResolver.main.services.contactService
     @Entry var supportService: any GemSupportServiceProtocol = AppResolver.main.services.supportService
     @Entry var supportStore: GemstoneSupportStore = AppResolver.main.services.supportStore
 }

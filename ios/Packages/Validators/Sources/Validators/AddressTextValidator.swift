@@ -1,15 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import class Gemstone.GemAddressService
+import protocol Gemstone.GemAddressServiceProtocol
 import GemstonePrimitives
 import Primitives
 
 public struct AddressTextValidator: TextValidator {
     private let asset: Asset
-    private let addressService: GemAddressService
+    private let addressService: any GemAddressServiceProtocol
 
-    public init(asset: Asset, addressService: GemAddressService) {
+    public init(asset: Asset, addressService: any GemAddressServiceProtocol) {
         self.asset = asset
         self.addressService = addressService
     }
@@ -26,7 +26,7 @@ public struct AddressTextValidator: TextValidator {
 }
 
 public extension TextValidator where Self == AddressTextValidator {
-    static func address(_ asset: Asset, addressService: GemAddressService) -> Self {
+    static func address(_ asset: Asset, addressService: any GemAddressServiceProtocol) -> Self {
         .init(asset: asset, addressService: addressService)
     }
 }

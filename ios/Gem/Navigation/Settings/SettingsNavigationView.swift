@@ -48,8 +48,7 @@ struct SettingsNavigationView: View {
     @Environment(\.walletConnectorPresenter) private var walletConnectorPresenter
     @Environment(\.rewardsService) private var rewardsService
     @Environment(\.inAppNotificationService) private var inAppNotificationService
-    @Environment(\.contactService) private var contactService
-    @Environment(\.nameService) private var nameService
+    @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.supportService) private var supportService
     @Environment(\.walletPreferencesService) private var walletPreferencesService
     @Environment(\.supportStore) private var supportStore
@@ -219,9 +218,7 @@ struct SettingsNavigationView: View {
             )
         }
         .navigationDestination(for: Scenes.Contacts.self) { _ in
-            ContactsNavigationView(
-                model: ContactsViewModel(service: contactService, nameService: nameService, addressService: addressService, chainService: chainService),
-            )
+            ContactsNavigationView(model: viewModelFactory.contactsScene())
         }
         .sheet(isPresented: $isPresentingSupport) {
             NavigationStack {

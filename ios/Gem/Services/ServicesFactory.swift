@@ -222,6 +222,7 @@ struct ServicesFactory {
         )
 
         let chainService = Gemstone.GemChainService()
+        let addressService = Gemstone.GemAddressService()
         let receiveService = Gemstone.GemReceiveService()
         let transactionFormatter = Gemstone.GemTransactionFormatter()
         let walletConnectorPresenter = WalletConnectorPresenter()
@@ -232,6 +233,7 @@ struct ServicesFactory {
             interactor: walletConnectorInteractor,
             transactionSimulationService: transactionSimulationService,
             gemWalletSessionService: gemWalletSessionService,
+            chainService: chainService,
         )
 
         let assetDiscoveryService = Gemstone.GemAssetDiscoveryService(
@@ -303,7 +305,7 @@ struct ServicesFactory {
             pushNotificationService: pushNotificationService,
             transactionStore: storeManager.transactionStore,
             urlParser: URLParser(deeplinkService: Gemstone.GemDeeplinkService()),
-            addressService: Gemstone.GemAddressService(),
+            addressService: addressService,
             paymentService: paymentService,
             transactionStateService: gemTransactionStateService,
             walletConnectorPresenter: walletConnectorPresenter,
@@ -375,11 +377,12 @@ struct ServicesFactory {
             perpetualService: perpetualService,
             feeService: Gemstone.GemFeeService(),
             transferService: Gemstone.GemTransferService(),
-            addressService: Gemstone.GemAddressService(),
+            addressService: addressService,
             paymentService: paymentService,
             applicationMetadataService: Gemstone.GemApplicationMetadataService(),
             deeplinkService: Gemstone.GemDeeplinkService(),
-            chainService: Gemstone.GemChainService(),
+            chainService: chainService,
+            contactService: contactService,
             simulationFormatter: Gemstone.GemSimulationFormatter(),
             assetConfig: Gemstone.GemAssetConfigService(),
         )
@@ -430,7 +433,7 @@ struct ServicesFactory {
             hyperliquidObserverService: hyperliquidObserverService,
             nameService: gemNameService,
             toastPresenter: toastPresenter,
-            addressService: Gemstone.GemAddressService(),
+            addressService: addressService,
             viewModelFactory: viewModelFactory,
             rewardsService: rewardsService,
             searchService: searchService,
@@ -438,7 +441,6 @@ struct ServicesFactory {
             inAppNotificationService: inAppNotificationService,
             portfolioService: portfolioService,
             fiatService: fiatService,
-            contactService: contactService,
             supportService: supportService,
             supportStore: gemSupportStore,
         )
@@ -475,6 +477,7 @@ extension ServicesFactory {
         interactor: WalletConnectorInteractor,
         transactionSimulationService: TransactionSimulationService,
         gemWalletSessionService: GemWalletSessionService,
+        chainService: Gemstone.GemChainService,
     ) -> WalletConnectorService {
         WalletConnectorService(
             walletSessionService: walletSessionService,
@@ -485,7 +488,7 @@ extension ServicesFactory {
                 signer: interactor,
                 session: gemWalletSessionService,
             ),
-            chainService: Gemstone.GemChainService(),
+            chainService: chainService,
         )
     }
 

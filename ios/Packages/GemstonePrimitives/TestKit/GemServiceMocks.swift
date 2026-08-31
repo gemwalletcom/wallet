@@ -225,14 +225,60 @@ public final class GemTransactionsServiceMock: GemTransactionsServiceProtocol, @
 
 }
 
-public final class GemContactServiceMock: GemContactServiceProtocol, @unchecked Sendable {
-    private let service = GemContactService(
-        store: GemContactStoreMock(),
-        addressStore: GemAddressStoreMock(),
-        files: GemFileStoreMock(),
-    )
-
+public final class StubAlienProvider: AlienProvider, @unchecked Sendable {
     public init() {}
+
+    public func request(target: AlienTarget) async throws -> AlienResponse {
+        throw AnyError("StubAlienProvider does not perform requests")
+    }
+
+    public func getEndpoint(chain: Gemstone.Chain) throws -> String {
+        throw AnyError("StubAlienProvider has no endpoints")
+    }
+}
+
+public final class GemManageContactServiceMock: GemManageContactServiceProtocol, @unchecked Sendable {
+    private let service: GemManageContactService
+
+    public init() {
+        service = GemManageContactService(
+            contacts: GemContactService(
+                store: GemContactStoreMock(),
+                addressStore: GemAddressStoreMock(),
+                files: GemFileStoreMock(),
+            ),
+            names: GemNameService(
+                api: GemDeviceApiClient(
+                    provider: StubAlienProvider(),
+                    baseUrl: "https://localhost",
+                    devicePrivateKey: Data(),
+                ),
+                store: GemAddressStoreMock(),
+            ),
+            addresses: GemAddressService(),
+            chains: GemChainService(),
+        )
+    }
+
+    public func names() -> GemNameService {
+        service.names()
+    }
+
+    public func addresses() -> GemAddressService {
+        service.addresses()
+    }
+
+    public func chains() -> GemChainService {
+        service.chains()
+    }
+
+    public func defaultChain() -> Gemstone.Chain {
+        service.defaultChain()
+    }
+
+    public func addAddress(addresses: [Gemstone.ContactAddress], input: GemContactAddressInput) -> [Gemstone.ContactAddress] {
+        service.addAddress(addresses: addresses, input: input)
+    }
 
     public func saveContact(input: GemContactInput) async throws -> Gemstone.Contact {
         try await service.saveContact(input: input)
@@ -246,12 +292,8 @@ public final class GemContactServiceMock: GemContactServiceProtocol, @unchecked 
         try await service.deleteContact(contact: contact)
     }
 
-    public func addAddress(addresses: [Gemstone.ContactAddress], input: GemContactAddressInput) -> [Gemstone.ContactAddress] {
-        service.addAddress(addresses: addresses, input: input)
-    }
-
-    public func defaultChain() -> Gemstone.Chain {
-        service.defaultChain()
+    public func formatAddress(address: String, chain: Gemstone.Chain, style: GemAddressFormatStyle) -> String {
+        service.formatAddress(address: address, chain: chain, style: style)
     }
 }
 

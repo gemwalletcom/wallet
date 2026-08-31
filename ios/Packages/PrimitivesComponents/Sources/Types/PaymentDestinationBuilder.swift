@@ -3,7 +3,7 @@
 import BigInt
 import Foundation
 import Gemstone
-import class Gemstone.GemAddressService
+import protocol Gemstone.GemAddressServiceProtocol
 import class Gemstone.GemPaymentService
 import GemstonePrimitives
 import Localization
@@ -18,7 +18,7 @@ public enum PaymentDestinationBuilder {
     public static func transfer(
         payment: Primitives.PaymentRequest,
         asset: Primitives.Asset,
-        addressService: GemAddressService,
+        addressService: any GemAddressServiceProtocol,
         paymentService: GemPaymentService,
     ) throws -> TransferDestination {
         switch paymentService.transferDestination(request: payment.json(), asset: asset.paymentWalletAsset) {
@@ -34,7 +34,7 @@ public enum PaymentDestinationBuilder {
     public static func build(
         payment: Primitives.PaymentRequest,
         assets: [AssetData],
-        addressService: GemAddressService,
+        addressService: any GemAddressServiceProtocol,
         paymentService: GemPaymentService,
     ) throws -> PaymentDestination {
         switch paymentService.destination(request: payment.json(), assets: assets.map { $0.asset.paymentWalletAsset }) {
@@ -64,7 +64,7 @@ public enum PaymentDestinationBuilder {
     public static func build(
         transaction: GemPaymentTransaction,
         asset: Primitives.Asset,
-        addressService: GemAddressService,
+        addressService: any GemAddressServiceProtocol,
         paymentService: GemPaymentService,
     ) throws -> PaymentDestination {
         let type = try TransferDataType.generic(
@@ -113,7 +113,7 @@ public enum PaymentDestinationBuilder {
         )
     }
 
-    private static func recipientData(for payment: Primitives.PaymentRequest, chain: Primitives.Chain? = nil, addressService: GemAddressService) -> RecipientData {
+    private static func recipientData(for payment: Primitives.PaymentRequest, chain: Primitives.Chain? = nil, addressService: any GemAddressServiceProtocol) -> RecipientData {
         let address = chain.map { $0.checksumAddress(payment.address, addressService: addressService) } ?? payment.address
         return RecipientData(
             recipient: Recipient(name: .none, address: address, memo: payment.memo, references: payment.references ?? []),

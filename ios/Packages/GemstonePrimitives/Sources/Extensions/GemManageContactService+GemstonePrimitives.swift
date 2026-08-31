@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import protocol Gemstone.GemContactServiceProtocol
+import protocol Gemstone.GemManageContactServiceProtocol
 import struct Gemstone.GemContactAddressInput
 import enum Gemstone.GemContactAvatar
 import struct Gemstone.GemContactInput
 import Primitives
 
-public extension GemContactServiceProtocol {
+public extension GemManageContactServiceProtocol {
     func saveContact(
         id: String,
         existing: Contact?,
@@ -59,6 +59,9 @@ public extension GemContactServiceProtocol {
     }
 
     var defaultContactChain: Chain {
-        Chain(rawValue: defaultChain()) ?? .bitcoin
+        guard let chain = Chain(rawValue: defaultChain()) else {
+            preconditionFailure("Undecodable default contact chain: \(defaultChain())")
+        }
+        return chain
     }
 }

@@ -1,12 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemChainServiceProtocol
-import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemManageContactServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
 import Localization
-import class Gemstone.GemAddressService
 import Primitives
 import PrimitivesComponents
 import Style
@@ -43,7 +41,7 @@ public final class ManageContactAddressViewModel {
     }
 
     private let mode: Mode
-    let chainService: any GemChainServiceProtocol
+    private let service: any GemManageContactServiceProtocol
     private let onComplete: (Input) -> Void
 
     var addressInputModel: AddressInputViewModel
@@ -51,22 +49,20 @@ public final class ManageContactAddressViewModel {
     var isPresentingScanner = false
 
     public init(
-        defaultChain: Chain,
-        nameService: any GemNameServiceProtocol,
+        service: any GemManageContactServiceProtocol,
         mode: Mode,
-        addressService: GemAddressService,
-        chainService: any GemChainServiceProtocol,
         onComplete: @escaping (Input) -> Void,
     ) {
         self.mode = mode
-        self.chainService = chainService
+        self.service = service
         self.onComplete = onComplete
         title = Localized.Common.address
 
-        let chain = mode.contactAddress?.chain ?? defaultChain
+        let addressService = service.addresses()
+        let chain = mode.contactAddress?.chain ?? service.defaultContactChain
         addressInputModel = AddressInputViewModel(
             chain: chain,
-            nameService: nameService,
+            nameService: service.names(),
             placeholder: title,
             addressService: addressService,
             validators: [.required(requireName: title), .address(Asset(chain), addressService: addressService)],
@@ -104,7 +100,7 @@ public final class ManageContactAddressViewModel {
             state: .data(.plain(Chain.allCases)),
             selectedItems: [chain],
             selectionType: .checkmark,
-            chainService: chainService,
+            chainService: service.chains(),
         )
     }
 

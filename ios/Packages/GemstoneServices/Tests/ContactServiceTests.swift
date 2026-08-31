@@ -1,8 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemAddressService
+import class Gemstone.GemChainService
 import class Gemstone.GemContactService
+import class Gemstone.GemDeviceApiClient
+import class Gemstone.GemManageContactService
+import class Gemstone.GemNameService
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
+import NativeProviderService
 @testable import GemstoneServices
 import Primitives
 import Store
@@ -14,10 +21,22 @@ struct ContactServiceTests {
     func renamingAContactRenamesItsAddressName() async throws {
         let db = DB.mockWithChains([.ethereum])
         let addressStore = AddressStore(db: db)
-        let service = GemContactService(
-            store: GemstoneContactStore(store: ContactStore(db: db)),
-            addressStore: GemstoneAddressStore(store: addressStore),
-            files: GemstoneFileStore(),
+        let service = GemManageContactService(
+            contacts: GemContactService(
+                store: GemstoneContactStore(store: ContactStore(db: db)),
+                addressStore: GemstoneAddressStore(store: addressStore),
+                files: GemstoneFileStore(),
+            ),
+            names: GemNameService(
+                api: GemDeviceApiClient(
+                    provider: StubAlienProvider(),
+                    baseUrl: "https://localhost",
+                    devicePrivateKey: Data(),
+                ),
+                store: GemstoneAddressStore(store: addressStore),
+            ),
+            addresses: GemAddressService(),
+            chains: GemChainService(),
         )
         let contactId = UUID().uuidString
         let address = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326"

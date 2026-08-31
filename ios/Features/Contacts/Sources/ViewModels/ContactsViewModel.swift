@@ -1,13 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemChainServiceProtocol
-import protocol Gemstone.GemContactServiceProtocol
-import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemManageContactServiceProtocol
 import Components
 import GemstoneServices
 import Foundation
 import Localization
-import class Gemstone.GemAddressService
 import Primitives
 import PrimitivesComponents
 import Store
@@ -21,11 +18,13 @@ public final class ContactsViewModel {
         case addAddress(ChainRecipient)
     }
 
-    let service: any GemContactServiceProtocol
-    let nameService: any GemNameServiceProtocol
-    let addressService: GemAddressService
-    let chainService: any GemChainServiceProtocol
-    let mode: Mode
+    enum RowAction {
+        case navigate
+        case select
+    }
+
+    private let service: any GemManageContactServiceProtocol
+    private let mode: Mode
 
     public let query: ObservableQuery<ContactsRequest>
     var contacts: [ContactData] {
@@ -35,22 +34,27 @@ public final class ContactsViewModel {
     var isPresentingAddContact = false
 
     public init(
-        service: any GemContactServiceProtocol,
-        nameService: any GemNameServiceProtocol,
-        addressService: GemAddressService,
-        chainService: any GemChainServiceProtocol,
+        service: any GemManageContactServiceProtocol,
         mode: Mode = .list,
     ) {
         self.service = service
-        self.nameService = nameService
-        self.addressService = addressService
-        self.chainService = chainService
         self.mode = mode
         query = ObservableQuery(ContactsRequest(), initialValue: [])
     }
 
     var title: String {
         Localized.Contacts.title
+    }
+
+    var rowAction: RowAction {
+        switch mode {
+        case .list: .navigate
+        case .addAddress: .select
+        }
+    }
+
+    func manageContactModel(mode: ManageContactViewModel.Mode) -> ManageContactViewModel {
+        ManageContactViewModel(service: service, mode: mode)
     }
 
     var addContactMode: ManageContactViewModel.Mode {

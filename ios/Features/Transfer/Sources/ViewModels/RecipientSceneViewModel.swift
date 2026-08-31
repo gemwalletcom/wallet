@@ -7,7 +7,7 @@ import Foundation
 import GemstonePrimitives
 import GemstoneServices
 import Localization
-import class Gemstone.GemAddressService
+import protocol Gemstone.GemAddressServiceProtocol
 import class Gemstone.GemPaymentService
 import Primitives
 import PrimitivesComponents
@@ -27,7 +27,7 @@ public final class RecipientSceneViewModel {
     public let onTransferAction: TransferDataAction
 
     private let walletSessionService: any WalletSessionManageable
-    private let addressService: GemAddressService
+    private let addressService: any GemAddressServiceProtocol
     private let paymentService: GemPaymentService
     private let onRecipientDataAction: RecipientDataAction
     private let assetImageFormatter: AssetImageFormatter
@@ -54,7 +54,7 @@ public final class RecipientSceneViewModel {
         recipient: RecipientData? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
-        addressService: GemAddressService,
+        addressService: any GemAddressServiceProtocol,
         paymentService: GemPaymentService,
     ) {
         self.wallet = wallet

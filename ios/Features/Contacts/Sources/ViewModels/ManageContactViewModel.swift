@@ -1,15 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemChainServiceProtocol
-import protocol Gemstone.GemContactServiceProtocol
 import enum Gemstone.GemContactAvatar
-import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemManageContactServiceProtocol
 import Components
 import GemstoneServices
 import Foundation
 import GemstonePrimitives
 import Localization
-import class Gemstone.GemAddressService
 import Primitives
 import PrimitivesComponents
 import Style
@@ -42,13 +39,10 @@ public final class ManageContactViewModel {
         }
     }
 
-    private let service: any GemContactServiceProtocol
+    private let service: any GemManageContactServiceProtocol
     private let mode: Mode
 
     let contactId: String
-    let nameService: any GemNameServiceProtocol
-    let addressService: GemAddressService
-    let chainService: any GemChainServiceProtocol
 
     var nameInputModel: InputValidationViewModel
     var description: String = ""
@@ -60,16 +54,10 @@ public final class ManageContactViewModel {
     let emojiList: [EmojiValue] = Emoji.WalletAvatar.allCases.map { EmojiValue(emoji: $0.rawValue, color: Colors.grayVeryLight) }
 
     public init(
-        service: any GemContactServiceProtocol,
-        nameService: any GemNameServiceProtocol,
-        addressService: GemAddressService,
-        chainService: any GemChainServiceProtocol,
+        service: any GemManageContactServiceProtocol,
         mode: Mode,
     ) {
         self.service = service
-        self.nameService = nameService
-        self.addressService = addressService
-        self.chainService = chainService
         self.mode = mode
 
         nameInputModel = InputValidationViewModel(
@@ -185,8 +173,16 @@ public final class ManageContactViewModel {
     func listItemModel(for address: ContactAddress) -> ListItemModel {
         ListItemModel(
             title: address.chain.networkName,
-            titleExtra: AddressFormatter(style: .short, address: address.address, chain: address.chain).value(),
+            titleExtra: service.formatAddress(address: address.address, chain: address.chain.rawValue, style: .short),
             imageStyle: .asset(assetImage: AssetIdViewModel(assetId: address.chain.assetId).assetImage),
+        )
+    }
+
+    func addressModel(mode: ManageContactAddressViewModel.Mode) -> ManageContactAddressViewModel {
+        ManageContactAddressViewModel(
+            service: service,
+            mode: mode,
+            onComplete: { [weak self] in self?.onAddressComplete($0) },
         )
     }
 
