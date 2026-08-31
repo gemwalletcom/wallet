@@ -59,6 +59,8 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -116,6 +118,8 @@ class SwapViewModelTest {
         coEvery { suggestPair(any(), any()) } returns null
     }
 
+    private val createdViewModels = mutableListOf<SwapViewModel>()
+
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
@@ -130,6 +134,8 @@ class SwapViewModelTest {
 
     @After
     fun tearDown() {
+        createdViewModels.forEach { it.viewModelScope.cancel() }
+        createdViewModels.clear()
         Dispatchers.resetMain()
         unmockkObject(SwapDetailsUIModelFactory)
     }
@@ -144,7 +150,7 @@ class SwapViewModelTest {
         requestSwapQuotes = requestSwapQuotes,
         swapQuoteService = GemSwapQuoteService(),
         savedStateHandle = savedStateHandle,
-    )
+    ).also { createdViewModels += it }
 
     private fun swapSavedState(
         from: String = solAsset.id.toIdentifier(),

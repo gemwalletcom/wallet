@@ -177,7 +177,8 @@ object GatewayModule {
         assetsService: GemAssetsService,
         walletConfigurationService: GemWalletConfigurationService,
         walletService: GemWalletService,
-    ): GemAppStartService = GemAppStartService(configService, bannerService, assetsService, walletConfigurationService, walletService)
+        deviceService: GemDeviceService,
+    ): GemAppStartService = GemAppStartService(configService, bannerService, assetsService, walletConfigurationService, walletService, deviceService)
 
 
     @Provides

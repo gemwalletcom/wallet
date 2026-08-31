@@ -259,6 +259,7 @@ struct ServicesFactory {
                 preferences: walletPreferencesService,
             ),
             wallet: gemWalletService,
+            device: deviceService,
         )
 
         let onStartService = OnstartService(

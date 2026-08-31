@@ -123,7 +123,6 @@ extension RootSceneViewModel {
     func setup() {
         rateService.perform()
         Task { await checkForUpdate() }
-        Task { try await deviceService.synchronizeIfNeeded() }
         Task {
             do {
                 try await transactionStateService.trackPending()
