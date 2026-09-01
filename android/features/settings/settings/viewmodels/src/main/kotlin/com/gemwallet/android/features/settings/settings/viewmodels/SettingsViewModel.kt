@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -42,7 +43,11 @@ class SettingsViewModel @Inject constructor(
     val uiState = state.asStateFlow()
 
     val isRewardsAvailable = wallets
-        .map { walletSessionService.showsRewards() }
+        .map {
+            withContext(Dispatchers.IO) {
+                walletSessionService.showsRewards()
+            }
+        }
         .stateIn(
             viewModelScope,
             SharingStarted.Eagerly,

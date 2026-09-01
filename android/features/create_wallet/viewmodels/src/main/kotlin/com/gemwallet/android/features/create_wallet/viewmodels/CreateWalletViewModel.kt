@@ -27,7 +27,9 @@ class CreateWalletViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val generatedNameIndex = walletService.nextWalletIndex()
+            val generatedNameIndex = withContext(Dispatchers.IO) {
+                walletService.nextWalletIndex()
+            }
             state.update { it.copy(generatedNameIndex = generatedNameIndex) }
             createWalletOperator()
                 .onSuccess { data ->

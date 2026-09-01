@@ -75,7 +75,7 @@ class ImportViewModelTest {
         val getNameRecord = FakeGetNameRecord(record)
         val viewModel = viewModel(getNameRecord)
 
-        viewModel.importSelect(ImportType(WalletType.PrivateKey, chain))
+        viewModel.importSelect(ImportType(WalletType.PrivateKey, chain)).join()
         advanceUntilIdle()
         viewModel.onInput("vitalik.eth")
         advanceUntilIdle()
@@ -90,7 +90,7 @@ class ImportViewModelTest {
         val getNameRecord = FakeGetNameRecord(record)
         val viewModel = viewModel(getNameRecord)
 
-        viewModel.importSelect(ImportType(WalletType.View, chain))
+        viewModel.importSelect(ImportType(WalletType.View, chain)).join()
         advanceUntilIdle()
         viewModel.onInput("vitalik.eth")
         advanceUntilIdle()
