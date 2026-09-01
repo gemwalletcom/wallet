@@ -139,11 +139,9 @@ impl GemConfirmService {
     }
 
     pub async fn preload(&self, wallet_id: WalletId, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmPreload, GemConfirmError> {
-        let asset_id = input.transfer.input_type.asset().id.clone();
         let confirm_data = self.load(input, options).await?;
         let fee_asset_id = confirm_data.fee.fee_asset.clone();
-        let extra_asset_ids = confirm_data.input.transfer.input_type.asset_ids();
-        let metadata = self.metadata(wallet_id.clone(), asset_id, fee_asset_id.clone(), extra_asset_ids)?;
+        let metadata = self.input_metadata(wallet_id.clone(), &confirm_data.input.transfer.input_type, fee_asset_id.clone())?;
         let fee_asset = self
             .assets
             .assets(vec![fee_asset_id.clone()])
@@ -312,5 +310,11 @@ impl GemConfirmService {
             .await
             .map(Some)
             .map_err(|error| GemConfirmError::Load { msg: error.to_string() })
+    }
+}
+
+impl GemConfirmService {
+    fn input_metadata(&self, wallet_id: WalletId, input_type: &GemTransactionInputType, fee_asset_id: AssetId) -> Result<GemConfirmMetadata, GemConfirmError> {
+        self.metadata(wallet_id, input_type.transaction_asset().id, fee_asset_id, input_type.asset_ids())
     }
 }

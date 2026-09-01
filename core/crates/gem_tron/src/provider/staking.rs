@@ -1,13 +1,12 @@
 use async_trait::async_trait;
 use chain_traits::ChainStaking;
-use chrono::{DateTime, Utc};
-use num_bigint::BigUint;
+use chrono::Utc;
 use std::error::Error;
 
 use gem_client::Client;
-use primitives::{Asset, Chain, DelegationBase, DelegationState, DelegationValidator};
+use primitives::{DelegationBase, DelegationValidator};
 
-use super::staking_mapper::map_staking_validators;
+use super::staking_mapper::{map_staking_delegations, map_staking_validators};
 use crate::rpc::TronProvider;
 use crate::rpc::constants::{GET_WITNESS_127_PAY_PER_BLOCK, GET_WITNESS_PAY_PER_BLOCK};
 
@@ -44,64 +43,7 @@ impl<C: Client> ChainStaking for TronProvider<C> {
     async fn get_staking_delegations(&self, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
         let (account, reward, validators) = futures::try_join!(self.get_account(&address), self.get_reward(&address), self.get_staking_validators(None))?;
 
-        let mut delegations = Vec::new();
-        let asset_id = Chain::Tron.as_asset_id();
-
-        if let Some(unfrozen_v2) = account.unfrozen_v2 {
-            for unfrozen in unfrozen_v2 {
-                if let Some(expire_time) = unfrozen.unfreeze_expire_time {
-                    let amount = unfrozen.unfreeze_amount;
-                    let completion_date = DateTime::from_timestamp((expire_time / 1000) as i64, 0).unwrap_or_else(Utc::now);
-
-                    let now = Utc::now();
-                    let state = if now < completion_date {
-                        DelegationState::Pending
-                    } else {
-                        DelegationState::AwaitingWithdrawal
-                    };
-
-                    delegations.push(DelegationBase {
-                        asset_id: asset_id.clone(),
-                        state,
-                        balance: BigUint::from(amount),
-                        shares: BigUint::from(0u32),
-                        rewards: BigUint::from(0u32),
-                        completion_date: Some(completion_date),
-                        delegation_id: completion_date.timestamp().to_string(),
-                        validator_id: DelegationValidator::SYSTEM_ID.to_string(),
-                    });
-                }
-            }
-        }
-
-        if let Some(votes) = account.votes {
-            let total_votes: u64 = votes.iter().map(|v| v.vote_count).sum();
-            let reward_amount = reward.reward;
-
-            for vote in votes {
-                if validators.iter().any(|v| v.id == vote.vote_address) {
-                    let proportional_reward = if total_votes > 0 {
-                        (reward_amount as f64 * vote.vote_count as f64 / total_votes as f64) as u64
-                    } else {
-                        0
-                    };
-                    let balance = vote.vote_count * 10_u64.pow(Asset::from_chain(Chain::Tron).decimals as u32);
-
-                    delegations.push(DelegationBase {
-                        asset_id: asset_id.clone(),
-                        state: DelegationState::Active,
-                        balance: BigUint::from(balance),
-                        shares: BigUint::from(vote.vote_count),
-                        rewards: BigUint::from(proportional_reward),
-                        completion_date: None,
-                        delegation_id: format!("vote_{}", vote.vote_address),
-                        validator_id: vote.vote_address,
-                    });
-                }
-            }
-        }
-
-        Ok(delegations)
+        Ok(map_staking_delegations(account, reward, &validators, Utc::now()))
     }
 }
 
@@ -109,6 +51,8 @@ impl<C: Client> ChainStaking for TronProvider<C> {
 mod integration_tests {
     use super::*;
     use crate::provider::testkit::{TEST_ADDRESS, create_test_client};
+    use num_bigint::BigUint;
+    use primitives::Chain;
 
     #[tokio::test]
     async fn test_get_staking_apy() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

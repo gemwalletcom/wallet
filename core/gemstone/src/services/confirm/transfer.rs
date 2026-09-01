@@ -50,8 +50,7 @@ impl GemConfirmTransferService {
     }
 
     pub fn metadata(&self, wallet_id: WalletId, input_type: GemTransactionInputType) -> Result<GemConfirmMetadata, GemConfirmError> {
-        self.confirm
-            .metadata(wallet_id, input_type.transaction_asset().id, input_type.fee_asset().id, input_type.asset_ids())
+        self.confirm.input_metadata(wallet_id, &input_type, input_type.fee_asset().id)
     }
 
     pub fn scene_state(&self, wallet_id: WalletId, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> GemConfirmSceneState {
