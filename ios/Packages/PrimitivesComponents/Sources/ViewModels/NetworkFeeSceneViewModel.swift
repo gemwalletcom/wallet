@@ -78,6 +78,7 @@ public struct NetworkFeeSceneViewModel {
                 unitType: feeAsset.chain.feeUnitType,
                 decimals: feeRateDecimals,
                 symbol: feeAsset.symbol,
+                totalFee: totalFee(for: $0.gasPriceType),
             )
         }.sorted()
     }
@@ -108,7 +109,7 @@ public struct NetworkFeeSceneViewModel {
 
     func estimatedFee(for rate: FeeRate) -> BigInt? {
         guard let feeAmount, let base = selectedBaseTotalFee, base != .zero else { return nil }
-        return feeAmount * rate.gasPriceType.totalFee / base
+        return feeAmount * totalFee(for: rate.gasPriceType) / base
     }
 
     // MARK: - Custom Fee
@@ -126,7 +127,7 @@ public struct NetworkFeeSceneViewModel {
             currency: currency,
             baseFee: feeAmount,
             baseTotal: selectedBaseTotalFee,
-            normalTotal: (rates.first(where: { $0.priority == .normal }) ?? rates.first)?.gasPriceType.totalFee ?? selectedBaseTotalFee,
+            normalTotal: (rates.first(where: { $0.priority == .normal }) ?? rates.first).map { totalFee(for: $0.gasPriceType) } ?? selectedBaseTotalFee,
             initialRate: selection.customRate,
             feeService: feeService,
             onSelect: { onSelect?(.custom($0)) },
@@ -147,6 +148,10 @@ public struct NetworkFeeSceneViewModel {
 // MARK: - Private
 
 private extension NetworkFeeSceneViewModel {
+    func totalFee(for gasPriceType: GasPriceType) -> BigInt {
+        BigInt(core: feeService.totalFee(gasPriceType: gasPriceType.map()))
+    }
+
     var feeRateDecimals: Int { feeAsset.chain.feeRateDecimals(assetDecimals: feeAsset.decimals.asInt) }
 
     var customFeeRateViewModel: FeeRateViewModel? {
@@ -156,13 +161,14 @@ private extension NetworkFeeSceneViewModel {
                 unitType: feeAsset.chain.feeUnitType,
                 decimals: feeRateDecimals,
                 symbol: feeAsset.symbol,
+                totalFee: totalFee(for: .regular(gasPrice: $0)),
             )
         }
     }
 
     var selectedBaseTotalFee: BigInt? {
         switch selection {
-        case let .preset(priority): rates.first(where: { $0.priority == priority })?.gasPriceType.totalFee
+        case let .preset(priority): rates.first(where: { $0.priority == priority }).map { totalFee(for: $0.gasPriceType) }
         case let .custom(rate): rate
         }
     }

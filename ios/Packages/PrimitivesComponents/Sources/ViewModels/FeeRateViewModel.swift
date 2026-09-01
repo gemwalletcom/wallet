@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Components
 import Formatters
 import Foundation
@@ -13,17 +14,20 @@ public struct FeeRateViewModel: Identifiable {
     public let unitType: FeeUnitType
     public let decimals: Int
     public let symbol: String
+    public let totalFee: BigInt
 
     public init(
         feeRate: FeeRate,
         unitType: FeeUnitType,
         decimals: Int,
         symbol: String,
+        totalFee: BigInt,
     ) {
         self.feeRate = feeRate
         self.unitType = unitType
         self.decimals = decimals
         self.symbol = symbol
+        self.totalFee = totalFee
     }
 
     public var id: String {
@@ -45,7 +49,7 @@ public struct FeeRateViewModel: Identifiable {
     }
 
     public var feeUnitModel: FeeUnitViewModel {
-        let unit = FeeUnit(type: unitType, value: feeRate.gasPriceType.totalFee)
+        let unit = FeeUnit(type: unitType, value: totalFee)
         return FeeUnitViewModel(
             unit: unit,
             decimals: decimals,

@@ -32,9 +32,6 @@ public enum GasPriceType: Equatable, Sendable {
         }
     }
 
-    public var totalFee: BigInt {
-        gasPrice + priorityFee
-    }
 }
 
 extension GasPriceType: Hashable {}
