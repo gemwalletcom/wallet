@@ -183,7 +183,9 @@ impl GemConfirmService {
                         return Err(error);
                     }
                 };
-                let _ = self.track(wallet_id, result.transactions.clone()).await;
+                if self.track(wallet_id, result.transactions.clone()).await.is_err() {
+                    self.track_pending().await.map_err(|error| GemConfirmError::Record { msg: error.to_string() })?;
+                }
                 Ok(GemExecuteResult::Sent {
                     hashes: result.hashes,
                     transactions: result.transactions,
