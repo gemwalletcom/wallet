@@ -6,6 +6,7 @@ import uniffi.gemstone.GemWalletConnectService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
+import com.gemwallet.android.application.getKeystorePassword
 import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
@@ -318,7 +319,7 @@ class WCAuthViewModel @Inject constructor(
             )
         )
         return try {
-            signMessageOperator.sign(signer, wallet, passwordStore.getPassword(wallet.id.id))
+            signMessageOperator.sign(signer, wallet, passwordStore.getKeystorePassword())
         } finally {
             signer.close()
         }

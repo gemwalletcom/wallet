@@ -1,6 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.application.PasswordStore
+import com.gemwallet.android.application.getKeystorePassword
+import com.gemwallet.android.application.getOrCreateKeystorePassword
 import uniffi.gemstone.GemKeystorePassword
 
 class GemstoneKeystorePassword(
@@ -8,8 +10,7 @@ class GemstoneKeystorePassword(
 ) : GemKeystorePassword {
 
     override fun getPassword(createIfMissing: Boolean): String {
-        val key = PasswordStore.Keys.Password.key
-        return if (createIfMissing) passwordStore.getOrCreatePassword(key) else passwordStore.getPassword(key)
+        return if (createIfMissing) passwordStore.getOrCreateKeystorePassword() else passwordStore.getKeystorePassword()
     }
 
     override fun getWalletPassword(walletId: String): String? =

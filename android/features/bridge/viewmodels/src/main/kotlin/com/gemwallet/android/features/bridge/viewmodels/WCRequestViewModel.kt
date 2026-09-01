@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.PasswordStore
+import com.gemwallet.android.application.getKeystorePassword
 import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.cases.GetWalletConnections
@@ -123,7 +124,7 @@ class WCRequestViewModel @Inject constructor(
         state.update { it.copy(responseState = RequestResponseState.Responding, approved = request) }
         viewModelScope.launch(Dispatchers.IO) {
             val signature = try {
-                signMessageOperator.sign(request.signer, request.wallet, passwordStore.getPassword(request.wallet.id.id))
+                signMessageOperator.sign(request.signer, request.wallet, passwordStore.getKeystorePassword())
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {

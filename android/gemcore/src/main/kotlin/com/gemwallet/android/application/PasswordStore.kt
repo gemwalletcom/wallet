@@ -14,4 +14,8 @@ interface PasswordStore {
     }
 }
 
+fun PasswordStore.getKeystorePassword(): String = getPassword(PasswordStore.Keys.Password.key)
+
+fun PasswordStore.getOrCreateKeystorePassword(): String = getOrCreatePassword(PasswordStore.Keys.Password.key)
+
 class PasswordNotFoundException : IllegalStateException("Password not found")

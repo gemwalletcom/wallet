@@ -35,7 +35,7 @@ class GetWalletSecretDataImplTest {
     fun success_returnsPhrase_notError() = runTest {
         val wallet = mockWallet()
         every { walletStore.observeWallet(wallet.id) } returns flowOf(wallet)
-        every { passwordStore.getPassword(wallet.id.id) } returns "0xdeadbeef"
+        every { passwordStore.getPassword(PasswordStore.Keys.Password.key) } returns "0xdeadbeef"
         coEvery { loadPrivateDataOperator(wallet, "0xdeadbeef") } returns TEST_PHRASE
 
         val value = subject.getSecretData(wallet.id).first()
@@ -48,7 +48,7 @@ class GetWalletSecretDataImplTest {
     fun privateKeyWallet_returnsKey_notPhrase() = runTest {
         val wallet = mockWallet(type = WalletType.PrivateKey)
         every { walletStore.observeWallet(wallet.id) } returns flowOf(wallet)
-        every { passwordStore.getPassword(wallet.id.id) } returns "0xdeadbeef"
+        every { passwordStore.getPassword(PasswordStore.Keys.Password.key) } returns "0xdeadbeef"
         coEvery { loadPrivateDataOperator(wallet, "0xdeadbeef") } returns "0xprivatekey"
 
         val value = subject.getSecretData(wallet.id).first()
@@ -61,7 +61,7 @@ class GetWalletSecretDataImplTest {
     fun keystoreFailure_surfacesError_notBlankPhrase() = runTest {
         val wallet = mockWallet()
         every { walletStore.observeWallet(wallet.id) } returns flowOf(wallet)
-        every { passwordStore.getPassword(wallet.id.id) } throws IllegalStateException("Password not found")
+        every { passwordStore.getPassword(PasswordStore.Keys.Password.key) } throws IllegalStateException("Password not found")
 
         val value = subject.getSecretData(wallet.id).first()
 
@@ -73,7 +73,7 @@ class GetWalletSecretDataImplTest {
     fun cancellation_isNotMappedToError() = runTest {
         val wallet = mockWallet()
         every { walletStore.observeWallet(wallet.id) } returns flowOf(wallet)
-        every { passwordStore.getPassword(wallet.id.id) } throws CancellationException("cancelled")
+        every { passwordStore.getPassword(PasswordStore.Keys.Password.key) } throws CancellationException("cancelled")
 
         val value = subject.getSecretData(wallet.id).firstOrNull()
 

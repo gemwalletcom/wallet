@@ -113,8 +113,8 @@ class MainViewModel @Inject constructor(
             migrateV3KeystoreService()
             runCatching { walletService.migrateToSharedPassword() }
                 .onFailure { Log.e("MainViewModel", "shared keystore password migration failed", it) }
+            checkAccountsService()
         }
-        viewModelScope.launch(Dispatchers.IO) { checkAccountsService() }
     }
 
     fun requestAuth(requestId: Long) {
