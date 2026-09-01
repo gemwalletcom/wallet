@@ -12,6 +12,7 @@ use alloy_primitives::U256;
 use gem_encoding::encode_base64;
 use gem_evm::provider::preload_mapper::calculate_gas_limit_with_increase;
 use num_bigint::BigInt;
+use num_bigint::BigUint;
 use primitives::{
     Chain, ChainType,
     swap::{ApprovalData, QuoteAsset, SwapQuoteData},
@@ -46,7 +47,9 @@ pub(super) async fn build_evm_quote_data(
     let gas_limit = get_swap_gas_limit_with_approval(&approval, buffered_gas_limit(&transaction_data.gas), evm_gas_limit(chain));
     Ok(SwapQuoteData::new_contract(
         transaction_data.to.clone(),
-        transaction_data.get_value(),
+        transaction_data
+            .get_value()
+            .ok_or_else(|| SwapperError::ComputeQuoteError("invalid OKX transaction value".to_string()))?,
         transaction_data.data.clone(),
         approval,
         gas_limit,
@@ -68,7 +71,9 @@ pub(super) async fn build_tron_quote_data(
     let call_data = transaction_data.data.strip_prefix("0x").unwrap_or(&transaction_data.data).to_string();
     Ok(SwapQuoteData::new_contract(
         transaction_data.to.clone(),
-        transaction_data.get_value(),
+        transaction_data
+            .get_value()
+            .ok_or_else(|| SwapperError::ComputeQuoteError("invalid OKX transaction value".to_string()))?,
         call_data,
         approval,
         gas_limit,
@@ -79,7 +84,13 @@ pub(super) fn build_solana_quote_data(transaction_data: &TransactionData) -> Res
     let bytes = bs58::decode(&transaction_data.data)
         .into_vec()
         .map_err(|err| SwapperError::TransactionError(format!("invalid swap transaction data: {err}")))?;
-    Ok(SwapQuoteData::new_contract(transaction_data.to.clone(), "0".to_string(), encode_base64(&bytes), None, None))
+    Ok(SwapQuoteData::new_contract(
+        transaction_data.to.clone(),
+        BigUint::from(0u64),
+        encode_base64(&bytes),
+        None,
+        None,
+    ))
 }
 
 fn buffered_gas_limit(gas: &str) -> Option<String> {

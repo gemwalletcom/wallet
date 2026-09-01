@@ -27,9 +27,9 @@ fn calculate_spot_usdc_value(swap_data: &SwapData, from_asset: &Asset, to_asset:
     let usdc_to = to_asset.id == *HYPERCORE_SPOT_USDC_ASSET_ID;
 
     match (usdc_from, usdc_to) {
-        (true, false) => quote_value(&swap_data.quote.from_value, from_asset.decimals),
+        (true, false) => quote_value(&swap_data.quote.from_value.to_string(), from_asset.decimals),
         (false, true) => {
-            let net_output = quote_value(&swap_data.quote.to_value, to_asset.decimals)?;
+            let net_output = quote_value(&swap_data.quote.to_value.to_string(), to_asset.decimals)?;
             let fee_factor = 1.0 - f64::from(builder_fee_bps) / HYPERCORE_BUILDER_FEE_RATE_SCALE;
             Ok(net_output / fee_factor)
         }

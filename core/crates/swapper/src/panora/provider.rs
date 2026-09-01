@@ -8,6 +8,7 @@ use crate::{
 use async_trait::async_trait;
 use gem_aptos::{APTOS_NATIVE_COIN, ENTRY_FUNCTION_PAYLOAD_TYPE, TransactionPayload};
 use gem_client::Client;
+use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::Chain;
 use std::{fmt::Debug, sync::Arc};
@@ -78,13 +79,13 @@ where
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let from_value = request.value.clone();
-        let response = self.client.get_quote(&Self::build_request(request, &from_value)?).await?;
+        let response = self.client.get_quote(&Self::build_request(request, &from_value.to_string())?).await?;
         let quote = response.quotes.first().ok_or(SwapperError::NoQuoteAvailable)?;
 
         Ok(Quote {
             from_value,
             min_from_value: None,
-            to_value: BigNumberFormatter::value_from_amount(&quote.to_token_amount, response.to_token.decimals)?,
+            to_value: BigNumberFormatter::value_from_amount_biguint(&quote.to_token_amount, response.to_token.decimals)?,
             data: ProviderData {
                 provider: self.provider().clone(),
                 routes: vec![Route {
@@ -111,7 +112,13 @@ where
             payload_type: ENTRY_FUNCTION_PAYLOAD_TYPE.to_string(),
         };
 
-        Ok(SwapperQuoteData::new_contract(String::new(), "0".to_string(), serde_json::to_string(&payload)?, None, None))
+        Ok(SwapperQuoteData::new_contract(
+            String::new(),
+            BigUint::from(0u64),
+            serde_json::to_string(&payload)?,
+            None,
+            None,
+        ))
     }
 }
 
@@ -142,7 +149,7 @@ mod tests {
             },
             wallet_address: TEST_WALLET.to_string(),
             destination_address: TEST_WALLET.to_string(),
-            value: "100000000".to_string(),
+            value: BigUint::from(100000000u64),
             options: Options {
                 slippage: 100.into(),
                 use_max_amount: false,
@@ -201,18 +208,18 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(APTOS_USDT_ASSET_ID.clone()),
             wallet_address: TEST_APTOS_WALLET.to_string(),
             destination_address: TEST_APTOS_WALLET.to_string(),
-            value: "100000000".to_string(),
+            value: BigUint::from(100000000u64),
             options: Options::new_with_slippage(100.into()),
         };
 
         let quote = provider.get_quote(&request).await?;
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         assert_eq!(quote.data.provider, provider.provider().clone());
         assert_eq!(quote.data.routes.len(), 1);
 
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
         assert_eq!(quote_data.to, "");
-        assert_eq!(quote_data.value, "0");
+        assert_eq!(quote_data.value, BigUint::from(0u64));
         assert!(!quote_data.data.is_empty());
 
         Ok(())

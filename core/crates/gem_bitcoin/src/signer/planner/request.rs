@@ -1,3 +1,4 @@
+use num_traits::ToPrimitive;
 use primitives::{Asset, BitcoinChain, SignerError, SignerInput, UTXO, swap::SwapQuoteDataType};
 
 #[derive(Debug, Clone)]
@@ -46,8 +47,8 @@ impl SpendRequest {
             amount: swap
                 .data
                 .value
-                .parse::<u64>()
-                .map_err(|_| SignerError::invalid_input(format!("invalid {} swap amount", chain.get_chain())))?,
+                .to_u64()
+                .ok_or_else(|| SignerError::invalid_input(format!("{} swap amount is too large", chain.get_chain())))?,
             is_max: swap.quote.use_max_amount.unwrap_or(input.is_max_value),
             fee_rate: spend_fee_rate(chain, input)?,
             memo,

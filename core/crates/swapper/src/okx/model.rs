@@ -1,5 +1,7 @@
 use crate::SwapperError;
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 #[derive(Clone)]
 pub struct OkxClientConfig {
@@ -71,8 +73,12 @@ pub(super) struct TransactionData {
 }
 
 impl TransactionData {
-    pub fn get_value(&self) -> String {
-        if self.value.is_empty() { "0".to_string() } else { self.value.clone() }
+    pub fn get_value(&self) -> Option<BigUint> {
+        if self.value.is_empty() {
+            Some(BigUint::ZERO)
+        } else {
+            BigUint::from_str(&self.value).ok()
+        }
     }
 }
 

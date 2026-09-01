@@ -1,6 +1,8 @@
 use alloy_primitives::{Address, B256, U256, hex::encode_prefixed as HexEncode};
 use alloy_sol_types::SolValue;
 use async_trait::async_trait;
+use gem_evm::u256::u256_to_biguint;
+use num_bigint::BigUint;
 use std::{collections::HashSet, fmt, iter, str::FromStr, sync::Arc, vec};
 
 use crate::{
@@ -91,7 +93,7 @@ impl UniswapV4 {
 
     fn parse_request(request: &QuoteRequest) -> Result<(EVMChain, Address, Address, u128), SwapperError> {
         let (evm_chain, token_in, token_out) = Self::parse_assets(&request.from_asset.asset_id(), &request.to_asset.asset_id())?;
-        let amount_in = u128::from_str(&request.value).map_err(SwapperError::from)?;
+        let amount_in = u128::from_str(&request.value.to_string()).map_err(SwapperError::from)?;
         Ok((evm_chain, token_in, token_out, amount_in))
     }
 
@@ -232,7 +234,7 @@ impl Swapper for UniswapV4 {
         Ok(Quote {
             from_value: request.value.clone(),
             min_from_value: None,
-            to_value: to_value.to_string(),
+            to_value: u256_to_biguint(&to_value),
             data: ProviderData {
                 provider: self.provider().clone(),
                 routes,
@@ -316,7 +318,7 @@ impl Swapper for UniswapV4 {
         )?;
         let encoded = encode_commands(&commands, U256::from(sig_deadline));
 
-        let value = if wrap_input_eth { request.value.clone() } else { String::from("0") };
+        let value = if wrap_input_eth { request.value.clone() } else { BigUint::ZERO };
 
         Ok(SwapperQuoteData::new_contract(
             deployment.universal_router.into(),
@@ -332,6 +334,7 @@ impl Swapper for UniswapV4 {
 mod tests {
     use super::*;
     use crate::{Options, alien::mock::ProviderMock};
+    use num_bigint::BigUint;
     use primitives::asset_constants::TEMPO_BRIDGED_USDC_ASSET_ID;
     use std::sync::Arc;
 
@@ -344,7 +347,7 @@ mod tests {
             to_asset: AssetId::from_chain(Chain::SmartChain).into(),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
-            value: "40000000000000000".into(), // 0.04 Cake
+            value: BigUint::from(40000000000000000u64), // 0.04 Cake
             options: Options::default(),
         };
 
@@ -375,6 +378,8 @@ mod tests {
 #[cfg(all(test, feature = "swap_integration_tests", feature = "reqwest_provider"))]
 mod swap_integration_tests {
     use crate::{FetchQuoteData, NativeProvider, Options, QuoteRequest, SwapperError, client_factory::create_eth_client, uniswap};
+    use num_bigint::BigUint;
+    use num_traits::ToPrimitive;
     use primitives::{
         AssetId, Chain,
         asset_constants::{ROBINHOOD_USDG_TOKEN_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID},
@@ -395,13 +400,13 @@ mod swap_integration_tests {
             to_asset: AssetId::from(Chain::Unichain, Some("0x078D782b760474a361dDA0AF3839290b0EF57AD6".to_string())).into(),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
-            value: "10000000000000000".into(), // 0.01 ETH
+            value: BigUint::from(10000000000000000u64), // 0.01 ETH
             options,
         };
 
         let quote = swap_provider.get_quote(&request).await?;
 
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
 
         swap_provider.get_quote_data(&quote, FetchQuoteData::EstimateGas).await?;
 
@@ -422,16 +427,22 @@ mod swap_integration_tests {
             to_asset: AssetId::from(Chain::Robinhood, Some(ROBINHOOD_USDG_TOKEN_ID.to_string())).into(),
             wallet_address: "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4".into(),
             destination_address: "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4".into(),
-            value: "100000000000000".into(), // 0.0001 ETH
+            value: BigUint::from(100000000000000u64), // 0.0001 ETH
             options,
         };
 
         let quote = swap_provider.get_quote(&request).await?;
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
 
         let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::EstimateGas).await?;
 
-        let estimate_value = format!("0x{:x}", quote_data.value.parse::<u128>().map_err(SwapperError::from)?);
+        let estimate_value = format!(
+            "0x{:x}",
+            quote_data
+                .value
+                .to_u128()
+                .ok_or_else(|| SwapperError::ComputeQuoteError("quote value is too large".to_string()))?
+        );
         let gas = create_eth_client(network_provider.clone(), Chain::Robinhood)?
             .estimate_gas(Some(&request.wallet_address), &quote_data.to, Some(&estimate_value), Some(&quote_data.data))
             .await
@@ -457,11 +468,11 @@ mod swap_integration_tests {
                 to_asset: to_asset.into(),
                 wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
                 destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
-                value: "1000000".into(),
+                value: BigUint::from(1000000u64),
                 options: options.clone(),
             };
             let quote = swap_provider.get_quote(&request).await?;
-            assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+            assert!(quote.to_value > BigUint::ZERO);
         }
 
         Ok(())

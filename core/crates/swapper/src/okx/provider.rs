@@ -12,7 +12,9 @@ use crate::{
 };
 use async_trait::async_trait;
 use gem_client::{Client, ClientExt};
+use num_bigint::BigUint;
 use primitives::Chain;
+use std::str::FromStr;
 use std::{fmt::Debug, sync::Arc};
 
 #[derive(Debug)]
@@ -68,7 +70,7 @@ where
         Ok(Quote {
             from_value: request.value.clone(),
             min_from_value: None,
-            to_value: route.to_token_amount,
+            to_value: BigUint::from_str(&route.to_token_amount).map_err(SwapperError::compute_quote_error)?,
             data: ProviderData {
                 provider: self.provider.clone(),
                 routes: vec![Route {
@@ -95,7 +97,7 @@ where
         build_swap_quote_data(
             &transaction_data,
             &request.from_asset,
-            &request.value,
+            &request.value.to_string(),
             chain,
             &request.wallet_address,
             self.rpc_provider.clone(),
@@ -180,8 +182,8 @@ mod tests {
 
         let quote = provider.get_quote(&mock_solana_request()).await.unwrap();
 
-        assert_eq!(quote.to_value, "14930750");
-        assert_eq!(quote.from_value, "100000000");
+        assert_eq!(quote.to_value, BigUint::from(14930750u64));
+        assert_eq!(quote.from_value, BigUint::from(100000000u64));
         assert_eq!(quote.data.provider.id, SwapperProvider::Okx);
         let route_data: QuoteData = serde_json::from_str(&quote.data.routes[0].route_data).unwrap();
         assert_eq!(route_data.to_token_amount, "14930750");
@@ -216,7 +218,7 @@ mod tests {
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
 
         assert_eq!(quote_data.to, "RouterAddr");
-        assert_eq!(quote_data.value, "0");
+        assert_eq!(quote_data.value, BigUint::from(0u64));
         assert_eq!(quote_data.data, "aGVsbG8=");
         assert!(quote_data.approval.is_none());
         assert!(quote_data.gas_limit.is_none());
@@ -247,12 +249,12 @@ mod tests {
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
 
         assert_eq!(quote_data.to, EVM_ROUTER);
-        assert_eq!(quote_data.value, "0");
+        assert_eq!(quote_data.value, BigUint::from(0u64));
         assert_eq!(quote_data.data, "0xabc123");
         let approval = quote_data.approval.unwrap();
         assert_eq!(approval.token, ETHEREUM_USDC_TOKEN_ID);
         assert_eq!(approval.spender, EVM_ROUTER);
-        assert_eq!(approval.value, "1000000");
+        assert_eq!(approval.value, BigUint::from(1000000u64));
         assert_eq!(quote_data.gas_limit.as_deref(), Some("300000"));
 
         // Tron: 0x is stripped, approval targets the fixed approve contract, energy kept unbuffered.
@@ -263,7 +265,7 @@ mod tests {
             SwapperQuoteAsset::from(AssetId::from_chain(Chain::Tron)),
         );
         request.wallet_address = TEST_TRON_WALLET.to_string();
-        request.value = "50000000".to_string();
+        request.value = BigUint::from(50000000u64);
 
         let quote = provider.get_quote(&request).await.unwrap();
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
@@ -273,7 +275,7 @@ mod tests {
         let approval = quote_data.approval.unwrap();
         assert_eq!(approval.token, TRON_USDT_TOKEN_ID);
         assert_eq!(approval.spender, TRON_DEX_TOKEN_APPROVE_ADDRESS);
-        assert_eq!(approval.value, "50000000");
+        assert_eq!(approval.value, BigUint::from(50000000u64));
         assert_eq!(quote_data.gas_limit.as_deref(), Some("230400"));
     }
 }
@@ -350,7 +352,7 @@ mod swap_integration_tests {
     fn mock_swap_request(from_asset: AssetId, to_asset: AssetId, wallet_address: &str, value: &str) -> QuoteRequest {
         let mut request = mock_quote(SwapperQuoteAsset::from(from_asset), SwapperQuoteAsset::from(to_asset));
         request.wallet_address = wallet_address.to_string();
-        request.value = value.to_string();
+        request.value = value.parse().unwrap();
         request
     }
 
@@ -389,11 +391,11 @@ mod swap_integration_tests {
             // OKX rate limits to ~1 request per second.
             tokio::time::sleep(std::time::Duration::from_secs(1)).await;
             let quote = provider.get_quote(&request).await?;
-            assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+            assert!(quote.to_value > BigUint::ZERO);
 
             let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
             assert!(!quote_data.to.is_empty());
-            assert_eq!(quote_data.value, expected_value);
+            assert_eq!(quote_data.value.to_string(), expected_value);
             assert!(!quote_data.data.is_empty());
             assert!(quote_data.approval.is_none());
         }
@@ -406,7 +408,7 @@ mod swap_integration_tests {
 
         tokio::time::sleep(std::time::Duration::from_secs(1)).await;
         let quote = provider.get_quote(&request).await?;
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
 
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
         assert!(!quote_data.to.is_empty());

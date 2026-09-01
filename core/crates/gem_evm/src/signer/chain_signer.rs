@@ -47,7 +47,7 @@ impl EvmSigner for StandardEvmSigner {
             &swap_data.to,
             decode_hex(&swap_data.data)?,
             input.swap_gas_limit()?,
-            value_u256(&swap_data.value)?,
+            value_u256(&swap_data.value.to_string())?,
             swap_data.approval.as_ref(),
             private_key,
         )
@@ -226,6 +226,7 @@ fn sign_contract_call(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_bigint::BigUint;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{
         ApplicationMetadata, Asset, Chain, ChainSigner, DelegationValidator, NFTType, SignerInput, TransactionInputType, TransactionLoadMetadata, TransferDataExtra,
@@ -289,7 +290,7 @@ mod tests {
         let swap_data = SwapData {
             quote: SwapQuote::mock(),
             data: SwapQuoteData {
-                value: "1000000000000000000".to_string(),
+                value: BigUint::parse_bytes(b"1000000000000000000", 10).unwrap(),
                 data: "abcd".to_string(),
                 gas_limit: None,
                 ..SwapQuoteData::mock()

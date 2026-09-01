@@ -1,3 +1,4 @@
+use crate::u256::u256_to_biguint;
 use alloy_primitives::{U160, U256, hex};
 use alloy_sol_types::SolCall;
 use primitives::swap::ApprovalData;
@@ -26,7 +27,7 @@ pub fn decode_transaction_kind(token: &str, input: Option<&str>) -> Result<EvmTr
             Ok(EvmTransactionKind::TokenApproval(ApprovalData {
                 token: token.to_string(),
                 spender: approval.spender.to_string(),
-                value: approval.value.to_string(),
+                value: u256_to_biguint(&approval.value),
                 is_unlimited: approval.value == U256::MAX || approval.value == U256::from(U160::MAX),
             }))
         }
@@ -37,6 +38,7 @@ pub fn decode_transaction_kind(token: &str, input: Option<&str>) -> Result<EvmTr
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_bigint::BigUint;
 
     #[test]
     fn test_decode_transaction_kind() {
@@ -53,7 +55,7 @@ mod tests {
             EvmTransactionKind::TokenApproval(ApprovalData {
                 token: token.to_string(),
                 spender: "0x22223333444455556666777788889999aaAaBBbB".to_string(),
-                value: "100".to_string(),
+                value: BigUint::from(100u64),
                 is_unlimited: false,
             })
         );
@@ -74,7 +76,7 @@ mod tests {
             EvmTransactionKind::TokenApproval(ApprovalData {
                 token: token.to_string(),
                 spender: "0x22223333444455556666777788889999aaAaBBbB".to_string(),
-                value: U256::MAX.to_string(),
+                value: u256_to_biguint(&U256::MAX),
                 is_unlimited: true,
             })
         );

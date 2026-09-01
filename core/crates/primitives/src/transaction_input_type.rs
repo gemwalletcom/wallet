@@ -11,7 +11,6 @@ use num_traits::ToPrimitive;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::ops::Deref;
-use std::str::FromStr;
 use typeshare::typeshare;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -226,7 +225,7 @@ impl SignerInput {
 
     pub fn swap_value(&self) -> Result<BigInt, SignerError> {
         let swap = self.input_type.get_swap_data()?;
-        let value = BigInt::from_str(&swap.data.value).map_err(|_| SignerError::invalid_input("invalid transaction amount"))?;
+        let value = BigInt::from(swap.data.value.clone());
         if !swap.quote.use_max_amount.unwrap_or(self.is_max_value) || !self.input_type.get_asset().id.is_native() {
             return Ok(value);
         }
@@ -238,11 +237,10 @@ impl SignerInput {
         if value < BigInt::ZERO {
             return Err(SignerError::InsufficientFunds);
         }
-        if let Some(min_from_value) = &swap.quote.min_from_value {
-            let min_value = BigInt::from_str(min_from_value).map_err(|_| SignerError::invalid_input("invalid swap minimum value"))?;
-            if value < min_value {
-                return Err(SignerError::SwapValueBelowMinimum);
-            }
+        if let Some(min_from_value) = &swap.quote.min_from_value
+            && value < BigInt::from(min_from_value.clone())
+        {
+            return Err(SignerError::SwapValueBelowMinimum);
         }
         Ok(value)
     }
@@ -290,7 +288,7 @@ mod tests {
         assert_eq!(input.swap_value().unwrap(), BigInt::from(1_000_000_000_000_000_000u64));
 
         swap_data.quote.use_max_amount = Some(true);
-        swap_data.quote.min_from_value = Some(value.to_string());
+        swap_data.quote.min_from_value = Some(value.parse().unwrap());
         let input = swap_signer_input(swap_data.clone(), value);
         assert_eq!(input.swap_value().unwrap_err(), SignerError::SwapValueBelowMinimum);
 

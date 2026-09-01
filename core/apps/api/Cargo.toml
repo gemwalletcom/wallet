@@ -7,6 +7,7 @@ version = { workspace = true }
 path = "src/lib.rs"
 
 [dependencies]
+num-bigint = { workspace = true }
 rocket = { workspace = true }
 rocket_ws = { workspace = true }
 serde = { workspace = true }

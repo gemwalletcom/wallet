@@ -6,6 +6,7 @@ use crate::{
 use alloy_primitives::{Address, Bytes, U256};
 use alloy_sol_types::{SolCall, sol};
 use futures::try_join;
+use num_bigint::BigUint;
 use primitives::{AssetId, ChainType, decode_hex, hex, swap::ApprovalData};
 use std::{future::Future, str::FromStr, sync::Arc};
 
@@ -158,12 +159,18 @@ pub(in crate::mayan::tx_builder) async fn build_quote_data(
         quote.request.wallet_address.clone(),
         quote.request.from_asset.asset_id(),
         MAYAN_FORWARDER,
-        U256::from_str(&quote.from_value)?,
+        U256::from_str(&quote.from_value.to_string())?,
         rpc_provider,
     );
     let (transaction, approval) = try_join!(transaction, approval)?;
     let gas_limit = get_swap_gas_limit_with_approval(&approval, None, DEFAULT_EVM_SWAP_GAS_LIMIT);
-    Ok(SwapperQuoteData::new_contract(transaction.to, transaction.value, transaction.data, approval, gas_limit))
+    Ok(SwapperQuoteData::new_contract(
+        transaction.to,
+        BigUint::from_str(&transaction.value).map_err(SwapperError::compute_quote_error)?,
+        transaction.data,
+        approval,
+        gas_limit,
+    ))
 }
 
 async fn approval_data(wallet_address: String, asset: AssetId, spender: &str, amount: U256, rpc_provider: Arc<dyn RpcProvider>) -> Result<Option<ApprovalData>, SwapperError> {

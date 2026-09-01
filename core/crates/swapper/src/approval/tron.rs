@@ -1,3 +1,4 @@
+use gem_evm::u256::u256_to_biguint;
 use std::sync::Arc;
 
 use alloy_primitives::U256;
@@ -26,7 +27,7 @@ pub async fn check_approval_trc20(owner: String, token: String, spender: String,
         return Ok(ApprovalType::Approve(ApprovalData {
             token,
             spender,
-            value: amount.to_string(),
+            value: u256_to_biguint(&amount),
             is_unlimited: true,
         }));
     }

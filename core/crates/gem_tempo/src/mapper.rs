@@ -48,9 +48,9 @@ mod tests {
 
         let metadata: TransactionSwapMetadata = serde_json::from_value(mapped_transaction.metadata.unwrap()).unwrap();
         assert_eq!(metadata.from_asset, TEMPO_BRIDGED_USDC_ASSET_ID.clone());
-        assert_eq!(metadata.from_value, "200000");
+        assert_eq!(metadata.from_value, BigUint::from(200000u64));
         assert_eq!(metadata.to_asset, TEMPO_PATHUSD_ASSET_ID.clone());
-        assert_eq!(metadata.to_value, "198979");
+        assert_eq!(metadata.to_value, BigUint::from(198979u64));
     }
 
     #[test]

@@ -106,9 +106,9 @@ fn map_spot_fill_group(address: &str, fills: Vec<UserFill>, last_fill: &UserFill
 
     let metadata = serde_json::to_value(TransactionSwapMetadata {
         from_asset: from_asset.clone(),
-        from_value: from_value.to_string(),
+        from_value: from_value.clone(),
         to_asset,
-        to_value: to_value.to_string(),
+        to_value,
         provider: Some(SwapProvider::Hyperliquid.id().to_string()),
     })
     .ok()?;
@@ -322,9 +322,9 @@ mod tests {
 
         let metadata: TransactionSwapMetadata = serde_json::from_value(transactions[0].metadata.clone().unwrap()).unwrap();
         assert_eq!(metadata.from_asset, HYPERCORE_SPOT_HYPE_ASSET_ID.clone());
-        assert_eq!(metadata.from_value, "30000000");
+        assert_eq!(metadata.from_value, BigUint::from(30000000u64));
         assert_eq!(metadata.to_asset, HYPERCORE_SPOT_USDC_ASSET_ID.clone());
-        assert_eq!(metadata.to_value, "1182450000");
+        assert_eq!(metadata.to_value, BigUint::from(1182450000u64));
         assert_eq!(metadata.provider.as_deref(), Some("hyperliquid"));
     }
 
@@ -344,9 +344,9 @@ mod tests {
 
         let metadata: TransactionSwapMetadata = serde_json::from_value(transactions[0].metadata.clone().unwrap()).unwrap();
         assert_eq!(metadata.from_asset, HYPERCORE_SPOT_USDC_ASSET_ID.clone());
-        assert_eq!(metadata.from_value, "1197900000");
+        assert_eq!(metadata.from_value, BigUint::from(1197900000u64));
         assert_eq!(metadata.to_asset, HYPERCORE_SPOT_HYPE_ASSET_ID.clone());
-        assert_eq!(metadata.to_value, "30000000");
+        assert_eq!(metadata.to_value, BigUint::from(30000000u64));
         assert_eq!(metadata.provider.as_deref(), Some("hyperliquid"));
     }
 }

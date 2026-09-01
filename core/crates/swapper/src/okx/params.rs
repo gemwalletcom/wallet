@@ -52,7 +52,7 @@ pub(super) fn build_quote_params(request: &QuoteRequest) -> Result<QuoteParams, 
     let chain = request.from_asset.chain();
     Ok(QuoteParams {
         chain_index: chain_index(chain).ok_or(SwapperError::NotSupportedChain)?.to_string(),
-        amount: request.value.clone(),
+        amount: request.value.to_string(),
         from_token_address: asset_to_token_address(&request.from_asset)?,
         to_token_address: asset_to_token_address(&request.to_asset)?,
         slippage_percent: slippage_percent(request.options.slippage.bps),
@@ -69,12 +69,12 @@ pub(super) fn build_swap_params(request: &QuoteRequest, route: &QuoteData) -> Re
     let slippage_bps = limit_slippage_bps(request.options.slippage.bps, chain);
     Ok(SwapParams {
         chain_index: chain_index(chain).ok_or(SwapperError::NotSupportedChain)?.to_string(),
-        amount: request.value.clone(),
+        amount: request.value.to_string(),
         from_token_address: route.from_token.token_contract_address.clone(),
         to_token_address: route.to_token.token_contract_address.clone(),
         user_wallet_address: request.wallet_address.clone(),
         approve_transaction: approve_transaction.then_some(true),
-        approve_amount: approve_transaction.then(|| request.value.clone()),
+        approve_amount: approve_transaction.then(|| request.value.to_string()),
         slippage_percent: Some(slippage_percent(slippage_bps)),
         auto_slippage: Some(is_auto),
         max_auto_slippage_percent: is_auto.then(|| max_auto_slippage_percent(slippage_bps)).flatten(),

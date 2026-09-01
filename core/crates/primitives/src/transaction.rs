@@ -425,9 +425,9 @@ mod tests {
             metadata: Some(
                 serde_json::to_value(TransactionSwapMetadata {
                     from_asset: Asset::mock_eth().id,
-                    from_value: "1".to_string(),
+                    from_value: BigUint::from(1u64),
                     to_asset: Asset::mock_eth().id,
-                    to_value: "1".to_string(),
+                    to_value: BigUint::from(1u64),
                     provider: None,
                 })
                 .unwrap(),
@@ -441,9 +441,9 @@ mod tests {
             metadata: Some(
                 serde_json::to_value(TransactionSwapMetadata {
                     from_asset: Asset::mock_ethereum_usdc().id,
-                    from_value: "1".to_string(),
+                    from_value: BigUint::from(1u64),
                     to_asset: Asset::mock_erc20().id,
-                    to_value: "1".to_string(),
+                    to_value: BigUint::from(1u64),
                     provider: None,
                 })
                 .unwrap(),
@@ -508,9 +508,9 @@ mod tests {
             metadata: Some(
                 serde_json::to_value(TransactionSwapMetadata {
                     from_asset: Asset::mock_ethereum_usdc().id,
-                    from_value: "1".to_string(),
+                    from_value: BigUint::from(1u64),
                     to_asset: Asset::mock_erc20().id,
-                    to_value: "1".to_string(),
+                    to_value: BigUint::from(1u64),
                     provider: None,
                 })
                 .unwrap(),

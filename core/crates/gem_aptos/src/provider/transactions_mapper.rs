@@ -7,7 +7,6 @@ use chrono::DateTime;
 use num_bigint::{BigInt, BigUint};
 use primitives::{AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionState, TransactionType};
 use std::error::Error;
-use std::str::FromStr;
 
 const PANORA_SWAP_EVENT: &str = "panora_swap";
 const PANORA_SWAP_EVENT_ADDRESS: &str = "0x1c3206329806286fd2223647c9f9b130e66baeb6d7224a18c1f642ffe48f3b4c";
@@ -106,7 +105,7 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
             asset_id,
             chain.as_asset_id(),
             to,
-            BigUint::from_str(&swap.from_value).ok()?,
+            swap.from_value.clone(),
             TransactionType::Swap,
             metadata,
         ));
@@ -162,7 +161,7 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
         asset_id,
         chain.as_asset_id(),
         to,
-        BigUint::from_str(&swap.from_value).ok()?,
+        swap.from_value.clone(),
         TransactionType::Swap,
         metadata,
     ))
@@ -338,9 +337,9 @@ mod tests {
 
         let metadata: primitives::TransactionSwapMetadata = serde_json::from_value(tx.metadata.unwrap()).unwrap();
         assert_eq!(metadata.from_asset, AssetId::from_token(Chain::Aptos, APTOS_USDT_TOKEN_ID));
-        assert_eq!(metadata.from_value, "2346314");
+        assert_eq!(metadata.from_value, BigUint::from(2346314u64));
         assert_eq!(metadata.to_asset, Chain::Aptos.as_asset_id());
-        assert_eq!(metadata.to_value, "120590251");
+        assert_eq!(metadata.to_value, BigUint::from(120590251u64));
         assert_eq!(metadata.provider.unwrap(), "panora");
     }
 

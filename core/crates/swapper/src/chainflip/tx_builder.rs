@@ -1,5 +1,6 @@
 use super::broker::{SolanaVaultSwapResponse, TronVaultSwapResponse};
 use crate::{SwapperError, SwapperQuoteData, alien::RpcProvider, client_factory::create_client_with_chain};
+use num_bigint::BigUint;
 
 use gem_encoding::encode_base64;
 use gem_solana::{DEFAULT_SWAP_GAS_LIMIT, SolanaClient, try_decode_blockhash};
@@ -12,7 +13,7 @@ use primitives::{
 use solana_primitives::{AccountMeta, InstructionBuilder, Pubkey, TransactionBuilder, compute_budget::set_compute_unit_limit};
 use std::{str::FromStr, sync::Arc};
 
-pub(super) fn build_tron_quote_data(response: &TronVaultSwapResponse, value: String) -> Result<SwapperQuoteData, SwapperError> {
+pub(super) fn build_tron_quote_data(response: &TronVaultSwapResponse, value: BigUint) -> Result<SwapperQuoteData, SwapperError> {
     let address = response.source_token_address.as_deref().unwrap_or(&response.to);
     let to = TronAddress::parse_hex_or_base58(address)?.to_string();
     let calldata = decode_hex(&response.calldata).map_err(|_| SwapperError::TransactionError("invalid Tron calldata".to_string()))?;
@@ -79,14 +80,14 @@ mod tests {
                 note: note.to_string(),
                 source_token_address: Some("0xeca9bc828a3005b9a3b909f2cc5c2a54794de05f".to_string()),
             },
-            "0".to_string(),
+            BigUint::ZERO,
         )
         .unwrap();
 
         assert_eq!(data.data_type, Contract);
         assert_eq!(data.to, "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf");
         assert_eq!(data.memo, Some(note.to_string()));
-        assert_eq!(data.value, "0");
+        assert_eq!(data.value, BigUint::from(0u64));
         assert_eq!(data.data, "a9059cbb");
 
         let data = build_tron_quote_data(
@@ -97,7 +98,7 @@ mod tests {
                 note: note.to_string(),
                 source_token_address: Some("TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf".to_string()),
             },
-            "0".to_string(),
+            BigUint::ZERO,
         )
         .unwrap();
 
@@ -116,12 +117,12 @@ mod tests {
                     note: note.to_string(),
                     source_token_address: None,
                 },
-                "50000000".to_string(),
+                BigUint::from(50_000_000u64),
             )
             .unwrap();
 
             assert_eq!(data.to, "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi");
-            assert_eq!(data.value, "50000000");
+            assert_eq!(data.value, BigUint::from(50000000u64));
             assert_eq!(data.data, "");
         }
     }

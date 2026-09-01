@@ -1,6 +1,5 @@
 use chrono::Utc;
 use num_bigint::BigInt;
-use num_bigint::BigUint;
 use primitives::SwapProvider;
 use primitives::known_assets::wallet_default_assets;
 use primitives::swap::ApprovalData;
@@ -9,7 +8,6 @@ use primitives::{
     TransactionInputType, TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata,
     TransactionType, TransactionWalletConnectMetadata, TransferDataOutputAction, TransferDataOutputType,
 };
-use std::str::FromStr;
 
 use super::model::{GemPendingTransactionInput, GemRecentActivity, GemTransferBalance, GemTransferData, GemTransferOutput};
 use crate::models::transaction::{GemTransactionInputType, transaction_metadata_block_number, transaction_metadata_sequence};
@@ -273,11 +271,7 @@ impl GemPendingTransactionInput {
         };
         let transfer_value = self.value.to_biguint().ok_or_else(|| "negative transfer value".to_string())?;
         let (recipient, value, memo) = match &approval {
-            Some(approval) => (
-                approval.spender.clone(),
-                BigUint::from_str(&approval.value).map_err(|error| error.to_string())?,
-                String::new(),
-            ),
+            Some(approval) => (approval.spender.clone(), approval.value.clone(), String::new()),
             None => {
                 let recipient = match &transfer.input_type {
                     GemTransactionInputType::Swap { swap_data, .. } => swap_data.data.to.clone(),
@@ -388,10 +382,10 @@ mod tests {
             swap_data: SwapData {
                 quote: SwapQuote {
                     from_address: "from".into(),
-                    from_value: "100".into(),
+                    from_value: BigUint::from(100u64),
                     min_from_value: None,
                     to_address: "to".into(),
-                    to_value: "90".into(),
+                    to_value: BigUint::from(90u64),
                     provider_data: SwapProviderData {
                         provider,
                         name: "provider".into(),
@@ -404,7 +398,7 @@ mod tests {
                 data: SwapQuoteData {
                     to: "0xrouter".into(),
                     data_type: SwapQuoteDataType::Contract,
-                    value: "100".to_string(),
+                    value: BigUint::from(100u64),
                     data: "0x".into(),
                     memo: None,
                     approval,
@@ -659,7 +653,7 @@ mod tests {
             Some(ApprovalData {
                 token: "0xusdc".into(),
                 spender: "0xspender".into(),
-                value: "100".to_string(),
+                value: BigUint::from(100u64),
                 is_unlimited: false,
             }),
         );

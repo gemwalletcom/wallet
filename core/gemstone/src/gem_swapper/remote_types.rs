@@ -1,3 +1,4 @@
+use crate::models::custom_types::GemBigUint;
 use std::str::FromStr;
 
 use primitives::{AssetId, Chain};
@@ -44,7 +45,7 @@ pub struct SwapperQuoteRequest {
     pub to_asset: SwapperQuoteAsset,
     pub wallet_address: String,
     pub destination_address: String,
-    pub value: String,
+    pub value: GemBigUint,
     pub options: SwapperOptions,
 }
 
@@ -64,9 +65,9 @@ pub struct SwapperProviderData {
 
 #[uniffi::remote(Record)]
 pub struct SwapperQuote {
-    pub from_value: String,
-    pub min_from_value: Option<String>,
-    pub to_value: String,
+    pub from_value: GemBigUint,
+    pub min_from_value: Option<GemBigUint>,
+    pub to_value: GemBigUint,
     pub data: SwapperProviderData,
     pub request: SwapperQuoteRequest,
     pub eta_in_seconds: Option<u32>,

@@ -58,7 +58,7 @@ impl TonSigner {
         let swap_data = input.input_type.get_swap_data()?;
         let request = TransferRequest::new_with_payload(
             &swap_data.data.to,
-            &swap_data.data.value,
+            &swap_data.data.value.to_string(),
             input.memo.clone(),
             Some(BagOfCells::parse_base64_root(&swap_data.data.data)?),
             true,
@@ -218,7 +218,7 @@ mod tests {
         let signer = test_signer();
         let mut swap_data = SwapData::mock_with_provider(primitives::SwapProvider::StonfiV2);
         swap_data.data.to = SENDER_TOKEN_ADDRESS.to_string();
-        swap_data.data.value = "241000000".to_string();
+        swap_data.data.value = BigUint::from(241000000u64);
         swap_data.data.data = mock_cell();
         swap_data.data.gas_limit = None;
         let input = SignerInput::mock_ton(

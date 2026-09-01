@@ -9,7 +9,6 @@ use gem_encoding::decode_base64;
 use num_bigint::BigUint;
 use primitives::{AssetId, NFTAssetId, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType, chain::Chain};
 use std::error::Error;
-use std::str::FromStr;
 
 pub fn map_transaction_broadcast(broadcast_result: BroadcastTransaction) -> Result<String, Box<dyn Error + Sync + Send>> {
     let hash_bytes = decode_base64(&broadcast_result.hash)?;
@@ -147,7 +146,7 @@ fn nft_transfer_details(actions: &[TraceAction]) -> Option<TransferDetails> {
 fn jetton_swap_details(actions: &[TraceAction]) -> Option<TransferDetails> {
     let (sender, metadata) = jetton_swap_metadata(actions)?;
     let asset_id = metadata.from_asset.clone();
-    let value = BigUint::from_str(&metadata.from_value).ok()?;
+    let value = metadata.from_value.clone();
     let metadata_value = serde_json::to_value(metadata).ok()?;
 
     Some(TransferDetails {
@@ -170,9 +169,9 @@ fn jetton_swap_metadata(actions: &[TraceAction]) -> Option<(String, TransactionS
     };
     let metadata = TransactionSwapMetadata {
         from_asset,
-        from_value: swap.dex_incoming_transfer.amount.to_string(),
+        from_value: swap.dex_incoming_transfer.amount.clone(),
         to_asset,
-        to_value: swap.dex_outgoing_transfer.amount.to_string(),
+        to_value: swap.dex_outgoing_transfer.amount.clone(),
         provider: swap.dex,
     };
     Some((sender, metadata))
@@ -376,10 +375,10 @@ mod tests {
         let metadata = transaction.metadata.as_ref().expect("swap metadata");
         let swap: TransactionSwapMetadata = serde_json::from_value(metadata.clone()).unwrap();
         assert_eq!(swap.from_asset, AssetId::from_chain(Chain::Ton));
-        assert_eq!(swap.from_value, "1000000000");
+        assert_eq!(swap.from_value, BigUint::from(1000000000u64));
         assert_eq!(swap.to_asset.chain, Chain::Ton);
         assert!(swap.to_asset.token_id.is_some());
-        assert_eq!(swap.to_value, "2436222");
+        assert_eq!(swap.to_value, BigUint::from(2436222u64));
         assert_eq!(swap.provider.as_deref(), Some("stonfi_v2"));
     }
 
@@ -401,9 +400,9 @@ mod tests {
         let metadata = transaction.metadata.as_ref().unwrap();
         let swap: TransactionSwapMetadata = serde_json::from_value(metadata.clone()).unwrap();
         assert_eq!(swap.from_asset, AssetId::from_token(Chain::Ton, "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"));
-        assert_eq!(swap.from_value, "1000000");
+        assert_eq!(swap.from_value, BigUint::from(1000000u64));
         assert_eq!(swap.to_asset, AssetId::from_chain(Chain::Ton));
-        assert_eq!(swap.to_value, "476299454");
+        assert_eq!(swap.to_value, BigUint::from(476299454u64));
         assert_eq!(swap.provider.as_deref(), Some("stonfi_v2"));
     }
 

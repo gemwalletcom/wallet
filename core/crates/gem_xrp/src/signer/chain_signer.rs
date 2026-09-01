@@ -26,7 +26,7 @@ impl ChainSigner for XrpChainSigner {
 
     fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
         let swap = input.input_type.get_swap_data()?;
-        let amount = XrpAmount::native(&swap.data.value)?;
+        let amount = XrpAmount::native(&swap.data.value.to_string())?;
         Ok(vec![sign_payment(input, private_key, amount, &swap.data.to, swap_memo(&swap.data))?])
     }
 
@@ -102,6 +102,7 @@ fn swap_memo(data: &SwapQuoteData) -> XrpPaymentMemo {
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigUint;
     use primitives::{
         AccountDataType, Asset, AssetId, AssetType, Chain, GasPriceType, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata,
         swap::{SwapData, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType},
@@ -227,7 +228,7 @@ mod tests {
         let data = SwapQuoteData {
             to: "rU893viamSnsfP3zjzM2KPxjqZjXSXK6VF".to_string(),
             data_type: SwapQuoteDataType::Transfer,
-            value: "10".to_string(),
+            value: BigUint::from(10u64),
             data: "fallback".to_string(),
             memo: Some("123".to_string()),
             approval: None,
@@ -247,10 +248,10 @@ mod tests {
                 SwapData {
                     quote: SwapQuote {
                         from_address: "rfxdLwsZnoespnTDDb1Xhvbc8EFNdztaoq".to_string(),
-                        from_value: "10".to_string(),
+                        from_value: BigUint::from(10u64),
                         min_from_value: None,
                         to_address: "rU893viamSnsfP3zjzM2KPxjqZjXSXK6VF".to_string(),
-                        to_value: "1".to_string(),
+                        to_value: BigUint::from(1u64),
                         provider_data: SwapProviderData {
                             provider: SwapProvider::Okx,
                             name: "OKX".to_string(),
@@ -263,7 +264,7 @@ mod tests {
                     data: SwapQuoteData {
                         to: "rU893viamSnsfP3zjzM2KPxjqZjXSXK6VF".to_string(),
                         data_type: SwapQuoteDataType::Transfer,
-                        value: "10".to_string(),
+                        value: BigUint::from(10u64),
                         data: "swap:memo".to_string(),
                         memo: None,
                         approval: None,

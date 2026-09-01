@@ -1,3 +1,4 @@
+use crate::u256::u256_to_biguint;
 use alloy_primitives::{Address, B256};
 use alloy_sol_types::{SolEvent, SolInterface, sol};
 
@@ -113,9 +114,9 @@ impl ProtocolParser for MayanParser {
 
         let metadata = TransactionSwapMetadata {
             from_asset: AssetId::from(*context.chain, (!input_token.is_zero()).then(|| input_token.to_checksum(None))),
-            from_value: amount.to_string(),
+            from_value: u256_to_biguint(&amount),
             to_asset: AssetId::from(*context.chain, (!output_token.is_zero()).then(|| output_token.to_checksum(None))),
-            to_value: output_amount.to_string(),
+            to_value: u256_to_biguint(&output_amount),
             provider: Some(SwapProvider::Mayan.id().to_string()),
         };
 
@@ -205,9 +206,9 @@ mod tests {
             assert_eq!(parsed.from, from);
             assert_eq!(parsed.to, "0x2A49C84B7173e21f9116B2798735f87531526b36");
             assert_eq!(metadata.from_asset, POLYGON_USDC_ASSET_ID.clone());
-            assert_eq!(metadata.from_value, from_value);
+            assert_eq!(metadata.from_value.to_string(), from_value);
             assert_eq!(metadata.to_asset, AssetId::from_chain(Chain::Polygon));
-            assert_eq!(metadata.to_value, to_value);
+            assert_eq!(metadata.to_value.to_string(), to_value);
             assert_eq!(metadata.provider, Some(SwapProvider::Mayan.id().to_string()));
         }
 

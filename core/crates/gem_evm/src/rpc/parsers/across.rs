@@ -1,3 +1,4 @@
+use crate::u256::u256_to_biguint;
 use alloy_primitives::Address;
 
 use crate::across::{deployment::AcrossDeployment, deposit::parse_deposit};
@@ -31,9 +32,9 @@ impl ProtocolParser for AcrossParser {
         let destination_chain = Chain::from_chain_id(deposit.destination_chain_id)?;
         let metadata = TransactionSwapMetadata {
             from_asset: AcrossDeployment::supported_asset_for_token(*context.chain, Address::from_word(relay_data.input_token))?,
-            from_value: relay_data.input_amount.to_string(),
+            from_value: u256_to_biguint(&relay_data.input_amount),
             to_asset: AcrossDeployment::supported_asset_for_token(destination_chain, Address::from_word(relay_data.output_token))?,
-            to_value: relay_data.output_amount.to_string(),
+            to_value: u256_to_biguint(&relay_data.output_amount),
             provider: Some(SwapProvider::Across.id().to_string()),
         };
         let depositor = Address::from_word(relay_data.depositor).to_checksum(None);
@@ -46,6 +47,7 @@ impl ProtocolParser for AcrossParser {
 #[cfg(test)]
 mod tests {
     use chrono::DateTime;
+    use num_bigint::BigUint;
 
     use crate::rpc::{
         model::{Transaction, TransactionReceipt},
@@ -68,9 +70,9 @@ mod tests {
         assert_eq!(parsed.from, "0x2A49C84B7173e21f9116B2798735f87531526b36");
         assert_eq!(parsed.to, "0x133243d447026345c2B368d7fFe435dbe3C566Eb");
         assert_eq!(metadata.from_asset, POLYGON_USDC_ASSET_ID.clone());
-        assert_eq!(metadata.from_value, "10500000");
+        assert_eq!(metadata.from_value, BigUint::from(10500000u64));
         assert_eq!(metadata.to_asset, BASE_USDC_ASSET_ID.clone());
-        assert_eq!(metadata.to_value, "10500000");
+        assert_eq!(metadata.to_value, BigUint::from(10500000u64));
         assert_eq!(metadata.provider, Some(SwapProvider::Across.id().to_string()));
     }
 }

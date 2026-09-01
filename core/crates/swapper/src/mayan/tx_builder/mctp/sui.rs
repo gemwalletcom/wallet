@@ -13,6 +13,7 @@ use crate::{Quote, RpcProvider, SwapperError, SwapperQuoteData, client_factory::
 use futures::try_join;
 use gem_sui::tx_builder::prepare_transaction_json_replay;
 use gem_sui::{ESTIMATION_GAS_BUDGET, gas_budget::GAS_BUDGET_MULTIPLIER};
+use num_bigint::BigUint;
 use std::{fmt::Debug, fmt::Display, sync::Arc};
 
 pub async fn build_quote_data<C>(
@@ -57,7 +58,7 @@ where
 
     Ok(SwapperQuoteData::new_contract(
         String::new(),
-        "0".to_string(),
+        BigUint::from(0u64),
         output.base64_encoded(),
         None,
         Some(gas_budget.to_string()),

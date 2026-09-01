@@ -1,4 +1,5 @@
 use num_bigint::BigInt;
+use num_bigint::BigUint;
 use primitives::{Asset, AssetId, Chain, swap::SwapStatus};
 use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_bigint_from_str;
@@ -66,11 +67,11 @@ pub struct TransactionCoin {
 }
 
 impl TransactionCoin {
-    pub fn native_value(&self, chain: Chain) -> Option<String> {
+    pub fn native_value(&self, chain: Chain) -> Option<BigUint> {
         let decimals = self
             .decimals
             .or_else(|| if self.is_native_asset() { Some(Asset::from_chain(chain).decimals) } else { None })?;
-        Some(value_to(&self.amount, decimals).to_string())
+        Some(value_to(&self.amount, decimals).magnitude().clone())
     }
 
     pub fn resolve_asset_id(&self, network: THORChainNetwork) -> Option<AssetId> {
@@ -416,21 +417,21 @@ mod tests {
             amount: "160661010".to_string(),
             decimals: None,
         };
-        assert_eq!(native.native_value(Chain::Litecoin), Some("160661010".to_string()));
+        assert_eq!(native.native_value(Chain::Litecoin), Some(BigUint::from(160661010u64)));
 
         let native_18 = TransactionCoin {
             asset: "ETH.ETH".to_string(),
             amount: "2509674".to_string(),
             decimals: None,
         };
-        assert_eq!(native_18.native_value(Chain::Ethereum), Some("25096740000000000".to_string()));
+        assert_eq!(native_18.native_value(Chain::Ethereum), Some(BigUint::from(25096740000000000u64)));
 
         let token_with_decimals = TransactionCoin {
             asset: format!("ETH.USDT-{ETHEREUM_USDT_TOKEN_ID}"),
             amount: "380962656200".to_string(),
             decimals: Some(6),
         };
-        assert_eq!(token_with_decimals.native_value(Chain::Ethereum), Some("3809626562".to_string()));
+        assert_eq!(token_with_decimals.native_value(Chain::Ethereum), Some(BigUint::from(3809626562u64)));
 
         let token_no_decimals = TransactionCoin {
             asset: format!("ETH.USDT-{ETHEREUM_USDT_TOKEN_ID}"),

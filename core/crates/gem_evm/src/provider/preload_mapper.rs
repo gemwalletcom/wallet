@@ -79,7 +79,7 @@ pub fn get_transaction_params(_chain: EVMChain, input: &TransactionLoadInput) ->
                     AssetSubtype::NATIVE => {
                         let value = match swap_data.data.data_type {
                             SwapQuoteDataType::Transfer if input.is_max_value => BigInt::ZERO,
-                            _ => BigInt::from_str_radix(&swap_data.data.value, 10)?,
+                            _ => BigInt::from(swap_data.data.value.clone()),
                         };
                         Ok(TransactionParams::new(swap_data.data.to.clone(), hex::decode(swap_data.data.data.clone())?, value))
                     }

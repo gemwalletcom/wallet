@@ -1,5 +1,7 @@
+use crate::u256::u256_to_biguint;
 use alloy_primitives::U256;
 use alloy_sol_types::SolCall;
+use std::str::FromStr;
 
 use crate::{
     address::ethereum_address_from_topic,
@@ -185,8 +187,8 @@ fn decode_execute_swap_call(
     Some(TransactionSwapMetadata {
         from_asset,
         to_asset,
-        from_value: from_value.to_string(),
-        to_value,
+        from_value: u256_to_biguint(&from_value),
+        to_value: u256_to_biguint(&U256::from_str(&to_value).ok()?),
         provider: Some(swap_provider.to_string()),
     })
 }
@@ -263,7 +265,7 @@ mod tests {
                 token_id: None
             }
         );
-        assert_eq!(metadata.from_value, "995000000000000");
+        assert_eq!(metadata.from_value, BigUint::from(995000000000000u64));
         assert_eq!(
             metadata.to_asset,
             AssetId {
@@ -271,7 +273,7 @@ mod tests {
                 token_id: Some(UNICHAIN_DAI_TOKEN_ID.to_string())
             }
         );
-        assert_eq!(metadata.to_value, "2696771430516915192");
+        assert_eq!(metadata.to_value, BigUint::parse_bytes(b"2696771430516915192", 10).unwrap());
     }
 
     #[test]
@@ -296,7 +298,7 @@ mod tests {
                 token_id: Some(UNICHAIN_USDC_TOKEN_ID.to_string())
             }
         );
-        assert_eq!(metadata.from_value, "2132953");
+        assert_eq!(metadata.from_value, BigUint::from(2132953u64));
         assert_eq!(
             metadata.to_asset,
             AssetId {
@@ -304,7 +306,7 @@ mod tests {
                 token_id: None
             }
         );
-        assert_eq!(metadata.to_value, "1155057703771482");
+        assert_eq!(metadata.to_value, BigUint::from(1155057703771482u64));
     }
 
     #[test]
@@ -318,9 +320,9 @@ mod tests {
         assert_eq!(swap_transaction.asset_id, AssetId::from_chain(Chain::Ethereum));
         assert_eq!(swap_transaction.value, BigUint::from(10000000000000u64));
         assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::Ethereum));
-        assert_eq!(metadata.from_value, "10000000000000");
+        assert_eq!(metadata.from_value, BigUint::from(10000000000000u64));
         assert_eq!(metadata.to_asset, ETHEREUM_USDT_ASSET_ID.clone());
-        assert_eq!(metadata.to_value, "19304");
+        assert_eq!(metadata.to_value, BigUint::from(19304u64));
     }
 
     #[test]
@@ -345,7 +347,7 @@ mod tests {
                 token_id: None
             }
         );
-        assert_eq!(metadata.from_value, "17910000000000000");
+        assert_eq!(metadata.from_value, BigUint::from(17910000000000000u64));
         assert_eq!(
             metadata.to_asset,
             AssetId {
@@ -353,7 +355,7 @@ mod tests {
                 token_id: Some("0xcf0C122c6b73ff809C693DB761e7BaeBe62b6a2E".to_string())
             }
         );
-        assert_eq!(metadata.to_value, "512854887193301");
+        assert_eq!(metadata.to_value, BigUint::from(512854887193301u64));
     }
 
     #[test]
@@ -378,7 +380,7 @@ mod tests {
                 token_id: Some("0x532f27101965dd16442E59d40670FaF5eBB142E4".to_string())
             }
         );
-        assert_eq!(metadata.from_value, "1352497738700000000000");
+        assert_eq!(metadata.from_value, BigUint::parse_bytes(b"1352497738700000000000", 10).unwrap());
         assert_eq!(
             metadata.to_asset,
             AssetId {
@@ -386,7 +388,7 @@ mod tests {
                 token_id: None
             }
         );
-        assert_eq!(metadata.to_value, "29020434785385862");
+        assert_eq!(metadata.to_value, BigUint::from(29020434785385862u64));
     }
 
     #[test]
@@ -411,7 +413,7 @@ mod tests {
                 token_id: None
             }
         );
-        assert_eq!(metadata.from_value, "372000000000000000000");
+        assert_eq!(metadata.from_value, BigUint::parse_bytes(b"372000000000000000000", 10).unwrap());
         assert_eq!(
             metadata.to_asset,
             AssetId {
@@ -419,7 +421,7 @@ mod tests {
                 token_id: Some(POLYGON_USDT_TOKEN_ID.to_string())
             }
         );
-        assert_eq!(metadata.to_value, "78290151");
+        assert_eq!(metadata.to_value, BigUint::from(78290151u64));
     }
 
     #[test]
@@ -444,7 +446,7 @@ mod tests {
                 token_id: Some(TOKEN_USDC_ADDRESS.to_string())
             }
         );
-        assert_eq!(metadata.from_value, "29850000");
+        assert_eq!(metadata.from_value, BigUint::from(29850000u64));
         assert_eq!(
             metadata.to_asset,
             AssetId {
@@ -452,7 +454,7 @@ mod tests {
                 token_id: Some("0x45804880De22913dAFE09f4980848ECE6EcbAf78".to_string())
             }
         );
-        assert_eq!(metadata.to_value, "9017156750431593");
+        assert_eq!(metadata.to_value, BigUint::from(9017156750431593u64));
     }
 
     #[test]

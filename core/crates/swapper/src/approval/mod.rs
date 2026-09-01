@@ -17,10 +17,11 @@ pub fn get_swap_gas_limit_with_approval(approval: &Option<ApprovalData>, swap_ga
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_bigint::BigUint;
 
     #[test]
     fn test_get_swap_gas_limit_with_approval() {
-        let approval = Some(ApprovalData::make("0xtoken", "0xspender", "1000", true));
+        let approval = Some(ApprovalData::make("0xtoken", "0xspender", BigUint::from(1000u64), true));
 
         assert_eq!(
             get_swap_gas_limit_with_approval(&approval, Some("250000".to_string()), DEFAULT_EVM_SWAP_GAS_LIMIT),

@@ -143,6 +143,7 @@ mod tests {
     use super::*;
     use crate::models::Options;
     use gem_evm::uniswap::deployment::UniversalRouterAbi;
+    use num_bigint::BigUint;
     use primitives::{
         AssetId, Chain,
         asset_constants::{CELO_USDT_TOKEN_ID, CELO_WETH_TOKEN_ID},
@@ -164,7 +165,7 @@ mod tests {
             to_asset: AssetId::from(Chain::Celo, Some(CELO_USDT_TOKEN_ID.into())).into(),
             wallet_address: wallet.into(),
             destination_address: wallet.into(),
-            value: "22000000000000000000".into(),
+            value: BigUint::parse_bytes(b"22000000000000000000", 10).unwrap(),
             options: Options::default(),
         };
         let commands = build_commands(
@@ -195,7 +196,7 @@ mod tests {
             to_asset: AssetId::from(Chain::Celo, None).into(),
             wallet_address: wallet.into(),
             destination_address: wallet.into(),
-            value: "900000".into(),
+            value: BigUint::from(900000u64),
             options: Options {
                 slippage: 50.into(),
                 use_max_amount: false,
@@ -238,7 +239,7 @@ mod tests {
             to_asset: AssetId::from(Chain::Celo, Some(CELO_USDT_TOKEN_ID.into())).into(),
             wallet_address: wallet.into(),
             destination_address: wallet.into(),
-            value: "22000000000000000000".into(),
+            value: BigUint::parse_bytes(b"22000000000000000000", 10).unwrap(),
             options: Options::default(),
         };
         let commands = build_commands(

@@ -1,6 +1,5 @@
 use chrono::DateTime;
 use num_bigint::{BigUint, Sign};
-use std::str::FromStr;
 
 use crate::{
     COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS,
@@ -137,9 +136,9 @@ fn map_swap_metadata(transaction: &BlockTransaction, owner: &str, provider: Swap
 
     Some(TransactionSwapMetadata {
         from_asset,
-        from_value: from_value.to_string(),
+        from_value,
         to_asset,
-        to_value: to_value.to_string(),
+        to_value,
         provider: Some(provider.id().to_owned()),
     })
 }
@@ -297,7 +296,7 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
             state,
             BigUint::from(fee),
             chain.as_asset_id(),
-            BigUint::from_str(&swap.from_value).ok()?,
+            swap.from_value.clone(),
             memo,
             serde_json::to_value(swap).ok(),
             created_at,
@@ -414,9 +413,9 @@ mod tests {
         let transaction = map_transaction(&result.result, 1).unwrap();
         let expected = TransactionSwapMetadata {
             from_asset: AssetId::from_token(Chain::Solana, "BKpSnSdNdANUxKPsn4AQ8mf4b9BoeVs9JD1Q8cVkpump"),
-            from_value: "393647577456".to_string(),
+            from_value: BigUint::from(393647577456u64),
             to_asset: Chain::Solana.as_asset_id(),
-            to_value: "139512057".to_string(),
+            to_value: BigUint::from(139512057u64),
             provider: Some(SwapProvider::Jupiter.id().to_owned()),
         };
 
@@ -430,9 +429,9 @@ mod tests {
         let transaction = map_transaction(&result.result, 1).unwrap();
         let expected = TransactionSwapMetadata {
             from_asset: AssetId::from_token(Chain::Solana, PYUSD_TOKEN_MINT),
-            from_value: "1000000".to_string(),
+            from_value: BigUint::from(1000000u64),
             to_asset: AssetId::from_token(Chain::Solana, USDT_TOKEN_MINT),
-            to_value: "999932".to_string(),
+            to_value: BigUint::from(999932u64),
             provider: Some(SwapProvider::Jupiter.id().to_owned()),
         };
 
@@ -446,9 +445,9 @@ mod tests {
         let transaction = map_transaction(&result.result, 1).unwrap();
         let expected = TransactionSwapMetadata {
             from_asset: Chain::Solana.as_asset_id(),
-            from_value: "10000000".to_string(),
+            from_value: BigUint::from(10000000u64),
             to_asset: AssetId::from_token(Chain::Solana, USDT_TOKEN_MINT),
-            to_value: "1678930".to_string(),
+            to_value: BigUint::from(1678930u64),
             provider: Some(SwapProvider::Jupiter.id().to_owned()),
         };
 
@@ -462,9 +461,9 @@ mod tests {
         let transaction = map_transaction(&result.result, 1).unwrap();
         let expected = TransactionSwapMetadata {
             from_asset: SOLANA_USDC_ASSET_ID.clone(),
-            from_value: "56061275".to_string(),
+            from_value: BigUint::from(56061275u64),
             to_asset: AssetId::from_token(Chain::Solana, "HmMubgKx91Tpq3jmfcKQwsv5HrErqnCTTRJMB6afFR2u"),
-            to_value: "2190151370200".to_string(),
+            to_value: BigUint::from(2190151370200u64),
             provider: Some(SwapProvider::Okx.id().to_owned()),
         };
 

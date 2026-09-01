@@ -5,6 +5,7 @@ use super::{
 };
 use crate::{QuoteRequest, SwapperQuoteAsset, alien::mock::ProviderMock, testkit::mock_quote};
 use gem_client::testkit::MockClient;
+use num_bigint::BigUint;
 use primitives::{AssetId, Chain, asset_constants::SOLANA_USDC_ASSET_ID, swap::QuoteAsset, testkit::signer_mock::TEST_SOLANA_SENDER};
 use std::sync::Arc;
 
@@ -24,7 +25,7 @@ pub(super) fn mock_solana_request() -> QuoteRequest {
         SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
     );
     request.wallet_address = TEST_SOLANA_SENDER.to_string();
-    request.value = "100000000".to_string();
+    request.value = BigUint::from(100000000u64);
     request
 }
 

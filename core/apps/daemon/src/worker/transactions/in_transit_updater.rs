@@ -210,6 +210,7 @@ fn resolve_status(result: &SwapResult, created_at: NaiveDateTime, cutoff: NaiveD
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_bigint::BigUint;
     use primitives::{HOUR, MINUTE, TransactionState as PrimitiveTransactionState};
 
     fn swap_result(status: SwapStatus, metadata: Option<TransactionSwapMetadata>) -> SwapResult {
@@ -223,9 +224,9 @@ mod tests {
     fn swap_metadata(provider: &str, from_value: &str, to_value: &str) -> TransactionSwapMetadata {
         TransactionSwapMetadata {
             from_asset: "bitcoin".into(),
-            from_value: from_value.to_string(),
+            from_value: from_value.parse().unwrap(),
             to_asset: "ethereum".into(),
-            to_value: to_value.to_string(),
+            to_value: to_value.parse().unwrap(),
             provider: Some(provider.to_string()),
         }
     }
@@ -288,6 +289,6 @@ mod tests {
         let Some((_, Some(resolved))) = resolve_status(&swap_result(SwapStatus::Completed, Some(metadata)), now, now) else {
             panic!("completed status should include metadata");
         };
-        assert_eq!(resolved.from_value, "50000");
+        assert_eq!(resolved.from_value, BigUint::from(50_000u64));
     }
 }

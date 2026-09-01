@@ -102,13 +102,14 @@ mod tests {
     use super::*;
     use crate::mayan::constants::MAYAN_FORWARDER;
     use crate::mayan::model::{MayanQuoteCommon, MayanToken};
+    use num_bigint::BigUint;
     use primitives::{Chain, asset_constants::HYPERCORE_SPOT_USDC_TOKEN_ID};
 
     #[tokio::test]
     async fn test_build_direct_hyperevm_to_hypercore_transaction() {
         let mut quote = Quote::mock(Chain::Hyperliquid, Some(HYPEREVM_USDC_TOKEN_ID));
         quote.request.destination_address = "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string();
-        quote.from_value = "1000000".to_string();
+        quote.from_value = BigUint::from(1000000u64);
         let route = MayanMonoChainQuote {
             common: MayanQuoteCommon {
                 effective_amount_in64: "1000000".to_string(),

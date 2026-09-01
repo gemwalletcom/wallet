@@ -18,10 +18,8 @@ use gem_tempo::TempoSigner;
 use gem_ton::signer::TonChainSigner;
 use gem_tron::signer::TronChainSigner;
 use gem_xrp::signer::XrpChainSigner;
-use num_bigint::BigUint;
 use primitives::swap::{SwapData, SwapQuoteDataType};
 use primitives::{Asset, BitcoinChain, Chain, ChainSigner, ChainType, SignerError, SignerInput, TransactionInputType, TransactionType};
-use std::str::FromStr;
 use zeroize::Zeroizing;
 
 pub struct GemChainSigner {
@@ -151,7 +149,7 @@ impl GemChainSigner {
         let value = if input.input.is_max_value && !is_token {
             input.input.value.clone()
         } else {
-            BigUint::from_str(&swap_data.quote.from_value).map_err(|error| GemstoneError::from(error.to_string()))?
+            swap_data.quote.from_value.clone()
         };
         let mut rewritten = input.clone();
         rewritten.input.input_type = TransactionInputType::Transfer(from_asset.clone());

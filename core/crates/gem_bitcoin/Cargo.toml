@@ -13,6 +13,7 @@ unit_tests = ["signer"]
 chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
 
 [dependencies]
+num-traits = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 primitives = { path = "../primitives" }

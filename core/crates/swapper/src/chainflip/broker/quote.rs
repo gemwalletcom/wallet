@@ -1,11 +1,13 @@
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_biguint_from_str;
+use serde_serializers::serialize_biguint;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QuoteRequest {
-    pub amount: String,
+    #[serde(serialize_with = "serialize_biguint")]
+    pub amount: BigUint,
     pub source_asset: String,
     pub destination_asset: String,
     pub commission_bps: u32,

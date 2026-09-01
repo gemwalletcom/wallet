@@ -1,4 +1,6 @@
 use alloy_primitives::U256;
+use gem_evm::u256::u256_to_biguint;
+use num_bigint::BigUint;
 use primitives::Chain;
 use std::{collections::HashMap, str::FromStr, sync::LazyLock};
 
@@ -30,21 +32,21 @@ pub fn reserved_transaction_fees(chain: Chain) -> Option<&'static str> {
     RESERVED_NATIVE_FEES.get(&chain).copied()
 }
 
-fn quote_value_after_reserve(request: &QuoteRequest, reserved: &str) -> Result<String, SwapperError> {
+fn quote_value_after_reserve(request: &QuoteRequest, reserved: &str) -> Result<BigUint, SwapperError> {
     if !request.options.use_max_amount || !request.from_asset.asset_id().is_native() {
         return Ok(request.value.clone());
     }
     let reserved_fee = U256::from_str(reserved).map_err(|_| SwapperError::ComputeQuoteError(format!("invalid reserved fee: {reserved}")))?;
-    let amount = U256::from_str(&request.value).map_err(|_| SwapperError::ComputeQuoteError(format!("invalid amount: {}", request.value)))?;
+    let amount = U256::from_str(&request.value.to_string()).map_err(|_| SwapperError::ComputeQuoteError(format!("invalid amount: {}", request.value)))?;
     if amount <= reserved_fee {
         return Err(SwapperError::InputAmountError {
             min_amount: Some(reserved_fee.to_string()),
         });
     }
-    Ok((amount - reserved_fee).to_string())
+    Ok(u256_to_biguint(&(amount - reserved_fee)))
 }
 
-pub fn max_quote_value_with_fee_reserve(request: &QuoteRequest) -> Result<String, SwapperError> {
+pub fn max_quote_value_with_fee_reserve(request: &QuoteRequest) -> Result<BigUint, SwapperError> {
     let Some(reserved) = reserved_transaction_fees(request.from_asset.chain()) else {
         return Ok(request.value.clone());
     };
@@ -80,28 +82,28 @@ mod tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Sui)),
             wallet_address: "address".to_string(),
             destination_address: "address".to_string(),
-            value: "105814789".to_string(),
+            value: BigUint::from(105814789u64),
             options: Options {
                 use_max_amount: true,
                 ..Default::default()
             },
         };
 
-        assert_eq!(max_quote_value_with_fee_reserve(&request).unwrap(), "100814789");
+        assert_eq!(max_quote_value_with_fee_reserve(&request).unwrap(), BigUint::from(100814789u64));
 
         request.from_asset = SwapperQuoteAsset::from(AssetId::from_token(Chain::Solana, SOLANA_USDC_TOKEN_ID));
-        assert_eq!(max_quote_value_with_fee_reserve(&request).unwrap(), "105814789");
+        assert_eq!(max_quote_value_with_fee_reserve(&request).unwrap(), BigUint::from(105814789u64));
 
         request.from_asset = SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana));
         request.options.use_max_amount = false;
-        assert_eq!(max_quote_value_with_fee_reserve(&request).unwrap(), "105814789");
+        assert_eq!(max_quote_value_with_fee_reserve(&request).unwrap(), BigUint::from(105814789u64));
 
         request.from_asset = SwapperQuoteAsset::from(AssetId::from_chain(Chain::Tron));
-        request.value = "50000000".to_string();
+        request.value = BigUint::from(50000000u64);
         request.options.use_max_amount = true;
-        assert_eq!(max_quote_value_with_fee_reserve(&request).unwrap(), "48000000");
+        assert_eq!(max_quote_value_with_fee_reserve(&request).unwrap(), BigUint::from(48000000u64));
 
         request.from_asset = SwapperQuoteAsset::from(AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
-        assert_eq!(max_quote_value_with_fee_reserve(&request).unwrap(), "50000000");
+        assert_eq!(max_quote_value_with_fee_reserve(&request).unwrap(), BigUint::from(50000000u64));
     }
 }

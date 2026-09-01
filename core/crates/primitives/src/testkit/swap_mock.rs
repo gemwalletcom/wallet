@@ -4,6 +4,7 @@ use crate::{
     asset_constants::ETHEREUM_USDT_TOKEN_ID,
     swap::{ApprovalData, Slippage, SlippageMode, SwapData, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType},
 };
+use num_bigint::BigUint;
 
 impl Slippage {
     pub fn mock_exact(bps: u32) -> Self {
@@ -13,14 +14,14 @@ impl Slippage {
 
 impl ApprovalData {
     pub fn mock() -> Self {
-        Self::make(ETHEREUM_USDT_TOKEN_ID, TEST_EVM_RECIPIENT, "0", false)
+        Self::make(ETHEREUM_USDT_TOKEN_ID, TEST_EVM_RECIPIENT, BigUint::ZERO, false)
     }
 
-    pub fn make(token: &str, spender: &str, value: &str, is_unlimited: bool) -> Self {
+    pub fn make(token: &str, spender: &str, value: BigUint, is_unlimited: bool) -> Self {
         ApprovalData {
             token: token.to_string(),
             spender: spender.to_string(),
-            value: value.to_string(),
+            value,
             is_unlimited,
         }
     }
@@ -81,7 +82,7 @@ impl SwapData {
         let swap_data = Self::mock_with_values(provider, from_value, to_value);
         SwapData {
             data: SwapQuoteData {
-                value: value.to_string(),
+                value: value.parse().unwrap(),
                 ..swap_data.data
             },
             ..swap_data
@@ -91,7 +92,7 @@ impl SwapData {
     pub fn mock_transfer(provider: SwapProvider, from_value: &str, to_value: &str, to: &str) -> Self {
         let swap_data = Self::mock_with_values(provider, from_value, to_value);
         SwapData {
-            data: SwapQuoteData::new_transfer(to.to_string(), from_value.to_string(), None),
+            data: SwapQuoteData::new_transfer(to.to_string(), from_value.parse().unwrap(), None),
             ..swap_data
         }
     }
@@ -100,9 +101,9 @@ impl SwapData {
 impl SwapQuote {
     pub fn mock() -> Self {
         SwapQuote {
-            from_value: "1000000000".to_string(),
+            from_value: BigUint::from(1000000000u64),
             min_from_value: None,
-            to_value: "1000000".to_string(),
+            to_value: BigUint::from(1000000u64),
             provider_data: SwapProviderData::mock(),
             from_address: TEST_EVM_RECIPIENT.to_string(),
             to_address: TEST_EVM_RECIPIENT.to_string(),
@@ -122,9 +123,9 @@ impl SwapQuote {
 
     pub fn mock_with_addresses(provider: SwapProvider, from_address: &str, from_value: &str, to_address: &str, to_value: &str) -> Self {
         SwapQuote {
-            from_value: from_value.to_string(),
+            from_value: from_value.parse().unwrap(),
             min_from_value: None,
-            to_value: to_value.to_string(),
+            to_value: to_value.parse().unwrap(),
             provider_data: SwapProviderData::mock_with_provider(provider),
             from_address: from_address.to_string(),
             to_address: to_address.to_string(),
@@ -140,7 +141,7 @@ impl SwapQuoteData {
         SwapQuoteData {
             data_type: SwapQuoteDataType::Contract,
             to: TEST_EVM_RECIPIENT.to_string(),
-            value: "0".to_string(),
+            value: BigUint::from(0u64),
             data: "0x".to_string(),
             memo: None,
             approval: None,
@@ -152,7 +153,7 @@ impl SwapQuoteData {
         SwapQuoteData {
             data_type: SwapQuoteDataType::Contract,
             to: to.to_string(),
-            value: value.to_string(),
+            value: value.parse().unwrap(),
             data: data.to_string(),
             memo: memo.map(String::from),
             approval: None,
@@ -186,8 +187,8 @@ mod tests {
     #[test]
     fn test_swap_data_mock() {
         let swap_data = SwapData::mock();
-        assert_eq!(swap_data.quote.from_value, "1000000000");
-        assert_eq!(swap_data.quote.to_value, "1000000");
+        assert_eq!(swap_data.quote.from_value, BigUint::from(1000000000u64));
+        assert_eq!(swap_data.quote.to_value, BigUint::from(1000000u64));
         assert_eq!(swap_data.quote.provider_data.provider, SwapProvider::UniswapV3);
     }
 

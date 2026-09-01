@@ -3,6 +3,7 @@ use crate::{
     SwapperSlippage, SwapperSlippageMode,
 };
 use async_trait::async_trait;
+use num_bigint::BigUint;
 use primitives::{AssetId, Chain, asset_constants::TON_USDT_TOKEN_ID};
 
 use super::{Options, Quote, QuoteRequest};
@@ -44,7 +45,7 @@ impl QuoteRequest {
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(chain)),
             wallet_address: "address".to_string(),
             destination_address: "address".to_string(),
-            value: "1000000".to_string(),
+            value: BigUint::from(1000000u64),
             options: Options::default(),
         }
     }
@@ -53,9 +54,9 @@ impl QuoteRequest {
 impl Quote {
     pub fn mock(chain: Chain, token_id: Option<&str>) -> Self {
         Quote {
-            from_value: "1000000".to_string(),
+            from_value: BigUint::from(1000000u64),
             min_from_value: None,
-            to_value: "1000000".to_string(),
+            to_value: BigUint::from(1000000u64),
             data: ProviderData::mock(),
             request: QuoteRequest::mock(chain, token_id),
             eta_in_seconds: None,
@@ -64,9 +65,9 @@ impl Quote {
 
     pub fn mock_with_provider(provider: SwapperProvider, to_value: &str) -> Self {
         Quote {
-            from_value: "1000000".to_string(),
+            from_value: BigUint::from(1000000u64),
             min_from_value: None,
-            to_value: to_value.to_string(),
+            to_value: to_value.parse().unwrap(),
             data: ProviderData {
                 provider: ProviderType::new(provider),
                 routes: vec![],
@@ -84,7 +85,7 @@ pub fn mock_quote(from_asset: SwapperQuoteAsset, to_asset: SwapperQuoteAsset) ->
         to_asset,
         wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
         destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
-        value: "1000000".into(),
+        value: BigUint::from(1000000u64),
         options: Options {
             slippage: SwapperSlippage {
                 mode: SwapperSlippageMode::Auto,
@@ -99,7 +100,7 @@ pub fn mock_bitcoin_max_quote(to_asset: SwapperQuoteAsset) -> QuoteRequest {
     let mut request = mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Bitcoin)), to_asset);
     request.wallet_address = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4".into();
     request.destination_address = "11111111111111111111111111111111".into();
-    request.value = "89100".into();
+    request.value = BigUint::from(89100u64);
     request.options.use_max_amount = true;
     request
 }
@@ -110,7 +111,7 @@ pub fn mock_ton(wallet_address: String) -> QuoteRequest {
         to_asset: SwapperQuoteAsset::from(AssetId::from_token(Chain::Ton, TON_USDT_TOKEN_ID)),
         wallet_address: wallet_address.clone(),
         destination_address: wallet_address,
-        value: "1000000000".to_string(),
+        value: BigUint::from(1000000000u64),
         options: Options {
             slippage: 100.into(),
             use_max_amount: false,

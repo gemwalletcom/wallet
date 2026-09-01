@@ -1,3 +1,4 @@
+use gem_evm::u256::u256_to_biguint;
 use std::{str::FromStr, sync::Arc};
 
 use alloy_primitives::{Address, B256, U256, hex::encode_prefixed as HexEncode, keccak256};
@@ -140,9 +141,9 @@ pub(in crate::across) fn swap_metadata(deposit: &Deposit) -> Option<TransactionS
     let to_asset = supported_asset_for_token(to_chain, &word_address(relay_data.output_token))?;
     Some(TransactionSwapMetadata {
         from_asset,
-        from_value: relay_data.input_amount.to_string(),
+        from_value: u256_to_biguint(&relay_data.input_amount),
         to_asset,
-        to_value: relay_data.output_amount.to_string(),
+        to_value: u256_to_biguint(&relay_data.output_amount),
         provider: Some(SwapperProvider::Across.as_ref().to_string()),
     })
 }

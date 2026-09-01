@@ -50,6 +50,7 @@ pub fn map_swap_result(response: &TransactionStatus, network: THORChainNetwork) 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_bigint::BigUint;
     use primitives::{
         Chain,
         asset_constants::{ETHEREUM_USDT_ASSET_ID, THORCHAIN_TCY_ASSET_ID, TRON_USDT_ASSET_ID},
@@ -70,9 +71,9 @@ mod tests {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata {
                     from_asset: Chain::Litecoin.as_asset_id(),
-                    from_value: "160661010".to_string(),
+                    from_value: BigUint::from(160661010u64),
                     to_asset: TRON_USDT_ASSET_ID.clone(),
-                    to_value: "79158429".to_string(),
+                    to_value: BigUint::from(79158429u64),
                     provider: Some("thorchain".to_string()),
                 }),
                 eta_in_seconds: None,
@@ -90,9 +91,9 @@ mod tests {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata {
                     from_asset: Chain::Litecoin.as_asset_id(),
-                    from_value: "5000000".to_string(),
+                    from_value: BigUint::from(5000000u64),
                     to_asset: Chain::Ethereum.as_asset_id(),
-                    to_value: "1243680000000000".to_string(),
+                    to_value: BigUint::from(1243680000000000u64),
                     provider: Some("thorchain".to_string()),
                 }),
                 eta_in_seconds: None,
@@ -124,9 +125,9 @@ mod tests {
                 status: SwapStatus::Pending,
                 metadata: Some(TransactionSwapMetadata {
                     from_asset: Chain::SmartChain.as_asset_id(),
-                    from_value: "20000000000000000".to_string(),
+                    from_value: BigUint::from(20000000000000000u64),
                     to_asset: Chain::Tron.as_asset_id(),
-                    to_value: "43070556".to_string(),
+                    to_value: BigUint::from(43070556u64),
                     provider: Some("thorchain".to_string()),
                 }),
                 eta_in_seconds: Some(120),
@@ -144,9 +145,9 @@ mod tests {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata {
                     from_asset: Chain::SmartChain.as_asset_id(),
-                    from_value: "21300000000000000".to_string(),
+                    from_value: BigUint::from(21300000000000000u64),
                     to_asset: ETHEREUM_USDT_ASSET_ID.clone(),
-                    to_value: "12973781".to_string(),
+                    to_value: BigUint::from(12973781u64),
                     provider: Some("thorchain".to_string()),
                 }),
                 eta_in_seconds: None,
@@ -164,9 +165,9 @@ mod tests {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata {
                     from_asset: Chain::SmartChain.as_asset_id(),
-                    from_value: "20000000000000000".to_string(),
+                    from_value: BigUint::from(20000000000000000u64),
                     to_asset: Chain::Tron.as_asset_id(),
-                    to_value: "43070556".to_string(),
+                    to_value: BigUint::from(43070556u64),
                     provider: Some("thorchain".to_string()),
                 }),
                 eta_in_seconds: None,
@@ -184,9 +185,9 @@ mod tests {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata {
                     from_asset: ETHEREUM_USDT_ASSET_ID.clone(),
-                    from_value: "8366000000".to_string(),
+                    from_value: BigUint::from(8366000000u64),
                     to_asset: Chain::Thorchain.as_asset_id(),
-                    to_value: "2096315169517".to_string(),
+                    to_value: BigUint::from(2096315169517u64),
                     provider: Some("thorchain".to_string()),
                 }),
                 eta_in_seconds: None,
@@ -204,9 +205,9 @@ mod tests {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata {
                     from_asset: THORCHAIN_TCY_ASSET_ID.clone(),
-                    from_value: "11921829956942".to_string(),
+                    from_value: BigUint::from(11921829956942u64),
                     to_asset: ETHEREUM_USDT_ASSET_ID.clone(),
-                    to_value: "3809626562".to_string(),
+                    to_value: BigUint::from(3809626562u64),
                     provider: Some("thorchain".to_string()),
                 }),
                 eta_in_seconds: None,

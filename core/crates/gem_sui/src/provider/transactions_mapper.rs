@@ -4,7 +4,6 @@ use chain_primitives::{BalanceDiff, SwapMapper};
 use chrono::{TimeZone, Utc};
 use num_bigint::{BigUint, Sign};
 use primitives::{AssetId, SwapProvider, Transaction, TransactionSmartContractMetadata, TransactionState, TransactionSwapMetadata, TransactionType, chain::Chain};
-use std::str::FromStr;
 
 const CHAIN: Chain = Chain::Sui;
 
@@ -113,7 +112,7 @@ fn map_transaction_type(
             owner.clone(),
             owner,
             TransactionType::Swap,
-            BigUint::from_str(&swap.from_value).ok()?,
+            swap.from_value.clone(),
             serde_json::to_value(&swap).ok(),
         ));
     }
@@ -407,9 +406,9 @@ mod tests {
         assert_eq!(swap.value, BigUint::from(200u64));
         let metadata: TransactionSwapMetadata = serde_json::from_value(swap.metadata.unwrap()).unwrap();
         assert_eq!(metadata.from_asset, AssetId::from_token(Chain::Sui, TOKEN_A));
-        assert_eq!(metadata.from_value, "200");
+        assert_eq!(metadata.from_value, BigUint::from(200u64));
         assert_eq!(metadata.to_asset, AssetId::from_token(Chain::Sui, TOKEN_B));
-        assert_eq!(metadata.to_value, "150");
+        assert_eq!(metadata.to_value, BigUint::from(150u64));
 
         let unstake = map_transaction(make_digest(
             vec![event(

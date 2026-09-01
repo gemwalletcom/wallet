@@ -1,3 +1,4 @@
+use num_traits::ToPrimitive;
 use std::collections::HashMap;
 use std::error::Error;
 
@@ -238,7 +239,7 @@ impl<C: Client> TronClient<C> {
             data: data.data.clone(),
             owner_address: sender_address.to_string(),
             fee_limit: None,
-            call_value: Some(data.value.parse::<u64>()?).filter(|value| *value > 0),
+            call_value: data.value.to_u64().filter(|value| *value > 0),
         };
         self.estimate_smart_contract_fee(contract_data, chain_parameters, account_usage, memo_data_bytes).await
     }
@@ -334,11 +335,12 @@ fn transaction_fee_from_energy_estimate(
 #[cfg(test)]
 mod tests {
     use super::{has_swap_quote_memo, swap_contract_memo_data_bytes};
+    use num_bigint::BigUint;
     use primitives::swap::SwapQuoteData;
 
     #[test]
     fn test_swap_memo_fee_preload_uses_quote_memo_bytes() {
-        let mut data = SwapQuoteData::new_contract("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi".to_string(), "0".to_string(), String::new(), None, None);
+        let mut data = SwapQuoteData::new_contract("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi".to_string(), BigUint::from(0u64), String::new(), None, None);
 
         assert!(!has_swap_quote_memo(None, &data));
         assert_eq!(swap_contract_memo_data_bytes(None, &data).unwrap(), None);

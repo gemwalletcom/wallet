@@ -69,13 +69,13 @@ pub fn mock_funded_transfer_input(chain: BitcoinChain) -> SignerInput {
 
 pub fn mock_transfer_swap_input(chain: BitcoinChain, memo: &str) -> SignerInput {
     mock_swap_input(chain, SwapProvider::Thorchain, Some(false), |destination_address, value| {
-        SwapQuoteData::new_transfer(destination_address, value, Some(memo.to_string()))
+        SwapQuoteData::new_transfer(destination_address, value.parse().unwrap(), Some(memo.to_string()))
     })
 }
 
 pub fn mock_contract_swap_input(chain: BitcoinChain, nulldata_hex: &str, use_max_amount: bool) -> SignerInput {
     mock_swap_input(chain, SwapProvider::Chainflip, Some(use_max_amount), |destination_address, value| {
-        SwapQuoteData::new_contract(destination_address, value, nulldata_hex.to_string(), None, None)
+        SwapQuoteData::new_contract(destination_address, value.parse().unwrap(), nulldata_hex.to_string(), None, None)
     })
 }
 
@@ -91,10 +91,10 @@ fn mock_swap_input(chain: BitcoinChain, provider: SwapProvider, use_max_amount: 
         SwapData {
             quote: SwapQuote {
                 from_address: sender_address,
-                from_value: value.to_string(),
+                from_value: value.clone(),
                 min_from_value: None,
                 to_address: destination_address.clone(),
-                to_value: value.to_string(),
+                to_value: value.clone(),
                 provider_data: SwapProviderData {
                     provider,
                     name: provider.name().to_string(),

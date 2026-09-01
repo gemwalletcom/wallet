@@ -22,6 +22,7 @@ use num_bigint::BigUint;
 use num_integer::Integer;
 use num_traits::Zero;
 use primitives::{Chain, TransactionSwapMetadata, swap::SwapStatus};
+use std::str::FromStr;
 use std::{fmt::Debug, sync::Arc};
 
 const DEFAULT_DEADLINE_MINUTES: i64 = 30;
@@ -127,7 +128,7 @@ where
         Ok(NearQuoteRequest {
             origin_asset,
             destination_asset,
-            amount: request.value.clone(),
+            amount: request.value.to_string(),
             referral: DEFAULT_REFERRER.to_string(),
             recipient: request.destination_address.clone(),
             swap_type: mode,
@@ -159,9 +160,9 @@ where
         let to_asset = get_asset_id_from_near_asset(&tx.destination_asset)?;
         Some(TransactionSwapMetadata {
             from_asset,
-            from_value: tx.amount_in.clone(),
+            from_value: BigUint::from_str(&tx.amount_in).ok()?,
             to_asset,
-            to_value: tx.amount_out.clone(),
+            to_value: BigUint::from_str(&tx.amount_out).ok()?,
             provider: Some(SwapperProvider::NearIntents.as_ref().to_string()),
         })
     }
@@ -314,12 +315,12 @@ where
         let response = Self::extract_quote(self.client.get_quote(&quote_request).await?, request.from_asset.decimals)?;
 
         let eta = response.quote.time_estimate;
-        let min_amount_in = response.quote.min_amount_in.to_string();
-        let amount_out = response.quote.amount_out.to_string();
+        let min_amount_in = BigUint::from_str(&response.quote.min_amount_in.to_string()).map_err(SwapperError::compute_quote_error)?;
+        let amount_out = BigUint::from_str(&response.quote.amount_out.to_string()).map_err(SwapperError::compute_quote_error)?;
         let route_data = serde_json::to_string(&quote_request)?;
 
         Ok(Quote {
-            from_value: amount,
+            from_value: BigUint::from_str(&amount).map_err(SwapperError::compute_quote_error)?,
             min_from_value: Some(min_amount_in),
             to_value: amount_out,
             data: ProviderData {
@@ -376,7 +377,7 @@ where
 
         Ok(SwapperQuoteData {
             data: payload,
-            ..SwapperQuoteData::new_transfer(to, value, memo)
+            ..SwapperQuoteData::new_transfer(to, BigUint::from_str(&value).map_err(SwapperError::compute_quote_error)?, memo)
         })
     }
 
@@ -430,7 +431,7 @@ mod tests {
     fn max_quote_keeps_transfer_amount() {
         let mut request = QuoteRequest::mock(Chain::Tron, None);
         request.to_asset = SwapperQuoteAsset::from(AssetId::from_chain(Chain::Near));
-        request.value = "37000000".to_string();
+        request.value = BigUint::from(37000000u64);
         request.options.use_max_amount = true;
 
         let quote_request = NearIntents::<RpcClient>::build_quote_request(&request, SwapType::FlexInput, true).unwrap();
@@ -464,9 +465,9 @@ mod tests {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata {
                     from_asset: AssetId::from_chain(Chain::AvalancheC),
-                    from_value: "28000000000000000".to_string(),
+                    from_value: BigUint::from(28000000000000000u64),
                     to_asset: AssetId::from_chain(Chain::SmartChain),
-                    to_value: "399605209991817".to_string(),
+                    to_value: BigUint::from(399605209991817u64),
                     provider: Some("near_intents".to_string()),
                 }),
                 eta_in_seconds: None,
@@ -484,9 +485,9 @@ mod tests {
                 status: SwapStatus::Pending,
                 metadata: Some(TransactionSwapMetadata {
                     from_asset: AssetId::from_chain(Chain::Solana),
-                    from_value: "646605458".to_string(),
+                    from_value: BigUint::from(646605458u64),
                     to_asset: AssetId::from_chain(Chain::Bitcoin),
-                    to_value: "69086".to_string(),
+                    to_value: BigUint::from(69086u64),
                     provider: Some("near_intents".to_string()),
                 }),
                 eta_in_seconds: None,
@@ -504,9 +505,9 @@ mod tests {
                 status: SwapStatus::Failed,
                 metadata: Some(TransactionSwapMetadata {
                     from_asset: TON_USDT_ASSET_ID.clone(),
-                    from_value: "6321766".to_string(),
+                    from_value: BigUint::from(6321766u64),
                     to_asset: AssetId::from_chain(Chain::SmartChain),
-                    to_value: "9690124016594003".to_string(),
+                    to_value: BigUint::from(9690124016594003u64),
                     provider: Some("near_intents".to_string()),
                 }),
                 eta_in_seconds: None,
@@ -589,12 +590,12 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            value: "500000".to_string(),
+            value: BigUint::from(500000u64),
             options,
         };
 
         let quote = provider.get_quote(&request).await?;
-        assert!(!quote.to_value.is_empty());
+        assert!(quote.to_value > BigUint::ZERO);
 
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
         assert!(!quote_data.to.is_empty());
@@ -611,13 +612,13 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(NEAR_USDT_ASSET_ID.clone()),
             wallet_address: "test.near".to_string(),
             destination_address: "test.near".to_string(),
-            value: "1000000000000000000000000".to_string(),
+            value: BigUint::parse_bytes(b"1000000000000000000000000", 10).unwrap(),
             options: Options::mock_exact(100),
         };
 
         let quote = provider.get_quote(&request).await?;
 
-        assert!(!quote.to_value.is_empty());
+        assert!(quote.to_value > BigUint::ZERO);
         Ok(())
     }
 
@@ -631,7 +632,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
             wallet_address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            value: "100000".to_string(),
+            value: BigUint::from(100000u64),
             options: Options::mock_exact(100),
         };
 
@@ -640,7 +641,7 @@ mod swap_integration_tests {
         let quote_request: NearQuoteRequest = serde_json::from_str(&route.route_data)?;
 
         assert_eq!(quote_request.origin_asset, NEAR_INTENTS_BTC_NATIVE);
-        assert!(!quote.to_value.is_empty());
+        assert!(quote.to_value > BigUint::ZERO);
 
         println!(
             "Near Intents BTC quote: from_value={}, to_value={}, eta={:?}",
@@ -653,7 +654,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Bitcoin)),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh".to_string(),
-            value: "10000000".to_string(),
+            value: BigUint::from(10000000u64),
             options: Options::mock_exact(100),
         };
 
@@ -662,7 +663,7 @@ mod swap_integration_tests {
         let quote_request: NearQuoteRequest = serde_json::from_str(&route.route_data)?;
 
         assert_eq!(quote_request.destination_asset, NEAR_INTENTS_BTC_NATIVE);
-        assert!(!quote.to_value.is_empty());
+        assert!(quote.to_value > BigUint::ZERO);
 
         println!(
             "Near Intents to BTC quote: from_value={}, to_value={}, eta={:?}",
@@ -683,7 +684,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Near)),
             wallet_address: "GBZXN7PIRZGNMHGA3RSSOEV56YXG54FSNTJDGQI3GHDVBKSXRZ5B6KJT".to_string(),
             destination_address: "test.near".to_string(),
-            value: "20000000".to_string(),
+            value: BigUint::from(20000000u64),
             options: Options::mock_exact(100),
         };
 

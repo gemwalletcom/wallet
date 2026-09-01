@@ -1,3 +1,5 @@
+use num_bigint::BigUint;
+use std::str::FromStr;
 use std::sync::Arc;
 
 use alloy_primitives::U256;
@@ -97,7 +99,7 @@ where
             destination_chain_id: to_chain.chain_id().ok_or(SwapperError::NotSupportedChain)?,
             origin_currency,
             destination_currency,
-            amount: from_value.clone(),
+            amount: from_value.to_string(),
             recipient: request.destination_address.clone(),
             trade_type: "EXACT_INPUT".to_string(),
             slippage_tolerance,
@@ -109,7 +111,7 @@ where
 
         let response = self.client.get_quote(relay_request).await?;
 
-        let to_value = response.details.currency_out.amount.clone();
+        let to_value = BigUint::from_str(&response.details.currency_out.amount).map_err(SwapperError::compute_quote_error)?;
         let eta_in_seconds = response.details.time_estimate_u32();
 
         let quote = Quote {
@@ -173,7 +175,7 @@ where
         };
 
         let spender = quote_response.router_address().ok_or(SwapperError::InvalidRoute)?;
-        let amount: U256 = quote.from_value.parse().map_err(SwapperError::from)?;
+        let amount = U256::from_str(&quote.from_value.to_string()).map_err(SwapperError::from)?;
         let approval = match chain {
             RelayChain::Evm(_) => {
                 check_approval_erc20(
@@ -226,7 +228,7 @@ mod tests {
 
     fn mock_quote(chain: Chain) -> Quote {
         let mut quote = Quote::mock(chain, None);
-        quote.from_value = QUOTE_VALUE.to_string();
+        quote.from_value = QUOTE_VALUE.parse().unwrap();
         quote.request.wallet_address = "0x1085c5f70F7F7591D97da281A64688385455c2bD".to_string();
         quote
     }
@@ -245,7 +247,7 @@ mod tests {
 
         assert_eq!(approval.token, CELO_WETH_TOKEN_ID);
         assert_eq!(approval.spender, ROUTER_ADDRESS);
-        assert_eq!(approval.value, QUOTE_VALUE);
+        assert_eq!(approval.value.to_string(), QUOTE_VALUE);
 
         let relay = mock_relay_with_allowance(SUFFICIENT_ALLOWANCE);
         let approval = relay
@@ -293,7 +295,7 @@ mod tests {
         let mut native_quote = Quote::mock(Chain::Tron, None);
         native_quote.data.provider = ProviderType::new(SwapperProvider::Relay);
         native_quote.request.to_asset = SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone());
-        native_quote.request.value = "10000000".to_string();
+        native_quote.request.value = BigUint::from(10000000u64);
         native_quote.data.routes = vec![Route {
             input: AssetId::from_chain(Chain::Tron),
             output: BASE_USDC_ASSET_ID.clone(),
@@ -331,7 +333,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            value: "500000".to_string(),
+            value: BigUint::from(500000u64),
             options: Options::new_with_slippage(100.into()),
         };
 
@@ -342,7 +344,7 @@ mod swap_integration_tests {
         println!("quote_data: to={}, value={}, data_len={}", quote_data.to, quote_data.value, quote_data.data.len());
 
         assert_eq!(quote.from_value, request.value);
-        assert!(!quote.to_value.is_empty());
+        assert!(quote.to_value > BigUint::ZERO);
         assert!(!quote_data.data.is_empty());
 
         Ok(())
@@ -358,7 +360,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
             wallet_address: "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            value: "10000000".to_string(),
+            value: BigUint::from(10000000u64),
             options: Options::new_with_slippage(100.into()),
         };
 
@@ -366,7 +368,7 @@ mod swap_integration_tests {
 
         assert_eq!(quote.from_value, native_request.value);
         assert_eq!(quote.data.slippage_bps, native_request.options.slippage.bps);
-        assert!(!quote.to_value.is_empty());
+        assert!(quote.to_value > BigUint::ZERO);
 
         let mut auto_slippage_request = native_request.clone();
         auto_slippage_request.options.slippage.mode = SlippageMode::Auto;
@@ -374,31 +376,31 @@ mod swap_integration_tests {
         assert!(quote.data.slippage_bps > 0);
 
         let mut too_small_request = native_request.clone();
-        too_small_request.value = "20000".to_string();
+        too_small_request.value = BigUint::from(20000u64);
         assert_eq!(relay.get_quote(&too_small_request).await.unwrap_err(), SwapperError::InputAmountError { min_amount: None });
 
         let usdt_request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(TRON_USDT_ASSET_ID.clone()),
-            value: "1000000".to_string(),
+            value: BigUint::from(1000000u64),
             ..native_request
         };
         let quote = relay.get_quote(&usdt_request).await?;
 
         assert_eq!(quote.from_value, usdt_request.value);
-        assert!(!quote.to_value.is_empty());
+        assert!(quote.to_value > BigUint::ZERO);
 
         let reverse_request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
             to_asset: SwapperQuoteAsset::from(TRON_USDT_ASSET_ID.clone()),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: usdt_request.wallet_address.clone(),
-            value: "10000000".to_string(),
+            value: BigUint::from(10000000u64),
             options: Options::new_with_slippage(100.into()),
         };
         let quote = relay.get_quote(&reverse_request).await?;
 
         assert_eq!(quote.from_value, reverse_request.value);
-        assert!(!quote.to_value.is_empty());
+        assert!(quote.to_value > BigUint::ZERO);
 
         Ok(())
     }
@@ -415,7 +417,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Base)),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            value: "5000000".to_string(),
+            value: BigUint::from(5000000u64),
             options: Options::new_with_slippage(100.into()),
         };
 
@@ -427,7 +429,7 @@ mod swap_integration_tests {
         println!("approval: {:?}", quote_data.approval);
 
         assert_eq!(quote.from_value, request.value);
-        assert!(!quote.to_value.is_empty());
+        assert!(quote.to_value > BigUint::ZERO);
         assert!(!quote_data.data.is_empty());
         assert!(!quote_data.to.is_empty());
         assert!(quote_data.approval.is_some());
@@ -445,7 +447,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(SMARTCHAIN_USDT_ASSET_ID.clone()),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            value: "40000000000000000000".to_string(),
+            value: BigUint::parse_bytes(b"40000000000000000000", 10).unwrap(),
             options: Options::new_with_slippage(100.into()),
         };
 
@@ -457,7 +459,7 @@ mod swap_integration_tests {
 
         let approval = quote_data.approval.expect("native CELO swap requires an approval");
         assert_eq!(approval.token, CELO_WETH_TOKEN_ID);
-        assert_eq!(quote_data.value, "0");
+        assert_eq!(quote_data.value, BigUint::from(0u64));
         assert!(quote_data.gas_limit.is_some());
         assert!(!quote_data.data.is_empty());
 
@@ -474,7 +476,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Robinhood)),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            value: "5000000000000000".to_string(),
+            value: BigUint::from(5000000000000000u64),
             options: Options::new_with_slippage(100.into()),
         };
 
@@ -485,7 +487,7 @@ mod swap_integration_tests {
         println!("quote_data: to={}, value={}, data_len={}", quote_data.to, quote_data.value, quote_data.data.len());
 
         assert_eq!(quote.from_value, request.value);
-        assert!(!quote.to_value.is_empty());
+        assert!(quote.to_value > BigUint::ZERO);
         assert!(!quote_data.data.is_empty());
         assert!(!quote_data.to.is_empty());
 
@@ -502,14 +504,14 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            value: "1000000".to_string(),
+            value: BigUint::from(1000000u64),
             options: Options::new_with_slippage(100.into()),
         };
 
         let quote = relay.get_quote(&request).await?;
         let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
 
-        assert_eq!(quote_data.value, "0");
+        assert_eq!(quote_data.value, BigUint::from(0u64));
         assert!(!quote_data.to.is_empty());
 
         Ok(())

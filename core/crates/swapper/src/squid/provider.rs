@@ -1,3 +1,5 @@
+use num_bigint::BigUint;
+use std::str::FromStr;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -125,12 +127,12 @@ where
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let from_value = request.value.clone();
-        let (response, _, _) = self.get_route(request, &from_value, true).await?;
+        let (response, _, _) = self.get_route(request, &from_value.to_string(), true).await?;
 
         Ok(Quote {
             from_value,
             min_from_value: None,
-            to_value: response.route.estimate.to_amount,
+            to_value: BigUint::from_str(&response.route.estimate.to_amount).map_err(SwapperError::compute_quote_error)?,
             data: ProviderData {
                 provider: self.provider().clone(),
                 routes: vec![Route {
@@ -146,7 +148,7 @@ where
     }
 
     async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
-        let (response, fee, fee_address) = self.get_route(&quote.request, &quote.from_value, false).await?;
+        let (response, fee, fee_address) = self.get_route(&quote.request, &quote.from_value.to_string(), false).await?;
         let tx = response.route.transaction_request.ok_or(SwapperError::InvalidRoute)?;
 
         let swap_msg: serde_json::Value = serde_json::from_str(&tx.data).map_err(SwapperError::transaction_error)?;
@@ -162,7 +164,7 @@ where
         Ok(SwapperQuoteData {
             to: tx.target,
             data_type: SwapQuoteDataType::Contract,
-            value: tx.value,
+            value: BigUint::from_str(&tx.value).map_err(SwapperError::compute_quote_error)?,
             data,
             memo: None,
             approval: None,
@@ -200,7 +202,7 @@ mod tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Cosmos)),
             wallet_address: "osmo1tkvyjqeq204rmrrz3w4hcrs336qahsfwn8m0ye".to_string(),
             destination_address: "cosmos1tkvyjqeq204rmrrz3w4hcrs336qahsfwmugljt".to_string(),
-            value: "10000000".to_string(),
+            value: BigUint::from(10000000u64),
             options: Options::new_with_slippage(slippage),
         }
     }
@@ -253,7 +255,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Cosmos)),
             wallet_address: OSMOSIS_ADDRESS.to_string(),
             destination_address: COSMOS_ADDRESS.to_string(),
-            value: "10000000".to_string(),
+            value: BigUint::from(10000000u64),
             options: Options::new_with_slippage(100.into()),
         };
 
@@ -264,8 +266,8 @@ mod swap_integration_tests {
             quote.to_value,
             quote.eta_in_seconds.unwrap_or(0)
         );
-        assert_eq!(quote.from_value, "10000000");
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert_eq!(quote.from_value, BigUint::from(10000000u64));
+        assert!(quote.to_value > BigUint::ZERO);
 
         let quote_data = squid.get_quote_data(&quote, FetchQuoteData::None).await?;
         println!("OSMO->ATOM data: to={}, value={}, gasLimit={:?}", quote_data.to, quote_data.value, quote_data.gas_limit);
@@ -283,7 +285,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Osmosis)),
             wallet_address: COSMOS_ADDRESS.to_string(),
             destination_address: OSMOSIS_ADDRESS.to_string(),
-            value: "1000000".to_string(),
+            value: BigUint::from(1000000u64),
             options: Options::new_with_slippage(100.into()),
         };
 
@@ -294,8 +296,8 @@ mod swap_integration_tests {
             quote.to_value,
             quote.eta_in_seconds.unwrap_or(0)
         );
-        assert_eq!(quote.from_value, "1000000");
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert_eq!(quote.from_value, BigUint::from(1000000u64));
+        assert!(quote.to_value > BigUint::ZERO);
 
         let quote_data = squid.get_quote_data(&quote, FetchQuoteData::None).await?;
         println!("ATOM->OSMO data: to={}, value={}, gasLimit={:?}", quote_data.to, quote_data.value, quote_data.gas_limit);
@@ -323,7 +325,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Cosmos)),
             wallet_address: OSMOSIS_ADDRESS.to_string(),
             destination_address: COSMOS_ADDRESS.to_string(),
-            value: "10000000".to_string(),
+            value: BigUint::from(10000000u64),
             options: Options::new_with_slippage(Slippage {
                 bps: 2000,
                 mode: SlippageMode::Exact,
@@ -331,7 +333,7 @@ mod swap_integration_tests {
         };
 
         let quote = squid.get_quote(&request).await?;
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
 
         let quote_data = squid.get_quote_data(&quote, FetchQuoteData::None).await?;
         assert!(!quote_data.data.is_empty());

@@ -3,7 +3,6 @@ use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     error::INVALID_ADDRESS, fees::default_referral_fees,
 };
-use alloy_primitives::U256;
 use async_trait::async_trait;
 use gem_client::Client;
 use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcResult};
@@ -13,6 +12,7 @@ use gem_solana::{
     models::{AccountData, ValueResult},
     token_account::get_token_account,
 };
+use num_bigint::BigUint;
 use primitives::{AssetId, Chain};
 
 const MAX_ACCOUNTS: u8 = 64;
@@ -108,7 +108,7 @@ where
         let build_request = BuildRequest {
             input_mint: input_mint.clone(),
             output_mint: output_mint.clone(),
-            amount: request.value.clone(),
+            amount: request.value.to_string(),
             taker: request.wallet_address.clone(),
             slippage_bps: request.options.slippage.bps,
             platform_fee_bps: referral_fee.bps,
@@ -116,7 +116,7 @@ where
             max_accounts: MAX_ACCOUNTS,
         };
         let build = self.http_client.get_build(&build_request).await?;
-        let to_value = build.out_amount.parse::<U256>()?.to_string();
+        let to_value = build.out_amount.parse::<BigUint>().map_err(SwapperError::compute_quote_error)?;
         let slippage_bps = build.slippage_bps;
         let route_data = build.into_transaction(&build_request.taker, &build_request.fee_account)?;
 
@@ -143,7 +143,7 @@ where
 
         Ok(SwapperQuoteData::new_contract(
             JUPITER_PROGRAM_ID.to_string(),
-            String::new(),
+            BigUint::ZERO,
             route.route_data.clone(),
             None,
             Some(DEFAULT_SWAP_GAS_LIMIT.to_string()),
@@ -170,14 +170,14 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Solana, Some(USDC_TOKEN_MINT.to_string()))),
             wallet_address: "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy".to_string(),
             destination_address: "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy".to_string(),
-            value: "1000000000".to_string(),
+            value: BigUint::from(1000000000u64),
             options: Options::new_with_slippage(100.into()),
         };
 
         let quote = provider.get_quote(&request).await?;
 
         assert_eq!(quote.from_value, request.value);
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         assert_eq!(quote.data.provider, provider.provider().clone());
         assert_eq!(quote.data.routes.len(), 1);
 

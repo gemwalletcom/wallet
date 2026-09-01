@@ -1,5 +1,6 @@
 use alloy_primitives::Address;
 use num_bigint::BigUint;
+use std::str::FromStr;
 
 use crate::{
     address::ethereum_address_from_topic,
@@ -77,9 +78,9 @@ impl OkxParser {
 
         Some(TransactionSwapMetadata {
             from_asset,
-            from_value: event.from_amount.to_string(),
+            from_value: event.from_amount.clone(),
             to_asset,
-            to_value: event.to_amount.to_string(),
+            to_value: event.to_amount.clone(),
             provider: Some(Self::provider()),
         })
     }
@@ -93,16 +94,16 @@ impl OkxParser {
         match (context.transaction.value > BigUint::from(0u8), outgoing.as_slice(), incoming.as_slice()) {
             (_, [sent], [received]) if sent.token != received.token => Some(TransactionSwapMetadata {
                 from_asset: AssetId::from_token(*context.chain, &sent.token),
-                from_value: sent.value.clone(),
+                from_value: BigUint::from_str(&sent.value).ok()?,
                 to_asset: AssetId::from_token(*context.chain, &received.token),
-                to_value: received.value.clone(),
+                to_value: BigUint::from_str(&received.value).ok()?,
                 provider: Some(Self::provider()),
             }),
             (true, [], [received]) => Some(TransactionSwapMetadata {
                 from_asset: AssetId::from_chain(*context.chain),
-                from_value: context.transaction.value.to_string(),
+                from_value: context.transaction.value.clone(),
                 to_asset: AssetId::from_token(*context.chain, &received.token),
-                to_value: received.value.clone(),
+                to_value: BigUint::from_str(&received.value).ok()?,
                 provider: Some(Self::provider()),
             }),
             _ => None,
@@ -213,8 +214,8 @@ mod tests {
                 token_id: Some("0x0000000f2eB9f69274678c76222B35eEc7588a65".to_string()),
             }
         );
-        assert_eq!(swap_metadata.from_value, "995000");
-        assert_eq!(swap_metadata.to_value, "928345");
+        assert_eq!(swap_metadata.from_value, BigUint::from(995000u64));
+        assert_eq!(swap_metadata.to_value, BigUint::from(928345u64));
 
         let transfer_tx = Transaction {
             from: "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F".to_string(),
@@ -266,8 +267,8 @@ mod tests {
                 token_id: Some("0x0000000f2eB9f69274678c76222B35eEc7588a65".to_string()),
             }
         );
-        assert_eq!(transfer_metadata.from_value, "995000");
-        assert_eq!(transfer_metadata.to_value, "928345");
+        assert_eq!(transfer_metadata.from_value, BigUint::from(995000u64));
+        assert_eq!(transfer_metadata.to_value, BigUint::from(928345u64));
 
         let uniswap_v3_swap_to_tx = Transaction {
             from: "0xAdaf6f9B702718E3CEC12F944be7dF8b34E59E2f".to_string(),
@@ -308,8 +309,8 @@ mod tests {
                 token_id: None,
             }
         );
-        assert_eq!(uniswap_v3_swap_to_metadata.from_value, "20000000000000000000000");
-        assert_eq!(uniswap_v3_swap_to_metadata.to_value, "15649254694065405");
+        assert_eq!(uniswap_v3_swap_to_metadata.from_value, BigUint::parse_bytes(b"20000000000000000000000", 10).unwrap());
+        assert_eq!(uniswap_v3_swap_to_metadata.to_value, BigUint::from(15649254694065405u64));
 
         let unxswap_by_order_id_tx = Transaction {
             from: "0xAdaf6f9B702718E3CEC12F944be7dF8b34E59E2f".to_string(),
@@ -350,8 +351,8 @@ mod tests {
                 token_id: None,
             }
         );
-        assert_eq!(unxswap_by_order_id_metadata.from_value, "547031207820868594841299458");
-        assert_eq!(unxswap_by_order_id_metadata.to_value, "9105467203253212");
+        assert_eq!(unxswap_by_order_id_metadata.from_value, BigUint::parse_bytes(b"547031207820868594841299458", 10).unwrap());
+        assert_eq!(unxswap_by_order_id_metadata.to_value, BigUint::from(9105467203253212u64));
 
         let mut reverted_receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/okx_base_swap_tx_receipt.json"));
         reverted_receipt.status = "0x0".to_string();

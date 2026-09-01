@@ -1,3 +1,4 @@
+use num_bigint::BigUint;
 use std::{
     str::FromStr,
     time::{SystemTime, UNIX_EPOCH},
@@ -5,7 +6,6 @@ use std::{
 
 use alloy_primitives::{Address, U256, hex::encode_prefixed as HexEncode};
 use alloy_sol_types::SolCall;
-use num_bigint::BigInt;
 use primitives::swap::ApprovalData;
 
 use super::{DEFAULT_DEPOSIT_GAS_LIMIT, asset::THORChainAsset, contracts::RouterInterface, model::RouteData};
@@ -15,7 +15,7 @@ pub fn map_quote_data(
     from_asset: &THORChainAsset,
     route_data: &RouteData,
     token_id: Option<String>,
-    value: String,
+    value: BigUint,
     memo: String,
     approval: Option<ApprovalData>,
 ) -> SwapperQuoteData {
@@ -25,7 +25,7 @@ pub fn map_quote_data(
         let router_address = route_data.router_address.clone().unwrap_or_default();
         let inbound_address = Address::from_str(&route_data.inbound_address).unwrap();
         let token_address = Address::from_str(&token_id.unwrap()).unwrap();
-        let amount = U256::from_str(&value).unwrap();
+        let amount = U256::from_str(&value.to_string()).unwrap();
         let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() + 86400;
         let expiry = U256::from_str(timestamp.to_string().as_str()).unwrap();
 
@@ -38,7 +38,7 @@ pub fn map_quote_data(
         }
         .abi_encode();
 
-        SwapperQuoteData::new_contract(router_address, BigInt::ZERO.to_string(), HexEncode(call_data), approval, gas_limit)
+        SwapperQuoteData::new_contract(router_address, BigUint::ZERO, HexEncode(call_data), approval, gas_limit)
     } else if from_asset.chain.is_evm_chain() {
         SwapperQuoteData::new_contract(route_data.inbound_address.clone(), value, HexEncode(memo.as_bytes()), approval, gas_limit)
     } else {
@@ -50,6 +50,7 @@ pub fn map_quote_data(
 mod tests {
     use super::*;
     use crate::thorchain::{THORChainNetwork, chain::ChainName};
+    use num_bigint::BigUint;
     use primitives::{Chain, asset_constants::ETHEREUM_USDC_TOKEN_ID, swap::ApprovalData};
 
     fn asset(chain: Chain, token_id: Option<String>) -> THORChainAsset {
@@ -75,13 +76,13 @@ mod tests {
             &asset(Chain::Ethereum, Some(usdc_eth.clone())),
             &route_data(Some("0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146".to_string()), "0x1234567890123456789012345678901234567890"),
             Some(usdc_eth),
-            "1000000".to_string(),
+            BigUint::from(1000000u64),
             "memo".to_string(),
             None,
         );
 
         assert_eq!(result.to, "0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146");
-        assert_eq!(result.value, "0");
+        assert_eq!(result.value, BigUint::from(0u64));
         assert!(result.data.starts_with("0x"));
         assert_eq!(result.memo, None);
         assert_eq!(result.gas_limit, None);
@@ -93,13 +94,13 @@ mod tests {
             &asset(Chain::Ethereum, None),
             &route_data(Some("0xrouter".to_string()), "0xinbound"),
             None,
-            "1000".to_string(),
+            BigUint::from(1000u64),
             "memo".to_string(),
             None,
         );
 
         assert_eq!(result.to, "0xinbound");
-        assert_eq!(result.value, "1000");
+        assert_eq!(result.value, BigUint::from(1000u64));
         assert_eq!(result.data, "0x6d656d6f");
         assert_eq!(result.memo, None);
         assert_eq!(result.gas_limit, None);
@@ -107,10 +108,17 @@ mod tests {
 
     #[test]
     fn non_evm() {
-        let result = map_quote_data(&asset(Chain::Bitcoin, None), &route_data(None, "bc1q"), None, "1000".to_string(), "memo".to_string(), None);
+        let result = map_quote_data(
+            &asset(Chain::Bitcoin, None),
+            &route_data(None, "bc1q"),
+            None,
+            BigUint::from(1_000u64),
+            "memo".to_string(),
+            None,
+        );
 
         assert_eq!(result.to, "bc1q");
-        assert_eq!(result.value, "1000");
+        assert_eq!(result.value, BigUint::from(1000u64));
         assert_eq!(result.data, "");
         assert_eq!(result.memo, Some("memo".to_string()));
         assert_eq!(result.gas_limit, None);
@@ -122,13 +130,13 @@ mod tests {
             &asset(Chain::Zcash, None),
             &route_data(None, "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML"),
             None,
-            "10000000".to_string(),
+            BigUint::from(10000000u64),
             "=:b:bc1qdestination:0/1/0:g1:50".to_string(),
             None,
         );
 
         assert_eq!(result.to, "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML");
-        assert_eq!(result.value, "10000000");
+        assert_eq!(result.value, BigUint::from(10000000u64));
         assert_eq!(result.data, "");
         assert_eq!(result.memo, Some("=:b:bc1qdestination:0/1/0:g1:50".to_string()));
         assert_eq!(result.gas_limit, None);
@@ -137,19 +145,19 @@ mod tests {
     #[test]
     fn evm_router_with_approval() {
         let usdc_eth = ETHEREUM_USDC_TOKEN_ID.to_string();
-        let approval = Some(ApprovalData::make(&usdc_eth, "0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146", "2000", false));
+        let approval = Some(ApprovalData::make(&usdc_eth, "0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146", BigUint::from(2000u64), false));
 
         let result = map_quote_data(
             &asset(Chain::Ethereum, Some(usdc_eth.clone())),
             &route_data(Some("0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146".to_string()), "0x1234567890123456789012345678901234567890"),
             Some(usdc_eth),
-            "1000000".to_string(),
+            BigUint::from(1000000u64),
             "memo".to_string(),
             approval.clone(),
         );
 
         assert_eq!(result.to, "0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146");
-        assert_eq!(result.value, "0");
+        assert_eq!(result.value, BigUint::from(0u64));
         assert_eq!(result.approval, approval);
         assert_eq!(result.gas_limit, Some("90000".to_string()));
     }
@@ -160,13 +168,13 @@ mod tests {
             &asset(Chain::Ethereum, None),
             &route_data(Some("0xrouter".to_string()), "0xinbound"),
             None,
-            "1000".to_string(),
+            BigUint::from(1000u64),
             "memo".to_string(),
             None,
         );
 
         assert_eq!(result.to, "0xinbound");
-        assert_eq!(result.value, "1000");
+        assert_eq!(result.value, BigUint::from(1000u64));
         assert_eq!(result.gas_limit, None);
     }
 }

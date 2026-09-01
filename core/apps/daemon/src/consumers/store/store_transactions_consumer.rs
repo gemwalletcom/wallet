@@ -276,6 +276,7 @@ fn should_publish_transaction(notification_type: &TransactionNotificationType, i
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_bigint::BigUint;
     use primitives::{AssetId, Device, SwapProvider, TransactionSwapMetadata, WalletId};
 
     #[test]
@@ -351,9 +352,9 @@ mod tests {
             metadata: Some(
                 serde_json::to_value(TransactionSwapMetadata {
                     from_asset: AssetId::from_chain(Chain::Solana),
-                    from_value: "5000000".to_string(),
+                    from_value: BigUint::from(5000000u64),
                     to_asset: AssetId::from_chain(Chain::Ton),
-                    to_value: "2508437099".to_string(),
+                    to_value: BigUint::from(2508437099u64),
                     provider: Some(SwapProvider::NearIntents.as_ref().to_string()),
                 })
                 .unwrap(),

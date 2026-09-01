@@ -8,7 +8,6 @@ use primitives::{
 use serde_json::Value;
 use std::collections::HashMap;
 use std::error::Error;
-use std::str::FromStr;
 
 use crate::address::TronAddress;
 use crate::models::{
@@ -198,7 +197,7 @@ impl TransactionContext {
             self.from.clone(),
             self.from.clone(),
             TransactionType::Swap,
-            BigUint::from_str(&swap.from_value).ok()?,
+            swap.from_value.clone(),
             serde_json::to_value(&swap).ok(),
         ))
     }
@@ -533,7 +532,7 @@ mod tests {
         let output_token = TronAddress::from_hex("4e4bee11cea0070f957b98fd8cf4138ef3295e0e").unwrap().encode();
         let metadata: TransactionSwapMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
         assert_eq!(metadata.from_asset, Chain::Tron.as_asset_id());
-        assert_eq!(metadata.from_value, "1000000");
+        assert_eq!(metadata.from_value, BigUint::from(1000000u64));
         assert_eq!(
             metadata.to_asset,
             AssetId {
@@ -541,7 +540,7 @@ mod tests {
                 token_id: Some(output_token)
             }
         );
-        assert_eq!(metadata.to_value, "329114");
+        assert_eq!(metadata.to_value, BigUint::from(329114u64));
     }
 
     #[test]
@@ -574,9 +573,9 @@ mod tests {
                 token_id: Some(usdt)
             }
         );
-        assert_eq!(metadata.from_value, "25000000");
+        assert_eq!(metadata.from_value, BigUint::from(25000000u64));
         assert_eq!(metadata.to_asset, Chain::Tron.as_asset_id());
-        assert_eq!(metadata.to_value, "900000");
+        assert_eq!(metadata.to_value, BigUint::from(900000u64));
     }
 
     #[test]

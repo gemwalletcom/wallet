@@ -1,4 +1,3 @@
-use num_bigint::BigInt;
 use primitives::{
     ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, Transaction, TransactionPreloadInput,
     Wallet,
@@ -98,13 +97,11 @@ pub fn approval_value_from(value: &Option<GemBigUint>, is_unlimited: bool) -> Ge
     }
 }
 
-pub fn gem_approval_value(value: &str, is_unlimited: bool) -> GemApprovalValue {
+pub fn gem_approval_value(value: &GemBigUint, is_unlimited: bool) -> GemApprovalValue {
     if is_unlimited {
-        return GemApprovalValue::Unlimited;
-    }
-    match value.parse::<GemBigUint>() {
-        Ok(value) => GemApprovalValue::Exact { value },
-        Err(_) => GemApprovalValue::Unlimited,
+        GemApprovalValue::Unlimited
+    } else {
+        GemApprovalValue::Exact { value: value.clone() }
     }
 }
 
@@ -173,16 +170,8 @@ fn asset_balance(balances: &[GemAssetBalance], asset_id: &AssetId) -> Result<Gem
 impl GemTransactionInputType {
     pub(super) fn validate_approvals(&self, transactions: &[GemSignedTransaction]) -> Result<(), GemConfirmError> {
         for transaction in transactions {
-            let approval = self
-                .approval(transaction.transaction_type.clone())
+            self.approval(transaction.transaction_type.clone())
                 .map_err(|msg| GemConfirmError::ApprovalInvalid { msg })?;
-            if let Some(approval) = approval
-                && approval.value.parse::<BigInt>().is_err()
-            {
-                return Err(GemConfirmError::ApprovalInvalid {
-                    msg: format!("approval value is not an integer: {}", approval.value),
-                });
-            }
         }
         Ok(())
     }
@@ -337,6 +326,7 @@ mod tests {
     use crate::models::gateway::GemGasPriceType;
     use crate::models::transaction::GemTransactionLoadMetadata;
     use crate::services::transfer::{GemRecipient, GemTransferData};
+    use num_bigint::BigInt;
     use num_bigint::BigUint;
     use primitives::{
         Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, StakeType, TransactionType, TransferDataExtra, TransferDataOutputAction,
@@ -431,13 +421,10 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_approvals_rejects_non_integer_value() {
-        let approval = |value: &str| GemTransactionInputType::TokenApprove {
+    fn test_only_a_token_approve_input_can_sign_a_token_approval() {
+        let approval = GemTransactionInputType::TokenApprove {
             asset: Asset::mock_sol(),
-            approval_data: ApprovalData {
-                value: value.to_string(),
-                ..ApprovalData::mock()
-            },
+            approval_data: ApprovalData::mock(),
         };
         let signed = |transaction_type: TransactionType| {
             vec![GemSignedTransaction {
@@ -446,13 +433,11 @@ mod tests {
             }]
         };
 
-        assert!(approval("1000").validate_approvals(&signed(TransactionType::TokenApproval)).is_ok());
-        assert!(approval("abc").validate_approvals(&signed(TransactionType::Transfer)).is_ok());
-        match approval("abc").validate_approvals(&signed(TransactionType::TokenApproval)) {
-            Err(GemConfirmError::ApprovalInvalid { .. }) => {}
-            result => panic!("expected an invalid approval error, got {result:?}"),
-        }
-        match (GemTransactionInputType::Transfer { asset: Asset::mock_sol() }).validate_approvals(&signed(TransactionType::TokenApproval)) {
+        assert!(approval.validate_approvals(&signed(TransactionType::TokenApproval)).is_ok());
+
+        let transfer = GemTransactionInputType::Transfer { asset: Asset::mock_sol() };
+        assert!(transfer.validate_approvals(&signed(TransactionType::Transfer)).is_ok());
+        match transfer.validate_approvals(&signed(TransactionType::TokenApproval)) {
             Err(GemConfirmError::ApprovalInvalid { .. }) => {}
             result => panic!("expected an invalid approval error, got {result:?}"),
         }
@@ -870,15 +855,15 @@ mod tests {
             approval_data: primitives::swap::ApprovalData {
                 token: String::new(),
                 spender: String::new(),
-                value: "42".to_string(),
+                value: GemBigUint::from(42u32),
                 is_unlimited: true,
             },
         };
 
         assert!(matches!(approval.approval_value(), Some((id, GemApprovalValue::Unlimited)) if id == asset.id));
         assert!((GemTransactionInputType::Transfer { asset }).approval_value().is_none());
-        assert!(matches!(gem_approval_value("42", false), GemApprovalValue::Exact { value } if value == GemBigUint::from(42u32)));
-        assert!(matches!(gem_approval_value("not-a-number", false), GemApprovalValue::Unlimited));
+        assert!(matches!(gem_approval_value(&GemBigUint::from(42u32), false), GemApprovalValue::Exact { value } if value == GemBigUint::from(42u32)));
+        assert!(matches!(gem_approval_value(&GemBigUint::from(42u32), true), GemApprovalValue::Unlimited));
     }
 
     fn balance(asset_id: &AssetId, available: u32) -> GemAssetBalance {
