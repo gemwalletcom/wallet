@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import Foundation
+import enum Gemstone.GemTransactionInputType
 import struct Gemstone.GemRecipient
 import struct Gemstone.GemTransferBalance
 import struct Gemstone.GemTransferData
@@ -9,25 +9,29 @@ import class Gemstone.GemTransferService
 import GemstonePrimitives
 import Primitives
 
-public extension TransferData {
-    init(_ transfer: GemTransferData) throws {
+public extension GemTransferData {
+    init(
+        inputType: GemTransactionInputType,
+        recipient: GemRecipient,
+        value: BigInt,
+        useMaxAmount: Bool = false,
+        minimumValue: BigInt? = nil,
+    ) {
         self.init(
-            type: transfer.inputType,
-            recipient: Recipient(transfer.recipient),
-            value: try BigInt.from(string: transfer.value),
-            useMaxAmount: transfer.useMaxAmount,
-            minimumValue: try transfer.minimumValue.map { try BigInt.from(string: $0) },
-        )
-    }
-
-    var gem: GemTransferData {
-        GemTransferData(
-            inputType: type,
-            recipient: recipient.gem,
+            inputType: inputType,
+            recipient: recipient,
             value: value.description,
             useMaxAmount: useMaxAmount,
             minimumValue: minimumValue?.description,
         )
+    }
+
+    var chain: Chain {
+        inputType.chain
+    }
+
+    var id: String {
+        [chain.rawValue, recipient.address, value].joined(separator: "-")
     }
 
     func availableValue(balance: Balance, transferService: GemTransferService) throws -> BigInt {
@@ -38,7 +42,7 @@ public extension TransferData {
             withdrawable: balance.withdrawable.description,
             votes: UInt32(balance.metadata?.votes ?? 0),
         )
-        return try BigInt.from(string: transferService.availableValue(transfer: gem, balance: transferBalance))
+        return try BigInt.from(string: transferService.availableValue(transfer: self, balance: transferBalance))
     }
 }
 

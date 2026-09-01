@@ -54,6 +54,7 @@ import Transfer
 import WalletConnector
 import WalletConnectorService
 import WalletTab
+import struct Gemstone.GemTransferData
 
 public struct ViewModelFactory: Sendable {
     let addressService: GemAddressService
@@ -204,7 +205,7 @@ public struct ViewModelFactory: Sendable {
     @MainActor
     public func confirmTransferScene(
         wallet: Wallet,
-        data: TransferData,
+        data: GemTransferData,
         confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate? = nil,
         simulation: SimulationResult? = nil,
         onComplete: VoidAction,
@@ -297,7 +298,7 @@ public struct ViewModelFactory: Sendable {
     @MainActor
     public func swapScene(
         input: SwapInput,
-        onSwap: @escaping (TransferData) -> Void,
+        onSwap: @escaping (GemTransferData) -> Void,
     ) -> SwapSceneViewModel {
         SwapSceneViewModel(
             preferencesService: preferencesService,

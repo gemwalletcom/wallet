@@ -11,7 +11,7 @@ import Primitives
 
 public enum PaymentDestinationBuilder {
     public enum TransferDestination: Sendable {
-        case confirm(TransferData)
+        case confirm(GemTransferData)
         case recipient(RecipientData)
     }
 
@@ -85,18 +85,18 @@ public enum PaymentDestinationBuilder {
         }
         guard let transfer else {
             return .confirm(
-                TransferData(
-                    type: type,
-                    recipient: Recipient(name: nil, address: "", memo: transaction.memo),
-                    value: .zero,
+                GemTransferData(
+                    inputType: type,
+                    recipient: GemRecipient(address: "", memo: transaction.memo),
+                    value: BigInt.zero,
                 ),
             )
         }
         return try .confirm(
-            TransferData(
-                type: type,
+            GemTransferData(
+                inputType: type,
                 recipient: transferData(transfer: transfer, asset: asset).recipient,
-                value: BigInt.from(string: transfer.value),
+                value: transfer.value,
             ),
         )
     }
@@ -105,11 +105,11 @@ public enum PaymentDestinationBuilder {
         assets.first { $0.asset.id.identifier == assetId }
     }
 
-    private static func transferData(transfer: GemPaymentConfirmTransfer, asset: Primitives.Asset) throws -> TransferData {
-        try TransferData(
-            type: .transfer(asset: asset.map()),
-            recipient: Recipient(name: nil, address: transfer.address, memo: transfer.memo, references: transfer.references),
-            value: BigInt.from(string: transfer.value),
+    private static func transferData(transfer: GemPaymentConfirmTransfer, asset: Primitives.Asset) -> GemTransferData {
+        GemTransferData(
+            inputType: .transfer(asset: asset.map()),
+            recipient: GemRecipient(address: transfer.address, memo: transfer.memo, references: transfer.references),
+            value: transfer.value,
         )
     }
 

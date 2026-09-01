@@ -25,6 +25,8 @@ import Store
 import Style
 import SwiftUI
 import UIKit
+import struct Gemstone.GemRecipient
+import struct Gemstone.GemTransferData
 
 @Observable
 @MainActor
@@ -422,14 +424,10 @@ public extension AssetSceneViewModel {
                 onSelectHeader(.stake)
             case .activateAsset:
                 isPresentingAssetSheet = .transfer(
-                    TransferData(
-                        type: .account(assetData.asset, .activate),
-                        recipient: Recipient(
-                                name: .none,
-                                address: "",
-                                memo: .none,
-                            ),
-                        value: 0,
+                    GemTransferData(
+                        inputType: .account(assetData.asset, .activate),
+                        recipient: GemRecipient(address: ""),
+                        value: BigInt.zero,
                     ),
                 )
             case .accountActivation,

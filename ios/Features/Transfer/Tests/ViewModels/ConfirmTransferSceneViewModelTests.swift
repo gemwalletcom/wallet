@@ -26,12 +26,13 @@ import Validators
 import class Gemstone.GemFeeService
 import class Gemstone.GemSimulationFormatter
 import class Gemstone.GemAssetConfigService
+import struct Gemstone.GemTransferData
 
 @MainActor
 struct ConfirmTransferSceneViewModelTests {
     @Test
     func paymentHeaderAppearsAfterLoading() {
-        let data = TransferData.mockPayment()
+        let data = GemTransferData.mockPayment()
         let model = ConfirmTransferSceneViewModel.mock(data: data)
 
         #expect(model.isHeaderVisible == false)

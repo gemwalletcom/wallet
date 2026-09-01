@@ -2,5 +2,6 @@
 
 import GemstonePrimitives
 import Foundation
+import struct Gemstone.GemTransferData
 
-public typealias TransferDataAction = ((TransferData) -> Void)?
+public typealias TransferDataAction = ((GemTransferData) -> Void)?

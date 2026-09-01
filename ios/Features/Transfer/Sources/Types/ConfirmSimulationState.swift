@@ -5,6 +5,7 @@ import struct Gemstone.GemConfirmSimulation
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
+import struct Gemstone.GemTransferData
 
 struct ConfirmSimulationState {
     let result: SimulationResult?
@@ -28,7 +29,7 @@ struct ConfirmSimulationState {
     }
 
     init(
-        data: TransferData,
+        data: GemTransferData,
         simulation: SimulationResult?,
         resolved: GemConfirmSimulation?,
         addressNames: [ChainAddress: AddressName],

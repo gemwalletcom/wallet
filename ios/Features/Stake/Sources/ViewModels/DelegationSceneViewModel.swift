@@ -9,6 +9,8 @@ import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
+import struct Gemstone.GemRecipient
+import struct Gemstone.GemTransferData
 
 public struct DelegationSceneViewModel {
     public let model: DelegationViewModel
@@ -176,18 +178,18 @@ extension DelegationSceneViewModel {
         AmountInput(type: type, asset: asset)
     }
 
-    private func stakeTransferData(_ stakeType: StakeType) -> TransferData {
-        TransferData(
-            type: .stake(asset, stakeType),
-            recipient: Recipient(name: providerText, address: model.delegation.validator.id, memo: ""),
+    private func stakeTransferData(_ stakeType: StakeType) -> GemTransferData {
+        GemTransferData(
+            inputType: .stake(asset, stakeType),
+            recipient: GemRecipient(address: model.delegation.validator.id, name: providerText, memo: ""),
             value: model.delegation.base.balanceValue,
         )
     }
 
-    private func claimRewardsTransferData() -> TransferData {
-        TransferData(
-            type: .stake(asset, .rewards([model.delegation.validator])),
-            recipient: Recipient(name: model.delegation.validator.name, address: model.delegation.validator.id, memo: .none),
+    private func claimRewardsTransferData() -> GemTransferData {
+        GemTransferData(
+            inputType: .stake(asset, .rewards([model.delegation.validator])),
+            recipient: GemRecipient(address: model.delegation.validator.id, name: model.delegation.validator.name, memo: .none),
             value: model.delegation.base.rewardsValue,
         )
     }

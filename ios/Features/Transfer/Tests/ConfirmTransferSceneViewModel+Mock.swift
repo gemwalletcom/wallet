@@ -15,13 +15,14 @@ import StoreTestKit
 @testable import Transfer
 import TransferTestKit
 import class Gemstone.GemSimulationFormatter
+import struct Gemstone.GemTransferData
 
 @MainActor
 extension ConfirmTransferSceneViewModel {
     static func mock(
         request: ConfirmTransferRequest? = nil,
         wallet: Wallet? = nil,
-        data: TransferData = .mock(),
+        data: GemTransferData = .mock(),
         simulation: SimulationResult? = nil,
         gemConfirmService: GemConfirmServiceMock = GemConfirmServiceMock(),
         nameService: any GemNameServiceProtocol = GemNameServiceMock(),

@@ -4,12 +4,13 @@ import enum Gemstone.GemTransactionInputType
 import Components
 import Primitives
 import PrimitivesComponents
+import struct Gemstone.GemRecipient
 
 struct ConfirmMemoViewModel {
     private let type: GemTransactionInputType
-    private let recipient: Recipient
+    private let recipient: GemRecipient
 
-    init(type: GemTransactionInputType, recipient: Recipient) {
+    init(type: GemTransactionInputType, recipient: GemRecipient) {
         self.type = type
         self.recipient = recipient
     }

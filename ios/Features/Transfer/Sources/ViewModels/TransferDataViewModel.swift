@@ -6,20 +6,22 @@ import Localization
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
+import struct Gemstone.GemRecipient
+import struct Gemstone.GemTransferData
 
 struct TransferDataViewModel {
-    let data: TransferData
+    let data: GemTransferData
 
     var type: GemTransactionInputType {
-        data.type
+        data.inputType
     }
 
-    var recipient: Recipient {
+    var recipient: GemRecipient {
         data.recipient
     }
 
     var asset: Asset {
-        data.type.asset
+        data.inputType.asset
     }
 
     var memo: String? {

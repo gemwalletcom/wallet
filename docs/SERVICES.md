@@ -401,12 +401,13 @@ Single-service view models that only need the property made `private`:
 
 ### 9. Rules still living in app-only enums
 
-Both apps use `GemTransactionInputType` directly, per
-[ARCHITECTURE.md](ARCHITECTURE.md) § 6 — iOS's `TransferDataType` and Android's
-`ConfirmParams` are both gone. Android goes further and carries Core's `GemTransferData`
-and `GemConfirmInput` end to end; iOS still keeps a `TransferData` struct of its own,
-holding `BigInt` and `Recipient` where Core holds decimal strings and `GemRecipient`.
-Dropping that struct is the remaining half of the same consolidation.
+Both apps carry Core's `GemTransferData`, `GemConfirmInput` and `GemTransactionInputType`
+end to end, per [ARCHITECTURE.md](ARCHITECTURE.md) § 6 — iOS's `TransferDataType` and
+`TransferData` and Android's `ConfirmParams` are all gone.
+
+`Recipient` is the twin that remains. It restates `GemRecipient` field for field on iOS,
+and every transfer boundary now converts through `.gem` / `init(_:)`. Android has no such
+twin. Removing it is the next consolidation.
 
 Two recent-activity rules are still app-side, on `SelectAssetType` and `SelectedAssetType`.
 Both are Swift-only enums with no Core counterpart, so the enums move first.

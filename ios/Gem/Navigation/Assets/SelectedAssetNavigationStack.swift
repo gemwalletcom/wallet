@@ -7,6 +7,7 @@ import PrimitivesComponents
 import Swap
 import SwiftUI
 import Transfer
+import struct Gemstone.GemTransferData
 
 struct SelectedAssetNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -116,7 +117,7 @@ struct SelectedAssetNavigationStack: View {
             }
             .toolbarDismissItem(type: .close, placement: .topBarLeading)
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: TransferData.self) { data in
+            .navigationDestination(for: GemTransferData.self) { data in
                 ConfirmTransferNavigationView(
                     model: viewModelFactory.confirmTransferScene(
                         wallet: wallet,

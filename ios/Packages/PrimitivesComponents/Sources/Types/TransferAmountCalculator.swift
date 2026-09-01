@@ -5,6 +5,7 @@ import class Gemstone.GemAmountService
 import GemstonePrimitives
 import Primitives
 import Validators
+import struct Gemstone.GemTransferData
 
 public typealias TransferAmountValidation = Result<TransferAmount, TransferAmountCalculatorError>
 
@@ -16,13 +17,13 @@ public struct TransferAmountCalculator {
     }
 
     public func validate(
-        transferData: TransferData,
+        transferData: GemTransferData,
         availableValue: BigInt,
         feeAsset: Asset,
         assetFeeBalance: BigInt,
         fee: BigInt,
     ) -> TransferAmountValidation {
-        let asset = transferData.type.asset
+        let asset = transferData.inputType.asset
         do {
             return try .success(
                 TransferAmount.calculate(
@@ -37,7 +38,7 @@ public struct TransferAmountCalculator {
         } catch let error as TransferAmountError {
             return .failure(TransferAmountCalculatorError(error, asset: asset, assetFee: feeAsset))
         } catch {
-            return .failure(.insufficientBalance(asset, requirement: BalanceRequirement(required: transferData.value, available: availableValue)))
+            return .failure(.insufficientBalance(asset, requirement: BalanceRequirement(required: BigInt(core: transferData.value), available: availableValue)))
         }
     }
 }

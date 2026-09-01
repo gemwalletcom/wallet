@@ -12,6 +12,8 @@ import Primitives
 import PrimitivesComponents
 import Stake
 import Validators
+import struct Gemstone.GemRecipient
+import struct Gemstone.GemTransferData
 
 public enum AmountStakeSelection {
     case validator(SelectionState<DelegationValidator>)
@@ -144,10 +146,10 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         }
     }
 
-    func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> TransferData {
-        try TransferData(
-            type: .stake(asset, getStakeType()),
-            recipient: recipientData().recipient,
+    func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> GemTransferData {
+        try GemTransferData(
+            inputType: .stake(asset, getStakeType()),
+            recipient: recipientData().recipient.gem,
             value: value,
             useMaxAmount: useMaxAmount,
         )

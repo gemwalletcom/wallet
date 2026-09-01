@@ -8,7 +8,7 @@ import Primitives
 
 public extension TransferAmount {
     static func calculate(
-        transferData: TransferData,
+        transferData: GemTransferData,
         availableValue: BigInt,
         feeAssetId: Primitives.AssetId,
         assetFeeBalance: BigInt,
@@ -16,14 +16,14 @@ public extension TransferAmount {
         amountService: GemAmountService,
     ) throws -> TransferAmount {
         let input = try GemTransferAmountInput(
-            inputType: transferData.type,
-            value: transferData.value.description,
+            inputType: transferData.inputType,
+            value: transferData.value,
             availableValue: availableValue.description,
             feeAsset: feeAssetId.identifier,
             feeAssetBalance: assetFeeBalance.description,
             fee: fee.description,
             isMaxAmount: transferData.useMaxAmount,
-            minimumValue: transferData.minimumValue?.description,
+            minimumValue: transferData.minimumValue,
         )
         do {
             return try amountService.calculate(input: input).map()

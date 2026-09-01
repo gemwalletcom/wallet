@@ -19,6 +19,7 @@ import Store
 import StoreTestKit
 import Testing
 import class Gemstone.GemSimulationFormatter
+import struct Gemstone.GemTransferData
 @testable import Transfer
 
 @MainActor
@@ -151,7 +152,7 @@ struct ConfirmSubmissionTests {
             nameService: GemNameServiceMock(error: NSError(domain: "test", code: 404)),
         )
 
-        let request = ConfirmTransferRequest.mock(wallet: .mock(accounts: [.mock(chain: TransferData.mock().chain)]))
+        let request = ConfirmTransferRequest.mock(wallet: .mock(accounts: [.mock(chain: GemTransferData.mock().chain)]))
         let state = try await service.load(request: request, selection: FeeSelection.preset(.normal), feeAssetSelection: FeeAssetSelection.automatic).simulation
 
         #expect(state.payload.primaryFields.count == 1)

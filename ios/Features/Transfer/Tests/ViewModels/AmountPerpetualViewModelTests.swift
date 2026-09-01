@@ -109,11 +109,11 @@ struct AmountPerpetualViewModelTests {
         let increase = try AmountPerpetualViewModel(asset: .mock(), data: .mock(positionAction: .increase(.mock())), preferencesService: GemPreferencesServiceMock(), amountService: GemAmountService()).makeTransferData(value: 200, useMaxAmount: false)
         let reduce = try AmountPerpetualViewModel(asset: .mock(), data: .mock(positionAction: .reduce(.mock(), available: 1000, positionDirection: .long)), preferencesService: GemPreferencesServiceMock(), amountService: GemAmountService()).makeTransferData(value: 300, useMaxAmount: false)
 
-        #expect(open.type.transactionType(transferService: transferService) == .perpetualOpenPosition)
-        #expect(increase.type.transactionType(transferService: transferService) == .perpetualOpenPosition)
-        #expect(reduce.type.transactionType(transferService: transferService) == .perpetualClosePosition)
-        #expect(open.value == 100)
-        #expect(increase.value == 200)
-        #expect(reduce.value == 300)
+        #expect(open.inputType.transactionType(transferService: transferService) == .perpetualOpenPosition)
+        #expect(increase.inputType.transactionType(transferService: transferService) == .perpetualOpenPosition)
+        #expect(reduce.inputType.transactionType(transferService: transferService) == .perpetualClosePosition)
+        #expect(open.value == "100")
+        #expect(increase.value == "200")
+        #expect(reduce.value == "300")
     }
 }

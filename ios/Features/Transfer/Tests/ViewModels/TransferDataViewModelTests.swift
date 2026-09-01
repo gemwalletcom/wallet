@@ -8,6 +8,7 @@ import Localization
 import PrimitivesTestKit
 import class Gemstone.GemTransferService
 import Testing
+import struct Gemstone.GemTransferData
 @testable import Transfer
 
 struct TransferDataViewModelTests {
@@ -32,8 +33,8 @@ struct TransferDataViewModelTests {
     func availableValueForUnfreeze() throws {
         let balance = Balance(available: 1000, frozen: 500, locked: 300)
 
-        #expect(try TransferData.mock(type: .stake(.mock(), .unfreeze(.bandwidth))).availableValue(balance: balance, transferService: GemTransferService()) == BigInt(500))
-        #expect(try TransferData.mock(type: .stake(.mock(), .unfreeze(.energy))).availableValue(balance: balance, transferService: GemTransferService()) == BigInt(300))
+        #expect(try GemTransferData.mock(type: .stake(.mock(), .unfreeze(.bandwidth))).availableValue(balance: balance, transferService: GemTransferService()) == BigInt(500))
+        #expect(try GemTransferData.mock(type: .stake(.mock(), .unfreeze(.energy))).availableValue(balance: balance, transferService: GemTransferService()) == BigInt(300))
     }
 }
 
@@ -42,7 +43,7 @@ private extension TransferDataViewModel {
         type: GemTransactionInputType = .transfer(.mock()),
     ) -> TransferDataViewModel {
         TransferDataViewModel(
-            data: TransferData.mock(type: type),
+            data: GemTransferData.mock(type: type),
         )
     }
 }

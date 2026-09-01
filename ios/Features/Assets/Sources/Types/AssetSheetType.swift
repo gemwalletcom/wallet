@@ -4,10 +4,11 @@ import Foundation
 import InfoSheet
 import GemstonePrimitives
 import Primitives
+import struct Gemstone.GemTransferData
 
 public enum AssetSheetType: Identifiable, Sendable {
     case info(InfoSheetType)
-    case transfer(TransferData)
+    case transfer(GemTransferData)
     case share
     case url(URL)
 

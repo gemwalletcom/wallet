@@ -8,6 +8,7 @@ import enum Gemstone.GemAmountType
 import GemstonePrimitives
 import Localization
 import Primitives
+import struct Gemstone.GemTransferData
 
 enum TransferAction {
     case send(RecipientData)
@@ -68,15 +69,15 @@ public final class AmountTransferViewModel: AmountDataProvidable {
         action.recipient
     }
 
-    func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> TransferData {
+    func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> GemTransferData {
         let transferType: GemTransactionInputType = switch action {
         case .send: .transfer(asset)
         case .deposit: .deposit(asset)
         case .withdraw: .withdrawal(asset)
         }
-        return TransferData(
-            type: transferType,
-            recipient: action.recipient.recipient,
+        return GemTransferData(
+            inputType: transferType,
+            recipient: action.recipient.recipient.gem,
             value: value,
             useMaxAmount: useMaxAmount,
         )

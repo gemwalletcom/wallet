@@ -14,6 +14,8 @@ import PrimitivesComponents
 import GemstoneServices
 import Store
 import SwiftUI
+import struct Gemstone.GemRecipient
+import struct Gemstone.GemTransferData
 
 @MainActor
 @Observable
@@ -147,9 +149,9 @@ public final class StakeSceneViewModel {
     func navigationDestination(for delegation: DelegationViewModel) -> any Hashable {
         switch delegation.state {
         case .awaitingWithdrawal:
-            TransferData(
-                type: .stake(asset, .withdraw(delegation.delegation)),
-                recipient: Recipient(name: delegation.validatorText, address: delegation.delegation.validator.id, memo: ""),
+            GemTransferData(
+                inputType: .stake(asset, .withdraw(delegation.delegation)),
+                recipient: GemRecipient(address: delegation.delegation.validator.id, name: delegation.validatorText, memo: ""),
                 value: delegation.delegation.base.balanceValue,
             )
         case .active, .pending, .inactive, .activating, .deactivating:
@@ -192,12 +194,12 @@ public final class StakeSceneViewModel {
         if canClaimAllRewards {
             let validators = delegationsWithRewards.map(\.validator)
             let recipient = if validators.count == 1, let validator = validators.first {
-                Recipient(name: validator.name, address: validator.id, memo: .none)
+                GemRecipient(address: validator.id, name: validator.name)
             } else {
-                Recipient(name: .none, address: "", memo: .none)
+                GemRecipient(address: "")
             }
-            return TransferData(
-                type: .stake(chain.chain.asset, .rewards(validators)),
+            return GemTransferData(
+                inputType: .stake(chain.chain.asset, .rewards(validators)),
                 recipient: recipient,
                 value: rewardsValue,
             )

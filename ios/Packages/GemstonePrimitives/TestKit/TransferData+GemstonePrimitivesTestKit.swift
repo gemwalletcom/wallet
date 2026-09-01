@@ -6,18 +6,19 @@ import Foundation
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
+import struct Gemstone.GemTransferData
 
-public extension TransferData {
+public extension GemTransferData {
     static func mock(
         type: GemTransactionInputType = .transfer(.mock()),
         recipient: Recipient = .mock(),
         value: BigInt = .zero,
         useMaxAmount: Bool = false,
         minimumValue: BigInt? = nil,
-    ) -> TransferData {
-        TransferData(
-            type: type,
-            recipient: recipient,
+    ) -> GemTransferData {
+        GemTransferData(
+            inputType: type,
+            recipient: recipient.gem,
             value: value,
             useMaxAmount: useMaxAmount,
             minimumValue: minimumValue,
@@ -29,7 +30,7 @@ public extension TransferData {
         transaction: String = "transaction",
         recipient: Recipient = .mock(),
         value: BigInt = .zero,
-    ) -> TransferData {
+    ) -> GemTransferData {
         .mock(
             type: .generic(
                 asset: asset,

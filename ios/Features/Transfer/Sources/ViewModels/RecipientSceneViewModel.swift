@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import protocol Gemstone.GemNameServiceProtocol
 import class Gemstone.GemRecipientService
 import Components
@@ -15,6 +16,7 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
+import struct Gemstone.GemTransferData
 
 public typealias RecipientDataAction = ((RecipientData) -> Void)?
 
@@ -281,11 +283,11 @@ extension RecipientSceneViewModel {
         case .asset:
             onRecipientDataAction?(recipientData)
         case let .nft(asset):
-            handle(transferData: TransferData(type: .transferNft(asset), recipient: recipientData.recipient, value: .zero))
+            handle(transferData: GemTransferData(inputType: .transferNft(asset), recipient: recipientData.recipient.gem, value: BigInt.zero))
         }
     }
 
-    private func handle(transferData: TransferData) {
+    private func handle(transferData: GemTransferData) {
         onTransferAction?(transferData)
     }
 }

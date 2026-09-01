@@ -9,10 +9,11 @@ import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
 import Transfer
+import struct Gemstone.GemTransferData
 
 public extension TransactionInputViewModel {
     static func mock(
-        data: TransferData = .mock(),
+        data: GemTransferData = .mock(),
         fee: Fee? = nil,
         metaData: GemConfirmMetadata? = nil,
         transferAmount: TransferAmountValidation? = nil,

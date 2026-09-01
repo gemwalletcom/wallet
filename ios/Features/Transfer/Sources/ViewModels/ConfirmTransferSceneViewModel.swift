@@ -25,6 +25,7 @@ import Swap
 import SwiftUI
 import Validators
 import WalletConnector
+import struct Gemstone.GemTransferData
 
 @Observable
 @MainActor
@@ -85,7 +86,7 @@ public final class ConfirmTransferSceneViewModel {
         self.currency = currency
         let sceneState = service.sceneState(
             walletId: request.wallet.id.id,
-            inputType: request.data.type,
+            inputType: request.data.inputType,
             simulation: request.simulation?.json(),
         )
         feeSelection = .preset(sceneState.feePriority.map())
@@ -142,7 +143,7 @@ public final class ConfirmTransferSceneViewModel {
     }
 
     var isHeaderVisible: Bool {
-        guard request.data.type.applicationMetadata?.source == .payment else {
+        guard request.data.inputType.applicationMetadata?.source == .payment else {
             return true
         }
         return state.transaction.value != nil
@@ -169,7 +170,7 @@ public final class ConfirmTransferSceneViewModel {
 
     public var detailsViewModel: ConfirmDetailsViewModel {
         ConfirmDetailsViewModel(
-            type: request.data.type,
+            type: request.data.inputType,
             metadata: state.metadata,
             currency: currency.rawValue,
             service: service,
@@ -212,7 +213,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
     }
 
     private var detailItems: [ConfirmTransferItem] {
-        if case .generic = request.data.type {
+        if case .generic = request.data.inputType {
             return [.app, .sender, .network]
         }
         return [.app, .sender, .recipient, .network, .memo, .details]
@@ -225,21 +226,21 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         case .warnings:
             ConfirmTransferItemModel.warnings(simulationWarnings)
         case .app:
-            ConfirmAppViewModel(type: request.data.type, shortName: service.applicationShortName(inputType: request.data.type))
+            ConfirmAppViewModel(type: request.data.inputType, shortName: service.applicationShortName(inputType: request.data.inputType))
         case .sender:
             ConfirmSenderViewModel(wallet: request.wallet)
         case .network:
-            ConfirmNetworkViewModel(type: request.data.type)
+            ConfirmNetworkViewModel(type: request.data.inputType)
         case .recipient:
             ConfirmRecipientViewModel(
                 model: dataModel,
                 addressName: recipientAddressNameQuery.value,
                 addressLink: explorerLink(chain: dataModel.chain, address: dataModel.recipient.address),
-                outputAction: service.outputAction(for: request.data.type),
+                outputAction: service.outputAction(for: request.data.inputType),
                 onAddContact: onSelectAddRecipientToContacts,
             )
         case .memo:
-            ConfirmMemoViewModel(type: request.data.type, recipient: request.data.recipient)
+            ConfirmMemoViewModel(type: request.data.inputType, recipient: request.data.recipient)
         case .details:
             detailsViewModel
         case .payload:
@@ -441,7 +442,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferPreload {
-        let metadata = try service.metadata(walletId: request.wallet.id, inputType: request.data.type)
+        let metadata = try service.metadata(walletId: request.wallet.id, inputType: request.data.inputType)
         let account = try request.wallet.account(for: request.data.chain)
         let preload: GemConfirmPreload
         do {
@@ -462,7 +463,7 @@ extension ConfirmTransferSceneViewModel {
             input: ConfirmTransferInput(
                 confirmData: preload.confirmData,
                 fee: preload.confirmData.fee.map(),
-                transferAmount: preload.amount.map(asset: request.data.type.asset, feeAsset: feeAsset),
+                transferAmount: preload.amount.map(asset: request.data.inputType.asset, feeAsset: feeAsset),
                 feeAsset: feeAsset,
             ),
             feeRates: preload.confirmData.feeRates.map { try $0.map() },
@@ -478,13 +479,13 @@ extension ConfirmTransferSceneViewModel {
         return .insufficientNetworkFee(feeAssetId.chain.asset, requirement: nil)
     }
 
-    func updatedSimulationState(data: TransferData, simulation: Primitives.SimulationResult?) async -> ConfirmSimulationState {
+    func updatedSimulationState(data: GemTransferData, simulation: Primitives.SimulationResult?) async -> ConfirmSimulationState {
         do {
             try await service.syncMissingAssets(for: simulation?.simulationAssetIds ?? [])
         } catch {
             debugLog("simulation asset preload error: \(error)")
         }
-        let resolved = try? service.simulation(inputType: data.type, simulation: simulation?.json())
+        let resolved = try? service.simulation(inputType: data.inputType, simulation: simulation?.json())
         let requests = ConfirmSimulationState(data: data, simulation: simulation, resolved: resolved, addressNames: [:]).payload.addressRequests
         let names = (try? await service.addressNames(requests: requests)) ?? [:]
         return ConfirmSimulationState(data: data, simulation: simulation, resolved: resolved, addressNames: names)
@@ -513,8 +514,8 @@ extension ConfirmTransferSceneViewModel {
             hashes.forEach { request.delegate?(.success($0)) }
             track(wallet: request.wallet, transactions: try transactions.map { try Primitives.Transaction($0) })
         }
-        await toastPresenter.present(.transfer(for: request.data.type))
-        if let recent = service.recentActivity(inputType: request.data.type) {
+        await toastPresenter.present(.transfer(for: request.data.inputType))
+        if let recent = service.recentActivity(inputType: request.data.inputType) {
             do {
                 try recentAssetsService.add(RecentActivityData(recent), walletId: request.wallet.id)
             } catch {

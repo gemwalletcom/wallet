@@ -5,14 +5,15 @@ import Foundation
 import struct Gemstone.SwapperQuote
 import GemstonePrimitives
 import Primitives
+import struct Gemstone.GemTransferData
 
 public struct SwapState: Sendable {
     public var quotes: StateViewType<[SwapperQuote]>
-    public var swapTransferData: StateViewType<TransferData>
+    public var swapTransferData: StateViewType<GemTransferData>
 
     public init(
         quotes: StateViewType<[SwapperQuote]> = .noData,
-        swapTransferData: StateViewType<TransferData> = .noData,
+        swapTransferData: StateViewType<GemTransferData> = .noData,
     ) {
         self.quotes = quotes
         self.swapTransferData = swapTransferData

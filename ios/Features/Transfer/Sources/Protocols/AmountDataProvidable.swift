@@ -10,6 +10,7 @@ import class Gemstone.GemAmountService
 import enum Gemstone.GemAmountType
 import GemstonePrimitives
 import Primitives
+import struct Gemstone.GemTransferData
 
 protocol AmountDataProvidable {
     var asset: Asset { get }
@@ -18,7 +19,7 @@ protocol AmountDataProvidable {
     var amountType: AmountType { get }
     var gemAmountType: GemAmountType { get }
     func recipientData() -> RecipientData
-    func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> TransferData
+    func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData
 }
 
 extension AmountDataProvidable {

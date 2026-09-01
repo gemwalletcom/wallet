@@ -6,6 +6,7 @@ import enum Gemstone.GemAmountType
 import BigInt
 import GemstonePrimitives
 import Primitives
+import struct Gemstone.GemTransferData
 
 public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
     case transfer(AmountTransferViewModel)
@@ -59,7 +60,7 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
         provider.recipientData()
     }
 
-    func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> TransferData {
+    func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData {
         try await provider.makeTransferData(value: value, useMaxAmount: useMaxAmount)
     }
 }

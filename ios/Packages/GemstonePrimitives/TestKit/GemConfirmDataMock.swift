@@ -18,10 +18,11 @@ import GemstonePrimitivesTestKit
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
+import struct Gemstone.GemTransferData
 
 public extension GemConfirmData {
     static func mock(
-        input: GemConfirmInput = TransferData.mock().confirmInput(from: .mock()),
+        input: GemConfirmInput = GemTransferData.mock().confirmInput(from: .mock()),
         fee: GemTransactionLoadFee = .mock(),
         selectedPriority: Gemstone.FeePriority = .normal,
         feeRates: [GemFeeRate] = [],

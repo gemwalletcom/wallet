@@ -61,11 +61,11 @@ struct AmountTransferViewModelTests {
         let deposit = try AmountTransferViewModel(asset: .mock(), action: .deposit(.mock()), amountService: GemAmountService()).makeTransferData(value: 200, useMaxAmount: false)
         let withdraw = try AmountTransferViewModel(asset: .mock(), action: .withdraw(.mock()), amountService: GemAmountService()).makeTransferData(value: 300, useMaxAmount: false)
 
-        #expect(send.type.transactionType(transferService: transferService) == .transfer)
-        #expect(deposit.type.transactionType(transferService: transferService) == .transfer)
-        #expect(withdraw.type.transactionType(transferService: transferService) == .transfer)
-        #expect(send.value == 100)
-        #expect(deposit.value == 200)
-        #expect(withdraw.value == 300)
+        #expect(send.inputType.transactionType(transferService: transferService) == .transfer)
+        #expect(deposit.inputType.transactionType(transferService: transferService) == .transfer)
+        #expect(withdraw.inputType.transactionType(transferService: transferService) == .transfer)
+        #expect(send.value == "100")
+        #expect(deposit.value == "200")
+        #expect(withdraw.value == "300")
     }
 }
