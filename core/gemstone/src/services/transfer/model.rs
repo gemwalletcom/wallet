@@ -2,7 +2,15 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::custom_types::GemBigInt;
 use crate::models::transaction::{GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadMetadata};
-use primitives::{SimulationResult, TransactionType, TransferDataOutputAction, TransferDataOutputType};
+use primitives::{AssetId, RecentActivityType, SimulationResult, TransactionType, TransferDataOutputAction, TransferDataOutputType};
+
+/// What a completed transfer adds to the wallet's recent activity, if anything.
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemRecentActivity {
+    pub activity_type: RecentActivityType,
+    pub asset_id: AssetId,
+    pub to_asset_id: Option<AssetId>,
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, uniffi::Record)]
 pub struct GemRecipient {

@@ -12,7 +12,7 @@ const SCALARS: &[&str] = &["String", "i8", "i16", "i32", "i64", "u8", "u16", "u3
 ///
 /// Only plain enums and plain structs belong here — anything with generics or lifetimes
 /// cannot cross the FFI as a record anyway.
-const EXPOSED_TYPES: &[&str] = &["AssetType", "Asset"];
+const EXPOSED_TYPES: &[&str] = &["AssetType", "Asset", "RecentActivityType"];
 
 /// Types that cross as an identifier string while each app models them as a struct, so a
 /// field of this type needs a conversion rather than being passed straight through.
@@ -205,21 +205,25 @@ fn screaming_snake_case(name: &str) -> String {
         .collect()
 }
 
-/// UniFFI lowercases the leading run of capitals, so `SPL2022` becomes `spl2022` and
-/// `NATIVE` becomes `native`; typeshare emits the same casing for the app's twin.
+/// UniFFI lower-camel-cases each variant: the leading run of capitals is lowered, except
+/// that a capital beginning a lowercase word ends the run. `Search` becomes `search`,
+/// `FiatBuy` becomes `fiatBuy`, `NATIVE` becomes `native`, `SPL2022` becomes `spl2022`.
+/// Typeshare emits the same casing for the app's twin, which is what matches the two.
 fn swift_case(variant: &str) -> String {
-    let mut characters = variant.chars().peekable();
-    let mut result = String::new();
-    let mut leading = true;
-    while let Some(character) = characters.next() {
-        if leading && character.is_ascii_uppercase() && characters.peek().is_none_or(|next| !next.is_ascii_lowercase()) {
-            result.push(character.to_ascii_lowercase());
-        } else {
-            leading = false;
-            result.push(character);
-        }
-    }
-    result
+    let characters: Vec<char> = variant.chars().collect();
+    let run = match characters.iter().position(|character| !character.is_ascii_uppercase()) {
+        None => characters.len(),
+        Some(first) if characters[first].is_ascii_lowercase() => first.max(2) - 1,
+        Some(first) => first,
+    };
+    characters
+        .iter()
+        .enumerate()
+        .map(|(index, character)| match index < run {
+            true => character.to_ascii_lowercase(),
+            false => *character,
+        })
+        .collect()
 }
 
 /// The label and accessor for one field, given the direction.

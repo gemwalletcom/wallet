@@ -36,11 +36,4 @@ public enum TransferDataType: Hashable, Equatable, Sendable {
         }
     }
 
-    public var recentActivityData: RecentActivityData? {
-        switch self {
-        case let .transfer(asset): RecentActivityData(type: .transfer, assetId: asset.id, toAssetId: nil)
-        case let .swap(from, to, _): RecentActivityData(type: .swap, assetId: from.id, toAssetId: to.id)
-        default: nil
-        }
-    }
 }

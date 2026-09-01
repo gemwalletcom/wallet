@@ -46,6 +46,36 @@ public extension Primitives.AssetType {
     }
 }
 
+public extension Gemstone.RecentActivityType {
+    func map() -> Primitives.RecentActivityType {
+        switch self {
+        case .search: .search
+        case .transfer: .transfer
+        case .receive: .receive
+        case .fiatBuy: .fiatBuy
+        case .fiatSell: .fiatSell
+        case .swap: .swap
+        case .swapSelect: .swapSelect
+        case .perpetual: .perpetual
+        }
+    }
+}
+
+public extension Primitives.RecentActivityType {
+    func map() -> Gemstone.RecentActivityType {
+        switch self {
+        case .search: .search
+        case .transfer: .transfer
+        case .receive: .receive
+        case .fiatBuy: .fiatBuy
+        case .fiatSell: .fiatSell
+        case .swap: .swap
+        case .swapSelect: .swapSelect
+        case .perpetual: .perpetual
+        }
+    }
+}
+
 public extension Gemstone.Asset {
     func map() -> Primitives.Asset {
         Primitives.Asset(

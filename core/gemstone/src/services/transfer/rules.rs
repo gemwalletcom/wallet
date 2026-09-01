@@ -4,12 +4,12 @@ use primitives::SwapProvider;
 use primitives::known_assets::wallet_default_assets;
 use primitives::swap::ApprovalData;
 use primitives::{
-    ApplicationMetadataSource, Asset, AssetId, AssetType, Chain, EarnType, PerpetualType, StakeType, Transaction, TransactionDirection, TransactionInputType,
+    ApplicationMetadataSource, Asset, AssetId, AssetType, Chain, EarnType, PerpetualType, RecentActivityType, StakeType, Transaction, TransactionDirection, TransactionInputType,
     TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType,
     TransactionWalletConnectMetadata, TransferDataOutputAction, TransferDataOutputType,
 };
 
-use super::model::{GemPendingTransactionInput, GemTransferBalance, GemTransferData, GemTransferOutput};
+use super::model::{GemPendingTransactionInput, GemRecentActivity, GemTransferBalance, GemTransferData, GemTransferOutput};
 use crate::models::transaction::{GemTransactionInputType, transaction_metadata_block_number, transaction_metadata_sequence};
 use crate::services::amount::model::GemAmountError;
 
@@ -252,8 +252,72 @@ fn default_asset(chain: Chain, asset_type: AssetType) -> Option<Asset> {
     wallet_default_assets(chain).into_iter().find(|asset| asset.asset_type == asset_type)
 }
 
+/// Searching for an asset records it as recently used, and a perpetual is recorded as one
+/// rather than as a plain search so the perpetual screen can offer it again.
+pub fn searched_activity(asset: &Asset) -> GemRecentActivity {
+    GemRecentActivity {
+        activity_type: match asset.asset_type {
+            AssetType::PERPETUAL => RecentActivityType::Perpetual,
+            _ => RecentActivityType::Search,
+        },
+        asset_id: asset.id.clone(),
+        to_asset_id: None,
+    }
+}
+
+/// Only a plain transfer and a swap leave a trace in recent activity; everything else the
+/// confirm screen can produce is either not asset-scoped or not something to offer again.
+pub fn recent_activity(input_type: &GemTransactionInputType) -> Option<GemRecentActivity> {
+    match input_type {
+        GemTransactionInputType::Transfer { asset } => Some(GemRecentActivity {
+            activity_type: RecentActivityType::Transfer,
+            asset_id: asset.id.clone(),
+            to_asset_id: None,
+        }),
+        GemTransactionInputType::Swap { from_asset, to_asset, .. } => Some(GemRecentActivity {
+            activity_type: RecentActivityType::Swap,
+            asset_id: from_asset.id.clone(),
+            to_asset_id: Some(to_asset.id.clone()),
+        }),
+        _ => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_a_searched_perpetual_is_recorded_as_one() {
+        let mut asset = Asset::from_chain(Chain::Ethereum);
+        assert_eq!(searched_activity(&asset).activity_type, RecentActivityType::Search);
+
+        asset.asset_type = AssetType::PERPETUAL;
+        assert_eq!(searched_activity(&asset).activity_type, RecentActivityType::Perpetual);
+    }
+
+    #[test]
+    fn test_only_a_transfer_and_a_swap_leave_recent_activity() {
+        let from = Asset::from_chain(Chain::Ethereum);
+        let to = Asset::from_chain(Chain::Solana);
+
+        let transfer = recent_activity(&GemTransactionInputType::Transfer { asset: from.clone() }).unwrap();
+        assert_eq!(transfer.activity_type, RecentActivityType::Transfer);
+        assert_eq!(transfer.asset_id, from.id);
+        assert_eq!(transfer.to_asset_id, None);
+
+        let swap = recent_activity(&GemTransactionInputType::Swap {
+            from_asset: from.clone(),
+            to_asset: to.clone(),
+            swap_data: crate::models::swap::GemSwapData::mock(),
+        })
+        .unwrap();
+        assert_eq!(swap.activity_type, RecentActivityType::Swap);
+        assert_eq!(swap.asset_id, from.id);
+        assert_eq!(swap.to_asset_id, Some(to.id));
+
+        assert!(recent_activity(&GemTransactionInputType::Deposit { asset: from.clone() }).is_none());
+        assert!(recent_activity(&GemTransactionInputType::Withdrawal { asset: from }).is_none());
+    }
+
     use super::super::model::GemRecipient;
     use super::*;
     use crate::models::gateway::GemGasPriceType;

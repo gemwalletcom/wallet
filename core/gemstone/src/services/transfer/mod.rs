@@ -9,7 +9,7 @@ use crate::services::confirm::GemConfirmInput;
 use primitives::swap::ApprovalData;
 use primitives::{Asset, AssetId, Transaction, TransactionType};
 
-pub use model::{GemPendingTransactionInput, GemRecipient, GemTransferBalance, GemTransferData, GemTransferOutput};
+pub use model::{GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferBalance, GemTransferData, GemTransferOutput};
 
 #[derive(Default, uniffi::Object)]
 pub struct GemTransferService;
@@ -43,6 +43,14 @@ impl GemTransferService {
 
     pub fn fee_asset(&self, input_type: &GemTransactionInputType) -> Asset {
         rules::fee_asset(input_type)
+    }
+
+    pub fn recent_activity(&self, input_type: &GemTransactionInputType) -> Option<GemRecentActivity> {
+        rules::recent_activity(input_type)
+    }
+
+    pub fn searched_activity(&self, asset: Asset) -> GemRecentActivity {
+        rules::searched_activity(&asset)
     }
 
     pub fn output(&self, input_type: &GemTransactionInputType) -> GemTransferOutput {

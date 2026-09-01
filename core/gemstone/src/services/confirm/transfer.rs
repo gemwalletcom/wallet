@@ -17,7 +17,7 @@ use crate::services::name::GemNameService;
 use crate::services::perpetual::model::GemAutocloseSummary;
 use crate::services::perpetual::rules::autoclose_summary;
 use crate::services::swap::config::GemSwapQuoteService;
-use crate::services::transfer::GemTransferService;
+use crate::services::transfer::{GemRecentActivity, GemTransferService};
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmTransferService {
@@ -136,6 +136,10 @@ impl GemConfirmTransferService {
             GemTransactionInputType::Generic { metadata, .. } => Some(self.application_metadata.short_name(metadata)),
             _ => None,
         }
+    }
+
+    pub fn recent_activity(&self, input_type: GemTransactionInputType) -> Option<GemRecentActivity> {
+        self.transfer.recent_activity(&input_type)
     }
 
     pub fn output_action(&self, input_type: GemTransactionInputType) -> TransferDataOutputAction {

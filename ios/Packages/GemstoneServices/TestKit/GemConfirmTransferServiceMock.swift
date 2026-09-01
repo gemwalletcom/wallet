@@ -14,6 +14,7 @@ public import struct Gemstone.GemConfirmPreload
 public import struct Gemstone.GemConfirmSimulation
 public import struct Gemstone.GemConfirmSceneState
 public import struct Gemstone.GemFeeAsset
+public import struct Gemstone.GemRecentActivity
 public import struct Gemstone.GemSendInput
 public import struct Gemstone.GemAutocloseSummary
 public import enum Gemstone.GemExecuteResult
@@ -142,6 +143,10 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
             return applicationMetadataService.shortName(metadata: metadata)
         }
         return nil
+    }
+
+    public func recentActivity(inputType: GemTransactionInputType) -> GemRecentActivity? {
+        transferService.recentActivity(inputType: inputType)
     }
 
     public func outputAction(inputType: GemTransactionInputType) -> TransferDataOutputAction {

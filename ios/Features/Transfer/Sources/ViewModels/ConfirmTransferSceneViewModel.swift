@@ -514,9 +514,9 @@ extension ConfirmTransferSceneViewModel {
             track(wallet: request.wallet, transactions: try transactions.map { try Primitives.Transaction($0) })
         }
         await toastPresenter.present(.transfer(for: request.data.type))
-        if let recent = request.data.type.recentActivityData {
+        if let recent = service.recentActivity(inputType: request.data.type.inputType) {
             do {
-                try recentAssetsService.add(recent, walletId: request.wallet.id)
+                try recentAssetsService.add(RecentActivityData(recent), walletId: request.wallet.id)
             } catch {
                 debugLog("Failed to update recent activity: \(error)")
             }
