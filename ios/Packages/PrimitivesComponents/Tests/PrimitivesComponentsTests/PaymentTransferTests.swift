@@ -33,8 +33,8 @@ struct PaymentTransferTests {
             return
         }
 
-        #expect(data.type.asset == asset)
-        #expect(data.value == 19_000_000)
+        #expect(data.inputType.asset == asset)
+        #expect(data.value == "19000000")
         #expect(data.recipient.address == recipient)
         #expect(data.recipient.memo == "payment-memo")
         #expect(data.encodedTransaction == "encoded-transaction")
@@ -61,7 +61,7 @@ struct PaymentTransferTests {
             return
         }
 
-        #expect(data.value == 19_000_000)
+        #expect(data.value == "19000000")
         #expect(data.recipient.address == recipient)
         #expect(data.recipient.memo == nil)
         #expect(data.encodedTransaction == "encoded-transaction")
@@ -87,7 +87,7 @@ struct PaymentTransferTests {
             return
         }
 
-        #expect(data.value == .zero)
+        #expect(data.value == "0")
         #expect(data.recipient.address.isEmpty)
         #expect(data.recipient.memo == "payment-memo")
         #expect(data.encodedTransaction == "encoded-transaction")
@@ -107,7 +107,7 @@ struct PaymentTransferTests {
             return
         }
         #expect(data.recipient.address == checksummedAddress)
-        #expect(data.value == BigInt("1234000000000000000"))
+        #expect(data.value == "1234000000000000000")
     }
 
     @Test
@@ -140,7 +140,7 @@ struct PaymentTransferTests {
         }
         #expect(data.recipient.address == Self.xrpAddress)
         #expect(data.recipient.memo == "12345")
-        #expect(data.value == BigInt(10_000_000))
+        #expect(data.value == "10000000")
     }
 
     @Test
@@ -191,7 +191,7 @@ struct PaymentTransferTests {
             Issue.record("Expected a Solana payment without a memo to confirm")
             return
         }
-        #expect(data.value == BigInt(1_000_000))
+        #expect(data.value == "1000000")
         #expect(data.recipient.memo == nil)
     }
 
@@ -215,9 +215,9 @@ struct PaymentTransferTests {
     }
 }
 
-private extension TransferData {
+private extension GemTransferData {
     var encodedTransaction: String? {
-        guard case let .generic(_, _, extra) = type, let data = extra.data else { return nil }
+        guard case let .generic(_, _, extra) = inputType, let data = extra.data else { return nil }
         return String(decoding: data, as: UTF8.self)
     }
 }

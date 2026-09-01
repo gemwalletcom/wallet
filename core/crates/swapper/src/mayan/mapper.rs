@@ -26,9 +26,9 @@ impl MayanTransactionResult {
         let from_chain = self.from_token_chain.parse::<u16>().ok().and_then(wormhole_chain::chain_from_id)?;
         let to_chain = self.to_token_chain.parse::<u16>().ok().and_then(wormhole_chain::chain_from_id)?;
         let from_asset = asset_id_for_token(from_chain, &self.from_token_address)?;
-        let from_value = self.from_amount64.as_deref()?.parse::<BigUint>().ok()?.to_string();
+        let from_value = self.from_amount64.as_deref()?.parse::<BigUint>().ok()?;
         let to_asset = asset_id_for_token(to_chain, &self.to_token_address)?;
-        let to_value = self.to_amount64.as_deref()?.parse::<BigUint>().ok()?.to_string();
+        let to_value = self.to_amount64.as_deref()?.parse::<BigUint>().ok()?;
 
         Some(TransactionSwapMetadata {
             from_asset,
@@ -98,9 +98,9 @@ mod tests {
                     status: SwapStatus::Completed,
                     metadata: Some(TransactionSwapMetadata {
                         from_asset,
-                        from_value: from_value.to_string(),
+                        from_value: from_value.parse().unwrap(),
                         to_asset,
-                        to_value: to_value.to_string(),
+                        to_value: to_value.parse().unwrap(),
                         provider: Some("mayan".to_string()),
                     }),
                     eta_in_seconds: None,

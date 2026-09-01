@@ -1,7 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
+import struct Gemstone.GemConfirmSimulation
+import struct Gemstone.GemConfirmSimulationState
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
+import struct Gemstone.GemTransferData
 
 struct ConfirmSimulationState {
     let result: SimulationResult?
@@ -9,4 +14,47 @@ struct ConfirmSimulationState {
     let payload: SimulationPayloadModel
     let headerData: AssetValueHeaderData?
     let balanceChanges: [SimulationAssetChange]
+
+    init(
+        result: SimulationResult?,
+        warnings: [SimulationWarning],
+        payload: SimulationPayloadModel,
+        headerData: AssetValueHeaderData?,
+        balanceChanges: [SimulationAssetChange],
+    ) {
+        self.result = result
+        self.warnings = warnings
+        self.payload = payload
+        self.headerData = headerData
+        self.balanceChanges = balanceChanges
+    }
+
+    init(
+        data: GemTransferData,
+        simulation: SimulationResult?,
+        state: GemConfirmSimulationState,
+    ) {
+        let details = state.simulation
+        let addressNames = state.names
+        let fields = details?.payloadFields.compactMap { try? SimulationPayloadField($0) } ?? []
+        var payload = SimulationPayloadModel(
+            chain: data.chain,
+            primaryFields: fields.primaryFields,
+            secondaryFields: fields.secondaryFields,
+        )
+        payload.addressNames = addressNames
+        self.init(
+            result: simulation,
+            warnings: simulation?.warnings ?? [],
+            payload: payload,
+            headerData: details?.header.flatMap { header in
+                guard let value = try? header.value.map() else { return nil }
+                return AssetValueHeaderData(asset: header.asset.map(), value: value)
+            },
+            balanceChanges: details?.balanceChanges.compactMap { change in
+                guard let value = BigInt(change.value, radix: 10) else { return nil }
+                return SimulationAssetChange(asset: change.asset.map(), value: value)
+            } ?? [],
+        )
+    }
 }

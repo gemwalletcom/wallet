@@ -4,7 +4,7 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.assets.cases.EnableAsset
-import com.gemwallet.android.application.swap.cases.BuildSwapConfirmParams
+import com.gemwallet.android.application.swap.cases.BuildSwapConfirmInput
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
 import com.gemwallet.android.application.swap.cases.SwapNoQuoteException
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
@@ -21,7 +21,7 @@ import com.gemwallet.android.features.swap.viewmodels.models.SwapError
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.ConfirmParams
+import uniffi.gemstone.GemConfirmInput
 import com.gemwallet.android.testkit.mockSwapParams
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAccount
@@ -110,7 +110,7 @@ class SwapViewModelTest {
         every { this@mockk(usdcAsset.id) } returns flowOf(usdcInfo)
     }
     private val enableAsset = mockk<EnableAsset>(relaxed = true)
-    private val buildSwapConfirmParams = mockk<BuildSwapConfirmParams>(relaxed = true)
+    private val buildSwapConfirmInput = mockk<BuildSwapConfirmInput>(relaxed = true)
     private val userConfig = mockk<UserConfig>(relaxed = true) {
         every { swapSlippageBps() } returns flowOf(null)
     }
@@ -127,7 +127,7 @@ class SwapViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         mockkObject(SwapDetailsUIModelFactory)
-        clearMocks(getSession, getAssetInfo, buildSwapConfirmParams, requestSwapQuotes)
+        clearMocks(getSession, getAssetInfo, buildSwapConfirmInput, requestSwapQuotes)
         every { getSession() } returns MutableStateFlow(null)
         every { getAssetInfo(solAsset.id) } returns flowOf(solInfo)
         every { getAssetInfo(usdcAsset.id) } returns flowOf(usdcInfo)
@@ -147,7 +147,7 @@ class SwapViewModelTest {
         getSession = getSession,
         getAssetInfo = getAssetInfo,
         enableAsset = enableAsset,
-        buildSwapConfirmParams = buildSwapConfirmParams,
+        buildSwapConfirmInput = buildSwapConfirmInput,
         userConfig = userConfig,
         swapService = swapService,
         requestSwapQuotes = requestSwapQuotes,
@@ -310,8 +310,8 @@ class SwapViewModelTest {
             Session(wallet = wallet, currency = Currency.USD)
         )
 
-        val confirmParamsGate = CompletableDeferred<Unit>()
-        stubBuildConfirmParams { confirmParamsGate.await() }
+        val confirmInputGate = CompletableDeferred<Unit>()
+        stubBuildConfirmInput { confirmInputGate.await() }
 
         val savedState = swapSavedState()
 
@@ -333,7 +333,7 @@ class SwapViewModelTest {
         assertEquals("2500000", viewModel.quote.value?.quote?.toValue)
         assertEquals(0, confirmCalls)
 
-        confirmParamsGate.complete(Unit)
+        confirmInputGate.complete(Unit)
         awaitCondition { confirmCalls == 1 }
     }
 
@@ -346,7 +346,7 @@ class SwapViewModelTest {
         every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
-        coEvery { buildSwapConfirmParams(any(), any(), any()) } throws SwapNoQuoteException()
+        coEvery { buildSwapConfirmInput(any(), any(), any()) } throws SwapNoQuoteException()
 
         val viewModel = createViewModel(
             swapSavedState()
@@ -372,7 +372,7 @@ class SwapViewModelTest {
         every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
-        coEvery { buildSwapConfirmParams(any(), any(), any()) } throws SwapNoQuoteException()
+        coEvery { buildSwapConfirmInput(any(), any(), any()) } throws SwapNoQuoteException()
 
         val viewModel = createViewModel(
             swapSavedState()
@@ -409,8 +409,8 @@ class SwapViewModelTest {
             Session(wallet = wallet, currency = Currency.USD)
         )
 
-        val confirmParamsGate = CompletableDeferred<Unit>()
-        stubBuildConfirmParams { confirmParamsGate.await() }
+        val confirmInputGate = CompletableDeferred<Unit>()
+        stubBuildConfirmInput { confirmInputGate.await() }
 
         val viewModel = createViewModel(
             swapSavedState()
@@ -428,7 +428,7 @@ class SwapViewModelTest {
         advanceUntilIdle()
         viewModel.swap {}
         awaitCondition { viewModel.uiState.value.action == SwapActionState.TransferLoading }
-        confirmParamsGate.complete(Unit)
+        confirmInputGate.complete(Unit)
         awaitCondition { viewModel.uiState.value.action == SwapActionState.Ready }
         advanceUntilIdle()
         assertEquals(false, refreshStates.last())
@@ -476,8 +476,8 @@ class SwapViewModelTest {
         every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
-        val confirmParamsGate = CompletableDeferred<Unit>()
-        stubBuildConfirmParams { confirmParamsGate.await() }
+        val confirmInputGate = CompletableDeferred<Unit>()
+        stubBuildConfirmInput { confirmInputGate.await() }
 
         val viewModel = createViewModel(
             swapSavedState()
@@ -491,7 +491,7 @@ class SwapViewModelTest {
             wasTransferLoadingOnConfirm = viewModel.uiState.value.isTransferLoading
         }
         awaitCondition { viewModel.uiState.value.isTransferLoading }
-        confirmParamsGate.complete(Unit)
+        confirmInputGate.complete(Unit)
         awaitCondition { !viewModel.uiState.value.isTransferLoading }
 
         assertTrue(wasTransferLoadingOnConfirm)
@@ -507,8 +507,8 @@ class SwapViewModelTest {
         every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
-        val confirmParamsGate = CompletableDeferred<Unit>()
-        stubBuildConfirmParams { confirmParamsGate.await() }
+        val confirmInputGate = CompletableDeferred<Unit>()
+        stubBuildConfirmInput { confirmInputGate.await() }
 
         val viewModel = createViewModel(
             swapSavedState()
@@ -517,17 +517,17 @@ class SwapViewModelTest {
 
         seedReadyQuote(viewModel, quotesFlow)
 
-        var confirmParams: ConfirmParams.SwapParams? = null
-        viewModel.swap { params ->
-            confirmParams = params as ConfirmParams.SwapParams
+        var confirmInput: GemConfirmInput? = null
+        viewModel.swap { input ->
+            confirmInput = input
         }
         awaitCondition { viewModel.uiState.value.isTransferLoading }
 
         viewModel.payValue.setTextAndPlaceCursorAtEnd("2")
-        confirmParamsGate.complete(Unit)
-        awaitCondition { confirmParams != null }
+        confirmInputGate.complete(Unit)
+        awaitCondition { confirmInput != null }
 
-        assertEquals(BigInteger("1000000000"), confirmParams?.amount)
+        assertEquals("1000000000", confirmInput?.transfer?.value)
     }
 
     @Test
@@ -539,7 +539,7 @@ class SwapViewModelTest {
         every { getSession() } returns MutableStateFlow(Session(wallet = wallet, currency = Currency.USD))
 
         var swapCalls = 0
-        stubBuildConfirmParams { swapCalls += 1 }
+        stubBuildConfirmInput { swapCalls += 1 }
 
         val viewModel = createViewModel(swapSavedState())
         advanceUntilIdle()
@@ -587,7 +587,7 @@ class SwapViewModelTest {
         )
 
         var swapCalls = 0
-        stubBuildConfirmParams { swapCalls += 1 }
+        stubBuildConfirmInput { swapCalls += 1 }
 
         val viewModel = createViewModel(
             swapSavedState()
@@ -685,8 +685,8 @@ class SwapViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
     }
 
-    private fun stubBuildConfirmParams(beforeReturn: suspend () -> Unit = {}) {
-        coEvery { buildSwapConfirmParams(any(), any(), any()) } coAnswers {
+    private fun stubBuildConfirmInput(beforeReturn: suspend () -> Unit = {}) {
+        coEvery { buildSwapConfirmInput(any(), any(), any()) } coAnswers {
             beforeReturn()
             val quote = firstArg<SwapperQuote>()
             val pay = secondArg<AssetInfo>()

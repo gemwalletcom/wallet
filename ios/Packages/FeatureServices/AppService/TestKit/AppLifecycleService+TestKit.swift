@@ -11,6 +11,8 @@ import WalletConnectorServiceTestKit
 import ConnectionStatusService
 import GemstoneServices
 import GemstoneServicesTestKit
+import class Gemstone.GemWalletSessionService
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import PreferencesTestKit
 import StreamService
@@ -25,7 +27,7 @@ public extension AppLifecycleService {
         streamSubscriptionService: any GemStreamSubscriptionServiceProtocol = GemStreamSubscriptionServiceMock(),
         hyperliquidObserverService: PerpetualObserverMock = PerpetualObserverMock(),
         perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
-        walletSessionService: any WalletSessionManageable = WalletSessionService.mock(),
+        walletSessionService: any GemWalletSessionServiceProtocol = GemWalletSessionService.mock(),
         transactionStateService: any GemTransactionStateServiceProtocol = GemTransactionStateServiceMock(),
     ) -> AppLifecycleService {
         AppLifecycleService(

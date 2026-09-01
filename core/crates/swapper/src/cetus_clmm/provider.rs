@@ -7,6 +7,8 @@ use super::{
 use crate::{FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData};
 use async_trait::async_trait;
 use gem_sui::coin_type_matches;
+use num_bigint::BigUint;
+use num_traits::ToPrimitive;
 use primitives::{AssetId, Chain};
 
 #[async_trait]
@@ -36,7 +38,7 @@ impl Swapper for CetusClmm {
         let from_value = request.value.clone();
         let from_asset = request.from_asset.asset_id();
         let to_asset = request.to_asset.asset_id();
-        let amount = from_value.parse::<u64>()?;
+        let amount = from_value.to_u64().ok_or_else(|| SwapperError::ComputeQuoteError("swap amount is too large".to_string()))?;
         if amount == 0 {
             return Err(SwapperError::InputAmountError { min_amount: Some("1".into()) });
         }
@@ -66,7 +68,7 @@ impl Swapper for CetusClmm {
         Ok(Quote {
             from_value,
             min_from_value: None,
-            to_value: route.net_amount_out().to_string(),
+            to_value: BigUint::from(route.net_amount_out()),
             data: ProviderData {
                 provider: self.provider().clone(),
                 routes: vec![Route {
@@ -150,7 +152,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(SUI_USDC_TOKEN_ID.to_string()))),
             wallet_address: TEST_WALLET.to_string(),
             destination_address: TEST_WALLET.to_string(),
-            value: "1500000000".to_string(),
+            value: BigUint::from(1500000000u64),
             options: Options::new_with_slippage(50.into()),
         };
 
@@ -159,7 +161,7 @@ mod swap_integration_tests {
         print_quote("SUI->USDC", &quote)?;
         print_quote_data("SUI->USDC", &quote_data);
 
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         assert!(!quote_data.data.is_empty());
         assert!(quote_data.gas_limit.is_some());
 
@@ -175,7 +177,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Sui)),
             wallet_address: TEST_WALLET.to_string(),
             destination_address: TEST_WALLET.to_string(),
-            value: "100000".to_string(),
+            value: BigUint::from(100000u64),
             options: Options::new_with_slippage(50.into()),
         };
 
@@ -184,7 +186,7 @@ mod swap_integration_tests {
         print_quote("USDC->SUI", &quote)?;
         print_quote_data("USDC->SUI", &quote_data);
 
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         assert!(!quote_data.data.is_empty());
         assert!(quote_data.gas_limit.is_some());
 
@@ -200,13 +202,13 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(BLUE_TOKEN_ID.to_string()))),
             wallet_address: TEST_WALLET.to_string(),
             destination_address: TEST_WALLET.to_string(),
-            value: "100000000".to_string(),
+            value: BigUint::from(100000000u64),
             options: Options::new_with_slippage(100.into()),
         };
 
         let quote = provider.get_quote(&request).await?;
         print_quote("SUI->BLUE", &quote)?;
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         Ok(())
     }
 
@@ -219,12 +221,12 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(BLUE_TOKEN_ID.to_string()))),
             wallet_address: TEST_WALLET.to_string(),
             destination_address: TEST_WALLET.to_string(),
-            value: "100000".to_string(),
+            value: BigUint::from(100000u64),
             options: Options::new_with_slippage(100.into()),
         };
 
         let quote = provider.get_quote(&request).await?;
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         let route = print_quote("USDC->BLUE", &quote)?;
         assert!(!route.hops.is_empty() && route.hops.len() <= 2);
         Ok(())
@@ -239,12 +241,12 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(SUI_USDC_TOKEN_ID.to_string()))),
             wallet_address: TEST_WALLET.to_string(),
             destination_address: TEST_WALLET.to_string(),
-            value: "10000000".to_string(),
+            value: BigUint::from(10000000u64),
             options: Options::new_with_slippage(100.into()),
         };
 
         let quote = provider.get_quote(&request).await?;
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         let route = print_quote("BLUE->USDC", &quote)?;
         assert!(!route.hops.is_empty() && route.hops.len() <= 2);
         Ok(())

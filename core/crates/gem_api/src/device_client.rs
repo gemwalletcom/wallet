@@ -34,7 +34,7 @@ pub struct GemDeviceApiClient<E: RpcClientError> {
     base_url: String,
     provider: Arc<dyn RpcProvider<Error = E>>,
     device_private_key: Vec<u8>,
-    preflight: Option<Arc<dyn WalletRequestPreflight>>,
+    preflight: std::sync::OnceLock<Arc<dyn WalletRequestPreflight>>,
 }
 
 impl<E: RpcClientError> GemDeviceApiClient<E> {
@@ -43,13 +43,13 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
             base_url,
             provider,
             device_private_key,
-            preflight: None,
+            preflight: std::sync::OnceLock::new(),
         }
     }
 
-    pub fn with_preflight(mut self, preflight: Arc<dyn WalletRequestPreflight>) -> Self {
-        self.preflight = Some(preflight);
-        self
+    /// Installed after construction because the preflight needs the service that owns this client.
+    pub fn set_preflight(&self, preflight: Arc<dyn WalletRequestPreflight>) {
+        let _ = self.preflight.set(preflight);
     }
 
     pub async fn get_device(&self) -> Result<Option<Device>, ClientError> {
@@ -216,7 +216,7 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
     }
 
     async fn request(&self, target: GemDeviceApiTarget) -> Result<gem_client::Response, ClientError> {
-        if let Some(preflight) = self.preflight.as_ref().filter(|_| !target.wallet_id().is_empty()) {
+        if let Some(preflight) = self.preflight.get().filter(|_| !target.wallet_id().is_empty()) {
             preflight.prepare().await?;
         }
         let path = target.path();

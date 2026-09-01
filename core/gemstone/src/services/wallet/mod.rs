@@ -1,5 +1,6 @@
 pub mod error;
 pub mod model;
+pub mod onboarding;
 pub mod password;
 mod rules;
 pub mod store;
@@ -19,7 +20,7 @@ use crate::services::wallet_session::GemWalletSessionService;
 
 pub use error::GemWalletImportError;
 pub use model::{GemWalletDeletion, GemWalletImportResult, GemWalletImportType, GemWalletSource};
-pub use password::GemKeystorePassword;
+pub use password::{GemKeystoreAuthentication, GemKeystorePassword};
 pub use store::GemWalletStore;
 
 const SETUP_CHAINS_WALLETS_LIMIT: usize = 25;
@@ -66,12 +67,8 @@ impl GemWalletService {
         Ok(rules::next_wallet_index(&self.store.get_wallets()?))
     }
 
-    pub fn validate_import(&self, import: GemWalletImportType) -> Result<GemWalletImportType, GemWalletImportError> {
-        rules::validate_import(import)
-    }
-
     pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: GemWalletSource) -> Result<GemWalletImportResult, GemServiceError> {
-        let import = rules::validate_import(import)?;
+        let import = import.validated()?;
         let preview = self.preview_import(import.clone())?;
         let wallet_id = WalletId::from_id(&preview.wallet_id).ok_or_else(|| GemServiceError::Core {
             msg: format!("invalid wallet id {}", preview.wallet_id),
@@ -87,7 +84,7 @@ impl GemWalletService {
                 ..rules::view_wallet(name, chain, address)
             },
             import => {
-                let password = decode_password(&self.password.get_password(wallet_id.clone(), !self.keystore.has_stored_wallets()?)?);
+                let password = decode_password(&self.password.get_password(!self.keystore.has_stored_wallets()?)?);
                 let stored = self.keystore.create_store(keystore_import(import), password)?;
                 Wallet {
                     id: wallet_id,
@@ -117,7 +114,6 @@ impl GemWalletService {
         if wallet.wallet_type != WalletType::View {
             self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?;
         }
-        self.password.delete_password(wallet.id.clone())?;
         self.store.delete_wallet(wallet.id.clone()).await?;
         if let Some(image_url) = wallet.image_url.clone() {
             self.files.remove(image_url)?;
@@ -146,10 +142,10 @@ impl GemWalletService {
         if candidates.is_empty() {
             return Ok(Vec::new());
         }
+        let password = decode_password(&self.password.get_password(false)?);
         let mut updated = Vec::new();
         for (mut wallet, missing) in candidates {
-            let password = decode_password(&self.password.get_password(wallet.id.clone(), false)?);
-            let accounts = self.keystore.add_accounts(keystore_id_for_wallet(wallet.id.id()), password, missing)?;
+            let accounts = self.keystore.add_accounts(keystore_id_for_wallet(wallet.id.id()), password.clone(), missing)?;
             wallet.accounts.extend(accounts.into_iter().map(rules::account));
             self.store.add_wallet(wallet.clone()).await?;
             updated.push(wallet);
@@ -158,6 +154,43 @@ impl GemWalletService {
             self.invalidate_subscriptions().await?;
         }
         Ok(updated)
+    }
+
+    pub fn migrate_to_shared_password(&self) -> Result<u32, GemServiceError> {
+        let legacy: Vec<(Wallet, String)> = self
+            .store
+            .get_wallets()?
+            .into_iter()
+            .filter(|wallet| wallet.wallet_type != WalletType::View)
+            .filter_map(|wallet| match self.password.get_wallet_password(wallet.id.clone()) {
+                Ok(Some(password)) => Some(Ok((wallet, password))),
+                Ok(None) => None,
+                Err(error) => Some(Err(error)),
+            })
+            .collect::<Result<_, _>>()?;
+        if legacy.is_empty() {
+            return Ok(0);
+        }
+        let shared = self.password.get_password(true)?;
+        let shared_bytes = decode_password(&shared);
+        let mut migrated = 0;
+        for (wallet, password) in legacy {
+            let keystore_id = keystore_id_for_wallet(wallet.id.id());
+            if !self.keystore.exists(keystore_id.clone()) {
+                continue;
+            }
+            if password != shared && !self.keystore.opens_with(keystore_id.clone(), shared_bytes.clone()) {
+                self.keystore.change_password(keystore_id.clone(), decode_password(&password), shared_bytes.clone())?;
+                if !self.keystore.opens_with(keystore_id.clone(), shared_bytes.clone()) {
+                    return Err(GemServiceError::Core {
+                        msg: format!("keystore {} did not accept the shared password", wallet.id.id()),
+                    });
+                }
+                migrated += 1;
+            }
+            self.password.delete_wallet_password(wallet.id.clone())?;
+        }
+        Ok(migrated)
     }
 
     pub async fn set_pinned(&self, wallet_id: WalletId, pinned: bool) -> Result<(), GemServiceError> {
@@ -179,7 +212,7 @@ impl GemWalletService {
 
 impl GemWalletService {
     pub fn preview_import(&self, import: GemWalletImportType) -> Result<GemWalletImport, GemServiceError> {
-        match rules::validate_import(import)? {
+        match import.validated()? {
             GemWalletImportType::Address { address, chain } => {
                 let wallet = rules::view_wallet(String::new(), chain, address);
                 Ok(GemWalletImport {
@@ -275,13 +308,18 @@ mod tests {
     }
 
     impl GemKeystorePassword for MemoryStore {
-        fn get_password(&self, wallet_id: WalletId, _create_if_missing: bool) -> Result<String, GemServiceError> {
-            self.passwords.lock().unwrap().insert(wallet_id.id(), PASSWORD.to_string());
+        fn get_password(&self, _create_if_missing: bool) -> Result<String, GemServiceError> {
             Ok(PASSWORD.to_string())
         }
-        fn delete_password(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        fn get_wallet_password(&self, wallet_id: WalletId) -> Result<Option<String>, GemServiceError> {
+            Ok(self.passwords.lock().unwrap().get(&wallet_id.id()).cloned())
+        }
+        fn delete_wallet_password(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
             self.passwords.lock().unwrap().remove(&wallet_id.id());
             Ok(())
+        }
+        fn authentication(&self) -> Result<GemKeystoreAuthentication, GemServiceError> {
+            Ok(GemKeystoreAuthentication::None)
         }
     }
 
@@ -383,10 +421,6 @@ mod tests {
         fn keystore_path(&self, wallet: &Wallet) -> PathBuf {
             self.directory.path().join(format!("{}.json", keystore_id_for_wallet(wallet.id.id())))
         }
-
-        fn has_password(&self, wallet: &Wallet) -> bool {
-            self.store.passwords.lock().unwrap().contains_key(&wallet.id.id())
-        }
     }
 
     #[test]
@@ -404,9 +438,7 @@ mod tests {
             assert_eq!(outcome, GemWalletDeletion::WalletsRemaining);
             assert!(!context.keystore_path(&deleted).exists());
             assert!(!legacy_path.exists());
-            assert!(!context.has_password(&deleted));
             assert!(context.keystore_path(&kept).exists());
-            assert!(context.has_password(&kept));
             assert_eq!(context.service.session.get_current_wallet_id().unwrap(), Some(kept.id.clone()));
 
             context.store.preferences.lock().unwrap().insert("is_developer_enabled".to_string(), "true".to_string());
@@ -417,6 +449,130 @@ mod tests {
             assert!(!context.keystore_path(&kept).exists());
             assert_eq!(context.service.session.get_current_wallet_id().unwrap(), None);
             assert_eq!(context.store.preferences.lock().unwrap().get("is_developer_enabled"), None);
+        });
+    }
+
+    #[test]
+    fn test_every_wallet_change_bumps_the_subscriptions_version() {
+        block_on(async {
+            let context = TestContext::new();
+            context.service.app_preferences.set_subscriptions_version(4).unwrap();
+
+            let wallet = context.import("Imported", PHRASE).await;
+            assert_eq!(context.service.app_preferences.get_subscriptions_version(), 5, "import must bump");
+
+            context.service.setup_chains(vec![Chain::Ethereum, Chain::Solana]).await.unwrap();
+            assert_eq!(context.service.app_preferences.get_subscriptions_version(), 6, "adding a chain must bump");
+
+            let before = context.service.app_preferences.get_subscriptions_version();
+            context.service.setup_chains(vec![Chain::Ethereum, Chain::Solana]).await.unwrap();
+            assert_eq!(
+                context.service.app_preferences.get_subscriptions_version(),
+                before,
+                "a setup that adds no chain must not bump"
+            );
+
+            let second = context.import("Second", OTHER_PHRASE).await;
+            let before = context.service.app_preferences.get_subscriptions_version();
+            context.service.delete_wallet(second.id.clone()).await.unwrap();
+            assert_eq!(
+                context.service.app_preferences.get_subscriptions_version(),
+                before + 1,
+                "deleting one of several wallets must bump"
+            );
+
+            context.service.delete_wallet(wallet.id.clone()).await.unwrap();
+            assert_eq!(
+                context.service.app_preferences.get_subscriptions_version(),
+                1,
+                "deleting the last wallet clears preferences first, so the bump restarts from zero"
+            );
+        });
+    }
+
+    #[test]
+    fn test_migration_rekeys_a_legacy_wallet_and_can_be_run_again() {
+        block_on(async {
+            let context = TestContext::new();
+            let wallet = context.import("Legacy", PHRASE).await;
+            let keystore_id = keystore_id_for_wallet(wallet.id.id());
+            let legacy = "0f0e0d0c0b0a09080706050403020100f0e0d0c0b0a090807060504030201000";
+            context
+                .service
+                .keystore
+                .change_password(keystore_id.clone(), decode_password(PASSWORD), decode_password(legacy))
+                .unwrap();
+            context.store.passwords.lock().unwrap().insert(wallet.id.id(), legacy.to_string());
+
+            assert_eq!(context.service.migrate_to_shared_password().unwrap(), 1);
+            assert!(context.service.keystore.opens_with(keystore_id.clone(), decode_password(PASSWORD)));
+            assert!(context.store.passwords.lock().unwrap().is_empty());
+
+            assert_eq!(context.service.migrate_to_shared_password().unwrap(), 0);
+            assert!(context.service.keystore.opens_with(keystore_id, decode_password(PASSWORD)));
+        });
+    }
+
+    #[test]
+    fn test_migration_drops_an_alias_that_already_holds_the_shared_password() {
+        block_on(async {
+            let context = TestContext::new();
+            let wallet = context.import("Aliased", PHRASE).await;
+            context.store.passwords.lock().unwrap().insert(wallet.id.id(), PASSWORD.to_string());
+
+            assert_eq!(context.service.migrate_to_shared_password().unwrap(), 0);
+            assert!(context.store.passwords.lock().unwrap().is_empty());
+            assert!(context.service.keystore.opens_with(keystore_id_for_wallet(wallet.id.id()), decode_password(PASSWORD)));
+        });
+    }
+
+    #[test]
+    fn test_migration_keeps_the_legacy_password_when_rekeying_fails() {
+        block_on(async {
+            let context = TestContext::new();
+            let wallet = context.import("Unmigratable", PHRASE).await;
+            let keystore_id = keystore_id_for_wallet(wallet.id.id());
+            let actual = "0f0e0d0c0b0a09080706050403020100f0e0d0c0b0a090807060504030201000";
+            let wrong = "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff";
+            context
+                .service
+                .keystore
+                .change_password(keystore_id.clone(), decode_password(PASSWORD), decode_password(actual))
+                .unwrap();
+            context.store.passwords.lock().unwrap().insert(wallet.id.id(), wrong.to_string());
+
+            assert!(context.service.migrate_to_shared_password().is_err());
+            assert_eq!(context.store.passwords.lock().unwrap().get(&wallet.id.id()).map(String::as_str), Some(wrong));
+            assert!(context.service.keystore.opens_with(keystore_id, decode_password(actual)));
+        });
+    }
+
+    #[test]
+    fn test_migration_keeps_the_password_of_a_wallet_with_no_v4_keystore() {
+        block_on(async {
+            let context = TestContext::new();
+            let wallet = context.import("PendingV3", PHRASE).await;
+            let keystore_id = keystore_id_for_wallet(wallet.id.id());
+            let legacy = "0f0e0d0c0b0a09080706050403020100f0e0d0c0b0a090807060504030201000";
+            context.store.passwords.lock().unwrap().insert(wallet.id.id(), legacy.to_string());
+            context.service.keystore.delete(keystore_id.clone()).unwrap();
+
+            assert_eq!(context.service.migrate_to_shared_password().unwrap(), 0);
+            assert_eq!(context.store.passwords.lock().unwrap().get(&wallet.id.id()).map(String::as_str), Some(legacy));
+        });
+    }
+
+    #[test]
+    fn test_migration_clears_a_legacy_entry_left_by_an_interrupted_run() {
+        block_on(async {
+            let context = TestContext::new();
+            let wallet = context.import("Interrupted", PHRASE).await;
+            let stale = "0f0e0d0c0b0a09080706050403020100f0e0d0c0b0a090807060504030201000";
+            context.store.passwords.lock().unwrap().insert(wallet.id.id(), stale.to_string());
+
+            assert_eq!(context.service.migrate_to_shared_password().unwrap(), 0);
+            assert!(context.store.passwords.lock().unwrap().is_empty());
+            assert!(context.service.keystore.opens_with(keystore_id_for_wallet(wallet.id.id()), decode_password(PASSWORD)));
         });
     }
 
@@ -432,7 +588,6 @@ mod tests {
 
             assert!(matches!(error, GemServiceError::Core { .. }), "{error:?}");
             assert_eq!(context.store.get_wallets().unwrap().len(), 1);
-            assert!(context.has_password(&wallet));
         });
     }
 }

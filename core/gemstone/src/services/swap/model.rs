@@ -1,4 +1,5 @@
 use crate::models::custom_types::GemBigInt;
+use crate::models::custom_types::GemBigUint;
 use primitives::AssetId;
 use primitives::swap::{SwapQuote, SwapQuoteData};
 use swapper::SwapperError;
@@ -8,7 +9,7 @@ pub struct GemSwapTransfer {
     pub quote: SwapQuote,
     pub data: SwapQuoteData,
     pub recipient: String,
-    pub value: String,
+    pub value: GemBigUint,
     pub use_max_amount: bool,
 }
 

@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_option_u64_from_str_or_int;
-use typeshare::typeshare;
 use url::Url;
 
 use crate::url_query::query_value;
@@ -13,7 +12,6 @@ const QUERY_SESSION_TOPIC: &str = "sessionTopic";
 const QUERY_REQUEST_ID: &str = "requestId";
 
 #[derive(Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct WCEthereumTransaction {
     #[serde(default, deserialize_with = "deserialize_option_u64_from_str_or_int")]

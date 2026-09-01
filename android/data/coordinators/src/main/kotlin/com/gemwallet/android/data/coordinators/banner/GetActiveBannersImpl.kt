@@ -21,16 +21,12 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemBannerContext
 import uniffi.gemstone.GemBannerItem
-import uniffi.gemstone.GemBannerService
-import uniffi.gemstone.GemStakeServiceInterface
 import java.math.BigInteger
 
 class GetActiveBannersImpl(
     private val getSession: GetSession,
     private val getAssetInfo: GetAssetInfo,
     private val bannerStore: GemstoneBannerStore,
-    private val bannerService: GemBannerService,
-    private val stakeService: GemStakeServiceInterface,
 ) : GetActiveBanners {
 
     override suspend fun invoke(asset: Asset?, isGlobal: Boolean): List<Banner> = withContext(Dispatchers.IO) {
@@ -45,9 +41,8 @@ class GetActiveBannersImpl(
             wallet != null -> bannerStore.getWalletBanners(wallet.id.id, listOf(BannerEvent.AccountBlockedMultiSignature))
             else -> emptyList()
         }.map { it.toDTO(asset) }.distinctBy { it.event }
-        bannerService.visibleBanners(
+        bannerContext(wallet, assetInfo).visibleBanners(
             stored = stored.map { GemBannerItem(event = it.event.toJson(), state = it.state.toJson()) },
-            context = bannerContext(wallet, assetInfo),
         ).map { item ->
             val event = item.event.decodeJson<BannerEvent>()
             stored.firstOrNull { it.event == event }
@@ -69,6 +64,6 @@ class GetActiveBannersImpl(
 
     private fun hasStakeBalance(assetInfo: AssetInfo?): Boolean {
         val balance = assetInfo?.balance?.balance ?: return false
-        return stakeService.stakedValue(assetInfo.asset.chain.string, balance.toStakeBalance()).toBigInteger() > BigInteger.ZERO
+        return balance.toStakeBalance().stakedValue(assetInfo.asset.chain.string).toBigInteger() > BigInteger.ZERO
     }
 }

@@ -2,11 +2,9 @@ package com.gemwallet.android.blockchain.services
 
 import android.util.Log
 import com.gemwallet.android.blockchain.gemstone.toFee
-import com.gemwallet.android.domains.confirm.toConfirmInput
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.FeeAssetSelection
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.model.SignerParams
@@ -17,8 +15,11 @@ import com.wallet.core.primitives.SimulationResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemConfirmFeeSelection
+import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemConfirmLoadOptions
 import uniffi.gemstone.GemConfirmServiceInterface
+import uniffi.gemstone.GemTransferAmountResult
+import com.wallet.core.primitives.Asset
 
 class SignerPreloaderProxy(
     private val confirmService: GemConfirmServiceInterface,
@@ -31,15 +32,19 @@ class SignerPreloaderProxy(
     data class Preload(
         val signerParams: SignerParams,
         val simulation: SimulationResult?,
+        val amount: GemTransferAmountResult,
+        val feeAsset: Asset,
     )
 
     suspend fun preload(
-        params: ConfirmParams,
+        walletId: String,
+        input: GemConfirmInput,
         selection: FeeSelection,
         feeAssetSelection: FeeAssetSelection,
     ): Preload = withContext(Dispatchers.IO) {
-        val result = confirmService.load(
-            input = params.toConfirmInput(),
+        val preload = confirmService.preload(
+            walletId = walletId,
+            input = input,
             options = GemConfirmLoadOptions(
                 feeSelection = when (selection) {
                     is FeeSelection.Preset -> GemConfirmFeeSelection.Priority(selection.priority.toGem())
@@ -51,18 +56,21 @@ class SignerPreloaderProxy(
                 },
             ),
         )
+        val result = preload.confirmData
         val selectedPriority = result.selectedPriority.toPrimitives()
         val fee = result.fee.toFee(selectedPriority, AssetId(result.fee.feeAsset))
         val rates = result.feeRates
 
         Preload(
             signerParams = SignerParams(
-                input = params,
+                input = input,
                 confirmData = result,
                 fee = fee,
                 feeRates = rates,
             ),
             simulation = result.simulation?.decodeJson(),
+            amount = preload.amount,
+            feeAsset = preload.feeAsset.toPrimitives(),
         )
     }
 }

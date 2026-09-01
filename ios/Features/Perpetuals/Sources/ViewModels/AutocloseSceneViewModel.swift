@@ -10,6 +10,7 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 import class Gemstone.GemAutocloseEstimator
+import struct Gemstone.GemTransferData
 
 @Observable
 @MainActor
@@ -128,8 +129,8 @@ public extension AutocloseSceneViewModel {
             )
 
             onTransferAction?(
-                TransferData(
-                    type: .perpetual(position.asset, .modify(data)),
+                GemTransferData(
+                    inputType: .perpetual(position.asset, .modify(data)),
                     recipient: .hyperliquidProvider,
                     value: .zero,
                 ),

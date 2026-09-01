@@ -36,7 +36,7 @@ pub struct HyperCoreSigner;
 impl HyperCoreSigner {
     fn sign_transfer_action(&self, input: &SignerInput, private_key: &[u8]) -> SignerResult<String> {
         let asset = input.input_type.get_asset();
-        let amount = BigNumberFormatter::value(&input.value, asset.decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
+        let amount = BigNumberFormatter::value(&input.value.to_string(), asset.decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
         self.sign_spot_send(&amount, &input.destination_address, HYPERCORE_CORE_HYPE_TOKEN_ID, private_key)
     }
 
@@ -58,7 +58,7 @@ impl HyperCoreSigner {
 
     fn sign_token_transfer_action(&self, input: &SignerInput, private_key: &[u8]) -> SignerResult<String> {
         let asset = input.input_type.get_asset();
-        let amount = BigNumberFormatter::value(&input.value, asset.decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
+        let amount = BigNumberFormatter::value(&input.value.to_string(), asset.decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
         let token_id = spot_token_id_for_asset_id(&asset.id).ok_or_else(|| SignerError::InvalidInput(format!("Invalid spot token ID: {}", asset.id)))?;
         self.sign_spot_send(&amount, &input.destination_address, &token_id, private_key)
     }
@@ -93,7 +93,7 @@ impl HyperCoreSigner {
 
         match stake_type {
             StakeType::Stake(validator) => {
-                let wei = BigNumberFormatter::value_as_u64(&input.value, 0).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
+                let wei = BigNumberFormatter::value_as_u64(&input.value.to_string(), 0).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
 
                 let deposit_request = CDeposit::new(wei, nonce_incrementer.next_val());
                 let deposit_action = self.sign_c_deposit(deposit_request, private_key)?;
@@ -103,7 +103,7 @@ impl HyperCoreSigner {
                 Ok(vec![deposit_action, delegate_action])
             }
             StakeType::Unstake(delegation) => {
-                let wei = BigNumberFormatter::value_as_u64(&input.value, 0).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
+                let wei = BigNumberFormatter::value_as_u64(&input.value.to_string(), 0).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
 
                 let undelegate_request = TokenDelegate::new(delegation.validator.id.clone(), wei, true, nonce_incrementer.next_val());
                 let undelegate_action = self.sign_token_delegate(undelegate_request, private_key)?;
@@ -367,7 +367,7 @@ impl ChainSigner for HyperCoreSigner {
 
     fn sign_withdrawal(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         let asset = input.input_type.get_asset();
-        let amount = BigNumberFormatter::value(&input.value, asset.decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
+        let amount = BigNumberFormatter::value(&input.value.to_string(), asset.decimals).map_err(|err| SignerError::InvalidInput(err.to_string()))?;
         let timestamp = Self::timestamp_ms();
 
         let withdrawal_request = WithdrawalRequest::new(amount, timestamp, input.destination_address.clone());
@@ -409,7 +409,7 @@ mod tests {
         let asset = Asset::from_chain(Chain::HyperCore);
         let validator = DelegationValidator::stake(Chain::HyperCore, "0x5ac99df645f3414876c816caa18b2d234024b487".into(), "Validator".into(), true, 0.0, 0.0);
         let input = TransactionLoadInput {
-            value: "150000000".into(),
+            value: BigUint::from(150000000u64),
             sender_address: "0xsender".into(),
             destination_address: "".into(),
             ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Stake(asset.clone(), StakeType::Stake(validator)))
@@ -455,7 +455,7 @@ mod tests {
             price: None,
         };
         let input = TransactionLoadInput {
-            value: "60000000".into(),
+            value: BigUint::from(60000000u64),
             sender_address: "0xsender".into(),
             destination_address: "".into(),
             ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Stake(asset, StakeType::Unstake(delegation)))
@@ -516,7 +516,7 @@ mod tests {
             AssetType::TOKEN,
         );
         let input = TransactionLoadInput {
-            value: "2000000".into(),
+            value: BigUint::from(2000000u64),
             sender_address: "0x1085c5f70f7f7591d97da281a64688385455c2bd".into(),
             destination_address: "0xabcdef1234567890abcdef1234567890abcdef12".into(),
             ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Transfer(asset))

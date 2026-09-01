@@ -1,19 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import protocol Gemstone.GemNameServiceProtocol
 import class Gemstone.GemRecipientService
 import Components
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import GemstonePrimitives
 import GemstoneServices
 import Localization
-import class Gemstone.GemAddressService
+import protocol Gemstone.GemAddressServiceProtocol
 import class Gemstone.GemPaymentService
 import Primitives
 import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
+import struct Gemstone.GemTransferData
 
 public typealias RecipientDataAction = ((RecipientData) -> Void)?
 
@@ -26,8 +29,8 @@ public final class RecipientSceneViewModel {
 
     public let onTransferAction: TransferDataAction
 
-    private let walletSessionService: any WalletSessionManageable
-    private let addressService: GemAddressService
+    private let walletSessionService: any GemWalletSessionServiceProtocol
+    private let addressService: any GemAddressServiceProtocol
     private let paymentService: GemPaymentService
     private let onRecipientDataAction: RecipientDataAction
     private let assetImageFormatter: AssetImageFormatter
@@ -47,14 +50,14 @@ public final class RecipientSceneViewModel {
     public init(
         wallet: Wallet,
         asset: Asset,
-        walletSessionService: any WalletSessionManageable,
+        walletSessionService: any GemWalletSessionServiceProtocol,
         nameService: any GemNameServiceProtocol,
         type: RecipientAssetType,
         assetImageFormatter: AssetImageFormatter = .shared,
         recipient: RecipientData? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
-        addressService: GemAddressService,
+        addressService: any GemAddressServiceProtocol,
         paymentService: GemPaymentService,
     ) {
         self.wallet = wallet
@@ -280,11 +283,11 @@ extension RecipientSceneViewModel {
         case .asset:
             onRecipientDataAction?(recipientData)
         case let .nft(asset):
-            handle(transferData: TransferData(type: .transferNft(asset), recipient: recipientData.recipient, value: .zero))
+            handle(transferData: GemTransferData(inputType: .transferNft(asset), recipient: recipientData.recipient.gem, value: BigInt.zero))
         }
     }
 
-    private func handle(transferData: TransferData) {
+    private func handle(transferData: GemTransferData) {
         onTransferAction?(transferData)
     }
 }

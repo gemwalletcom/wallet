@@ -57,16 +57,16 @@ impl PancakeSwapParser {
         match (has_native_value, outgoing.as_slice(), incoming.as_slice()) {
             (_, [(out_token, out_value)], [(in_token, in_value)]) if out_token != in_token => Some(TransactionSwapMetadata {
                 from_asset: AssetId::from_token(*context.chain, out_token),
-                from_value: (-(*out_value).clone()).to_string(),
+                from_value: (-(*out_value).clone()).magnitude().clone(),
                 to_asset: AssetId::from_token(*context.chain, in_token),
-                to_value: (*in_value).to_string(),
+                to_value: (*in_value).magnitude().clone(),
                 provider: Some(Self::provider()),
             }),
             (true, [], [(in_token, in_value)]) => Some(TransactionSwapMetadata {
                 from_asset: AssetId::from_chain(*context.chain),
-                from_value: context.transaction.value.to_string(),
+                from_value: context.transaction.value.clone(),
                 to_asset: AssetId::from_token(*context.chain, in_token),
-                to_value: (*in_value).to_string(),
+                to_value: (*in_value).magnitude().clone(),
                 provider: Some(Self::provider()),
             }),
             _ => None,
@@ -134,9 +134,9 @@ mod tests {
         assert_eq!(swap_tx.fee_asset_id, AssetId::from_chain(Chain::SmartChain));
         assert_eq!(metadata.provider, Some(SwapProvider::PancakeswapV3.id().to_string()));
         assert_eq!(metadata.from_asset, AssetId::from_token(Chain::SmartChain, "0x55d398326f99059fF775485246999027B3197955"));
-        assert_eq!(metadata.from_value, "2000000000000000000");
+        assert_eq!(metadata.from_value, BigUint::parse_bytes(b"2000000000000000000", 10).unwrap());
         assert_eq!(metadata.to_asset, AssetId::from_token(Chain::SmartChain, "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82"));
-        assert_eq!(metadata.to_value, "1273682274195871312");
+        assert_eq!(metadata.to_value, BigUint::parse_bytes(b"1273682274195871312", 10).unwrap());
     }
 
     #[test]
@@ -151,8 +151,8 @@ mod tests {
         assert_eq!(swap_tx.state, TransactionState::Confirmed);
         assert_eq!(metadata.provider, Some(SwapProvider::PancakeswapV3.id().to_string()));
         assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::SmartChain));
-        assert_eq!(metadata.from_value, "500000000000000000");
+        assert_eq!(metadata.from_value, BigUint::from(500000000000000000u64));
         assert_eq!(metadata.to_asset, AssetId::from_token(Chain::SmartChain, "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82"));
-        assert_eq!(metadata.to_value, "318420568548967828");
+        assert_eq!(metadata.to_value, BigUint::from(318420568548967828u64));
     }
 }

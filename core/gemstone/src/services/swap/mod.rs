@@ -5,6 +5,7 @@ pub mod store;
 
 use crate::clock::unix_seconds;
 use crate::keystore::decode_password;
+use crate::models::custom_types::GemBigUint;
 use std::sync::Arc;
 
 use primitives::{Asset, Wallet};
@@ -52,7 +53,7 @@ impl GemSwapService {
         wallet: Wallet,
         from_asset: Asset,
         to_asset: Asset,
-        value: String,
+        value: GemBigUint,
         use_max_amount: bool,
         slippage_bps: Option<u32>,
     ) -> Result<Vec<Quote>, SwapperError> {
@@ -120,7 +121,7 @@ impl GemSwapService {
         });
         let password = self
             .password
-            .get_password(wallet.id.clone(), false)
+            .get_password(false)
             .map(|password| decode_password(&password))
             .map_err(|error| SwapperError::TransactionError(error.to_string()))?;
         let signature = signer

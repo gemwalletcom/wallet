@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemKeystoreAuthentication
 import GemstoneServices
 import Localization
 import Primitives
@@ -10,12 +11,12 @@ import SwiftUI
 struct ConfirmButtonViewModel: StateButtonViewable {
     private let onAction: @MainActor @Sendable () -> Void
     private let state: StateViewType<ConfirmTransferInput>
-    private let authentication: KeystoreAuthentication?
+    private let authentication: GemKeystoreAuthentication?
     private let isDisabled: Bool
 
     init(
         state: StateViewType<ConfirmTransferInput>,
-        authentication: KeystoreAuthentication?,
+        authentication: GemKeystoreAuthentication?,
         isDisabled: Bool = false,
         onAction: @MainActor @Sendable @escaping () -> Void,
     ) {

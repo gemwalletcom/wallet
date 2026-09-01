@@ -1,6 +1,7 @@
 package com.gemwallet.android.model
 
-import uniffi.gemstone.GemRecipient
+import com.gemwallet.android.domains.confirm.confirmInput
+import com.gemwallet.android.domains.confirm.transfer
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
@@ -11,6 +12,10 @@ import uniffi.gemstone.GemPaymentConfirmTransfer
 import uniffi.gemstone.GemPaymentDestination
 import uniffi.gemstone.GemPaymentWalletAsset
 import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.GemTransferData
 
 sealed interface PaymentDestination {
 
@@ -18,7 +23,7 @@ sealed interface PaymentDestination {
 
     data object Unsupported : Transfer
 
-    data class Confirm(val params: ConfirmParams) : Transfer
+    data class Confirm(val input: GemConfirmInput) : Transfer
 
     data class Recipient(val assetId: AssetId, val request: PaymentRequest) : Transfer
 
@@ -27,7 +32,7 @@ sealed interface PaymentDestination {
     companion object {
         fun from(request: PaymentRequest, assets: List<AssetInfo>, paymentService: GemPaymentService): PaymentDestination =
             when (val destination = paymentService.destination(request.toJson(), assets.map { it.toPaymentWalletAsset() })) {
-                is GemPaymentDestination.Confirm -> destination.transfer.toTransferParams(assets)?.let(::Confirm) ?: Unsupported
+                is GemPaymentDestination.Confirm -> destination.transfer.toConfirmInput(assets)?.let(::Confirm) ?: Unsupported
                 is GemPaymentDestination.Recipient -> destination.assetId.toAssetId()?.let { Recipient(it, request) } ?: Unsupported
                 is GemPaymentDestination.SelectAsset -> SelectAsset(request, destination.chains.mapNotNull { chain -> Chain.entries.firstOrNull { it.string == chain } })
                 is GemPaymentDestination.Unsupported -> Unsupported
@@ -35,7 +40,7 @@ sealed interface PaymentDestination {
 
         fun transfer(request: PaymentRequest, assetInfo: AssetInfo, paymentService: GemPaymentService): Transfer =
             when (val destination = paymentService.transferDestination(request.toJson(), assetInfo.toPaymentWalletAsset())) {
-                is GemPaymentDestination.Confirm -> destination.transfer.toTransferParams(listOf(assetInfo))?.let(::Confirm) ?: Unsupported
+                is GemPaymentDestination.Confirm -> destination.transfer.toConfirmInput(listOf(assetInfo))?.let(::Confirm) ?: Unsupported
                 is GemPaymentDestination.Recipient -> Recipient(assetInfo.asset.id, request)
                 is GemPaymentDestination.SelectAsset -> Unsupported
                 is GemPaymentDestination.Unsupported -> Unsupported
@@ -48,11 +53,14 @@ fun AssetInfo.toPaymentWalletAsset(): GemPaymentWalletAsset = GemPaymentWalletAs
     decimals = asset.decimals,
 )
 
-fun GemPaymentConfirmTransfer.toTransferParams(assets: List<AssetInfo>): ConfirmParams.TransferParams? {
+fun GemPaymentConfirmTransfer.toConfirmInput(assets: List<AssetInfo>): GemConfirmInput? {
     val assetInfo = assets.firstOrNull { it.asset.id.toIdentifier() == assetId } ?: return null
     val owner = assetInfo.owner ?: return null
     val value = value.toBigIntegerOrNull() ?: return null
 
-    return ConfirmParams.Builder(assetInfo.asset, owner, value)
-        .transfer(GemRecipient(address), memo, references)
+    return GemTransferData(
+        inputType = GemTransactionInputType.transfer(assetInfo.asset),
+        recipient = GemRecipient(address = address, memo = memo, references = references),
+        value = value.toString(),
+    ).confirmInput(owner)
 }

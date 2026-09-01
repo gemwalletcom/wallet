@@ -15,7 +15,10 @@ public extension Primitives.Wallet {
     }
 
     var chainsWithTokens: [Chain] {
-        let walletChains = accounts.map(\.chain).asSet()
-        return walletChains.intersection(AssetConfiguration.supportedChainsWithTokens).asArray().sortByRank()
+        accounts.map(\.chain).asSet().filter(\.isTokenSupported).asArray().sortByRank()
+    }
+
+    var hasTokenSupport: Bool {
+        accounts.contains { $0.chain.isTokenSupported }
     }
 }

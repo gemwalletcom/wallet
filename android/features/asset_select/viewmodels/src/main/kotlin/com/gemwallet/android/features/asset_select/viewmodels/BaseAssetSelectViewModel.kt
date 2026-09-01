@@ -14,8 +14,8 @@ import com.gemwallet.android.model.NO_QUERY_LIMIT
 import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.tokens.cases.SearchTokens
-import com.gemwallet.android.ext.assetType
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.isTokenSupported
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
@@ -166,7 +166,7 @@ open class BaseAssetSelectViewModel(
     .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Idle)
 
     val isAddAssetAvailable = getSession().map { session ->
-        session?.wallet?.accounts?.any { it.chain.assetType() != null } == true
+        session?.wallet?.accounts?.any { it.chain.isTokenSupported() } == true
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     fun onChangeVisibility(assetId: AssetId, visible: Boolean) = viewModelScope.launch {

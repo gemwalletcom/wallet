@@ -15,7 +15,7 @@ public struct NetworkFeeSceneViewModel {
     private let rates: [FeeRate]
     private let feeAssetPrice: Price?
     private let feeAmount: BigInt?
-    private let feeAssets: [AssetData]
+    private let feeAssets: [FeeAssetItem]
     private let feeService: GemFeeService
     private let onSelect: (@MainActor (FeeSelection) -> Void)?
     private let onSelectFeeAsset: (@MainActor (AssetId) -> Void)?
@@ -27,7 +27,7 @@ public struct NetworkFeeSceneViewModel {
         rates: [FeeRate] = [],
         feeAssetPrice: Price? = nil,
         feeAmount: BigInt? = nil,
-        feeAssets: [AssetData] = [],
+        feeAssets: [FeeAssetItem] = [],
         feeService: GemFeeService,
         onSelect: (@MainActor (FeeSelection) -> Void)? = nil,
         onSelectFeeAsset: (@MainActor (AssetId) -> Void)? = nil,
@@ -59,15 +59,13 @@ public struct NetworkFeeSceneViewModel {
     }
 
     var selectedFeeAssetItem: FeeAssetItem {
-        feeAssetItem(
-            feeAssets.first(where: { $0.asset.id == feeAsset.id }) ?? .with(asset: feeAsset),
-            isSelected: false,
-        )
+        feeAssets.first(where: { $0.asset.id == feeAsset.id })
+            ?? FeeAssetItem(asset: feeAsset, balance: .zero, price: nil, currency: currency, isSelected: false)
     }
 
     var feeAssetsViewModel: FeeAssetsViewModel {
         FeeAssetsViewModel(
-            state: .data(.plain(feeAssets.map { feeAssetItem($0, isSelected: $0.asset.id == feeAsset.id) })),
+            state: .data(.plain(feeAssets.map { $0.selected($0.asset.id == feeAsset.id) })),
         )
     }
 
@@ -80,6 +78,7 @@ public struct NetworkFeeSceneViewModel {
                 unitType: feeAsset.chain.feeUnitType,
                 decimals: feeRateDecimals,
                 symbol: feeAsset.symbol,
+                totalFee: totalFee(for: $0.gasPriceType),
             )
         }.sorted()
     }
@@ -110,7 +109,7 @@ public struct NetworkFeeSceneViewModel {
 
     func estimatedFee(for rate: FeeRate) -> BigInt? {
         guard let feeAmount, let base = selectedBaseTotalFee, base != .zero else { return nil }
-        return feeAmount * rate.gasPriceType.totalFee / base
+        return feeAmount * totalFee(for: rate.gasPriceType) / base
     }
 
     // MARK: - Custom Fee
@@ -128,7 +127,7 @@ public struct NetworkFeeSceneViewModel {
             currency: currency,
             baseFee: feeAmount,
             baseTotal: selectedBaseTotalFee,
-            normalTotal: (rates.first(where: { $0.priority == .normal }) ?? rates.first)?.gasPriceType.totalFee ?? selectedBaseTotalFee,
+            normalTotal: (rates.first(where: { $0.priority == .normal }) ?? rates.first).map { totalFee(for: $0.gasPriceType) } ?? selectedBaseTotalFee,
             initialRate: selection.customRate,
             feeService: feeService,
             onSelect: { onSelect?(.custom($0)) },
@@ -149,6 +148,10 @@ public struct NetworkFeeSceneViewModel {
 // MARK: - Private
 
 private extension NetworkFeeSceneViewModel {
+    func totalFee(for gasPriceType: GasPriceType) -> BigInt {
+        BigInt(core: gasPriceType.map().totalFee())
+    }
+
     var feeRateDecimals: Int { feeAsset.chain.feeRateDecimals(assetDecimals: feeAsset.decimals.asInt) }
 
     var customFeeRateViewModel: FeeRateViewModel? {
@@ -158,13 +161,14 @@ private extension NetworkFeeSceneViewModel {
                 unitType: feeAsset.chain.feeUnitType,
                 decimals: feeRateDecimals,
                 symbol: feeAsset.symbol,
+                totalFee: totalFee(for: .regular(gasPrice: $0)),
             )
         }
     }
 
     var selectedBaseTotalFee: BigInt? {
         switch selection {
-        case let .preset(priority): rates.first(where: { $0.priority == priority })?.gasPriceType.totalFee
+        case let .preset(priority): rates.first(where: { $0.priority == priority }).map { totalFee(for: $0.gasPriceType) }
         case let .custom(rate): rate
         }
     }
@@ -189,7 +193,4 @@ private extension NetworkFeeSceneViewModel {
         )
     }
 
-    func feeAssetItem(_ assetData: AssetData, isSelected: Bool) -> FeeAssetItem {
-        FeeAssetItem(assetData: assetData, currency: currency, isSelected: isSelected)
-    }
 }

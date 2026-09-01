@@ -77,6 +77,7 @@ fn token_decimals(asset: &Asset) -> Result<u8, SignerError> {
 #[cfg(test)]
 mod tests {
     use crate::signer::{SolanaChainSigner, testkit::*};
+    use num_bigint::BigUint;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{Asset, AssetId, AssetType, Chain, ChainSigner, GasPriceType, SignerInput, SolanaTokenProgramId, TransactionFee, TransactionInputType, TransactionLoadInput};
     use solana_primitives::{
@@ -101,7 +102,7 @@ mod tests {
             input_type: TransactionInputType::Transfer(Asset::mock_spl_token()),
             sender_address: sender_address(),
             destination_address: TEST_RECIPIENT.to_string(),
-            value: "123456".to_string(),
+            value: BigUint::from(123456u64),
             gas_price: GasPriceType::regular(0),
             memo: None,
             is_max_value: false,
@@ -135,7 +136,7 @@ mod tests {
             input_type: TransactionInputType::Transfer(spl2022_asset),
             sender_address: sender_address(),
             destination_address: TEST_RECIPIENT.to_string(),
-            value: "7".to_string(),
+            value: BigUint::from(7u64),
             gas_price: GasPriceType::regular(0),
             memo: None,
             is_max_value: false,
@@ -155,7 +156,7 @@ mod tests {
             input_type: TransactionInputType::Transfer(mismatched_asset),
             sender_address: sender_address(),
             destination_address: TEST_RECIPIENT.to_string(),
-            value: "7".to_string(),
+            value: BigUint::from(7u64),
             gas_price: GasPriceType::regular(0),
             memo: None,
             is_max_value: false,
@@ -171,7 +172,7 @@ mod tests {
             input_type: TransactionInputType::Transfer(Asset::mock_spl_token()),
             sender_address: sender_address(),
             destination_address: TEST_RECIPIENT.to_string(),
-            value: "123456".to_string(),
+            value: BigUint::from(123456u64),
             gas_price: GasPriceType::regular(0),
             memo: Some("token memo".to_string()),
             is_max_value: false,
@@ -201,7 +202,7 @@ mod tests {
             input_type: TransactionInputType::Transfer(Asset::mock_spl_token()),
             sender_address: sender_address(),
             destination_address: TEST_RECIPIENT.to_string(),
-            value: "123456".to_string(),
+            value: BigUint::from(123456u64),
             gas_price: GasPriceType::regular(0),
             memo: Some("order".to_string()),
             is_max_value: false,

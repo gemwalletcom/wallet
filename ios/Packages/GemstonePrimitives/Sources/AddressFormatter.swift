@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.GemAddressService
+import protocol Gemstone.GemAddressServiceProtocol
 import Gemstone
 import Primitives
 

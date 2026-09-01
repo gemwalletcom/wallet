@@ -9,7 +9,7 @@ public extension SwapQuoteData {
         SwapQuoteData(
             to: "",
             dataType: .contract,
-            value: "",
+            value: "0",
             data: "",
             memo: nil,
             approval: approval,

@@ -91,10 +91,12 @@ pub fn slippage_percent(slippage: Option<f64>) -> f64 {
     slippage.unwrap_or(DEFAULT_SLIPPAGE_PERCENT)
 }
 
-pub fn opens_position(action: &GemPerpetualOrderAction) -> bool {
-    match action {
-        GemPerpetualOrderAction::Open | GemPerpetualOrderAction::Increase => true,
-        GemPerpetualOrderAction::Reduce { .. } => false,
+impl GemPerpetualOrderAction {
+    fn opens_position(&self) -> bool {
+        match self {
+            Self::Open | Self::Increase => true,
+            Self::Reduce { .. } => false,
+        }
     }
 }
 
@@ -125,14 +127,16 @@ pub fn show_perpetuals(enabled: bool, wallet: &Wallet) -> bool {
     enabled && wallet.wallet_type == WalletType::Multicoin && crate::services::stream::rules::hyperliquid_account(&wallet.accounts).is_some()
 }
 
-pub fn is_markets_stale(updated_at: Option<i64>, now: i64) -> bool {
+fn is_markets_stale(updated_at: Option<i64>, now: i64) -> bool {
     updated_at.is_none_or(|updated_at| now - updated_at >= MARKETS_REFRESH_INTERVAL_SECONDS)
 }
 
-pub fn should_sync_markets(trigger: GemMarketsRefreshTrigger, updated_at: Option<i64>, now: i64) -> bool {
-    match trigger {
-        GemMarketsRefreshTrigger::UserRequested => true,
-        GemMarketsRefreshTrigger::Scheduled => is_markets_stale(updated_at, now),
+impl GemMarketsRefreshTrigger {
+    pub(super) fn should_sync_markets(self, updated_at: Option<i64>, now: i64) -> bool {
+        match self {
+            Self::UserRequested => true,
+            Self::Scheduled => is_markets_stale(updated_at, now),
+        }
     }
 }
 
@@ -186,7 +190,7 @@ pub fn order(provider: PerpetualProvider, input: GemPerpetualOrderInput) -> Resu
     let usd_amount = usdc_value.to_string().parse::<f64>().unwrap_or_default() / 10f64.powi(input.usdc_decimals);
     let slippage = slippage_percent(input.slippage);
     let (size, fiat_value, margin_amount) = order_amounts(usd_amount, input.leverage, input.price);
-    let price = slippage_price(input.price, input.direction.clone(), opens_position(&input.action), slippage);
+    let price = slippage_price(input.price, input.direction.clone(), input.action.opens_position(), slippage);
     let formatter = GemPerpetual::new(provider);
 
     let data = PerpetualConfirmData {
@@ -332,8 +336,8 @@ mod tests {
     fn test_a_user_requested_refresh_syncs_markets_that_a_scheduled_one_would_skip() {
         let just_synced = Some(10_000 - 1);
 
-        assert!(!should_sync_markets(GemMarketsRefreshTrigger::Scheduled, just_synced, 10_000));
-        assert!(should_sync_markets(GemMarketsRefreshTrigger::UserRequested, just_synced, 10_000));
+        assert!(!GemMarketsRefreshTrigger::Scheduled.should_sync_markets(just_synced, 10_000));
+        assert!(GemMarketsRefreshTrigger::UserRequested.should_sync_markets(just_synced, 10_000));
     }
 
     fn position(id: &str) -> PerpetualPosition {
@@ -456,11 +460,14 @@ mod tests {
 
     #[test]
     fn test_only_reduce_closes_a_position() {
-        assert!(opens_position(&GemPerpetualOrderAction::Open));
-        assert!(opens_position(&GemPerpetualOrderAction::Increase));
-        assert!(!opens_position(&GemPerpetualOrderAction::Reduce {
-            position_direction: PerpetualDirection::Long
-        }));
+        assert!(GemPerpetualOrderAction::Open.opens_position());
+        assert!(GemPerpetualOrderAction::Increase.opens_position());
+        assert!(
+            !GemPerpetualOrderAction::Reduce {
+                position_direction: PerpetualDirection::Long
+            }
+            .opens_position()
+        );
     }
 
     #[test]

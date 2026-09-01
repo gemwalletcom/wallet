@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemChainServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import Components
 import protocol Gemstone.GemExplorerServiceProtocol
@@ -21,6 +22,7 @@ public final class TransactionsViewModel {
     private let preferencesService: any GemPreferencesServiceProtocol
 
     private let type: TransactionsRequestType
+    private let chainService: any GemChainServiceProtocol
 
     public let wallet: Wallet
 
@@ -39,14 +41,16 @@ public final class TransactionsViewModel {
         transactionFormatter: GemTransactionFormatter,
         wallet: Wallet,
         type: TransactionsRequestType,
+        chainService: any GemChainServiceProtocol,
         preferencesService: any GemPreferencesServiceProtocol,
     ) {
         self.transactionsService = transactionsService
         self.explorerService = explorerService
         self.transactionFormatter = transactionFormatter
         self.type = type
+        self.chainService = chainService
         self.wallet = wallet
-        filterModel = TransactionsFilterViewModel(wallet: wallet, type: type)
+        filterModel = TransactionsFilterViewModel(wallet: wallet, type: type, chainService: chainService)
         self.preferencesService = preferencesService
     }
 
@@ -91,7 +95,7 @@ public extension TransactionsViewModel {
 
 extension TransactionsViewModel {
     private func onSelectCleanFilters() {
-        filterModel = TransactionsFilterViewModel(wallet: wallet, type: type)
+        filterModel = TransactionsFilterViewModel(wallet: wallet, type: type, chainService: chainService)
     }
 
     private func onSelectReceive() {

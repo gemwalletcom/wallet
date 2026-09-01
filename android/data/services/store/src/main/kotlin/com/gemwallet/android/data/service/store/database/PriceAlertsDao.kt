@@ -38,9 +38,6 @@ interface PriceAlertsDao {
     @Query("DELETE FROM price_alerts WHERE id IN (:ids)")
     suspend fun delete(ids: List<String>)
 
-    @Query("SELECT * FROM price_alerts WHERE id = :priceAlertId")
-    fun getPriceAlert(priceAlertId: String): DbPriceAlert?
-
     @Transaction
     suspend fun update(alerts: List<DbPriceAlert>, deleteIds: List<String>) {
         if (deleteIds.isNotEmpty()) {

@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 pub const HUNDRED_PERCENT_IN_BPS: u32 = 10_000;
 
@@ -10,7 +9,6 @@ pub struct Slippage {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare]
 pub enum SlippageMode {
     Auto,
     Exact,

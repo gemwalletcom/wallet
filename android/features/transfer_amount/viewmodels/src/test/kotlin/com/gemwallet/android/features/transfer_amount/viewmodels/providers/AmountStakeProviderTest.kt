@@ -8,7 +8,8 @@ import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetBalance
-import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.domains.confirm.stakeType
+import com.wallet.core.primitives.StakeType
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
@@ -26,7 +27,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
-import uniffi.gemstone.GemAmountService
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -71,15 +71,14 @@ class AmountStakeProviderTest {
         getRecommendedValidator = getRecommendedValidator,
         getStakeValidator = getStakeValidator,
         scope = scope,
-        amountService = GemAmountService(),
     )
 
     @Test
     fun `delegate builds DelegateParams`() = runBlocking {
         val provider = makeProvider(AmountParams.Stake.Delegate(asset.id, validatorId = "v1"))
         provider.validatorState.filterNotNull().first()
-        val confirm = provider.buildConfirmParams(Crypto(BigInteger.ONE), isMax = false)
-        assertTrue(confirm is ConfirmParams.Stake.DelegateParams)
+        val confirm = provider.stakeType()
+        assertTrue(confirm is StakeType.Stake)
     }
 
     @Test
@@ -89,7 +88,7 @@ class AmountStakeProviderTest {
         val provider = makeProvider(AmountParams.Stake.Delegate(asset.id, validatorId = null))
         provider.assetInfo.filterNotNull().first()
         assertThrows(AmountError.NoValidatorSelected::class.java) {
-            runBlocking { provider.buildConfirmParams(Crypto(BigInteger.ONE), isMax = false) }
+            runBlocking { provider.stakeType() }
         }
         Unit
     }
@@ -99,8 +98,8 @@ class AmountStakeProviderTest {
         val provider = makeProvider(AmountParams.Stake.Undelegate(asset.id, validatorId = "v1", delegationId = "d1"))
         provider.assetInfo.filterNotNull().first()
         provider.validatorState.filterNotNull().first()
-        val confirm = provider.buildConfirmParams(Crypto(BigInteger.ONE), isMax = false)
-        assertTrue(confirm is ConfirmParams.Stake.UndelegateParams)
+        val confirm = provider.stakeType()
+        assertTrue(confirm is StakeType.Unstake)
     }
 
     @Test
@@ -127,16 +126,16 @@ class AmountStakeProviderTest {
         provider.validatorState.filterNotNull().first()
 
         assertEquals(BigInteger("77"), provider.availableBalance.first { it != BigInteger.ZERO })
-        val confirm = provider.buildConfirmParams(Crypto(BigInteger.ONE), isMax = false) as ConfirmParams.Stake.UndelegateParams
-        assertEquals("77", confirm.delegation.base.balance)
+        val confirm = provider.stakeType() as StakeType.Unstake
+        assertEquals("77", confirm.content.base.balance)
     }
 
     @Test
     fun `redelegate builds RedelegateParams`() = runBlocking {
         val provider = makeProvider(AmountParams.Stake.Redelegate(asset.id, "v1", "d1"))
         provider.validatorState.filterNotNull().first()
-        val confirm = provider.buildConfirmParams(Crypto(BigInteger.ONE), isMax = false)
-        assertTrue(confirm is ConfirmParams.Stake.RedelegateParams)
+        val confirm = provider.stakeType()
+        assertTrue(confirm is StakeType.Redelegate)
     }
 
     @Test
@@ -144,16 +143,16 @@ class AmountStakeProviderTest {
         val provider = makeProvider(AmountParams.Stake.Withdraw(asset.id, validatorId = "v1", delegationId = "d1"))
         provider.assetInfo.filterNotNull().first()
         provider.validatorState.filterNotNull().first()
-        val confirm = provider.buildConfirmParams(Crypto(BigInteger.ONE), isMax = false)
-        assertTrue(confirm is ConfirmParams.Stake.WithdrawParams)
+        val confirm = provider.stakeType()
+        assertTrue(confirm is StakeType.Withdraw)
     }
 
     @Test
     fun `rewards builds RewardsParams`() = runBlocking {
         val provider = makeProvider(AmountParams.Stake.Rewards(asset.id))
         provider.validatorState.filterNotNull().first()
-        val confirm = provider.buildConfirmParams(Crypto(BigInteger.ONE), isMax = false)
-        assertTrue(confirm is ConfirmParams.Stake.RewardsParams)
+        val confirm = provider.stakeType()
+        assertTrue(confirm is StakeType.Rewards)
     }
 
     @Test
@@ -197,22 +196,22 @@ class AmountStakeProviderTest {
     }
 
     @Test
-    fun `freeze builds Stake Freeze ConfirmParams with selected resource`() = runBlocking {
+    fun `freeze builds a Freeze stake with the selected resource`() = runBlocking {
         val provider = makeProvider(AmountParams.Stake.Freeze(asset.id, Resource.Bandwidth))
         provider.assetInfo.filterNotNull().first()
         provider.setResource(Resource.Bandwidth)
-        val confirm = provider.buildConfirmParams(Crypto(BigInteger.ONE), isMax = false)
-        assertTrue(confirm is ConfirmParams.Stake.Freeze)
-        assertEquals(Resource.Bandwidth, (confirm as ConfirmParams.Stake.Freeze).resource)
+        val confirm = provider.stakeType()
+        assertTrue(confirm is StakeType.Freeze)
+        assertEquals(Resource.Bandwidth, (confirm as StakeType.Freeze).content)
     }
 
     @Test
-    fun `unfreeze builds Stake Unfreeze ConfirmParams`() = runBlocking {
+    fun `unfreeze builds an Unfreeze stake`() = runBlocking {
         val provider = makeProvider(AmountParams.Stake.Unfreeze(asset.id, Resource.Energy))
         provider.assetInfo.filterNotNull().first()
         provider.setResource(Resource.Energy)
-        val confirm = provider.buildConfirmParams(Crypto(BigInteger.ONE), isMax = false)
-        assertTrue(confirm is ConfirmParams.Stake.Unfreeze)
+        val confirm = provider.stakeType()
+        assertTrue(confirm is StakeType.Unfreeze)
     }
 
     @Test
@@ -234,4 +233,7 @@ class AmountStakeProviderTest {
         provider.setResource(Resource.Energy)
         assertEquals(BigInteger("3000"), provider.availableBalance.filterNotNull().first { it == BigInteger("3000") })
     }
+
+    private suspend fun AmountStakeProvider.stakeType(): StakeType? =
+        buildConfirmInput(Crypto(BigInteger.ONE), isMax = false).transfer.inputType.stakeType
 }

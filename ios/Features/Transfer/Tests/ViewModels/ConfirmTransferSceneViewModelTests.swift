@@ -26,12 +26,13 @@ import Validators
 import class Gemstone.GemFeeService
 import class Gemstone.GemSimulationFormatter
 import class Gemstone.GemAssetConfigService
+import struct Gemstone.GemTransferData
 
 @MainActor
 struct ConfirmTransferSceneViewModelTests {
     @Test
     func paymentHeaderAppearsAfterLoading() {
-        let data = TransferData.mockPayment()
+        let data = GemTransferData.mockPayment()
         let model = ConfirmTransferSceneViewModel.mock(data: data)
 
         #expect(model.isHeaderVisible == false)
@@ -265,10 +266,10 @@ struct ConfirmTransferSceneViewModelTests {
             FeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 30)),
         ]
         let model = ConfirmTransferSceneViewModel.mock(
-            confirmService: .mock(transaction: .success(.mock(feeRates: [
+            gemConfirmService: GemConfirmServiceMock(preload: .success(.mock(confirmData: .mock(feeRates: [
                 GemFeeRate(priority: .normal, gasPriceType: .regular(gasPrice: "20")),
                 GemFeeRate(priority: .fast, gasPriceType: .regular(gasPrice: "30")),
-            ]))),
+            ])))),
         )
 
         await model.load()
@@ -287,7 +288,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func fetchIgnoresErrorAfterCancellation() async {
         let model = ConfirmTransferSceneViewModel.mock(
-            confirmService: .mock(transaction: .failure(AnyError("network"))),
+            gemConfirmService: GemConfirmServiceMock(preload: .failure(AnyError("network"))),
         )
 
         let task = Task { await model.load() }
@@ -474,7 +475,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func scanTransactionMaliciousError() {
         let model = ConfirmTransferSceneViewModel.mock()
-        model.onSelectListError(error: .scan(.malicious))
+        model.onSelectListError(error: .scan(.ScanMalicious))
 
         guard case .info(.maliciousTransaction) = model.isPresentingSheet else {
             Issue.record("Expected maliciousTransaction sheet")
@@ -485,7 +486,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func scanTransactionMemoRequiredError() {
         let model = ConfirmTransferSceneViewModel.mock()
-        model.onSelectListError(error: .scan(.memoRequired(symbol: "BTC")))
+        model.onSelectListError(error: .scan(.ScanMemoRequired(symbol: "BTC")))
 
         guard case let .info(.memoRequired(symbol)) = model.isPresentingSheet else {
             Issue.record("Expected memoRequired sheet")
@@ -676,66 +677,5 @@ struct ConfirmTransferSceneViewModelTests {
         if case .empty = model.itemModel {
             Issue.record("Expected non-empty model")
         }
-    }
-}
-
-private extension ConfirmTransferSceneViewModel {
-    static func mock(
-        wallet: Wallet = .mock(),
-        data: TransferData = .mock(),
-        confirmService: ConfirmService,
-    ) -> ConfirmTransferSceneViewModel {
-        ConfirmTransferSceneViewModel(
-            request: ConfirmTransferRequest(
-                wallet: wallet,
-                data: data,
-                simulation: nil,
-            ),
-            confirmService: confirmService,
-            transferService: GemTransferService(),
-            onComplete: {},
-            assetConfig: GemAssetConfigService(),
-            feeService: GemFeeService(),
-            swapQuoteService: GemSwapQuoteService(),
-            applicationMetadataService: GemApplicationMetadataService(),
-        )
-    }
-
-    static func mock(
-        wallet: Wallet = .mock(),
-        data: TransferData = .mock(),
-        nameService: any GemNameServiceProtocol = GemNameServiceMock(),
-        simulation: SimulationResult? = nil,
-    ) -> ConfirmTransferSceneViewModel {
-        ConfirmTransferSceneViewModel(
-            request: ConfirmTransferRequest(
-                wallet: wallet,
-                data: data,
-                simulation: simulation,
-            ),
-            confirmService: ConfirmServiceFactory.create(
-                explorerService: GemExplorerServiceMock(),
-                keystore: KeystoreMock(),
-                gemConfirmService: GemConfirmServiceMock(),
-                preferencesService: GemPreferencesServiceMock(),
-                assetStore: .mock(),
-                assetsService: GemAssetsServiceMock(),
-                transactionStateService: GemTransactionStateServiceMock(),
-                nameService: nameService,
-                recentAssetsService: RecentAssetsService(store: .mock()),
-                toastPresenter: ToastPresenter(),
-                feeService: GemFeeService(),
-                transferService: GemTransferService(),
-                amountService: GemAmountService(),
-                simulationFormatter: GemSimulationFormatter(),
-                perpetualService: GemPerpetualServiceMock(),
-            ),
-            transferService: GemTransferService(),
-            onComplete: {},
-            assetConfig: GemAssetConfigService(),
-            feeService: GemFeeService(),
-            swapQuoteService: GemSwapQuoteService(),
-            applicationMetadataService: GemApplicationMetadataService(),
-        )
     }
 }

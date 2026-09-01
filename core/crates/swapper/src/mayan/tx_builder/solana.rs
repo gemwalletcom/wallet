@@ -10,6 +10,7 @@ use gem_solana::{
     ASSOCIATED_TOKEN_ACCOUNT_PROGRAM, SYSTEM_PROGRAM_ID, SolanaAddress, SolanaClient, WSOL_TOKEN_ADDRESS, encode_v0_transaction, instruction_from_primitive,
     instructions_from_primitives,
 };
+use num_bigint::BigUint;
 use primitives::{Chain, SolanaInstruction};
 use solana_primitives::associated_token::{create_associated_token_account_idempotent_with_address, get_associated_token_address_with_program_id};
 use solana_primitives::instructions::program_ids;
@@ -45,7 +46,7 @@ pub(in crate::mayan::tx_builder) async fn build_quote_data(
     let data = encode_v0_transaction(fee_payer, &blockhash, &transaction.instructions, &lookup_tables).map_err(solana_error)?;
     let gas_limit = compute_budget::get_compute_unit_limit(&transaction.instructions).map(|limit| limit.to_string());
 
-    Ok(SwapperQuoteData::new_contract(String::new(), "0".to_string(), data, None, gas_limit))
+    Ok(SwapperQuoteData::new_contract(String::new(), BigUint::from(0u64), data, None, gas_limit))
 }
 
 pub(in crate::mayan::tx_builder) struct SolanaLedgerDeposit<'a> {

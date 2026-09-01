@@ -3,21 +3,22 @@
 import Foundation
 import Localization
 import Primitives
-import GemstoneServices
+import protocol Gemstone.GemOnboardingServiceProtocol
+import GemstonePrimitives
 
 struct WalletNameGenerator {
     private let type: ImportWalletType
-    private let walletService: WalletService
+    private let service: any GemOnboardingServiceProtocol
 
-    init(type: ImportWalletType, walletService: WalletService) {
+    init(type: ImportWalletType, service: any GemOnboardingServiceProtocol) {
         self.type = type
-        self.walletService = walletService
+        self.service = service
     }
 
     func name() async -> String {
         name(
             type: type,
-            index: (try? walletService.nextWalletIndex()) ?? .zero,
+            index: (try? service.nextWalletIndex()) ?? .zero,
         )
     }
 

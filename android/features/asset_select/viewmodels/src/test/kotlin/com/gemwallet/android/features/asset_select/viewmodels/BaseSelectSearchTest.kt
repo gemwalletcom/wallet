@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
-import uniffi.gemstone.GemAssetConfigService
 import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
@@ -39,7 +38,7 @@ class BaseSelectSearchTest {
         val searchSelectAssets = mockk<SearchSelectAssets> {
             every { this@mockk(any(), any()) } returns flowOf(emptyList())
         }
-        val search = BaseSelectSearch(searchSelectAssets, GemAssetConfigService())
+        val search = BaseSelectSearch(searchSelectAssets)
 
         val result = search.items(filters("zzqxzzq")).first()
 
@@ -51,7 +50,7 @@ class BaseSelectSearchTest {
         val searchSelectAssets = mockk<SearchSelectAssets> {
             every { this@mockk(any(), any()) } returns flowOf(results)
         }
-        val search = BaseSelectSearch(searchSelectAssets, GemAssetConfigService())
+        val search = BaseSelectSearch(searchSelectAssets)
 
         val result = search.items(filters(query = "eth", limit = 25)).first()
 

@@ -1,3 +1,4 @@
+use num_bigint::BigUint;
 use std::error::Error;
 
 use async_trait::async_trait;
@@ -52,7 +53,7 @@ impl<C: Client> ChainSimulation for TronProvider<C> {
             payload,
             header: call_value.map(|value| SimulationHeader {
                 asset_id: AssetId::from_chain(Chain::Tron),
-                value: value.to_string(),
+                value: Some(BigUint::from(value)),
                 is_unlimited: false,
             }),
         })
@@ -79,7 +80,7 @@ mod tests {
             result.header,
             Some(SimulationHeader {
                 asset_id: AssetId::from_chain(Chain::Tron),
-                value: "27334102".to_string(),
+                value: Some(BigUint::from(27_334_102u32)),
                 is_unlimited: false,
             })
         );
@@ -103,16 +104,16 @@ mod tests {
             result.header,
             Some(SimulationHeader {
                 asset_id: AssetId::from_chain(Chain::Tron),
-                value: "1000000".to_string(),
+                value: Some(BigUint::from(1_000_000u32)),
                 is_unlimited: false,
             })
         );
         assert_eq!(result.balance_changes.len(), 2);
         assert_eq!(result.balance_changes[0].asset_id, AssetId::from_chain(Chain::Tron));
-        assert_eq!(result.balance_changes[0].value, "-1000000");
+        assert_eq!(result.balance_changes[0].value, BigInt::from(-1000000i64));
         let output_token = TronAddress::from_hex("4e4bee11cea0070f957b98fd8cf4138ef3295e0e").unwrap().encode();
         assert_eq!(result.balance_changes[1].asset_id, AssetId::from_token(Chain::Tron, &output_token));
-        assert_eq!(result.balance_changes[1].value, "329114");
+        assert_eq!(result.balance_changes[1].value, BigInt::from(329114i64));
     }
 
     #[tokio::test]

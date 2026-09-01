@@ -46,26 +46,10 @@ struct RootScene: View {
             )
         }
         .sheet(isPresented: $model.isPresentingCreateWalletSheet) {
-            CreateWalletNavigationStack(
-                model: CreateWalletModel(
-                    walletService: model.walletService,
-                    walletSessionService: model.walletSessionService,
-                    avatarService: model.avatarService,
-                    onComplete: model.dismissCreateWallet,
-                ),
-            )
+            CreateWalletNavigationStack(model: model.createWalletModel())
         }
         .sheet(isPresented: $model.isPresentingImportWalletSheet) {
-            ImportWalletNavigationStack(
-                model: ImportWalletViewModel(
-                    walletService: model.walletService,
-                    walletSessionService: model.walletSessionService,
-                    avatarService: model.avatarService,
-                    nameService: model.nameService,
-                    chainService: model.chainService,
-                    onComplete: model.dismissImportWallet,
-                ),
-            )
+            ImportWalletNavigationStack(model: model.importWalletModel())
         }
         .alert(
             Localized.WalletConnect.brandName,

@@ -13,7 +13,7 @@ use streamer::{ExchangeKind, ExchangeName, QueueName, StreamProducer, StreamProd
 pub async fn run_setup(settings: Settings) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     info_with_fields!("setup", step = "init");
 
-    let database = Database::new(&settings.postgres.url, settings.postgres.pool);
+    let database = Database::new(&settings.postgres.url, settings.postgres.pool)?;
     run_migrations(&database, "setup")?;
 
     setup_database(&database)?;

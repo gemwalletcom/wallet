@@ -11,7 +11,7 @@ pub(crate) fn map_transaction(transaction: Transaction, receipt: &TransactionRec
     let fee_asset_id = AssetId::from_token(Chain::Tempo, &ethereum_address_checksum(fee_token)?);
 
     Ok(Transaction {
-        fee: scale_fee_to_token_units(receipt.get_fee().into()).to_string(),
+        fee: scale_fee_to_token_units(receipt.get_fee().into()).try_into()?,
         fee_asset_id,
         ..transaction
     })
@@ -43,14 +43,14 @@ mod tests {
         let mapped_transaction = map_tempo_transaction(&transaction, &receipt);
 
         assert_eq!(mapped_transaction.transaction_type, TransactionType::Swap);
-        assert_eq!(mapped_transaction.fee, "595");
+        assert_eq!(mapped_transaction.fee, BigUint::from(595u64));
         assert_eq!(mapped_transaction.fee_asset_id, TEMPO_BRIDGED_USDC_ASSET_ID.clone());
 
         let metadata: TransactionSwapMetadata = serde_json::from_value(mapped_transaction.metadata.unwrap()).unwrap();
         assert_eq!(metadata.from_asset, TEMPO_BRIDGED_USDC_ASSET_ID.clone());
-        assert_eq!(metadata.from_value, "200000");
+        assert_eq!(metadata.from_value, BigUint::from(200000u64));
         assert_eq!(metadata.to_asset, TEMPO_PATHUSD_ASSET_ID.clone());
-        assert_eq!(metadata.to_value, "198979");
+        assert_eq!(metadata.to_value, BigUint::from(198979u64));
     }
 
     #[test]

@@ -20,7 +20,7 @@ use streamer::{ConsumerStatusReporter, QueueName, RewardsNotificationPayload, Re
 use crate::consumers::{consumer_config, producer_for_queue, reader_for_queue};
 
 pub async fn run_consumer_rewards(settings: Settings, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
-    let database = Database::new(&settings.postgres.url, settings.postgres.pool);
+    let database = Database::new(&settings.postgres.url, settings.postgres.pool)?;
     let settings = Arc::new(settings);
 
     futures::future::try_join_all(vec![

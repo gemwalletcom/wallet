@@ -1,17 +1,28 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemRecipient
 import Primitives
 
 private let hyperliquidName = "Hyperliquid"
 
+public extension GemRecipient {
+    static var hyperliquidProvider: GemRecipient {
+        GemRecipient(address: "", name: hyperliquidName)
+    }
+
+    static var hyperliquidDeposit: GemRecipient {
+        GemRecipient(address: PerpetualConfig.depositAddress, name: hyperliquidName)
+    }
+}
+
 public extension Recipient {
     static var hyperliquidProvider: Recipient {
-        Recipient(name: hyperliquidName, address: "", memo: .none)
+        Recipient(GemRecipient.hyperliquidProvider)
     }
 
     static var hyperliquidDeposit: Recipient {
-        Recipient(name: hyperliquidName, address: PerpetualConfig.depositAddress, memo: .none)
+        Recipient(GemRecipient.hyperliquidDeposit)
     }
 }
 

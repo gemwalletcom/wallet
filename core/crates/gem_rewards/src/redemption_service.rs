@@ -1,10 +1,11 @@
+use num_bigint::BigUint;
 use primitives::Asset;
 use std::error::Error;
 
 #[derive(Clone)]
 pub struct RedemptionAsset {
     pub asset: Asset,
-    pub value: String,
+    pub value: BigUint,
 }
 
 #[derive(Clone)]

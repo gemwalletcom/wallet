@@ -8,12 +8,6 @@ struct ContentView: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            HStack {
-                Image(systemName: "diamond")
-                    .imageScale(.large)
-                    .foregroundStyle(.tint)
-                Text("Gemstone lib version: " + Gemstone.libVersion())
-            }
             Button("List Providers") {
                 Task {
                     self.model.fetchProviders()

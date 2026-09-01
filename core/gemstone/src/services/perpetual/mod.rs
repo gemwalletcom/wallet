@@ -92,7 +92,7 @@ impl GemPerpetualService {
     }
 
     pub async fn sync_markets_if_needed(&self, chain: Chain, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
-        if !rules::should_sync_markets(trigger, self.markets_updated_at()?, Utc::now().timestamp()) {
+        if !trigger.should_sync_markets(self.markets_updated_at()?, Utc::now().timestamp()) {
             return Ok(false);
         }
         self.sync_markets(chain).await?;

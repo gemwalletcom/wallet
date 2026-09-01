@@ -18,57 +18,47 @@ private const val APP_PASSWORD = "0x0304"
 class KeystorePasswordStoreTest {
 
     @Test
-    fun legacyWalletPasswordRemainsAuthoritative() {
+    fun sharedPasswordIsCreatedOnceAndReusedWithoutWalletAliases() {
+        val passwordStore = TestPasswordStore()
+        val keystorePassword = GemstoneKeystorePassword(passwordStore)
+
+        val first = keystorePassword.getPassword(true)
+        val second = keystorePassword.getPassword(true)
+
+        assertEquals(APP_PASSWORD, first)
+        assertEquals(first, second)
+        assertEquals(1, passwordStore.createdPasswords)
+        assertFalse(passwordStore.contains(FIRST_NEW_WALLET_ID))
+    }
+
+    @Test
+    fun readingTheSharedPasswordFailsClosedWhenItIsMissing() {
+        assertThrows(PasswordNotFoundException::class.java) {
+            GemstoneKeystorePassword(TestPasswordStore()).getPassword(false)
+        }
+    }
+
+    @Test
+    fun walletPasswordIsReadForLegacyEntriesAndNullOtherwise() {
         val passwordStore = TestPasswordStore(
             mutableMapOf(
                 LEGACY_WALLET_ID to LEGACY_WALLET_PASSWORD,
                 PasswordStore.Keys.Password.key to APP_PASSWORD,
             ),
         )
-
-        val password = GemstoneKeystorePassword(passwordStore).getPassword(LEGACY_WALLET_ID, false)
-
-        assertEquals(LEGACY_WALLET_PASSWORD, password)
-        assertEquals(0, passwordStore.createdPasswords)
-    }
-
-    @Test
-    fun newWalletsReuseAppPasswordAndReceiveWalletAliases() {
-        val passwordStore = TestPasswordStore()
         val keystorePassword = GemstoneKeystorePassword(passwordStore)
 
-        val first = keystorePassword.getPassword(FIRST_NEW_WALLET_ID, true)
-        val second = keystorePassword.getPassword(SECOND_NEW_WALLET_ID, true)
+        assertEquals(LEGACY_WALLET_PASSWORD, keystorePassword.getWalletPassword(LEGACY_WALLET_ID))
+        assertEquals(null, keystorePassword.getWalletPassword(FIRST_NEW_WALLET_ID))
 
-        assertEquals(APP_PASSWORD, first)
-        assertEquals(first, second)
-        assertEquals(1, passwordStore.createdPasswords)
+        keystorePassword.deleteWalletPassword(LEGACY_WALLET_ID)
+
+        assertEquals(null, keystorePassword.getWalletPassword(LEGACY_WALLET_ID))
         assertEquals(APP_PASSWORD, passwordStore.getPassword(PasswordStore.Keys.Password.key))
-        assertEquals(APP_PASSWORD, passwordStore.getPassword(FIRST_NEW_WALLET_ID))
-        assertEquals(APP_PASSWORD, passwordStore.getPassword(SECOND_NEW_WALLET_ID))
     }
 
     @Test
-    fun existingWalletCanUseAppPasswordWithoutCreatingWalletAlias() {
-        val passwordStore = TestPasswordStore(
-            mutableMapOf(PasswordStore.Keys.Password.key to APP_PASSWORD),
-        )
-
-        val password = GemstoneKeystorePassword(passwordStore).getPassword(FIRST_NEW_WALLET_ID, false)
-
-        assertEquals(APP_PASSWORD, password)
-        assertFalse(passwordStore.contains(FIRST_NEW_WALLET_ID))
-    }
-
-    @Test
-    fun existingWalletWithoutAnyPasswordFailsClosed() {
-        assertThrows(PasswordNotFoundException::class.java) {
-            GemstoneKeystorePassword(TestPasswordStore()).getPassword(LEGACY_WALLET_ID, false)
-        }
-    }
-
-    @Test
-    fun storageFailureDoesNotFallBackToAppPassword() {
+    fun storageFailureIsNotSwallowedAsAMissingWalletPassword() {
         val storageError = IllegalStateException("secure storage unavailable")
         val passwordStore = TestPasswordStore(
             passwords = mutableMapOf(PasswordStore.Keys.Password.key to APP_PASSWORD),
@@ -76,25 +66,10 @@ class KeystorePasswordStoreTest {
         )
 
         val thrown = assertThrows(IllegalStateException::class.java) {
-            GemstoneKeystorePassword(passwordStore).getPassword(LEGACY_WALLET_ID, false)
+            GemstoneKeystorePassword(passwordStore).getWalletPassword(LEGACY_WALLET_ID)
         }
 
         assertSame(storageError, thrown)
-    }
-
-    @Test
-    fun aliasWriteFailureDoesNotReturnAppPassword() {
-        val writeError = IllegalStateException("secure storage write failed")
-        val passwordStore = TestPasswordStore(
-            passwords = mutableMapOf(PasswordStore.Keys.Password.key to APP_PASSWORD),
-            writeFailure = writeError,
-        )
-
-        val thrown = assertThrows(IllegalStateException::class.java) {
-            GemstoneKeystorePassword(passwordStore).getPassword(FIRST_NEW_WALLET_ID, true)
-        }
-
-        assertSame(writeError, thrown)
     }
 
     private class TestPasswordStore(
@@ -111,6 +86,11 @@ class KeystorePasswordStoreTest {
         }
 
         override fun removePassword(key: String): Boolean = passwords.remove(key) != null
+
+        override fun hasPassword(key: String): Boolean {
+            readFailures[key]?.let { throw it }
+            return passwords.containsKey(key)
+        }
 
         override fun getPassword(key: String): String {
             readFailures[key]?.let { throw it }

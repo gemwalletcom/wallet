@@ -16,7 +16,7 @@ POST   /v2/devices/subscriptions
 DELETE /v2/devices/subscriptions
 ```
 
-Request signing for all of them: [Device Authentication](../core/docs/DEVICE_AUTHENTICATION.md).
+Request signing for all of them: [Device Authentication](./DEVICE_AUTHENTICATION.md).
 
 ## Sync flow
 

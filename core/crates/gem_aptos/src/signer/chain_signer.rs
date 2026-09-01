@@ -27,7 +27,7 @@ impl ChainSigner for AptosChainSigner {
             payload_type: ENTRY_FUNCTION_PAYLOAD_TYPE.to_string(),
             function: APTOS_TRANSFER_FUNCTION.to_string(),
             type_arguments: Vec::new(),
-            arguments: vec![Value::String(input.destination_address.clone()), Value::String(input.value.clone())],
+            arguments: vec![Value::String(input.destination_address.clone()), Value::String(input.value.to_string())],
         };
 
         let gas_limit = input.fee.gas_limit()?;
@@ -184,7 +184,7 @@ fn token_transfer_payload(input: &SignerInput) -> Result<(EntryFunctionPayload, 
             arguments: vec![
                 Value::String(token_id.to_string()),
                 Value::String(input.destination_address.clone()),
-                Value::String(input.value.clone()),
+                Value::String(input.value.to_string()),
             ],
         },
         &FUNGIBLE_TRANSFER_ENTRY_PARAMS,

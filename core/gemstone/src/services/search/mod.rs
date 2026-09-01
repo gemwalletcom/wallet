@@ -46,20 +46,20 @@ impl GemSearchService {
 
     pub async fn search(&self, wallet: Wallet, query: String, scope: GemSearchScope, currency: Currency) -> Result<bool, GemServiceError> {
         let query = query.trim().to_string();
-        if rules::skips_search(&scope, &query) {
+        if scope.skips_search(&query) {
             return Ok(false);
         }
         let wallet_chains = rules::wallet_chains(&wallet);
         let (response, tokens) = futures::join!(
-            self.assets.search(query.clone(), wallet_chains.clone(), rules::api_tags(&scope)),
-            self.assets.search_tokens(query.clone(), rules::token_chains(&scope, &wallet_chains)),
+            self.assets.search(query.clone(), wallet_chains.clone(), scope.api_tags()),
+            self.assets.search_tokens(query.clone(), scope.token_chains(&wallet_chains)),
         );
         let response = response?;
         let assets = rules::merge_assets(response.assets, tokens);
-        let key = rules::search_key(&scope, &query);
+        let key = scope.search_key(&query);
         self.save_assets(&wallet, &assets, currency, &key).await?;
         self.save_perpetuals(&response.perpetuals, &key).await?;
-        if rules::stores_lists(&scope) {
+        if scope.stores_lists() {
             self.store.set_lists(key, response.lists).await?;
         }
         Ok(!assets.is_empty() || !response.perpetuals.is_empty())
@@ -67,7 +67,7 @@ impl GemSearchService {
 
     pub async fn search_assets(&self, wallet: Wallet, query: String, currency: Currency) -> Result<Vec<AssetBasic>, GemServiceError> {
         let assets = self.assets.search_assets_and_tokens(query.clone(), rules::wallet_chains(&wallet)).await?;
-        self.save_assets(&wallet, &assets, currency, &rules::search_key(&GemSearchScope::All, &query)).await?;
+        self.save_assets(&wallet, &assets, currency, &GemSearchScope::All.search_key(&query)).await?;
         Ok(assets)
     }
 }

@@ -1,4 +1,5 @@
 use cacher::{CacheKey, CacherClient, RateLimiter};
+use num_bigint::BigUint;
 use std::collections::HashSet;
 use std::error::Error;
 
@@ -410,9 +411,9 @@ fn sort_quotes_by_crypto_amount_asc(a: &FiatQuote, b: &FiatQuote, providers: &[P
     sort_by_priority_then_amount(a.provider.id.as_ref(), b.provider.id.as_ref(), &a.crypto_amount, &b.crypto_amount, providers, true)
 }
 
-fn quote_value(asset: &Asset, crypto_amount: f64) -> Result<String, Box<dyn Error + Send + Sync>> {
+fn quote_value(asset: &Asset, crypto_amount: f64) -> Result<BigUint, Box<dyn Error + Send + Sync>> {
     let amount = format!("{crypto_amount:.precision$}", precision = asset.decimals as usize);
-    Ok(BigNumberFormatter::value_from_amount(&amount, asset.decimals as u32)?)
+    Ok(BigNumberFormatter::value_from_amount_biguint(&amount, asset.decimals as u32)?)
 }
 
 #[cfg(test)]
@@ -441,7 +442,7 @@ mod tests {
     #[test]
     fn quote_value_uses_asset_precision_for_small_amounts() {
         let asset = Asset::from_chain(Chain::Ethereum);
-        assert_eq!(quote_value(&asset, 0.000000000000000001_f64).unwrap(), "1");
+        assert_eq!(quote_value(&asset, 0.000000000000000001_f64).unwrap(), BigUint::from(1u64));
     }
 
     #[test]

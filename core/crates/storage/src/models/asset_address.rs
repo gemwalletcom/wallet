@@ -1,7 +1,10 @@
+use crate::DatabaseError;
 use diesel::prelude::*;
+use num_bigint::BigUint;
 use primitives::{AssetAddress, AssetId as PrimitiveAssetId, Chain};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+use std::str::FromStr;
 
 use crate::sql_types::{AssetId, ChainRow};
 
@@ -30,16 +33,21 @@ impl AssetAddressRow {
             chain: ChainRow::from(asset_address.asset_id.chain),
             asset_id: asset_address.asset_id.into(),
             address: asset_address.address.clone(),
-            value: asset_address.value.clone(),
+            value: asset_address.value.as_ref().map(BigUint::to_string),
         }
     }
 
-    pub fn as_primitive(&self) -> AssetAddress {
-        AssetAddress {
+    pub fn as_primitive(&self) -> Result<AssetAddress, DatabaseError> {
+        let value = self
+            .value
+            .as_deref()
+            .map(|value| BigUint::from_str(value).map_err(|error| DatabaseError::Error(format!("Asset address {} has an invalid value: {error}", self.address))))
+            .transpose()?;
+        Ok(AssetAddress {
             asset_id: self.asset_id.0.clone(),
             address: self.address.clone(),
-            value: self.value.clone(),
-        }
+            value,
+        })
     }
 }
 

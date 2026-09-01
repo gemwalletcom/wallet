@@ -16,9 +16,9 @@ public extension Primitives.Account {
     }
 }
 
-public extension TransferData {
+public extension GemTransferData {
     func confirmInput(from account: Primitives.Account) -> GemConfirmInput {
-        GemConfirmInput(from: account.map(), transfer: gem)
+        GemConfirmInput(from: account.map(), transfer: self)
     }
 }
 

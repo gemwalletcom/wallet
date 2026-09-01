@@ -8,12 +8,10 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
     private let keystoreURL: URL
     private let keystorePassword: KeystorePassword
     private let queue = DispatchQueue(label: "com.gemwallet.keystore", qos: .userInitiated)
-    private let transferService: GemTransferService
 
     public init(
         directory: String = "keystore",
         keystorePassword: KeystorePassword = LocalKeystorePassword(),
-        transferService: GemTransferService,
     ) {
         do {
             // migrate keystore from documents directory to application support directory
@@ -32,7 +30,6 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         }
 
         self.keystorePassword = keystorePassword
-        self.transferService = transferService
     }
 
     public func keystorePassword(createIfMissing: Bool) throws -> String {
@@ -74,7 +71,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
     public func sign(wallet: Primitives.Wallet, input: GemSignerInput) async throws -> [GemSignedTransaction] {
         let password = try await getPassword()
         let keystoreId = gemKeystore.keystoreId(walletId: wallet.id.id)
-        let chain = try Primitives.Asset(transferService.asset(inputType: input.input.inputType)).id.chain.rawValue
+        let chain = input.input.inputType.transactionAsset().map().id.chain.rawValue
         return try await queue.asyncTask { [gemKeystore] in
             try withV4Password(keystore: gemKeystore, password) { passwordBytes in
                 try gemKeystore.sign(keystoreId: keystoreId, chain: chain, input: input, password: passwordBytes)

@@ -28,7 +28,7 @@ pub mod services;
 pub mod signer;
 pub mod siwe;
 pub mod support;
-#[cfg(all(test, feature = "reqwest_provider"))]
+#[cfg(test)]
 pub(crate) mod testkit;
 pub mod transaction_simulation;
 pub mod transaction_state;

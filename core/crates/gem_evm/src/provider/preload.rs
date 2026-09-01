@@ -55,7 +55,7 @@ impl<C: Client + Clone> ChainTransactionLoad for EthereumProvider<C> {
 impl<C: Client + Clone> EthereumProvider<C> {
     pub async fn map_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         let params = match &input.input_type {
-            TransactionInputType::Stake(_, stake_type) => self.provider.encode_stake(stake_type, &input.value_as_bigint()?)?,
+            TransactionInputType::Stake(_, stake_type) => self.provider.encode_stake(stake_type, &input.value_as_bigint())?,
             _ => get_transaction_params(self.chain, &input)?,
         };
 
@@ -135,6 +135,7 @@ mod chain_integration_tests {
     use super::*;
     use crate::provider::testkit::{TEST_ADDRESS, create_arbitrum_test_client, create_ethereum_test_client, create_smartchain_test_client, print_fee_rates};
     use num_bigint::BigInt;
+    use num_bigint::BigUint;
     use primitives::{Asset, Chain, FeePriority, GasPriceType, TransactionInputType, TransactionLoadInput};
 
     #[tokio::test]
@@ -254,7 +255,7 @@ mod chain_integration_tests {
             input_type: preload_input.input_type,
             sender_address: preload_input.sender_address.clone(),
             destination_address: preload_input.destination_address.clone(),
-            value: "100000000000000".to_string(),
+            value: BigUint::from(100000000000000u64),
             gas_price,
             memo: None,
             is_max_value: false,
@@ -295,7 +296,7 @@ mod chain_integration_tests {
             input_type: preload_input.input_type,
             sender_address: preload_input.sender_address.clone(),
             destination_address: preload_input.destination_address.clone(),
-            value: "1000000".to_string(),
+            value: BigUint::from(1000000u64),
             gas_price,
             memo: None,
             is_max_value: false,

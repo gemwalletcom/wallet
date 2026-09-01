@@ -2,21 +2,23 @@
 
 import GemstoneServices
 import Foundation
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
 import Transfer
+import struct Gemstone.GemTransferData
 
 struct ConfirmTransferNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
 
     private let wallet: Wallet
-    private let transferData: TransferData
+    private let transferData: GemTransferData
     private let onComplete: VoidAction
 
     init(
         wallet: Wallet,
-        transferData: TransferData,
+        transferData: GemTransferData,
         onComplete: VoidAction,
     ) {
         self.wallet = wallet

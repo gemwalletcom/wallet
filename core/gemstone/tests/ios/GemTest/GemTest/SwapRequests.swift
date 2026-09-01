@@ -3,7 +3,7 @@
 import Gemstone
 
 let SWAP_OPTIONS = SwapperOptions(
-    slippage: getDefaultSlippage(chain: "solana"),
+    slippage: GemSwapQuoteService().defaultSlippage(chain: "solana"),
     useMaxAmount: false
 )
 

@@ -436,12 +436,12 @@ where
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let from_value = request.value.clone();
-        let path = self.get_quotes(request, &from_value).await?;
+        let path = self.get_quotes(request, &from_value.to_string()).await?;
 
         Ok(Quote {
             from_value,
             min_from_value: None,
-            to_value: path.to_value,
+            to_value: BigUint::from_str(&path.to_value).map_err(SwapperError::compute_quote_error)?,
             data: ProviderData {
                 provider: self.provider().clone(),
                 routes: path.routes,
@@ -486,7 +486,7 @@ where
             from_native: quote.request.from_asset.is_native(),
             to_native: quote.request.to_asset.is_native(),
             sender_jetton_wallet: sender_jetton_wallet.as_deref(),
-            from_value: &quote.from_value,
+            from_value: &quote.from_value.to_string(),
             wallet_address: Address::parse(&quote.request.wallet_address)?,
             receiver_address: Address::parse(receiver_address)?,
             referral: ReferralParams {
@@ -496,7 +496,13 @@ where
             deadline: None,
         })?;
 
-        Ok(SwapperQuoteData::new_contract(tx.to, tx.value, tx.data, None, None))
+        Ok(SwapperQuoteData::new_contract(
+            tx.to,
+            BigUint::from_str(&tx.value).map_err(SwapperError::compute_quote_error)?,
+            tx.data,
+            None,
+            None,
+        ))
     }
 }
 
@@ -799,11 +805,11 @@ mod tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from_token(Chain::Ton, TON_USDT_TOKEN_ID)),
             wallet_address: TEST_TON_SENDER.to_string(),
             destination_address: TEST_TON_SENDER.to_string(),
-            value: "100000000".to_string(),
+            value: BigUint::from(100000000u64),
             options: Options::new_with_slippage(100.into()),
         };
 
-        let path = provider.quote_direct(&request, &request.value, false).await.unwrap();
+        let path = provider.quote_direct(&request, &request.value.to_string(), false).await.unwrap();
         let simulation: SwapSimulation = serde_json::from_str(&path.routes[0].route_data).unwrap();
 
         assert_eq!(path.routes.len(), 1);
@@ -833,11 +839,11 @@ mod tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from_token(Chain::Ton, GRAM_TOKEN_ID)),
             wallet_address: TEST_TON_SENDER.to_string(),
             destination_address: TEST_TON_SENDER.to_string(),
-            value: "233000".to_string(),
+            value: BigUint::from(233000u64),
             options: Options::new_with_slippage(100.into()),
         };
 
-        let path = provider.quote_direct(&request, &request.value, true).await.unwrap();
+        let path = provider.quote_direct(&request, &request.value.to_string(), true).await.unwrap();
         let simulation: SwapSimulation = serde_json::from_str(&path.routes[0].route_data).unwrap();
         let cold_calls = calls.lock().unwrap().clone();
         let pool_call_count = cold_calls.iter().filter(|call| call.starts_with("get_pool_data ")).count();
@@ -851,7 +857,7 @@ mod tests {
         assert_eq!(simulation.ask_units, "199854680472");
 
         calls.lock().unwrap().clear();
-        provider.quote_direct(&request, &request.value, true).await.unwrap();
+        provider.quote_direct(&request, &request.value.to_string(), true).await.unwrap();
         let warm_calls = calls.lock().unwrap().clone();
         let warm_pool_call_count = warm_calls.iter().filter(|call| call.starts_with("get_pool_data ")).count();
         assert_eq!(warm_pool_call_count, 2);
@@ -911,14 +917,14 @@ mod swap_integration_tests {
 
         let quote = provider.get_quote(&request).await?;
         assert_eq!(quote.from_value, request.value);
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         assert_eq!(quote.data.provider, provider.provider().clone());
         assert_eq!(quote.data.routes.len(), 1);
         println!("STON.fi TON -> USDT quote: {quote:?}");
 
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
         assert!(!quote_data.to.is_empty());
-        assert!(!quote_data.value.is_empty());
+        assert!(quote_data.value > BigUint::ZERO);
         assert!(quote_data.data.starts_with("te6cc"));
         println!("STON.fi TON -> USDT quote_data: {quote_data:?}");
 
@@ -934,13 +940,13 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(TON_USDT_ASSET_ID.clone()),
             wallet_address: TEST_TON_SENDER.to_string(),
             destination_address: TEST_TON_SENDER.to_string(),
-            value: "1000000000000".to_string(),
+            value: BigUint::from(1000000000000u64),
             options: Options::new_with_slippage(100.into()),
         };
 
         let quote = provider.get_quote(&request).await?;
         assert_eq!(quote.from_value, request.value);
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         assert_eq!(quote.data.provider, provider.provider().clone());
         assert_eq!(quote.data.routes.len(), 2);
         assert_eq!(quote.data.routes[0].input, AssetId::from_token(Chain::Ton, NOT_TOKEN_ID));
@@ -951,7 +957,7 @@ mod swap_integration_tests {
 
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
         assert!(!quote_data.to.is_empty());
-        assert!(!quote_data.value.is_empty());
+        assert!(quote_data.value > BigUint::ZERO);
         assert!(quote_data.data.starts_with("te6cc"));
         println!("STON.fi NOT -> USDT quote_data: {quote_data:?}");
 

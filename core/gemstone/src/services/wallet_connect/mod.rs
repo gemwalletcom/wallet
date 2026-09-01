@@ -8,9 +8,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use chrono::{DateTime, Utc};
-use primitives::{
-    Account, ApplicationMetadata, Chain, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus, WalletId,
-};
+use primitives::{Account, ApplicationMetadata, Chain, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
 
 use crate::services::error::GemServiceError;
 use crate::services::wallet_session::GemWalletSessionService;
@@ -19,7 +17,7 @@ use crate::wallet_connect::{WalletConnect, WalletConnectAction, WalletConnectCha
 
 pub use error::GemWalletConnectError;
 pub use model::{
-    GemSessionApproval, GemSessionProposal, GemSessionWallets, GemWalletConnectMessageRequest, GemWalletConnectRequest, GemWalletConnectResponse, GemWalletConnectRpcError,
+    GemSessionApproval, GemSessionProposal, GemWalletConnectMessageRequest, GemWalletConnectRequest, GemWalletConnectResponse, GemWalletConnectRpcError,
     GemWalletConnectTransactionAction, GemWalletConnectTransactionRequest,
 };
 pub use signer::GemWalletConnectSigner;
@@ -117,13 +115,12 @@ impl GemWalletConnectService {
         if rules::is_origin_rejected(&verification_status) {
             return Err(GemWalletConnectError::InvalidOrigin);
         }
-        let session_wallets = self
-            .select_session_wallets(wallets, current_wallet_id, required, optional)
-            .ok_or(GemWalletConnectError::UnsupportedWallets)?;
+        let wallets = rules::session_wallets(wallets, &required, &optional);
+        let default_wallet = rules::default_wallet(&wallets, current_wallet_id).ok_or(GemWalletConnectError::UnsupportedWallets)?;
         Ok(GemSessionProposal {
             proposal: WalletConnectionSessionProposal {
-                default_wallet: session_wallets.default_wallet,
-                wallets: session_wallets.wallets,
+                default_wallet,
+                wallets,
                 metadata,
             },
             verification_status,
@@ -225,18 +222,6 @@ impl GemWalletConnectService {
 }
 
 impl GemWalletConnectService {
-    fn select_session_wallets(
-        &self,
-        wallets: Vec<Wallet>,
-        current_wallet_id: Option<WalletId>,
-        required_chains: Vec<Chain>,
-        optional_chains: Vec<Chain>,
-    ) -> Option<GemSessionWallets> {
-        let wallets = rules::session_wallets(wallets, &required_chains, &optional_chains);
-        let default_wallet = rules::default_wallet(&wallets, current_wallet_id)?;
-        Some(GemSessionWallets { default_wallet, wallets })
-    }
-
     async fn sign_transaction(
         &self,
         session_id: String,

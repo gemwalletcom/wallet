@@ -15,36 +15,17 @@ pub enum SocialUrl {
     Coingecko,
 }
 
-pub fn get_social_url(item: SocialUrl) -> Option<&'static str> {
-    match item {
-        SocialUrl::X => Some("https://x.com/GemWallet"),
-        SocialUrl::Discord => Some("https://discord.gg/aWkq5sj7SY"),
-        SocialUrl::Telegram => Some("https://t.me/gemwallet"),
-        SocialUrl::GitHub => Some("https://github.com/gemwalletcom"),
-        SocialUrl::YouTube => Some("https://www.youtube.com/@gemwallet"),
-        SocialUrl::Reddit | SocialUrl::Facebook | SocialUrl::Website | SocialUrl::Coingecko => None,
-    }
-}
-
-pub fn get_social_url_deeplink(item: SocialUrl) -> Option<String> {
-    match item {
-        SocialUrl::X => build_social_url_deeplink(item, "GemWallet"),
-        SocialUrl::Discord => build_social_url_deeplink(item, "aWkq5sj7SY"),
-        SocialUrl::Telegram => build_social_url_deeplink(item, "gemwallet"),
-        SocialUrl::GitHub => build_social_url_deeplink(item, "gemwalletcom"),
-        SocialUrl::YouTube => build_social_url_deeplink(item, "gemwallet"),
-        SocialUrl::Reddit | SocialUrl::Facebook | SocialUrl::Website | SocialUrl::Coingecko => None,
-    }
-}
-
-pub fn build_social_url_deeplink(item: SocialUrl, value: &str) -> Option<String> {
-    match item {
-        SocialUrl::X => Some(format!("twitter://user?screen_name={value}")),
-        SocialUrl::Discord => Some(format!("https://discord.gg/{value}")),
-        SocialUrl::Telegram => Some(format!("tg://resolve?domain={value}")),
-        SocialUrl::GitHub => Some(format!("https://github.com/{value}")),
-        SocialUrl::YouTube => Some(format!("youtube://www.youtube.com/@{value}")),
-        SocialUrl::Reddit | SocialUrl::Facebook | SocialUrl::Website | SocialUrl::Coingecko => None,
+#[uniffi::export]
+impl SocialUrl {
+    pub fn url(&self) -> Option<String> {
+        match self {
+            Self::X => Some("https://x.com/GemWallet".to_string()),
+            Self::Discord => Some("https://discord.gg/aWkq5sj7SY".to_string()),
+            Self::Telegram => Some("https://t.me/gemwallet".to_string()),
+            Self::GitHub => Some("https://github.com/gemwalletcom".to_string()),
+            Self::YouTube => Some("https://www.youtube.com/@gemwallet".to_string()),
+            Self::Reddit | Self::Facebook | Self::Website | Self::Coingecko => None,
+        }
     }
 }
 

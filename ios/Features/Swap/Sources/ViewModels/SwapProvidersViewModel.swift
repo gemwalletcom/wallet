@@ -14,8 +14,8 @@ struct SwapProvidersViewModel: SelectableListAdoptable {
 
     init(
         state: StateViewType<SelectableListType<Item>>,
-        selectedItems: [SwapProviderItem],
-        selectionType: SelectionType,
+        selectedItems: [SwapProviderItem] = [],
+        selectionType: SelectionType = .navigationLink,
     ) {
         self.state = state
         self.selectedItems = Set(selectedItems)

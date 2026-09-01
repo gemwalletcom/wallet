@@ -92,8 +92,8 @@ impl<C: Client> AptosClient<C> {
             | TransactionInputType::TransferNft(asset, _)
             | TransactionInputType::Account(asset, _) => {
                 let payload = match &asset.id.token_id {
-                    None => build_transfer_transaction_payload(&input.destination_address, &input.value),
-                    Some(token_id) => build_token_transfer_transaction_payload(token_id, &input.destination_address, &input.value)?,
+                    None => build_transfer_transaction_payload(&input.destination_address, &input.value.to_string()),
+                    Some(token_id) => build_token_transfer_transaction_payload(token_id, &input.destination_address, &input.value.to_string())?,
                 };
 
                 self.simulate_transaction(&input.sender_address, sequence, payload, &input.gas_price.gas_price().to_string())
@@ -111,9 +111,9 @@ impl<C: Client> AptosClient<C> {
             },
             TransactionInputType::Stake(_, stake_type) => {
                 let payload = match stake_type {
-                    StakeType::Stake(validator) => Some(build_stake_transaction_payload(&validator.id, &input.value)),
-                    StakeType::Unstake(delegation) => Some(build_unstake_transaction_payload(&delegation.validator.id, &input.value)),
-                    StakeType::Withdraw(delegation) => Some(build_withdraw_transaction_payload(&delegation.validator.id, &input.value)),
+                    StakeType::Stake(validator) => Some(build_stake_transaction_payload(&validator.id, &input.value.to_string())),
+                    StakeType::Unstake(delegation) => Some(build_unstake_transaction_payload(&delegation.validator.id, &input.value.to_string())),
+                    StakeType::Withdraw(delegation) => Some(build_withdraw_transaction_payload(&delegation.validator.id, &input.value.to_string())),
                     StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => None,
                 };
 

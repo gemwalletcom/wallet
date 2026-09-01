@@ -10,6 +10,7 @@ import class Gemstone.GemAmountService
 import enum Gemstone.GemAmountType
 import GemstonePrimitives
 import Primitives
+import struct Gemstone.GemTransferData
 
 protocol AmountDataProvidable {
     var asset: Asset { get }
@@ -18,12 +19,12 @@ protocol AmountDataProvidable {
     var amountType: AmountType { get }
     var gemAmountType: GemAmountType { get }
     func recipientData() -> RecipientData
-    func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> TransferData
+    func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData
 }
 
 extension AmountDataProvidable {
     var rules: GemAmountRules {
-        amountService.rules(amountType: gemAmountType, asset: asset.json())
+        gemAmountType.rules(asset: asset.map())
     }
 
     var minimumValue: BigInt {
@@ -44,7 +45,7 @@ extension AmountDataProvidable {
 
     func limits(from assetData: AssetData) -> GemAmountLimits {
         do {
-            return try amountService.limits(amountType: gemAmountType, asset: asset.json(), balance: GemTransferBalance(assetData.balance))
+            return try gemAmountType.limits(asset: asset.map(), balance: GemTransferBalance(assetData.balance))
         } catch let error as GemAmountError {
             debugLog("amount limits unavailable: \(error)")
             return GemAmountLimits(availableValue: "0", maxValue: "0", reservesFee: false)

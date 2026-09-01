@@ -153,6 +153,7 @@ mod tests {
     use crate::permit2_data::*;
     use alloy_primitives::aliases::U256;
     use gem_evm::uniswap::{FeeTier, path::build_direct_pair};
+    use num_bigint::BigUint;
     use primitives::{
         AssetId, Chain,
         asset_constants::{CELO_USDT_TOKEN_ID, CELO_WETH_TOKEN_ID, ROBINHOOD_USDG_TOKEN_ID, ROBINHOOD_WETH_TOKEN_ID},
@@ -168,7 +169,7 @@ mod tests {
             to_asset: AssetId::from(Chain::Ethereum, Some(ETHEREUM_USDC_TOKEN_ID.into())).into(),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
-            value: "10000000000000000".into(),
+            value: BigUint::from(10000000000000000u64),
             options: Options::default(),
         };
 
@@ -193,7 +194,7 @@ mod tests {
             to_asset: AssetId::from(Chain::Ethereum, Some(ETHEREUM_USDC_TOKEN_ID.into())).into(),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
-            value: "10000000000000000".into(),
+            value: BigUint::from(10000000000000000u64),
             options: Options::default(),
         };
 
@@ -223,14 +224,14 @@ mod tests {
             to_asset: AssetId::from(Chain::Robinhood, None).into(),
             wallet_address: "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4".into(),
             destination_address: "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4".into(),
-            value: "10000".into(),
+            value: BigUint::from(10000u64),
             options: Options::default(),
         };
 
         let deployment = gem_evm::uniswap::deployment::v3::get_uniswap_router_deployment_by_chain(&Chain::Robinhood).unwrap();
         let token_in = eth_address::parse_str(ROBINHOOD_USDG_TOKEN_ID).unwrap();
         let token_out = eth_address::parse_str(ROBINHOOD_WETH_TOKEN_ID).unwrap();
-        let amount_in = U256::from_str(&request.value).unwrap();
+        let amount_in = U256::from_str(&request.value.to_string()).unwrap();
         let permit2_data = Permit2Data {
             permit_single: PermitSingle {
                 details: Permit2Detail {
@@ -279,13 +280,13 @@ mod tests {
             to_asset: AssetId::from(Chain::Optimism, Some(OPTIMISM_USDT_TOKEN_ID.into())).into(),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
-            value: "6500000".into(),
+            value: BigUint::from(6500000u64),
             options: Options::default(),
         };
 
         let token_in = eth_address::parse_str(request.from_asset.asset_id().token_id.as_ref().unwrap()).unwrap();
         let token_out = eth_address::parse_str(request.to_asset.asset_id().token_id.as_ref().unwrap()).unwrap();
-        let amount_in = U256::from_str(&request.value).unwrap();
+        let amount_in = U256::from_str(&request.value.to_string()).unwrap();
 
         let permit2_data = Permit2Data {
             permit_single: PermitSingle {
@@ -334,7 +335,7 @@ mod tests {
             to_asset: AssetId::from(Chain::Optimism, Some("0x76fb31fb4af56892a25e32cfc43de717950c9278".into())).into(),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
-            value: "5064985".into(),
+            value: BigUint::from(5064985u64),
             options: Options {
                 slippage: 100.into(),
                 use_max_amount: false,
@@ -343,7 +344,7 @@ mod tests {
 
         let token_in = eth_address::parse_str(request.from_asset.asset_id().token_id.as_ref().unwrap()).unwrap();
         let token_out = eth_address::parse_str(request.to_asset.asset_id().token_id.as_ref().unwrap()).unwrap();
-        let amount_in = U256::from_str(&request.value).unwrap();
+        let amount_in = U256::from_str(&request.value.to_string()).unwrap();
 
         let path = build_direct_pair(&token_in, &token_out, FeeTier::FiveHundred);
         // fee token is output token
@@ -394,7 +395,7 @@ mod tests {
             to_asset: AssetId::from(Chain::Ethereum, None).into(),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
-            value: "10000000".into(),
+            value: BigUint::from(10000000u64),
             options: Options {
                 slippage: 100.into(),
                 use_max_amount: false,
@@ -403,7 +404,7 @@ mod tests {
 
         let token_in = eth_address::parse_str(request.from_asset.asset_id().token_id.as_ref().unwrap()).unwrap();
         let token_out = eth_address::parse_str(OPTIMISM_WETH_TOKEN_ID).unwrap();
-        let amount_in = U256::from_str(&request.value).unwrap();
+        let amount_in = U256::from_str(&request.value.to_string()).unwrap();
 
         let permit2_data = Permit2Data {
             permit_single: PermitSingle {
@@ -450,7 +451,7 @@ mod tests {
             to_asset: AssetId::from(Chain::Optimism, Some("0x6fd9d7ad17242c41f7131d257212c54a0e816691".into())).into(),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
-            value: "1000000000000000".into(),
+            value: BigUint::from(1000000000000000u64),
             options: Options {
                 slippage: 100.into(),
                 use_max_amount: false,
@@ -459,7 +460,7 @@ mod tests {
 
         let token_in = eth_address::parse_str(OPTIMISM_WETH_TOKEN_ID).unwrap();
         let token_out = eth_address::parse_str(&request.to_asset.asset_id().token_id.unwrap()).unwrap();
-        let amount_in = U256::from_str(request.value.as_str()).unwrap();
+        let amount_in = U256::from_str(&request.value.to_string()).unwrap();
 
         let path = build_direct_pair(&token_in, &token_out, FeeTier::ThreeThousand);
         let commands = super::build_commands(
@@ -494,7 +495,7 @@ mod tests {
             to_asset: AssetId::from(Chain::Celo, Some(CELO_USDT_TOKEN_ID.into())).into(),
             wallet_address: wallet.into(),
             destination_address: wallet.into(),
-            value: "22000000000000000000".into(),
+            value: BigUint::parse_bytes(b"22000000000000000000", 10).unwrap(),
             options: Options::default(),
         };
         let path = build_direct_pair(&token_celo, &token_usdt, FeeTier::Hundred);
@@ -502,7 +503,7 @@ mod tests {
             &request,
             &token_celo,
             &token_usdt,
-            U256::from_str(&request.value).unwrap(),
+            U256::from_str(&request.value.to_string()).unwrap(),
             U256::from(14804757u64),
             &path,
             None,
@@ -522,7 +523,7 @@ mod tests {
             to_asset: AssetId::from(Chain::Celo, None).into(),
             wallet_address: wallet.into(),
             destination_address: wallet.into(),
-            value: "900000".into(),
+            value: BigUint::from(900000u64),
             options: Options {
                 slippage: 50.into(),
                 use_max_amount: false,
@@ -533,7 +534,7 @@ mod tests {
             &request,
             &token_usdt,
             &token_celo,
-            U256::from_str(&request.value).unwrap(),
+            U256::from_str(&request.value.to_string()).unwrap(),
             U256::from(10752991111111111170u128),
             &path,
             None,

@@ -36,7 +36,7 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
         if let store {
             return try store.getAssets(assetIds: assetIds)
         }
-        return assetsResult.filter { assetIds.contains($0.asset.id.identifier) }.map { $0.asset.json() }
+        return assetsResult.filter { assetIds.contains($0.asset.id.identifier) }.map { $0.asset.map() }
     }
 
     public func getAsset(assetId _: Gemstone.AssetId) async throws -> Gemstone.AssetFull {
@@ -66,7 +66,7 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
 
     public func ensureAsset(assetId: Gemstone.AssetId) async throws -> Gemstone.Asset {
         guard let asset = assetsResult.first(where: { $0.asset.id.identifier == assetId }) else { throw AnyError("not stubbed") }
-        return asset.asset.json()
+        return asset.asset.map()
     }
 
     public func openWalletAsset(wallet _: Gemstone.Wallet, assetId: Gemstone.AssetId) async throws -> Gemstone.Asset? {

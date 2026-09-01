@@ -21,7 +21,7 @@ public class LockSceneViewModel {
     private var showPlaceholderPreview: Bool = false
 
     public init(
-        service: any BiometryAuthenticatable = BiometryAuthenticationService(),
+        service: any BiometryAuthenticatable,
     ) {
         self.service = service
         state = service.requiresAuthentication ? .locked : .unlocked

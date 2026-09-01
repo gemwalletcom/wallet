@@ -4,8 +4,7 @@ import uniffi.gemstone.GemApplicationMetadataService
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
 import com.gemwallet.android.ext.getShortUrl
 import com.gemwallet.android.ext.shortName
-import com.gemwallet.android.domains.confirm.toGenericParams
-import com.gemwallet.android.model.ConfirmParams.TransferParams.Generic
+import com.gemwallet.android.domains.confirm.confirmInput
 import com.gemwallet.android.serializer.decodeJsonOrNull
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.PayloadField
@@ -19,6 +18,7 @@ import com.wallet.core.primitives.SimulationResult
 import com.wallet.core.primitives.SimulationWarning
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.TransferDataOutputAction
+import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.MessageSigner
 
 sealed class WCRequest(
@@ -81,7 +81,7 @@ sealed class WCRequest(
         val outputAction: TransferDataOutputAction
             get() = if (isSendable) TransferDataOutputAction.Send else TransferDataOutputAction.Sign
 
-        val confirmParams: Generic
-            get() = request.transfer.toGenericParams(account)
+        val confirmInput: GemConfirmInput
+            get() = request.transfer.confirmInput(account)
     }
 }

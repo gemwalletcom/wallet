@@ -45,6 +45,7 @@ impl IndexerService {
         match self {
             Self::Assets => &[
                 IndexerConsumer::FetchAssets,
+                IndexerConsumer::FetchAssetStatus,
                 IndexerConsumer::FetchAssetAssociations,
                 IndexerConsumer::FetchLists,
                 IndexerConsumer::FetchPrices,
@@ -62,6 +63,7 @@ impl IndexerService {
 #[allow(clippy::enum_variant_names)]
 pub enum IndexerConsumer {
     FetchAssets,
+    FetchAssetStatus,
     FetchAssetAssociations,
     FetchLists,
     FetchPrices,
@@ -141,6 +143,7 @@ mod tests {
             IndexerService::Assets.consumers(),
             &[
                 IndexerConsumer::FetchAssets,
+                IndexerConsumer::FetchAssetStatus,
                 IndexerConsumer::FetchAssetAssociations,
                 IndexerConsumer::FetchLists,
                 IndexerConsumer::FetchPrices,

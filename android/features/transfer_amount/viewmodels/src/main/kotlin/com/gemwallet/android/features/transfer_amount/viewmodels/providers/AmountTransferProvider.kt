@@ -7,11 +7,16 @@ import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.wallet.core.primitives.Asset
 import kotlinx.coroutines.CoroutineScope
-import uniffi.gemstone.GemAmountService
+import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.GemTransferData
+import com.gemwallet.android.domains.confirm.confirmInput
+import com.gemwallet.android.domains.confirm.deposit
+import com.gemwallet.android.domains.confirm.transfer
+import com.gemwallet.android.domains.confirm.withdrawal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,8 +33,7 @@ class AmountTransferProvider(
     private val params: AmountParams,
     getAssetInfo: GetAssetInfo,
     scope: CoroutineScope,
-    amountService: GemAmountService,
-) : AmountDataProvider(scope, amountService) {
+) : AmountDataProvider(scope) {
 
     override val title: AmountTitle = when (params) {
         is AmountParams.Deposit -> AmountTitle.Deposit
@@ -58,15 +62,21 @@ class AmountTransferProvider(
         }
     }
 
-    override suspend fun buildConfirmParams(amount: Crypto, isMax: Boolean): ConfirmParams {
+    override suspend fun buildConfirmInput(amount: Crypto, isMax: Boolean): GemConfirmInput {
         val current = assetInfo.value ?: error("assetInfo not loaded")
         val owner = current.owner ?: error("owner missing")
-        val builder = ConfirmParams.Builder(current.asset, owner, amount.atomicValue, isMax)
-        return when (params) {
-            is AmountParams.Deposit -> builder.deposit(HyperliquidRecipient.deposit)
-            is AmountParams.Withdraw -> builder.withdrawal(GemRecipient(owner.address))
-            is AmountParams.Transfer -> builder.transfer(params.destination, params.memo, params.references)
+        val (inputType, recipient) = when (params) {
+            is AmountParams.Deposit -> GemTransactionInputType.deposit(current.asset) to HyperliquidRecipient.deposit
+            is AmountParams.Withdraw -> GemTransactionInputType.withdrawal(current.asset) to GemRecipient(owner.address)
+            is AmountParams.Transfer -> GemTransactionInputType.transfer(current.asset) to
+                params.destination.copy(memo = params.memo, references = params.references)
             else -> error("AmountTransferProvider requires Transfer, Deposit or Withdraw params")
         }
+        return GemTransferData(
+            inputType = inputType,
+            recipient = recipient,
+            value = amount.atomicValue.toString(),
+            useMaxAmount = isMax,
+        ).confirmInput(owner)
     }
 }

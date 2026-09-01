@@ -11,7 +11,7 @@ public extension Transaction {
         assetId: AssetId = .mock(),
         from: String = "",
         to: String = "",
-        value: String = "",
+        value: String = "0",
         memo: String? = nil,
         metadata: AnyCodableValue? = nil,
     ) -> Transaction {
@@ -25,7 +25,7 @@ public extension Transaction {
             state: state,
             blockNumber: "",
             sequence: "",
-            fee: "",
+            fee: "0",
             feeAssetId: .mock(),
             value: value,
             memo: memo,

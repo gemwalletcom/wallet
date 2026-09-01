@@ -82,7 +82,7 @@ fn map_to_list_item(notification: &NotificationData, localizer: &LanguageLocaliz
             let points = redeem.as_ref().map(|m| m.points).unwrap_or(0);
             let value = redeem.as_ref().and_then(|m| {
                 let asset = notification.asset.as_ref()?;
-                ValueFormatter::format_with_symbol(ValueStyle::Auto, &m.value, asset.decimals, &asset.symbol).ok()
+                ValueFormatter::format_with_symbol(ValueStyle::Auto, &m.value.to_string(), asset.decimals, &asset.symbol).ok()
             });
             let subtitle = Some(localizer.notification_reward_redeemed_description(points, value.as_deref()));
             let subvalue = Some(format!("-{}", points));

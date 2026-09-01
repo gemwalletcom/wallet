@@ -3,6 +3,7 @@ package com.gemwallet.android.application
 interface PasswordStore {
     fun getOrCreatePassword(key: String): String
     fun removePassword(key: String): Boolean
+    fun hasPassword(key: String): Boolean
     fun getPassword(key: String): String
     fun putPassword(key: String, password: String)
 
@@ -12,5 +13,9 @@ interface PasswordStore {
         DevicePublicKey("gem_api_pb")
     }
 }
+
+fun PasswordStore.getKeystorePassword(): String = getPassword(PasswordStore.Keys.Password.key)
+
+fun PasswordStore.getOrCreateKeystorePassword(): String = getOrCreatePassword(PasswordStore.Keys.Password.key)
 
 class PasswordNotFoundException : IllegalStateException("Password not found")

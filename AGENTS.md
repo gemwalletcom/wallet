@@ -39,7 +39,7 @@ Cross-platform subsystem references live in [docs/](docs). Read the relevant one
 - [Payments](docs/PAYMENTS.md) — payment decoding flow, implementation map, and QR test cases
 - [Swapper](docs/SWAPPER.md) — quote flow, route preloading, and the shared route cache
 
-Core-owned subsystems (keystore, device and wallet authentication, WebSockets, provider coverage) are documented in [core/docs/](core/docs); the service and store migration status table is [core/docs/SERVICES.md](core/docs/SERVICES.md).
+Core-owned subsystems (keystore, device and wallet authentication, WebSockets, provider coverage) are documented in [docs/](docs); the architecture reference every new feature follows is [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), and the remaining migration work is [docs/SERVICES.md](docs/SERVICES.md).
 
 ## Security
 
@@ -77,7 +77,7 @@ This is a crypto wallet. Treat security-sensitive changes as high risk by defaul
 - iOS widget localization source lives in `localization/widget/*.ftl`
 - Run `just localize` after editing localization source files
 - Generated outputs live under `ios/Packages/Localization/` and `android/ui/src/main/res/`
-- Do not edit generated iOS `.strings`, generated SwiftGen files, or Android `strings.xml` files by hand
+- Do not edit generated iOS `.xcstrings` catalogs, generated `Localized.swift`/`WidgetLocalized.swift`, or Android `strings.xml` files by hand
 - Backend/core localization is separate; see [core/CLAUDE.md](core/CLAUDE.md) before changing `core/crates/localizer/i18n`
 
 ## Task Completion

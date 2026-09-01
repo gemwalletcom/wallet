@@ -22,9 +22,11 @@ pub struct TransactionPerpetualMetadata {
 #[serde(rename_all = "camelCase")]
 pub struct TransactionSwapMetadata {
     pub from_asset: AssetId,
-    pub from_value: String,
+    #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
+    pub from_value: BigUint,
     pub to_asset: AssetId,
-    pub to_value: String,
+    #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
+    pub to_value: BigUint,
     pub provider: Option<String>,
 }
 

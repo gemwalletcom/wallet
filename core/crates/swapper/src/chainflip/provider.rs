@@ -2,6 +2,8 @@ use alloy_sol_types::SolCall;
 use async_trait::async_trait;
 use gem_client::Client;
 use gem_evm::contracts::IERC20;
+use gem_evm::u256::biguint_to_u256;
+use gem_evm::u256::u256_to_biguint;
 use gem_solana::DEFAULT_SWAP_GAS_LIMIT;
 use num_bigint::BigUint;
 use num_traits::ToPrimitive;
@@ -123,7 +125,7 @@ fn build_quote_request(request: &QuoteRequest, assets: &AssetsResponse) -> Resul
 }
 
 fn get_best_quote(quotes: Vec<QuoteResponse>, request: &ChainflipQuoteRequest) -> Result<(BigUint, u32, u32, ChainflipRouteData), SwapperError> {
-    let ingress_amount = request.amount.parse::<BigUint>()?;
+    let ingress_amount = request.amount.clone();
     let matches_request = |details: &QuoteDetails| {
         details.ingress_asset == request.source_asset && details.ingress_amount_native == ingress_amount && details.egress_asset == request.destination_asset
     };
@@ -198,9 +200,8 @@ fn refund_parameters(retry_duration: u32, refund_address: &str, min_price: &str)
     }
 }
 
-fn validate_minimum_amount(from_value: &str, minimum_amount: &BigUint) -> Result<(), SwapperError> {
-    let from_value = from_value.parse::<BigUint>()?;
-    if from_value < *minimum_amount {
+fn validate_minimum_amount(from_value: &BigUint, minimum_amount: &BigUint) -> Result<(), SwapperError> {
+    if from_value < minimum_amount {
         return Err(SwapperError::InputAmountError {
             min_amount: Some(minimum_amount.to_string()),
         });
@@ -208,17 +209,17 @@ fn validate_minimum_amount(from_value: &str, minimum_amount: &BigUint) -> Result
     Ok(())
 }
 
-fn tron_trc20_transfer_value(calldata: &str) -> Result<String, SwapperError> {
+fn tron_trc20_transfer_value(calldata: &str) -> Result<BigUint, SwapperError> {
     let data = decode_hex(calldata).map_err(|_| SwapperError::TransactionError("invalid Tron token transfer calldata".to_string()))?;
     IERC20::transferCall::abi_decode(&data)
-        .map(|call| call.value.to_string())
+        .map(|call| u256_to_biguint(&call.value))
         .map_err(|_| SwapperError::TransactionError("invalid Tron token transfer calldata".to_string()))
 }
 
-fn tron_quote_value(from_asset: &AssetId, input_amount: &BigUint, response: &TronVaultSwapResponse) -> Result<String, SwapperError> {
+fn tron_quote_value(from_asset: &AssetId, input_amount: &BigUint, response: &TronVaultSwapResponse) -> Result<BigUint, SwapperError> {
     let is_native = from_asset.is_native();
     let broker_value = if is_native {
-        response.value.to_string()
+        response.value.clone()
     } else {
         if response.value != BigUint::from(0u32) {
             return Err(SwapperError::TransactionError(format!("Tron token swap value must be zero: broker={}", response.value)));
@@ -226,14 +227,13 @@ fn tron_quote_value(from_asset: &AssetId, input_amount: &BigUint, response: &Tro
         tron_trc20_transfer_value(&response.calldata)?
     };
 
-    let expected = input_amount.to_string();
-    if broker_value != expected {
+    if broker_value != *input_amount {
         return Err(SwapperError::TransactionError(format!(
-            "Tron swap amount mismatch: quote={expected}, broker={broker_value}"
+            "Tron swap amount mismatch: quote={input_amount}, broker={broker_value}"
         )));
     }
 
-    Ok(if is_native { expected } else { "0".to_string() })
+    Ok(if is_native { input_amount.clone() } else { BigUint::ZERO })
 }
 
 #[async_trait]
@@ -267,9 +267,9 @@ where
         let (egress_amount, slippage_bps, eta_in_seconds, route_data) = get_best_quote(quotes, &quote_request)?;
 
         Ok(Quote {
-            min_from_value: Some(minimum_amount.to_string()),
+            min_from_value: Some(minimum_amount),
             from_value: quote_request.amount,
-            to_value: egress_amount.to_string(),
+            to_value: egress_amount,
             data: ProviderData {
                 provider: self.provider.clone(),
                 slippage_bps,
@@ -289,7 +289,7 @@ where
         let source_asset = map_asset_id(&quote.request.from_asset);
         let destination_asset = map_asset_id(&quote.request.to_asset);
 
-        let input_amount: BigUint = quote.from_value.parse()?;
+        let input_amount = quote.from_value.clone();
 
         let route = quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?;
         let route_data: ChainflipRouteData = serde_json::from_str(&route.route_data)?;
@@ -339,11 +339,11 @@ where
 
         match (source_chain_type, response) {
             (ChainType::Ethereum, VaultSwapResponse::Evm(response)) => {
-                let value = if from_asset.is_native() { quote.from_value.clone() } else { "0".to_string() };
+                let value = if from_asset.is_native() { quote.from_value.clone() } else { BigUint::from(0u64) };
 
                 let approval = if !from_asset.is_native() {
                     let token_id = from_asset.token_id.ok_or(SwapperError::NotSupportedAsset)?;
-                    let approval_amount = quote.from_value.parse().map_err(SwapperError::from)?;
+                    let approval_amount = biguint_to_u256(&quote.from_value).ok_or_else(|| SwapperError::compute_quote_error("swap amount is too large"))?;
                     let approval = check_approval_erc20(
                         quote.request.wallet_address.clone(),
                         token_id,
@@ -371,7 +371,7 @@ where
                 let data = tx_builder::build_solana_transaction(&quote.request.wallet_address, &response, blockhash)?;
                 Ok(SwapperQuoteData::new_contract(
                     response.program_id,
-                    "".into(),
+                    BigUint::ZERO,
                     data,
                     None,
                     Some(DEFAULT_SWAP_GAS_LIMIT.to_string()),
@@ -411,7 +411,7 @@ mod tests {
 
     fn quote_request(amount: &str, source_asset: &str, destination_asset: &str) -> ChainflipQuoteRequest {
         ChainflipQuoteRequest {
-            amount: amount.to_string(),
+            amount: amount.parse().unwrap(),
             source_asset: source_asset.to_string(),
             destination_asset: destination_asset.to_string(),
             commission_bps: DEFAULT_FEE_BPS,
@@ -424,13 +424,13 @@ mod tests {
         let minimum_amount = BigUint::from(68_000_000u32);
 
         assert_eq!(
-            validate_minimum_amount("1000000", &minimum_amount),
+            validate_minimum_amount(&BigUint::from(1_000_000u32), &minimum_amount),
             Err(SwapperError::InputAmountError {
                 min_amount: Some("68000000".to_string())
             })
         );
-        assert_eq!(validate_minimum_amount("68000000", &minimum_amount), Ok(()));
-        assert_eq!(validate_minimum_amount("68000001", &minimum_amount), Ok(()));
+        assert_eq!(validate_minimum_amount(&BigUint::from(68_000_000u32), &minimum_amount), Ok(()));
+        assert_eq!(validate_minimum_amount(&BigUint::from(68_000_001u32), &minimum_amount), Ok(()));
     }
 
     #[tokio::test]
@@ -467,9 +467,9 @@ mod tests {
             }
         );
 
-        request.value = "68000000".to_string();
+        request.value = BigUint::from(68000000u64);
         let quote = provider.get_quote(&request).await.unwrap();
-        assert_eq!(quote.min_from_value, Some("68000000".to_string()));
+        assert_eq!(quote.min_from_value, Some(BigUint::from(68000000u64)));
         assert_eq!(assets_requests.load(Ordering::Relaxed), 1);
         assert_eq!(quote_requests.load(Ordering::Relaxed), 1);
     }
@@ -479,7 +479,7 @@ mod tests {
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Bitcoin)),
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
-            value: "89100".to_string(),
+            value: BigUint::from(89100u64),
             ..QuoteRequest::mock(Chain::Bitcoin, None)
         };
 
@@ -491,7 +491,7 @@ mod tests {
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Bitcoin)),
-            value: "1000000000000000000".to_string(),
+            value: BigUint::parse_bytes(b"1000000000000000000", 10).unwrap(),
             ..QuoteRequest::mock(Chain::Ethereum, None)
         };
 
@@ -513,7 +513,10 @@ mod tests {
             source_token_address: None,
         };
 
-        assert_eq!(tron_quote_value(&from_asset, &BigUint::from(50_000_000u32), &response).unwrap(), "50000000");
+        assert_eq!(
+            tron_quote_value(&from_asset, &BigUint::from(50_000_000u32), &response).unwrap(),
+            BigUint::from(50_000_000u64)
+        );
 
         let err = tron_quote_value(&from_asset, &BigUint::from(40_000_000u32), &response).unwrap_err();
         assert!(matches!(err, SwapperError::TransactionError(message) if message.contains("Tron swap amount mismatch")));
@@ -545,7 +548,7 @@ mod tests {
             source_token_address: Some("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string()),
         };
 
-        assert_eq!(tron_quote_value(&from_asset, &BigUint::from(10_000_000u32), &response).unwrap(), "0");
+        assert_eq!(tron_quote_value(&from_asset, &BigUint::from(10_000_000u32), &response).unwrap(), BigUint::ZERO);
 
         let err = tron_quote_value(&from_asset, &BigUint::from(9_999_999u32), &response).unwrap_err();
         assert!(matches!(err, SwapperError::TransactionError(message) if message.contains("Tron swap amount mismatch")));
@@ -863,19 +866,19 @@ mod tests {
             wallet_address: "TEcDijvKSXcfWT7S6rd44H5vNgufm7Y4XC".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             // Route-specific minimums can exceed the global minimum returned by /assets.
-            value: "100000000".to_string(),
+            value: BigUint::from(100000000u64),
             options: Options::default(),
         };
 
         let quote = swap_provider.get_quote(&request).await?;
         assert_eq!(quote.from_value, request.value);
-        assert!(!quote.to_value.is_empty());
+        assert!(quote.to_value > BigUint::ZERO);
         assert_eq!(quote.data.slippage_bps, 50);
 
         let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
         assert_eq!(quote_data.data_type, SwapQuoteDataType::Contract);
         assert_eq!(quote_data.to, primitives::asset_constants::TRON_USDT_TOKEN_ID);
-        assert_eq!(quote_data.value, "0");
+        assert_eq!(quote_data.value, BigUint::from(0u64));
         assert!(quote_data.data.starts_with("a9059cbb"));
         assert!(quote_data.memo.as_deref().is_some_and(|memo| memo.starts_with("0x")));
 

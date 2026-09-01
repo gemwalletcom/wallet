@@ -1,4 +1,5 @@
 mod localization;
+mod remote_mappers;
 
 use primitives::Platform;
 
@@ -69,6 +70,37 @@ fn main() {
         let paths = get_paths(folder, src_path);
         process_paths(paths, folder, &generator_type, &platform_directory_path, &ignored_files);
     }
+
+    generate_remote_mappers(&generator_type, &platform_directory_path);
+}
+
+fn generate_remote_mappers(generator_type: &GeneratorType, platform_directory_path: &str) {
+    let enums = remote_mappers::parse(Path::new("."));
+    if enums.is_empty() {
+        return;
+    }
+    write_generated(remote_mappers::REMOTE_TYPES_PATH, remote_mappers::remote_types(&enums));
+
+    let (contents, path) = match generator_type {
+        GeneratorType::Swift => (
+            remote_mappers::swift(&enums),
+            format!("{platform_directory_path}/GemstonePrimitives/Sources/Generated/RemoteTypeMappers.swift"),
+        ),
+        GeneratorType::Kotlin => (
+            remote_mappers::kotlin(&enums),
+            format!("{platform_directory_path}/../../gemwallet/android/ext/RemoteTypeMappers.kt"),
+        ),
+        GeneratorType::TypeScript => return,
+    };
+    write_generated(&path, contents);
+}
+
+fn write_generated(path: &str, contents: String) {
+    let path = Path::new(path);
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).expect("failed to create generated directory");
+    }
+    fs::write(path, contents).expect("failed to write generated file");
 }
 
 fn process_paths(paths: Vec<String>, _folder: &str, generator_type: &GeneratorType, platform_directory_path: &str, ignored_files: &[&str]) {

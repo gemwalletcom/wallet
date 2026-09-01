@@ -190,6 +190,7 @@ fn sum_amounts(utxos: &[UTXO]) -> Result<u64, SignerError> {
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigUint;
     use primitives::{Asset, AssetType, Chain, GasPriceType, SwapProvider, TransactionInputType, TransactionLoadMetadata, swap::SwapData};
 
     use super::*;
@@ -204,7 +205,7 @@ mod tests {
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Cardano)),
             sender_address: OWN_ADDRESS_1.to_string(),
             destination_address: TO_ADDRESS.to_string(),
-            value: amount.to_string(),
+            value: amount.parse().unwrap(),
             gas_price: GasPriceType::regular(0u64),
             memo: None,
             is_max_value,
@@ -214,13 +215,13 @@ mod tests {
                     UTXO {
                         transaction_id: "f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e767".to_string(),
                         vout: 1,
-                        value: "1500000".to_string(),
+                        value: BigUint::from(1500000u64),
                         address: OWN_ADDRESS_1.to_string(),
                     },
                     UTXO {
                         transaction_id: "554f2fd942a23d06835d26bbd78f0106fa94c8a551114a0bef81927f66467af0".to_string(),
                         vout: 0,
-                        value: "6500000".to_string(),
+                        value: BigUint::from(6500000u64),
                         address: OWN_ADDRESS_1.to_string(),
                     },
                 ],
@@ -236,8 +237,8 @@ mod tests {
         assert_eq!(plan.amount, 7_000_000);
         assert_eq!(plan.fee, 1_000_000);
         assert_eq!(plan.change, 0);
-        assert_eq!(plan.utxos[0].value, "6500000");
-        assert_eq!(plan.utxos[1].value, "1500000");
+        assert_eq!(plan.utxos[0].value, BigUint::from(6500000u64));
+        assert_eq!(plan.utxos[1].value, BigUint::from(1500000u64));
 
         let plan = plan_transfer(&wallet_core_input("1", false)).unwrap();
         assert_eq!(plan.utxos.len(), 1);
@@ -259,8 +260,8 @@ mod tests {
         assert_eq!(plan.amount, 7_832_622);
         assert_eq!(plan.fee, 167_378);
         assert_eq!(plan.change, 0);
-        assert_eq!(plan.utxos[0].value, "1500000");
-        assert_eq!(plan.utxos[1].value, "6500000");
+        assert_eq!(plan.utxos[0].value, BigUint::from(1500000u64));
+        assert_eq!(plan.utxos[1].value, BigUint::from(6500000u64));
     }
 
     #[test]
@@ -269,7 +270,7 @@ mod tests {
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Cardano)),
             sender_address: "addr1q9d2dxen8ywvs9yzxxn2w4mvffn797fquauvugt2ug7mfsuqj3lzdq9h0rsketzszrnfm930658swmpe7kpq53c2tmwql4rvtq".to_string(),
             destination_address: "addr1q9d2dxen8ywvs9yzxxn2w4mvffn797fquauvugt2ug7mfsuqj3lzdq9h0rsketzszrnfm930658swmpe7kpq53c2tmwql4rvtq".to_string(),
-            value: "10000".to_string(),
+            value: BigUint::from(10000u64),
             gas_price: GasPriceType::regular(0u64),
             memo: None,
             is_max_value: false,
@@ -278,7 +279,7 @@ mod tests {
                 utxos: vec![UTXO {
                     address: "addr1q9d2dxen8ywvs9yzxxn2w4mvffn797fquauvugt2ug7mfsuqj3lzdq9h0rsketzszrnfm930658swmpe7kpq53c2tmwql4rvtq".to_string(),
                     transaction_id: "412c5a964cf4515210bf4b82f45df6521c38e1e5381f27638fc509bef6679378".to_string(),
-                    value: "7945975".to_string(),
+                    value: BigUint::from(7945975u64),
                     vout: 1,
                 }],
             },
@@ -321,7 +322,7 @@ mod tests {
             utxos: vec![UTXO {
                 transaction_id: "zz".to_string(),
                 vout: 0,
-                value: "1".to_string(),
+                value: BigUint::from(1u64),
                 address: OWN_ADDRESS_1.to_string(),
             }],
         };
@@ -363,7 +364,7 @@ mod tests {
             utxos: vec![UTXO {
                 transaction_id: "f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e767".to_string(),
                 vout: 1,
-                value: "1500000".to_string(),
+                value: BigUint::from(1500000u64),
                 address: TO_ADDRESS.to_string(),
             }],
         };

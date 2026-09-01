@@ -33,7 +33,6 @@ signer = { path = "../signer", optional = true }
 [dev-dependencies]
 chain_traits = { path = "../chain_traits", features = ["testkit"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
-reqwest = { workspace = true }
 settings = { path = "../settings", features = ["testkit"] }
 primitives = { path = "../primitives", features = ["testkit"] }
 hex = { workspace = true }

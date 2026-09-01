@@ -1,3 +1,4 @@
+use super::spot::math::scale_units;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use async_trait::async_trait;
@@ -13,8 +14,6 @@ use primitives::{
 };
 
 use crate::{FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
-
-use super::spot::scale_quote_value;
 
 #[derive(Debug)]
 pub struct HyperCoreBridge {
@@ -53,7 +52,7 @@ impl Swapper for HyperCoreBridge {
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
-        let to_value = scale_quote_value(&request.value, request.from_asset.decimals, request.to_asset.decimals)?;
+        let to_value = scale_units(request.value.clone(), request.from_asset.decimals, request.to_asset.decimals)?;
 
         let quote = Quote {
             from_value: request.value.clone(),
@@ -79,7 +78,7 @@ impl Swapper for HyperCoreBridge {
         match quote.request.from_asset.asset_id().chain {
             Chain::HyperCore => {
                 let decimals: i32 = quote.request.from_asset.decimals.try_into().unwrap();
-                let amount = BigNumberFormatter::value(&quote.request.value, decimals)?;
+                let amount = BigNumberFormatter::value(&quote.request.value.to_string(), decimals)?;
                 let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).expect("Time went backwards").as_millis() as u64;
 
                 let spot_send = SpotSend::new(amount, HYPERCORE_SYSTEM_ADDRESS.to_string(), timestamp, HYPERCORE_CORE_HYPE_TOKEN_ID.to_string());

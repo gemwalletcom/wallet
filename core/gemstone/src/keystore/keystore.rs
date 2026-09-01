@@ -5,7 +5,7 @@ use gem_derivation::{
     derive_account_from_private_key, derive_account_from_private_key_value, derive_accounts_from_mnemonic, derive_private_key_from_mnemonic, derive_wallet_id_from_account,
     import_account_from_private_key,
 };
-use gem_keystore::{FileKeystore, KeystoreError, KeystoreId, SecretKind};
+use gem_keystore::{FileKeystore, Keystore, KeystoreError, KeystoreId, SecretKind};
 use primitives::{Account, Chain, WalletId, WalletType};
 use signer::encode_private_key;
 use zeroize::Zeroizing;
@@ -79,14 +79,26 @@ impl GemKeystore {
 
     pub fn add_accounts(&self, keystore_id: String, password: Vec<u8>, chains: Vec<Chain>) -> Result<Vec<GemKeystoreAccount>, GemstoneError> {
         let password = Zeroizing::new(password);
-        let phrase = match self.inner.decrypt_mnemonic_with_meta(&keystore_id, &password) {
-            Ok((_meta, phrase)) => phrase,
+        let phrase = match self.inner.decrypt_mnemonic(&keystore_id, &password) {
+            Ok(phrase) => phrase,
             Err(KeystoreError::CorruptFile(message)) if message == "stored secret is not a mnemonic" => {
                 return Err(GemstoneError::from("add_accounts does not support private-key wallets"));
             }
             Err(error) => return Err(error.into()),
         };
         Ok(derive_accounts_from_mnemonic(&phrase, chains)?.into_iter().map(GemKeystoreAccount::from).collect())
+    }
+
+    pub fn change_password(&self, keystore_id: String, old_password: Vec<u8>, new_password: Vec<u8>) -> Result<(), GemstoneError> {
+        let old_password = Zeroizing::new(old_password);
+        let new_password = Zeroizing::new(new_password);
+        self.inner.change_password(&keystore_id, &old_password, &new_password)?;
+        Ok(())
+    }
+
+    pub fn opens_with(&self, keystore_id: String, password: Vec<u8>) -> bool {
+        let password = Zeroizing::new(password);
+        self.inner.verify(&keystore_id, &password).is_ok()
     }
 
     pub fn export_recovery_phrase(&self, keystore_id: String, password: Vec<u8>) -> Result<Vec<String>, GemstoneError> {

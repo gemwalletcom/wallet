@@ -63,6 +63,7 @@ mod tests {
     use crate::method;
     use crate::rpc::EthereumClient;
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
+    use num_bigint::BigInt;
     use primitives::asset_constants::ETHEREUM_USDC_TOKEN_ID;
     use primitives::testkit::json_rpc::load_json_rpc_result;
     use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
@@ -87,7 +88,7 @@ mod tests {
             result.balance_changes,
             vec![SimulationBalanceChange {
                 asset_id: AssetId::from_chain(Chain::Ethereum),
-                value: "-10000000000000000".to_string(),
+                value: BigInt::from(-10000000000000000i64),
                 decimals: 18,
                 name: Some("Ethereum".to_string()),
                 symbol: Some("ETH".to_string()),
@@ -130,7 +131,7 @@ mod tests {
             result.balance_changes,
             vec![SimulationBalanceChange {
                 asset_id: AssetId::from_token(Chain::Ethereum, ETHEREUM_USDC_TOKEN_ID),
-                value: "-1000000".to_string(),
+                value: BigInt::from(-1000000i64),
                 decimals: 0,
                 name: None,
                 symbol: None,

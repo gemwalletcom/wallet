@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     id("com.android.library")
-    id("kotlinx-serialization")
 }
 
 android {
@@ -51,8 +50,6 @@ dependencies {
     api(project(":gemcore"))
 
     // Network
-    api(libs.retrofit)
-    api(libs.retrofit.converter.kotlin.serializer)
     api(libs.kotlinx.serialization.json)
     api(libs.okhttp)
     implementation(libs.kotlinx.coroutines.android)

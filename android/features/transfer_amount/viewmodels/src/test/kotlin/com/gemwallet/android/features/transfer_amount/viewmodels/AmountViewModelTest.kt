@@ -9,7 +9,7 @@ import com.gemwallet.android.features.transfer_amount.viewmodels.providers.Amoun
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountProviderFactory
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.ConfirmParams
+import uniffi.gemstone.GemConfirmInput
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
@@ -57,7 +57,7 @@ class AmountViewModelTest {
 
     private val builtAmounts = mutableListOf<Crypto>()
     private val builtIsMax = mutableListOf<Boolean>()
-    private val confirmParams = mockk<ConfirmParams>(relaxed = true)
+    private val confirmInput = mockk<GemConfirmInput>(relaxed = true)
 
     private val provider = mockk<AmountDataProvider>(relaxed = true) {
         every { assetInfo } returns assetInfoFlow
@@ -68,7 +68,7 @@ class AmountViewModelTest {
         every { reserveForFee } returns reserveForFeeFlow
         every { limits } returns limitsFlow
         every { maxValue() } answers { availableBalanceFlow.value }
-        coEvery { buildConfirmParams(capture(builtAmounts), capture(builtIsMax)) } returns confirmParams
+        coEvery { buildConfirmInput(capture(builtAmounts), capture(builtIsMax)) } returns confirmInput
     }
     private val factory = mockk<AmountProviderFactory> { every { create(any(), any()) } returns provider }
 
@@ -103,7 +103,7 @@ class AmountViewModelTest {
     fun `onNext converts crypto input to the atomic amount that is sent`() = viewModelTest { viewModel ->
         viewModel.setAmount("1.5")
 
-        assertEquals(confirmParams, viewModel.confirm())
+        assertEquals(confirmInput, viewModel.confirm())
         assertEquals(BigInteger("1500000"), builtAmounts.last().atomicValue)
         assertTrue(viewModel.amountError.value is AmountError.None)
     }
@@ -208,8 +208,8 @@ class AmountViewModelTest {
         }
     }
 
-    private fun AmountViewModel.confirm(): ConfirmParams? {
-        var confirmed: ConfirmParams? = null
+    private fun AmountViewModel.confirm(): GemConfirmInput? {
+        var confirmed: GemConfirmInput? = null
         onNext { confirmed = it }
         testDispatcher.scheduler.runCurrent()
         return confirmed

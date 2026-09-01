@@ -1,4 +1,4 @@
-use num_bigint::BigInt;
+use num_bigint::{BigInt, BigUint};
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_option_bigint_from_str, serialize_option_bigint};
 use typeshare::typeshare;
@@ -117,7 +117,8 @@ impl SimulationWarning {
 #[serde(rename_all = "camelCase")]
 pub struct SimulationBalanceChange {
     pub asset_id: AssetId,
-    pub value: String,
+    #[serde(serialize_with = "serde_serializers::serialize_bigint", deserialize_with = "serde_serializers::deserialize_bigint_from_str")]
+    pub value: BigInt,
     pub decimals: i32,
     pub name: Option<String>,
     pub symbol: Option<String>,
@@ -127,7 +128,7 @@ impl SimulationBalanceChange {
     pub fn new(asset_id: AssetId, value: BigInt) -> Self {
         Self {
             asset_id,
-            value: value.to_string(),
+            value,
             decimals: 0,
             name: None,
             symbol: None,
@@ -190,8 +191,18 @@ pub struct SimulationPayloadField {
 #[serde(rename_all = "camelCase")]
 pub struct SimulationHeader {
     pub asset_id: AssetId,
-    pub value: String,
+    #[serde(
+        serialize_with = "serde_serializers::serialize_option_biguint",
+        deserialize_with = "serde_serializers::deserialize_option_biguint_from_str"
+    )]
+    pub value: Option<BigUint>,
     pub is_unlimited: bool,
+}
+
+impl SimulationHeader {
+    fn has_valid_value(&self) -> bool {
+        self.is_unlimited || self.value.is_some()
+    }
 }
 
 impl SimulationPayloadField {
@@ -230,13 +241,26 @@ pub struct SimulationResult {
     pub header: Option<SimulationHeader>,
 }
 
-impl Default for SimulationResult {
-    fn default() -> Self {
-        Self::new(vec![], vec![])
-    }
-}
-
 impl SimulationResult {
+    pub fn asset_ids(&self) -> Vec<AssetId> {
+        let mut asset_ids = Vec::new();
+        for asset_id in self
+            .balance_changes
+            .iter()
+            .map(|change| &change.asset_id)
+            .chain(self.header.as_ref().map(|header| &header.asset_id))
+        {
+            if !asset_ids.contains(asset_id) {
+                asset_ids.push(asset_id.clone());
+            }
+        }
+        asset_ids
+    }
+
+    pub fn valid_header(&self) -> Option<&SimulationHeader> {
+        self.header.as_ref().filter(|header| header.has_valid_value())
+    }
+
     pub fn new(warnings: Vec<SimulationWarning>, payload: Vec<SimulationPayloadField>) -> Self {
         Self {
             warnings: Self::collapse_warnings(warnings),
@@ -267,6 +291,12 @@ impl SimulationResult {
     }
 }
 
+impl Default for SimulationResult {
+    fn default() -> Self {
+        Self::new(vec![], vec![])
+    }
+}
+
 pub fn promote_single_secondary_payload_field(payload: Vec<SimulationPayloadField>) -> Vec<SimulationPayloadField> {
     let secondary_count = payload.iter().filter(|field| field.display == SimulationPayloadFieldDisplay::Secondary).count();
 
@@ -291,12 +321,63 @@ pub fn promote_single_secondary_payload_field(payload: Vec<SimulationPayloadFiel
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::{BigInt, BigUint};
+
     use super::{
-        SimulationInput, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity,
-        SimulationWarning, SimulationWarningApproval, SimulationWarningType, promote_single_secondary_payload_field,
+        SimulationBalanceChange, SimulationHeader, SimulationInput, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType,
+        SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType, promote_single_secondary_payload_field,
     };
-    use crate::testkit::signer_mock::TEST_SOLANA_SENDER;
-    use num_bigint::BigInt;
+    use crate::{AssetId, Chain, testkit::signer_mock::TEST_SOLANA_SENDER};
+
+    #[test]
+    fn test_asset_ids_cover_balance_changes_and_the_header() {
+        let changed = AssetId::from_chain(Chain::Ethereum);
+        let header = AssetId::from_chain(Chain::Solana);
+        let simulation = SimulationResult {
+            balance_changes: vec![
+                SimulationBalanceChange {
+                    asset_id: changed.clone(),
+                    value: BigInt::from(1i64),
+                    name: None,
+                    symbol: None,
+                    decimals: 0,
+                },
+                SimulationBalanceChange {
+                    asset_id: changed.clone(),
+                    value: BigInt::from(2i64),
+                    name: None,
+                    symbol: None,
+                    decimals: 0,
+                },
+            ],
+            header: Some(SimulationHeader {
+                asset_id: header.clone(),
+                value: Some(BigUint::from(2u32)),
+                is_unlimited: false,
+            }),
+            ..SimulationResult::default()
+        };
+
+        assert_eq!(simulation.asset_ids(), vec![changed, header]);
+        assert!(SimulationResult::default().asset_ids().is_empty());
+    }
+
+    #[test]
+    fn test_valid_header_requires_a_readable_value() {
+        let simulation = |value: Option<BigUint>, is_unlimited: bool| SimulationResult {
+            header: Some(SimulationHeader {
+                asset_id: AssetId::from_chain(Chain::Ethereum),
+                value,
+                is_unlimited,
+            }),
+            ..SimulationResult::default()
+        };
+
+        assert!(simulation(Some(BigUint::from(1000u32)), false).valid_header().is_some());
+        assert!(simulation(None, true).valid_header().is_some());
+        assert!(simulation(None, false).valid_header().is_none());
+        assert!(SimulationResult::default().valid_header().is_none());
+    }
 
     #[test]
     fn simulation_input_decodes_wallet_connect_transaction_field() {

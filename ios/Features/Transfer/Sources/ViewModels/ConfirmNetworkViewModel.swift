@@ -1,14 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemTransactionInputType
 import Components
 import Localization
 import Primitives
 import PrimitivesComponents
 
 struct ConfirmNetworkViewModel: ItemModelProvidable {
-    private let type: TransferDataType
+    private let type: GemTransactionInputType
 
-    init(type: TransferDataType) {
+    init(type: GemTransactionInputType) {
         self.type = type
     }
 }

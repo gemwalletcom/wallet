@@ -35,14 +35,6 @@ public struct PerpetualStore: Sendable {
         }
     }
 
-    public func getPerpetuals() throws -> [Perpetual] {
-        try db.read { db in
-            try PerpetualRecord
-                .fetchAll(db)
-                .map { $0.mapToPerpetual() }
-        }
-    }
-
     public func getPositions(walletId: WalletId) throws -> [PerpetualPosition] {
         try db.read { db in
             try PerpetualPositionRecord

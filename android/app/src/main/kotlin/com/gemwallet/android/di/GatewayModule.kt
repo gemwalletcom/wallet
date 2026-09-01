@@ -5,7 +5,6 @@ import com.gemwallet.android.Constants
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.password.TinkGemPreferences
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePreferencesStore
-import com.gemwallet.android.services.DeviceSyncPreflight
 import com.gemwallet.android.math.fromHex
 import kotlinx.coroutines.runBlocking
 import com.gemwallet.android.data.services.nativeprovider.NativeProvider
@@ -17,6 +16,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
+import uniffi.gemstone.Config
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemChartService
 import uniffi.gemstone.GemConfigService
@@ -128,12 +128,11 @@ object GatewayModule {
         alienProvider: AlienProvider,
         deviceKeyService: GemDeviceKeyService,
         deviceService: Lazy<GemDeviceService>,
-    ): GemstoneDeviceApiClient = GemstoneDeviceApiClient.withPreflight(
+    ): GemstoneDeviceApiClient = GemstoneDeviceApiClient(
         alienProvider,
         Constants.API_URL,
         deviceKeyService.keyPair().privateKey,
-        DeviceSyncPreflight(deviceService),
-    )
+    ).apply { setDeviceSyncPreflight(deviceService.get()) }
 
 
 
@@ -240,7 +239,22 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemScanService(apiClient: GemstoneDeviceApiClient): GemScanService = GemScanService(apiClient)
+    fun provideGemScanService(
+        okHttpClient: OkHttpClient,
+        getNodeUrlCase: GetNodeUrlCase,
+        deviceKeyService: GemDeviceKeyService,
+    ): GemScanService = GemScanService(
+        GemstoneDeviceApiClient(
+            NativeProvider(
+                getNodeUrlCase = getNodeUrlCase,
+                httpClient = okHttpClient.newBuilder()
+                    .callTimeout(Config().getScanConfig().timeoutSeconds.toLong(), TimeUnit.SECONDS)
+                    .build(),
+            ),
+            Constants.API_URL,
+            deviceKeyService.keyPair().privateKey,
+        )
+    )
 
 
 

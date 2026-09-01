@@ -35,12 +35,14 @@ public extension Primitives.BannerActionType {
 
 public extension GemBannerServiceProtocol {
     func content(for banner: Banner) -> GemBannerContent {
-        bannerContent(event: banner.event.json(), asset: banner.asset?.json())
+        bannerContent(event: banner.event.json(), asset: banner.asset?.map())
     }
+}
 
-    func visibleBanners(_ banners: [Banner], walletId: WalletId?, asset: Asset?, context: GemBannerContext) throws -> [Banner] {
+public extension GemBannerContext {
+    func visibleBanners(_ banners: [Banner], walletId: WalletId?, asset: Asset?) throws -> [Banner] {
         let stored = banners.map { GemBannerItem(event: $0.event.json(), state: $0.state.json()) }
-        return try visibleBanners(stored: stored, context: context).map { item in
+        return try visibleBanners(stored: stored).map { item in
             let event = try Primitives.BannerEvent(item.event)
             return try banners.first { $0.event == event } ?? Banner(
                 walletId: walletId,

@@ -14,7 +14,7 @@ use crate::consumers::{consumer_config, reader_for_queue};
 use support_webhook_consumer::SupportWebhookConsumer;
 
 pub async fn run_consumer_support(settings: Settings, shutdown_rx: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
-    let database = Database::new(&settings.postgres.url, settings.postgres.pool);
+    let database = Database::new(&settings.postgres.url, settings.postgres.pool)?;
 
     let retry = streamer::Retry::new(settings.rabbitmq.retry.delay, settings.rabbitmq.retry.timeout);
     let rabbitmq_config = StreamProducerConfig::new(settings.rabbitmq.url.clone(), retry);

@@ -1,11 +1,5 @@
-use primitives::stake_type::Resource;
-use primitives::{Delegation, DelegationBase, DelegationState, DelegationValidator, Price, StakeChain, StakeProviderType};
+use primitives::{DelegationBase, DelegationValidator, StakeChain};
 
-pub type GemResource = Resource;
-pub type GemDelegation = Delegation;
 pub type GemDelegationBase = DelegationBase;
 pub type GemDelegationValidator = DelegationValidator;
-pub type GemDelegationState = DelegationState;
-pub type GemStakeProviderType = StakeProviderType;
-pub type GemPrice = Price;
 pub type GemStakeChain = StakeChain;

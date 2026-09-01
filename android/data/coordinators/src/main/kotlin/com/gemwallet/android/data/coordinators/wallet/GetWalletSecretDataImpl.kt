@@ -3,6 +3,7 @@ package com.gemwallet.android.data.coordinators.wallet
 import android.util.Log
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.PasswordStore
+import com.gemwallet.android.application.getKeystorePassword
 import com.gemwallet.android.application.wallet.cases.GetWalletSecretData
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
@@ -25,7 +26,7 @@ class GetWalletSecretDataImpl(
         return walletStore.observeWallet(walletId).mapLatest { wallet ->
             wallet ?: return@mapLatest WalletSecretDataValueImpl(emptyList())
             try {
-                val password = passwordStore.getPassword(wallet.id.id)
+                val password = passwordStore.getKeystorePassword()
                 val secret = loadPrivateDataOperator(wallet, password)
                 when (wallet.type) {
                     WalletType.PrivateKey -> WalletSecretDataValueImpl(listOf(secret), isPrivateKey = true)

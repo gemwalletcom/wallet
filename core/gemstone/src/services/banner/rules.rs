@@ -138,7 +138,7 @@ pub fn shows_onboarding(state: BannerState, is_wallet_empty: bool) -> bool {
     is_visible(state) && is_wallet_empty
 }
 
-pub fn visible_banners(stored: Vec<GemBannerItem>, context: &GemBannerContext) -> Vec<GemBannerItem> {
+pub(super) fn visible_banners(stored: Vec<GemBannerItem>, context: &GemBannerContext) -> Vec<GemBannerItem> {
     let mut banners: Vec<GemBannerItem> = Vec::new();
     for item in stored.into_iter().chain(extra_banners()) {
         if banners.iter().any(|existing| existing.event == item.event) {

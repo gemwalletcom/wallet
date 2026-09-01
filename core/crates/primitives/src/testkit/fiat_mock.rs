@@ -5,6 +5,7 @@ use crate::{
     FiatTransactionUpdate, PaymentType,
 };
 use chrono::{DateTime, Utc};
+use num_bigint::BigUint;
 
 impl FiatQuoteRequest {
     pub fn mock() -> Self {
@@ -70,7 +71,7 @@ impl FiatQuote {
             fiat_amount: 100.0,
             fiat_currency: "USD".to_string(),
             crypto_amount: 0.001,
-            value: "100000".to_string(),
+            value: BigUint::from(100_000u64),
             latency: 0,
             payment_methods: vec![PaymentType::Card],
         }
@@ -100,7 +101,7 @@ impl FiatTransaction {
             country: Some("US".to_string()),
             fiat_amount: 100.0,
             fiat_currency: "USD".to_string(),
-            value: "100000".to_string(),
+            value: BigUint::from(100_000u64),
             transaction_hash: None,
             created_at: DateTime::<Utc>::UNIX_EPOCH,
             updated_at: DateTime::<Utc>::UNIX_EPOCH,

@@ -33,9 +33,9 @@ impl GemBannerService {
     }
 
     pub async fn apply_action(&self, key: GemBannerKey, action: GemBannerAction) -> Result<(), GemServiceError> {
-        match action {
-            GemBannerAction::Close => self.close(key).await,
-            GemBannerAction::Event { .. } | GemBannerAction::Button => Ok(()),
+        match action.is_dismissal() {
+            true => self.close(key).await,
+            false => Ok(()),
         }
     }
 
@@ -45,10 +45,6 @@ impl GemBannerService {
 
     pub fn shows_onboarding(&self, state: BannerState, is_wallet_empty: bool) -> bool {
         rules::shows_onboarding(state, is_wallet_empty)
-    }
-
-    pub fn visible_banners(&self, stored: Vec<GemBannerItem>, context: GemBannerContext) -> Vec<GemBannerItem> {
-        rules::visible_banners(stored, &context)
     }
 
     pub fn banner_content(&self, event: BannerEvent, asset: Option<Asset>) -> GemBannerContent {

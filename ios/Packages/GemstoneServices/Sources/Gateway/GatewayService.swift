@@ -91,14 +91,10 @@ public actor GatewayService: Sendable {
         transactionState: GemTransactionStateService,
         balance: GemBalanceService,
         price: GemPriceService,
+        assets: GemAssetsService,
     ) -> GemConfirmService {
-        GemConfirmService(gateway: gateway, simulation: simulation, scanner: scanner, transactionState: transactionState, balance: balance, price: price)
+        GemConfirmService(gateway: gateway, simulation: simulation, scanner: scanner, transactionState: transactionState, balance: balance, price: price, assets: assets)
     }
-}
-
-// MARK: - Transactions
-
-public extension GatewayService {
 }
 
 // MARK: - Account
@@ -128,7 +124,7 @@ public extension GatewayService {
         try await gateway.getNodeStatus(chain: chain.rawValue, url: url).map()
     }
 
-    public func checkNode(chain: Primitives.Chain, url: String) async throws -> Primitives.NodeStatus {
+    func checkNode(chain: Primitives.Chain, url: String) async throws -> Primitives.NodeStatus {
         try await gateway.checkNode(chain: chain.rawValue, url: url).map()
     }
 }
@@ -137,7 +133,7 @@ public extension GatewayService {
 
 public extension GatewayService {
     func tokenData(chain: Primitives.Chain, tokenId: String) async throws -> Primitives.Asset {
-        try await Primitives.Asset(gateway.getTokenData(chain: chain.rawValue, tokenId: tokenId))
+        try await gateway.getTokenData(chain: chain.rawValue, tokenId: tokenId).map()
     }
 
     func isTokenAddress(chain: Primitives.Chain, tokenId: String) async throws -> Bool {

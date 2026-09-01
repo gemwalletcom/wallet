@@ -125,7 +125,7 @@ fn map_asset(asset: &PortfolioAsset, token_info: &TokenInfoByAddress) -> Result<
 
     Ok(DefiPositionAsset {
         asset_id: map_asset_id(address),
-        value: BigNumberFormatter::value_from_amount(&amount.to_string(), decimals)?,
+        value: BigNumberFormatter::value_from_amount_biguint(&amount.to_string(), decimals)?,
     })
 }
 
@@ -176,6 +176,7 @@ fn map_position_type(label: &str) -> DefiPositionType {
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigUint;
     use primitives::{AssetId, Chain, DefiPositionType, DefiProvider, asset_constants::SOLANA_USDC_TOKEN_ID};
 
     use super::{PositionsResponse, map_positions};
@@ -197,15 +198,15 @@ mod tests {
             positions[0].assets[0].asset_id,
             AssetId::from_token(Chain::Solana, "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN")
         );
-        assert_eq!(positions[0].assets[0].value, "1250000000");
+        assert_eq!(positions[0].assets[0].value, BigUint::from(1250000000u64));
 
         assert_eq!(positions[1].id, "jupiter-exchange-liquiditypool-liquidity-position");
         assert_eq!(positions[1].position_type, DefiPositionType::LiquidityPool);
         assert_eq!(positions[1].assets.len(), 2);
         assert_eq!(positions[1].assets[0].asset_id, AssetId::from_chain(Chain::Solana));
-        assert_eq!(positions[1].assets[0].value, "2500000000");
+        assert_eq!(positions[1].assets[0].value, BigUint::from(2500000000u64));
         assert_eq!(positions[1].assets[1].asset_id, AssetId::from_token(Chain::Solana, SOLANA_USDC_TOKEN_ID));
-        assert_eq!(positions[1].assets[1].value, "1500750");
+        assert_eq!(positions[1].assets[1].value, BigUint::from(1500750u64));
 
         assert_eq!(positions[2].id, "jupiter-exchange-lending-lending-position");
         assert_eq!(positions[2].position_type, DefiPositionType::Lending);

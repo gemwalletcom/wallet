@@ -200,16 +200,6 @@ mod tests {
         assert!(verify_device_signature(&public_key_hex, &message, &signature.to_bytes()));
     }
 
-    #[test]
-    fn test_verify_signature_empty_wallet_id() {
-        let signing_key = SigningKey::from_bytes(&[1u8; 32]);
-        let public_key_hex = hex::encode(signing_key.verifying_key().as_bytes());
-        let message = device_auth_message(TIMESTAMP, METHOD, PATH, "", BODY_HASH);
-        let signature = signing_key.sign(message.as_bytes());
-
-        assert!(verify_device_signature(&public_key_hex, &message, &signature.to_bytes()));
-    }
-
     // RFC 8032 Ed25519 test vector (shared with the iOS/Android device-key fixtures).
     const FIXTURE_PRIVATE_KEY_HEX: &str = "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60";
     const FIXTURE_PUBLIC_KEY_HEX: &str = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a";

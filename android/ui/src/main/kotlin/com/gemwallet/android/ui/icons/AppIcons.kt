@@ -32,7 +32,6 @@ object AppIcons {
     val CurrencyBitcoin: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_currency_bitcoin)
     val Delete: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_delete)
     val ElectricBolt: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_electric_bolt)
-    val EmojiEvents: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_emoji_events)
     val Error: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_error)
     val ExpandMore: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_expand_more)
     val FilterAlt: ImageVector @Composable get() = ImageVector.vectorResource(R.drawable.ic_filter_alt)

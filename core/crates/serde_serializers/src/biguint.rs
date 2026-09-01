@@ -16,6 +16,16 @@ where
     serializer.serialize_str(&value.to_string())
 }
 
+pub fn serialize_option_biguint<S>(value: &Option<BigUint>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    match value {
+        Some(value) => serializer.serialize_str(&value.to_string()),
+        None => serializer.serialize_none(),
+    }
+}
+
 pub fn serialize_biguint_to_hex_str<S>(value: &BigUint, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,

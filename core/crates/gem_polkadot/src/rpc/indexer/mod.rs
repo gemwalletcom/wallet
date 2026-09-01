@@ -114,11 +114,11 @@ mod tests {
             vec!["asset-hub-newest", "asset-hub-older"]
         );
         assert_eq!(
-            transactions.iter().map(|transaction| transaction.value.as_str()).collect::<Vec<_>>(),
+            transactions.iter().map(|transaction| transaction.value.to_string()).collect::<Vec<_>>(),
             vec!["2500000000", "20000000000"]
         );
         assert_eq!(
-            transactions.iter().map(|transaction| transaction.fee.as_str()).collect::<Vec<_>>(),
+            transactions.iter().map(|transaction| transaction.fee.to_string()).collect::<Vec<_>>(),
             vec!["100000000", "50000000"]
         );
 

@@ -178,7 +178,7 @@ impl GemAssetsService {
     }
 
     pub async fn search_tokens(&self, token_id: String, chains: Vec<Chain>) -> Vec<AssetBasic> {
-        let lookups = chains.into_iter().map(|chain| {
+        let lookups = chains.into_iter().filter(|chain| chain.default_asset_type().is_some()).map(|chain| {
             let token_id = token_id.clone();
             async move {
                 if self.gateway.get_is_token_address(chain, token_id.clone()).await.ok()? {
@@ -224,10 +224,6 @@ impl GemAssetsService {
     fn stored_asset(&self, asset_id: &AssetId) -> Result<Option<Asset>, GemServiceError> {
         Ok(self.assets(vec![asset_id.clone()])?.into_iter().next())
     }
-}
-
-pub fn asset_action_filters(action: GemAssetAction) -> Vec<GemAssetFilter> {
-    rules::asset_action_filters(action)
 }
 
 pub fn popular_asset_ids() -> Vec<AssetId> {

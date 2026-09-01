@@ -1,24 +1,38 @@
 package com.gemwallet.android.blockchain.services
 
+import android.util.Log
 import com.gemwallet.android.application.PasswordStore
+import com.gemwallet.android.application.getKeystorePassword
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.blockchain.operators.gemstone.withGemKeystore
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Wallet
+import kotlinx.coroutines.CancellationException
 import uniffi.gemstone.GemSignedTransaction
 import uniffi.gemstone.GemSignerInput
 import uniffi.gemstone.GemTransactionSigner
-import uniffi.gemstone.GemTransferService
 
 class KeystoreTransactionSigner(
     private val baseDir: String,
     private val passwordStore: PasswordStore,
-    private val transferService: GemTransferService,
 ) : GemTransactionSigner {
     override suspend fun sign(wallet: String, input: GemSignerInput): List<GemSignedTransaction> {
-        val wallet = wallet.decodeJson<Wallet>()
-        val chain = transferService.asset(input.input.inputType).decodeJson<com.wallet.core.primitives.Asset>().id.chain.string
-        return withGemKeystore(baseDir, passwordStore.getPassword(wallet.id.id)) { keystore, passwordBytes ->
-            keystore.sign(keystore.keystoreId(wallet.id.id), chain, input, passwordBytes)
+        return try {
+            val wallet = wallet.decodeJson<Wallet>()
+            val password = passwordStore.getKeystorePassword()
+            val chain = input.input.inputType.transactionAsset().toPrimitives().id.chain.string
+            withGemKeystore(baseDir, password) { keystore, passwordBytes ->
+                keystore.sign(keystore.keystoreId(wallet.id.id), chain, input, passwordBytes)
+            }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Log.e(TAG, "keystore transaction signing failed (${error.javaClass.simpleName})")
+            throw error
         }
+    }
+
+    private companion object {
+        const val TAG = "KeystoreTransactionSigner"
     }
 }

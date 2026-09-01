@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAssetConfigService
+import class Gemstone.GemChainService
 import Components
 import Primitives
 import PrimitivesComponents
@@ -87,7 +87,7 @@ extension AssetsFilterScene {
                 AssetsFilterViewModel(
                     type: .manage,
                     model: ChainsFilterViewModel(chains: [.arbitrum, .avalancheC, .base]),
-                    assetConfig: GemAssetConfigService(),
+                    chainService: GemChainService(),
                 ),
             ),
         )

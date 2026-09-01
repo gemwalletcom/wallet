@@ -570,7 +570,7 @@ class MockBiometryAuthenticationService: BiometryAuthenticatable, @unchecked Sen
         let service = GemSecurityService()
         return service.shouldRelock(
             elapsedMilliseconds: elapsedMilliseconds,
-            lockIntervalMinutes: service.lockPeriodMinutes(period: lockPeriod.gemLockPeriod),
+            lockIntervalMinutes: lockPeriod.gemLockPeriod.minutes(),
             authRequired: requiresAuthentication,
             hasPendingRequest: false,
         )

@@ -127,6 +127,7 @@ fn perpetual_direction(transaction: &Transaction) -> Option<PerpetualDirection> 
 mod tests {
     use super::*;
     use chrono::Utc;
+    use num_bigint::BigUint;
     use primitives::{Chain, Resource};
 
     fn transaction(asset_id: AssetId, fee_asset_id: AssetId) -> Transaction {
@@ -138,9 +139,9 @@ mod tests {
             None,
             TransactionType::Transfer,
             TransactionState::Confirmed,
-            "1".into(),
+            BigUint::from(1u64),
             fee_asset_id,
-            "1".into(),
+            BigUint::from(1u64),
             None,
             None,
             Utc::now(),

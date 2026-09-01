@@ -31,8 +31,7 @@ pub fn map_simulation_result(account_keys: &[String], signer_addresses: &HashSet
 fn outgoing_token_header(balance_changes: &[SimulationBalanceChange]) -> Option<SimulationHeader> {
     let outgoing_tokens = balance_changes.iter().filter_map(|change| {
         change.asset_id.token_id.as_ref()?;
-        let value = change.value.parse::<BigInt>().ok()?;
-        (value < BigInt::from(0)).then_some((change, -value))
+        (change.value < BigInt::ZERO).then_some((change, -change.value.clone()))
     });
     let mut outgoing_tokens = outgoing_tokens.take(2);
     let (change, value) = outgoing_tokens.next()?;
@@ -42,7 +41,7 @@ fn outgoing_token_header(balance_changes: &[SimulationBalanceChange]) -> Option<
 
     Some(SimulationHeader {
         asset_id: change.asset_id.clone(),
-        value: value.to_string(),
+        value: value.to_biguint(),
         is_unlimited: false,
     })
 }
@@ -79,7 +78,7 @@ fn map_balance_changes(
         .filter(|(_, value)| *value != BigInt::from(0))
         .map(|(asset_id, value)| SimulationBalanceChange {
             decimals: decimals.get(&asset_id).copied().unwrap_or_default(),
-            value: value.to_string(),
+            value,
             name: None,
             symbol: None,
             asset_id,
@@ -117,6 +116,7 @@ fn signer_asset_values(account_keys: &[String], signer_addresses: &HashSet<Strin
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_bigint::BigUint;
     use primitives::asset_constants::{SOLANA_USDC_ASSET_ID, SOLANA_USDC_TOKEN_ID};
     use primitives::{SimulationSeverity, SimulationWarningType};
 
@@ -137,8 +137,8 @@ mod tests {
         assert_eq!(
             changes,
             vec![
-                SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), "-100005000", 9),
-                SimulationBalanceChange::mock(SOLANA_USDC_ASSET_ID.clone(), "-750000", 6),
+                SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), BigInt::from(-100005000i64), 9),
+                SimulationBalanceChange::mock(SOLANA_USDC_ASSET_ID.clone(), BigInt::from(-750000i64), 6),
             ]
         );
     }
@@ -161,7 +161,7 @@ mod tests {
             result.header,
             Some(SimulationHeader {
                 asset_id: SOLANA_USDC_ASSET_ID.clone(),
-                value: "19000000".to_string(),
+                value: Some(BigUint::from(19_000_000u32)),
                 is_unlimited: false,
             })
         );
@@ -171,8 +171,8 @@ mod tests {
     fn test_outgoing_token_header_rejects_ambiguous_assets() {
         let other_asset = AssetId::from_token(Chain::Solana, "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB");
         let changes = vec![
-            SimulationBalanceChange::mock(SOLANA_USDC_ASSET_ID.clone(), "-19000000", 6),
-            SimulationBalanceChange::mock(other_asset, "-1000000", 6),
+            SimulationBalanceChange::mock(SOLANA_USDC_ASSET_ID.clone(), BigInt::from(-19000000i64), 6),
+            SimulationBalanceChange::mock(other_asset, BigInt::from(-1000000i64), 6),
         ];
 
         assert_eq!(outgoing_token_header(&changes), None);
@@ -188,7 +188,7 @@ mod tests {
 
         let changes = map_balance_changes(&account_keys, &signers(&["wallet"]), &pre_balances, &post_balances, &pre_tokens, &post_tokens);
 
-        assert_eq!(changes, vec![SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), "-5000", 9)]);
+        assert_eq!(changes, vec![SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), BigInt::from(-5000i64), 9)]);
     }
 
     #[test]
@@ -198,7 +198,7 @@ mod tests {
 
         let changes = map_balance_changes(&account_keys, &signers(&["wallet"]), &[1_000_000_000], &[1_000_000_000], &pre_tokens, &[]);
 
-        assert_eq!(changes, vec![SimulationBalanceChange::mock(SOLANA_USDC_ASSET_ID.clone(), "-1000000", 6)]);
+        assert_eq!(changes, vec![SimulationBalanceChange::mock(SOLANA_USDC_ASSET_ID.clone(), BigInt::from(-1000000i64), 6)]);
     }
 
     #[test]
@@ -211,9 +211,9 @@ mod tests {
         let changes = map_balance_changes(&account_keys, &signers(&["wallet"]), &[1_000_000_000], &[997_960_720], &pre_tokens, &post_tokens);
 
         assert_eq!(changes.len(), 3);
-        assert!(changes.iter().any(|change| change.asset_id.token_id.is_none() && change.value == "-2039280"));
-        assert!(changes.iter().any(|change| change.value == "-1000000"));
-        assert!(changes.iter().any(|change| change.value == "2000000"));
+        assert!(changes.iter().any(|change| change.asset_id.token_id.is_none() && change.value == BigInt::from(-2039280i64)));
+        assert!(changes.iter().any(|change| change.value == BigInt::from(-1000000i64)));
+        assert!(changes.iter().any(|change| change.value == BigInt::from(2000000i64)));
     }
 
     #[test]
@@ -222,7 +222,7 @@ mod tests {
 
         let changes = map_balance_changes(&account_keys, &signers(&["wallet", "cosigner"]), &[1_000_000_000, 50_000], &[999_995_000, 65_000], &[], &[]);
 
-        assert_eq!(changes, vec![SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), "10000", 9)]);
+        assert_eq!(changes, vec![SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), BigInt::from(10000i64), 9)]);
     }
 
     #[test]
@@ -252,8 +252,8 @@ mod tests {
         assert_eq!(
             changes,
             vec![
-                SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), "12500000", 9),
-                SimulationBalanceChange::mock(SOLANA_USDC_ASSET_ID.clone(), "-1000000", 6),
+                SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), BigInt::from(12500000i64), 9),
+                SimulationBalanceChange::mock(SOLANA_USDC_ASSET_ID.clone(), BigInt::from(-1000000i64), 6),
             ]
         );
     }
@@ -264,7 +264,7 @@ mod tests {
 
         let changes = map_balance_changes(&account_keys, &signers(&["wallet"]), &[1_000_000_000, 10, 20], &[999_995_000, 1_000, 2_000], &[], &[]);
 
-        assert_eq!(changes, vec![SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), "-5000", 9)]);
+        assert_eq!(changes, vec![SimulationBalanceChange::mock(AssetId::from_chain(Chain::Solana), BigInt::from(-5000i64), 9)]);
     }
 
     #[test]

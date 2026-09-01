@@ -175,6 +175,7 @@ fn get_transaction_update(
 mod tests {
     use super::*;
     use num_bigint::BigInt;
+    use num_bigint::BigUint;
     use primitives::{TransactionSwapMetadata, swap::SwapStatus};
 
     #[test]
@@ -245,9 +246,9 @@ mod tests {
     fn test_in_transit_swap_update() {
         let metadata = TransactionSwapMetadata {
             from_asset: Chain::Ton.as_asset_id(),
-            from_value: "1000000".into(),
+            from_value: BigUint::from(1000000u64),
             to_asset: Chain::Solana.as_asset_id(),
-            to_value: "966847".into(),
+            to_value: BigUint::from(966847u64),
             provider: Some("near_intents".into()),
         };
         let completed = in_transit_swap_update(SwapResult {
@@ -283,6 +284,7 @@ fn swap_route(transaction: &Transaction) -> Option<(SwapperProvider, Chain)> {
 #[cfg(test)]
 mod swap_route_tests {
     use super::swap_route;
+    use num_bigint::BigUint;
     use primitives::{AssetId, Chain, SwapProvider, Transaction, TransactionSwapMetadata};
     use serde_json::json;
 
@@ -310,9 +312,9 @@ mod swap_route_tests {
 
         let metadata = TransactionSwapMetadata {
             from_asset: AssetId::from_chain(Chain::Ethereum),
-            from_value: "1".into(),
+            from_value: BigUint::from(1u64),
             to_asset: AssetId::from_chain(Chain::Solana),
-            to_value: "2".into(),
+            to_value: BigUint::from(2u64),
             provider: Some(SwapProvider::Thorchain.as_ref().to_string()),
         };
         let route = swap_route(&transaction_with_metadata(Some(serde_json::to_value(metadata).unwrap())));

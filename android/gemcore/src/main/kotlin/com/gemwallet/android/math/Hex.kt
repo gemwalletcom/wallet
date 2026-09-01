@@ -1,7 +1,5 @@
 package com.gemwallet.android.math
 
-import java.math.BigInteger
-
 private const val HEX_CHARS = "0123456789abcdef"
 
 fun Byte.toHex(): String {
@@ -38,9 +36,3 @@ fun String.fromHex(): ByteArray {
 }
 
 fun String.append0x(): String = if (startsWith("0x")) this else "0x$this"
-
-fun String.hexToBigInteger(): BigInteger? = try {
-    if (has0xPrefix()) BigInteger(remove0x(), 16) else BigInteger(this)
-} catch (_: NumberFormatException) {
-    null
-}

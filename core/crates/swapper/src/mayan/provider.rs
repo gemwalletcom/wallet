@@ -112,7 +112,7 @@ where
         let routes = self
             .price_client
             .get_quotes(QuoteParams {
-                amount_in64: from_value.clone(),
+                amount_in64: from_value.to_string(),
                 from_token: token_id_for_asset(&from_asset)?,
                 from_chain: wormhole_chain::name_for_chain(from_asset.chain)?.to_string(),
                 to_token: token_id_for_asset(&to_asset)?,
@@ -251,6 +251,7 @@ fn map_quote_error(error: SwapperError, decimals: u32) -> SwapperError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_bigint::BigUint;
 
     #[test]
     fn test_map_quote_error() {
@@ -338,13 +339,13 @@ mod tests {
             },
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            value: "7000000".to_string(),
+            value: BigUint::from(7000000u64),
             options: Options::new_with_slippage(5.into()),
         };
 
         let quote = provider.get_quote(&request).await.unwrap();
 
-        assert_eq!(quote.to_value, "602333700");
+        assert_eq!(quote.to_value, BigUint::from(602333700u64));
     }
 
     #[tokio::test]
@@ -360,7 +361,7 @@ mod tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::HyperCore)),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            value: "30000000000000000".to_string(),
+            value: BigUint::from(30000000000000000u64),
             options: Options::default(),
         };
 
@@ -425,6 +426,7 @@ mod tests {
 mod swap_integration_tests {
     use super::*;
     use crate::{FetchQuoteData, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, mayan::constants::MAYAN_FORWARDER, models::Options};
+    use num_bigint::BigUint;
     use primitives::{
         AssetId,
         asset_constants::{BASE_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, HYPEREVM_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SUI_USDC_ASSET_ID},
@@ -453,7 +455,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy".to_string(),
-            value: "50000000000000000".to_string(),
+            value: BigUint::from(50000000000000000u64),
             options: Options::new_with_slippage(200.into()),
         };
 
@@ -461,7 +463,7 @@ mod swap_integration_tests {
         let quote_data = timed("mayan swift evm quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
 
         assert_eq!(quote.from_value, request.value);
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         assert_eq!(quote.data.provider, provider.provider().clone());
         assert_eq!(quote.data.routes.len(), 1);
         let MayanQuote::Swift(route) = mayan_route(&quote)? else {
@@ -483,7 +485,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
             wallet_address: "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            value: "5000000".to_string(),
+            value: BigUint::from(5000000u64),
             options: Options::new_with_slippage(200.into()),
         };
 
@@ -491,7 +493,7 @@ mod swap_integration_tests {
         let quote_data = timed("mayan swift solana quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
 
         assert_eq!(quote.from_value, request.value);
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         assert_eq!(quote.data.provider, provider.provider().clone());
         assert_eq!(quote.data.routes.len(), 1);
         let MayanQuote::Swift(route) = mayan_route(&quote)? else {
@@ -500,7 +502,7 @@ mod swap_integration_tests {
         assert_eq!(route.from_chain, wormhole_chain::WormholeChain::Solana.name());
         assert_eq!(route.to_chain, wormhole_chain::WormholeChain::Base.name());
         assert!(quote_data.to.is_empty());
-        assert_eq!(quote_data.value, "0");
+        assert_eq!(quote_data.value, BigUint::from(0u64));
         assert!(!quote_data.data.is_empty());
         Ok(())
     }
@@ -514,7 +516,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
             wallet_address: "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            value: "1000000000".to_string(),
+            value: BigUint::from(1000000000u64),
             options: Options::new_with_slippage(200.into()),
         };
 
@@ -522,7 +524,7 @@ mod swap_integration_tests {
         let quote_data = timed("mayan mctp sui quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
 
         assert_eq!(quote.from_value, request.value);
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         assert_eq!(quote.data.provider, provider.provider().clone());
         assert_eq!(quote.data.routes.len(), 1);
         let MayanQuote::Mctp(route) = mayan_route(&quote)? else {
@@ -531,7 +533,7 @@ mod swap_integration_tests {
         assert_eq!(route.from_chain, wormhole_chain::WormholeChain::Sui.name());
         assert_eq!(route.to_chain, wormhole_chain::WormholeChain::Base.name());
         assert!(quote_data.to.is_empty());
-        assert_eq!(quote_data.value, "0");
+        assert_eq!(quote_data.value, BigUint::from(0u64));
         assert!(!quote_data.data.is_empty());
         Ok(())
     }
@@ -545,7 +547,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(SUI_USDC_ASSET_ID.clone()),
             wallet_address: "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy".to_string(),
             destination_address: "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1".to_string(),
-            value: "1000000".to_string(),
+            value: BigUint::from(1000000u64),
             options: Options::new_with_slippage(200.into()),
         };
 
@@ -553,14 +555,14 @@ mod swap_integration_tests {
         let quote_data = timed("mayan mctp solana to sui quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
 
         assert_eq!(quote.from_value, request.value);
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         let MayanQuote::Mctp(route) = mayan_route(&quote)? else {
             return Err(SwapperError::InvalidRoute);
         };
         assert_eq!(route.from_chain, wormhole_chain::WormholeChain::Solana.name());
         assert_eq!(route.to_chain, wormhole_chain::WormholeChain::Sui.name());
         assert!(quote_data.to.is_empty());
-        assert_eq!(quote_data.value, "0");
+        assert_eq!(quote_data.value, BigUint::from(0u64));
         assert!(!quote_data.data.is_empty());
         Ok(())
     }
@@ -574,7 +576,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(SUI_USDC_ASSET_ID.clone()),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1".to_string(),
-            value: "100000000000000000".to_string(),
+            value: BigUint::from(100000000000000000u64),
             options: Options::new_with_slippage(200.into()),
         };
 
@@ -582,7 +584,7 @@ mod swap_integration_tests {
         let quote_data = timed("mayan mctp evm to sui quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
 
         assert_eq!(quote.from_value, request.value);
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         let MayanQuote::Mctp(route) = mayan_route(&quote)? else {
             return Err(SwapperError::InvalidRoute);
         };
@@ -602,7 +604,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(HYPERCORE_SPOT_USDC_ASSET_ID.clone()),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            value: "1000000".to_string(),
+            value: BigUint::from(1000000u64),
             options: Options::new_with_slippage(200.into()),
         };
 
@@ -610,7 +612,7 @@ mod swap_integration_tests {
         let quote_data = timed("mayan mono-chain hyperevm to hypercore quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
 
         assert_eq!(quote.from_value, request.value);
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         let MayanQuote::MonoChain(route) = mayan_route(&quote)? else {
             return Err(SwapperError::InvalidRoute);
         };
@@ -630,7 +632,7 @@ mod swap_integration_tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy".to_string(),
-            value: "50000000000000000".to_string(),
+            value: BigUint::from(50000000000000000u64),
             options: Options::new_with_slippage(Slippage {
                 bps: 250,
                 mode: SlippageMode::Exact,
@@ -653,9 +655,9 @@ mod swap_integration_tests {
         assert_eq!(result.status, SwapStatus::Completed);
         let metadata = result.metadata.unwrap();
         assert_eq!(metadata.from_asset, POLYGON_USDT_ASSET_ID.clone());
-        assert_eq!(metadata.from_value, "35243141");
+        assert_eq!(metadata.from_value, BigUint::from(35243141u64));
         assert_eq!(metadata.to_asset, AssetId::from_token(Chain::Base, "0xEF5997c2cf2f6c138196f8A6203afc335206b3c1"));
-        assert_eq!(metadata.to_value, "398724622644505839482");
+        assert_eq!(metadata.to_value, BigUint::parse_bytes(b"398724622644505839482", 10).unwrap());
         assert_eq!(metadata.provider, Some("mayan".to_string()));
         Ok(())
     }

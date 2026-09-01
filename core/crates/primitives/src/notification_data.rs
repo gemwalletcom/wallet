@@ -1,5 +1,6 @@
 use crate::{Asset, NotificationType};
 use chrono::{DateTime, Utc};
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -30,5 +31,6 @@ pub struct NotificationRewardsMetadata {
 pub struct NotificationRewardsRedeemMetadata {
     pub transaction_id: String,
     pub points: i32,
-    pub value: String,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint", deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
+    pub value: BigUint,
 }

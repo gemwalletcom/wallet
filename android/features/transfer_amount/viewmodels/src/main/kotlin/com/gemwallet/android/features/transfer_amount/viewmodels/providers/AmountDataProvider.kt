@@ -1,8 +1,8 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.serializer.toJson
 import kotlinx.coroutines.CoroutineScope
@@ -11,17 +11,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemTransferBalance
 import uniffi.gemstone.GemAmountLimits
 import uniffi.gemstone.GemAmountRules
 import uniffi.gemstone.GemAmountException
-import uniffi.gemstone.GemAmountService
 import uniffi.gemstone.GemAmountType
 import java.math.BigInteger
 
 abstract class AmountDataProvider(
     private val scope: CoroutineScope,
-    private val amountService: GemAmountService,
 ) {
     abstract val title: AmountTitle
     abstract val canSwitchInputType: Boolean
@@ -34,7 +33,7 @@ abstract class AmountDataProvider(
 
     val rules: StateFlow<GemAmountRules?> by lazy {
         combine(amountType, assetInfo) { type, current ->
-            if (type == null || current == null) null else amountService.rules(type, current.asset.toJson())
+            if (type == null || current == null) null else type.rules(current.asset.toGem())
         }.stateIn(scope, SharingStarted.Eagerly, null)
     }
 
@@ -44,7 +43,7 @@ abstract class AmountDataProvider(
                 null
             } else {
                 try {
-                    amountService.limits(type, current.asset.toJson(), currentBalance)
+                    type.limits(current.asset.toGem(), currentBalance)
                 } catch (_: GemAmountException) {
                     null
                 }
@@ -60,7 +59,7 @@ abstract class AmountDataProvider(
 
     fun maxValue(): BigInteger = limits.value?.maxValue?.toBigIntegerOrNull() ?: availableBalance.value
 
-    abstract suspend fun buildConfirmParams(amount: Crypto, isMax: Boolean): ConfirmParams
+    abstract suspend fun buildConfirmInput(amount: Crypto, isMax: Boolean): GemConfirmInput
 }
 
 fun AssetInfo.toAmountBalance(): GemTransferBalance = GemTransferBalance(

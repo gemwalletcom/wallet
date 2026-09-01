@@ -1,6 +1,6 @@
 use std::cmp::Reverse;
 
-use primitives::{AssetId, Chain, ChainAsset};
+use primitives::{AssetId, Chain, ChainAsset, NodeCheckProfile, NodeCheckRequest, node_check_request};
 
 pub fn chains_by_rank() -> Vec<Chain> {
     let mut chains = Chain::all();
@@ -30,6 +30,16 @@ pub fn chain_matches_query(chain: Chain, query: &str) -> bool {
 
 pub fn is_valid_network_id(chain: Chain, network_id: &str) -> bool {
     chain.network_id() == network_id
+}
+
+pub fn node_verification_address(chain: Chain) -> Option<String> {
+    match chain {
+        Chain::Polkadot => match node_check_request(chain, NodeCheckProfile::Wallet) {
+            NodeCheckRequest::Wallet { address, .. } => Some(address),
+            NodeCheckRequest::Basic | NodeCheckRequest::Parser => None,
+        },
+        _ => None,
+    }
 }
 
 #[cfg(test)]

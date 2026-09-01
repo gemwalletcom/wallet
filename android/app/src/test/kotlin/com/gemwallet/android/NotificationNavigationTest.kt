@@ -1,5 +1,6 @@
 package com.gemwallet.android
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.assets.cases.SyncMissingAssets
 import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.application.session.cases.GetSession
@@ -167,7 +168,7 @@ class NotificationNavigationTest {
             accounts = listOf(mockAccount(chain = assetId.chain)),
         )
         every { getWallet(wallet.id) } returns flowOf(wallet)
-        coEvery { assetsService.openWalletAsset(wallet.toJson(), assetId.toIdentifier()) } returns asset.toJson()
+        coEvery { assetsService.openWalletAsset(wallet.toJson(), assetId.toIdentifier()) } returns asset.toGem()
 
         val route = subject.prepareNavigation(
             GemPushNotification.Stake(walletId = walletId.id, assetId = assetId.toIdentifier())

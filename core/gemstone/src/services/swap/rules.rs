@@ -1,4 +1,5 @@
 use num_bigint::BigInt;
+use num_bigint::BigUint;
 use primitives::swap::{SwapProviderData, SwapQuote, SwapQuoteData};
 use primitives::{Asset, AssetId, Chain, Wallet};
 use swapper::permit2_data::{Permit2Detail, PermitSingle};
@@ -8,7 +9,7 @@ use crate::config::swap_config::{SwapConfig, get_default_slippage};
 use crate::services::swap::model::{GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapTransfer};
 use std::collections::HashMap;
 
-pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, value: String, use_max_amount: bool, slippage_bps: Option<u32>) -> Result<QuoteRequest, SwapperError> {
+pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, value: BigUint, use_max_amount: bool, slippage_bps: Option<u32>) -> Result<QuoteRequest, SwapperError> {
     let wallet_address = account_address(wallet, from_asset.chain())?;
     let destination_address = account_address(wallet, to_asset.chain())?;
     Ok(QuoteRequest {
@@ -68,7 +69,7 @@ pub fn permit_single(approval: &Permit2ApprovalData, now: u64, config: &SwapConf
     PermitSingle {
         details: Permit2Detail {
             token: approval.token.clone(),
-            amount: approval.value.clone(),
+            amount: approval.value.to_string(),
             expiration: now + config.permit2_expiration,
             nonce: approval.permit2_nonce,
         },
@@ -107,8 +108,8 @@ fn account_address(wallet: &Wallet, chain: Chain) -> Result<String, SwapperError
         .ok_or(SwapperError::NotSupportedChain)
 }
 
-fn to_value(quote: &Quote) -> BigInt {
-    quote.to_value.parse().unwrap_or_default()
+fn to_value(quote: &Quote) -> BigUint {
+    quote.to_value.clone()
 }
 
 pub fn most_swapped_receive_asset(pairs: &[GemSwapPair], pay_asset_id: &AssetId) -> Option<AssetId> {
@@ -136,23 +137,26 @@ pub fn first_other_asset(asset_ids: Vec<AssetId>, pay_asset_id: &AssetId) -> Opt
     asset_ids.into_iter().find(|asset_id| asset_id != pay_asset_id)
 }
 
-pub fn button_action(input: &GemSwapButtonInput) -> GemSwapButtonAction {
-    if let Some(minimum) = minimum_amount(input.quote_error.as_ref()) {
-        if minimum > input.available_balance {
+#[uniffi::export]
+impl GemSwapButtonInput {
+    pub fn action(&self) -> GemSwapButtonAction {
+        if let Some(minimum) = minimum_amount(self.quote_error.as_ref()) {
+            if minimum > self.available_balance {
+                return GemSwapButtonAction::InsufficientBalance;
+            }
+            return GemSwapButtonAction::UseMinimumAmount { value: minimum };
+        }
+        if is_retryable(self.transfer_error.as_ref()) {
+            return GemSwapButtonAction::RetryTransfer;
+        }
+        if is_retryable(self.quote_error.as_ref()) {
+            return GemSwapButtonAction::RetryQuote;
+        }
+        if self.value > self.available_balance {
             return GemSwapButtonAction::InsufficientBalance;
         }
-        return GemSwapButtonAction::UseMinimumAmount { value: minimum };
+        GemSwapButtonAction::Swap
     }
-    if is_retryable(input.transfer_error.as_ref()) {
-        return GemSwapButtonAction::RetryTransfer;
-    }
-    if is_retryable(input.quote_error.as_ref()) {
-        return GemSwapButtonAction::RetryQuote;
-    }
-    if input.value > input.available_balance {
-        return GemSwapButtonAction::InsufficientBalance;
-    }
-    GemSwapButtonAction::Swap
 }
 
 pub fn is_retryable(error: Option<&SwapperError>) -> bool {
@@ -236,7 +240,7 @@ mod tests {
     #[test]
     fn test_quote_request_uses_wallet_accounts_and_slippage() {
         let wallet = wallet(&[Chain::Ethereum, Chain::Solana]);
-        let request = quote_request(&wallet, &asset(Chain::Ethereum), &asset(Chain::Solana), "100".to_string(), true, Some(50)).unwrap();
+        let request = quote_request(&wallet, &asset(Chain::Ethereum), &asset(Chain::Solana), BigUint::from(100u32), true, Some(50)).unwrap();
         assert_eq!(request.wallet_address, "ethereum-address");
         assert_eq!(request.destination_address, "solana-address");
         assert_eq!(
@@ -248,7 +252,7 @@ mod tests {
         );
         assert!(request.options.use_max_amount);
 
-        let auto = quote_request(&wallet, &asset(Chain::Ethereum), &asset(Chain::Solana), "100".to_string(), false, None).unwrap();
+        let auto = quote_request(&wallet, &asset(Chain::Ethereum), &asset(Chain::Solana), BigUint::from(100u32), false, None).unwrap();
         assert_eq!(auto.options.slippage.mode, SwapperSlippageMode::Auto);
         assert_eq!(auto.options.slippage.bps, get_default_slippage(&Chain::Ethereum).bps);
     }
@@ -257,7 +261,7 @@ mod tests {
     fn test_quote_request_requires_accounts() {
         let wallet = wallet(&[Chain::Ethereum]);
         assert!(matches!(
-            quote_request(&wallet, &asset(Chain::Ethereum), &asset(Chain::Solana), "1".to_string(), false, None),
+            quote_request(&wallet, &asset(Chain::Ethereum), &asset(Chain::Solana), BigUint::from(1u32), false, None),
             Err(SwapperError::NotSupportedChain)
         ));
     }
@@ -265,11 +269,11 @@ mod tests {
     #[test]
     fn test_swap_transfer_maps_quote_and_recipient() {
         let wallet = wallet(&[Chain::Ethereum, Chain::Solana]);
-        let request = quote_request(&wallet, &asset(Chain::Ethereum), &asset(Chain::Solana), "100".to_string(), true, Some(50)).unwrap();
+        let request = quote_request(&wallet, &asset(Chain::Ethereum), &asset(Chain::Solana), BigUint::from(100u32), true, Some(50)).unwrap();
         let quote = Quote {
-            from_value: "99".to_string(),
-            min_from_value: Some("90".to_string()),
-            to_value: "1".to_string(),
+            from_value: BigUint::from(99u64),
+            min_from_value: Some(BigUint::from(90u64)),
+            to_value: BigUint::from(1u64),
             data: swapper::ProviderData {
                 provider: swapper::ProviderType::new(swapper::SwapperProvider::Jupiter),
                 slippage_bps: 50,
@@ -281,7 +285,7 @@ mod tests {
         let data = SwapQuoteData {
             to: "0xrouter".to_string(),
             data_type: primitives::swap::SwapQuoteDataType::Contract,
-            value: "100".to_string(),
+            value: BigUint::from(100u64),
             data: "0x".to_string(),
             memo: None,
             approval: None,
@@ -291,13 +295,13 @@ mod tests {
         let transfer = swap_transfer(&wallet, &quote, data.clone()).unwrap();
 
         assert_eq!(transfer.recipient, "solana-address");
-        assert_eq!(transfer.value, "100");
+        assert_eq!(transfer.value, BigUint::from(100u64));
         assert!(transfer.use_max_amount);
         assert_eq!(transfer.data, data);
         assert_eq!(transfer.quote.from_address, "ethereum-address");
         assert_eq!(transfer.quote.to_address, "solana-address");
-        assert_eq!(transfer.quote.from_value, "99");
-        assert_eq!(transfer.quote.min_from_value.as_deref(), Some("90"));
+        assert_eq!(transfer.quote.from_value, BigUint::from(99u64));
+        assert_eq!(transfer.quote.min_from_value, Some(BigUint::from(90u64)));
         assert_eq!(transfer.quote.provider_data.provider, swapper::SwapperProvider::Jupiter);
         assert_eq!(transfer.quote.slippage_bps, 50);
         assert_eq!(transfer.quote.use_max_amount, Some(true));
@@ -311,7 +315,7 @@ mod tests {
         let approval = Permit2ApprovalData {
             token: "0xtoken".to_string(),
             spender: "0xspender".to_string(),
-            value: "1".to_string(),
+            value: BigUint::from(1u64),
             permit2_contract: "0xpermit2".to_string(),
             permit2_nonce: 7,
         };
@@ -326,22 +330,22 @@ mod tests {
     #[test]
     fn test_sort_quotes_prefers_highest_output() {
         let wallet = wallet(&[Chain::Ethereum, Chain::Solana]);
-        let quote = |to_value: &str| Quote {
-            from_value: "100".to_string(),
+        let quote = |to_value: u64| Quote {
+            from_value: BigUint::from(100u64),
             min_from_value: None,
-            to_value: to_value.to_string(),
+            to_value: BigUint::from(to_value),
             data: swapper::ProviderData {
                 provider: swapper::ProviderType::new(swapper::SwapperProvider::Jupiter),
                 slippage_bps: 50,
                 routes: vec![],
             },
-            request: quote_request(&wallet, &asset(Chain::Ethereum), &asset(Chain::Solana), "100".to_string(), false, None).unwrap(),
+            request: quote_request(&wallet, &asset(Chain::Ethereum), &asset(Chain::Solana), BigUint::from(100u32), false, None).unwrap(),
             eta_in_seconds: None,
         };
 
-        let sorted = sort_quotes(vec![quote("5"), quote("50"), quote("abc"), quote("7")]);
+        let sorted = sort_quotes(vec![quote(5), quote(50), quote(7)]);
 
-        assert_eq!(sorted.iter().map(|quote| quote.to_value.as_str()).collect::<Vec<_>>(), vec!["50", "7", "5", "abc"]);
+        assert_eq!(sorted.iter().map(|quote| quote.to_value.to_string()).collect::<Vec<_>>(), vec!["50", "7", "5"]);
     }
 
     fn pair(from: Chain, to: Chain) -> GemSwapPair {
@@ -430,19 +434,19 @@ mod tests {
         };
 
         assert_eq!(
-            button_action(&too_small(Some("18900023"))),
+            too_small(Some("18900023")).action(),
             GemSwapButtonAction::UseMinimumAmount { value: BigInt::from(18_900_023) }
         );
-        assert_eq!(button_action(&too_small(Some("22000000"))), GemSwapButtonAction::InsufficientBalance);
-        assert_eq!(button_action(&too_small(Some("0"))), GemSwapButtonAction::Swap);
-        assert_eq!(button_action(&too_small(None)), GemSwapButtonAction::Swap);
+        assert_eq!(too_small(Some("22000000")).action(), GemSwapButtonAction::InsufficientBalance);
+        assert_eq!(too_small(Some("0")).action(), GemSwapButtonAction::Swap);
+        assert_eq!(too_small(None).action(), GemSwapButtonAction::Swap);
     }
 
     #[test]
     fn test_button_action_blocks_an_unaffordable_amount_before_any_quote() {
-        assert_eq!(button_action(&button_input(101, 100)), GemSwapButtonAction::InsufficientBalance);
-        assert_eq!(button_action(&button_input(100, 100)), GemSwapButtonAction::Swap);
-        assert_eq!(button_action(&button_input(0, 100)), GemSwapButtonAction::Swap);
+        assert_eq!(button_input(101, 100).action(), GemSwapButtonAction::InsufficientBalance);
+        assert_eq!(button_input(100, 100).action(), GemSwapButtonAction::Swap);
+        assert_eq!(button_input(0, 100).action(), GemSwapButtonAction::Swap);
     }
 
     #[test]
@@ -462,15 +466,15 @@ mod tests {
             ..button_input(100, 100)
         };
 
-        assert_eq!(button_action(&quote_failed(SwapperError::NoQuoteAvailable)), GemSwapButtonAction::RetryQuote);
-        assert_eq!(button_action(&quote_failed(SwapperError::NotSupportedAsset)), GemSwapButtonAction::Swap);
-        assert_eq!(button_action(&quote_failed(SwapperError::NoAvailableProvider)), GemSwapButtonAction::Swap);
-        assert_eq!(button_action(&quote_failed(SwapperError::InvalidRoute)), GemSwapButtonAction::Swap);
+        assert_eq!(quote_failed(SwapperError::NoQuoteAvailable).action(), GemSwapButtonAction::RetryQuote);
+        assert_eq!(quote_failed(SwapperError::NotSupportedAsset).action(), GemSwapButtonAction::Swap);
+        assert_eq!(quote_failed(SwapperError::NoAvailableProvider).action(), GemSwapButtonAction::Swap);
+        assert_eq!(quote_failed(SwapperError::InvalidRoute).action(), GemSwapButtonAction::Swap);
         assert_eq!(
-            button_action(&transfer_failed(SwapperError::TransactionError("nonce".to_string()))),
+            transfer_failed(SwapperError::TransactionError("nonce".to_string())).action(),
             GemSwapButtonAction::RetryTransfer
         );
-        assert_eq!(button_action(&transfer_failed(SwapperError::NotSupportedChain)), GemSwapButtonAction::Swap);
+        assert_eq!(transfer_failed(SwapperError::NotSupportedChain).action(), GemSwapButtonAction::Swap);
     }
 
     #[test]
@@ -480,7 +484,7 @@ mod tests {
             transfer_error: Some(SwapperError::NoQuoteAvailable),
             ..button_input(101, 100)
         };
-        assert_eq!(button_action(&input), GemSwapButtonAction::RetryTransfer);
+        assert_eq!(input.action(), GemSwapButtonAction::RetryTransfer);
 
         let with_minimum = GemSwapButtonInput {
             quote_error: Some(SwapperError::InputAmountError {
@@ -488,7 +492,7 @@ mod tests {
             }),
             ..input
         };
-        assert_eq!(button_action(&with_minimum), GemSwapButtonAction::UseMinimumAmount { value: BigInt::from(50) });
+        assert_eq!(with_minimum.action(), GemSwapButtonAction::UseMinimumAmount { value: BigInt::from(50) });
     }
 
     #[test]

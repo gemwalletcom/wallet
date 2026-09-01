@@ -39,6 +39,7 @@ impl<C: Client> ChainTransactionLoad for StellarClient<C> {
 mod chain_integration_tests {
     use super::*;
     use crate::provider::testkit::{TEST_ADDRESS, TEST_EMPTY_ADDRESS, create_test_client};
+    use num_bigint::BigUint;
     use primitives::{Asset, Chain, TransactionInputType, TransactionPreloadInput};
 
     #[tokio::test]
@@ -96,7 +97,7 @@ mod chain_integration_tests {
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Stellar)),
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_ADDRESS.to_string(),
-            value: "1000000".to_string(),
+            value: BigUint::from(1000000u64),
             gas_price: primitives::GasPriceType::regular(100),
             memo: None,
             is_max_value: false,
@@ -128,7 +129,7 @@ mod chain_integration_tests {
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Stellar)),
             sender_address: TEST_ADDRESS.to_string(),
             destination_address: TEST_EMPTY_ADDRESS.to_string(),
-            value: "15000000".to_string(),
+            value: BigUint::from(15000000u64),
             gas_price: primitives::GasPriceType::regular(100),
             memo: None,
             is_max_value: false,

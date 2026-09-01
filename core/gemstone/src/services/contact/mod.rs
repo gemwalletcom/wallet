@@ -9,8 +9,10 @@ use std::sync::Arc;
 use primitives::contact::ContactAddress;
 use primitives::{Chain, Contact};
 
+use crate::address_formatter::{GemAddressFormatStyle, GemAddressService};
+use crate::services::chain::GemChainService;
 use crate::services::file::GemFileStore;
-use crate::services::name::GemAddressStore;
+use crate::services::name::{GemAddressStore, GemNameService};
 
 pub use model::{GemContactAddressInput, GemContactAvatar, GemContactInput};
 pub use store::GemContactStore;
@@ -60,11 +62,6 @@ impl GemContactService {
         }
     }
 
-    pub fn add_address(&self, addresses: Vec<ContactAddress>, input: GemContactAddressInput) -> Vec<ContactAddress> {
-        let address = rules::contact_address(input.contact_id, input.chain, input.address, input.memo);
-        rules::upsert_address(addresses, address, input.replacing_id)
-    }
-
     pub async fn update_contact(&self, contact: Contact, addresses: Vec<ContactAddress>) -> Result<(), GemServiceError> {
         let existing = self.store.get_addresses(contact.id.clone()).await?;
         let stale = rules::stale_addresses(existing, &addresses);
@@ -96,5 +93,71 @@ impl GemContactService {
 
     async fn save_address_names(&self, contact: &Contact, addresses: &[ContactAddress]) -> Result<(), GemServiceError> {
         self.address_store.save_address_names(rules::address_names(contact, addresses)).await
+    }
+}
+
+#[derive(uniffi::Object)]
+pub struct GemContactsService {
+    contacts: Arc<GemContactService>,
+}
+
+#[uniffi::export]
+impl GemContactsService {
+    #[uniffi::constructor]
+    pub fn new(contacts: Arc<GemContactService>) -> Self {
+        Self { contacts }
+    }
+
+    pub async fn update_contact(&self, contact: Contact, addresses: Vec<ContactAddress>) -> Result<(), GemServiceError> {
+        self.contacts.update_contact(contact, addresses).await
+    }
+
+    pub async fn delete_contact(&self, contact: Contact) -> Result<(), GemServiceError> {
+        self.contacts.delete_contact(contact).await
+    }
+}
+
+#[derive(uniffi::Object)]
+pub struct GemManageContactService {
+    contacts: Arc<GemContactService>,
+    addresses: Arc<GemAddressService>,
+    names: Arc<GemNameService>,
+    chains: Arc<GemChainService>,
+}
+
+#[uniffi::export]
+impl GemManageContactService {
+    #[uniffi::constructor]
+    pub fn new(contacts: Arc<GemContactService>, addresses: Arc<GemAddressService>, names: Arc<GemNameService>, chains: Arc<GemChainService>) -> Self {
+        Self {
+            contacts,
+            addresses,
+            names,
+            chains,
+        }
+    }
+
+    pub fn default_chain(&self) -> Chain {
+        self.contacts.default_chain()
+    }
+
+    pub async fn save_contact(&self, input: GemContactInput) -> Result<Contact, GemServiceError> {
+        self.contacts.save_contact(input).await
+    }
+
+    pub fn format_address(&self, address: String, chain: Chain, style: GemAddressFormatStyle) -> String {
+        self.addresses.format(address, Some(chain), style)
+    }
+
+    pub fn names(&self) -> Arc<GemNameService> {
+        self.names.clone()
+    }
+
+    pub fn addresses(&self) -> Arc<GemAddressService> {
+        self.addresses.clone()
+    }
+
+    pub fn chains(&self) -> Arc<GemChainService> {
+        self.chains.clone()
     }
 }

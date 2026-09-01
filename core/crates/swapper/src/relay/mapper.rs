@@ -1,5 +1,7 @@
 use gem_tron::address::TronAddress;
+use num_bigint::BigUint;
 use primitives::{TransactionSwapMetadata, swap::ApprovalData};
+use std::str::FromStr;
 
 use super::{
     asset::map_currency_to_asset_id,
@@ -17,7 +19,13 @@ pub fn map_quote_data(quote_response: &RelayQuoteResponse, approval: Option<Appr
             let evm = quote_response.get_evm_step().ok_or(SwapperError::InvalidRoute)?;
             let gas_limit = get_swap_gas_limit_with_approval(&approval, evm.gas_limit_with_buffer(), DEFAULT_EVM_SWAP_GAS_LIMIT);
             let call_data = evm.data.clone().unwrap_or_default();
-            Ok(SwapperQuoteData::new_contract(evm.to.clone(), evm.value.clone(), call_data, approval, gas_limit))
+            Ok(SwapperQuoteData::new_contract(
+                evm.to.clone(),
+                BigUint::from_str(&evm.value).map_err(SwapperError::compute_quote_error)?,
+                call_data,
+                approval,
+                gas_limit,
+            ))
         }
         RelayChain::Tron => {
             let tron = quote_response.get_tron_step().ok_or(SwapperError::InvalidRoute)?;
@@ -26,7 +34,7 @@ pub fn map_quote_data(quote_response: &RelayQuoteResponse, approval: Option<Appr
             let gas_limit = get_swap_gas_limit_with_approval(&approval, None, DEFAULT_TRON_SWAP_ENERGY_LIMIT);
             Ok(SwapperQuoteData::new_contract(
                 contract.to_string(),
-                transaction.call_value.unwrap_or_default().to_string(),
+                BigUint::from(transaction.call_value.unwrap_or_default()),
                 transaction.data.clone(),
                 approval,
                 gas_limit,
@@ -44,9 +52,9 @@ pub fn map_swap_result(request: &RelayRequest) -> SwapResult {
         let to_chain = RelayChain::from_chain_id(currency_out.currency.chain_id)?.to_chain();
         Some(TransactionSwapMetadata {
             from_asset: map_currency_to_asset_id(from_chain, &currency_in.currency.address),
-            from_value: currency_in.amount.clone()?,
+            from_value: BigUint::from_str(currency_in.amount.as_deref()?).ok()?,
             to_asset: map_currency_to_asset_id(to_chain, &currency_out.currency.address),
-            to_value: currency_out.amount.clone()?,
+            to_value: BigUint::from_str(currency_out.amount.as_deref()?).ok()?,
             provider: Some(SwapperProvider::Relay.as_ref().to_string()),
         })
     });
@@ -71,7 +79,7 @@ mod tests {
         let result = map_quote_data(&quote_response, None, RelayChain::Evm(EVMChain::Ethereum)).unwrap();
 
         assert_eq!(result.to, "0xrouter");
-        assert_eq!(result.value, "1000000000000000000");
+        assert_eq!(result.value, BigUint::parse_bytes(b"1000000000000000000", 10).unwrap());
         assert_eq!(result.data, "0xabcdef");
         assert!(result.approval.is_none());
         assert!(result.gas_limit.is_none());
@@ -79,7 +87,7 @@ mod tests {
 
     #[test]
     fn test_map_evm_quote_data_with_approval() {
-        let approval = ApprovalData::make("0xtoken", "0xrouter", "1000", false);
+        let approval = ApprovalData::make("0xtoken", "0xrouter", BigUint::from(1000u64), false);
 
         let quote_response = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction_with_gas("swap", "0xrouter", "0", "0xabcdef", Some(482935))]);
         let result = map_quote_data(&quote_response, Some(approval.clone()), RelayChain::Evm(EVMChain::Ethereum)).unwrap();
@@ -100,7 +108,7 @@ mod tests {
         let result = map_quote_data(&quote_response, None, RelayChain::Tron).unwrap();
 
         assert_eq!(result.to, "TXtEs6t2oUWQsNos7m68gbHdE9Q5n6x2oN");
-        assert_eq!(result.value, "0");
+        assert_eq!(result.value, BigUint::from(0u64));
         assert_eq!(
             result.data,
             "e8017952000000000000000000000000f70da97812cb96acdf810712aa562db8dfa3dbef000000000000000000000000a614f803b6fd780986a42c78ec9c7f77e6ded13c00000000000000000000000000000000000000000000000000000000000f42407ea7c6b23ebd61b4a4b5802cfd9ca2ba44bf096a67858bb0efff82111cf096c0"
@@ -108,7 +116,7 @@ mod tests {
         assert!(result.approval.is_none());
         assert!(result.gas_limit.is_none());
 
-        let approval = ApprovalData::make("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", "TXtEs6t2oUWQsNos7m68gbHdE9Q5n6x2oN", "1000000", true);
+        let approval = ApprovalData::make("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", "TXtEs6t2oUWQsNos7m68gbHdE9Q5n6x2oN", BigUint::from(1000000u64), true);
         let result = map_quote_data(&quote_response, Some(approval.clone()), RelayChain::Tron).unwrap();
         assert_eq!(result.approval, Some(approval));
         assert_eq!(result.gas_limit, Some(DEFAULT_TRON_SWAP_ENERGY_LIMIT.to_string()));
@@ -116,7 +124,7 @@ mod tests {
         let native_quote: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_tron_to_base_usdc.json")).unwrap();
         let native = map_quote_data(&native_quote, None, RelayChain::Tron).unwrap();
         assert_eq!(native.to, "TXtEs6t2oUWQsNos7m68gbHdE9Q5n6x2oN");
-        assert_eq!(native.value, "10000000");
+        assert_eq!(native.value, BigUint::from(10000000u64));
         assert!(native.approval.is_none());
 
         assert_eq!(
@@ -133,9 +141,9 @@ mod tests {
         assert_eq!(result.status, SwapStatus::Completed);
         let metadata = result.metadata.unwrap();
         assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::Arbitrum));
-        assert_eq!(metadata.from_value, "60000000000000");
+        assert_eq!(metadata.from_value, BigUint::from(60000000000000u64));
         assert_eq!(metadata.to_asset, AssetId::from_chain(Chain::Base));
-        assert_eq!(metadata.to_value, "49426938842266");
+        assert_eq!(metadata.to_value, BigUint::from(49426938842266u64));
         assert_eq!(metadata.provider, Some("relay".to_string()));
 
         let same_chain_response: RelayRequestsResponse = serde_json::from_str(include_str!("testdata/request_base_eth_to_wsteth.json")).unwrap();
@@ -144,9 +152,9 @@ mod tests {
         assert_eq!(result.status, SwapStatus::Completed);
         let metadata = result.metadata.unwrap();
         assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::Base));
-        assert_eq!(metadata.from_value, "1366348234320898");
+        assert_eq!(metadata.from_value, BigUint::from(1366348234320898u64));
         assert_eq!(metadata.to_asset, AssetId::from_token(Chain::Base, "0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452"));
-        assert_eq!(metadata.to_value, "1101293561931134");
+        assert_eq!(metadata.to_value, BigUint::from(1101293561931134u64));
 
         let pending = map_swap_result(&RelayRequest::mock_with_status(RelayStatus::Pending));
         assert_eq!(pending.status, SwapStatus::Pending);

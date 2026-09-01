@@ -1,5 +1,6 @@
 use crate::{Asset, AssetId, FiatProviderName, FiatQuoteUrlData};
 use chrono::{DateTime, Utc};
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
 use typeshare::typeshare;
@@ -21,7 +22,8 @@ pub struct FiatTransaction {
     pub country: Option<String>,
     pub fiat_amount: f64,
     pub fiat_currency: String,
-    pub value: String,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint", deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
+    pub value: BigUint,
     #[typeshare(skip)]
     #[serde(skip_serializing)]
     pub transaction_hash: Option<String>,

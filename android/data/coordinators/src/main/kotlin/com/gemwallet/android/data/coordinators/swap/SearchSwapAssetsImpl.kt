@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.coordinators.swap
 
-import uniffi.gemstone.GemAssetConfigService
 import com.gemwallet.android.application.swap.cases.SearchSwapAssets
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.domains.swap.SwapItemType
@@ -27,7 +26,6 @@ import uniffi.gemstone.SwapperAssetList
 class SearchSwapAssetsImpl(
     private val searchService: AssetsSearchService,
     private val swapService: GemSwapServiceInterface,
-    private val assetConfig: GemAssetConfigService,
 ) : SearchSwapAssets {
 
     override fun invoke(
@@ -61,8 +59,8 @@ class SearchSwapAssetsImpl(
         .catch { emit(emptyList()) }
         .map { items ->
             when (swapItemType) {
-                SwapItemType.Pay -> GemAssetAction.SWAP_PAY.eligible(items, assetConfig)
-                SwapItemType.Receive -> GemAssetAction.SWAP_RECEIVE.eligible(items, assetConfig)
+                SwapItemType.Pay -> GemAssetAction.SWAP_PAY.eligible(items)
+                SwapItemType.Receive -> GemAssetAction.SWAP_RECEIVE.eligible(items)
             }
         }
     }

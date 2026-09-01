@@ -111,7 +111,6 @@ struct WalletNavigationView: View {
                     priceAlertService: priceAlertService,
                     bannerService: bannerService,
                     swapService: swapService,
-                    stakeService: stakeService,
                     explorerService: explorerService,
                     transactionFormatter: transactionFormatter,
                     deeplinkService: deeplinkService,

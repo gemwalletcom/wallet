@@ -11,6 +11,7 @@ pub struct GemBalanceValue {
 pub enum GemBalanceUpdateType {
     Coin {
         available: GemBalanceValue,
+        frozen: GemBalanceValue,
         reserved: GemBalanceValue,
         pending_unconfirmed: GemBalanceValue,
     },

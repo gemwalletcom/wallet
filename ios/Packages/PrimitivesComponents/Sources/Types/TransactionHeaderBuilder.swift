@@ -1,5 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemTransactionInputType
+import GemstonePrimitives
+import struct Gemstone.GemConfirmMetadata
 import BigInt
 import Foundation
 import Primitives
@@ -47,8 +50,8 @@ public enum TransactionHeaderTypeBuilder {
 
     public static func build(
         infoModel: TransactionInfoViewModel,
-        dataType: TransferDataType,
-        metadata: TransferDataMetadata?,
+        dataType: GemTransactionInputType,
+        metadata: GemConfirmMetadata?,
     ) -> TransactionHeaderType {
         let inputType: TransactionHeaderInputType = {
             switch dataType {
@@ -60,10 +63,11 @@ public enum TransactionHeaderTypeBuilder {
                 return .amount(showFiat: true)
             case .tokenApprove:
                 return .assetImage
-            case let .transferNft(asset):
-                return .nft(name: asset.name, id: asset.id.identifier)
+            case let .transferNft(_, nftAsset):
+                let nft = Primitives.NFTAsset(core: nftAsset)
+                return .nft(name: nft.name, id: nft.id.identifier)
             case let .account(_, type):
-                switch type {
+                switch Primitives.AccountDataType(core: type) {
                 case .activate:
                     return .amount(showFiat: false)
                 }
@@ -72,16 +76,19 @@ public enum TransactionHeaderTypeBuilder {
                     price.mapToAssetPrice(assetId: assetId)
                 }
 
+                let from = fromAsset.map()
+                let to = toAsset.map()
+                let quote = Primitives.SwapData(core: data).quote
                 let model = SwapMetadataViewModel(
                     metadata: TransactionExtendedMetadata(
-                        assets: [fromAsset, toAsset],
+                        assets: [from, to],
                         assetPrices: assetPrices,
                         metadata: .encode(TransactionSwapMetadata(
-                            fromAsset: fromAsset.id,
-                            fromValue: data.quote.fromValue,
-                            toAsset: toAsset.id,
-                            toValue: data.quote.toValue,
-                            provider: data.quote.providerData.provider.rawValue,
+                            fromAsset: from.id,
+                            fromValue: quote.fromValue,
+                            toAsset: to.id,
+                            toValue: quote.toValue,
+                            provider: quote.providerData.provider.rawValue,
                         )),
                     ),
                 )

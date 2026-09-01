@@ -56,8 +56,8 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
 
     private func updateType(_ type: GemBalanceUpdateType) throws -> UpdateBalanceType {
         switch type {
-        case let .coin(available, reserved, pendingUnconfirmed):
-            .coin(UpdateCoinBalance(available: value(available), reserved: value(reserved), pendingUnconfirmed: value(pendingUnconfirmed)))
+        case let .coin(available, frozen, reserved, pendingUnconfirmed):
+            .coin(UpdateCoinBalance(available: value(available), frozen: value(frozen), reserved: value(reserved), pendingUnconfirmed: value(pendingUnconfirmed)))
         case let .token(available):
             .token(UpdateTokenBalance(available: value(available)))
         case let .stake(staked, pending, rewards, locked, frozen, metadata):

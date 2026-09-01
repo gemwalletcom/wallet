@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use num_bigint::BigUint;
 use primitives::{FeeOption, SignerError, SignerInput, unix_timestamp};
 
@@ -19,7 +17,7 @@ const EXTERNAL_EXPIRE_WINDOW_SECS: u64 = 600;
 
 impl TonSigner {
     pub fn sign_transfer(&self, input: &SignerInput, expire_at: Option<u32>) -> Result<String, SignerError> {
-        let request = TransferRequest::new_transfer(&input.destination_address, &input.value, input.is_max_value, input.memo.clone())?;
+        let request = TransferRequest::new_transfer(&input.destination_address, &input.value.to_string(), input.is_max_value, input.memo.clone())?;
         self.sign_requests(vec![request], input.metadata.get_sequence()?, expire_at)
     }
 
@@ -31,7 +29,7 @@ impl TonSigner {
 
         let jetton = JettonTransferRequest {
             query_id: 0,
-            value: BigUint::from_str(&input.value)?,
+            value: input.value.clone(),
             destination: Address::parse(&input.destination_address)?,
             response_address: Address::parse(&input.sender_address)?,
             custom_payload: None,
@@ -60,7 +58,7 @@ impl TonSigner {
         let swap_data = input.input_type.get_swap_data()?;
         let request = TransferRequest::new_with_payload(
             &swap_data.data.to,
-            &swap_data.data.value,
+            &swap_data.data.value.to_string(),
             input.memo.clone(),
             Some(BagOfCells::parse_base64_root(&swap_data.data.data)?),
             true,
@@ -220,7 +218,7 @@ mod tests {
         let signer = test_signer();
         let mut swap_data = SwapData::mock_with_provider(primitives::SwapProvider::StonfiV2);
         swap_data.data.to = SENDER_TOKEN_ADDRESS.to_string();
-        swap_data.data.value = "241000000".to_string();
+        swap_data.data.value = BigUint::from(241000000u64);
         swap_data.data.data = mock_cell();
         swap_data.data.gas_limit = None;
         let input = SignerInput::mock_ton(

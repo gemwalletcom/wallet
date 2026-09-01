@@ -1,4 +1,7 @@
+use num_bigint::BigUint;
+use serde_serializers::deserialize_biguint_from_str;
 use std::collections::BTreeMap;
+use std::str::FromStr;
 use std::sync::LazyLock;
 
 use num_traits::ToPrimitive;
@@ -69,7 +72,8 @@ struct EstimatedDurations {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SwapDeposit {
-    pub amount: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub amount: BigUint,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -135,7 +139,13 @@ pub fn map_swap_result(response: &SwapTxResponse) -> SwapResult {
             let from_asset = chainflip_asset_to_asset_id(fc, &response.src_asset)?;
             let to_asset = chainflip_asset_to_asset_id(tc, &response.dest_asset)?;
             let from_value = response.deposit.as_ref()?.amount.clone();
-            let to_value = response.swap.as_ref().map(|s| s.swapped_output_amount.clone()).unwrap_or_default();
+            let to_value = response
+                .swap
+                .as_ref()
+                .map(|swap| BigUint::from_str(&swap.swapped_output_amount))
+                .transpose()
+                .ok()?
+                .unwrap_or_default();
             Some(TransactionSwapMetadata {
                 from_asset,
                 from_value,
@@ -171,9 +181,9 @@ pub mod test {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata {
                     from_asset: AssetId::from_chain(Chain::Ethereum),
-                    from_value: "140000000000000000".to_string(),
+                    from_value: BigUint::from(140000000000000000u64),
                     to_asset: AssetId::from_chain(Chain::Bitcoin),
-                    to_value: "405772".to_string(),
+                    to_value: BigUint::from(405772u64),
                     provider: Some("chainflip".to_string()),
                 }),
                 eta_in_seconds: None,
@@ -189,9 +199,9 @@ pub mod test {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata {
                     from_asset: ETHEREUM_USDC_ASSET_ID.clone(),
-                    from_value: "100000000".to_string(),
+                    from_value: BigUint::from(100000000u64),
                     to_asset: AssetId::from_chain(Chain::Solana),
-                    to_value: "1143469990".to_string(),
+                    to_value: BigUint::from(1143469990u64),
                     provider: Some("chainflip".to_string()),
                 }),
                 eta_in_seconds: None,
@@ -207,9 +217,9 @@ pub mod test {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata {
                     from_asset: AssetId::from_chain(Chain::Solana),
-                    from_value: "150000000".to_string(),
+                    from_value: BigUint::from(150000000u64),
                     to_asset: AssetId::from_chain(Chain::Bitcoin),
-                    to_value: "17567".to_string(),
+                    to_value: BigUint::from(17567u64),
                     provider: Some("chainflip".to_string()),
                 }),
                 eta_in_seconds: None,
@@ -280,9 +290,9 @@ pub mod test {
                 status: SwapStatus::Failed,
                 metadata: Some(TransactionSwapMetadata {
                     from_asset: AssetId::from_chain(Chain::Bitcoin),
-                    from_value: "1508475".to_string(),
+                    from_value: BigUint::from(1508475u64),
                     to_asset: ETHEREUM_USDT_ASSET_ID.clone(),
-                    to_value: "0".to_string(),
+                    to_value: BigUint::from(0u64),
                     provider: Some("chainflip".to_string()),
                 }),
                 eta_in_seconds: None,

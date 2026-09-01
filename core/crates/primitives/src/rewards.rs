@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 use typeshare::typeshare;
@@ -198,7 +199,8 @@ pub struct RewardRedemptionOption {
     pub redemption_type: RewardRedemptionType,
     pub points: i32,
     pub asset: Option<Asset>,
-    pub value: String,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint", deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
+    pub value: BigUint,
     pub remaining: Option<i32>,
 }
 

@@ -25,11 +25,11 @@ impl AssetsAddressesRepository for DatabaseClient {
     }
 
     fn get_asset_addresses(&mut self, value: ChainAddress) -> Result<Vec<PrimitiveAssetAddress>, DatabaseError> {
-        Ok(AssetsAddressesStore::get_asset_addresses(self, value)?.into_iter().map(|row| row.as_primitive()).collect())
+        AssetsAddressesStore::get_asset_addresses(self, value)?.into_iter().map(|row| row.as_primitive()).collect()
     }
 
     fn get_asset_address(&mut self, value: ChainAddress, asset_id: AssetId) -> Result<Option<PrimitiveAssetAddress>, DatabaseError> {
-        Ok(AssetsAddressesStore::get_asset_address(self, value, asset_id)?.map(|row| row.as_primitive()))
+        AssetsAddressesStore::get_asset_address(self, value, asset_id)?.map(|row| row.as_primitive()).transpose()
     }
 
     fn delete_assets_addresses(&mut self, values: Vec<PrimitiveAssetAddress>) -> Result<usize, DatabaseError> {

@@ -1,23 +1,27 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemTransactionInputType
 import Foundation
 import Localization
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
+import struct Gemstone.GemRecipient
+import struct Gemstone.GemTransferData
 
 struct TransferDataViewModel {
-    let data: TransferData
+    let data: GemTransferData
 
-    var type: TransferDataType {
-        data.type
+    var type: GemTransactionInputType {
+        data.inputType
     }
 
-    var recipient: Recipient {
+    var recipient: GemRecipient {
         data.recipient
     }
 
     var asset: Asset {
-        data.type.asset
+        data.inputType.asset
     }
 
     var memo: String? {
@@ -45,7 +49,7 @@ struct TransferDataViewModel {
         case .swap, .tokenApprove: Localized.Wallet.swap
         case .generic: Localized.Transfer.reviewRequest
         case let .stake(_, type):
-            switch type {
+            switch Primitives.StakeType(core: type) {
             case .stake: Localized.Transfer.Stake.title
             case .unstake: Localized.Transfer.Unstake.title
             case .redelegate: Localized.Transfer.Redelegate.title
@@ -55,11 +59,11 @@ struct TransferDataViewModel {
             case .unfreeze: Localized.Transfer.Unfreeze.title
             }
         case let .account(_, type):
-            switch type {
+            switch Primitives.AccountDataType(core: type) {
             case .activate: Localized.Transfer.ActivateAsset.title
             }
         case let .perpetual(_, type):
-            switch type {
+            switch Primitives.PerpetualType(core: type) {
             case let .open(data): PerpetualDirectionViewModel(direction: data.direction).title
             case .close: Localized.Perpetual.closePosition
             case let .increase(data): PerpetualDirectionViewModel(direction: data.direction).increaseTitle
@@ -67,7 +71,7 @@ struct TransferDataViewModel {
             case .modify: Localized.Perpetual.modifyPosition
             }
         case let .earn(_, type, _):
-            switch type {
+            switch Primitives.EarnType(core: type) {
             case .deposit: Localized.Wallet.deposit
             case .withdraw: Localized.Transfer.Withdraw.title
             }
@@ -87,7 +91,7 @@ struct TransferDataViewModel {
              .perpetual,
              .earn: .none
         case let .generic(_, metadata, _):
-            URL(string: metadata.url)
+            URL(string: Primitives.ApplicationMetadata(core: metadata).url)
         }
     }
 

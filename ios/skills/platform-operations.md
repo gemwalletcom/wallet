@@ -15,7 +15,7 @@
   ```bash
   just localize
   ```
-- Follow with `just generate-swiftgen` or `just generate` when asset/localization codegen is involved
+- `just localize` writes both the `.xcstrings` catalogs and the typed `Localized.swift`/`WidgetLocalized.swift` accessors; no separate codegen step is needed
 
 ## Security
 

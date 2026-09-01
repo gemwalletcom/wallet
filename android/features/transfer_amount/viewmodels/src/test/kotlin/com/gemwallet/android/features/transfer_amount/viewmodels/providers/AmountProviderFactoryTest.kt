@@ -25,8 +25,6 @@ import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-import uniffi.gemstone.GemAmountService
-
 class AmountProviderFactoryTest {
 
     private val asset = mockAssetCosmos()
@@ -53,7 +51,6 @@ class AmountProviderFactoryTest {
         userConfig = mockk<UserConfig>(relaxed = true) {
             every { perpetualLeverage() } returns flowOf(5)
         },
-        amountService = GemAmountService(),
     )
     private val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
 

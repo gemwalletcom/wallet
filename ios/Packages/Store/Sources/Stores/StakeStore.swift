@@ -50,16 +50,6 @@ public struct StakeStore: Sendable {
         }
     }
 
-    public func getValidator(assetId: AssetId, validatorId: String) throws -> DelegationValidator? {
-        try db.read { db in
-            try StakeValidatorRecord
-                .filter(StakeValidatorRecord.Columns.assetId == assetId.identifier)
-                .filter(StakeValidatorRecord.Columns.validatorId == validatorId)
-                .fetchOne(db)
-                .map(\.validator)
-        }
-    }
-
     public func getValidatorsActive(assetId: AssetId, providerType: StakeProviderType) throws -> [DelegationValidator] {
         try db.read { db in
             try StakeValidatorRecord
@@ -111,16 +101,6 @@ public struct StakeStore: Sendable {
     public func getDelegations(walletId: WalletId, assetId: AssetId, providerType: StakeProviderType) throws -> [Delegation] {
         try db.read { db in
             try DelegationsRequest(walletId: walletId, assetId: assetId, providerType: providerType).fetch(db)
-        }
-    }
-
-    @discardableResult
-    public func deleteDelegations(walletId: WalletId, ids: [String]) throws -> Int {
-        try db.write { db in
-            try StakeDelegationRecord
-                .filter(StakeDelegationRecord.Columns.walletId == walletId.id)
-                .filter(ids.contains(StakeDelegationRecord.Columns.id))
-                .deleteAll(db)
         }
     }
 

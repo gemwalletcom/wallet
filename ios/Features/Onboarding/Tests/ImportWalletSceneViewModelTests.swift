@@ -4,6 +4,10 @@ import GemstonePrimitivesTestKit
 import protocol Gemstone.GemNameServiceProtocol
 import GemstoneServices
 import GemstoneServicesTestKit
+import class Gemstone.GemOnboardingService
+import class Gemstone.GemWalletSessionService
+import Preferences
+import PreferencesTestKit
 @testable import Onboarding
 import Primitives
 import PrimitivesTestKit
@@ -17,8 +21,8 @@ struct ImportWalletSceneViewModelTests {
     func existingImportSetsCurrentWallet() async throws {
         let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum]))
         let sessionStore = GemstoneWalletSessionStore.mock()
-        let walletSessionService = WalletSessionService.mock(store: walletStore, sessionStore: sessionStore)
-        let service = WalletService.mock(walletStore: walletStore, sessionStore: sessionStore)
+        let session = GemWalletSessionService(store: sessionStore, wallets: GemstoneWalletStore(store: walletStore))
+        let service = GemOnboardingService.mock(walletStore: walletStore, sessionStore: sessionStore)
 
         let walletA = try await service.importWallet(
             name: "Wallet A",
@@ -31,18 +35,17 @@ struct ImportWalletSceneViewModelTests {
             type: .single(words: service.createWallet(), chain: .ethereum),
             source: .import,
         ).wallet
-        try await walletSessionService.setCurrent(wallet: walletB)
+        try await session.setCurrent(wallet: walletB)
 
-        #expect(walletSessionService.currentWalletId == walletB.id)
+        #expect(session.currentWalletId == walletB.id)
 
         let model = ImportWalletSceneViewModel.mock(
-            walletService: service,
-            walletSessionService: walletSessionService,
+            service: service,
         )
         model.input = LocalKeystore.words.joined(separator: " ")
         await model.onSelectActionButton()
 
-        #expect(walletSessionService.currentWalletId == walletA.id)
+        #expect(session.currentWalletId == walletA.id)
     }
 
     @Test
@@ -69,16 +72,12 @@ struct ImportWalletSceneViewModelTests {
 @MainActor
 private extension ImportWalletSceneViewModel {
     static func mock(
-        walletService: WalletService? = nil,
-        walletSessionService: (any WalletSessionManageable)? = nil,
+        service: GemOnboardingService? = nil,
         nameService: any GemNameServiceProtocol = GemNameServiceMock(nameRecord: .mock()),
     ) -> ImportWalletSceneViewModel {
-        let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum]))
-        let sessionStore = GemstoneWalletSessionStore.mock()
-        let sessionService = walletSessionService ?? WalletSessionService.mock(store: walletStore, sessionStore: sessionStore)
-        return ImportWalletSceneViewModel(
-            walletService: walletService ?? .mock(walletStore: walletStore, sessionStore: sessionStore),
-            walletSessionService: sessionService,
+        ImportWalletSceneViewModel(
+            service: service ?? .mock(),
+            preferences: .mock(),
             nameService: nameService,
             type: .chain(.ethereum),
             onComplete: nil,

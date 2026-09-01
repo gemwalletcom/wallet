@@ -1,9 +1,15 @@
 package com.gemwallet.android.payment
 
-import uniffi.gemstone.GemTransferService
-import uniffi.gemstone.GemRecipient
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.domains.confirm.asset
+import com.gemwallet.android.domains.confirm.confirmInput
+import com.gemwallet.android.domains.confirm.pack
+import com.gemwallet.android.domains.confirm.toTransactionData
+import com.gemwallet.android.domains.confirm.transfer
+import com.gemwallet.android.domains.confirm.unpack
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.includeGemstoneLibs
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetEthereum
@@ -11,15 +17,23 @@ import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.ApplicationMetadataSource
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.TransferDataOutputAction
 import com.wallet.core.primitives.TransferDataOutputType
 import com.wallet.core.primitives.swap.ApprovalData
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
+import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.GemTransferDataExtra
+import uniffi.gemstone.GemTransferService
 import java.math.BigInteger
 
 @RunWith(AndroidJUnit4::class)
@@ -33,41 +47,70 @@ class ConfirmInputCodecTest {
         }
     }
 
+    private fun roundTrip(input: GemConfirmInput): GemConfirmInput =
+        requireNotNull(transferService.unpack(requireNotNull(transferService.pack(input))))
+
+    private fun generic(
+        asset: Asset,
+        recipient: GemRecipient,
+        metadata: ApplicationMetadata,
+        data: String,
+        outputType: TransferDataOutputType,
+        outputAction: TransferDataOutputAction,
+        transactionType: TransactionType,
+        gasLimit: String? = null,
+        approval: ApprovalData? = null,
+    ) = GemTransferData(
+        inputType = GemTransactionInputType.Generic(
+            asset = asset.toGem(),
+            metadata = metadata.toJson(),
+            extra = GemTransferDataExtra(
+                to = recipient.address,
+                gasLimit = gasLimit,
+                gasPrice = null,
+                data = data.toTransactionData(),
+                outputType = outputType.toJson(),
+                outputAction = outputAction.toJson(),
+                transactionType = transactionType.toJson(),
+                approval = approval?.toJson(),
+            ),
+        ),
+        recipient = recipient,
+        value = BigInteger.ZERO.toString(),
+    )
+
     @Test
     fun transferPackRoundTripsThroughCoreCodec() {
         val account = mockAccount(chain = Chain.Solana)
-        val original = ConfirmParams.Builder(mockAssetSolanaUSDC(), account, BigInteger("19000000"), useMaxAmount = true)
-            .transfer(
-                destination = GemRecipient("recipient", "recipient.sol"),
-                memo = "payment-memo",
-                references = listOf("reference"),
-            )
+        val asset = mockAssetSolanaUSDC()
+        val original = GemTransferData(
+            inputType = GemTransactionInputType.transfer(asset),
+            recipient = GemRecipient(address = "recipient", name = "recipient.sol", memo = "payment-memo", references = listOf("reference")),
+            value = "19000000",
+            useMaxAmount = true,
+        ).confirmInput(account)
 
-        val unpacked = ConfirmParams.unpack(requireNotNull(original.pack(transferService)), transferService)
+        val transfer = roundTrip(original).transfer
 
-        assertTrue(unpacked is ConfirmParams.TransferParams.Transfer)
-        val params = unpacked as ConfirmParams.TransferParams.Transfer
-        assertEquals(original.asset, params.asset)
-        assertEquals(account, params.from)
-        assertEquals(BigInteger("19000000"), params.amount)
-        assertEquals(GemRecipient("recipient", "recipient.sol"), params.destination)
-        assertEquals("payment-memo", params.memo)
-        assertEquals(listOf("reference"), params.references)
-        assertTrue(params.useMaxAmount)
+        assertTrue(transfer.inputType is GemTransactionInputType.Transfer)
+        assertEquals(asset, transfer.inputType.asset)
+        assertEquals(account.address, roundTrip(original).from.address)
+        assertEquals("19000000", transfer.value)
+        assertEquals("recipient", transfer.recipient.address)
+        assertEquals("recipient.sol", transfer.recipient.name)
+        assertEquals("payment-memo", transfer.recipient.memo)
+        assertEquals(listOf("reference"), transfer.recipient.references)
+        assertTrue(transfer.useMaxAmount)
     }
 
     @Test
     fun genericPackRoundTripsThroughCoreCodec() {
         val account = mockAccount(chain = Chain.Solana)
+        val asset = mockAssetSolana()
         val approval = ApprovalData(token = "token", spender = "spender", value = "1", isUnlimited = false)
-        val original = ConfirmParams.TransferParams.Generic(
-            asset = mockAssetSolana(),
-            from = account,
-            amount = BigInteger.ZERO,
-            destination = GemRecipient("merchant"),
-            memo = "payment-memo",
-            outputType = TransferDataOutputType.EncodedTransaction,
-            outputAction = TransferDataOutputAction.Send,
+        val original = generic(
+            asset = asset,
+            recipient = GemRecipient(address = "merchant", memo = "payment-memo"),
             metadata = ApplicationMetadata(
                 name = "Merchant",
                 description = "Payment",
@@ -76,40 +119,40 @@ class ConfirmInputCodecTest {
                 source = ApplicationMetadataSource.Payment,
             ),
             data = "encoded-transaction",
+            outputType = TransferDataOutputType.EncodedTransaction,
+            outputAction = TransferDataOutputAction.Send,
+            transactionType = TransactionType.Transfer,
             gasLimit = "21000",
-            decodedTransactionType = TransactionType.Transfer,
             approval = approval,
-        )
+        ).confirmInput(account)
 
-        val unpacked = ConfirmParams.unpack(requireNotNull(original.pack(transferService)), transferService)
+        val decoded = roundTrip(original)
+        val transfer = decoded.transfer
+        val assetId = transfer.inputType.asset.id
+        val generic = transfer.inputType as GemTransactionInputType.Generic
+        val metadata = generic.metadata.decodeJson<ApplicationMetadata>()
 
-        assertTrue(unpacked is ConfirmParams.TransferParams.Generic)
-        val params = unpacked as ConfirmParams.TransferParams.Generic
-        assertEquals(original.asset, params.asset)
-        assertEquals(account, params.from)
-        assertEquals(GemRecipient("merchant"), params.destination)
-        assertEquals("payment-memo", params.memo)
-        assertEquals(TransferDataOutputType.EncodedTransaction, params.outputType)
-        assertTrue(params.isSendable)
-        assertEquals("Merchant", params.metadata.name)
-        assertEquals(ApplicationMetadataSource.Payment, params.metadata.source)
-        assertEquals("encoded-transaction", params.data)
-        assertEquals("21000", params.gasLimit)
-        assertEquals(TransactionType.Transfer, params.decodedTransactionType)
-        assertEquals(approval, params.approval)
+        assertEquals(asset.id, assetId)
+        assertEquals(account.address, decoded.from.address)
+        assertEquals("merchant", transfer.recipient.address)
+        assertEquals("payment-memo", transfer.recipient.memo)
+        assertEquals(TransferDataOutputType.EncodedTransaction, generic.extra.outputType.decodeJson<TransferDataOutputType>())
+        assertEquals(TransferDataOutputAction.Send, generic.extra.outputAction.decodeJson<TransferDataOutputAction>())
+        assertEquals("Merchant", metadata.name)
+        assertEquals(ApplicationMetadataSource.Payment, metadata.source)
+        assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
+        assertEquals("21000", generic.extra.gasLimit)
+        assertEquals(TransactionType.Transfer, generic.extra.transactionType.decodeJson<TransactionType>())
+        assertEquals(approval, requireNotNull(generic.extra.approval).decodeJson<ApprovalData>())
     }
 
     @Test
     fun genericHexDataSurvivesCoreCodec() {
         val account = mockAccount(chain = Chain.Ethereum)
-        val original = ConfirmParams.TransferParams.Generic(
+        val data = "0xa9059cbb00000000000000000000000000000000000000000000000000000000000000ff"
+        val original = generic(
             asset = mockAssetEthereum(),
-            from = account,
-            amount = BigInteger.ZERO,
-            destination = GemRecipient("0x000000000022D473030F116dDEE9F6B43aC78BA3"),
-            memo = null,
-            outputType = TransferDataOutputType.Signature,
-            outputAction = TransferDataOutputAction.Sign,
+            recipient = GemRecipient("0x000000000022D473030F116dDEE9F6B43aC78BA3"),
             metadata = ApplicationMetadata(
                 name = "Dapp",
                 description = "",
@@ -117,34 +160,36 @@ class ConfirmInputCodecTest {
                 icon = "",
                 source = ApplicationMetadataSource.WalletConnect,
             ),
-            data = "0xa9059cbb00000000000000000000000000000000000000000000000000000000000000ff",
-            gasLimit = null,
-            decodedTransactionType = TransactionType.SmartContractCall,
-        )
+            data = data,
+            outputType = TransferDataOutputType.Signature,
+            outputAction = TransferDataOutputAction.Sign,
+            transactionType = TransactionType.SmartContractCall,
+        ).confirmInput(account)
 
-        val unpacked = ConfirmParams.unpack(requireNotNull(original.pack(transferService)), transferService)
+        val generic = roundTrip(original).transfer.inputType as GemTransactionInputType.Generic
 
-        assertTrue(unpacked is ConfirmParams.TransferParams.Generic)
-        val params = unpacked as ConfirmParams.TransferParams.Generic
-        assertEquals(original.data, params.data)
-        assertEquals(TransferDataOutputType.Signature, params.outputType)
-        assertEquals(false, params.isSendable)
-        assertEquals(null, params.approval)
+        assertArrayEquals(data.toTransactionData(), generic.extra.data)
+        assertEquals(TransferDataOutputType.Signature, generic.extra.outputType.decodeJson<TransferDataOutputType>())
+        assertEquals(TransferDataOutputAction.Sign, generic.extra.outputAction.decodeJson<TransferDataOutputAction>())
+        assertEquals(null, generic.extra.approval)
     }
 
     @Test
     fun nativeTransferPackRoundTripsThroughCoreCodec() {
         val account = mockAccount(chain = Chain.Solana)
-        val original = ConfirmParams.Builder(mockAssetSolana(), account, BigInteger.ONE)
-            .transfer(destination = GemRecipient("recipient"))
+        val asset = mockAssetSolana()
+        val original = GemTransferData(
+            inputType = GemTransactionInputType.transfer(asset),
+            recipient = GemRecipient("recipient"),
+            value = BigInteger.ONE.toString(),
+        ).confirmInput(account)
 
-        val unpacked = ConfirmParams.unpack(requireNotNull(original.pack(transferService)), transferService)
+        val transfer = roundTrip(original).transfer
 
-        assertTrue(unpacked is ConfirmParams.TransferParams.Transfer)
-        val params = unpacked as ConfirmParams.TransferParams.Transfer
-        assertEquals(original.asset, params.asset)
-        assertEquals(BigInteger.ONE, params.amount)
-        assertEquals(null, params.memo)
-        assertEquals(false, params.useMaxAmount)
+        assertTrue(transfer.inputType is GemTransactionInputType.Transfer)
+        assertEquals(asset, transfer.inputType.asset)
+        assertEquals(BigInteger.ONE.toString(), transfer.value)
+        assertEquals(null, transfer.recipient.memo)
+        assertEquals(false, transfer.useMaxAmount)
     }
 }

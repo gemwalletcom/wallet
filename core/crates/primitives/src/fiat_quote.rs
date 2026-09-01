@@ -1,4 +1,5 @@
 use crate::{Asset, FiatQuoteType, PaymentType, fiat_provider::FiatProvider};
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
@@ -16,7 +17,7 @@ pub struct FiatQuote {
     pub fiat_currency: String,
     pub crypto_amount: f64,
     #[typeshare(skip)]
-    pub value: String,
+    pub value: BigUint,
     #[typeshare(skip)]
     pub latency: u64,
     pub payment_methods: Vec<PaymentType>,
@@ -31,7 +32,7 @@ impl FiatQuote {
         fiat_amount: f64,
         fiat_currency: String,
         crypto_amount: f64,
-        value: String,
+        value: BigUint,
         latency: u64,
         payment_methods: Vec<PaymentType>,
     ) -> Self {

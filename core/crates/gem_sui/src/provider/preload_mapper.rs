@@ -1,3 +1,4 @@
+use num_traits::ToPrimitive;
 use std::error::Error;
 
 use gem_encoding::encode_base64;
@@ -28,7 +29,7 @@ pub fn map_transaction_data(
                 let transfer_input = TransferInput {
                     sender: input.sender_address,
                     recipient: input.destination_address,
-                    amount: input.value.parse().unwrap_or(0),
+                    amount: input.value.to_u64().ok_or("Sui amount is too large")?,
                     coins: sui_coins,
                     send_max: input.is_max_value,
                     gas: Gas {
@@ -47,7 +48,7 @@ pub fn map_transaction_data(
                 let token_transfer_input = TokenTransferInput {
                     sender: input.sender_address,
                     recipient: input.destination_address,
-                    amount: input.value.parse().unwrap_or(0),
+                    amount: input.value.to_u64().ok_or("Sui amount is too large")?,
                     tokens,
                     gas: Gas {
                         budget: gas_budget,
@@ -66,7 +67,7 @@ pub fn map_transaction_data(
                 let stake_input = StakeInput {
                     sender: input.sender_address,
                     validator: validator.id.clone(),
-                    stake_amount: input.value.parse().unwrap_or(0),
+                    stake_amount: input.value.to_u64().ok_or("Sui amount is too large")?,
                     gas: Gas {
                         budget: gas_budget,
                         price: gas_price,

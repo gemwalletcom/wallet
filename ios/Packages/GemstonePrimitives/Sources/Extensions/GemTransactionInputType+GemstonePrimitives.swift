@@ -1,82 +1,92 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Foundation
 import Gemstone
 import Primitives
 
 public extension GemTransactionInputType {
-    func getAsset() -> Gemstone.Asset {
+    var asset: Primitives.Asset {
         switch self {
-        case let .transfer(asset): asset
-        case let .deposit(asset): asset
-        case let .transferNft(asset, _): asset
-        case let .swap(fromAsset, _, _): fromAsset
-        case let .stake(asset, _): asset
-        case let .tokenApprove(asset, _): asset
-        case let .generic(asset, _, _): asset
-        case let .account(asset, _): asset
-        case .perpetual(asset: let asset, perpetualType: _): asset
-        case .earn(asset: let asset, earnType: _, data: _): asset
-        case let .withdrawal(asset): asset
+        case let .transfer(asset),
+             let .deposit(asset),
+             let .withdrawal(asset),
+             let .stake(asset, _),
+             let .tokenApprove(asset, _),
+             let .account(asset, _),
+             let .perpetual(asset, _),
+             let .transferNft(asset, _),
+             let .generic(asset, _, _): asset.map()
+        case let .earn(asset, _, _): asset.map()
+        case let .swap(fromAsset, _, _): fromAsset.map()
         }
+    }
+
+    var chain: Primitives.Chain {
+        asset.chain
+    }
+
+    var applicationMetadata: Primitives.ApplicationMetadata? {
+        guard case let .generic(_, metadata, _) = self else { return nil }
+        return Primitives.ApplicationMetadata(core: metadata)
     }
 }
 
 public extension GemTransactionInputType {
-    func map() throws -> TransferDataType {
-        switch self {
-        case let .transfer(asset):
-            try TransferDataType.transfer(Primitives.Asset(asset))
-        case let .deposit(asset):
-            try TransferDataType.deposit(Primitives.Asset(asset))
-        case let .swap(fromAsset, toAsset, gemSwapData):
-            try TransferDataType.swap(Primitives.Asset(fromAsset), Primitives.Asset(toAsset), Primitives.SwapData(gemSwapData))
-        case let .transferNft(_, nftAsset):
-            try TransferDataType.transferNft(Primitives.NFTAsset(nftAsset))
-        case let .stake(asset, type):
-            try TransferDataType.stake(Primitives.Asset(asset), Primitives.StakeType(type))
-        case let .tokenApprove(asset, approvalData):
-            try TransferDataType.tokenApprove(Primitives.Asset(asset), Primitives.ApprovalData(approvalData))
-        case let .generic(asset, metadata, extra):
-            try TransferDataType.generic(asset: Primitives.Asset(asset), metadata: Primitives.ApplicationMetadata(metadata), extra: extra.map())
-        case let .account(asset, accountType):
-            try TransferDataType.account(Primitives.Asset(asset), Primitives.AccountDataType(accountType))
-        case let .perpetual(asset: asset, perpetualType: perpetualType):
-            try TransferDataType.perpetual(Primitives.Asset(asset), Primitives.PerpetualType(perpetualType))
-        case let .earn(asset, earnType, data):
-            try TransferDataType.earn(Primitives.Asset(asset), Primitives.EarnType(earnType), Primitives.ContractCallData(data))
-        case let .withdrawal(asset):
-            try TransferDataType.withdrawal(Primitives.Asset(asset))
-        }
+    var outputAction: Primitives.TransferDataOutputAction {
+        Primitives.TransferDataOutputAction(core: output().outputAction)
+    }
+
+    func metadata(transferService: GemTransferService) throws -> AnyCodableValue? {
+        try transferService.metadata(inputType: self).map { try JSONDecoder().decode(AnyCodableValue.self, from: Data($0.utf8)) }
+    }
+
+    func approvalData(for transactionType: Primitives.TransactionType, transferService: GemTransferService) throws -> Primitives.ApprovalData? {
+        try transferService.approval(inputType: self, transactionType: transactionType.json()).map { try Primitives.ApprovalData($0) }
     }
 }
 
-public extension TransferDataType {
-    func map() throws -> GemTransactionInputType {
-        switch self {
-        case let .transfer(asset):
-            return .transfer(asset: asset.json())
-        case let .deposit(asset):
-            return .deposit(asset: asset.json())
-        case let .swap(fromAsset, toAsset, swapData):
-            return try .swap(fromAsset: fromAsset.json(), toAsset: toAsset.json(), swapData: swapData.json())
-        case let .transferNft(nftAsset):
-            return try .transferNft(asset: Primitives.Asset(nftAsset.chain).json(), nftAsset: nftAsset.json())
-        case let .stake(asset, stakeType):
-            return try .stake(asset: asset.json(), stakeType: stakeType.json())
-        case let .tokenApprove(asset, approvalData):
-            return try .tokenApprove(asset: asset.json(), approvalData: approvalData.json())
-        case let .generic(asset, metadata, extra):
-            return try .generic(asset: asset.json(), metadata: metadata.json(), extra: extra.map())
-        case let .withdrawal(asset):
-            return .withdrawal(asset: asset.json())
-        case let .account(asset, accountData):
-            return try .account(asset: asset.json(), accountType: accountData.json())
-        case let .perpetual(asset, perpetualType):
-            return try .perpetual(asset: asset.json(), perpetualType: perpetualType.json())
-        case let .earn(asset, earnType, data):
-            return try .earn(asset: asset.json(), earnType: earnType.json(), data: data.json())
-        }
+public extension GemTransactionInputType {
+    static func transfer(_ asset: Primitives.Asset) -> Self {
+        .transfer(asset: asset.map())
+    }
+
+    static func deposit(_ asset: Primitives.Asset) -> Self {
+        .deposit(asset: asset.map())
+    }
+
+    static func withdrawal(_ asset: Primitives.Asset) -> Self {
+        .withdrawal(asset: asset.map())
+    }
+
+    static func transferNft(_ nftAsset: Primitives.NFTAsset) -> Self {
+        .transferNft(asset: Primitives.Asset(nftAsset.chain).map(), nftAsset: nftAsset.json())
+    }
+
+    static func swap(_ fromAsset: Primitives.Asset, _ toAsset: Primitives.Asset, _ swapData: Primitives.SwapData) -> Self {
+        .swap(fromAsset: fromAsset.map(), toAsset: toAsset.map(), swapData: swapData.json())
+    }
+
+    static func tokenApprove(_ asset: Primitives.Asset, _ approvalData: Primitives.ApprovalData) -> Self {
+        .tokenApprove(asset: asset.map(), approvalData: approvalData.json())
+    }
+
+    static func stake(_ asset: Primitives.Asset, _ stakeType: Primitives.StakeType) -> Self {
+        .stake(asset: asset.map(), stakeType: stakeType.json())
+    }
+
+    static func account(_ asset: Primitives.Asset, _ accountType: Primitives.AccountDataType) -> Self {
+        .account(asset: asset.map(), accountType: accountType.json())
+    }
+
+    static func perpetual(_ asset: Primitives.Asset, _ perpetualType: Primitives.PerpetualType) -> Self {
+        .perpetual(asset: asset.map(), perpetualType: perpetualType.json())
+    }
+
+    static func earn(_ asset: Primitives.Asset, _ earnType: Primitives.EarnType, _ data: Primitives.ContractCallData) -> Self {
+        .earn(asset: asset.map(), earnType: earnType.json(), data: data.json())
+    }
+
+    static func generic(asset: Primitives.Asset, metadata: Primitives.ApplicationMetadata, extra: Primitives.TransferDataExtra) -> Self {
+        .generic(asset: asset.map(), metadata: metadata.json(), extra: extra.map())
     }
 }

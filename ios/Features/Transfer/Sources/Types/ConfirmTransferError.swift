@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemConfirmError
 import GemstonePrimitives
 import GemstoneServices
 import Foundation
@@ -8,7 +9,7 @@ import Validators
 
 enum ConfirmTransferError {
     case amount(TransferAmountCalculatorError)
-    case scan(ScanTransactionError)
+    case scan(GemConfirmError)
     case chain(ChainCoreError)
     case other(Error)
 
@@ -16,7 +17,9 @@ enum ConfirmTransferError {
         switch error {
         case let error as TransferAmountCalculatorError:
             self = .amount(error)
-        case let error as ScanTransactionError:
+        case let .InsufficientNetworkFee(assetId) as GemConfirmError:
+            self = .amount(.insufficientNetworkFee(AssetId(core: assetId).chain.asset, requirement: nil))
+        case let error as GemConfirmError where error.isScanRejection:
             self = .scan(error)
         default:
             switch ChainCoreError.fromError(error) {

@@ -200,6 +200,7 @@ class ManageContactViewModel @Inject constructor(
         val input = uiState.value.addressInput ?: return
         if (!input.isConfirmEnabled) return
 
+        val address = addressInput.resolvedAddress
         addressInput.reset()
         state.update { current ->
             current.copy(
@@ -207,7 +208,7 @@ class ManageContactViewModel @Inject constructor(
                     addresses = current.addresses,
                     contactId = contactId,
                     chain = input.chain,
-                    address = addressInput.resolvedAddress,
+                    address = address,
                     memo = input.memo,
                     replacingId = input.editingId,
                 ),

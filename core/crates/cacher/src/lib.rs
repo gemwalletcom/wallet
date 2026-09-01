@@ -77,7 +77,7 @@ impl CacherClient {
             return Ok(std::iter::empty::<I>().collect());
         }
         let result: Vec<Option<String>> = self.connection.clone().mget(keys).await?;
-        let values: T = result.into_iter().flatten().filter_map(|value| serde_json::from_str::<I>(&value).ok()).collect();
+        let values = result.into_iter().flatten().map(|value| serde_json::from_str::<I>(&value)).collect::<Result<T, _>>()?;
         Ok(values)
     }
 

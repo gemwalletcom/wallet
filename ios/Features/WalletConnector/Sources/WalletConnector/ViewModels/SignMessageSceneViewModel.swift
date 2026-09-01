@@ -93,10 +93,6 @@ public final class SignMessageSceneViewModel {
         payload.session.metadata.shortName(applicationMetadataService: applicationMetadataService)
     }
 
-    public var appUrl: URL? {
-        payload.session.metadata.url.asURL
-    }
-
     public var appAssetImage: AssetImage {
         AssetImage(imageURL: connectionViewModel.imageUrl)
     }
@@ -176,10 +172,6 @@ public extension SignMessageSceneViewModel {
             explorerLink: { BlockExplorerLink(explorerService.getAddressUrl(chain: payload.chain.rawValue, address: $0)) },
             onOpenURL: { [weak self] in self?.isPresentingUrl = $0 },
         )
-    }
-
-    func onViewWebsite() {
-        isPresentingUrl = appUrl
     }
 
     func onViewPayloadDetails() {

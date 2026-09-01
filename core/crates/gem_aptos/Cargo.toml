@@ -39,6 +39,5 @@ futures = { workspace = true, optional = true }
 [dev-dependencies]
 primitives = { path = "../primitives", features = ["testkit"] }
 tokio = { workspace = true, features = ["macros", "rt"] }
-reqwest = { workspace = true }
 settings = { path = "../settings", features = ["testkit"] }
 ed25519-dalek = { version = "3.0.0", default-features = false }

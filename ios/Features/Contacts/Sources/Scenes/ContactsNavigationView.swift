@@ -37,13 +37,6 @@ public struct ContactsNavigationView: View {
     }
 
     func manageContact(for mode: ManageContactViewModel.Mode) -> some View {
-        ManageContactScene(
-            model: ManageContactViewModel(
-                service: model.service,
-                nameService: model.nameService,
-                addressService: model.addressService,
-                mode: mode,
-            ),
-        )
+        ManageContactScene(model: model.manageContactModel(mode: mode))
     }
 }

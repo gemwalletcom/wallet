@@ -3,7 +3,7 @@
 import BigInt
 import Foundation
 import Gemstone
-import class Gemstone.GemAddressService
+import protocol Gemstone.GemAddressServiceProtocol
 import class Gemstone.GemPaymentService
 import GemstonePrimitives
 import Localization
@@ -11,14 +11,14 @@ import Primitives
 
 public enum PaymentDestinationBuilder {
     public enum TransferDestination: Sendable {
-        case confirm(TransferData)
+        case confirm(GemTransferData)
         case recipient(RecipientData)
     }
 
     public static func transfer(
         payment: Primitives.PaymentRequest,
         asset: Primitives.Asset,
-        addressService: GemAddressService,
+        addressService: any GemAddressServiceProtocol,
         paymentService: GemPaymentService,
     ) throws -> TransferDestination {
         switch paymentService.transferDestination(request: payment.json(), asset: asset.paymentWalletAsset) {
@@ -34,7 +34,7 @@ public enum PaymentDestinationBuilder {
     public static func build(
         payment: Primitives.PaymentRequest,
         assets: [AssetData],
-        addressService: GemAddressService,
+        addressService: any GemAddressServiceProtocol,
         paymentService: GemPaymentService,
     ) throws -> PaymentDestination {
         switch paymentService.destination(request: payment.json(), assets: assets.map { $0.asset.paymentWalletAsset }) {
@@ -64,12 +64,12 @@ public enum PaymentDestinationBuilder {
     public static func build(
         transaction: GemPaymentTransaction,
         asset: Primitives.Asset,
-        addressService: GemAddressService,
+        addressService: any GemAddressServiceProtocol,
         paymentService: GemPaymentService,
     ) throws -> PaymentDestination {
-        let type = try TransferDataType.generic(
-            asset: asset,
-            metadata: Primitives.ApplicationMetadata(transaction.merchant),
+        let type = try GemTransactionInputType.generic(
+            asset: asset.map(),
+            metadata: Primitives.ApplicationMetadata(transaction.merchant).json(),
             extra: TransferDataExtra(
                 to: transaction.request
                     .map { try Primitives.PaymentRequest($0).address }
@@ -78,25 +78,25 @@ public enum PaymentDestinationBuilder {
                 outputType: .encodedTransaction,
                 outputAction: .send,
                 transactionType: Primitives.TransactionType(transaction.transactionType),
-            ),
+            ).map(),
         )
         let transfer = transaction.request.flatMap {
             paymentService.decodedTransfer(request: $0, asset: asset.paymentWalletAsset)
         }
         guard let transfer else {
             return .confirm(
-                TransferData(
-                    type: type,
-                    recipient: Recipient(name: nil, address: "", memo: transaction.memo),
-                    value: .zero,
+                GemTransferData(
+                    inputType: type,
+                    recipient: GemRecipient(address: "", memo: transaction.memo),
+                    value: BigInt.zero,
                 ),
             )
         }
         return try .confirm(
-            TransferData(
-                type: type,
+            GemTransferData(
+                inputType: type,
                 recipient: transferData(transfer: transfer, asset: asset).recipient,
-                value: BigInt.from(string: transfer.value),
+                value: transfer.value,
             ),
         )
     }
@@ -105,15 +105,15 @@ public enum PaymentDestinationBuilder {
         assets.first { $0.asset.id.identifier == assetId }
     }
 
-    private static func transferData(transfer: GemPaymentConfirmTransfer, asset: Primitives.Asset) throws -> TransferData {
-        try TransferData(
-            type: .transfer(asset),
-            recipient: Recipient(name: nil, address: transfer.address, memo: transfer.memo, references: transfer.references),
-            value: BigInt.from(string: transfer.value),
+    private static func transferData(transfer: GemPaymentConfirmTransfer, asset: Primitives.Asset) -> GemTransferData {
+        GemTransferData(
+            inputType: .transfer(asset: asset.map()),
+            recipient: GemRecipient(address: transfer.address, memo: transfer.memo, references: transfer.references),
+            value: transfer.value,
         )
     }
 
-    private static func recipientData(for payment: Primitives.PaymentRequest, chain: Primitives.Chain? = nil, addressService: GemAddressService) -> RecipientData {
+    private static func recipientData(for payment: Primitives.PaymentRequest, chain: Primitives.Chain? = nil, addressService: any GemAddressServiceProtocol) -> RecipientData {
         let address = chain.map { $0.checksumAddress(payment.address, addressService: addressService) } ?? payment.address
         return RecipientData(
             recipient: Recipient(name: .none, address: address, memo: payment.memo, references: payment.references ?? []),

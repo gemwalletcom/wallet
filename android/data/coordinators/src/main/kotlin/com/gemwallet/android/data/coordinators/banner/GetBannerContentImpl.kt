@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.banner
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.banner.cases.GetBannerContent
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Banner
@@ -11,5 +12,5 @@ class GetBannerContentImpl(
 ) : GetBannerContent {
 
     override fun invoke(banner: Banner): GemBannerContent =
-        bannerService.bannerContent(banner.event.toJson(), banner.asset?.toJson())
+        bannerService.bannerContent(banner.event.toJson(), banner.asset?.toGem())
 }

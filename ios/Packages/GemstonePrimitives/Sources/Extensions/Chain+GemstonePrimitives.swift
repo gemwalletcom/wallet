@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.GemAssetConfigService
-import class Gemstone.GemAddressService
+import protocol Gemstone.GemAddressServiceProtocol
 import BigInt
 import Foundation
 import Gemstone
@@ -23,6 +23,13 @@ public extension Gemstone.Chain {
 }
 
 public extension Primitives.Chain {
+    init(core rawValue: String) {
+        guard let chain = Primitives.Chain(rawValue: rawValue) else {
+            preconditionFailure("failed to decode Chain from Core: \(rawValue)")
+        }
+        self = chain
+    }
+
     func map() -> Gemstone.Chain {
         rawValue
     }
@@ -52,6 +59,10 @@ public extension Primitives.Chain {
 
     var isSwapSupported: Bool {
         ChainConfig.config(chain: self).isSwapSupported
+    }
+
+    var isTokenSupported: Bool {
+        ChainConfig.config(chain: self).isTokenSupported
     }
 
     var isStakeSupported: Bool {
@@ -132,12 +143,7 @@ public extension Primitives.Chain {
     }
 
     var defaultAssets: [Primitives.Asset] {
-        assetConfig.walletDefaultAssets(chain: map()).map { asset in
-            guard let asset = try? Primitives.Asset(asset) else {
-                preconditionFailure("Invalid default asset for \(self)")
-            }
-            return asset
-        }
+        assetConfig.walletDefaultAssets(chain: map()).map { $0.map() }
     }
 
     func defaultAsset(type: Primitives.AssetType) -> Primitives.Asset {
@@ -147,11 +153,11 @@ public extension Primitives.Chain {
         return asset
     }
 
-    func isValidAddress(_ address: String, addressService: GemAddressService) -> Bool {
+    func isValidAddress(_ address: String, addressService: any GemAddressServiceProtocol) -> Bool {
         addressService.validate(address: checksumAddress(address, addressService: addressService), chain: rawValue)
     }
 
-    func checksumAddress(_ address: String, addressService: GemAddressService) -> String {
+    func checksumAddress(_ address: String, addressService: any GemAddressServiceProtocol) -> String {
         addressService.checksum(address: address, chain: rawValue)
     }
 
@@ -177,7 +183,7 @@ public extension [Primitives.Chain] {
 
 public extension [Primitives.Asset] {
     func matching(query: String) -> [Primitives.Asset] {
-        let assets = map { $0.json() }
-        return assetConfig.matchingAssets(assets: assets, query: query).compactMap { try? Primitives.Asset($0) }
+        let assets = map { $0.map() }
+        return assetConfig.matchingAssets(assets: assets, query: query).map { $0.map() }
     }
 }

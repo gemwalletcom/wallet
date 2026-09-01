@@ -1,3 +1,4 @@
+use num_traits::ToPrimitive;
 use primitives::{FeeOption, SignerError, SignerInput};
 use serde::Serialize;
 
@@ -39,7 +40,7 @@ pub(super) enum NearAction {
 
 impl NearTransaction {
     pub(super) fn from_transfer_input(input: &SignerInput) -> Result<Self, SignerError> {
-        let deposit = input.value.parse::<u128>().map_err(|_| SignerError::invalid_input("invalid NEAR amount"))?;
+        let deposit = input.value.to_u128().ok_or_else(|| SignerError::invalid_input("NEAR amount is too large"))?;
         Self::new(input, input.destination_address.clone(), vec![NearAction::Transfer { deposit }])
     }
 
@@ -64,7 +65,7 @@ impl NearTransaction {
 
         let args = serde_json::to_vec(&FungibleTokenTransferArgs {
             receiver_id: &input.destination_address,
-            amount: &input.value,
+            amount: &input.value.to_string(),
             memo: input.get_memo(),
         })
         .map_err(SignerError::from_display)?;

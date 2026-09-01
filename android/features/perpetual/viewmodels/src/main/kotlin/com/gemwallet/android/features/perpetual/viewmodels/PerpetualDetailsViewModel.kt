@@ -182,7 +182,7 @@ class PerpetualDetailsViewModel @Inject constructor(
     }
 
     fun period(period: ChartPeriod) {
-        setPerpetualChartPeriod(period)
+        viewModelScope.launch(Dispatchers.IO) { setPerpetualChartPeriod(period) }
         this.period.update { period }
     }
 

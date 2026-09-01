@@ -18,7 +18,7 @@ impl EvmSigner for TempoSigner {
 
     fn sign_swap_contract(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
         let swap_data = &input.input_type.get_swap_data()?.data;
-        let value = U256::from_str(&swap_data.value).map_err(SignerError::from_display)?;
+        let value = U256::from_str(&swap_data.value.to_string()).map_err(SignerError::from_display)?;
         if value != U256::ZERO {
             return Err(SignerError::invalid_input(
                 "Tempo's CALLVALUE is always 0; swap value must route through the ERC-20 call, not msg.value",

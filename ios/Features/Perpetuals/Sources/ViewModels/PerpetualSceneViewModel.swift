@@ -17,6 +17,7 @@ import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
+import struct Gemstone.GemTransferData
 
 @Observable
 @MainActor
@@ -269,8 +270,8 @@ public extension PerpetualSceneViewModel {
                 asset: asset,
                 baseAsset: Chain.hyperCore.defaultAsset(type: .perpetual),
             )
-            onTransferData?(TransferData(
-                type: .perpetual(asset, .close(data)),
+            onTransferData?(GemTransferData(
+                inputType: .perpetual(asset, .close(data)),
                 recipient: .hyperliquidProvider,
                 value: .zero,
             ))

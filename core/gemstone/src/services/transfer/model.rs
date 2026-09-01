@@ -2,7 +2,14 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::custom_types::GemBigInt;
 use crate::models::transaction::{GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadMetadata};
-use primitives::{SimulationResult, TransactionType, TransferDataOutputAction, TransferDataOutputType};
+use primitives::{AssetId, RecentActivityType, SimulationResult, TransactionType, TransferDataOutputAction, TransferDataOutputType};
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemRecentActivity {
+    pub activity_type: RecentActivityType,
+    pub asset_id: AssetId,
+    pub to_asset_id: Option<AssetId>,
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, uniffi::Record)]
 pub struct GemRecipient {
@@ -21,8 +28,10 @@ pub struct GemTransferData {
     pub recipient: GemRecipient,
     #[serde(with = "crate::models::custom_types::decimal_string")]
     pub value: GemBigInt,
+    #[uniffi(default = false)]
     pub use_max_amount: bool,
     #[serde(with = "crate::models::custom_types::decimal_string::optional")]
+    #[uniffi(default = None)]
     pub minimum_value: Option<GemBigInt>,
 }
 
@@ -41,19 +50,18 @@ pub struct GemTransferOutput {
     pub output_action: TransferDataOutputAction,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
-pub struct GemPendingTransactionInput {
-    pub sender: String,
-    pub transfer: GemTransferData,
-    pub value: GemBigInt,
-    pub transaction_type: TransactionType,
-    pub hash: String,
-    pub fee: GemTransactionLoadFee,
-    pub network_fee: GemBigInt,
-    pub metadata: GemTransactionLoadMetadata,
-    pub simulation: Option<SimulationResult>,
-    pub transaction_index: u32,
-    pub transaction_count: u32,
+pub(crate) struct GemPendingTransactionInput {
+    pub(crate) sender: String,
+    pub(crate) transfer: GemTransferData,
+    pub(crate) value: GemBigInt,
+    pub(crate) transaction_type: TransactionType,
+    pub(crate) hash: String,
+    pub(crate) fee: GemTransactionLoadFee,
+    pub(crate) network_fee: GemBigInt,
+    pub(crate) metadata: GemTransactionLoadMetadata,
+    pub(crate) simulation: Option<SimulationResult>,
+    pub(crate) transaction_index: u32,
+    pub(crate) transaction_count: u32,
 }
 
 #[cfg(test)]

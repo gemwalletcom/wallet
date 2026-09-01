@@ -3,7 +3,7 @@
 import Foundation
 import Primitives
 
-public extension Asset {
+public extension Primitives.Asset {
     init(_ chain: Chain) {
         let asset = chain.asset
         self.init(
@@ -15,3 +15,5 @@ public extension Asset {
         )
     }
 }
+
+

@@ -17,12 +17,43 @@ pub fn matching_assets(assets: Vec<Asset>, query: &str) -> Vec<Asset> {
         .collect()
 }
 
-pub fn skips_search(scope: &GemSearchScope, query: &str) -> bool {
-    *scope == GemSearchScope::All && query.is_empty()
-}
+impl GemSearchScope {
+    pub(super) fn skips_search(&self, query: &str) -> bool {
+        match self {
+            Self::All => query.is_empty(),
+            Self::List { .. } => false,
+        }
+    }
 
-pub fn stores_lists(scope: &GemSearchScope) -> bool {
-    *scope == GemSearchScope::All
+    pub(super) fn stores_lists(&self) -> bool {
+        match self {
+            Self::All => true,
+            Self::List { .. } => false,
+        }
+    }
+
+    pub(super) fn token_chains(&self, wallet_chains: &[Chain]) -> Vec<Chain> {
+        match self {
+            Self::All if wallet_chains.is_empty() => Chain::all(),
+            Self::All => wallet_chains.to_vec(),
+            Self::List { .. } => Vec::new(),
+        }
+    }
+
+    pub(super) fn api_tags(&self) -> Vec<String> {
+        match self {
+            Self::All => Vec::new(),
+            Self::List { id } => vec![id.clone()],
+        }
+    }
+
+    pub(super) fn search_key(&self, query: &str) -> String {
+        let query = query.trim();
+        match self {
+            Self::List { id } if query.is_empty() => format!("tag:{id}"),
+            Self::All | Self::List { .. } => query.to_string(),
+        }
+    }
 }
 
 pub fn asset_ids(assets: &[AssetBasic]) -> Vec<AssetId> {
@@ -48,29 +79,6 @@ pub fn wallet_chains(wallet: &Wallet) -> Vec<Chain> {
     match wallet.wallet_type {
         WalletType::Multicoin => Vec::new(),
         WalletType::Single | WalletType::View | WalletType::PrivateKey => wallet.accounts.first().map(|account| account.chain).into_iter().collect(),
-    }
-}
-
-pub fn token_chains(scope: &GemSearchScope, wallet_chains: &[Chain]) -> Vec<Chain> {
-    match scope {
-        GemSearchScope::All if wallet_chains.is_empty() => Chain::all(),
-        GemSearchScope::All => wallet_chains.to_vec(),
-        GemSearchScope::List { .. } => Vec::new(),
-    }
-}
-
-pub fn api_tags(scope: &GemSearchScope) -> Vec<String> {
-    match scope {
-        GemSearchScope::All => Vec::new(),
-        GemSearchScope::List { id } => vec![id.clone()],
-    }
-}
-
-pub fn search_key(scope: &GemSearchScope, query: &str) -> String {
-    let query = query.trim();
-    match scope {
-        GemSearchScope::List { id } if query.is_empty() => format!("tag:{id}"),
-        GemSearchScope::All | GemSearchScope::List { .. } => query.to_string(),
     }
 }
 
@@ -112,18 +120,18 @@ mod tests {
 
     #[test]
     fn test_token_chains() {
-        assert_eq!(token_chains(&GemSearchScope::All, &[]), Chain::all());
-        assert_eq!(token_chains(&GemSearchScope::All, &[Chain::Solana]), vec![Chain::Solana]);
-        assert!(token_chains(&GemSearchScope::List { id: "stocks".to_string() }, &[]).is_empty());
+        assert_eq!(GemSearchScope::All.token_chains(&[]), Chain::all());
+        assert_eq!(GemSearchScope::All.token_chains(&[Chain::Solana]), vec![Chain::Solana]);
+        assert!(GemSearchScope::List { id: "stocks".to_string() }.token_chains(&[]).is_empty());
     }
 
     #[test]
     fn test_search_key() {
         let list = GemSearchScope::List { id: "stocks".to_string() };
-        assert_eq!(search_key(&GemSearchScope::All, " btc "), "btc");
-        assert_eq!(search_key(&list, ""), "tag:stocks");
-        assert_eq!(search_key(&list, "eth"), "eth");
-        assert_eq!(api_tags(&list), vec!["stocks".to_string()]);
+        assert_eq!(GemSearchScope::All.search_key(" btc "), "btc");
+        assert_eq!(list.search_key(""), "tag:stocks");
+        assert_eq!(list.search_key("eth"), "eth");
+        assert_eq!(list.api_tags(), vec!["stocks".to_string()]);
     }
 
     #[test]
@@ -156,15 +164,15 @@ mod tests {
 
     #[test]
     fn test_skips_search_only_for_an_empty_query_in_the_all_scope() {
-        assert!(skips_search(&GemSearchScope::All, ""));
-        assert!(!skips_search(&GemSearchScope::All, "gem"));
-        assert!(!skips_search(&GemSearchScope::List { id: "trending".to_string() }, ""));
+        assert!(GemSearchScope::All.skips_search(""));
+        assert!(!GemSearchScope::All.skips_search("gem"));
+        assert!(!GemSearchScope::List { id: "trending".to_string() }.skips_search(""));
     }
 
     #[test]
     fn test_only_the_all_scope_stores_lists() {
-        assert!(stores_lists(&GemSearchScope::All));
-        assert!(!stores_lists(&GemSearchScope::List { id: "trending".to_string() }));
+        assert!(GemSearchScope::All.stores_lists());
+        assert!(!GemSearchScope::List { id: "trending".to_string() }.stores_lists());
     }
 
     #[test]

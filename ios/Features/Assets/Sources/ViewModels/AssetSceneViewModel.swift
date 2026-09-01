@@ -15,7 +15,6 @@ import protocol Gemstone.GemExplorerServiceProtocol
 import class Gemstone.GemTransactionFormatter
 import protocol Gemstone.GemSwapServiceProtocol
 import struct Gemstone.GemStakeBalance
-import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import Localization
 import Preferences
@@ -25,6 +24,8 @@ import Store
 import Style
 import SwiftUI
 import UIKit
+import struct Gemstone.GemRecipient
+import struct Gemstone.GemTransferData
 
 @Observable
 @MainActor
@@ -36,7 +37,6 @@ public final class AssetSceneViewModel: Sendable {
     private let priceUpdater: any PriceUpdater
     private let bannerService: any GemBannerServiceProtocol
     private let swapService: any GemSwapServiceProtocol
-    private let stakeService: any GemStakeServiceProtocol
 
     private let preferences: ObservablePreferences
 
@@ -63,7 +63,6 @@ public final class AssetSceneViewModel: Sendable {
         priceAlertService: any GemPriceAlertServiceProtocol,
         bannerService: any GemBannerServiceProtocol,
         swapService: any GemSwapServiceProtocol,
-        stakeService: any GemStakeServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
         transactionFormatter: GemTransactionFormatter,
         deeplinkService: GemDeeplinkService,
@@ -79,7 +78,6 @@ public final class AssetSceneViewModel: Sendable {
         self.priceAlertService = priceAlertService
         self.bannerService = bannerService
         self.swapService = swapService
-        self.stakeService = stakeService
         self.explorerService = explorerService
         self.transactionFormatter = transactionFormatter
         self.preferences = preferences
@@ -154,7 +152,7 @@ public final class AssetSceneViewModel: Sendable {
                 return .asset(asset.chain.asset)
             }
         }
-        if AssetConfiguration.supportedChainsWithTokens.contains(asset.chain) {
+        if asset.chain.isTokenSupported {
             return .assets(asset.chain)
         }
         return nil
@@ -253,7 +251,7 @@ public final class AssetSceneViewModel: Sendable {
 
     var visibleBanners: [Banner] {
         do {
-            return try bannerService.visibleBanners(banners, walletId: wallet.id, asset: assetData.asset, context: bannerContext)
+            return try bannerContext.visibleBanners(banners, walletId: wallet.id, asset: assetData.asset)
         } catch {
             debugLog("asset scene: visible banners error \(error)")
             return []
@@ -343,7 +341,7 @@ public final class AssetSceneViewModel: Sendable {
 
     func showProviderBalance(for type: StakeProviderType) -> Bool {
         switch type {
-        case .stake: stakeService.showsStakeBalance(chain: asset.chain.rawValue, isStakeEnabled: assetData.metadata.isStakeEnabled, balance: stakeBalance)
+        case .stake: stakeBalance.showsStakeBalance(chain: asset.chain.rawValue, isStakeEnabled: assetData.metadata.isStakeEnabled)
         #if DEBUG
             case .earn: assetData.balance.earn > .zero
         #else
@@ -422,14 +420,10 @@ public extension AssetSceneViewModel {
                 onSelectHeader(.stake)
             case .activateAsset:
                 isPresentingAssetSheet = .transfer(
-                    TransferData(
-                        type: .account(assetData.asset, .activate),
-                        recipient: Recipient(
-                                name: .none,
-                                address: "",
-                                memo: .none,
-                            ),
-                        value: 0,
+                    GemTransferData(
+                        inputType: .account(assetData.asset, .activate),
+                        recipient: GemRecipient(address: ""),
+                        value: BigInt.zero,
                     ),
                 )
             case .accountActivation,
@@ -562,7 +556,7 @@ extension AssetSceneViewModel {
     }
 
     private var stakedValue: BigInt {
-        BigInt(stringLiteral: stakeService.stakedValue(chain: asset.chain.rawValue, balance: stakeBalance))
+        BigInt(stringLiteral: stakeBalance.stakedValue(chain: asset.chain.rawValue))
     }
 
     private var feeAssetDataModel: AssetDataViewModel {

@@ -7,6 +7,7 @@ import GemstonePrimitives
 import WalletConnectorService
 import ConnectionStatusService
 import GemstoneServices
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import Primitives
 import StreamService
@@ -20,7 +21,7 @@ public actor AppLifecycleService: Sendable {
     private let streamSubscriptionService: any GemStreamSubscriptionServiceProtocol
     private let perpetualService: any GemPerpetualServiceProtocol
     private let perpetualObserver: any PerpetualObservable
-    private let walletSessionService: any WalletSessionManageable
+    private let walletSessionService: any GemWalletSessionServiceProtocol
     private let transactionStateService: any GemTransactionStateServiceProtocol
 
     public init(
@@ -31,7 +32,7 @@ public actor AppLifecycleService: Sendable {
         streamSubscriptionService: any GemStreamSubscriptionServiceProtocol,
         perpetualService: any GemPerpetualServiceProtocol,
         perpetualObserver: any PerpetualObservable,
-        walletSessionService: any WalletSessionManageable,
+        walletSessionService: any GemWalletSessionServiceProtocol,
         transactionStateService: any GemTransactionStateServiceProtocol,
     ) {
         self.walletConnector = walletConnector

@@ -27,23 +27,3 @@ enum class CosmosChain(val string: String) {
 	Noble("noble"),
 }
 
-@Serializable
-enum class CosmosDenom(val string: String) {
-	@SerialName("rune")
-	Rune("rune"),
-	@SerialName("cacao")
-	Cacao("cacao"),
-	@SerialName("uatom")
-	Uatom("uatom"),
-	@SerialName("uosmo")
-	Uosmo("uosmo"),
-	@SerialName("utia")
-	Utia("utia"),
-	@SerialName("inj")
-	Inj("inj"),
-	@SerialName("usei")
-	Usei("usei"),
-	@SerialName("uusdc")
-	Uusdc("uusdc"),
-}
-

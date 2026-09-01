@@ -1,4 +1,5 @@
 use num_bigint::BigInt;
+use num_bigint::BigUint;
 use primitives::{
     Asset, AssetId, BitcoinChain, Chain, GasPriceType, SignerInput, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, UTXO,
     swap::{SwapData, SwapProviderData, SwapQuote, SwapQuoteData},
@@ -30,7 +31,7 @@ pub fn mock_transfer_input_with_utxos(chain: BitcoinChain, sender_address: &str,
             input_type: TransactionInputType::Transfer(Asset::from_chain(chain.get_chain())),
             sender_address: sender_address.to_string(),
             destination_address: destination_address.to_string(),
-            value: value.to_string(),
+            value: value.parse().unwrap(),
             gas_price: GasPriceType::regular(BigInt::from(10u64)),
             memo: None,
             is_max_value: false,
@@ -54,12 +55,12 @@ pub fn mock_p2wpkh_transfer_input() -> SignerInput {
 pub fn mock_funded_transfer_input(chain: BitcoinChain) -> SignerInput {
     let mut input = mock_transfer_input(chain);
     match chain {
-        BitcoinChain::Doge => input.input.value = "1000000".to_string(),
+        BitcoinChain::Doge => input.input.value = BigUint::from(1_000_000u64),
         BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Zcash => {}
     }
     match &mut input.input.metadata {
         TransactionLoadMetadata::Bitcoin { utxos } | TransactionLoadMetadata::Zcash { utxos, .. } => {
-            utxos[0].value = "100000000".to_string();
+            utxos[0].value = BigUint::from(100_000_000u64);
         }
         _ => {}
     }
@@ -68,13 +69,13 @@ pub fn mock_funded_transfer_input(chain: BitcoinChain) -> SignerInput {
 
 pub fn mock_transfer_swap_input(chain: BitcoinChain, memo: &str) -> SignerInput {
     mock_swap_input(chain, SwapProvider::Thorchain, Some(false), |destination_address, value| {
-        SwapQuoteData::new_transfer(destination_address, value, Some(memo.to_string()))
+        SwapQuoteData::new_transfer(destination_address, value.parse().unwrap(), Some(memo.to_string()))
     })
 }
 
 pub fn mock_contract_swap_input(chain: BitcoinChain, nulldata_hex: &str, use_max_amount: bool) -> SignerInput {
     mock_swap_input(chain, SwapProvider::Chainflip, Some(use_max_amount), |destination_address, value| {
-        SwapQuoteData::new_contract(destination_address, value, nulldata_hex.to_string(), None, None)
+        SwapQuoteData::new_contract(destination_address, value.parse().unwrap(), nulldata_hex.to_string(), None, None)
     })
 }
 
@@ -103,7 +104,7 @@ fn mock_swap_input(chain: BitcoinChain, provider: SwapProvider, use_max_amount: 
                 eta_in_seconds: None,
                 use_max_amount,
             },
-            data: quote_data(destination_address, value),
+            data: quote_data(destination_address, value.to_string()),
         },
     );
     input
@@ -113,7 +114,7 @@ pub(crate) fn mock_utxo_with(transaction_id: &str, vout: i32, value: &str, addre
     UTXO {
         transaction_id: transaction_id.to_string(),
         vout,
-        value: value.to_string(),
+        value: value.parse().unwrap(),
         address: address.to_string(),
     }
 }

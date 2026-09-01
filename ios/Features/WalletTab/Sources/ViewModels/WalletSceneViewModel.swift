@@ -174,7 +174,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     }
 
     var visibleBanners: [Banner] {
-        (try? bannerService.visibleBanners(banners, walletId: wallet.id, asset: .none, context: bannerContext)) ?? []
+        (try? bannerContext.visibleBanners(banners, walletId: wallet.id, asset: .none)) ?? []
     }
 
     func bannerContent(for banner: Banner) -> GemBannerContent {
@@ -240,10 +240,6 @@ public extension WalletSceneViewModel {
         }
     }
 
-    internal func onCloseBanner(banner: Banner) {
-        Task { try await bannerService.close(key: banner.gemKey) }
-    }
-
     internal func onSelectWatchWalletInfo() {
         isPresentingSheet = .infoSheet(.watchWallet)
     }
@@ -278,14 +274,6 @@ public extension WalletSceneViewModel {
     func onSetPriceAlertComplete(message: String) {
         isPresentingSheet = nil
         isPresentingToastMessage = .priceAlert(message: message)
-    }
-
-    func presentTransferData(_ data: TransferData) {
-        isPresentingSheet = .transferData(data)
-    }
-
-    func presentPerpetualRecipientData(_ data: PerpetualRecipientData) {
-        isPresentingSheet = .perpetualRecipientData(data)
     }
 
     func presentPriceAlert(_ asset: Asset) {

@@ -45,5 +45,4 @@ chain_integration_tests = ["rpc", "reqwest", "settings/testkit"]
 gem_client = { path = "../gem_client", features = ["testkit"] }
 primitives = { path = "../primitives", features = ["testkit"] }
 tokio = { workspace = true, features = ["macros", "rt"] }
-reqwest = { workspace = true }
 settings = { path = "../settings", features = ["testkit"] }

@@ -5,29 +5,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.gemwallet.android.domains.confirm.CustomFee
+import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.math.NumberSanitizer
 import com.gemwallet.android.model.FeeSelection
-import uniffi.gemstone.GemFeeRate
-import uniffi.gemstone.GemFeeService
 import java.math.BigInteger
 
 class NetworkFeeCustomViewModel(
-    private val currentFee: FeeUIModel.FeeInfo,
-    private val feeRates: List<GemFeeRate>,
+    private val model: FeeDetailsModel,
     private val selection: FeeSelection,
-    private val decimals: Int,
-    private val maxMultiplier: Int,
-    private val minimumCustomFeeRate: BigInteger?,
     initialRate: BigInteger?,
-    private val feeService: GemFeeService,
 ) {
+    private val decimals: Int = model.decimals
+
     var input by mutableStateOf(initialRate?.let { CustomFee.format(it, decimals) } ?: "")
         private set
 
-    private val custom by derivedStateOf {
-        CustomFee.from(input, currentFee, feeRates, selection, decimals, maxMultiplier, minimumCustomFeeRate, feeService)
-    }
+    private val custom by derivedStateOf { model.customFee(input, selection) }
 
     val placeholder: String get() = custom.placeholder
     val networkFee: FeeUIModel.FeeInfo get() = custom.networkFee

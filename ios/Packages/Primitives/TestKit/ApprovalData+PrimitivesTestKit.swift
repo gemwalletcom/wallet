@@ -6,6 +6,6 @@ import Primitives
 public extension ApprovalData {
     static func mock(
     ) -> ApprovalData {
-        ApprovalData(token: "", spender: "", value: "", isUnlimited: false)
+        ApprovalData(token: "", spender: "", value: "0", isUnlimited: false)
     }
 }

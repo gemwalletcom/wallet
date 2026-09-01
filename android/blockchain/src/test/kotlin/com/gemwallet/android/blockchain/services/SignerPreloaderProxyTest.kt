@@ -2,7 +2,10 @@ package com.gemwallet.android.blockchain.services
 
 import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.domains.confirm.confirmInput
+import com.gemwallet.android.domains.confirm.transfer
+import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.FeeAssetSelection
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.testkit.mockAccount
@@ -28,6 +31,13 @@ import uniffi.gemstone.GemTransactionLoadFee
 import uniffi.gemstone.GemTransactionLoadMetadata
 import java.math.BigInteger
 import android.util.Log
+import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.ext.toIdentifier
+import uniffi.gemstone.GemAssetBalance
+import uniffi.gemstone.GemConfirmMetadata
+import uniffi.gemstone.GemConfirmPreload
+import uniffi.gemstone.GemTransferAmount
+import uniffi.gemstone.GemTransferAmountResult
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
@@ -52,19 +62,19 @@ class SignerPreloaderProxyTest {
     @Test
     fun preload_mapsSelectionAndAssemblesSignerParams() = runBlocking {
         val asset = mockAssetEthereum()
-        val params = ConfirmParams.Builder(
-            asset = asset,
-            from = mockAccount(chain = Chain.Ethereum),
-            amount = BigInteger("1000000000000000"),
-        ).transfer(destination = GemRecipient("0xrecipient"))
+        val input = GemTransferData(
+            inputType = GemTransactionInputType.transfer(asset),
+            recipient = GemRecipient("0xrecipient"),
+            value = "1000000000000000",
+        ).confirmInput(mockAccount(chain = Chain.Ethereum))
         val options = slot<GemConfirmLoadOptions>()
         val confirmInput = slot<GemConfirmInput>()
         val feeRates = listOf(
             GemFeeRate(FeePriority.Normal.toGem(), GemGasPriceType.Eip1559(gasPrice = "2", priorityFee = "3")),
             GemFeeRate(FeePriority.Fast.toGem(), GemGasPriceType.Eip1559(gasPrice = "1", priorityFee = "1")),
         )
-        coEvery { confirmService.load(capture(confirmInput), capture(options)) } coAnswers {
-            GemConfirmData(
+        coEvery { confirmService.preload(any(), capture(confirmInput), capture(options)) } coAnswers {
+            val confirmData = GemConfirmData(
                 fee = GemTransactionLoadFee(
                     fee = "21000",
                     gasPriceType = feeRates[0].gasPriceType,
@@ -78,10 +88,21 @@ class SignerPreloaderProxyTest {
                 simulation = null,
                 input = confirmInput.captured,
             )
+            GemConfirmPreload(
+                confirmData = confirmData,
+                metadata = GemConfirmMetadata(
+                    assetBalance = gemBalance(asset.id.toIdentifier()),
+                    feeAssetBalance = gemBalance(asset.id.toIdentifier()),
+                    prices = emptyList(),
+                ),
+                feeAsset = asset.toGem(),
+                amount = GemTransferAmountResult.Amount(GemTransferAmount(value = "1", networkFee = "1", isMaxAmount = false)),
+            )
         }
 
         val result = subject.preload(
-            params = params,
+            walletId = "wallet",
+            input = input,
             selection = FeeSelection.Custom(BigInteger("42")),
             feeAssetSelection = FeeAssetSelection.Selected(mockAssetTempoUSDCe().id),
         )
@@ -95,3 +116,18 @@ class SignerPreloaderProxyTest {
         assertEquals(null, result.simulation)
     }
 }
+
+private fun gemBalance(assetId: String) = GemAssetBalance(
+    assetId = assetId,
+    available = "0",
+    frozen = "0",
+    locked = "0",
+    staked = "0",
+    pending = "0",
+    pendingUnconfirmed = "0",
+    rewards = "0",
+    reserved = "0",
+    withdrawable = "0",
+    earn = "0",
+    metadata = null,
+)

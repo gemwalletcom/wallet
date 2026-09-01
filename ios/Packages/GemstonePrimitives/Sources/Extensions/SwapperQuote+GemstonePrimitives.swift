@@ -6,6 +6,8 @@ import struct Gemstone.GemSwapTransfer
 import struct Gemstone.SwapperQuote
 import class Gemstone.GemSwapQuoteService
 import Primitives
+import struct Gemstone.GemRecipient
+import struct Gemstone.GemTransferData
 
 public extension Gemstone.SwapperQuote {
     func map(swapQuoteService: GemSwapQuoteService) throws -> Primitives.SwapQuote {
@@ -21,16 +23,19 @@ public extension Gemstone.SwapperQuote {
     }
 }
 
-public extension TransferData {
+public extension GemTransferData {
     init(swap transfer: GemSwapTransfer, fromAsset: Asset, toAsset: Asset) throws {
         let quote = try Primitives.SwapQuote(transfer.quote)
-        let value = try BigInt.from(string: transfer.value)
         self.init(
-            type: .swap(fromAsset, toAsset, SwapData(quote: quote, data: try Primitives.SwapQuoteData(transfer.data))),
-            recipient: Recipient(name: .none, address: transfer.recipient, memo: .none),
-            value: value,
+            inputType: .swap(
+                fromAsset: fromAsset.map(),
+                toAsset: toAsset.map(),
+                swapData: SwapData(quote: quote, data: try Primitives.SwapQuoteData(transfer.data)).json(),
+            ),
+            recipient: GemRecipient(address: transfer.recipient),
+            value: transfer.value,
             useMaxAmount: transfer.useMaxAmount,
-            minimumValue: quote.minFromValueBigInt,
+            minimumValue: quote.minFromValue,
         )
     }
 }

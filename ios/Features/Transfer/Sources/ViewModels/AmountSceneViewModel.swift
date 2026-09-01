@@ -10,11 +10,13 @@ import GemstoneFormatters
 import InfoSheet
 import Localization
 import Perpetuals
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store
 import Style
 import Validators
+import struct Gemstone.GemTransferData
 
 @MainActor
 @Observable
@@ -34,7 +36,7 @@ public final class AmountSceneViewModel {
         assetQuery.value
     }
 
-    public var transferState: StateViewType<TransferData> = .noData
+    public var transferState: StateViewType<GemTransferData> = .noData
     var amountInputModel: InputValidationViewModel
     public var isPresentingSheet: AmountSheetType?
 

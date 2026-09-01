@@ -6,7 +6,8 @@ import Preferences
 import Primitives
 import Store
 import SwiftUI
-import GemstoneServices
+import protocol Gemstone.GemWalletServiceProtocol
+import protocol Gemstone.GemWalletSessionServiceProtocol
 
 @Observable
 @MainActor
@@ -14,8 +15,9 @@ public final class WalletsSceneViewModel {
 
     public static let walletsLimit = 100
 
-    private let service: WalletService
-    private let walletSessionService: any WalletSessionManageable
+    private let service: any GemWalletServiceProtocol
+    private let session: any GemWalletSessionServiceProtocol
+    private let preferences: ObservablePreferences
     private let isPresentingCreateWalletSheet: Binding<Bool>
     private let isPresentingImportWalletSheet: Binding<Bool>
     private let navigationPath: Binding<NavigationPath>
@@ -24,7 +26,7 @@ public final class WalletsSceneViewModel {
     var walletDelete: Wallet?
 
     var currentWalletId: WalletId? {
-        walletSessionService.currentWalletId
+        session.currentWalletId
     }
 
     let pinnedWalletsQuery: ObservableQuery<WalletsRequest>
@@ -36,14 +38,16 @@ public final class WalletsSceneViewModel {
 
     public init(
         navigationPath: Binding<NavigationPath>,
-        walletService: WalletService,
-        walletSessionService: any WalletSessionManageable,
+        walletService: any GemWalletServiceProtocol,
+        session: any GemWalletSessionServiceProtocol,
+        preferences: ObservablePreferences,
         isPresentingCreateWalletSheet: Binding<Bool>,
         isPresentingImportWalletSheet: Binding<Bool>,
     ) {
         self.navigationPath = navigationPath
         service = walletService
-        self.walletSessionService = walletSessionService
+        self.session = session
+        self.preferences = preferences
         isPresentingAlertMessage = nil
         walletDelete = nil
         self.isPresentingCreateWalletSheet = isPresentingCreateWalletSheet
@@ -66,7 +70,7 @@ public final class WalletsSceneViewModel {
 extension WalletsSceneViewModel {
     func setCurrent(_ walletId: WalletId) {
         do {
-            try walletSessionService.setCurrent(walletId: walletId)
+            try session.setCurrent(walletId: walletId)
         } catch {
             debugLog("set current wallet error: \(error)")
         }
@@ -77,7 +81,10 @@ extension WalletsSceneViewModel {
     }
 
     private func delete(_ wallet: Wallet) async throws {
-        try await service.delete(wallet)
+        switch try await service.delete(wallet) {
+        case .walletsRemaining: break
+        case .lastWalletDeleted: preferences.reload()
+        }
     }
 
     private func pin(_ wallet: Wallet) async throws {

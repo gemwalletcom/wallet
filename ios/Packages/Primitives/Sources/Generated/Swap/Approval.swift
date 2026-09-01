@@ -88,9 +88,3 @@ public struct SwapData: Codable, Equatable, Hashable, Sendable {
 		self.data = data
 	}
 }
-
-public enum SwapStatus: String, Codable, Equatable, Hashable, Sendable {
-	case pending
-	case completed
-	case failed
-}

@@ -72,6 +72,7 @@ pub fn balance_updates(assets: &[Asset], balances: Vec<(BalanceKind, AssetBalanc
             let update_type = match kind {
                 BalanceKind::Coin => GemBalanceUpdateType::Coin {
                     available: value(&balance.balance.available),
+                    frozen: value(&balance.balance.frozen),
                     reserved: value(&balance.balance.reserved),
                     pending_unconfirmed: value(&balance.balance.pending_unconfirmed),
                 },

@@ -1,6 +1,7 @@
 use crate::constants::{TRANSACTION_TYPE_CREATE_ACCOUNT, TRANSACTION_TYPE_PAYMENT};
 use crate::models::transaction::{Payment, StellarTransactionBroadcast};
 use chrono::DateTime;
+use num_bigint::BigUint;
 use primitives::{Transaction, TransactionType, chain::Chain};
 use std::error::Error;
 use url::form_urlencoded;
@@ -48,7 +49,7 @@ pub fn map_transaction(chain: Chain, transaction: Payment) -> Option<Transaction
                     None,
                     TransactionType::Transfer,
                     transaction.get_state(),
-                    "1000".to_string(), // TODO: Calculate from block/transaction
+                    BigUint::from(1000u32), // TODO: Calculate from block/transaction
                     chain.as_asset_id(),
                     transaction.get_value()?,
                     transaction.clone().get_memo(),
@@ -98,7 +99,7 @@ mod tests {
 
     #[test]
     fn test_map_transaction_broadcast_with_real_data() {
-        let response: StellarTransactionStatus = serde_json::from_str(include_str!("../../testdata/transaction_transfer_broadcast_success.json")).unwrap();
+        let response: StellarTransactionStatus = serde_json::from_str(include_str!("../../testdata/transaction_status_success.json")).unwrap();
 
         let result = map_transaction_broadcast(&StellarTransactionBroadcast {
             hash: Some(response.hash.clone()),

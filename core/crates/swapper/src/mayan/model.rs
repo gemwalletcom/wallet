@@ -100,11 +100,11 @@ pub struct MayanQuoteCommon {
 }
 
 impl MayanQuoteCommon {
-    pub(in crate::mayan) fn expected_output_value(&self, output_decimals: u32) -> Result<String, SwapperError> {
+    pub(in crate::mayan) fn expected_output_value(&self, output_decimals: u32) -> Result<BigUint, SwapperError> {
         let output_decimals = if output_decimals == 0 { self.to_token.decimals } else { output_decimals };
         if let Some(value) = &self.expected_amount_out_base_units {
             return BigUint::from_str(value)
-                .map(|amount| rescale_base_units(amount, self.to_token.decimals, output_decimals).to_string())
+                .map(|amount| rescale_base_units(amount, self.to_token.decimals, output_decimals))
                 .map_err(SwapperError::from);
         }
 
@@ -113,7 +113,7 @@ impl MayanQuoteCommon {
             Value::String(value) => value.clone(),
             Value::Null | Value::Bool(_) | Value::Array(_) | Value::Object(_) => return Err(SwapperError::InvalidRoute),
         };
-        BigNumberFormatter::value_from_amount(&amount, output_decimals).map_err(SwapperError::from)
+        BigNumberFormatter::value_from_amount_biguint(&amount, output_decimals).map_err(SwapperError::from)
     }
 }
 
@@ -668,7 +668,7 @@ mod tests {
             },
             ..Default::default()
         };
-        assert_eq!(route.expected_output_value(9).unwrap(), "1237897283");
+        assert_eq!(route.expected_output_value(9).unwrap(), BigUint::from(1237897283u64));
 
         route.expected_amount_out_base_units = None;
         route.expected_amount_out = serde_json::json!(1.237897283);
@@ -676,7 +676,7 @@ mod tests {
             decimals: 9,
             ..Default::default()
         };
-        assert_eq!(route.expected_output_value(9).unwrap(), "1237897283");
+        assert_eq!(route.expected_output_value(9).unwrap(), BigUint::from(1237897283u64));
     }
 
     #[test]
@@ -690,7 +690,7 @@ mod tests {
             ..Default::default()
         };
 
-        assert_eq!(route.expected_output_value(8).unwrap(), "602333700");
+        assert_eq!(route.expected_output_value(8).unwrap(), BigUint::from(602333700u64));
     }
 
     #[test]

@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use std::{collections::HashMap, env, path::PathBuf, time::Duration};
 
 use config::{Config, ConfigError, Environment, File};
@@ -385,8 +383,6 @@ pub struct PusherIOS {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Security {
-    #[serde(deserialize_with = "duration::deserialize")]
-    pub timeout: Duration,
     pub abuseipdb: UrlSecretKeySettings,
     pub goplus: UrlKeySettings,
     pub hashdit: UrlKeySettings,

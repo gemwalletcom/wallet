@@ -1,25 +1,27 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemConfirmMetadata
 import GemstoneServices
 import BigInt
 import Foundation
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
+import struct Gemstone.GemTransferData
 
 public struct TransactionInputViewModel: Sendable {
-    let data: TransferData
+    let data: GemTransferData
     let fee: Fee?
-    let metaData: TransferDataMetadata?
+    let metaData: GemConfirmMetadata?
     let transferAmount: TransferAmountValidation?
     let feeAsset: Asset
 
     private let currency: String
 
     public init(
-        data: TransferData,
+        data: GemTransferData,
         fee: Fee?,
-        metaData: TransferDataMetadata?,
+        metaData: GemConfirmMetadata?,
         transferAmount: TransferAmountValidation?,
         feeAsset: Asset,
         currency: String,
@@ -35,14 +37,14 @@ public struct TransactionInputViewModel: Sendable {
     var value: BigInt {
         switch transferAmount {
         case let .success(amount): amount.value
-        case .failure, .none: data.value
+        case .failure, .none: BigInt(core: data.value)
         }
     }
 
     var asset: Asset {
-        switch data.type {
-        case let .perpetual(_, type): type.baseAsset
-        default: data.type.asset
+        switch data.inputType {
+        case let .perpetual(_, type): Primitives.PerpetualType(core: type).baseAsset
+        default: data.inputType.asset
         }
     }
 
@@ -60,9 +62,9 @@ public struct TransactionInputViewModel: Sendable {
     }
 
     private var displayAsset: Asset {
-        switch data.type {
+        switch data.inputType {
         case .withdrawal: PerpetualConfig.depositAsset
-        default: data.type.asset
+        default: data.inputType.asset
         }
     }
 
@@ -81,7 +83,7 @@ public struct TransactionInputViewModel: Sendable {
     var headerType: TransactionHeaderType {
         TransactionHeaderTypeBuilder.build(
             infoModel: infoModel,
-            dataType: data.type,
+            dataType: data.inputType,
             metadata: metaData,
         )
     }

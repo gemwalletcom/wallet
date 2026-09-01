@@ -2,6 +2,8 @@
 
 import Components
 import Style
+import class Gemstone.GemSecurityService
+import GemstoneServices
 import SwiftUI
 
 struct LockScreenScene: View {
@@ -46,5 +48,12 @@ extension LockScreenScene {
 // MARK: - Previews
 
 #Preview {
-    LockScreenScene(model: .init())
+    LockScreenScene(
+        model: LockSceneViewModel(
+            service: BiometryAuthenticationService(
+                keystorePassword: LocalKeystorePassword(),
+                securityService: GemSecurityService(),
+            ),
+        ),
+    )
 }

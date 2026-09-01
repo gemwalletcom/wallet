@@ -16,9 +16,11 @@ rpc = [
     "dep:rand",
 ]
 reqwest = ["gem_client/reqwest"]
+testkit = []
 chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
 
 [dependencies]
+num-traits = { workspace = true }
 primitives = { path = "../primitives" }
 serde = { workspace = true, features = ["derive"] }
 num-bigint = { workspace = true }

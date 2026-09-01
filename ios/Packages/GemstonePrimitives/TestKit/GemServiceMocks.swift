@@ -225,33 +225,67 @@ public final class GemTransactionsServiceMock: GemTransactionsServiceProtocol, @
 
 }
 
-public final class GemContactServiceMock: GemContactServiceProtocol, @unchecked Sendable {
-    private let service = GemContactService(
+public final class StubAlienProvider: AlienProvider, @unchecked Sendable {
+    public init() {}
+
+    public func request(target: AlienTarget) async throws -> AlienResponse {
+        throw AnyError("StubAlienProvider does not perform requests")
+    }
+
+    public func getEndpoint(chain: Gemstone.Chain) throws -> String {
+        throw AnyError("StubAlienProvider has no endpoints")
+    }
+}
+
+private func contactService() -> GemContactService {
+    GemContactService(
         store: GemContactStoreMock(),
         addressStore: GemAddressStoreMock(),
         files: GemFileStoreMock(),
     )
+}
 
-    public init() {}
+public final class GemManageContactServiceMock: GemManageContactServiceProtocol, @unchecked Sendable {
+    private let service: GemManageContactService
+
+    public init() {
+        service = GemManageContactService(
+            contacts: contactService(),
+            addresses: GemAddressService(),
+            names: GemNameService(
+                api: GemDeviceApiClient(
+                    provider: StubAlienProvider(),
+                    baseUrl: "https://localhost",
+                    devicePrivateKey: Data(),
+                ),
+                store: GemAddressStoreMock(),
+            ),
+            chains: GemChainService(),
+        )
+    }
+
+    public func names() -> GemNameService {
+        service.names()
+    }
+
+    public func addresses() -> GemAddressService {
+        service.addresses()
+    }
+
+    public func chains() -> GemChainService {
+        service.chains()
+    }
+
+    public func defaultChain() -> Gemstone.Chain {
+        service.defaultChain()
+    }
 
     public func saveContact(input: GemContactInput) async throws -> Gemstone.Contact {
         try await service.saveContact(input: input)
     }
 
-    public func updateContact(contact: Gemstone.Contact, addresses: [Gemstone.ContactAddress]) async throws {
-        try await service.updateContact(contact: contact, addresses: addresses)
-    }
-
-    public func deleteContact(contact: Gemstone.Contact) async throws {
-        try await service.deleteContact(contact: contact)
-    }
-
-    public func addAddress(addresses: [Gemstone.ContactAddress], input: GemContactAddressInput) -> [Gemstone.ContactAddress] {
-        service.addAddress(addresses: addresses, input: input)
-    }
-
-    public func defaultChain() -> Gemstone.Chain {
-        service.defaultChain()
+    public func formatAddress(address: String, chain: Gemstone.Chain, style: GemAddressFormatStyle) -> String {
+        service.formatAddress(address: address, chain: chain, style: style)
     }
 }
 
@@ -392,8 +426,6 @@ public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchec
 
 public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Sendable {
     private let earnData: String
-    private let stakeBalanceShown: Bool
-    private let stakedValue: Gemstone.GemBigInt
     private let rewardsShown: Bool
     private let completionDateShown: Bool
     private let claimable: Bool
@@ -403,8 +435,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
 
     public init(
         earnData: String = "{}",
-        stakeBalanceShown: Bool = false,
-        stakedValue: Gemstone.GemBigInt = "0",
         rewardsShown: Bool = false,
         completionDateShown: Bool = false,
         claimable: Bool = false,
@@ -413,8 +443,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         validators: [Gemstone.DelegationValidator] = [],
     ) {
         self.earnData = earnData
-        self.stakeBalanceShown = stakeBalanceShown
-        self.stakedValue = stakedValue
         self.rewardsShown = rewardsShown
         self.completionDateShown = completionDateShown
         self.claimable = claimable
@@ -461,14 +489,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
 
     public func selectableValidators(validators _: [Gemstone.DelegationValidator]) -> [Gemstone.DelegationValidator] {
         self.validators
-    }
-
-    public func stakedValue(chain _: Gemstone.Chain, balance _: Gemstone.GemStakeBalance) -> Gemstone.GemBigInt {
-        stakedValue
-    }
-
-    public func showsStakeBalance(chain _: Gemstone.Chain, isStakeEnabled _: Bool, balance _: Gemstone.GemStakeBalance) -> Bool {
-        stakeBalanceShown
     }
 
     public func sync(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws {}
@@ -708,10 +728,6 @@ public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Se
 
     public init() {}
 
-    public func visibleBanners(stored: [GemBannerItem], context _: GemBannerContext) -> [GemBannerItem] {
-        stored
-    }
-
     public func showsOnboarding(state _: Gemstone.BannerState, isWalletEmpty: Bool) -> Bool {
         isWalletEmpty
     }
@@ -793,5 +809,32 @@ public final class GemWalletPreferencesStoreMock: GemWalletPreferencesStore, @un
 public extension GemWalletPreferencesService {
     static func mock() -> GemWalletPreferencesService {
         GemWalletPreferencesService(store: GemWalletPreferencesStoreMock())
+    }
+}
+
+public extension Gemstone.GemFeeAsset {
+    static func mock(
+        asset: Primitives.Asset,
+        balance: Gemstone.GemAssetBalance? = nil,
+        price: Gemstone.GemAssetPrice? = nil,
+    ) -> Gemstone.GemFeeAsset {
+        Gemstone.GemFeeAsset(
+            asset: asset.map(),
+            balance: balance ?? Gemstone.GemAssetBalance(
+                assetId: asset.id.identifier,
+                available: "0",
+                frozen: "0",
+                locked: "0",
+                staked: "0",
+                pending: "0",
+                pendingUnconfirmed: "0",
+                rewards: "0",
+                reserved: "0",
+                withdrawable: "0",
+                earn: "0",
+                metadata: nil,
+            ),
+            price: price,
+        )
     }
 }

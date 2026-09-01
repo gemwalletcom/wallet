@@ -45,6 +45,8 @@ public struct BalanceStore: Sendable {
                     [
                         BalanceRecord.Columns.available.set(to: balance.available.value),
                         BalanceRecord.Columns.availableAmount.set(to: balance.available.amount),
+                        BalanceRecord.Columns.frozen.set(to: balance.frozen.value),
+                        BalanceRecord.Columns.frozenAmount.set(to: balance.frozen.amount),
                         BalanceRecord.Columns.reserved.set(to: balance.reserved.value),
                         BalanceRecord.Columns.reservedAmount.set(to: balance.reserved.amount),
                         BalanceRecord.Columns.pendingUnconfirmed.set(to: balance.pendingUnconfirmed.value),
@@ -159,16 +161,6 @@ public struct BalanceStore: Sendable {
     ) throws -> [AssetId] {
         try getBalances(walletId: walletId, assetIds: assetIds, filters: filters)
             .map(\.assetId)
-    }
-
-    @discardableResult
-    public func isBalanceExist(walletId: WalletId, assetId: AssetId) throws -> Bool {
-        try db.read { db in
-            try BalanceRecord
-                .filter(BalanceRecord.Columns.walletId == walletId.id)
-                .filter(BalanceRecord.Columns.assetId == assetId.identifier)
-                .fetchCount(db) > 0
-        }
     }
 
     @discardableResult

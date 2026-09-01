@@ -1,9 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemAvatarServiceProtocol
-import protocol Gemstone.GemChainServiceProtocol
-import protocol Gemstone.GemNameServiceProtocol
-import GemstoneServices
+import protocol Gemstone.GemOnboardingServiceProtocol
+import GemstonePrimitives
+import Preferences
 import Foundation
 import Primitives
 import PrimitivesComponents
@@ -12,33 +11,45 @@ import SwiftUI
 @Observable
 @MainActor
 public final class ImportWalletViewModel {
-    let walletService: WalletService
-    let walletSessionService: any WalletSessionManageable
-    let avatarService: any GemAvatarServiceProtocol
-    let nameService: any GemNameServiceProtocol
-    let chainService: any GemChainServiceProtocol
+    private let service: any GemOnboardingServiceProtocol
+    private let preferences: ObservablePreferences
     let onComplete: VoidAction
 
     var isPresentingSelectImageWallet: Wallet?
 
     public init(
-        walletService: WalletService,
-        walletSessionService: any WalletSessionManageable,
-        avatarService: any GemAvatarServiceProtocol,
-        nameService: any GemNameServiceProtocol,
-        chainService: any GemChainServiceProtocol,
+        service: any GemOnboardingServiceProtocol,
+        preferences: ObservablePreferences,
         onComplete: VoidAction,
     ) {
-        self.walletService = walletService
-        self.walletSessionService = walletSessionService
-        self.avatarService = avatarService
-        self.nameService = nameService
-        self.chainService = chainService
+        self.service = service
+        self.preferences = preferences
         self.onComplete = onComplete
     }
 
     public var isAcceptTermsCompleted: Bool {
-        walletService.isAcceptTermsCompleted
+        preferences.isAcceptTermsCompleted
+    }
+
+    func importWalletModel(type: ImportWalletType, onComplete: @escaping @MainActor @Sendable (ImportWalletSceneResult) -> Void) -> ImportWalletSceneViewModel {
+        ImportWalletSceneViewModel(service: service, preferences: preferences, nameService: service.names(), type: type, onComplete: onComplete)
+    }
+
+    func importWalletTypeModel() -> ImportWalletTypeViewModel {
+        ImportWalletTypeViewModel(preferences: preferences, chainService: service.chains())
+    }
+
+    func setupWalletModel(wallet: Wallet, onComplete: @escaping (Wallet) -> Void) -> SetupWalletViewModel {
+        SetupWalletViewModel(
+            wallet: wallet,
+            service: service,
+            onSelectImage: { [weak self] in self?.presentSelectImage(wallet: $0) },
+            onComplete: onComplete,
+        )
+    }
+
+    func walletImageModel(wallet: Wallet) -> WalletImageViewModel {
+        WalletImageViewModel(wallet: wallet, source: .onboarding, avatarService: service.avatars())
     }
 }
 

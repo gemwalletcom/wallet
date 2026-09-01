@@ -5,7 +5,7 @@ import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
-import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.domains.confirm.unpack
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.features.confirm.presents.ConfirmScreen
@@ -26,9 +26,9 @@ fun EntryProviderScope<NavKey>.confirm(
         metadata = { key -> routeArguments(paramsArgument(key.params)) },
     ) { key ->
         val transferService = LocalTransferService.current
-        val params = remember(key.params, transferService) { ConfirmParams.unpack(key.params, transferService) }
+        val input = remember(key.params, transferService) { transferService.unpack(key.params) }
         ConfirmScreen(
-            params = params,
+            input = input,
             cancelAction = cancelAction,
             onAcquireAsset = onAcquireAsset,
             finishAction = finishAction,

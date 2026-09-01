@@ -1,4 +1,5 @@
 use gem_hash::sha2::sha256;
+use num_traits::ToPrimitive;
 use primitives::{
     SignerError, SignerInput, StakeType, TransactionLoadMetadata, TronStakeData, decode_hex,
     swap::{ApprovalData, SwapQuoteData, SwapQuoteDataType},
@@ -85,7 +86,7 @@ fn build_contract_swap(input: &SignerInput, owner: TronAddress, swap_data: &Swap
 
 fn build_native_contract_transfer_swap(input: &SignerInput, owner: TronAddress, swap_data: &SwapQuoteData, memo: Option<Vec<u8>>) -> Result<ContractPayload, SignerError> {
     let to = TronAddress::parse_hex_or_base58(&swap_data.to)?;
-    let amount = swap_data.value.parse::<u64>().map_err(|_| SignerError::invalid_input("invalid Tron swap value"))?;
+    let amount = swap_data.value.to_u64().ok_or_else(|| SignerError::invalid_input("Tron swap value is too large"))?;
     let contract = TronContract::Transfer { owner, to, amount };
     let fee_limit = input.fee.fee()?;
     Ok(ContractPayload { contract, fee_limit, data: memo })
@@ -96,7 +97,10 @@ fn build_contract_call_swap(input: &SignerInput, owner: TronAddress, swap_data: 
         return SignerError::invalid_input_err("Tron contract swap calldata is required");
     }
     let contract_address = TronAddress::parse_hex_or_base58(&swap_data.to)?;
-    let call_value = swap_data.value.parse::<u64>().map_err(|_| SignerError::invalid_input("invalid Tron contract call value"))?;
+    let call_value = swap_data
+        .value
+        .to_u64()
+        .ok_or_else(|| SignerError::invalid_input("Tron contract call value is too large"))?;
     let contract = TronContract::TriggerSmart {
         owner,
         contract: contract_address,
@@ -115,7 +119,7 @@ fn build_token_transfer(input: &SignerInput, owner: TronAddress, destination: &s
     let contract = TronContract::TriggerSmart {
         owner,
         contract: TronAddress::parse(token_id)?,
-        data: trc20::encode_transfer(&destination, &input.value).map_err(SignerError::invalid_input)?,
+        data: trc20::encode_transfer(&destination, &input.value.to_string()).map_err(SignerError::invalid_input)?,
         call_value: None,
         call_token_value: None,
         token_id: None,

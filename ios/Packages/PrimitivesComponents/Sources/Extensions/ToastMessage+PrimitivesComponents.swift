@@ -2,15 +2,17 @@
 
 import Components
 import Localization
+import enum Gemstone.GemTransactionInputType
+import GemstonePrimitives
 import Primitives
 import Style
 
 public extension ToastMessage {
-    static func transfer(for type: TransferDataType) -> ToastMessage? {
+    static func transfer(for type: GemTransactionInputType) -> ToastMessage? {
         guard case let .perpetual(_, perpetualType) = type else {
             return nil
         }
-        return switch perpetualType {
+        return switch Primitives.PerpetualType(core: perpetualType) {
         case let .open(data): .success(Localized.Perpetual.openDirection(PerpetualDirectionViewModel(direction: data.direction).title))
         case .close: .success(Localized.Perpetual.closePosition)
         case .modify: .success(Localized.Perpetual.modifyPosition)

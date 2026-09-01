@@ -22,10 +22,10 @@ public struct SimulationBalanceChange: Codable, Equatable, Hashable, Sendable {
 
 public struct SimulationHeader: Codable, Equatable, Hashable, Sendable {
 	public let assetId: AssetId
-	public let value: String
+	public let value: String?
 	public let isUnlimited: Bool
 
-	public init(assetId: AssetId, value: String, isUnlimited: Bool) {
+	public init(assetId: AssetId, value: String?, isUnlimited: Bool) {
 		self.assetId = assetId
 		self.value = value
 		self.isUnlimited = isUnlimited

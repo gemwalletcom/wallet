@@ -19,6 +19,7 @@ use crate::{
 use alloy_primitives::{Address, Bytes, U256, hex::decode as HexDecode, hex::encode_prefixed as HexEncode};
 use alloy_sol_types::{SolCall, SolValue};
 use async_trait::async_trait;
+use gem_evm::u256::u256_to_biguint;
 use gem_evm::{
     across::{
         contracts::{
@@ -34,6 +35,7 @@ use gem_evm::{
     u256::biguint_to_u256,
     weth::WETH9,
 };
+use num_bigint::BigUint;
 use num_bigint::{BigInt, Sign};
 use primitives::{AssetId, Chain, EVMChain, swap::ApprovalData};
 use serde_serializers::biguint_from_hex_str;
@@ -311,7 +313,7 @@ impl Swapper for Across {
         if from_chain == Chain::Tron && input_is_native {
             return Err(SwapperError::NotSupportedAsset);
         }
-        let from_amount: U256 = request.value.parse().map_err(SwapperError::from)?;
+        let from_amount = U256::from_str(&request.value.to_string()).map_err(SwapperError::from)?;
         let depositor_address = parse_address(from_chain, &request.wallet_address)?;
         let recipient_address = parse_address(request.to_asset.chain(), &request.destination_address)?;
 
@@ -396,7 +398,7 @@ impl Swapper for Across {
 
         // Calculate relayer fee
         let relayer_calc = RelayerFeeCalculator::default();
-        let relayer_fee_percent = relayer_calc.capital_fee_percent(&BigInt::from_str(&request.value)?, cost_config);
+        let relayer_fee_percent = relayer_calc.capital_fee_percent(&BigInt::from_str(&request.value.to_string())?, cost_config);
         let relayer_fee = fees::multiply(from_amount, relayer_fee_percent, cost_config.decimals);
 
         let referral_config = default_referral_fees().for_chain(request.to_asset.chain()).cloned().unwrap_or_default();
@@ -473,7 +475,7 @@ impl Swapper for Across {
         Ok(Quote {
             from_value: request.value.clone(),
             min_from_value: None,
-            to_value: to_value.to_string(),
+            to_value: u256_to_biguint(&to_value),
             data: ProviderData {
                 provider: self.provider().clone(),
                 slippage_bps: request.options.slippage.bps,
@@ -514,7 +516,7 @@ impl Swapper for Across {
         .abi_encode();
 
         let input_is_native = quote.request.from_asset.is_native();
-        let value: &str = if input_is_native { &quote.from_value } else { "0" };
+        let value: &str = if input_is_native { &quote.from_value.to_string() } else { "0" };
 
         let approval: Option<ApprovalData> = {
             if input_is_native {
@@ -560,7 +562,7 @@ impl Swapper for Across {
 
         Ok(SwapperQuoteData::new_contract(
             deployment.spoke_pool.into(),
-            value.to_string(),
+            BigUint::from_str(value).map_err(SwapperError::compute_quote_error)?,
             HexEncode(deposit_v3_call.clone()),
             approval,
             gas_limit,
@@ -583,8 +585,8 @@ mod tests {
     use super::*;
     use crate::alien::mock::{MockFn, ProviderMock};
     use gem_evm::multicall3::IMulticall3;
+    use num_bigint::BigUint;
     use primitives::{asset_constants::*, swap::SwapQuoteDataType};
-    use std::time::Duration;
 
     const TEST_FILL_DEADLINE: u32 = 1_700_000_000 + DEFAULT_FILL_TIMEOUT;
 
@@ -645,7 +647,6 @@ mod tests {
         let response = format!(r#"{{"constant_result":["{allowance}"]}}"#);
         Across::new(Arc::new(ProviderMock {
             response: MockFn(Box::new(move |_| response.clone())),
-            timeout: Duration::from_millis(10),
         }))
     }
 
@@ -669,13 +670,13 @@ mod tests {
             to_asset: ETHEREUM_USDT_ASSET_ID.clone().into(),
             wallet_address: "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            value: "10000000".to_string(),
+            value: BigUint::from(10000000u64),
             options: Options::default(),
         };
         let quote = Quote {
             from_value: request.value.clone(),
             min_from_value: None,
-            to_value: "9990000".to_string(),
+            to_value: BigUint::from(9990000u64),
             data: ProviderData {
                 provider: provider.provider().clone(),
                 slippage_bps: request.options.slippage.bps,
@@ -714,7 +715,7 @@ mod tests {
 
         assert_eq!(quote_data.data_type, SwapQuoteDataType::Contract);
         assert_eq!(quote_data.to, "TTbCVPfUZmPhrB9sYC8GKgGBQQEdZovkmS");
-        assert_eq!(quote_data.value, "0");
+        assert_eq!(quote_data.value, BigUint::from(0u64));
         assert_eq!(quote_data.data, HexEncode(expected_data));
         assert_eq!(quote_data.gas_limit, None);
         assert_eq!(
@@ -722,7 +723,7 @@ mod tests {
             Some(ApprovalData {
                 token: TRON_USDT_TOKEN_ID.to_string(),
                 spender: "TTbCVPfUZmPhrB9sYC8GKgGBQQEdZovkmS".to_string(),
-                value: "10000000".to_string(),
+                value: BigUint::from(10000000u64),
                 is_unlimited: true,
             })
         );
@@ -776,7 +777,7 @@ mod tests {
                 to_asset: AssetId::from_chain(Chain::Arbitrum).into(),
                 wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
                 destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
-                value: "20000000000000000".into(), // 0.02 ETH
+                value: BigUint::from(20000000000000000u64), // 0.02 ETH
                 options,
             };
 
@@ -786,7 +787,7 @@ mod tests {
 
             println!("<== elapsed: {:?}", elapsed);
             println!("<== quote: {:?}", quote);
-            assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+            assert!(quote.to_value > BigUint::ZERO);
 
             let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::EstimateGas).await?;
             println!("<== quote_data: {:?}", quote_data);
@@ -811,7 +812,7 @@ mod tests {
                 to_asset: to_asset.into(),
                 wallet_address: wallet.into(),
                 destination_address: wallet.into(),
-                value: "50000000".into(), // 50 USDC
+                value: BigUint::from(50000000u64), // 50 USDC
                 options,
             };
 
@@ -821,7 +822,7 @@ mod tests {
 
             println!("<== elapsed: {:?}", elapsed);
             println!("<== quote: {:?}", quote);
-            assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+            assert!(quote.to_value > BigUint::ZERO);
 
             let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
             println!("<== quote_data: {:?}", quote_data);
@@ -839,7 +840,7 @@ mod tests {
                 to_asset: AVALANCHE_USDC_ASSET_ID.clone().into(),
                 wallet_address: wallet.into(),
                 destination_address: wallet.into(),
-                value: "50000000".into(),
+                value: BigUint::from(50000000u64),
                 options: Options {
                     slippage: 100.into(),
                     use_max_amount: false,
@@ -847,7 +848,7 @@ mod tests {
             };
 
             let quote = swap_provider.get_quote(&request).await?;
-            assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+            assert!(quote.to_value > BigUint::ZERO);
             assert!(!quote.data.routes[0].route_data.is_empty());
 
             let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
@@ -866,7 +867,7 @@ mod tests {
                 to_asset: AssetId::from_chain(Chain::Robinhood).into(),
                 wallet_address: wallet.into(),
                 destination_address: wallet.into(),
-                value: "20000000000000000".into(),
+                value: BigUint::from(20000000000000000u64),
                 options: Options {
                     slippage: 100.into(),
                     use_max_amount: false,
@@ -874,7 +875,7 @@ mod tests {
             };
 
             let quote = swap_provider.get_quote(&request).await?;
-            assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+            assert!(quote.to_value > BigUint::ZERO);
             assert!(!quote.data.routes[0].route_data.is_empty());
 
             Ok(())
@@ -895,8 +896,8 @@ mod tests {
 
             let metadata = result.metadata.unwrap();
             assert_eq!(metadata.provider, Some("across".to_string()));
-            assert!(!metadata.from_value.is_empty());
-            assert!(!metadata.to_value.is_empty());
+            assert!(metadata.from_value > BigUint::ZERO);
+            assert!(metadata.to_value > BigUint::ZERO);
 
             Ok(())
         }

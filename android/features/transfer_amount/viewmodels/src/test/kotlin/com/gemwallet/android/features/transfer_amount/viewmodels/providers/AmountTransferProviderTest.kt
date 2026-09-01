@@ -5,7 +5,7 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetBalance
-import com.gemwallet.android.model.ConfirmParams
+import uniffi.gemstone.GemTransactionInputType
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
-import uniffi.gemstone.GemAmountService
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -43,7 +42,6 @@ class AmountTransferProviderTest {
         params = params,
         getAssetInfo = getAssetInfo,
         scope = scope,
-        amountService = GemAmountService(),
     )
 
     @Test
@@ -66,15 +64,14 @@ class AmountTransferProviderTest {
     }
 
     @Test
-    fun `buildConfirmParams produces TransferParams with destination and memo`() = runBlocking {
+    fun `buildConfirmInput produces a transfer with destination and memo`() = runBlocking {
         val provider = makeProvider()
         provider.assetInfo.filterNotNull().first()
-        val confirm = provider.buildConfirmParams(amount = Crypto(BigInteger.ONE), isMax = false)
-        assertTrue(confirm is ConfirmParams.TransferParams)
-        confirm as ConfirmParams.TransferParams
-        assertEquals(BigInteger.ONE, confirm.amount)
-        assertEquals("to", confirm.destination.address)
-        assertEquals("memo", confirm.memo)
+        val transfer = provider.buildConfirmInput(amount = Crypto(BigInteger.ONE), isMax = false).transfer
+        assertTrue(transfer.inputType is GemTransactionInputType.Transfer)
+        assertEquals(BigInteger.ONE.toString(), transfer.value)
+        assertEquals("to", transfer.recipient.address)
+        assertEquals("memo", transfer.recipient.memo)
     }
 
     @Test
@@ -83,7 +80,6 @@ class AmountTransferProviderTest {
             params = AmountParams.Deposit(asset.id),
             getAssetInfo = getAssetInfo,
             scope = scope,
-            amountService = GemAmountService(),
         )
         assertEquals(AmountTitle.Deposit, provider.title)
     }
@@ -94,7 +90,6 @@ class AmountTransferProviderTest {
             params = AmountParams.Withdraw(asset.id),
             getAssetInfo = getAssetInfo,
             scope = scope,
-            amountService = GemAmountService(),
         )
         assertEquals(AmountTitle.Withdraw, provider.title)
     }
@@ -112,23 +107,20 @@ class AmountTransferProviderTest {
             params = AmountParams.Withdraw(asset.id),
             getAssetInfo = getInfo,
             scope = scope,
-            amountService = GemAmountService(),
         )
         assertEquals(BigInteger("5000000"), provider.availableBalance.first { it != BigInteger.ZERO })
     }
 
     @Test
-    fun `withdraw buildConfirmParams produces Withdrawal to own address`() = runBlocking {
+    fun `withdraw builds a withdrawal to the own address`() = runBlocking {
         val provider = AmountTransferProvider(
             params = AmountParams.Withdraw(asset.id),
             getAssetInfo = getAssetInfo,
             scope = scope,
-            amountService = GemAmountService(),
         )
         val owner = provider.assetInfo.filterNotNull().first().owner
-        val confirm = provider.buildConfirmParams(amount = Crypto(BigInteger.ONE), isMax = false)
-        assertTrue(confirm is ConfirmParams.TransferParams.Withdrawal)
-        confirm as ConfirmParams.TransferParams.Withdrawal
-        assertEquals(owner?.address, confirm.destination.address)
+        val transfer = provider.buildConfirmInput(amount = Crypto(BigInteger.ONE), isMax = false).transfer
+        assertTrue(transfer.inputType is GemTransactionInputType.Withdrawal)
+        assertEquals(owner?.address, transfer.recipient.address)
     }
 }

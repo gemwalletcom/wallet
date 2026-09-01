@@ -1,3 +1,4 @@
+use crate::models::custom_types::GemBigUint;
 use primitives::Chain;
 use swapper::SwapperError;
 
@@ -32,7 +33,7 @@ pub struct Permit2Data {
 pub struct Permit2ApprovalData {
     pub token: String,
     pub spender: String,
-    pub value: String,
+    pub value: GemBigUint,
     pub permit2_contract: String,
     pub permit2_nonce: u64,
 }

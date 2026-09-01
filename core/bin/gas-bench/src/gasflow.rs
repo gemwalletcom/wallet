@@ -8,23 +8,15 @@ use crate::client::GemstoneFeeData;
 
 const GASFLOW_API_URL: &str = "https://api.gasflow.dev/predict";
 
-#[allow(unused)]
 #[derive(Debug, Deserialize)]
 pub struct PredictedQuantiles {
-    pub minimum: f64,
     pub normal: f64,
     pub fast: f64,
-    pub urgent: f64,
-    pub critical: f64,
 }
 
-#[allow(unused)]
 #[derive(Debug, Deserialize)]
 pub struct NetworkMetrics {
     pub gas_ratio_5: f64,
-    pub gas_spikes_25: f64,
-    pub fee_ewma_10: f64,
-    pub fee_ewma_25: f64,
 }
 
 #[derive(Debug, Deserialize)]

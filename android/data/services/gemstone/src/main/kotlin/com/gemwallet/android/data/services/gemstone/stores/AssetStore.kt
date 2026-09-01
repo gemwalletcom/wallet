@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.services.gemstone.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
@@ -35,8 +36,8 @@ class GemstoneAssetStore(
         assetsDao.getAssetIds(assetIds)
     }
 
-    override fun getAssets(assetIds: List<String>): List<String> =
-        assetsDao.getAssetsByIds(assetIds).toDTO().map { it.toJson() }
+    override fun getAssets(assetIds: List<String>): List<uniffi.gemstone.Asset> =
+        assetsDao.getAssetsByIds(assetIds).toDTO().map { it.toGem() }
 
     override suspend fun saveAssets(assets: List<String>) = withContext(Dispatchers.IO) {
         val basics = assets.map { it.decodeJson<AssetBasic>() }
@@ -96,9 +97,6 @@ class GemstoneAssetStore(
 
     fun observeTokenInfo(walletId: String, assetId: AssetId): Flow<AssetInfo?> =
         assetsDao.getTokenInfo(walletId, assetId.toIdentifier(), assetId.chain).map { it?.toDTO() }
-
-    fun observeAssetsInfoByAllWallets(walletId: String, assetIds: List<String>): Flow<List<AssetInfo>> =
-        assetsDao.getAssetsInfoByAllWallets(walletId, assetIds).toAssetInfoModel()
 
     fun observeAssetLinks(assetId: AssetId): Flow<List<AssetLink>> = assetsDao.getAssetLinks(assetId.toIdentifier()).toAssetLinksModel()
 

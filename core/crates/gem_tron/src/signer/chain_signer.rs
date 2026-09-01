@@ -40,6 +40,7 @@ impl ChainSigner for TronChainSigner {
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigUint;
     use std::collections::HashMap;
 
     use gem_hash::sha2::sha256;
@@ -249,7 +250,7 @@ mod tests {
                 ApprovalData {
                     token: "0xa614f803B6FD780986A42c78Ec9c7f77e6DeD13C".to_string(),
                     spender: "0xc148aF9B50Bc03Cc0c616Cd85C66Aae9bD90cD80".to_string(),
-                    value: "10000000".to_string(),
+                    value: BigUint::from(10000000u64),
                     is_unlimited: true,
                 },
             ),
@@ -278,7 +279,7 @@ mod tests {
     fn swap_input(use_max_amount: Option<bool>, min_from_value: Option<&str>, value: &str, transaction_fee: TransactionFee) -> SignerInput {
         let mut swap_data = SwapData::mock_transfer(SwapProvider::Okx, value, "1", "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z");
         swap_data.quote.use_max_amount = use_max_amount;
-        swap_data.quote.min_from_value = min_from_value.map(str::to_string);
+        swap_data.quote.min_from_value = min_from_value.map(|value| value.parse().unwrap());
         SignerInput::mock_tron(
             TransactionInputType::Swap(Asset::from_chain(Chain::Tron), Asset::from_chain(Chain::Tron), swap_data),
             SENDER,
@@ -395,7 +396,7 @@ mod tests {
         quote_data.approval = Some(ApprovalData {
             token: source_token_address.to_string(),
             spender: "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi".to_string(),
-            value: "5000000".to_string(),
+            value: BigUint::from(5000000u64),
             is_unlimited: true,
         });
 

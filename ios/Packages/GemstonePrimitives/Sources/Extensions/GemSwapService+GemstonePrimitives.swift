@@ -5,6 +5,7 @@ import Foundation
 import protocol Gemstone.GemSwapServiceProtocol
 import struct Gemstone.SwapperQuote
 import Primitives
+import struct Gemstone.GemTransferData
 
 public extension GemSwapServiceProtocol {
     func supportedAssets(for assetId: Primitives.AssetId) -> ([Primitives.Chain], [Primitives.AssetId]) {
@@ -25,8 +26,8 @@ public extension GemSwapServiceProtocol {
     ) async throws -> [SwapperQuote] {
         let quotes = try await getQuotes(
             wallet: wallet.json(),
-            fromAsset: fromAsset.json(),
-            toAsset: toAsset.json(),
+            fromAsset: fromAsset.map(),
+            toAsset: toAsset.map(),
             value: amount.description,
             useMaxAmount: useMaxAmount,
             slippageBps: slippage.exactBps,
@@ -35,8 +36,8 @@ public extension GemSwapServiceProtocol {
         return quotes
     }
 
-    func getTransferData(wallet: Primitives.Wallet, fromAsset: Asset, toAsset: Asset, quote: SwapperQuote) async throws -> TransferData {
-        try TransferData(swap: await getTransfer(wallet: wallet.json(), quote: quote), fromAsset: fromAsset, toAsset: toAsset)
+    func getTransferData(wallet: Primitives.Wallet, fromAsset: Asset, toAsset: Asset, quote: SwapperQuote) async throws -> GemTransferData {
+        try GemTransferData(swap: await getTransfer(wallet: wallet.json(), quote: quote), fromAsset: fromAsset, toAsset: toAsset)
     }
 }
 

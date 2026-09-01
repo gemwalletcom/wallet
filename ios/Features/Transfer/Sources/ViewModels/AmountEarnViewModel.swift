@@ -8,6 +8,8 @@ import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
+import struct Gemstone.GemRecipient
+import struct Gemstone.GemTransferData
 
 public final class AmountEarnViewModel: AmountDataProvidable {
     let asset: Asset
@@ -66,7 +68,7 @@ public final class AmountEarnViewModel: AmountDataProvidable {
         )
     }
 
-    func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> TransferData {
+    func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData {
         let address = try wallet.account(for: asset.chain).address
         let earnData = try await ContractCallData(stakeService.getEarnData(
             assetId: asset.id.identifier,
@@ -74,9 +76,9 @@ public final class AmountEarnViewModel: AmountDataProvidable {
             value: String(value),
             earnType: action.json(),
         ))
-        return TransferData(
-            type: .earn(asset, action, earnData),
-            recipient: Recipient(name: provider.name, address: earnData.contractAddress, memo: nil),
+        return GemTransferData(
+            inputType: .earn(asset, action, earnData),
+            recipient: GemRecipient(address: earnData.contractAddress, name: provider.name, memo: nil),
             value: value,
             useMaxAmount: useMaxAmount,
         )

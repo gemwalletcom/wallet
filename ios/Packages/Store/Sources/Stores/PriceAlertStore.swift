@@ -28,16 +28,6 @@ public struct PriceAlertStore: Sendable {
         }
     }
 
-    public func addPriceAlerts(_ alerts: [(id: String, alert: PriceAlert)]) throws {
-        try db.write { (db: Database) in
-            for value in alerts {
-                try value.alert
-                    .mapToRecord(id: value.id)
-                    .upsert(db)
-            }
-        }
-    }
-
     @discardableResult
     public func deletePriceAlerts(_ alertsIds: [String]) throws -> Int {
         try db.write { (db: Database) in

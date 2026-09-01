@@ -1,15 +1,11 @@
 use async_trait::async_trait;
-use std::{
-    fmt::{self, Debug},
-    time::Duration,
-};
+use std::fmt::{self, Debug};
 
 use super::{AlienError, Target};
 use gem_jsonrpc::RpcResponse;
 use gem_jsonrpc::rpc::RpcProvider as GenericRpcProvider;
 use primitives::Chain;
 
-#[allow(unused)]
 pub struct MockFn(pub Box<dyn Fn(Target) -> String + Send + Sync>);
 
 impl fmt::Debug for MockFn {
@@ -18,19 +14,15 @@ impl fmt::Debug for MockFn {
     }
 }
 
-#[allow(unused)]
 #[derive(Debug)]
 pub struct ProviderMock {
     pub response: MockFn,
-    pub timeout: Duration,
 }
 
-#[allow(unused)]
 impl ProviderMock {
     pub fn new(string: String) -> Self {
         Self {
             response: MockFn(Box::new(move |_| string.clone())),
-            timeout: Duration::from_millis(100),
         }
     }
 }

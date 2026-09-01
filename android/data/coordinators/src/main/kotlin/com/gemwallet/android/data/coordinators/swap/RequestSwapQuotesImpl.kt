@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.swap
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes.Companion.QUOTE_DEBOUNCE_MS
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
@@ -71,8 +72,8 @@ class RequestSwapQuotesImpl(
         val amount = Crypto(params.value, params.pay.asset.decimals).atomicValue
         val quotes = swapService.getQuotes(
             wallet = wallet.toJson(),
-            fromAsset = params.pay.asset.toJson(),
-            toAsset = params.receive.asset.toJson(),
+            fromAsset = params.pay.asset.toGem(),
+            toAsset = params.receive.asset.toGem(),
             value = amount.toString(),
             useMaxAmount = BigInteger(params.pay.balance.balance.available) == amount,
             slippageBps = params.slippageBps,

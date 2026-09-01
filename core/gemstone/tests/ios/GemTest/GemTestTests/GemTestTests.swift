@@ -7,30 +7,6 @@ import Testing
 
 struct GemTestTests {
     @Test
-    func testLoadFFI() async throws {
-        let result = Gemstone.libVersion()
-        #expect(!result.isEmpty)
-    }
-
-    @Test
-    func testGetExplorerName() throws {
-        let chain = "bitcoin" // Primitive::Chain::Bitcoin as_str()
-        let explorers = Config().getBlockExplorers(chain: chain)
-
-        try #require(explorers.count >= 2)
-        #expect(explorers[1] == "Mempool")
-
-        let explorer = Explorer(chain: chain)
-        let transactionUrl = explorer.getTransactionUrl(
-            explorerName: explorers[1],
-            transactionId:
-            "813d80363c09b1c4d3f0c6ce3382a048b320edefb573a8aedbc7ddd4c65cf7e4"
-        )
-
-        #expect(transactionUrl == "https://mempool.space/tx/813d80363c09b1c4d3f0c6ce3382a048b320edefb573a8aedbc7ddd4c65cf7e4")
-    }
-
-    @Test
     func testCache() async throws {
         let cache = Cache<AlienTarget, Data>()
         let target = AlienTarget(

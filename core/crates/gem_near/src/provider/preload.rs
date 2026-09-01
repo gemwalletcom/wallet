@@ -63,6 +63,7 @@ impl<C: Client + Clone> ChainTransactionLoad for NearProvider<C> {
 mod chain_integration_tests {
     use super::*;
     use crate::provider::testkit::{TEST_ADDRESS, create_near_test_client};
+    use num_bigint::BigUint;
     use primitives::{Asset, AssetType, Chain, FeeOption, GasPriceType, SwapProvider, TransactionInputType, asset_constants::NEAR_USDT_ASSET_ID, swap::SwapData};
 
     #[tokio::test]
@@ -88,7 +89,7 @@ mod chain_integration_tests {
                 input_type,
                 sender_address: TEST_ADDRESS.to_string(),
                 destination_address: TEST_ADDRESS.to_string(),
-                value: "1000000".to_string(),
+                value: BigUint::from(1000000u64),
                 gas_price: GasPriceType::regular(100_000_000u64),
                 memo: None,
                 is_max_value: false,

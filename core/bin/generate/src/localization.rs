@@ -1,3 +1,6 @@
+mod android;
+mod ios;
+
 use fluent_syntax::{
     ast::{Entry, Pattern, PatternElement},
     parser,
@@ -10,8 +13,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
-const DEFAULT_LANGUAGE: &str = "en";
-const ANDROID_ONLY_KEYS: &[&str] = &[
+pub const DEFAULT_LANGUAGE: &str = "en";
+pub const ANDROID_ONLY_KEYS: &[&str] = &[
     "application_name",
     "camera_permission_request_camera",
     "common_grant_permission",
@@ -40,9 +43,10 @@ pub fn generate(args: &[String]) -> Result<(), Box<dyn Error + Send + Sync>> {
     let localizations = read_localizations(Path::new(source_path))?;
 
     match target.as_str() {
-        "ios" => write_ios(&localizations, Path::new(output_path))?,
-        "ios-plist" => write_ios_strings_files(&localizations, Path::new(output_path), "InfoPlist.strings", &[], None)?,
-        "android" => write_android(&localizations, Path::new(output_path))?,
+        "ios" => ios::write_app(&localizations, Path::new(output_path))?,
+        "ios-widget" => ios::write_widget(&localizations, Path::new(output_path))?,
+        "ios-plist" => ios::write_info_plist(&localizations, Path::new(output_path))?,
+        "android" => android::write(&localizations, Path::new(output_path))?,
         other => return Err(format!("unsupported localization target: {other}").into()),
     }
 
@@ -146,146 +150,4 @@ fn validate_value(path: &Path, id: &str, value: &str) -> Result<(), Box<dyn Erro
         }
     }
     Ok(())
-}
-
-fn write_ios(localizations: &BTreeMap<String, Vec<(String, String)>>, output_path: &Path) -> Result<(), Box<dyn Error + Send + Sync>> {
-    let key_map = read_ios_key_map(output_path)?;
-    write_ios_strings_files(localizations, output_path, "Localizable.strings", ANDROID_ONLY_KEYS, Some(&key_map))
-}
-
-fn write_ios_strings_files(
-    localizations: &BTreeMap<String, Vec<(String, String)>>,
-    output_path: &Path,
-    file_name: &str,
-    excluded_keys: &[&str],
-    key_map: Option<&BTreeMap<String, String>>,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
-    for (language, entries) in localizations {
-        let directory = output_path.join(format!("{language}.lproj"));
-        fs::create_dir_all(&directory)?;
-        fs::write(directory.join(file_name), ios_strings(entries, excluded_keys, key_map))?;
-    }
-    Ok(())
-}
-
-fn ios_strings(entries: &[(String, String)], excluded_keys: &[&str], key_map: Option<&BTreeMap<String, String>>) -> String {
-    let mut output = String::new();
-    for (key, value) in entries {
-        if excluded_keys.contains(&key.as_str()) {
-            continue;
-        }
-        let key = ios_key(key, key_map);
-        output.push('"');
-        output.push_str(&key);
-        output.push_str("\" = \"");
-        output.push_str(value);
-        output.push_str("\";\n");
-    }
-    output
-}
-
-fn ios_key(key: &str, key_map: Option<&BTreeMap<String, String>>) -> String {
-    let Some(key_map) = key_map else {
-        return key.to_string();
-    };
-    let mapped_key = key_map.get(key);
-    if mapped_key.is_some_and(|key| key.contains('.')) {
-        return mapped_key.expect("mapped key was checked").to_string();
-    }
-    let Some(prefix) = key_map
-        .values()
-        .filter_map(|key| key.split_once('.').map(|(prefix, _)| prefix))
-        .filter(|prefix| key.starts_with(&format!("{prefix}_")))
-        .max_by_key(|prefix| prefix.len())
-    else {
-        return mapped_key.cloned().unwrap_or_else(|| key.to_string());
-    };
-    format!("{prefix}.{}", &key[prefix.len() + 1..])
-}
-
-fn write_android(localizations: &BTreeMap<String, Vec<(String, String)>>, output_path: &Path) -> Result<(), Box<dyn Error + Send + Sync>> {
-    for (language, entries) in localizations {
-        let directory = output_path.join(android_values_directory(language));
-        fs::create_dir_all(&directory)?;
-        let mut output = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<resources>\n");
-        for (key, value) in entries {
-            let android_value = android_value(value);
-            output.push_str("  <string name=\"");
-            output.push_str(key);
-            output.push_str("\">");
-            output.push_str(&android_value);
-            output.push_str("</string>\n");
-        }
-        output.push_str("</resources>\n");
-        fs::write(directory.join("strings.xml"), output)?;
-    }
-    Ok(())
-}
-
-fn android_values_directory(language: &str) -> String {
-    match android_language_qualifier(language) {
-        None => "values".to_string(),
-        Some(qualifier) => format!("values-{qualifier}"),
-    }
-}
-
-fn android_language_qualifier(language: &str) -> Option<&str> {
-    match language {
-        DEFAULT_LANGUAGE => None,
-        "he" => Some("iw"),
-        "pt-BR" => Some("pt-rBR"),
-        "zh-Hans" => Some("zh-rCN"),
-        "zh-Hant" => Some("zh-rTW"),
-        other => Some(other),
-    }
-}
-
-fn read_ios_key_map(output_path: &Path) -> Result<BTreeMap<String, String>, Box<dyn Error + Send + Sync>> {
-    let path = output_path.join(format!("{DEFAULT_LANGUAGE}.lproj/Localizable.strings"));
-    let mut values = BTreeMap::new();
-    if !path.exists() {
-        return Ok(values);
-    }
-    for line in fs::read_to_string(&path)?.lines() {
-        let line = line.trim();
-        if line.is_empty() {
-            continue;
-        }
-        let Some((key, _)) = line.split_once("\" = \"") else {
-            continue;
-        };
-        let Some(key) = key.strip_prefix('"') else {
-            continue;
-        };
-        values.insert(key.replace('.', "_"), key.to_string());
-    }
-    Ok(values)
-}
-
-fn android_value(value: &str) -> String {
-    let mut output = String::new();
-    let mut index = 1;
-    let mut characters = value.chars().peekable();
-    while let Some(character) = characters.next() {
-        if character == '%' {
-            match characters.peek() {
-                Some('@') => {
-                    characters.next();
-                    output.push_str(&format!("%{index}$s"));
-                    index += 1;
-                }
-                Some('d') => {
-                    characters.next();
-                    output.push_str(&format!("%{index}$d"));
-                    index += 1;
-                }
-                _ => output.push(character),
-            }
-        } else if character == '\'' {
-            output.push_str("\\'");
-        } else {
-            output.push(character);
-        }
-    }
-    output
 }

@@ -1,3 +1,4 @@
+use num_traits::ToPrimitive;
 use std::{fmt::Debug, sync::Arc};
 
 use async_trait::async_trait;
@@ -86,7 +87,7 @@ where
             dst_chain_id: destination.id,
             dst_token: EVM_ZERO_ADDRESS.into(),
             slippage: request.options.slippage.bps,
-            amount: request.value.clone(),
+            amount: request.value.to_string(),
             swap_direction: "exact-amount-in".into(),
             recipient: request.destination_address.clone(),
             refund_to: request.wallet_address.clone(),
@@ -114,7 +115,7 @@ where
 
     fn validate_response(response: &ActionResponse, request: &QuoteRequest, source: SwapsXyzChain, destination: SwapsXyzChain) -> Result<(), SwapperError> {
         let fee = default_referral_fees().evm;
-        let input = request.value.parse::<BigUint>().map_err(SwapperError::compute_quote_error)?;
+        let input = request.value.clone();
         let expected_fee = &input * BigUint::from(fee.bps) / BigUint::from(HUNDRED_PERCENT_IN_BPS);
         let valid = response.vm_id == "alt-vm"
             && !response.tx.to.is_empty()
@@ -165,7 +166,7 @@ where
             .iter()
             .find(|path| path.chain_id == destination.id && path.supports_exact_amount_in && path.tokens.iter().any(|token| token.is_native && token.address == EVM_ZERO_ADDRESS))
             .ok_or(SwapperError::NoQuoteAvailable)?;
-        Self::validate_amount(&path.amount_limits, &request.value, source.decimals())?;
+        Self::validate_amount(&path.amount_limits, &request.value.to_string(), source.decimals())?;
         let action_request = Self::build_action_request(request, source, destination)?;
         let response = self.client.get_action(&action_request).await?;
         Self::validate_response(&response, request, source, destination)?;
@@ -175,9 +176,9 @@ where
             None
         };
         Ok(Quote {
-            from_value: response.amount_in.amount.to_string(),
+            from_value: response.amount_in.amount.clone(),
             min_from_value: None,
-            to_value: response.amount_out.amount.to_string(),
+            to_value: response.amount_out.amount.clone(),
             data: ProviderData {
                 provider: self.provider.clone(),
                 routes: vec![Route {
@@ -198,14 +199,14 @@ where
         let source = SwapsXyzChain::from_chain(quote.request.from_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
         let destination = SwapsXyzChain::from_chain(quote.request.to_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
         Self::validate_response(&response, &quote.request, source, destination)?;
-        let data = SwapperQuoteData::new_transfer(response.tx.to, response.tx.value.to_string(), response.tx.to_extra.filter(|memo| !memo.is_empty()));
+        let data = SwapperQuoteData::new_transfer(response.tx.to, response.tx.value.clone(), response.tx.to_extra.filter(|memo| !memo.is_empty()));
         if source.chain != Chain::Sui {
             return Ok(data);
         }
         let amount = data
             .value
-            .parse::<u64>()
-            .map_err(|_| SwapperError::ComputeQuoteError("Invalid Sui amount provided for deposit".into()))?;
+            .to_u64()
+            .ok_or_else(|| SwapperError::ComputeQuoteError("Sui deposit amount is too large".into()))?;
         let payload = build_transfer_message_bytes(&self.sui_client, &quote.request.wallet_address, &data.to, amount, None)
             .await
             .map_err(|error| SwapperError::TransactionError(format!("Failed to build Sui deposit data: {error}")))?;
@@ -224,9 +225,9 @@ where
         let metadata = response.action_response.and_then(|status| {
             Some(TransactionSwapMetadata {
                 from_asset: AssetId::from_chain(status.amount_in.native_chain()?.chain),
-                from_value: status.amount_in.amount.to_string(),
+                from_value: status.amount_in.amount.clone(),
                 to_asset: AssetId::from_chain(status.amount_out.native_chain()?.chain),
-                to_value: status.amount_out.amount.to_string(),
+                to_value: status.amount_out.amount.clone(),
                 provider: Some(SwapperProvider::SwapsXyz.as_ref().to_string()),
             })
         });
@@ -250,7 +251,7 @@ mod tests {
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Stellar)),
             wallet_address: "COSMOS_ADDRESS".into(),
             destination_address: "STELLAR_ADDRESS".into(),
-            value: "1000000".into(),
+            value: BigUint::from(1000000u64),
             options: Options::default(),
         }
     }
@@ -345,9 +346,9 @@ mod tests {
         let request = request();
         let response = response();
         let quote = Quote {
-            from_value: response.amount_in.amount.to_string(),
+            from_value: response.amount_in.amount.clone(),
             min_from_value: None,
-            to_value: response.amount_out.amount.to_string(),
+            to_value: response.amount_out.amount.clone(),
             data: ProviderData {
                 provider: provider.provider.clone(),
                 slippage_bps: request.options.slippage.bps,

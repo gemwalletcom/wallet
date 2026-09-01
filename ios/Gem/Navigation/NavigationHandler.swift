@@ -4,6 +4,7 @@ import Store
 import GemstoneServices
 import Components
 import WalletConnectorService
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
@@ -12,7 +13,7 @@ import protocol Gemstone.GemPushNotificationServiceProtocol
 import class Gemstone.GemPaymentLinkService
 import GemstonePrimitives
 import Localization
-import class Gemstone.GemAddressService
+import protocol Gemstone.GemAddressServiceProtocol
 import class Gemstone.GemPaymentService
 import Primitives
 import PrimitivesComponents
@@ -33,11 +34,11 @@ final class NavigationHandler: Sendable {
     private let pushNotificationService: any GemPushNotificationServiceProtocol
     private let transactionStore: TransactionStore
     private let urlParser: URLParser
-    private let addressService: GemAddressService
+    private let addressService: any GemAddressServiceProtocol
     private let paymentService: GemPaymentService
     private let transactionStateService: any GemTransactionStateServiceProtocol
     private let walletConnectorPresenter: WalletConnectorPresenter
-    private let walletSessionService: any WalletSessionManageable
+    private let walletSessionService: any GemWalletSessionServiceProtocol
 
     init(
         navigationState: NavigationStateManager,
@@ -50,11 +51,11 @@ final class NavigationHandler: Sendable {
         pushNotificationService: any GemPushNotificationServiceProtocol,
         transactionStore: TransactionStore,
         urlParser: URLParser,
-        addressService: GemAddressService,
+        addressService: any GemAddressServiceProtocol,
         paymentService: GemPaymentService,
         transactionStateService: any GemTransactionStateServiceProtocol,
         walletConnectorPresenter: WalletConnectorPresenter,
-        walletSessionService: any WalletSessionManageable,
+        walletSessionService: any GemWalletSessionServiceProtocol,
     ) {
         self.navigationState = navigationState
         self.presenter = presenter
@@ -294,7 +295,7 @@ extension NavigationHandler {
                   wallet: wallet.json(),
                   assetId: assetId.identifier,
                   transaction: transaction.json(),
-              ).map({ try Asset($0) })
+              ).map({ $0.map() })
         else {
             return
         }

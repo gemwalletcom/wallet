@@ -208,6 +208,7 @@ impl GemTransactionUpdater for GemTransactionStateService {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_bigint::BigUint;
     use primitives::{AssetId, Chain, TransactionChange, TransactionMetadata, TransactionSwapMetadata, TransactionType};
     use std::sync::Mutex;
 
@@ -268,12 +269,12 @@ mod tests {
         }
     }
 
-    fn swap_metadata(to_value: &str) -> TransactionSwapMetadata {
+    fn swap_metadata(to_value: BigUint) -> TransactionSwapMetadata {
         TransactionSwapMetadata {
             from_asset: AssetId::from_chain(Chain::Ethereum),
-            from_value: "1000000000000000000".into(),
+            from_value: BigUint::parse_bytes(b"1000000000000000000", 10).unwrap(),
             to_asset: AssetId::from_chain(Chain::Bitcoin),
-            to_value: to_value.into(),
+            to_value,
             provider: Some("thorchain".into()),
         }
     }
@@ -287,11 +288,11 @@ mod tests {
             None,
             TransactionType::Swap,
             state,
-            "1".into(),
+            BigUint::from(1u64),
             AssetId::from_chain(Chain::Ethereum),
-            "1000000000000000000".into(),
+            BigUint::from(1000000000000000000u64),
             None,
-            serde_json::to_value(swap_metadata("10000000000000000000")).ok(),
+            serde_json::to_value(swap_metadata(BigUint::parse_bytes(b"10000000000000000000", 10).unwrap())).ok(),
             created_at,
         )
     }
@@ -323,7 +324,9 @@ mod tests {
             transaction("hash", TransactionState::Pending, now),
             update(
                 TransactionState::InTransit,
-                vec![TransactionChange::Metadata(TransactionMetadata::Swap(swap_metadata("9900000000000000000")))],
+                vec![TransactionChange::Metadata(TransactionMetadata::Swap(swap_metadata(
+                    BigUint::parse_bytes(b"9900000000000000000", 10).unwrap(),
+                )))],
             ),
             now,
         )
@@ -503,9 +506,9 @@ mod tests {
             None,
             TransactionType::Transfer,
             TransactionState::Pending,
-            "1".into(),
+            BigUint::from(1u64),
             AssetId::from_chain(Chain::HyperCore),
-            "1".into(),
+            BigUint::from(1u64),
             None,
             None,
             Utc::now(),

@@ -13,11 +13,6 @@ fun SavedStateHandle.requireAssetId(argument: RouteArgument = RouteArgument.Asse
     return checkNotNull(value.toAssetId()) { "Invalid route argument ${argument.key}: $value" }
 }
 
-fun SavedStateHandle.optionalAssetId(argument: RouteArgument): AssetId? {
-    val value = get<String>(argument.key) ?: return null
-    return checkNotNull(value.toAssetId()) { "Invalid route argument ${argument.key}: $value" }
-}
-
 fun SavedStateHandle.requireNftAssetId(argument: RouteArgument = RouteArgument.NftAssetId): NFTAssetId {
     val value = checkNotNull(get<String>(argument.key)) { "Missing route argument: ${argument.key}" }
     return checkNotNull(value.toNftAssetId()) { "Invalid route argument ${argument.key}: $value" }

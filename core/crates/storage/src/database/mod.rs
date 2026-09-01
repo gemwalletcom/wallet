@@ -37,17 +37,20 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("src/migrations");
 pub type PgPool = Pool<ConnectionManager<PgConnection>>;
 pub type PgPooledConnection = PooledConnection<ConnectionManager<PgConnection>>;
 
-use crate::repositories::{
-    config_repository::ConfigRepository, devices_repository::DevicesRepository, fiat_repository::FiatRepository, nft_repository::NftRepository,
-    perpetuals_repository::PerpetualsRepository, rewards_repository::RewardsRepository,
+use crate::{
+    DatabaseError,
+    repositories::{
+        config_repository::ConfigRepository, devices_repository::DevicesRepository, fiat_repository::FiatRepository, nft_repository::NftRepository,
+        perpetuals_repository::PerpetualsRepository, rewards_repository::RewardsRepository,
+    },
 };
 
-pub fn create_pool(database_url: &str, pool_size: u32) -> PgPool {
+pub fn create_pool(database_url: &str, pool_size: u32) -> Result<PgPool, DatabaseError> {
+    if pool_size == 0 {
+        return Err(DatabaseError::ConnectionPool);
+    }
     let manager = ConnectionManager::<PgConnection>::new(database_url);
-    Pool::builder()
-        .max_size(pool_size)
-        .build(manager)
-        .unwrap_or_else(|_| panic!("Error creating connection pool for {database_url}"))
+    Pool::builder().max_size(pool_size).build(manager).map_err(|_| DatabaseError::ConnectionPool)
 }
 
 pub struct DatabaseClient {
@@ -55,8 +58,8 @@ pub struct DatabaseClient {
 }
 
 impl DatabaseClient {
-    pub fn from_pool(pool: &PgPool) -> Result<Self, r2d2::Error> {
-        let connection = pool.get()?;
+    pub fn from_pool(pool: &PgPool) -> Result<Self, DatabaseError> {
+        let connection = pool.get().map_err(|_| DatabaseError::ConnectionPool)?;
         Ok(Self { connection })
     }
 

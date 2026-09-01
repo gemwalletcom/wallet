@@ -49,7 +49,7 @@ public struct ManageContactAddressScene: View {
         }
         .navigationDestination(for: Scenes.NetworksSelector.self) { _ in
             ChainSelectorView(
-                chain: model.chain,
+                model: model.networkSelectorModel,
                 onSelectChain: model.onSelectChain,
             )
         }

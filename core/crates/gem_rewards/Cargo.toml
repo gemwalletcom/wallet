@@ -4,6 +4,7 @@ version = { workspace = true }
 edition = "2021"
 
 [dependencies]
+num-bigint = { workspace = true }
 primitives = { path = "../primitives" }
 storage = { path = "../storage" }
 cacher = { path = "../cacher" }

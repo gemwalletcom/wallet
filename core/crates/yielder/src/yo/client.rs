@@ -5,6 +5,7 @@ use gem_evm::contracts::erc4626::IERC4626;
 use gem_evm::jsonrpc::TransactionObject;
 use gem_evm::multicall3::{create_call3, decode_call3_return};
 use gem_evm::rpc::EthereumClient;
+use gem_evm::u256::u256_to_biguint;
 use gem_jsonrpc::alien::RpcClient;
 use primitives::swap::ApprovalData;
 
@@ -110,7 +111,7 @@ fn build_token_approval_data(token: Address, spender: Address, amount: U256) -> 
     ApprovalData {
         token: token.to_string(),
         spender: spender.to_string(),
-        value: amount.to_string(),
+        value: u256_to_biguint(&amount),
         is_unlimited: true,
     }
 }
@@ -118,6 +119,7 @@ fn build_token_approval_data(token: Address, spender: Address, amount: U256) -> 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_bigint::BigUint;
 
     #[test]
     fn test_convert_to_assets_ceil() {
@@ -142,7 +144,7 @@ mod tests {
             ApprovalData {
                 token: token.to_string(),
                 spender: spender.to_string(),
-                value: "1234".to_string(),
+                value: BigUint::from(1234u64),
                 is_unlimited: true,
             }
         );

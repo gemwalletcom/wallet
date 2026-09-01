@@ -1,5 +1,6 @@
 use super::permit2_data::Permit2Data;
 use crate::{SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperSlippage, config::DEFAULT_SLIPPAGE_BPS};
+use num_bigint::BigUint;
 pub use primitives::swap::SwapResult;
 use primitives::{
     AssetId, Chain,
@@ -7,6 +8,7 @@ use primitives::{
 };
 use serde::Serialize;
 use serde_serializers::serialize_display;
+use serde_serializers::{serialize_biguint, serialize_option_biguint};
 use std::fmt::Debug;
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -87,7 +89,8 @@ pub struct QuoteRequest {
     pub to_asset: SwapperQuoteAsset,
     pub wallet_address: String,
     pub destination_address: String,
-    pub value: String,
+    #[serde(serialize_with = "serialize_biguint")]
+    pub value: BigUint,
     #[serde(skip_serializing)]
     pub options: Options,
 }
@@ -115,9 +118,12 @@ impl Default for Options {
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Quote {
-    pub from_value: String,
-    pub min_from_value: Option<String>,
-    pub to_value: String,
+    #[serde(serialize_with = "serialize_biguint")]
+    pub from_value: BigUint,
+    #[serde(serialize_with = "serialize_option_biguint")]
+    pub min_from_value: Option<BigUint>,
+    #[serde(serialize_with = "serialize_biguint")]
+    pub to_value: BigUint,
     pub data: ProviderData,
     pub request: QuoteRequest,
     pub eta_in_seconds: Option<u32>,
@@ -169,7 +175,7 @@ impl ApprovalType {
 pub struct Permit2ApprovalData {
     pub token: String,
     pub spender: String,
-    pub value: String,
+    pub value: BigUint,
     pub permit2_contract: String,
     pub permit2_nonce: u64,
 }

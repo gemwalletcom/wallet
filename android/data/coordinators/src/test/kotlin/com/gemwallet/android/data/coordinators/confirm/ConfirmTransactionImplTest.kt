@@ -2,11 +2,13 @@ package com.gemwallet.android.data.coordinators.confirm
 
 import com.gemwallet.android.ext.toGem
 import uniffi.gemstone.GemRecipient
-import com.gemwallet.android.domains.confirm.toConfirmInput
+import com.gemwallet.android.domains.confirm.confirmInput
+import com.gemwallet.android.domains.confirm.transfer
 import com.gemwallet.android.application.transactions.cases.CreateTransaction
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.domains.confirm.ConfirmError
-import com.gemwallet.android.model.ConfirmParams
+import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.Fee
 import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.serializer.toJson
@@ -30,11 +32,10 @@ import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemConfirmException
-import uniffi.gemstone.GemConfirmServiceInterface
+import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemExecuteResult
 import uniffi.gemstone.GemSignerError
 import uniffi.gemstone.GemTransactionLoadMetadata
-import uniffi.gemstone.GemTransactionSigner
 import uniffi.gemstone.GemConfirmData
 import uniffi.gemstone.GemTransactionLoadFee
 import uniffi.gemstone.GemGasPriceType
@@ -70,17 +71,15 @@ class ConfirmTransactionImplTest {
         val wallet = mockWallet(accounts = listOf(account))
         val tracked = mockTransaction(assetId = asset.id)
         val trackedTransactions = slot<List<Transaction>>()
-        val confirmService = mockk<GemConfirmServiceInterface> {
-            coEvery { execute(any(), any()) } returns GemExecuteResult.Sent(listOf("hash-1", "hash-2"), listOf(tracked.toJson()))
+        val confirmService = mockk<GemConfirmTransferService> {
+            coEvery { execute(any()) } returns GemExecuteResult.Sent(listOf("hash-1", "hash-2"), listOf(tracked.toJson()))
         }
         val createTransaction = mockk<CreateTransaction>()
         coEvery { createTransaction.trackTransactions(wallet.id, capture(trackedTransactions)) } returns Unit
 
         val result = ConfirmTransactionImpl(
-            signer = mockk<GemTransactionSigner>(),
             confirmService = confirmService,
             createTransactionsCase = createTransaction,
-            recentAssetsService = mockk<RecentAssetsService>(relaxed = true),
         ).invoke(
             signerParams = signerParams(asset, account),
             session = mockSession(wallet = wallet),
@@ -97,16 +96,14 @@ class ConfirmTransactionImplTest {
         val account = mockAccount(Chain.Ethereum, "0x836047E7F35EED487152b2C4c131929fF7bbC814")
         val asset = mockAsset(chain = Chain.Ethereum, name = "Ethereum", symbol = "ETH", decimals = 18)
         val wallet = mockWallet(accounts = listOf(account))
-        val confirmService = mockk<GemConfirmServiceInterface> {
-            coEvery { execute(any(), any()) } returns GemExecuteResult.Signed(listOf("signed"))
+        val confirmService = mockk<GemConfirmTransferService> {
+            coEvery { execute(any()) } returns GemExecuteResult.Signed(listOf("signed"))
         }
         val createTransaction = mockk<CreateTransaction>()
 
         val result = ConfirmTransactionImpl(
-            signer = mockk<GemTransactionSigner>(),
             confirmService = confirmService,
             createTransactionsCase = createTransaction,
-            recentAssetsService = mockk<RecentAssetsService>(relaxed = true),
         ).invoke(
             signerParams = signerParams(asset, account),
             session = mockSession(wallet = wallet),
@@ -123,16 +120,14 @@ class ConfirmTransactionImplTest {
         val account = mockAccount(Chain.Bitcoin, "bc1q")
         val asset = mockAsset(chain = Chain.Bitcoin, name = "Bitcoin", symbol = "BTC", decimals = 8)
         val wallet = mockWallet(accounts = listOf(account))
-        val confirmService = mockk<GemConfirmServiceInterface> {
-            coEvery { execute(any(), any()) } throws GemConfirmException.Sign(GemSignerError.DustThreshold, "dust")
+        val confirmService = mockk<GemConfirmTransferService> {
+            coEvery { execute(any()) } throws GemConfirmException.Sign(GemSignerError.DustThreshold, "dust")
         }
 
         val error = runCatching {
             ConfirmTransactionImpl(
-                signer = mockk<GemTransactionSigner>(),
                 confirmService = confirmService,
                 createTransactionsCase = mockk(relaxed = true),
-                recentAssetsService = mockk(relaxed = true),
             ).invoke(
                 signerParams = signerParams(asset, account),
                 session = mockSession(wallet = wallet),
@@ -146,14 +141,18 @@ class ConfirmTransactionImplTest {
     }
 
     private fun signerParams(asset: com.wallet.core.primitives.Asset, account: com.wallet.core.primitives.Account) = signerParams(
-        ConfirmParams.Builder(asset, account, BigInteger.TEN).transfer(GemRecipient("0x0000000000000000000000000000000000000001")),
+        GemTransferData(
+            inputType = GemTransactionInputType.transfer(asset),
+            recipient = GemRecipient("0x0000000000000000000000000000000000000001"),
+            value = BigInteger.TEN.toString(),
+        ).confirmInput(account),
         asset,
     )
 
-    private fun signerParams(params: ConfirmParams, asset: com.wallet.core.primitives.Asset) = SignerParams(
-        input = params,
+    private fun signerParams(input: GemConfirmInput, asset: com.wallet.core.primitives.Asset) = SignerParams(
+        input = input,
         confirmData = GemConfirmData(
-            input = params.toConfirmInput(),
+            input = input,
             fee = GemTransactionLoadFee(
                 fee = "0",
                 gasPriceType = GemGasPriceType.Regular("0"),

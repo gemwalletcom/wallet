@@ -7,7 +7,20 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemBalanceService
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneRecentActivityStore
+import uniffi.gemstone.GemRecentActivityService
+import uniffi.gemstone.GemConfirmTransferService
+import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemNameService
+import uniffi.gemstone.GemFeeService
+import uniffi.gemstone.GemSwapQuoteService
+import uniffi.gemstone.GemAssetConfigService
+import uniffi.gemstone.GemTransactionSigner
+import com.gemwallet.android.application.PasswordStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import uniffi.gemstone.GemConfirmService
 import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemAppStartService
@@ -32,7 +45,37 @@ object DataModule {
         transactionStateService: GemTransactionStateService,
         balanceService: GemBalanceService,
         priceService: GemPriceService,
-    ): GemConfirmServiceInterface = GemConfirmService(gateway, simulationService, scanService, transactionStateService, balanceService, priceService)
+        assetsService: GemAssetsService,
+    ): GemConfirmServiceInterface = GemConfirmService(gateway, simulationService, scanService, transactionStateService, balanceService, priceService, assetsService)
+
+    @Provides
+    @Singleton
+    fun provideGemRecentActivityService(
+        recentAssetsService: RecentAssetsService,
+    ): GemRecentActivityService = GemRecentActivityService(GemstoneRecentActivityStore(recentAssetsService))
+
+    @Provides
+    @Singleton
+    fun provideGemConfirmTransferService(
+        confirmService: GemConfirmServiceInterface,
+        explorerService: GemExplorerService,
+        nameService: GemNameService,
+        feeService: GemFeeService,
+        swapQuoteService: GemSwapQuoteService,
+        signer: GemTransactionSigner,
+        passwordStore: PasswordStore,
+        recentActivity: GemRecentActivityService,
+    ): GemConfirmTransferService = GemConfirmTransferService(
+        confirmService as GemConfirmService,
+        explorerService,
+        nameService,
+        GemAssetConfigService(),
+        feeService,
+        swapQuoteService,
+        signer,
+        GemstoneKeystorePassword(passwordStore),
+        recentActivity,
+    )
 
     @Provides
     @Singleton

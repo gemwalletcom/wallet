@@ -4,54 +4,6 @@
 
 import Foundation
 
-public struct PushNotificationAsset: Codable, Equatable, Sendable {
-	public let assetId: AssetId
-
-	public init(assetId: AssetId) {
-		self.assetId = assetId
-	}
-}
-
-public struct PushNotificationReward: Codable, Equatable, Sendable {
-	public let walletId: String
-
-	public init(walletId: String) {
-		self.walletId = walletId
-	}
-}
-
-public struct PushNotificationSwapAsset: Codable, Equatable, Sendable {
-	public let fromAssetId: AssetId
-	public let toAssetId: AssetId
-
-	public init(fromAssetId: AssetId, toAssetId: AssetId) {
-		self.fromAssetId = fromAssetId
-		self.toAssetId = toAssetId
-	}
-}
-
-public struct PushNotificationTransaction: Codable, Equatable, Sendable {
-	public let walletId: WalletId
-	public let assetId: AssetId
-	public let transaction: Transaction
-
-	public init(walletId: WalletId, assetId: AssetId, transaction: Transaction) {
-		self.walletId = walletId
-		self.assetId = assetId
-		self.transaction = transaction
-	}
-}
-
-public struct PushNotificationWalletAsset: Codable, Equatable, Sendable {
-	public let walletId: WalletId
-	public let assetId: AssetId
-
-	public init(walletId: WalletId, assetId: AssetId) {
-		self.walletId = walletId
-		self.assetId = assetId
-	}
-}
-
 public enum PushNotificationTypes: String, Codable, Equatable, Sendable {
 	case test
 	case transaction

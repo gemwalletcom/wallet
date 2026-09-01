@@ -1,5 +1,7 @@
+use num_bigint::BigUint;
 use primitives::{AssetId, swap::SwapResult};
 use rocket::{State, get};
+use std::str::FromStr;
 use swapper::{Options, QuoteRequest, SwapQuotes, SwapperQuoteAsset, config::get_default_slippage, cross_chain::VaultAddresses, swapper::GemSwapper};
 
 use crate::api_clients::PermissionChainRead;
@@ -45,7 +47,7 @@ fn build_quote_request(from_asset_id: AssetId, to_asset_id: AssetId, value: &str
         to_asset,
         wallet_address,
         destination_address,
-        value: value.to_string(),
+        value: BigUint::from_str(value).unwrap_or_default(),
         options: Options {
             slippage: get_default_slippage(&from_asset_id.chain),
             use_max_amount: false,

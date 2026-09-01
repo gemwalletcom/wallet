@@ -11,8 +11,17 @@ extension GemConfirmError: @retroactive LocalizedError {
         case .ScanMalicious: Localized.Errors.ScanTransaction.Malicious.description
         case let .ScanMemoRequired(symbol): Localized.Errors.ScanTransaction.memoRequired(symbol.boldMarkdown())
         case .FeeRatesMissing: Localized.Errors.unableEstimateNetworkFee
-        case .AccountMissing, .BalanceMissing, .SenderMismatch: Localized.Errors.unknown
+        case .AccountMissing, .BalanceMissing, .SenderMismatch, .InsufficientNetworkFee: Localized.Errors.unknown
         case let .Network(msg), let .Load(msg), let .Broadcast(_, msg), let .Record(msg), let .Sign(_, msg), let .ApprovalInvalid(msg): msg
+        }
+    }
+}
+
+extension GemConfirmError {
+    var isScanRejection: Bool {
+        switch self {
+        case .ScanMalicious, .ScanMemoRequired: true
+        default: false
         }
     }
 }

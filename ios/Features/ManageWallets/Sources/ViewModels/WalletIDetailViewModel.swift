@@ -8,13 +8,17 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
+import protocol Gemstone.GemWalletServiceProtocol
+import Preferences
 import GemstoneServices
 
 @Observable
 @MainActor
 public final class WalletDetailViewModel {
     private let navigationPath: Binding<NavigationPath>
-    let walletService: WalletService
+    private let walletService: any GemWalletServiceProtocol
+    private let keystore: any Keystore
+    private let preferences: ObservablePreferences
     private let explorerService: any GemExplorerServiceProtocol
 
     var nameInput: String
@@ -30,11 +34,15 @@ public final class WalletDetailViewModel {
     public init(
         navigationPath: Binding<NavigationPath>,
         wallet: Wallet,
-        walletService: WalletService,
+        walletService: any GemWalletServiceProtocol,
+        keystore: any Keystore,
+        preferences: ObservablePreferences,
         explorerService: any GemExplorerServiceProtocol,
     ) {
         self.navigationPath = navigationPath
         self.walletService = walletService
+        self.keystore = keystore
+        self.preferences = preferences
         self.explorerService = explorerService
         nameInput = wallet.name
         isPresentingAlertMessage = nil
@@ -91,16 +99,19 @@ extension WalletDetailViewModel {
     }
 
     func getMnemonicWords() async throws -> [String] {
-        try await walletService.getMnemonic(wallet: wallet)
+        try await keystore.getMnemonic(wallet: wallet)
     }
 
     func getPrivateKey() async throws -> String {
         let chain = wallet.accounts[0].chain
-        return try await walletService.getPrivateKeyEncoded(wallet: wallet, chain: chain)
+        return try await keystore.getPrivateKeyEncoded(wallet: wallet, chain: chain)
     }
 
     func delete() async throws {
-        try await walletService.delete(wallet)
+        switch try await walletService.delete(wallet) {
+        case .walletsRemaining: break
+        case .lastWalletDeleted: preferences.reload()
+        }
     }
 
     func onSelectImage() {

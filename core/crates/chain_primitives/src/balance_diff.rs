@@ -38,9 +38,9 @@ impl SwapMapper {
 
         Some(TransactionSwapMetadata {
             from_asset: sent_diff.asset_id.clone(),
-            from_value: from_value.to_string(),
+            from_value,
             to_asset: received_diff.asset_id.clone(),
-            to_value: to_value.to_string(),
+            to_value,
             provider,
         })
     }
@@ -82,9 +82,9 @@ mod tests {
         let swap = SwapMapper::map_swap(&balance_diffs, &fee, &native_asset, Some("Uniswap".to_string())).unwrap();
 
         assert_eq!(swap.from_asset, native_asset);
-        assert_eq!(swap.from_value, "4000");
+        assert_eq!(swap.from_value, BigUint::from(4000u64));
         assert_eq!(swap.to_asset, token_asset);
-        assert_eq!(swap.to_value, "100");
+        assert_eq!(swap.to_value, BigUint::from(100u64));
         assert_eq!(swap.provider, Some("Uniswap".to_string()));
     }
 
@@ -109,9 +109,9 @@ mod tests {
         let swap = SwapMapper::map_swap(&balance_diffs, &fee, &native_asset, Some("Uniswap".to_string())).unwrap();
 
         assert_eq!(swap.from_asset, token_a);
-        assert_eq!(swap.from_value, "200");
+        assert_eq!(swap.from_value, BigUint::from(200u64));
         assert_eq!(swap.to_asset, token_b);
-        assert_eq!(swap.to_value, "150");
+        assert_eq!(swap.to_value, BigUint::from(150u64));
     }
 
     #[test]

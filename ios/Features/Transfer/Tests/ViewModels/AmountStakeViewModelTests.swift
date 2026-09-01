@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.GemAmountService
-import class Gemstone.GemTransferService
 import BigInt
 import Primitives
 import PrimitivesTestKit
@@ -9,8 +8,6 @@ import Testing
 @testable import Transfer
 
 struct AmountStakeViewModelTests {
-    private let transferService = GemTransferService()
-
     @Test
     func title() {
         #expect(AmountStakeViewModel(asset: .mockBNB(), type: .stake(validators: [.mock()], recommended: nil), amountService: GemAmountService()).title == "Stake")
@@ -135,18 +132,18 @@ struct AmountStakeViewModelTests {
         let freeze = try AmountStakeViewModel(asset: .mockTron(), type: .freeze(.bandwidth), amountService: GemAmountService()).makeTransferData(value: 100, useMaxAmount: false)
         let unfreeze = try AmountStakeViewModel(asset: .mockTron(), type: .unfreeze(.energy), amountService: GemAmountService()).makeTransferData(value: 100, useMaxAmount: false)
 
-        #expect(stake.type.transactionType(transferService: transferService) == .stakeDelegate)
-        #expect(unstake.type.transactionType(transferService: transferService) == .stakeUndelegate)
-        #expect(redelegate.type.transactionType(transferService: transferService) == .stakeRedelegate)
-        #expect(withdraw.type.transactionType(transferService: transferService) == .stakeWithdraw)
-        #expect(freeze.type.transactionType(transferService: transferService) == .stakeFreeze)
-        #expect(unfreeze.type.transactionType(transferService: transferService) == .stakeUnfreeze)
-        #expect(stake.value == 100)
-        #expect(unstake.value == 100)
-        #expect(redelegate.value == 100)
-        #expect(withdraw.value == 100)
-        #expect(freeze.value == 100)
-        #expect(unfreeze.value == 100)
+        #expect(TransactionType(core: stake.inputType.transactionType()) == .stakeDelegate)
+        #expect(TransactionType(core: unstake.inputType.transactionType()) == .stakeUndelegate)
+        #expect(TransactionType(core: redelegate.inputType.transactionType()) == .stakeRedelegate)
+        #expect(TransactionType(core: withdraw.inputType.transactionType()) == .stakeWithdraw)
+        #expect(TransactionType(core: freeze.inputType.transactionType()) == .stakeFreeze)
+        #expect(TransactionType(core: unfreeze.inputType.transactionType()) == .stakeUnfreeze)
+        #expect(stake.value == "100")
+        #expect(unstake.value == "100")
+        #expect(redelegate.value == "100")
+        #expect(withdraw.value == "100")
+        #expect(freeze.value == "100")
+        #expect(unfreeze.value == "100")
     }
 }
 

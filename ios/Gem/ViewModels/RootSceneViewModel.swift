@@ -1,15 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemOnboardingServiceProtocol
 import protocol Gemstone.GemAppUpdateServiceProtocol
-import protocol Gemstone.GemAvatarServiceProtocol
-import protocol Gemstone.GemChainServiceProtocol
-import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import GemstonePrimitives
 import protocol Gemstone.GemAppStartServiceProtocol
 import AppService
 import GemstoneServices
 import Components
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import protocol Gemstone.GemDeviceServiceProtocol
 import Localization
@@ -35,11 +34,8 @@ final class RootSceneViewModel {
     private let deviceService: any GemDeviceServiceProtocol
 
     let observablePreferences: ObservablePreferences
-    let walletService: WalletService
-    let walletSessionService: any WalletSessionManageable
-    let nameService: any GemNameServiceProtocol
-    let chainService: any GemChainServiceProtocol
-    let avatarService: any GemAvatarServiceProtocol
+    private let onboardingService: any GemOnboardingServiceProtocol
+    let walletSessionService: any GemWalletSessionServiceProtocol
     let walletConnectorPresenter: WalletConnectorPresenter
     let lockManager: any LockWindowManageable
 
@@ -84,14 +80,11 @@ final class RootSceneViewModel {
         appLifecycleService: AppLifecycleService,
         navigationHandler: NavigationHandler,
         lockWindowManager: any LockWindowManageable,
-        walletService: WalletService,
-        walletSessionService: any WalletSessionManageable,
-        nameService: any GemNameServiceProtocol,
-        chainService: any GemChainServiceProtocol,
+        onboardingService: any GemOnboardingServiceProtocol,
+        walletSessionService: any GemWalletSessionServiceProtocol,
         appUpdateService: any GemAppUpdateServiceProtocol,
         rateService: RateService,
         toastPresenter: ToastPresenter,
-        avatarService: any GemAvatarServiceProtocol,
         deviceService: any GemDeviceServiceProtocol,
     ) {
         self.observablePreferences = observablePreferences
@@ -102,14 +95,11 @@ final class RootSceneViewModel {
         self.appLifecycleService = appLifecycleService
         self.navigationHandler = navigationHandler
         lockManager = lockWindowManager
-        self.walletService = walletService
+        self.onboardingService = onboardingService
         self.walletSessionService = walletSessionService
-        self.nameService = nameService
-        self.chainService = chainService
         self.appUpdateService = appUpdateService
         self.rateService = rateService
         self.toastPresenter = toastPresenter
-        self.avatarService = avatarService
         self.deviceService = deviceService
     }
 }
@@ -151,6 +141,22 @@ extension RootSceneViewModel {
 
     func handleOpenUrl(_ url: URL) async {
         await navigationHandler.handle(url: url)
+    }
+
+    func createWalletModel() -> CreateWalletModel {
+        CreateWalletModel(
+            service: onboardingService,
+            preferences: observablePreferences,
+            onComplete: { [weak self] in self?.dismissCreateWallet() },
+        )
+    }
+
+    func importWalletModel() -> ImportWalletViewModel {
+        ImportWalletViewModel(
+            service: onboardingService,
+            preferences: observablePreferences,
+            onComplete: { [weak self] in self?.dismissImportWallet() },
+        )
     }
 
     func dismissCreateWallet() {

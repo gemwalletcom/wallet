@@ -67,8 +67,8 @@ pub use diesel::OptionalExtension;
 pub struct Database(database::PgPool);
 
 impl Database {
-    pub fn new(database_url: &str, pool_size: u32) -> Self {
-        Self(database::create_pool(database_url, pool_size))
+    pub fn new(database_url: &str, pool_size: u32) -> Result<Self, DatabaseError> {
+        Ok(Self(database::create_pool(database_url, pool_size)?))
     }
 
     pub fn client(&self) -> Result<DatabaseClient, Box<dyn Error + Send + Sync>> {

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemTransactionInputType
 import class Gemstone.GemTransferService
 import Localization
 @testable import Primitives
@@ -11,7 +12,7 @@ import TransferTestKit
 struct ConfirmRecipientViewModelTests {
     @Test
     func transfer() {
-        let model = ConfirmRecipientViewModel(model: .mock(type: .transfer(.mock())), addressName: nil, addressLink: .mock(), transferService: GemTransferService())
+        let model = ConfirmRecipientViewModel(model: .mock(type: .transfer(.mock())), addressName: nil, addressLink: .mock(), outputAction: .sign)
 
         guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Transfer.Recipient.title)
@@ -20,7 +21,7 @@ struct ConfirmRecipientViewModelTests {
 
     @Test
     func transferNft() {
-        let model = ConfirmRecipientViewModel(model: .mock(type: .transferNft(.mock())), addressName: nil, addressLink: .mock(), transferService: GemTransferService())
+        let model = ConfirmRecipientViewModel(model: .mock(type: .transferNft(.mock())), addressName: nil, addressLink: .mock(), outputAction: .sign)
 
         guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Transfer.Recipient.title)
@@ -28,7 +29,7 @@ struct ConfirmRecipientViewModelTests {
 
     @Test
     func deposit() {
-        let model = ConfirmRecipientViewModel(model: .mock(type: .deposit(.mock())), addressName: nil, addressLink: .mock(), transferService: GemTransferService())
+        let model = ConfirmRecipientViewModel(model: .mock(type: .deposit(.mock())), addressName: nil, addressLink: .mock(), outputAction: .sign)
 
         guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Transfer.Recipient.title)
@@ -36,7 +37,7 @@ struct ConfirmRecipientViewModelTests {
 
     @Test
     func withdrawal() {
-        let model = ConfirmRecipientViewModel(model: .mock(type: .withdrawal(.mock())), addressName: nil, addressLink: .mock(), transferService: GemTransferService())
+        let model = ConfirmRecipientViewModel(model: .mock(type: .withdrawal(.mock())), addressName: nil, addressLink: .mock(), outputAction: .sign)
 
         guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Transfer.Recipient.title)
@@ -44,7 +45,7 @@ struct ConfirmRecipientViewModelTests {
 
     @Test
     func tokenApprove() {
-        let model = ConfirmRecipientViewModel(model: .mock(type: .tokenApprove(.mock(), .mock())), addressName: nil, addressLink: .mock(), transferService: GemTransferService())
+        let model = ConfirmRecipientViewModel(model: .mock(type: .tokenApprove(.mock(), .mock())), addressName: nil, addressLink: .mock(), outputAction: .sign)
 
         guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Transfer.Recipient.title)
@@ -56,7 +57,7 @@ struct ConfirmRecipientViewModelTests {
             model: .mock(type: .generic(asset: .mock(), metadata: .mock(), extra: .mock(outputAction: .send))),
             addressName: nil,
             addressLink: .mock(),
-            transferService: GemTransferService(),
+            outputAction: .send,
         )
 
         guard case let .recipient(item) = model.itemModel else { return }
@@ -69,7 +70,7 @@ struct ConfirmRecipientViewModelTests {
             model: .mock(type: .generic(asset: .mock(), metadata: .mock(), extra: .mock(outputAction: .sign))),
             addressName: nil,
             addressLink: .mock(),
-            transferService: GemTransferService(),
+            outputAction: .sign,
         )
 
         guard case let .recipient(item) = model.itemModel else { return }
@@ -78,7 +79,7 @@ struct ConfirmRecipientViewModelTests {
 
     @Test
     func stakeDelegate() {
-        let model = ConfirmRecipientViewModel(model: .mock(type: .stake(.mock(), .stake(.mock()))), addressName: nil, addressLink: .mock(), transferService: GemTransferService())
+        let model = ConfirmRecipientViewModel(model: .mock(type: .stake(.mock(), .stake(.mock()))), addressName: nil, addressLink: .mock(), outputAction: .sign)
 
         guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Stake.validator)
@@ -86,7 +87,7 @@ struct ConfirmRecipientViewModelTests {
 
     @Test
     func stakeUndelegate() {
-        let model = ConfirmRecipientViewModel(model: .mock(type: .stake(.mock(), .unstake(.mock()))), addressName: nil, addressLink: .mock(), transferService: GemTransferService())
+        let model = ConfirmRecipientViewModel(model: .mock(type: .stake(.mock(), .unstake(.mock()))), addressName: nil, addressLink: .mock(), outputAction: .sign)
 
         guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Stake.validator)
@@ -98,8 +99,8 @@ struct ConfirmRecipientViewModelTests {
             model: .mock(type: .stake(.mock(), .redelegate(RedelegateData(delegation: .mock(), toValidator: .mock())))),
             addressName: nil,
             addressLink: .mock(),
-            transferService: GemTransferService(),
-        )
+                outputAction: .sign,
+            )
 
         guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Stake.validator)
@@ -107,7 +108,7 @@ struct ConfirmRecipientViewModelTests {
 
     @Test
     func stakeWithdraw() {
-        let model = ConfirmRecipientViewModel(model: .mock(type: .stake(.mock(), .withdraw(.mock()))), addressName: nil, addressLink: .mock(), transferService: GemTransferService())
+        let model = ConfirmRecipientViewModel(model: .mock(type: .stake(.mock(), .withdraw(.mock()))), addressName: nil, addressLink: .mock(), outputAction: .sign)
 
         guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Stake.validator)
@@ -119,8 +120,8 @@ struct ConfirmRecipientViewModelTests {
             model: .mock(type: .stake(.mock(), .rewards([.mock()]))),
             addressName: nil,
             addressLink: .mock(),
-            transferService: GemTransferService(),
-        )
+                outputAction: .sign,
+            )
 
         guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Stake.validator)
@@ -132,8 +133,8 @@ struct ConfirmRecipientViewModelTests {
             model: .mock(type: .stake(.mock(), .freeze(.bandwidth))),
             addressName: nil,
             addressLink: .mock(),
-            transferService: GemTransferService(),
-        )
+                outputAction: .sign,
+            )
 
         guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.title == Localized.Stake.resource)
@@ -142,7 +143,7 @@ struct ConfirmRecipientViewModelTests {
     @Test
     func addressName() {
         let addressName = AddressName.mock(name: "Vitalik.eth")
-        let model = ConfirmRecipientViewModel(model: .mock(type: .transfer(.mock())), addressName: addressName, addressLink: .mock(), transferService: GemTransferService())
+        let model = ConfirmRecipientViewModel(model: .mock(type: .transfer(.mock())), addressName: addressName, addressLink: .mock(), outputAction: .sign)
 
         guard case let .recipient(item) = model.itemModel else { return }
         #expect(item.account.name == "Vitalik.eth")
@@ -154,14 +155,14 @@ struct ConfirmRecipientViewModelTests {
             model: .mock(type: .transfer(.mock())),
             addressName: .mock(type: .contact, imageUrl: "avatar.png"),
             addressLink: .mock(),
-            transferService: GemTransferService(),
-        )
+                outputAction: .sign,
+            )
         let withoutImage = ConfirmRecipientViewModel(
             model: .mock(type: .transfer(.mock())),
             addressName: .mock(type: .contact, imageUrl: nil),
             addressLink: .mock(),
-            transferService: GemTransferService(),
-        )
+                outputAction: .sign,
+            )
 
         guard case let .recipient(withImageItem) = withImage.itemModel,
               case let .recipient(withoutImageItem) = withoutImage.itemModel else { return }
@@ -171,7 +172,7 @@ struct ConfirmRecipientViewModelTests {
 }
 
 private extension TransferDataViewModel {
-    static func mock(type: TransferDataType = .transfer(.mock())) -> TransferDataViewModel {
+    static func mock(type: GemTransactionInputType = .transfer(.mock())) -> TransferDataViewModel {
         TransferDataViewModel(data: .mock(type: type))
     }
 }

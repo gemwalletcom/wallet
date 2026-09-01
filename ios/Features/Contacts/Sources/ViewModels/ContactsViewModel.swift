@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemContactServiceProtocol
-import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemContactsServiceProtocol
+import struct Gemstone.GemContactAddressInput
 import Components
 import GemstoneServices
 import Foundation
 import Localization
-import class Gemstone.GemAddressService
 import Primitives
 import PrimitivesComponents
 import Store
@@ -20,10 +19,14 @@ public final class ContactsViewModel {
         case addAddress(ChainRecipient)
     }
 
-    let service: any GemContactServiceProtocol
-    let nameService: any GemNameServiceProtocol
-    let addressService: GemAddressService
-    let mode: Mode
+    enum RowAction {
+        case navigate
+        case select
+    }
+
+    private let service: any GemContactsServiceProtocol
+    private let manageContact: @MainActor (ManageContactViewModel.Mode) -> ManageContactViewModel
+    private let mode: Mode
 
     public let query: ObservableQuery<ContactsRequest>
     var contacts: [ContactData] {
@@ -33,20 +36,29 @@ public final class ContactsViewModel {
     var isPresentingAddContact = false
 
     public init(
-        service: any GemContactServiceProtocol,
-        nameService: any GemNameServiceProtocol,
-        addressService: GemAddressService,
+        service: any GemContactsServiceProtocol,
+        manageContact: @escaping @MainActor (ManageContactViewModel.Mode) -> ManageContactViewModel,
         mode: Mode = .list,
     ) {
         self.service = service
-        self.nameService = nameService
-        self.addressService = addressService
+        self.manageContact = manageContact
         self.mode = mode
         query = ObservableQuery(ContactsRequest(), initialValue: [])
     }
 
     var title: String {
         Localized.Contacts.title
+    }
+
+    var rowAction: RowAction {
+        switch mode {
+        case .list: .navigate
+        case .addAddress: .select
+        }
+    }
+
+    func manageContactModel(mode: ManageContactViewModel.Mode) -> ManageContactViewModel {
+        manageContact(mode)
     }
 
     var addContactMode: ManageContactViewModel.Mode {
@@ -60,14 +72,13 @@ public final class ContactsViewModel {
         guard case let .addAddress(recipient) = mode else { return }
         Task {
             do {
-                let addresses = try service.addAddress(
-                    contact.addresses,
+                let addresses = try GemContactAddressInput(
                     contactId: contact.contact.id,
                     chain: recipient.chain,
                     address: recipient.recipient.address,
                     memo: recipient.recipient.memo,
                     replacingId: nil,
-                )
+                ).addAddress(contact.addresses)
                 try await service.updateContact(contact.contact, addresses: addresses)
             } catch {
                 debugLog("ContactsViewModel add error: \(error)")

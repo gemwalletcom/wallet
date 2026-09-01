@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Style
 import SwiftUI
 
 public enum AssetImageType: Sendable, Equatable, Hashable {
@@ -31,15 +30,6 @@ public struct AssetImage: Sendable, Equatable {
         self.imageURL = imageURL
         self.placeholder = placeholder
         self.chainPlaceholder = chainPlaceholder
-    }
-
-    public static func resourceImage(image: String) -> AssetImage {
-        AssetImage(
-            type: .none,
-            imageURL: .none,
-            placeholder: Images.name(image),
-            chainPlaceholder: .none,
-        )
     }
 
     public static func image(_ image: Image) -> AssetImage {

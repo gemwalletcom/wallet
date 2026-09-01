@@ -2,13 +2,15 @@
 
 import Foundation
 import InfoSheet
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
+import struct Gemstone.GemTransferData
 
 public enum WalletSheetType: Identifiable, Equatable, Sendable {
     case selectAsset(SelectAssetType, chains: [Chain])
     case infoSheet(InfoSheetType)
-    case transferData(TransferData)
+    case transferData(GemTransferData)
     case perpetualRecipientData(PerpetualRecipientData)
     case setPriceAlert(Asset)
     case addAsset

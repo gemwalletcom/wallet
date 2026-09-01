@@ -107,6 +107,7 @@ mod tests {
     use crate::sign_type::SignDigestType;
     use gem_evm::testkit::eip712_mock::mock_eip712_json;
     use gem_evm::transaction::EvmTransactionKind;
+    use num_bigint::BigUint;
     use primitives::{TransactionType, TransferDataOutputType};
 
     #[test]
@@ -327,7 +328,7 @@ mod tests {
             } => {
                 assert_eq!(approval.token, "0x111122223333444455556666777788889999aaaa");
                 assert_eq!(approval.spender, "0x22223333444455556666777788889999aaAaBBbB");
-                assert_eq!(approval.value, "100");
+                assert_eq!(approval.value, BigUint::from(100u64));
                 assert!(!approval.is_unlimited);
             }
             _ => panic!("Expected Ethereum token approval"),

@@ -10,10 +10,11 @@ import PrimitivesComponents
 import PrimitivesTestKit
 import Transfer
 import Validators
+import struct Gemstone.GemTransferData
 
 public extension ConfirmTransferInput {
     static func mock(
-        confirmData: GemConfirmData = .mock(input: TransferData.mock().confirmInput(from: .mock())),
+        confirmData: GemConfirmData = .mock(input: GemTransferData.mock().confirmInput(from: .mock())),
         fee: Fee = Fee(fee: 1, gasPriceType: .regular(gasPrice: 1), gasLimit: 1, feeAssetId: Asset.mock().id),
         transferAmount: TransferAmountValidation = .success(
             TransferAmount(value: BigInt(100), networkFee: BigInt(21000), useMaxAmount: false),

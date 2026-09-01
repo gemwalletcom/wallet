@@ -1,4 +1,6 @@
+use num_bigint::BigUint;
 use std::collections::{HashMap, HashSet};
+use std::str::FromStr;
 
 use crate::DatabaseError;
 use crate::sql_types::{AssetId, Currency, FiatProviderNameRow, FiatTransactionStatusRow, FiatTransactionType};
@@ -194,8 +196,9 @@ impl FiatTransactionRow {
     pub fn as_primitive(&self) -> Result<FiatTransaction, DatabaseError> {
         let value = self
             .value
-            .clone()
+            .as_deref()
             .ok_or_else(|| DatabaseError::Error(format!("Fiat transaction {} is missing value", self.quote_id)))?;
+        let value = BigUint::from_str(value).map_err(|error| DatabaseError::Error(format!("Fiat transaction {} has an invalid value: {error}", self.quote_id)))?;
 
         Ok(FiatTransaction {
             id: self.quote_id.clone(),
@@ -246,7 +249,7 @@ impl NewFiatTransactionRow {
             country: transaction.country,
             fiat_amount: transaction.fiat_amount,
             fiat_currency: transaction.fiat_currency,
-            value: Some(transaction.value),
+            value: Some(transaction.value.to_string()),
             address_id,
             transaction_hash: transaction.transaction_hash,
             device_id,
@@ -330,6 +333,7 @@ impl UpdateFiatTransactionRow {
 mod tests {
     use super::{FiatTransactionRow, UpdateFiatTransactionRow};
     use chrono::{DateTime, Utc};
+    use num_bigint::BigUint;
     use primitives::{FiatTransactionStatus, FiatTransactionUpdate};
 
     #[test]
@@ -339,7 +343,7 @@ mod tests {
         let transaction = row.as_primitive().unwrap();
 
         assert_eq!(transaction.id, "quote_123");
-        assert_eq!(transaction.value, "123000000000000000");
+        assert_eq!(transaction.value, BigUint::from(123_000_000_000_000_000u64));
         assert_eq!(transaction.created_at, DateTime::<Utc>::from_timestamp(1, 0).unwrap());
         assert_eq!(transaction.updated_at, DateTime::<Utc>::from_timestamp(2, 0).unwrap());
     }

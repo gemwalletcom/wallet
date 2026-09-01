@@ -4,7 +4,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 plugins {
     alias(libs.plugins.android.library)
     id("com.google.devtools.ksp")
-    id("kotlinx-serialization")
 }
 
 android {

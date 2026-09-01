@@ -42,7 +42,7 @@ open class SendSelectViewModel @Inject constructor(
     switchAssetVisibility,
     setAssetPinned,
     searchTokensCase,
-    SendSelectSearch(searchSelectAssets, getSelectAssetsInfo, assetConfig),
+    SendSelectSearch(searchSelectAssets, getSelectAssetsInfo),
     assetConfig,
     remoteSearch = false,
 ) {
@@ -53,8 +53,7 @@ open class SendSelectViewModel @Inject constructor(
 class SendSelectSearch(
     private val searchSelectAssets: SearchSelectAssets,
     private val getSelectAssetsInfo: GetSelectAssetsInfo,
-    private val assetConfig: GemAssetConfigService,
-) : BaseSelectSearch(searchSelectAssets, assetConfig) {
+) : BaseSelectSearch(searchSelectAssets) {
     override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
         return filters
             .map { filters -> filters?.query.orEmpty() }
@@ -62,12 +61,12 @@ class SendSelectSearch(
                 val source = if (query.isEmpty()) {
                     getSelectAssetsInfo()
                 } else {
-                    searchSelectAssets(query, filters = GemAssetAction.SEND.queryFilters(assetConfig))
+                    searchSelectAssets(query, filters = GemAssetAction.SEND.queryFilters())
                 }
 
                 source.map(::filter)
             }
     }
 
-    override fun filter(items: List<AssetInfo>): List<AssetInfo> = GemAssetAction.SEND.eligible(items, assetConfig)
+    override fun filter(items: List<AssetInfo>): List<AssetInfo> = GemAssetAction.SEND.eligible(items)
 }

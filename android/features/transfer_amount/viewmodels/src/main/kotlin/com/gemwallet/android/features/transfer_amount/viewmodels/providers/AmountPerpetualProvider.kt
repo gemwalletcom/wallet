@@ -16,13 +16,15 @@ import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.NumericFormatter
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TpslType
 import kotlinx.coroutines.CoroutineScope
-import uniffi.gemstone.GemAmountService
+import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransferData
+import com.gemwallet.android.domains.confirm.confirmInput
+import com.gemwallet.android.domains.confirm.perpetual
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,8 +49,7 @@ class AmountPerpetualProvider(
     getPerpetual: GetPerpetual,
     getPerpetualBalance: GetPerpetualBalance,
     private val scope: CoroutineScope,
-    amountService: GemAmountService,
-) : AmountDataProvider(scope, amountService) {
+) : AmountDataProvider(scope) {
 
     override val title: AmountTitle = AmountTitle.Perpetual(params.positionAction)
     override val canSwitchInputType: Boolean = false
@@ -173,7 +174,7 @@ class AmountPerpetualProvider(
         }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
-    override suspend fun buildConfirmParams(amount: Crypto, isMax: Boolean): ConfirmParams {
+    override suspend fun buildConfirmInput(amount: Crypto, isMax: Boolean): GemConfirmInput {
         val current = assetInfo.value ?: error("assetInfo not loaded")
         val owner = current.owner ?: error("owner missing")
         val perpetualMarket = perpetual.value ?: error("perpetual not loaded")
@@ -185,8 +186,12 @@ class AmountPerpetualProvider(
             takeProfit = formatTriggerForOrder(takeProfit.value, perpetualMarket),
             stopLoss = formatTriggerForOrder(stopLoss.value, perpetualMarket),
         )
-        return ConfirmParams.Builder(perpetualMarket.asset, owner, amount.atomicValue, isMax)
-            .perpetual(perpetualType)
+        return GemTransferData.perpetual(
+            asset = perpetualMarket.asset,
+            perpetualType = perpetualType,
+            value = amount.atomicValue,
+            useMaxAmount = isMax,
+        ).confirmInput(owner)
     }
 
     private fun formatTriggerForOrder(

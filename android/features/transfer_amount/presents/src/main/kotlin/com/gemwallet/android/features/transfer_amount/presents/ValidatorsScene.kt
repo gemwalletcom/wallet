@@ -33,7 +33,6 @@ fun ValidatorsScene(
                 item {
                     SubheaderItem(R.string.common_recommended)
                 }
-                val recommendedSize = uiState.recommended.size
                 itemsPositioned(uiState.recommended, key = { index, item -> "recommended-${item.id}" }) { position, item ->
                     ValidatorItem(
                         data = item,

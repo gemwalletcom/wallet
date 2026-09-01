@@ -30,7 +30,6 @@ import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemWalletService
 import javax.inject.Singleton
 import uniffi.gemstone.GemDeviceService
-import uniffi.gemstone.GemTransferService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -66,8 +65,7 @@ object InteractsModule {
     fun provideTransactionSigner(
         @ApplicationContext context: Context,
         passwordStore: PasswordStore,
-        transferService: GemTransferService,
-    ): GemTransactionSigner = KeystoreTransactionSigner(context.dataDir.toString(), passwordStore, transferService)
+    ): GemTransactionSigner = KeystoreTransactionSigner(context.dataDir.toString(), passwordStore)
 
     @Singleton
     @Provides

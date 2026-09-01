@@ -15,6 +15,7 @@ import Primitives
 import PrimitivesComponents
 import Style
 import class Gemstone.GemAutocloseEstimator
+import struct Gemstone.GemTransferData
 
 @Observable
 public final class AmountPerpetualViewModel: AmountDataProvidable {
@@ -110,7 +111,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         data.recipient
     }
 
-    func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> TransferData {
+    func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> GemTransferData {
         let formatter = PerpetualFormatter(provider: .hypercore)
 
         let perpetualType = try data.positionAction.order(
@@ -125,9 +126,9 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
                 .map { formatter.formatPrice($0, decimals: transferData.asset.decimals) },
         )
 
-        return TransferData(
-            type: .perpetual(transferData.asset, perpetualType),
-            recipient: data.recipient.recipient,
+        return GemTransferData(
+            inputType: .perpetual(transferData.asset, perpetualType),
+            recipient: data.recipient.recipient.gem,
             value: value,
             useMaxAmount: useMaxAmount,
         )

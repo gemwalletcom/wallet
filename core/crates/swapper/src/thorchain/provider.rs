@@ -125,7 +125,7 @@ where
         let from_asset = THORChainAsset::from_asset_id(self.network, &request.from_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
         let to_asset = THORChainAsset::from_asset_id(self.network, &request.to_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
 
-        let value = super::asset::value_from(&request.value, from_asset.decimals as i32);
+        let value = super::asset::value_from(&request.value.to_string(), from_asset.decimals as i32);
         let inbound_addresses = self.get_inbound_addresses().await?;
         let from_inbound_address = inbound_addresses.inbound_address_for_asset(self.network, &from_asset)?;
         let to_inbound_address = inbound_addresses.inbound_address_for_asset(self.network, &to_asset)?;
@@ -174,7 +174,7 @@ where
         let quote = Quote {
             from_value: request.value.clone(),
             min_from_value: None,
-            to_value: to_value.to_string(),
+            to_value: to_value.magnitude().clone(),
             data: ProviderData {
                 provider: self.provider().clone(),
                 routes: vec![Route {
@@ -253,6 +253,7 @@ fn min_value(dust_threshold: &BigInt) -> BigInt {
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigUint;
     use std::sync::{
         Arc,
         atomic::{AtomicUsize, Ordering},
@@ -389,13 +390,13 @@ mod tests {
             to_asset: SwapperQuoteAsset::from(Chain::Bitcoin.as_asset_id()),
             wallet_address: "t1sender".to_string(),
             destination_address: "bc1qdestination".to_string(),
-            value: "11000000".to_string(),
+            value: BigUint::from(11000000u64),
             options: Options::default(),
         };
         let quote = Quote {
-            from_value: "10000000".to_string(),
+            from_value: BigUint::from(10000000u64),
             min_from_value: None,
-            to_value: "1".to_string(),
+            to_value: BigUint::from(1u64),
             data: ProviderData {
                 provider: swapper.provider().clone(),
                 routes: vec![Route {
@@ -412,7 +413,7 @@ mod tests {
         let data = swapper.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
 
         assert_eq!(data.to, "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML");
-        assert_eq!(data.value, "10000000");
+        assert_eq!(data.value, BigUint::from(10000000u64));
         assert_eq!(data.memo, Some("=:b:bc1qdestination:0/1/0:g1:50".to_string()));
     }
 
@@ -429,13 +430,13 @@ mod tests {
             to_asset: SwapperQuoteAsset::from(Chain::Bitcoin.as_asset_id()),
             wallet_address: "addr1qsender".to_string(),
             destination_address: "bc1qdestination".to_string(),
-            value: "2000000".to_string(),
+            value: BigUint::from(2000000u64),
             options: Options::default(),
         };
         let quote = Quote {
-            from_value: "2000000".to_string(),
+            from_value: BigUint::from(2000000u64),
             min_from_value: None,
-            to_value: "1".to_string(),
+            to_value: BigUint::from(1u64),
             data: ProviderData {
                 provider: swapper.provider().clone(),
                 routes: vec![Route {
@@ -452,7 +453,7 @@ mod tests {
         let data = swapper.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
 
         assert_eq!(data.to, "addr1v9mr3ts7yr83jphtmfc3256x0ncsj7tayvschr200jt94fg4a96ur");
-        assert_eq!(data.value, "2000000");
+        assert_eq!(data.value, BigUint::from(2000000u64));
         assert_eq!(data.memo, Some("=:b:bc1qdestination:0/1/0:g1:50".to_string()));
     }
 }
@@ -461,6 +462,7 @@ mod tests {
 mod swap_integration_tests {
     use super::*;
     use crate::{SwapperProvider, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, testkit::mock_quote};
+    use num_bigint::BigUint;
     use primitives::swap::SwapStatus;
     use std::sync::Arc;
 
@@ -476,7 +478,7 @@ mod swap_integration_tests {
         let quote = swapper.get_quote(&request).await?;
 
         assert_eq!(quote.from_value, request.value);
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         assert!(quote.eta_in_seconds.is_some());
         assert!(!quote.data.routes.is_empty());
 
@@ -491,12 +493,12 @@ mod swap_integration_tests {
         let from_asset = SwapperQuoteAsset::from(Chain::Thorchain.as_asset_id());
         let to_asset = SwapperQuoteAsset::from(Chain::Cosmos.as_asset_id());
         let mut request = mock_quote(from_asset, to_asset);
-        request.value = "100000000".to_string();
+        request.value = BigUint::from(100000000u64);
 
         let quote = swapper.get_quote(&request).await?;
 
         assert_eq!(quote.from_value, request.value);
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         assert!(quote.eta_in_seconds.is_some());
         assert!(!quote.data.routes.is_empty());
 
@@ -511,7 +513,7 @@ mod swap_integration_tests {
         let from_asset = SwapperQuoteAsset::from(Chain::Xrp.as_asset_id());
         let to_asset = SwapperQuoteAsset::from(Chain::Thorchain.as_asset_id());
         let mut request = mock_quote(from_asset, to_asset);
-        request.value = "1".to_string();
+        request.value = BigUint::from(1u64);
 
         let err = swapper.get_quote(&request).await.expect_err("expected error");
         assert!(matches!(err, SwapperError::InputAmountError { .. }));
@@ -531,8 +533,8 @@ mod swap_integration_tests {
 
         let metadata = result.metadata.unwrap();
         assert_eq!(metadata.from_asset, Chain::Doge.as_asset_id());
-        assert!(!metadata.from_value.is_empty());
-        assert!(!metadata.to_value.is_empty());
+        assert!(metadata.from_value > BigUint::ZERO);
+        assert!(metadata.to_value > BigUint::ZERO);
         assert_eq!(metadata.provider.unwrap(), "thorchain");
 
         Ok(())
@@ -546,7 +548,7 @@ mod swap_integration_tests {
         let from_asset = SwapperQuoteAsset::from(Chain::Bitcoin.as_asset_id());
         let to_asset = SwapperQuoteAsset::from(Chain::Ethereum.as_asset_id());
         let mut request = mock_quote(from_asset, to_asset);
-        request.value = "5000000".to_string(); // 0.05 BTC (1e8)
+        request.value = BigUint::from(5000000u64); // 0.05 BTC (1e8)
         request.destination_address = "0x1c7d4b196cb0c7b01d743fbc6116a902379c7238".to_string();
 
         let quote = mayachain.get_quote(&request).await?;
@@ -554,7 +556,7 @@ mod swap_integration_tests {
 
         assert_eq!(quote.data.provider.id, SwapperProvider::Mayachain);
         assert_eq!(quote.from_value, request.value);
-        assert!(quote.to_value.parse::<u64>().unwrap() > 0);
+        assert!(quote.to_value > BigUint::ZERO);
         assert!(!quote.data.routes.is_empty());
         assert!(!quote_data.to.is_empty());
         assert_eq!(quote_data.memo, Some("=:e:0x1c7d4b196cb0c7b01d743fbc6116a902379c7238:0/1/0:g1:50".to_string()));

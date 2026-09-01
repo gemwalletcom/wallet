@@ -24,6 +24,7 @@ import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.InfoSheetEntity.BalanceRequiredInfo
 import com.gemwallet.android.ui.components.InfoSheetEntity.NetworkBalanceRequiredInfo
+import com.gemwallet.android.ui.components.InfoSheetEntity.NetworkFeeRequiredInfo
 import com.gemwallet.android.ui.components.list_item.WarningItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Asset
@@ -105,15 +106,23 @@ private fun ConfirmError.toInfoSheetEntity(
         }
         is ConfirmError.InsufficientFee -> {
             val asset = chain.asset()
-            val formatted = requirement.formatted(asset)
-            NetworkBalanceRequiredInfo(
-                chain = chain,
-                required = fee?.cryptoAmountWithFiat ?: formatted.required,
-                available = formatted.available,
-                shortfall = formatted.shortfall,
-                actionLabel = asset.acquireActionLabel(),
-                action = { onAcquireAsset(asset, FiatConfig.insufficientNetworkFeeBuyAmount) },
-            )
+            val formatted = requirement?.formatted(asset)
+            if (formatted == null) {
+                NetworkFeeRequiredInfo(
+                    chain = chain,
+                    actionLabel = asset.acquireActionLabel(),
+                    action = { onAcquireAsset(asset, FiatConfig.insufficientNetworkFeeBuyAmount) },
+                )
+            } else {
+                NetworkBalanceRequiredInfo(
+                    chain = chain,
+                    required = fee?.cryptoAmountWithFiat ?: formatted.required,
+                    available = formatted.available,
+                    shortfall = formatted.shortfall,
+                    actionLabel = asset.acquireActionLabel(),
+                    action = { onAcquireAsset(asset, FiatConfig.insufficientNetworkFeeBuyAmount) },
+                )
+            }
         }
         is ConfirmError.MinimumAccountBalanceTooLow -> InfoSheetEntity.MinimumAccountBalanceInfo(
             asset = asset,

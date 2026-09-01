@@ -1,15 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemConfirmMetadata
+import struct Gemstone.GemFeeAsset
 import Components
 import Foundation
 import Primitives
 
 struct ConfirmTransferState {
     var simulation: ConfirmSimulationState
-    var metadata: TransferDataMetadata?
+    var metadata: GemConfirmMetadata?
     var feeRates: [FeeRate] = []
     var feeAsset: Asset
-    var feeAssets: [AssetData] = []
+    var feeAssets: [GemFeeAsset] = []
     var transaction: StateViewType<ConfirmTransferInput>
     var confirmation: ConfirmationPhase = .idle
 }

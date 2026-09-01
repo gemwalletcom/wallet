@@ -5,7 +5,7 @@ use cacher::{CacheKey, CacherClient};
 use gem_tracing::info_with_fields;
 use settings_chain::ChainProviders;
 use storage::{AssetsRepository, Database};
-use streamer::{FetchAssetsPayload, consumer::MessageConsumer};
+use streamer::{FetchAssetsPayload, StreamProducer, StreamProducerQueue, consumer::MessageConsumer};
 
 use crate::asset_spam::AssetClassificationRules;
 
@@ -14,6 +14,7 @@ pub struct FetchAssetsConsumer {
     pub providers: ChainProviders,
     pub cacher: CacherClient,
     pub classification_rules: AssetClassificationRules,
+    pub stream_producer: StreamProducer,
 }
 
 #[async_trait]
@@ -23,11 +24,15 @@ impl MessageConsumer<FetchAssetsPayload, usize> for FetchAssetsConsumer {
     }
 
     async fn process(&self, payload: FetchAssetsPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let Some(token_id) = payload.asset_id.token_id.clone() else {
+        if payload.asset_id.is_native() {
             return Ok(0);
-        };
+        }
+        let token_id = payload.asset_id.get_token_id()?.clone();
         let asset = self.providers.get_token_data(payload.asset_id.chain, token_id.to_string()).await?;
         let added = self.database.assets()?.add_assets(vec![self.classification_rules.apply(asset.as_basic_primitive())])?;
+        if added > 0 {
+            self.stream_producer.publish_fetch_asset_status(payload.asset_id.clone()).await?;
+        }
         let name = format!("{:?}", asset.name);
         info_with_fields!(
             "fetch asset",

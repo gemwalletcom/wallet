@@ -1,17 +1,11 @@
 use crate::config::swap_config::get_swap_config;
-use primitives::swap::SwapQuoteDataType;
 
 pub use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData};
 pub use swapper::SwapperProvider;
 
 pub type GemApprovalData = ApprovalData;
 pub type GemSwapData = SwapData;
-pub type GemSwapPriceImpact = SwapPriceImpact;
-pub type GemSwapPriceImpactType = SwapPriceImpactType;
-pub type GemSwapProviderData = SwapProviderData;
-pub type GemSwapQuote = SwapQuote;
 pub type GemSwapQuoteData = SwapQuoteData;
-pub type GemSwapQuoteDataType = SwapQuoteDataType;
 
 pub fn calculate_swap_price_impact(pay_fiat_value: f64, receive_fiat_value: f64) -> Option<SwapPriceImpact> {
     if pay_fiat_value <= 0.0 || receive_fiat_value <= 0.0 || !pay_fiat_value.is_finite() || !receive_fiat_value.is_finite() {

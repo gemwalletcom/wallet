@@ -1,8 +1,10 @@
 use std::fs;
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 use std::sync::{Arc, Barrier};
 use std::thread;
 
-use crate::{KeystoreError, KeystoreId};
+use crate::{Keystore, KeystoreError, KeystoreId};
 
 use super::super::{
     constants::AES_GCM_TAG_LEN,
@@ -10,6 +12,19 @@ use super::super::{
     types::{FileKeystore, KdfParams, SecretKind},
 };
 use super::testkit::{PHRASE, assert_verify_path_error, new_keystore_id, test_keystore, v4_path, write_tampered};
+
+#[cfg(unix)]
+#[test]
+fn test_v4_secret_file_is_owner_read_write_only() {
+    let (dir, keystore) = test_keystore();
+    let meta = keystore.import_mnemonic(PHRASE, b"password", None).unwrap();
+
+    let path = v4_path(&dir, &meta.keystore_id);
+    let mode = fs::metadata(&path).unwrap().permissions().mode();
+
+    assert_eq!(mode & 0o777, 0o600, "secret file must not be readable or writable by group/others");
+    assert_eq!(fs::read_dir(&dir).unwrap().count(), 1, "no temp file may survive a write");
+}
 
 #[test]
 fn test_v4_mnemonic_roundtrip() {
@@ -72,7 +87,7 @@ fn test_v4_header_filename_mismatch_fails_after_authentication() {
     assert_eq!(listed_error.error, "Corrupt keystore file: keystore id does not match filename");
     assert_eq!(
         keystore.verify(id_b.as_str(), password).unwrap_err(),
-        KeystoreError::corrupt_file("authenticated keystore id does not match filename")
+        KeystoreError::corrupt_file("authenticated keystore id does not match the requested id")
     );
 }
 

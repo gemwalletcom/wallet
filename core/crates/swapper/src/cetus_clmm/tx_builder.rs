@@ -19,6 +19,8 @@ use gem_sui::{
         into_balance, move_call,
     },
 };
+use num_bigint::BigUint;
+use num_traits::ToPrimitive;
 use primitives::Address as AddressTrait;
 use std::{collections::HashMap, fmt::Display};
 use sui_transaction_builder::{Argument, ObjectInput, TransactionBuilder};
@@ -48,7 +50,10 @@ pub(super) async fn build_quote_data(
     published_at: &str,
 ) -> Result<SwapperQuoteData, SwapperError> {
     let sender = quote.request.wallet_address.as_str();
-    let amount = quote.from_value.parse::<u64>()?;
+    let amount = quote
+        .from_value
+        .to_u64()
+        .ok_or_else(|| SwapperError::ComputeQuoteError("swap amount is too large".to_string()))?;
     let mut pinned = HashMap::from([
         (CETUS_GLOBAL_CONFIG.to_string(), CETUS_SHARED_INIT_VERSION),
         (CETUS_PARTNER.to_string(), CETUS_PARTNER_INIT_VERSION),
@@ -91,7 +96,7 @@ pub(super) async fn build_quote_data(
 
     Ok(SwapperQuoteData::new_contract(
         String::new(),
-        "0".to_string(),
+        BigUint::from(0u64),
         output.base64_encoded(),
         None,
         Some(gas_budget.to_string()),

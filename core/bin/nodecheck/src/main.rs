@@ -8,8 +8,8 @@ use std::{error::Error, process::ExitCode};
 use clap::Parser;
 use factory::new_provider;
 use gem_tracing::error_with_fields;
+use primitives::node_check_request;
 use primitives::{Chain, NodeCheckProfile};
-use settings_chain::node_check_request;
 
 use crate::service::NodeCheckService;
 

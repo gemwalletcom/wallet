@@ -50,11 +50,11 @@ private extension ConfirmHeaderViewModel {
             return .assetValue(headerData)
         }
 
-        if case let .tokenApprove(asset, _) = request.data.type {
-            return .asset(image: AssetViewModel(asset: asset).assetImage)
+        if case let .tokenApprove(asset, _) = request.data.inputType {
+            return .asset(image: AssetViewModel(asset: asset.map()).assetImage)
         }
 
-        if case .generic = request.data.type,
+        if case .generic = request.data.inputType,
            let header = request.simulation?.header
         {
             return .asset(image: AssetIdViewModel(assetId: header.assetId).assetImage)

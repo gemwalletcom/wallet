@@ -1,7 +1,6 @@
 package com.gemwallet.android
 
 import android.net.Uri
-import uniffi.gemstone.Config
 import uniffi.gemstone.DocsUrl
 import uniffi.gemstone.PublicUrl
 import uniffi.gemstone.SocialUrl
@@ -9,11 +8,11 @@ import uniffi.gemstone.SocialUrl
 object AppUrl {
     private const val UTM_SOURCE = "gemwallet_android"
 
-    fun docs(item: DocsUrl): String = Config().getDocsUrl(item).withUTM()
+    fun docs(item: DocsUrl): String = item.url().withUTM()
 
-    fun page(item: PublicUrl): String = Config().getPublicUrl(item).withUTM()
+    fun page(item: PublicUrl): String = item.url().withUTM()
 
-    fun social(item: SocialUrl): String? = Config().getSocialUrl(item)
+    fun social(item: SocialUrl): String? = item.url()
 
     private fun String.withUTM(): String = Uri.parse(this)
         .buildUpon()

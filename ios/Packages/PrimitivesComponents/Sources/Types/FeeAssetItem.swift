@@ -1,36 +1,48 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
+import struct Gemstone.GemFeeAsset
 import Components
 import Formatters
 import Primitives
 import Style
 
-struct FeeAssetItem {
-    let assetData: AssetData
-    let currency: Currency
-    let isSelected: Bool
+public struct FeeAssetItem: Sendable {
+    public let asset: Asset
+    public let balance: Balance
+    public let price: Price?
+    public let currency: Currency
+    public let isSelected: Bool
+
+    public init(asset: Asset, balance: Balance, price: Price?, currency: Currency, isSelected: Bool) {
+        self.asset = asset
+        self.balance = balance
+        self.price = price
+        self.currency = currency
+        self.isSelected = isSelected
+    }
 }
 
 extension FeeAssetItem: SimpleListItemViewable {
-    var title: String { assetData.asset.symbol }
-    var titleExtra: String? { assetData.asset.name == title ? nil : assetData.asset.name }
-    var subtitle: String? { model.availableBalanceTextWithSymbol }
-    var subtitleExtra: String? { model.fiatBalanceText.isEmpty ? nil : model.fiatBalanceText }
+    public var title: String { asset.symbol }
+    public var titleExtra: String? { asset.name == title ? nil : asset.name }
+    public var subtitle: String? { balanceModel.availableBalanceTextWithSymbol }
+    public var subtitleExtra: String? { fiatBalanceText.isEmpty ? nil : fiatBalanceText }
 
-    var titleStyle: TextStyle {
+    public var titleStyle: TextStyle {
         TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold)
     }
 
-    var subtitleStyle: TextStyle {
+    public var subtitleStyle: TextStyle {
         TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold)
     }
 
-    var subtitleStyleExtra: TextStyle {
+    public var subtitleStyleExtra: TextStyle {
         TextStyle(font: .footnote, color: Colors.gray)
     }
 
-    var assetImage: AssetImage {
-        let image = AssetViewModel(asset: assetData.asset).assetImage
+    public var assetImage: AssetImage {
+        let image = AssetViewModel(asset: asset).assetImage
         return AssetImage(
             type: image.type,
             imageURL: image.imageURL,
@@ -39,25 +51,39 @@ extension FeeAssetItem: SimpleListItemViewable {
         )
     }
 
-    private var model: AssetDataViewModel {
-        AssetDataViewModel(
-            assetData: assetData,
-            formatter: .short,
-            currencyCode: currency.rawValue,
-        )
+    private var balanceModel: BalanceViewModel {
+        BalanceViewModel(asset: asset, balance: balance, formatter: .short)
+    }
+
+    private var fiatBalanceText: String {
+        guard let price, balanceModel.balanceAmount > 0 else { return .empty }
+        return PriceViewModel(price: price, currencyCode: currency.rawValue).fiatAmountText(amount: balanceModel.balanceAmount)
     }
 }
 
 extension FeeAssetItem: Identifiable {
-    var id: AssetId { assetData.asset.id }
+    public var id: AssetId { asset.id }
 }
 
 extension FeeAssetItem: Hashable {
-    static func == (lhs: FeeAssetItem, rhs: FeeAssetItem) -> Bool {
+    public static func == (lhs: FeeAssetItem, rhs: FeeAssetItem) -> Bool {
         lhs.id == rhs.id
     }
 
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         id.hash(into: &hasher)
+    }
+}
+
+extension FeeAssetItem {
+    public func selected(_ isSelected: Bool) -> FeeAssetItem {
+        FeeAssetItem(asset: asset, balance: balance, price: price, currency: currency, isSelected: isSelected)
+    }
+}
+
+public extension GemFeeAsset {
+    func feeAssetItem(currency: Currency) throws -> FeeAssetItem {
+        let mapped = try map()
+        return FeeAssetItem(asset: mapped.asset, balance: mapped.balance, price: mapped.price, currency: currency, isSelected: false)
     }
 }

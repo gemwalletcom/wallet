@@ -1,11 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemKeystoreAuthentication
 import GemstoneServices
 import Style
 
 struct KeystoreAuthenticationViewModel {
-    let authentication: KeystoreAuthentication
+    let authentication: GemKeystoreAuthentication
 
     var authenticationImage: String? {
         switch authentication {

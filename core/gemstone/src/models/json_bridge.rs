@@ -15,7 +15,7 @@ use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::stake_type::Resource;
 use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType};
 use primitives::{
-    AccountDataType, ApplicationMetadata, ApplicationMetadataSource, AssetList, AssetType, ChainAsset, ConnectionComponent, ConnectionStatus, ContractCallData, DelegationBase,
+    AccountDataType, ApplicationMetadata, ApplicationMetadataSource, AssetList, ChainAsset, ConnectionComponent, ConnectionStatus, ContractCallData, DelegationBase,
     DelegationState, DelegationValidator, NFTAsset, NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, NFTImages, NFTResource, NFTType, Payment, PaymentAmount, PaymentLink,
     PaymentRequest, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualOrderType, PerpetualPosition, PerpetualTriggerOrder, ReportNft, ScanAddressTarget,
     ScanTransaction, ScanTransactionPayload, SimulationHeader, SimulationPayloadField, SimulationResult, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType,
@@ -27,12 +27,12 @@ use primitives::{
     SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletSubscription,
     WalletSubscriptionChains,
 };
-use primitives::{Asset, Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction, VerificationStatus};
 use primitives::{
     AssetBasic, AssetFull, AssetMarket, AssetPrice, BannerEvent, BannerState, ConfigResponse, ConfigVersions, Contact, FiatAssets, FiatQuoteType, Markets, PlatformStore, Release,
     SearchResponse, StreamEvent, StreamMessage, SupportTyping,
 };
 use primitives::{ChartPeriod, Charts};
+use primitives::{Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction, VerificationStatus};
 use primitives::{DeviceLocale, Platform};
 
 macro_rules! json_bridge {
@@ -62,13 +62,11 @@ json_bridge!(
     ApplicationMetadata,
     ApplicationMetadataSource,
     ApprovalData,
-    Asset,
     AssetBasic,
     AssetFull,
     AssetList,
     AssetMarket,
     AssetPrice,
-    AssetType,
     AuthNonce,
     AuthPayload,
     BalanceMetadata,

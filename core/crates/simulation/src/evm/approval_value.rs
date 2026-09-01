@@ -39,12 +39,12 @@ impl ApprovalValue {
         match self {
             Self::Exact(value) => SimulationHeader {
                 asset_id,
-                value: value.to_string(),
+                value: Some(value.clone()),
                 is_unlimited: false,
             },
             Self::Unlimited => SimulationHeader {
                 asset_id,
-                value: String::new(),
+                value: None,
                 is_unlimited: true,
             },
         }

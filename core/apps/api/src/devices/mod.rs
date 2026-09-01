@@ -16,8 +16,8 @@ use auth_config::AuthConfig;
 use body::DeviceJson;
 pub use client::DevicesClient;
 pub use clients::{
-    AddressNamesClient, FiatQuotesClient, NotificationsClient, PortfolioClient, RewardsClient, RewardsRedemptionClient, ScanClient, ScanProviderFactory, TransactionsClient,
-    WalletConfigurationClient, WalletsClient,
+    AddressNamesClient, FiatQuotesClient, NotificationsClient, PortfolioClient, RewardsClient, RewardsRedemptionClient, ScanClient, TransactionsClient, WalletConfigurationClient,
+    WalletsClient, scan_providers,
 };
 use defi::DefiClient;
 use gem_auth::AuthClient;

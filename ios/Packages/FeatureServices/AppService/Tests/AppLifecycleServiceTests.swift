@@ -4,6 +4,8 @@
 import protocol Gemstone.GemPerpetualServiceProtocol
 import GemstonePrimitivesTestKit
 import AppServiceTestKit
+import class Gemstone.GemWalletSessionService
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import GemstoneServices
 import GemstoneServicesTestKit
@@ -120,7 +122,7 @@ extension AppLifecycleServiceTests {
         perpetualEnabled: Bool,
         wallets: [Wallet] = [],
         current: Wallet? = nil,
-    ) throws -> (AppLifecycleService, PerpetualObserverMock, any WalletSessionManageable, GemPerpetualServiceMock) {
+    ) throws -> (AppLifecycleService, PerpetualObserverMock, any GemWalletSessionServiceProtocol, GemPerpetualServiceMock) {
         let perpetuals = GemPerpetualServiceMock()
         perpetuals.isPerpetualEnabled = perpetualEnabled
         let observer = PerpetualObserverMock()
@@ -128,7 +130,7 @@ extension AppLifecycleServiceTests {
         for wallet in wallets {
             try store.addWallet(wallet)
         }
-        let walletSessionService = WalletSessionService.mock(store: store)
+        let walletSessionService = GemWalletSessionService.mock(store: store)
         if let current {
             try walletSessionService.setCurrent(walletId: current.id)
         }

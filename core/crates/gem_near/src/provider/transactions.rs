@@ -43,6 +43,7 @@ impl<C: Client> ChainTransactions for NearIndexer<C> {
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
+    use num_bigint::BigUint;
     use std::error::Error;
 
     use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionsRequest};
@@ -72,7 +73,7 @@ mod chain_integration_tests {
         assert_eq!(transaction.hash(), hash);
         assert_eq!(transaction.block_number.as_deref(), Some("211048907"));
         assert_eq!(transaction.asset_id, NEAR_USDT_ASSET_ID.clone());
-        assert_eq!(transaction.value, "99500026");
+        assert_eq!(transaction.value, BigUint::from(99500026u64));
         Ok(())
     }
 

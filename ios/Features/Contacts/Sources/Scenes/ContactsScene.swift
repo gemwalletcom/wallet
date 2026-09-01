@@ -19,10 +19,10 @@ public struct ContactsScene: View {
         List {
             ForEach(model.contacts) { contact in
                 let item = ListItemView(model: model.listItemModel(for: contact))
-                switch model.mode {
-                case .list:
+                switch model.rowAction {
+                case .navigate:
                     NavigationLink(value: Scenes.Contact(contact: contact)) { item }
-                case .addAddress:
+                case .select:
                     Button {
                         model.add(to: contact)
                         dismiss()

@@ -37,20 +37,19 @@ class BuySelectViewModel @Inject constructor(
     switchAssetVisibility,
     setAssetPinned,
     searchTokensCase,
-    BuySelectSearch(searchSelectAssets, assetConfig),
+    BuySelectSearch(searchSelectAssets),
     assetConfig,
 ) {
-    override fun assetFilters() = GemAssetAction.BUY.recentFilters(assetConfig)
+    override fun assetFilters() = GemAssetAction.BUY.recentFilters()
 }
 
 class BuySelectSearch(
     searchSelectAssets: SearchSelectAssets,
-    private val assetConfig: GemAssetConfigService,
-) : BaseSelectSearch(searchSelectAssets, assetConfig, GemAssetAction.BUY) {
+) : BaseSelectSearch(searchSelectAssets, GemAssetAction.BUY) {
 
     override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
         return super.items(filters).map { items -> filter(items) }
     }
 
-    override fun filter(items: List<AssetInfo>): List<AssetInfo> = GemAssetAction.BUY.eligible(items, assetConfig)
+    override fun filter(items: List<AssetInfo>): List<AssetInfo> = GemAssetAction.BUY.eligible(items)
 }

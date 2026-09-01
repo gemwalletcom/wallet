@@ -10,6 +10,7 @@ import Recents
 import Style
 import SwiftUI
 import Transfer
+import struct Gemstone.GemTransferData
 
 struct SelectAssetSceneNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -133,7 +134,7 @@ struct SelectAssetSceneNavigationStack: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: TransferData.self) { data in
+            .navigationDestination(for: GemTransferData.self) { data in
                 ConfirmTransferNavigationView(
                     model: viewModelFactory.confirmTransferScene(
                         wallet: model.wallet,

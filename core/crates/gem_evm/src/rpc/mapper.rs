@@ -58,8 +58,8 @@ impl EthereumMapper {
         let transaction = transaction.as_ref();
         let state = transaction_receipt.get_state();
         let hash = transaction.hash.clone();
-        let value = transaction.value.to_string();
-        let fee = transaction_receipt.get_fee().to_string();
+        let value = transaction.value.clone();
+        let fee = transaction_receipt.get_fee();
         let fee_asset_id = chain.as_asset_id();
         let from = ethereum_address_checksum(&transaction.from.clone()).ok()?;
         let to = ethereum_address_checksum(&transaction.to.clone().unwrap_or_default()).ok()?;
@@ -85,9 +85,9 @@ impl EthereumMapper {
                 None,
                 TransactionType::TransferNFT,
                 state,
-                fee.to_string(),
+                fee.clone(),
                 fee_asset_id.clone(),
-                "0".to_string(),
+                BigUint::from(0u32),
                 None,
                 serde_json::to_value(metadata).ok(),
                 created_at,
@@ -103,9 +103,9 @@ impl EthereumMapper {
                 None,
                 TransactionType::Transfer,
                 state,
-                fee.to_string(),
+                fee.clone(),
                 fee_asset_id.clone(),
-                transfer.value.to_string(),
+                transfer.value.clone(),
                 None,
                 None,
                 created_at,
@@ -122,9 +122,9 @@ impl EthereumMapper {
                 None,
                 TransactionType::TokenApproval,
                 state,
-                fee.to_string(),
+                fee.clone(),
                 fee_asset_id.clone(),
-                approval.value.to_string(),
+                approval.value.clone(),
                 None,
                 None,
                 created_at,
@@ -242,7 +242,7 @@ mod tests {
         assert_eq!(transaction.asset_id, ARBITRUM_USDT_ASSET_ID.clone());
         assert_eq!(transaction.from, "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F");
         assert_eq!(transaction.to, "0x2Fc617E933a52713247CE25730f6695920B3befe");
-        assert_eq!(transaction.value, "4801292");
+        assert_eq!(transaction.value, BigUint::from(4801292u64));
         assert_eq!(transaction.metadata, None);
     }
 
@@ -263,7 +263,7 @@ mod tests {
         assert_eq!(transaction.asset_id, AssetId::from_chain(Chain::Ethereum));
         assert_eq!(transaction.from, "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4");
         assert_eq!(transaction.to, "0xf1158986419F6058231b0Dbd7A78Ff0674ebBc50");
-        assert_eq!(transaction.value, "0");
+        assert_eq!(transaction.value, BigUint::from(0u64));
         assert_eq!(
             transaction.metadata,
             Some(serde_json::json!({
@@ -283,7 +283,7 @@ mod tests {
         assert_eq!(transaction.asset_id, AssetId::from_chain(Chain::Ethereum));
         assert_eq!(transaction.from, "0x3835e41EA342975eEEF8AaCf0c3809A38F6c04f1");
         assert_eq!(transaction.to, "0x951454CaD517FcB54a5A60f20C934Df90966b2a7");
-        assert_eq!(transaction.value, "0");
+        assert_eq!(transaction.value, BigUint::from(0u64));
         assert_eq!(
             transaction.metadata,
             Some(serde_json::json!({
@@ -308,7 +308,7 @@ mod tests {
         assert_eq!(transaction.asset_id, AssetId::from_chain(Chain::Ethereum));
         assert_eq!(transaction.from, "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4");
         assert_eq!(transaction.to, "0xEE67a32a55318a211CE4BB5051Ed98c679851143");
-        assert_eq!(transaction.value, "0");
+        assert_eq!(transaction.value, BigUint::from(0u64));
         assert_eq!(
             transaction.metadata,
             Some(serde_json::json!({
@@ -333,7 +333,7 @@ mod tests {
         assert_eq!(transaction.asset_id, ARBITRUM_USDC_ASSET_ID.clone());
         assert_eq!(transaction.from, "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7");
         assert_eq!(transaction.to, "0x0D9DAB1A248f63B0a48965bA8435e4de7497a3dC");
-        assert_eq!(transaction.value, "930678651");
+        assert_eq!(transaction.value, BigUint::from(930678651u64));
         assert_eq!(transaction.data, Some(sc_erc20_tx.input));
     }
 
@@ -353,12 +353,12 @@ mod tests {
         assert_eq!(first.asset_id, ARBITRUM_USDC_ASSET_ID.clone());
         assert_eq!(first.from, "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7");
         assert_eq!(first.to, "0x6B3EdB41B7a42d420a720D7a29a27a160aF0c64d");
-        assert_eq!(first.value, "81447000");
+        assert_eq!(first.value, BigUint::from(81447000u64));
 
         let second = mapped.finalize(vec!["0x59642dd5b10066a6d8545bf6b378ea99edc46cca".to_string()]);
         assert_eq!(second.transaction_type, TransactionType::Transfer);
         assert_eq!(second.asset_id, ARBITRUM_USDC_ASSET_ID.clone());
-        assert_eq!(second.value, "90810000");
+        assert_eq!(second.value, BigUint::from(90810000u64));
 
         let mut transfers_only_receipt = receipt.clone();
         transfers_only_receipt.logs.retain(|log| log.topics.first().is_some_and(|topic| topic == TRANSFER_TOPIC));
@@ -399,7 +399,7 @@ mod tests {
         assert_eq!(tx.asset_id, AssetId::from_chain(Chain::Ethereum));
         assert_eq!(tx.from, "0x8D25Fb438C6efCD08679ffA82766869B50E24608");
         assert_eq!(tx.to, "0x0700572b54ccA24Dad0eD4Cdad2c3d3ab6dB652a");
-        assert_eq!(tx.value, "2739900000000000000");
+        assert_eq!(tx.value, BigUint::from(2739900000000000000u64));
         assert_eq!(tx.id.to_string(), "ethereum_0x0c0626172dbba6984a2e95b3abf1caba39cf11d3c9bc99d7de9ac814671c0cb1");
     }
 
@@ -436,7 +436,7 @@ mod tests {
         assert_eq!(mapped_transaction.asset_id, AssetId::from_chain(Chain::Polygon));
         assert_eq!(mapped_transaction.from, "0x9810762578aCCF1F314320CCa5B72506aE7D7630");
         assert_eq!(mapped_transaction.to, "0xF170892B35FE3d17c75E066FbeB37a73D5b7e5d6");
-        assert_eq!(mapped_transaction.value, "44665000000000000000");
+        assert_eq!(mapped_transaction.value, BigUint::parse_bytes(b"44665000000000000000", 10).unwrap());
     }
 
     #[test]
@@ -450,7 +450,7 @@ mod tests {
         assert_eq!(mapped_transaction.asset_id, AssetId::from_chain(Chain::Arbitrum));
         assert_eq!(mapped_transaction.from, "0x951454CaD517FcB54a5A60f20C934Df90966b2a7");
         assert_eq!(mapped_transaction.to, "0x951454CaD517FcB54a5A60f20C934Df90966b2a7");
-        assert_eq!(mapped_transaction.value, "0");
+        assert_eq!(mapped_transaction.value, BigUint::from(0u64));
     }
 
     #[test]
@@ -491,7 +491,10 @@ mod tests {
         assert_eq!(result.asset_id, ETHEREUM_DAI_ASSET_ID.clone());
         assert_eq!(result.from, "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4");
         assert_eq!(result.to, UNISWAP_PERMIT2_CONTRACT);
-        assert_eq!(result.value, "115792089237316195423570985008687907853269984665640564039457584007913129639935");
+        assert_eq!(
+            result.value,
+            BigUint::parse_bytes(b"115792089237316195423570985008687907853269984665640564039457584007913129639935", 10).unwrap()
+        );
 
         receipt.logs.push(Log {
             address: "0x0000000000000000000000000000000000001010".to_string(),
@@ -505,7 +508,10 @@ mod tests {
         assert_eq!(result.asset_id, ETHEREUM_DAI_ASSET_ID.clone());
         assert_eq!(result.from, "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4");
         assert_eq!(result.to, UNISWAP_PERMIT2_CONTRACT);
-        assert_eq!(result.value, "115792089237316195423570985008687907853269984665640564039457584007913129639935");
+        assert_eq!(
+            result.value,
+            BigUint::parse_bytes(b"115792089237316195423570985008687907853269984665640564039457584007913129639935", 10).unwrap()
+        );
     }
 
     #[test]
@@ -519,7 +525,7 @@ mod tests {
         assert_eq!(tx.asset_id, AssetId::from_chain(Chain::Polygon));
         assert_eq!(tx.from, "0x551Ac3629eC87F3957b1074FaF48d22A5a26ecec");
         assert_eq!(tx.to, "0x337685fdaB40D39bd02028545a4FfA7D287cC3E2");
-        assert_eq!(tx.value, "124798001816181500204");
+        assert_eq!(tx.value, BigUint::parse_bytes(b"124798001816181500204", 10).unwrap());
     }
 
     #[test]
@@ -533,7 +539,7 @@ mod tests {
         assert_eq!(tx.asset_id, AssetId::from_chain(Chain::Polygon));
         assert_eq!(tx.from, "0x0DC153E9225a0d74460d806C08c961a3EC0ef17D");
         assert_eq!(tx.to, "0x337685fdaB40D39bd02028545a4FfA7D287cC3E2");
-        assert_eq!(tx.value, "0");
+        assert_eq!(tx.value, BigUint::from(0u64));
     }
 
     #[test]
@@ -581,7 +587,7 @@ mod tests {
         assert_eq!(tx.asset_id, ETHEREUM_USDC_ASSET_ID.clone());
         assert_eq!(tx.from, "0x34DeFF97889f3A6A483E3b9255cAFCB9a6e03588");
         assert_eq!(tx.to, "0x0533d3A18D3f812eCFcC838B59B34fEc4d18E4AC");
-        assert_eq!(tx.value, "3900075892");
+        assert_eq!(tx.value, BigUint::from(3900075892u64));
     }
 
     #[test]
@@ -595,7 +601,7 @@ mod tests {
         assert_eq!(tx.asset_id, ETHEREUM_USDT_ASSET_ID.clone());
         assert_eq!(tx.from, "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F");
         assert_eq!(tx.to, ETHEREUM_YO_PROTOCOL_CONTRACT);
-        assert_eq!(tx.value, "1466009");
+        assert_eq!(tx.value, BigUint::from(1466009u64));
     }
 
     #[test]
@@ -609,6 +615,6 @@ mod tests {
         assert_eq!(tx.asset_id, ETHEREUM_USDT_ASSET_ID.clone());
         assert_eq!(tx.from, "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F");
         assert_eq!(tx.to, ETHEREUM_YO_PROTOCOL_CONTRACT);
-        assert_eq!(tx.value, "1466126");
+        assert_eq!(tx.value, BigUint::from(1466126u64));
     }
 }

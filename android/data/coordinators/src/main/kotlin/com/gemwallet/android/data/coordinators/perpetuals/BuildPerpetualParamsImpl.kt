@@ -9,7 +9,10 @@ import com.gemwallet.android.domains.perpetual.PerpetualTransferData
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.hyperliquidAccount
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.domains.confirm.confirmInput
+import com.gemwallet.android.domains.confirm.perpetual
+import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransferData
 import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualDirection
@@ -49,7 +52,7 @@ class BuildPerpetualParamsImpl(
         return createAmountParams(data, PerpetualPositionAction.Reduce(transferData, available, position.direction))
     }
 
-    override suspend fun close(perpetualId: PerpetualId): ConfirmParams.PerpetualParams? {
+    override suspend fun close(perpetualId: PerpetualId): GemConfirmInput? {
         val data = getPerpetual(perpetualId) ?: return null
         val position = getPosition(perpetualId) ?: return null
         val assetIndex = data.perpetual.identifier.toIntOrNull() ?: return null
@@ -61,8 +64,7 @@ class BuildPerpetualParamsImpl(
             asset = data.asset,
             baseAsset = HypercoreUSDC,
         )
-        return ConfirmParams.Builder(data.asset, account)
-            .perpetual(PerpetualType.Close(confirmData))
+        return GemTransferData.perpetual(data.asset, PerpetualType.Close(confirmData)).confirmInput(account)
     }
 
     override suspend fun modify(
@@ -70,7 +72,7 @@ class BuildPerpetualParamsImpl(
         modifyTypes: List<PerpetualModifyPositionType>,
         takeProfitOrderId: ULong?,
         stopLossOrderId: ULong?,
-    ): ConfirmParams.PerpetualParams? {
+    ): GemConfirmInput? {
         if (modifyTypes.isEmpty()) return null
         val data = getPerpetual(perpetualId) ?: return null
         val assetIndex = data.perpetual.identifier.toIntOrNull() ?: return null
@@ -82,8 +84,7 @@ class BuildPerpetualParamsImpl(
             takeProfitOrderId = takeProfitOrderId?.toLong(),
             stopLossOrderId = stopLossOrderId?.toLong(),
         )
-        return ConfirmParams.Builder(data.asset, account)
-            .perpetual(PerpetualType.Modify(confirmData))
+        return GemTransferData.perpetual(data.asset, PerpetualType.Modify(confirmData)).confirmInput(account)
     }
 
     private suspend fun getPerpetual(perpetualId: PerpetualId): PerpetualData? =

@@ -62,9 +62,7 @@ impl GemSwapper {
     }
 
     fn compare_quotes_by_output_amount(a: &Quote, b: &Quote) -> std::cmp::Ordering {
-        let a_amount = a.to_value.parse::<BigInt>().unwrap_or_default();
-        let b_amount = b.to_value.parse::<BigInt>().unwrap_or_default();
-        b_amount.cmp(&a_amount)
+        b.to_value.cmp(&a.to_value)
     }
 }
 
@@ -255,6 +253,7 @@ impl GemSwapper {
 
 #[cfg(all(test, feature = "reqwest_provider"))]
 mod tests {
+    use num_bigint::BigUint;
 
     use std::{collections::BTreeSet, sync::Arc, vec};
 
@@ -503,8 +502,8 @@ mod tests {
 
         GemSwapper::sort_quotes_by_output_amount(&mut quotes);
 
-        assert_eq!(quotes[0].to_value, "102");
-        assert_eq!(quotes[1].to_value, "101");
-        assert_eq!(quotes[2].to_value, "100");
+        assert_eq!(quotes[0].to_value, BigUint::from(102u64));
+        assert_eq!(quotes[1].to_value, BigUint::from(101u64));
+        assert_eq!(quotes[2].to_value, BigUint::from(100u64));
     }
 }

@@ -34,31 +34,6 @@ public struct Fee: Sendable {
         gasPriceType.gasPrice
     }
 
-    public var priorityFee: BigInt {
-        gasPriceType.priorityFee
-    }
-
-    public var unitPrice: BigInt {
-        gasPriceType.unitPrice
-    }
-
-    public var totalFee: BigInt {
-        fee + optionsFee
-    }
-
-    public var optionsFee: BigInt {
-        options.map(\.value).reduce(0, +)
-    }
-
-    public func withOptions(_ options: FeeOptionMap) -> Fee {
-        Fee(
-            fee: fee,
-            gasPriceType: gasPriceType,
-            gasLimit: gasLimit,
-            options: options,
-            feeAssetId: feeAssetId,
-        )
-    }
 }
 
 // MARK: - Equatable

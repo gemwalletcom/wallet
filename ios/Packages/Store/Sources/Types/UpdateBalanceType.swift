@@ -20,15 +20,18 @@ public enum UpdateBalanceType {
 
 public struct UpdateCoinBalance {
     public let available: UpdateBalanceValue
+    public let frozen: UpdateBalanceValue
     public let reserved: UpdateBalanceValue
     public let pendingUnconfirmed: UpdateBalanceValue
 
     public init(
         available: UpdateBalanceValue,
+        frozen: UpdateBalanceValue = .zero,
         reserved: UpdateBalanceValue,
         pendingUnconfirmed: UpdateBalanceValue = .zero,
     ) {
         self.available = available
+        self.frozen = frozen
         self.reserved = reserved
         self.pendingUnconfirmed = pendingUnconfirmed
     }
@@ -111,7 +114,7 @@ extension UpdateBalanceType: CustomStringConvertible {
 
 extension UpdateCoinBalance: CustomStringConvertible {
     public var description: String {
-        "coin(available: \(available), reserved: \(reserved), pendingUnconfirmed: \(pendingUnconfirmed))"
+        "coin(available: \(available), frozen: \(frozen), reserved: \(reserved), pendingUnconfirmed: \(pendingUnconfirmed))"
     }
 }
 

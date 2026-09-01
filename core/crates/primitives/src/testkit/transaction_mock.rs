@@ -1,5 +1,6 @@
 use crate::{AssetId, Chain, Transaction, TransactionState, TransactionType, TransactionUtxoInput};
 use chrono::Utc;
+use num_bigint::BigUint;
 
 impl Transaction {
     pub fn mock() -> Self {
@@ -11,16 +12,16 @@ impl Transaction {
             None,
             TransactionType::Transfer,
             TransactionState::Confirmed,
-            "21000".to_string(),
+            BigUint::from(21_000u32),
             AssetId::from_chain(Chain::Ethereum),
-            "1000000".to_string(),
+            BigUint::from(1_000_000u32),
             None,
             None,
             Utc::now(),
         )
     }
 
-    pub fn mock_with_params(asset_id: AssetId, transaction_type: TransactionType, value: String) -> Self {
+    pub fn mock_with_params(asset_id: AssetId, transaction_type: TransactionType, value: BigUint) -> Self {
         Transaction::new(
             "0x1234567890abcdef".to_string(),
             asset_id.clone(),
@@ -29,7 +30,7 @@ impl Transaction {
             None,
             transaction_type,
             TransactionState::Confirmed,
-            "21000".to_string(),
+            BigUint::from(21_000u32),
             asset_id,
             value,
             None,
@@ -44,9 +45,9 @@ impl Transaction {
             AssetId::from_chain(Chain::Bitcoin),
             TransactionType::Transfer,
             TransactionState::Confirmed,
-            "1000".to_string(),
+            BigUint::from(1_000u32),
             AssetId::from_chain(Chain::Bitcoin),
-            "0".to_string(),
+            BigUint::from(0u32),
             None,
             Some(utxo_inputs),
             Some(utxo_outputs),

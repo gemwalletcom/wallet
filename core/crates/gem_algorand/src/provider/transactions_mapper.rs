@@ -1,3 +1,4 @@
+use num_bigint::BigUint;
 use std::error::Error;
 
 use crate::constants::TRANSACTION_TYPE_PAY;
@@ -34,9 +35,9 @@ pub fn map_transaction(transaction: AlgoTransaction) -> Option<Transaction> {
             None,
             TransactionType::Transfer,
             TransactionState::Confirmed,
-            transaction.fee.unwrap_or_default().to_string(),
+            BigUint::try_from(transaction.fee.unwrap_or_default()).ok()?,
             chain.as_asset_id(),
-            transaction.payment_transaction.clone()?.amount.unwrap_or_default().to_string(),
+            BigUint::try_from(transaction.payment_transaction.clone()?.amount.unwrap_or_default()).ok()?,
             transaction.clone().get_memo(),
             None,
             DateTime::from_timestamp(transaction.round_time, 0)?,
@@ -82,6 +83,6 @@ mod tests {
         assert_eq!(transaction.hash(), TEST_TRANSACTION_ID);
         assert_eq!(transaction.from, "RXIOUIR5IGFZMIZ7CR7FJXDYY4JI7NZG5UCWCZZNWXUPFJRLG6K6X5ITXM");
         assert_eq!(transaction.to, "NXSHXB3CLKPZ4JJ3LIXOKOEAB575EDDHCUTDYAKYRXZWVJ6CCQUP55ZEPE");
-        assert_eq!(transaction.value, "100000");
+        assert_eq!(transaction.value, BigUint::from(100000u64));
     }
 }

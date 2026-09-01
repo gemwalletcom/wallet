@@ -7,6 +7,7 @@ use crate::{
     models::{ApprovalType, Permit2ApprovalData},
 };
 use gem_client::Client;
+use gem_evm::u256::u256_to_biguint;
 use gem_jsonrpc::client::JsonRpcClient;
 
 use alloy_primitives::{Address, U256, hex::decode as HexDecode};
@@ -48,7 +49,7 @@ where
         return Ok(ApprovalType::Approve(ApprovalData {
             token: token.to_string(),
             spender: spender.to_string(),
-            value: amount.to_string(),
+            value: u256_to_biguint(&amount),
             is_unlimited: true,
         }));
     }
@@ -102,7 +103,7 @@ where
         return Ok(ApprovalType::Permit2(Permit2ApprovalData {
             token,
             spender,
-            value: amount.to_string(),
+            value: u256_to_biguint(&amount),
             permit2_contract: permit2_contract.into(),
             permit2_nonce: allowance_return
                 ._2
@@ -119,7 +120,6 @@ mod tests {
     use super::*;
     use crate::alien::mock::{MockFn, ProviderMock};
     use primitives::contract_constants::{OPTIMISM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT, UNISWAP_PERMIT2_CONTRACT};
-    use std::time::Duration;
 
     #[tokio::test]
     async fn test_approval_tx_spender_is_permit2() -> Result<(), SwapperError> {
@@ -144,7 +144,6 @@ mod tests {
                 r#"{"id":1,"jsonrpc":"2.0","result":"0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"}"#
                     .to_string()
             })),
-            timeout: Duration::from_millis(10),
         };
         let provider = Arc::new(mock);
 
@@ -155,11 +154,11 @@ mod tests {
         assert_eq!(
             vec![erc20_result, permit2_result],
             vec![
-                ApprovalType::Approve(ApprovalData::make(&token, &permit2_contract, &amount.to_string(), true)),
+                ApprovalType::Approve(ApprovalData::make(&token, &permit2_contract, u256_to_biguint(&amount), true)),
                 ApprovalType::Permit2(Permit2ApprovalData {
                     token: token.clone(),
                     spender: spender.clone(),
-                    value: amount.to_string(),
+                    value: u256_to_biguint(&amount),
                     permit2_contract,
                     permit2_nonce: 0,
                 }),

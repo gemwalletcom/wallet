@@ -40,10 +40,12 @@ pub struct Transaction {
     pub block_number: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sequence: Option<String>,
-    pub fee: String,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint", deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
+    pub fee: BigUint,
     #[serde(rename = "feeAssetId")]
     pub fee_asset_id: AssetId,
-    pub value: String,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint", deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
+    pub value: BigUint,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub memo: Option<String>,
     pub direction: TransactionDirection,
@@ -75,9 +77,9 @@ impl Transaction {
         contract: Option<String>,
         transaction_type: TransactionType,
         state: TransactionState,
-        fee: String,
+        fee: BigUint,
         fee_asset_id: AssetId,
-        value: String,
+        value: BigUint,
         memo: Option<String>,
         metadata: Option<serde_json::Value>,
         created_at: DateTime<Utc>,
@@ -110,9 +112,9 @@ impl Transaction {
         asset_id: AssetId,
         transaction_type: TransactionType,
         state: TransactionState,
-        fee: String,
+        fee: BigUint,
         fee_asset_id: AssetId,
-        value: String,
+        value: BigUint,
         memo: Option<String>,
         utxo_inputs: Option<Vec<TransactionUtxoInput>>,
         utxo_outputs: Option<Vec<TransactionUtxoInput>>,
@@ -207,17 +209,17 @@ impl Transaction {
         let (to, value) = match direction {
             TransactionDirection::Incoming => {
                 let to = outputs_addresses.iter().find(|x| user_set.contains(*x)).unwrap().clone();
-                let value = Self::utxo_calculate_value(utxo_outputs, &user_set).to_string();
+                let value = Self::utxo_calculate_value(utxo_outputs, &user_set);
                 (to, value)
             }
             TransactionDirection::Outgoing => {
                 let to = outputs_addresses.iter().find(|x| !user_set.contains(*x)).unwrap().clone();
-                let value = utxo_outputs.iter().find(|x| x.address == to).unwrap().value.to_string();
+                let value = utxo_outputs.iter().find(|x| x.address == to).unwrap().value.clone();
                 (to, value)
             }
             TransactionDirection::SelfTransfer => {
                 let to = utxo_outputs.first().unwrap().address.clone();
-                let value = Self::utxo_calculate_value(utxo_outputs, &user_set).to_string();
+                let value = Self::utxo_calculate_value(utxo_outputs, &user_set);
                 (to, value)
             }
         };
@@ -253,7 +255,7 @@ impl Transaction {
             from: transfer.from,
             to: transfer.to,
             transaction_type: TransactionType::Transfer,
-            value: transfer.value.to_string(),
+            value: transfer.value.clone(),
             direction,
             metadata: None,
             ..self.clone()
@@ -403,7 +405,7 @@ impl Transaction {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Asset, TransactionUtxoInput, transaction_metadata_types::TransactionAssetTransfer};
+    use crate::{Asset, Chain, TransactionUtxoInput, transaction_metadata_types::TransactionAssetTransfer};
 
     #[test]
     fn test_asset_ids_transfer() {
@@ -423,9 +425,9 @@ mod tests {
             metadata: Some(
                 serde_json::to_value(TransactionSwapMetadata {
                     from_asset: Asset::mock_eth().id,
-                    from_value: "1".to_string(),
+                    from_value: BigUint::from(1u64),
                     to_asset: Asset::mock_eth().id,
-                    to_value: "1".to_string(),
+                    to_value: BigUint::from(1u64),
                     provider: None,
                 })
                 .unwrap(),
@@ -439,9 +441,9 @@ mod tests {
             metadata: Some(
                 serde_json::to_value(TransactionSwapMetadata {
                     from_asset: Asset::mock_ethereum_usdc().id,
-                    from_value: "1".to_string(),
+                    from_value: BigUint::from(1u64),
                     to_asset: Asset::mock_erc20().id,
-                    to_value: "1".to_string(),
+                    to_value: BigUint::from(1u64),
                     provider: None,
                 })
                 .unwrap(),
@@ -506,9 +508,9 @@ mod tests {
             metadata: Some(
                 serde_json::to_value(TransactionSwapMetadata {
                     from_asset: Asset::mock_ethereum_usdc().id,
-                    from_value: "1".to_string(),
+                    from_value: BigUint::from(1u64),
                     to_asset: Asset::mock_erc20().id,
-                    to_value: "1".to_string(),
+                    to_value: BigUint::from(1u64),
                     provider: None,
                 })
                 .unwrap(),
@@ -546,7 +548,7 @@ mod tests {
             Transaction::mock_utxo(vec![utxo_input("sender", 50_000)], vec![utxo_input("user", 40_000), utxo_input("change", 9_000)]).finalize(vec!["user".to_string()]);
 
         assert_eq!(
-            (transaction.from.as_str(), transaction.to.as_str(), transaction.value.as_str()),
+            (transaction.from.as_str(), transaction.to.as_str(), transaction.value.to_string().as_str()),
             ("sender", "user", "40000")
         );
         assert_eq!(transaction.direction, TransactionDirection::Incoming);
@@ -558,7 +560,7 @@ mod tests {
             Transaction::mock_utxo(vec![utxo_input("user", 50_000)], vec![utxo_input("recipient", 40_000), utxo_input("user", 9_000)]).finalize(vec!["user".to_string()]);
 
         assert_eq!(
-            (transaction.from.as_str(), transaction.to.as_str(), transaction.value.as_str()),
+            (transaction.from.as_str(), transaction.to.as_str(), transaction.value.to_string().as_str()),
             ("user", "recipient", "40000")
         );
         assert_eq!(transaction.direction, TransactionDirection::Outgoing);
@@ -568,7 +570,10 @@ mod tests {
     fn test_finalize_self_transfer_utxo() {
         let transaction = Transaction::mock_utxo(vec![utxo_input("user", 50_000)], vec![utxo_input("user", 40_000), utxo_input("user", 9_000)]).finalize(vec!["user".to_string()]);
 
-        assert_eq!((transaction.from.as_str(), transaction.to.as_str(), transaction.value.as_str()), ("user", "user", "49000"));
+        assert_eq!(
+            (transaction.from.as_str(), transaction.to.as_str(), transaction.value.to_string().as_str()),
+            ("user", "user", "49000")
+        );
         assert_eq!(transaction.direction, TransactionDirection::SelfTransfer);
     }
 
@@ -618,12 +623,36 @@ mod tests {
         assert_eq!(incoming.asset_id, usdc);
         assert_eq!(incoming.from, "0xContract");
         assert_eq!(incoming.to, "0xUser");
-        assert_eq!(incoming.value, "10");
+        assert_eq!(incoming.value, BigUint::from(10u32));
         assert_eq!(incoming.direction, TransactionDirection::Incoming);
         assert_eq!(incoming.metadata, None);
 
         let ambiguous = original.finalize(vec!["0xUser".to_string(), "0xOther".to_string()]);
         assert_eq!(ambiguous.transaction_type, TransactionType::SmartContractCall);
         assert_eq!(ambiguous.metadata, original.metadata);
+    }
+
+    #[test]
+    fn test_transaction_json_keeps_value_and_fee_as_decimal_strings() {
+        let transaction = Transaction::new(
+            "hash".to_string(),
+            AssetId::from_chain(Chain::Ethereum),
+            "from".to_string(),
+            "to".to_string(),
+            None,
+            TransactionType::Transfer,
+            TransactionState::Confirmed,
+            BigUint::from(21_000u32),
+            AssetId::from_chain(Chain::Ethereum),
+            BigUint::from(1_000_000_000_000_000_000u64),
+            None,
+            None,
+            Utc::now(),
+        );
+        let json = serde_json::to_value(&transaction).unwrap();
+
+        assert_eq!(json["fee"], serde_json::json!("21000"));
+        assert_eq!(json["value"], serde_json::json!("1000000000000000000"));
+        assert_eq!(serde_json::from_value::<Transaction>(json).unwrap().value, transaction.value);
     }
 }

@@ -38,6 +38,8 @@ fun Chain.getReserveBalanceUrl(): String? = Config().getChainConfig(this.string)
 
 fun Chain.isStakeSupported(): Boolean = Config().getChainConfig(this.string).isStakeSupported
 
+fun Chain.isTokenSupported(): Boolean = Config().getChainConfig(this.string).isTokenSupported
+
 fun Chain.isNftSupported(): Boolean = Config().getChainConfig(this.string).isNftSupported
 
 fun Chain.supportsNftTransfer(): Boolean = Config().getChainConfig(this.string).supportsNftTransfer

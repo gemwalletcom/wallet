@@ -30,6 +30,7 @@ impl ChainSigner for CardanoChainSigner {
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigUint;
     use primitives::{Asset, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, UTXO};
 
     use super::*;
@@ -45,7 +46,7 @@ mod tests {
                 input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Cardano)),
                 sender_address: sender_address.to_string(),
                 destination_address: TO_ADDRESS.to_string(),
-                value: "7000000".to_string(),
+                value: BigUint::from(7000000u64),
                 gas_price: GasPriceType::regular(0u64),
                 memo: None,
                 is_max_value: false,
@@ -55,13 +56,13 @@ mod tests {
                         UTXO {
                             transaction_id: "f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e767".to_string(),
                             vout: 1,
-                            value: "1500000".to_string(),
+                            value: BigUint::from(1500000u64),
                             address: sender_address.to_string(),
                         },
                         UTXO {
                             transaction_id: "554f2fd942a23d06835d26bbd78f0106fa94c8a551114a0bef81927f66467af0".to_string(),
                             vout: 0,
-                            value: "6500000".to_string(),
+                            value: BigUint::from(6500000u64),
                             address: sender_address.to_string(),
                         },
                     ],

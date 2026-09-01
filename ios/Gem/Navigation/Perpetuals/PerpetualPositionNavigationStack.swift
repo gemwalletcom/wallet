@@ -6,6 +6,7 @@ import Primitives
 import PrimitivesComponents
 import SwiftUI
 import Transfer
+import struct Gemstone.GemTransferData
 
 struct PerpetualPositionNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -46,7 +47,7 @@ struct PerpetualPositionNavigationStack: View {
                     placement: .topBarLeading,
                 )
             }
-            .navigationDestination(for: TransferData.self) {
+            .navigationDestination(for: GemTransferData.self) {
                 ConfirmTransferNavigationView(
                     model: viewModelFactory.confirmTransferScene(
                         wallet: wallet,

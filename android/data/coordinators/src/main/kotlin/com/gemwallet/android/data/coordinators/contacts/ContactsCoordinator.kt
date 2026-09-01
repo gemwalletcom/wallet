@@ -46,16 +46,15 @@ class ContactsCoordinator(
         address: String,
         memo: String?,
         replacingId: String?,
-    ): List<ContactAddress> = contactService.addAddress(
-        addresses.map { it.toJson() },
-        GemContactAddressInput(
-            contactId = contactId,
-            chain = chain.string,
-            address = address,
-            memo = memo,
-            replacingId = replacingId,
-        ),
-    ).map { it.decodeJson<ContactAddress>() }
+    ): List<ContactAddress> = GemContactAddressInput(
+        contactId = contactId,
+        chain = chain.string,
+        address = address,
+        memo = memo,
+        replacingId = replacingId,
+    )
+        .addAddress(addresses.map { it.toJson() })
+        .map { it.decodeJson<ContactAddress>() }
 
     override fun defaultChain(): Chain = contactService.defaultChain().toChain() ?: Chain.Bitcoin
 

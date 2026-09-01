@@ -2,6 +2,6 @@
 --exclude ./Packages/Primitives/Sources/Generated
 --exclude ./Packages/Gemstone/Package.swift
 --exclude ./Packages/Localization/Sources/Localized.swift
---exclude ./Packages/Localization/WidgetSources/Localized.swift
+--exclude ./Packages/Localization/WidgetSources/WidgetLocalized.swift
 --test-case-name-format standard-identifiers
 --disable wrapPropertyBodies
