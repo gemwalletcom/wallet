@@ -89,6 +89,18 @@ impl GemKeystore {
         Ok(derive_accounts_from_mnemonic(&phrase, chains)?.into_iter().map(GemKeystoreAccount::from).collect())
     }
 
+    pub fn change_password(&self, keystore_id: String, old_password: Vec<u8>, new_password: Vec<u8>) -> Result<(), GemstoneError> {
+        let old_password = Zeroizing::new(old_password);
+        let new_password = Zeroizing::new(new_password);
+        self.inner.change_password(&keystore_id, &old_password, &new_password)?;
+        Ok(())
+    }
+
+    pub fn opens_with(&self, keystore_id: String, password: Vec<u8>) -> bool {
+        let password = Zeroizing::new(password);
+        self.inner.verify(&keystore_id, &password).is_ok()
+    }
+
     pub fn export_recovery_phrase(&self, keystore_id: String, password: Vec<u8>) -> Result<Vec<String>, GemstoneError> {
         let password = Zeroizing::new(password);
         Ok(self

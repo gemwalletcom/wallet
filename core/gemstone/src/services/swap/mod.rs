@@ -120,7 +120,7 @@ impl GemSwapService {
         });
         let password = self
             .password
-            .get_password(wallet.id.clone(), false)
+            .get_password(false)
             .map(|password| decode_password(&password))
             .map_err(|error| SwapperError::TransactionError(error.to_string()))?;
         let signature = signer

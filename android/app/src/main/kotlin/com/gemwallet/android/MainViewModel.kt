@@ -10,7 +10,9 @@ import com.gemwallet.android.data.services.gemstone.pricealerts.MigratePriceAler
 import com.gemwallet.android.ext.userMessage
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.services.CheckAccountsService
+import android.util.Log
 import com.gemwallet.android.services.MigrateV3KeystoreService
+import uniffi.gemstone.GemWalletService
 import com.gemwallet.android.services.SyncService
 import com.wallet.core.primitives.Appearance
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,6 +39,7 @@ class MainViewModel @Inject constructor(
     private val pairWalletConnect: PairWalletConnect,
     private val syncService: SyncService,
     private val migrateV3KeystoreService: MigrateV3KeystoreService,
+    private val walletService: GemWalletService,
     private val migratePriceAlertsPreference: MigratePriceAlertsPreference,
     private val checkAccountsService: CheckAccountsService,
     private val lockTimer: LockTimer,
@@ -108,6 +111,8 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             migratePriceAlertsPreference()
             migrateV3KeystoreService()
+            runCatching { walletService.migrateToSharedPassword() }
+                .onFailure { Log.e("MainViewModel", "shared keystore password migration failed", it) }
         }
         viewModelScope.launch(Dispatchers.IO) { checkAccountsService() }
     }

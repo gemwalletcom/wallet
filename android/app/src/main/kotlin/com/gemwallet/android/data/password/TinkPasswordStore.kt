@@ -57,6 +57,8 @@ class TinkPasswordStore internal constructor(
     override fun removePassword(key: String): Boolean =
         encryptedStore.removeString(key) and legacyStore.removeString(key)
 
+    override fun hasPassword(key: String): Boolean = encryptedStore.getOrMigrate(legacyStore, key) != null
+
     override fun getPassword(key: String): String =
         encryptedStore.getOrMigrate(legacyStore, key) ?: throw PasswordNotFoundException()
 

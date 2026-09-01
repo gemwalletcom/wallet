@@ -98,6 +98,7 @@ class MainViewModelAuthStateTest {
             pairWalletConnect = mockk<PairWalletConnect>(relaxed = true),
             syncService = mockk<SyncService>(relaxed = true),
             migrateV3KeystoreService = mockk<MigrateV3KeystoreService>(relaxed = true),
+            walletService = mockk<uniffi.gemstone.GemWalletService>(relaxed = true),
             migratePriceAlertsPreference = mockk<MigratePriceAlertsPreference>(relaxed = true),
             checkAccountsService = mockk<CheckAccountsService>(relaxed = true),
             lockTimer = mockk<LockTimer>(relaxed = true),
