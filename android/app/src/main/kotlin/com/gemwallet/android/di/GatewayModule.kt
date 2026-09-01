@@ -16,6 +16,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
+import uniffi.gemstone.Config
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemChartService
 import uniffi.gemstone.GemConfigService
@@ -238,7 +239,22 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemScanService(apiClient: GemstoneDeviceApiClient): GemScanService = GemScanService(apiClient)
+    fun provideGemScanService(
+        okHttpClient: OkHttpClient,
+        getNodeUrlCase: GetNodeUrlCase,
+        deviceKeyService: GemDeviceKeyService,
+    ): GemScanService = GemScanService(
+        GemstoneDeviceApiClient(
+            NativeProvider(
+                getNodeUrlCase = getNodeUrlCase,
+                httpClient = okHttpClient.newBuilder()
+                    .callTimeout(Config().getScanConfig().timeoutSeconds.toLong(), TimeUnit.SECONDS)
+                    .build(),
+            ),
+            Constants.API_URL,
+            deviceKeyService.keyPair().privateKey,
+        )
+    )
 
 
 

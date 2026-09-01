@@ -93,7 +93,14 @@ struct ServicesFactory {
             addressStore: gemstoneAddressStore,
             preferences: walletPreferencesService,
         )
-        let scanService = Gemstone.GemScanService(api: deviceApiClient)
+        let scanConfiguration = URLSessionConfiguration.default
+        scanConfiguration.timeoutIntervalForRequest = TimeInterval(Config().getScanConfig().timeoutSeconds)
+        let scanService = Gemstone.GemScanService(
+            api: Self.makeDeviceApiClient(
+                provider: NativeProvider(session: URLSession(configuration: scanConfiguration), url: Constants.apiURL),
+                devicePrivateKey: devicePrivateKey,
+            ),
+        )
         let paymentLinkService = GemPaymentLinkService(provider: nativeProvider)
         let paymentService = Gemstone.GemPaymentService()
         let transactionSimulationService = TransactionSimulationService(provider: nativeProvider)

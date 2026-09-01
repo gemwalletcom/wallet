@@ -6,6 +6,7 @@ pub mod node;
 pub mod perpetual_config;
 pub mod public;
 pub mod rewards;
+pub mod scan_config;
 pub mod search_config;
 pub mod social;
 pub mod stake;
@@ -21,6 +22,7 @@ use {
     fee_config::{FeeConfig, get_fee_config},
     fiat_config::{FiatConfig, get_fiat_config},
     perpetual_config::{PerpetualConfig, get_perpetual_config, leverage_options, select_leverage},
+    scan_config::{ScanConfig, get_scan_config},
     search_config::{WalletSearchConfig, get_wallet_search_config},
     stake::{StakeChainConfig, get_stake_config},
     swap_config::{SwapConfig, get_swap_config},
@@ -56,6 +58,10 @@ impl Config {
 
     fn get_wallet_search_config(&self) -> WalletSearchConfig {
         get_wallet_search_config()
+    }
+
+    fn get_scan_config(&self) -> ScanConfig {
+        get_scan_config()
     }
 
     fn leverage_options(&self, max_leverage: u8) -> Vec<u8> {
