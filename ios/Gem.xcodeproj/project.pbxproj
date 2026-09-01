@@ -14,7 +14,6 @@
 		830FDA422C2236B6003DA605 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830FDA412C2236B6003DA605 /* MainTabView.swift */; };
 		830FDA452C224316003DA605 /* NavigationStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830FDA442C224316003DA605 /* NavigationStateManager.swift */; };
 		830FDA482C22EEC4003DA605 /* TabItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830FDA472C22EEC4003DA605 /* TabItem.swift */; };
-		AA47CAC09D0AC65D3D64A4FA /* ScanReceiveMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0150BA747AD051F9EB4A128F /* ScanReceiveMode.swift */; };
 		E455D7A3E682DD0EC11936FF /* ScanReceiveSheetType.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA80709C57FFF2BBBEAE7C3E /* ScanReceiveSheetType.swift */; };
 		8327CBF12DF9E088000BF1E1 /* Validators in Frameworks */ = {isa = PBXBuildFile; productRef = 8327CBF02DF9E088000BF1E1 /* Validators */; };
 		832AD1A72DEF9AED00096469 /* Assets in Frameworks */ = {isa = PBXBuildFile; productRef = 832AD1A62DEF9AED00096469 /* Assets */; };
@@ -175,7 +174,6 @@
 		830FDA412C2236B6003DA605 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		830FDA442C224316003DA605 /* NavigationStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationStateManager.swift; sourceTree = "<group>"; };
 		830FDA472C22EEC4003DA605 /* TabItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabItem.swift; sourceTree = "<group>"; };
-		0150BA747AD051F9EB4A128F /* ScanReceiveMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReceiveMode.swift; sourceTree = "<group>"; };
 		FA80709C57FFF2BBBEAE7C3E /* ScanReceiveSheetType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReceiveSheetType.swift; sourceTree = "<group>"; };
 		8311A89A2DF9D35D00598C43 /* Validators */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Validators; sourceTree = "<group>"; };
 		832F57E92D36A6D50066024D /* Preferences */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Preferences; sourceTree = "<group>"; };
@@ -467,7 +465,6 @@
 			children = (
 				C36679092A0B7E5800F1D74D /* Environment.swift */,
 				830FDA472C22EEC4003DA605 /* TabItem.swift */,
-				0150BA747AD051F9EB4A128F /* ScanReceiveMode.swift */,
 				FA80709C57FFF2BBBEAE7C3E /* ScanReceiveSheetType.swift */,
 				D8D5C1D02E6CAC16007628A1 /* Errors.swift */,
 			);
@@ -1032,7 +1029,6 @@
 				830FDA422C2236B6003DA605 /* MainTabView.swift in Sources */,
 				0FF1CEBA22E20000000000B2 /* View+ConnectionStatusBanner.swift in Sources */,
 				830FDA482C22EEC4003DA605 /* TabItem.swift in Sources */,
-				AA47CAC09D0AC65D3D64A4FA /* ScanReceiveMode.swift in Sources */,
 				E455D7A3E682DD0EC11936FF /* ScanReceiveSheetType.swift in Sources */,
 				B6B86A102D702E7C00D31D65 /* SwapNavigationView.swift in Sources */,
 				D89CD7A92CC70C7C007A2BAC /* SelectedAssetNavigationStack.swift in Sources */,

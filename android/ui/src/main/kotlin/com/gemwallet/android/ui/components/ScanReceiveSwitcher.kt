@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
+import com.wallet.core.primitives.ScanReceiveMode
 
 @Composable
 fun ScanReceiveSwitcher(mode: ScanReceiveMode, onModeChange: (ScanReceiveMode) -> Unit) {

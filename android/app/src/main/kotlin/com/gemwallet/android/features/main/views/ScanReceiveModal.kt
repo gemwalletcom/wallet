@@ -19,10 +19,10 @@ import com.gemwallet.android.features.asset_select.viewmodels.AssetSelectViewMod
 import com.gemwallet.android.features.receive.presents.ReceiveScreen
 import com.gemwallet.android.ui.components.PortraitOrientationLock
 import com.gemwallet.android.ui.components.QrCodeRequest
-import com.gemwallet.android.ui.components.ScanReceiveMode
 import com.gemwallet.android.ui.components.ScanReceiveSwitcher
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.wallet.core.primitives.QRScanType
+import com.wallet.core.primitives.ScanReceiveMode
 
 private const val RECEIVE_SHEET_HEIGHT = 0.93f
 

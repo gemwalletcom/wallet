@@ -2,6 +2,7 @@
 
 import Foundation
 import Localization
+import Primitives
 
 struct ScanReceiveModeViewModel: Identifiable {
     let mode: ScanReceiveMode
