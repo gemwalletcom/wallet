@@ -11,7 +11,6 @@ import com.gemwallet.android.features.transfer_amount.models.ValidatorsSource
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.Crypto
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationValidator
@@ -35,6 +34,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import uniffi.gemstone.GemAmountStakeType
 import uniffi.gemstone.GemAmountType
+import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransferData
+import com.gemwallet.android.domains.confirm.confirmInput
+import com.gemwallet.android.domains.confirm.stake
+import com.wallet.core.primitives.RedelegateData
+import com.wallet.core.primitives.StakeType
 import com.gemwallet.android.serializer.toJson
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -174,19 +179,24 @@ class AmountStakeProvider(
             stakeType?.let { GemAmountType.Stake(it) }
         }.stateIn(scope, SharingStarted.Eagerly, null)
 
-    override suspend fun buildConfirmParams(amount: Crypto, isMax: Boolean): ConfirmParams {
+    override suspend fun buildConfirmInput(amount: Crypto, isMax: Boolean): GemConfirmInput {
         val current = assetInfo.value ?: error("assetInfo not loaded")
         val owner = current.owner ?: error("owner missing")
-        val builder = ConfirmParams.Builder(current.asset, owner, amount.atomicValue, isMax)
-        return when (params) {
-            is AmountParams.Stake.Delegate -> builder.delegate(currentValidator)
-            is AmountParams.Stake.Redelegate -> builder.redelegate(currentValidator, currentDelegation)
-            is AmountParams.Stake.Undelegate -> builder.undelegate(currentDelegation)
-            is AmountParams.Stake.Withdraw -> builder.withdraw(currentDelegation)
-            is AmountParams.Stake.Rewards -> builder.rewards(listOf(currentValidator))
-            is AmountParams.Stake.Freeze -> builder.freeze(selectedResource.value)
-            is AmountParams.Stake.Unfreeze -> builder.unfreeze(selectedResource.value)
+        val stakeType: StakeType = when (params) {
+            is AmountParams.Stake.Delegate -> StakeType.Stake(currentValidator)
+            is AmountParams.Stake.Redelegate -> StakeType.Redelegate(RedelegateData(currentDelegation, currentValidator))
+            is AmountParams.Stake.Undelegate -> StakeType.Unstake(currentDelegation)
+            is AmountParams.Stake.Withdraw -> StakeType.Withdraw(currentDelegation)
+            is AmountParams.Stake.Rewards -> StakeType.Rewards(listOf(currentValidator))
+            is AmountParams.Stake.Freeze -> StakeType.Freeze(selectedResource.value)
+            is AmountParams.Stake.Unfreeze -> StakeType.Unfreeze(selectedResource.value)
         }
+        return GemTransferData.stake(
+            asset = current.asset,
+            stakeType = stakeType,
+            value = amount.atomicValue,
+            useMaxAmount = isMax && (params is AmountParams.Stake.Delegate || params is AmountParams.Stake.Freeze),
+        ).confirmInput(owner)
     }
 
     private val currentValidator: DelegationValidator

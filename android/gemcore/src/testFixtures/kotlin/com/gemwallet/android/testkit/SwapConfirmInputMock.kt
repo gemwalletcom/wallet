@@ -1,6 +1,11 @@
 package com.gemwallet.android.testkit
 
-import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.domains.confirm.confirmInput
+import com.gemwallet.android.domains.confirm.swap
+import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.GemTransferData
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.swap.ApprovalData
@@ -24,11 +29,8 @@ fun mockSwapParams(
     toAddress: String = from.address,
     provider: SwapProvider = SwapProvider.Hyperliquid,
     dataType: SwapQuoteDataType = SwapQuoteDataType.Transfer,
-) = ConfirmParams.SwapParams(
-    from = from,
-    fromAsset = fromAsset,
-    toAsset = toAsset,
-    swapData = SwapData(
+) : GemConfirmInput {
+    val swapData = SwapData(
         quote = SwapQuote(
             fromAddress = from.address,
             fromValue = fromAmount.toString(),
@@ -49,7 +51,12 @@ fun mockSwapParams(
             approval = approval,
             gasLimit = null,
         ),
-    ),
-    amount = fromAmount,
-    useMaxAmount = useMaxAmount,
-)
+    )
+    return GemTransferData(
+        inputType = GemTransactionInputType.swap(fromAsset, toAsset, swapData),
+        recipient = GemRecipient(address = swapData.data.to, memo = swapData.data.memo),
+        value = fromAmount.toString(),
+        useMaxAmount = useMaxAmount,
+        minimumValue = minFromAmount?.toString(),
+    ).confirmInput(from)
+}

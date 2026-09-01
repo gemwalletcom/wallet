@@ -1,6 +1,10 @@
 package com.gemwallet.android.domains.confirm
 
-import com.gemwallet.android.model.ConfirmParams
+import com.wallet.core.primitives.AccountDataType
+import com.wallet.core.primitives.RedelegateData
+import com.wallet.core.primitives.StakeType
+import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockDelegation
@@ -20,31 +24,36 @@ class ConfirmDestinationTableTest {
     private val account = mockAccount(chain = Chain.Cosmos)
     private val validator = mockDelegationValidator(chain = Chain.Cosmos)
     private val delegation = mockDelegation(assetId = asset.id, validator = validator)
-    private val builder = ConfirmParams.Builder(asset, account, BigInteger.TEN)
     private val recipient = GemRecipient(address = "destination", name = "domain")
+
+    private fun stake(stakeType: StakeType) = GemTransferData.stake(asset, stakeType, BigInteger.TEN)
 
     @Test
     fun operationsWithoutARecipientHaveNoDestination() {
         listOf(
-            builder.activate(),
-            builder.freeze(Resource.Bandwidth),
-            builder.unfreeze(Resource.Bandwidth),
-        ).forEach { params ->
-            assertNull("expected no destination for $params", destination(params))
+            GemTransferData(
+                inputType = GemTransactionInputType.account(asset, AccountDataType.Activate),
+                recipient = GemRecipient(account.address),
+                value = BigInteger.ZERO.toString(),
+            ),
+            stake(StakeType.Freeze(Resource.Bandwidth)),
+            stake(StakeType.Unfreeze(Resource.Bandwidth)),
+        ).forEach { transfer ->
+            assertNull("expected no destination for ${transfer.inputType}", destination(transfer))
         }
     }
 
     @Test
     fun stakeOperationsCarryTheValidator() {
         listOf(
-            builder.delegate(validator),
-            builder.undelegate(delegation),
-            builder.withdraw(delegation),
-            builder.redelegate(validator, delegation),
-        ).forEach { params ->
-            val destination = destination(params)
+            StakeType.Stake(validator),
+            StakeType.Unstake(delegation),
+            StakeType.Withdraw(delegation),
+            StakeType.Redelegate(RedelegateData(delegation, validator)),
+        ).forEach { stakeType ->
+            val destination = destination(stake(stakeType))
 
-            assertTrue("expected a stake destination for $params", destination is ConfirmProperty.Destination.Stake)
+            assertTrue("expected a stake destination for $stakeType", destination is ConfirmProperty.Destination.Stake)
             assertEquals(validator.name, (destination as ConfirmProperty.Destination.Stake).data)
             assertEquals(validator.id, destination.address)
         }
@@ -52,13 +61,19 @@ class ConfirmDestinationTableTest {
 
     @Test
     fun rewardsCarryTheValidatorOnlyWhenThereIsExactlyOne() {
-        assertTrue(destination(builder.rewards(listOf(validator))) is ConfirmProperty.Destination.Stake)
-        assertNull(destination(builder.rewards(listOf(validator, validator))))
+        assertTrue(destination(stake(StakeType.Rewards(listOf(validator)))) is ConfirmProperty.Destination.Stake)
+        assertNull(destination(stake(StakeType.Rewards(listOf(validator, validator)))))
     }
 
     @Test
     fun transfersCarryTheRecipientAndPreferItsName() {
-        val destination = destination(builder.transfer(recipient))
+        val destination = destination(
+            GemTransferData(
+                inputType = GemTransactionInputType.transfer(asset),
+                recipient = recipient,
+                value = BigInteger.TEN.toString(),
+            )
+        )
 
         assertTrue(destination is ConfirmProperty.Destination.Transfer)
         assertEquals("domain", (destination as ConfirmProperty.Destination.Transfer).domain)
@@ -66,6 +81,6 @@ class ConfirmDestinationTableTest {
         assertEquals(Chain.Cosmos, destination.chain)
     }
 
-    private fun destination(params: ConfirmParams) =
-        ConfirmProperty.Destination.map(params, validator)
+    private fun destination(transfer: GemTransferData) =
+        ConfirmProperty.Destination.map(transfer, validator)
 }

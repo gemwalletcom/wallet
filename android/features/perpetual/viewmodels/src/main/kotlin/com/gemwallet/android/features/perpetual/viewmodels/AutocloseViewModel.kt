@@ -11,7 +11,7 @@ import com.gemwallet.android.domains.perpetual.autoclose.AutocloseField
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseModifyBuilder
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseValidator
 import com.gemwallet.android.ext.PerpetualFormatter
-import com.gemwallet.android.model.ConfirmParams
+import uniffi.gemstone.GemConfirmInput
 import com.gemwallet.android.model.NumericFormatter
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
@@ -61,8 +61,8 @@ class AutocloseViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val _confirmRequests = MutableSharedFlow<ConfirmParams.PerpetualParams>(extraBufferCapacity = 1)
-    val confirmRequests: SharedFlow<ConfirmParams.PerpetualParams> = _confirmRequests
+    private val _confirmRequests = MutableSharedFlow<GemConfirmInput>(extraBufferCapacity = 1)
+    val confirmRequests: SharedFlow<GemConfirmInput> = _confirmRequests
 
     private val userTakeProfitText = MutableStateFlow<String?>(null)
     private val userStopLossText = MutableStateFlow<String?>(null)

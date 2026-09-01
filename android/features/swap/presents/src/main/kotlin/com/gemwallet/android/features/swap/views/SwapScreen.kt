@@ -11,7 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.model.ConfirmParams
+import uniffi.gemstone.GemConfirmInput
 import com.gemwallet.android.features.swap.viewmodels.SwapViewModel
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.features.swap.views.dialogs.PriceImpactWarningDialog
@@ -28,7 +28,7 @@ fun SwapScreen(
     viewModel: SwapViewModel = hiltViewModel(),
     onSelectionConsumed: () -> Unit,
     onSelect: (select: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) -> Unit,
-    onConfirm: (ConfirmParams) -> Unit,
+    onConfirm: (GemConfirmInput) -> Unit,
     onCancel: () -> Unit,
 ) {
     val context = LocalContext.current

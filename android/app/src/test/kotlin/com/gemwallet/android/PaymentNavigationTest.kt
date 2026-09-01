@@ -7,7 +7,12 @@ import com.gemwallet.android.ext.checksumAddress
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.isValidAddress
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.domains.confirm.applicationMetadata
+import com.gemwallet.android.domains.confirm.asset
+import com.gemwallet.android.domains.confirm.unpack
+import com.gemwallet.android.serializer.decodeJson
+import uniffi.gemstone.GemTransactionInputType
+import com.wallet.core.primitives.TransferDataOutputAction
 import com.wallet.core.primitives.TransferDataOutputType
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAccount
@@ -78,15 +83,18 @@ class PaymentNavigationTest {
         )
 
         val route = routes.single() as ConfirmRoute
-        val params = ConfirmParams.unpack(route.params, transferService) as ConfirmParams.TransferParams.Generic
-        assertEquals("encoded-transaction", params.data)
-        assertEquals("payment-memo", params.memo)
-        assertEquals(assetInfo.asset.id, params.asset.id)
-        assertEquals(account.address, params.destination.address)
-        assertEquals("19000000", params.amount.toString())
-        assertEquals(ApplicationMetadataSource.Payment, params.metadata.source)
-        assertEquals(TransferDataOutputType.EncodedTransaction, params.outputType)
-        assertTrue(params.isSendable)
+        val transfer = requireNotNull(transferService.unpack(route.params)).transfer
+        val assetId = transfer.inputType.asset.id
+        val metadataSource = transfer.inputType.applicationMetadata?.source
+        val generic = transfer.inputType as GemTransactionInputType.Generic
+        assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
+        assertEquals("payment-memo", transfer.recipient.memo)
+        assertEquals(assetInfo.asset.id, assetId)
+        assertEquals(account.address, transfer.recipient.address)
+        assertEquals("19000000", transfer.value)
+        assertEquals(ApplicationMetadataSource.Payment, metadataSource)
+        assertEquals(TransferDataOutputType.EncodedTransaction, generic.extra.outputType.decodeJson<TransferDataOutputType>())
+        assertEquals(TransferDataOutputAction.Send, generic.extra.outputAction.decodeJson<TransferDataOutputAction>())
     }
 
     @Test
@@ -116,12 +124,14 @@ class PaymentNavigationTest {
         )
 
         val route = routes.single() as ConfirmRoute
-        val params = ConfirmParams.unpack(route.params, transferService) as ConfirmParams.TransferParams.Generic
-        assertEquals("encoded-transaction", params.data)
-        assertEquals(null, params.memo)
-        assertEquals(assetInfo.asset.id, params.asset.id)
-        assertEquals(recipient, params.destination.address)
-        assertEquals("19000000", params.amount.toString())
+        val transfer = requireNotNull(transferService.unpack(route.params)).transfer
+        val assetId = transfer.inputType.asset.id
+        val generic = transfer.inputType as GemTransactionInputType.Generic
+        assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
+        assertEquals(null, transfer.recipient.memo)
+        assertEquals(assetInfo.asset.id, assetId)
+        assertEquals(recipient, transfer.recipient.address)
+        assertEquals("19000000", transfer.value)
     }
 
     @Test
@@ -154,13 +164,15 @@ class PaymentNavigationTest {
         )
 
         val route = routes.single() as ConfirmRoute
-        val params = ConfirmParams.unpack(route.params, transferService) as ConfirmParams.TransferParams.Generic
-        assertEquals("encoded-transaction", params.data)
-        assertEquals("payment-memo", params.memo)
-        assertEquals(account.chain, params.asset.id.chain)
-        assertEquals(null, params.asset.id.tokenId)
-        assertEquals("", params.destination.address)
-        assertEquals("0", params.amount.toString())
+        val transfer = requireNotNull(transferService.unpack(route.params)).transfer
+        val assetId = transfer.inputType.asset.id
+        val generic = transfer.inputType as GemTransactionInputType.Generic
+        assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
+        assertEquals("payment-memo", transfer.recipient.memo)
+        assertEquals(account.chain, assetId.chain)
+        assertEquals(null, assetId.tokenId)
+        assertEquals("", transfer.recipient.address)
+        assertEquals("0", transfer.value)
     }
 
     private fun paymentTransaction(

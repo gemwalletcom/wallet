@@ -44,7 +44,10 @@ import com.gemwallet.android.features.confirm.presents.components.PropertyDestin
 import com.gemwallet.android.features.confirm.viewmodels.ConfirmViewModel
 import com.gemwallet.android.features.confirm.viewmodels.reorderRequestProperties
 import com.gemwallet.android.model.AuthRequest
-import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.domains.confirm.applicationMetadata
+import com.gemwallet.android.domains.confirm.asset
+import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransactionInputType
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.perpetual.AutocloseSummaryRow
@@ -88,7 +91,7 @@ import com.wallet.core.primitives.TransactionType
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfirmScreen(
-    params: ConfirmParams? = null,
+    input: GemConfirmInput? = null,
     simulationResult: SimulationResult? = null,
     finishAction: FinishConfirmAction,
     cancelAction: CancelAction,
@@ -110,14 +113,14 @@ fun ConfirmScreen(
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val payloadAddressNames by viewModel.payloadAddressNames.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
-    val request = params as? ConfirmParams.TransferParams.Generic
-    val isExternalRequest = request != null
-    val isPayment = request?.metadata?.source == ApplicationMetadataSource.Payment
+    val applicationMetadata = input?.transfer?.inputType?.applicationMetadata
+    val isExternalRequest = applicationMetadata != null
+    val isPayment = applicationMetadata?.source == ApplicationMetadataSource.Payment
     val displayTransactionProperties = if (isExternalRequest) transactionProperties.reorderRequestProperties() else transactionProperties
 
     var showSelectTxSpeed by remember { mutableStateOf(false) }
     var showSimulationDetails by remember { mutableStateOf(false) }
-    var selectedDetailElement by remember(params) { mutableStateOf<ConfirmDetailElement?>(null) }
+    var selectedDetailElement by remember(input) { mutableStateOf<ConfirmDetailElement?>(null) }
     var isShowedBroadcastError by remember((state as? ConfirmState.BroadcastError)?.message) {
         mutableStateOf(state is ConfirmState.BroadcastError)
     }
@@ -125,12 +128,12 @@ fun ConfirmScreen(
         mutableStateOf((state as? ConfirmState.Error)?.message is ConfirmError.InsufficientFee)
     }
 
-    LaunchedEffect(params, simulationResult) {
-        if (params == null) {
+    LaunchedEffect(input, simulationResult) {
+        if (input == null) {
             cancelAction()
             return@LaunchedEffect
         }
-        viewModel.init(params, simulationResult)
+        viewModel.init(input, simulationResult)
     }
 
     BackHandler(handleSystemBack) {
@@ -166,7 +169,7 @@ fun ConfirmScreen(
                             .alpha(0f)
                             .clearAndSetSemantics { },
                     ) {
-                        AmountListHead(amount = "", icon = params.asset)
+                        AmountListHead(amount = "", icon = input?.transfer?.inputType?.asset)
                     }
                     simulation.headerAsset != null -> {
                         val asset = requireNotNull(simulation.headerAsset)
@@ -202,7 +205,7 @@ fun ConfirmScreen(
                     else -> AmountListHead(
                         amount = amountModel?.cryptoAmount ?: "",
                         equivalent = amountModel?.amountEquivalent,
-                        icon = if (params is ConfirmParams.TransferParams.Withdrawal) {
+                        icon = if (input?.transfer?.inputType is GemTransactionInputType.Withdrawal) {
                             PerpetualConfig.depositAsset
                         } else {
                             amountModel?.asset?.asset

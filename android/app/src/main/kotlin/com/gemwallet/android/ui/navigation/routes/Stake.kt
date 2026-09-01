@@ -2,7 +2,7 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.model.ConfirmParams
+import uniffi.gemstone.GemConfirmInput
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.features.earn.delegation.presents.DelegationScene
@@ -20,7 +20,7 @@ data class DelegationRoute(val validatorId: String, val delegationId: String) : 
 
 fun EntryProviderScope<NavKey>.stake(
     onAmount: AmountTransactionAction,
-    onConfirm: (ConfirmParams) -> Unit,
+    onConfirm: (GemConfirmInput) -> Unit,
     onDelegation: (String, String) -> Unit,
     onCancel: () -> Unit,
 ) {

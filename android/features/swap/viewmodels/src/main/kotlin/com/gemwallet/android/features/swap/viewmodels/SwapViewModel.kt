@@ -8,7 +8,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.EnableAsset
-import com.gemwallet.android.application.swap.cases.BuildSwapConfirmParams
+import com.gemwallet.android.application.swap.cases.BuildSwapConfirmInput
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
 import com.gemwallet.android.application.swap.cases.SwapNoQuoteException
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
@@ -44,7 +44,7 @@ import com.gemwallet.android.features.swap.viewmodels.models.startTransfer
 import com.gemwallet.android.math.multiplyByPercent
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.ConfirmParams
+import uniffi.gemstone.GemConfirmInput
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.models.ButtonState
@@ -94,7 +94,7 @@ class SwapViewModel @Inject constructor(
     private val getSession: GetSession,
     private val getAssetInfo: GetAssetInfo,
     private val enableAsset: EnableAsset,
-    private val buildSwapConfirmParams: BuildSwapConfirmParams,
+    private val buildSwapConfirmInput: BuildSwapConfirmInput,
     private val userConfig: UserConfig,
     private val swapService: GemSwapServiceInterface,
     requestSwapQuotes: RequestSwapQuotes,
@@ -312,7 +312,7 @@ class SwapViewModel @Inject constructor(
     }
 
     fun onPrimaryAction(
-        onConfirm: (ConfirmParams) -> Unit,
+        onConfirm: (GemConfirmInput) -> Unit,
         onShowPriceImpactWarning: () -> Unit,
         authorize: (() -> Unit) -> Unit,
     ) {
@@ -344,14 +344,14 @@ class SwapViewModel @Inject constructor(
         refreshEnabled.value = isEnabled
     }
 
-    fun swap(onConfirm: (ConfirmParams) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
+    fun swap(onConfirm: (GemConfirmInput) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
         val started = session.value.startTransfer()
         val transfer = started.second ?: return@launch
         val pending = started.first.quote ?: return@launch
         session.value = started.first
 
         try {
-            val params = buildSwapConfirmParams(
+            val params = buildSwapConfirmInput(
                 quote = pending.quote,
                 pay = pending.pay,
                 receive = pending.receive,

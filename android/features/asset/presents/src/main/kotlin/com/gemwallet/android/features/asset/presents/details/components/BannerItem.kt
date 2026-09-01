@@ -6,7 +6,14 @@ import androidx.compose.ui.platform.LocalUriHandler
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.getReserveBalanceUrl
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.domains.confirm.account
+import com.gemwallet.android.domains.confirm.confirmInput
+import com.wallet.core.primitives.AccountDataType
+import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.GemTransferData
+import java.math.BigInteger
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.features.banner.views.BannersScene
 import com.wallet.core.primitives.AssetId
@@ -18,7 +25,7 @@ import uniffi.gemstone.DocsUrl
 internal fun BannerItem(
     assetInfo: AssetInfo,
     onStake: (AssetId) -> Unit,
-    onConfirm: (ConfirmParams) -> Unit,
+    onConfirm: (GemConfirmInput) -> Unit,
     onOpenPerpetuals: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -32,12 +39,14 @@ internal fun BannerItem(
                     uriHandler.open(context, AppUrl.docs(DocsUrl.TronMultiSignature))
 
                 BannerEvent.ActivateAsset -> {
-                    val params = ConfirmParams.Builder(
-                        asset = assetInfo.asset,
-                        from = assetInfo.owner ?: return@BannersScene,
-                        useMaxAmount = false,
-                    ).activate()
-                    onConfirm(params)
+                    val owner = assetInfo.owner ?: return@BannersScene
+                    onConfirm(
+                        GemTransferData(
+                            inputType = GemTransactionInputType.account(assetInfo.asset, AccountDataType.Activate),
+                            recipient = GemRecipient(owner.address),
+                            value = BigInteger.ZERO.toString(),
+                        ).confirmInput(owner)
+                    )
                 }
 
                 BannerEvent.AccountActivation -> assetInfo.asset.chain

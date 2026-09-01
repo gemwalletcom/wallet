@@ -31,7 +31,7 @@ import androidx.savedstate.savedState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.confirm.presents.ConfirmScreen
 import com.gemwallet.android.features.perpetual.viewmodels.AutocloseViewModel
-import com.gemwallet.android.model.ConfirmParams
+import uniffi.gemstone.GemConfirmInput
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.viewmodel.NavEntryViewModelStoreOwner
@@ -62,11 +62,11 @@ private fun AutocloseNavGraphContent(
     val stopLossText by viewModel.stopLossText.collectAsStateWithLifecycle()
 
     val backStack = remember { mutableStateListOf<NavKey>(AutocloseRoute) }
-    var confirmParams by remember { mutableStateOf<ConfirmParams.PerpetualParams?>(null) }
+    var confirmInput by remember { mutableStateOf<GemConfirmInput?>(null) }
 
     LaunchedEffect(Unit) {
-        viewModel.confirmRequests.collect { params ->
-            confirmParams = params
+        viewModel.confirmRequests.collect { input ->
+            confirmInput = input
             if (backStack.lastOrNull() != AutocloseConfirmRoute) {
                 backStack.add(AutocloseConfirmRoute)
             }
@@ -96,9 +96,9 @@ private fun AutocloseNavGraphContent(
             )
         }
         entry<AutocloseConfirmRoute> {
-            confirmParams?.let { params ->
+            confirmInput?.let { input ->
                 ConfirmScreen(
-                    params = params,
+                    input = input,
                     cancelAction = popInternal,
                     finishAction = { hash ->
                         finishAction(hash)

@@ -12,7 +12,7 @@ import com.gemwallet.android.features.transfer_amount.viewmodels.providers.Amoun
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountProviderFactory
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.model.ConfirmParams
+import uniffi.gemstone.GemConfirmInput
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.ValueFormatter
@@ -138,7 +138,7 @@ class AmountViewModel @Inject constructor(
         amount = ""
     }
 
-    fun onNext(onConfirm: (ConfirmParams) -> Unit) {
+    fun onNext(onConfirm: (GemConfirmInput) -> Unit) {
         viewModelScope.launch {
             try {
                 val current = provider.assetInfo.value ?: return@launch
@@ -149,7 +149,7 @@ class AmountViewModel @Inject constructor(
                 AmountValidation.validate(amountService, asset, crypto, provider.availableBalance.value, provider.minimumValue.value)
                 amountError.value = AmountError.None
                 val isMax = crypto.atomicValue == provider.maxValue()
-                onConfirm(provider.buildConfirmParams(crypto, isMax))
+                onConfirm(provider.buildConfirmInput(crypto, isMax))
             } catch (err: AmountError) {
                 amountError.value = err
             } catch (err: Throwable) {

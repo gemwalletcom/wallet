@@ -4,9 +4,11 @@ import com.gemwallet.android.application.confirm.cases.ConfirmTransaction
 import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.domains.confirm.ConfirmError
-import com.gemwallet.android.domains.confirm.toTransferData
+import com.gemwallet.android.domains.confirm.asset
+import com.gemwallet.android.domains.confirm.toAsset
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.ConfirmParams
+import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransactionInputType
 import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.model.SignerParams
@@ -45,7 +47,7 @@ class ConfirmTransactionImpl(
             createTransactionsCase.trackPendingTransactions()
             throw error
         } catch (error: GemConfirmException.Sign) {
-            throw error.error.toConfirmError(signerParams.input.assetId.chain)
+            throw error.error.toConfirmError(signerParams.input.transfer.inputType.asset.id.chain)
         }
         return when (result) {
             is GemExecuteResult.Signed -> result.data.first()
@@ -65,18 +67,18 @@ class ConfirmTransactionImpl(
         simulation = simulation?.toJson(),
     )
 
-    private suspend fun addRecent(assetInfo: AssetInfo, request: ConfirmParams) {
+    private suspend fun addRecent(assetInfo: AssetInfo, input: GemConfirmInput) {
         val walletId = assetInfo.walletId?.id ?: return
-        val type = when (request) {
-            is ConfirmParams.SwapParams -> RecentType.Swap
-            is ConfirmParams.TransferParams -> RecentType.Send
+        val inputType = input.transfer.inputType
+        val type = when (inputType) {
+            is GemTransactionInputType.Swap -> RecentType.Swap
+            is GemTransactionInputType.Transfer,
+            is GemTransactionInputType.Deposit,
+            is GemTransactionInputType.Withdrawal,
+            is GemTransactionInputType.Generic -> RecentType.Send
             else -> return
         }
-        val toAssetId = if (request is ConfirmParams.SwapParams) {
-            request.toAsset.id
-        } else {
-            null
-        }
+        val toAssetId = inputType.toAsset?.id
         try {
             recentAssetsService.addRecentActivity(assetInfo.id(), walletId, type, toAssetId)
         } catch (_: Throwable) {}

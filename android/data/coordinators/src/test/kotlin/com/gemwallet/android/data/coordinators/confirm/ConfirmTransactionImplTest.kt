@@ -2,11 +2,14 @@ package com.gemwallet.android.data.coordinators.confirm
 
 import com.gemwallet.android.ext.toGem
 import uniffi.gemstone.GemRecipient
-import com.gemwallet.android.domains.confirm.toConfirmInput
+import com.gemwallet.android.domains.confirm.confirmInput
+import com.gemwallet.android.domains.confirm.transfer
 import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.domains.confirm.ConfirmError
-import com.gemwallet.android.model.ConfirmParams
+import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.Fee
 import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.serializer.toJson
@@ -146,14 +149,18 @@ class ConfirmTransactionImplTest {
     }
 
     private fun signerParams(asset: com.wallet.core.primitives.Asset, account: com.wallet.core.primitives.Account) = signerParams(
-        ConfirmParams.Builder(asset, account, BigInteger.TEN).transfer(GemRecipient("0x0000000000000000000000000000000000000001")),
+        GemTransferData(
+            inputType = GemTransactionInputType.transfer(asset),
+            recipient = GemRecipient("0x0000000000000000000000000000000000000001"),
+            value = BigInteger.TEN.toString(),
+        ).confirmInput(account),
         asset,
     )
 
-    private fun signerParams(params: ConfirmParams, asset: com.wallet.core.primitives.Asset) = SignerParams(
-        input = params,
+    private fun signerParams(input: GemConfirmInput, asset: com.wallet.core.primitives.Asset) = SignerParams(
+        input = input,
         confirmData = GemConfirmData(
-            input = params.toConfirmInput(),
+            input = input,
             fee = GemTransactionLoadFee(
                 fee = "0",
                 gasPriceType = GemGasPriceType.Regular("0"),

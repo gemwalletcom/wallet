@@ -2,7 +2,10 @@ package com.gemwallet.android.blockchain.services
 
 import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.domains.confirm.confirmInput
+import com.gemwallet.android.domains.confirm.transfer
+import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.FeeAssetSelection
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.testkit.mockAccount
@@ -59,11 +62,11 @@ class SignerPreloaderProxyTest {
     @Test
     fun preload_mapsSelectionAndAssemblesSignerParams() = runBlocking {
         val asset = mockAssetEthereum()
-        val params = ConfirmParams.Builder(
-            asset = asset,
-            from = mockAccount(chain = Chain.Ethereum),
-            amount = BigInteger("1000000000000000"),
-        ).transfer(destination = GemRecipient("0xrecipient"))
+        val input = GemTransferData(
+            inputType = GemTransactionInputType.transfer(asset),
+            recipient = GemRecipient("0xrecipient"),
+            value = "1000000000000000",
+        ).confirmInput(mockAccount(chain = Chain.Ethereum))
         val options = slot<GemConfirmLoadOptions>()
         val confirmInput = slot<GemConfirmInput>()
         val feeRates = listOf(
@@ -99,7 +102,7 @@ class SignerPreloaderProxyTest {
 
         val result = subject.preload(
             walletId = "wallet",
-            params = params,
+            input = input,
             selection = FeeSelection.Custom(BigInteger("42")),
             feeAssetSelection = FeeAssetSelection.Selected(mockAssetTempoUSDCe().id),
         )

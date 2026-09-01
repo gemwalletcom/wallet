@@ -22,7 +22,10 @@ import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.domains.confirm.confirmInput
+import com.gemwallet.android.domains.confirm.stake
+import com.wallet.core.primitives.StakeType
+import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.getFrozenResourceAmount
@@ -191,9 +194,7 @@ class StakeViewModel @Inject constructor(
         val assetInfo = assetInfo.value ?: return
         val from = assetInfo.owner ?: return
         val balance = Crypto(delegation.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO)
-        val params = ConfirmParams.Builder(assetInfo.asset, from, balance.atomicValue, false)
-            .withdraw(delegation)
-        onConfirm(params)
+        onConfirm(GemTransferData.stake(assetInfo.asset, StakeType.Withdraw(delegation), balance.atomicValue).confirmInput(from))
     }
 
     fun onRewards(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
@@ -203,12 +204,11 @@ class StakeViewModel @Inject constructor(
         val canClaimAllRewards = assetInfo.chain.claimAllAvailable || withRewards.size == 1
         if (canClaimAllRewards) {
             onConfirm(
-                ConfirmParams.Stake.RewardsParams(
+                GemTransferData.stake(
                     asset = assetInfo.asset,
-                    from = account,
-                    validators = withRewards.map { it.validator },
-                    amount = withRewards.sumOf { it.rewardsBalance() },
-                )
+                    stakeType = StakeType.Rewards(withRewards.map { it.validator }),
+                    value = withRewards.sumOf { it.rewardsBalance() },
+                ).confirmInput(account)
             )
         } else {
             onAmount(

@@ -2,11 +2,9 @@ package com.gemwallet.android.blockchain.services
 
 import android.util.Log
 import com.gemwallet.android.blockchain.gemstone.toFee
-import com.gemwallet.android.domains.confirm.toConfirmInput
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.model.ConfirmParams
 import com.gemwallet.android.model.FeeAssetSelection
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.model.SignerParams
@@ -17,6 +15,7 @@ import com.wallet.core.primitives.SimulationResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemConfirmFeeSelection
+import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemConfirmLoadOptions
 import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemTransferAmountResult
@@ -39,13 +38,13 @@ class SignerPreloaderProxy(
 
     suspend fun preload(
         walletId: String,
-        params: ConfirmParams,
+        input: GemConfirmInput,
         selection: FeeSelection,
         feeAssetSelection: FeeAssetSelection,
     ): Preload = withContext(Dispatchers.IO) {
         val preload = confirmService.preload(
             walletId = walletId,
-            input = params.toConfirmInput(),
+            input = input,
             options = GemConfirmLoadOptions(
                 feeSelection = when (selection) {
                     is FeeSelection.Preset -> GemConfirmFeeSelection.Priority(selection.priority.toGem())
@@ -64,7 +63,7 @@ class SignerPreloaderProxy(
 
         Preload(
             signerParams = SignerParams(
-                input = params,
+                input = input,
                 confirmData = result,
                 fee = fee,
                 feeRates = rates,

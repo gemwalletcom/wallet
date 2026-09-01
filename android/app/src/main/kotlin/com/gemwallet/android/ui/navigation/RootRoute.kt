@@ -27,7 +27,8 @@ import com.gemwallet.android.features.wallet.presents.WalletImageSource
 import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.domains.confirm.pack
+import uniffi.gemstone.GemConfirmInput
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.toRoute
 import com.gemwallet.android.ui.navigation.routes.AboutusRoute
@@ -301,8 +302,8 @@ class WalletNavigator(
         }
     }
     fun openFiatTransactions() = push(FiatTransactionsRoute)
-    fun openConfirm(params: ConfirmParams) {
-        val pack = params.pack(transferService) ?: return
+    fun openConfirm(input: GemConfirmInput) {
+        val pack = transferService.pack(input) ?: return
         push(ConfirmRoute(pack))
     }
     fun openNftList() = push(NftListRoute)

@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
-import com.gemwallet.android.model.ConfirmParams
+import uniffi.gemstone.GemConfirmInput
 import com.gemwallet.android.model.FeeAssetSelection
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.model.SignerParams
@@ -15,13 +15,13 @@ class ConfirmLoader @Inject constructor(
 ) {
     internal suspend fun load(
         walletId: String,
-        params: ConfirmParams,
+        input: GemConfirmInput,
         feeSelection: FeeSelection,
         feeAssetSelection: FeeAssetSelection,
     ): ConfirmLoadResult {
         val preload = signerPreloader.preload(
             walletId = walletId,
-            params = params,
+            input = input,
             selection = feeSelection,
             feeAssetSelection = feeAssetSelection,
         )

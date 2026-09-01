@@ -5,7 +5,7 @@ import com.gemwallet.android.ext.decodePayment
 import uniffi.gemstone.GemPaymentService
 import com.gemwallet.android.ext.request
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.ConfirmParams
+import uniffi.gemstone.GemTransactionInputType
 import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.testkit.includeGemstoneLibs
 import com.gemwallet.android.testkit.mockAsset
@@ -55,10 +55,10 @@ class PaymentTransferTest {
         val confirm = destination(bitcoin, "bitcoin:$BITCOIN_ADDRESS?amount=0.0001")
 
         assertTrue("expected a confirmable transfer, got $confirm", confirm is PaymentDestination.Confirm)
-        val params = (confirm as PaymentDestination.Confirm).params
-        assertEquals(BigInteger("10000"), params.amount)
-        assertEquals(BITCOIN_ADDRESS, params.destination()?.address)
-        assertTrue(params is ConfirmParams.TransferParams.Transfer)
+        val transfer = (confirm as PaymentDestination.Confirm).input.transfer
+        assertEquals("10000", transfer.value)
+        assertEquals(BITCOIN_ADDRESS, transfer.recipient.address)
+        assertTrue(transfer.inputType is GemTransactionInputType.Transfer)
     }
 
     @Test
@@ -79,7 +79,7 @@ class PaymentTransferTest {
         val confirm = destination(usdc, url)
 
         assertTrue("expected USDC to confirm, got $confirm", confirm is PaymentDestination.Confirm)
-        assertEquals(BigInteger("1000000"), (confirm as PaymentDestination.Confirm).params.amount)
+        assertEquals("1000000", (confirm as PaymentDestination.Confirm).input.transfer.value)
     }
 
     @Test
@@ -87,10 +87,10 @@ class PaymentTransferTest {
         val confirm = destination(ripple, "ripple:$RIPPLE_ADDRESS?amount=10&dt=12345")
 
         assertTrue("an exact tagged payment must confirm, got $confirm", confirm is PaymentDestination.Confirm)
-        val params = (confirm as PaymentDestination.Confirm).params
-        assertEquals(BigInteger("10000000"), params.amount)
-        assertEquals(RIPPLE_ADDRESS, params.destination()?.address)
-        assertEquals("12345", params.memo())
+        val transfer = (confirm as PaymentDestination.Confirm).input.transfer
+        assertEquals("10000000", transfer.value)
+        assertEquals(RIPPLE_ADDRESS, transfer.recipient.address)
+        assertEquals("12345", transfer.recipient.memo)
     }
 
     @Test

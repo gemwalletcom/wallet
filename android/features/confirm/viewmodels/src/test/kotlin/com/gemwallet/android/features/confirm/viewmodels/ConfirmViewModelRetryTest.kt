@@ -7,7 +7,11 @@ import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.domains.confirm.ConfirmState
-import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.domains.confirm.confirmInput
+import com.gemwallet.android.domains.confirm.pack
+import com.gemwallet.android.domains.confirm.perpetual
+import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetHyperCoreUBTC
@@ -55,14 +59,12 @@ class ConfirmViewModelRetryTest {
 
     @Test
     fun retryAfterPreloadFailureRunsThePreloaderAgain() = runTest(testDispatcher) {
-        val params = ConfirmParams.PerpetualParams(
+        val input = GemTransferData.perpetual(
             asset = asset,
-            from = account,
-            amount = BigInteger.TEN,
-            useMaxAmount = false,
             perpetualType = PerpetualType.Open(mockPerpetualConfirmData(direction = PerpetualDirection.Long)),
-        )
-        val viewModel = viewModel(params)
+            value = BigInteger.TEN,
+        ).confirmInput(account)
+        val viewModel = viewModel(input)
         runCurrent()
         coVerify(timeout = 5_000, exactly = 1) { preloader.preload(any(), any(), any(), any()) }
 
@@ -74,7 +76,7 @@ class ConfirmViewModelRetryTest {
         coVerify(timeout = 5_000, exactly = 2) { preloader.preload(any(), any(), any(), any()) }
     }
 
-    private fun viewModel(params: ConfirmParams): ConfirmViewModel {
+    private fun viewModel(input: GemConfirmInput): ConfirmViewModel {
         var calls = 0
         coEvery { preloader.preload(any(), any(), any(), any()) } answers {
             calls += 1
@@ -99,14 +101,13 @@ class ConfirmViewModelRetryTest {
             getAssetInfo = mockk(relaxed = true),
             syncMissingAssets = mockk(relaxed = true),
             confirmLoader = ConfirmLoader(preloader),
-            transactionBalanceService = mockk(relaxed = true),
             getFeeAssets = mockk(relaxed = true),
             confirmTransaction = mockk(relaxed = true),
             buildConfirmProperties = mockk(relaxed = true),
             explorerService = mockk(relaxed = true),
             getAddressName = mockk(relaxed = true),
             getAddressNames = mockk(relaxed = true),
-            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(params.pack(transferService)))),
+            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transferService.pack(input)))),
             feeService = uniffi.gemstone.GemFeeService(),
             transferService = uniffi.gemstone.GemTransferService(),
             simulationFormatter = mockk(relaxed = true),

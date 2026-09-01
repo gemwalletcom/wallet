@@ -73,7 +73,7 @@ fun RequestScene(
                     onReject = viewModel::onReject,
                 )
                 is WCRequest.Transaction -> ConfirmScreen(
-                    params = request.confirmParams,
+                    input = request.confirmInput,
                     simulationResult = request.simulation,
                     finishAction = { hash -> viewModel.onTransactionResult(hash) },
                     onAcquireAsset = onAcquireAsset,

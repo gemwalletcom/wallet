@@ -28,8 +28,10 @@ pub struct GemTransferData {
     pub recipient: GemRecipient,
     #[serde(with = "crate::models::custom_types::decimal_string")]
     pub value: GemBigInt,
+    #[uniffi(default = false)]
     pub use_max_amount: bool,
     #[serde(with = "crate::models::custom_types::decimal_string::optional")]
+    #[uniffi(default = None)]
     pub minimum_value: Option<GemBigInt>,
 }
 

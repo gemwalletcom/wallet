@@ -1,13 +1,17 @@
 package com.gemwallet.android.domains.confirm
 
-import com.gemwallet.android.model.ConfirmParams
+import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.DelegationValidator
+import com.wallet.core.primitives.StakeType
 import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.GemTransferData
 
 sealed interface ConfirmProperty {
     class Source(val data: String, val walletType: WalletType, val walletChain: Chain?, val walletImageUrl: String?) : ConfirmProperty
@@ -32,36 +36,37 @@ sealed interface ConfirmProperty {
 
         companion object {
             fun map(
-                params: ConfirmParams,
+                transfer: GemTransferData,
                 validator: DelegationValidator?,
                 addressName: AddressName? = null,
-            ): Destination? = when (params) {
-                is ConfirmParams.Activate,
-                is ConfirmParams.Stake.Freeze,
-                is ConfirmParams.Stake.Unfreeze,
-                is ConfirmParams.PerpetualParams,
-                is ConfirmParams.SwapParams -> null
-                is ConfirmParams.Stake.RewardsParams -> validator
-                    ?.takeIf { params.validators.size == 1 }
-                    ?.let { Stake(data = it.name, address = it.id) }
-                is ConfirmParams.Stake.DelegateParams,
-                is ConfirmParams.Stake.RedelegateParams,
-                is ConfirmParams.Stake.UndelegateParams,
-                is ConfirmParams.Stake.WithdrawParams -> Stake(data = validator?.name ?: "", address = validator?.id)
-                is ConfirmParams.NftParams,
-                is ConfirmParams.TransferParams.Deposit,
-                is ConfirmParams.TransferParams.Withdrawal,
-                is ConfirmParams.TransferParams.Transfer -> {
-                    val destination = params.destination() ?: throw ConfirmError.RecipientEmpty
-                    Transfer(
-                        domain = destination.name ?: addressName?.name,
-                        address = destination.address,
-                        chain = params.assetId.chain,
-                        addressType = addressName?.type,
-                        imageUrl = addressName?.imageUrl,
-                    )
+            ): Destination? = when (val inputType = transfer.inputType) {
+                is GemTransactionInputType.Account,
+                is GemTransactionInputType.Perpetual,
+                is GemTransactionInputType.TokenApprove,
+                is GemTransactionInputType.Earn,
+                is GemTransactionInputType.Swap -> null
+                is GemTransactionInputType.Stake -> when (val stakeType = inputType.stakeType.decodeJson<StakeType>()) {
+                    is StakeType.Freeze,
+                    is StakeType.Unfreeze -> null
+                    is StakeType.Rewards -> validator
+                        ?.takeIf { stakeType.content.size == 1 }
+                        ?.let { Stake(data = it.name, address = it.id) }
+                    is StakeType.Stake,
+                    is StakeType.Redelegate,
+                    is StakeType.Unstake,
+                    is StakeType.Withdraw -> Stake(data = validator?.name ?: "", address = validator?.id)
                 }
-                is ConfirmParams.TransferParams.Generic -> Generic(params.metadata.name)
+                is GemTransactionInputType.TransferNft,
+                is GemTransactionInputType.Deposit,
+                is GemTransactionInputType.Withdrawal,
+                is GemTransactionInputType.Transfer -> Transfer(
+                    domain = transfer.recipient.name ?: addressName?.name,
+                    address = transfer.recipient.address,
+                    chain = inputType.chain,
+                    addressType = addressName?.type,
+                    imageUrl = addressName?.imageUrl,
+                )
+                is GemTransactionInputType.Generic -> Generic(inputType.metadata.decodeJson<ApplicationMetadata>().name)
             }
         }
     }

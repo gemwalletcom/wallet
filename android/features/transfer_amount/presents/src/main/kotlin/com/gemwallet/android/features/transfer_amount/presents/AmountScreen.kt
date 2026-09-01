@@ -12,14 +12,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountViewModel
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountStakeProvider
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountTransferProvider
-import com.gemwallet.android.model.ConfirmParams
+import uniffi.gemstone.GemConfirmInput
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.screen.LoadingScene
 
 @Composable
 fun AmountScreen(
     onCancel: () -> Unit,
-    onConfirm: (ConfirmParams) -> Unit,
+    onConfirm: (GemConfirmInput) -> Unit,
     viewModel: AmountViewModel = hiltViewModel(),
 ) {
     val provider = viewModel.provider
