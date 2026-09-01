@@ -95,7 +95,7 @@ mod tests {
             assert_eq!(staking_transaction.from, from);
             assert_eq!(staking_transaction.to, to);
             assert_eq!(staking_transaction.contract.as_deref(), Some(contract));
-            assert_eq!(staking_transaction.value, value);
+            assert_eq!(staking_transaction.value.to_string(), value);
         }
     }
 }

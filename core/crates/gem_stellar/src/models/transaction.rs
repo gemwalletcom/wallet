@@ -101,11 +101,11 @@ impl Payment {
         }
     }
 
-    pub fn get_value(&self) -> Option<String> {
+    pub fn get_value(&self) -> Option<BigUint> {
         use crate::constants::{TRANSACTION_TYPE_CREATE_ACCOUNT, TRANSACTION_TYPE_PAYMENT};
         match self.payment_type.as_str() {
-            TRANSACTION_TYPE_PAYMENT => Some(self.amount.as_ref()?.to_string()),
-            TRANSACTION_TYPE_CREATE_ACCOUNT => Some(self.starting_balance.as_ref()?.to_string()),
+            TRANSACTION_TYPE_PAYMENT => self.amount.clone(),
+            TRANSACTION_TYPE_CREATE_ACCOUNT => self.starting_balance.clone(),
             _ => None,
         }
     }

@@ -1,7 +1,10 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use num_bigint::BigUint;
 use primitives::{Chain, Transaction, TransactionDirection, TransactionId, TransactionUtxoInput};
+use serde::de::Error as _;
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 use crate::sql_types::{AssetId, ChainRow, TransactionState, TransactionType};
 
@@ -74,6 +77,8 @@ impl TransactionRow {
             TransactionDirection::SelfTransfer
         };
         let transaction_type = self.kind.0.clone();
+        let fee = BigUint::from_str(self.fee.as_deref().unwrap_or("0")).map_err(serde_json::Error::custom)?;
+        let value = BigUint::from_str(self.value.as_deref().unwrap_or("0")).map_err(serde_json::Error::custom)?;
 
         Ok(Transaction {
             id: transaction_id.clone(),
@@ -85,9 +90,9 @@ impl TransactionRow {
             state: self.state.0,
             block_number: None,
             sequence: None,
-            fee: self.fee.clone().unwrap_or("0".to_string()),
+            fee,
             fee_asset_id: self.fee_asset_id.0.clone(),
-            value: self.value.clone().unwrap_or("0".to_string()),
+            value,
             memo: self.memo.clone(),
             direction,
             utxo_inputs: inputs.unwrap_or_default().into(),
@@ -120,10 +125,10 @@ impl NewTransactionRow {
         let from_address = if transaction.from.is_empty() { None } else { Some(transaction.from) };
         let to_address = if transaction.to.is_empty() { None } else { Some(transaction.to) };
         let memo = transaction.memo.map(|memo| memo.replace('\0', "")).filter(|memo| !memo.is_empty());
-        let value = if transaction.value.is_empty() || transaction.value == "0" {
+        let value = if transaction.value == BigUint::ZERO {
             None
         } else {
-            Some(transaction.value)
+            Some(transaction.value.to_string())
         };
 
         Self {
@@ -132,7 +137,7 @@ impl NewTransactionRow {
             memo,
             asset_id: transaction.asset_id.into(),
             value,
-            fee: transaction.fee.into(),
+            fee: Some(transaction.fee.to_string()),
             fee_asset_id: transaction.fee_asset_id.into(),
             from_address,
             to_address,

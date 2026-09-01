@@ -141,11 +141,11 @@ pub enum Amount {
 }
 
 impl Amount {
-    pub fn as_value_string(&self) -> Option<String> {
+    pub fn value(&self) -> Option<BigUint> {
         match self {
             Amount::Null => None,
-            Amount::Str(amount) => Some(amount.to_string()),
-            Amount::Amount(amount) => Some(amount.value.to_string()),
+            Amount::Str(amount) => Some(amount.clone()),
+            Amount::Amount(amount) => Some(amount.value.clone()),
         }
     }
 

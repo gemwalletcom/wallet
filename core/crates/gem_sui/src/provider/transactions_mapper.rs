@@ -4,6 +4,7 @@ use chain_primitives::{BalanceDiff, SwapMapper};
 use chrono::{TimeZone, Utc};
 use num_bigint::{BigUint, Sign};
 use primitives::{AssetId, SwapProvider, Transaction, TransactionSmartContractMetadata, TransactionState, TransactionSwapMetadata, TransactionType, chain::Chain};
+use std::str::FromStr;
 
 const CHAIN: Chain = Chain::Sui;
 
@@ -43,7 +44,7 @@ pub fn map_transaction(transaction: Digest) -> Option<Transaction> {
         None,
         transaction_type,
         state,
-        fee.to_string(),
+        fee.clone(),
         chain.as_asset_id(),
         value,
         None,
@@ -58,7 +59,7 @@ fn map_transaction_type(
     balance_changes: &[BalanceChange],
     owner: &Option<String>,
     fee: &BigUint,
-) -> Option<(AssetId, String, String, TransactionType, String, Option<serde_json::Value>)> {
+) -> Option<(AssetId, String, String, TransactionType, BigUint, Option<serde_json::Value>)> {
     let chain = CHAIN;
 
     // system & token transfer
@@ -75,7 +76,7 @@ fn map_transaction_type(
             from_change.owner.get_address_owner()?,
             to_change.owner.get_address_owner()?,
             TransactionType::Transfer,
-            to_change.amount.magnitude().to_string(),
+            to_change.amount.magnitude().clone(),
             None,
         ));
     }
@@ -89,7 +90,7 @@ fn map_transaction_type(
             stake.staker_address,
             stake.validator_address,
             TransactionType::StakeDelegate,
-            stake.amount.to_string(),
+            stake.amount,
             None,
         ));
     }
@@ -112,7 +113,7 @@ fn map_transaction_type(
             owner.clone(),
             owner,
             TransactionType::Swap,
-            swap.from_value.clone(),
+            BigUint::from_str(&swap.from_value).ok()?,
             serde_json::to_value(&swap).ok(),
         ));
     }
@@ -126,7 +127,7 @@ fn map_transaction_type(
             stake.staker_address,
             stake.validator_address,
             TransactionType::StakeUndelegate,
-            stake.principal_amount.to_string(),
+            stake.principal_amount,
             None,
         ));
     }
@@ -142,7 +143,7 @@ fn map_transaction_type(
             owner.clone(),
             contract.unwrap_or(owner),
             TransactionType::SmartContractCall,
-            "0".to_string(),
+            BigUint::from(0u32),
             serde_json::to_value(metadata).ok(),
         ));
     }
@@ -315,7 +316,7 @@ mod tests {
         let transaction = map_transaction(digest).unwrap();
 
         assert_eq!(transaction.transaction_type, TransactionType::SmartContractCall);
-        assert_eq!(transaction.value, "0");
+        assert_eq!(transaction.value, BigUint::from(0u64));
 
         let metadata: TransactionSmartContractMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
         assert_eq!(metadata.method_name, "timevy_tipping");
@@ -349,10 +350,10 @@ mod tests {
 
         assert_eq!(transaction.hash(), "DXKezMGJZaxJRC6a6zCr3JdfquYGxgU1zjV4xrNAaCFB");
         assert_eq!(transaction.transaction_type, TransactionType::StakeDelegate);
-        assert_eq!(transaction.value, "2000000000");
+        assert_eq!(transaction.value, BigUint::from(2000000000u64));
         assert_eq!(transaction.from, OWNER_ADDRESS);
         assert_eq!(transaction.to, VALIDATOR_ADDRESS);
-        assert_eq!(transaction.fee, "10610996");
+        assert_eq!(transaction.fee, BigUint::from(10610996u64));
         assert_eq!(map_asset_id(SUI_COIN_TYPE_FULL), Chain::Sui.as_asset_id());
 
         let native_transfer = map_transaction(make_digest(
@@ -366,7 +367,7 @@ mod tests {
 
         assert_eq!(native_transfer.transaction_type, TransactionType::Transfer);
         assert_eq!(native_transfer.asset_id, Chain::Sui.as_asset_id());
-        assert_eq!(native_transfer.value, "100000000");
+        assert_eq!(native_transfer.value, BigUint::from(100000000u64));
 
         let digest: Digest = serde_json::from_str(include_str!("../../testdata/sponsored_transfer_sui.json")).unwrap();
         let sponsored_transfer = map_transaction(digest).unwrap();
@@ -375,7 +376,7 @@ mod tests {
         assert_eq!(sponsored_transfer.asset_id, Chain::Sui.as_asset_id());
         assert_eq!(sponsored_transfer.from, SPONSORED_TRANSFER_SENDER_ADDRESS);
         assert_eq!(sponsored_transfer.to, OWNER_ADDRESS);
-        assert_eq!(sponsored_transfer.value, "5996594751");
+        assert_eq!(sponsored_transfer.value, BigUint::from(5996594751u64));
 
         let token_transfer = map_transaction(make_digest(
             vec![],
@@ -389,7 +390,7 @@ mod tests {
 
         assert_eq!(token_transfer.transaction_type, TransactionType::Transfer);
         assert_eq!(token_transfer.asset_id, AssetId::from_token(Chain::Sui, TOKEN_A));
-        assert_eq!(token_transfer.value, "100");
+        assert_eq!(token_transfer.value, BigUint::from(100u64));
 
         let swap = map_transaction(make_digest(
             vec![event("0x00000000000000000000000000000000000000000000000000000000000000cc::pool::SwapEvent", json!({}))],
@@ -403,7 +404,7 @@ mod tests {
 
         assert_eq!(swap.transaction_type, TransactionType::Swap);
         assert_eq!(swap.asset_id, AssetId::from_token(Chain::Sui, TOKEN_A));
-        assert_eq!(swap.value, "200");
+        assert_eq!(swap.value, BigUint::from(200u64));
         let metadata: TransactionSwapMetadata = serde_json::from_value(swap.metadata.unwrap()).unwrap();
         assert_eq!(metadata.from_asset, AssetId::from_token(Chain::Sui, TOKEN_A));
         assert_eq!(metadata.from_value, "200");
@@ -425,7 +426,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(unstake.transaction_type, TransactionType::StakeUndelegate);
-        assert_eq!(unstake.value, "3000000000");
+        assert_eq!(unstake.value, BigUint::from(3000000000u64));
         assert_eq!(unstake.from, OWNER_ADDRESS);
         assert_eq!(unstake.to, VALIDATOR_ADDRESS);
     }

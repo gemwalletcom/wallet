@@ -8,6 +8,7 @@ use primitives::{
 use serde_json::Value;
 use std::collections::HashMap;
 use std::error::Error;
+use std::str::FromStr;
 
 use crate::address::TronAddress;
 use crate::models::{
@@ -113,7 +114,7 @@ struct TransactionContext {
     hash: String,
     from: String,
     state: TransactionState,
-    fee: String,
+    fee: BigUint,
     fee_asset_id: AssetId,
     memo: Option<String>,
     created_at: DateTime<Utc>,
@@ -126,7 +127,7 @@ impl TransactionContext {
             hash,
             from: owner_address.unwrap_or_default(),
             state: map_transaction_state(contract_ret),
-            fee: fee.unwrap_or_default().to_string(),
+            fee: BigUint::from(fee.unwrap_or_default()),
             fee_asset_id: chain.as_asset_id(),
             memo: data.map(decode_hex_message),
             created_at: DateTime::from_timestamp_millis(block_time_stamp)?,
@@ -134,23 +135,23 @@ impl TransactionContext {
     }
 
     fn map_native_contract(&self, contract_type: Option<TronContractType>, contract_value: &ContractParameterValue) -> Option<Transaction> {
-        let (transaction_type, to, value, metadata) = match contract_type? {
+        let (transaction_type, to, value, metadata): (TransactionType, String, BigUint, Option<Value>) = match contract_type? {
             TronContractType::Transfer => (
                 TransactionType::Transfer,
                 contract_value.to_address.clone().unwrap_or_default(),
-                contract_value.amount.unwrap_or_default().to_string(),
+                BigUint::from(contract_value.amount.unwrap_or_default()),
                 None,
             ),
             TronContractType::FreezeBalanceV2 => (
                 TransactionType::StakeFreeze,
                 self.from.clone(),
-                contract_value.frozen_balance.unwrap_or_default().to_string(),
+                BigUint::from(contract_value.frozen_balance.unwrap_or_default()),
                 resource_type_metadata(contract_value.resource.as_deref()),
             ),
             TronContractType::UnfreezeBalanceV2 => (
                 TransactionType::StakeUnfreeze,
                 self.from.clone(),
-                contract_value.unfreeze_balance.unwrap_or_default().to_string(),
+                BigUint::from(contract_value.unfreeze_balance.unwrap_or_default()),
                 resource_type_metadata(contract_value.resource.as_deref()),
             ),
             TronContractType::VoteWitness => self.vote_witness_transaction_data(contract_value)?,
@@ -160,10 +161,10 @@ impl TransactionContext {
         Some(self.build_transaction(self.fee_asset_id.clone(), self.from.clone(), to, transaction_type, value, metadata))
     }
 
-    fn vote_witness_transaction_data(&self, contract_value: &ContractParameterValue) -> Option<(TransactionType, String, String, Option<Value>)> {
+    fn vote_witness_transaction_data(&self, contract_value: &ContractParameterValue) -> Option<(TransactionType, String, BigUint, Option<Value>)> {
         let vote = contract_value.votes.as_ref()?.first()?;
         let to = TronAddress::from_hex(vote.vote_address.as_str())?.encode();
-        let value = vote.vote_count.checked_mul(1_000_000)?.to_string();
+        let value = BigUint::from(vote.vote_count.checked_mul(1_000_000)?);
         Some((TransactionType::StakeDelegate, to, value, None))
     }
 
@@ -183,7 +184,7 @@ impl TransactionContext {
             self.from.clone(),
             approval.spender.encode(),
             TransactionType::TokenApproval,
-            approval.value.to_string(),
+            approval.value.clone(),
             None,
         ))
     }
@@ -197,7 +198,7 @@ impl TransactionContext {
             self.from.clone(),
             self.from.clone(),
             TransactionType::Swap,
-            swap.from_value.clone(),
+            BigUint::from_str(&swap.from_value).ok()?,
             serde_json::to_value(&swap).ok(),
         ))
     }
@@ -210,7 +211,7 @@ impl TransactionContext {
         let (_, from, to, value) = decode_token_transfer(logs.first()?)?;
         let asset_id = AssetId::from_token(self.chain, contract_value.contract_address.as_ref()?);
 
-        Some(self.build_transaction(asset_id, from.encode(), to.encode(), TransactionType::Transfer, value.to_string(), None))
+        Some(self.build_transaction(asset_id, from.encode(), to.encode(), TransactionType::Transfer, value.clone(), None))
     }
 
     fn map_gasfree_transfer(&self, contract_value: &ContractParameterValue, logs: &[TronLog]) -> Option<Transaction> {
@@ -230,13 +231,13 @@ impl TransactionContext {
         let asset_id = AssetId::from_token(self.chain, &token.encode());
 
         Some(Transaction {
-            fee: fee.to_string(),
+            fee,
             fee_asset_id: asset_id.clone(),
-            ..self.build_transaction(asset_id, from.encode(), receiver.encode(), TransactionType::Transfer, value.to_string(), None)
+            ..self.build_transaction(asset_id, from.encode(), receiver.encode(), TransactionType::Transfer, value.clone(), None)
         })
     }
 
-    fn build_transaction(&self, asset_id: AssetId, from: String, to: String, transaction_type: TransactionType, value: String, metadata: Option<Value>) -> Transaction {
+    fn build_transaction(&self, asset_id: AssetId, from: String, to: String, transaction_type: TransactionType, value: BigUint, metadata: Option<Value>) -> Transaction {
         Transaction::new(
             self.hash.clone(),
             asset_id,
@@ -321,7 +322,7 @@ mod tests {
         assert!(result.is_some());
         let transaction = result.unwrap();
         assert_eq!(transaction.transaction_type, TransactionType::StakeFreeze);
-        assert_eq!(transaction.value, "100000000");
+        assert_eq!(transaction.value, BigUint::from(100000000u64));
         assert_eq!(transaction.from, transaction.to);
         assert_eq!(transaction.metadata, serde_json::to_value(TransactionResourceTypeMetadata::new(Resource::Bandwidth)).ok());
     }
@@ -346,7 +347,7 @@ mod tests {
         assert!(result.is_some());
         let transaction = result.unwrap();
         assert_eq!(transaction.transaction_type, TransactionType::StakeFreeze);
-        assert_eq!(transaction.value, "10000000");
+        assert_eq!(transaction.value, BigUint::from(10000000u64));
         assert_eq!(transaction.from, transaction.to);
         assert_eq!(transaction.metadata, serde_json::to_value(TransactionResourceTypeMetadata::new(Resource::Energy)).ok());
     }
@@ -371,7 +372,7 @@ mod tests {
         assert!(result.is_some());
         let transaction = result.unwrap();
         assert_eq!(transaction.transaction_type, TransactionType::StakeDelegate);
-        assert_eq!(transaction.value, "2125000000");
+        assert_eq!(transaction.value, BigUint::from(2125000000u64));
         assert_eq!(transaction.from, "TEB39Rt69QkgD1BKhqaRNqGxfQzCarkRCb");
         assert_eq!(transaction.to, "TJvaAeFb8Lykt9RQcVyyTFN2iDvGMuyD4M");
     }
@@ -396,7 +397,7 @@ mod tests {
         assert!(result.is_some());
         let transaction = result.unwrap();
         assert_eq!(transaction.transaction_type, TransactionType::StakeUnfreeze);
-        assert_eq!(transaction.value, "100000000");
+        assert_eq!(transaction.value, BigUint::from(100000000u64));
         assert_eq!(transaction.from, transaction.to);
         assert_eq!(transaction.metadata, serde_json::to_value(TransactionResourceTypeMetadata::new(Resource::Bandwidth)).ok());
     }
@@ -411,7 +412,7 @@ mod tests {
         let transaction = result.unwrap();
         assert_eq!(transaction.hash(), TEST_TRANSACTION_ID);
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
-        assert_eq!(transaction.value, "25000000");
+        assert_eq!(transaction.value, BigUint::from(25000000u64));
         assert_ne!(transaction.from, transaction.to);
     }
 
@@ -443,8 +444,8 @@ mod tests {
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
         assert_eq!(transaction.from, "TEB39Rt69QkgD1BKhqaRNqGxfQzCarkRCb");
         assert_eq!(transaction.to, "TL1mBABLk68nZwt92dgGc43p5uk1j3YtY9");
-        assert_eq!(transaction.value, "25000000");
-        assert_eq!(transaction.fee, "1000");
+        assert_eq!(transaction.value, BigUint::from(25000000u64));
+        assert_eq!(transaction.fee, BigUint::from(1000u64));
         assert_eq!(transaction.fee_asset_id, Chain::Tron.as_asset_id());
     }
 
@@ -459,8 +460,8 @@ mod tests {
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
         assert_eq!(transaction.from, "TELzUTyXVWaEpnfmaMm6gUghqmL5EyY2kY");
         assert_eq!(transaction.to, "TL6NY1hGXH2v6pF9fxtj1Fg6Ax5MzBMw5M");
-        assert_eq!(transaction.value, "4653000000");
-        assert_eq!(transaction.fee, "1500000");
+        assert_eq!(transaction.value, BigUint::from(4653000000u64));
+        assert_eq!(transaction.fee, BigUint::from(1500000u64));
         assert_eq!(transaction.fee_asset_id, AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
 
         let activation: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_gasfree_activation.json")).unwrap();
@@ -472,8 +473,8 @@ mod tests {
         assert_eq!(activation.transaction_type, TransactionType::Transfer);
         assert_eq!(activation.from, "TG54m1MyZ4iNXf4scDSc5Wg6uEJC2VMUNo");
         assert_eq!(activation.to, "TQD9VCkck55CrsH26dz9QHMp2exDiA4ua7");
-        assert_eq!(activation.value, "5680000000");
-        assert_eq!(activation.fee, "3000000");
+        assert_eq!(activation.value, BigUint::from(5680000000u64));
+        assert_eq!(activation.fee, BigUint::from(3000000u64));
         assert_eq!(activation.fee_asset_id, AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
     }
 
@@ -490,7 +491,7 @@ mod tests {
         assert_eq!(failed.asset_id, AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
         assert_eq!(failed.from, "TA7mCjHFfo68FG3wc6pDCeRGbJSPZkBfL7");
         assert_eq!(failed.to, "TA7mCjHFfo68FG3wc6pDCeRGbJSPZkBfL7");
-        assert_eq!(failed.value, "0");
+        assert_eq!(failed.value, BigUint::from(0u64));
         assert_eq!(failed.transaction_type, TransactionType::TokenApproval);
         assert_eq!(failed.state, TransactionState::Failed);
 
@@ -528,7 +529,7 @@ mod tests {
         assert_eq!(transaction.transaction_type, TransactionType::Swap);
         assert_eq!(transaction.from, transaction.to);
         assert_eq!(transaction.asset_id, Chain::Tron.as_asset_id());
-        assert_eq!(transaction.value, "1000000");
+        assert_eq!(transaction.value, BigUint::from(1000000u64));
         let output_token = TronAddress::from_hex("4e4bee11cea0070f957b98fd8cf4138ef3295e0e").unwrap().encode();
         let metadata: TransactionSwapMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
         assert_eq!(metadata.from_asset, Chain::Tron.as_asset_id());
@@ -597,7 +598,7 @@ mod tests {
         assert_eq!(transaction.asset_id, AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
         assert_eq!(transaction.from, "TWBPGLwQw2EbqYLLw1DJnTDt2ZQ9yJW1JJ");
         assert_eq!(transaction.to, "TViSMURdt2dda6Pf163UBZoSfbV9hECvvc");
-        assert_eq!(transaction.value, "249000000");
+        assert_eq!(transaction.value, BigUint::from(249000000u64));
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
         assert_eq!(transaction.state, TransactionState::Confirmed);
     }
@@ -620,7 +621,7 @@ mod tests {
 
         let transaction = map_transaction(Chain::Tron, transaction, receipt).unwrap();
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
-        assert_eq!(transaction.value, "200000000");
+        assert_eq!(transaction.value, BigUint::from(200000000u64));
         assert_eq!(transaction.memo.as_deref(), Some("=:TRON.USDT:TNAwd1WFe7GHTxovGU9MeT6mi3J4KAZMvP:0/1/0:g1:50"));
     }
 }

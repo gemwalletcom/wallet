@@ -65,9 +65,9 @@ pub fn map_transaction(chain: Chain, transaction: &Transaction) -> Option<primit
         chain.as_asset_id(),
         TransactionType::Transfer,
         state,
-        transaction.fees.to_string(),
+        transaction.fees.clone(),
         chain.as_asset_id(),
-        transaction.value.to_string(),
+        transaction.value.clone(),
         memo,
         inputs.into(),
         outputs.into(),
@@ -84,6 +84,7 @@ mod tests {
     use crate::models::Transaction as BitcoinTransaction;
     use crate::models::transaction::{Input, Output};
     use crate::provider::testkit::TEST_TRANSACTION_ID;
+    use num_bigint::BigUint;
 
     #[test]
     fn test_map_transaction() {
@@ -95,8 +96,8 @@ mod tests {
 
         let result = map_transaction(Chain::Bitcoin, &transaction).unwrap();
         assert_eq!(result.id.to_string(), "bitcoin_abc123");
-        assert_eq!(result.value, "100000");
-        assert_eq!(result.fee, "5000");
+        assert_eq!(result.value, BigUint::from(100000u64));
+        assert_eq!(result.fee, BigUint::from(5000u64));
         assert_eq!(result.transaction_type, TransactionType::Transfer);
         assert_eq!(result.state, TransactionState::Confirmed);
         assert!(result.memo.is_none());
@@ -183,8 +184,8 @@ mod tests {
         let mapped = map_transaction(Chain::Bitcoin, &transaction).unwrap();
 
         assert_eq!(mapped.hash(), TEST_TRANSACTION_ID);
-        assert_eq!(mapped.fee, "1694");
-        assert_eq!(mapped.value, "546");
+        assert_eq!(mapped.fee, BigUint::from(1694u64));
+        assert_eq!(mapped.value, BigUint::from(546u64));
     }
 
     #[test]

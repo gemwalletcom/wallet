@@ -7,6 +7,7 @@ use chrono::DateTime;
 use num_bigint::{BigInt, BigUint};
 use primitives::{AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionState, TransactionType};
 use std::error::Error;
+use std::str::FromStr;
 
 const PANORA_SWAP_EVENT: &str = "panora_swap";
 const PANORA_SWAP_EVENT_ADDRESS: &str = "0x1c3206329806286fd2223647c9f9b130e66baeb6d7224a18c1f642ffe48f3b4c";
@@ -50,7 +51,7 @@ struct TransactionMeta {
     hash: String,
     sender: String,
     state: TransactionState,
-    fee: String,
+    fee: BigUint,
     created_at: DateTime<chrono::Utc>,
 }
 
@@ -60,7 +61,7 @@ fn extract_meta(transaction: &Transaction) -> Option<TransactionMeta> {
     let state = if transaction.success { TransactionState::Confirmed } else { TransactionState::Failed };
     let gas_used = BigUint::from(transaction.gas_used.unwrap_or_default());
     let gas_unit_price = BigUint::from(transaction.gas_unit_price.unwrap_or_default());
-    let fee = (gas_used * gas_unit_price).to_string();
+    let fee = gas_used * gas_unit_price;
     let created_at = DateTime::from_timestamp_micros(transaction.timestamp as i64)?;
 
     Some(TransactionMeta {
@@ -100,7 +101,15 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
         let metadata = serde_json::to_value(&swap).ok();
         let to = meta.sender.clone();
 
-        return Some(build_transaction(meta, asset_id, chain.as_asset_id(), to, swap.from_value, TransactionType::Swap, metadata));
+        return Some(build_transaction(
+            meta,
+            asset_id,
+            chain.as_asset_id(),
+            to,
+            BigUint::from_str(&swap.from_value).ok()?,
+            TransactionType::Swap,
+            metadata,
+        ));
     }
 
     let withdraw_event = events.iter().find(|e| e.event_type == FUNGIBLE_ASSET_WITHDRAW_EVENT)?;
@@ -148,7 +157,15 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
     let metadata = serde_json::to_value(&swap).ok();
     let to = meta.sender.clone();
 
-    Some(build_transaction(meta, asset_id, chain.as_asset_id(), to, swap.from_value, TransactionType::Swap, metadata))
+    Some(build_transaction(
+        meta,
+        asset_id,
+        chain.as_asset_id(),
+        to,
+        BigUint::from_str(&swap.from_value).ok()?,
+        TransactionType::Swap,
+        metadata,
+    ))
 }
 
 fn build_transaction(
@@ -156,7 +173,7 @@ fn build_transaction(
     asset_id: AssetId,
     fee_asset_id: AssetId,
     to: String,
-    value: String,
+    value: BigUint,
     transaction_type: TransactionType,
     metadata: Option<serde_json::Value>,
 ) -> PrimitivesTransaction {
@@ -196,7 +213,7 @@ pub fn map_transaction(transaction: Transaction) -> Option<PrimitivesTransaction
                     asset_id.clone(),
                     asset_id,
                     data.pool_address,
-                    data.amount_added.to_string(),
+                    data.amount_added,
                     TransactionType::StakeDelegate,
                     None,
                 ));
@@ -208,7 +225,7 @@ pub fn map_transaction(transaction: Transaction) -> Option<PrimitivesTransaction
                     asset_id.clone(),
                     asset_id,
                     data.pool_address,
-                    data.amount_unlocked.to_string(),
+                    data.amount_unlocked,
                     TransactionType::StakeUndelegate,
                     None,
                 ));
@@ -228,7 +245,7 @@ pub fn map_transaction(transaction: Transaction) -> Option<PrimitivesTransaction
             deposit_event.guid.account_address.clone()
         };
 
-        let value = deposit_event.get_amount()?.to_string();
+        let value = deposit_event.get_amount()?;
 
         return Some(build_transaction(meta, asset_id.clone(), asset_id, to, value, TransactionType::Transfer, None));
     }
@@ -296,7 +313,7 @@ mod tests {
         assert_eq!(tx.id.to_string(), format!("aptos_{TEST_TRANSACTION_ID}"));
         assert_eq!(tx.from, "0xd1a1c1804e91ba85a569c7f018bb7502d2f13d4742d2611953c9c14681af6446");
         assert_eq!(tx.to, "0x6467997d9c3a5bc9f714e17a168984595ce9bec7350645713a1fe7983a7f5fcc");
-        assert_eq!(tx.value, "2431838058");
+        assert_eq!(tx.value, BigUint::from(2431838058u64));
         assert_eq!(tx.state, TransactionState::Confirmed);
         assert_eq!(tx.transaction_type, TransactionType::Transfer);
     }
@@ -316,7 +333,7 @@ mod tests {
         assert_eq!(tx.transaction_type, TransactionType::Swap);
         assert_eq!(tx.asset_id, AssetId::from_token(Chain::Aptos, APTOS_USDT_TOKEN_ID));
         assert_eq!(tx.fee_asset_id, Chain::Aptos.as_asset_id());
-        assert_eq!(tx.fee, "142600");
+        assert_eq!(tx.fee, BigUint::from(142_600u32));
         assert!(tx.metadata.is_some());
 
         let metadata: primitives::TransactionSwapMetadata = serde_json::from_value(tx.metadata.unwrap()).unwrap();
@@ -338,10 +355,10 @@ mod tests {
         assert_eq!(tx.id.to_string(), "aptos_0x130cc74c1a768780ca062a97bc833a01dec85b2d315484869559b7cdee4d0e75");
         assert_eq!(tx.from, "0xc95615aa095c100b18eb6eaa0f0a0f30b9cd96685118a7cbc1a2328a91ca2eda");
         assert_eq!(tx.to, "0xe5452230b8d5f4a664e33b8ad95354e50da64caaf003f11c0158391e96a4db2c");
-        assert_eq!(tx.value, "1100000000");
+        assert_eq!(tx.value, BigUint::from(1100000000u64));
         assert_eq!(tx.state, TransactionState::Confirmed);
         assert_eq!(tx.transaction_type, TransactionType::StakeDelegate);
-        assert_eq!(tx.fee, "142400");
+        assert_eq!(tx.fee, BigUint::from(142400u64));
     }
 
     #[test]
@@ -355,9 +372,9 @@ mod tests {
         assert_eq!(tx.id.to_string(), "aptos_0xef6430bef0e8de7090b2c4bce210adb75d648be4614dcc37232b0d67f819b137");
         assert_eq!(tx.from, "0x6467997d9c3a5bc9f714e17a168984595ce9bec7350645713a1fe7983a7f5fcc");
         assert_eq!(tx.to, "0xdb5247f859ce63dbe8940cf8773be722a60dcc594a8be9aca4b76abceb251b8e");
-        assert_eq!(tx.value, "1109984251");
+        assert_eq!(tx.value, BigUint::from(1109984251u64));
         assert_eq!(tx.state, TransactionState::Confirmed);
         assert_eq!(tx.transaction_type, TransactionType::StakeUndelegate);
-        assert_eq!(tx.fee, "88400");
+        assert_eq!(tx.fee, BigUint::from(88400u64));
     }
 }

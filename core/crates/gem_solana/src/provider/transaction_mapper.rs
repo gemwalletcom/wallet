@@ -1,5 +1,6 @@
 use chrono::DateTime;
 use num_bigint::{BigUint, Sign};
+use std::str::FromStr;
 
 use crate::{
     COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS,
@@ -185,9 +186,9 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
             None,
             TransactionType::Transfer,
             state,
-            fee.to_string(),
+            BigUint::from(fee),
             fee_asset_id,
-            value.to_string(),
+            BigUint::from(value),
             memo,
             None,
             created_at,
@@ -251,9 +252,9 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
                 None,
                 transaction_type,
                 state,
-                fee.to_string(),
+                BigUint::from(fee),
                 fee_asset_id,
-                value.to_string(),
+                value.clone(),
                 memo,
                 metadata,
                 created_at,
@@ -273,9 +274,9 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
             None,
             TransactionType::TransferNFT,
             state,
-            fee.to_string(),
+            BigUint::from(fee),
             fee_asset_id,
-            "0".to_string(),
+            BigUint::from(0u32),
             memo,
             serde_json::to_value(metadata).ok(),
             created_at,
@@ -294,9 +295,9 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
             Some(program_id.to_string()),
             TransactionType::Swap,
             state,
-            fee.to_string(),
+            BigUint::from(fee),
             chain.as_asset_id(),
-            swap.from_value.clone(),
+            BigUint::from_str(&swap.from_value).ok()?,
             memo,
             serde_json::to_value(swap).ok(),
             created_at,
@@ -323,9 +324,9 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
         Some(contract.to_string()),
         TransactionType::SmartContractCall,
         state,
-        fee.to_string(),
+        BigUint::from(fee),
         fee_asset_id,
-        value.to_string(),
+        BigUint::from(value),
         memo,
         None,
         created_at,
@@ -366,8 +367,8 @@ mod tests {
         assert_eq!(transaction.asset_id, Chain::Solana.as_asset_id());
         assert_eq!(transaction.from, "2k5AXX4guW9XwRQ1AKCpAuUqgWDpQpwFfpVFh3hnm2Ha");
         assert_eq!(transaction.to, "2xSHLfiPs3aEhzbLnYbyzWYMEaYnwSwJwAnVh5CwHWwX");
-        assert_eq!(transaction.value, "1");
-        assert_eq!(transaction.fee, "10000");
+        assert_eq!(transaction.value, BigUint::from(1u64));
+        assert_eq!(transaction.fee, BigUint::from(10000u64));
         assert_eq!(transaction.created_at, DateTime::from_timestamp(1687444563, 0).unwrap());
 
         let metadata: TransactionNFTTransferMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
@@ -382,8 +383,8 @@ mod tests {
         assert_eq!(transaction.asset_id, Chain::Solana.as_asset_id());
         assert_eq!(transaction.from, "8wytzyCBXco7yqgrLDiecpEt452MSuNWRe7xsLgAAX1H");
         assert_eq!(transaction.to, "FGbkx8rYTPJubjyScReeps6GA83D1nSmFr3BrN7buokb");
-        assert_eq!(transaction.value, "1");
-        assert_eq!(transaction.fee, "7500");
+        assert_eq!(transaction.value, BigUint::from(1u64));
+        assert_eq!(transaction.fee, BigUint::from(7500u64));
         assert_eq!(transaction.created_at, DateTime::from_timestamp(1779221552, 0).unwrap());
 
         let metadata: TransactionNFTTransferMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
@@ -398,8 +399,8 @@ mod tests {
         assert_eq!(transaction.asset_id, Chain::Solana.as_asset_id());
         assert_eq!(transaction.from, "8wytzyCBXco7yqgrLDiecpEt452MSuNWRe7xsLgAAX1H");
         assert_eq!(transaction.to, "G7B17AigRCGvwnxFc5U8zY5T3NBGduLzT7KYApNU2VdR");
-        assert_eq!(transaction.value, "0");
-        assert_eq!(transaction.fee, "79998");
+        assert_eq!(transaction.value, BigUint::from(0u64));
+        assert_eq!(transaction.fee, BigUint::from(79998u64));
         assert_eq!(transaction.created_at, DateTime::from_timestamp(1752111467, 0).unwrap());
 
         let metadata: TransactionNFTTransferMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
@@ -470,7 +471,7 @@ mod tests {
         assert_eq!(transaction.transaction_type, TransactionType::Swap);
         assert_eq!(transaction.asset_id, SOLANA_USDC_ASSET_ID.clone());
         assert_eq!(transaction.contract, Some(OKX_DEX_V2_PROGRAM_ID.to_string()));
-        assert_eq!(transaction.value, "56061275");
+        assert_eq!(transaction.value, BigUint::from(56061275u64));
         assert_eq!(transaction.metadata, Some(serde_json::to_value(expected).unwrap()));
     }
 
@@ -487,9 +488,9 @@ mod tests {
             None,
             TransactionType::Transfer,
             TransactionState::Confirmed,
-            "5000".to_string(),
+            BigUint::from(5000u64),
             Chain::Solana.as_asset_id(),
-            "2173".to_string(),
+            BigUint::from(2173u64),
             None,
             None,
             DateTime::from_timestamp(1751394455, 0).unwrap(),
@@ -511,9 +512,9 @@ mod tests {
             None,
             TransactionType::Transfer,
             TransactionState::Confirmed,
-            "7500".to_string(),
+            BigUint::from(7500u64),
             Chain::Solana.as_asset_id(),
-            "69000000".to_string(),
+            BigUint::from(69000000u64),
             None,
             None,
             DateTime::from_timestamp(1750884182, 0).unwrap(),
@@ -533,9 +534,9 @@ mod tests {
             None,
             TransactionType::Transfer,
             TransactionState::Confirmed,
-            "8125".to_string(),
+            BigUint::from(8125u64),
             Chain::Solana.as_asset_id(),
-            "66825800".to_string(),
+            BigUint::from(66825800u64),
             None,
             None,
             DateTime::from_timestamp(1786173123, 0).unwrap(),
@@ -571,9 +572,9 @@ mod tests {
             None,
             TransactionType::Transfer,
             TransactionState::Confirmed,
-            "5500".to_string(),
+            BigUint::from(5500u64),
             Chain::Solana.as_asset_id(),
-            "100000".to_string(),
+            BigUint::from(100000u64),
             None,
             None,
             DateTime::from_timestamp(1753346616, 0).unwrap(),
@@ -593,9 +594,9 @@ mod tests {
             None,
             TransactionType::Transfer,
             TransactionState::Confirmed,
-            "5000".to_string(),
+            BigUint::from(5000u64),
             Chain::Solana.as_asset_id(),
-            "19000000".to_string(),
+            BigUint::from(19000000u64),
             Some("ck:262:operator:m:1787598390".to_string()),
             None,
             DateTime::from_timestamp(1787598395, 0).unwrap(),
@@ -622,9 +623,9 @@ mod tests {
             None,
             TransactionType::Transfer,
             TransactionState::Confirmed,
-            "10000".to_string(),
+            BigUint::from(10000u64),
             Chain::Solana.as_asset_id(),
-            "24737625".to_string(),
+            BigUint::from(24737625u64),
             None,
             None,
             DateTime::from_timestamp(1774244726, 0).unwrap(),
@@ -660,7 +661,7 @@ mod tests {
         assert_eq!(transaction.transaction_type, TransactionType::SmartContractCall);
         assert_eq!(transaction.from, "CabroWmzUzcqqGvprUoC7RnJznuwX6qf5W1tSSaomri7");
         assert_eq!(transaction.contract, Some("J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT".to_string()));
-        assert_eq!(transaction.value, "152686560");
+        assert_eq!(transaction.value, BigUint::from(152686560u64));
     }
 
     #[test]

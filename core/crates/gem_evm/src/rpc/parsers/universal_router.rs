@@ -229,6 +229,7 @@ mod tests {
     use crate::uniswap::{actions::V4Action, contracts::v4::IV4Router, deployment::UniversalRouterAbi};
     use alloy_primitives::Address;
     use chrono::DateTime;
+    use num_bigint::BigUint;
     use primitives::{
         AssetId, Chain, TransactionSwapMetadata, TransactionType,
         asset_constants::{ETHEREUM_USDT_ASSET_ID, POLYGON_USDT_TOKEN_ID, UNICHAIN_DAI_TOKEN_ID, UNICHAIN_USDC_TOKEN_ID},
@@ -253,7 +254,7 @@ mod tests {
         assert_eq!(swap_tx.contract.unwrap(), UNICHAIN_UNISWAP_V4_UNIVERSAL_ROUTER_CONTRACT);
         assert_eq!(swap_tx.transaction_type, TransactionType::Swap);
         assert_eq!(swap_tx.fee_asset_id, AssetId::from_chain(Chain::Unichain));
-        assert_eq!(swap_tx.value, "1000000000000000");
+        assert_eq!(swap_tx.value, BigUint::from(1000000000000000u64));
 
         assert_eq!(
             metadata.from_asset,
@@ -286,7 +287,7 @@ mod tests {
         assert_eq!(swap_tx.contract.unwrap(), UNICHAIN_UNISWAP_V4_UNIVERSAL_ROUTER_CONTRACT);
         assert_eq!(swap_tx.transaction_type, TransactionType::Swap);
         assert_eq!(swap_tx.fee_asset_id, AssetId::from_chain(Chain::Unichain));
-        assert_eq!(swap_tx.value, "0");
+        assert_eq!(swap_tx.value, BigUint::from(0u64));
 
         assert_eq!(
             metadata.from_asset,
@@ -315,7 +316,7 @@ mod tests {
         let metadata: TransactionSwapMetadata = serde_json::from_value(swap_transaction.metadata.unwrap()).unwrap();
 
         assert_eq!(swap_transaction.asset_id, AssetId::from_chain(Chain::Ethereum));
-        assert_eq!(swap_transaction.value, "10000000000000");
+        assert_eq!(swap_transaction.value, BigUint::from(10000000000000u64));
         assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::Ethereum));
         assert_eq!(metadata.from_value, "10000000000000");
         assert_eq!(metadata.to_asset, ETHEREUM_USDT_ASSET_ID.clone());
@@ -335,7 +336,7 @@ mod tests {
         assert_eq!(swap_tx.contract.unwrap(), ETHEREUM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT);
         assert_eq!(swap_tx.transaction_type, TransactionType::Swap);
         assert_eq!(swap_tx.fee_asset_id, AssetId::from_chain(Chain::Ethereum));
-        assert_eq!(swap_tx.value, "18000000000000000");
+        assert_eq!(swap_tx.value, BigUint::from(18000000000000000u64));
 
         assert_eq!(
             metadata.from_asset,
@@ -368,7 +369,7 @@ mod tests {
         assert_eq!(swap_tx.contract.unwrap(), "0xFE6508f0015C778Bdcc1fB5465bA5ebE224C9912");
         assert_eq!(swap_tx.transaction_type, TransactionType::Swap);
         assert_eq!(swap_tx.fee_asset_id, AssetId::from_chain(Chain::Base));
-        assert_eq!(swap_tx.value, "0");
+        assert_eq!(swap_tx.value, BigUint::from(0u64));
 
         assert_eq!(
             metadata.from_asset,
@@ -401,7 +402,7 @@ mod tests {
         assert_eq!(swap_tx.contract.unwrap(), "0xec7BE89e9d109e7e3Fec59c222CF297125FEFda2");
         assert_eq!(swap_tx.transaction_type, TransactionType::Swap);
         assert_eq!(swap_tx.fee_asset_id, AssetId::from_chain(Chain::Polygon));
-        assert_eq!(swap_tx.value, "372000000000000000000");
+        assert_eq!(swap_tx.value, BigUint::parse_bytes(b"372000000000000000000", 10).unwrap());
 
         assert_eq!(
             metadata.from_asset,
@@ -434,7 +435,7 @@ mod tests {
         assert_eq!(swap_tx.contract.unwrap(), ETHEREUM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT);
         assert_eq!(swap_tx.transaction_type, TransactionType::Swap);
         assert_eq!(swap_tx.fee_asset_id, AssetId::from_chain(Chain::Ethereum));
-        assert_eq!(swap_tx.value, "0");
+        assert_eq!(swap_tx.value, BigUint::from(0u64));
 
         assert_eq!(
             metadata.from_asset,

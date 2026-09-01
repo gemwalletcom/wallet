@@ -39,6 +39,7 @@ mod tests {
     use super::*;
     use crate::metrics::MetricsProvider;
     use metrics::MetricsRegistry;
+    use num_bigint::BigUint;
     use primitives::AssetId;
 
     #[test]
@@ -46,9 +47,9 @@ mod tests {
         let metrics = Arc::new(ParserMetrics::new());
         let reporter = ParserReporter::new(Chain::Ethereum, metrics.clone());
         reporter.record_transactions(&[
-            Transaction::mock_with_params(AssetId::from_chain(Chain::Ethereum), TransactionType::Transfer, "1".into()),
-            Transaction::mock_with_params(AssetId::token(Chain::Ethereum, "0x123"), TransactionType::Transfer, "2".into()),
-            Transaction::mock_with_params(AssetId::token(Chain::Ethereum, "0x456"), TransactionType::Swap, "3".into()),
+            Transaction::mock_with_params(AssetId::from_chain(Chain::Ethereum), TransactionType::Transfer, BigUint::from(1u64)),
+            Transaction::mock_with_params(AssetId::token(Chain::Ethereum, "0x123"), TransactionType::Transfer, BigUint::from(2u64)),
+            Transaction::mock_with_params(AssetId::token(Chain::Ethereum, "0x456"), TransactionType::Swap, BigUint::from(3u64)),
         ]);
 
         let mut registry = MetricsRegistry::new();

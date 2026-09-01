@@ -59,8 +59,8 @@ pub fn map_transaction(cosmos_chain: CosmosChain, transaction: TransactionRespon
 
     let fee_coin = auth_info.and_then(|info| info.fee.amount.into_iter().next());
     let fee = match fee_coin.as_ref() {
-        Some(coin) => BigUint::try_from(coin.amount.clone()).ok()?.to_string(),
-        None => get_base_fee(cosmos_chain).to_string(),
+        Some(coin) => BigUint::try_from(coin.amount.clone()).ok()?,
+        None => BigUint::from(get_base_fee(cosmos_chain)),
     };
     let fee_asset_id = fee_coin
         .as_ref()
@@ -77,7 +77,7 @@ pub fn map_transaction(cosmos_chain: CosmosChain, transaction: TransactionRespon
     let message = body.messages.into_iter().next()?;
     let asset_id: AssetId;
     let transaction_type: TransactionType;
-    let value: String;
+    let value: BigUint;
     let from_address: String;
     let to_address: String;
 
@@ -86,34 +86,34 @@ pub fn map_transaction(cosmos_chain: CosmosChain, transaction: TransactionRespon
             let coin = message.amount.first()?;
             asset_id = asset_id_from_denom(chain, &coin.denom, &default_denom);
             transaction_type = TransactionType::Transfer;
-            value = BigUint::try_from(coin.amount.clone()).ok()?.to_string();
+            value = BigUint::try_from(coin.amount.clone()).ok()?;
             from_address = message.from_address;
             to_address = message.to_address;
         }
         Message::MsgDelegate(message) => {
             asset_id = native_asset_id.clone();
             transaction_type = TransactionType::StakeDelegate;
-            value = BigUint::try_from(message.amount?.amount).ok()?.to_string();
+            value = BigUint::try_from(message.amount?.amount).ok()?;
             from_address = message.delegator_address;
             to_address = message.validator_address;
         }
         Message::MsgUndelegate(message) => {
             asset_id = native_asset_id.clone();
             transaction_type = TransactionType::StakeUndelegate;
-            value = BigUint::try_from(message.amount?.amount).ok()?.to_string();
+            value = BigUint::try_from(message.amount?.amount).ok()?;
             from_address = message.delegator_address;
             to_address = message.validator_address;
         }
         Message::MsgBeginRedelegate(message) => {
             asset_id = native_asset_id.clone();
             transaction_type = TransactionType::StakeRedelegate;
-            value = BigUint::try_from(message.amount?.amount).ok()?.to_string();
+            value = BigUint::try_from(message.amount?.amount).ok()?;
             from_address = message.delegator_address;
             to_address = message.validator_dst_address;
         }
         Message::MsgWithdrawDelegatorReward(message) => {
             asset_id = native_asset_id.clone();
-            value = tx_response.get_rewards_value(&default_denom)?.to_string();
+            value = tx_response.get_rewards_value(&default_denom)?;
             transaction_type = TransactionType::StakeRewards;
             from_address = message.delegator_address;
             to_address = message.validator_address;
@@ -194,9 +194,9 @@ mod tests {
                 None,
                 TransactionType::Transfer,
                 TransactionState::Confirmed,
-                "1600".to_string(),
+                BigUint::from(1600u64),
                 Chain::Cosmos.as_asset_id(),
-                "50000000".to_string(),
+                BigUint::from(50000000u64),
                 Some("6439432658467882".to_string()),
                 None,
                 DateTime::parse_from_rfc3339("2025-06-20T04:09:19Z").unwrap().into(),
@@ -239,9 +239,9 @@ mod tests {
                 None,
                 TransactionType::Transfer,
                 TransactionState::Confirmed,
-                "689".to_string(),
+                BigUint::from(689u64),
                 Chain::Cosmos.as_asset_id(),
-                "20000000000".to_string(),
+                BigUint::from(20000000000u64),
                 None,
                 None,
                 DateTime::parse_from_rfc3339("2026-03-03T17:24:03Z").unwrap().into(),
@@ -264,9 +264,9 @@ mod tests {
                 None,
                 TransactionType::Transfer,
                 TransactionState::Confirmed,
-                "2000000".to_string(),
+                BigUint::from(2000000u64),
                 Chain::Thorchain.as_asset_id(),
-                "50000000000".to_string(),
+                BigUint::from(50000000000u64),
                 Some("thankyou".to_string()),
                 None,
                 DateTime::parse_from_rfc3339("2025-10-03T00:39:55Z").unwrap().into(),
@@ -289,9 +289,9 @@ mod tests {
                 None,
                 TransactionType::StakeDelegate,
                 TransactionState::Confirmed,
-                "5194".to_string(),
+                BigUint::from(5194u64),
                 Chain::Cosmos.as_asset_id(),
-                "17732657".to_string(),
+                BigUint::from(17732657u64),
                 None,
                 None,
                 DateTime::parse_from_rfc3339("2025-06-21T20:33:42Z").unwrap().into(),
@@ -314,9 +314,9 @@ mod tests {
                 None,
                 TransactionType::StakeRewards,
                 TransactionState::Confirmed,
-                "25000".to_string(),
+                BigUint::from(25000u64),
                 Chain::Cosmos.as_asset_id(),
-                "2385518".to_string(),
+                BigUint::from(2385518u64),
                 None,
                 None,
                 DateTime::parse_from_rfc3339("2025-06-21T20:51:28Z").unwrap().into(),

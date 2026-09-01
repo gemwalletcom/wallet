@@ -208,6 +208,7 @@ impl GemTransactionUpdater for GemTransactionStateService {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_bigint::BigUint;
     use primitives::{AssetId, Chain, TransactionChange, TransactionMetadata, TransactionSwapMetadata, TransactionType};
     use std::sync::Mutex;
 
@@ -287,9 +288,9 @@ mod tests {
             None,
             TransactionType::Swap,
             state,
-            "1".into(),
+            BigUint::from(1u64),
             AssetId::from_chain(Chain::Ethereum),
-            "1000000000000000000".into(),
+            BigUint::from(1000000000000000000u64),
             None,
             serde_json::to_value(swap_metadata("10000000000000000000")).ok(),
             created_at,
@@ -503,9 +504,9 @@ mod tests {
             None,
             TransactionType::Transfer,
             TransactionState::Pending,
-            "1".into(),
+            BigUint::from(1u64),
             AssetId::from_chain(Chain::HyperCore),
-            "1".into(),
+            BigUint::from(1u64),
             None,
             None,
             Utc::now(),

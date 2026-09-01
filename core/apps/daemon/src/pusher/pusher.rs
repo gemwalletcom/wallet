@@ -51,7 +51,7 @@ impl Pusher {
 
     pub fn message(&self, localizer: LanguageLocalizer, transaction: &Transaction, address: &str, assets: &Vec<Asset>) -> Result<Message, Box<dyn Error + Send + Sync>> {
         let asset = assets.asset_result(transaction.asset_id.clone())?;
-        let amount = ValueFormatter::format_with_symbol(ValueStyle::Auto, transaction.value.as_str(), asset.decimals, &asset.symbol)?;
+        let amount = ValueFormatter::format_with_symbol(ValueStyle::Auto, &transaction.value.to_string(), asset.decimals, &asset.symbol)?;
         let chain = transaction.asset_id.chain;
 
         let to_address = self.get_address(chain, transaction.to.as_str())?;

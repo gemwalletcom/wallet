@@ -1,5 +1,6 @@
 use crate::models::rpc::Transaction;
 use chrono::DateTime;
+use num_bigint::BigUint;
 use primitives::{TransactionState, TransactionType, chain::Chain, transaction_utxo::TransactionUtxoInput};
 use std::error::Error;
 
@@ -36,9 +37,9 @@ pub fn map_transaction(chain: Chain, created_at: &str, transaction: &Transaction
         chain.as_asset_id(),
         TransactionType::Transfer,
         TransactionState::Confirmed,
-        transaction.fee.to_string(),
+        transaction.fee.clone(),
         chain.as_asset_id(),
-        "0".to_string(),
+        BigUint::from(0u32),
         None,
         inputs.into(),
         outputs.into(),
@@ -81,6 +82,6 @@ mod tests {
 
         let mapped_tx = result.unwrap();
         assert_eq!(mapped_tx.id.to_string(), "cardano_tx_hash");
-        assert_eq!(mapped_tx.fee, "100");
+        assert_eq!(mapped_tx.fee, BigUint::from(100u64));
     }
 }

@@ -73,7 +73,7 @@ fn map_transaction_common(
         } else {
             (TransactionState::Failed, amount?)
         };
-        let value = amount.as_value_string()?;
+        let value = amount.value()?;
         let token_id = amount.token_id();
         let asset_id = AssetId::from(chain, token_id);
         let created_at = DateTime::from_timestamp(timestamp, 0)?;
@@ -86,7 +86,7 @@ fn map_transaction_common(
             None,
             TransactionType::Transfer,
             state,
-            fee.unwrap_or_default().to_string(),
+            fee.unwrap_or_default(),
             chain.as_asset_id(),
             value,
             memo,
@@ -195,9 +195,9 @@ mod tests {
             None,
             TransactionType::Transfer,
             TransactionState::Confirmed,
-            "11".to_string(),
+            BigUint::from(11u64),
             Chain::Xrp.as_asset_id(),
-            "1".to_string(),
+            BigUint::from(1u64),
             None,
             None,
             DateTime::from_timestamp(1749150631, 0).unwrap(),
@@ -216,7 +216,7 @@ mod tests {
 
         let tx = transactions.first().unwrap();
         assert_eq!(tx.transaction_type, TransactionType::Transfer);
-        assert_eq!(tx.value, "30000000");
+        assert_eq!(tx.value, BigUint::from(30000000u64));
         assert_eq!(tx.memo.as_deref(), Some("=:b:bc1q3yw4t9xlqq9982qhvp95lgs60xrjdkmjdta0jn:0/1/0:g1:50"));
     }
 
@@ -267,6 +267,6 @@ mod tests {
             )
         };
 
-        assert_eq!(map(Some(Amount::Str(1u32.into()))).unwrap().value, "1");
+        assert_eq!(map(Some(Amount::Str(1u32.into()))).unwrap().value, BigUint::from(1u64));
     }
 }

@@ -38,7 +38,7 @@ impl StoreTransactionsConsumerConfig {
 
     pub fn is_transaction_insufficient_amount(&self, transaction: &Transaction, asset: &Asset, price: Option<Price>, min_amount: f64) -> bool {
         if transaction.transaction_type == TransactionType::Transfer
-            && let Ok(amount) = BigNumberFormatter::value_as_f64(&transaction.value, asset.decimals as u32)
+            && let Ok(amount) = BigNumberFormatter::value_as_f64(&transaction.value.to_string(), asset.decimals as u32)
             && let Some(price) = price
         {
             return amount * price.price <= min_amount;
@@ -122,13 +122,13 @@ mod tests {
         let transaction_transfer = Transaction::mock_with_params(
             AssetId::from(Chain::Ethereum, Some("0xA0b86a33E6441066d64bb38954e41F6b4b925c59".to_string())),
             TransactionType::Transfer,
-            "100000".to_string(),
+            BigUint::from(100_000u64),
         );
 
         let transaction_swap = Transaction::mock_with_params(
             AssetId::from(Chain::Ethereum, Some("0xA0b86a33E6441066d64bb38954e41F6b4b925c59".to_string())),
             TransactionType::Swap,
-            "100000".to_string(),
+            BigUint::from(100_000u64),
         );
 
         let test_cases = vec![

@@ -1,5 +1,6 @@
 use chrono::Utc;
 use num_bigint::BigInt;
+use num_bigint::BigUint;
 use primitives::SwapProvider;
 use primitives::known_assets::wallet_default_assets;
 use primitives::swap::ApprovalData;
@@ -8,6 +9,7 @@ use primitives::{
     TransactionInputType, TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata,
     TransactionType, TransactionWalletConnectMetadata, TransferDataOutputAction, TransferDataOutputType,
 };
+use std::str::FromStr;
 
 use super::model::{GemPendingTransactionInput, GemRecentActivity, GemTransferBalance, GemTransferData, GemTransferOutput};
 use crate::models::transaction::{GemTransactionInputType, transaction_metadata_block_number, transaction_metadata_sequence};
@@ -269,18 +271,19 @@ impl GemPendingTransactionInput {
             GemTransactionInputType::Generic { .. } => self.simulation.and_then(|simulation| simulation.header),
             _ => None,
         };
+        let transfer_value = self.value.to_biguint().ok_or_else(|| "negative transfer value".to_string())?;
         let (recipient, value, memo) = match &approval {
-            Some(approval) => (approval.spender.clone(), approval.value.clone(), String::new()),
+            Some(approval) => (
+                approval.spender.clone(),
+                BigUint::from_str(&approval.value).map_err(|error| error.to_string())?,
+                String::new(),
+            ),
             None => {
                 let recipient = match &transfer.input_type {
                     GemTransactionInputType::Swap { swap_data, .. } => swap_data.data.to.clone(),
                     _ => transfer.recipient.address.clone(),
                 };
-                let value = simulation_header
-                    .as_ref()
-                    .and_then(|header| header.value.as_ref())
-                    .map(ToString::to_string)
-                    .unwrap_or_else(|| self.value.to_string());
+                let value = simulation_header.as_ref().and_then(|header| header.value.clone()).unwrap_or(transfer_value);
                 let memo = match &transfer.input_type {
                     GemTransactionInputType::Swap { .. } => String::new(),
                     _ => transfer.recipient.memo.clone().unwrap_or_default(),
@@ -310,7 +313,7 @@ impl GemPendingTransactionInput {
             None,
             self.transaction_type,
             TransactionState::Pending,
-            self.network_fee.to_string(),
+            self.network_fee.to_biguint().ok_or_else(|| "negative network fee".to_string())?,
             self.fee.fee_asset,
             value,
             Some(memo),
@@ -644,7 +647,7 @@ mod tests {
         let swap = swap_input(asset(Chain::Ethereum), asset(Chain::Bitcoin), SwapProvider::Thorchain, None);
         let transaction = pending_input(swap, TransactionType::Swap, "0xhash", 0, 1).pending_transaction().unwrap().unwrap();
         assert_eq!(transaction.to, "0xrouter");
-        assert_eq!(transaction.value, "99");
+        assert_eq!(transaction.value, BigUint::from(99u64));
         assert_eq!(transaction.memo.as_deref(), Some(""));
         assert_eq!(transaction.direction, TransactionDirection::Outgoing);
         assert!(transaction.metadata.is_some());
@@ -701,7 +704,7 @@ mod tests {
         });
         let transaction = generic_input.pending_transaction().unwrap().unwrap();
         assert_eq!(transaction.asset_id, AssetId::from(Chain::Solana, Some("usdc".into())));
-        assert_eq!(transaction.value, "19000000");
+        assert_eq!(transaction.value, BigUint::from(19_000_000u64));
         assert_eq!(transaction.to, "recipient");
 
         let hypercore_swap = swap_input(asset(Chain::Ethereum), asset(Chain::HyperCore), SwapProvider::Hyperliquid, None);

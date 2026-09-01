@@ -17,9 +17,9 @@ pub(in crate::rpc::indexer) fn map_address_transfer(
     let created_at = DateTime::<Utc>::from_timestamp_nanos(i64::try_from(transfer.block_timestamp)?);
     let fee = if transfer.signer_id == address && transfer.predecessor_id == address {
         let transaction_id = transfer.transaction_id.as_ref().ok_or("missing FastNear sender transaction id")?;
-        fees.get(transaction_id).ok_or("missing FastNear sender transaction details")?.to_string()
+        fees.get(transaction_id).ok_or("missing FastNear sender transaction details")?.clone()
     } else {
-        "0".to_string()
+        BigUint::from(0u32)
     };
     let hash = if transfer.predecessor_id == transfer.signer_id {
         transfer.transaction_id.ok_or("missing FastNear transaction id")?
@@ -42,7 +42,7 @@ pub(in crate::rpc::indexer) fn map_address_transfer(
         TransactionState::Confirmed,
         fee,
         Chain::Near.as_asset_id(),
-        transfer.amount.magnitude().to_string(),
+        transfer.amount.magnitude().clone(),
         None,
         None,
         created_at,

@@ -153,7 +153,7 @@ mod tests {
             assert_eq!(staking_transaction.from, from);
             assert_eq!(staking_transaction.to, to);
             assert_eq!(staking_transaction.contract.as_deref(), Some(STAKE_HUB_ADDRESS));
-            assert_eq!(staking_transaction.value, value);
+            assert_eq!(staking_transaction.value.to_string(), value);
             assert_eq!(staking_transaction.metadata, None);
         }
 

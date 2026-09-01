@@ -214,8 +214,8 @@ mod tests {
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
         assert_eq!(transaction.from, "e589457354361489a89039b8be6737cbc2db4d13919b6ccf23889a60f3b0d8f3");
         assert_eq!(transaction.to, "bb90f7cd3f611466d4e8aaee55541d5da6881e01a4155bca49041c1d692b4ff8");
-        assert_eq!(transaction.value, "99500026");
-        assert_eq!(transaction.fee, "411253844391900000000");
+        assert_eq!(transaction.value, BigUint::from(99500026u64));
+        assert_eq!(transaction.fee, BigUint::parse_bytes(b"411253844391900000000", 10).unwrap());
     }
 
     #[tokio::test]
@@ -242,10 +242,13 @@ mod tests {
             vec!["incoming-transaction", "outgoing-transaction", "attached-deposit-transaction"]
         );
         assert_eq!(
-            transactions.iter().map(|transaction| transaction.value.as_str()).collect::<Vec<_>>(),
+            transactions.iter().map(|transaction| transaction.value.to_string()).collect::<Vec<_>>(),
             vec!["2000000000000000000000000", "1000000000000000000000000", "500000000000000000000000"]
         );
-        assert_eq!(transactions.iter().map(|transaction| transaction.fee.as_str()).collect::<Vec<_>>(), vec!["0", "70", "110"]);
+        assert_eq!(
+            transactions.iter().map(|transaction| transaction.fee.clone()).collect::<Vec<_>>(),
+            vec![BigUint::from(0u64), BigUint::from(70u64), BigUint::from(110u64)]
+        );
         assert_eq!(*requests.transfers.lock().unwrap(), vec![expected_sender_request, expected_receiver_request]);
         assert_eq!(*requests.transactions.lock().unwrap(), vec![expected_transactions_request]);
 
@@ -264,8 +267,8 @@ mod tests {
             .unwrap();
         let token_transaction = token_transactions.first().unwrap();
         assert_eq!(token_transaction.hash(), "DXUp65qSLjpbMrMVubtH1YY13fDHLA5av7q7skJ8kx5E");
-        assert_eq!(token_transaction.value, "99500026");
-        assert_eq!(token_transaction.fee, "0");
+        assert_eq!(token_transaction.value, BigUint::from(99500026u64));
+        assert_eq!(token_transaction.fee, BigUint::from(0u64));
         assert_eq!(token_transaction.asset_id, NEAR_USDT_ASSET_ID.clone());
         assert_eq!(token_transaction.from, "e589457354361489a89039b8be6737cbc2db4d13919b6ccf23889a60f3b0d8f3");
         assert_eq!(token_transaction.to, "bb90f7cd3f611466d4e8aaee55541d5da6881e01a4155bca49041c1d692b4ff8");
@@ -351,8 +354,8 @@ mod tests {
         assert_eq!(transaction.block_number.as_deref(), Some("211048907"));
         assert_eq!(transaction.from, "sender.near");
         assert_eq!(transaction.to, "receiver.near");
-        assert_eq!(transaction.fee, "411253844391900000000");
-        assert_eq!(transaction.value, "100");
+        assert_eq!(transaction.fee, BigUint::parse_bytes(b"411253844391900000000", 10).unwrap());
+        assert_eq!(transaction.value, BigUint::from(100u64));
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);
         assert_eq!(transaction.state, primitives::TransactionState::Confirmed);
         assert_eq!(*requests.blocks.lock().unwrap(), vec!["/v0/block/211048907"]);
