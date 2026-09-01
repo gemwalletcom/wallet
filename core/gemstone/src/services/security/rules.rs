@@ -2,7 +2,46 @@ use super::model::{GemAuthPromptOutcome, GemLockPeriod};
 
 const MILLISECONDS_PER_MINUTE: u32 = 60 * 1_000;
 
-pub fn lock_periods() -> Vec<GemLockPeriod> {
+#[uniffi::export]
+impl GemLockPeriod {
+    pub fn minutes(self) -> u32 {
+        match self {
+            Self::Immediate => 0,
+            Self::OneMinute => 1,
+            Self::FiveMinutes => 5,
+            Self::FifteenMinutes => 15,
+            Self::OneHour => 60,
+            Self::SixHours => 6 * 60,
+        }
+    }
+}
+
+impl GemLockPeriod {
+    fn milliseconds(self) -> u32 {
+        self.minutes() * MILLISECONDS_PER_MINUTE
+    }
+}
+
+#[uniffi::export]
+impl GemAuthPromptOutcome {
+    pub fn is_cancelled(self) -> bool {
+        match self {
+            Self::CancelledByUser | Self::CancelledBySystem => true,
+            Self::Unavailable | Self::LockedOut | Self::Transient | Self::Failed => false,
+        }
+    }
+
+    pub fn retry_delay_milliseconds(self) -> Option<u32> {
+        match self {
+            Self::CancelledByUser | Self::CancelledBySystem => Some(500),
+            Self::Transient => Some(1_000),
+            Self::LockedOut => Some(30_000),
+            Self::Unavailable | Self::Failed => None,
+        }
+    }
+}
+
+fn lock_periods() -> Vec<GemLockPeriod> {
     vec![
         GemLockPeriod::Immediate,
         GemLockPeriod::OneMinute,
@@ -13,48 +52,17 @@ pub fn lock_periods() -> Vec<GemLockPeriod> {
     ]
 }
 
-pub fn default_lock_period() -> GemLockPeriod {
+fn default_lock_period() -> GemLockPeriod {
     GemLockPeriod::OneMinute
 }
 
-pub fn lock_period_minutes(period: GemLockPeriod) -> u32 {
-    match period {
-        GemLockPeriod::Immediate => 0,
-        GemLockPeriod::OneMinute => 1,
-        GemLockPeriod::FiveMinutes => 5,
-        GemLockPeriod::FifteenMinutes => 15,
-        GemLockPeriod::OneHour => 60,
-        GemLockPeriod::SixHours => 6 * 60,
-    }
+fn lock_period_from_minutes(minutes: u32) -> GemLockPeriod {
+    lock_periods().into_iter().find(|period| period.minutes() == minutes).unwrap_or_else(default_lock_period)
 }
 
-pub fn lock_period_milliseconds(period: GemLockPeriod) -> u32 {
-    lock_period_minutes(period) * MILLISECONDS_PER_MINUTE
-}
-
-pub fn lock_period_from_minutes(minutes: u32) -> GemLockPeriod {
-    lock_periods()
-        .into_iter()
-        .find(|period| lock_period_minutes(*period) == minutes)
-        .unwrap_or_else(default_lock_period)
-}
-
-pub fn should_relock(elapsed_milliseconds: i64, lock_interval_minutes: u32, auth_required: bool, has_pending_request: bool) -> bool {
+pub(super) fn should_relock(elapsed_milliseconds: i64, lock_interval_minutes: u32, auth_required: bool, has_pending_request: bool) -> bool {
     let period = lock_period_from_minutes(lock_interval_minutes);
-    auth_required && !has_pending_request && elapsed_milliseconds > i64::from(lock_period_milliseconds(period))
-}
-
-pub fn is_auth_cancelled(outcome: GemAuthPromptOutcome) -> bool {
-    matches!(outcome, GemAuthPromptOutcome::CancelledByUser | GemAuthPromptOutcome::CancelledBySystem)
-}
-
-pub fn auth_retry_delay_milliseconds(outcome: GemAuthPromptOutcome) -> Option<u32> {
-    match outcome {
-        GemAuthPromptOutcome::CancelledByUser | GemAuthPromptOutcome::CancelledBySystem => Some(500),
-        GemAuthPromptOutcome::Transient => Some(1_000),
-        GemAuthPromptOutcome::LockedOut => Some(30_000),
-        GemAuthPromptOutcome::Unavailable | GemAuthPromptOutcome::Failed => None,
-    }
+    auth_required && !has_pending_request && elapsed_milliseconds > i64::from(period.milliseconds())
 }
 
 #[cfg(test)]
@@ -63,30 +71,30 @@ mod tests {
 
     #[test]
     fn test_only_a_recoverable_prompt_outcome_is_retried() {
-        assert_eq!(auth_retry_delay_milliseconds(GemAuthPromptOutcome::CancelledByUser), Some(500));
-        assert_eq!(auth_retry_delay_milliseconds(GemAuthPromptOutcome::Transient), Some(1_000));
-        assert_eq!(auth_retry_delay_milliseconds(GemAuthPromptOutcome::LockedOut), Some(30_000));
+        assert_eq!(GemAuthPromptOutcome::CancelledByUser.retry_delay_milliseconds(), Some(500));
+        assert_eq!(GemAuthPromptOutcome::Transient.retry_delay_milliseconds(), Some(1_000));
+        assert_eq!(GemAuthPromptOutcome::LockedOut.retry_delay_milliseconds(), Some(30_000));
         assert_eq!(
-            auth_retry_delay_milliseconds(GemAuthPromptOutcome::Unavailable),
+            GemAuthPromptOutcome::Unavailable.retry_delay_milliseconds(),
             None,
             "no enrolled biometry cannot be retried into working"
         );
-        assert_eq!(auth_retry_delay_milliseconds(GemAuthPromptOutcome::Failed), None);
+        assert_eq!(GemAuthPromptOutcome::Failed.retry_delay_milliseconds(), None);
     }
 
     #[test]
     fn test_cancellation_covers_both_the_user_and_the_system() {
-        assert!(is_auth_cancelled(GemAuthPromptOutcome::CancelledByUser));
-        assert!(is_auth_cancelled(GemAuthPromptOutcome::CancelledBySystem));
-        assert!(!is_auth_cancelled(GemAuthPromptOutcome::LockedOut));
-        assert!(!is_auth_cancelled(GemAuthPromptOutcome::Failed));
+        assert!(GemAuthPromptOutcome::CancelledByUser.is_cancelled());
+        assert!(GemAuthPromptOutcome::CancelledBySystem.is_cancelled());
+        assert!(!GemAuthPromptOutcome::LockedOut.is_cancelled());
+        assert!(!GemAuthPromptOutcome::Failed.is_cancelled());
     }
 
     #[test]
     fn test_lock_periods_carry_the_same_minutes_on_both_platforms() {
-        let minutes: Vec<u32> = lock_periods().into_iter().map(lock_period_minutes).collect();
+        let minutes: Vec<u32> = lock_periods().into_iter().map(GemLockPeriod::minutes).collect();
         assert_eq!(minutes, vec![0, 1, 5, 15, 60, 360]);
-        assert_eq!(lock_period_milliseconds(GemLockPeriod::SixHours), 21_600_000);
+        assert_eq!(GemLockPeriod::SixHours.milliseconds(), 21_600_000);
         assert_eq!(lock_period_from_minutes(15), GemLockPeriod::FifteenMinutes);
         assert_eq!(lock_period_from_minutes(7), default_lock_period(), "an unknown stored value falls back to the default");
     }

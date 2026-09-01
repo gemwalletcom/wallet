@@ -1,6 +1,5 @@
 package com.gemwallet.android
 
-import uniffi.gemstone.GemSecurityService
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import org.junit.Assert.assertEquals
@@ -11,9 +10,6 @@ import org.junit.Test
 import kotlin.time.Duration.Companion.seconds
 
 class InitialAuthErrorTest {
-    private val securityService = GemSecurityService()
-
-
     @Test
     fun userAndTimeoutErrors_retryAfterPromptDismissal() {
         listOf(
@@ -22,7 +18,7 @@ class InitialAuthErrorTest {
             BiometricPrompt.ERROR_TIMEOUT,
             BiometricPrompt.ERROR_USER_CANCELED,
         ).forEach { errorCode ->
-            assertEquals(SystemAuthPolicy.authRequestRestartDelay, SystemAuthPolicy.initialRetryDelay(errorCode, securityService))
+            assertEquals(SystemAuthPolicy.authRequestRestartDelay, SystemAuthPolicy.initialRetryDelay(errorCode))
         }
     }
 
@@ -33,9 +29,9 @@ class InitialAuthErrorTest {
             BiometricPrompt.ERROR_UNABLE_TO_PROCESS,
             BiometricPrompt.ERROR_VENDOR,
         ).forEach { errorCode ->
-            assertEquals(1.seconds, SystemAuthPolicy.initialRetryDelay(errorCode, securityService))
+            assertEquals(1.seconds, SystemAuthPolicy.initialRetryDelay(errorCode))
         }
-        assertEquals(30.seconds, SystemAuthPolicy.initialRetryDelay(BiometricPrompt.ERROR_LOCKOUT, securityService))
+        assertEquals(30.seconds, SystemAuthPolicy.initialRetryDelay(BiometricPrompt.ERROR_LOCKOUT))
     }
 
     @Test
@@ -48,7 +44,7 @@ class InitialAuthErrorTest {
             BiometricPrompt.ERROR_NO_SPACE,
             BiometricPrompt.ERROR_SECURITY_UPDATE_REQUIRED,
         ).forEach { errorCode ->
-            assertNull(SystemAuthPolicy.initialRetryDelay(errorCode, securityService))
+            assertNull(SystemAuthPolicy.initialRetryDelay(errorCode))
         }
     }
 

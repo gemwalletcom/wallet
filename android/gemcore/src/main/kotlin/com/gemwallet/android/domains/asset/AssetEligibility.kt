@@ -1,20 +1,17 @@
 package com.gemwallet.android.domains.asset
 
-import uniffi.gemstone.GemAssetConfigService
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.hasAvailable
 import uniffi.gemstone.GemAssetAction
 import uniffi.gemstone.GemAssetFilter
 
-fun GemAssetAction.filters(assetConfig: GemAssetConfigService): List<GemAssetFilter> = assetConfig.actionFilters(this)
+fun GemAssetAction.recentFilters(): Set<AssetFilter> = filters().mapNotNull { it.recentFilter() }.toSet()
 
-fun GemAssetAction.recentFilters(assetConfig: GemAssetConfigService): Set<AssetFilter> = filters(assetConfig).mapNotNull { it.recentFilter() }.toSet()
+fun GemAssetAction.queryFilters(): Set<AssetFilter> = filters().mapNotNull { it.queryFilter() }.toSet()
 
-fun GemAssetAction.queryFilters(assetConfig: GemAssetConfigService): Set<AssetFilter> = filters(assetConfig).mapNotNull { it.queryFilter() }.toSet()
-
-fun GemAssetAction.eligible(items: List<AssetInfo>, assetConfig: GemAssetConfigService): List<AssetInfo> {
-    val filters = filters(assetConfig)
+fun GemAssetAction.eligible(items: List<AssetInfo>): List<AssetInfo> {
+    val filters = filters()
     return items.filter { item -> filters.all { item.matches(it) } }
 }
 

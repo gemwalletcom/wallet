@@ -175,7 +175,6 @@ public struct ViewModelFactory: Sendable {
             priceAlertService: priceAlertService,
             recentAssetsService: recentAssetsService,
             preferencesService: preferencesService,
-            assetConfig: assetConfig,
             chainService: chainService,
             selectAssetAction: selectAssetAction,
             chains: chains,
@@ -221,9 +220,11 @@ public struct ViewModelFactory: Sendable {
             signer: KeystoreTransactionSigner(keystore: keystore),
             keystore: keystore,
             recentAssetsService: recentAssetsService,
-            toastPresenter: toastPresenter,
-            preferencesService: preferencesService,
-            onComplete: onComplete,
+            currency: preferencesService.currencyValue,
+            onComplete: { [toastPresenter] in
+                Task { await toastPresenter.present(.transfer(for: data.inputType)) }
+                onComplete?()
+            },
         )
     }
 
@@ -233,10 +234,8 @@ public struct ViewModelFactory: Sendable {
             explorer: explorerService,
             names: nameService,
             assetConfig: assetConfig,
-            transfer: transferService,
             fee: feeService,
             swapQuote: swapQuoteService,
-            applicationMetadata: applicationMetadataService,
         )
     }
 

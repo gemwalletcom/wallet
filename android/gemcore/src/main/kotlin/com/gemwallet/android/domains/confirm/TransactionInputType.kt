@@ -56,9 +56,6 @@ val GemTransactionInputType.stakeType: StakeType?
 val GemTransactionInputType.perpetualType: PerpetualType?
     get() = (this as? GemTransactionInputType.Perpetual)?.perpetualType?.decodeJson<PerpetualType>()
 
-fun GemTransactionInputType.transactionType(transferService: GemTransferService): TransactionType =
-    transferService.transactionType(this).decodeJson<TransactionType>()
-
 fun GemTransactionInputType.approvalData(
     transactionType: TransactionType,
     transferService: GemTransferService,

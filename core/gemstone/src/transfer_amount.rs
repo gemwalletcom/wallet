@@ -19,16 +19,15 @@ pub enum GemTransferAmountError {
     MinimumAccountBalanceTooLow { asset_id: AssetId, required: GemBigInt, available: GemBigInt },
 }
 
-#[derive(uniffi::Record, Debug, Clone)]
-pub struct GemTransferAmountInput {
-    pub input_type: GemTransactionInputType,
-    pub value: GemBigInt,
-    pub available_value: GemBigInt,
-    pub fee_asset: AssetId,
-    pub fee_asset_balance: GemBigInt,
-    pub fee: GemBigInt,
-    pub is_max_amount: bool,
-    pub minimum_value: Option<GemBigInt>,
+pub(crate) struct GemTransferAmountInput {
+    pub(crate) input_type: GemTransactionInputType,
+    pub(crate) value: GemBigInt,
+    pub(crate) available_value: GemBigInt,
+    pub(crate) fee_asset: AssetId,
+    pub(crate) fee_asset_balance: GemBigInt,
+    pub(crate) fee: GemBigInt,
+    pub(crate) is_max_amount: bool,
+    pub(crate) minimum_value: Option<GemBigInt>,
 }
 
 impl From<GemTransferAmountInput> for TransferAmountInput {
@@ -46,8 +45,10 @@ impl From<GemTransferAmountInput> for TransferAmountInput {
     }
 }
 
-pub fn calculate_transfer_amount(input: GemTransferAmountInput) -> Result<GemTransferAmount, GemTransferAmountError> {
-    TransferAmountInput::from(input).calculate()
+impl GemTransferAmountInput {
+    pub(crate) fn calculate(self) -> Result<GemTransferAmount, GemTransferAmountError> {
+        TransferAmountInput::from(self).calculate()
+    }
 }
 
 #[cfg(test)]
@@ -73,7 +74,7 @@ mod tests {
     #[test]
     fn test_calculate_transfer_amount() {
         assert_eq!(
-            calculate_transfer_amount(input(10_000_000, 100_000_000, 100_000_000)).unwrap(),
+            input(10_000_000, 100_000_000, 100_000_000).calculate().unwrap(),
             GemTransferAmount {
                 value: BigInt::from(10_000_000),
                 network_fee: BigInt::from(5_000),
@@ -82,7 +83,7 @@ mod tests {
         );
 
         assert_eq!(
-            calculate_transfer_amount(input(20_000_000, 10_000_000, 10_000_000)).unwrap_err(),
+            input(20_000_000, 10_000_000, 10_000_000).calculate().unwrap_err(),
             GemTransferAmountError::InsufficientBalance {
                 asset_id: Asset::from_chain(Chain::Solana).id,
                 required: BigInt::from(20_005_000u64),

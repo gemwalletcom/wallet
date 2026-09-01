@@ -14,6 +14,13 @@ pub struct GemBannerContext {
     pub is_wallet_empty: bool,
 }
 
+#[uniffi::export]
+impl GemBannerContext {
+    pub fn visible_banners(&self, stored: Vec<GemBannerItem>) -> Vec<GemBannerItem> {
+        super::rules::visible_banners(stored, self)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemBannerItem {
     pub event: BannerEvent,
@@ -25,6 +32,21 @@ pub struct GemBannerKey {
     pub wallet_id: Option<WalletId>,
     pub asset_id: Option<AssetId>,
     pub event: BannerEvent,
+}
+
+#[uniffi::export]
+impl GemBannerKey {
+    pub fn identifier(&self) -> String {
+        [
+            self.wallet_id.as_ref().map(WalletId::id),
+            self.asset_id.as_ref().map(ToString::to_string),
+            Some(self.event.as_ref().to_string()),
+        ]
+        .into_iter()
+        .flatten()
+        .collect::<Vec<_>>()
+        .join("_")
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -86,19 +108,6 @@ impl GemBannerAction {
     }
 }
 
-#[uniffi::export]
-pub fn banner_identifier(key: GemBannerKey) -> String {
-    [
-        key.wallet_id.map(|wallet_id| wallet_id.id()),
-        key.asset_id.map(|asset_id| asset_id.to_string()),
-        Some(key.event.as_ref().to_string()),
-    ]
-    .into_iter()
-    .flatten()
-    .collect::<Vec<_>>()
-    .join("_")
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -120,13 +129,13 @@ mod tests {
         };
 
         assert_eq!(
-            banner_identifier(key(Some("wallet-1"), Some(AssetId::from_chain(Chain::Bitcoin)), BannerEvent::Stake)),
+            key(Some("wallet-1"), Some(AssetId::from_chain(Chain::Bitcoin)), BannerEvent::Stake).identifier(),
             "multicoin_wallet-1_bitcoin_stake"
         );
-        assert_eq!(banner_identifier(key(None, None, BannerEvent::SuspiciousAsset)), "suspiciousAsset");
-        assert_eq!(banner_identifier(key(Some("wallet-1"), None, BannerEvent::Onboarding)), "multicoin_wallet-1_onboarding");
+        assert_eq!(key(None, None, BannerEvent::SuspiciousAsset).identifier(), "suspiciousAsset");
+        assert_eq!(key(Some("wallet-1"), None, BannerEvent::Onboarding).identifier(), "multicoin_wallet-1_onboarding");
         assert_eq!(
-            banner_identifier(key(None, Some(AssetId::from_chain(Chain::Ethereum)), BannerEvent::ActivateAsset)),
+            key(None, Some(AssetId::from_chain(Chain::Ethereum)), BannerEvent::ActivateAsset).identifier(),
             "ethereum_activateAsset"
         );
     }

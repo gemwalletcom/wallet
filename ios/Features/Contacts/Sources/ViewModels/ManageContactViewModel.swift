@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.GemContactAvatar
+import struct Gemstone.GemContactAddressInput
 import protocol Gemstone.GemManageContactServiceProtocol
 import Components
 import GemstoneServices
@@ -69,14 +70,13 @@ public final class ManageContactViewModel {
         case let .add(recipient):
             contactId = UUID().uuidString
             addresses = recipient.flatMap {
-                try? service.addAddress(
-                    [],
+                try? GemContactAddressInput(
                     contactId: contactId,
                     chain: $0.chain,
                     address: $0.recipient.address,
                     memo: $0.recipient.memo,
                     replacingId: nil,
-                )
+                ).addAddress([])
             } ?? []
         case let .edit(contactData):
             contactId = contactData.contact.id
@@ -187,14 +187,13 @@ public final class ManageContactViewModel {
     }
 
     func onAddressComplete(_ input: ManageContactAddressViewModel.Input) {
-        addresses = (try? service.addAddress(
-            addresses,
+        addresses = (try? GemContactAddressInput(
             contactId: contactId,
             chain: input.chain,
             address: input.address,
             memo: input.memo,
             replacingId: input.replacingId,
-        )) ?? addresses
+        ).addAddress(addresses)) ?? addresses
         isPresentingAddress = nil
     }
 

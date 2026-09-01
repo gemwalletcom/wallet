@@ -1,19 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.GemTransactionInputType
-import class Gemstone.GemTransferService
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
 import Testing
 
 struct GemTransactionInputTypeAssetTests {
-    private let transferService = GemTransferService()
-
     @Test
     func localAssetMatchesTheCoreRuleForEveryCase() {
         for type in cases {
-            let fromCore = transferService.asset(inputType: type).map()
+            let fromCore = type.transactionAsset().map()
 
             #expect(type.asset == fromCore, "asset disagreed with Core for \(type)")
         }

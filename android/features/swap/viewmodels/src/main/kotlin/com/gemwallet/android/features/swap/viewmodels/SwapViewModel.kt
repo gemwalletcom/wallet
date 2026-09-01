@@ -394,14 +394,12 @@ class SwapViewModel @Inject constructor(
     }
 
     private fun buttonAction(quoteSession: SwapQuoteSession, value: BigDecimal, pay: AssetInfo?): GemSwapButtonAction =
-        swapQuoteService.buttonAction(
-            GemSwapButtonInput(
-                value = pay?.let { Crypto(value, it.asset.decimals).atomicValue.toString() } ?: "0",
-                availableBalance = pay?.balance?.balance?.available ?: "0",
-                quoteError = quoteSession.quoteError,
-                transferError = quoteSession.transferError,
-            )
-        )
+        GemSwapButtonInput(
+            value = pay?.let { Crypto(value, it.asset.decimals).atomicValue.toString() } ?: "0",
+            availableBalance = pay?.balance?.balance?.available ?: "0",
+            quoteError = quoteSession.quoteError,
+            transferError = quoteSession.transferError,
+        ).action()
 
     private fun applyMinimumAmount(amount: String) {
         val asset = payAsset.value?.asset ?: return

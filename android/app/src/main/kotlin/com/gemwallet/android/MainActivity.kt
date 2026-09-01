@@ -16,7 +16,6 @@ import com.gemwallet.android.ui.LocalTransferService
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemDeeplinkService
-import uniffi.gemstone.GemSecurityService
 import uniffi.gemstone.GemTransferService
 import uniffi.gemstone.GemApplicationMetadataService
 import uniffi.gemstone.GemAddressService
@@ -53,7 +52,6 @@ class MainActivity : FragmentActivity(), AuthRequester {
     @Inject lateinit var transferService: GemTransferService
     @Inject lateinit var deeplinkService: GemDeeplinkService
     @Inject lateinit var chainService: GemChainService
-    @Inject lateinit var securityService: GemSecurityService
     @Inject lateinit var assetConfigService: GemAssetConfigService
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,7 +61,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
         splashScreen.setOnExitAnimationListener { it.remove() }
         enableEdgeToEdge()
 
-        systemAuthenticator = SystemAuthenticator(this, viewModel, securityService)
+        systemAuthenticator = SystemAuthenticator(this, viewModel)
         systemAuthenticator.prepare()
         systemAuthenticator.refreshEnrollment()
 

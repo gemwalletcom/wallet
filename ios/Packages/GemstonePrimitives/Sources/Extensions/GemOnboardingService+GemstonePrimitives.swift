@@ -10,7 +10,7 @@ public extension GemOnboardingServiceProtocol {
     }
 
     func importWallet(name: String, type: KeystoreImportType, source: WalletSource) async throws -> WalletImportResult {
-        let walletImport = try validateImport(import: type.walletImport)
+        let walletImport = try type.walletImport.validated()
         return switch try await importWallet(name: name, import: walletImport, source: source.map()) {
         case let .new(wallet): try .new(Wallet(wallet))
         case let .existing(wallet): try .existing(Wallet(wallet))

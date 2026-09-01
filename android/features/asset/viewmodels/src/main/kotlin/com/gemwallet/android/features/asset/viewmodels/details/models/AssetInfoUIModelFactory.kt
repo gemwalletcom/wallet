@@ -20,14 +20,12 @@ import com.wallet.core.primitives.StakeChain
 import com.wallet.core.primitives.WalletType
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
-import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemSwapServiceInterface
 import javax.inject.Inject
 import java.math.BigInteger
 
 class AssetInfoUIModelFactory @Inject constructor(
     private val swapService: GemSwapServiceInterface,
-    private val stakeService: GemStakeServiceInterface,
 ) {
 
     fun create(
@@ -96,10 +94,10 @@ class AssetInfoUIModelFactory @Inject constructor(
         val balances = assetInfo.balance
         val stakeBalance = balances.balance.toStakeBalance()
         val chain = assetInfo.asset.chain.string
-        if (!stakeService.showsStakeBalance(chain, assetInfo.metadata.isStakeEnabled, stakeBalance)) {
+        if (!stakeBalance.showsStakeBalance(chain, assetInfo.metadata.isStakeEnabled)) {
             return ""
         }
-        val staked = stakeService.stakedValue(chain, stakeBalance).toBigInteger()
+        val staked = stakeBalance.stakedValue(chain).toBigInteger()
         return if (staked == BigInteger.ZERO) {
             "APR ${(assetInfo.metadata.stakingApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
         } else {

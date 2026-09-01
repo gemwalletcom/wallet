@@ -2,7 +2,6 @@
 
 import Foundation
 import struct Gemstone.GemBannerKey
-import func Gemstone.bannerIdentifier
 import GemstonePrimitives
 @testable import GemstoneServices
 import Primitives
@@ -24,7 +23,7 @@ struct GemstoneBannerStoreTests {
 
         try await adapter.addBanners(keys: [key], state: Primitives.BannerState.active.json())
 
-        let row = try #require(try store.getBanner(id: bannerIdentifier(key: key)))
+        let row = try #require(try store.getBanner(id: key.identifier()))
         #expect(row.state == .active)
         #expect(row.walletId == walletId.id)
         #expect(row.assetId == AssetId(chain: .xrp))
@@ -39,7 +38,7 @@ struct GemstoneBannerStoreTests {
 
         try await adapter.setState(key: key, state: Primitives.BannerState.cancelled.json())
 
-        #expect(try store.getBanner(id: bannerIdentifier(key: key))?.state == .cancelled)
+        #expect(try store.getBanner(id: key.identifier())?.state == .cancelled)
     }
 
     @Test
@@ -50,7 +49,7 @@ struct GemstoneBannerStoreTests {
 
         try await adapter.addBanners(keys: [key], state: Primitives.BannerState.active.json())
 
-        #expect(try store.getBanner(id: bannerIdentifier(key: key))?.state == .cancelled)
+        #expect(try store.getBanner(id: key.identifier())?.state == .cancelled)
     }
 
     private func makeStore() -> (BannerStore, GemstoneBannerStore) {

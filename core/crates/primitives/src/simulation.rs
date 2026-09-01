@@ -1,4 +1,4 @@
-use num_bigint::BigInt;
+use num_bigint::{BigInt, BigUint};
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_option_bigint_from_str, serialize_option_bigint};
 use typeshare::typeshare;
@@ -194,6 +194,12 @@ pub struct SimulationHeader {
     pub is_unlimited: bool,
 }
 
+impl SimulationHeader {
+    fn has_valid_value(&self) -> bool {
+        self.is_unlimited || self.value.parse::<BigUint>().is_ok()
+    }
+}
+
 impl SimulationPayloadField {
     pub fn standard(kind: SimulationPayloadFieldKind, value: impl Into<String>, field_type: SimulationPayloadFieldType, display: SimulationPayloadFieldDisplay) -> Self {
         debug_assert!(kind != SimulationPayloadFieldKind::Custom);
@@ -230,13 +236,26 @@ pub struct SimulationResult {
     pub header: Option<SimulationHeader>,
 }
 
-impl Default for SimulationResult {
-    fn default() -> Self {
-        Self::new(vec![], vec![])
-    }
-}
-
 impl SimulationResult {
+    pub fn asset_ids(&self) -> Vec<AssetId> {
+        let mut asset_ids = Vec::new();
+        for asset_id in self
+            .balance_changes
+            .iter()
+            .map(|change| &change.asset_id)
+            .chain(self.header.as_ref().map(|header| &header.asset_id))
+        {
+            if !asset_ids.contains(asset_id) {
+                asset_ids.push(asset_id.clone());
+            }
+        }
+        asset_ids
+    }
+
+    pub fn valid_header(&self) -> Option<&SimulationHeader> {
+        self.header.as_ref().filter(|header| header.has_valid_value())
+    }
+
     pub fn new(warnings: Vec<SimulationWarning>, payload: Vec<SimulationPayloadField>) -> Self {
         Self {
             warnings: Self::collapse_warnings(warnings),
@@ -267,6 +286,12 @@ impl SimulationResult {
     }
 }
 
+impl Default for SimulationResult {
+    fn default() -> Self {
+        Self::new(vec![], vec![])
+    }
+}
+
 pub fn promote_single_secondary_payload_field(payload: Vec<SimulationPayloadField>) -> Vec<SimulationPayloadField> {
     let secondary_count = payload.iter().filter(|field| field.display == SimulationPayloadFieldDisplay::Secondary).count();
 
@@ -291,12 +316,63 @@ pub fn promote_single_secondary_payload_field(payload: Vec<SimulationPayloadFiel
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        SimulationInput, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity,
-        SimulationWarning, SimulationWarningApproval, SimulationWarningType, promote_single_secondary_payload_field,
-    };
-    use crate::testkit::signer_mock::TEST_SOLANA_SENDER;
     use num_bigint::BigInt;
+
+    use super::{
+        SimulationBalanceChange, SimulationHeader, SimulationInput, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType,
+        SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType, promote_single_secondary_payload_field,
+    };
+    use crate::{AssetId, Chain, testkit::signer_mock::TEST_SOLANA_SENDER};
+
+    #[test]
+    fn test_asset_ids_cover_balance_changes_and_the_header() {
+        let changed = AssetId::from_chain(Chain::Ethereum);
+        let header = AssetId::from_chain(Chain::Solana);
+        let simulation = SimulationResult {
+            balance_changes: vec![
+                SimulationBalanceChange {
+                    asset_id: changed.clone(),
+                    value: "1".to_string(),
+                    name: None,
+                    symbol: None,
+                    decimals: 0,
+                },
+                SimulationBalanceChange {
+                    asset_id: changed.clone(),
+                    value: "2".to_string(),
+                    name: None,
+                    symbol: None,
+                    decimals: 0,
+                },
+            ],
+            header: Some(SimulationHeader {
+                asset_id: header.clone(),
+                value: "2".to_string(),
+                is_unlimited: false,
+            }),
+            ..SimulationResult::default()
+        };
+
+        assert_eq!(simulation.asset_ids(), vec![changed, header]);
+        assert!(SimulationResult::default().asset_ids().is_empty());
+    }
+
+    #[test]
+    fn test_valid_header_requires_a_readable_value() {
+        let simulation = |value: &str, is_unlimited: bool| SimulationResult {
+            header: Some(SimulationHeader {
+                asset_id: AssetId::from_chain(Chain::Ethereum),
+                value: value.to_string(),
+                is_unlimited,
+            }),
+            ..SimulationResult::default()
+        };
+
+        assert!(simulation("1000", false).valid_header().is_some());
+        assert!(simulation("", true).valid_header().is_some());
+        assert!(simulation("not a number", false).valid_header().is_none());
+        assert!(SimulationResult::default().valid_header().is_none());
+    }
 
     #[test]
     fn simulation_input_decodes_wallet_connect_transaction_field() {

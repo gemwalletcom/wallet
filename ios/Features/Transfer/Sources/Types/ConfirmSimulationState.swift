@@ -2,6 +2,7 @@
 
 import BigInt
 import struct Gemstone.GemConfirmSimulation
+import struct Gemstone.GemConfirmSimulationState
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -31,10 +32,11 @@ struct ConfirmSimulationState {
     init(
         data: GemTransferData,
         simulation: SimulationResult?,
-        resolved: GemConfirmSimulation?,
-        addressNames: [ChainAddress: AddressName],
+        state: GemConfirmSimulationState,
     ) {
-        let fields = resolved?.payloadFields.compactMap { try? SimulationPayloadField($0) } ?? []
+        let details = state.simulation
+        let addressNames = state.names
+        let fields = details?.payloadFields.compactMap { try? SimulationPayloadField($0) } ?? []
         var payload = SimulationPayloadModel(
             chain: data.chain,
             primaryFields: fields.primaryFields,
@@ -45,11 +47,11 @@ struct ConfirmSimulationState {
             result: simulation,
             warnings: simulation?.warnings ?? [],
             payload: payload,
-            headerData: resolved?.header.flatMap { header in
+            headerData: details?.header.flatMap { header in
                 guard let value = try? header.value.map() else { return nil }
                 return AssetValueHeaderData(asset: header.asset.map(), value: value)
             },
-            balanceChanges: resolved?.balanceChanges.compactMap { change in
+            balanceChanges: details?.balanceChanges.compactMap { change in
                 guard let value = BigInt(change.value, radix: 10) else { return nil }
                 return SimulationAssetChange(asset: change.asset.map(), value: value)
             } ?? [],

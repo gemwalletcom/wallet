@@ -21,7 +21,6 @@ import com.gemwallet.android.model.NumericFormatter
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TpslType
 import kotlinx.coroutines.CoroutineScope
-import uniffi.gemstone.GemAmountService
 import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.domains.confirm.confirmInput
@@ -50,8 +49,7 @@ class AmountPerpetualProvider(
     getPerpetual: GetPerpetual,
     getPerpetualBalance: GetPerpetualBalance,
     private val scope: CoroutineScope,
-    amountService: GemAmountService,
-) : AmountDataProvider(scope, amountService) {
+) : AmountDataProvider(scope) {
 
     override val title: AmountTitle = AmountTitle.Perpetual(params.positionAction)
     override val canSwitchInputType: Boolean = false

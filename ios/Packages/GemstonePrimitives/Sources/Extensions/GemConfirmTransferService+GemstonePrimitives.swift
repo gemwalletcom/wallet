@@ -4,21 +4,12 @@ import Foundation
 import enum Gemstone.GemTransactionInputType
 import protocol Gemstone.GemConfirmTransferServiceProtocol
 import struct Gemstone.GemConfirmMetadata
+import struct Gemstone.GemConfirmSimulationState
 import Primitives
 
 public extension GemConfirmTransferServiceProtocol {
     func addressName(chain: Primitives.Chain, address: String) throws -> Primitives.AddressName? {
         try addressName(chain: chain.rawValue, address: address).map { try Primitives.AddressName($0) }
-    }
-
-    func addressNames(requests: [Primitives.ChainAddress]) async throws -> [Primitives.ChainAddress: Primitives.AddressName] {
-        let names = try await addressNames(requests: requests.map { $0.json() }).map { try Primitives.AddressName($0) }
-        return Dictionary(uniqueKeysWithValues: names.map { (Primitives.ChainAddress(chain: $0.chain, address: $0.address), $0) })
-    }
-
-    @discardableResult
-    func syncMissingAssets(for assetIds: [Primitives.AssetId]) async throws -> [Primitives.AssetId] {
-        try await syncMissingAssets(assetIds: assetIds.ids).map { try Primitives.AssetId(id: $0) }
     }
 
     func explorerLink(chain: Primitives.Chain, address: String) -> BlockExplorerLink {
@@ -33,8 +24,15 @@ public extension GemConfirmTransferServiceProtocol {
         try metadata(walletId: walletId.id, inputType: inputType)
     }
 
-    func outputAction(for inputType: GemTransactionInputType) -> Primitives.TransferDataOutputAction {
-        Primitives.TransferDataOutputAction(core: outputAction(inputType: inputType))
-    }
 }
 
+public extension GemConfirmSimulationState {
+    var names: [Primitives.ChainAddress: Primitives.AddressName] {
+        Dictionary(
+            addressNames
+                .map { Primitives.AddressName(core: $0) }
+                .map { (Primitives.ChainAddress(chain: $0.chain, address: $0.address), $0) },
+            uniquingKeysWith: { first, _ in first },
+        )
+    }
+}

@@ -103,9 +103,9 @@ impl GemConfirmService {
     }
 
     pub fn simulation(&self, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> Result<GemConfirmSimulation, GemConfirmError> {
-        let asset_ids = rules::simulation_asset_ids(&simulation);
+        let asset_ids = simulation.as_ref().map(SimulationResult::asset_ids).unwrap_or_default();
         let assets = self.assets.assets(asset_ids).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
-        let approval = rules::approval_value(&input_type);
+        let approval = input_type.approval_value();
         let shows_header = self.simulation_formatter.shows_header(simulation.clone(), approval.is_some());
         let payload_fields = self
             .simulation_formatter
@@ -142,7 +142,8 @@ impl GemConfirmService {
         let asset_id = input.transfer.input_type.asset().id.clone();
         let confirm_data = self.load(input, options).await?;
         let fee_asset_id = confirm_data.fee.fee_asset.clone();
-        let metadata = self.metadata(wallet_id.clone(), asset_id, fee_asset_id.clone(), Vec::new())?;
+        let extra_asset_ids = confirm_data.input.transfer.input_type.asset_ids();
+        let metadata = self.metadata(wallet_id.clone(), asset_id, fee_asset_id.clone(), extra_asset_ids)?;
         let fee_asset = self
             .assets
             .assets(vec![fee_asset_id.clone()])
@@ -150,7 +151,7 @@ impl GemConfirmService {
             .into_iter()
             .next()
             .ok_or(GemConfirmError::BalanceMissing { asset_id: fee_asset_id.clone() })?;
-        let amount = rules::preload_amount(&confirm_data, &metadata, &fee_asset)?;
+        let amount = confirm_data.preload_amount(&metadata, &fee_asset)?;
         Ok(GemConfirmPreload {
             confirm_data,
             metadata,
@@ -160,20 +161,31 @@ impl GemConfirmService {
     }
 
     pub async fn execute(&self, input: GemSendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {
-        let transactions = signer.sign(input.wallet.clone(), rules::signer_input(&input)?).await?;
+        let signer_input = input.signer_input()?;
+        let transactions = signer.sign(input.wallet.clone(), signer_input).await?;
         if transactions.is_empty() {
             return Err(GemConfirmError::Sign {
                 error: GemSignerError::SigningError("no signed transactions".to_string()),
                 msg: "no signed transactions".to_string(),
             });
         }
-        rules::validate_approvals(&input.confirm.input.transfer.input_type, &transactions)?;
-        match rules::output_action(&input.confirm.input.transfer.input_type) {
+        input.confirm.input.transfer.input_type.validate_approvals(&transactions)?;
+        match input.confirm.input.transfer.input_type.output().output_action {
             TransferDataOutputAction::Sign => Ok(GemExecuteResult::Signed {
                 data: transactions.into_iter().map(|transaction| transaction.data).collect(),
             }),
             TransferDataOutputAction::Send => {
-                let result = self.send(input, transactions).await?;
+                let wallet_id = input.wallet.id.clone();
+                let result = match self.send(input, transactions).await {
+                    Ok(result) => result,
+                    Err(error) => {
+                        if matches!(error, GemConfirmError::Broadcast { .. }) {
+                            let _ = self.track_pending().await;
+                        }
+                        return Err(error);
+                    }
+                };
+                let _ = self.track(wallet_id, result.transactions.clone()).await;
                 Ok(GemExecuteResult::Sent {
                     hashes: result.hashes,
                     transactions: result.transactions,
@@ -209,7 +221,7 @@ impl GemConfirmService {
 
         rules::validate_scan(scan.as_ref(), transfer.recipient.memo.as_deref(), &symbol)?;
 
-        let selected = rules::select_fee_rate(&fee_rates, &options.fee_selection)?;
+        let selected = options.fee_selection.select_fee_rate(&fee_rates)?;
         let load = self
             .gateway
             .get_transaction_load(
@@ -260,7 +272,7 @@ impl GemConfirmService {
 
     async fn broadcast(&self, input_type: GemTransactionInputType, transactions: Vec<GemSignedTransaction>) -> Result<Vec<String>, GemConfirmError> {
         let chain = input_type.asset().id.chain;
-        let options = rules::broadcast_options(chain, &input_type);
+        let options = input_type.broadcast_options();
         let delay = rules::broadcast_delay_milliseconds(chain);
         let mut hashes: Vec<String> = Vec::with_capacity(transactions.len());
 
@@ -280,7 +292,7 @@ impl GemConfirmService {
     }
 
     async fn record(&self, input: &GemSendInput, hashes: &[String], transactions: &[GemSignedTransaction]) -> Result<Vec<Transaction>, GemConfirmError> {
-        let pending = rules::pending_transactions(input, hashes, transactions)?;
+        let pending = input.pending_transactions(hashes, transactions)?;
         if pending.is_empty() {
             return Ok(pending);
         }
@@ -292,7 +304,7 @@ impl GemConfirmService {
     }
 
     async fn simulate(&self, chain: Chain, input: &GemConfirmInput) -> Result<Option<SimulationResult>, GemConfirmError> {
-        let Some(transaction) = rules::simulation_payload(&input.transfer.input_type) else {
+        let Some(transaction) = input.transfer.input_type.simulation_payload() else {
             return Ok(None);
         };
         self.simulation

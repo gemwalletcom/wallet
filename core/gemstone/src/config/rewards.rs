@@ -5,19 +5,22 @@ pub enum RewardsUrl {
 
 const WEBSITE_URL: &str = "https://gemwallet.com";
 
-pub fn get_rewards_url(item: RewardsUrl, locale: Option<String>) -> String {
-    let path = match item {
-        RewardsUrl::Rewards => "/rewards",
-    };
+#[uniffi::export]
+impl RewardsUrl {
+    pub fn url(&self, locale: Option<String>) -> String {
+        let path = match self {
+            Self::Rewards => "/rewards",
+        };
 
-    let website_locale = normalize_locale(locale);
-    let locale_prefix = if website_locale.is_empty() || website_locale == "en" {
-        String::new()
-    } else {
-        format!("/{}", website_locale)
-    };
+        let website_locale = normalize_locale(locale);
+        let locale_prefix = if website_locale.is_empty() || website_locale == "en" {
+            String::new()
+        } else {
+            format!("/{}", website_locale)
+        };
 
-    format!("{WEBSITE_URL}{locale_prefix}{path}")
+        format!("{WEBSITE_URL}{locale_prefix}{path}")
+    }
 }
 
 pub fn get_referral_url(code: &str) -> String {
@@ -77,11 +80,11 @@ mod tests {
 
     #[test]
     fn test_get_rewards_url() {
-        assert_eq!(get_rewards_url(RewardsUrl::Rewards, Some("en".to_string())), "https://gemwallet.com/rewards");
-        assert_eq!(get_rewards_url(RewardsUrl::Rewards, None), "https://gemwallet.com/rewards");
-        assert_eq!(get_rewards_url(RewardsUrl::Rewards, Some("ru".to_string())), "https://gemwallet.com/ru/rewards");
-        assert_eq!(get_rewards_url(RewardsUrl::Rewards, Some("zh-Hans".to_string())), "https://gemwallet.com/zh-cn/rewards");
-        assert_eq!(get_rewards_url(RewardsUrl::Rewards, Some("zh-Hant".to_string())), "https://gemwallet.com/zh-tw/rewards");
-        assert_eq!(get_rewards_url(RewardsUrl::Rewards, Some("pt-BR".to_string())), "https://gemwallet.com/pt-br/rewards");
+        assert_eq!(RewardsUrl::Rewards.url(Some("en".to_string())), "https://gemwallet.com/rewards");
+        assert_eq!(RewardsUrl::Rewards.url(None), "https://gemwallet.com/rewards");
+        assert_eq!(RewardsUrl::Rewards.url(Some("ru".to_string())), "https://gemwallet.com/ru/rewards");
+        assert_eq!(RewardsUrl::Rewards.url(Some("zh-Hans".to_string())), "https://gemwallet.com/zh-cn/rewards");
+        assert_eq!(RewardsUrl::Rewards.url(Some("zh-Hant".to_string())), "https://gemwallet.com/zh-tw/rewards");
+        assert_eq!(RewardsUrl::Rewards.url(Some("pt-BR".to_string())), "https://gemwallet.com/pt-br/rewards");
     }
 }

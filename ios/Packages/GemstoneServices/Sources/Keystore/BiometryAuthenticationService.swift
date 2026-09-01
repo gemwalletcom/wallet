@@ -19,7 +19,7 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
     public func shouldRelock(elapsedMilliseconds: Int64) -> Bool {
         securityService.shouldRelock(
             elapsedMilliseconds: elapsedMilliseconds,
-            lockIntervalMinutes: securityService.lockPeriodMinutes(period: lockPeriod.gemLockPeriod),
+            lockIntervalMinutes: lockPeriod.gemLockPeriod.minutes(),
             authRequired: requiresAuthentication,
             hasPendingRequest: false,
         )

@@ -6,7 +6,7 @@ use crate::services::avatar::GemAvatarService;
 use crate::services::chain::GemChainService;
 use crate::services::error::GemServiceError;
 use crate::services::name::GemNameService;
-use crate::services::wallet::{GemWalletImportError, GemWalletImportResult, GemWalletImportType, GemWalletService, GemWalletSource};
+use crate::services::wallet::{GemWalletImportResult, GemWalletImportType, GemWalletService, GemWalletSource};
 use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
@@ -43,10 +43,6 @@ impl GemOnboardingService {
 
     pub fn next_wallet_index(&self) -> Result<i32, GemServiceError> {
         self.wallets.next_wallet_index()
-    }
-
-    pub fn validate_import(&self, import: GemWalletImportType) -> Result<GemWalletImportType, GemWalletImportError> {
-        self.wallets.validate_import(import)
     }
 
     pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: GemWalletSource) -> Result<GemWalletImportResult, GemServiceError> {

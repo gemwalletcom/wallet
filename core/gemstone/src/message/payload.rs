@@ -33,12 +33,20 @@ enum CanonicalPayloadLabel<'a> {
     Custom(Cow<'a, str>),
 }
 
-pub fn eip712_payload_preview(message: &GemEIP712Message, simulation_payload: Vec<SimulationPayloadField>) -> MessagePayloadPreview {
-    grouped_payload_preview(eip712_preview_fields(message), simulation_payload)
+impl GemEIP712Message {
+    pub(super) fn payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> MessagePayloadPreview {
+        grouped_payload_preview(eip712_preview_fields(self), simulation_payload)
+    }
 }
 
-pub fn siwe_payload_preview(message: &SiweMessage, simulation_payload: Vec<SimulationPayloadField>) -> MessagePayloadPreview {
-    grouped_payload_preview(siwe_preview_fields(message), simulation_payload)
+pub(crate) trait SiweMessageExt {
+    fn payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> MessagePayloadPreview;
+}
+
+impl SiweMessageExt for SiweMessage {
+    fn payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> MessagePayloadPreview {
+        grouped_payload_preview(siwe_preview_fields(self), simulation_payload)
+    }
 }
 
 fn grouped_payload_preview(preview_fields: Vec<MessagePayloadField>, simulation_payload: Vec<SimulationPayloadField>) -> MessagePayloadPreview {
@@ -340,7 +348,7 @@ impl PayloadMergeKey {
 
 #[cfg(test)]
 mod tests {
-    use super::{eip712_payload_preview, siwe_payload_preview};
+    use super::SiweMessageExt;
     use crate::message::eip712::{GemEIP712Message, GemEIP712Section, GemEIP712Value, GemEIP712ValueType};
     use crate::siwe::SiweMessage;
     use gem_evm::EIP712Domain;
@@ -348,18 +356,16 @@ mod tests {
 
     #[test]
     fn siwe_preview_groups_domain_and_address_as_primary() {
-        let preview = siwe_payload_preview(
-            &SiweMessage {
-                domain: "login.xyz".into(),
-                address: "0x123".into(),
-                uri: "https://login.xyz".into(),
-                chain_id: 1,
-                nonce: "nonce".into(),
-                version: "1".into(),
-                issued_at: "2026-03-09T15:48:34.458Z".into(),
-            },
-            vec![],
-        );
+        let preview = SiweMessage {
+            domain: "login.xyz".into(),
+            address: "0x123".into(),
+            uri: "https://login.xyz".into(),
+            chain_id: 1,
+            nonce: "nonce".into(),
+            version: "1".into(),
+            issued_at: "2026-03-09T15:48:34.458Z".into(),
+        }
+        .payload_preview(vec![]);
 
         assert_eq!(preview.primary.len(), 2);
         assert_eq!(preview.secondary.len(), 5);
@@ -367,52 +373,50 @@ mod tests {
 
     #[test]
     fn eip712_preview_keeps_simulation_primary_payload() {
-        let preview = eip712_payload_preview(
-            &GemEIP712Message {
-                domain: EIP712Domain {
-                    name: Some("Permit2".into()),
-                    version: None,
-                    chain_id: Some(1),
-                    verifying_contract: Some("0xContract".into()),
-                    salts: None,
-                },
-                message: vec![GemEIP712Section {
-                    name: "PermitSingle".into(),
-                    values: vec![
-                        GemEIP712Value {
-                            name: "spender".into(),
-                            value: "0xSpender".into(),
-                            value_type: GemEIP712ValueType::Address,
-                        },
-                        GemEIP712Value {
-                            name: "amount".into(),
-                            value: "100".into(),
-                            value_type: GemEIP712ValueType::Text,
-                        },
-                    ],
-                }],
+        let preview = GemEIP712Message {
+            domain: EIP712Domain {
+                name: Some("Permit2".into()),
+                version: None,
+                chain_id: Some(1),
+                verifying_contract: Some("0xContract".into()),
+                salts: None,
             },
-            vec![
-                SimulationPayloadField::standard(
-                    SimulationPayloadFieldKind::Contract,
-                    "0xContract",
-                    SimulationPayloadFieldType::Address,
-                    SimulationPayloadFieldDisplay::Primary,
-                ),
-                SimulationPayloadField::standard(
-                    SimulationPayloadFieldKind::Method,
-                    "Permit Single",
-                    SimulationPayloadFieldType::Text,
-                    SimulationPayloadFieldDisplay::Primary,
-                ),
-                SimulationPayloadField::standard(
-                    SimulationPayloadFieldKind::Spender,
-                    "0xSpender",
-                    SimulationPayloadFieldType::Address,
-                    SimulationPayloadFieldDisplay::Primary,
-                ),
-            ],
-        );
+            message: vec![GemEIP712Section {
+                name: "PermitSingle".into(),
+                values: vec![
+                    GemEIP712Value {
+                        name: "spender".into(),
+                        value: "0xSpender".into(),
+                        value_type: GemEIP712ValueType::Address,
+                    },
+                    GemEIP712Value {
+                        name: "amount".into(),
+                        value: "100".into(),
+                        value_type: GemEIP712ValueType::Text,
+                    },
+                ],
+            }],
+        }
+        .payload_preview(vec![
+            SimulationPayloadField::standard(
+                SimulationPayloadFieldKind::Contract,
+                "0xContract",
+                SimulationPayloadFieldType::Address,
+                SimulationPayloadFieldDisplay::Primary,
+            ),
+            SimulationPayloadField::standard(
+                SimulationPayloadFieldKind::Method,
+                "Permit Single",
+                SimulationPayloadFieldType::Text,
+                SimulationPayloadFieldDisplay::Primary,
+            ),
+            SimulationPayloadField::standard(
+                SimulationPayloadFieldKind::Spender,
+                "0xSpender",
+                SimulationPayloadFieldType::Address,
+                SimulationPayloadFieldDisplay::Primary,
+            ),
+        ]);
 
         assert_eq!(preview.primary.len(), 3);
         assert_eq!(preview.secondary.len(), 2);
@@ -422,27 +426,25 @@ mod tests {
 
     #[test]
     fn preview_promotes_single_secondary_field() {
-        let preview = eip712_payload_preview(
-            &GemEIP712Message {
-                domain: EIP712Domain {
-                    name: None,
-                    version: None,
-                    chain_id: Some(1),
-                    verifying_contract: None,
-                    salts: None,
-                },
-                message: vec![GemEIP712Section {
-                    name: "Action".into(),
-                    values: vec![],
-                }],
+        let preview = GemEIP712Message {
+            domain: EIP712Domain {
+                name: None,
+                version: None,
+                chain_id: Some(1),
+                verifying_contract: None,
+                salts: None,
             },
-            vec![SimulationPayloadField::standard(
-                SimulationPayloadFieldKind::Contract,
-                "0xContract",
-                SimulationPayloadFieldType::Address,
-                SimulationPayloadFieldDisplay::Primary,
-            )],
-        );
+            message: vec![GemEIP712Section {
+                name: "Action".into(),
+                values: vec![],
+            }],
+        }
+        .payload_preview(vec![SimulationPayloadField::standard(
+            SimulationPayloadFieldKind::Contract,
+            "0xContract",
+            SimulationPayloadFieldType::Address,
+            SimulationPayloadFieldDisplay::Primary,
+        )]);
 
         assert_eq!(preview.primary.len(), 2);
         assert!(preview.secondary.is_empty());
@@ -450,23 +452,21 @@ mod tests {
 
     #[test]
     fn preview_promotes_secondary_fields_when_primary_is_empty() {
-        let preview = siwe_payload_preview(
-            &SiweMessage {
-                domain: "login.xyz".into(),
-                address: "0x123".into(),
-                uri: "https://login.xyz".into(),
-                chain_id: 1,
-                nonce: "nonce".into(),
-                version: "1".into(),
-                issued_at: "2026-03-09T15:48:34.458Z".into(),
-            },
-            vec![SimulationPayloadField::custom(
-                "customField",
-                "value",
-                SimulationPayloadFieldType::Text,
-                SimulationPayloadFieldDisplay::Secondary,
-            )],
-        );
+        let preview = SiweMessage {
+            domain: "login.xyz".into(),
+            address: "0x123".into(),
+            uri: "https://login.xyz".into(),
+            chain_id: 1,
+            nonce: "nonce".into(),
+            version: "1".into(),
+            issued_at: "2026-03-09T15:48:34.458Z".into(),
+        }
+        .payload_preview(vec![SimulationPayloadField::custom(
+            "customField",
+            "value",
+            SimulationPayloadFieldType::Text,
+            SimulationPayloadFieldDisplay::Secondary,
+        )]);
 
         assert_eq!(preview.primary.len(), 8);
         assert!(preview.primary.iter().any(|field| field.label.as_deref() == Some("customField")));

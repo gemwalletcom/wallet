@@ -198,19 +198,32 @@ impl GemSimulationFormatter {
     }
 
     pub fn header(&self, simulation: Option<SimulationResult>) -> Option<SimulationHeader> {
-        simulation_header(simulation)
+        simulation.and_then(|simulation| simulation.valid_header().cloned())
     }
 
     pub fn payload_fields(&self, payload: Vec<SimulationPayloadField>, shows_header: bool) -> Vec<SimulationPayloadField> {
-        simulation_payload_fields(payload, shows_header)
+        if !shows_header {
+            return payload;
+        }
+        payload.into_iter().filter(|field| field.kind != SimulationPayloadFieldKind::Value).collect()
     }
 
     pub fn shows_header(&self, simulation: Option<SimulationResult>, is_approval: bool) -> bool {
-        is_approval || simulation_header(simulation).is_some()
+        is_approval || simulation.as_ref().and_then(SimulationResult::valid_header).is_some()
     }
 
     pub fn balance_changes(&self, simulation: Option<SimulationResult>, known_asset_ids: Vec<AssetId>) -> Vec<GemSimulationChange> {
-        simulation_balance_changes(simulation, known_asset_ids)
+        let known: HashSet<String> = known_asset_ids.into_iter().map(|asset_id| asset_id.to_string()).collect();
+        simulation
+            .map(|simulation| simulation.balance_changes)
+            .unwrap_or_default()
+            .into_iter()
+            .filter(|change| known.contains(&change.asset_id.to_string()))
+            .filter_map(|change| {
+                let value = change.value.parse::<GemBigInt>().ok()?;
+                (value != GemBigInt::ZERO).then_some(GemSimulationChange { asset_id: change.asset_id, value })
+            })
+            .collect()
     }
 }
 
@@ -218,33 +231,6 @@ impl GemSimulationFormatter {
 pub struct GemSimulationChange {
     pub asset_id: AssetId,
     pub value: GemBigInt,
-}
-
-fn simulation_header(simulation: Option<SimulationResult>) -> Option<SimulationHeader> {
-    let header = simulation?.header?;
-    let has_value = header.is_unlimited || header.value.parse::<num_bigint::BigUint>().is_ok();
-    has_value.then_some(header)
-}
-
-fn simulation_balance_changes(simulation: Option<SimulationResult>, known_asset_ids: Vec<AssetId>) -> Vec<GemSimulationChange> {
-    let known: HashSet<String> = known_asset_ids.into_iter().map(|asset_id| asset_id.to_string()).collect();
-    simulation
-        .map(|simulation| simulation.balance_changes)
-        .unwrap_or_default()
-        .into_iter()
-        .filter(|change| known.contains(&change.asset_id.to_string()))
-        .filter_map(|change| {
-            let value = change.value.parse::<GemBigInt>().ok()?;
-            (value != GemBigInt::ZERO).then_some(GemSimulationChange { asset_id: change.asset_id, value })
-        })
-        .collect()
-}
-
-fn simulation_payload_fields(payload: Vec<SimulationPayloadField>, shows_header: bool) -> Vec<SimulationPayloadField> {
-    if !shows_header {
-        return payload;
-    }
-    payload.into_iter().filter(|field| field.kind != SimulationPayloadFieldKind::Value).collect()
 }
 
 #[cfg(test)]
@@ -283,14 +269,15 @@ mod tests {
             .map(|id| AssetId::new(id).unwrap())
             .collect();
 
-        let changes = simulation_balance_changes(Some(simulation), known);
+        let formatter = GemSimulationFormatter::new();
+        let changes = formatter.balance_changes(Some(simulation), known);
 
         assert_eq!(
             changes.iter().map(|change| change.value.to_string()).collect::<Vec<_>>(),
             vec!["-1000", "2000"],
             "keeps signed non-zero changes for known assets only"
         );
-        assert!(simulation_balance_changes(None, vec![]).is_empty());
+        assert!(formatter.balance_changes(None, vec![]).is_empty());
     }
 
     #[derive(Debug)]
@@ -348,17 +335,6 @@ mod tests {
         assert_eq!(transaction_object.max_priority_fee_per_gas, None);
     }
 
-    fn header(value: &str, is_unlimited: bool) -> SimulationResult {
-        SimulationResult {
-            header: Some(SimulationHeader {
-                asset_id: primitives::AssetId::from_chain(Chain::Ethereum),
-                value: value.to_string(),
-                is_unlimited,
-            }),
-            ..SimulationResult::default()
-        }
-    }
-
     fn field(kind: SimulationPayloadFieldKind) -> SimulationPayloadField {
         SimulationPayloadField {
             kind,
@@ -370,21 +346,13 @@ mod tests {
     }
 
     #[test]
-    fn test_a_header_needs_a_value_that_can_be_read() {
-        assert!(simulation_header(Some(header("1000", false))).is_some());
-        assert!(simulation_header(Some(header("", true))).is_some());
-        assert!(simulation_header(Some(header("not a number", false))).is_none());
-        assert!(simulation_header(Some(SimulationResult::default())).is_none());
-        assert!(simulation_header(None).is_none());
-    }
-
-    #[test]
     fn test_the_value_field_gives_way_to_the_header() {
         let payload = vec![field(SimulationPayloadFieldKind::Value), field(SimulationPayloadFieldKind::Contract)];
+        let formatter = GemSimulationFormatter::new();
 
-        assert_eq!(simulation_payload_fields(payload.clone(), false).len(), 2);
+        assert_eq!(formatter.payload_fields(payload.clone(), false).len(), 2);
         assert_eq!(
-            simulation_payload_fields(payload, true).into_iter().map(|field| field.kind).collect::<Vec<_>>(),
+            formatter.payload_fields(payload, true).into_iter().map(|field| field.kind).collect::<Vec<_>>(),
             vec![SimulationPayloadFieldKind::Contract]
         );
     }

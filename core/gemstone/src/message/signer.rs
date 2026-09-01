@@ -15,7 +15,7 @@ use sui_types::PersonalMessage;
 
 use super::{
     eip712::GemEIP712Message,
-    payload::{MessagePayloadPreview, eip712_payload_preview, siwe_payload_preview},
+    payload::{MessagePayloadPreview, SiweMessageExt},
     sign_type::{SignDigestType, SignMessage},
 };
 use crate::{GemstoneError, keystore::GemKeystore, siwe::SiweMessage};
@@ -87,8 +87,8 @@ impl MessageSigner {
                 SignDigestType::Eip191 | SignDigestType::Siwe => self.siwe_payload_preview(simulation_payload),
                 _ => None,
             },
-            MessagePreview::EIP712(message) => Some(eip712_payload_preview(&message, simulation_payload)),
-            MessagePreview::Siwe(message) => Some(siwe_payload_preview(&message, simulation_payload)),
+            MessagePreview::EIP712(message) => Some(message.payload_preview(simulation_payload)),
+            MessagePreview::Siwe(message) => Some(message.payload_preview(simulation_payload)),
         };
 
         Ok(payload_preview)
@@ -193,7 +193,7 @@ impl MessageSigner {
     fn siwe_payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> Option<MessagePayloadPreview> {
         let string = String::from_utf8(self.message.data.clone()).ok()?;
         let message = SiweMessage::try_parse(&string)?;
-        Some(siwe_payload_preview(&message, simulation_payload))
+        Some(message.payload_preview(simulation_payload))
     }
 
     fn get_ton_result(&self, result: &TonSignResult) -> Result<String, GemstoneError> {

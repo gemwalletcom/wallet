@@ -76,7 +76,7 @@ class AssetsResultsViewModel @Inject constructor(
     switchAssetVisibility,
     setAssetPinned,
     searchTokensCase,
-    selectSearchOf(savedStateHandle, searchSelectAssets, searchListAssets, assetConfig),
+    selectSearchOf(savedStateHandle, searchSelectAssets, searchListAssets),
     assetConfig,
     remoteSearch = false,
 ) {
@@ -159,10 +159,9 @@ private fun selectSearchOf(
     savedStateHandle: SavedStateHandle,
     searchSelectAssets: SearchSelectAssets,
     searchListAssets: SearchListAssets,
-    assetConfig: GemAssetConfigService,
 ): SelectSearch {
     return when (val scope = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))) {
         is WalletSearchTag.List -> ListSelectSearch(searchListAssets, scope.id)
-        WalletSearchTag.All -> BaseSelectSearch(searchSelectAssets, assetConfig)
+        WalletSearchTag.All -> BaseSelectSearch(searchSelectAssets)
     }
 }

@@ -50,19 +50,18 @@ pub struct GemTransferOutput {
     pub output_action: TransferDataOutputAction,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
-pub struct GemPendingTransactionInput {
-    pub sender: String,
-    pub transfer: GemTransferData,
-    pub value: GemBigInt,
-    pub transaction_type: TransactionType,
-    pub hash: String,
-    pub fee: GemTransactionLoadFee,
-    pub network_fee: GemBigInt,
-    pub metadata: GemTransactionLoadMetadata,
-    pub simulation: Option<SimulationResult>,
-    pub transaction_index: u32,
-    pub transaction_count: u32,
+pub(crate) struct GemPendingTransactionInput {
+    pub(crate) sender: String,
+    pub(crate) transfer: GemTransferData,
+    pub(crate) value: GemBigInt,
+    pub(crate) transaction_type: TransactionType,
+    pub(crate) hash: String,
+    pub(crate) fee: GemTransactionLoadFee,
+    pub(crate) network_fee: GemBigInt,
+    pub(crate) metadata: GemTransactionLoadMetadata,
+    pub(crate) simulation: Option<SimulationResult>,
+    pub(crate) transaction_index: u32,
+    pub(crate) transaction_count: u32,
 }
 
 #[cfg(test)]

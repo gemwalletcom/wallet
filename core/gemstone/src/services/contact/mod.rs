@@ -62,11 +62,6 @@ impl GemContactService {
         }
     }
 
-    pub fn add_address(&self, addresses: Vec<ContactAddress>, input: GemContactAddressInput) -> Vec<ContactAddress> {
-        let address = rules::contact_address(input.contact_id, input.chain, input.address, input.memo);
-        rules::upsert_address(addresses, address, input.replacing_id)
-    }
-
     pub async fn update_contact(&self, contact: Contact, addresses: Vec<ContactAddress>) -> Result<(), GemServiceError> {
         let existing = self.store.get_addresses(contact.id.clone()).await?;
         let stale = rules::stale_addresses(existing, &addresses);
@@ -113,10 +108,6 @@ impl GemContactsService {
         Self { contacts }
     }
 
-    pub fn add_address(&self, addresses: Vec<ContactAddress>, input: GemContactAddressInput) -> Vec<ContactAddress> {
-        self.contacts.add_address(addresses, input)
-    }
-
     pub async fn update_contact(&self, contact: Contact, addresses: Vec<ContactAddress>) -> Result<(), GemServiceError> {
         self.contacts.update_contact(contact, addresses).await
     }
@@ -148,10 +139,6 @@ impl GemManageContactService {
 
     pub fn default_chain(&self) -> Chain {
         self.contacts.default_chain()
-    }
-
-    pub fn add_address(&self, addresses: Vec<ContactAddress>, input: GemContactAddressInput) -> Vec<ContactAddress> {
-        self.contacts.add_address(addresses, input)
     }
 
     pub async fn save_contact(&self, input: GemContactInput) -> Result<Contact, GemServiceError> {

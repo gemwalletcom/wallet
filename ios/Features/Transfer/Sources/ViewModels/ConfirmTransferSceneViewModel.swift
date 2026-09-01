@@ -2,6 +2,7 @@
 
 import struct Gemstone.GemConfirmData
 import struct Gemstone.GemConfirmPreload
+import struct Gemstone.GemConfirmSimulationState
 import struct Gemstone.GemConfirmLoadOptions
 import struct Gemstone.GemSendInput
 import enum Gemstone.GemConfirmError
@@ -61,7 +62,6 @@ public final class ConfirmTransferSceneViewModel {
     private let signer: any GemTransactionSigner
     private let keystore: any Keystore
     private let recentAssetsService: any RecentAssetsServiceable
-    private let toastPresenter: ToastPresenter
 
     public init(
         request: ConfirmTransferRequest,
@@ -69,8 +69,7 @@ public final class ConfirmTransferSceneViewModel {
         signer: any GemTransactionSigner,
         keystore: any Keystore,
         recentAssetsService: any RecentAssetsServiceable,
-        toastPresenter: ToastPresenter,
-        preferencesService: any GemPreferencesServiceProtocol,
+        currency: Currency,
         onComplete: VoidAction,
     ) {
         self.request = request
@@ -78,10 +77,8 @@ public final class ConfirmTransferSceneViewModel {
         self.signer = signer
         self.keystore = keystore
         self.recentAssetsService = recentAssetsService
-        self.toastPresenter = toastPresenter
         self.onComplete = onComplete
 
-        let currency = preferencesService.currencyValue
         self.currency = currency
         let sceneState = service.sceneState(
             walletId: request.wallet.id.id,
@@ -101,8 +98,7 @@ public final class ConfirmTransferSceneViewModel {
             simulation: ConfirmSimulationState(
                 data: request.data,
                 simulation: request.simulation,
-                resolved: sceneState.simulation,
-                addressNames: [:],
+                state: GemConfirmSimulationState(simulation: sceneState.simulation, addressNames: []),
             ),
             metadata: sceneState.metadata,
             feeAsset: sceneState.feeAsset.map(),
@@ -195,7 +191,6 @@ public final class ConfirmTransferSceneViewModel {
         )
     }
 }
-
 // MARK: - ListSectionProvideable
 
 extension ConfirmTransferSceneViewModel: ListSectionProvideable {
@@ -225,7 +220,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         case .warnings:
             ConfirmTransferItemModel.warnings(simulationWarnings)
         case .app:
-            ConfirmAppViewModel(type: request.data.inputType, shortName: service.applicationShortName(inputType: request.data.inputType))
+            ConfirmAppViewModel(type: request.data.inputType, shortName: request.data.inputType.applicationShortName())
         case .sender:
             ConfirmSenderViewModel(wallet: request.wallet)
         case .network:
@@ -235,7 +230,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
                 model: dataModel,
                 addressName: recipientAddressNameQuery.value,
                 addressLink: explorerLink(chain: dataModel.chain, address: dataModel.recipient.address),
-                outputAction: service.outputAction(for: request.data.inputType),
+                outputAction: request.data.inputType.outputAction,
                 onAddContact: onSelectAddRecipientToContacts,
             )
         case .memo:
@@ -456,7 +451,7 @@ extension ConfirmTransferSceneViewModel {
             input: ConfirmTransferInput(
                 confirmData: preload.confirmData,
                 fee: preload.confirmData.fee.map(),
-                transferAmount: preload.amount.map(asset: request.data.inputType.asset, feeAsset: feeAsset),
+                transferAmount: preload.amount.map(),
                 feeAsset: feeAsset,
             ),
             feeRates: preload.confirmData.feeRates.map { try $0.map() },
@@ -465,15 +460,8 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func updatedSimulationState(data: GemTransferData, simulation: Primitives.SimulationResult?) async -> ConfirmSimulationState {
-        do {
-            try await service.syncMissingAssets(for: simulation?.simulationAssetIds ?? [])
-        } catch {
-            debugLog("simulation asset preload error: \(error)")
-        }
-        let resolved = try? service.simulation(inputType: data.inputType, simulation: simulation?.json())
-        let requests = ConfirmSimulationState(data: data, simulation: simulation, resolved: resolved, addressNames: [:]).payload.addressRequests
-        let names = (try? await service.addressNames(requests: requests)) ?? [:]
-        return ConfirmSimulationState(data: data, simulation: simulation, resolved: resolved, addressNames: names)
+        let state = await service.simulationState(inputType: data.inputType, simulation: simulation?.json())
+        return ConfirmSimulationState(data: data, simulation: simulation, state: state)
     }
 
     func submit(request: ConfirmTransferRequest, confirmData: GemConfirmData, amount: TransferAmount, simulation: Primitives.SimulationResult?) async throws {
@@ -489,71 +477,20 @@ extension ConfirmTransferSceneViewModel {
             result = try await service.execute(input: input, signer: signer)
         } catch let GemConfirmError.Broadcast(hashes, msg) {
             hashes.forEach { request.delegate?(.success($0)) }
-            trackPending()
             throw GemConfirmError.Broadcast(hashes: hashes, msg: msg)
         }
         switch result {
         case let .signed(data):
             data.forEach { request.delegate?(.success($0)) }
-        case let .sent(hashes, transactions):
+        case let .sent(hashes, _):
             hashes.forEach { request.delegate?(.success($0)) }
-            track(wallet: request.wallet, transactions: try transactions.map { try Primitives.Transaction($0) })
         }
-        await toastPresenter.present(.transfer(for: request.data.inputType))
-        if let recent = service.recentActivity(inputType: request.data.inputType) {
+        if let recent = request.data.inputType.recentActivity() {
             do {
                 try recentAssetsService.add(RecentActivityData(recent), walletId: request.wallet.id)
             } catch {
                 debugLog("Failed to update recent activity: \(error)")
             }
         }
-    }
-
-    func trackPending() {
-        Task {
-            do {
-                try await service.trackPending()
-            } catch {
-                debugLog("confirm: pending tracking failed \(error)")
-            }
-        }
-    }
-
-    func track(wallet: Wallet, transactions: [Primitives.Transaction]) {
-        Task {
-            do {
-                try await service.track(walletId: wallet.id, transactions: transactions)
-            } catch {
-                debugLog("confirm: transaction tracking failed \(error)")
-            }
-        }
-    }
-}
-
-private extension Primitives.SimulationResult {
-    var simulationAssetIds: [AssetId] {
-        balanceChanges.map(\.assetId) + [header?.assetId].compactMap(\.self)
-    }
-}
-
-private extension GemTransferAmountResult {
-    func map(asset: Primitives.Asset, feeAsset: Primitives.Asset) -> Result<Primitives.TransferAmount, TransferAmountCalculatorError> {
-        switch self {
-        case let .amount(amount):
-            guard let value = try? BigInt.from(string: amount.value), let networkFee = try? BigInt.from(string: amount.networkFee) else {
-                return .failure(failure(.insufficientBalance(assetId: asset.id, requirement: BalanceRequirement(required: .zero, available: .zero)), asset, feeAsset))
-            }
-            return .success(Primitives.TransferAmount(value: value, networkFee: networkFee, useMaxAmount: amount.isMaxAmount))
-        case let .error(error):
-            let mapped = (try? error.map()) ?? .insufficientBalance(
-                assetId: error.assetId ?? asset.id,
-                requirement: BalanceRequirement(required: .zero, available: .zero),
-            )
-            return .failure(failure(mapped, asset, feeAsset))
-        }
-    }
-
-    private func failure(_ error: TransferAmountError, _ asset: Primitives.Asset, _ feeAsset: Primitives.Asset) -> TransferAmountCalculatorError {
-        TransferAmountCalculatorError(error, asset: asset, assetFee: feeAsset)
     }
 }

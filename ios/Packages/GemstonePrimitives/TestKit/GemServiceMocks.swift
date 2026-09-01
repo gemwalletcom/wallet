@@ -280,10 +280,6 @@ public final class GemManageContactServiceMock: GemManageContactServiceProtocol,
         service.defaultChain()
     }
 
-    public func addAddress(addresses: [Gemstone.ContactAddress], input: GemContactAddressInput) -> [Gemstone.ContactAddress] {
-        service.addAddress(addresses: addresses, input: input)
-    }
-
     public func saveContact(input: GemContactInput) async throws -> Gemstone.Contact {
         try await service.saveContact(input: input)
     }
@@ -430,8 +426,6 @@ public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchec
 
 public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Sendable {
     private let earnData: String
-    private let stakeBalanceShown: Bool
-    private let stakedValue: Gemstone.GemBigInt
     private let rewardsShown: Bool
     private let completionDateShown: Bool
     private let claimable: Bool
@@ -441,8 +435,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
 
     public init(
         earnData: String = "{}",
-        stakeBalanceShown: Bool = false,
-        stakedValue: Gemstone.GemBigInt = "0",
         rewardsShown: Bool = false,
         completionDateShown: Bool = false,
         claimable: Bool = false,
@@ -451,8 +443,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         validators: [Gemstone.DelegationValidator] = [],
     ) {
         self.earnData = earnData
-        self.stakeBalanceShown = stakeBalanceShown
-        self.stakedValue = stakedValue
         self.rewardsShown = rewardsShown
         self.completionDateShown = completionDateShown
         self.claimable = claimable
@@ -499,14 +489,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
 
     public func selectableValidators(validators _: [Gemstone.DelegationValidator]) -> [Gemstone.DelegationValidator] {
         self.validators
-    }
-
-    public func stakedValue(chain _: Gemstone.Chain, balance _: Gemstone.GemStakeBalance) -> Gemstone.GemBigInt {
-        stakedValue
-    }
-
-    public func showsStakeBalance(chain _: Gemstone.Chain, isStakeEnabled _: Bool, balance _: Gemstone.GemStakeBalance) -> Bool {
-        stakeBalanceShown
     }
 
     public func sync(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws {}
@@ -745,10 +727,6 @@ public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Se
     public private(set) var handledActions: [GemBannerAction] = []
 
     public init() {}
-
-    public func visibleBanners(stored: [GemBannerItem], context _: GemBannerContext) -> [GemBannerItem] {
-        stored
-    }
 
     public func showsOnboarding(state _: Gemstone.BannerState, isWalletEmpty: Bool) -> Bool {
         isWalletEmpty

@@ -32,24 +32,8 @@ public extension GemTransactionInputType {
 }
 
 public extension GemTransactionInputType {
-    func feeAsset(transferService: GemTransferService) -> Primitives.Asset {
-        transferService.feeAsset(inputType: self).map()
-    }
-
-    func transactionType(transferService: GemTransferService) -> Primitives.TransactionType {
-        Primitives.TransactionType(core: transferService.transactionType(inputType: self))
-    }
-
-    func assetIds(transferService: GemTransferService) -> [Primitives.AssetId] {
-        transferService.assetIds(inputType: self).map { Primitives.AssetId(core: $0) }
-    }
-
-    func outputType(transferService: GemTransferService) -> Primitives.TransferDataOutputType {
-        Primitives.TransferDataOutputType(core: transferService.output(inputType: self).outputType)
-    }
-
-    func outputAction(transferService: GemTransferService) -> Primitives.TransferDataOutputAction {
-        Primitives.TransferDataOutputAction(core: transferService.output(inputType: self).outputAction)
+    var outputAction: Primitives.TransferDataOutputAction {
+        Primitives.TransferDataOutputAction(core: output().outputAction)
     }
 
     func metadata(transferService: GemTransferService) throws -> AnyCodableValue? {

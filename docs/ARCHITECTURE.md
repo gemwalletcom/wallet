@@ -26,6 +26,8 @@ Only the files the feature needs. A feature with no persistence has no `store.rs
 ## 1. Rules are pure functions with a test that flips
 
 A rule takes data and returns an answer. No I/O, no services, no clock.
+Pure does not mean publicly exported as a free function: keep reusable helpers private and shape
+the FFI-facing API according to § 6.
 
 ```rust
 // services/confirm/rules.rs
@@ -211,18 +213,31 @@ The app uses Core's types. It does not declare a parallel enum of the same shape
 two definitions of one thing, and every crossing pays for a two-way mapper. `TransferDataType`
 was that copy: eleven restated cases and 138 lines of mapping. It is deleted.
 
-Three kinds of member, three homes:
+Four kinds of member, four homes:
 
 | | Home | Example |
 |---|---|---|
 | A field the case already carries | extension on the Core type | `inputType.asset` |
-| A rule Core owns | method on the service that owns it | `transferService.feeAsset(inputType:)` |
+| An answer derived only from one local Core record or enum | exported method on that type | `inputType.transactionAsset()` |
+| A rule requiring I/O, stored dependencies, or independently sourced inputs | method on the service that owns those dependencies | `confirmService.metadata(...)` |
 | Encoding an app value into a case | extension on the Core type | `.stake(asset, stakeType)` |
 
-**Never add a free exported function to Core so a call site can skip holding a service.**
-`transaction_input_asset(input_type)` is not a design; it is a rule with nowhere to live. A
-rule is a method on its service, and the caller that can hold one resolves it and passes the
-answer down — that is the same rule as § 2 and § 8, applied at the FFI boundary.
+**Never add a free exported function or a service wrapper — stateless or not — for an answer
+already owned by one local Core type.** `transaction_input_asset(input_type)` and
+`transferService.asset(inputType:)` both hide the natural receiver; use
+`inputType.transactionAsset()`. A method that ignores `self` is the same mistake even on a
+service with real dependencies: `confirmTransferService.simulationAssetIds(simulation:)` is a
+property of `SimulationResult`, not of an eight-dependency orchestrator. Keep the owning service
+when the rule performs I/O, holds real dependencies, or combines inputs without a single honest
+receiver. Do not invent an artificial receiver for external or remote types Core cannot extend.
+
+`#[uniffi::export]` on an `impl` exports its `pub` members and nothing else, and both directions
+fail silently. Narrowing one member to `pub(crate)` drops it from both apps' bindings with no
+Rust error — the break surfaces as `cannot find 'output' in scope` in whichever app still used
+it, so a platform that never called it stays green. A private helper written inside an exported
+`impl` becomes public API instead, and shows up as a protocol method every mock must implement.
+Keep helpers in a separate un-exported `impl` block, and after changing a member's visibility
+build both apps, not the one you were working in.
 
 The encoding members are scaffolding, not a pattern to copy. `.stake(asset.map(), stakeType.json())`
 carries a `.json()` only because `StakeType` is not in `EXPOSED_TYPES`

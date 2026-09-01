@@ -6,10 +6,11 @@ use crate::services::amount::model::GemAmountError;
 use crate::GemstoneError;
 use crate::models::transaction::GemTransactionInputType;
 use crate::services::confirm::GemConfirmInput;
+use primitives::TransactionType;
 use primitives::swap::ApprovalData;
-use primitives::{Asset, AssetId, Transaction, TransactionType};
 
-pub use model::{GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferBalance, GemTransferData, GemTransferOutput};
+pub(crate) use model::GemPendingTransactionInput;
+pub use model::{GemRecentActivity, GemRecipient, GemTransferBalance, GemTransferData, GemTransferOutput};
 
 #[derive(Default, uniffi::Object)]
 pub struct GemTransferService;
@@ -29,48 +30,16 @@ impl GemTransferService {
         serde_json::from_str(&input).map_err(GemstoneError::from)
     }
 
-    pub fn transaction_type(&self, input_type: &GemTransactionInputType) -> TransactionType {
-        rules::transaction_type(input_type)
-    }
-
-    pub fn asset(&self, input_type: &GemTransactionInputType) -> Asset {
-        rules::asset(input_type)
-    }
-
-    pub fn asset_ids(&self, input_type: &GemTransactionInputType) -> Vec<AssetId> {
-        rules::asset_ids(input_type)
-    }
-
-    pub fn fee_asset(&self, input_type: &GemTransactionInputType) -> Asset {
-        rules::fee_asset(input_type)
-    }
-
-    pub fn recent_activity(&self, input_type: &GemTransactionInputType) -> Option<GemRecentActivity> {
-        rules::recent_activity(input_type)
-    }
-
-    pub fn searched_activity(&self, asset: Asset) -> GemRecentActivity {
-        rules::searched_activity(&asset)
-    }
-
-    pub fn output(&self, input_type: &GemTransactionInputType) -> GemTransferOutput {
-        rules::output(input_type)
-    }
-
     pub fn approval(&self, input_type: &GemTransactionInputType, transaction_type: TransactionType) -> Result<Option<ApprovalData>, GemstoneError> {
-        rules::approval(input_type, transaction_type).map_err(|msg| GemstoneError::AnyError { msg })
+        input_type.approval(transaction_type).map_err(|msg| GemstoneError::AnyError { msg })
     }
 
     pub fn metadata(&self, input_type: &GemTransactionInputType) -> Result<Option<String>, GemstoneError> {
-        let metadata = rules::metadata(input_type).map_err(GemstoneError::from)?;
+        let metadata = input_type.metadata().map_err(GemstoneError::from)?;
         metadata.map(|value| serde_json::to_string(&value).map_err(GemstoneError::from)).transpose()
     }
 
     pub fn available_value(&self, transfer: &GemTransferData, balance: GemTransferBalance) -> Result<String, GemAmountError> {
-        Ok(rules::available_value(transfer, &balance)?.to_string())
-    }
-
-    pub fn pending_transaction(&self, input: GemPendingTransactionInput) -> Result<Option<Transaction>, GemstoneError> {
-        rules::pending_transaction(input).map_err(|msg| GemstoneError::AnyError { msg })
+        Ok(transfer.available_value(&balance)?.to_string())
     }
 }

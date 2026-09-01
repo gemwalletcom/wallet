@@ -38,42 +38,45 @@ pub enum DocsUrl {
 }
 const DOCS_URL: &str = "https://docs.gemwallet.com";
 
-pub fn get_docs_url(item: DocsUrl) -> String {
-    let path = match item {
-        DocsUrl::Start => "/",
-        DocsUrl::WhatIsWatchWallet => "/faq/watch-wallet/",
-        DocsUrl::WhatIsSecretPhrase => "/faq/secret-recovery-phrase/",
-        DocsUrl::WhatIsPrivateKey => "/faq/private-key/",
-        DocsUrl::HowToSecureSecretPhrase => "/faq/secure-recovery-phrase/",
-        DocsUrl::TransactionStatus => "/faq/transaction-status/",
-        DocsUrl::NetworkFees => "/faq/network-fees/",
-        DocsUrl::StakingLockTime => "/faq/lock-time/",
-        DocsUrl::TronMultiSignature => "/guides/trx-multisig-scam/",
-        DocsUrl::RootedDevice => "/guides/secure-wallet/rooted-device/",
-        DocsUrl::PriceImpact => "/faq/price-impact/",
-        DocsUrl::TokenApproval => "/faq/token-approval/",
-        DocsUrl::Slippage => "/faq/slippage/",
-        DocsUrl::SwapProvider => "/faq/swap-provider/",
-        DocsUrl::FiatProvider => "/faq/fiat-provider/",
-        DocsUrl::StakingAPR => "/faq/staking-apr/",
-        DocsUrl::StakingStatus => "/faq/staking-status/",
-        DocsUrl::StakingValidator => "/faq/staking-validator/",
-        DocsUrl::AccountMinimalBalance => "/faq/account-minimal-balance/",
-        DocsUrl::TokenVerification => "/faq/token-verification/",
-        DocsUrl::AddCustomToken => "/guides/add-token/",
-        DocsUrl::WalletConnect => "/guides/walletconnect/",
-        DocsUrl::HowStoreSecretPhrase => "/faq/secure-recovery-phrase/#how-to-secure-my-secret-phrase/",
-        DocsUrl::NoQuotes => "/troubleshoot/quote-error/",
-        DocsUrl::Staking(chain) => &format!("/defi/stake-{}/", Asset::from_chain(chain.chain()).symbol.to_lowercase()),
-        DocsUrl::PerpetualsFundingRate => "/defi/perps/funding-apr/",
-        DocsUrl::PerpetualsLiquidationPrice => "/defi/perps/liquidation-price/",
-        DocsUrl::PerpetualsOpenInterest => "/defi/perps/open-interest/",
-        DocsUrl::PerpetualsFundingPayments => "/defi/perps/funding-payment/",
-        DocsUrl::PerpetualsAutoclose => "/defi/perps/auto-close/",
-        DocsUrl::Dust => "/blockchains/bitcoin/dust/",
-        DocsUrl::MigrateWallet => "/guides/migrate-wallet/",
-    };
-    format!("{DOCS_URL}{path}")
+#[uniffi::export]
+impl DocsUrl {
+    pub fn url(&self) -> String {
+        let path = match self {
+            Self::Start => "/",
+            Self::WhatIsWatchWallet => "/faq/watch-wallet/",
+            Self::WhatIsSecretPhrase => "/faq/secret-recovery-phrase/",
+            Self::WhatIsPrivateKey => "/faq/private-key/",
+            Self::HowToSecureSecretPhrase => "/faq/secure-recovery-phrase/",
+            Self::TransactionStatus => "/faq/transaction-status/",
+            Self::NetworkFees => "/faq/network-fees/",
+            Self::StakingLockTime => "/faq/lock-time/",
+            Self::TronMultiSignature => "/guides/trx-multisig-scam/",
+            Self::RootedDevice => "/guides/secure-wallet/rooted-device/",
+            Self::PriceImpact => "/faq/price-impact/",
+            Self::TokenApproval => "/faq/token-approval/",
+            Self::Slippage => "/faq/slippage/",
+            Self::SwapProvider => "/faq/swap-provider/",
+            Self::FiatProvider => "/faq/fiat-provider/",
+            Self::StakingAPR => "/faq/staking-apr/",
+            Self::StakingStatus => "/faq/staking-status/",
+            Self::StakingValidator => "/faq/staking-validator/",
+            Self::AccountMinimalBalance => "/faq/account-minimal-balance/",
+            Self::TokenVerification => "/faq/token-verification/",
+            Self::AddCustomToken => "/guides/add-token/",
+            Self::WalletConnect => "/guides/walletconnect/",
+            Self::HowStoreSecretPhrase => "/faq/secure-recovery-phrase/#how-to-secure-my-secret-phrase/",
+            Self::NoQuotes => "/troubleshoot/quote-error/",
+            Self::Staking(chain) => &format!("/defi/stake-{}/", Asset::from_chain(chain.chain()).symbol.to_lowercase()),
+            Self::PerpetualsFundingRate => "/defi/perps/funding-apr/",
+            Self::PerpetualsLiquidationPrice => "/defi/perps/liquidation-price/",
+            Self::PerpetualsOpenInterest => "/defi/perps/open-interest/",
+            Self::PerpetualsFundingPayments => "/defi/perps/funding-payment/",
+            Self::PerpetualsAutoclose => "/defi/perps/auto-close/",
+            Self::Dust => "/blockchains/bitcoin/dust/",
+            Self::MigrateWallet => "/guides/migrate-wallet/",
+        };
+        format!("{DOCS_URL}{path}")
+    }
 }
 
 #[cfg(test)]
@@ -82,12 +85,12 @@ mod tests {
 
     #[test]
     fn test_get_docs_url() {
-        assert_eq!(get_docs_url(DocsUrl::WhatIsSecretPhrase), "https://docs.gemwallet.com/faq/secret-recovery-phrase/");
+        assert_eq!(DocsUrl::WhatIsSecretPhrase.url(), "https://docs.gemwallet.com/faq/secret-recovery-phrase/");
     }
 
     #[test]
     fn test_get_docs_url_staking() {
         use primitives::StakeChain;
-        assert_eq!(get_docs_url(DocsUrl::Staking(StakeChain::Solana)), "https://docs.gemwallet.com/defi/stake-sol/");
+        assert_eq!(DocsUrl::Staking(StakeChain::Solana).url(), "https://docs.gemwallet.com/defi/stake-sol/");
     }
 }

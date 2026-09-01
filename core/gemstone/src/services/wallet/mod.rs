@@ -67,12 +67,8 @@ impl GemWalletService {
         Ok(rules::next_wallet_index(&self.store.get_wallets()?))
     }
 
-    pub fn validate_import(&self, import: GemWalletImportType) -> Result<GemWalletImportType, GemWalletImportError> {
-        rules::validate_import(import)
-    }
-
     pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: GemWalletSource) -> Result<GemWalletImportResult, GemServiceError> {
-        let import = rules::validate_import(import)?;
+        let import = import.validated()?;
         let preview = self.preview_import(import.clone())?;
         let wallet_id = WalletId::from_id(&preview.wallet_id).ok_or_else(|| GemServiceError::Core {
             msg: format!("invalid wallet id {}", preview.wallet_id),
@@ -180,7 +176,7 @@ impl GemWalletService {
 
 impl GemWalletService {
     pub fn preview_import(&self, import: GemWalletImportType) -> Result<GemWalletImport, GemServiceError> {
-        match rules::validate_import(import)? {
+        match import.validated()? {
             GemWalletImportType::Address { address, chain } => {
                 let wallet = rules::view_wallet(String::new(), chain, address);
                 Ok(GemWalletImport {

@@ -22,7 +22,6 @@ import org.junit.Before
 import org.junit.Test
 import io.mockk.mockk
 import uniffi.gemstone.GemSwapPairSuggestion
-import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemSwapServiceInterface
 
 class AssetInfoUIModelFactoryTest {
@@ -58,19 +57,18 @@ class AssetInfoUIModelFactoryTest {
     }
 
     @Test
-    fun `stake renders the value the stake service reports`() {
+    fun `stake renders the staked value`() {
         val cosmos = model(
             mockAsset(chain = Chain.Cosmos, symbol = "ATOM", decimals = 6),
-            showsStake = true,
-            stakedValue = "6000000",
+            staked = "6000000",
         )
 
         assertEquals("6 ATOM", cosmos.accountInfoUIModel.stake)
     }
 
     @Test
-    fun `stake is hidden when the stake service hides the row`() {
-        val hidden = model(mockAsset(chain = Chain.Cosmos), showsStake = false, stakedValue = "6000000")
+    fun `stake is hidden on an unsupported chain`() {
+        val hidden = model(mockAsset(chain = Chain.Bitcoin), staked = "6000000")
 
         assertEquals("", hidden.accountInfoUIModel.stake)
     }
@@ -80,14 +78,11 @@ class AssetInfoUIModelFactoryTest {
         val apr = model(
             mockAsset(chain = Chain.Cosmos),
             metadata = mockAssetMetaData(isStakeEnabled = true, stakingApr = 5.0),
-            showsStake = true,
-            stakedValue = "0",
         )
         val position = model(
             mockAsset(chain = Chain.Cosmos, symbol = "ATOM", decimals = 6),
             metadata = mockAssetMetaData(isStakeEnabled = true, stakingApr = 5.0),
-            showsStake = true,
-            stakedValue = "2000000",
+            staked = "2000000",
         )
 
         assertTrue(apr.accountInfoUIModel.stake.startsWith("APR"))
@@ -114,8 +109,6 @@ class AssetInfoUIModelFactoryTest {
         rewards: String = "0",
         reserved: String = "0",
         metadata: AssetMetaData = mockAssetMetaData(),
-        showsStake: Boolean = false,
-        stakedValue: String = "0",
     ): AssetInfoUIModel {
         val balance = AssetBalance.create(
             asset,
@@ -129,11 +122,7 @@ class AssetInfoUIModelFactoryTest {
         )
         val assetInfo = mockAssetInfo(asset = asset, owner = null, balance = balance, metadata = metadata)
         val swapService = mockk<GemSwapServiceInterface> { every { pairForAsset(any(), any()) } answers { GemSwapPairSuggestion(firstArg(), null) } }
-        val stakeService = mockk<GemStakeServiceInterface> {
-            every { showsStakeBalance(any(), any(), any()) } returns showsStake
-            every { stakedValue(any(), any()) } returns stakedValue
-        }
-        return AssetInfoUIModelFactory(swapService, stakeService).create(
+        return AssetInfoUIModelFactory(swapService).create(
             ChainAssetInfo(assetInfo = assetInfo, feeAssetInfo = assetInfo),
             explorerName = "Explorer",
             walletType = WalletType.Multicoin,

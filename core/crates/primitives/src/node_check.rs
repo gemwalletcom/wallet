@@ -199,8 +199,6 @@ mod tests {
 
     use super::*;
 
-    use super::*;
-
     #[test]
     fn test_node_check_report() {
         let report = NodeCheckReport {

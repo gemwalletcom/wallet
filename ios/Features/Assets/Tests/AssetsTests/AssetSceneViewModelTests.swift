@@ -3,7 +3,6 @@
 @testable import Assets
 import class Gemstone.GemDeeplinkService
 import protocol Gemstone.GemPriceAlertServiceProtocol
-import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import BigInt
@@ -74,8 +73,8 @@ struct AssetSceneViewModelTests {
 
     @Test
     func showProviderBalance() {
-        let shown = AssetSceneViewModel.mock(.mock(asset: .mockEthereum()), stakeService: GemStakeServiceMock(stakeBalanceShown: true))
-        let hidden = AssetSceneViewModel.mock(.mock(asset: .mockEthereum()), stakeService: GemStakeServiceMock(stakeBalanceShown: false))
+        let shown = AssetSceneViewModel.mock(.mock(asset: .mockEthereum()))
+        let hidden = AssetSceneViewModel.mock(.mock(asset: .mockEthereum(), metadata: .mock(isStakeEnabled: false)))
 
         #expect(shown.showProviderBalance(for: .stake) == true)
         #expect(hidden.showProviderBalance(for: .stake) == false)
@@ -88,9 +87,8 @@ struct AssetSceneViewModelTests {
         let ethereum = AssetSceneViewModel.mock(
             .mock(
                 asset: .mockEthereum(),
-                balance: .mock(earn: BigInt(4_000_000_000_000_000_000)),
-            ),
-            stakeService: GemStakeServiceMock(stakedValue: "6000000000000000000"),
+                balance: .mock(staked: BigInt(6_000_000_000_000_000_000), earn: BigInt(4_000_000_000_000_000_000)),
+            )
         )
         #expect(ethereum.balanceTextWithSymbol(for: .stake) == "6 ETH")
         #expect(ethereum.balanceTextWithSymbol(for: .earn) == "4 ETH")
@@ -117,7 +115,6 @@ extension AssetSceneViewModel {
     static func mock(
         _ assetData: AssetData = AssetData.mock(),
         swapService: any GemSwapServiceProtocol = GemSwapServiceMock(),
-        stakeService: any GemStakeServiceProtocol = GemStakeServiceMock(),
     ) -> AssetSceneViewModel {
         let model = AssetSceneViewModel(
             balanceService: GemBalanceServiceMock(),
@@ -127,7 +124,6 @@ extension AssetSceneViewModel {
             priceAlertService: GemPriceAlertServiceMock(),
             bannerService: GemBannerServiceMock(),
             swapService: swapService,
-            stakeService: stakeService,
             explorerService: GemExplorerServiceMock(),
             transactionFormatter: GemTransactionFormatter(),
             deeplinkService: GemDeeplinkService(),

@@ -340,13 +340,12 @@ swap slippage bounds · min-receive BPS math · swap ETA truncation · the criti
 
 ### 8. iOS view models holding more than one Core service
 
-Each scene view model should hold exactly one Core service, `private`, per [ARCHITECTURE.md](ARCHITECTURE.md) § 6. `ManageContactViewModel` / `ContactsViewModel` / `ManageContactAddressViewModel` are done — Core's `GemManageContactService` composes contact + name + address + chain and `ViewModelFactory` builds it per scene.
+Each scene view model should hold exactly one Core service, `private`, per [ARCHITECTURE.md](ARCHITECTURE.md) § 6. `ManageContactViewModel` / `ContactsViewModel` / `ManageContactAddressViewModel` are done — Core's `GemManageContactService` composes contact + name + address + chain and `ViewModelFactory` builds it per scene. `ConfirmTransferSceneViewModel` is done too: it holds `service` alone, with `signer`, `keystore` and `recentAssetsService` as outbound ports the app implements, and takes `currency` as a value rather than reading it from a preferences service.
 
-41 view models still take more than one, and 28 expose at least one non-privately. A non-private service means the view is reaching through the model — fix that first, by having the parent vend the child view model.
+40 view models still take more than one, and 28 expose at least one non-privately. A non-private service means the view is reaching through the model — fix that first, by having the parent vend the child view model.
 
 | view model | services | non-private |
 |---|---|---|
-| `Transfer/ConfirmTransferSceneViewModel.swift` | 12 | 0 |
 | `Gem/ViewModels/RootSceneViewModel.swift` | 11 | 4 |
 | `Assets/AssetSceneViewModel.swift` | 9 | 2 |
 | `Assets/SelectAssetViewModel.swift` | 6 | 5 |

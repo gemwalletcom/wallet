@@ -16,7 +16,6 @@ import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.Resource
 import kotlinx.coroutines.CoroutineScope
-import uniffi.gemstone.GemAmountService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,8 +50,7 @@ class AmountStakeProvider(
     private val getRecommendedValidator: GetRecommendedValidator,
     private val getStakeValidator: GetStakeValidator,
     scope: CoroutineScope,
-    amountService: GemAmountService,
-) : AmountDataProvider(scope, amountService) {
+) : AmountDataProvider(scope) {
 
     override val title: AmountTitle = AmountTitle.Stake(params)
     override val canSwitchInputType: Boolean = false

@@ -77,7 +77,7 @@ struct ConfirmSubmissionTests {
     }
 
     @Test
-    func simulationStateMapsTheResolvedHeader() {
+    func simulationStateMapsTheHeader() {
         let usdt = Asset.mockEthereumUSDT()
         let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
             simulation: GemConfirmSimulation(
@@ -123,7 +123,7 @@ struct ConfirmSubmissionTests {
     }
 
     @Test
-    func simulationStateMapsResolvedBalanceChanges() {
+    func simulationStateMapsBalanceChanges() {
         let usdt = Asset.mockEthereumUSDT()
         let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
             simulation: GemConfirmSimulation(

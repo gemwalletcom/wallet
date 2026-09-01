@@ -15,7 +15,6 @@ import protocol Gemstone.GemExplorerServiceProtocol
 import class Gemstone.GemTransactionFormatter
 import protocol Gemstone.GemSwapServiceProtocol
 import struct Gemstone.GemStakeBalance
-import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import Localization
 import Preferences
@@ -38,7 +37,6 @@ public final class AssetSceneViewModel: Sendable {
     private let priceUpdater: any PriceUpdater
     private let bannerService: any GemBannerServiceProtocol
     private let swapService: any GemSwapServiceProtocol
-    private let stakeService: any GemStakeServiceProtocol
 
     private let preferences: ObservablePreferences
 
@@ -65,7 +63,6 @@ public final class AssetSceneViewModel: Sendable {
         priceAlertService: any GemPriceAlertServiceProtocol,
         bannerService: any GemBannerServiceProtocol,
         swapService: any GemSwapServiceProtocol,
-        stakeService: any GemStakeServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
         transactionFormatter: GemTransactionFormatter,
         deeplinkService: GemDeeplinkService,
@@ -81,7 +78,6 @@ public final class AssetSceneViewModel: Sendable {
         self.priceAlertService = priceAlertService
         self.bannerService = bannerService
         self.swapService = swapService
-        self.stakeService = stakeService
         self.explorerService = explorerService
         self.transactionFormatter = transactionFormatter
         self.preferences = preferences
@@ -255,7 +251,7 @@ public final class AssetSceneViewModel: Sendable {
 
     var visibleBanners: [Banner] {
         do {
-            return try bannerService.visibleBanners(banners, walletId: wallet.id, asset: assetData.asset, context: bannerContext)
+            return try bannerContext.visibleBanners(banners, walletId: wallet.id, asset: assetData.asset)
         } catch {
             debugLog("asset scene: visible banners error \(error)")
             return []
@@ -345,7 +341,7 @@ public final class AssetSceneViewModel: Sendable {
 
     func showProviderBalance(for type: StakeProviderType) -> Bool {
         switch type {
-        case .stake: stakeService.showsStakeBalance(chain: asset.chain.rawValue, isStakeEnabled: assetData.metadata.isStakeEnabled, balance: stakeBalance)
+        case .stake: stakeBalance.showsStakeBalance(chain: asset.chain.rawValue, isStakeEnabled: assetData.metadata.isStakeEnabled)
         #if DEBUG
             case .earn: assetData.balance.earn > .zero
         #else
@@ -560,7 +556,7 @@ extension AssetSceneViewModel {
     }
 
     private var stakedValue: BigInt {
-        BigInt(stringLiteral: stakeService.stakedValue(chain: asset.chain.rawValue, balance: stakeBalance))
+        BigInt(stringLiteral: stakeBalance.stakedValue(chain: asset.chain.rawValue))
     }
 
     private var feeAssetDataModel: AssetDataViewModel {

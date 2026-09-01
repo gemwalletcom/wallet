@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemContactsServiceProtocol
+import struct Gemstone.GemContactAddressInput
 import Components
 import GemstoneServices
 import Foundation
@@ -71,14 +72,13 @@ public final class ContactsViewModel {
         guard case let .addAddress(recipient) = mode else { return }
         Task {
             do {
-                let addresses = try service.addAddress(
-                    contact.addresses,
+                let addresses = try GemContactAddressInput(
                     contactId: contact.contact.id,
                     chain: recipient.chain,
                     address: recipient.recipient.address,
                     memo: recipient.recipient.memo,
                     replacingId: nil,
-                )
+                ).addAddress(contact.addresses)
                 try await service.updateContact(contact.contact, addresses: addresses)
             } catch {
                 debugLog("ContactsViewModel add error: \(error)")

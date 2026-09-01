@@ -1,6 +1,5 @@
 package com.gemwallet.android.domains.confirm
 
-import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.GemNetworkError
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
@@ -27,23 +26,20 @@ sealed class ConfirmError : Exception() {
     class ScanTransactionMemoRequired(val symbol: String) : ConfirmError()
 }
 
-fun GemTransferAmountException.toConfirmError(asset: Asset, feeAsset: Asset): ConfirmError = when (this) {
+fun GemTransferAmountException.toConfirmError(asset: Asset): ConfirmError = when (this) {
     is GemTransferAmountException.InsufficientBalance -> ConfirmError.InsufficientBalance(
-        asset = amountAsset(assetId, asset, feeAsset),
+        asset = asset,
         requirement = amountRequirement(required, available),
     )
     is GemTransferAmountException.InsufficientNetworkFee -> ConfirmError.InsufficientFee(
-        chain = feeAsset.id.chain,
+        chain = asset.id.chain,
         requirement = amountRequirement(required, available),
     )
     is GemTransferAmountException.MinimumAccountBalanceTooLow -> ConfirmError.MinimumAccountBalanceTooLow(
-        asset = amountAsset(assetId, asset, feeAsset),
+        asset = asset,
         requirement = amountRequirement(required, available),
     )
 }
-
-private fun amountAsset(assetId: String, asset: Asset, feeAsset: Asset): Asset =
-    if (asset.id.toIdentifier() == assetId) asset else feeAsset
 
 private fun amountRequirement(required: String, available: String) = BalanceRequirement(
     required = BigInteger(required),

@@ -340,14 +340,12 @@ extension SwapSceneViewModel {
 
 extension SwapSceneViewModel {
     private var buttonAction: GemSwapButtonAction {
-        swapQuoteService.buttonAction(
-            input: GemSwapButtonInput(
-                value: currentInput?.value.description ?? .zero,
-                availableBalance: fromAsset?.balance.available.description ?? .zero,
-                quoteError: swapState.quotes.swapperError,
-                transferError: swapState.swapTransferData.swapperError,
-            ),
-        )
+        GemSwapButtonInput(
+            value: currentInput?.value.description ?? .zero,
+            availableBalance: fromAsset?.balance.available.description ?? .zero,
+            quoteError: swapState.quotes.swapperError,
+            transferError: swapState.swapTransferData.swapperError,
+        ).action()
     }
 
     private var currentInput: SwapQuoteInput? {

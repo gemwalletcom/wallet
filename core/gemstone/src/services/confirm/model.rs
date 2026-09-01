@@ -7,7 +7,9 @@ use crate::services::balance::GemAssetBalance;
 use crate::services::price::GemAssetPrice;
 use crate::services::transfer::GemTransferData;
 use crate::transfer_amount::{GemTransferAmount, GemTransferAmountError};
-use primitives::{Account, Asset, AssetId, FeePriority, SimulationPayloadField, SimulationResult, Transaction, Wallet};
+use primitives::{
+    Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, Transaction, Wallet,
+};
 
 pub type GemAccount = Account;
 
@@ -53,10 +55,9 @@ pub enum GemExecuteResult {
     Sent { hashes: Vec<String>, transactions: Vec<Transaction> },
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
-pub struct GemSendResult {
-    pub hashes: Vec<String>,
-    pub transactions: Vec<Transaction>,
+pub(super) struct GemSendResult {
+    pub(super) hashes: Vec<String>,
+    pub(super) transactions: Vec<Transaction>,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -88,10 +89,26 @@ pub struct GemFeeAsset {
     pub price: Option<GemAssetPrice>,
 }
 
+impl GemConfirmSimulation {
+    pub(super) fn address_requests(&self, chain: Chain) -> Vec<ChainAddress> {
+        self.payload_fields
+            .iter()
+            .filter(|field| field.field_type == SimulationPayloadFieldType::Address)
+            .map(|field| ChainAddress::new(chain, field.value.clone()))
+            .collect()
+    }
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemConfirmSimulationState {
+    pub simulation: Option<GemConfirmSimulation>,
+    pub address_names: Vec<AddressName>,
+}
+
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemTransferAmountResult {
     Amount { amount: GemTransferAmount },
-    Error { error: GemTransferAmountError },
+    Error { error: GemTransferAmountError, asset: Asset },
 }
 
 #[derive(Debug, Clone, uniffi::Record)]

@@ -24,7 +24,7 @@ protocol AmountDataProvidable {
 
 extension AmountDataProvidable {
     var rules: GemAmountRules {
-        amountService.rules(amountType: gemAmountType, asset: asset.map())
+        gemAmountType.rules(asset: asset.map())
     }
 
     var minimumValue: BigInt {
@@ -45,7 +45,7 @@ extension AmountDataProvidable {
 
     func limits(from assetData: AssetData) -> GemAmountLimits {
         do {
-            return try amountService.limits(amountType: gemAmountType, asset: asset.map(), balance: GemTransferBalance(assetData.balance))
+            return try gemAmountType.limits(asset: asset.map(), balance: GemTransferBalance(assetData.balance))
         } catch let error as GemAmountError {
             debugLog("amount limits unavailable: \(error)")
             return GemAmountLimits(availableValue: "0", maxValue: "0", reservesFee: false)

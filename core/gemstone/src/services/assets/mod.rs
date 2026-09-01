@@ -226,10 +226,6 @@ impl GemAssetsService {
     }
 }
 
-pub fn asset_action_filters(action: GemAssetAction) -> Vec<GemAssetFilter> {
-    rules::asset_action_filters(action)
-}
-
 pub fn popular_asset_ids() -> Vec<AssetId> {
     rules::popular_asset_ids()
 }

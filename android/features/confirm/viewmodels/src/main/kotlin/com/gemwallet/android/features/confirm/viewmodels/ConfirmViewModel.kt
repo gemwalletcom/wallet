@@ -17,7 +17,6 @@ import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.domains.confirm.perpetualType
 import com.gemwallet.android.domains.confirm.swapData
 import com.gemwallet.android.domains.confirm.toAsset
-import com.gemwallet.android.domains.confirm.transactionType
 import com.gemwallet.android.domains.confirm.unpack
 import com.gemwallet.android.domains.swap.providerId
 import androidx.lifecycle.SavedStateHandle
@@ -256,7 +255,7 @@ class ConfirmViewModel @Inject constructor(
         when (val amount = preload.amount) {
             is GemTransferAmountResult.Amount -> BigInteger(amount.amount.value)
             is GemTransferAmountResult.Error -> {
-                state.update { ConfirmState.Error(amount.error.toConfirmError(assetInfo.asset, preload.feeAsset)) }
+                state.update { ConfirmState.Error(amount.error.toConfirmError(amount.asset.toPrimitives())) }
                 null
             }
         }
@@ -277,7 +276,7 @@ class ConfirmViewModel @Inject constructor(
         }
 
         AmountUIModel(
-            transactionType = inputType.transactionType(transferService),
+            transactionType = inputType.transactionType().decodeJson<TransactionType>(),
             amount = amount.atomicValue,
             asset = assetInfo,
             fromAsset = assetInfo,
@@ -343,7 +342,7 @@ class ConfirmViewModel @Inject constructor(
 
     fun init(input: GemConfirmInput, simulationResult: SimulationResult? = null) {
         this.simulationResult.value = simulationResult
-        feeSelection.value = FeeSelection.Preset(feeService.defaultPriority(input.transfer.inputType).toPrimitives())
+        feeSelection.value = FeeSelection.Preset(input.transfer.inputType.defaultFeePriority().toPrimitives())
         viewModelScope.launch(Dispatchers.IO) {
             val assetIds = simulationResult?.simulationAssetIds().orEmpty() + listOfNotNull(input.approvalAssetId(transferService))
             syncMissingAssets.syncMissingAssets(assetIds.distinct())
@@ -398,7 +397,7 @@ class ConfirmViewModel @Inject constructor(
             }
             val amount = when (val calculated = preload.amount) {
                 is GemTransferAmountResult.Amount -> BigInteger(calculated.amount.value)
-                is GemTransferAmountResult.Error -> throw calculated.error.toConfirmError(assetInfo.asset, preload.feeAsset)
+                is GemTransferAmountResult.Error -> throw calculated.error.toConfirmError(calculated.asset.toPrimitives())
             }
             val transactionHash = confirmTransaction(
                 signerParams.copy(finalAmount = amount),
@@ -488,7 +487,7 @@ private fun GemConfirmInput?.approvalAssetId(transferService: GemTransferService
     val inputType = this?.transfer?.inputType ?: return null
     val chain = inputType.asset.id.chain
     if (inputType !is GemTransactionInputType.Generic) return null
-    if (inputType.transactionType(transferService) != TransactionType.TokenApproval) return null
+    if (inputType.transactionType().decodeJson<TransactionType>() != TransactionType.TokenApproval) return null
     val approval = inputType.approvalData(TransactionType.TokenApproval, transferService) ?: return null
     return AssetId(chain, tokenId = approval.token)
 }

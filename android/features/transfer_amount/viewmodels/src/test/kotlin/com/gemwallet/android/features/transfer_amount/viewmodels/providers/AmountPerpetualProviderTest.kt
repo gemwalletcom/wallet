@@ -22,7 +22,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import uniffi.gemstone.GemAmountService
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -94,7 +93,6 @@ class AmountPerpetualProviderTest {
             getPerpetual = getPerpetual,
             getPerpetualBalance = getPerpetualBalance,
             scope = scope,
-            amountService = GemAmountService(),
         )
     }
 }

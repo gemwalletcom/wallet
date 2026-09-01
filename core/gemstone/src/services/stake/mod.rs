@@ -10,7 +10,6 @@ use primitives::{AssetId, Chain, DelegationState, DelegationValidator, StakeProv
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
-use crate::models::custom_types::GemBigInt;
 use crate::models::{GemContractCallData, GemEarnType};
 
 pub use model::{GemDelegationAction, GemStakeBalance};
@@ -96,14 +95,6 @@ impl GemStakeService {
 
     pub fn selectable_validators(&self, validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {
         rules::selectable_validators(validators)
-    }
-
-    pub fn staked_value(&self, chain: Chain, balance: GemStakeBalance) -> GemBigInt {
-        rules::staked_value(chain, &balance)
-    }
-
-    pub fn shows_stake_balance(&self, chain: Chain, is_stake_enabled: bool, balance: GemStakeBalance) -> bool {
-        rules::shows_stake_balance(chain, is_stake_enabled, &balance)
     }
 }
 

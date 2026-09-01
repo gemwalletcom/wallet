@@ -47,7 +47,7 @@ class FeeDetailsModel(
             val feeConfig = Config().getFeeConfig(chain.string)
             val decimals = feeRateDecimals(feeUnitType, feeConfig, feeAssetInfo.asset.decimals)
             val selectedTotalFee = feeRates.firstOrNull { it.priority == currentFee.priority.toGem() }
-                ?.let { feeService.totalFee(it.gasPriceType).toBigInteger() }
+                ?.let { it.gasPriceType.totalFee().toBigInteger() }
             return FeeDetailsModel(
                 currentFee = currentFee,
                 feeRates = feeRates,
@@ -63,7 +63,7 @@ class FeeDetailsModel(
                         feeAsset = feeAssetInfo,
                         feeUnitType = feeUnitType,
                         feeRateDecimals = decimals,
-                        totalFee = feeService.totalFee(rate.gasPriceType).toBigInteger(),
+                        totalFee = rate.gasPriceType.totalFee().toBigInteger(),
                         selectedTotalFee = selectedTotalFee,
                         selectedFeeAmount = currentFee.amount,
                         unitSymbol = unitSymbol,

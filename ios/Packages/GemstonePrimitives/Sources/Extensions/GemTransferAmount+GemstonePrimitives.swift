@@ -1,64 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import Foundation
-import Gemstone
-import GemstonePrimitives
+import enum Gemstone.GemTransferAmountError
 import Primitives
 
-public extension TransferAmount {
-    static func calculate(
-        transferData: GemTransferData,
-        availableValue: BigInt,
-        feeAssetId: Primitives.AssetId,
-        assetFeeBalance: BigInt,
-        fee: BigInt,
-        amountService: GemAmountService,
-    ) throws -> TransferAmount {
-        let input = try GemTransferAmountInput(
-            inputType: transferData.inputType,
-            value: transferData.value,
-            availableValue: availableValue.description,
-            feeAsset: feeAssetId.identifier,
-            feeAssetBalance: assetFeeBalance.description,
-            fee: fee.description,
-            isMaxAmount: transferData.useMaxAmount,
-            minimumValue: transferData.minimumValue,
-        )
-        do {
-            return try amountService.calculate(input: input).map()
-        } catch let error as GemTransferAmountError {
-            throw try error.map()
-        }
-    }
-}
-
-public extension GemTransferAmount {
-    func map() throws -> TransferAmount {
-        try TransferAmount(
-            value: BigInt.from(string: value),
-            networkFee: BigInt.from(string: networkFee),
-            useMaxAmount: isMaxAmount,
-        )
-    }
-}
-
 public extension GemTransferAmountError {
-    func map() throws -> TransferAmountError {
+    var requirement: BalanceRequirement {
         switch self {
-        case let .InsufficientBalance(assetId, required, available):
-            try .insufficientBalance(assetId: AssetId(id: assetId), requirement: Self.requirement(required, available))
-        case let .InsufficientNetworkFee(assetId, required, available):
-            try .insufficientNetworkFee(assetId: AssetId(id: assetId), requirement: Self.requirement(required, available))
-        case let .MinimumAccountBalanceTooLow(assetId, required, available):
-            try .minimumAccountBalanceTooLow(assetId: AssetId(id: assetId), requirement: Self.requirement(required, available))
+        case let .InsufficientBalance(_, required, available),
+             let .InsufficientNetworkFee(_, required, available),
+             let .MinimumAccountBalanceTooLow(_, required, available):
+            BalanceRequirement(required: BigInt(core: required), available: BigInt(core: available))
         }
     }
 
-    private static func requirement(_ required: String, _ available: String) throws -> BalanceRequirement {
-        try BalanceRequirement(
-            required: BigInt.from(string: required),
-            available: BigInt.from(string: available),
-        )
-    }
 }

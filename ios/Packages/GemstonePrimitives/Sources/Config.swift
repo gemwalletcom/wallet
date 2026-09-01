@@ -46,23 +46,23 @@ public enum AppUrl {
     private static let utmSource = "gemwallet_ios"
 
     public static func docs(_ item: DocsUrl) -> URL {
-        URL(string: Config.shared.getDocsUrl(item: item))!
+        URL(string: item.url())!
             .withUTM(source: utmSource)
     }
 
     public static func page(_ item: PublicUrl) -> URL {
-        URL(string: Config.shared.getPublicUrl(item: item))!
+        URL(string: item.url())!
             .withUTM(source: utmSource)
     }
 
     public static func rewards(_ item: RewardsUrl) -> URL {
         let locale = Locale.current.identifier
-        return URL(string: Config.shared.getRewardsUrl(item: item, locale: locale))!
+        return URL(string: item.url(locale: locale))!
             .withUTM(source: utmSource)
     }
 
     public static func social(_ item: SocialUrl) -> URL? {
-        guard let socialUrl = Config.shared.getSocialUrl(item: item),
+        guard let socialUrl = item.url(),
               let url = URL(string: socialUrl) else { return nil }
         return url
     }

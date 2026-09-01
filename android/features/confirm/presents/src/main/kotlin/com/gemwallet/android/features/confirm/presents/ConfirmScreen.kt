@@ -169,7 +169,7 @@ fun ConfirmScreen(
                             .alpha(0f)
                             .clearAndSetSemantics { },
                     ) {
-                        AmountListHead(amount = "", icon = input?.transfer?.inputType?.asset)
+                        AmountListHead(amount = "", icon = input.transfer.inputType.asset)
                     }
                     simulation.headerAsset != null -> {
                         val asset = requireNotNull(simulation.headerAsset)

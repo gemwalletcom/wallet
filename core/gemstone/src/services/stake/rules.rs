@@ -85,16 +85,19 @@ fn is_positive(amount: &str) -> bool {
     BigUint::from_str(amount).is_ok_and(|amount| amount > BigUint::ZERO)
 }
 
-pub fn staked_value(chain: Chain, balance: &GemStakeBalance) -> GemBigInt {
-    let principal = match StakeChain::from_str(chain.as_ref()) {
-        Ok(stake_chain) if stake_chain.get_uses_freeze() => &balance.frozen + &balance.locked,
-        _ => balance.staked.clone(),
-    };
-    principal + &balance.pending + &balance.rewards
-}
+#[uniffi::export]
+impl GemStakeBalance {
+    pub fn staked_value(&self, chain: Chain) -> GemBigInt {
+        let principal = match StakeChain::from_str(chain.as_ref()) {
+            Ok(stake_chain) if stake_chain.get_uses_freeze() => &self.frozen + &self.locked,
+            _ => self.staked.clone(),
+        };
+        principal + &self.pending + &self.rewards
+    }
 
-pub fn shows_stake_balance(chain: Chain, is_stake_enabled: bool, balance: &GemStakeBalance) -> bool {
-    StakeChain::from_str(chain.as_ref()).is_ok() && (is_stake_enabled || staked_value(chain, balance) > GemBigInt::ZERO)
+    pub fn shows_stake_balance(&self, chain: Chain, is_stake_enabled: bool) -> bool {
+        StakeChain::from_str(chain.as_ref()).is_ok() && (is_stake_enabled || self.staked_value(chain) > GemBigInt::ZERO)
+    }
 }
 
 pub fn selectable_validators(validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {
@@ -427,39 +430,39 @@ mod tests {
 
     #[test]
     fn test_staked_value_counts_rewards_on_delegating_chains() {
-        assert_eq!(staked_value(Chain::Cosmos, &stake_balance(0, 0, 100, 20, 5)), GemBigInt::from(125));
-        assert_eq!(staked_value(Chain::Cosmos, &stake_balance(0, 0, 100, 20, 0)), GemBigInt::from(120));
-        assert_eq!(staked_value(Chain::Solana, &stake_balance(0, 0, 700, 30, 3)), GemBigInt::from(733));
-        assert_eq!(staked_value(Chain::Cosmos, &stake_balance(9, 9, 100, 0, 0)), GemBigInt::from(100));
+        assert_eq!(stake_balance(0, 0, 100, 20, 5).staked_value(Chain::Cosmos), GemBigInt::from(125));
+        assert_eq!(stake_balance(0, 0, 100, 20, 0).staked_value(Chain::Cosmos), GemBigInt::from(120));
+        assert_eq!(stake_balance(0, 0, 700, 30, 3).staked_value(Chain::Solana), GemBigInt::from(733));
+        assert_eq!(stake_balance(9, 9, 100, 0, 0).staked_value(Chain::Cosmos), GemBigInt::from(100));
     }
 
     #[test]
     fn test_unclaimed_rewards_alone_are_a_staked_position() {
         let rewards_only = stake_balance(0, 0, 0, 0, 7);
-        assert_eq!(staked_value(Chain::Cosmos, &rewards_only), GemBigInt::from(7));
-        assert!(shows_stake_balance(Chain::Cosmos, false, &rewards_only));
+        assert_eq!(rewards_only.staked_value(Chain::Cosmos), GemBigInt::from(7));
+        assert!(rewards_only.shows_stake_balance(Chain::Cosmos, false));
     }
 
     #[test]
     fn test_staked_value_uses_the_frozen_balance_on_freeze_chains() {
-        assert_eq!(staked_value(Chain::Tron, &stake_balance(40, 60, 0, 10, 5)), GemBigInt::from(115));
-        assert_eq!(staked_value(Chain::Tron, &stake_balance(40, 60, 999, 0, 0)), GemBigInt::from(100));
+        assert_eq!(stake_balance(40, 60, 0, 10, 5).staked_value(Chain::Tron), GemBigInt::from(115));
+        assert_eq!(stake_balance(40, 60, 999, 0, 0).staked_value(Chain::Tron), GemBigInt::from(100));
     }
 
     #[test]
     fn test_shows_stake_balance_when_enabled_or_holding_a_position() {
-        assert!(shows_stake_balance(Chain::Cosmos, true, &stake_balance(0, 0, 0, 0, 0)));
-        assert!(!shows_stake_balance(Chain::Cosmos, false, &stake_balance(0, 0, 0, 0, 0)));
-        assert!(shows_stake_balance(Chain::Cosmos, false, &stake_balance(0, 0, 0, 0, 5)));
-        assert!(shows_stake_balance(Chain::Tron, false, &stake_balance(40, 0, 0, 0, 0)));
-        assert!(!shows_stake_balance(Chain::Tron, false, &stake_balance(0, 0, 40, 0, 0)));
-        assert!(!shows_stake_balance(Chain::Bitcoin, true, &stake_balance(0, 0, 0, 0, 0)));
+        assert!(stake_balance(0, 0, 0, 0, 0).shows_stake_balance(Chain::Cosmos, true));
+        assert!(!stake_balance(0, 0, 0, 0, 0).shows_stake_balance(Chain::Cosmos, false));
+        assert!(stake_balance(0, 0, 0, 0, 5).shows_stake_balance(Chain::Cosmos, false));
+        assert!(stake_balance(40, 0, 0, 0, 0).shows_stake_balance(Chain::Tron, false));
+        assert!(!stake_balance(0, 0, 40, 0, 0).shows_stake_balance(Chain::Tron, false));
+        assert!(!stake_balance(0, 0, 0, 0, 0).shows_stake_balance(Chain::Bitcoin, true));
     }
 
     #[test]
     fn test_stake_balance_carries_big_integers_so_a_malformed_value_cannot_read_as_zero() {
         let _: fn(GemStakeBalance) -> (GemBigInt, GemBigInt, GemBigInt, GemBigInt, GemBigInt) =
             |balance| (balance.frozen, balance.locked, balance.staked, balance.pending, balance.rewards);
-        assert_eq!(staked_value(Chain::Cosmos, &stake_balance(0, 0, 100, 20, 5)), GemBigInt::from(125));
+        assert_eq!(stake_balance(0, 0, 100, 20, 5).staked_value(Chain::Cosmos), GemBigInt::from(125));
     }
 }

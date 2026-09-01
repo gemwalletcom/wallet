@@ -47,10 +47,6 @@ impl GemBannerService {
         rules::shows_onboarding(state, is_wallet_empty)
     }
 
-    pub fn visible_banners(&self, stored: Vec<GemBannerItem>, context: GemBannerContext) -> Vec<GemBannerItem> {
-        rules::visible_banners(stored, &context)
-    }
-
     pub fn banner_content(&self, event: BannerEvent, asset: Option<Asset>) -> GemBannerContent {
         rules::banner_content(event, asset.as_ref())
     }

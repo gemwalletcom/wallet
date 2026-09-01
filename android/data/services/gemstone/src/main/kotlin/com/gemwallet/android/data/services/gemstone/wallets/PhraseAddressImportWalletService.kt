@@ -89,7 +89,7 @@ class PhraseAddressImportWalletService(
 
     private fun validated(import: GemWalletImportType): GemWalletImportType {
         return try {
-            walletService.validateImport(import)
+            import.validated()
         } catch (error: GemWalletImportException) {
             throw when (error) {
                 is GemWalletImportException.InvalidSecretPhraseWords -> ImportError.InvalidWords(error.words)

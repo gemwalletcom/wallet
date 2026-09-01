@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.GemAmountService
-import class Gemstone.GemTransferService
 import BigInt
 import Primitives
 import PrimitivesTestKit
@@ -10,8 +9,6 @@ import Testing
 @testable import Transfer
 
 struct AmountPerpetualViewModelTests {
-    private let transferService = GemTransferService()
-
     @Test
     func title() {
         let openLong = AmountPerpetualViewModel(asset: .mock(), data: .mock(positionAction: .open(.mock(direction: .long))), preferencesService: GemPreferencesServiceMock(), amountService: GemAmountService())
@@ -109,9 +106,9 @@ struct AmountPerpetualViewModelTests {
         let increase = try AmountPerpetualViewModel(asset: .mock(), data: .mock(positionAction: .increase(.mock())), preferencesService: GemPreferencesServiceMock(), amountService: GemAmountService()).makeTransferData(value: 200, useMaxAmount: false)
         let reduce = try AmountPerpetualViewModel(asset: .mock(), data: .mock(positionAction: .reduce(.mock(), available: 1000, positionDirection: .long)), preferencesService: GemPreferencesServiceMock(), amountService: GemAmountService()).makeTransferData(value: 300, useMaxAmount: false)
 
-        #expect(open.inputType.transactionType(transferService: transferService) == .perpetualOpenPosition)
-        #expect(increase.inputType.transactionType(transferService: transferService) == .perpetualOpenPosition)
-        #expect(reduce.inputType.transactionType(transferService: transferService) == .perpetualClosePosition)
+        #expect(TransactionType(core: open.inputType.transactionType()) == .perpetualOpenPosition)
+        #expect(TransactionType(core: increase.inputType.transactionType()) == .perpetualOpenPosition)
+        #expect(TransactionType(core: reduce.inputType.transactionType()) == .perpetualClosePosition)
         #expect(open.value == "100")
         #expect(increase.value == "200")
         #expect(reduce.value == "300")

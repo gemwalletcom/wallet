@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import class Gemstone.GemSecurityService
 import enum Gemstone.GemAuthPromptOutcome
 import LocalAuthentication
 
@@ -46,6 +45,6 @@ public enum BiometryAuthenticationError: Error, Equatable {
     }
 
     public var isAuthenticationCancelled: Bool {
-        GemSecurityService().isAuthCancelled(outcome: promptOutcome)
+        promptOutcome.isCancelled()
     }
 }
