@@ -1,3 +1,5 @@
+import protocol Gemstone.GemRecentActivityServiceProtocol
+import class Gemstone.GemRecentActivityService
 import protocol Gemstone.GemPerpetualServiceProtocol
 import GemstoneServices
 import Components
@@ -13,7 +15,7 @@ public struct PerpetualsNavigationView: View {
         wallet: Wallet,
         perpetualService: any GemPerpetualServiceProtocol,
         observerService: any PerpetualObservable,
-        recentAssetsService: any RecentAssetsServiceable,
+        recentAssetsService: any GemRecentActivityServiceProtocol,
         onSelectAssetType: @escaping (SelectAssetType) -> Void,
         onSelectAsset: @escaping (Asset) -> Void,
         onSelectPortfolio: @escaping () -> Void,

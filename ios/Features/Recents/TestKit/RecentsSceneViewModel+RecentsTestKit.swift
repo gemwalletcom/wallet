@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemRecentActivityService
 import GemstoneServicesTestKit
 import Foundation
 import Primitives
@@ -15,7 +16,7 @@ public extension RecentsSceneViewModel {
         RecentsSceneViewModel(
             walletId: walletId,
             types: types,
-            recentAssetsService: RecentAssetsService(store: .mock()),
+            recentAssetsService: GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock())),
             onSelect: onSelect,
         )
     }

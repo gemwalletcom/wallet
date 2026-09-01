@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemRecentActivityServiceProtocol
+import class Gemstone.GemRecentActivityService
 import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemPerpetualServiceProtocol
@@ -24,7 +26,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     private let preferencesService: any GemPreferencesServiceProtocol
     private let searchService: any GemSearchServiceProtocol
     let perpetualService: any GemPerpetualServiceProtocol
-    private let recentAssetsService: any RecentAssetsServiceable
+    private let recentAssetsService: any GemRecentActivityServiceProtocol
     let wallet: Wallet
 
     let title: String
@@ -44,7 +46,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
         preferencesService: any GemPreferencesServiceProtocol,
         searchService: any GemSearchServiceProtocol,
         perpetualService: any GemPerpetualServiceProtocol,
-        recentAssetsService: any RecentAssetsServiceable,
+        recentAssetsService: any GemRecentActivityServiceProtocol,
         request: WalletSearchRequest,
         title: String,
         onSelectAsset: @escaping (Asset) -> Void,
@@ -139,10 +141,12 @@ extension AssetsResultsSceneViewModel {
 
     func onSelectAsset(_ asset: Asset) {
         onSelectAssetAction?(asset)
-        do {
-            try recentAssetsService.add(.search(asset), walletId: wallet.id)
-        } catch {
-            debugLog("AssetsResultsSceneViewModel update recent error: \(error)")
+        Task { [recentAssetsService, wallet] in
+            do {
+                try await recentAssetsService.recordAsset(activityType: .search, assetId: asset.id.identifier, walletId: wallet.id.id)
+            } catch {
+                debugLog("AssetsResultsSceneViewModel update recent error: \(error)")
+            }
         }
     }
 }

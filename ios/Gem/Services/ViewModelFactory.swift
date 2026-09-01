@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemRecentActivityServiceProtocol
 import class Gemstone.GemAddressService
 import class Gemstone.GemAmountService
 import class Gemstone.GemApplicationMetadataService
@@ -93,7 +94,7 @@ public struct ViewModelFactory: Sendable {
     let biometryService: any BiometryAuthenticatable
     let keystore: any Keystore
     let observablePreferences: ObservablePreferences
-    let recentAssetsService: RecentAssetsService
+    let recentAssetsService: GemRecentActivityService
     let amountService: AmountService
     let toastPresenter: ToastPresenter
 
@@ -236,7 +237,7 @@ public struct ViewModelFactory: Sendable {
             swapQuote: swapQuoteService,
             signer: KeystoreTransactionSigner(keystore: keystore),
             password: GemstoneKeystorePassword(keystore: keystore),
-            recentActivity: GemRecentActivityService(store: GemstoneRecentActivityStore(service: recentAssetsService)),
+            recentActivity: recentAssetsService,
         )
     }
 

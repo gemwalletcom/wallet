@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemRecentActivityService
 import protocol Gemstone.GemPriceServiceProtocol
 import protocol Gemstone.GemPortfolioServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
@@ -93,6 +94,7 @@ struct ServicesFactory {
             addressStore: gemstoneAddressStore,
             preferences: walletPreferencesService,
         )
+        let recentAssetsService = GemRecentActivityService(store: GemstoneRecentActivityStore(store: storeManager.recentActivityStore))
         let scanConfiguration = URLSessionConfiguration.default
         scanConfiguration.timeoutIntervalForRequest = TimeInterval(Config().getScanConfig().timeoutSeconds)
         let scanService = Gemstone.GemScanService(
@@ -393,7 +395,7 @@ struct ServicesFactory {
             ),
             keystore: storages.keystore,
             observablePreferences: observablePreferences,
-            recentAssetsService: RecentAssetsService(store: storeManager.recentActivityStore),
+            recentAssetsService: recentAssetsService,
             amountService: AmountService(stakeService: stakeService, amountService: Gemstone.GemAmountService()),
             toastPresenter: toastPresenter,
         )
@@ -442,6 +444,7 @@ struct ServicesFactory {
             perpetualService: perpetualService,
             hyperliquidObserverService: hyperliquidObserverService,
             nameService: nameService,
+            recentAssetsService: recentAssetsService,
             toastPresenter: toastPresenter,
             addressService: addressService,
             viewModelFactory: viewModelFactory,

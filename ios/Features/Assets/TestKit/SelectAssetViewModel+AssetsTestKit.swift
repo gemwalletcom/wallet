@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemRecentActivityService
 import class Gemstone.GemChainService
 import protocol Gemstone.GemBalanceServiceProtocol
 import GemstoneServicesTestKit
@@ -27,7 +28,7 @@ public extension SelectAssetViewModel {
             searchService: GemSearchServiceMock(),
             balanceService: balanceService,
             priceAlertService: GemPriceAlertServiceMock(),
-            recentAssetsService: RecentAssetsService(store: .mock()),
+            recentAssetsService: GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock())),
             preferencesService: GemPreferencesServiceMock(),
             chainService: GemChainService(),
         )

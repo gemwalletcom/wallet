@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use primitives::WalletId;
+use primitives::{AssetId, RecentActivityType, WalletId};
 
 use crate::models::transaction::GemTransactionInputType;
 use crate::services::error::GemServiceError;
-use crate::services::transfer::GemRecentActivityStore;
+use crate::services::transfer::{GemRecentActivity, GemRecentActivityStore};
 
 #[derive(uniffi::Object)]
 pub struct GemRecentActivityService {
@@ -24,6 +24,23 @@ impl GemRecentActivityService {
             None => Ok(()),
         }
     }
+
+    pub async fn record_asset(&self, activity_type: RecentActivityType, asset_id: AssetId, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        self.store
+            .add(
+                GemRecentActivity {
+                    activity_type,
+                    asset_id,
+                    to_asset_id: None,
+                },
+                wallet_id,
+            )
+            .await
+    }
+
+    pub async fn clear(&self, wallet_id: WalletId, types: Vec<RecentActivityType>) -> Result<(), GemServiceError> {
+        self.store.clear(wallet_id, types).await
+    }
 }
 
 #[cfg(test)]
@@ -34,7 +51,6 @@ mod tests {
     use primitives::{Asset, Chain, StakeType};
 
     use super::*;
-    use crate::services::transfer::GemRecentActivity;
 
     #[derive(Default)]
     struct RecordingStore {
@@ -45,6 +61,10 @@ mod tests {
     impl GemRecentActivityStore for RecordingStore {
         async fn add(&self, activity: GemRecentActivity, _wallet_id: WalletId) -> Result<(), GemServiceError> {
             self.added.lock().unwrap().push(activity);
+            Ok(())
+        }
+        async fn clear(&self, _wallet_id: WalletId, _types: Vec<RecentActivityType>) -> Result<(), GemServiceError> {
+            self.added.lock().unwrap().clear();
             Ok(())
         }
     }

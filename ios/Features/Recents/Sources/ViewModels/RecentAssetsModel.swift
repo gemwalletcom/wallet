@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemRecentActivityServiceProtocol
+import class Gemstone.GemRecentActivityService
 import GemstoneServices
 import Foundation
 import Primitives
@@ -12,7 +14,7 @@ public final class RecentAssetsModel {
     private static let sectionLimit: Int = 10
 
     private let walletId: WalletId
-    private let recentAssetsService: any RecentAssetsServiceable
+    private let recentAssetsService: any GemRecentActivityServiceProtocol
 
     public let query: ObservableQuery<RecentActivityRequest>
     public var isPresenting: Bool = false
@@ -21,7 +23,7 @@ public final class RecentAssetsModel {
         walletId: WalletId,
         types: [RecentActivityType],
         filters: [AssetsRequestFilter] = [],
-        recentAssetsService: any RecentAssetsServiceable,
+        recentAssetsService: any GemRecentActivityServiceProtocol,
     ) {
         self.walletId = walletId
         self.recentAssetsService = recentAssetsService

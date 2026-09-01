@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemRecentActivityServiceProtocol
+import class Gemstone.GemRecentActivityService
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemPerpetualServiceProtocol
 import Components
@@ -21,7 +23,7 @@ import SwiftUI
 @MainActor
 public final class WalletSearchSceneViewModel: Sendable, AssetActions, PerpetualPinActions {
     private let searchService: any GemSearchServiceProtocol
-    private let recentAssetsService: any RecentAssetsServiceable
+    private let recentAssetsService: any GemRecentActivityServiceProtocol
     let balanceService: any GemBalanceServiceProtocol
     let perpetualService: any GemPerpetualServiceProtocol
     private let preferences: ObservablePreferences
@@ -51,7 +53,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     public init(
         wallet: Wallet,
         searchService: any GemSearchServiceProtocol,
-        recentAssetsService: any RecentAssetsServiceable,
+        recentAssetsService: any GemRecentActivityServiceProtocol,
         balanceService: any GemBalanceServiceProtocol,
         perpetualService: any GemPerpetualServiceProtocol,
         preferences: ObservablePreferences,
@@ -273,10 +275,12 @@ extension WalletSearchSceneViewModel {
 
 extension WalletSearchSceneViewModel {
     private func updateRecent(_ asset: Asset) {
-        do {
-            try recentAssetsService.add(.search(asset), walletId: wallet.id)
-        } catch {
-            debugLog("UpdateRecent error: \(error)")
+        Task { [recentAssetsService, wallet] in
+            do {
+                try await recentAssetsService.recordAsset(activityType: .search, assetId: asset.id.identifier, walletId: wallet.id.id)
+            } catch {
+                debugLog("UpdateRecent error: \(error)")
+            }
         }
     }
 

@@ -3,6 +3,7 @@
 import Foundation
 public import struct Gemstone.GemRecentActivity
 public import protocol Gemstone.GemRecentActivityStore
+public import enum Gemstone.RecentActivityType
 public import typealias Gemstone.WalletId
 
 public final class GemRecentActivityStoreMock: GemRecentActivityStore, @unchecked Sendable {
@@ -15,7 +16,11 @@ public final class GemRecentActivityStoreMock: GemRecentActivityStore, @unchecke
         lock.withLock { added.map(\.activity) }
     }
 
-    public func add(activity: GemRecentActivity, walletId: WalletId) throws {
+    public func add(activity: GemRecentActivity, walletId: WalletId) async throws {
         lock.withLock { added.append((activity, walletId)) }
+    }
+
+    public func clear(walletId: WalletId, types: [RecentActivityType]) async throws {
+        lock.withLock { added.removeAll() }
     }
 }

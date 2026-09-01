@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemRecentActivityServiceProtocol
+import class Gemstone.GemRecentActivityService
 import GemstoneServices
 import Components
 import Foundation
@@ -12,7 +14,7 @@ import Store
 @Observable
 @MainActor
 public final class RecentsSceneViewModel {
-    private let recentAssetsService: any RecentAssetsServiceable
+    private let recentAssetsService: any GemRecentActivityServiceProtocol
     private let walletId: WalletId
 
     public let query: ObservableQuery<RecentActivityRequest>
@@ -28,7 +30,7 @@ public final class RecentsSceneViewModel {
         walletId: WalletId,
         types: [RecentActivityType],
         filters: [AssetsRequestFilter] = [],
-        recentAssetsService: any RecentAssetsServiceable,
+        recentAssetsService: any GemRecentActivityServiceProtocol,
         onSelect: @escaping (Asset) -> Void,
     ) {
         self.walletId = walletId
@@ -74,10 +76,12 @@ public final class RecentsSceneViewModel {
 
 extension RecentsSceneViewModel {
     func onSelectClear() {
-        do {
-            try recentAssetsService.clear(walletId: walletId, types: query.request.types)
-        } catch {
-            debugLog("RecentsSceneViewModel clear error: \(error)")
+        Task { [recentAssetsService, walletId, types = query.request.types] in
+            do {
+                try await recentAssetsService.clear(walletId: walletId.id, types: types.map { $0.map() })
+            } catch {
+                debugLog("RecentsSceneViewModel clear error: \(error)")
+            }
         }
     }
 }

@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemRecentActivityServiceProtocol
+import class Gemstone.GemRecentActivityService
 import Components
 import GemstonePrimitivesTestKit
 import protocol Gemstone.GemPerpetualServiceProtocol
@@ -45,7 +47,7 @@ extension PerpetualsSceneViewModel {
         wallet: Wallet = .mock(),
         perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
         observerService: any PerpetualObservable = PerpetualObserverMock(),
-        recentAssetsService: any RecentAssetsServiceable = RecentAssetsService(store: .mock()),
+        recentAssetsService: any GemRecentActivityServiceProtocol = GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock())),
     ) -> PerpetualsSceneViewModel {
         PerpetualsSceneViewModel(
             wallet: wallet,

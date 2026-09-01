@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemRecentActivityServiceProtocol
+import class Gemstone.GemRecentActivityService
 import protocol Gemstone.GemChainServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemPriceAlertServiceProtocol
@@ -28,7 +30,7 @@ public final class SelectAssetViewModel {
     let searchService: any GemSearchServiceProtocol
     let balanceService: any GemBalanceServiceProtocol
     let priceAlertService: any GemPriceAlertServiceProtocol
-    let recentAssetsService: any RecentAssetsServiceable
+    let recentAssetsService: any GemRecentActivityServiceProtocol
 
     public let wallet: Wallet
 
@@ -56,7 +58,7 @@ public final class SelectAssetViewModel {
         searchService: any GemSearchServiceProtocol,
         balanceService: any GemBalanceServiceProtocol,
         priceAlertService: any GemPriceAlertServiceProtocol,
-        recentAssetsService: any RecentAssetsServiceable,
+        recentAssetsService: any GemRecentActivityServiceProtocol,
         preferencesService: any GemPreferencesServiceProtocol,
         chainService: any GemChainServiceProtocol,
         selectAssetAction: AssetAction = .none,
@@ -278,10 +280,12 @@ extension SelectAssetViewModel {
 
     private func updateRecent(assetId: AssetId) {
         guard let data = selectType.recentActivityData(assetId: assetId) else { return }
-        do {
-            try recentAssetsService.add(data, walletId: wallet.id)
-        } catch {
-            debugLog("Failed to update recent activity: \(error)")
+        Task { [recentAssetsService, wallet] in
+            do {
+                try await recentAssetsService.recordAsset(activityType: data.type.map(), assetId: data.assetId.identifier, walletId: wallet.id.id)
+            } catch {
+                debugLog("Failed to update recent activity: \(error)")
+            }
         }
     }
 

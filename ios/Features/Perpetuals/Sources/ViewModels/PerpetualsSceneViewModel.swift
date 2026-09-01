@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemRecentActivityServiceProtocol
+import class Gemstone.GemRecentActivityService
 import GemstonePrimitives
 import enum Gemstone.GemMarketsRefreshTrigger
 import protocol Gemstone.GemPerpetualServiceProtocol
@@ -20,7 +22,7 @@ final class PerpetualsSceneViewModel {
 
     private let observerService: any PerpetualObservable
     let perpetualService: any GemPerpetualServiceProtocol
-    let recentAssetsService: any RecentAssetsServiceable
+    let recentAssetsService: any GemRecentActivityServiceProtocol
 
     let wallet: Wallet
 
@@ -53,7 +55,7 @@ final class PerpetualsSceneViewModel {
         wallet: Wallet,
         perpetualService: any GemPerpetualServiceProtocol,
         observerService: any PerpetualObservable,
-        recentAssetsService: any RecentAssetsServiceable,
+        recentAssetsService: any GemRecentActivityServiceProtocol,
         onSelectAssetType: ((SelectAssetType) -> Void)? = nil,
         onSelectAsset: ((Asset) -> Void)? = nil,
         onSelectPortfolio: (() -> Void)? = nil,
@@ -206,13 +208,12 @@ extension PerpetualsSceneViewModel {
 
     func onSelectPerpetual(asset: Asset) {
         onSelectAsset?(asset)
-        do {
-            try recentAssetsService.add(
-                RecentActivityData(type: .perpetual, assetId: asset.id, toAssetId: nil),
-                walletId: wallet.id,
-            )
-        } catch {
-            debugLog("Failed to update recent activity: \(error)")
+        Task { [recentAssetsService, wallet] in
+            do {
+                try await recentAssetsService.recordAsset(activityType: .perpetual, assetId: asset.id.identifier, walletId: wallet.id.id)
+            } catch {
+                debugLog("Failed to update recent activity: \(error)")
+            }
         }
     }
 
