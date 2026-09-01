@@ -101,7 +101,6 @@ impl ScanClient {
         })
     }
 
-    /// A disabled scanner has not scanned; it has not found the transaction clean.
     fn is_scan_complete<T>(enable: bool, scans: &[Option<T>]) -> bool {
         enable && scans.iter().all(Option::is_some)
     }
