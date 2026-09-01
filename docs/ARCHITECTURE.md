@@ -15,8 +15,8 @@ Everything else is platform work: rendering, navigation, observation, secure sto
 ```
 core/gemstone/src/services/<feature>/
     mod.rs      the service: owns the feature flow and exported UniFFI methods
-    rules.rs    pure functions and receiver methods + their unit tests
-    model.rs    feature records and enums; only FFI types derive UniFFI
+    rules.rs    pure feature decisions + their unit tests
+    model.rs    feature records/enums and intrinsic behavior; only FFI types derive UniFFI
     store.rs    the trait each app implements over its own database
     error.rs    structured feature errors when GemServiceError is insufficient
 ```
@@ -32,10 +32,12 @@ shape the FFI-facing API according to § 6.
 
 ```rust
 // services/confirm/rules.rs
+use num_bigint::BigUint;
+
 pub(super) fn selectable_fee_assets(assets: Vec<Asset>, balances: Vec<GemAssetBalance>, prices: Vec<GemAssetPrice>) -> Vec<GemFeeAsset> {
     balances
         .into_iter()
-        .filter(|balance| balance.available > num_bigint::BigUint::from(0u32))
+        .filter(|balance| balance.available > BigUint::from(0u32))
         .filter_map(|balance| {
             let asset = assets.iter().find(|asset| asset.id == balance.asset_id)?.clone();
             let price = prices.iter().find(|price| price.asset_id == balance.asset_id).cloned();
@@ -45,11 +47,12 @@ pub(super) fn selectable_fee_assets(assets: Vec<Asset>, balances: Vec<GemAssetBa
 }
 ```
 
-Its test states the rule in one sentence and fails if the rule flips:
+Its test follows Core's `test_<function_name>` convention, covers the meaningful cases together,
+and fails if the rule flips:
 
 ```rust
 #[test]
-fn test_a_fee_asset_with_no_available_balance_is_not_selectable() {
+fn test_selectable_fee_assets() {
     let funded = Asset::from_chain(Chain::Tempo);
     let empty = Asset::from_chain(Chain::Ethereum);
 
@@ -160,8 +163,9 @@ pub trait GemPerpetualStore: Send + Sync {
 }
 ```
 
-An adapter maps reads and writes and nothing more — **no rules, no entity mapping inline**.
-Mapping goes in a mapper file beside the adapter (`StoreModels.kt`, `nft/NftModels.kt`).
+An adapter maps reads and writes and nothing more — **no rules or mapping implementation inline**.
+Calling a named mapper or standard boundary conversion is expected; non-trivial mapping lives in a
+mapper file beside the adapter (`StoreModels.kt`, `nft/NftModels.kt`).
 
 **Stores only write rows whose values differ.** A blanket write churns observers and hides real changes.
 
@@ -216,20 +220,21 @@ override fun getFeeAssets(): Flow<List<AssetInfo>> = getCurrentWalletId().flatMa
 
 The store is the change trigger. Core is the decider. Core has no observation primitive, and that is the only reason the app watches its own tables.
 
-## 6. Where a transaction input's answers come from
+## 6. Where derived domain answers live
 
-The app uses Core's types. It does not declare a parallel enum of the same shape — that is
-two definitions of one thing, and every crossing pays for a two-way mapper. `TransferDataType`
+The app uses Core's types. It does not declare a parallel record or enum of the same shape — that
+is two definitions of one thing, and every crossing pays for a two-way mapper. `TransferDataType`
 was that copy: eleven restated cases and 138 lines of mapping. It is deleted.
 
-Four kinds of member, four homes:
+Choose the home from ownership first, then decide how it crosses FFI:
 
-| | Home | Example |
+| Question | Home | Example |
 |---|---|---|
-| A field the case already carries | extension on the Core type | `inputType.asset` |
-| An answer derived only from one local Core record or enum | exported method on that type | `inputType.transactionAsset()` |
-| A rule requiring I/O, stored dependencies, or independently sourced inputs | method on the service that owns those dependencies | `confirmService.metadata(...)` |
-| Encoding an app value into a case | extension on the Core type | `.stake(asset, stakeType)` |
+| A field the value already carries, but the generated shape lacks a common accessor | thin app mapping extension | `inputType.asset` |
+| A pure answer has one honest domain receiver; additional value arguments are allowed | method on the receiver | `inputType.transactionAsset()`, `input.addAddress(addresses)` |
+| A pure rule has no honest receiver | private rule called by the owning service | `selectable_fee_assets(...)` |
+| The answer requires I/O, stored dependencies or platform ports | method on the service that owns the flow | `confirmService.preload(...)` |
+| An app value must be encoded into a Core case | app mapping extension | `.stake(asset, stakeType)` |
 
 **Never add a free exported function or a service wrapper — stateless or not — for an answer
 already owned by one local Core type.** `transaction_input_asset(input_type)` and
@@ -238,15 +243,40 @@ already owned by one local Core type.** `transaction_input_asset(input_type)` an
 service with real dependencies: `confirmTransferService.simulationAssetIds(simulation:)` is a
 property of `SimulationResult`, not of an eight-dependency orchestrator. Keep the owning service
 when the rule performs I/O, holds real dependencies, or combines inputs without a single honest
-receiver. Do not invent an artificial receiver for external or remote types Core cannot extend.
+receiver. A request record is an honest receiver when it contains the complete instruction:
+`GemContactAddressInput.add_address(addresses)` owns its replacement identifier and new address;
+`GemManageContactService.add_address(addresses, input)` would ignore every service dependency.
 
-`#[uniffi::export]` on an `impl` exports its `pub` members and nothing else, and both directions
-fail silently. Narrowing one member to `pub(crate)` drops it from both apps' bindings with no
-Rust error — the break surfaces as `cannot find 'output' in scope` in whichever app still used
-it, so a platform that never called it stays green. A private helper written inside an exported
-`impl` becomes public API instead, and shows up as a protocol method every mock must implement.
-Keep helpers in a separate un-exported `impl` block, and after changing a member's visibility
-build both apps, not the one you were working in.
+Do not manufacture a receiver by choosing the first parameter. The type is honest only when the
+answer is part of that type's meaning, the method uses `self`, and extra arguments are plain input
+values rather than stores, clients or services. For a repository-owned Rust type, prefer an
+inherent `impl Type`; do not create a one-method `TypeExt` trait to imitate Swift or Kotlin.
+Intrinsic structure belongs in the defining crate (`SimulationResult.asset_ids()`), while
+feature or product policy remains in Gemstone even when it consumes a primitives type.
+
+### Ownership is not transport
+
+A receiver method on a Gemstone-local UniFFI record or enum can cross FFI. Export it only when an
+app calls it. A TypeShare type defined in a repository-owned Core crate can own canonical inherent
+Rust behavior there, but TypeShare does not generate that method in Swift or Kotlin. A type merely
+declared through `#[uniffi::remote]` is defined elsewhere, so Gemstone cannot add an inherent
+receiver; use a private rule or adapter rather than inventing one. A thin app extension may expose
+a structural field projection when transport omits it, but it must not copy product policy. If
+mobile needs a real rule that FFI cannot express on the receiver, expose the answer through the
+owning screen service rather than implementing the decision twice.
+
+A stateless exported object is acceptable only as a narrow FFI codec or formatter when UniFFI
+cannot express an honest receiver or the operation spans several transport types. Name that role
+explicitly, give it no I/O dependencies, and keep product decisions in receiver methods or private
+rules. A one-call forwarding object is still a wrapper and should be removed.
+
+`#[uniffi::export]` on an `impl` exports its `pub` members and nothing else. A semantically internal
+helper declared `pub` inside that block becomes public API and appears on every generated protocol;
+narrowing a used member to `pub(crate)` removes it from both apps' bindings without a Rust error.
+Keep exported receiver methods in the exported block, helpers in a separate unexported block with
+the minimum `pub(super)` or `pub(crate)` visibility, and derive `uniffi::Record`/`uniffi::Enum` only
+for types that actually cross FFI. After changing an exported member or type, regenerate bindings
+and build both apps — one platform may never have called the method the other still needs.
 
 The encoding members are scaffolding, not a pattern to copy. `.stake(asset.map(), stakeType.json())`
 carries a `.json()` only because `StakeType` is not in `EXPOSED_TYPES`
@@ -255,14 +285,21 @@ platforms' mappers are generated from the Rust definition; the `.json()` becomes
 `.map()`, and where nothing persists the app's twin, the member disappears. Do not add a new
 encoding member without adding its type to `EXPOSED_TYPES`.
 
-## 7. One service per screen
+## 7. One Core service on iOS; narrow cases on Android
 
-A view model holds **exactly one** service, named `service`, and it is **`private`**. A non-private service means something outside the model — usually the view — is reaching through it for a dependency.
+An iOS view model that needs Core holds **exactly one** screen-level Core service, named `service`,
+and it is **`private`**; a model that does not need Core holds none. Android view models depend on
+one or more narrow application cases, never directly on a Core service or repository. Cases may
+compose other cases. A non-private service on iOS usually means the view is reaching through the
+model for a dependency.
+
+This limit does not count explicit platform ports such as a signer, keystore, observation source
+or navigation builder. Those remain narrow injected dependencies; they do not decide shared
+product behavior.
 
 The service is named for the screen it backs, not for the feature and not for the layer: `GemContactsService` backs the contacts list, `GemManageContactService` backs the add-and-edit screen. No `Scene` or `Facade` in the name. When a screen needs more than one thing from Core, Core composes them:
 
 ```rust
-/// Backs the add and edit contact screen.
 #[derive(uniffi::Object)]
 pub struct GemManageContactService {
     contacts: Arc<GemContactService>,
@@ -277,18 +314,28 @@ impl GemManageContactService {
     pub fn new(contacts: Arc<GemContactService>, addresses: Arc<GemAddressService>, names: Arc<GemNameService>, chains: Arc<GemChainService>) -> Self { ... }
 
     pub fn default_chain(&self) -> Chain { self.contacts.default_chain() }
-    pub fn add_address(&self, addresses: Vec<ContactAddress>, input: GemContactAddressInput) -> Vec<ContactAddress> { ... }
+    pub async fn save_contact(&self, input: GemContactInput) -> Result<Contact, GemServiceError> { ... }
     pub fn format_address(&self, address: String, chain: Chain, style: GemAddressFormatStyle) -> String { ... }
 }
 ```
+
+The pure address-list transformation stays on its request value:
+`input.add_address(addresses)`. It does not belong on this service because it uses none of the
+service's dependencies.
 
 A sheet belongs to the screen that presents it and shares that screen's service. A screen you navigate *to* is a different screen with its own.
 
 ### A service never hands out another service
 
-`service.manageContact()` is the same reach-through as `model.nameService`, one level down: the caller now depends on something it was not given. Every service is constructed in the composition root and injected.
+`service.manageContact()` is the same reach-through as `model.nameService`, one level down: the
+caller now depends on something it was not given. Every service is constructed in the composition
+root and injected. Returning `Arc<GemFooService>` from an exported service is migration debt, not
+an exception to this rule.
 
-The exception is a **shared component** — `AddressInputViewModel`, `NetworkSelectorViewModel` — which is reusable across screens and takes a narrow Core protocol. A screen's service may vend one of those, because the component's dependency is genuinely narrower than the screen's.
+The reusable exception is a **shared component** — `AddressInputViewModel`,
+`NetworkSelectorViewModel` — which takes a narrow Core protocol. The parent view model may vend
+that component model and supply its dependency; the Core service still never returns another
+service.
 
 ### The parent vends the child model, the view never reaches in
 
@@ -317,11 +364,15 @@ public func contactsScene(mode: ContactsViewModel.Mode = .list) -> ContactsViewM
 
 The same applies to state: a view switching on the model's `mode` forces `mode` to be non-private. Name the decision on the model instead — `var rowAction: RowAction` — and the view switches on the answer, not the input.
 
-### Use the generated protocol, not the concrete object
+### Depend on the generated abstraction, not the concrete object
 
-UniFFI generates a protocol for every exported object. `GemAddressServiceProtocol` exists; importing `class Gemstone.GemAddressService` at a consumer means that consumer cannot be substituted in a test.
+On iOS, UniFFI generates a protocol for every exported object. `GemAddressServiceProtocol` exists;
+importing `class Gemstone.GemAddressService` at a consumer means that consumer cannot be
+substituted in a test. Android view models use app case interfaces; lower layers that directly
+integrate Core use the generated `GemFooServiceInterface`.
 
-- **Consumers** (view models, components, validators) take `any GemFooServiceProtocol`.
+- **iOS consumers** (view models, components, validators) take `any GemFooServiceProtocol`.
+- **Android consumers** take the case or generated interface used by their layer.
 - **The composition root** (`ServicesFactory`, `ViewModelFactory`) holds the concrete type — a UniFFI constructor needs it, and the root is the one place allowed to construct. Its fields are grouped by what they are: Core services, platform services, stores.
 
 ## 8. Services are injected, never constructed at a call site
@@ -330,13 +381,19 @@ A `GemFooService()` in a field initialiser or at file scope is a second instance
 
 - **iOS** — registered in `ServicesFactory`, exposed through an `@Entry` in `ios/Gem/Types/Environment.swift`, passed into the view model.
 - **Android** — provided in a Hilt module, injected. A Compose scene reads one instance from a `CompositionLocal` provided at `MainActivity` (`LocalChainService`, `LocalAssetConfigService`). A non-`@Composable` helper takes an explicit parameter — a `CompositionLocal` cannot be read outside a composable.
-- **A value type or a namespace of statics** takes the service as a method parameter; the caller that can hold one passes it down.
+- **A value type or a namespace of statics** takes the service as a method parameter only when the
+  answer genuinely requires that service's dependencies. A pure receiver-owned answer stays on
+  the receiver according to § 6.
 
-Prefer an interface (`GemConfirmServiceInterface`) over the concrete UniFFI object wherever a test needs to substitute it — mocking the concrete object dereferences native handles a mock does not have and takes the JVM down.
+Prefer the platform abstraction (`GemConfirmServiceProtocol` on iOS,
+`GemConfirmServiceInterface` or a case on Android) wherever a test needs substitution. Mocking the
+concrete UniFFI object dereferences native handles a mock does not have and takes the JVM down.
 
 ## 9. Errors
 
-One error enum per feature, in `error.rs`, carrying what the app needs to render:
+Use the shared `GemServiceError` for ordinary API, store and service failures. Add a feature error
+enum in `error.rs` only when the app needs structured domain data to render or branch without
+parsing a message:
 
 ```rust
 pub enum GemConfirmError {
@@ -365,9 +422,9 @@ A duplicate taxonomy costs a mapping function, re-derives data Core already carr
 
 | Layer | What it tests | Where |
 |---|---|---|
-| Core | the rule | `rules.rs`, with a mutation check |
-| iOS | the mapping Core → app types | feature tests, driving a `Gem*ServiceMock` |
-| Android | the wiring — that the case passes Core's answer through | module unit tests, mocking `Gem*ServiceInterface` |
+| Core | the pure rule or intrinsic receiver behavior | owning module, usually `rules.rs`; beside the type for intrinsic behavior |
+| iOS | the mapping Core → app types | feature tests, substituting an I/O screen service when needed |
+| Android | the wiring — that the case passes Core's answer through | module unit tests, substituting the case or service interface |
 
 Neither app tests a rule that lives in Core. If an app test would fail when a Core rule flips, the rule is in the wrong place or the test is asserting the mock.
 
@@ -387,7 +444,10 @@ try store.addBanners([NewBanner(id: id, walletId: walletId, assetId: assetId, ev
 #expect(try store.getBanner(id: id)?.state == .active)
 ```
 
-- **Never mock a constructible service** (`GemChainService`, `GemAssetConfigService`, …). Construct the real one, or the test asserts the mock.
+- **Never mock a dependency-free constructible service** (`GemChainService`,
+  `GemAssetConfigService`, …). Construct the real one. An app test may substitute an I/O screen
+  service to test mapping or state; the returned Core answer is then a stated premise, not a rule
+  assertion.
 - **Never fabricate I/O to reach a rule.** An offline provider, in-memory stores and empty rows stood up so a test can touch rules that use none of them is always the wrong answer. Pass the answer in from the caller, or mock the service and state the premise.
 
 A mock's defaults should be the *usual* case. A mock that fails by default becomes a trap the moment another method starts depending on it.
@@ -395,11 +455,18 @@ A mock's defaults should be the *usual* case. A mock that fails by default becom
 ## 11. Landing a change
 
 1. Implement in Core with the rule test.
-2. Regenerate bindings **only if an exported signature changed** — `just generate-stone` and `just generate-android-stone` from the repo root. Never against a half-edited Core: a generate run mid-edit yields bindings that fail somewhere unrelated.
+2. If a UniFFI signature, TypeShare model, `EXPOSED_TYPES` entry or mobile integration boundary
+   changed, run `just generate` from the repo root. Internal Core changes that preserve those
+   contracts do not require regeneration. Never generate against half-edited Core.
 3. Wire both platforms.
-4. **Delete the app code it replaces.** A migration that leaves the old path in place has not migrated anything.
-5. Verify (see `SERVICES.md` § Verification).
-6. Commit and push, removing the item's line from `SERVICES.md` in the same commit.
+4. **Delete the old path it replaces:** free function or wrapper, app call sites, obsolete mocks,
+   duplicate tests and unused imports. A migration that leaves both paths has not migrated anything.
+5. Build both apps when their generated interface or integration changed, then verify the affected
+   suites (see `SERVICES.md` § Verification).
+6. Search for the old symbol and review the diff for unused public API, redundant conversions and
+   stale generated files.
+7. Commit and push. If the change completes an item tracked in `SERVICES.md`, remove that item in
+   the same commit.
 
 ### When the platforms disagree
 

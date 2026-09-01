@@ -1,6 +1,6 @@
 # Gemstone Services
 
-Core-owned services live in [`core/gemstone/src/services/`](../core/gemstone/src/services/) as `<name>/{mod,model,rules,store}.rs` (only the files a service needs); every service and store returns the shared [`GemServiceError`](../core/gemstone/src/services/error.rs). A service owns the flow (API + rules); each app implements the `Gem*Store` trait over its database or preferences and constructs the service in DI ([`ServicesFactory.swift`](../ios/Gem/Services/ServicesFactory.swift), Hilt modules under [`android/data/repositories/.../di`](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/di/) and [`android/data/coordinators/.../di`](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/di/)). Read [How a service is built](#how-a-service-is-built) before adding or changing one.
+Core-owned services live in [`core/gemstone/src/services/`](../core/gemstone/src/services/) as `<name>/{mod,model,rules,store,error}.rs` with only the files they need. Services and stores use the shared [`GemServiceError`](../core/gemstone/src/services/error.rs) unless the app needs a structured feature error to render or branch on. A service owns the I/O flow; pure answers live on an honest domain receiver or in private rules according to [`ARCHITECTURE.md` § 6](ARCHITECTURE.md#6-where-derived-domain-answers-live). Each app implements the `Gem*Store` trait over its database or preferences and constructs the service in DI ([`ServicesFactory.swift`](../ios/Gem/Services/ServicesFactory.swift), Hilt modules under [`android/data/repositories/.../di`](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/di/) and [`android/data/coordinators/.../di`](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/di/)). Read [How a service is built](#how-a-service-is-built) before adding or changing one.
 
 ## How a service is built
 
@@ -12,13 +12,14 @@ Core-owned services live in [`core/gemstone/src/services/`](../core/gemstone/src
 
 | File | Holds |
 | --- | --- |
-| `mod.rs` | the `#[derive(uniffi::Object)]` service, its `#[uniffi::constructor]`, and the exported methods — each one a short *API call → rule → store write* sequence |
-| `rules.rs` | the decisions, as pure functions with unit tests |
+| `mod.rs` | the `#[derive(uniffi::Object)]` service, its `#[uniffi::constructor]`, and short exported orchestration methods |
+| `rules.rs` | pure feature decisions with unit tests |
 | `store.rs` | the `#[uniffi::export(rust, foreign)]` trait the apps implement |
-| `model.rs` | the `uniffi::Record`/`uniffi::Enum` types the service returns |
+| `model.rs` | feature records/enums and intrinsic behavior; only types crossing FFI derive UniFFI |
 | `error.rs` | only when [`GemServiceError`](../core/gemstone/src/services/error.rs) cannot express a case |
 
-The service holds `Arc`s of other Core services and of store traits — never an app type:
+The service may own its feature store and holds `Arc`s of other Core services, never another
+domain's store or an app type. Narrow foreign traits are allowed for platform capabilities:
 
 ```rust
 #[derive(uniffi::Object)]
@@ -45,11 +46,23 @@ pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceErro
 }
 ```
 
-Everything that decides belongs in `rules.rs` with a test that fails if the rule flips. A failure is either impossible (a rule with a built-in default), surfaced (returned as `GemServiceError`), or recorded through `services::failures::record` — never swallowed.
+Everything that decides belongs in a pure function or receiver method with a test that fails if the
+rule flips. A failure is either impossible through a built-in default, surfaced as a typed error,
+or recorded through `services::failures::record` — never swallowed.
 
-**There is no `*RulesService`.** A domain has one service, and a rule that domain's service owns is a method on it. When a rule has to be reachable from code that can never hold an injected service — a SwiftUI `Identifiable`, a Compose scene, a value-type extension, an enum property, a `Gem*Store` adapter (Core constructs the service *from* it) — the caller that *can* hold the service resolves it and passes the answer down — a view model asks `GemExplorerService` for the link and hands the URL to the Compose scene or the UI-model factory; the scene never reaches for a service. A constructible service is **not** a licence to hold one at file scope. `private let addressService = GemAddressService()` / `private val assetConfig = GemAssetConfigService()` above a value-type extension is a hidden global: nothing can substitute it, and the extension reaches outward instead of being handed what it needs. There are around fifteen of these on each platform (`gemcore/ext/*`, `GemstonePrimitives/Sources/Extensions/*`) and they are all going. The fix is the same every time — the caller that can hold the injected service resolves the answer and passes it down, as `FeeRateUIModel` now takes `totalFee` rather than computing it. Where an extension genuinely has no caller that can hold a service, that is a signal the logic belongs on the feature's service and the extension should not exist. The I/O service never carries a second copy of a rule, and a second *exported* object is not the answer either: a feature's clients see exactly one type, its service. `Explorer` and `GemStakeConfig` were both dropped from the FFI for this reason — `Explorer` stays as a plain Rust struct that `GemExplorerService` uses internally, and stake's rules moved onto `GemStakeService`.
+**There is no `*RulesService`.** A pure answer with one honest receiver belongs on that receiver,
+even when it takes additional plain values: `inputType.transactionAsset()`,
+`stakeBalance.showsStakeBalance()` and `contactAddressInput.addAddress(addresses)`. A pure rule
+with no honest receiver stays private in `rules.rs` and is called by the service. I/O, stores and
+platform ports belong on the service that owns the flow. See the complete decision matrix in
+[`ARCHITECTURE.md` § 6](ARCHITECTURE.md#6-where-derived-domain-answers-live).
 
-Know the cost before choosing it. A rule reachable only through an I/O service cannot be exercised by an app test without mocking it, and a mocked rule is a premise, not a check — so the rule's real test has to exist in `rules.rs`, mutation-checked, before the app-side one is downgraded. Moving stake's rules onto `GemStakeService` traded three Android rule tests for that: `AssetInfoUIModelFactoryTest` now states what the service reports and asserts only the formatting, because Core's `stake::rules` tests already cover which chain counts frozen versus staked.
+A constructible service is **not** a licence to hold one at file scope. `private let
+addressService = GemAddressService()` or `private val assetConfig = GemAssetConfigService()` above
+a value-type extension is a hidden global: nothing can substitute it, and the extension reaches
+outward instead of receiving what it needs. A mocked Core rule is a premise, not a check, so its
+real mutation-checked test remains with its owning Core implementation; app tests assert only
+mapping, wiring and state.
 
 ### 2. Pick the store the value belongs in
 
@@ -61,12 +74,14 @@ Know the cost before choosing it. A rule reachable only through an I/O service c
 | a secret | [`GemSecureStore`](../core/gemstone/src/services/preferences/store.rs) | sync; **every read can fail** | `GemstoneSecurePreferencesStore` over the Keychain | `TinkGemPreferences` over Tink |
 | something only the OS can do | a foreign trait of its own (`GemNotificationPermissions`, `GemStreamConnection`) | whatever the platform needs | app class | app class |
 
-- One trait per table. A second trait over the same rows is how the two apps drift apart.
+- One owning trait per persistence boundary. A second trait over the same rows is how the two apps
+  drift apart; one cohesive feature trait may span closely related rows such as contacts and their
+  addresses.
 - A new preference is a `const` key plus typed accessors on `GemPreferencesService` — single-word keys (`_` separates the settings hierarchy in environment variables), never a raw key string in an app.
 - The preference read is infallible on purpose: getters return plain values, so neither app writes `try?`/`runCatching` around them. Secure reads are fallible and their failure must propagate — a swallowed secure read regenerates identity or loses a key.
 - Store methods follow the vocabulary in [Conventions](#conventions): `get_*`, `is_*`, `set_*`, `save_*`, `add_*`, `update_<items>(items, delete_ids)`, `delete_*`, `clear*`.
 
-### 3. Each app implements the store — and nothing else
+### 3. Each app implements a thin store adapter
 
 iOS, `ios/Packages/GemstoneServices/Sources/Stores/<Name>Store.swift`, class `Gemstone<Name>Store`, converting with `.json()` and `Primitives.<T>(_:)`:
 
@@ -127,24 +142,23 @@ fun provideGemPriceAlertService(...): GemPriceAlertService = GemPriceAlertServic
 ```swift
 @Observable
 @MainActor
-public final class PriceAlertsSceneViewModel: Sendable {
-    private let priceAlertService: any GemPriceAlertServiceProtocol
-    private let preferencesService: any GemPreferencesServiceProtocol
-    public let query: ObservableQuery<PriceAlertsRequest>
+public final class SupportChatSceneViewModel {
+    private let service: any GemSupportServiceProtocol
+    private let typing: SupportTypingState
 
-    public init(
-        priceAlertService: any GemPriceAlertServiceProtocol,
-        preferencesService: any GemPreferencesServiceProtocol,
-    ) {
-        self.priceAlertService = priceAlertService
-        self.preferencesService = preferencesService
-        isPriceAlertsEnabled = priceAlertService.isEnabled()
-        query = ObservableQuery(PriceAlertsRequest(), initialValue: [])
+    public init(service: any GemSupportServiceProtocol, typing: SupportTypingState) {
+        self.service = service
+        self.typing = typing
     }
 }
 ```
 
-The screen reads the service out of the environment and passes it in — `@Environment(\.priceAlertService)`, built once in `ServicesFactory`. **Do not write an app service around a Core service.** The distinction is which way the dependency points: a class that *implements* a Core trait is an adapter and is required (the `Gemstone*Store` classes, `GemstoneNotificationPermissions`, the WalletConnect signer); a class that *calls* a Core service and re-exposes it is a wrapper, and the view model should hold the protocol instead. The wrappers still in the app are listed under [iOS](#ios) below, and they go.
+The screen reads the service out of the environment and passes it in —
+`@Environment(\.supportService)`, built once in `ServicesFactory`. **Do not write an app service
+around a Core service.** The distinction is which way the dependency points: a class that
+*implements* a Core trait is an adapter and is required (the `Gemstone*Store` classes,
+`GemstoneNotificationPermissions`, the WalletConnect signer); a class that only calls a Core
+service and re-exposes it is a wrapper, and the view model should hold the protocol instead.
 
 **Android: the view model holds cases, never a repository.** A case is three files: the interface the screen asks for, the implementation that holds the Core service, and the view model that injects the interface.
 
@@ -215,7 +229,9 @@ class PriceAlertViewModel @Inject constructor(
 
 A case may compose other cases ([`SyncAssetPriceAlertsImpl`](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/pricealerts/SyncAssetPriceAlertsImpl.kt) calls `HasAssetPriceAlerts` and `UpdatePriceAlerts`), and it holds the `Gemstone*Store` adapter when the screen needs an observed read — never the DAO, and never a repository for data a Core service owns. The repositories left in the graph are legacy and shrink as services land; `SessionRepository` is the one still in wide use, and Core's `GemWalletSessionService` is replacing it.
 
-**A screen asks one thing, and the thing it asks is a Core service.** A view model that takes a `Gem*Service` *and* a rule service and combines them is doing the feature's job in the view layer — but the answer is not an app-side wrapper around both. Put the decision in Core and let the screen call it.
+**An iOS screen asks one Core service; an Android screen asks one or more narrow cases.** An iOS
+view model that combines multiple `Gem*Service` protocols is doing the feature's job in the view
+layer. Compose the decision in Core, while keeping platform-only ports explicit.
 
 Rules belong in `gemstone`, not in an app class wrapping several services — `GemGateway.check_node` owns the node network-id check `AddNodeSceneViewModel` used to assemble. One constraint: `GemNodeService` cannot hold the gateway, because the gateway's transport picks node URLs *through* `GemNodeService`. Check where a service sits in that graph before giving it a new collaborator.
 
@@ -236,7 +252,7 @@ The precedent that made this work: `GemWalletStore.get_wallets`/`get_wallet` are
 
 **Observed reads.** Core has no observation primitive, so a screen that must update as rows change observes the app's own database — iOS with `ObservableQuery` over a GRDB request, Android with a Room `Flow` returned by the case. Everything else — writes, remote sync, point reads, every decision — goes through the service.
 
-**Tests.** iOS mocks the protocol from [`GemstoneServices/TestKit`](../ios/Packages/GemstoneServices/TestKit/); Android fakes the case interface, or mocks `Gem*Service` with MockK, using fixtures from `gemcore` `testFixtures`. Never mock a constructible service (`GemAssetConfigService`, `GemChainService`, …) — construct the real one, or the test asserts the mock. Never fabricate I/O to reach a rule either: an offline `AlienProvider`, in-memory preference and secure stores and empty row stores, stood up so a test can touch rules that use none of them, is always the wrong answer — pass the answer in from the caller that owns the service, or mock the service and state the premise plainly. Neither app tests a rule that lives in Core — that test belongs in `rules.rs`.
+**Tests.** iOS mocks the protocol from [`GemstoneServices/TestKit`](../ios/Packages/GemstoneServices/TestKit/); Android fakes the case interface, or mocks `Gem*Service` with MockK, using fixtures from `gemcore` `testFixtures`. Never mock a dependency-free constructible service (`GemAssetConfigService`, `GemChainService`, …) — construct the real one, or the test asserts the mock. Never fabricate I/O to reach a rule either: an offline `AlienProvider`, in-memory preference and secure stores and empty row stores, stood up so a test can touch rules that use none of them, is always the wrong answer — pass the answer in from the caller that owns the service, or mock the service and state the premise plainly. Neither app tests a rule that lives in Core — that test stays with its owning Core implementation.
 
 ### Done means
 
@@ -245,7 +261,8 @@ The precedent that made this work: `GemWalletStore.get_wallets`/`get_wallet` are
 - No app-side copy of a Core decision, no raw preference keys, no swallowed store failure, and no app service reading a table a `Gem*Store` owns.
 - Nothing was added to reach it: iOS injects the protocol, Android calls a case — no wrapper service, no repository. A feature service or case that gathers several collaborators for one screen is not a wrapper; a class that forwards one call is.
 - No `private let`/`private val` holding a `Gem*Service` at file scope. A service comes from the initializer or from Hilt, so a test can substitute it.
-- The service is listed in [Core services](#core-services) with its store and both adapters, and its line in the plan below is removed.
+- Its store and both adapters are documented where the migration needs them, and its line in the
+  plan below is removed.
 
 ## App services
 
@@ -255,15 +272,19 @@ What stays on the app side, because it is a platform concern with no Core counte
 | --- | --- |
 | [`AppService/RateService`](../ios/Packages/FeatureServices/AppService/RateService.swift) | App Store review prompt |
 | [`AppService/AppLifecycleService`](../ios/Packages/FeatureServices/AppService/AppLifecycleService.swift) | Scene phase orchestration of observers |
+| [`AppService/OnstartService`](../ios/Packages/FeatureServices/AppService/OnstartService.swift) | OS security checks, URL cache and launch orchestration |
 | [`ConnectionStatusService`](../ios/Packages/FeatureServices/ConnectionStatusService) | Connectivity |
+| [`StreamService`](../ios/Packages/FeatureServices/StreamService) | WebSocket lifecycle and Core stream adapter |
+| [`WalletConnectorService`](../ios/Packages/FeatureServices/WalletConnectorService) | Reown/WalletConnect SDK integration |
 | [`SystemServices`](../ios/Packages/SystemServices) | Connectivity, image gallery, local store |
 
-Every other app service is gone and its callers hold the Core service. Every `Gem*Service` Core exports is referenced by both apps — there is no Core service without an app consumer, and no app missing one.
+Any other app-side service must own a real platform concern. A class that merely forwards a Core
+call is migration debt, as is a one-sided Core export unless the exception is documented below.
 
 ## Remaining
 
 - **iOS `Packages/GemAPI`** — one endpoint, one caller: `GemPriceWidget` reads asset prices with it. It stays. Routing the widget through Core would link the Rust library into an app extension that runs under a tight memory budget and makes a single GET, so the trade is wrong; nothing else in the app or the feature packages depends on the package. Android's equivalent is already down to the alien provider itself: `data/services/native-provider` is `NativeProvider` plus its cache, named after the trait it implements the way iOS's `NativeProviderService` package is.
-- **iOS `Packages/GemstonePrimitives` is 2,656 lines and mostly load-bearing.** A sweep for declarations with no reader outside the package found twelve, of which six were genuinely dead and are gone (`Chain.tokenActivateFee`, `AssetId.getAssetType`, `GemKeystore.mapToPreview`, `StakeChain.supportRedelegate`/`supportWithdraw`/`supportClaimRewards`); the other six are used inside the package. What is left is the JSON bridge conformances, the chain and stake config accessors, and typed wrappers over Core's JSON-string APIs — it shrinks when primitives stop crossing as JSON strings, not before, so treat the number as a consequence of the confirm seam rather than a target of its own.
+- **iOS `Packages/GemstonePrimitives` remains mostly load-bearing.** A prior sweep removed declarations with no reader outside the package. What remains is primarily JSON bridge conformances, chain and stake config accessors, and typed wrappers over Core's JSON-string APIs — it shrinks when primitives stop crossing as JSON strings, not by chasing a line-count target.
 - iOS `Primitives` keeps hand-written views of Core types (`GasPriceType`, `FeeRate`, `Fee`, `FeeSelection`, `CustomFeeEstimate`, `TransferAmount`, `BalanceRequirement`, and ids such as `WalletId`/`TransactionId`/`AssetId`). They stay: they are typed views bridged once at the seam, not a second source of truth.
 
 ## TODO — finish Core as the single owner of logic
@@ -340,9 +361,17 @@ swap slippage bounds · min-receive BPS math · swap ETA truncation · the criti
 
 ### 8. iOS view models holding more than one Core service
 
-Each scene view model should hold exactly one Core service, `private`, per [ARCHITECTURE.md](ARCHITECTURE.md) § 6. `ManageContactViewModel` / `ContactsViewModel` / `ManageContactAddressViewModel` are done — Core's `GemManageContactService` composes contact + name + address + chain and `ViewModelFactory` builds it per scene. `ConfirmTransferSceneViewModel` is done too: it holds `service` alone, with `signer`, `keystore` and `recentAssetsService` as outbound ports the app implements, and takes `currency` as a value rather than reading it from a preferences service.
+Each iOS scene view model that needs Core should hold exactly one private screen service per
+[ARCHITECTURE.md § 7](ARCHITECTURE.md#7-one-core-service-on-ios-narrow-cases-on-android).
+`ManageContactViewModel`, `ContactsViewModel` and `ManageContactAddressViewModel` meet the field-count
+rule, but `GemManageContactService.names()` / `addresses()` / `chains()` remain reach-through debt
+until the shared components receive narrow dependencies directly. `ConfirmTransferSceneViewModel`
+is done: it holds `service` alone, with `signer`, `keystore` and `recentAssetsService` as outbound
+ports the app implements, and takes `currency` as a value rather than reading it from preferences.
 
-40 view models still take more than one, and 28 expose at least one non-privately. A non-private service means the view is reaching through the model — fix that first, by having the parent vend the child view model.
+The inventory below tracks remaining multi-service view models. Re-run the audit before a bulk
+migration; a non-private service means the view is reaching through the model, so fix that first by
+having the parent vend the child view model.
 
 | view model | services | non-private |
 |---|---|---|
@@ -428,9 +457,16 @@ Two warnings worth keeping:
 
 ### How to work this list
 
-- One change at a time: implement in Core → regenerate bindings only if an exported signature changed (`just generate-stone` and `just generate-android-stone` from the repo root, never while an iOS build is running, and never against a half-edited Core — a generate run mid-edit yields bindings that fail somewhere unrelated) → wire both apps → delete the app code it replaces → verify → commit and push to `main` directly (no PR, no `Co-Authored-By`/session trailers) → fix red CI before anything else.
+- One change at a time: implement in Core → if a UniFFI signature, TypeShare model,
+  `EXPOSED_TYPES` entry or mobile boundary changed, run `just generate` from the repo root (never
+  while an iOS build is running or against half-edited Core) → wire both apps → delete the app code
+  it replaces → verify → commit and push to `main` directly (no PR, no
+  `Co-Authored-By`/session trailers) → fix red CI before anything else.
 - Every commit that finishes an item removes its line from this file in the same commit.
-- Rules go in `rules.rs` with a unit test that would fail if the rule flipped; services are `services/<name>/{mod,model,rules,store,error}.rs` with only the files they need. No code comments. No `utils`/`helper`/`fetch`/`resolve` names, no `tx`.
+- Pure feature rules go in `rules.rs`; intrinsic behavior and its tests may stay beside the owning
+  type. Every decision has a unit test that would fail if the rule flipped. Services are
+  `services/<name>/{mod,model,rules,store,error}.rs` with only the files they need. No code
+  comments. No `utils`/`helper`/`fetch`/`resolve` names, no `tx`.
 - Compare the pre-change app logic (`git show <sha>^:<path>`) with the Core rule before deleting it. When the platforms disagree, check for a test pinning the difference before picking a side — twice now the "wrong" platform was right and the divergence was a deliberate decision.
 - Grep counts on property names are useless for sizing. Make the change, let the compiler count, and revert if it lands somewhere a dependency cannot go.
 
@@ -444,5 +480,9 @@ Two warnings worth keeping:
 
 - Identifiers cross the FFI typed: `WalletId`, `AssetId`, `Chain`, `NFTAssetId`, `Currency`; store row ids stay `String`.
 - Store methods: `get_*` reads, `is_*` boolean reads, `set_*` preferences and stored flags or sets (`set_buyable_assets`, `set_assets_enabled`, `search::set_assets`), `save_*` upserts, `add_*` inserts that must not overwrite existing rows, `update_<items>(…, items, delete_ids)` for reconcile writes, `delete_*` removals, and `clear*` for wiping a whole scope (`preferences::clear`, `support::clear_typing`).
-- Rules live in `rules.rs` with unit tests built from the `testkit` mocks (`NFTData::mock_with`, `Asset::mock`, …), not hand-written literals; add the mock to `crates/primitives/src/testkit/` when one is missing. `primitives` types stay policy-free.
+- Feature rules live in `rules.rs`; intrinsic receiver behavior may live beside the defining type.
+  Reuse `testkit` mocks (`NFTData::mock_with`, `Asset::mock`, …) for shared fixtures, but a concise
+  one-off literal is fine. Add a missing reusable mock to the owning crate's `testkit`. A
+  `primitives` type may own structural invariants and transformations intrinsic to that type;
+  feature or product policy and I/O orchestration stay in Gemstone.
 - Chain icons come from the chain config, never an app-side list: `icon_chain` (an Ethereum layer 2 draws the Ethereum icon, SeiEvm draws Sei's) and `badge_chain` (the layer 2's own icon as the badge), both following `EVMChain::is_ethereum_layer2`.
