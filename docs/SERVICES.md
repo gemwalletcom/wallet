@@ -399,6 +399,24 @@ Single-service view models that only need the property made `private`:
 - `WalletConnector/WalletConnector/ViewModels/ConnectionSceneViewModel.swift` — `connector`
 - `WalletConnector/WalletConnector/ViewModels/WalletConnectionViewModel.swift` — `applicationMetadataService`
 
+### 9. Rules still living in app-only enums
+
+`TransferDataType` is hand-written in `ios/Packages/Primitives` and duplicates Core's
+`GemTransactionInputType`, with 138 lines of two-way mapping between them
+(`TransferDataType+GemstonePrimitives`, `GemTransactionInputType+GemstonePrimitives`).
+Every accessor on it — `chain`, `applicationMetadata`, and until now `recentActivityData` —
+is a rule the app re-derives. Deleting it means `TransferData` moves to `GemstonePrimitives`
+(it cannot import Gemstone where it lives now) and its 45 references follow the compiler.
+
+Two recent-activity rules are still app-side, on `SelectAssetType` and `SelectedAssetType`.
+Both are Swift-only enums with no Core counterpart, so the enums move first.
+
+Android hand-wrote `RecentType` with different case names from the generated
+`RecentActivityType` — `Send` against `Transfer`, `Buy` against `FiatBuy` — and those names
+are persisted through `@SerialName`, so the platforms store different strings for the same
+concept. Changing them needs a Room migration. Android also records nothing on a completed
+transfer, which iOS has always done.
+
 ### Things that look like work and are not
 
 Do not re-add these from a survey; each was checked against the code and found wrong or already done: **V5, N4, N6, V7, T4, S5, S6, V6**, backlog rows **1, 2, 4, 5, 7**, **T8**, the swap-pay recents row, and the `Transaction` typeshare model (`com.wallet.core.primitives.Transaction` is used across Android — do not drop its attribute).
