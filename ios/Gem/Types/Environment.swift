@@ -57,7 +57,6 @@ extension EnvironmentValues {
     @Entry var nodeService: GemNodeService = AppResolver.main.services.nodeService
     @Entry var serviceStatusService: any GemServiceStatusProtocol = AppResolver.main.services.serviceStatusService
     @Entry var priceService: any GemPriceServiceProtocol = AppResolver.main.services.priceService
-    @Entry var priceStore: PriceStore = AppResolver.main.storages.storeManager.priceStore
     @Entry var chartService: any GemChartServiceProtocol = AppResolver.main.services.chartService
     @Entry var streamSubscriptionService: GemStreamSubscriptionService = AppResolver.main.services.streamSubscriptionService
     @Entry var assetDiscoveryService: any GemAssetDiscoveryServiceProtocol = AppResolver.main.services.assetDiscoveryService
@@ -70,15 +69,11 @@ extension EnvironmentValues {
     @Entry var deviceService: any GemDeviceServiceProtocol = AppResolver.main.services.deviceService
     @Entry var balanceService: any GemBalanceServiceProtocol = AppResolver.main.services.balanceService
     @Entry var bannerService: any GemBannerServiceProtocol = AppResolver.main.services.bannerService
-    @Entry var bannerStore: BannerStore = AppResolver.main.storages.storeManager.bannerStore
     @Entry var transactionsService: any GemTransactionsServiceProtocol = AppResolver.main.services.transactionsService
-    @Entry var transactionStore: TransactionStore = AppResolver.main.storages.storeManager.transactionStore
     @Entry var assetsService: any GemAssetsServiceProtocol = AppResolver.main.services.assetsService
-    @Entry var assetStore: AssetStore = AppResolver.main.storages.storeManager.assetStore
     @Entry var navigationPresenter: NavigationPresenter = AppResolver.main.services.navigationPresenter
     @Entry var navigationHandler: NavigationHandler = AppResolver.main.services.navigationHandler
     @Entry var stakeService: any GemStakeServiceProtocol = AppResolver.main.services.stakeService
-    @Entry var stakeStore: StakeStore = AppResolver.main.storages.storeManager.stakeStore
     @Entry var explorerService: any GemExplorerServiceProtocol = AppResolver.main.services.explorerService
     @Entry var gatewayService: GatewayService = AppResolver.main.services.gatewayService
     @Entry var walletConnector: WalletConnectorService = AppResolver.main.services.walletConnector
@@ -106,5 +101,4 @@ extension EnvironmentValues {
     @Entry var inAppNotificationService: any GemNotificationServiceProtocol = AppResolver.main.services.inAppNotificationService
     @Entry var portfolioService: any GemPortfolioServiceProtocol = AppResolver.main.services.portfolioService
     @Entry var supportService: any GemSupportServiceProtocol = AppResolver.main.services.supportService
-    @Entry var supportStore: GemstoneSupportStore = AppResolver.main.services.supportStore
 }

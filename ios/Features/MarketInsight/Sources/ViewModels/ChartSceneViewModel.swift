@@ -2,6 +2,7 @@
 
 import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemPriceAlertServiceProtocol
+import protocol Gemstone.GemPriceServiceProtocol
 import Components
 import Formatters
 import Foundation
@@ -20,7 +21,7 @@ import SwiftUI
 @Observable
 public final class ChartSceneViewModel: ChartListViewable {
     private let service: any GemChartServiceProtocol
-    private let priceStore: PriceStore
+    private let priceService: any GemPriceServiceProtocol
     private let preferencesService: any GemPreferencesServiceProtocol
 
     private var currencyCode: String {
@@ -64,7 +65,7 @@ public final class ChartSceneViewModel: ChartListViewable {
     public init(
         explorerService: any GemExplorerServiceProtocol,
         service: any GemChartServiceProtocol,
-        priceStore: PriceStore,
+        priceService: any GemPriceServiceProtocol,
         assetModel: AssetViewModel,
         priceAlertService: any GemPriceAlertServiceProtocol,
         walletId: WalletId,
@@ -72,7 +73,7 @@ public final class ChartSceneViewModel: ChartListViewable {
         onSetPriceAlert: @escaping (Asset) -> Void,
     ) {
         self.service = service
-        self.priceStore = priceStore
+        self.priceService = priceService
         self.preferencesService = preferencesService
         self.assetModel = assetModel
         self.priceAlertService = priceAlertService
@@ -100,7 +101,7 @@ public extension ChartSceneViewModel {
                 period: selectedPeriod.json(),
                 currency: preferencesService.getCurrency(),
             ).map { try ChartDateValue($0) }
-            let price = try priceStore.getPrices(for: [assetModel.asset.id.identifier]).first
+            let price = try priceService.prices(assetIds: [assetModel.asset.id.identifier]).first.map { Primitives.Price($0) }
 
             if let price, let last = charts.last, price.updatedAt > last.date {
                 charts.append(ChartDateValue(date: .now, value: price.price))
@@ -110,7 +111,7 @@ public extension ChartSceneViewModel {
             let formatter = CurrencyFormatter(currencyCode: currencyCode)
             let model = ChartValuesViewModel(
                 period: selectedPeriod,
-                price: price?.mapToPrice(),
+                price: price,
                 values: chartValues,
                 formatter: formatter,
             )

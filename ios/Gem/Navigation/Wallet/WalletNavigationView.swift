@@ -28,7 +28,6 @@ struct WalletNavigationView: View {
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
     @Environment(\.priceService) private var priceService
-    @Environment(\.priceStore) private var priceStore
     @Environment(\.chartService) private var chartService
     @Environment(\.portfolioService) private var portfolioService
     @Environment(\.priceAlertService) private var priceAlertService
@@ -187,7 +186,7 @@ struct WalletNavigationView: View {
                 model: ChartSceneViewModel(
                     explorerService: explorerService,
                     service: chartService,
-                    priceStore: priceStore,
+                    priceService: priceService,
                     assetModel: AssetViewModel(asset: $0.asset),
                     priceAlertService: priceAlertService,
                     walletId: model.wallet.id,

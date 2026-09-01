@@ -23,13 +23,8 @@ struct SettingsNavigationView: View {
     @Environment(\.deeplinkService) private var deeplinkService
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.transactionsService) private var transactionsService
-    @Environment(\.assetStore) private var assetStore
-    @Environment(\.stakeStore) private var stakeStore
-    @Environment(\.transactionStore) private var transactionStore
-    @Environment(\.priceStore) private var priceStore
     @Environment(\.explorerService) private var explorerService
     @Environment(\.bannerService) private var bannerService
-    @Environment(\.bannerStore) private var bannerStore
     @Environment(\.walletConnector) private var walletConnector
     @Environment(\.balanceService) private var balanceService
     @Environment(\.walletSessionService) private var walletSessionService
@@ -51,7 +46,6 @@ struct SettingsNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.supportService) private var supportService
     @Environment(\.walletPreferencesService) private var walletPreferencesService
-    @Environment(\.supportStore) private var supportStore
     @Environment(\.navigationPresenter) private var presenter
 
     @State private var currencyModel: CurrencySceneViewModel
@@ -122,7 +116,7 @@ struct SettingsNavigationView: View {
                 model: ChartSceneViewModel(
                     explorerService: explorerService,
                     service: chartService,
-                    priceStore: priceStore,
+                    priceService: priceService,
                     assetModel: AssetViewModel(asset: scene.asset),
                     priceAlertService: priceAlertService,
                     walletId: walletId,
@@ -155,19 +149,7 @@ struct SettingsNavigationView: View {
             )
         }
         .navigationDestination(for: Scenes.Developer.self) { _ in
-            DeveloperScene(model: DeveloperViewModel(
-                walletId: walletId,
-                transactionStore: transactionStore,
-                assetStore: assetStore,
-                stakeStore: stakeStore,
-                bannerStore: bannerStore,
-                priceStore: priceStore,
-                perpetualService: perpetualService,
-                walletPreferencesService: walletPreferencesService,
-                preferencesService: preferencesService,
-                deviceKeyService: deviceKeyService,
-                deeplinkService: deeplinkService,
-            ))
+            DeveloperScene(model: viewModelFactory.developerScene(walletId: walletId))
         }
         .navigationDestination(for: Scenes.DeveloperPayments.self) { _ in
             DeveloperPaymentsScene { payload in
@@ -222,7 +204,7 @@ struct SettingsNavigationView: View {
         }
         .sheet(isPresented: $isPresentingSupport) {
             NavigationStack {
-                SupportChatScene(model: SupportChatSceneViewModel(service: supportService, typing: supportStore.typing))
+                SupportChatScene(model: viewModelFactory.supportChatScene())
                     .toolbarDismissItem(type: .close, placement: .topBarLeading)
             }
             .environment(\.openURL, OpenURLAction { url in

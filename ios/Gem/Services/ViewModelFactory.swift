@@ -1,5 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Support
+import class Gemstone.GemDeviceKeyService
+import class Gemstone.GemWalletPreferencesService
+import protocol Gemstone.GemSupportServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import class Gemstone.GemAddressService
 import class Gemstone.GemAmountService
@@ -97,7 +101,34 @@ public struct ViewModelFactory: Sendable {
     let recentAssetsService: GemRecentActivityService
     let amountService: AmountService
     let toastPresenter: ToastPresenter
+    let walletPreferencesService: GemWalletPreferencesService
+    let deviceKeyService: GemDeviceKeyService
+    let storeManager: StoreManager
+    let supportService: any GemSupportServiceProtocol
+    let supportTyping: SupportTypingState
 
+
+    @MainActor
+    public func supportChatScene() -> SupportChatSceneViewModel {
+        SupportChatSceneViewModel(service: supportService, typing: supportTyping)
+    }
+
+    @MainActor
+    public func developerScene(walletId: WalletId) -> DeveloperViewModel {
+        DeveloperViewModel(
+            walletId: walletId,
+            transactionStore: storeManager.transactionStore,
+            assetStore: storeManager.assetStore,
+            stakeStore: storeManager.stakeStore,
+            bannerStore: storeManager.bannerStore,
+            priceStore: storeManager.priceStore,
+            perpetualService: perpetualService,
+            walletPreferencesService: walletPreferencesService,
+            preferencesService: preferencesService,
+            deviceKeyService: deviceKeyService,
+            deeplinkService: deeplinkService,
+        )
+    }
 
     @MainActor
     public func lockScene() -> LockSceneViewModel {
