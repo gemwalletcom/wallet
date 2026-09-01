@@ -11,7 +11,7 @@ use crate::services::banner::GemBannerService;
 use crate::services::config::GemConfigService;
 use crate::services::device::GemDeviceService;
 use crate::services::error::GemServiceError;
-use crate::services::failures::record;
+use crate::services::failures::{StepFailure, record};
 use crate::services::wallet::GemWalletService;
 use crate::services::wallet_configuration::GemWalletConfigurationService;
 
@@ -46,13 +46,32 @@ impl GemAppStartService {
         }
     }
 
-    pub async fn setup_wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
-        self.assets.sync_default_assets().await?;
-        let updated = self.wallet.setup_chains(Chain::all()).await?;
-        for wallet in self.wallet.wallets()? {
-            self.assets.setup_wallet(wallet).await?;
+    pub async fn setup_wallets(&self) -> Vec<GemAppStartFailure> {
+        let mut failures = Vec::new();
+        record(&mut failures, GemAppStartStep::SetupWalletAssets, self.assets.sync_default_assets()).await;
+        match self.wallet.setup_chains_outcome(Chain::all()).await {
+            Ok(outcome) => {
+                for (wallet_id, error) in outcome.failures {
+                    failures.push(GemAppStartFailure::new(GemAppStartStep::SetupChains, format!("wallet {}: {error}", wallet_id.id())));
+                }
+            }
+            Err(error) => failures.push(GemAppStartFailure::new(GemAppStartStep::SetupChains, error.to_string())),
         }
-        Ok(updated)
+        match self.wallet.wallets() {
+            Ok(wallets) => {
+                for wallet in wallets {
+                    let wallet_id = wallet.id.clone();
+                    if let Err(error) = self.assets.setup_wallet(wallet).await {
+                        failures.push(GemAppStartFailure::new(
+                            GemAppStartStep::SetupWalletAssets,
+                            format!("wallet {}: {error}", wallet_id.id()),
+                        ));
+                    }
+                }
+            }
+            Err(error) => failures.push(GemAppStartFailure::new(GemAppStartStep::SetupWalletAssets, error.to_string())),
+        }
+        failures
     }
 
     pub async fn run(&self) -> Vec<GemAppStartFailure> {

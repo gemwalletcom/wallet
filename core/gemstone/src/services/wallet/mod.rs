@@ -25,6 +25,12 @@ pub use store::GemWalletStore;
 
 const SETUP_CHAINS_WALLETS_LIMIT: usize = 25;
 
+#[derive(Default)]
+pub struct SetupChainsOutcome {
+    pub wallets: Vec<Wallet>,
+    pub failures: Vec<(WalletId, GemServiceError)>,
+}
+
 #[derive(uniffi::Object)]
 pub struct GemWalletService {
     keystore: Arc<GemKeystore>,
@@ -134,26 +140,11 @@ impl GemWalletService {
     }
 
     pub async fn setup_chains(&self, chains: Vec<Chain>) -> Result<Vec<Wallet>, GemServiceError> {
-        let candidates: Vec<(Wallet, Vec<Chain>)> = rules::wallets_missing_chains(self.store.get_wallets()?, &chains)
-            .into_iter()
-            .filter(|(wallet, _)| self.keystore.exists(keystore_id_for_wallet(wallet.id.id())))
-            .take(SETUP_CHAINS_WALLETS_LIMIT)
-            .collect();
-        if candidates.is_empty() {
-            return Ok(Vec::new());
+        let SetupChainsOutcome { wallets, failures } = self.setup_chains_outcome(chains).await?;
+        match failures.into_iter().next() {
+            Some((_, error)) if wallets.is_empty() => Err(error),
+            _ => Ok(wallets),
         }
-        let password = decode_password(&self.password.get_password(false)?);
-        let mut updated = Vec::new();
-        for (mut wallet, missing) in candidates {
-            let accounts = self.keystore.add_accounts(keystore_id_for_wallet(wallet.id.id()), password.clone(), missing)?;
-            wallet.accounts.extend(accounts.into_iter().map(rules::account));
-            self.store.add_wallet(wallet.clone()).await?;
-            updated.push(wallet);
-        }
-        if !updated.is_empty() {
-            self.invalidate_subscriptions().await?;
-        }
-        Ok(updated)
     }
 
     pub fn migrate_to_shared_password(&self) -> Result<u32, GemServiceError> {
@@ -227,6 +218,35 @@ impl GemWalletService {
 
     pub fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
         self.store.get_wallets()
+    }
+
+    pub async fn setup_chains_outcome(&self, chains: Vec<Chain>) -> Result<SetupChainsOutcome, GemServiceError> {
+        let candidates: Vec<(Wallet, Vec<Chain>)> = rules::wallets_missing_chains(self.store.get_wallets()?, &chains)
+            .into_iter()
+            .filter(|(wallet, _)| self.keystore.exists(keystore_id_for_wallet(wallet.id.id())))
+            .take(SETUP_CHAINS_WALLETS_LIMIT)
+            .collect();
+        if candidates.is_empty() {
+            return Ok(SetupChainsOutcome::default());
+        }
+        let password = decode_password(&self.password.get_password(false)?);
+        let mut outcome = SetupChainsOutcome::default();
+        for (mut wallet, missing) in candidates {
+            match self.add_chains(&mut wallet, missing, password.clone()).await {
+                Ok(()) => outcome.wallets.push(wallet),
+                Err(error) => outcome.failures.push((wallet.id, error)),
+            }
+        }
+        if !outcome.wallets.is_empty() {
+            self.invalidate_subscriptions().await?;
+        }
+        Ok(outcome)
+    }
+
+    async fn add_chains(&self, wallet: &mut Wallet, missing: Vec<Chain>, password: Vec<u8>) -> Result<(), GemServiceError> {
+        let accounts = self.keystore.add_accounts(keystore_id_for_wallet(wallet.id.id()), password, missing)?;
+        wallet.accounts.extend(accounts.into_iter().map(rules::account));
+        self.store.add_wallet(wallet.clone()).await
     }
 
     async fn invalidate_subscriptions(&self) -> Result<(), GemServiceError> {
@@ -421,6 +441,14 @@ mod tests {
         fn keystore_path(&self, wallet: &Wallet) -> PathBuf {
             self.directory.path().join(format!("{}.json", keystore_id_for_wallet(wallet.id.id())))
         }
+
+        fn lock_out(&self, wallet: &Wallet) {
+            let password = decode_password(&self.service.password.get_password(false).unwrap());
+            self.service
+                .keystore
+                .change_password(keystore_id_for_wallet(wallet.id.id()), password, b"other".to_vec())
+                .unwrap();
+        }
     }
 
     #[test]
@@ -449,6 +477,39 @@ mod tests {
             assert!(!context.keystore_path(&kept).exists());
             assert_eq!(context.service.session.get_current_wallet_id().unwrap(), None);
             assert_eq!(context.store.preferences.lock().unwrap().get("is_developer_enabled"), None);
+        });
+    }
+
+    #[test]
+    fn test_setup_chains_keeps_going_when_one_keystore_cannot_be_read() {
+        block_on(async {
+            let context = TestContext::new();
+            let broken = context.import("Broken", PHRASE).await;
+            let healthy = context.import("Healthy", OTHER_PHRASE).await;
+            context.lock_out(&broken);
+
+            let outcome = context.service.setup_chains_outcome(vec![Chain::Ethereum, Chain::Solana]).await.unwrap();
+
+            assert_eq!(outcome.failures.len(), 1);
+            assert_eq!(outcome.failures[0].0, broken.id);
+            assert_eq!(outcome.wallets.len(), 1, "the healthy wallet must still be set up");
+            assert_eq!(outcome.wallets[0].id, healthy.id);
+            let stored = context.service.wallets().unwrap();
+            let stored_healthy = stored.iter().find(|wallet| wallet.id == healthy.id).unwrap();
+            assert!(stored_healthy.accounts.iter().any(|account| account.chain == Chain::Solana));
+        });
+    }
+
+    #[test]
+    fn test_setup_chains_reports_the_error_when_no_wallet_could_be_set_up() {
+        block_on(async {
+            let context = TestContext::new();
+            let only = context.import("Only", PHRASE).await;
+            context.lock_out(&only);
+
+            let error = context.service.setup_chains(vec![Chain::Ethereum, Chain::Solana]).await;
+
+            assert!(error.is_err(), "a setup that added nothing must surface the failure");
         });
     }
 

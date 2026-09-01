@@ -5,6 +5,7 @@ pub enum GemAppStartStep {
     SetupBanners,
     SyncAssets,
     SyncDevice,
+    SetupChains,
     SetupWalletAssets,
     SetupWalletBanners,
     SyncWalletConfiguration,

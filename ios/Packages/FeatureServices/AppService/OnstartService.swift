@@ -55,10 +55,8 @@ public struct OnstartService: Sendable {
         } catch {
             debugLog("v3 keystore migration could not enumerate wallets: \(error)")
         }
-        do {
-            _ = try await appStartService.setupWallets()
-        } catch {
-            debugLog("wallet setup error: \(error)")
+        for failure in await appStartService.setupWallets() {
+            debugLog("wallet setup \(failure.step) failed: \(failure.message)")
         }
     }
 }
