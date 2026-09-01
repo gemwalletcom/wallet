@@ -68,7 +68,7 @@ fn transfer_balance(balance: &GemAssetBalance) -> GemTransferBalance {
         frozen: balance.frozen.clone().into(),
         locked: balance.locked.clone().into(),
         withdrawable: balance.withdrawable.clone().into(),
-        votes: 0,
+        votes: balance.metadata.as_ref().map(|metadata| metadata.votes).unwrap_or_default(),
     }
 }
 
@@ -864,6 +864,22 @@ mod tests {
         assert!((GemTransactionInputType::Transfer { asset }).approval_value().is_none());
         assert!(matches!(gem_approval_value(&GemBigUint::from(42u32), false), GemApprovalValue::Exact { value } if value == GemBigUint::from(42u32)));
         assert!(matches!(gem_approval_value(&GemBigUint::from(42u32), true), GemApprovalValue::Unlimited));
+    }
+
+    #[test]
+    fn test_transfer_balance_carries_the_vote_count_a_tron_staker_already_used() {
+        let asset_id = AssetId::from_chain(Chain::Tron);
+        let mut staked = balance(&asset_id, 0);
+        staked.metadata = Some(primitives::asset_balance::BalanceMetadata {
+            votes: 7,
+            energy_available: 0,
+            energy_total: 0,
+            bandwidth_available: 0,
+            bandwidth_total: 0,
+        });
+
+        assert_eq!(transfer_balance(&balance(&asset_id, 0)).votes, 0);
+        assert_eq!(transfer_balance(&staked).votes, 7);
     }
 
     fn balance(asset_id: &AssetId, available: u32) -> GemAssetBalance {
