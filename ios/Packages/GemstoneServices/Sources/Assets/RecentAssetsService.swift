@@ -5,8 +5,8 @@ import Primitives
 import Store
 
 public protocol RecentAssetsServiceable: Sendable {
-    func add(_ data: RecentActivityData, walletId: WalletId) throws
-    func clear(walletId: WalletId, types: [RecentActivityType]) throws
+    func add(_ data: RecentActivityData, walletId: String) throws
+    func clear(walletId: String, types: [RecentActivityType]) throws
 }
 
 public struct RecentAssetsService: RecentAssetsServiceable {
@@ -16,11 +16,11 @@ public struct RecentAssetsService: RecentAssetsServiceable {
         self.store = store
     }
 
-    public func add(_ data: RecentActivityData, walletId: WalletId) throws {
+    public func add(_ data: RecentActivityData, walletId: String) throws {
         try store.add(data, walletId: walletId)
     }
 
-    public func clear(walletId: WalletId, types: [RecentActivityType]) throws {
+    public func clear(walletId: String, types: [RecentActivityType]) throws {
         try store.clear(walletId: walletId, types: types)
     }
 }

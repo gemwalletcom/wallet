@@ -1,5 +1,6 @@
 pub mod model;
 pub mod rules;
+mod store;
 
 use crate::services::amount::model::GemAmountError;
 
@@ -11,6 +12,7 @@ use primitives::swap::ApprovalData;
 
 pub(crate) use model::GemPendingTransactionInput;
 pub use model::{GemRecentActivity, GemRecipient, GemTransferBalance, GemTransferData, GemTransferOutput};
+pub use store::GemRecentActivityStore;
 
 #[derive(Default, uniffi::Object)]
 pub struct GemTransferService;

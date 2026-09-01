@@ -11,14 +11,14 @@ public struct RecentActivityStore: Sendable {
         self.db = db.dbQueue
     }
 
-    public func add(_ data: RecentActivityData, walletId: WalletId) throws {
+    public func add(_ data: RecentActivityData, walletId: String) throws {
         try add(assetId: data.assetId, toAssetId: data.toAssetId, walletId: walletId, type: data.type)
     }
 
     public func add(
         assetId: AssetId,
         toAssetId: AssetId?,
-        walletId: WalletId,
+        walletId: String,
         type: RecentActivityType,
         createdAt: Date = .now,
     ) throws {
@@ -26,7 +26,7 @@ public struct RecentActivityStore: Sendable {
             try RecentActivityRecord(
                 assetId: assetId,
                 toAssetId: toAssetId,
-                walletId: walletId.id,
+                walletId: walletId,
                 type: type,
                 createdAt: createdAt,
             ).insert(db)
@@ -39,10 +39,10 @@ public struct RecentActivityStore: Sendable {
         }
     }
 
-    public func clear(walletId: WalletId, types: [RecentActivityType]) throws {
+    public func clear(walletId: String, types: [RecentActivityType]) throws {
         _ = try db.write { db in
             try RecentActivityRecord
-                .filter(RecentActivityRecord.Columns.walletId == walletId.id)
+                .filter(RecentActivityRecord.Columns.walletId == walletId)
                 .filter(types.map(\.rawValue).contains(RecentActivityRecord.Columns.type))
                 .deleteAll(db)
         }

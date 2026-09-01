@@ -209,7 +209,7 @@ extension PerpetualsSceneViewModel {
         do {
             try recentAssetsService.add(
                 RecentActivityData(type: .perpetual, assetId: asset.id, toAssetId: nil),
-                walletId: wallet.id,
+                walletId: wallet.id.id,
             )
         } catch {
             debugLog("Failed to update recent activity: \(error)")

@@ -9,7 +9,6 @@ import enum Gemstone.GemConfirmError
 import enum Gemstone.GemTransferAmountResult
 import enum Gemstone.GemExecuteResult
 import protocol Gemstone.GemConfirmTransferServiceProtocol
-import protocol Gemstone.GemTransactionSigner
 import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstoneServices
 import BigInt
@@ -59,24 +58,15 @@ public final class ConfirmTransferSceneViewModel {
     private let onComplete: VoidAction
 
     private let service: any GemConfirmTransferServiceProtocol
-    private let signer: any GemTransactionSigner
-    private let keystore: any Keystore
-    private let recentAssetsService: any RecentAssetsServiceable
 
     public init(
         request: ConfirmTransferRequest,
         service: any GemConfirmTransferServiceProtocol,
-        signer: any GemTransactionSigner,
-        keystore: any Keystore,
-        recentAssetsService: any RecentAssetsServiceable,
         currency: Currency,
         onComplete: VoidAction,
     ) {
         self.request = request
         self.service = service
-        self.signer = signer
-        self.keystore = keystore
-        self.recentAssetsService = recentAssetsService
         self.onComplete = onComplete
 
         self.currency = currency
@@ -157,7 +147,7 @@ public final class ConfirmTransferSceneViewModel {
     var confirmButtonModel: ConfirmButtonViewModel {
         ConfirmButtonViewModel(
             state: state.transaction,
-            authentication: try? keystore.getPasswordAuthentication(),
+            authentication: service.authentication(),
             isDisabled: isButtonDisabled,
             onAction: { [weak self] in self?.onSelectConfirm() },
         )
@@ -471,7 +461,7 @@ extension ConfirmTransferSceneViewModel {
         )
         let result: GemExecuteResult
         do {
-            result = try await service.execute(input: input, signer: signer)
+            result = try await service.execute(input: input)
         } catch let GemConfirmError.Broadcast(hashes, msg) {
             hashes.forEach { request.delegate?(.success($0)) }
             throw GemConfirmError.Broadcast(hashes: hashes, msg: msg)
@@ -481,13 +471,6 @@ extension ConfirmTransferSceneViewModel {
             data.forEach { request.delegate?(.success($0)) }
         case let .sent(hashes, _):
             hashes.forEach { request.delegate?(.success($0)) }
-        }
-        if let recent = request.data.inputType.recentActivity() {
-            do {
-                try recentAssetsService.add(RecentActivityData(recent), walletId: request.wallet.id)
-            } catch {
-                debugLog("Failed to update recent activity: \(error)")
-            }
         }
     }
 }

@@ -217,9 +217,6 @@ public struct ViewModelFactory: Sendable {
                 delegate: confirmTransferDelegate,
             ),
             service: confirmTransferService(),
-            signer: KeystoreTransactionSigner(keystore: keystore),
-            keystore: keystore,
-            recentAssetsService: recentAssetsService,
             currency: preferencesService.currencyValue,
             onComplete: { [toastPresenter] in
                 Task { await toastPresenter.present(.transfer(for: data.inputType)) }
@@ -236,6 +233,9 @@ public struct ViewModelFactory: Sendable {
             assetConfig: assetConfig,
             fee: feeService,
             swapQuote: swapQuoteService,
+            signer: KeystoreTransactionSigner(keystore: keystore),
+            password: GemstoneKeystorePassword(keystore: keystore),
+            recentActivity: GemstoneRecentActivityStore(service: recentAssetsService),
         )
     }
 

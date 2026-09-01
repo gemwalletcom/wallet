@@ -41,9 +41,6 @@ extension ConfirmTransferSceneViewModel {
                 names: nameService,
                 transactionState: transactionStateService,
             ),
-            signer: GemTransactionSignerMock(),
-            keystore: KeystoreMock(),
-            recentAssetsService: RecentAssetsService(store: .mock()),
             currency: currency,
             onComplete: onComplete,
         )

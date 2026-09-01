@@ -6,9 +6,9 @@ import Primitives
 public extension TransactionSwapMetadata {
     static func mock(
         fromAsset: AssetId = .mock(),
-        fromValue: String = "",
+        fromValue: String = "0",
         toAsset: AssetId = .mock(.smartChain),
-        toValue: String = "",
+        toValue: String = "0",
         provider: String? = nil,
     ) -> TransactionSwapMetadata {
         TransactionSwapMetadata(

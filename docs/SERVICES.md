@@ -408,8 +408,11 @@ Each iOS scene view model should hold at most one private Core service per
 ceiling, but `GemContactsService` is forwarding-only and `GemManageContactService.names()` /
 `addresses()` / `chains()` remain reach-through debt until the shared components receive narrow
 dependencies directly. `ConfirmTransferSceneViewModel` is done: it holds `service` alone, with
-`signer`, `keystore` and `recentAssetsService` as outbound ports the app implements, and takes
-`currency` as a value rather than reading it from preferences.
+`signer`, the keystore password and the recent-activity store as outbound ports the app implements
+and `GemConfirmTransferService` owns, and takes `currency` as a value rather than reading it from
+preferences. Its `fee()` and `swapQuote()` accessors still hand out other services so that
+`NetworkFeeSceneViewModel` and `SwapDetailsViewModel` can be built; those two are shared with the
+swap scene, so closing that reach-through means giving them narrow dependencies first.
 
 The inventory below tracks remaining multi-service view models. Re-run the audit before a bulk
 migration; a non-private service means the view is reaching through the model, so fix that first by

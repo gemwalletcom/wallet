@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemKeystoreAuthentication
 import protocol Gemstone.GemKeystorePassword
 import typealias Gemstone.WalletId
 
@@ -20,4 +21,12 @@ public final class GemstoneKeystorePassword: GemKeystorePassword, @unchecked Sen
     }
 
     public func deleteWalletPassword(walletId _: Gemstone.WalletId) throws {}
+
+    public func authentication() throws -> GemKeystoreAuthentication {
+        switch try keystore.getPasswordAuthentication() {
+        case .biometrics: .biometrics
+        case .passcode: .passcode
+        case .none: .none
+        }
+    }
 }

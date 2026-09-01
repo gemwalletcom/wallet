@@ -20,7 +20,7 @@ use crate::services::wallet_session::GemWalletSessionService;
 
 pub use error::GemWalletImportError;
 pub use model::{GemWalletDeletion, GemWalletImportResult, GemWalletImportType, GemWalletSource};
-pub use password::GemKeystorePassword;
+pub use password::{GemKeystoreAuthentication, GemKeystorePassword};
 pub use store::GemWalletStore;
 
 const SETUP_CHAINS_WALLETS_LIMIT: usize = 25;
@@ -315,6 +315,9 @@ mod tests {
         fn delete_wallet_password(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
             self.passwords.lock().unwrap().remove(&wallet_id.id());
             Ok(())
+        }
+        fn authentication(&self) -> Result<GemKeystoreAuthentication, GemServiceError> {
+            Ok(GemKeystoreAuthentication::None)
         }
     }
 

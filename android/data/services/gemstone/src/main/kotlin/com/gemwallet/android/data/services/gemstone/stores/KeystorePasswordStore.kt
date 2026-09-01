@@ -3,6 +3,7 @@ package com.gemwallet.android.data.services.gemstone.stores
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.getKeystorePassword
 import com.gemwallet.android.application.getOrCreateKeystorePassword
+import uniffi.gemstone.GemKeystoreAuthentication
 import uniffi.gemstone.GemKeystorePassword
 
 class GemstoneKeystorePassword(
@@ -19,4 +20,6 @@ class GemstoneKeystorePassword(
     override fun deleteWalletPassword(walletId: String) {
         passwordStore.removePassword(walletId)
     }
+
+    override fun authentication(): GemKeystoreAuthentication = GemKeystoreAuthentication.NONE
 }

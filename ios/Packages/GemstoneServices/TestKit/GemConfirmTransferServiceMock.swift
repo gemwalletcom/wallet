@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+public import enum Gemstone.GemKeystoreAuthentication
 public import protocol Gemstone.GemConfirmTransferServiceProtocol
 public import protocol Gemstone.GemConfirmServiceProtocol
 public import protocol Gemstone.GemNameServiceProtocol
@@ -36,6 +37,8 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
     private let confirm: any GemConfirmServiceProtocol
     private let names: any GemNameServiceProtocol
     private let transactionState: any GemTransactionStateServiceProtocol
+    private let signer: any GemTransactionSigner
+    private let authenticationValue: GemKeystoreAuthentication
     private let feeService = GemFeeService()
     private let assetConfig = GemAssetConfigService()
     private let swapQuoteService = GemSwapQuoteService()
@@ -44,10 +47,18 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
         confirm: any GemConfirmServiceProtocol = GemConfirmServiceMock(),
         names: any GemNameServiceProtocol = GemNameServiceMock(),
         transactionState: any GemTransactionStateServiceProtocol = GemTransactionStateServiceMock(),
+        signer: any GemTransactionSigner = GemTransactionSignerMock(),
+        authentication: GemKeystoreAuthentication = .none,
     ) {
         self.confirm = confirm
         self.names = names
         self.transactionState = transactionState
+        self.signer = signer
+        self.authenticationValue = authentication
+    }
+
+    public func authentication() -> GemKeystoreAuthentication {
+        authenticationValue
     }
 
     public func metadata(walletId: WalletId, inputType: GemTransactionInputType) throws -> GemConfirmMetadata {
@@ -93,7 +104,7 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
         )
     }
 
-    public func execute(input: GemSendInput, signer: any GemTransactionSigner) async throws -> GemExecuteResult {
+    public func execute(input: GemSendInput) async throws -> GemExecuteResult {
         try await confirm.execute(input: input, signer: signer)
     }
 

@@ -17,6 +17,8 @@ use crate::services::name::GemNameService;
 use crate::services::perpetual::model::GemAutocloseSummary;
 use crate::services::perpetual::rules::autoclose_summary;
 use crate::services::swap::config::GemSwapQuoteService;
+use crate::services::transfer::{GemRecentActivity, GemRecentActivityStore};
+use crate::services::wallet::{GemKeystoreAuthentication, GemKeystorePassword};
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmTransferService {
@@ -26,6 +28,9 @@ pub struct GemConfirmTransferService {
     asset_config: Arc<GemAssetConfigService>,
     fee: Arc<GemFeeService>,
     swap_quote: Arc<GemSwapQuoteService>,
+    signer: Arc<dyn GemTransactionSigner>,
+    password: Arc<dyn GemKeystorePassword>,
+    recent_activity: Arc<dyn GemRecentActivityStore>,
 }
 
 #[uniffi::export]
@@ -38,6 +43,9 @@ impl GemConfirmTransferService {
         asset_config: Arc<GemAssetConfigService>,
         fee: Arc<GemFeeService>,
         swap_quote: Arc<GemSwapQuoteService>,
+        signer: Arc<dyn GemTransactionSigner>,
+        password: Arc<dyn GemKeystorePassword>,
+        recent_activity: Arc<dyn GemRecentActivityStore>,
     ) -> Self {
         Self {
             confirm,
@@ -46,7 +54,14 @@ impl GemConfirmTransferService {
             asset_config,
             fee,
             swap_quote,
+            signer,
+            password,
+            recent_activity,
         }
+    }
+
+    pub fn authentication(&self) -> GemKeystoreAuthentication {
+        self.password.authentication().unwrap_or(GemKeystoreAuthentication::None)
     }
 
     pub fn metadata(&self, wallet_id: WalletId, input_type: GemTransactionInputType) -> Result<GemConfirmMetadata, GemConfirmError> {
@@ -74,8 +89,14 @@ impl GemConfirmTransferService {
         }
     }
 
-    pub async fn execute(&self, input: GemSendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {
-        self.confirm.execute(input, signer).await
+    pub async fn execute(&self, input: GemSendInput) -> Result<GemExecuteResult, GemConfirmError> {
+        let wallet_id = input.wallet.id.clone();
+        let activity = input.confirm.input.transfer.input_type.recent_activity();
+        let result = self.confirm.execute(input, self.signer.clone()).await?;
+        if let Some(activity) = broadcast_activity(&result, activity) {
+            let _ = self.recent_activity.add(activity, wallet_id);
+        }
+        Ok(result)
     }
 
     pub async fn load_scene(
@@ -147,9 +168,45 @@ impl GemConfirmTransferService {
     }
 }
 
+fn broadcast_activity(result: &GemExecuteResult, activity: Option<GemRecentActivity>) -> Option<GemRecentActivity> {
+    match result {
+        GemExecuteResult::Sent { .. } => activity,
+        GemExecuteResult::Signed { .. } => None,
+    }
+}
+
 impl GemConfirmTransferService {
     fn missing_network_fee(&self, wallet_id: WalletId, input_type: GemTransactionInputType) -> Option<GemConfirmError> {
         let balance = self.metadata(wallet_id, input_type).ok()?.fee_asset_balance;
         is_insufficient_network_fee(balance.asset_id.clone(), &balance.available.to_string()).then_some(GemConfirmError::InsufficientNetworkFee { asset_id: balance.asset_id })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use primitives::{AssetId, Chain, RecentActivityType};
+
+    fn activity() -> GemRecentActivity {
+        GemRecentActivity {
+            activity_type: RecentActivityType::Transfer,
+            asset_id: AssetId::from_chain(Chain::Ethereum),
+            to_asset_id: None,
+        }
+    }
+
+    #[test]
+    fn test_only_a_broadcast_send_records_recent_activity() {
+        let sent = GemExecuteResult::Sent {
+            hashes: vec!["0xhash".to_string()],
+            transactions: vec![],
+        };
+        let signed = GemExecuteResult::Signed {
+            data: vec!["0xsigned".to_string()],
+        };
+
+        assert_eq!(broadcast_activity(&sent, Some(activity())), Some(activity()));
+        assert_eq!(broadcast_activity(&signed, Some(activity())), None);
+        assert_eq!(broadcast_activity(&sent, None), None);
     }
 }
