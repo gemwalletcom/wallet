@@ -74,6 +74,12 @@ A service composes rules with I/O. It may hold its own feature store and narrow 
 For another domain, it depends on that domain's service, never its store — a store belongs to one
 owner, and reaching around that owner creates a second read path it cannot see.
 
+Inspect the dependency graph before replacing a foreign-domain store with its service. Never
+introduce an `Arc` cycle to satisfy this rule; split out a narrow query service, invert the
+dependency, or redesign the ownership boundary first. `GemWalletService` already depends on
+`GemWalletSessionService`, so making the session service depend back on the wallet service would
+be worse than the store debt it replaces.
+
 ```rust
 // services/confirm/mod.rs
 #[derive(uniffi::Object)]
@@ -91,19 +97,26 @@ impl GemConfirmService {
         if fee_asset_ids.is_empty() {
             return Ok(Vec::new());
         }
-        let assets = self.assets.assets(fee_asset_ids.clone()).map_err(load_error)?;
-        let balances = self.balance.balances(wallet_id, fee_asset_ids.clone()).map_err(load_error)?;
-        let prices = self.price.prices(fee_asset_ids).map_err(load_error)?;
+        let assets = self.assets.assets(fee_asset_ids.clone())?;
+        let balances = self.balance.balances(wallet_id, fee_asset_ids.clone())?;
+        let prices = self.price.prices(fee_asset_ids)?;
         Ok(rules::selectable_fee_assets(assets, balances, prices))
     }
 }
 ```
 
+In this target shape, `GemConfirmError` implements `From<GemServiceError>` once in `error.rs`, so
+the three reads use `?` without repeating the same `Load` conversion. The pending migration is
+tracked in [`SERVICES.md`](SERVICES.md#4-core-surface).
+
 The method is thin: gather inputs, call the rule, return. Product or domain-decision branching
 belongs in `rules.rs`; I/O sequencing, error propagation and empty-work short circuits may remain
 in the service.
 
-**Point reads should be synchronous.** `GemWalletStore.get_wallet` is a sync trait method, so `GemWalletService` answers a session lookup without `await`. Do the same for any single-row read — an `async` point read pushes the caller back to the store, which is how the confirm screen ended up reading `AssetStore` directly for two years.
+**Point reads should be synchronous.** `GemWalletStore.get_wallet` is a sync trait method, so
+`GemWalletSessionService` answers a session lookup without `await`. Do the same for any single-row
+read — an `async` point read pushes the caller back to the store, which is how the confirm screen
+ended up reading `AssetStore` directly for two years.
 
 ## 3. Return one record that answers the whole question
 
@@ -178,23 +191,12 @@ service and calls it; each call is one line in, one mapping out.
 
 ```swift
 func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferPreload {
-    let account = try request.wallet.account(for: request.data.chain)
-    let preload = try await gemConfirmService.preload(
-        walletId: request.wallet.id.id,
-        input: request.data.confirmInput(from: account),
-        options: GemConfirmLoadOptions(feeSelection: selection.map(), feeAssetId: feeAssetSelection.selectedAssetId?.identifier),
-    )
-    let feeAsset = try Asset(preload.feeAsset)
-    return try ConfirmTransferPreload(
-        metadata: preload.metadata,
-        input: ConfirmTransferInput(
-            confirmData: preload.confirmData,
-            fee: preload.confirmData.fee.map(),
-            transferAmount: preload.amount.map(asset: request.data.type.asset, feeAsset: feeAsset),
-            feeAsset: feeAsset,
-        ),
-        feeRates: preload.confirmData.feeRates.map { try $0.map() },
-        simulation: preload.confirmData.simulation.map { try Primitives.SimulationResult($0) },
+    try ConfirmTransferPreload(
+        await service.preload(
+            walletId: request.wallet.id.id,
+            input: try request.confirmInput(),
+            options: options(selection: selection, feeAssetSelection: feeAssetSelection),
+        )
     )
 }
 ```
@@ -212,7 +214,7 @@ override fun getFeeAssets(): Flow<List<AssetInfo>> = getCurrentWalletId().flatMa
         assetStore.observeHiddenAssetsInfoByChain(walletId.id, chain),
     ) { visible, hidden -> visible + hidden }
         .map { assets ->
-            val selected = confirmService.feeAssets(walletId.id, chain.string).map { it.asset.decodeJson<Asset>().id.toIdentifier() }.toSet()
+            val selected = confirmService.feeAssets(walletId.id, chain.string).map { it.asset.toPrimitives().id.toIdentifier() }.toSet()
             assets.filter { it.asset.id.toIdentifier() in selected }
         }
 }
@@ -231,7 +233,7 @@ Choose the home from ownership first, then decide how it crosses FFI:
 | Question | Home | Example |
 |---|---|---|
 | A field the value already carries, but the generated shape lacks a common accessor | thin app mapping extension | `inputType.asset` |
-| A pure answer has one honest domain receiver; additional value arguments are allowed | method on the receiver | `inputType.transactionAsset()`, `input.addAddress(addresses)` |
+| A pure answer has one honest domain receiver; additional value arguments are allowed | method on the receiver | `bannerKey.identifier()`, `input.addAddress(addresses)` |
 | A pure rule has no honest receiver | private rule called by the owning service | `selectable_fee_assets(...)` |
 | The answer requires I/O, stored dependencies or platform ports | method on the service that owns the flow | `confirmService.preload(...)` |
 | An app value must be encoded into a Core case | app mapping extension | `.stake(asset, stakeType)` |
@@ -261,43 +263,53 @@ app calls it. A TypeShare type defined in a repository-owned Core crate can own 
 Rust behavior there, but TypeShare does not generate that method in Swift or Kotlin. A type merely
 declared through `#[uniffi::remote]` is defined elsewhere, so Gemstone cannot add an inherent
 receiver; use a private rule or adapter rather than inventing one. A thin app extension may expose
-a structural field projection when transport omits it, but it must not copy product policy. If
-mobile needs a real rule that FFI cannot express on the receiver, expose the answer through the
-owning screen service rather than implementing the decision twice.
+a structural field projection when transport omits it, but it must not copy product policy.
 
-A stateless exported object is acceptable only as a narrow FFI codec or formatter when UniFFI
+When mobile needs behavior that cannot cross on its honest receiver, prefer folding the answer
+into an existing aggregate operation. If the UI genuinely needs a standalone pure projection,
+add it to an existing cohesive FFI adapter such as `GemSimulationFormatter`; do not put it on an
+I/O service whose dependencies it ignores and do not create a one-method object. This is how a
+TypeShare-only `SimulationResult.asset_ids()` should reach mobile without duplicating the rule.
+
+A stateless exported object is acceptable only as a cohesive FFI codec or formatter when UniFFI
 cannot express an honest receiver or the operation spans several transport types. Name that role
-explicitly, give it no I/O dependencies, and keep product decisions in receiver methods or private
-rules. A one-call forwarding object is still a wrapper and should be removed.
+explicitly, give it no I/O dependencies, and delegate intrinsic behavior or feature policy to the
+owning receiver or private rule where possible. `GemSimulationFormatter` and
+`PriceAlertFormatter` are the current transport adapters. A one-call forwarding object is still a
+wrapper and should be removed.
 
-`#[uniffi::export]` on an `impl` exports its `pub` members and nothing else. A semantically internal
-helper declared `pub` inside that block becomes public API and appears on every generated protocol;
-narrowing a used member to `pub(crate)` removes it from both apps' bindings without a Rust error.
-Keep exported receiver methods in the exported block, helpers in a separate unexported block with
-the minimum `pub(super)` or `pub(crate)` visibility, and derive `uniffi::Record`/`uniffi::Enum` only
-for types that actually cross FFI. After changing an exported member or type, regenerate bindings
-and build both apps — one platform may never have called the method the other still needs.
+`#[uniffi::export]` on an `impl` processes every function in that block regardless of Rust
+visibility. `pub(crate)` does not remove a method from generated bindings. Put only intended FFI
+methods in the exported block; move helpers to a separate unannotated `impl` and give them the
+narrowest Rust visibility. Derive `uniffi::Record`/`uniffi::Enum` only for types that actually cross
+FFI. After changing an exported member or type, regenerate bindings and build both apps — one
+platform may never have called the method the other still needs.
 
-The encoding members are scaffolding, not a pattern to copy. `.stake(asset.map(), stakeType.json())`
-carries a `.json()` only because `StakeType` is not in `EXPOSED_TYPES`
-(`core/bin/generate/src/remote_mappers.rs`). Add a type there and its declarations and both
-platforms' mappers are generated from the Rust definition; the `.json()` becomes a generated
-`.map()`, and where nothing persists the app's twin, the member disappears. Do not add a new
-encoding member without adding its type to `EXPOSED_TYPES`.
+Encoding members are scaffolding, not a pattern to copy. Before adding a type to `EXPOSED_TYPES`,
+verify that `core/bin/generate/src/remote_mappers.rs` can represent its full shape and inspect both
+generated mappers. The current generator handles fieldless enums; `StakeType` has data-carrying
+variants, so adding it mechanically would produce an incomplete mapping. Keep a single JSON bridge
+at the boundary until the generator supports the type; never add a second app-side model or copy
+policy to avoid that bridge.
 
-## 7. One Core service on iOS; narrow cases on Android
+## 7. At most one Core service on iOS; narrow cases on Android
 
-An iOS view model that needs Core holds **exactly one** screen-level Core service, named `service`,
-and it is **`private`**; a model that does not need Core holds none. Android view models depend on
-one or more narrow application cases, never directly on a Core service or repository. Cases may
-compose other cases. A non-private service on iOS usually means the view is reaching through the
-model for a dependency.
+An iOS view model holds **at most one** Core service, named `service`, and it is **`private`**;
+a model that does not need Core holds none. Reuse the owning domain service when it already answers
+the screen. Add a screen-level service only when it genuinely composes collaborators or returns a
+cohesive screen result — never to satisfy a field-count rule. Android view models depend on one or
+more narrow application cases, never directly on a Core service or repository. Cases may compose
+other cases. A non-private service on iOS usually means the view is reaching through the model for
+a dependency.
 
 This limit does not count explicit platform ports such as a signer, keystore, observation source
 or navigation builder. Those remain narrow injected dependencies; they do not decide shared
 product behavior.
 
-The service is named for the screen it backs, not for the feature and not for the layer: `GemContactsService` backs the contacts list, `GemManageContactService` backs the add-and-edit screen. No `Scene` or `Facade` in the name. When a screen needs more than one thing from Core, Core composes them:
+When a real screen-level service is needed, name it for the screen it backs, not for the layer:
+`GemManageContactService` backs the add-and-edit screen. No `Scene` or `Facade` in the name. A
+`GemContactsService` that only forwards calls to `GemContactService` is wrapper debt, not the
+pattern. When a screen needs a cohesive answer from several Core owners, Core composes them:
 
 ```rust
 #[derive(uniffi::Object)]
@@ -368,8 +380,9 @@ The same applies to state: a view switching on the model's `mode` forces `mode` 
 
 On iOS, UniFFI generates a protocol for every exported object. `GemAddressServiceProtocol` exists;
 importing `class Gemstone.GemAddressService` at a consumer means that consumer cannot be
-substituted in a test. Android view models use app case interfaces; lower layers that directly
-integrate Core use the generated `GemFooServiceInterface`.
+substituted without relying on UniFFI's fragile no-handle test path. Android view models use app
+case interfaces; lower layers that directly integrate Core use the generated
+`GemFooServiceInterface`.
 
 - **iOS consumers** (view models, components, validators) take `any GemFooServiceProtocol`.
 - **Android consumers** take the case or generated interface used by their layer.
@@ -385,9 +398,15 @@ A `GemFooService()` in a field initialiser or at file scope is a second instance
   answer genuinely requires that service's dependencies. A pure receiver-owned answer stays on
   the receiver according to § 6.
 
+Dependency-free FFI transport adapters are the exception: `GemSimulationFormatter` and
+`PriceAlertFormatter` may be constructed locally because they have no state to substitute. Do not
+extend that exception to a service, store, client or a type whose behavior can cross on its honest
+receiver.
+
 Prefer the platform abstraction (`GemConfirmServiceProtocol` on iOS,
 `GemConfirmServiceInterface` or a case on Android) wherever a test needs substitution. Mocking the
-concrete UniFFI object dereferences native handles a mock does not have and takes the JVM down.
+concrete UniFFI object is fragile: any unstubbed generated method can reach a native handle the
+mock does not have.
 
 ## 9. Errors
 
@@ -402,6 +421,20 @@ pub enum GemConfirmError {
     Sign { error: GemSignerError, msg: String },
 }
 ```
+
+When a lower-level error has a canonical feature-level mapping, implement `From` once in
+`error.rs` and use `?`:
+
+```rust
+impl From<GemServiceError> for GemConfirmError {
+    fn from(error: GemServiceError) -> Self {
+        Self::Load { msg: error.to_string() }
+    }
+}
+```
+
+Use `map_err` only when the call site adds context or deliberately selects a non-default category,
+such as `Record`, or when a named mapper preserves structured `Offline`/`Network` gateway cases.
 
 The app **localizes Core's error directly** — it does not translate it into a parallel app-side enum first:
 

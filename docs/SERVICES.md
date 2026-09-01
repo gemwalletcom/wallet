@@ -1,6 +1,6 @@
 # Gemstone Services
 
-Core-owned services live in [`core/gemstone/src/services/`](../core/gemstone/src/services/) as `<name>/{mod,model,rules,store,error}.rs` with only the files they need. Services and stores use the shared [`GemServiceError`](../core/gemstone/src/services/error.rs) unless the app needs a structured feature error to render or branch on. A service owns the I/O flow; pure answers live on an honest domain receiver or in private rules according to [`ARCHITECTURE.md` § 6](ARCHITECTURE.md#6-where-derived-domain-answers-live). Each app implements the `Gem*Store` trait over its database or preferences and constructs the service in DI ([`ServicesFactory.swift`](../ios/Gem/Services/ServicesFactory.swift), Hilt modules under [`android/data/repositories/.../di`](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/di/) and [`android/data/coordinators/.../di`](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/di/)). Read [How a service is built](#how-a-service-is-built) before adding or changing one.
+Core-owned services live in [`core/gemstone/src/services/`](../core/gemstone/src/services/) as `<name>/{mod,model,rules,store,error}.rs` with only the files they need. Services and stores use the shared [`GemServiceError`](../core/gemstone/src/services/error.rs) unless the app needs a structured feature error to render or branch on. A service owns the I/O flow; pure answers live on an honest domain receiver or in private rules according to [`ARCHITECTURE.md` § 6](ARCHITECTURE.md#6-where-derived-domain-answers-live). Each app implements the `Gem*Store` trait over its database or preferences and constructs the service in DI ([`ServicesFactory.swift`](../ios/Gem/Services/ServicesFactory.swift), Hilt modules under [`android/data/services/gemstone/.../di`](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/di/) and [`android/data/coordinators/.../di`](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/di/)). Read [How a service is built](#how-a-service-is-built) before adding or changing one.
 
 ## How a service is built
 
@@ -64,11 +64,16 @@ outward instead of receiving what it needs. A mocked Core rule is a premise, not
 real mutation-checked test remains with its owning Core implementation; app tests assert only
 mapping, wiring and state.
 
+The narrow exception is a dependency-free FFI transport adapter for a type whose receiver methods
+cannot cross the boundary. `GemSimulationFormatter` and `PriceAlertFormatter` may be constructed
+locally; they have no state, I/O or substitutable dependency. Keep the adapter cohesive and do not
+create one object per method.
+
 ### 2. Pick the store the value belongs in
 
 | What the service needs | Trait | Shape | iOS | Android |
 | --- | --- | --- | --- | --- |
-| rows in the database | one `Gem<Name>Store` per service ([example](../core/gemstone/src/services/price_alert/store.rs)) | `async`, every method returns `Result<_, GemServiceError>` | GRDB store under [`GemstoneServices/Sources/Stores/`](../ios/Packages/GemstoneServices/Sources/Stores/) | Room DAO under [`data/repositories/.../gemstone/`](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/stores/) |
+| rows in the database | one `Gem<Name>Store` per service ([example](../core/gemstone/src/services/price_alert/store.rs)) | point/short-list reads may be sync; writes and asynchronous reads are `async`; every method returns `Result<_, GemServiceError>` | GRDB adapter under [`GemstoneServices/Sources/Stores/`](../ios/Packages/GemstoneServices/Sources/Stores/) | Room adapter under [`data/services/gemstone/.../stores`](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/stores/) |
 | a value the user set | [`GemPreferencesStore`](../core/gemstone/src/services/preferences/store.rs) through `GemPreferencesService` | sync; `get` returns `Option<String>` and **cannot fail** | `GemstonePreferencesStore` over `UserDefaults` | `GemstonePreferencesStore` over `SharedPreferences` |
 | the same, per wallet | `GemWalletPreferencesStore` through `GemWalletPreferencesService` | sync, keyed by `WalletId` | same file layout | same file layout |
 | a secret | [`GemSecureStore`](../core/gemstone/src/services/preferences/store.rs) | sync; **every read can fail** | `GemstoneSecurePreferencesStore` over the Keychain | `TinkGemPreferences` over Tink |
@@ -88,14 +93,23 @@ iOS, `ios/Packages/GemstoneServices/Sources/Stores/<Name>Store.swift`, class `Ge
 ```swift
 public final class GemstonePriceAlertStore: GemPriceAlertStore, @unchecked Sendable {
     private let store: PriceAlertStore
+    private let priceAlertFormatter = PriceAlertFormatter()
+
+    public init(store: PriceAlertStore) {
+        self.store = store
+    }
 
     public func updatePriceAlerts(alerts: [Gemstone.PriceAlert], deleteIds: [String]) async throws {
-        try store.diffPriceAlerts(deleteIds: deleteIds, alerts: alerts.map { try Primitives.PriceAlert($0) })
+        try store.diffPriceAlerts(
+            deleteIds: deleteIds,
+            alerts: alerts.map { try (id: priceAlertFormatter.alertId(alert: $0), alert: Primitives.PriceAlert($0)) },
+        )
     }
 }
 ```
 
-Android, `android/data/repositories/.../gemstone/<Name>Store.kt`, class `Gemstone<Name>Store`, converting with `toJson()` and `decodeJson()`:
+Android, `android/data/services/gemstone/.../stores/<Name>Store.kt`, class
+`Gemstone<Name>Store`, converting with `toJson()` and `decodeJson()`:
 
 ```kotlin
 class GemstonePriceAlertStore(
@@ -108,7 +122,7 @@ class GemstonePriceAlertStore(
 }
 ```
 
-The two adapters are mirrors: same methods, same conflict behaviour (upsert where the other upserts), same "write only rows whose values differ" rule, same treatment of a missing row. A difference between them is a bug in one of them, not a platform choice. Types that cross as JSON (`Asset`, `Account`, `Wallet`, `SimulationResult`, …) arrive as `String` typealiases and are decoded at the adapter boundary, never deeper in the app.
+The two adapters are mirrors: same methods, same conflict behaviour (upsert where the other upserts), same "write only rows whose values differ" rule, same treatment of a missing row. A difference between them is a bug in one of them, not a platform choice. Types retained as JSON custom types (`Account`, `Wallet`, `SimulationResult`, …) arrive as `String` typealiases and are decoded once at the relevant FFI/app boundary. That boundary may be a store adapter, coordinator, or feature mapper; undecoded JSON must not travel deeper into the app. Types supported through `EXPOSED_TYPES`, such as `Asset`, use generated structural mappers instead.
 
 ### 4. Construct it once
 
@@ -166,16 +180,18 @@ service and re-exposes it is a wrapper, and the view model should hold the proto
 
 ```kotlin
 interface SetPriceAlertsEnabled {
-    suspend operator fun invoke(enabled: Boolean)
+    suspend fun setPriceAlertsEnabled(enabled: Boolean)
 }
 ```
 
-`data/coordinators/.../pricealerts/PriceAlertsEnabledCoordinator.kt` — the implementation, holding nothing but the Core service and the signal that makes the read re-emit:
+`data/coordinators/.../pricealerts/PriceAlertsCoordinator.kt` — the implementation. It owns the
+signal shared by all five price-alert cases; this excerpt shows the enabled read/write pair:
 
 ```kotlin
-class PriceAlertsEnabledCoordinator(
+class PriceAlertsCoordinator(
     private val priceAlertService: GemPriceAlertService,
-) : GetPriceAlertsEnabled, SetPriceAlertsEnabled {
+    private val getCurrentCurrency: GetCurrentCurrency,
+) : GetPriceAlertsEnabled, SetPriceAlertsEnabled, IncludePriceAlert, ExcludePriceAlert, SetAssetPriceAlertEnabled {
 
     private val changes = MutableSharedFlow<Unit>()
 
@@ -183,7 +199,7 @@ class PriceAlertsEnabledCoordinator(
         .onStart { emit(Unit) }
         .map { priceAlertService.isEnabled() }
 
-    override suspend fun invoke(enabled: Boolean) {
+    override suspend fun setPriceAlertsEnabled(enabled: Boolean) {
         priceAlertService.setEnabled(enabled)
         changes.emit(Unit)
     }
@@ -194,42 +210,44 @@ Hilt builds it once and binds both interfaces to it, so the view model asks for 
 
 ```kotlin
 @Provides @Singleton
-fun providePriceAlertsEnabledCoordinator(priceAlertService: GemPriceAlertService) = PriceAlertsEnabledCoordinator(priceAlertService)
+fun providePriceAlertsCoordinator(
+    priceAlertService: GemPriceAlertService,
+    getCurrentCurrency: GetCurrentCurrency,
+) = PriceAlertsCoordinator(priceAlertService, getCurrentCurrency)
 
 @Provides
-fun provideGetPriceAlertsEnabled(coordinator: PriceAlertsEnabledCoordinator): GetPriceAlertsEnabled = coordinator
+fun provideGetPriceAlertsEnabled(coordinator: PriceAlertsCoordinator): GetPriceAlertsEnabled = coordinator
 
 @Provides
-fun provideSetPriceAlertsEnabled(coordinator: PriceAlertsEnabledCoordinator): SetPriceAlertsEnabled = coordinator
+fun provideSetPriceAlertsEnabled(coordinator: PriceAlertsCoordinator): SetPriceAlertsEnabled = coordinator
 ```
 
-**Two shapes, and the name says which:** `*Impl` is one case with no state — it forwards to Core, or returns the Room `Flow` the database already makes reactive (`GetAssetPriceAlertState`). `*Coordinator` implements the read *and* the write for one subject and owns the signal between them; it is the right shape when Core answers with a point read that screens must observe. `PriceAlertsEnabledCoordinator` is one (the enabled flag is a preference, so `isEnabled()` cannot be observed) and `AppUpdateCoordinator` is another (the update offer has no row behind it).
+**Two shapes, and the name says which:** `*Impl` is one case with no state — it forwards to Core,
+or returns the Room `Flow` the database already makes reactive (`GetAssetPriceAlertState`).
+`*Coordinator` implements the read and every writer for one subject and owns the signal between
+them; use it when Core answers with a point read that screens must observe.
 
-Prefer the coordinator over refreshing state in each view model: `setPriceAlertsEnabled` has a second writer — `IncludePriceAlertImpl` turns alerts on when one is added — and a screen holding its own copy goes stale the moment someone else writes. Routing both directions through one object is what keeps every observer correct. iOS gets away with the simpler thing (`isPriceAlertsEnabled = priceAlertService.isEnabled()` after its own `setEnabled`) because its screens re-read on appear. If Core ever publishes preference changes as a stream, every coordinator of this kind collapses back into two stateless `*Impl`s.
+Prefer the coordinator over refreshing state in each view model: `PriceAlertsCoordinator` owns the
+enabled read plus every writer that can change it, so all successful writes emit through the same
+signal. A screen holding its own copy goes stale when another path enables an alert. If Core ever
+publishes preference changes as a stream, this coordinator can collapse into stateless `*Impl`s.
 
 **A case composing other cases is always fine** — `SyncAssetPriceAlertsImpl` holds `HasAssetPriceAlerts` and `UpdatePriceAlerts` — that is how a flow is assembled; what a case must not hold is a repository.
 
 `features/settings/price_alerts/.../PriceAlertViewModel.kt` — the screen's view model, which injects the cases and never the service or a repository:
 
 ```kotlin
-@HiltViewModel
-class PriceAlertViewModel @Inject constructor(
-    private val getPriceAlertsEnabled: GetPriceAlertsEnabled,
-    private val setPriceAlertsEnabled: SetPriceAlertsEnabled,
-) : ViewModel() {
+val priceAlertEnabled = getPriceAlertsEnabled.isPriceAlertsEnabled()
+    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val priceAlertEnabled = getPriceAlertsEnabled.isPriceAlertsEnabled()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch {
-        setPriceAlertsEnabled(enable)
-    }
+fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch {
+    setPriceAlertsEnabled.setPriceAlertsEnabled(enable)
 }
 ```
 
 A case may compose other cases ([`SyncAssetPriceAlertsImpl`](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/pricealerts/SyncAssetPriceAlertsImpl.kt) calls `HasAssetPriceAlerts` and `UpdatePriceAlerts`), and it holds the `Gemstone*Store` adapter when the screen needs an observed read — never the DAO, and never a repository for data a Core service owns. The repositories left in the graph are legacy and shrink as services land; `SessionRepository` is the one still in wide use, and Core's `GemWalletSessionService` is replacing it.
 
-**An iOS screen asks one Core service; an Android screen asks one or more narrow cases.** An iOS
+**An iOS screen asks at most one Core service; an Android screen asks one or more narrow cases.** An iOS
 view model that combines multiple `Gem*Service` protocols is doing the feature's job in the view
 layer. Compose the decision in Core, while keeping platform-only ports explicit.
 
@@ -244,7 +262,12 @@ Still open: `AddNodeViewModel` on Android is the untouched twin — `NodeStatusS
 
 **An app service holds Core services, not the tables Core owns.** Reaching into a `Gem*Store`'s table from the app is a second read path the owner cannot see — the same violation as a case taking a Room DAO. The exception is a table Core has no concept of: the recent-activity list is the app's own, so `RecentActivityStore` (iOS) and `RecentAssetsService` (Android) are the platform's query layer and stay.
 
-Both platforms follow this now. Android's fifty store readers are cases in `data/coordinators`, the documented home for an observed read. iOS's confirm flow was the exception — `ConfirmSimulationService`, `FeeAssetProvider` and `TransferMetadataProvider` read `AssetStore`, `BalanceStore` and `PriceStore` directly because every Core method crosses UniFFI as `async` while the confirm screen builds its first state in a synchronous initializer. All three are deleted: `GemConfirmService` gained synchronous `metadata`, `fee_assets` and `simulation`, and an async `preload`, so `ConfirmService` asks the owner. The one store read left in that flow is `AssetStore.getAssetData` for the *selected* fee asset, which is a plain row lookup for rendering, not a rule.
+Android's observed store readers are cases in `data/coordinators`, the documented home for an
+observed read. iOS's confirm flow was the exception — `ConfirmSimulationService`,
+`FeeAssetProvider` and `TransferMetadataProvider` read `AssetStore`, `BalanceStore` and
+`PriceStore` directly. All three are deleted: the confirm service now asks the owners. The one
+store read left in that flow is `AssetStore.getAssetData` for the *selected* fee asset, which is a
+plain row lookup for rendering, not a rule.
 
 The precedent that made this work: `GemWalletStore.get_wallets`/`get_wallet` are **synchronous** trait methods, so a service can answer a point read without `await`. Any future point read of a single row or short list should be synchronous the same way rather than pushing the caller back to the store.
 
@@ -279,7 +302,9 @@ What stays on the app side, because it is a platform concern with no Core counte
 | [`SystemServices`](../ios/Packages/SystemServices) | Connectivity, image gallery, local store |
 
 Any other app-side service must own a real platform concern. A class that merely forwards a Core
-call is migration debt, as is a one-sided Core export unless the exception is documented below.
+call is migration debt. A Core export needs a real consumer, but both apps do not have to consume
+the identical façade when iOS protocols and Android cases expose the same Core decisions; document
+intentional one-sided integration surfaces.
 
 ## Remaining
 
@@ -333,6 +358,22 @@ swap slippage bounds · min-receive BPS math · swap ETA truncation · the criti
 
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
+- **Receiver transport cleanup.** Android still reimplements `SimulationResult.asset_ids()` in
+  `ConfirmViewModel.kt`; add the projection to the existing `GemSimulationFormatter` or fold the
+  asset synchronization into the confirm aggregate, then delete the app copy. Do not restore it
+  on `GemConfirmTransferService`. `GemContactsService` is the other transport debt: it only
+  forwards update/delete to `GemContactService`, so iOS should use the owning service directly.
+- **Confirm error conversion.** `GemConfirmService` repeats the same
+  `GemServiceError` → `GemConfirmError::Load` closure across store reads. Implement the typed
+  conversion once and use `?`; keep explicit mappings where the operation changes the category,
+  such as `Record` or gateway-specific `Offline`/`Network`.
+- **Android confirm error collapse.**
+  [`ConfirmErrorMapper.kt`](../android/features/confirm/viewmodels/src/main/kotlin/com/gemwallet/android/features/confirm/viewmodels/ConfirmErrorMapper.kt)
+  translates `GemConfirmException` into parallel
+  [`ConfirmError`](../android/gemcore/src/main/kotlin/com/gemwallet/android/domains/confirm/ConfirmError.kt)
+  cases for scan, network, fee and broadcast failures. Render or classify the typed Core error
+  directly, delete those mirrored cases and their mapper tests, and retain only genuinely
+  app-owned validation or presentation state.
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**
 - **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `nft::report` (Android report screen), `wallet_preferences::is_initial_load_completed` (iOS wallet empty state), `reset_transactions_timestamp` (iOS developer action).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
@@ -361,13 +402,14 @@ swap slippage bounds · min-receive BPS math · swap ETA truncation · the criti
 
 ### 8. iOS view models holding more than one Core service
 
-Each iOS scene view model that needs Core should hold exactly one private screen service per
-[ARCHITECTURE.md § 7](ARCHITECTURE.md#7-one-core-service-on-ios-narrow-cases-on-android).
+Each iOS scene view model should hold at most one private Core service per
+[ARCHITECTURE.md § 7](ARCHITECTURE.md#7-at-most-one-core-service-on-ios-narrow-cases-on-android).
 `ManageContactViewModel`, `ContactsViewModel` and `ManageContactAddressViewModel` meet the field-count
-rule, but `GemManageContactService.names()` / `addresses()` / `chains()` remain reach-through debt
-until the shared components receive narrow dependencies directly. `ConfirmTransferSceneViewModel`
-is done: it holds `service` alone, with `signer`, `keystore` and `recentAssetsService` as outbound
-ports the app implements, and takes `currency` as a value rather than reading it from preferences.
+ceiling, but `GemContactsService` is forwarding-only and `GemManageContactService.names()` /
+`addresses()` / `chains()` remain reach-through debt until the shared components receive narrow
+dependencies directly. `ConfirmTransferSceneViewModel` is done: it holds `service` alone, with
+`signer`, `keystore` and `recentAssetsService` as outbound ports the app implements, and takes
+`currency` as a value rather than reading it from preferences.
 
 The inventory below tracks remaining multi-service view models. Re-run the audit before a bulk
 migration; a non-private service means the view is reaching through the model, so fix that first by
@@ -478,7 +520,9 @@ Two warnings worth keeping:
 
 ## Conventions
 
-- Identifiers cross the FFI typed: `WalletId`, `AssetId`, `Chain`, `NFTAssetId`, `Currency`; store row ids stay `String`.
+- Rust FFI signatures use domain types such as `WalletId`, `AssetId`, `Chain`, `NFTAssetId` and
+  `Currency`, but current Swift/Kotlin bindings lower several of them to `String` typealiases. Map
+  them to platform domain wrappers at the boundary; store row ids remain `String`.
 - Store methods: `get_*` reads, `is_*` boolean reads, `set_*` preferences and stored flags or sets (`set_buyable_assets`, `set_assets_enabled`, `search::set_assets`), `save_*` upserts, `add_*` inserts that must not overwrite existing rows, `update_<items>(…, items, delete_ids)` for reconcile writes, `delete_*` removals, and `clear*` for wiping a whole scope (`preferences::clear`, `support::clear_typing`).
 - Feature rules live in `rules.rs`; intrinsic receiver behavior may live beside the defining type.
   Reuse `testkit` mocks (`NFTData::mock_with`, `Asset::mock`, …) for shared fixtures, but a concise
