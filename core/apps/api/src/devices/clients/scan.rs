@@ -8,11 +8,12 @@ use security_provider::{AddressTarget, ScanProviderConfig, ScanProviderFactory, 
 use settings::Settings;
 use std::error::Error;
 use std::sync::Arc;
+use std::time::Duration;
 use storage::{AssetsRepository, Database, ScanAddressesRepository};
 
-pub fn scan_providers(settings: &Settings, cacher: CacherClient) -> Result<ScanProviders, Box<dyn Error + Send + Sync>> {
+pub fn scan_providers(settings: &Settings, cacher: CacherClient, timeout: Duration) -> Result<ScanProviders, Box<dyn Error + Send + Sync>> {
     let config = ScanProviderConfig {
-        timeout: settings.security.timeout,
+        timeout,
         goplus: ScanProviderRemoteConfig {
             url: settings.security.goplus.url.clone(),
             public_key: settings.security.goplus.key.public.clone(),
@@ -31,11 +32,12 @@ pub fn scan_providers(settings: &Settings, cacher: CacherClient) -> Result<ScanP
 pub struct ScanClient {
     database: Database,
     providers: ScanProviders,
+    enable: bool,
 }
 
 impl ScanClient {
-    pub fn new(database: Database, providers: ScanProviders) -> Self {
-        Self { database, providers }
+    pub fn new(database: Database, providers: ScanProviders, enable: bool) -> Self {
+        Self { database, providers, enable }
     }
 
     pub async fn get_scan_transaction(&self, payload: ScanTransactionPayload) -> Result<ScanTransaction, Box<dyn Error + Send + Sync>> {
@@ -57,7 +59,7 @@ impl ScanClient {
             .then_some(ChainAddress::new(payload.origin.asset_id.chain, payload.origin.address))
             .into_iter()
             .collect::<Vec<_>>();
-        let is_scan_complete = address_scans.iter().all(Option::is_some);
+        let is_scan_complete = Self::is_scan_complete(self.enable, &address_scans);
 
         Ok(ScanTransaction {
             is_malicious: Some(!malicious_addresses.is_empty()),
@@ -99,6 +101,11 @@ impl ScanClient {
         })
     }
 
+    /// A disabled scanner has not scanned; it has not found the transaction clean.
+    fn is_scan_complete<T>(enable: bool, scans: &[Option<T>]) -> bool {
+        enable && scans.iter().all(Option::is_some)
+    }
+
     fn token_asset_ids(payload: &ScanTransactionPayload) -> Vec<AssetId> {
         let mut targets = Vec::new();
         for asset_id in [&payload.origin.asset_id, &payload.target.asset_id] {
@@ -113,6 +120,9 @@ impl ScanClient {
     }
 
     pub async fn scan_address_providers(&self, target: AddressTarget) -> Vec<Option<ScanResult<AddressTarget>>> {
+        if !self.enable {
+            return Vec::new();
+        }
         future::join_all(
             self.providers
                 .iter()
@@ -160,6 +170,14 @@ mod tests {
             website: None,
             transaction_type,
         }
+    }
+
+    #[test]
+    fn test_a_disabled_scanner_never_reports_a_complete_scan() {
+        assert!(ScanClient::is_scan_complete(true, &[Some(()), Some(())]));
+        assert!(!ScanClient::is_scan_complete(true, &[Some(()), None]));
+        assert!(!ScanClient::is_scan_complete(false, &[Some(()), Some(())]));
+        assert!(!ScanClient::is_scan_complete::<()>(false, &[]));
     }
 
     #[test]

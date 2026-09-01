@@ -304,7 +304,6 @@ pusher:
   ios:
     topic: ""
 security:
-  timeout: 1200ms
   abuseipdb:
     url: https://api.abuseipdb.com
     key:

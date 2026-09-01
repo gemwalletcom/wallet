@@ -11,8 +11,10 @@ pub mod fetch_prices_consumer;
 pub mod fetch_token_addresses_consumer;
 pub mod fetch_transaction_consumer;
 
+use primitives::ConfigKey;
 use std::error::Error;
 use std::sync::Arc;
+use std::time::Duration;
 
 use ::nft::{NFTClient, NFTProviderConfig};
 use cacher::{AccessTokenCacherClient, CacherClient};
@@ -182,14 +184,14 @@ async fn run_fetch_asset_status(
     let config = reader_config(&settings.rabbitmq, name.clone());
     let stream_reader = StreamReader::from_connection(&connection, config).await?;
     let cacher = CacherClient::new(&settings.redis.url).await?;
-    let providers = scan_providers(&settings, cacher)?;
+    let providers = scan_providers(&settings, cacher, ConfigCacher::new(database.clone()).get_duration(ConfigKey::ScanTimeout)?)?;
     let consumer = FetchAssetStatusConsumer { database, providers };
     run_consumer::<AssetId, _, bool>(&name, stream_reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown_rx, reporter).await
 }
 
-fn scan_providers(settings: &Settings, cacher: CacherClient) -> Result<ScanProviders, Box<dyn Error + Send + Sync>> {
+fn scan_providers(settings: &Settings, cacher: CacherClient, timeout: Duration) -> Result<ScanProviders, Box<dyn Error + Send + Sync>> {
     let config = ScanProviderConfig {
-        timeout: settings.security.timeout,
+        timeout,
         goplus: ScanProviderRemoteConfig {
             url: settings.security.goplus.url.clone(),
             public_key: settings.security.goplus.key.public.clone(),

@@ -54,9 +54,7 @@ mod tests {
         let asset = Asset::from_chain(Chain::Ethereum);
         let wallet_id = WalletId::Multicoin("address".to_string());
 
-        service
-            .record(GemTransactionInputType::Transfer { asset: asset.clone() }, wallet_id.clone())
-            .unwrap();
+        service.record(GemTransactionInputType::Transfer { asset: asset.clone() }, wallet_id.clone()).unwrap();
         assert_eq!(store.added.lock().unwrap().len(), 1);
 
         service

@@ -227,7 +227,11 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let stream_producer = StreamProducer::new(&rabbitmq_config, "api", streamer::no_shutdown()).await.unwrap();
     let wallets_client = WalletsClient::new(database.clone(), stream_producer.clone());
 
-    let scan_client = ScanClient::new(database.clone(), scan_providers(&settings_clone, cacher_client.clone())?);
+    let scan_client = ScanClient::new(
+        database.clone(),
+        scan_providers(&settings_clone, cacher_client.clone(), config_cacher.get_duration(ConfigKey::ScanTimeout)?)?,
+        config_cacher.get_bool(ConfigKey::ScanEnable)?,
+    );
     let wallet_configuration_client = WalletConfigurationClient::new(database.clone(), ChainProviders::from_settings(&settings, &user_agent), cacher_client.clone());
     let assets_client = AssetsClient::new(database.clone(), price_config);
     let search_index_config = SearchIndexConfig {
