@@ -30,6 +30,7 @@ import com.gemwallet.android.ui.components.list_item.dateGroupedList
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.SheetSizing
 import com.wallet.core.primitives.AssetId
 
 @Composable
@@ -49,7 +50,7 @@ fun RecentsBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.95f),
+                .fillMaxHeight(SheetSizing.heightFraction),
         ) {
             Box(
                 modifier = Modifier

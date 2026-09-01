@@ -70,6 +70,10 @@
 		D807004A2BBB1FB600ED770B /* SettingsNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D80700492BBB1FB600ED770B /* SettingsNavigationView.swift */; };
 		D807004C2BBB26DD00ED770B /* TransactionsNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D807004B2BBB26DD00ED770B /* TransactionsNavigationView.swift */; };
 		D807004E2BBB283400ED770B /* WalletNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D807004D2BBB283400ED770B /* WalletNavigationView.swift */; };
+		F02557C19C03CD9DA036C0B5 /* ScanReceiveNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = B35C39A8F4EB047A5DA1106A /* ScanReceiveNavigationStack.swift */; };
+		BD953F7FE9F1DB860BBB3737 /* ScanReceiveSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB63698068D10CFB743007B3 /* ScanReceiveSheet.swift */; };
+		AD9CF68E48644ED7CA027260 /* ScanReceiveViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DC0640249B8491C060667E4 /* ScanReceiveViewModel.swift */; };
+		EB83CFFC3CFF5942DFFE272A /* ScanReceiveModeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 622C2DC81529966AD806581E /* ScanReceiveModeViewModel.swift */; };
 		D829BF2D2CBDBC5300DEB2E8 /* Localization in Frameworks */ = {isa = PBXBuildFile; productRef = D829BF2C2CBDBC5300DEB2E8 /* Localization */; };
 		D829BF422CBDD65A00DEB2E8 /* MarketInsight in Frameworks */ = {isa = PBXBuildFile; productRef = D829BF412CBDD65A00DEB2E8 /* MarketInsight */; };
 		D829BF452CBDD9F700DEB2E8 /* FiatConnect in Frameworks */ = {isa = PBXBuildFile; productRef = D829BF442CBDD9F700DEB2E8 /* FiatConnect */; };
@@ -223,6 +227,10 @@
 		D80700492BBB1FB600ED770B /* SettingsNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsNavigationView.swift; sourceTree = "<group>"; };
 		D807004B2BBB26DD00ED770B /* TransactionsNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsNavigationView.swift; sourceTree = "<group>"; };
 		D807004D2BBB283400ED770B /* WalletNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletNavigationView.swift; sourceTree = "<group>"; };
+		B35C39A8F4EB047A5DA1106A /* ScanReceiveNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReceiveNavigationStack.swift; sourceTree = "<group>"; };
+		DB63698068D10CFB743007B3 /* ScanReceiveSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReceiveSheet.swift; sourceTree = "<group>"; };
+		5DC0640249B8491C060667E4 /* ScanReceiveViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReceiveViewModel.swift; sourceTree = "<group>"; };
+		622C2DC81529966AD806581E /* ScanReceiveModeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReceiveModeViewModel.swift; sourceTree = "<group>"; };
 		D829BF2B2CBDB82600DEB2E8 /* Localization */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Localization; sourceTree = "<group>"; };
 		D829BF402CBDD64D00DEB2E8 /* MarketInsight */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = MarketInsight; sourceTree = "<group>"; };
 		D829BF432CBDD9D200DEB2E8 /* FiatConnect */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = FiatConnect; sourceTree = "<group>"; };
@@ -378,6 +386,8 @@
 			isa = PBXGroup;
 			children = (
 				D807004D2BBB283400ED770B /* WalletNavigationView.swift */,
+				B35C39A8F4EB047A5DA1106A /* ScanReceiveNavigationStack.swift */,
+				DB63698068D10CFB743007B3 /* ScanReceiveSheet.swift */,
 			);
 			path = Wallet;
 			sourceTree = "<group>";
@@ -494,6 +504,8 @@
 			children = (
 				D8B738D32C59643D004EF083 /* MainTabViewModel.swift */,
 				83E041592D0AFCB80031D4BC /* RootSceneViewModel.swift */,
+				5DC0640249B8491C060667E4 /* ScanReceiveViewModel.swift */,
+				622C2DC81529966AD806581E /* ScanReceiveModeViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -1026,6 +1038,10 @@
 				D891DD412D3F359F00241222 /* CollectionsSceneNavigationView.swift in Sources */,
 				83B08BDB2D0B4AE200CA1B33 /* AppResolver+Storages.swift in Sources */,
 				D807004E2BBB283400ED770B /* WalletNavigationView.swift in Sources */,
+				F02557C19C03CD9DA036C0B5 /* ScanReceiveNavigationStack.swift in Sources */,
+				BD953F7FE9F1DB860BBB3737 /* ScanReceiveSheet.swift in Sources */,
+				AD9CF68E48644ED7CA027260 /* ScanReceiveViewModel.swift in Sources */,
+				EB83CFFC3CFF5942DFFE272A /* ScanReceiveModeViewModel.swift in Sources */,
 				D8BAC9592BD0CDC8001608BC /* SelectAssetSceneNavigationStack.swift in Sources */,
 				8358DBBF2EA6AE59007A4DC7 /* PerpetualNavigationView.swift in Sources */,
 				D8BAC95B2BD0D1DB001608BC /* AddAssetNavigationStack.swift in Sources */,

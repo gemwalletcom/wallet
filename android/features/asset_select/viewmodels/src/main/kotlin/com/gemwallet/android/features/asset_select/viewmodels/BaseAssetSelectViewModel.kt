@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -70,6 +71,12 @@ open class BaseAssetSelectViewModel(
     val queryState = TextFieldState()
     val chainFilter = MutableStateFlow<List<Chain>>(emptyList())
     val balanceFilter = MutableStateFlow(false)
+
+    fun reset() {
+        queryState.clearText()
+        chainFilter.value = emptyList()
+        balanceFilter.value = false
+    }
 
     private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

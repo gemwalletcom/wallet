@@ -88,6 +88,7 @@ fun AssetSelectScene(
     balanceFilter: Boolean = false,
     searchable: Boolean = true,
     onAction: (AssetSelectAction) -> Unit,
+    closeIcon: Boolean = false,
     itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     contextActions: AssetContextActions = AssetContextActions.Empty,
@@ -117,6 +118,7 @@ fun AssetSelectScene(
         balanceFilter = balanceFilter,
         searchable = searchable,
         onAction = onAction,
+        closeIcon = closeIcon,
         itemTrailing = itemTrailing,
         actions = actions,
         contextActions = contextActions,
@@ -140,8 +142,10 @@ fun AssetSelectScene(
     availableChains: List<Chain> = emptyList(),
     chainsFilter: List<Chain> = emptyList(),
     balanceFilter: Boolean = false,
+    showFilter: Boolean = true,
     searchable: Boolean = true,
     onAction: (AssetSelectAction) -> Unit,
+    closeIcon: Boolean = false,
     itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     contextActions: AssetContextActions = AssetContextActions.Empty,
@@ -191,7 +195,7 @@ fun AssetSelectScene(
     Scene(
         titleContent = title,
         actions = {
-            if (availableChains.isNotEmpty()) {
+            if (showFilter && availableChains.isNotEmpty()) {
                 IconButton(onClick = { showSelectNetworks = !showSelectNetworks }) {
                     Icon(
                         imageVector = AppIcons.FilterAlt,
@@ -206,7 +210,8 @@ fun AssetSelectScene(
             actions()
         },
         snackbar = snackbar,
-        onClose = { onAction(AssetSelectAction.Cancel) }
+        onClose = { onAction(AssetSelectAction.Cancel) },
+        closeIcon = closeIcon
     ) {
         if (searchable) {
             SearchBar(query = query)

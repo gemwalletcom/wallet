@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -49,8 +50,6 @@ import com.gemwallet.android.features.settings.settings.presents.views.SettingsS
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.ConnectionStatusBannerHost
 import com.gemwallet.android.ui.components.LocalConnectionBannerHandled
-import com.gemwallet.android.ui.components.QrCodeScannerModal
-import com.wallet.core.primitives.QRScanType
 import com.gemwallet.android.ui.components.animation.NavigationAnimation
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.navigation.WalletNavigator
@@ -71,13 +70,12 @@ fun MainScreen(
     val pendingCount by viewModel.pendingTxCount.collectAsStateWithLifecycle()
     val assetsViewModel: AssetsViewModel = hiltViewModel()
     val isRootRouteActive = navigator.backStack.lastOrNull() == WalletRootRoute
-    var isPresentingScanner by remember { mutableStateOf(false) }
+    var isPresentingScanner by rememberSaveable { mutableStateOf(false) }
 
-    QrCodeScannerModal(
+    ScanReceiveModal(
         isVisible = isPresentingScanner,
-        scanType = QRScanType.Universal,
         onDismissRequest = { isPresentingScanner = false },
-        onResult = { code ->
+        onScan = { code ->
             isPresentingScanner = false
             viewModel.onScan(code)
         },

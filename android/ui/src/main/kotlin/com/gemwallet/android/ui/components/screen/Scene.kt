@@ -69,14 +69,7 @@ fun Scene(
     content: @Composable ColumnScope.(PaddingValues) -> Unit,
 ) {
     Scene(
-        titleContent = {
-            Text(
-                modifier = Modifier,
-                text = title,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        },
+        titleContent = { SceneTitle(title) },
         backHandle = backHandle,
         contentPadding = padding,
         onClose = onClose,
@@ -87,6 +80,15 @@ fun Scene(
         mainActionWidth = mainActionWidth,
         snackbar = snackbar,
         content = content,
+    )
+}
+
+@Composable
+fun SceneTitle(text: String) {
+    Text(
+        text = text,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
     )
 }
 

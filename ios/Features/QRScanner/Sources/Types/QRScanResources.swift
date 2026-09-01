@@ -4,24 +4,26 @@ import Foundation
 import Localization
 import Style
 
-struct QRScanResources: QRScannerResources {
-    var selectFromPhotos: String {
+public struct QRScanResources: QRScannerResources {
+    public init() {}
+
+    public var selectFromPhotos: String {
         Localized.Library.selectFromPhotoLibrary
     }
 
-    var openSettings: String {
+    public var openSettings: String {
         Localized.Common.openSettings
     }
 
-    var tryAgain: String {
+    public var tryAgain: String {
         Localized.Common.tryAgain
     }
 
-    var dismissText: String {
+    public var dismissText: String {
         Localized.Common.cancel
     }
 
-    var gallerySystemImage: String {
+    public var gallerySystemImage: String {
         SystemImage.photo
     }
 }

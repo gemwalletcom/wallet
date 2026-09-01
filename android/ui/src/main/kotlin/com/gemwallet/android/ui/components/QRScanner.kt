@@ -61,6 +61,7 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.SceneTitle
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.alpha50
 import com.gemwallet.android.ui.theme.defaultPadding
@@ -99,6 +100,7 @@ private const val FINDER_DIM_ALPHA = 0.33f
 fun QrCodeRequest(
     scanType: QRScanType,
     onCancel: () -> Unit,
+    titleContent: @Composable () -> Unit = { ScanQrCodeTitle() },
     onResult: (String) -> Unit,
 ) {
     val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
@@ -135,6 +137,7 @@ fun QrCodeRequest(
             isCameraGranted = cameraPermissionState.status.isGranted,
             onGrantPermission = { showPermissionRequest = true },
             onCancel = onCancel,
+            titleContent = titleContent,
             onResult = onResult
         )
     }
@@ -147,6 +150,7 @@ fun QRScannerScene(
     isCameraGranted: Boolean,
     onGrantPermission: () -> Unit,
     onCancel: () -> Unit,
+    titleContent: @Composable () -> Unit = { ScanQrCodeTitle() },
     onResult: (String) -> Unit,
 ) {
     val context = LocalContext.current
@@ -197,7 +201,8 @@ fun QRScannerScene(
         cancel()
     }
     Scene(
-        title = stringResource(id = R.string.wallet_scan),
+        closeIcon = true,
+        titleContent = titleContent,
         actions = {
             if (!isCameraGranted) {
                 IconButton(onClick = onGrantPermission) {
@@ -389,6 +394,11 @@ private class QRCodeAnalyzer(
     } catch (_: Exception) {
         null
     }
+}
+
+@Composable
+private fun ScanQrCodeTitle() {
+    SceneTitle(stringResource(id = R.string.wallet_scan))
 }
 
 @StringRes

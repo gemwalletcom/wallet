@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import AppService
+import Components
 import GemstoneServices
 import LockManager
 import Preferences
@@ -47,6 +48,10 @@ struct GemApp: App {
 }
 
 class AppDelegate: NSObject, UIApplicationDelegate, UIWindowSceneDelegate {
+    func application(_: UIApplication, supportedInterfaceOrientationsFor _: UIWindow?) -> UIInterfaceOrientationMask {
+        OrientationLock.mask
+    }
+
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         AppResolver.main.services.onstartService.configure()
         Task {

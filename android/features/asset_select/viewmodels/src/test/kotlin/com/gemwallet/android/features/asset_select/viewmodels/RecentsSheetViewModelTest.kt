@@ -10,11 +10,16 @@ import com.gemwallet.android.model.RecentType
 import com.gemwallet.android.testkit.mockAsset
 import com.wallet.core.primitives.Chain
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -67,6 +72,19 @@ class RecentsSheetViewModelTest {
         vm.dismiss()
         advanceUntilIdle()
         assertFalse(vm.visible.value)
+    }
+
+    @Test
+    fun `uiModel keeps content after dismiss`() = runTest(testDispatcher) {
+        every { getRecentAssets(any()) } returns flowOf(recentItems)
+        val vm = RecentsSheetViewModel(getRecentAssets, clearRecentAssets, GemAssetConfigService())
+
+        vm.show()
+        vm.uiModel.first { it.items.isNotEmpty() }
+
+        vm.dismiss()
+        withContext(Dispatchers.Default) { delay(100) }
+        assertEquals(recentItems, vm.uiModel.value.items)
     }
 
     @Test

@@ -18,12 +18,18 @@ import com.gemwallet.android.ui.components.clipboard.clipboardManager
 fun SelectReceiveScreen(
     onCancel: () -> Unit,
     onSelect: ((AssetId) -> Unit)?,
+    titleContent: (@Composable () -> Unit)? = null,
+    closeIcon: Boolean = false,
+    showFilter: Boolean = true,
     viewModel: AssetSelectViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
     AssetSelectScreen(
         title = stringResource(id = R.string.wallet_receive),
+        titleContent = titleContent,
+        closeIcon = closeIcon,
+        showFilter = showFilter,
         titleBadge = ::getAssetBadge,
         recentType = RecentType.Receive,
         onSelectRecent = onSelect,

@@ -40,8 +40,12 @@ val paddingDefault = 16.dp
 val paddingLarge = 32.dp
 
 val mainActionHeight = 48.dp
-val sheetCornerSize = 28.dp
 val chartFrameHeight = 320.dp
+
+object SheetSizing {
+    val cornerSize = 28.dp
+    const val heightFraction = 0.95f
+}
 
 object SceneSizing {
     val buttonMaxWidth = 380.dp
