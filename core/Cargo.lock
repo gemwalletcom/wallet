@@ -3618,7 +3618,6 @@ dependencies = [
  "hex",
  "k256 0.14.0",
  "num-bigint 0.5.1",
- "num-traits",
  "number_formatter",
  "primitives",
  "serde",
@@ -6298,7 +6297,6 @@ name = "portfolio"
 version = "2.114.11"
 dependencies = [
  "chrono",
- "num-bigint 0.5.1",
  "number_formatter",
  "primitives",
  "storage",

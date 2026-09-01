@@ -4,7 +4,6 @@ version = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
-num-traits = { workspace = true }
 bech32 = { workspace = true }
 hex = { workspace = true }
 gem_hash = { path = "../gem_hash" }

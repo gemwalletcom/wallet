@@ -76,21 +76,6 @@ impl ReqwestClient {
         headers.into_iter().fold(request, |request, (key, value)| request.header(&key, &value))
     }
 
-    async fn send_request<R>(&self, response: reqwest::Response) -> Result<R, ClientError>
-    where
-        R: DeserializeOwned,
-    {
-        let status = response.status().as_u16();
-        let data = response
-            .bytes()
-            .await
-            .map_err(|e| ClientError::Network(format!("Failed to read response body: {e}")))?
-            .to_vec();
-
-        let response = Response { status: Some(status), data };
-        deserialize_response(&response)
-    }
-
     fn map_reqwest_error(e: reqwest::Error) -> ClientError {
         if e.is_timeout() {
             ClientError::Timeout
@@ -115,7 +100,7 @@ impl Client for ReqwestClient {
         let request = self.build_request(self.client.get(&url).query(query), headers);
 
         let response = request.send().await.map_err(Self::map_reqwest_error)?;
-        self.send_request(response).await
+        json_response(response).await
     }
 
     async fn get_url<R>(&self, url: &str) -> Result<R, ClientError>
@@ -124,7 +109,7 @@ impl Client for ReqwestClient {
     {
         let request = self.build_request(self.client.get(url), HashMap::new());
         let response = request.send().await.map_err(Self::map_reqwest_error)?;
-        self.send_request(response).await
+        json_response(response).await
     }
 
     async fn post_with<T, R>(&self, path: &str, body: &T, headers: HashMap<String, String>) -> Result<R, ClientError>
@@ -164,7 +149,7 @@ impl Client for ReqwestClient {
         let request = self.build_request(self.client.post(&url).body(request_body), headers);
         let response = request.send().await.map_err(Self::map_reqwest_error)?;
 
-        self.send_request(response).await
+        json_response(response).await
     }
 }
 

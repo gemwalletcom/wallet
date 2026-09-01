@@ -4,7 +4,6 @@ edition = { workspace = true }
 version = { workspace = true }
 
 [dependencies]
-num-bigint = { workspace = true }
 chrono = { workspace = true }
 
 primitives = { path = "../primitives" }
