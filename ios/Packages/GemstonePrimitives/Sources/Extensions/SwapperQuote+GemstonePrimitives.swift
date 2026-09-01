@@ -5,7 +5,6 @@ import Foundation
 import struct Gemstone.GemSwapTransfer
 import struct Gemstone.SwapperQuote
 import class Gemstone.GemSwapQuoteService
-import GemstonePrimitives
 import Primitives
 import struct Gemstone.GemRecipient
 import struct Gemstone.GemTransferData

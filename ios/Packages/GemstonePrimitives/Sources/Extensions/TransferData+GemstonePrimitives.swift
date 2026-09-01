@@ -6,7 +6,6 @@ import struct Gemstone.GemRecipient
 import struct Gemstone.GemTransferBalance
 import struct Gemstone.GemTransferData
 import class Gemstone.GemTransferService
-import GemstonePrimitives
 import Primitives
 
 public extension GemTransferData {
