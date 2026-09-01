@@ -8,8 +8,8 @@ use primitives::solana_nft::SolanaNftStandard;
 use primitives::solana_token_program::SolanaTokenProgramId;
 use primitives::{
     AccountDataType, AssetId, EarnType, FeeOption, GasPriceType, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, SignerInput,
-    StakeType, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransactionMetadata, TransactionPerpetualMetadata, TransactionState,
-    TransactionType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, perpetual::PerpetualReduceData,
+    StakeType, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransactionType, TransferDataExtra, TransferDataOutputAction,
+    TransferDataOutputType, TronStakeData, perpetual::PerpetualReduceData,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -27,12 +27,6 @@ pub enum PerpetualProvider {
     Hypercore,
 }
 
-pub type GemTransactionPerpetualMetadata = TransactionPerpetualMetadata;
-pub type GemTransactionMetadata = TransactionMetadata;
-pub type GemTransactionState = TransactionState;
-pub type GemTransactionType = TransactionType;
-pub type GemTronVote = TronVote;
-pub type GemTronUnfreeze = TronUnfreeze;
 pub type GemTronStakeData = TronStakeData;
 
 #[uniffi::remote(Enum)]

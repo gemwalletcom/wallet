@@ -56,7 +56,4 @@ public struct PerpetualConfig {
         Config.shared.selectLeverage(desired: desired, options: Data(options))
     }
 
-    public static func autocloseSuggestions(leverage: UInt8) -> [UInt8] {
-        Array(Config.shared.getAutocloseSuggestions(leverage: leverage))
-    }
 }

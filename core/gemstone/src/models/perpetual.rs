@@ -4,23 +4,17 @@ use gem_hypercore::models::order::OpenOrder;
 use gem_hypercore::models::websocket::{HyperliquidSocketMessage, PositionsDiff};
 use primitives::{
     PerpetualMarginType, PerpetualMarketData, PerpetualOrderType, PerpetualPosition, PerpetualTriggerOrder,
-    chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue},
-    perpetual::{PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualMetadata, PerpetualPositionsSummary},
+    chart::{ChartCandleStick, ChartCandleUpdate},
+    perpetual::{PerpetualAccountMode, PerpetualBalance},
 };
 
 pub type GemHyperliquidOpenOrder = OpenOrder;
 pub type GemPositionsDiff = PositionsDiff;
 pub type GemPerpetualMarginType = PerpetualMarginType;
 pub type GemPerpetualOrderType = PerpetualOrderType;
-pub type GemPerpetualPositionsSummary = PerpetualPositionsSummary;
-pub type GemPerpetualBalance = PerpetualBalance;
 pub type GemPerpetualAccountMode = PerpetualAccountMode;
 pub type GemPerpetualPosition = PerpetualPosition;
-pub type GemPerpetualMetadata = PerpetualMetadata;
 pub type GemChartCandleStick = ChartCandleStick;
-pub type GemChartCandleUpdate = ChartCandleUpdate;
-pub type GemChartDateValue = ChartDateValue;
-pub type GemPerpetualData = PerpetualData;
 pub type GemPerpetualMarketData = PerpetualMarketData;
 
 pub type GemPerpetualTriggerOrder = PerpetualTriggerOrder;

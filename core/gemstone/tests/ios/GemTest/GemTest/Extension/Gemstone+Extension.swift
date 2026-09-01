@@ -4,7 +4,7 @@ import Gemstone
 
 public typealias SwapProvider = SwapperProvider
 
-extension AlienTarget: URLRequestConvertible {
+extension AlienTarget {
     func asRequest() throws -> URLRequest {
         guard let url = URL(string: self.url) else {
             let error = AlienError.RequestError(msg: "invalid url: \(self.url)")

@@ -80,11 +80,6 @@ public struct AssetStore: Sendable {
     }
 
     @discardableResult
-    public func setAssetIsSellable(for assetIds: [String], value: Bool) throws -> Int {
-        try setColumn(for: assetIds, column: AssetRecord.Columns.isSellable, value: value)
-    }
-
-    @discardableResult
     public func setAssetIsSwappable(for assetIds: [String], value: Bool) throws -> Int {
         try setColumn(for: assetIds, column: AssetRecord.Columns.isSwappable, value: value)
     }

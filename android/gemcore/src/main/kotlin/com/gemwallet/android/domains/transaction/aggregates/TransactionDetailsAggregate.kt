@@ -4,7 +4,6 @@ import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.domains.transaction.values.ValueGroup
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
@@ -17,8 +16,6 @@ interface TransactionDetailsAggregate {
 
     val type: TransactionType
     val direction: TransactionDirection
-    val perpetualDirection: PerpetualDirection?
-        get() = null
     val state: TransactionState
 
     val currency: Currency

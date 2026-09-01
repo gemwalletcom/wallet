@@ -286,10 +286,6 @@ extension SwapSceneViewModel {
         await performUpdate(for: Array(assetIds))
     }
 
-    func onSelectPriceImpactInfo() {
-        isPresentingInfoSheet = .info(.priceImpact)
-    }
-
     func onSelectAssetPay() {
         isPresentingInfoSheet = .selectAsset(.pay)
     }

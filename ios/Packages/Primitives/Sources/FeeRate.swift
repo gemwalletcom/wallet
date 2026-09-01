@@ -20,8 +20,4 @@ public extension FeeRate {
     static func defaultRate() -> FeeRate {
         FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 1))
     }
-
-    static func defaultRates() -> [FeeRate] {
-        [FeeRate.defaultRate()]
-    }
 }

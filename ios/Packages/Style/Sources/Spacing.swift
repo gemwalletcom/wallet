@@ -41,10 +41,6 @@ public extension Spacing {
     /// 32
     static let extraLarge: CGFloat = space32
 
-    static func spacingOr(condition: Bool, value: Spacing, opposite: Spacing = .zero) -> Spacing {
-        condition ? value : opposite
-    }
-
     var edgeInsets: EdgeInsets {
         EdgeInsets(top: self, leading: self, bottom: self, trailing: self)
     }

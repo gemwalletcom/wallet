@@ -2,7 +2,6 @@ package com.gemwallet.android.application.wallet_connect
 
 import com.gemwallet.android.ext.toChain
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.WalletConnectionEvents
 import com.wallet.core.primitives.WalletConnectionMethods
 import uniffi.gemstone.GemChainService
 
@@ -57,21 +56,6 @@ enum class ChainNamespace(val string: String, val methods: List<WalletConnection
 
     val methodIds: List<String>
         get() = methods.map { it.string }
-
-    val eventIds: List<String>
-        get() = when (this) {
-            Solana -> emptyList()
-            else -> defaultEventIds
-        }
-
-    companion object {
-        private val defaultEventIds = listOf(
-            WalletConnectionEvents.Connect.string,
-            WalletConnectionEvents.Disconnect.string,
-            WalletConnectionEvents.ChainChanged.string,
-            WalletConnectionEvents.AccountsChanged.string,
-        )
-    }
 }
 
 fun Chain.Companion.fromWalletConnectChainId(chainService: GemChainService, walletConnectChainId: String?): Chain? {

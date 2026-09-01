@@ -1,33 +1,12 @@
 package com.gemwallet.android.blockchain.gemstone
 
 import com.gemwallet.android.ext.toChainType
-import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.Fee
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.FeePriority
-import uniffi.gemstone.FeeOption as GemFeeOption
-import uniffi.gemstone.GemFeeOptions
 import uniffi.gemstone.GemGasPriceType
 import uniffi.gemstone.GemTransactionLoadFee
-
-internal fun Fee.toGemGasPriceType(): GemGasPriceType = when (this) {
-    is Fee.Eip1559 -> GemGasPriceType.Eip1559(
-        gasPrice = maxGasPrice.toString(),
-        priorityFee = minerFee.toString(),
-    )
-    is Fee.Plain -> GemGasPriceType.Regular(
-        gasPrice = amount.toString(),
-    )
-    is Fee.Regular -> GemGasPriceType.Regular(
-        gasPrice = maxGasPrice.toString(),
-    )
-    is Fee.Solana -> GemGasPriceType.Solana(
-        gasPrice = maxGasPrice.toString(),
-        priorityFee = minerFee.toString(),
-        unitPrice = unitFee.toString(),
-    )
-}
 
 internal fun GemTransactionLoadFee.toFee(
     priority: FeePriority,

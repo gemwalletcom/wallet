@@ -33,7 +33,6 @@ k256 = { workspace = true }
 signer = { path = "../signer" }
 
 [dev-dependencies]
-reqwest = { workspace = true }
 gem_client = { path = "../gem_client", features = ["reqwest", "testkit"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 primitives = { path = "../primitives", features = ["testkit"] }

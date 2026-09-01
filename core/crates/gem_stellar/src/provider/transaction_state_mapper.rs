@@ -36,7 +36,7 @@ mod tests {
 
     #[test]
     fn test_map_transaction_status_with_real_data() {
-        let response: StellarTransactionStatus = serde_json::from_str(include_str!("../../testdata/transaction_state_success.json")).unwrap();
+        let response: StellarTransactionStatus = serde_json::from_str(include_str!("../../testdata/transaction_status_success.json")).unwrap();
 
         let result = map_transaction_status(&response);
         assert_eq!(result.state, TransactionState::Confirmed);

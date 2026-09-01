@@ -1,3 +1,4 @@
+#[cfg(test)]
 pub mod mock;
 #[cfg(feature = "reqwest_provider")]
 pub mod reqwest_provider;

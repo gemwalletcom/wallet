@@ -1,7 +1,6 @@
-use primitives::{Asset, AssetId, AssetProperties, AssetScore, AssetType, Chain, ChainAsset, WalletType, known_assets};
+use primitives::{Asset, AssetId, AssetProperties, AssetScore, Chain, ChainAsset, WalletType, known_assets};
 
 pub type GemAsset = Asset;
-pub type GemAssetType = AssetType;
 pub type GemChainAsset = ChainAsset;
 
 pub fn asset_default_rank(asset_id: AssetId) -> i32 {

@@ -54,5 +54,4 @@ zeroize = { workspace = true, optional = true }
 gem_client = { path = "../gem_client", features = ["testkit"] }
 primitives = { path = "../primitives", features = ["testkit"] }
 tokio = { workspace = true, features = ["macros"] }
-reqwest = { workspace = true }
 settings = { path = "../settings", features = ["testkit"] }

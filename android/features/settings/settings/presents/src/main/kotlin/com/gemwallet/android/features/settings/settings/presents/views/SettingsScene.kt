@@ -18,7 +18,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,7 +50,6 @@ fun SettingsScene(
     val isRewardsAvailable by viewModel.isRewardsAvailable.collectAsStateWithLifecycle()
     val walletsCount by viewModel.walletsCount.collectAsStateWithLifecycle()
     val pushEnabled by viewModel.pushEnabled.collectAsStateWithLifecycle()
-    val supportState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var isShowDevelopEnable by remember { mutableStateOf(false) }
 
     var requestPushGrant by remember { mutableStateOf<(() -> Unit)?>(null) }

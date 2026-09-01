@@ -584,7 +584,6 @@ mod tests {
     use crate::alien::mock::{MockFn, ProviderMock};
     use gem_evm::multicall3::IMulticall3;
     use primitives::{asset_constants::*, swap::SwapQuoteDataType};
-    use std::time::Duration;
 
     const TEST_FILL_DEADLINE: u32 = 1_700_000_000 + DEFAULT_FILL_TIMEOUT;
 
@@ -645,7 +644,6 @@ mod tests {
         let response = format!(r#"{{"constant_result":["{allowance}"]}}"#);
         Across::new(Arc::new(ProviderMock {
             response: MockFn(Box::new(move |_| response.clone())),
-            timeout: Duration::from_millis(10),
         }))
     }
 

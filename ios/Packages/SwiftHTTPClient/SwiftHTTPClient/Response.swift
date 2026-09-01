@@ -38,13 +38,6 @@ public struct Response {
             throw try decoder.decode(asError, from: body)
         }
     }
-
-    public func mapOrCatch<T: Decodable>(as type: T.Type, codes: [Int], result: T, _ decoder: JSONDecoder = Self.standardDecoder) throws -> T {
-        if codes.contains(code) {
-            return result
-        }
-        return try decoder.decode(type, from: body)
-    }
 }
 
 // same code lives in primitives, allow to inject json / date formatter on init

@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
@@ -90,10 +89,6 @@ fun Modifier.defaultPadding(): Modifier {
     return padding(paddingDefault)
 }
 
-fun Modifier.largePadding(): Modifier {
-    return padding(paddingLarge)
-}
-
 @Composable
 fun Spacer2() {
     Spacer(modifier = Modifier.size(space2))
@@ -117,10 +112,4 @@ fun Spacer8() {
 @Composable
 fun Spacer16() {
     Spacer(modifier = Modifier.size(space16))
-}
-
-fun LazyListScope.listSpacerBig() {
-    item {
-        Spacer16()
-    }
 }

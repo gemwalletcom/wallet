@@ -119,7 +119,6 @@ mod tests {
     use super::*;
     use crate::alien::mock::{MockFn, ProviderMock};
     use primitives::contract_constants::{OPTIMISM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT, UNISWAP_PERMIT2_CONTRACT};
-    use std::time::Duration;
 
     #[tokio::test]
     async fn test_approval_tx_spender_is_permit2() -> Result<(), SwapperError> {
@@ -144,7 +143,6 @@ mod tests {
                 r#"{"id":1,"jsonrpc":"2.0","result":"0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"}"#
                     .to_string()
             })),
-            timeout: Duration::from_millis(10),
         };
         let provider = Arc::new(mock);
 

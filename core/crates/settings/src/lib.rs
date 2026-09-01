@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use std::{collections::HashMap, env, path::PathBuf, time::Duration};
 
 use config::{Config, ConfigError, Environment, File};

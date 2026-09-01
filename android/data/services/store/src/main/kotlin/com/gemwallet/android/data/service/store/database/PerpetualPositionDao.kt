@@ -16,15 +16,6 @@ interface PerpetualPositionDao {
     @Insert(onConflict = REPLACE)
     suspend fun upsertPositions(items: List<DbPerpetualPosition>)
 
-    @Query("DELETE FROM perpetuals_positions WHERE walletId = :walletId AND id NOT IN (:ids)")
-    suspend fun deleteStale(walletId: String, ids: List<String>)
-
-    @Transaction
-    suspend fun diffPositions(walletId: String, items: List<DbPerpetualPosition>) {
-        deleteStale(walletId, items.map { it.id })
-        upsertPositions(items)
-    }
-
     @Query("DELETE FROM perpetuals_positions")
     suspend fun deleteAll()
 

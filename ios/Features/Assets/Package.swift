@@ -71,6 +71,7 @@ let package = Package(
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
+                .product(name: "PreferencesTestKit", package: "Preferences"),
                 .product(name: "StoreTestKit", package: "Store"),
                 "Store",
                 "AssetsTestKit",

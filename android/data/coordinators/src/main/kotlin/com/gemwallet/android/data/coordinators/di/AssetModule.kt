@@ -57,7 +57,6 @@ import com.gemwallet.android.data.coordinators.asset.SyncAssetsImpl
 import com.gemwallet.android.data.coordinators.asset.SetAssetPinnedImpl
 import com.gemwallet.android.data.coordinators.asset.ToggleHideBalancesImpl
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
-import com.gemwallet.android.data.services.gemstone.assets.CurrencyRatesService
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
 import com.gemwallet.android.application.session.cases.GetSession

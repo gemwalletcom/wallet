@@ -39,9 +39,6 @@ object PerpetualConfig {
 
     val defaultStopLoss: Int get() = config.defaultStopLossPercent.toInt()
 
-    fun autocloseSuggestions(leverage: Int): List<Int> =
-        Config().getAutocloseSuggestions(leverage.toUByte()).toUnsignedInts()
-
     fun selectLeverage(desired: Int, from: List<Int>): Int =
         Config().selectLeverage(
             desired.toUByte(),

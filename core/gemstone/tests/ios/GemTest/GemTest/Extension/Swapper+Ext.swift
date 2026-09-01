@@ -42,27 +42,6 @@ extension SwapperQuote: @retroactive CustomStringConvertible {
     }
 }
 
-extension GemSwapQuoteData: @retroactive CustomStringConvertible {
-    public var description: String {
-        var json: [String: Any] = [
-            "to": to,
-            "value": value,
-            "data": data,
-            "memo": memo ?? NSNull(),
-            "approval": NSNull(),
-        ]
-        if let approvalData = approval {
-            json["approval"] = [
-                "token": approvalData.token,
-                "spender": approvalData.spender,
-                "value": approvalData.value,
-            ]
-        }
-        let bytes = try! JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted, .sortedKeys])
-        return String(data: bytes, encoding: .utf8)!
-    }
-}
-
 public extension SwapperQuoteAsset {
     init(id: String, decimals: UInt32) {
         self.init(

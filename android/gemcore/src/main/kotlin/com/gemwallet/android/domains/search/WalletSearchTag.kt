@@ -13,15 +13,6 @@ sealed interface WalletSearchTag {
     data class List(val id: String) : WalletSearchTag
 }
 
-val WalletSearchTag.apiTag: String?
-    get() = when (this) {
-        WalletSearchTag.All -> null
-        is WalletSearchTag.List -> id
-    }
-
-val WalletSearchTag.isAll: Boolean
-    get() = this is WalletSearchTag.All
-
 fun WalletSearchTag.encode(): String = toJson()
 
 fun walletSearchTagOf(encoded: String?): WalletSearchTag = encoded.decodeJsonOrNull() ?: WalletSearchTag.All

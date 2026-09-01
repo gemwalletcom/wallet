@@ -251,10 +251,7 @@ impl Swapper for HyperCoreSpot {
 
 #[cfg(test)]
 mod unit_tests {
-    use std::{
-        sync::atomic::{AtomicUsize, Ordering},
-        time::Duration,
-    };
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
     use crate::alien::mock::{MockFn, ProviderMock};
 
@@ -269,7 +266,6 @@ mod unit_tests {
                 requests_ref.fetch_add(1, Ordering::Relaxed);
                 include_str!("../../../../../gem_hypercore/testdata/spot_meta_spot_swap.json").to_string()
             })),
-            timeout: Duration::ZERO,
         });
         let spot = HyperCoreSpot::new(provider);
         let client = spot.client().unwrap();

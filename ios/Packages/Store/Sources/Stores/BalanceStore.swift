@@ -164,16 +164,6 @@ public struct BalanceStore: Sendable {
     }
 
     @discardableResult
-    public func isBalanceExist(walletId: WalletId, assetId: AssetId) throws -> Bool {
-        try db.read { db in
-            try BalanceRecord
-                .filter(BalanceRecord.Columns.walletId == walletId.id)
-                .filter(BalanceRecord.Columns.assetId == assetId.identifier)
-                .fetchCount(db) > 0
-        }
-    }
-
-    @discardableResult
     public func setIsEnabled(walletId: WalletId, assetIds: [AssetId], value: Bool) throws -> Int {
         try db.write { db in
             let assignments = switch value {
