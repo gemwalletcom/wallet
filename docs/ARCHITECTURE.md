@@ -205,58 +205,31 @@ override fun getFeeAssets(): Flow<List<AssetInfo>> = getCurrentWalletId().flatMa
 
 The store is the change trigger. Core is the decider. Core has no observation primitive, and that is the only reason the app watches its own tables.
 
-## 6. The app uses Core's types; it does not keep a parallel copy
+## 6. Where a transaction input's answers come from
 
-When a Core type describes something the app builds and reads — a transaction input, a
-payment request — the app uses that type. It does not declare its own enum of the same
-shape and map between them. A parallel copy is two definitions of one thing: it drifts, and
-every crossing pays for a two-way mapper.
+The app uses Core's types. It does not declare a parallel enum of the same shape — that is
+two definitions of one thing, and every crossing pays for a two-way mapper. `TransferDataType`
+was that copy: eleven restated cases and 138 lines of mapping. It is deleted.
 
-`TransferDataType` was that copy. It restated `GemTransactionInputType`'s eleven cases and
-needed 138 lines of two-way mapping, re-encoding the asset to JSON on every Core call. Its
-accessors — `chain`, `applicationMetadata`, `recentActivityData` — were rules the app
-re-derived from its own copy rather than asking for. It is deleted; the app uses
-`GemTransactionInputType`.
+Three kinds of member, three homes:
 
-**A field read is not a rule.** `inputType.asset` reads a value the case already carries, so
-it belongs in the app. Which asset pays the fee, or what a completed transfer records, could
-differ between platforms, so it goes through the service that owns it:
+| | Home | Example |
+|---|---|---|
+| A field the case already carries | extension on the Core type | `inputType.asset` |
+| A rule Core owns | method on the service that owns it | `transferService.feeAsset(inputType:)` |
+| Encoding an app value into a case | extension on the Core type | `.stake(asset, stakeType)` |
 
-```swift
-func feeAsset(transferService: GemTransferService) -> Primitives.Asset {
-    transferService.feeAsset(inputType: self).map()
-}
-```
+**Never add a free exported function to Core so a call site can skip holding a service.**
+`transaction_input_asset(input_type)` is not a design; it is a rule with nowhere to live. A
+rule is a method on its service, and the caller that can hold one resolves it and passes the
+answer down — that is the same rule as § 2 and § 8, applied at the FFI boundary.
 
-Never add a free exported function to Core to avoid holding a service. A rule is a method on
-the service that owns it, and the caller that can hold one resolves it and passes the answer
-down.
-
-### Types cross as real values, not JSON
-
-A type named in `EXPOSED_TYPES` (`core/bin/generate/src/remote_mappers.rs`) crosses the FFI
-as a real UniFFI record or enum. Everything else still crosses as a JSON string through
-`json_bridge.rs`.
-
-Each app keeps a typeshare twin of an exposed type where storage or `Codable` needs one, so
-the two sides need a mapper — but those are generated, not written. Adding a name to
-`EXPOSED_TYPES` emits the `uniffi::remote` declarations and both platforms' mappers from the
-Rust definition, including serde renames. Nothing is restated by hand.
-
-**Where you still see `.json()` or `init(core:)`, the type is not exposed yet.** Those calls
-are not the pattern — they are the remaining work. `GemTransactionInputType`'s Swift
-extension carries constructors like
-
-```swift
-static func stake(_ asset: Primitives.Asset, _ stakeType: Primitives.StakeType) -> Self {
-    .stake(asset: asset.map(), stakeType: stakeType.json())
-}
-```
-
-purely to keep that encoding at the boundary instead of at thirty call sites. They are
-scaffolding. Expose `StakeType` and the `.json()` becomes a generated `.map()`; drop the
-twin for a type nothing persists and the constructor disappears with it. Do not add new ones
-without also adding the type to `EXPOSED_TYPES`.
+The encoding members are scaffolding, not a pattern to copy. `.stake(asset.map(), stakeType.json())`
+carries a `.json()` only because `StakeType` is not in `EXPOSED_TYPES`
+(`core/bin/generate/src/remote_mappers.rs`). Add a type there and its declarations and both
+platforms' mappers are generated from the Rust definition; the `.json()` becomes a generated
+`.map()`, and where nothing persists the app's twin, the member disappears. Do not add a new
+encoding member without adding its type to `EXPOSED_TYPES`.
 
 ## 7. One service per screen
 

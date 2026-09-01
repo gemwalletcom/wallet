@@ -389,8 +389,6 @@ struct ServicesFactory {
             recentAssetsService: RecentAssetsService(store: storeManager.recentActivityStore),
             amountService: AmountService(stakeService: stakeService, amountService: Gemstone.GemAmountService()),
             toastPresenter: toastPresenter,
-            addressStore: storeManager.addressStore,
-            assetStore: storeManager.assetStore,
         )
 
         return AppResolver.Services(

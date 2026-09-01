@@ -37,6 +37,28 @@ fun com.wallet.core.primitives.AssetType.toGem(): uniffi.gemstone.AssetType = wh
     com.wallet.core.primitives.AssetType.SPOT -> uniffi.gemstone.AssetType.SPOT
 }
 
+fun uniffi.gemstone.RecentActivityType.toPrimitives(): com.wallet.core.primitives.RecentActivityType = when (this) {
+    uniffi.gemstone.RecentActivityType.SEARCH -> com.wallet.core.primitives.RecentActivityType.Search
+    uniffi.gemstone.RecentActivityType.TRANSFER -> com.wallet.core.primitives.RecentActivityType.Transfer
+    uniffi.gemstone.RecentActivityType.RECEIVE -> com.wallet.core.primitives.RecentActivityType.Receive
+    uniffi.gemstone.RecentActivityType.FIAT_BUY -> com.wallet.core.primitives.RecentActivityType.FiatBuy
+    uniffi.gemstone.RecentActivityType.FIAT_SELL -> com.wallet.core.primitives.RecentActivityType.FiatSell
+    uniffi.gemstone.RecentActivityType.SWAP -> com.wallet.core.primitives.RecentActivityType.Swap
+    uniffi.gemstone.RecentActivityType.SWAP_SELECT -> com.wallet.core.primitives.RecentActivityType.SwapSelect
+    uniffi.gemstone.RecentActivityType.PERPETUAL -> com.wallet.core.primitives.RecentActivityType.Perpetual
+}
+
+fun com.wallet.core.primitives.RecentActivityType.toGem(): uniffi.gemstone.RecentActivityType = when (this) {
+    com.wallet.core.primitives.RecentActivityType.Search -> uniffi.gemstone.RecentActivityType.SEARCH
+    com.wallet.core.primitives.RecentActivityType.Transfer -> uniffi.gemstone.RecentActivityType.TRANSFER
+    com.wallet.core.primitives.RecentActivityType.Receive -> uniffi.gemstone.RecentActivityType.RECEIVE
+    com.wallet.core.primitives.RecentActivityType.FiatBuy -> uniffi.gemstone.RecentActivityType.FIAT_BUY
+    com.wallet.core.primitives.RecentActivityType.FiatSell -> uniffi.gemstone.RecentActivityType.FIAT_SELL
+    com.wallet.core.primitives.RecentActivityType.Swap -> uniffi.gemstone.RecentActivityType.SWAP
+    com.wallet.core.primitives.RecentActivityType.SwapSelect -> uniffi.gemstone.RecentActivityType.SWAP_SELECT
+    com.wallet.core.primitives.RecentActivityType.Perpetual -> uniffi.gemstone.RecentActivityType.PERPETUAL
+}
+
 fun uniffi.gemstone.Asset.toPrimitives(): com.wallet.core.primitives.Asset = com.wallet.core.primitives.Asset(
     id = id.toAssetId()!!,
     name = name,

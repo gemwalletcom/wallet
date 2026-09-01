@@ -4,7 +4,6 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::transaction::{GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use primitives::{AssetId, RecentActivityType, SimulationResult, TransactionType, TransferDataOutputAction, TransferDataOutputType};
 
-/// What a completed transfer adds to the wallet's recent activity, if anything.
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemRecentActivity {
     pub activity_type: RecentActivityType,

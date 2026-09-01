@@ -74,9 +74,6 @@ fn main() {
     generate_remote_mappers(&generator_type, &platform_directory_path);
 }
 
-/// Core exposes a handful of primitives as real UniFFI types rather than JSON strings.
-/// Each app keeps its own typeshare twin because storage and `Codable` need one, so the
-/// two sides need a mapper. Writing those by hand does not scale, so they are generated.
 fn generate_remote_mappers(generator_type: &GeneratorType, platform_directory_path: &str) {
     let enums = remote_mappers::parse(Path::new("."));
     if enums.is_empty() {

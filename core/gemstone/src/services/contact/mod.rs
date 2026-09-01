@@ -101,7 +101,6 @@ impl GemContactService {
     }
 }
 
-/// Backs the contacts list.
 #[derive(uniffi::Object)]
 pub struct GemContactsService {
     contacts: Arc<GemContactService>,
@@ -127,7 +126,6 @@ impl GemContactsService {
     }
 }
 
-/// Backs the add and edit contact screen.
 #[derive(uniffi::Object)]
 pub struct GemManageContactService {
     contacts: Arc<GemContactService>,

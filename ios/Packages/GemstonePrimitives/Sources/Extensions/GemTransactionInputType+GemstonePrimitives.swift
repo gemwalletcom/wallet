@@ -5,8 +5,6 @@ import Gemstone
 import Primitives
 
 public extension GemTransactionInputType {
-    /// Every case carries the asset the transaction is about — for an NFT transfer that is
-    /// the chain's native asset, which is what the case is built with.
     var asset: Primitives.Asset {
         switch self {
         case let .transfer(asset),
@@ -33,8 +31,6 @@ public extension GemTransactionInputType {
     }
 }
 
-/// The answers only Core can give about a transaction input. The caller holds the service
-/// and passes the answer down; nothing here re-derives a rule.
 public extension GemTransactionInputType {
     func feeAsset(transferService: GemTransferService) -> Primitives.Asset {
         transferService.feeAsset(inputType: self).map()
@@ -65,8 +61,6 @@ public extension GemTransactionInputType {
     }
 }
 
-/// Building a case from app types. The payloads Core has not yet made real records still
-/// cross as JSON, so these keep that at the boundary rather than at every call site.
 public extension GemTransactionInputType {
     static func transfer(_ asset: Primitives.Asset) -> Self {
         .transfer(asset: asset.map())

@@ -252,8 +252,6 @@ fn default_asset(chain: Chain, asset_type: AssetType) -> Option<Asset> {
     wallet_default_assets(chain).into_iter().find(|asset| asset.asset_type == asset_type)
 }
 
-/// Searching for an asset records it as recently used, and a perpetual is recorded as one
-/// rather than as a plain search so the perpetual screen can offer it again.
 pub fn searched_activity(asset: &Asset) -> GemRecentActivity {
     GemRecentActivity {
         activity_type: match asset.asset_type {
@@ -265,8 +263,6 @@ pub fn searched_activity(asset: &Asset) -> GemRecentActivity {
     }
 }
 
-/// Only a plain transfer and a swap leave a trace in recent activity; everything else the
-/// confirm screen can produce is either not asset-scoped or not something to offer again.
 pub fn recent_activity(input_type: &GemTransactionInputType) -> Option<GemRecentActivity> {
     match input_type {
         GemTransactionInputType::Transfer { asset } => Some(GemRecentActivity {

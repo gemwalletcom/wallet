@@ -9,7 +9,6 @@ extension AssetId: Identifiable {
 public extension AssetId {
     static let subTokenSeparator = "::"
 
-    /// An identifier Core produced. Both sides build it from the same Rust type, so it always parses.
     init(core id: String) {
         do {
             try self.init(id: id)

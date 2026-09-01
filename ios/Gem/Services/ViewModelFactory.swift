@@ -56,7 +56,6 @@ import WalletConnectorService
 import WalletTab
 
 public struct ViewModelFactory: Sendable {
-    // Core services
     let addressService: GemAddressService
     let applicationMetadataService: GemApplicationMetadataService
     let assetConfig: GemAssetConfigService
@@ -89,7 +88,6 @@ public struct ViewModelFactory: Sendable {
     let walletService: GemWalletService
     let walletSessionService: GemWalletSessionService
 
-    // Platform services Core cannot own
     let biometryService: any BiometryAuthenticatable
     let keystore: any Keystore
     let observablePreferences: ObservablePreferences
@@ -97,9 +95,6 @@ public struct ViewModelFactory: Sendable {
     let amountService: AmountService
     let toastPresenter: ToastPresenter
 
-    // Stores
-    let addressStore: AddressStore
-    let assetStore: AssetStore
 
     @MainActor
     public func lockScene() -> LockSceneViewModel {

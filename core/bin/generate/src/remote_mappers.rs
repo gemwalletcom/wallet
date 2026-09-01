@@ -6,16 +6,8 @@ pub const REMOTE_TYPES_PATH: &str = "gemstone/src/models/remote_types.rs";
 const PRIMITIVES_SOURCE: &str = "crates/primitives/src";
 const SCALARS: &[&str] = &["String", "i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "bool", "f32", "f64"];
 
-/// The primitives Core exposes over the FFI as real UniFFI types rather than JSON strings.
-/// Everything else still crosses through `json_bridge.rs`. Add a name here and the remote
-/// declarations and both platforms' mappers are generated from the Rust definition.
-///
-/// Only plain enums and plain structs belong here — anything with generics or lifetimes
-/// cannot cross the FFI as a record anyway.
 const EXPOSED_TYPES: &[&str] = &["AssetType", "Asset", "RecentActivityType"];
 
-/// Types that cross as an identifier string while each app models them as a struct, so a
-/// field of this type needs a conversion rather than being passed straight through.
 const IDENTIFIERS: &[Identifier] = &[Identifier {
     type_name: "AssetId",
     swift: ["Primitives.AssetId(core: {})", "{}.identifier"],
@@ -24,7 +16,6 @@ const IDENTIFIERS: &[Identifier] = &[Identifier {
 
 struct Identifier {
     type_name: &'static str,
-    /// To the app's type, then back to Core's.
     swift: [&'static str; 2],
     kotlin: [&'static str; 2],
 }
@@ -35,9 +26,7 @@ pub enum RemoteType {
 }
 
 pub struct Field {
-    /// The Rust field name, which is what UniFFI camel-cases for its generated type.
     rust: String,
-    /// The serialized name, which is what typeshare uses for the app's twin.
     serialized: String,
     type_name: String,
 }
@@ -50,8 +39,6 @@ impl RemoteType {
     }
 }
 
-/// Reads the definitions of [`EXPOSED_TYPES`] straight from the primitives crate, so the
-/// variants and fields are never restated by hand.
 pub fn parse(root: &Path) -> Vec<RemoteType> {
     let mut found = Vec::new();
     let Ok(entries) = fs::read_dir(root.join(PRIMITIVES_SOURCE)) else {
@@ -87,7 +74,6 @@ fn declaration(line: &str) -> Option<(&'static str, String)> {
     })
 }
 
-/// `NATIVE,` or `pub asset_type: AssetType,` — the type is `None` for an enum variant.
 fn member(line: &str) -> Option<(String, Option<String>)> {
     let line = line.trim().split("//").next()?.trim().trim_end_matches(',');
     if line.is_empty() || line.starts_with('#') {
@@ -123,11 +109,10 @@ fn serde_rename(line: &str) -> Option<String> {
     Some(line.strip_prefix("#[serde(rename = \"")?.split('"').next()?.to_string())
 }
 
-/// Emits the `#[uniffi::remote(...)]` declarations that make these types cross the FFI as
-/// real values. UniFFI requires the shape restated in the consuming crate; generating it
-/// keeps that restatement honest instead of hand-maintained.
 pub fn remote_types(types: &[RemoteType]) -> String {
-    let names = types.iter().map(RemoteType::name).collect::<Vec<_>>().join(", ");
+    let mut names = types.iter().map(RemoteType::name).collect::<Vec<_>>();
+    names.sort_unstable();
+    let names = names.join(", ");
     let mut out = format!("{HEADER}\nuse primitives::{{{names}}};\n");
     for remote in types {
         match remote {
@@ -152,9 +137,7 @@ pub fn remote_types(types: &[RemoteType]) -> String {
     out
 }
 
-/// How one platform spells the two generated mappers.
 struct Language {
-    /// `(module, function)` for converting to the app's type, then back to Core's.
     sides: [(&'static str, &'static str); 2],
     core_module: &'static str,
     app_module: &'static str,
@@ -162,7 +145,6 @@ struct Language {
 }
 
 impl Language {
-    /// The expression converting one field, given the direction.
     fn convert(&self, type_name: &str, expression: &str, index: usize) -> String {
         if SCALARS.contains(&type_name) {
             return expression.to_string();
@@ -173,7 +155,6 @@ impl Language {
         }
     }
 
-    /// `(source module, target module, function)` for the given direction.
     fn direction(&self, index: usize) -> (&'static str, &'static str, &'static str) {
         let (_, function) = self.sides[index];
         match index {
@@ -205,10 +186,6 @@ fn screaming_snake_case(name: &str) -> String {
         .collect()
 }
 
-/// UniFFI lower-camel-cases each variant: the leading run of capitals is lowered, except
-/// that a capital beginning a lowercase word ends the run. `Search` becomes `search`,
-/// `FiatBuy` becomes `fiatBuy`, `NATIVE` becomes `native`, `SPL2022` becomes `spl2022`.
-/// Typeshare emits the same casing for the app's twin, which is what matches the two.
 fn swift_case(variant: &str) -> String {
     let characters: Vec<char> = variant.chars().collect();
     let run = match characters.iter().position(|character| !character.is_ascii_uppercase()) {
@@ -226,7 +203,6 @@ fn swift_case(variant: &str) -> String {
         .collect()
 }
 
-/// The label and accessor for one field, given the direction.
 fn field_names(field: &Field, index: usize) -> (String, String) {
     match index {
         0 => (field.serialized.clone(), camel_case(&field.rust)),
