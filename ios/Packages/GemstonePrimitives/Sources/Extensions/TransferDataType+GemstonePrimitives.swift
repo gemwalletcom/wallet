@@ -27,7 +27,7 @@ public extension TransferDataType {
     }
 
     func feeAsset(transferService: GemTransferService) -> Asset {
-        Asset(core: transferService.feeAsset(inputType: inputType))
+        transferService.feeAsset(inputType: inputType).map()
     }
 
     func transactionType(transferService: GemTransferService) -> TransactionType {

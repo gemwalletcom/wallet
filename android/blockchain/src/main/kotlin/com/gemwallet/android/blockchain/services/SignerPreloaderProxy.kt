@@ -71,7 +71,7 @@ class SignerPreloaderProxy(
             ),
             simulation = result.simulation?.decodeJson(),
             amount = preload.amount,
-            feeAsset = preload.feeAsset.decodeJson(),
+            feeAsset = preload.feeAsset.toPrimitives(),
         )
     }
 }

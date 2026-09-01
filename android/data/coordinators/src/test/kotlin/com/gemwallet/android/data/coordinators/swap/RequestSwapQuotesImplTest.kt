@@ -289,8 +289,8 @@ class RequestSwapQuotesImplTest {
 
         override suspend fun getQuotes(
             wallet: String,
-            fromAsset: String,
-            toAsset: String,
+            fromAsset: uniffi.gemstone.Asset,
+            toAsset: uniffi.gemstone.Asset,
             value: String,
             useMaxAmount: Boolean,
             slippageBps: UInt?,

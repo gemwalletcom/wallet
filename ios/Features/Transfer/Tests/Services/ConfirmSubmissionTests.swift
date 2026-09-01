@@ -80,7 +80,7 @@ struct ConfirmSubmissionTests {
         let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
             simulation: GemConfirmSimulation(
                 payloadFields: [],
-                header: GemSimulationValue(asset: usdt.json(), value: .exact(value: "1000000")),
+                header: GemSimulationValue(asset: usdt.map(), value: .exact(value: "1000000")),
                 balanceChanges: [],
             ),
         ))
@@ -98,7 +98,7 @@ struct ConfirmSubmissionTests {
         let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
             simulation: GemConfirmSimulation(
                 payloadFields: [],
-                header: GemSimulationValue(asset: usdt.json(), value: .unlimited),
+                header: GemSimulationValue(asset: usdt.map(), value: .unlimited),
                 balanceChanges: [],
             ),
         ))
@@ -127,7 +127,7 @@ struct ConfirmSubmissionTests {
             simulation: GemConfirmSimulation(
                 payloadFields: [],
                 header: nil,
-                balanceChanges: [GemSimulationBalanceChange(asset: usdt.json(), value: "-25")],
+                balanceChanges: [GemSimulationBalanceChange(asset: usdt.map(), value: "-25")],
             ),
         ))
 

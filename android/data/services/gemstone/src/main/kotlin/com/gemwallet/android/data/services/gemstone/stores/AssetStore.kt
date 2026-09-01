@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.services.gemstone.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
@@ -35,8 +36,8 @@ class GemstoneAssetStore(
         assetsDao.getAssetIds(assetIds)
     }
 
-    override fun getAssets(assetIds: List<String>): List<String> =
-        assetsDao.getAssetsByIds(assetIds).toDTO().map { it.toJson() }
+    override fun getAssets(assetIds: List<String>): List<uniffi.gemstone.Asset> =
+        assetsDao.getAssetsByIds(assetIds).toDTO().map { it.toGem() }
 
     override suspend fun saveAssets(assets: List<String>) = withContext(Dispatchers.IO) {
         val basics = assets.map { it.decodeJson<AssetBasic>() }

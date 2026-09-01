@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.confirm
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.ext.toIdentifier
@@ -49,7 +50,7 @@ class GetFeeAssetsImplTest {
         every { assetStore.observeAssetsInfoByChain(walletId.id, Chain.Tempo) } returns flowOf(funded.take(1) + unsupported + unfunded)
         every { assetStore.observeHiddenAssetsInfoByChain(walletId.id, Chain.Tempo) } returns flowOf(funded.drop(1))
         every { confirmService.feeAssets(walletId.id, Chain.Tempo.string) } returns funded.map {
-            GemFeeAsset(asset = it.asset.toJson(), balance = mockGemAssetBalance(it.asset.id.toIdentifier()), price = null)
+            GemFeeAsset(asset = it.asset.toGem(), balance = mockGemAssetBalance(it.asset.id.toIdentifier()), price = null)
         }
 
         val result = subject(Chain.Tempo).first()

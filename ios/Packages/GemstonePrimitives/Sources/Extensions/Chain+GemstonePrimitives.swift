@@ -145,12 +145,7 @@ public extension Primitives.Chain {
     }
 
     var defaultAssets: [Primitives.Asset] {
-        assetConfig.walletDefaultAssets(chain: map()).map { asset in
-            guard let asset = try? Primitives.Asset(asset) else {
-                preconditionFailure("Invalid default asset for \(self)")
-            }
-            return asset
-        }
+        assetConfig.walletDefaultAssets(chain: map()).map { $0.map() }
     }
 
     func defaultAsset(type: Primitives.AssetType) -> Primitives.Asset {
@@ -190,7 +185,7 @@ public extension [Primitives.Chain] {
 
 public extension [Primitives.Asset] {
     func matching(query: String) -> [Primitives.Asset] {
-        let assets = map { $0.json() }
-        return assetConfig.matchingAssets(assets: assets, query: query).compactMap { try? Primitives.Asset($0) }
+        let assets = map { $0.map() }
+        return assetConfig.matchingAssets(assets: assets, query: query).map { $0.map() }
     }
 }

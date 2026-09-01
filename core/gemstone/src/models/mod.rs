@@ -6,6 +6,7 @@ pub(crate) mod json_bridge;
 pub mod node;
 pub mod payment;
 pub mod perpetual;
+pub mod remote_types;
 pub mod stake;
 pub mod swap;
 pub mod transaction;

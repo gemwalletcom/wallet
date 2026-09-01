@@ -1,6 +1,7 @@
 package com.gemwallet.android.domains.perpetual
 
 import uniffi.gemstone.GemPerpetual
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
@@ -29,8 +30,8 @@ object PerpetualOrderFactory {
             action = positionAction.orderAction(),
             direction = data.direction.toJson(),
             marginType = data.marginType.toJson(),
-            baseAsset = data.baseAsset.toJson(),
-            asset = data.asset.toJson(),
+            baseAsset = data.baseAsset.toGem(),
+            asset = data.asset.toGem(),
             assetIndex = data.assetIndex,
             price = data.price,
             usdcValue = usdcValue.toString(),
@@ -54,8 +55,8 @@ object PerpetualOrderFactory {
             assetIndex = assetIndex,
             direction = position.direction.toJson(),
             marginType = position.marginType.toJson(),
-            baseAsset = baseAsset.toJson(),
-            asset = asset.toJson(),
+            baseAsset = baseAsset.toGem(),
+            asset = asset.toGem(),
             marketPrice = perpetual.price,
             size = position.size,
             leverage = position.leverage,

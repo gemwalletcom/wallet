@@ -66,8 +66,8 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
     public func metadata(walletId: WalletId, inputType: GemTransactionInputType) throws -> GemConfirmMetadata {
         try confirm.metadata(
             walletId: walletId,
-            assetId: transferService.asset(inputType: inputType),
-            feeAssetId: transferService.feeAsset(inputType: inputType),
+            assetId: transferService.asset(inputType: inputType).id,
+            feeAssetId: transferService.feeAsset(inputType: inputType).id,
             extraAssetIds: transferService.assetIds(inputType: inputType),
         )
     }

@@ -105,7 +105,7 @@ public final class ConfirmTransferSceneViewModel {
                 addressNames: [:],
             ),
             metadata: sceneState.metadata,
-            feeAsset: Asset(core: sceneState.feeAsset),
+            feeAsset: sceneState.feeAsset.map(),
             transaction: .loading,
         )
     }
@@ -456,7 +456,7 @@ extension ConfirmTransferSceneViewModel {
         } catch let error as GemConfirmError {
             throw preloadFailureError(metadata: metadata) ?? error
         }
-        let feeAsset = try Asset(preload.feeAsset)
+        let feeAsset = preload.feeAsset.map()
         return try ConfirmTransferPreload(
             metadata: preload.metadata,
             input: ConfirmTransferInput(

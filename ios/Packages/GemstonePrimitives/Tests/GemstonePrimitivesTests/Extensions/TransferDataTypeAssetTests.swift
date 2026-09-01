@@ -10,9 +10,9 @@ struct TransferDataTypeAssetTests {
     private let transferService = GemTransferService()
 
     @Test
-    func localAssetMatchesTheCoreRuleForEveryCase() throws {
+    func localAssetMatchesTheCoreRuleForEveryCase() {
         for type in cases {
-            let fromCore = try Asset(transferService.asset(inputType: type.inputType))
+            let fromCore = transferService.asset(inputType: type.inputType).map()
 
             #expect(type.asset == fromCore, "asset disagreed with Core for \(type)")
         }

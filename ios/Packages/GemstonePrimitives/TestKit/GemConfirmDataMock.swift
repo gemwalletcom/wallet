@@ -70,7 +70,7 @@ public extension GemConfirmPreload {
                 feeAssetBalance: .mock(assetId: feeAsset.id.identifier),
                 prices: [],
             ),
-            feeAsset: feeAsset.json(),
+            feeAsset: feeAsset.map(),
             amount: amount,
         )
     }

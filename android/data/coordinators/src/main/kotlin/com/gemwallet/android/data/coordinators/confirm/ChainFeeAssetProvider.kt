@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.confirm
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.application.confirm.cases.FeeAssetProvider
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
@@ -29,7 +30,7 @@ class ChainFeeAssetProvider(
             assetStore.observeHiddenAssetsInfoByChain(walletId.id, chain),
         ) { visible, hidden -> visible + hidden }
             .map { assets ->
-                val selected = confirmService.feeAssets(walletId.id, chain.string).map { it.asset.decodeJson<Asset>().id.toIdentifier() }.toSet()
+                val selected = confirmService.feeAssets(walletId.id, chain.string).map { it.asset.toPrimitives().id.toIdentifier() }.toSet()
                 assets.filter { it.asset.id.toIdentifier() in selected }
             }
     }

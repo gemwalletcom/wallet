@@ -83,7 +83,7 @@ class WalletConnectSignerTest {
     fun `send transaction is marked sendable`() = runTest {
         val transfer = GemTransferData(
             inputType = GemTransactionInputType.Generic(
-                asset = Chain.Solana.asset().toJson(),
+                asset = Chain.Solana.asset().toGem(),
                 metadata = ApplicationMetadata(name = "dapp", description = "", url = "https://dapp.example", icon = "", source = ApplicationMetadataSource.WalletConnect).toJson(),
                 extra = GemTransferDataExtra(
                     to = "",

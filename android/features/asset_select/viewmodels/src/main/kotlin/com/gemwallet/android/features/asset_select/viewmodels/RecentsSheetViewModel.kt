@@ -5,6 +5,8 @@ import androidx.compose.foundation.text.input.clearText
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.asset_select.cases.ClearRecentAssets
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
 import com.gemwallet.android.ext.toIdentifier
@@ -76,8 +78,8 @@ class RecentsSheetViewModel @Inject constructor(
     }
 
     private fun buildUIModel(items: List<RecentAsset>, searchText: String): RecentsSheetUIModel {
-        val matching = assetConfig.matchingAssets(items.map { it.asset.toJson() }, searchText)
-            .map { it.decodeJson<Asset>().id.toIdentifier() }
+        val matching = assetConfig.matchingAssets(items.map { it.asset.toGem() }, searchText)
+            .map { it.toPrimitives().id.toIdentifier() }
             .toSet()
         val filtered = items.filter { it.asset.id.toIdentifier() in matching }
         return RecentsSheetUIModel(

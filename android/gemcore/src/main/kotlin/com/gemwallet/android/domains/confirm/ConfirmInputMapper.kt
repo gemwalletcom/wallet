@@ -1,7 +1,6 @@
 package com.gemwallet.android.domains.confirm
 
 import android.util.Log
-import com.gemwallet.android.domains.asset.toPrimitives
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.math.hex
@@ -10,6 +9,7 @@ import com.gemwallet.android.model.toModel
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.ext.toChainType
 import com.wallet.core.primitives.Account
+import uniffi.gemstone.Asset as GemAsset
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.ChainType
 import com.wallet.core.primitives.StakeType
@@ -43,7 +43,7 @@ fun GemConfirmInput.toConfirmParams(): ConfirmParams? {
     val value = transfer.value.toBigIntegerOrNull() ?: return null
     val recipient = transfer.recipient
     val inputType = transfer.inputType
-    val asset = inputType.asset().toPrimitives() ?: return null
+    val asset = inputType.asset().toPrimitives()
     val builder = ConfirmParams.Builder(asset, from, value, transfer.useMaxAmount)
     return when (inputType) {
         is GemTransactionInputType.Transfer -> builder.transfer(recipient, recipient.memo, recipient.references)
@@ -70,7 +70,7 @@ fun GemConfirmInput.toConfirmParams(): ConfirmParams? {
         is GemTransactionInputType.Swap -> ConfirmParams.SwapParams(
             from = from,
             fromAsset = asset,
-            toAsset = inputType.toAsset.toPrimitives() ?: return null,
+            toAsset = inputType.toAsset.toPrimitives(),
             swapData = inputType.swapData.decodeJson(),
             amount = value,
             useMaxAmount = transfer.useMaxAmount,
@@ -99,7 +99,7 @@ fun GemConfirmInput.toConfirmParams(): ConfirmParams? {
     }
 }
 
-private fun GemTransactionInputType.asset(): String = when (this) {
+private fun GemTransactionInputType.asset(): GemAsset = when (this) {
     is GemTransactionInputType.Transfer -> asset
     is GemTransactionInputType.Deposit -> asset
     is GemTransactionInputType.Withdrawal -> asset
@@ -124,7 +124,7 @@ private fun ByteArray?.toGenericData(): String {
 
 fun GemTransferData.toGenericParams(account: Account): ConfirmParams.TransferParams.Generic {
     val input = inputType as? GemTransactionInputType.Generic ?: throw IllegalArgumentException("WalletConnect transfer is not generic")
-    val asset = input.asset.decodeJson<Asset>()
+    val asset = input.asset.toPrimitives()
     val data = input.extra.data ?: ByteArray(0)
     return ConfirmParams.TransferParams.Generic(
         asset = asset,

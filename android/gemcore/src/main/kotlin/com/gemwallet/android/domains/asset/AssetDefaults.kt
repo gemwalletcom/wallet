@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.asset
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.isStakeSupported
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.type
@@ -15,7 +16,7 @@ import uniffi.gemstone.GemAssetConfigService
 private val assetConfig = GemAssetConfigService()
 
 val Chain.defaultAssets: List<Asset>
-    get() = assetConfig.walletDefaultAssets(string).map { it.toDTO() }
+    get() = assetConfig.walletDefaultAssets(string).map { it.toPrimitives() }
 
 val Asset.defaultBasic: AssetBasic
     get() {

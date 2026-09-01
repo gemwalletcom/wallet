@@ -133,7 +133,7 @@ public extension GatewayService {
 
 public extension GatewayService {
     func tokenData(chain: Primitives.Chain, tokenId: String) async throws -> Primitives.Asset {
-        try await Primitives.Asset(gateway.getTokenData(chain: chain.rawValue, tokenId: tokenId))
+        try await gateway.getTokenData(chain: chain.rawValue, tokenId: tokenId).map()
     }
 
     func isTokenAddress(chain: Primitives.Chain, tokenId: String) async throws -> Bool {

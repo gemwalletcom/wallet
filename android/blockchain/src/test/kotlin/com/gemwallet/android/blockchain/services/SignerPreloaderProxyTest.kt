@@ -92,7 +92,7 @@ class SignerPreloaderProxyTest {
                     feeAssetBalance = gemBalance(asset.id.toIdentifier()),
                     prices = emptyList(),
                 ),
-                feeAsset = asset.toJson(),
+                feeAsset = asset.toGem(),
                 amount = GemTransferAmountResult.Amount(GemTransferAmount(value = "1", networkFee = "1", isMaxAmount = false)),
             )
         }

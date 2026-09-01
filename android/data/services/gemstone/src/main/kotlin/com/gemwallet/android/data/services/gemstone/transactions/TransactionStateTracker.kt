@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.transactions
 
 import android.util.Log
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
@@ -45,7 +46,7 @@ class TransactionStateTracker(
 
     override suspend fun createNotificationTransaction(wallet: Wallet, assetId: AssetId, transaction: Transaction): Asset? {
         val asset = stateService.addNotificationTransaction(wallet.toJson(), assetId.toIdentifier(), transaction.toJson())
-            ?.decodeJson<Asset>() ?: return null
+            ?.toPrimitives() ?: return null
         track(wallet.id, listOf(transaction))
         return asset
     }

@@ -295,7 +295,7 @@ extension NavigationHandler {
                   wallet: wallet.json(),
                   assetId: assetId.identifier,
                   transaction: transaction.json(),
-              ).map({ try Asset($0) })
+              ).map({ $0.map() })
         else {
             return
         }

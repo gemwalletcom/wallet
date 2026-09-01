@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ConfirmParams
@@ -34,7 +35,7 @@ abstract class AmountDataProvider(
 
     val rules: StateFlow<GemAmountRules?> by lazy {
         combine(amountType, assetInfo) { type, current ->
-            if (type == null || current == null) null else amountService.rules(type, current.asset.toJson())
+            if (type == null || current == null) null else amountService.rules(type, current.asset.toGem())
         }.stateIn(scope, SharingStarted.Eagerly, null)
     }
 
@@ -44,7 +45,7 @@ abstract class AmountDataProvider(
                 null
             } else {
                 try {
-                    amountService.limits(type, current.asset.toJson(), currentBalance)
+                    amountService.limits(type, current.asset.toGem(), currentBalance)
                 } catch (_: GemAmountException) {
                     null
                 }

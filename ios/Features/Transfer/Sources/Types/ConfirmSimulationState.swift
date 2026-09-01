@@ -45,12 +45,12 @@ struct ConfirmSimulationState {
             warnings: simulation?.warnings ?? [],
             payload: payload,
             headerData: resolved?.header.flatMap { header in
-                guard let asset = try? Asset(header.asset), let value = try? header.value.map() else { return nil }
-                return AssetValueHeaderData(asset: asset, value: value)
+                guard let value = try? header.value.map() else { return nil }
+                return AssetValueHeaderData(asset: header.asset.map(), value: value)
             },
             balanceChanges: resolved?.balanceChanges.compactMap { change in
-                guard let asset = try? Asset(change.asset), let value = BigInt(change.value, radix: 10) else { return nil }
-                return SimulationAssetChange(asset: asset, value: value)
+                guard let value = BigInt(change.value, radix: 10) else { return nil }
+                return SimulationAssetChange(asset: change.asset.map(), value: value)
             } ?? [],
         )
     }

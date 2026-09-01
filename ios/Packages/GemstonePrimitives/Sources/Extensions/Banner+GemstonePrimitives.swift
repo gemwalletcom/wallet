@@ -35,7 +35,7 @@ public extension Primitives.BannerActionType {
 
 public extension GemBannerServiceProtocol {
     func content(for banner: Banner) -> GemBannerContent {
-        bannerContent(event: banner.event.json(), asset: banner.asset?.json())
+        bannerContent(event: banner.event.json(), asset: banner.asset?.map())
     }
 
     func visibleBanners(_ banners: [Banner], walletId: WalletId?, asset: Asset?, context: GemBannerContext) throws -> [Banner] {

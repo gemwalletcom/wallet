@@ -6,15 +6,15 @@ import Primitives
 
 public extension GemAssetsServiceProtocol {
     func ensureAsset(for assetId: Primitives.AssetId) async throws -> Primitives.Asset {
-        try await Primitives.Asset(ensureAsset(assetId: assetId.identifier))
+        try await ensureAsset(assetId: assetId.identifier).map()
     }
 
     func openWalletAsset(wallet: Primitives.Wallet, assetId: Primitives.AssetId) async throws -> Primitives.Asset? {
-        try await openWalletAsset(wallet: wallet.json(), assetId: assetId.identifier).map { try Primitives.Asset($0) }
+        try await openWalletAsset(wallet: wallet.json(), assetId: assetId.identifier).map { $0.map() }
     }
 
     func ensureTokenAsset(for assetId: Primitives.AssetId) async throws -> Primitives.Asset {
-        try await Primitives.Asset(ensureTokenAsset(assetId: assetId.identifier))
+        try await ensureTokenAsset(assetId: assetId.identifier).map()
     }
 
     @discardableResult

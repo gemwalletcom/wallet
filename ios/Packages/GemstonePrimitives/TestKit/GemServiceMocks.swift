@@ -859,7 +859,7 @@ public extension Gemstone.GemFeeAsset {
         price: Gemstone.GemAssetPrice? = nil,
     ) -> Gemstone.GemFeeAsset {
         Gemstone.GemFeeAsset(
-            asset: asset.json(),
+            asset: asset.map(),
             balance: balance ?? Gemstone.GemAssetBalance(
                 assetId: asset.id.identifier,
                 available: "0",

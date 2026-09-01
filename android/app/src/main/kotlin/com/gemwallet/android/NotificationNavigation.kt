@@ -2,6 +2,7 @@ package com.gemwallet.android
 
 import android.content.Intent
 import androidx.navigation3.runtime.NavKey
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.application.assets.cases.SyncMissingAssets
 import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.application.session.cases.GetSession
@@ -96,7 +97,7 @@ class NotificationNavigation @Inject constructor(
     private suspend fun prepareWalletAssetRoutes(walletId: WalletId, assetId: AssetId?): List<NavKey> {
         val assetId = assetId ?: return emptyList()
         val wallet = getWallet(walletId).firstOrNull() ?: return emptyList()
-        val asset = assetsService.openWalletAsset(wallet.toJson(), assetId.toIdentifier())?.decodeJson<Asset>() ?: return emptyList()
+        val asset = assetsService.openWalletAsset(wallet.toJson(), assetId.toIdentifier())?.toPrimitives() ?: return emptyList()
         selectWallet(wallet)
         return listOf(AssetRoute(asset.id))
     }

@@ -31,7 +31,7 @@ public extension Primitives.Balance {
 public extension GemFeeAsset {
     func map() throws -> (asset: Primitives.Asset, balance: Primitives.Balance, price: Primitives.Price?) {
         try (
-            asset: Primitives.Asset(asset),
+            asset: asset.map(),
             balance: Primitives.Balance(balance),
             price: price.map { Primitives.Price(price: $0.price, priceChangePercentage24h: $0.priceChangePercentage24h, updatedAt: Date(timeIntervalSince1970: TimeInterval($0.updatedAt))) }
         )

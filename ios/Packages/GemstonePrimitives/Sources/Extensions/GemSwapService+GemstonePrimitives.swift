@@ -25,8 +25,8 @@ public extension GemSwapServiceProtocol {
     ) async throws -> [SwapperQuote] {
         let quotes = try await getQuotes(
             wallet: wallet.json(),
-            fromAsset: fromAsset.json(),
-            toAsset: toAsset.json(),
+            fromAsset: fromAsset.map(),
+            toAsset: toAsset.map(),
             value: amount.description,
             useMaxAmount: useMaxAmount,
             slippageBps: slippage.exactBps,
