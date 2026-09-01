@@ -184,7 +184,7 @@ impl GemConfirmService {
                     }
                 };
                 if self.track(wallet_id, result.transactions.clone()).await.is_err() {
-                    self.track_pending().await.map_err(|error| GemConfirmError::Record { msg: error.to_string() })?;
+                    let _ = self.track_pending().await;
                 }
                 Ok(GemExecuteResult::Sent {
                     hashes: result.hashes,
@@ -263,12 +263,12 @@ impl GemConfirmService {
         let hashes = match self.broadcast(input.confirm.input.transfer.input_type.clone(), transactions.clone()).await {
             Ok(hashes) => hashes,
             Err(GemConfirmError::Broadcast { hashes, msg }) => {
-                self.record(&input, &hashes, &transactions).await?;
+                let _ = self.record(&input, &hashes, &transactions).await;
                 return Err(GemConfirmError::Broadcast { hashes, msg });
             }
             Err(error) => return Err(error),
         };
-        let transactions = self.record(&input, &hashes, &transactions).await?;
+        let transactions = self.record(&input, &hashes, &transactions).await.unwrap_or_default();
         Ok(GemSendResult { hashes, transactions })
     }
 
