@@ -22,6 +22,7 @@ import com.wallet.core.primitives.ChartValue
 import com.wallet.core.primitives.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.currentCoroutineContext
@@ -98,7 +99,7 @@ class ChartViewModel internal constructor(
         if (period == selectedPeriod.value) {
             return
         }
-        setChartPeriod(period)
+        viewModelScope.launch(Dispatchers.IO) { setChartPeriod(period) }
         selectedPeriod.value = period
     }
 
