@@ -17,6 +17,8 @@ enum ConfirmTransferError {
         switch error {
         case let error as TransferAmountCalculatorError:
             self = .amount(error)
+        case let .InsufficientNetworkFee(assetId) as GemConfirmError:
+            self = .amount(.insufficientNetworkFee(AssetId(core: assetId).chain.asset, requirement: nil))
         case let error as GemConfirmError where error.isScanRejection:
             self = .scan(error)
         default:

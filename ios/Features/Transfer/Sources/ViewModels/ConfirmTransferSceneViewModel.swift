@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemConfirmData
-import struct Gemstone.GemConfirmMetadata
 import struct Gemstone.GemConfirmPreload
 import struct Gemstone.GemConfirmLoadOptions
 import struct Gemstone.GemSendInput
@@ -442,21 +441,15 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferPreload {
-        let metadata = try service.metadata(walletId: request.wallet.id, inputType: request.data.inputType)
         let account = try request.wallet.account(for: request.data.chain)
-        let preload: GemConfirmPreload
-        do {
-            preload = try await service.preload(
-                walletId: request.wallet.id.id,
-                input: request.data.confirmInput(from: account),
-                options: GemConfirmLoadOptions(
-                    feeSelection: selection.map(),
-                    feeAssetId: feeAssetSelection.selectedAssetId?.identifier,
-                ),
-            )
-        } catch let error as GemConfirmError {
-            throw preloadFailureError(metadata: metadata) ?? error
-        }
+        let preload = try await service.preload(
+            walletId: request.wallet.id.id,
+            input: request.data.confirmInput(from: account),
+            options: GemConfirmLoadOptions(
+                feeSelection: selection.map(),
+                feeAssetId: feeAssetSelection.selectedAssetId?.identifier,
+            ),
+        )
         let feeAsset = preload.feeAsset.map()
         return try ConfirmTransferPreload(
             metadata: preload.metadata,
@@ -469,14 +462,6 @@ extension ConfirmTransferSceneViewModel {
             feeRates: preload.confirmData.feeRates.map { try $0.map() },
             simulation: preload.confirmData.simulation.map { try Primitives.SimulationResult($0) },
         )
-    }
-
-    func preloadFailureError(metadata: GemConfirmMetadata) -> TransferAmountCalculatorError? {
-        guard service.isInsufficientNetworkFee(feeAssetId: metadata.feeAssetBalance.assetId, feeAvailable: metadata.feeAvailable) else {
-            return nil
-        }
-        guard let feeAssetId = try? AssetId(id: metadata.feeAssetBalance.assetId) else { return nil }
-        return .insufficientNetworkFee(feeAssetId.chain.asset, requirement: nil)
     }
 
     func updatedSimulationState(data: GemTransferData, simulation: Primitives.SimulationResult?) async -> ConfirmSimulationState {

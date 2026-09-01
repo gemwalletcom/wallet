@@ -18,7 +18,7 @@ sealed class ConfirmError : Exception() {
         val asset: Asset,
         val requirement: BalanceRequirement,
     ) : ConfirmError()
-    class InsufficientFee(val chain: Chain, val requirement: BalanceRequirement) : ConfirmError()
+    class InsufficientFee(val chain: Chain, val requirement: BalanceRequirement?) : ConfirmError()
     class MinimumAccountBalanceTooLow(val asset: Asset, val requirement: BalanceRequirement) : ConfirmError()
     class BroadcastError(val details: String) : ConfirmError()
     class NetworkError(val error: GemNetworkError) : ConfirmError()

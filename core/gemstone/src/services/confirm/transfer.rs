@@ -84,7 +84,11 @@ impl GemConfirmTransferService {
     }
 
     pub async fn preload(&self, wallet_id: WalletId, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmPreload, GemConfirmError> {
-        self.confirm.preload(wallet_id, input, options).await
+        let input_type = input.transfer.input_type.clone();
+        match self.confirm.preload(wallet_id.clone(), input, options).await {
+            Ok(preload) => Ok(preload),
+            Err(error) => Err(self.missing_network_fee(wallet_id, input_type).unwrap_or(error)),
+        }
     }
 
     pub async fn execute(&self, input: GemSendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {
@@ -156,5 +160,14 @@ impl GemConfirmTransferService {
 
     pub fn swap_quote(&self) -> Arc<GemSwapQuoteService> {
         self.swap_quote.clone()
+    }
+}
+
+impl GemConfirmTransferService {
+    fn missing_network_fee(&self, wallet_id: WalletId, input_type: GemTransactionInputType) -> Option<GemConfirmError> {
+        let balance = self.metadata(wallet_id, input_type).ok()?.fee_asset_balance;
+        self.fee
+            .is_insufficient_network_fee(balance.asset_id.clone(), balance.available.to_string())
+            .then_some(GemConfirmError::InsufficientNetworkFee { asset_id: balance.asset_id })
     }
 }

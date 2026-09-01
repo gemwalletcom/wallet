@@ -35,6 +35,7 @@ import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.domains.asset.title
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionState
@@ -81,6 +82,21 @@ sealed class InfoSheetEntity(
         actionLabel = actionLabel,
         titleArgs = listOf(chain.asset().symbol),
         descriptionArgs = listOf("**$required**", "**${chain.networkName()}**", "**$available**", "**$shortfall**"),
+    )
+
+    class NetworkFeeRequiredInfo(
+        chain: Chain,
+        actionLabel: String,
+        action: () -> Unit,
+    ) : InfoSheetEntity(
+        icon = chain.asset().getIconUrl(),
+        title = R.string.info_balance_required_title,
+        description = R.string.transfer_insufficient_network_fee_balance,
+        infoUrl = { AppUrl.docs(DocsUrl.NetworkFees) },
+        action = action,
+        actionLabel = actionLabel,
+        titleArgs = listOf(chain.asset().symbol),
+        descriptionArgs = listOf("**${chain.asset().title}**"),
     )
 
     class BalanceRequiredInfo(
