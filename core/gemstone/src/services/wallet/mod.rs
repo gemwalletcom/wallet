@@ -176,8 +176,10 @@ impl GemWalletService {
         let mut migrated = 0;
         for (wallet, password) in legacy {
             let keystore_id = keystore_id_for_wallet(wallet.id.id());
-            let rekeyed = password != shared && self.keystore.exists(keystore_id.clone()) && !self.keystore.opens_with(keystore_id.clone(), shared_bytes.clone());
-            if rekeyed {
+            if !self.keystore.exists(keystore_id.clone()) {
+                continue;
+            }
+            if password != shared && !self.keystore.opens_with(keystore_id.clone(), shared_bytes.clone()) {
                 self.keystore.change_password(keystore_id.clone(), decode_password(&password), shared_bytes.clone())?;
                 if !self.keystore.opens_with(keystore_id.clone(), shared_bytes.clone()) {
                     return Err(GemServiceError::Core {
@@ -542,6 +544,21 @@ mod tests {
             assert!(context.service.migrate_to_shared_password().is_err());
             assert_eq!(context.store.passwords.lock().unwrap().get(&wallet.id.id()).map(String::as_str), Some(wrong));
             assert!(context.service.keystore.opens_with(keystore_id, decode_password(actual)));
+        });
+    }
+
+    #[test]
+    fn test_migration_keeps_the_password_of_a_wallet_with_no_v4_keystore() {
+        block_on(async {
+            let context = TestContext::new();
+            let wallet = context.import("PendingV3", PHRASE).await;
+            let keystore_id = keystore_id_for_wallet(wallet.id.id());
+            let legacy = "0f0e0d0c0b0a09080706050403020100f0e0d0c0b0a090807060504030201000";
+            context.store.passwords.lock().unwrap().insert(wallet.id.id(), legacy.to_string());
+            context.service.keystore.delete(keystore_id.clone()).unwrap();
+
+            assert_eq!(context.service.migrate_to_shared_password().unwrap(), 0);
+            assert_eq!(context.store.passwords.lock().unwrap().get(&wallet.id.id()).map(String::as_str), Some(legacy));
         });
     }
 
