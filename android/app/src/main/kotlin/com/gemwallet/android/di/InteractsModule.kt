@@ -71,7 +71,8 @@ object InteractsModule {
     @Provides
     fun provideSignMessageOperator(
         @ApplicationContext context: Context,
-    ): GemSignMessageOperator = GemSignMessageOperator(context.dataDir.toString())
+        passwordStore: PasswordStore,
+    ): GemSignMessageOperator = GemSignMessageOperator(context.dataDir.toString(), passwordStore)
 
 
     @Provides

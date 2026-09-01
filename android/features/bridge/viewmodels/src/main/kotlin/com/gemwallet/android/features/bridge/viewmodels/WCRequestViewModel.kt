@@ -44,7 +44,6 @@ class WCRequestViewModel @Inject constructor(
     private val respondWalletConnectRequest: RespondWalletConnectRequest,
     private val requestHandler: WalletConnectRequestHandler,
     private val pendingRequests: WalletConnectPendingRequests,
-    private val passwordStore: PasswordStore,
     private val signMessageOperator: GemSignMessageOperator,
     private val explorerService: GemExplorerService,
     private val originVerifier: WalletConnectOriginVerifier,
@@ -124,7 +123,7 @@ class WCRequestViewModel @Inject constructor(
         state.update { it.copy(responseState = RequestResponseState.Responding, approved = request) }
         viewModelScope.launch(Dispatchers.IO) {
             val signature = try {
-                signMessageOperator.sign(request.signer, request.wallet, passwordStore.getKeystorePassword())
+                signMessageOperator.sign(request.signer, request.wallet)
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {

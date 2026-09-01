@@ -51,7 +51,6 @@ class WCAuthViewModel @Inject constructor(
     private val applicationMetadataService: GemApplicationMetadataService,
     private val approveWalletConnectAuthentication: ApproveWalletConnectAuthentication,
     private val prepareSessionProposal: PrepareSessionProposal,
-    private val passwordStore: PasswordStore,
     private val signMessageOperator: GemSignMessageOperator,
     private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
@@ -319,7 +318,7 @@ class WCAuthViewModel @Inject constructor(
             )
         )
         return try {
-            signMessageOperator.sign(signer, wallet, passwordStore.getKeystorePassword())
+            signMessageOperator.sign(signer, wallet)
         } finally {
             signer.close()
         }
