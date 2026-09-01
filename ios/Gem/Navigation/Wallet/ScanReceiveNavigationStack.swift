@@ -35,12 +35,11 @@ struct ScanReceiveNavigationStack: View {
                     Picker("", selection: $model.mode) {
                         ForEach(model.modeModels) { modeModel in
                             Text(modeModel.title)
-                                .padding(.horizontal, .small)
                                 .tag(modeModel.mode)
                         }
                     }
                     .pickerStyle(.segmented)
-                    .fixedSize()
+                    .frame(width: 200)
                 }
             }
             .onChange(of: model.selectAssetModel.assetSelection, model.onChangeAssetSelection)
