@@ -5,7 +5,7 @@ import os
 import Primitives
 
 @Observable
-public final class SupportTypingState: Sendable {
+public final class ObservableSupportTyping: Sendable {
     @ObservationIgnored
     private let state = OSAllocatedUnfairLock<SupportAgent?>(initialState: .none)
 

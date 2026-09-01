@@ -14,11 +14,11 @@ import SwiftUI
 @MainActor
 public final class SupportChatSceneViewModel {
     private let service: any GemSupportServiceProtocol
-    private let typing: SupportTypingState
+    private let typing: ObservableSupportTyping
     public let query: ObservableQuery<SupportMessagesRequest>
     var previewURL: URL?
 
-    public init(service: any GemSupportServiceProtocol, typing: SupportTypingState) {
+    public init(service: any GemSupportServiceProtocol, typing: ObservableSupportTyping) {
         self.service = service
         self.typing = typing
         query = ObservableQuery(SupportMessagesRequest(), initialValue: [])

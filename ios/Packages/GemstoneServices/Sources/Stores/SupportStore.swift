@@ -11,7 +11,7 @@ import Store
 public final class GemstoneSupportStore: GemSupportStore, Sendable {
     private let store: SupportChatStore
 
-    public let typing = SupportTypingState()
+    public let typing = ObservableSupportTyping()
 
     public init(store: SupportChatStore) {
         self.store = store

@@ -105,7 +105,7 @@ public struct ViewModelFactory: Sendable {
     let deviceKeyService: GemDeviceKeyService
     let storeManager: StoreManager
     let supportService: any GemSupportServiceProtocol
-    let supportTyping: SupportTypingState
+    let supportTyping: ObservableSupportTyping
 
 
     @MainActor
