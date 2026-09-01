@@ -17,7 +17,7 @@ use crate::services::name::GemNameService;
 use crate::services::perpetual::model::GemAutocloseSummary;
 use crate::services::perpetual::rules::autoclose_summary;
 use crate::services::swap::config::GemSwapQuoteService;
-use crate::services::transfer::{GemRecentActivity, GemRecentActivityStore};
+use crate::services::transfer::GemRecentActivityService;
 use crate::services::wallet::{GemKeystoreAuthentication, GemKeystorePassword};
 
 #[derive(uniffi::Object)]
@@ -30,7 +30,7 @@ pub struct GemConfirmTransferService {
     swap_quote: Arc<GemSwapQuoteService>,
     signer: Arc<dyn GemTransactionSigner>,
     password: Arc<dyn GemKeystorePassword>,
-    recent_activity: Arc<dyn GemRecentActivityStore>,
+    recent_activity: Arc<GemRecentActivityService>,
 }
 
 #[uniffi::export]
@@ -45,7 +45,7 @@ impl GemConfirmTransferService {
         swap_quote: Arc<GemSwapQuoteService>,
         signer: Arc<dyn GemTransactionSigner>,
         password: Arc<dyn GemKeystorePassword>,
-        recent_activity: Arc<dyn GemRecentActivityStore>,
+        recent_activity: Arc<GemRecentActivityService>,
     ) -> Self {
         Self {
             confirm,
@@ -91,10 +91,10 @@ impl GemConfirmTransferService {
 
     pub async fn execute(&self, input: GemSendInput) -> Result<GemExecuteResult, GemConfirmError> {
         let wallet_id = input.wallet.id.clone();
-        let activity = input.confirm.input.transfer.input_type.recent_activity();
+        let input_type = input.confirm.input.transfer.input_type.clone();
         let result = self.confirm.execute(input, self.signer.clone()).await?;
-        if let Some(activity) = broadcast_activity(&result, activity) {
-            let _ = self.recent_activity.add(activity, wallet_id);
+        if is_broadcast(&result) {
+            let _ = self.recent_activity.record(input_type, wallet_id);
         }
         Ok(result)
     }
@@ -168,10 +168,10 @@ impl GemConfirmTransferService {
     }
 }
 
-fn broadcast_activity(result: &GemExecuteResult, activity: Option<GemRecentActivity>) -> Option<GemRecentActivity> {
+fn is_broadcast(result: &GemExecuteResult) -> bool {
     match result {
-        GemExecuteResult::Sent { .. } => activity,
-        GemExecuteResult::Signed { .. } => None,
+        GemExecuteResult::Sent { .. } => true,
+        GemExecuteResult::Signed { .. } => false,
     }
 }
 
@@ -185,15 +185,6 @@ impl GemConfirmTransferService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{AssetId, Chain, RecentActivityType};
-
-    fn activity() -> GemRecentActivity {
-        GemRecentActivity {
-            activity_type: RecentActivityType::Transfer,
-            asset_id: AssetId::from_chain(Chain::Ethereum),
-            to_asset_id: None,
-        }
-    }
 
     #[test]
     fn test_only_a_broadcast_send_records_recent_activity() {
@@ -205,8 +196,7 @@ mod tests {
             data: vec!["0xsigned".to_string()],
         };
 
-        assert_eq!(broadcast_activity(&sent, Some(activity())), Some(activity()));
-        assert_eq!(broadcast_activity(&signed, Some(activity())), None);
-        assert_eq!(broadcast_activity(&sent, None), None);
+        assert!(is_broadcast(&sent));
+        assert!(!is_broadcast(&signed));
     }
 }

@@ -1,4 +1,5 @@
 pub mod model;
+mod recent;
 pub mod rules;
 mod store;
 
@@ -12,6 +13,7 @@ use primitives::swap::ApprovalData;
 
 pub(crate) use model::GemPendingTransactionInput;
 pub use model::{GemRecentActivity, GemRecipient, GemTransferBalance, GemTransferData, GemTransferOutput};
+pub use recent::GemRecentActivityService;
 pub use store::GemRecentActivityStore;
 
 #[derive(Default, uniffi::Object)]

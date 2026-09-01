@@ -8,6 +8,7 @@ import class Gemstone.GemAssetsService
 import class Gemstone.GemAvatarService
 import class Gemstone.GemBalanceService
 import class Gemstone.GemChainService
+import class Gemstone.GemRecentActivityService
 import class Gemstone.GemConfirmTransferService
 import class Gemstone.GemConfirmService
 import class Gemstone.GemContactsService
@@ -235,7 +236,7 @@ public struct ViewModelFactory: Sendable {
             swapQuote: swapQuoteService,
             signer: KeystoreTransactionSigner(keystore: keystore),
             password: GemstoneKeystorePassword(keystore: keystore),
-            recentActivity: GemstoneRecentActivityStore(service: recentAssetsService),
+            recentActivity: GemRecentActivityService(store: GemstoneRecentActivityStore(service: recentAssetsService)),
         )
     }
 

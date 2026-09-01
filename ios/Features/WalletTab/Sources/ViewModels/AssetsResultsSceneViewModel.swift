@@ -140,7 +140,7 @@ extension AssetsResultsSceneViewModel {
     func onSelectAsset(_ asset: Asset) {
         onSelectAssetAction?(asset)
         do {
-            try recentAssetsService.add(.search(asset), walletId: wallet.id.id)
+            try recentAssetsService.add(.search(asset), walletId: wallet.id)
         } catch {
             debugLog("AssetsResultsSceneViewModel update recent error: \(error)")
         }

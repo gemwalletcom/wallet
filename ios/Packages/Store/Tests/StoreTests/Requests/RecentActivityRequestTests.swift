@@ -16,9 +16,9 @@ struct RecentActivityRequestTests {
         let bnb = AssetId(chain: .smartChain)
         let now = Date()
 
-        try store.add(assetId: btc, toAssetId: .none, walletId: WalletId.mock().id, type: .search, createdAt: now.addingTimeInterval(-2))
-        try store.add(assetId: bnb, toAssetId: .none, walletId: WalletId.mock().id, type: .search, createdAt: now.addingTimeInterval(-1))
-        try store.add(assetId: btc, toAssetId: .none, walletId: WalletId.mock().id, type: .transfer, createdAt: now)
+        try store.add(assetId: btc, toAssetId: .none, walletId: WalletId.mock(), type: .search, createdAt: now.addingTimeInterval(-2))
+        try store.add(assetId: bnb, toAssetId: .none, walletId: WalletId.mock(), type: .search, createdAt: now.addingTimeInterval(-1))
+        try store.add(assetId: btc, toAssetId: .none, walletId: WalletId.mock(), type: .transfer, createdAt: now)
 
         try db.dbQueue.read { db in
             let result = try RecentActivityRequest(walletId: WalletId.mock(), limit: 10).fetch(db)
@@ -39,9 +39,9 @@ struct RecentActivityRequestTests {
         let eth = AssetId(chain: .ethereum)
         let walletId = WalletId.mock()
 
-        try store.add(assetId: btc, toAssetId: .none, walletId: walletId.id, type: .search, createdAt: Date())
-        try store.add(assetId: bnb, toAssetId: .none, walletId: walletId.id, type: .search, createdAt: Date())
-        try store.add(assetId: eth, toAssetId: .none, walletId: walletId.id, type: .search, createdAt: Date())
+        try store.add(assetId: btc, toAssetId: .none, walletId: walletId, type: .search, createdAt: Date())
+        try store.add(assetId: bnb, toAssetId: .none, walletId: walletId, type: .search, createdAt: Date())
+        try store.add(assetId: eth, toAssetId: .none, walletId: walletId, type: .search, createdAt: Date())
         try assetStore.setAssetIsBuyable(for: [btc.identifier], value: false)
 
         try db.dbQueue.read { db in
@@ -70,9 +70,9 @@ struct RecentActivityRequestTests {
         let eth = AssetId(chain: .ethereum)
         let walletId = WalletId.mock()
 
-        try store.add(assetId: btc, toAssetId: .none, walletId: walletId.id, type: .swap, createdAt: Date())
-        try store.add(assetId: bnb, toAssetId: .none, walletId: walletId.id, type: .swap, createdAt: Date())
-        try store.add(assetId: eth, toAssetId: .none, walletId: walletId.id, type: .swap, createdAt: Date())
+        try store.add(assetId: btc, toAssetId: .none, walletId: walletId, type: .swap, createdAt: Date())
+        try store.add(assetId: bnb, toAssetId: .none, walletId: walletId, type: .swap, createdAt: Date())
+        try store.add(assetId: eth, toAssetId: .none, walletId: walletId, type: .swap, createdAt: Date())
         try balanceStore.setIsEnabled(walletId: walletId, assetIds: [eth], value: false)
 
         try db.dbQueue.read { db in

@@ -279,7 +279,7 @@ extension SelectAssetViewModel {
     private func updateRecent(assetId: AssetId) {
         guard let data = selectType.recentActivityData(assetId: assetId) else { return }
         do {
-            try recentAssetsService.add(data, walletId: wallet.id.id)
+            try recentAssetsService.add(data, walletId: wallet.id)
         } catch {
             debugLog("Failed to update recent activity: \(error)")
         }
