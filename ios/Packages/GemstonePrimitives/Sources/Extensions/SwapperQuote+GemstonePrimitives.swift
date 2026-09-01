@@ -5,6 +5,7 @@ import Foundation
 import struct Gemstone.GemSwapTransfer
 import struct Gemstone.SwapperQuote
 import class Gemstone.GemSwapQuoteService
+import GemstonePrimitives
 import Primitives
 
 public extension Gemstone.SwapperQuote {
@@ -26,7 +27,11 @@ public extension TransferData {
         let quote = try Primitives.SwapQuote(transfer.quote)
         let value = try BigInt.from(string: transfer.value)
         self.init(
-            type: .swap(fromAsset, toAsset, SwapData(quote: quote, data: try Primitives.SwapQuoteData(transfer.data))),
+            type: .swap(
+                fromAsset: fromAsset.map(),
+                toAsset: toAsset.map(),
+                swapData: SwapData(quote: quote, data: try Primitives.SwapQuoteData(transfer.data)).json(),
+            ),
             recipient: Recipient(name: .none, address: transfer.recipient, memo: .none),
             value: value,
             useMaxAmount: transfer.useMaxAmount,

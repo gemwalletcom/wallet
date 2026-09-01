@@ -42,7 +42,7 @@ public struct TransactionInputViewModel: Sendable {
 
     var asset: Asset {
         switch data.type {
-        case let .perpetual(_, type): type.baseAsset
+        case let .perpetual(_, type): Primitives.PerpetualType(core: type).baseAsset
         default: data.type.asset
         }
     }

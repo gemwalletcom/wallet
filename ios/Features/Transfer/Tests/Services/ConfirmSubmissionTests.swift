@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
 import struct Gemstone.GemConfirmSimulation
 import struct Gemstone.GemConfirmMetadata
 import struct Gemstone.GemSimulationValue

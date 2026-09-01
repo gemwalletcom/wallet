@@ -42,6 +42,7 @@ import LockManager
 import ManageWallets
 import Onboarding
 import Preferences
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Settings

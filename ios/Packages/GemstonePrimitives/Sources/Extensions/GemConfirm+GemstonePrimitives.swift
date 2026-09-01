@@ -3,6 +3,7 @@
 import BigInt
 import Foundation
 import Gemstone
+import GemstonePrimitives
 import Primitives
 
 public extension Primitives.Account {

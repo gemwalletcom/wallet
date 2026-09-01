@@ -3,6 +3,7 @@
 import BigInt
 import Foundation
 import Gemstone
+import GemstonePrimitives
 import Primitives
 
 public extension TransferAmount {
@@ -15,7 +16,7 @@ public extension TransferAmount {
         amountService: GemAmountService,
     ) throws -> TransferAmount {
         let input = try GemTransferAmountInput(
-            inputType: transferData.type.map(),
+            inputType: transferData.type,
             value: transferData.value.description,
             availableValue: availableValue.description,
             feeAsset: feeAssetId.identifier,

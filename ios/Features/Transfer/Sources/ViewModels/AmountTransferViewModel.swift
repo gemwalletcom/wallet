@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemTransactionInputType
 import class Gemstone.GemAmountService
 import BigInt
 import Foundation
@@ -68,7 +69,7 @@ public final class AmountTransferViewModel: AmountDataProvidable {
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> TransferData {
-        let transferType: TransferDataType = switch action {
+        let transferType: GemTransactionInputType = switch action {
         case .send: .transfer(asset)
         case .deposit: .deposit(asset)
         case .withdraw: .withdrawal(asset)

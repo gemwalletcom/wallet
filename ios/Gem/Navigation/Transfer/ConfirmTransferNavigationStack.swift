@@ -2,6 +2,7 @@
 
 import GemstoneServices
 import Foundation
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI

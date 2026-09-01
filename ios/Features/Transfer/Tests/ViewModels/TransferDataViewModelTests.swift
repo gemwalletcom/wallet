@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
+import enum Gemstone.GemTransactionInputType
 import BigInt
 import Localization
 @testable import Primitives
@@ -16,13 +18,13 @@ struct TransferDataViewModelTests {
 
     @Test
     func genericSendTitle() {
-        let type = TransferDataType.generic(asset: .mock(), metadata: .mock(), extra: .mock(outputAction: .send))
+        let type = GemTransactionInputType.generic(asset: .mock(), metadata: .mock(), extra: .mock(outputAction: .send))
         #expect(TransferDataViewModel.mock(type: type).title == Localized.Transfer.reviewRequest)
     }
 
     @Test
     func genericSignTitle() {
-        let type = TransferDataType.generic(asset: .mock(), metadata: .mock(), extra: .mock(outputAction: .sign))
+        let type = GemTransactionInputType.generic(asset: .mock(), metadata: .mock(), extra: .mock(outputAction: .sign))
         #expect(TransferDataViewModel.mock(type: type).title == Localized.Transfer.reviewRequest)
     }
 
@@ -37,7 +39,7 @@ struct TransferDataViewModelTests {
 
 private extension TransferDataViewModel {
     static func mock(
-        type: TransferDataType = .transfer(.mock()),
+        type: GemTransactionInputType = .transfer(.mock()),
     ) -> TransferDataViewModel {
         TransferDataViewModel(
             data: TransferData.mock(type: type),

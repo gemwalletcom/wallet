@@ -6,12 +6,13 @@ import struct Gemstone.GemRecipient
 import struct Gemstone.GemTransferBalance
 import struct Gemstone.GemTransferData
 import class Gemstone.GemTransferService
+import GemstonePrimitives
 import Primitives
 
 public extension TransferData {
     init(_ transfer: GemTransferData) throws {
         self.init(
-            type: try transfer.inputType.map(),
+            type: transfer.inputType,
             recipient: Recipient(transfer.recipient),
             value: try BigInt.from(string: transfer.value),
             useMaxAmount: transfer.useMaxAmount,
@@ -21,7 +22,7 @@ public extension TransferData {
 
     var gem: GemTransferData {
         GemTransferData(
-            inputType: type.inputType,
+            inputType: type,
             recipient: recipient.gem,
             value: value.description,
             useMaxAmount: useMaxAmount,

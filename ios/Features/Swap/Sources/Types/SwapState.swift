@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import struct Gemstone.SwapperQuote
+import GemstonePrimitives
 import Primitives
 
 public struct SwapState: Sendable {

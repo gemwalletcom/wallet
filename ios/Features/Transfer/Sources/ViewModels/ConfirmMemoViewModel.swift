@@ -1,14 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemTransactionInputType
 import Components
 import Primitives
 import PrimitivesComponents
 
 struct ConfirmMemoViewModel {
-    private let type: TransferDataType
+    private let type: GemTransactionInputType
     private let recipient: Recipient
 
-    init(type: TransferDataType, recipient: Recipient) {
+    init(type: GemTransactionInputType, recipient: Recipient) {
         self.type = type
         self.recipient = recipient
     }

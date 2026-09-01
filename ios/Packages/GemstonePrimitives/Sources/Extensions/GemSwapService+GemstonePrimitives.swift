@@ -4,6 +4,7 @@ import BigInt
 import Foundation
 import protocol Gemstone.GemSwapServiceProtocol
 import struct Gemstone.SwapperQuote
+import GemstonePrimitives
 import Primitives
 
 public extension GemSwapServiceProtocol {

@@ -72,7 +72,7 @@ extension ConfirmRecipientViewModel {
         switch model.type {
         case .swap: Localized.Common.provider
         case let .stake(_, stakeType):
-            switch stakeType {
+            switch Primitives.StakeType(core: stakeType) {
             case .stake, .unstake, .redelegate, .rewards, .withdraw: Localized.Stake.validator
             case .freeze, .unfreeze: Localized.Stake.resource
             }
@@ -91,7 +91,7 @@ extension ConfirmRecipientViewModel {
 
         return switch model.type {
         case let .stake(_, stakeType):
-            switch stakeType {
+            switch Primitives.StakeType(core: stakeType) {
             case .stake, .unstake, .redelegate, .withdraw, .rewards: true
             case .freeze, .unfreeze: true
             }

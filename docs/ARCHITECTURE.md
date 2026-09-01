@@ -205,7 +205,60 @@ override fun getFeeAssets(): Flow<List<AssetInfo>> = getCurrentWalletId().flatMa
 
 The store is the change trigger. Core is the decider. Core has no observation primitive, and that is the only reason the app watches its own tables.
 
-## 6. One service per screen
+## 6. The app uses Core's types; it does not keep a parallel copy
+
+When a Core type describes something the app builds and reads — a transaction input, a
+payment request — the app uses that type. It does not declare its own enum of the same
+shape and map between them. A parallel copy is two definitions of one thing: it drifts, and
+every crossing pays for a two-way mapper.
+
+`TransferDataType` was that copy. It restated `GemTransactionInputType`'s eleven cases and
+needed 138 lines of two-way mapping, re-encoding the asset to JSON on every Core call. Its
+accessors — `chain`, `applicationMetadata`, `recentActivityData` — were rules the app
+re-derived from its own copy rather than asking for. It is deleted; the app uses
+`GemTransactionInputType`.
+
+**A field read is not a rule.** `inputType.asset` reads a value the case already carries, so
+it belongs in the app. Which asset pays the fee, or what a completed transfer records, could
+differ between platforms, so it goes through the service that owns it:
+
+```swift
+func feeAsset(transferService: GemTransferService) -> Primitives.Asset {
+    transferService.feeAsset(inputType: self).map()
+}
+```
+
+Never add a free exported function to Core to avoid holding a service. A rule is a method on
+the service that owns it, and the caller that can hold one resolves it and passes the answer
+down.
+
+### Types cross as real values, not JSON
+
+A type named in `EXPOSED_TYPES` (`core/bin/generate/src/remote_mappers.rs`) crosses the FFI
+as a real UniFFI record or enum. Everything else still crosses as a JSON string through
+`json_bridge.rs`.
+
+Each app keeps a typeshare twin of an exposed type where storage or `Codable` needs one, so
+the two sides need a mapper — but those are generated, not written. Adding a name to
+`EXPOSED_TYPES` emits the `uniffi::remote` declarations and both platforms' mappers from the
+Rust definition, including serde renames. Nothing is restated by hand.
+
+**Where you still see `.json()` or `init(core:)`, the type is not exposed yet.** Those calls
+are not the pattern — they are the remaining work. `GemTransactionInputType`'s Swift
+extension carries constructors like
+
+```swift
+static func stake(_ asset: Primitives.Asset, _ stakeType: Primitives.StakeType) -> Self {
+    .stake(asset: asset.map(), stakeType: stakeType.json())
+}
+```
+
+purely to keep that encoding at the boundary instead of at thirty call sites. They are
+scaffolding. Expose `StakeType` and the `.json()` becomes a generated `.map()`; drop the
+twin for a type nothing persists and the constructor disappears with it. Do not add new ones
+without also adding the type to `EXPOSED_TYPES`.
+
+## 7. One service per screen
 
 A view model holds **exactly one** service, named `service`, and it is **`private`**. A non-private service means something outside the model — usually the view — is reaching through it for a dependency.
 
@@ -274,7 +327,7 @@ UniFFI generates a protocol for every exported object. `GemAddressServiceProtoco
 - **Consumers** (view models, components, validators) take `any GemFooServiceProtocol`.
 - **The composition root** (`ServicesFactory`, `ViewModelFactory`) holds the concrete type — a UniFFI constructor needs it, and the root is the one place allowed to construct. Its fields are grouped by what they are: Core services, platform services, stores.
 
-## 7. Services are injected, never constructed at a call site
+## 8. Services are injected, never constructed at a call site
 
 A `GemFooService()` in a field initialiser or at file scope is a second instance the graph does not know about, and it is where an app-side variant creeps back in.
 
@@ -284,7 +337,7 @@ A `GemFooService()` in a field initialiser or at file scope is a second instance
 
 Prefer an interface (`GemConfirmServiceInterface`) over the concrete UniFFI object wherever a test needs to substitute it — mocking the concrete object dereferences native handles a mock does not have and takes the JVM down.
 
-## 8. Errors
+## 9. Errors
 
 One error enum per feature, in `error.rs`, carrying what the app needs to render:
 
@@ -311,7 +364,7 @@ extension GemConfirmError: @retroactive LocalizedError {
 
 A duplicate taxonomy costs a mapping function, re-derives data Core already carries, and drifts. Classify Core's error where a screen needs to branch; do not re-wrap it.
 
-## 9. Tests
+## 10. Tests
 
 | Layer | What it tests | Where |
 |---|---|---|
@@ -342,7 +395,7 @@ try store.addBanners([NewBanner(id: id, walletId: walletId, assetId: assetId, ev
 
 A mock's defaults should be the *usual* case. A mock that fails by default becomes a trap the moment another method starts depending on it.
 
-## 10. Landing a change
+## 11. Landing a change
 
 1. Implement in Core with the rule test.
 2. Regenerate bindings **only if an exported signature changed** — `just generate-stone` and `just generate-android-stone` from the repo root. Never against a half-edited Core: a generate run mid-edit yields bindings that fail somewhere unrelated.

@@ -1,12 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemTransactionInputType
 import BigInt
 import Foundation
+import GemstonePrimitives
 import Primitives
+import PrimitivesTestKit
 
 public extension TransferData {
     static func mock(
-        type: TransferDataType = .transfer(.mock()),
+        type: GemTransactionInputType = .transfer(.mock()),
         recipient: Recipient = .mock(),
         value: BigInt = .zero,
         useMaxAmount: Bool = false,

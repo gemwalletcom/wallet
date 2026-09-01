@@ -4,6 +4,7 @@ import protocol Gemstone.GemPreferencesServiceProtocol
 import class Gemstone.GemAmountService
 import enum Gemstone.GemAmountType
 import BigInt
+import GemstonePrimitives
 import Primitives
 
 public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {

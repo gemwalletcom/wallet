@@ -10,6 +10,7 @@ import GemstoneFormatters
 import InfoSheet
 import Localization
 import Perpetuals
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store

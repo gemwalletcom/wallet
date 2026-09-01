@@ -3,6 +3,7 @@
 import GemstonePrimitives
 import struct Gemstone.GemConfirmMetadata
 import protocol Gemstone.GemConfirmTransferServiceProtocol
+import enum Gemstone.GemTransactionInputType
 import Components
 import class Gemstone.GemSwapQuoteService
 import Primitives
@@ -10,13 +11,13 @@ import PrimitivesComponents
 import Swap
 
 public struct ConfirmDetailsViewModel {
-    private let type: TransferDataType
+    private let type: GemTransactionInputType
     private let metadata: GemConfirmMetadata?
     private let currency: String
     private let service: any GemConfirmTransferServiceProtocol
 
     init(
-        type: TransferDataType,
+        type: GemTransactionInputType,
         metadata: GemConfirmMetadata?,
         currency: String,
         service: any GemConfirmTransferServiceProtocol,
@@ -34,18 +35,21 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
     public var itemModel: ConfirmTransferItemModel {
         switch type {
         case let .swap(fromAsset, toAsset, swapData):
-            .swapDetails(
+            let toAsset = toAsset.map()
+            let quote = Primitives.SwapData(core: swapData).quote
+            return .swapDetails(
                 SwapDetailsViewModel(
-                    fromAssetPrice: AssetPriceValue(asset: fromAsset, price: metadata?.assetPrice),
+                    fromAssetPrice: AssetPriceValue(asset: fromAsset.map(), price: metadata?.assetPrice),
                     toAssetPrice: AssetPriceValue(asset: toAsset, price: metadata?.assetPrices[toAsset.id]),
-                    selectedQuote: swapData.quote,
-                    slippage: .manual(bps: swapData.quote.slippageBps),
+                    selectedQuote: quote,
+                    slippage: .manual(bps: quote.slippageBps),
                     currency: currency,
                     swapQuoteService: service.swapQuote(),
                 ),
             )
         case let .perpetual(_, perpetualType):
-            switch perpetualType {
+            let perpetualType = Primitives.PerpetualType(core: perpetualType)
+            return switch perpetualType {
             case .open, .close, .increase, .reduce:
                 .perpetualDetails(PerpetualDetailsViewModel(type: PerpetualDetailsType(perpetualType)))
             case let .modify(data):
@@ -60,7 +64,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
              .account,
              .generic,
              .earn:
-            .empty
+            return .empty
         }
     }
 }

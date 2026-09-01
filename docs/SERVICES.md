@@ -401,12 +401,11 @@ Single-service view models that only need the property made `private`:
 
 ### 9. Rules still living in app-only enums
 
-`TransferDataType` is hand-written in `ios/Packages/Primitives` and duplicates Core's
-`GemTransactionInputType`, with 138 lines of two-way mapping between them
-(`TransferDataType+GemstonePrimitives`, `GemTransactionInputType+GemstonePrimitives`).
-Every accessor on it — `chain`, `applicationMetadata`, and until now `recentActivityData` —
-is a rule the app re-derives. Deleting it means `TransferData` moves to `GemstonePrimitives`
-(it cannot import Gemstone where it lives now) and its 45 references follow the compiler.
+iOS's `TransferDataType` is gone — the app uses `GemTransactionInputType` directly, per
+[ARCHITECTURE.md](ARCHITECTURE.md) § 6. Android still has the same duplication and it is
+larger: `ConfirmParams` is 510 lines with a 142-line `ConfirmInputMapper`, and 299
+references across the app against iOS's 45. Same shape of fix, and the same accessors to
+move — `ConfirmParams` re-derives what Core already decides.
 
 Two recent-activity rules are still app-side, on `SelectAssetType` and `SelectedAssetType`.
 Both are Swift-only enums with no Core counterpart, so the enums move first.

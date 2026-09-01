@@ -3,6 +3,7 @@
 import struct Gemstone.GemConfirmMetadata
 import BigInt
 import Foundation
+import GemstonePrimitivesTestKit
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents

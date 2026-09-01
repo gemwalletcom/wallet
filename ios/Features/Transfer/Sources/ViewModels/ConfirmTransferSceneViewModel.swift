@@ -85,7 +85,7 @@ public final class ConfirmTransferSceneViewModel {
         self.currency = currency
         let sceneState = service.sceneState(
             walletId: request.wallet.id.id,
-            inputType: request.data.type.inputType,
+            inputType: request.data.type,
             simulation: request.simulation?.json(),
         )
         feeSelection = .preset(sceneState.feePriority.map())
@@ -225,7 +225,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         case .warnings:
             ConfirmTransferItemModel.warnings(simulationWarnings)
         case .app:
-            ConfirmAppViewModel(type: request.data.type, shortName: service.applicationShortName(inputType: request.data.type.inputType))
+            ConfirmAppViewModel(type: request.data.type, shortName: service.applicationShortName(inputType: request.data.type))
         case .sender:
             ConfirmSenderViewModel(wallet: request.wallet)
         case .network:
@@ -441,7 +441,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferPreload {
-        let metadata = try service.metadata(walletId: request.wallet.id, type: request.data.type)
+        let metadata = try service.metadata(walletId: request.wallet.id, inputType: request.data.type)
         let account = try request.wallet.account(for: request.data.chain)
         let preload: GemConfirmPreload
         do {
@@ -484,7 +484,7 @@ extension ConfirmTransferSceneViewModel {
         } catch {
             debugLog("simulation asset preload error: \(error)")
         }
-        let resolved = try? service.simulation(inputType: data.type.inputType, simulation: simulation?.json())
+        let resolved = try? service.simulation(inputType: data.type, simulation: simulation?.json())
         let requests = ConfirmSimulationState(data: data, simulation: simulation, resolved: resolved, addressNames: [:]).payload.addressRequests
         let names = (try? await service.addressNames(requests: requests)) ?? [:]
         return ConfirmSimulationState(data: data, simulation: simulation, resolved: resolved, addressNames: names)
@@ -514,7 +514,7 @@ extension ConfirmTransferSceneViewModel {
             track(wallet: request.wallet, transactions: try transactions.map { try Primitives.Transaction($0) })
         }
         await toastPresenter.present(.transfer(for: request.data.type))
-        if let recent = service.recentActivity(inputType: request.data.type.inputType) {
+        if let recent = service.recentActivity(inputType: request.data.type) {
             do {
                 try recentAssetsService.add(RecentActivityData(recent), walletId: request.wallet.id)
             } catch {

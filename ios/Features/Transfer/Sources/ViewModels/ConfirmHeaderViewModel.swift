@@ -51,7 +51,7 @@ private extension ConfirmHeaderViewModel {
         }
 
         if case let .tokenApprove(asset, _) = request.data.type {
-            return .asset(image: AssetViewModel(asset: asset).assetImage)
+            return .asset(image: AssetViewModel(asset: asset.map()).assetImage)
         }
 
         if case .generic = request.data.type,

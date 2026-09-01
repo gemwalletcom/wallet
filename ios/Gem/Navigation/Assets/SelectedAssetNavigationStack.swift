@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import FiatConnect
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Swap

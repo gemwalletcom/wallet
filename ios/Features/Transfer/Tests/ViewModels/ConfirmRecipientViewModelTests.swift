@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemTransactionInputType
 import class Gemstone.GemTransferService
 import Localization
 @testable import Primitives
@@ -171,7 +172,7 @@ struct ConfirmRecipientViewModelTests {
 }
 
 private extension TransferDataViewModel {
-    static func mock(type: TransferDataType = .transfer(.mock())) -> TransferDataViewModel {
+    static func mock(type: GemTransactionInputType = .transfer(.mock())) -> TransferDataViewModel {
         TransferDataViewModel(data: .mock(type: type))
     }
 }

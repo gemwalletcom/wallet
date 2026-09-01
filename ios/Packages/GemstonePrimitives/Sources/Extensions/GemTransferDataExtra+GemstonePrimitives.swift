@@ -21,7 +21,7 @@ public extension GemTransferDataExtra {
 }
 
 public extension TransferDataExtra {
-    func map() throws -> GemTransferDataExtra {
+    func map() -> GemTransferDataExtra {
         GemTransferDataExtra(
             to: to,
             gasLimit: gasLimit?.description,

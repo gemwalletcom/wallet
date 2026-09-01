@@ -14,6 +14,7 @@ public import enum Gemstone.GemGasPriceType
 public import enum Gemstone.GemTransactionLoadMetadata
 public import struct Gemstone.GemTransactionLoadFee
 import Foundation
+import GemstonePrimitivesTestKit
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit

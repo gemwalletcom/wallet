@@ -67,9 +67,9 @@ public enum PaymentDestinationBuilder {
         addressService: any GemAddressServiceProtocol,
         paymentService: GemPaymentService,
     ) throws -> PaymentDestination {
-        let type = try TransferDataType.generic(
-            asset: asset,
-            metadata: Primitives.ApplicationMetadata(transaction.merchant),
+        let type = try GemTransactionInputType.generic(
+            asset: asset.map(),
+            metadata: Primitives.ApplicationMetadata(transaction.merchant).json(),
             extra: TransferDataExtra(
                 to: transaction.request
                     .map { try Primitives.PaymentRequest($0).address }
@@ -78,7 +78,7 @@ public enum PaymentDestinationBuilder {
                 outputType: .encodedTransaction,
                 outputAction: .send,
                 transactionType: Primitives.TransactionType(transaction.transactionType),
-            ),
+            ).map(),
         )
         let transfer = transaction.request.flatMap {
             paymentService.decodedTransfer(request: $0, asset: asset.paymentWalletAsset)
@@ -107,7 +107,7 @@ public enum PaymentDestinationBuilder {
 
     private static func transferData(transfer: GemPaymentConfirmTransfer, asset: Primitives.Asset) throws -> TransferData {
         try TransferData(
-            type: .transfer(asset),
+            type: .transfer(asset: asset.map()),
             recipient: Recipient(name: nil, address: transfer.address, memo: transfer.memo, references: transfer.references),
             value: BigInt.from(string: transfer.value),
         )
