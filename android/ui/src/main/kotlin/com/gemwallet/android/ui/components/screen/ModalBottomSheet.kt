@@ -22,7 +22,7 @@ import com.gemwallet.android.ui.components.dialog.DialogBar
 import com.gemwallet.android.ui.components.dialog.DialogBarDismissType
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.alpha20
-import com.gemwallet.android.ui.theme.sheetCornerSize
+import com.gemwallet.android.ui.theme.SheetSizing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +31,7 @@ fun ModalBottomSheet(
     modifier: Modifier = Modifier,
     sheetState: SheetState = rememberModalBottomSheetState(),
     containerColor: Color = MaterialTheme.colorScheme.surface,
-    shape: Shape = RoundedCornerShape(topStart = sheetCornerSize, topEnd = sheetCornerSize),
+    shape: Shape = RoundedCornerShape(topStart = SheetSizing.cornerSize, topEnd = SheetSizing.cornerSize),
     title: String? = null,
     dismissType: DialogBarDismissType = DialogBarDismissType.Close,
     dragHandle: (@Composable () -> Unit)? = { Box { Spacer16() } },
@@ -57,7 +57,7 @@ fun ModalBottomSheet(
     modifier: Modifier = Modifier,
     skipPartiallyExpanded: Boolean = false,
     containerColor: Color = MaterialTheme.colorScheme.surface,
-    shape: Shape = RoundedCornerShape(topStart = sheetCornerSize, topEnd = sheetCornerSize),
+    shape: Shape = RoundedCornerShape(topStart = SheetSizing.cornerSize, topEnd = SheetSizing.cornerSize),
     title: String? = null,
     dismissType: DialogBarDismissType = DialogBarDismissType.Close,
     dragHandle: (@Composable () -> Unit)? = { Box { Spacer16() } },

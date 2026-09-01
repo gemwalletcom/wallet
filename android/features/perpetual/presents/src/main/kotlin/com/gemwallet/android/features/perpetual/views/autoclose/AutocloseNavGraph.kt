@@ -34,6 +34,7 @@ import com.gemwallet.android.features.perpetual.viewmodels.AutocloseViewModel
 import uniffi.gemstone.GemConfirmInput
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
+import com.gemwallet.android.ui.theme.SheetSizing
 import com.gemwallet.android.ui.viewmodel.NavEntryViewModelStoreOwner
 import kotlinx.serialization.Serializable
 
@@ -121,7 +122,7 @@ private fun AutocloseNavGraphContent(
 
     NavDisplay(
         entries = decoratedEntries,
-        modifier = Modifier.fillMaxHeight(0.95f),
+        modifier = Modifier.fillMaxHeight(SheetSizing.heightFraction),
         onBack = {
             if (backStack.size > 1) popInternal() else onDismiss()
         },

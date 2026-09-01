@@ -21,10 +21,9 @@ import com.gemwallet.android.ui.components.PortraitOrientationLock
 import com.gemwallet.android.ui.components.QrCodeRequest
 import com.gemwallet.android.ui.components.ScanReceiveSwitcher
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.theme.SheetSizing
 import com.wallet.core.primitives.QRScanType
 import com.wallet.core.primitives.ScanReceiveMode
-
-private const val RECEIVE_SHEET_HEIGHT = 0.93f
 
 @Composable
 fun ScanReceiveModal(
@@ -78,7 +77,7 @@ fun ScanReceiveModal(
             skipPartiallyExpanded = true,
         ) {
             receiveAssetId?.toAssetId()?.let { assetId ->
-                Box(modifier = Modifier.fillMaxHeight(RECEIVE_SHEET_HEIGHT)) {
+                Box(modifier = Modifier.fillMaxHeight(SheetSizing.heightFraction)) {
                     ReceiveScreen(assetId = assetId, closeIcon = true, onCancel = { isReceivePresented = false })
                 }
             }
