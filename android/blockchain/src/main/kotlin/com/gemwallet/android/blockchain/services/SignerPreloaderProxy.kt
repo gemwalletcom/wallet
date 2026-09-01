@@ -17,12 +17,12 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemConfirmFeeSelection
 import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemConfirmLoadOptions
-import uniffi.gemstone.GemConfirmServiceInterface
+import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemTransferAmountResult
 import com.wallet.core.primitives.Asset
 
 class SignerPreloaderProxy(
-    private val confirmService: GemConfirmServiceInterface,
+    private val confirmService: GemConfirmTransferService,
 ) {
     private companion object {
         const val TAG = "SignerPreloader"

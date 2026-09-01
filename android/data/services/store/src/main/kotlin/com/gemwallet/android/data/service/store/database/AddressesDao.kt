@@ -10,7 +10,6 @@ import com.gemwallet.android.data.service.store.database.entities.isLocal
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.VerificationStatus
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AddressesDao {
@@ -42,9 +41,6 @@ interface AddressesDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIgnore(addresses: List<DbAddress>)
-
-    @Query("SELECT * FROM addresses WHERE chain = :chain AND address = :address LIMIT 1")
-    fun getFlow(chain: Chain, address: String): Flow<DbAddress?>
 
     @Query("SELECT * FROM addresses WHERE chain = :chain AND address = :address LIMIT 1")
     fun get(chain: Chain, address: String): DbAddress?

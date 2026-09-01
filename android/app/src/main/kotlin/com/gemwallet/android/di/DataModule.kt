@@ -80,7 +80,7 @@ object DataModule {
     @Provides
     @Singleton
     fun provideSignerPreloader(
-        confirmService: GemConfirmServiceInterface,
+        confirmService: GemConfirmTransferService,
     ): SignerPreloaderProxy {
         return SignerPreloaderProxy(confirmService)
     }

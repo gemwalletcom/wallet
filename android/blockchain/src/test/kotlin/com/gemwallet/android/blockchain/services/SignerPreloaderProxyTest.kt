@@ -23,7 +23,7 @@ import uniffi.gemstone.GemConfirmData
 import uniffi.gemstone.GemConfirmFeeSelection
 import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemConfirmLoadOptions
-import uniffi.gemstone.GemConfirmServiceInterface
+import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemFeeOptions
 import uniffi.gemstone.GemFeeRate
 import uniffi.gemstone.GemGasPriceType
@@ -46,7 +46,7 @@ import org.junit.Before
 
 class SignerPreloaderProxyTest {
 
-    private val confirmService = mockk<GemConfirmServiceInterface>()
+    private val confirmService = mockk<GemConfirmTransferService>()
     private val subject = SignerPreloaderProxy(confirmService)
 
     @Before

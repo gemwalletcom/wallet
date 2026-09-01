@@ -5,19 +5,15 @@ import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
-import uniffi.gemstone.GemExplorerService
-import uniffi.gemstone.GemSimulationFormatter
-import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toIdentifier
+import uniffi.gemstone.GemApprovalValue
+import uniffi.gemstone.GemConfirmSimulationState
+import uniffi.gemstone.GemConfirmTransferService
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.SimulationPayloadField
 import com.wallet.core.primitives.SimulationPayloadFieldDisplay
-import com.wallet.core.primitives.SimulationPayloadFieldKind
-import com.wallet.core.primitives.SimulationResult
 import com.wallet.core.primitives.SimulationWarning
 import java.math.BigInteger
 
@@ -36,31 +32,28 @@ data class SimulationAssetChange(
     val value: BigInteger,
 )
 
-fun SimulationResult.toSimulation(
-    simulationFormatter: GemSimulationFormatter,
-    assets: Map<AssetId, Asset>,
-    chain: Chain? = null,
-    explorerService: GemExplorerService? = null,
-    isApproval: Boolean = false,
+fun GemConfirmSimulationState.toSimulation(
+    warnings: List<SimulationWarning>,
+    chain: Chain?,
+    confirmService: GemConfirmTransferService,
 ): Simulation {
-    val showsHeader = simulationFormatter.showsHeader(toJson(), isApproval)
-    val filtered = simulationFormatter.payloadFields(payload.map { it.toJson() }, showsHeader)
-        .map { it.decodeJson<SimulationPayloadField>() }
+    val details = simulation ?: return Simulation(warnings = warnings)
+    val fields = details.payloadFields.map { it.decodeJson<SimulationPayloadField>() }
+    val header = details.header
 
     return Simulation(
         warnings = warnings,
-        primaryPayloadFields = filtered.filter { it.display == SimulationPayloadFieldDisplay.Primary }
-            .withExplorerLinks(chain, explorerService),
-        secondaryPayloadFields = filtered.filter { it.display == SimulationPayloadFieldDisplay.Secondary }
-            .withExplorerLinks(chain, explorerService),
-        headerValue = header?.value,
-        headerIsUnlimited = header?.isUnlimited == true,
-        balanceChanges = simulationFormatter.balanceChanges(toJson(), assets.keys.map { it.toIdentifier() })
-            .mapNotNull { change ->
-                val asset = change.assetId.toAssetId()?.let { assets[it] } ?: return@mapNotNull null
-                val value = change.value.toBigIntegerOrNull() ?: return@mapNotNull null
-                SimulationAssetChange(asset = asset, value = value)
-            },
+        primaryPayloadFields = fields.filter { it.display == SimulationPayloadFieldDisplay.Primary }
+            .withExplorerLinks(chain, confirmService),
+        secondaryPayloadFields = fields.filter { it.display == SimulationPayloadFieldDisplay.Secondary }
+            .withExplorerLinks(chain, confirmService),
+        headerAsset = header?.asset?.toPrimitives(),
+        headerValue = (header?.value as? GemApprovalValue.Exact)?.value,
+        headerIsUnlimited = header?.value is GemApprovalValue.Unlimited,
+        balanceChanges = details.balanceChanges.mapNotNull { change ->
+            val value = change.value.toBigIntegerOrNull() ?: return@mapNotNull null
+            SimulationAssetChange(asset = change.asset.toPrimitives(), value = value)
+        },
     )
 }
 
