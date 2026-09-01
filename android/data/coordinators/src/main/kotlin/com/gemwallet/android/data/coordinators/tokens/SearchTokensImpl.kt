@@ -35,11 +35,6 @@ class SearchTokensImpl(
             .onFailure { Log.e(TAG, "assets sync failed", it) }
             .isSuccess
 
-    override suspend fun search(assetId: AssetId, currency: Currency): Boolean =
-        runCatchingCancellable { assetsService.ensureTokenAsset(assetId.toIdentifier()) }
-            .onFailure { Log.e(TAG, "token asset lookup failed", it) }
-            .isSuccess
-
     private companion object {
         const val TAG = "SearchTokens"
     }
