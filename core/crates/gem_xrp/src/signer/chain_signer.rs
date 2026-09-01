@@ -14,13 +14,13 @@ pub struct XrpChainSigner;
 
 impl ChainSigner for XrpChainSigner {
     fn sign_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-        let amount = XrpAmount::native(&input.value)?;
+        let amount = XrpAmount::native(&input.value.to_string())?;
 
         sign_payment(input, private_key, amount, &input.destination_address, payment_memo(input.get_memo())?)
     }
 
     fn sign_token_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-        let amount = token_amount(input, &input.value)?;
+        let amount = token_amount(input, &input.value.to_string())?;
         sign_payment(input, private_key, amount, &input.destination_address, token_memo(input.get_memo())?)
     }
 
@@ -138,7 +138,7 @@ mod tests {
             TransactionLoadInput {
                 sender_address: sender.to_string(),
                 destination_address: destination.to_string(),
-                value: value.to_string(),
+                value: value.parse().unwrap(),
                 gas_price: GasPriceType::regular(fee),
                 memo: memo.map(str::to_string),
                 metadata: metadata(sequence, block_number),

@@ -1,3 +1,4 @@
+use num_traits::ToPrimitive;
 use primitives::{SignerError, TransactionLoadInput, TransactionLoadMetadata, hex::decode_hex_array};
 #[cfg(any(test, feature = "rpc"))]
 use signer::Ed25519KeyPair;
@@ -43,7 +44,7 @@ impl NativeTransferTransaction {
     pub(crate) fn from_input(input: &TransactionLoadInput, signer_account_id: [u8; 32]) -> Result<Self, SignerError> {
         let parameters = NativeTransferParameters::from_input(input)?;
         let destination = PolkadotAddress::parse(&input.destination_address)?;
-        let value = input.value.parse::<u128>().map_err(SignerError::from_display)?;
+        let value = input.value.to_u128().ok_or_else(|| SignerError::invalid_input("polkadot amount is too large"))?;
         let uses_multi_address = parameters.uses_multi_address();
 
         Ok(Self {
@@ -254,6 +255,7 @@ fn encode_compact_integer(value: u128, output: &mut Vec<u8>) {
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigUint;
     use primitives::{Asset, Chain, GasPriceType, TransactionInputType};
 
     use super::*;
@@ -265,7 +267,7 @@ mod tests {
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Polkadot)),
             sender_address: ADDRESS.to_string(),
             destination_address: ADDRESS.to_string(),
-            value: "10000".to_string(),
+            value: BigUint::from(10000u64),
             gas_price: GasPriceType::regular(10),
             memo: None,
             is_max_value: false,

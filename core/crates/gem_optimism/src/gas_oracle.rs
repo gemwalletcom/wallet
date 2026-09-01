@@ -55,7 +55,7 @@ impl<C: Client + Clone> OptimismGasOracle<C> {
 
 fn l1_fee_value(input: &TransactionLoadInput, params: &TransactionParams, gas_limit: &BigInt) -> Result<BigInt, Box<dyn Error + Sync + Send>> {
     if spends_native_asset(&input.input_type) && input.is_max_value {
-        Ok(input.value_as_bigint()? - gas_limit * input.gas_price.gas_price())
+        Ok(input.value_as_bigint() - gas_limit * input.gas_price.gas_price())
     } else {
         Ok(params.value.clone())
     }

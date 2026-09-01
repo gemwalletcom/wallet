@@ -1,5 +1,5 @@
 use crate::address::checksum_address;
-use crate::models::custom_types::GemBigInt;
+use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::*;
 use primitives::ApplicationMetadata;
 use primitives::contract_call_data::ContractCallData;
@@ -168,7 +168,7 @@ pub struct GemTransactionLoadInput {
     pub input_type: GemTransactionInputType,
     pub sender_address: String,
     pub destination_address: String,
-    pub value: String,
+    pub value: GemBigUint,
     pub gas_price: GemGasPriceType,
     pub memo: Option<String>,
     pub is_max_value: bool,

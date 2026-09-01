@@ -230,7 +230,9 @@ impl GemConfirmService {
                     input_type: transfer.input_type.clone(),
                     sender_address: input.from.address.clone(),
                     destination_address: destination,
-                    value: transfer.value.to_string(),
+                    value: transfer.value.to_biguint().ok_or_else(|| GemConfirmError::Load {
+                        msg: "negative transfer value".to_string(),
+                    })?,
                     gas_price: selected.gas_price_type.clone(),
                     memo: transfer.recipient.memo.clone(),
                     is_max_value: transfer.use_max_amount,

@@ -161,6 +161,7 @@ mod chain_integration_tests {
     use crate::provider::testkit::*;
     use chain_traits::ChainTransactionLoad;
     use gem_encoding::decode_base64;
+    use num_bigint::BigUint;
     use primitives::{Asset, Chain, Delegation, FeePriority, StakeType, TransactionLoadInput};
 
     #[tokio::test]
@@ -212,7 +213,7 @@ mod chain_integration_tests {
         let input = TransactionLoadInput {
             sender_address: user_address.to_string(),
             destination_address: user_address.to_string(),
-            value: "1000000000".to_string(),
+            value: BigUint::from(1000000000u64),
             input_type: TransactionInputType::Stake(Asset::from_chain(Chain::Sui), stake_type),
             gas_price: primitives::GasPriceType::regular(BigInt::from(1000)),
             memo: None,

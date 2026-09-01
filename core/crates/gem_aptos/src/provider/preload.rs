@@ -32,9 +32,9 @@ impl<C: Client> ChainTransactionLoad for AptosClient<C> {
 
         let data = match &input.input_type {
             TransactionInputType::Stake(_, stake_type) => match stake_type {
-                StakeType::Stake(validator) => Some(build_stake_payload_data(&validator.id, &input.value)),
-                StakeType::Unstake(delegation) => Some(build_unstake_payload_data(&delegation.validator.id, &input.value)),
-                StakeType::Withdraw(delegation) => Some(build_withdraw_payload_data(&delegation.validator.id, &input.value)),
+                StakeType::Stake(validator) => Some(build_stake_payload_data(&validator.id, &input.value.to_string())),
+                StakeType::Unstake(delegation) => Some(build_unstake_payload_data(&delegation.validator.id, &input.value.to_string())),
+                StakeType::Withdraw(delegation) => Some(build_withdraw_payload_data(&delegation.validator.id, &input.value.to_string())),
                 StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => None,
             },
             _ => None,
@@ -62,6 +62,7 @@ mod chain_integration_tests {
     use crate::KNOWN_VALIDATOR_POOL;
     use crate::provider::testkit::{TEST_ADDRESS_STAKING, create_aptos_test_client};
     use num_bigint::BigInt;
+    use num_bigint::BigUint;
     use primitives::{Asset, Chain, DelegationValidator};
     use serde_json::Value;
 
@@ -88,7 +89,7 @@ mod chain_integration_tests {
                 ),
                 sender_address: TEST_ADDRESS_STAKING.to_string(),
                 destination_address: KNOWN_VALIDATOR_POOL.to_string(),
-                value: "1100000000".to_string(),
+                value: BigUint::from(1100000000u64),
                 gas_price: GasPriceType::regular(BigInt::from(100u64)),
                 memo: None,
                 is_max_value: false,

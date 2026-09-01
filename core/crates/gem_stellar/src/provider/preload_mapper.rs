@@ -20,6 +20,7 @@ pub fn map_transaction_load(input: TransactionLoadInput) -> Result<TransactionLo
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_bigint::BigUint;
     use primitives::{Asset, Chain, GasPriceType, TransactionInputType, TransactionLoadMetadata};
 
     #[test]
@@ -42,7 +43,7 @@ mod tests {
     fn test_map_transaction_load_destination_not_exist() {
         let input = TransactionLoadInput {
             input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Stellar)),
-            value: "15000000".to_string(),
+            value: BigUint::from(15000000u64),
             gas_price: GasPriceType::regular(BigInt::from(100)),
             metadata: TransactionLoadMetadata::Stellar {
                 sequence: 1,

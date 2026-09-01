@@ -26,7 +26,9 @@ impl GemSendInput {
                 input_type: transfer.input_type.clone(),
                 sender_address,
                 destination_address: transfer.recipient.address.clone(),
-                value: self.value.to_string(),
+                value: self.value.to_biguint().ok_or_else(|| GemConfirmError::Load {
+                    msg: "negative transfer value".to_string(),
+                })?,
                 gas_price: self.confirm.fee.gas_price_type.clone(),
                 memo: transfer.recipient.memo.clone(),
                 is_max_value: transfer.use_max_amount,
@@ -335,6 +337,7 @@ mod tests {
     use crate::models::gateway::GemGasPriceType;
     use crate::models::transaction::GemTransactionLoadMetadata;
     use crate::services::transfer::{GemRecipient, GemTransferData};
+    use num_bigint::BigUint;
     use primitives::{
         Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, StakeType, TransactionType, TransferDataExtra, TransferDataOutputAction,
         Wallet, WalletId,
@@ -397,7 +400,7 @@ mod tests {
 
         assert_eq!(signer_input.input.sender_address, "sender");
         assert_eq!(signer_input.input.destination_address, "recipient");
-        assert_eq!(signer_input.input.value, "9");
+        assert_eq!(signer_input.input.value, BigUint::from(9u64));
         assert_eq!(signer_input.input.memo.as_deref(), Some("memo"));
         assert!(signer_input.input.is_max_value);
         assert_eq!(signer_input.fee.fee, BigInt::from(1));

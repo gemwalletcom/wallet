@@ -1,4 +1,6 @@
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
+use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -12,7 +14,8 @@ pub struct UTXO {
     pub address: String,
     pub tx_hash: String,
     pub index: i32,
-    pub value: String,
+    #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
+    pub value: BigUint,
 }
 
 impl From<UTXO> for primitives::UTXO {

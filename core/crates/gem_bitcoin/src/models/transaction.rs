@@ -1,6 +1,6 @@
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
-use serde_serializers::deserialize_biguint_from_str;
+use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
 
 use super::UInt64;
 
@@ -36,7 +36,8 @@ impl BitcoinTransactionBroadcastError {
 pub struct BitcoinUTXO {
     pub txid: String,
     pub vout: i32,
-    pub value: String,
+    #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
+    pub value: BigUint,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

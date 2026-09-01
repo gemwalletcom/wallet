@@ -25,7 +25,7 @@ pub fn stake_messages(input: &SignerInput, chain: CosmosChain) -> Result<Vec<Cos
     let delegator_address = &input.sender_address;
     let amount = Coin {
         denom: chain.denom().as_ref().to_string(),
-        amount: input.value.parse().map_err(|_| SignerError::invalid_input("invalid cosmos amount"))?,
+        amount: input.value.clone(),
     };
 
     match stake_type {

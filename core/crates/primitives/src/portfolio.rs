@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
@@ -65,7 +66,8 @@ pub struct PerpetualPortfolio {
 #[serde(rename_all = "camelCase")]
 pub struct PortfolioAsset {
     pub asset_id: AssetId,
-    pub value: String,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint", deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
+    pub value: BigUint,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

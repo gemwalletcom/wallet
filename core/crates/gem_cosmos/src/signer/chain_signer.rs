@@ -114,7 +114,7 @@ impl CosmosChainSigner {
     }
 
     fn sign_send(chain: CosmosChain, input: &SignerInput, denom: &str, private_key: &[u8]) -> Result<String, SignerError> {
-        let amount = input.value.parse().map_err(|_| SignerError::invalid_input("invalid cosmos amount"))?;
+        let amount = input.value.clone();
         let message = transaction::transfer_message(input, denom, amount);
         let gas_limit = Self::gas_limit(input, 1)?;
         let fee_amount = input.fee.fee.to_biguint().ok_or_else(|| SignerError::invalid_input("invalid cosmos fee"))?;
@@ -206,7 +206,7 @@ mod tests {
                 input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Thorchain)),
                 sender_address: "thor1z53wwe7md6cewz9sqwqzn0aavpaun0gw0exn2r".to_string(),
                 destination_address: "thor1e2ryt8asq4gu0h6z2sx9u7rfrykgxwkmr9upxn".to_string(),
-                value: "38000000".to_string(),
+                value: BigUint::from(38000000u64),
                 gas_price: GasPriceType::regular(fee_amount.clone()),
                 memo: None,
                 is_max_value: false,
@@ -242,7 +242,7 @@ mod tests {
                 input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Injective)),
                 sender_address: "inj13u6g7vqgw074mgmf2ze2cadzvkz9snlwcrtq8a".to_string(),
                 destination_address: "inj1xmpkmxr4as00em23tc2zgmuyy2gr4h3wgcl6vd".to_string(),
-                value: "10000000000".to_string(),
+                value: BigUint::from(10000000000u64),
                 gas_price: GasPriceType::regular(fee_amount.clone()),
                 memo: None,
                 is_max_value: false,

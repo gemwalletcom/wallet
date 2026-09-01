@@ -30,6 +30,7 @@ impl PolkadotChainSigner {
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigUint;
     use primitives::{Asset, AssetId, Chain, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadMetadata};
 
     use super::*;
@@ -55,7 +56,7 @@ mod tests {
                 input_type: TransactionInputType::Transfer(Asset::from_chain(Chain::Polkadot)),
                 sender_address: ADDRESS.to_string(),
                 destination_address: ADDRESS.to_string(),
-                value: "10000".to_string(),
+                value: BigUint::from(10000u64),
                 gas_price: GasPriceType::regular(10),
                 memo: None,
                 is_max_value: false,

@@ -157,6 +157,7 @@ mod tests {
         METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, SYSTEM_PROGRAM_ID, SYSVAR_INSTRUCTIONS_ID, TOKEN_PROGRAM,
         signer::{SolanaChainSigner, testkit::*},
     };
+    use num_bigint::BigUint;
     use primitives::contract_constants::SOLANA_METAPLEX_AUTH_RULES_PROGRAM_ID;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{
@@ -207,7 +208,7 @@ mod tests {
             input_type: TransactionInputType::TransferNft(Asset::from_chain(Chain::Solana), nft_asset),
             sender_address: sender_address(),
             destination_address: TEST_RECIPIENT.to_string(),
-            value: "1".to_string(),
+            value: BigUint::from(1u64),
             gas_price: GasPriceType::regular(0),
             memo: None,
             is_max_value: false,

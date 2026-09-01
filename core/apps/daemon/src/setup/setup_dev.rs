@@ -3,6 +3,7 @@ use super::database::run_migrations;
 use super::production::setup_database;
 use chrono::Utc;
 use gem_tracing::info_with_fields;
+use num_bigint::BigUint;
 use primitives::currency::Currency;
 use primitives::{
     Asset, AssetAssociation, AssetAssociationType, AssetId, AssetType, Chain, ChartTimeframe, DeviceLocale, FiatProviderName, FiatQuoteType, FiatTransaction,
@@ -208,7 +209,7 @@ fn setup_dev_fiat_transactions(database: &Database, device_id: i32, wallet_id: i
             country: Some("US".to_string()),
             fiat_amount: 150.0,
             fiat_currency: "USD".to_string(),
-            value: "75000000000000000".to_string(),
+            value: BigUint::from(75000000000000000u64),
             transaction_hash: None,
             created_at: now,
             updated_at: now,
@@ -226,7 +227,7 @@ fn setup_dev_fiat_transactions(database: &Database, device_id: i32, wallet_id: i
             provider_transaction_id: Some("setup-dev-mercuryo-complete".to_string()),
             status: FiatTransactionStatus::Complete,
             fiat_amount: 320.5,
-            value: "160000000000000000".to_string(),
+            value: BigUint::from(160000000000000000u64),
             transaction_hash: Some("0xsetupdevcomplete".to_string()),
             ..mock()
         },
@@ -238,7 +239,7 @@ fn setup_dev_fiat_transactions(database: &Database, device_id: i32, wallet_id: i
             provider_transaction_id: Some("setup-dev-transak-failed".to_string()),
             status: FiatTransactionStatus::Failed,
             fiat_amount: 95.25,
-            value: "500000000".to_string(),
+            value: BigUint::from(500000000u64),
             ..mock()
         },
     ];

@@ -22,6 +22,7 @@ pub(in crate::signer) fn native_transfer(input: &SignerInput, sender: Pubkey) ->
 #[cfg(test)]
 mod tests {
     use crate::signer::{SolanaChainSigner, testkit::*};
+    use num_bigint::BigUint;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{Asset, AssetId, Chain, ChainSigner, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput};
     use solana_primitives::{
@@ -46,7 +47,7 @@ mod tests {
             input_type: TransactionInputType::Transfer(Asset::mock_sol()),
             sender_address: sender_address(),
             destination_address: TEST_RECIPIENT.to_string(),
-            value: "42".to_string(),
+            value: BigUint::from(42u64),
             gas_price: GasPriceType::solana(5_000u64, 0u64, 2u64),
             memo: Some("HelloSolanaMemo".to_string()),
             is_max_value: false,
@@ -93,7 +94,7 @@ mod tests {
             input_type: TransactionInputType::Transfer(Asset::mock_sol()),
             sender_address: sender_address_for_key(&private_key),
             destination_address: TEST_RECIPIENT.to_string(),
-            value: "42".to_string(),
+            value: BigUint::from(42u64),
             gas_price: GasPriceType::regular(0),
             memo: None,
             is_max_value: false,
@@ -113,7 +114,7 @@ mod tests {
             input_type: TransactionInputType::Transfer(Asset::mock_sol()),
             sender_address: sender_address(),
             destination_address: TEST_RECIPIENT.to_string(),
-            value: "42".to_string(),
+            value: BigUint::from(42u64),
             gas_price: GasPriceType::regular(0),
             memo: None,
             is_max_value: false,

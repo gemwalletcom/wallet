@@ -1,7 +1,10 @@
+use crate::DatabaseError;
 use chrono::{NaiveDateTime, TimeZone, Utc};
 use diesel::prelude::*;
+use num_bigint::BigUint;
 use primitives::rewards::{RewardRedemption, RewardRedemptionOption};
 use primitives::{Asset, RewardEvent};
+use std::str::FromStr;
 
 use crate::sql_types::{AssetId, IpUsageType, Platform, PlatformStore, RedemptionStatus, RewardEventType, RewardRedemptionType, RewardStatus};
 
@@ -160,15 +163,15 @@ pub struct RewardRedemptionOptionRow {
 }
 
 impl RewardRedemptionOptionRow {
-    pub fn as_primitive(&self, asset: Option<Asset>) -> RewardRedemptionOption {
-        RewardRedemptionOption {
+    pub fn as_primitive(&self, asset: Option<Asset>) -> Result<RewardRedemptionOption, DatabaseError> {
+        Ok(RewardRedemptionOption {
             id: self.id.clone(),
             redemption_type: *self.redemption_type,
             points: self.points,
             asset,
-            value: self.value.clone(),
+            value: BigUint::from_str(&self.value).map_err(|error| DatabaseError::Error(format!("Redemption option {} has an invalid value: {error}", self.id)))?,
             remaining: self.remaining,
-        }
+        })
     }
 }
 
@@ -185,7 +188,7 @@ impl RedemptionOptionFull {
         Self { option, asset }
     }
 
-    pub fn as_primitive(&self) -> RewardRedemptionOption {
+    pub fn as_primitive(&self) -> Result<RewardRedemptionOption, DatabaseError> {
         self.option.as_primitive(self.asset.as_ref().map(|a| a.as_primitive()))
     }
 }

@@ -1,4 +1,6 @@
+use num_bigint::BigUint;
 use std::error::Error;
+use std::str::FromStr;
 
 use primitives::{AssetId, Chain, DefiPosition, DefiPositionAsset, DefiPositionMetadata, DefiPositionType, DefiProtocol, DefiProvider};
 
@@ -65,7 +67,7 @@ fn map_position_asset(attributes: &ZerionPositionAttributes, chain: Chain) -> Re
 
     Ok(DefiPositionAsset {
         asset_id,
-        value: attributes.quantity.int.clone(),
+        value: BigUint::from_str(&attributes.quantity.int)?,
     })
 }
 
@@ -102,6 +104,7 @@ fn is_native_address(address: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use num_bigint::BigUint;
     use primitives::{AssetId, Chain, DefiPositionType, DefiProvider};
 
     use super::{ZerionPositionsResponse, map_positions, position_id};
@@ -125,7 +128,7 @@ mod tests {
             positions[0].assets[0].asset_id,
             AssetId::from_token(Chain::Polygon, "0x0391d2021f89dc339f60fff84546ea23e337750f")
         );
-        assert_eq!(positions[0].assets[0].value, "123456780000000000000");
+        assert_eq!(positions[0].assets[0].value, BigUint::parse_bytes(b"123456780000000000000", 10).unwrap());
     }
 
     #[test]

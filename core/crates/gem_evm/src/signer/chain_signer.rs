@@ -35,7 +35,7 @@ impl EvmSigner for StandardEvmSigner {
     fn sign_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         let params = TransactionParams::from_input(input)?;
         sign_and_encode(
-            &build_eip1559_transaction(&params, &input.destination_address, value_u256(&input.value)?, Bytes::new())?,
+            &build_eip1559_transaction(&params, &input.destination_address, value_u256(&input.value.to_string())?, Bytes::new())?,
             private_key,
         )
     }
@@ -62,7 +62,7 @@ impl ChainSigner for EvmChainSigner {
     fn sign_token_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         let params = TransactionParams::from_input(input)?;
         let token_id = input.input_type.get_asset().id.get_token_id()?;
-        let data = encode_erc20_transfer(&input.destination_address, &input.value_as_bigint()?)?;
+        let data = encode_erc20_transfer(&input.destination_address, &input.value_as_bigint())?;
         sign_and_encode(&build_eip1559_transaction(&params, token_id, U256::ZERO, Bytes::from(data))?, private_key)
     }
 
@@ -97,7 +97,7 @@ impl ChainSigner for EvmChainSigner {
                 let params = TransactionParams::from_input(input)?;
                 if from_asset.id.is_token() {
                     let token_id = from_asset.id.get_token_id()?;
-                    let amount = input.value_as_bigint()?;
+                    let amount = input.value_as_bigint();
                     let data = encode_erc20_transfer(&swap_data.to, &amount)?;
                     Ok(vec![sign_and_encode(
                         &build_eip1559_transaction(&params, token_id, U256::ZERO, Bytes::from(data))?,
@@ -132,7 +132,7 @@ impl ChainSigner for EvmChainSigner {
         let stake_type = input.input_type.get_stake_type()?;
         let contract_call = input.metadata.get_contract_call()?;
         let value = match stake_type {
-            StakeType::Stake(_) => value_u256(&input.value)?,
+            StakeType::Stake(_) => value_u256(&input.value.to_string())?,
             _ => U256::ZERO,
         };
         sign_contract_call(
@@ -152,7 +152,12 @@ impl ChainSigner for EvmChainSigner {
         let gas_limit = extra.gas_limit.as_ref().and_then(|gl| gl.to_string().parse().ok()).unwrap_or(base.gas_limit);
         let params = TransactionParams { gas_limit, ..base };
         sign_and_encode(
-            &build_eip1559_transaction(&params, &extra.to, value_u256(&input.value)?, Bytes::from(extra.data.clone().unwrap_or_default()))?,
+            &build_eip1559_transaction(
+                &params,
+                &extra.to,
+                value_u256(&input.value.to_string())?,
+                Bytes::from(extra.data.clone().unwrap_or_default()),
+            )?,
             private_key,
         )
     }

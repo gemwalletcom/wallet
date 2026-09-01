@@ -92,7 +92,7 @@ impl EvmTransferProvider {
         let tx = create_transfer_tx(
             &asset.id,
             &request.recipient_address,
-            &value,
+            &value.to_string(),
             nonce,
             chain_id,
             max_fee_per_gas,

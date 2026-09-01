@@ -266,6 +266,7 @@ mod chain_integration_tests {
     use gem_client::ReqwestClient;
     use gem_jsonrpc::JsonRpcClient;
     use num_bigint::BigInt;
+    use num_bigint::BigUint;
     use primitives::{EVMChain, TransactionPreloadInput, known_assets::TEMPO_PATHUSD};
 
     #[tokio::test]
@@ -293,7 +294,7 @@ mod chain_integration_tests {
                 input_type,
                 sender_address: TEMPO_TEST_ADDRESS.to_string(),
                 destination_address: TEMPO_TEST_ADDRESS.to_string(),
-                value: "1000".to_string(),
+                value: BigUint::from(1_000u64),
                 gas_price: fee_rates[0].gas_price_type.clone(),
                 memo: None,
                 is_max_value: false,

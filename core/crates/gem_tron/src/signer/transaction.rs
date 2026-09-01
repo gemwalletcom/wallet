@@ -115,7 +115,7 @@ fn build_token_transfer(input: &SignerInput, owner: TronAddress, destination: &s
     let contract = TronContract::TriggerSmart {
         owner,
         contract: TronAddress::parse(token_id)?,
-        data: trc20::encode_transfer(&destination, &input.value).map_err(SignerError::invalid_input)?,
+        data: trc20::encode_transfer(&destination, &input.value.to_string()).map_err(SignerError::invalid_input)?,
         call_value: None,
         call_token_value: None,
         token_id: None,

@@ -137,6 +137,7 @@ fn get_recipient_jetton_wallet(input: &TransactionPreloadInput) -> Option<&str> 
 mod tests {
     use super::*;
     use num_bigint::BigInt;
+    use num_bigint::BigUint;
     use primitives::{Asset, AssetId, AssetType, Chain, GasPriceType, NFTAsset, SwapProvider, TransactionPreloadInput, swap::SwapData};
 
     fn create_input(asset_type: AssetType, memo: Option<String>) -> TransactionLoadInput {
@@ -159,7 +160,7 @@ mod tests {
             }),
             sender_address: "test".to_string(),
             destination_address: "test".to_string(),
-            value: "1000".to_string(),
+            value: BigUint::from(1000u64),
             gas_price: GasPriceType::regular(BigInt::from(10_000_000u64)),
             memo,
             is_max_value: false,
@@ -232,7 +233,7 @@ mod tests {
         let swap_data = SwapData::mock_contract(SwapProvider::StonfiV2, "400000000", "1000000", "710000000");
         let input = TransactionLoadInput {
             input_type: TransactionInputType::Swap(Asset::from_chain(Chain::Ton), Asset::from_chain(Chain::Ton), swap_data),
-            value: "400000000".to_string(),
+            value: BigUint::from(400000000u64),
             ..create_input(AssetType::NATIVE, None)
         };
 
@@ -248,7 +249,7 @@ mod tests {
         let swap_data = SwapData::mock_contract(SwapProvider::StonfiV2, "2000000", "400000000", "300000000");
         let input = TransactionLoadInput {
             input_type: TransactionInputType::Swap(from_asset, Asset::from_chain(Chain::Ton), swap_data),
-            value: "2000000".to_string(),
+            value: BigUint::from(2000000u64),
             ..create_input(AssetType::JETTON, None)
         };
 
@@ -263,7 +264,7 @@ mod tests {
         let swap_data = SwapData::mock_transfer(SwapProvider::NearIntents, "400000000", "1000000", "ton_deposit_address");
         let input = TransactionLoadInput {
             input_type: TransactionInputType::Swap(Asset::from_chain(Chain::Ton), Asset::from_chain(Chain::Near), swap_data),
-            value: "400000000".to_string(),
+            value: BigUint::from(400000000u64),
             ..create_input(AssetType::NATIVE, None)
         };
 
@@ -278,7 +279,7 @@ mod tests {
         let swap_data = SwapData::mock_transfer(SwapProvider::NearIntents, "2000000", "400000000", "ton_deposit_address");
         let input = TransactionLoadInput {
             input_type: TransactionInputType::Swap(Asset::mock_ton_usdt(), Asset::from_chain(Chain::Near), swap_data),
-            value: "2000000".to_string(),
+            value: BigUint::from(2000000u64),
             ..create_input(AssetType::JETTON, None)
         };
 

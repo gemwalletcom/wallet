@@ -6,6 +6,7 @@ use crate::transaction_fee::TransactionFee;
 use crate::transaction_load_metadata::TransactionLoadMetadata;
 use crate::{ApplicationMetadata, Asset, AssetId, GasPriceType, PerpetualType, SignerError, TransactionType, TransferDataExtra, nft::NFTAsset, perpetual::AccountDataType};
 use num_bigint::BigInt;
+use num_bigint::BigUint;
 use num_traits::ToPrimitive;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -158,7 +159,8 @@ pub struct TransactionLoadInput {
     pub input_type: TransactionInputType,
     pub sender_address: String,
     pub destination_address: String,
-    pub value: String,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint", deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
+    pub value: BigUint,
     pub gas_price: GasPriceType,
     pub memo: Option<String>,
     pub is_max_value: bool,
@@ -187,11 +189,11 @@ impl TransactionLoadInput {
     }
 
     pub fn value_as_u64(&self) -> Result<u64, SignerError> {
-        self.value.parse::<u64>().map_err(|_| SignerError::invalid_input("invalid transaction amount"))
+        self.value.to_u64().ok_or_else(|| SignerError::invalid_input("transaction amount is too large"))
     }
 
-    pub fn value_as_bigint(&self) -> Result<BigInt, SignerError> {
-        BigInt::from_str(&self.value).map_err(|_| SignerError::invalid_input("invalid transaction amount"))
+    pub fn value_as_bigint(&self) -> BigInt {
+        BigInt::from(self.value.clone())
     }
 }
 
@@ -350,7 +352,7 @@ mod tests {
             input_type: TransactionInputType::Transfer(Asset::mock()),
             sender_address: "sender".to_string(),
             destination_address: "destination".to_string(),
-            value: "123".to_string(),
+            value: BigUint::from(123u32),
             gas_price: GasPriceType::regular(1u64),
             memo: None,
             is_max_value: false,
@@ -359,7 +361,7 @@ mod tests {
 
         assert_eq!(input.value_as_u64().unwrap(), 123);
 
-        input.value = "1.23".to_string();
-        assert_eq!(input.value_as_u64().unwrap_err().to_string(), "Invalid input: invalid transaction amount");
+        input.value = BigUint::from(u64::MAX) + BigUint::from(1u32);
+        assert_eq!(input.value_as_u64().unwrap_err().to_string(), "Invalid input: transaction amount is too large");
     }
 }

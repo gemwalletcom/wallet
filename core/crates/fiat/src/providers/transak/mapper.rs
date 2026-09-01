@@ -188,6 +188,7 @@ fn map_payment_type(payment_id: &str) -> Option<PaymentType> {
 mod tests {
     use super::*;
     use crate::providers::transak::models::{AssetNetwork, Data, FiatCurrency, Response, TransakOrderResponse};
+    use num_bigint::BigUint;
     use primitives::{Asset as PrimitiveAsset, Chain, FiatAssetSymbol, FiatProvider, FiatQuote, FiatTransactionStatus, FiatTransactionUpdate, PaymentType};
 
     #[test]
@@ -239,7 +240,7 @@ mod tests {
                 fiat_amount: 100.0,
                 fiat_currency: "USD".to_string(),
                 crypto_amount: 0.03,
-                value: "30000000000000000".to_string(),
+                value: BigUint::from(30_000_000_000_000_000u64),
                 latency: 0,
                 payment_methods: vec![],
             },

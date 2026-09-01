@@ -1,3 +1,4 @@
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
 
@@ -54,5 +55,6 @@ pub struct DefiProtocol {
 #[serde(rename_all = "camelCase")]
 pub struct DefiPositionAsset {
     pub asset_id: AssetId,
-    pub value: String,
+    #[serde(serialize_with = "serde_serializers::serialize_biguint", deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
+    pub value: BigUint,
 }

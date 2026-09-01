@@ -38,6 +38,7 @@ pub(in crate::signer) fn stake(input: &SignerInput, sender: Pubkey) -> Result<Ve
 mod tests {
     use super::*;
     use crate::signer::{SolanaChainSigner, testkit::*};
+    use num_bigint::BigUint;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{
         Asset, Chain, ChainSigner, Delegation, DelegationValidator, GasPriceType, SignerInput, StakeType, TransactionFee, TransactionInputType, TransactionLoadInput,
@@ -60,7 +61,7 @@ mod tests {
             input_type: TransactionInputType::Stake(Asset::mock_sol(), stake_type),
             sender_address: sender_address_for_key(private_key),
             destination_address: String::new(),
-            value: value.to_string(),
+            value: value.parse().unwrap(),
             gas_price: GasPriceType::regular(0),
             memo: None,
             is_max_value: false,
@@ -87,7 +88,7 @@ mod tests {
             input_type: TransactionInputType::Stake(Asset::mock_sol(), StakeType::Stake(validator)),
             sender_address: sender_address(),
             destination_address: String::new(),
-            value: "42".to_string(),
+            value: BigUint::from(42u64),
             gas_price: GasPriceType::regular(0),
             memo: Some("stake memo".to_string()),
             is_max_value: false,
@@ -125,7 +126,7 @@ mod tests {
             input_type: TransactionInputType::Stake(Asset::mock_sol(), StakeType::Unstake(delegation.clone())),
             sender_address: sender_address(),
             destination_address: String::new(),
-            value: "0".to_string(),
+            value: BigUint::from(0u64),
             gas_price: GasPriceType::regular(0),
             memo: None,
             is_max_value: false,
@@ -142,7 +143,7 @@ mod tests {
             input_type: TransactionInputType::Stake(Asset::mock_sol(), StakeType::Withdraw(delegation)),
             sender_address: sender_address(),
             destination_address: String::new(),
-            value: "55".to_string(),
+            value: BigUint::from(55u64),
             gas_price: GasPriceType::regular(0),
             memo: None,
             is_max_value: false,

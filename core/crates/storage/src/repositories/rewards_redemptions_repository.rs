@@ -44,7 +44,7 @@ impl RewardsRedemptionsRepository for DatabaseClient {
             },
         )?;
 
-        let option = redemption_option.as_primitive();
+        let option = redemption_option.as_primitive()?;
         let redemption_row = RewardsRedemptionsStore::get_redemption(self, redemption_id).or_not_found_internal(redemption_id.to_string())?;
         Ok(redemption_row.as_primitive(option))
     }
@@ -59,11 +59,11 @@ impl RewardsRedemptionsRepository for DatabaseClient {
 
     fn get_redemption_options(&mut self, types: &[RewardRedemptionType]) -> Result<Vec<RewardRedemptionOption>, DatabaseError> {
         let results = RewardsRedemptionsStore::get_redemption_options(self, types)?;
-        Ok(results.into_iter().map(|r| r.as_primitive()).collect())
+        results.into_iter().map(|r| r.as_primitive()).collect()
     }
 
     fn get_redemption_option(&mut self, id: &str) -> Result<RewardRedemptionOption, DatabaseError> {
-        Ok(RewardsRedemptionsStore::get_redemption_option(self, id).or_not_found(id.to_string())?.as_primitive())
+        RewardsRedemptionsStore::get_redemption_option(self, id).or_not_found(id.to_string())?.as_primitive()
     }
 
     fn count_redemptions_since(&mut self, username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError> {

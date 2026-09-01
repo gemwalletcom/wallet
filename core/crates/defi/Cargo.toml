@@ -4,6 +4,7 @@ edition = { workspace = true }
 version = { workspace = true }
 
 [dependencies]
+num-bigint = { workspace = true }
 async-trait = { workspace = true }
 base64 = { workspace = true }
 futures = { workspace = true }
