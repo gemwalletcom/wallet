@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Assets
-import Components
 import Primitives
 import PrimitivesComponents
 import QRScanner
@@ -43,35 +42,16 @@ struct ScanReceiveNavigationStack: View {
                     .pickerStyle(.segmented)
                     .fixedSize()
                 }
-                if model.showFilter {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        FilterButton(
-                            isActive: model.isFilterActive,
-                            action: model.onSelectFilter,
-                        )
-                    }
-                }
             }
             .onChange(of: model.selectAssetModel.assetSelection, model.onChangeAssetSelection)
         }
         .id(model.mode)
-        .sheet(item: $model.isPresentingSheet) { type in
-            @Bindable var selectAssetModel = model.selectAssetModel
-            switch type {
-            case .filter:
-                NavigationStack {
-                    AssetsFilterScene(model: $selectAssetModel.filterModel)
-                }
-                .presentationDetentsForCurrentDeviceSize(expandable: true)
-                .presentationDragIndicator(.visible)
-                .presentationBackground(Colors.grayBackground)
-            case let .receive(input):
-                SelectedAssetNavigationStack(
-                    input: input,
-                    wallet: model.selectAssetModel.wallet,
-                    onComplete: model.onCompleteReceive,
-                )
-            }
+        .sheet(item: $model.isPresentingReceive) { input in
+            SelectedAssetNavigationStack(
+                input: input,
+                wallet: model.selectAssetModel.wallet,
+                onComplete: model.onCompleteReceive,
+            )
         }
         .recentAssetsSheet(model: model.selectAssetModel.recentModel, onSelect: model.selectAssetModel.onSelectRecent)
     }

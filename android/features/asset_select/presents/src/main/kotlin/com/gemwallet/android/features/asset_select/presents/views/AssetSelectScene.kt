@@ -142,6 +142,7 @@ fun AssetSelectScene(
     availableChains: List<Chain> = emptyList(),
     chainsFilter: List<Chain> = emptyList(),
     balanceFilter: Boolean = false,
+    showFilter: Boolean = true,
     searchable: Boolean = true,
     onAction: (AssetSelectAction) -> Unit,
     closeIcon: Boolean = false,
@@ -194,7 +195,7 @@ fun AssetSelectScene(
     Scene(
         titleContent = title,
         actions = {
-            if (availableChains.isNotEmpty()) {
+            if (showFilter && availableChains.isNotEmpty()) {
                 IconButton(onClick = { showSelectNetworks = !showSelectNetworks }) {
                     Icon(
                         imageVector = AppIcons.FilterAlt,

@@ -32,6 +32,7 @@ fun AssetSelectScreen(
     itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)? = null,
     itemSupport: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)? = null,
     onAddAsset: (() -> Unit)? = null,
+    showFilter: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {},
     viewModel: BaseAssetSelectViewModel,
     recentsViewModel: RecentsSheetViewModel = hiltViewModel(),
@@ -83,6 +84,7 @@ fun AssetSelectScreen(
         availableChains = availableChains,
         chainsFilter = chainsFilter,
         balanceFilter = balanceFilter,
+        showFilter = showFilter,
         onAction = { action ->
             when (action) {
                 is AssetSelectAction.ChainFilter -> viewModel.onChainFilter(action.chain)

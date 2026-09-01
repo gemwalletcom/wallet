@@ -67,6 +67,7 @@ fun ScanReceiveModal(
                     },
                     titleContent = { ScanReceiveSwitcher(mode = mode, onModeChange = { mode = it }) },
                     closeIcon = true,
+                    showFilter = false,
                 )
             }
         }

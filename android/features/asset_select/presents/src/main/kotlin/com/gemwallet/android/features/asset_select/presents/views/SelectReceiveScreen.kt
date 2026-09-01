@@ -20,6 +20,7 @@ fun SelectReceiveScreen(
     onSelect: ((AssetId) -> Unit)?,
     titleContent: (@Composable () -> Unit)? = null,
     closeIcon: Boolean = false,
+    showFilter: Boolean = true,
     viewModel: AssetSelectViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -28,6 +29,7 @@ fun SelectReceiveScreen(
         title = stringResource(id = R.string.wallet_receive),
         titleContent = titleContent,
         closeIcon = closeIcon,
+        showFilter = showFilter,
         titleBadge = ::getAssetBadge,
         recentType = RecentType.Receive,
         onSelectRecent = onSelect,
