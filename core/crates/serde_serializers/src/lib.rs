@@ -10,7 +10,7 @@ pub mod biguint;
 #[cfg(feature = "bigint")]
 pub use biguint::{
     biguint_from_hex_str, deserialize_biguint_from_hex_str, deserialize_biguint_from_option_hex_str, deserialize_biguint_from_str, deserialize_option_biguint_from_str,
-    serialize_biguint, serialize_biguint_to_hex_str,
+    serialize_biguint, serialize_biguint_to_hex_str, serialize_option_biguint,
 };
 pub mod display;
 pub use display::serialize_display;

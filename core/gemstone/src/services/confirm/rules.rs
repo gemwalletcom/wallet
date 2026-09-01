@@ -89,6 +89,13 @@ impl GemTransactionInputType {
     }
 }
 
+pub fn approval_value_from(value: &Option<GemBigUint>, is_unlimited: bool) -> GemApprovalValue {
+    match value {
+        Some(value) if !is_unlimited => GemApprovalValue::Exact { value: value.clone() },
+        _ => GemApprovalValue::Unlimited,
+    }
+}
+
 pub fn gem_approval_value(value: &str, is_unlimited: bool) -> GemApprovalValue {
     if is_unlimited {
         return GemApprovalValue::Unlimited;

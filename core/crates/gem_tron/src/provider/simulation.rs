@@ -1,3 +1,4 @@
+use num_bigint::BigUint;
 use std::error::Error;
 
 use async_trait::async_trait;
@@ -52,7 +53,7 @@ impl<C: Client> ChainSimulation for TronProvider<C> {
             payload,
             header: call_value.map(|value| SimulationHeader {
                 asset_id: AssetId::from_chain(Chain::Tron),
-                value: value.to_string(),
+                value: Some(BigUint::from(value)),
                 is_unlimited: false,
             }),
         })
@@ -79,7 +80,7 @@ mod tests {
             result.header,
             Some(SimulationHeader {
                 asset_id: AssetId::from_chain(Chain::Tron),
-                value: "27334102".to_string(),
+                value: Some(BigUint::from(27_334_102u32)),
                 is_unlimited: false,
             })
         );
@@ -103,7 +104,7 @@ mod tests {
             result.header,
             Some(SimulationHeader {
                 asset_id: AssetId::from_chain(Chain::Tron),
-                value: "1000000".to_string(),
+                value: Some(BigUint::from(1_000_000u32)),
                 is_unlimited: false,
             })
         );

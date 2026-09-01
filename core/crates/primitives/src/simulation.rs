@@ -190,13 +190,17 @@ pub struct SimulationPayloadField {
 #[serde(rename_all = "camelCase")]
 pub struct SimulationHeader {
     pub asset_id: AssetId,
-    pub value: String,
+    #[serde(
+        serialize_with = "serde_serializers::serialize_option_biguint",
+        deserialize_with = "serde_serializers::deserialize_option_biguint_from_str"
+    )]
+    pub value: Option<BigUint>,
     pub is_unlimited: bool,
 }
 
 impl SimulationHeader {
     fn has_valid_value(&self) -> bool {
-        self.is_unlimited || self.value.parse::<BigUint>().is_ok()
+        self.is_unlimited || self.value.is_some()
     }
 }
 
@@ -316,7 +320,7 @@ pub fn promote_single_secondary_payload_field(payload: Vec<SimulationPayloadFiel
 
 #[cfg(test)]
 mod tests {
-    use num_bigint::BigInt;
+    use num_bigint::{BigInt, BigUint};
 
     use super::{
         SimulationBalanceChange, SimulationHeader, SimulationInput, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType,
@@ -347,7 +351,7 @@ mod tests {
             ],
             header: Some(SimulationHeader {
                 asset_id: header.clone(),
-                value: "2".to_string(),
+                value: Some(BigUint::from(2u32)),
                 is_unlimited: false,
             }),
             ..SimulationResult::default()
@@ -359,18 +363,18 @@ mod tests {
 
     #[test]
     fn test_valid_header_requires_a_readable_value() {
-        let simulation = |value: &str, is_unlimited: bool| SimulationResult {
+        let simulation = |value: Option<BigUint>, is_unlimited: bool| SimulationResult {
             header: Some(SimulationHeader {
                 asset_id: AssetId::from_chain(Chain::Ethereum),
-                value: value.to_string(),
+                value,
                 is_unlimited,
             }),
             ..SimulationResult::default()
         };
 
-        assert!(simulation("1000", false).valid_header().is_some());
-        assert!(simulation("", true).valid_header().is_some());
-        assert!(simulation("not a number", false).valid_header().is_none());
+        assert!(simulation(Some(BigUint::from(1000u32)), false).valid_header().is_some());
+        assert!(simulation(None, true).valid_header().is_some());
+        assert!(simulation(None, false).valid_header().is_none());
         assert!(SimulationResult::default().valid_header().is_none());
     }
 

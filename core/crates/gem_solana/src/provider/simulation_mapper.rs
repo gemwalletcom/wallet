@@ -42,7 +42,7 @@ fn outgoing_token_header(balance_changes: &[SimulationBalanceChange]) -> Option<
 
     Some(SimulationHeader {
         asset_id: change.asset_id.clone(),
-        value: value.to_string(),
+        value: value.to_biguint(),
         is_unlimited: false,
     })
 }
@@ -117,6 +117,7 @@ fn signer_asset_values(account_keys: &[String], signer_addresses: &HashSet<Strin
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_bigint::BigUint;
     use primitives::asset_constants::{SOLANA_USDC_ASSET_ID, SOLANA_USDC_TOKEN_ID};
     use primitives::{SimulationSeverity, SimulationWarningType};
 
@@ -161,7 +162,7 @@ mod tests {
             result.header,
             Some(SimulationHeader {
                 asset_id: SOLANA_USDC_ASSET_ID.clone(),
-                value: "19000000".to_string(),
+                value: Some(BigUint::from(19_000_000u32)),
                 is_unlimited: false,
             })
         );

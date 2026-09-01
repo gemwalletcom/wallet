@@ -276,7 +276,11 @@ impl GemPendingTransactionInput {
                     GemTransactionInputType::Swap { swap_data, .. } => swap_data.data.to.clone(),
                     _ => transfer.recipient.address.clone(),
                 };
-                let value = simulation_header.as_ref().map(|header| header.value.clone()).unwrap_or_else(|| self.value.to_string());
+                let value = simulation_header
+                    .as_ref()
+                    .and_then(|header| header.value.as_ref())
+                    .map(ToString::to_string)
+                    .unwrap_or_else(|| self.value.to_string());
                 let memo = match &transfer.input_type {
                     GemTransactionInputType::Swap { .. } => String::new(),
                     _ => transfer.recipient.memo.clone().unwrap_or_default(),
@@ -691,7 +695,7 @@ mod tests {
             payload: vec![],
             header: Some(primitives::SimulationHeader {
                 asset_id: AssetId::from(Chain::Solana, Some("usdc".into())),
-                value: "19000000".to_string(),
+                value: Some(num_bigint::BigUint::from(19_000_000u32)),
                 is_unlimited: false,
             }),
         });

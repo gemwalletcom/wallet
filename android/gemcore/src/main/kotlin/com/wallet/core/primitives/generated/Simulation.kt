@@ -19,7 +19,7 @@ data class SimulationBalanceChange (
 @Serializable
 data class SimulationHeader (
 	val assetId: AssetId,
-	val value: String,
+	val value: String? = null,
 	val isUnlimited: Boolean
 )
 
