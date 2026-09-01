@@ -5,6 +5,7 @@ import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
 import com.gemwallet.android.application.confirm.cases.ConfirmTransaction
 import com.gemwallet.android.application.confirm.cases.GetFeeAssets
 import uniffi.gemstone.GemConfirmServiceInterface
+import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemTransactionSigner
 import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.data.coordinators.confirm.BuildConfirmPropertiesImpl
@@ -42,15 +43,11 @@ object ConfirmModule {
     @Provides
     @Singleton
     fun provideConfirmTransaction(
-        signer: GemTransactionSigner,
-        confirmService: GemConfirmServiceInterface,
+        confirmService: GemConfirmTransferService,
         createTransactionsCase: CreateTransaction,
-        recentAssetsService: RecentAssetsService,
     ): ConfirmTransaction = ConfirmTransactionImpl(
-        signer,
         confirmService,
         createTransactionsCase,
-        recentAssetsService,
     )
 
     @Provides

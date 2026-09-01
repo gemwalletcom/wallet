@@ -18,9 +18,9 @@ impl GemRecentActivityService {
         Self { store }
     }
 
-    pub fn record(&self, input_type: GemTransactionInputType, wallet_id: WalletId) -> Result<(), GemServiceError> {
+    pub async fn record(&self, input_type: GemTransactionInputType, wallet_id: WalletId) -> Result<(), GemServiceError> {
         match input_type.recent_activity() {
-            Some(activity) => self.store.add(activity, wallet_id),
+            Some(activity) => self.store.add(activity, wallet_id).await,
             None => Ok(()),
         }
     }
@@ -28,6 +28,7 @@ impl GemRecentActivityService {
 
 #[cfg(test)]
 mod tests {
+    use async_trait::async_trait;
     use std::sync::Mutex;
 
     use primitives::{Asset, Chain, StakeType};
@@ -40,8 +41,9 @@ mod tests {
         added: Mutex<Vec<GemRecentActivity>>,
     }
 
+    #[async_trait]
     impl GemRecentActivityStore for RecordingStore {
-        fn add(&self, activity: GemRecentActivity, _wallet_id: WalletId) -> Result<(), GemServiceError> {
+        async fn add(&self, activity: GemRecentActivity, _wallet_id: WalletId) -> Result<(), GemServiceError> {
             self.added.lock().unwrap().push(activity);
             Ok(())
         }
@@ -54,18 +56,17 @@ mod tests {
         let asset = Asset::from_chain(Chain::Ethereum);
         let wallet_id = WalletId::Multicoin("address".to_string());
 
-        service.record(GemTransactionInputType::Transfer { asset: asset.clone() }, wallet_id.clone()).unwrap();
+        futures::executor::block_on(service.record(GemTransactionInputType::Transfer { asset: asset.clone() }, wallet_id.clone())).unwrap();
         assert_eq!(store.added.lock().unwrap().len(), 1);
 
-        service
-            .record(
-                GemTransactionInputType::Stake {
-                    asset,
-                    stake_type: StakeType::Rewards(vec![]),
-                },
-                wallet_id,
-            )
-            .unwrap();
+        futures::executor::block_on(service.record(
+            GemTransactionInputType::Stake {
+                asset,
+                stake_type: StakeType::Rewards(vec![]),
+            },
+            wallet_id,
+        ))
+        .unwrap();
         assert_eq!(store.added.lock().unwrap().len(), 1);
     }
 }

@@ -14,7 +14,7 @@ public final class GemstoneRecentActivityStore: GemRecentActivityStore, @uncheck
         self.service = service
     }
 
-    public func add(activity: GemRecentActivity, walletId: Gemstone.WalletId) throws {
+    public func add(activity: GemRecentActivity, walletId: Gemstone.WalletId) async throws {
         try service.add(RecentActivityData(activity), walletId: Primitives.WalletId.from(id: walletId))
     }
 }
