@@ -7,7 +7,5 @@ import com.wallet.core.primitives.Currency
 interface SearchTokens {
     suspend fun search(query: String, currency: Currency, chains: List<Chain> = emptyList()): Boolean
 
-    suspend fun search(assetId: AssetId, currency: Currency): Boolean
-
     suspend fun search(assetIds: List<AssetId>, currency: Currency): Boolean
 }

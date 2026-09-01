@@ -9,7 +9,6 @@ import com.gemwallet.android.data.coordinators.add_asset.AddCustomTokenImpl
 import com.gemwallet.android.data.coordinators.add_asset.GetAvailableTokenChainsImpl
 import com.gemwallet.android.data.coordinators.add_asset.ObserveTokenImpl
 import com.gemwallet.android.data.coordinators.add_asset.SearchCustomTokenImpl
-import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.application.session.cases.GetSession
 import dagger.Module
 import dagger.Provides
@@ -18,7 +17,7 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
-import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import uniffi.gemstone.GemAssetsService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -35,9 +34,8 @@ object AddAssetModule {
     @Provides
     @Singleton
     fun provideSearchCustomToken(
-        getCurrentCurrency: GetCurrentCurrency,
-        searchTokensCase: SearchTokens,
-    ): SearchCustomToken = SearchCustomTokenImpl(getCurrentCurrency, searchTokensCase)
+        assetsService: GemAssetsService,
+    ): SearchCustomToken = SearchCustomTokenImpl(assetsService)
 
     @Provides
     @Singleton
