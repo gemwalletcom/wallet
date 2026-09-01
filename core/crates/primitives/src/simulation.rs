@@ -117,7 +117,8 @@ impl SimulationWarning {
 #[serde(rename_all = "camelCase")]
 pub struct SimulationBalanceChange {
     pub asset_id: AssetId,
-    pub value: String,
+    #[serde(serialize_with = "serde_serializers::serialize_bigint", deserialize_with = "serde_serializers::deserialize_bigint_from_str")]
+    pub value: BigInt,
     pub decimals: i32,
     pub name: Option<String>,
     pub symbol: Option<String>,
@@ -127,7 +128,7 @@ impl SimulationBalanceChange {
     pub fn new(asset_id: AssetId, value: BigInt) -> Self {
         Self {
             asset_id,
-            value: value.to_string(),
+            value,
             decimals: 0,
             name: None,
             symbol: None,
@@ -336,14 +337,14 @@ mod tests {
             balance_changes: vec![
                 SimulationBalanceChange {
                     asset_id: changed.clone(),
-                    value: "1".to_string(),
+                    value: BigInt::from(1i64),
                     name: None,
                     symbol: None,
                     decimals: 0,
                 },
                 SimulationBalanceChange {
                     asset_id: changed.clone(),
-                    value: "2".to_string(),
+                    value: BigInt::from(2i64),
                     name: None,
                     symbol: None,
                     decimals: 0,

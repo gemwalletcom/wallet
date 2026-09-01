@@ -40,6 +40,7 @@ impl<C: Client> ChainSimulation for TonClient<C> {
 mod tests {
     use super::*;
     use gem_client::testkit::MockClient;
+    use num_bigint::BigInt;
     use primitives::{AssetId, Chain, asset_constants::TON_DUST_TOKEN_ID};
     use serde_json::Value;
 
@@ -63,9 +64,9 @@ mod tests {
         assert!(result.warnings.is_empty());
         assert_eq!(result.balance_changes.len(), 2);
         assert_eq!(result.balance_changes[0].asset_id, AssetId::from_chain(Chain::Ton));
-        assert_eq!(result.balance_changes[0].value, "-1014643500");
+        assert_eq!(result.balance_changes[0].value, BigInt::from(-1014643500i64));
         assert_eq!(result.balance_changes[1].asset_id, AssetId::from_token(Chain::Ton, TON_DUST_TOKEN_ID));
-        assert_eq!(result.balance_changes[1].value, "2228076648");
+        assert_eq!(result.balance_changes[1].value, BigInt::from(2228076648i64));
     }
 
     #[tokio::test]

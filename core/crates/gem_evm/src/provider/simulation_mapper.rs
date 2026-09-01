@@ -89,7 +89,7 @@ mod tests {
             result.balance_changes,
             vec![SimulationBalanceChange {
                 asset_id: AssetId::from_chain(Chain::Ethereum),
-                value: "-10000000000000000".to_string(),
+                value: BigInt::from(-10000000000000000i64),
                 decimals: 0,
                 name: None,
                 symbol: None,
@@ -117,7 +117,7 @@ mod tests {
             map_simulation_result(Chain::Ethereum, TEST_ADDRESS, &trace).balance_changes,
             vec![SimulationBalanceChange {
                 asset_id: AssetId::from_token(Chain::Ethereum, ETHEREUM_USDC_TOKEN_ID),
-                value: "-1000000".to_string(),
+                value: BigInt::from(-1000000i64),
                 decimals: 0,
                 name: None,
                 symbol: None,
@@ -163,7 +163,7 @@ mod tests {
             map_simulation_result(Chain::Ethereum, TEST_ADDRESS, &trace).balance_changes,
             vec![SimulationBalanceChange {
                 asset_id: AssetId::from_token(Chain::Ethereum, ETHEREUM_USDC_TOKEN_ID),
-                value: "-1000000".to_string(),
+                value: BigInt::from(-1000000i64),
                 decimals: 0,
                 name: None,
                 symbol: None,

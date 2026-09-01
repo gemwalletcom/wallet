@@ -57,6 +57,7 @@ mod chain_integration_tests {
     use super::*;
     use crate::provider::testkit::{TEST_ADDRESS, TEST_ADDRESS_EMPTY, create_sui_test_client};
     use crate::transfer_builder::build_transfer_message_bytes;
+    use num_bigint::BigInt;
     use primitives::AssetId;
 
     #[tokio::test]
@@ -72,7 +73,7 @@ mod chain_integration_tests {
             .iter()
             .find(|change| change.asset_id == AssetId::from_chain(Chain::Sui))
             .ok_or("missing sender SUI balance change")?;
-        assert!(change.value.starts_with('-'));
+        assert!(change.value < BigInt::ZERO);
         assert_eq!(change.symbol.as_deref(), Some("SUI"));
         Ok(())
     }

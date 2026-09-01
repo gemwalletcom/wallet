@@ -220,8 +220,10 @@ impl GemSimulationFormatter {
             .into_iter()
             .filter(|change| known.contains(&change.asset_id.to_string()))
             .filter_map(|change| {
-                let value = change.value.parse::<GemBigInt>().ok()?;
-                (value != GemBigInt::ZERO).then_some(GemSimulationChange { asset_id: change.asset_id, value })
+                (change.value != GemBigInt::ZERO).then_some(GemSimulationChange {
+                    asset_id: change.asset_id,
+                    value: change.value,
+                })
             })
             .collect()
     }
@@ -240,10 +242,10 @@ mod tests {
     use async_trait::async_trait;
     use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
 
-    fn balance_change(asset_id: &str, value: &str) -> primitives::SimulationBalanceChange {
+    fn balance_change(asset_id: &str, value: i64) -> primitives::SimulationBalanceChange {
         primitives::SimulationBalanceChange {
             asset_id: AssetId::new(asset_id).unwrap(),
-            value: value.to_string(),
+            value: GemBigInt::from(value),
             decimals: 18,
             name: None,
             symbol: None,
@@ -251,20 +253,19 @@ mod tests {
     }
 
     #[test]
-    fn test_balance_changes_drop_zero_unparseable_and_unknown_assets() {
+    fn test_balance_changes_drop_zero_and_unknown_assets() {
         let simulation = SimulationResult {
             warnings: vec![],
             balance_changes: vec![
-                balance_change("ethereum", "-1000"),
-                balance_change("ethereum_0xdac17f958d2ee523a2206206994597c13d831ec7", "2000"),
-                balance_change("solana", "0"),
-                balance_change("bitcoin", "not a number"),
-                balance_change("doge", "500"),
+                balance_change("ethereum", -1000),
+                balance_change("ethereum_0xdac17f958d2ee523a2206206994597c13d831ec7", 2000),
+                balance_change("solana", 0),
+                balance_change("doge", 500),
             ],
             payload: vec![],
             header: None,
         };
-        let known = ["ethereum", "ethereum_0xdac17f958d2ee523a2206206994597c13d831ec7", "solana", "bitcoin"]
+        let known = ["ethereum", "ethereum_0xdac17f958d2ee523a2206206994597c13d831ec7", "solana"]
             .into_iter()
             .map(|id| AssetId::new(id).unwrap())
             .collect();
