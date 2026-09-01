@@ -77,7 +77,7 @@ This is a crypto wallet. Treat security-sensitive changes as high risk by defaul
 - iOS widget localization source lives in `localization/widget/*.ftl`
 - Run `just localize` after editing localization source files
 - Generated outputs live under `ios/Packages/Localization/` and `android/ui/src/main/res/`
-- Do not edit generated iOS `.strings`, generated SwiftGen files, or Android `strings.xml` files by hand
+- Do not edit generated iOS `.xcstrings` catalogs, generated `Localized.swift`/`WidgetLocalized.swift`, or Android `strings.xml` files by hand
 - Backend/core localization is separate; see [core/CLAUDE.md](core/CLAUDE.md) before changing `core/crates/localizer/i18n`
 
 ## Task Completion

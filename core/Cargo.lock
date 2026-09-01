@@ -4173,6 +4173,7 @@ version = "2.114.11"
 dependencies = [
  "fluent-syntax",
  "primitives",
+ "serde_json",
 ]
 
 [[package]]

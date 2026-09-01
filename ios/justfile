@@ -29,8 +29,8 @@ install-toolchains:
     @cd ../core && just gemstone install-ios-targets
 
 install-swifttools:
-    @echo "==> Install SwiftGen and SwiftFormat"
-    @brew install swiftgen swiftformat
+    @echo "==> Install SwiftFormat"
+    @brew install swiftformat
 
 setup-git:
     @echo "==> Setup git submodules"
@@ -176,20 +176,15 @@ reset-simulator NAME=SIMULATOR_NAME:
     @xcrun simctl boot "{{NAME}}" 2>/dev/null || true
 
 localize:
-    @cd ../core && cargo run --package generate --bin generate localize ios ../localization/app ../ios/Packages/Localization/Sources/Resources
+    @cd ../core && cargo run --package generate --bin generate localize ios ../localization/app ../ios/Packages/Localization/Sources
     @cd ../core && cargo run --package generate --bin generate localize ios-plist ../localization/InfoPlist ../ios/Packages/Localization/Sources/Resources
-    @cd ../core && cargo run --package generate --bin generate localize ios ../localization/widget ../ios/Packages/Localization/WidgetSources/Resources
-    just generate-swiftgen
+    @cd ../core && cargo run --package generate --bin generate localize ios-widget ../localization/widget ../ios/Packages/Localization/WidgetSources
 
-generate: generate-models generate-swiftgen
+generate: generate-models
 
 generate-models:
     @echo "==> Generate typeshare for iOS"
     @cd ../core && cargo run --package generate --bin generate ios ../ios/Packages
-
-generate-swiftgen:
-    @echo "==> SwiftGen assets and Localizable.strings"
-    @swiftgen config run --quiet
 
 generate-stone BUILD_MODE="":
     @./scripts/generate-stone.sh --force {{BUILD_MODE}}

@@ -20,7 +20,7 @@ just bootstrap
 just spm-resolve
 ```
 
-`just bootstrap` installs the Rust toolchain pieces, typeshare, UniFFI targets, SwiftGen, and SwiftFormat needed by the iOS app. It also creates the local Gemstone UniFFI Swift/header sources and iOS Rust static libraries that SwiftPM and Xcode need.
+`just bootstrap` installs the Rust toolchain pieces, typeshare, UniFFI targets, and SwiftFormat needed by the iOS app. It also creates the local Gemstone UniFFI Swift/header sources and iOS Rust static libraries that SwiftPM and Xcode need.
 
 After checkout, the default repo-root workflow is `just generate-stone`, then `just run-ios`. The optional `GemStone` Xcode scheme combines cached Gemstone generation with the normal app build for people who prefer staying in Xcode.
 
