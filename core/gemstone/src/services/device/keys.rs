@@ -25,14 +25,18 @@ impl GemDeviceKeyService {
     }
 
     pub fn key_pair(&self) -> Result<GemDeviceKeyPair, GemServiceError> {
-        if let Some(key_pair) = self.cached.lock().expect("device keys lock").clone() {
-            return Ok(key_pair);
+        let mut cached = match self.cached.lock() {
+            Ok(cached) => cached,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        if let Some(key_pair) = cached.as_ref() {
+            return Ok(key_pair.clone());
         }
         let key_pair = match self.stored_private_key()? {
             Some(private_key) => self.key_pair_from(private_key)?,
             None => self.create()?,
         };
-        *self.cached.lock().expect("device keys lock") = Some(key_pair.clone());
+        *cached = Some(key_pair.clone());
         Ok(key_pair)
     }
 }
@@ -67,6 +71,10 @@ impl GemDeviceKeyService {
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
+    use std::sync::Barrier;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::thread;
+    use std::time::Duration;
 
     use super::*;
 
@@ -74,6 +82,8 @@ mod tests {
     struct MemoryStore {
         values: Mutex<HashMap<String, String>>,
         fails: bool,
+        missing_private_key_read_delay: Option<Duration>,
+        writes: AtomicUsize,
     }
 
     impl MemoryStore {
@@ -86,6 +96,13 @@ mod tests {
         fn failing() -> Self {
             Self { fails: true, ..Self::default() }
         }
+
+        fn delaying_missing_private_key_reads() -> Self {
+            Self {
+                missing_private_key_read_delay: Some(Duration::from_millis(25)),
+                ..Self::default()
+            }
+        }
     }
 
     impl GemSecureStore for MemoryStore {
@@ -93,10 +110,18 @@ mod tests {
             if self.fails {
                 return Err(GemServiceError::Core { msg: "unreadable".to_string() });
             }
-            Ok(self.values.lock().unwrap().get(&key).cloned())
+            let value = self.values.lock().unwrap().get(&key).cloned();
+            if key == DEVICE_PRIVATE_KEY
+                && value.is_none()
+                && let Some(delay) = self.missing_private_key_read_delay
+            {
+                thread::sleep(delay);
+            }
+            Ok(value)
         }
 
         fn set(&self, key: String, value: String) -> Result<(), GemServiceError> {
+            self.writes.fetch_add(1, Ordering::Relaxed);
             self.values.lock().unwrap().insert(key, value);
             Ok(())
         }
@@ -117,6 +142,37 @@ mod tests {
         assert_eq!(created.private_key, service.key_pair().unwrap().private_key);
         assert_eq!(store.values.lock().unwrap().get(DEVICE_PRIVATE_KEY), Some(&hex::encode(&created.private_key)));
         assert_eq!(GemDeviceKeyService::new(store).device_id().unwrap(), hex::encode(&created.public_key));
+    }
+
+    #[test]
+    fn test_concurrent_first_use_creates_one_identity() {
+        const CALLERS: usize = 8;
+
+        let store = Arc::new(MemoryStore::delaying_missing_private_key_reads());
+        let service = Arc::new(GemDeviceKeyService::new(store.clone()));
+        let barrier = Arc::new(Barrier::new(CALLERS));
+        let handles = (0..CALLERS)
+            .map(|_| {
+                let service = service.clone();
+                let barrier = barrier.clone();
+                thread::spawn(move || {
+                    barrier.wait();
+                    service.key_pair().unwrap()
+                })
+            })
+            .collect::<Vec<_>>();
+
+        let key_pairs = handles.into_iter().map(|handle| handle.join().unwrap()).collect::<Vec<_>>();
+        let first = &key_pairs[0];
+        assert!(
+            key_pairs
+                .iter()
+                .all(|key_pair| key_pair.private_key == first.private_key && key_pair.public_key == first.public_key)
+        );
+
+        let stored_private_key = store.values.lock().unwrap().get(DEVICE_PRIVATE_KEY).cloned();
+        assert!(stored_private_key.is_some_and(|value| value == hex::encode(&first.private_key)));
+        assert_eq!(store.writes.load(Ordering::Relaxed), 2);
     }
 
     #[test]
