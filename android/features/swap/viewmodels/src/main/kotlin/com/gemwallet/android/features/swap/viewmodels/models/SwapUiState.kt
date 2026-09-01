@@ -35,6 +35,7 @@ data class SwapItemInteraction(
 data class SwapUiState(
     val action: SwapActionState = SwapActionState.None,
     val buttonAction: GemSwapButtonAction = GemSwapButtonAction.Swap,
+    val hasQuote: Boolean = false,
     val isQuoteLoading: Boolean = false,
     val isTransferLoading: Boolean = false,
     val isInputEmpty: Boolean = true,
@@ -53,7 +54,7 @@ data class SwapUiState(
         get() = when {
             buttonAction is GemSwapButtonAction.InsufficientBalance -> ButtonState.Disabled
             isQuoteLoading || isTransferLoading -> ButtonState.Loading
-            buttonAction is GemSwapButtonAction.Swap && action != SwapActionState.Ready -> ButtonState.Disabled
+            buttonAction is GemSwapButtonAction.Swap && !hasQuote -> ButtonState.Disabled
             else -> ButtonState.Enabled
         }
 
@@ -86,6 +87,7 @@ internal fun createSwapUiState(session: SwapQuoteSession, buttonAction: GemSwapB
     return SwapUiState(
         action = action,
         buttonAction = buttonAction,
+        hasQuote = session.quote != null,
         isQuoteLoading = quotePhase is SwapQuotePhase.Loading,
         isTransferLoading = transferPhase is SwapTransferPhase.Loading,
         isInputEmpty = quotePhase is SwapQuotePhase.NoInput,

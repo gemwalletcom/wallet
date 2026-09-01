@@ -364,6 +364,45 @@ class SwapViewModelTest {
     }
 
     @Test
+    fun `a transfer failure Core cannot retry leaves the button tappable and retries the transfer`() = runTest(testDispatcher) {
+        val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
+
+        val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
+        every { getSession() } returns MutableStateFlow(
+            Session(wallet = wallet, currency = Currency.USD)
+        )
+        coEvery { buildSwapConfirmInput(any(), any(), any()) } throws SwapperException.InvalidRoute()
+
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+
+        seedReadyQuote(viewModel, quotesFlow)
+
+        viewModel.swap {}
+        awaitCondition { viewModel.uiState.value.action is SwapActionState.TransferError }
+
+        val state = viewModel.uiState.value
+        assertEquals(GemSwapButtonAction.Swap, state.buttonAction)
+        assertEquals(ButtonState.Enabled, state.buttonState)
+        assertEquals("2500000", viewModel.quote.value?.quote?.toValue)
+
+        clearMocks(buildSwapConfirmInput, answers = false)
+        val confirmInput = mockk<GemConfirmInput>(relaxed = true)
+        coEvery { buildSwapConfirmInput(any(), any(), any()) } returns confirmInput
+
+        var confirmed: GemConfirmInput? = null
+        viewModel.onPrimaryAction(
+            onConfirm = { confirmed = it },
+            onShowPriceImpactWarning = {},
+            authorize = { it() },
+        )
+        awaitCondition { confirmed != null }
+
+        assertEquals(confirmInput, confirmed)
+    }
+
+    @Test
     fun `quote changing actions clear transfer error state`() = runTest(testDispatcher) {
         val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
