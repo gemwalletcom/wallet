@@ -426,42 +426,39 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func load(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferData {
-        let feeAssets = try service.feeAssets(walletId: request.wallet.id.id, chain: request.data.chain.rawValue)
-        let preload = try await preload(request: request, selection: selection, feeAssetSelection: feeAssetSelection)
+        let scene = try await service.loadScene(
+            walletId: request.wallet.id.id,
+            input: try request.confirmInput(),
+            options: options(selection: selection, feeAssetSelection: feeAssetSelection),
+            simulation: request.simulation?.json(),
+        )
+        let preload = try ConfirmTransferPreload(scene.preload)
         return ConfirmTransferData(
             preload: preload,
-            simulation: await updatedSimulationState(data: request.data, simulation: request.simulation ?? preload.simulation),
-            feeAssets: feeAssets,
+            simulation: ConfirmSimulationState(
+                data: request.data,
+                simulation: request.simulation ?? preload.simulation,
+                state: scene.simulation,
+            ),
+            feeAssets: scene.feeAssets,
         )
     }
 
     func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferPreload {
-        let account = try request.wallet.account(for: request.data.chain)
-        let preload = try await service.preload(
-            walletId: request.wallet.id.id,
-            input: request.data.confirmInput(from: account),
-            options: GemConfirmLoadOptions(
-                feeSelection: selection.map(),
-                feeAssetId: feeAssetSelection.selectedAssetId?.identifier,
-            ),
-        )
-        let feeAsset = preload.feeAsset.map()
-        return try ConfirmTransferPreload(
-            metadata: preload.metadata,
-            input: ConfirmTransferInput(
-                confirmData: preload.confirmData,
-                fee: preload.confirmData.fee.map(),
-                transferAmount: preload.amount.map(),
-                feeAsset: feeAsset,
-            ),
-            feeRates: preload.confirmData.feeRates.map { try $0.map() },
-            simulation: preload.confirmData.simulation.map { try Primitives.SimulationResult($0) },
+        try ConfirmTransferPreload(
+            await service.preload(
+                walletId: request.wallet.id.id,
+                input: try request.confirmInput(),
+                options: options(selection: selection, feeAssetSelection: feeAssetSelection),
+            )
         )
     }
 
-    func updatedSimulationState(data: GemTransferData, simulation: Primitives.SimulationResult?) async -> ConfirmSimulationState {
-        let state = await service.simulationState(inputType: data.inputType, simulation: simulation?.json())
-        return ConfirmSimulationState(data: data, simulation: simulation, state: state)
+    private func options(selection: FeeSelection, feeAssetSelection: FeeAssetSelection) -> GemConfirmLoadOptions {
+        GemConfirmLoadOptions(
+            feeSelection: selection.map(),
+            feeAssetId: feeAssetSelection.selectedAssetId?.identifier,
+        )
     }
 
     func submit(request: ConfirmTransferRequest, confirmData: GemConfirmData, amount: TransferAmount, simulation: Primitives.SimulationResult?) async throws {

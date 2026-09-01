@@ -100,6 +100,13 @@ impl GemConfirmSimulation {
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
+pub struct GemConfirmSceneLoad {
+    pub fee_assets: Vec<GemFeeAsset>,
+    pub preload: GemConfirmPreload,
+    pub simulation: GemConfirmSimulationState,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmSimulationState {
     pub simulation: Option<GemConfirmSimulation>,
     pub address_names: Vec<AddressName>,

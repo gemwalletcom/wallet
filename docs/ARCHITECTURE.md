@@ -14,24 +14,25 @@ Everything else is platform work: rendering, navigation, observation, secure sto
 
 ```
 core/gemstone/src/services/<feature>/
-    mod.rs      the service: holds dependencies, orchestrates, exported over UniFFI
-    rules.rs    pure functions + their unit tests
-    model.rs    the records and enums that cross the FFI boundary
+    mod.rs      the service: owns the feature flow and exported UniFFI methods
+    rules.rs    pure functions and receiver methods + their unit tests
+    model.rs    feature records and enums; only FFI types derive UniFFI
     store.rs    the trait each app implements over its own database
-    error.rs    the feature's error enum
+    error.rs    structured feature errors when GemServiceError is insufficient
 ```
 
 Only the files the feature needs. A feature with no persistence has no `store.rs`.
 
-## 1. Rules are pure functions with a test that flips
+## 1. Rules are pure and have a test that flips
 
-A rule takes data and returns an answer. No I/O, no services, no clock.
-Pure does not mean publicly exported as a free function: keep reusable helpers private and shape
-the FFI-facing API according to § 6.
+A rule is a function or receiver method that takes values and returns an answer. It performs no
+I/O, holds no service dependency and does not read the clock. Pass time in as a value when it is
+part of the decision. Pure does not mean publicly exported: use the narrowest Rust visibility and
+shape the FFI-facing API according to § 6.
 
 ```rust
 // services/confirm/rules.rs
-pub fn selectable_fee_assets(assets: Vec<Asset>, balances: Vec<GemAssetBalance>, prices: Vec<GemAssetPrice>) -> Vec<GemFeeAsset> {
+pub(super) fn selectable_fee_assets(assets: Vec<Asset>, balances: Vec<GemAssetBalance>, prices: Vec<GemAssetPrice>) -> Vec<GemFeeAsset> {
     balances
         .into_iter()
         .filter(|balance| balance.available > num_bigint::BigUint::from(0u32))
@@ -64,9 +65,11 @@ fn test_a_fee_asset_with_no_available_balance_is_not_selectable() {
 
 **Verify the test actually flips.** Invert the rule, run the test, confirm it fails, restore. A test that passes both ways is worse than no test — it certifies nothing while looking like coverage.
 
-## 2. The service orchestrates; it holds services, never stores
+## 2. The service orchestrates; it owns its store and depends on services
 
-A service composes rules with I/O. Its dependencies are **other services**, not their stores — a store belongs to exactly one service, and reaching around that service is a second read path its owner cannot see.
+A service composes rules with I/O. It may hold its own feature store and narrow platform ports.
+For another domain, it depends on that domain's service, never its store — a store belongs to one
+owner, and reaching around that owner creates a second read path it cannot see.
 
 ```rust
 // services/confirm/mod.rs
@@ -93,7 +96,9 @@ impl GemConfirmService {
 }
 ```
 
-The method is thin: gather inputs, call the rule, return. If a service method has branching logic in it, that logic is a rule that has not moved to `rules.rs` yet.
+The method is thin: gather inputs, call the rule, return. Product or domain-decision branching
+belongs in `rules.rs`; I/O sequencing, error propagation and empty-work short circuits may remain
+in the service.
 
 **Point reads should be synchronous.** `GemWalletStore.get_wallet` is a sync trait method, so `GemWalletService` answers a session lookup without `await`. Do the same for any single-row read — an `async` point read pushes the caller back to the store, which is how the confirm screen ended up reading `AssetStore` directly for two years.
 
@@ -119,7 +124,7 @@ Two things this record gets right:
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemTransferAmountResult {
     Amount { amount: GemTransferAmount },
-    Error { error: GemTransferAmountError },
+    Error { error: GemTransferAmountError, asset: Asset },
 }
 ```
 
@@ -139,9 +144,11 @@ pub enum GemApprovalValue {
 - `amount` is for `f64`. `value` is for big integers. Do not mix them.
 - Full domain words: `transaction`, not `tx` — except where an external protocol field, database column or URL uses the short form verbatim.
 
-## 4. The store trait is the app's only obligation
+## 4. The store trait is the app's only persistence obligation
 
-Core declares what it needs; each app implements it over its own database. Nothing else about the app's storage crosses the boundary.
+Core declares what it needs; each app implements it over its own database. Nothing else about the
+app's storage crosses the boundary. Apps may also implement narrow foreign ports for OS-only
+capabilities such as secure storage, notifications and sockets.
 
 ```rust
 // services/<feature>/store.rs
@@ -153,7 +160,8 @@ pub trait GemPerpetualStore: Send + Sync {
 }
 ```
 
-An adapter writes rows and nothing more — **no rules, no entity mapping inline**. Mapping goes in a mapper file beside the adapter (`StoreModels.kt`, `nft/NftModels.kt`).
+An adapter maps reads and writes and nothing more — **no rules, no entity mapping inline**.
+Mapping goes in a mapper file beside the adapter (`StoreModels.kt`, `nft/NftModels.kt`).
 
 **Stores only write rows whose values differ.** A blanket write churns observers and hides real changes.
 
@@ -161,7 +169,8 @@ An adapter writes rows and nothing more — **no rules, no entity mapping inline
 
 ### iOS
 
-There is no app-side service wrapping a Core service. The view model holds Core services and calls them; each call is one line in, one mapping out.
+There is no app-side service wrapping a Core service. The view model holds its screen's Core
+service and calls it; each call is one line in, one mapping out.
 
 ```swift
 func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferPreload {

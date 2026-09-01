@@ -10,6 +10,7 @@ public import struct Gemstone.GemConfirmInput
 public import struct Gemstone.GemConfirmLoadOptions
 public import struct Gemstone.GemConfirmMetadata
 public import struct Gemstone.GemConfirmPreload
+public import struct Gemstone.GemConfirmSceneLoad
 public import struct Gemstone.GemConfirmSceneState
 public import struct Gemstone.GemConfirmSimulationState
 public import struct Gemstone.GemFeeAsset
@@ -73,6 +74,23 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
 
     public func preload(walletId: WalletId, input: GemConfirmInput, options: GemConfirmLoadOptions) async throws -> GemConfirmPreload {
         try await confirm.preload(walletId: walletId, input: input, options: options)
+    }
+
+    public func loadScene(
+        walletId: WalletId,
+        input: GemConfirmInput,
+        options: GemConfirmLoadOptions,
+        simulation: SimulationResult?,
+    ) async throws -> GemConfirmSceneLoad {
+        let preload = try await preload(walletId: walletId, input: input, options: options)
+        return GemConfirmSceneLoad(
+            feeAssets: try feeAssets(walletId: walletId, chain: input.transfer.inputType.chain.rawValue),
+            preload: preload,
+            simulation: await simulationState(
+                inputType: input.transfer.inputType,
+                simulation: simulation ?? preload.confirmData.simulation,
+            ),
+        )
     }
 
     public func execute(input: GemSendInput, signer: any GemTransactionSigner) async throws -> GemExecuteResult {

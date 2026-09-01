@@ -8,8 +8,8 @@ use crate::models::transaction::GemTransactionInputType;
 use crate::services::assets::config::GemAssetConfigService;
 use crate::services::confirm::rules::is_insufficient_network_fee;
 use crate::services::confirm::{
-    GemAcquireAssetFlow, GemConfirmError, GemConfirmInput, GemConfirmLoadOptions, GemConfirmMetadata, GemConfirmPreload, GemConfirmSceneState, GemConfirmService,
-    GemConfirmSimulationState, GemExecuteResult, GemFeeAsset, GemSendInput, GemTransactionSigner,
+    GemAcquireAssetFlow, GemConfirmError, GemConfirmInput, GemConfirmLoadOptions, GemConfirmMetadata, GemConfirmPreload, GemConfirmSceneLoad, GemConfirmSceneState,
+    GemConfirmService, GemConfirmSimulationState, GemExecuteResult, GemFeeAsset, GemSendInput, GemTransactionSigner,
 };
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
@@ -77,6 +77,24 @@ impl GemConfirmTransferService {
 
     pub async fn execute(&self, input: GemSendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {
         self.confirm.execute(input, signer).await
+    }
+
+    pub async fn load_scene(
+        &self,
+        wallet_id: WalletId,
+        input: GemConfirmInput,
+        options: GemConfirmLoadOptions,
+        simulation: Option<SimulationResult>,
+    ) -> Result<GemConfirmSceneLoad, GemConfirmError> {
+        let input_type = input.transfer.input_type.clone();
+        let fee_assets = self.fee_assets(wallet_id.clone(), input_type.transaction_asset().chain())?;
+        let preload = self.preload(wallet_id, input, options).await?;
+        let simulation = simulation.or_else(|| preload.confirm_data.simulation.clone());
+        Ok(GemConfirmSceneLoad {
+            fee_assets,
+            simulation: self.simulation_state(input_type, simulation).await,
+            preload,
+        })
     }
 
     pub async fn simulation_state(&self, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> GemConfirmSimulationState {

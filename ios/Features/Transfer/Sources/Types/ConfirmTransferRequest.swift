@@ -4,6 +4,7 @@ import Foundation
 import GemstonePrimitives
 import Primitives
 import WalletConnector
+import struct Gemstone.GemConfirmInput
 import struct Gemstone.GemTransferData
 
 public struct ConfirmTransferRequest: Sendable {
@@ -22,5 +23,11 @@ public struct ConfirmTransferRequest: Sendable {
         self.data = data
         self.simulation = simulation
         self.delegate = delegate
+    }
+}
+
+public extension ConfirmTransferRequest {
+    func confirmInput() throws -> GemConfirmInput {
+        data.confirmInput(from: try wallet.account(for: data.chain))
     }
 }
