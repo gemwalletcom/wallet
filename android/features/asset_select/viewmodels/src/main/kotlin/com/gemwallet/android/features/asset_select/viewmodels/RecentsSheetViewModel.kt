@@ -14,7 +14,7 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsShee
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.RecentAsset
 import com.gemwallet.android.model.RecentAssetsRequest
-import com.gemwallet.android.model.RecentType
+import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
@@ -63,7 +63,7 @@ class RecentsSheetViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, RecentsSheetUIModel.Empty)
 
-    fun show(filters: Set<AssetFilter> = emptySet(), types: List<RecentType> = RecentType.entries) {
+    fun show(filters: Set<AssetFilter> = emptySet(), types: List<RecentActivityType> = RecentActivityType.entries) {
         query.clearText()
         config.value = Config(filters, types)
     }
@@ -73,7 +73,7 @@ class RecentsSheetViewModel @Inject constructor(
     }
 
     fun onClear() {
-        val types = config.value?.types ?: RecentType.entries
+        val types = config.value?.types ?: RecentActivityType.entries
         viewModelScope.launch(Dispatchers.IO) { clearRecentAssets(types) }
     }
 
@@ -91,6 +91,6 @@ class RecentsSheetViewModel @Inject constructor(
 
     private data class Config(
         val filters: Set<AssetFilter>,
-        val types: List<RecentType>,
+        val types: List<RecentActivityType>,
     )
 }

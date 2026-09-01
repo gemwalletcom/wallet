@@ -8,7 +8,7 @@ import androidx.room.Index
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.model.RecentType
+import com.wallet.core.primitives.RecentActivityType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetAssociation
 import com.wallet.core.primitives.AssetBasic
@@ -115,7 +115,7 @@ data class DbRecentActivity(
     @ColumnInfo("asset_id") val assetId: String,
     @ColumnInfo("wallet_id") val walletId: String,
     @ColumnInfo("to_asset_id") val toAssetId: String? = null,
-    val type: RecentType,
+    val type: RecentActivityType,
     val addedAt: Long,
 )
 

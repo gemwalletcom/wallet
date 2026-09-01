@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.gemwallet.android.model.RecentType
+import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.features.asset_select.viewmodels.AssetSelectViewModel
@@ -31,7 +31,7 @@ fun SelectReceiveScreen(
         closeIcon = closeIcon,
         showFilter = showFilter,
         titleBadge = ::getAssetBadge,
-        recentType = RecentType.Receive,
+        recentType = RecentActivityType.Receive,
         onSelectRecent = onSelect,
         itemTrailing = {
             IconButton(

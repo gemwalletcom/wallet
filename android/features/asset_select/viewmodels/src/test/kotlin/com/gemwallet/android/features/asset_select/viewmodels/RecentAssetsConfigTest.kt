@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
+import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
 import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
 import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
@@ -61,7 +62,7 @@ class RecentAssetsConfigTest {
     @Test
     fun `request defaults to all types with no filters`() {
         val request = RecentAssetsRequest()
-        assertEquals(com.gemwallet.android.model.RecentType.entries, request.types)
+        assertEquals(com.wallet.core.primitives.RecentActivityType.entries, request.types)
         assertEquals(emptySet<AssetFilter>(), request.filters)
     }
 

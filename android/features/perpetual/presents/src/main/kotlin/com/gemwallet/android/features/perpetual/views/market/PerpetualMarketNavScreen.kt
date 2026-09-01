@@ -14,7 +14,7 @@ import com.gemwallet.android.features.asset_select.presents.views.RecentsSheetHo
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.gemwallet.android.features.perpetual.viewmodels.PerpetualMarketViewModel
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.model.RecentType
+import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 
@@ -67,7 +67,7 @@ fun PerpetualMarketNavScreen(
                     viewModel.onOpenPerpetual(action.assetId)
                 }
                 is PerpetualMarketAction.OpenRecent -> onOpenPerpetualDetails(action.assetId)
-                PerpetualMarketAction.OpenRecentsSheet -> recentsViewModel.show(types = listOf(RecentType.Perpetual))
+                PerpetualMarketAction.OpenRecentsSheet -> recentsViewModel.show(types = listOf(RecentActivityType.Perpetual))
             }
         },
     )

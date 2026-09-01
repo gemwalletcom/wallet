@@ -17,7 +17,7 @@ import com.gemwallet.android.data.service.store.database.entities.DbRecentActivi
 import com.gemwallet.android.data.service.store.database.entities.DbRecentAsset
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.NO_QUERY_LIMIT
-import com.gemwallet.android.model.RecentType
+import com.wallet.core.primitives.RecentActivityType
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.flow.Flow
 
@@ -380,7 +380,7 @@ interface AssetsDao {
         """)
     fun getRecentAssetsQuery(
         walletId: String,
-        type: List<RecentType>,
+        type: List<RecentActivityType>,
         buyable: Boolean,
         swappable: Boolean,
         hasBalance: Boolean,
@@ -390,7 +390,7 @@ interface AssetsDao {
 
     fun getRecentAssets(
         walletId: String,
-        type: List<RecentType>,
+        type: List<RecentActivityType>,
         filters: Set<AssetFilter> = emptySet(),
         limit: Int = 10,
     ): Flow<List<DbRecentAsset>> = getRecentAssetsQuery(
@@ -420,5 +420,5 @@ interface AssetsDao {
         WHERE wallet_id = :walletId
             AND type IN (:types)
     """)
-    suspend fun clearRecentAssets(walletId: String, types: List<RecentType>)
+    suspend fun clearRecentAssets(walletId: String, types: List<RecentActivityType>)
 }

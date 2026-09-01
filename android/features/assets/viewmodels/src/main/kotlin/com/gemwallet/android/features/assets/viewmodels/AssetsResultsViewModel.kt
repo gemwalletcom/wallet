@@ -29,7 +29,7 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectS
 import com.gemwallet.android.features.asset_select.viewmodels.models.ListSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
-import com.gemwallet.android.model.RecentType
+import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -151,7 +151,7 @@ class AssetsResultsViewModel @Inject constructor(
     }
 
     fun onOpenPerpetual(assetId: AssetId) {
-        updateRecent(assetId, RecentType.Perpetual)
+        updateRecent(assetId, RecentActivityType.Perpetual)
     }
 }
 

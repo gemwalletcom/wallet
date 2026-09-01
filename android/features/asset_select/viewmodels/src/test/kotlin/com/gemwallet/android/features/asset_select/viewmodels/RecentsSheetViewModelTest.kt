@@ -6,7 +6,7 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsEmpt
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.RecentAsset
-import com.gemwallet.android.model.RecentType
+import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.testkit.mockAsset
 import com.wallet.core.primitives.Chain
 import io.mockk.coVerify
@@ -90,7 +90,7 @@ class RecentsSheetViewModelTest {
     @Test
     fun `clear delegates to coordinator with current types`() = runTest(testDispatcher) {
         val vm = RecentsSheetViewModel(getRecentAssets, clearRecentAssets, GemAssetConfigService())
-        val types = listOf(RecentType.Swap)
+        val types = listOf(RecentActivityType.Swap)
         vm.show(types = types)
         advanceUntilIdle()
 

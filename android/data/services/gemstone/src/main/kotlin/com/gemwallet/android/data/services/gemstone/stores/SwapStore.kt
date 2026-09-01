@@ -4,7 +4,7 @@ import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.data.service.store.database.entities.DbAssetInfo
 import com.gemwallet.android.model.AssetFilter
-import com.gemwallet.android.model.RecentType
+import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.ext.toChain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
@@ -24,7 +24,7 @@ class GemstoneSwapStore(
     override suspend fun getRecentAssetIds(walletId: String): List<String> = withContext(Dispatchers.IO) {
         assetsDao.getRecentAssets(
             walletId = walletId,
-            type = listOf(RecentType.SwapSelect, RecentType.Swap),
+            type = listOf(RecentActivityType.SwapSelect, RecentActivityType.Swap),
             filters = setOf(AssetFilter.Swappable),
         ).firstOrNull().orEmpty().map { it.asset.id }
     }

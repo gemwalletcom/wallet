@@ -3,7 +3,7 @@ package com.gemwallet.android.features.asset_select.presents.views
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.gemwallet.android.model.RecentType
+import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.models.actions.CancelAction
@@ -20,7 +20,7 @@ fun SelectBuyScreen(
         title = stringResource(id = R.string.wallet_buy),
         titleBadge = { null },
         showPopular = true,
-        recentType = RecentType.Buy,
+        recentType = RecentActivityType.FiatBuy,
         itemTrailing = { getBalanceInfo(it)() },
         onSelect = onSelect,
         onSelectRecent = onSelect,

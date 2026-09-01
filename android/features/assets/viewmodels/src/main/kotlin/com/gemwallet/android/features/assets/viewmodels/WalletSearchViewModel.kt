@@ -23,7 +23,7 @@ import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectVie
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.gemwallet.android.model.RecentAssetsRequest
-import com.gemwallet.android.model.RecentType
+import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.NftItemUIModel
 import com.wallet.core.primitives.AssetId
@@ -100,7 +100,7 @@ class WalletSearchViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val perpetualRecentIds: StateFlow<Set<String>> =
-        getRecentAssets(RecentAssetsRequest(types = listOf(RecentType.Perpetual)))
+        getRecentAssets(RecentAssetsRequest(types = listOf(RecentActivityType.Perpetual)))
             .map { items -> items.mapTo(HashSet()) { it.asset.id.toIdentifier() } }
             .flowOn(Dispatchers.IO)
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
@@ -188,6 +188,6 @@ class WalletSearchViewModel @Inject constructor(
     }
 
     fun onOpenPerpetual(assetId: AssetId) {
-        updateRecent(assetId, RecentType.Perpetual)
+        updateRecent(assetId, RecentActivityType.Perpetual)
     }
 }

@@ -17,7 +17,7 @@ import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isTokenSupported
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.model.RecentType
+import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
@@ -245,13 +245,13 @@ open class BaseAssetSelectViewModel(
         null -> emptyList()
     }
 
-    fun updateRecent(assetId: AssetId, type: RecentType) = viewModelScope.launch(Dispatchers.IO) {
+    fun updateRecent(assetId: AssetId, type: RecentActivityType) = viewModelScope.launch(Dispatchers.IO) {
         updateRecentAsset(assetId, type)
     }
 
     open val showRecents: Boolean get() = true
 
-    open val recentTypes: List<RecentType> get() = RecentType.entries
+    open val recentTypes: List<RecentActivityType> get() = RecentActivityType.entries
 
     open fun assetFilters(): Set<AssetFilter> = emptySet()
 

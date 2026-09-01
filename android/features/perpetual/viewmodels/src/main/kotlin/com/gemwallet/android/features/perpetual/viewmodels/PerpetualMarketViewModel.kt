@@ -15,7 +15,7 @@ import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.RecentAssetsRequest
-import com.gemwallet.android.model.RecentType
+import com.wallet.core.primitives.RecentActivityType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
@@ -71,7 +71,7 @@ class PerpetualMarketViewModel @Inject constructor(
     val balance = getBalance.getDisplayBalance()
         .stateIn(viewModelScope, SharingStarted.Eagerly, EmptyPerpetualBalance)
     val recent: StateFlow<List<Asset>> =
-        getRecentAssets(RecentAssetsRequest(types = listOf(RecentType.Perpetual)))
+        getRecentAssets(RecentAssetsRequest(types = listOf(RecentActivityType.Perpetual)))
             .map { items -> items.map { it.asset } }
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -112,7 +112,7 @@ class PerpetualMarketViewModel @Inject constructor(
 
     fun onOpenPerpetual(assetId: AssetId) {
         viewModelScope.launch(Dispatchers.IO) {
-            updateRecentAsset(assetId, RecentType.Perpetual)
+            updateRecentAsset(assetId, RecentActivityType.Perpetual)
         }
     }
 }

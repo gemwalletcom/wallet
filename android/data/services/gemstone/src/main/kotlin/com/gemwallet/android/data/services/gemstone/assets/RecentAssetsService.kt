@@ -7,7 +7,7 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.RecentAsset
 import com.gemwallet.android.model.RecentAssetsRequest
-import com.gemwallet.android.model.RecentType
+import com.wallet.core.primitives.RecentActivityType
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,7 +27,7 @@ class RecentAssetsService @Inject constructor(
     suspend fun addRecentActivity(
         assetId: AssetId,
         walletId: String,
-        type: RecentType,
+        type: RecentActivityType,
         toAssetId: AssetId? = null,
     ) {
         return assetsDao.addRecentActivity(
@@ -52,7 +52,7 @@ class RecentAssetsService @Inject constructor(
             }
     }
 
-    suspend fun clearRecentAssets(walletId: WalletId, types: List<RecentType>) {
+    suspend fun clearRecentAssets(walletId: WalletId, types: List<RecentActivityType>) {
         assetsDao.clearRecentAssets(walletId.id, types)
     }
 }
