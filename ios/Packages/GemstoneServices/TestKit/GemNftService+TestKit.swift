@@ -2,9 +2,11 @@
 
 import Foundation
 import class Gemstone.GemDeviceApiClient
+import class Gemstone.GemDeviceKeyService
 import class Gemstone.GemNftService
 import protocol Gemstone.GemNftServiceProtocol
 import NativeProviderService
+import GemstonePrimitivesTestKit
 import GemstoneServices
 import Primitives
 import PrimitivesTestKit
@@ -17,7 +19,7 @@ public extension GemNftService {
             api: GemDeviceApiClient(
                 provider: NativeProvider(url: Constants.apiURL),
                 baseUrl: Constants.apiURL.absoluteString,
-                devicePrivateKey: Data(),
+                deviceKey: GemDeviceKeyService(store: GemSecureStoreMock()),
             ),
             store: GemstoneNftStore(store: nftStore),
         )

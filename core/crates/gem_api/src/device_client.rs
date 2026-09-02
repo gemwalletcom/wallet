@@ -23,26 +23,29 @@ pub trait WalletRequestPreflight: Send + Sync + std::fmt::Debug {
     async fn prepare(&self) -> Result<(), ClientError>;
 }
 
+pub trait DeviceKey: Send + Sync + std::fmt::Debug {
+    fn private_key(&self) -> Result<Vec<u8>, ClientError>;
+}
+
 /// Signs `/v2/devices/*` requests with the device Ed25519 key.
 ///
-/// The key is passed in once at construction and is expected to stay in memory for
-/// the life of the client. It is a device-scoped credential, unrelated to wallet keys
-/// or recovery material, and is held this way deliberately so signing does not read
-/// secure storage on every request.
+/// The key is read when a request is signed, so building the client never reaches secure
+/// storage. It is a device-scoped credential, unrelated to wallet keys or recovery material,
+/// and its source caches it after the first read.
 #[derive(Debug, Clone)]
 pub struct GemDeviceApiClient<E: RpcClientError> {
     base_url: String,
     provider: Arc<dyn RpcProvider<Error = E>>,
-    device_private_key: Vec<u8>,
+    device_key: Arc<dyn DeviceKey>,
     preflight: std::sync::OnceLock<Arc<dyn WalletRequestPreflight>>,
 }
 
 impl<E: RpcClientError> GemDeviceApiClient<E> {
-    pub fn new(base_url: String, provider: Arc<dyn RpcProvider<Error = E>>, device_private_key: Vec<u8>) -> Self {
+    pub fn new(base_url: String, provider: Arc<dyn RpcProvider<Error = E>>, device_key: Arc<dyn DeviceKey>) -> Self {
         Self {
             base_url,
             provider,
-            device_private_key,
+            device_key,
             preflight: std::sync::OnceLock::new(),
         }
     }
@@ -254,7 +257,7 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
             .map_err(|error| ClientError::Serialization(error.to_string()))?
             .as_millis() as u64;
 
-        let header = build_device_auth_header(&self.device_private_key, target.method().as_ref(), signed_path, target.wallet_id(), body, timestamp_ms)
+        let header = build_device_auth_header(&self.device_key.private_key()?, target.method().as_ref(), signed_path, target.wallet_id(), body, timestamp_ms)
             .map_err(|error| ClientError::Serialization(error.to_string()))?;
 
         Ok(HashMap::from([("Authorization".to_string(), header)]))

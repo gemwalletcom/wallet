@@ -4,6 +4,7 @@ import Foundation
 import class Gemstone.GemAvatarService
 import class Gemstone.GemChainService
 import class Gemstone.GemDeviceApiClient
+import class Gemstone.GemDeviceKeyService
 import class Gemstone.GemNameService
 import class Gemstone.GemOnboardingService
 import class Gemstone.GemPreferencesService
@@ -27,7 +28,7 @@ public extension GemOnboardingService {
         let gemWalletStore = GemstoneWalletStore(store: walletStore)
         let session = GemWalletSessionService(store: sessionStore, wallets: gemWalletStore)
         let provider = NativeProvider(url: Constants.apiURL)
-        let api = GemDeviceApiClient(provider: provider, baseUrl: Constants.apiURL.absoluteString, devicePrivateKey: Data())
+        let api = GemDeviceApiClient(provider: provider, baseUrl: Constants.apiURL.absoluteString, deviceKey: GemDeviceKeyService(store: GemSecureStoreMock()))
         return GemOnboardingService(
             wallets: GemWalletService(
                 keystore: keystore.gemKeystore,

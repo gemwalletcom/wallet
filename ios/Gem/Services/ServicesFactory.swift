@@ -37,13 +37,7 @@ struct ServicesFactory {
         let nodeService = GemNodeService(store: GemstoneNodeStore(store: storeManager.nodeStore), preferences: preferencesStore)
         let nativeProvider = NativeProvider(nodeProvider: nodeService)
         let deviceKeyService = Gemstone.GemDeviceKeyService(store: GemstoneSecurePreferencesStore(namespace: "gateway"))
-        let devicePrivateKey: Data
-        do {
-            devicePrivateKey = try deviceKeyService.keyPair().privateKey
-        } catch {
-            fatalError("device key initialization error: \(error)")
-        }
-        let deviceRegistrationClient = Self.makeDeviceApiClient(provider: nativeProvider, devicePrivateKey: devicePrivateKey)
+        let deviceRegistrationClient = Self.makeDeviceApiClient(provider: nativeProvider, deviceKey: deviceKeyService)
 
         let gemstoneWalletStore = GemstoneWalletStore(store: storeManager.walletStore)
         let walletPreferencesService = Gemstone.GemWalletPreferencesService(store: GemstoneWalletPreferencesStore())
@@ -54,7 +48,7 @@ struct ServicesFactory {
             platform: MainActor.assumeIsolated { GemstoneDevicePlatform(preferencesService: preferencesService, deviceKeyService: deviceKeyService, securePreferences: securePreferences) },
             preferences: preferencesService,
         )
-        let deviceApiClient = Self.makeDeviceApiClient(provider: nativeProvider, devicePrivateKey: devicePrivateKey)
+        let deviceApiClient = Self.makeDeviceApiClient(provider: nativeProvider, deviceKey: deviceKeyService)
         deviceApiClient.setDeviceSyncPreflight(device: deviceService)
 
         let nodeProvider: any NodeURLProvidable = nodeService
@@ -96,7 +90,7 @@ struct ServicesFactory {
         let scanService = Gemstone.GemScanService(
             api: Self.makeDeviceApiClient(
                 provider: NativeProvider(session: URLSession(configuration: scanConfiguration), url: Constants.apiURL),
-                devicePrivateKey: devicePrivateKey,
+                deviceKey: deviceKeyService,
             ),
         )
         let paymentLinkService = GemPaymentLinkService(provider: nativeProvider)
@@ -278,7 +272,7 @@ struct ServicesFactory {
                 api: deviceApiClient,
                 keystore: storages.keystore.gemKeystore,
                 password: GemstoneKeystorePassword(keystore: storages.keystore),
-                devicePrivateKey: devicePrivateKey,
+                deviceKey: deviceKeyService,
             ),
             balance: balanceService
         )
@@ -468,12 +462,12 @@ struct ServicesFactory {
 extension ServicesFactory {
     private static func makeDeviceApiClient(
         provider: NativeProvider,
-        devicePrivateKey: Data,
+        deviceKey: Gemstone.GemDeviceKeyService,
     ) -> Gemstone.GemDeviceApiClient {
         return Gemstone.GemDeviceApiClient(
             provider: provider,
             baseUrl: Constants.apiURL.absoluteString,
-            devicePrivateKey: devicePrivateKey,
+            deviceKey: deviceKey,
         )
     }
 

@@ -256,7 +256,7 @@ public final class GemManageContactServiceMock: GemManageContactServiceProtocol,
                 api: GemDeviceApiClient(
                     provider: StubAlienProvider(),
                     baseUrl: "https://localhost",
-                    devicePrivateKey: Data(),
+                    deviceKey: GemDeviceKeyService(store: GemSecureStoreMock()),
                 ),
                 store: GemAddressStoreMock(),
             ),

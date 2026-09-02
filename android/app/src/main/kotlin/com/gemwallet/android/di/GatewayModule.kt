@@ -119,7 +119,7 @@ object GatewayModule {
     ): GemstoneDeviceApiClient = GemstoneDeviceApiClient(
         alienProvider,
         Constants.API_URL,
-        deviceKeyService.keyPair().privateKey,
+        deviceKeyService,
     )
 
     @Provides
@@ -131,7 +131,7 @@ object GatewayModule {
     ): GemstoneDeviceApiClient = GemstoneDeviceApiClient(
         alienProvider,
         Constants.API_URL,
-        deviceKeyService.keyPair().privateKey,
+        deviceKeyService,
     ).apply { setDeviceSyncPreflight(deviceService.get()) }
 
 
@@ -147,7 +147,7 @@ object GatewayModule {
         apiClient,
         keystore,
         GemstoneKeystorePassword(passwordStore),
-        deviceKeyService.keyPair().privateKey,
+        deviceKeyService,
     )
 
 
@@ -252,7 +252,7 @@ object GatewayModule {
                     .build(),
             ),
             Constants.API_URL,
-            deviceKeyService.keyPair().privateKey,
+            deviceKeyService,
         )
     )
 
