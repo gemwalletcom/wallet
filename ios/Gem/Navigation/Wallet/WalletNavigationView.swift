@@ -169,13 +169,9 @@ struct WalletNavigationView: View {
         .navigationDestination(for: Scenes.Price.self) {
             ChartScene(
                 model: ChartSceneViewModel(
-                    explorerService: explorerService,
                     service: chartService,
-                    priceService: priceService,
                     assetModel: AssetViewModel(asset: $0.asset),
-                    priceAlertService: priceAlertService,
                     walletId: model.wallet.id,
-                    preferencesService: preferencesService,
                     onSetPriceAlert: model.presentPriceAlert,
                 ),
             )

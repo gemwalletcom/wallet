@@ -115,13 +115,9 @@ struct SettingsNavigationView: View {
         .navigationDestination(for: Scenes.Price.self) { scene in
             ChartScene(
                 model: ChartSceneViewModel(
-                    explorerService: explorerService,
                     service: chartService,
-                    priceService: priceService,
                     assetModel: AssetViewModel(asset: scene.asset),
-                    priceAlertService: priceAlertService,
                     walletId: walletId,
-                    preferencesService: preferencesService,
                     onSetPriceAlert: { _ in },
                 ),
             )

@@ -19,6 +19,8 @@ import java.util.concurrent.TimeUnit
 import uniffi.gemstone.Config
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemChartService
+import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemConfigService
 import uniffi.gemstone.GemAuthService
 import uniffi.gemstone.GemBalanceService
@@ -229,7 +231,13 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemChartService(apiClient: GemstoneApiClient, priceService: GemPriceService): GemChartService = GemChartService(apiClient, priceService)
+    fun provideGemChartService(
+        apiClient: GemstoneApiClient,
+        priceService: GemPriceService,
+        preferencesService: GemPreferencesService,
+        priceAlertService: GemPriceAlertService,
+        explorerService: GemExplorerService,
+    ): GemChartService = GemChartService(apiClient, priceService, preferencesService, priceAlertService, explorerService)
 
     @Provides
     @Singleton

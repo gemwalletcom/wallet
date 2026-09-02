@@ -65,7 +65,6 @@ struct ServicesFactory {
             api: apiClient,
             store: GemstonePriceStore(priceStore: storeManager.priceStore, fiatRateStore: storeManager.fiatRateStore),
         )
-        let chartService = Gemstone.GemChartService(api: apiClient, price: priceService)
         let gemstoneAssetStore = GemstoneAssetStore(assetStore: storeManager.assetStore, balanceStore: storeManager.balanceStore)
         let gemstoneFileStore = GemstoneFileStore()
         let gemstoneAddressStore = GemstoneAddressStore(store: storeManager.addressStore)
@@ -193,6 +192,13 @@ struct ServicesFactory {
             webSocket: webSocket,
         )
         let explorerService = Gemstone.GemExplorerService(preferences: preferencesService)
+        let chartService = Gemstone.GemChartService(
+            api: apiClient,
+            price: priceService,
+            preferences: preferencesService,
+            priceAlerts: priceAlertService,
+            explorer: explorerService,
+        )
         let swapper = GemSwapper(rpcProvider: NativeProvider(nodeProvider: nodeProvider))
         let swapService = Gemstone.GemSwapService(
             swapper: swapper,

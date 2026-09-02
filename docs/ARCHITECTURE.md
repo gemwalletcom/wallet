@@ -526,3 +526,64 @@ A mock's defaults should be the *usual* case. A mock that fails by default becom
 ### When the platforms disagree
 
 Check for a test pinning the difference before picking a side — a divergence is sometimes a deliberate decision no one wrote down. If a test pins it, adopt that reading into Core; if nothing does, take the better one and say which in the commit message.
+
+## 12. Shapes that were tried and reverted
+
+Each of these looked right once and cost a revert. Read them before reaching for the same shape.
+
+**A shared child renders a value; it does not hold a service.** `NetworkFeeSceneViewModel`,
+`SwapDetailsViewModel` and `PriceImpactViewModel` are built by more than one screen, each with a
+different single service. Two shapes were tried to let them share a dependency and both were
+rejected: closures (`CustomFeeEstimating`, `mapQuote`) hide the dependency behind a type alias,
+and a narrow Swift protocol cannot be satisfied by `any GemFooServiceProtocol`, because UniFFI
+generates that protocol and Swift cannot make it inherit another. The shape that holds: the
+parent computes the answer through its one service and passes the value — `swapPriceImpact`,
+`minReceiveValue`, `etaMinutes`, `contractExplorerLink`. A child with no service is the goal,
+not a compromise.
+
+**A stateless object with a no-argument constructor is not a service.** `GemFeeService` was an
+empty struct wrapping one pure function. The answer belongs on the value type as a constructor —
+`GemCustomFee::estimate(...)` — and the service is deleted along with the field, the environment
+entry and the `fee()` accessor that handed it out. `GemSwapQuoteService` is the remaining case;
+its four methods are the same shape.
+
+**Split by responsibility to break a composition cycle; never reach through it.** `GemNodeService`
+supplies node URLs to the provider the gateway is built on, so it can never hold the gateway.
+Putting `check_node` on it was tried and does not compose. `GemNodeStatusService` sits above the
+gateway and owns status and validation; `GemNodeService` keeps the list. Both apps' hand-written
+node wrappers went with the change.
+
+**Core returns the decision, not the ingredients for it.** When both apps would derive the same
+thing from a returned list, return the derived thing: `GemChart { values, current }` instead of
+each app comparing the stored price's timestamp against the last point (iOS used `>`, Android
+`>=`); `GemConfirmSimulation` carries `primary_fields`, `secondary_fields` and
+`has_critical_warning`; `GemAssetDetailsService::refresh` returns a failure per step instead of
+swallowing them. If the app still filters, compares or checks after the call, the boundary is one
+step too early.
+
+**A value that crosses as its code needs no decode and no fallback.** `Chain`, `AssetId` and
+`Currency` lower as their string code. `(try? Currency(json)) ?? .usd` invents a currency on a
+path Core makes impossible; it was written three times before being removed. The only way that
+parse fails is a generation mismatch between two artifacts of one Rust enum, so it is handled
+once, by a named conversion with the same contract as UniFFI's own `try_lift` — `Currency(core:)`
+on iOS, `toCurrency()` on Android — and never per call site.
+
+**Construct a screen service where the screen is constructed.** `ViewModelFactory.assetScene(...)`
+builds `GemAssetDetailsService` when the asset screen opens. An `@Entry` on `EnvironmentValues`
+builds it for every launch of an app that may never show that screen, and puts a composition
+detail where views can see it.
+
+**An extension that repeats conversions for a composed service is duplication, not convenience.**
+`setAssetPinned(wallet:)` on `GemAssetDetailsServiceProtocol` copied the same `wallet.id.id` /
+`assetId.identifier` mapping already written for `GemBalanceServiceProtocol`, and every composed
+service would need another copy. Convert at the call site.
+
+**A test that pins a rule moves with the rule.** When `minimumReceiveAtomic` moved to Core, the
+Android factory test that asserted it was repointed through the real `GemSwapQuoteService`, so it
+still guards parity end to end; it was not deleted and not left asserting a copy that no longer
+exists. Mutation-check the moved rule with inputs that can tell the mutants apart — a
+single-element list makes `any` and `all` indistinguishable.
+
+**Stage explicit paths in a shared checkout.** A `git add -A` sweep committed another session's
+half-applied view-model edit with no Core counterpart and broke `main` for everyone until the
+Core half was written. Nothing in this repo is safe to stage blind.

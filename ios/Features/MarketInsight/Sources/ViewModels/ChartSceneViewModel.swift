@@ -1,12 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemPreferencesServiceProtocol
-import protocol Gemstone.GemPriceAlertServiceProtocol
-import protocol Gemstone.GemPriceServiceProtocol
 import Components
 import Formatters
 import Foundation
-import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemChartServiceProtocol
 import GemstonePrimitives
 import InfoSheet
@@ -21,21 +17,17 @@ import SwiftUI
 @Observable
 public final class ChartSceneViewModel: ChartListViewable {
     private let service: any GemChartServiceProtocol
-    private let priceService: any GemPriceServiceProtocol
-    private let preferencesService: any GemPreferencesServiceProtocol
 
     private var currencyCode: String {
-        preferencesService.currencyCode
+        service.currency()
     }
 
     let walletId: WalletId
     let assetModel: AssetViewModel
-    private let explorerService: any GemExplorerServiceProtocol
-    let priceAlertService: any GemPriceAlertServiceProtocol
 
     public var chartState: StateViewType<ChartValuesViewModel> = .loading
     public var selectedPeriod: ChartPeriod {
-        didSet { preferencesService.setChartPeriodValue(selectedPeriod) }
+        didSet { try? service.setChartPeriod(period: selectedPeriod.json()) }
     }
 
     public let priceQuery: ObservableQuery<PriceRequest>
@@ -63,30 +55,28 @@ public final class ChartSceneViewModel: ChartListViewable {
     }
 
     public init(
-        explorerService: any GemExplorerServiceProtocol,
         service: any GemChartServiceProtocol,
-        priceService: any GemPriceServiceProtocol,
         assetModel: AssetViewModel,
-        priceAlertService: any GemPriceAlertServiceProtocol,
         walletId: WalletId,
-        preferencesService: any GemPreferencesServiceProtocol,
         onSetPriceAlert: @escaping (Asset) -> Void,
     ) {
         self.service = service
-        self.priceService = priceService
-        self.preferencesService = preferencesService
         self.assetModel = assetModel
-        self.priceAlertService = priceAlertService
-        self.explorerService = explorerService
         self.walletId = walletId
-        selectedPeriod = preferencesService.chartPeriodValue
+        selectedPeriod = (try? ChartPeriod(service.chartPeriod())) ?? .day
         priceQuery = ObservableQuery(PriceRequest(assetId: assetModel.asset.id), initialValue: nil)
         self.onSetPriceAlert = onSetPriceAlert
     }
 
     var priceDataModel: AssetDetailsInfoViewModel? {
         guard let priceData else { return nil }
-        return AssetDetailsInfoViewModel(explorerService: explorerService, priceData: priceData, currency: preferencesService.currencyCode)
+        return AssetDetailsInfoViewModel(
+            priceData: priceData,
+            currency: currencyCode,
+            contractExplorerLink: (try? priceData.asset.getTokenId()).flatMap {
+                service.tokenUrl(chain: priceData.asset.chain.rawValue, address: $0).map { BlockExplorerLink($0) }
+            },
+        )
     }
 }
 
@@ -96,22 +86,13 @@ public extension ChartSceneViewModel {
     func load() async {
         chartState = .loading
         do {
-            var charts = try await service.syncCharts(
-                assetId: assetModel.asset.id.identifier,
-                period: selectedPeriod.json(),
-                currency: preferencesService.getCurrency(),
-            ).map { try ChartDateValue($0) }
-            let price = try priceService.prices(assetIds: [assetModel.asset.id.identifier]).first.map { Primitives.Price($0) }
-
-            if let price, let last = charts.last, price.updatedAt > last.date {
-                charts.append(ChartDateValue(date: .now, value: price.price))
-            }
-
+            let chart = try await service.syncCharts(assetId: assetModel.asset.id.identifier, period: selectedPeriod.json())
+            let charts = try (chart.values + [chart.current].compactMap { $0 }).map { try ChartDateValue($0) }
             let chartValues = try ChartValues.from(charts: charts)
             let formatter = CurrencyFormatter(currencyCode: currencyCode)
             let model = ChartValuesViewModel(
                 period: selectedPeriod,
-                price: price,
+                price: priceData?.price,
                 values: chartValues,
                 formatter: formatter,
             )
@@ -119,7 +100,7 @@ public extension ChartSceneViewModel {
             if priceData?.priceAlerts.isNotEmpty == true {
                 Task {
                     do {
-                        try await priceAlertService.sync(assetId: assetModel.asset.id.identifier)
+                        try await service.syncPriceAlerts(assetId: assetModel.asset.id.identifier)
                     } catch {
                         debugLog("chart scene: price alerts update error \(error)")
                     }

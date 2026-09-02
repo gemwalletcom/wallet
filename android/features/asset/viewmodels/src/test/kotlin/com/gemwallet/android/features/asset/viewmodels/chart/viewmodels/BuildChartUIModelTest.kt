@@ -1,10 +1,10 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
+import com.gemwallet.android.features.asset.viewmodels.chart.models.Chart
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.from
 import com.gemwallet.android.testkit.mockAssetPriceInfo
-import com.gemwallet.android.testkit.mockChartPrices
-import com.gemwallet.android.testkit.mockChartValue
+import com.wallet.core.primitives.ChartDateValue
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.Currency
 import org.junit.Assert.assertEquals
@@ -16,9 +16,9 @@ import org.junit.Test
 class BuildChartUIModelTest {
 
     @Test
-    fun `empty prices returns empty chart`() {
+    fun `empty chart renders nothing`() {
         val model = ChartUIModel.from(
-            prices = emptyList(),
+            chart = Chart(values = emptyList(), current = null),
             priceInfo = mockAssetPriceInfo(),
             period = ChartPeriod.Day,
             currency = Currency.USD,
@@ -28,36 +28,32 @@ class BuildChartUIModelTest {
     }
 
     @Test
-    fun `current point appended when newer than last chart point`() {
-        val lastTimestamp = 1000
+    fun `the current point core supplies is appended after history`() {
         val model = ChartUIModel.from(
-            prices = listOf(mockChartValue(timestamp = lastTimestamp)),
-            priceInfo = mockAssetPriceInfo(updatedAt = lastTimestamp * 1000L + 1),
+            chart = Chart(values = listOf(value(1_000L)), current = value(2_000L, 200.0)),
+            priceInfo = mockAssetPriceInfo(updatedAt = 2_000L),
             period = ChartPeriod.Day,
             currency = Currency.USD,
         )
         assertNotNull(model.currentPoint)
         assertEquals(2, model.chartPoints.size)
-    }
+        assertEquals(200.0, model.chartPoints.last().price, 0.0)
 
-    @Test
-    fun `current point not appended when older than last chart point`() {
-        val lastTimestamp = 1000
-        val model = ChartUIModel.from(
-            prices = listOf(mockChartValue(timestamp = lastTimestamp)),
-            priceInfo = mockAssetPriceInfo(updatedAt = lastTimestamp * 1000L - 1),
+        val withoutCurrent = ChartUIModel.from(
+            chart = Chart(values = listOf(value(1_000L)), current = null),
+            priceInfo = mockAssetPriceInfo(updatedAt = 2_000L),
             period = ChartPeriod.Day,
             currency = Currency.USD,
         )
-        assertNull(model.currentPoint)
-        assertEquals(1, model.chartPoints.size)
+        assertNull(withoutCurrent.currentPoint)
+        assertEquals(1, withoutCurrent.chartPoints.size)
     }
 
     @Test
     fun `day period uses 24h change for current point`() {
         val model = ChartUIModel.from(
-            prices = listOf(mockChartValue(timestamp = 1)),
-            priceInfo = mockAssetPriceInfo(price = 200.0, priceChangePercentage24h = 4.2, updatedAt = 2000L),
+            chart = Chart(values = listOf(value(1L)), current = value(2_000L, 200.0)),
+            priceInfo = mockAssetPriceInfo(price = 200.0, priceChangePercentage24h = 4.2, updatedAt = 2_000L),
             period = ChartPeriod.Day,
             currency = Currency.USD,
         )
@@ -67,8 +63,8 @@ class BuildChartUIModelTest {
     @Test
     fun `non-day period calculates change from base price`() {
         val model = ChartUIModel.from(
-            prices = listOf(mockChartValue(timestamp = 1, value = 100.0f)),
-            priceInfo = mockAssetPriceInfo(price = 200.0, priceChangePercentage24h = 4.2, updatedAt = 2000L),
+            chart = Chart(values = listOf(value(1L, 100.0)), current = value(2_000L, 200.0)),
+            priceInfo = mockAssetPriceInfo(price = 200.0, priceChangePercentage24h = 4.2, updatedAt = 2_000L),
             period = ChartPeriod.Week,
             currency = Currency.USD,
         )
@@ -78,8 +74,8 @@ class BuildChartUIModelTest {
     @Test
     fun `zero start price does not crash`() {
         val model = ChartUIModel.from(
-            prices = listOf(mockChartValue(timestamp = 1, value = 0.0f)),
-            priceInfo = mockAssetPriceInfo(price = 50.0, updatedAt = 2000L),
+            chart = Chart(values = listOf(value(1L, 0.0)), current = value(2_000L, 50.0)),
+            priceInfo = mockAssetPriceInfo(price = 50.0, updatedAt = 2_000L),
             period = ChartPeriod.Week,
             currency = Currency.USD,
         )
@@ -90,7 +86,7 @@ class BuildChartUIModelTest {
     @Test
     fun `render points match chart points count`() {
         val model = ChartUIModel.from(
-            prices = mockChartPrices(values = listOf(1.38f, 1.37f, 1.39f, 1.38f)),
+            chart = Chart(values = listOf(1.38, 1.37, 1.39, 1.38).mapIndexed { index, price -> value(index.toLong(), price) }, current = null),
             priceInfo = null,
             period = ChartPeriod.Hour,
             currency = Currency.USD,
@@ -103,7 +99,7 @@ class BuildChartUIModelTest {
     @Test
     fun `min and max labels resolved correctly`() {
         val model = ChartUIModel.from(
-            prices = mockChartPrices(values = listOf(1.38f, 1.35f, 1.42f, 1.39f)),
+            chart = Chart(values = listOf(1.38, 1.35, 1.42, 1.39).mapIndexed { index, price -> value(index.toLong(), price) }, current = null),
             priceInfo = null,
             period = ChartPeriod.Hour,
             currency = Currency.USD,
@@ -111,4 +107,6 @@ class BuildChartUIModelTest {
         assertEquals("$1.35", model.minLabel)
         assertEquals("$1.42", model.maxLabel)
     }
+
+    private fun value(date: Long, price: Double = 100.0) = ChartDateValue(date = date, value = price)
 }

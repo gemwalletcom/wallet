@@ -3,22 +3,23 @@ package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.cases.GetAssetChartData
 import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
-import com.gemwallet.android.application.assets.cases.GetChartPeriod
-import com.gemwallet.android.application.assets.cases.SetChartPeriod
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetChartState
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.MinChartPoints
 import com.gemwallet.android.features.asset.viewmodels.chart.models.StopTimeoutMillis
 import com.gemwallet.android.features.asset.viewmodels.chart.models.from
+import com.gemwallet.android.features.asset.viewmodels.chart.models.toChart
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.flatMap
 import com.gemwallet.android.ui.models.navigation.requireAssetId
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemChartService
 import com.wallet.core.primitives.ChartPeriod
-import com.wallet.core.primitives.ChartValue
 import com.wallet.core.primitives.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -41,15 +42,13 @@ import javax.inject.Inject
 class ChartViewModel internal constructor(
     getAssetTokenInfo: GetAssetTokenInfo,
     getCurrentCurrency: GetCurrentCurrency,
-    private val getAssetChartData: GetAssetChartData,
-    getChartPeriod: GetChartPeriod,
-    private val setChartPeriod: SetChartPeriod,
+    private val chartService: GemChartService,
     private val assetId: AssetId,
 ) : ViewModel() {
     private val assetPriceInfo = getAssetTokenInfo(assetId)
         .map { it?.price }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-    private val selectedPeriod = MutableStateFlow(getChartPeriod())
+    private val selectedPeriod = MutableStateFlow(chartService.chartPeriod().decodeJson<ChartPeriod>())
     private val refreshController = ChartRefreshController()
 
     val isRefreshing = refreshController.isRefreshing
@@ -61,17 +60,17 @@ class ChartViewModel internal constructor(
     ) { period, currency, _ -> AssetChartState(period, currency) }
         .transformLatest { state ->
             emit(state)
-            val prices = try {
-                request(state.period, state.currency)
+            val chart = try {
+                chartService.syncCharts(assetId.toIdentifier(), state.period.toJson()).toChart()
             } catch (e: Exception) {
                 currentCoroutineContext().ensureActive()
                 null
             }
             refreshController.stopRefreshing()
             val chartPrices = when {
-                prices == null -> StateViewType.Error
-                prices.size < MinChartPoints -> StateViewType.NoData
-                else -> StateViewType.Data(prices)
+                chart == null -> StateViewType.Error
+                chart.values.size < MinChartPoints -> StateViewType.NoData
+                else -> StateViewType.Data(chart)
             }
             emit(state.copy(prices = chartPrices))
         }
@@ -91,15 +90,11 @@ class ChartViewModel internal constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), ChartUIModel.State())
 
-    private suspend fun request(period: ChartPeriod, currency: Currency): List<ChartValue> {
-        return getAssetChartData.getAssetChartData(assetId, period, currency)
-    }
-
     fun setPeriod(period: ChartPeriod) {
         if (period == selectedPeriod.value) {
             return
         }
-        viewModelScope.launch(Dispatchers.IO) { setChartPeriod(period) }
+        viewModelScope.launch(Dispatchers.IO) { chartService.setChartPeriod(period.toJson()) }
         selectedPeriod.value = period
     }
 
@@ -111,16 +106,12 @@ class ChartViewModel internal constructor(
     constructor(
         getAssetTokenInfo: GetAssetTokenInfo,
         getCurrentCurrency: GetCurrentCurrency,
-        getAssetChartData: GetAssetChartData,
-        getChartPeriod: GetChartPeriod,
-        setChartPeriod: SetChartPeriod,
+        chartService: GemChartService,
         savedStateHandle: SavedStateHandle,
     ) : this(
         getAssetTokenInfo = getAssetTokenInfo,
         getCurrentCurrency = getCurrentCurrency,
-        getAssetChartData = getAssetChartData,
-        getChartPeriod = getChartPeriod,
-        setChartPeriod = setChartPeriod,
+        chartService = chartService,
         assetId = savedStateHandle.requireAssetId(),
     )
 

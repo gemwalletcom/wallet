@@ -11,7 +11,6 @@ struct AssetDetailsInfoViewModelTests {
     @Test
     func marketValuesKeepFDVUnderMarketCapAndSeparateContract() {
         let model = AssetDetailsInfoViewModel(
-            explorerService: GemExplorerServiceMock(),
             priceData: PriceData(
                 asset: .mockEthereumUSDT(),
                 price: .none,
@@ -20,6 +19,7 @@ struct AssetDetailsInfoViewModelTests {
                 links: [],
             ),
             currency: Currency.usd.rawValue,
+            contractExplorerLink: nil,
         )
 
         #expect(model.marketValues.map(\.title) == [

@@ -258,8 +258,6 @@ The same rule with each platform's noun, for the cases Core genuinely cannot ans
 - **iOS** — a feature service in `Features/<Feature>/Sources/Services/`, built in the app layer and passed into the view model's initializer. A feature package cannot read the app's `@Environment` service keys, so the service reaches it through the view model it is handed, never through an ambient registry.
 - **Android** — a case in `gemcore` `application/<area>/cases/` with its implementation in `data/coordinators/<area>/`, injected into the view model by Hilt.
 
-Still open: `AddNodeViewModel` on Android is the untouched twin — `NodeStatusService`, `AddNodeCase`, `SetCurrentNodeCase` and a raw `GemChainService` for the same network-id check, which `GemGateway.check_node` now answers. It belongs to the nodes work in flight.
-
 **An app service holds Core services, not the tables Core owns.** Reaching into a `Gem*Store`'s table from the app is a second read path the owner cannot see — the same violation as a case taking a Room DAO. The exception is a table Core has no concept of: the recent-activity list is the app's own, so `RecentActivityStore` (iOS) and `RecentAssetsService` (Android) are the platform's query layer and stay.
 
 Android's observed store readers are cases in `data/coordinators`, the documented home for an
@@ -352,7 +350,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 Each already sits on top of a Core call that exists; the app-side copy is pure duplication with no divergence found. One rule each, in Core, with a test that flips:
 
-swap slippage bounds · min-receive BPS math · swap ETA truncation · the critical-warning gate · collections availability · the custom-fee minimum check.
+swap slippage bounds · collections availability · the custom-fee minimum check.
 
 ### 4. Core surface
 
@@ -375,13 +373,6 @@ swap slippage bounds · min-receive BPS math · swap ETA truncation · the criti
 - **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `nft::report` (Android report screen), `wallet_preferences::is_initial_load_completed` (iOS wallet empty state), `reset_transactions_timestamp` (iOS developer action).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
 - **`AddressFormatter` (iOS)**, 23 uses / ~60 construction sites. Attempted and reverted: threading the service reaches `WalletViewModel`, then spreads into `extension Wallet: SimpleListItemViewable`, which builds a `WalletViewModel` only to read `avatarImage` and never touches the formatter. The fix is smaller than the threading — split the display-only parts (`avatarImage`, `name`) from the address-formatting parts so only the latter needs the service. Design change, wants a decision.
-- **Three homes for clock code.** `primitives::time::unix_timestamp` panics on clock skew and has
-  no caller outside its own re-export; `gemstone::clock` has the `Result`-returning
-  `unix_seconds`/`unix_milliseconds` that six gemstone modules use; `gemstone::services::clock`
-  holds an async `sleep` plus `parse_timestamp*`. Move the two `unix_*` readings into
-  `primitives::time` in place of the panicking one, and decide whether the timestamp parsing goes
-  with them — `sleep` is runtime plumbing and stays in gemstone.
-
 - **`GemSecurityService` (iOS)** is a *defaulted* parameter on `BiometryAuthenticationService`. Making it required pushes the default into `SecurityViewModel` and `LockSceneViewModel`, which also default-construct the whole service — a lock-manager pass, not a one-liner.
 
 ### 5. Shared iOS views still taking Core services
@@ -407,7 +398,7 @@ setup rather than retrying it.
 - **Earn flow.** No Earn surface exists (no `StakeProviderType.Earn` reader, no `AmountParams.Earn`, no `ConfirmParams.Earn`; `GemDelegationAction.DEPOSIT` maps to nothing). Build the scene, amount provider and confirm params on `GemStakeService.sync_earn`/`get_earn_data`, `GemAmountType::Earn` and `GemTransactionInputType::Earn`; iOS `EarnSceneViewModel` + `AmountEarnViewModel` are the reference. A feature, not a consolidation — plan it as its own batch.
 - **Dead `NOT NULL` columns** with no iOS counterpart: `AssetStore.saveAsset` bumps `updatedAt`, `TransactionStateStore` writes swap amounts, `NftStore` fills two legacy image columns. minSdk 28 has no `ALTER TABLE DROP COLUMN`, so removing them means recreating tables (`asset` behind its foreign keys) and instrumented migration tests do not run in CI — batch them with a migration that has another reason to touch those tables.
 - `PriceStore` still stamps `prices.currency` (now only the label `AssetPriceInfo.currency` reads) and `mapNotNull`s unparsable ids where iOS maps straight through.
-- **Node screens**: `AddNodeViewModel` holds `NodeStatusService`, `AddNodeCase`, `SetCurrentNodeCase` and a raw `GemChainService`, and does the network-id check itself — `GemGateway.check_node` answers it, as it does for iOS. Belongs to the nodes work in flight, along with the seven `cases/nodes/*Case` interfaces, the last of the legacy `cases/<area>/` tree.
+- **Node screens**: `AddNodeViewModel` and `NetworksViewModel` now use `GemNodeStatusService` for status and validation; the seven `cases/nodes/*Case` interfaces over `GemNodeService` remain, the last of the legacy `cases/<area>/` tree.
 - `UserConfig`: delete the `ConfigStore` fallback for `auth` once enough installs have written the secure value.
 - Consistency: `toChain()` (nullable) and `requireChain()` (throws) are picked arbitrarily at call sites; `*Service` classes live inside the coordinators module.
 - Localization: 59 hardcoded `dp` values (worst: `SupportMessageBubble`, `ReceiveScreen`, `ImportScreen`, `WalletTypeTab`, `FiatScene`).
@@ -448,7 +439,6 @@ having the parent vend the child view model.
 | `Onboarding/ImportWalletViewModel.swift` | 4 | 4 |
 | `Transactions/TransactionsViewModel.swift` | 4 | 2 |
 | `WalletTab/WalletSearchSceneViewModel.swift` | 4 | 2 |
-| `MarketInsight/ChartSceneViewModel.swift` | 4 | 1 |
 | `WalletTab/WalletSceneViewModel.swift` | 4 | 1 |
 | `Settings/Settings/ViewModels/NotificationsViewModel.swift` | 4 | 0 |
 | `Swap/SwapSceneViewModel.swift` | 4 | 0 |
