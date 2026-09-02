@@ -1,6 +1,7 @@
 use crate::config::swap_config::get_swap_config;
 use crate::models::custom_types::GemBigUint;
 use number_formatter::BigNumberFormatter;
+use std::sync::Arc;
 
 pub use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData};
 pub use swapper::SwapperProvider;
@@ -9,11 +10,31 @@ pub type GemApprovalData = ApprovalData;
 pub type GemSwapData = SwapData;
 pub type GemSwapQuoteData = SwapQuoteData;
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSlippageCheck {
+    Valid,
+    High,
+    BelowMinimum,
+    AboveMaximum,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Object)]
 pub struct GemSwapValue {
-    pub value: GemBigUint,
-    pub decimals: u32,
-    pub price: Option<f64>,
+    value: GemBigUint,
+    decimals: u32,
+    price: Option<f64>,
+}
+
+#[uniffi::export]
+impl GemSwapValue {
+    #[uniffi::constructor]
+    pub fn new(value: GemBigUint, decimals: u32, price: Option<f64>) -> Self {
+        Self { value, decimals, price }
+    }
+
+    pub fn price_impact(&self, receive: Arc<GemSwapValue>) -> Option<SwapPriceImpact> {
+        calculate_swap_price_impact(self.fiat_value()?, receive.fiat_value()?)
+    }
 }
 
 impl GemSwapValue {
@@ -22,10 +43,6 @@ impl GemSwapValue {
         let amount = BigNumberFormatter::value_as_f64(&self.value.to_string(), self.decimals).ok()?;
         Some(amount * price)
     }
-}
-
-pub fn swap_price_impact(pay: &GemSwapValue, receive: &GemSwapValue) -> Option<SwapPriceImpact> {
-    calculate_swap_price_impact(pay.fiat_value()?, receive.fiat_value()?)
 }
 
 pub fn calculate_swap_price_impact(pay_fiat_value: f64, receive_fiat_value: f64) -> Option<SwapPriceImpact> {
@@ -56,20 +73,17 @@ fn round_to_places(value: f64, places: i32) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use super::{GemSwapValue, SwapPriceImpact, SwapPriceImpactType, calculate_swap_price_impact, round_to_places, swap_price_impact};
+    use super::{GemSwapValue, SwapPriceImpact, SwapPriceImpactType, calculate_swap_price_impact, round_to_places};
+    use std::sync::Arc;
 
     #[test]
     fn test_swap_price_impact_needs_a_price_on_both_sides() {
-        let priced = |value: u32, price: Option<f64>| GemSwapValue {
-            value: value.into(),
-            decimals: 2,
-            price,
-        };
+        let priced = |value: u32, price: Option<f64>| Arc::new(GemSwapValue::new(value.into(), 2, price));
 
-        assert_eq!(swap_price_impact(&priced(100, None), &priced(100, Some(1.0))), None);
-        assert_eq!(swap_price_impact(&priced(100, Some(1.0)), &priced(100, None)), None);
+        assert_eq!(priced(100, None).price_impact(priced(100, Some(1.0))), None);
+        assert_eq!(priced(100, Some(1.0)).price_impact(priced(100, None)), None);
 
-        let impact = swap_price_impact(&priced(200, Some(1.0)), &priced(100, Some(1.0))).expect("impact");
+        let impact = priced(200, Some(1.0)).price_impact(priced(100, Some(1.0))).expect("impact");
         assert_eq!(impact.percentage, -50.0);
     }
 

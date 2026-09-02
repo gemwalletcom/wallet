@@ -350,7 +350,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 Each already sits on top of a Core call that exists; the app-side copy is pure duplication with no divergence found. One rule each, in Core, with a test that flips:
 
-swap slippage bounds · collections availability · the custom-fee minimum check.
+collections availability · the custom-fee minimum check.
 
 ### 4. Core surface
 
@@ -432,7 +432,6 @@ having the parent vend the child view model.
 | `WalletTab/WalletSearchSceneViewModel.swift` | 4 | 2 |
 | `WalletTab/WalletSceneViewModel.swift` | 4 | 1 |
 | `Settings/Settings/ViewModels/NotificationsViewModel.swift` | 4 | 0 |
-| `Swap/SwapSceneViewModel.swift` | 4 | 0 |
 | `Settings/ChainSettings/ViewModels/ChainSettingsSceneViewModel.swift` | 3 | 2 |
 | `NFT/CollectibleViewModel.swift` | 3 | 1 |
 | `Perpetuals/PerpetualSceneViewModel.swift` | 2 | 1 |

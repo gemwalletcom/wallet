@@ -97,7 +97,6 @@ public struct ViewModelFactory: Sendable {
     let simulationFormatter: GemSimulationFormatter
     let stakeService: GemStakeService
     let streamSubscriptionService: GemStreamSubscriptionService
-    let swapQuoteService: GemSwapQuoteService
     let swapService: GemSwapService
     let transactionStateService: GemTransactionStateService
     let transactionsService: GemTransactionsService
@@ -336,7 +335,6 @@ public struct ViewModelFactory: Sendable {
             explorer: explorerService,
             names: nameService,
             assetConfig: assetConfig,
-            swapQuote: swapQuoteService,
             signer: KeystoreTransactionSigner(keystore: keystore),
             password: GemstoneKeystorePassword(keystore: keystore),
             recentActivity: recentAssetsService,
@@ -405,12 +403,13 @@ public struct ViewModelFactory: Sendable {
         onSwap: @escaping (GemTransferData) -> Void,
     ) -> SwapSceneViewModel {
         SwapSceneViewModel(
-            preferencesService: preferencesService,
+            service: GemSwapQuoteService(
+                swap: swapService,
+                preferences: preferencesService,
+                balances: balanceService,
+                stream: streamSubscriptionService,
+            ),
             input: input,
-            balanceService: balanceService,
-            priceUpdater: streamSubscriptionService,
-            swapService: swapService,
-            swapQuoteService: swapQuoteService,
             onSwap: onSwap,
         )
     }

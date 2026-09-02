@@ -373,7 +373,6 @@ struct ServicesFactory {
             simulationFormatter: Gemstone.GemSimulationFormatter(),
             stakeService: stakeService,
             streamSubscriptionService: streamSubscriptionService,
-            swapQuoteService: Gemstone.GemSwapQuoteService(),
             swapService: swapService,
             transactionStateService: transactionStateService,
             transactionsService: transactionsService,

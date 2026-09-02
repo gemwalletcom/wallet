@@ -1,9 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 public import typealias Gemstone.Currency
-public import typealias Gemstone.GemBigUint
-public import struct Gemstone.GemSwapValue
-public import typealias Gemstone.SwapPriceImpact
 public import enum Gemstone.GemKeystoreAuthentication
 public import protocol Gemstone.GemConfirmTransferServiceProtocol
 public import protocol Gemstone.GemConfirmServiceProtocol
@@ -25,7 +22,6 @@ public import enum Gemstone.GemExecuteResult
 public import enum Gemstone.GemTransactionInputType
 public import enum Gemstone.GemAcquireAssetFlow
 public import class Gemstone.GemAssetConfigService
-public import class Gemstone.GemSwapQuoteService
 public import typealias Gemstone.AddressName
 public import typealias Gemstone.Chain
 public import typealias Gemstone.PerpetualModifyConfirmData
@@ -44,7 +40,6 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
     private let signer: any GemTransactionSigner
     private let authenticationValue: GemKeystoreAuthentication
     private let assetConfig = GemAssetConfigService()
-    private let swapQuoteService = GemSwapQuoteService()
 
     public init(
         confirm: any GemConfirmServiceProtocol = GemConfirmServiceMock(),
@@ -58,18 +53,6 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
         self.transactionState = transactionState
         self.signer = signer
         self.authenticationValue = authentication
-    }
-
-    public func minReceiveValue(value: GemBigUint, slippageBps: UInt32) -> GemBigUint {
-        swapQuoteService.minReceiveValue(value: value, slippageBps: slippageBps)
-    }
-
-    public func etaMinutes(seconds: UInt32) -> UInt32? {
-        swapQuoteService.etaMinutes(seconds: seconds)
-    }
-
-    public func swapPriceImpact(pay: GemSwapValue, receive: GemSwapValue) -> SwapPriceImpact? {
-        swapQuoteService.priceImpact(pay: pay, receive: receive)
     }
 
     public func currency() -> Currency {

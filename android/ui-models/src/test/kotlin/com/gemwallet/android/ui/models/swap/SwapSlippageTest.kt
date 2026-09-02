@@ -1,9 +1,7 @@
 package com.gemwallet.android.ui.models.swap
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SwapSlippageTest {
@@ -26,27 +24,6 @@ class SwapSlippageTest {
     fun parseBps_returnsNullForEmptyOrZero() {
         assertNull(SwapSlippage.parseBps(""))
         assertNull(SwapSlippage.parseBps("0"))
-    }
-
-    @Test
-    fun parseBps_clampsToMaximum() {
-        assertEquals(2000u, SwapSlippage.parseBps("25"))
-    }
-
-    @Test
-    fun isOverMax_detectsAboveMaximum() {
-        assertTrue(SwapSlippage.isOverMax("25"))
-        assertFalse(SwapSlippage.isOverMax("20"))
-        assertFalse(SwapSlippage.isOverMax(""))
-    }
-
-    @Test
-    fun isBelowMin_detectsBelowMinimum() {
-        assertTrue(SwapSlippage.isBelowMin("0.05"))
-        assertFalse(SwapSlippage.isBelowMin("0.1"))
-        assertFalse(SwapSlippage.isBelowMin("5"))
-        assertFalse(SwapSlippage.isBelowMin("0"))
-        assertFalse(SwapSlippage.isBelowMin(""))
     }
 
     @Test

@@ -15,7 +15,6 @@ import uniffi.gemstone.GemReceiveService
 import uniffi.gemstone.GemRecipientService
 import uniffi.gemstone.GemSecurityService
 import uniffi.gemstone.GemSimulationFormatter
-import uniffi.gemstone.GemSwapQuoteService
 import uniffi.gemstone.GemTransferService
 import uniffi.gemstone.PriceAlertFormatter
 import javax.inject.Singleton
@@ -63,11 +62,6 @@ object RulesModule {
     @Provides
     @Singleton
     fun provideGemSimulationFormatter(): GemSimulationFormatter = GemSimulationFormatter()
-
-    @Provides
-    @Singleton
-    fun provideGemSwapQuoteService(): GemSwapQuoteService = GemSwapQuoteService()
-
 
     @Provides
     @Singleton

@@ -11,7 +11,6 @@ import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.domains.swap.SwapItemType
@@ -40,7 +39,7 @@ import com.wallet.core.primitives.swap.SwapQuoteDataType
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import uniffi.gemstone.GemSwapPairSuggestion
-import uniffi.gemstone.GemSwapServiceInterface
+import uniffi.gemstone.GemSwapQuoteServiceInterface
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -85,8 +84,6 @@ import uniffi.gemstone.SwapperRoute
 import uniffi.gemstone.SwapperSlippage
 import uniffi.gemstone.SwapperSlippageMode
 import uniffi.gemstone.GemSwapButtonAction
-import uniffi.gemstone.GemStreamSubscriptionService
-import uniffi.gemstone.GemSwapQuoteService
 import uniffi.gemstone.SwapperException
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -111,15 +108,11 @@ class SwapViewModelTest {
     }
     private val enableAsset = mockk<EnableAsset>(relaxed = true)
     private val buildSwapConfirmInput = mockk<BuildSwapConfirmInput>(relaxed = true)
-    private val userConfig = mockk<UserConfig>(relaxed = true) {
-        every { swapSlippageBps() } returns flowOf(null)
-    }
     private val requestSwapQuotes = mockk<RequestSwapQuotes>(relaxed = true)
-    private val swapService = mockk<GemSwapServiceInterface> {
+    private val swapQuoteService = mockk<GemSwapQuoteServiceInterface>(relaxed = true) {
+        every { slippageBps() } returns null
         coEvery { suggestPair(any(), any()) } returns null
     }
-
-    private val streamSubscriptionService = mockk<GemStreamSubscriptionService>(relaxed = true)
 
     private val createdViewModels = mutableListOf<SwapViewModel>()
 
@@ -148,11 +141,8 @@ class SwapViewModelTest {
         getAssetInfo = getAssetInfo,
         enableAsset = enableAsset,
         buildSwapConfirmInput = buildSwapConfirmInput,
-        userConfig = userConfig,
-        swapService = swapService,
         requestSwapQuotes = requestSwapQuotes,
-        swapQuoteService = GemSwapQuoteService(),
-        streamSubscriptionService = streamSubscriptionService,
+        swapQuoteService = swapQuoteService,
         savedStateHandle = savedStateHandle,
     ).also { createdViewModels += it }
 
@@ -176,8 +166,8 @@ class SwapViewModelTest {
         createViewModel(swapSavedState())
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { streamSubscriptionService.addPrices(listOf(solAsset.id.toIdentifier())) }
-        coVerify(exactly = 1) { streamSubscriptionService.addPrices(listOf(usdcAsset.id.toIdentifier())) }
+        coVerify(exactly = 1) { swapQuoteService.addPrices(listOf(solAsset.id.toIdentifier())) }
+        coVerify(exactly = 1) { swapQuoteService.addPrices(listOf(usdcAsset.id.toIdentifier())) }
     }
 
     @Test
@@ -187,7 +177,7 @@ class SwapViewModelTest {
         createViewModel(savedState)
         advanceUntilIdle()
 
-        coVerify(exactly = 0) { swapService.suggestPair(any(), any()) }
+        coVerify(exactly = 0) { swapQuoteService.suggestPair(any(), any()) }
         assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.FromAssetId.key))
         assertEquals(usdcAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.ToAssetId.key))
     }
@@ -196,7 +186,7 @@ class SwapViewModelTest {
     fun `init applies the suggested pair when the screen opens empty`() = runTest(testDispatcher) {
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { getSession() } returns MutableStateFlow(Session(wallet = wallet, currency = Currency.USD))
-        coEvery { swapService.suggestPair(wallet.id.id, null) } returns GemSwapPairSuggestion(
+        coEvery { swapQuoteService.suggestPair(wallet.id.id, null) } returns GemSwapPairSuggestion(
             payAssetId = solAsset.id.toIdentifier(),
             receiveAssetId = usdcAsset.id.toIdentifier(),
         )
@@ -217,7 +207,7 @@ class SwapViewModelTest {
         viewModel.setSlippage(200u)
         advanceUntilIdle()
 
-        coVerify { userConfig.setSwapSlippageBps(200u) }
+        coVerify { swapQuoteService.setSlippageBps(200u) }
     }
 
     @Test

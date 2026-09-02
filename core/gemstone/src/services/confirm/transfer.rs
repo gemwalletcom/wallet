@@ -4,8 +4,6 @@ use primitives::currency::Currency;
 use primitives::{AddressName, Chain, PerpetualModifyConfirmData, SimulationResult, Transaction, WalletId};
 
 use crate::block_explorer::GemBlockExplorerLink;
-use crate::models::custom_types::GemBigUint;
-use crate::models::swap::GemSwapValue;
 use crate::models::transaction::GemTransactionInputType;
 use crate::services::assets::config::GemAssetConfigService;
 use crate::services::confirm::rules::is_insufficient_network_fee;
@@ -19,10 +17,8 @@ use crate::services::name::GemNameService;
 use crate::services::perpetual::model::GemAutocloseSummary;
 use crate::services::perpetual::rules::autoclose_summary;
 use crate::services::preferences::GemPreferencesService;
-use crate::services::swap::config::GemSwapQuoteService;
 use crate::services::transfer::GemRecentActivityService;
 use crate::services::wallet::{GemKeystoreAuthentication, GemKeystorePassword};
-use primitives::swap::SwapPriceImpact;
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmTransferService {
@@ -30,7 +26,6 @@ pub struct GemConfirmTransferService {
     explorer: Arc<GemExplorerService>,
     names: Arc<GemNameService>,
     asset_config: Arc<GemAssetConfigService>,
-    swap_quote: Arc<GemSwapQuoteService>,
     signer: Arc<dyn GemTransactionSigner>,
     password: Arc<dyn GemKeystorePassword>,
     recent_activity: Arc<GemRecentActivityService>,
@@ -45,7 +40,6 @@ impl GemConfirmTransferService {
         explorer: Arc<GemExplorerService>,
         names: Arc<GemNameService>,
         asset_config: Arc<GemAssetConfigService>,
-        swap_quote: Arc<GemSwapQuoteService>,
         signer: Arc<dyn GemTransactionSigner>,
         password: Arc<dyn GemKeystorePassword>,
         recent_activity: Arc<GemRecentActivityService>,
@@ -56,7 +50,6 @@ impl GemConfirmTransferService {
             explorer,
             names,
             asset_config,
-            swap_quote,
             signer,
             password,
             recent_activity,
@@ -165,18 +158,6 @@ impl GemConfirmTransferService {
 
     pub fn acquire_asset_flow(&self, chain: Chain) -> GemAcquireAssetFlow {
         self.asset_config.acquire_flow(chain)
-    }
-
-    pub fn min_receive_value(&self, value: GemBigUint, slippage_bps: u32) -> GemBigUint {
-        self.swap_quote.min_receive_value(value, slippage_bps)
-    }
-
-    pub fn eta_minutes(&self, seconds: u32) -> Option<u32> {
-        self.swap_quote.eta_minutes(seconds)
-    }
-
-    pub fn swap_price_impact(&self, pay: GemSwapValue, receive: GemSwapValue) -> Option<SwapPriceImpact> {
-        self.swap_quote.price_impact(pay, receive)
     }
 }
 

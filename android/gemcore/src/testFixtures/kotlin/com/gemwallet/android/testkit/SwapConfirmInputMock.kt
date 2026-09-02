@@ -17,6 +17,28 @@ import com.wallet.core.primitives.swap.SwapData
 import com.wallet.core.primitives.swap.SwapQuoteDataType
 import java.math.BigInteger
 
+fun mockSwapQuote(
+    from: Account = mockAccount(),
+    fromAmount: BigInteger = BigInteger.ZERO,
+    minFromAmount: BigInteger? = null,
+    toAmount: BigInteger = BigInteger.ONE,
+    toAddress: String = from.address,
+    provider: SwapProvider = SwapProvider.Hyperliquid,
+    slippageBps: UInt = 50u,
+    etaInSeconds: UInt? = null,
+    useMaxAmount: Boolean = false,
+) = SwapQuote(
+    fromAddress = from.address,
+    fromValue = fromAmount.toString(),
+    minFromValue = minFromAmount?.toString(),
+    toAddress = toAddress,
+    toValue = toAmount.toString(),
+    providerData = SwapProviderData(provider = provider, name = provider.string, protocolName = provider.string),
+    slippageBps = slippageBps,
+    etaInSeconds = etaInSeconds,
+    useMaxAmount = useMaxAmount,
+)
+
 fun mockSwapParams(
     from: Account = mockAccount(),
     fromAsset: Asset = mockAssetSolana(),
@@ -31,15 +53,13 @@ fun mockSwapParams(
     dataType: SwapQuoteDataType = SwapQuoteDataType.Transfer,
 ) : GemConfirmInput {
     val swapData = SwapData(
-        quote = SwapQuote(
-            fromAddress = from.address,
-            fromValue = fromAmount.toString(),
-            minFromValue = minFromAmount?.toString(),
+        quote = mockSwapQuote(
+            from = from,
+            fromAmount = fromAmount,
+            minFromAmount = minFromAmount,
+            toAmount = toAmount,
             toAddress = toAddress,
-            toValue = toAmount.toString(),
-            providerData = SwapProviderData(provider = provider, name = provider.string, protocolName = provider.string),
-            slippageBps = 50u,
-            etaInSeconds = null,
+            provider = provider,
             useMaxAmount = useMaxAmount,
         ),
         data = SwapQuoteData(

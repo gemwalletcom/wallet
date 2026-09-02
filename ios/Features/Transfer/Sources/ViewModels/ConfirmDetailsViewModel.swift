@@ -4,6 +4,7 @@ import GemstonePrimitives
 import struct Gemstone.GemConfirmMetadata
 import protocol Gemstone.GemConfirmTransferServiceProtocol
 import enum Gemstone.GemTransactionInputType
+import class Gemstone.GemSwapQuoteSummary
 import BigInt
 import Components
 import Primitives
@@ -37,6 +38,7 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
         case let .swap(fromAsset, toAsset, swapData):
             let toAsset = toAsset.map()
             let quote = Primitives.SwapData(core: swapData).quote
+            let summary = GemSwapQuoteSummary(quote: quote.json())
             let fromAssetPrice = AssetPriceValue(asset: fromAsset.map(), price: metadata?.assetPrice)
             let toAssetPrice = AssetPriceValue(asset: toAsset, price: metadata?.assetPrices[toAsset.id])
             return .swapDetails(
@@ -46,12 +48,11 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
                     selectedQuote: quote,
                     slippage: .manual(bps: quote.slippageBps),
                     currency: currency,
-                    swapPriceImpact: service.swapPriceImpact(
-                        pay: fromAssetPrice.swapValue(quote.fromValue),
-                        receive: toAssetPrice.swapValue(quote.toValue),
-                    ).flatMap { try? Primitives.SwapPriceImpact($0) },
-                    minReceiveValue: (try? BigInt.from(string: service.minReceiveValue(value: quote.toValue, slippageBps: quote.slippageBps))) ?? .zero,
-                    etaMinutes: quote.etaInSeconds.flatMap { service.etaMinutes(seconds: $0) },
+                    swapPriceImpact: fromAssetPrice.swapValue(quote.fromValue)
+                        .priceImpact(receive: toAssetPrice.swapValue(quote.toValue))
+                        .flatMap { try? Primitives.SwapPriceImpact($0) },
+                    minReceiveValue: BigInt(core: summary.minReceiveValue()),
+                    etaMinutes: summary.etaMinutes(),
                 ),
             )
         case let .perpetual(_, perpetualType):

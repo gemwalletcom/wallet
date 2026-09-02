@@ -21,7 +21,6 @@ import com.gemwallet.android.application.swap.cases.SwapQuotesResult
 import com.gemwallet.android.application.swap.cases.create
 import com.gemwallet.android.application.swap.cases.matches
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.asset.calculateFiat
 import com.gemwallet.android.domains.asset.formatFiat
@@ -82,9 +81,9 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.Config
 import uniffi.gemstone.GemSwapButtonAction
 import uniffi.gemstone.GemSwapButtonInput
-import uniffi.gemstone.GemStreamSubscriptionService
-import uniffi.gemstone.GemSwapQuoteService
-import uniffi.gemstone.GemSwapServiceInterface
+import uniffi.gemstone.GemSlippageCheck
+import uniffi.gemstone.GemSwapQuoteServiceInterface
+import uniffi.gemstone.GemSwapQuoteSummary
 import uniffi.gemstone.SwapperException
 import uniffi.gemstone.SwapperProvider
 import java.math.BigDecimal
@@ -99,12 +98,9 @@ class SwapViewModel @Inject constructor(
     private val getAssetInfo: GetAssetInfo,
     private val enableAsset: EnableAsset,
     private val buildSwapConfirmInput: BuildSwapConfirmInput,
-    private val userConfig: UserConfig,
-    private val swapService: GemSwapServiceInterface,
     requestSwapQuotes: RequestSwapQuotes,
     private val savedStateHandle: SavedStateHandle,
-    private val swapQuoteService: GemSwapQuoteService,
-    private val streamSubscriptionService: GemStreamSubscriptionService,
+    private val swapQuoteService: GemSwapQuoteServiceInterface,
 ) : ViewModel() {
 
     private val session = MutableStateFlow(SwapQuoteSession())
@@ -120,7 +116,7 @@ class SwapViewModel @Inject constructor(
     private val selectedSlippageBps = MutableStateFlow<UInt?>(null)
     val selectedSlippage: StateFlow<UInt?> = selectedSlippageBps.asStateFlow()
 
-    val slippageWarningThresholdBps: UInt by lazy { Config().getSwapConfig().highSlippageWarningBps }
+    fun slippageCheck(bps: UInt): GemSlippageCheck = swapQuoteService.slippageCheck(bps)
 
     private val refreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     private val refreshEnabled = MutableStateFlow(false)
@@ -202,6 +198,7 @@ class SwapViewModel @Inject constructor(
             if (quote == null) {
                 return@combine null
             }
+            val summary = GemSwapQuoteSummary.fromQuote(quote.quote)
 
             val provider = providers.firstOrNull { item ->
                 item.id == quote.quote.data.provider.id &&
@@ -224,14 +221,11 @@ class SwapViewModel @Inject constructor(
                     selectedSlippage = selectedSlippageBps.value,
                     etaInSeconds = quote.quote.etaInSeconds,
                     isProviderSelectable = providers.size > 1,
-                    priceImpact = swapQuoteService.priceImpact(
-                        quote.pay.swapValue(quote.quote.fromValue),
-                        quote.receive.swapValue(quote.quote.toValue),
-                    )?.decodeJson(),
-                    minReceiveValue = swapQuoteService
-                        .minReceiveValue(quote.quote.toValue, quote.quote.data.slippageBps)
-                        .toBigInteger(),
-                    etaMinutes = quote.quote.etaInSeconds?.let { swapQuoteService.etaMinutes(it) },
+                    priceImpact = quote.pay.swapValue(quote.quote.fromValue)
+                        .priceImpact(quote.receive.swapValue(quote.quote.toValue))
+                        ?.decodeJson(),
+                    minReceiveValue = summary.minReceiveValue().toBigInteger(),
+                    etaMinutes = summary.etaMinutes(),
                 ),
             )
         }
@@ -244,7 +238,7 @@ class SwapViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            selectedSlippageBps.value = userConfig.swapSlippageBps().firstOrNull()
+            selectedSlippageBps.value = swapQuoteService.slippageBps()
         }
         matchedQuoteResults
             .onEach(::onQuoteResults)
@@ -258,7 +252,7 @@ class SwapViewModel @Inject constructor(
         }
         val walletId = getSession().firstOrNull()?.wallet?.id ?: return
         val payAssetId = savedStateHandle.get<String?>(RouteArgument.FromAssetId.key)
-        val suggestion = runCatchingCancellable { swapService.suggestPair(walletId.id, payAssetId) }.getOrNull() ?: return
+        val suggestion = runCatchingCancellable { swapQuoteService.suggestPair(walletId.id, payAssetId) }.getOrNull() ?: return
         savedStateHandle[RouteArgument.FromAssetId.key] = suggestion.payAssetId
         savedStateHandle[RouteArgument.ToAssetId.key] = suggestion.receiveAssetId
     }
@@ -303,7 +297,7 @@ class SwapViewModel @Inject constructor(
         session.update { it.onQuoteInvalidated() }
         selectedSlippageBps.update { slippageBps }
         viewModelScope.launch(Dispatchers.IO) {
-            userConfig.setSwapSlippageBps(slippageBps)
+            swapQuoteService.setSlippageBps(slippageBps)
         }
     }
 
@@ -388,7 +382,7 @@ class SwapViewModel @Inject constructor(
         val currentSession = getSession().firstOrNull() ?: return@launch
         currentSession.wallet.getAccount(id.chain) ?: return@launch
         enableAsset(currentSession.wallet.id, id)
-        runCatchingCancellable { streamSubscriptionService.addPrices(listOf(id.toIdentifier())) }
+        runCatchingCancellable { swapQuoteService.addPrices(listOf(id.toIdentifier())) }
     }
 
     private fun onQuoteRequestParamsChanged(params: SwapQuoteRequestParams?) {

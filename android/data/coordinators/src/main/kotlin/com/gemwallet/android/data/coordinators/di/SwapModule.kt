@@ -20,6 +20,11 @@ import uniffi.gemstone.GemKeystore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneSwapStore
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.TransactionsDao
+import uniffi.gemstone.GemBalanceService
+import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemStreamSubscriptionService
+import uniffi.gemstone.GemSwapQuoteService
+import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemSwapService
 import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.GemSwapper
@@ -48,6 +53,20 @@ object SwapModule {
         keystore = gemKeystore,
         password = GemstoneKeystorePassword(passwordStore),
         store = GemstoneSwapStore(assetsDao, transactionsDao),
+    )
+
+    @Singleton
+    @Provides
+    fun provideGemSwapQuoteService(
+        swapService: GemSwapServiceInterface,
+        preferencesService: GemPreferencesService,
+        balanceService: GemBalanceService,
+        streamSubscriptionService: GemStreamSubscriptionService,
+    ): GemSwapQuoteServiceInterface = GemSwapQuoteService(
+        swap = swapService as GemSwapService,
+        preferences = preferencesService,
+        balances = balanceService,
+        stream = streamSubscriptionService,
     )
 
     @Singleton

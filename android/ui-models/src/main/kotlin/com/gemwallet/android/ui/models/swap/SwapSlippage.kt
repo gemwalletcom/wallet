@@ -22,14 +22,6 @@ object SwapSlippage {
 
     fun parseBps(input: String): UInt? {
         val percent = input.parseInputNumberOrNull()?.takeIf { it > BigDecimal.ZERO } ?: return null
-        return (percent.min(BigDecimal(maxPercent)) * BigDecimal(100)).toInt().toUInt()
-    }
-
-    fun isOverMax(input: String): Boolean =
-        (input.parseInputNumberOrNull() ?: BigDecimal.ZERO) > BigDecimal(maxPercent)
-
-    fun isBelowMin(input: String): Boolean {
-        val percent = input.parseInputNumberOrNull() ?: return false
-        return percent > BigDecimal.ZERO && percent < minPercent
+        return (percent * BigDecimal(100)).toInt().toUInt()
     }
 }

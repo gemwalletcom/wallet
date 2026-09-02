@@ -2,7 +2,45 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::custom_types::GemBigUint;
 use primitives::AssetId;
 use primitives::swap::{SwapQuote, SwapQuoteData};
-use swapper::SwapperError;
+use swapper::{Quote, SwapperError};
+
+use super::rules;
+
+#[derive(Debug, Clone, PartialEq, uniffi::Object)]
+pub struct GemSwapQuoteSummary {
+    quote: SwapQuote,
+    min_receive_value: GemBigUint,
+    eta_minutes: Option<u32>,
+}
+
+#[uniffi::export]
+impl GemSwapQuoteSummary {
+    #[uniffi::constructor]
+    pub fn new(quote: SwapQuote) -> Self {
+        Self {
+            min_receive_value: rules::min_receive_value(&quote.to_value, quote.slippage_bps),
+            eta_minutes: quote.eta_in_seconds.and_then(rules::eta_minutes),
+            quote,
+        }
+    }
+
+    #[uniffi::constructor]
+    pub fn from_quote(quote: Quote) -> Self {
+        Self::new(rules::swap_quote(&quote))
+    }
+
+    pub fn quote(&self) -> SwapQuote {
+        self.quote.clone()
+    }
+
+    pub fn min_receive_value(&self) -> GemBigUint {
+        self.min_receive_value.clone()
+    }
+
+    pub fn eta_minutes(&self) -> Option<u32> {
+        self.eta_minutes
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapTransfer {

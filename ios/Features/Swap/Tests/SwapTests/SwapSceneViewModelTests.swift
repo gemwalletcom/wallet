@@ -3,9 +3,8 @@
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import BigInt
-import protocol Gemstone.GemSwapServiceProtocol
+import protocol Gemstone.GemSwapQuoteServiceProtocol
 import enum Gemstone.GemSwapButtonAction
-import class Gemstone.GemSwapQuoteService
 import enum Gemstone.SwapperError
 import struct Gemstone.GemSwapPairSuggestion
 import struct Gemstone.SwapperQuote
@@ -15,8 +14,6 @@ import PrimitivesTestKit
 @testable import Store
 import StoreTestKit
 @testable import Swap
-import class Gemstone.GemPreferencesService
-import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstonePrimitives
 import Testing
 
@@ -37,7 +34,7 @@ struct SwapSceneViewModelTests {
     @Test
     func suggestPairAppliesTheCoreSuggestion() async {
         let suggestion = GemSwapPairSuggestion(payAssetId: AssetId.mockEthereum().identifier, receiveAssetId: AssetId.mockEthereumUSDT().identifier)
-        let model = SwapSceneViewModel.mock(swapService: GemSwapServiceMock(pairSuggestion: suggestion))
+        let model = SwapSceneViewModel.mock(service: GemSwapQuoteServiceMock(pairSuggestion: suggestion))
 
         await model.suggestPair()
 
@@ -49,7 +46,7 @@ struct SwapSceneViewModelTests {
     func suggestPairKeepsAnAlreadySelectedReceiveAsset() async {
         let suggestion = GemSwapPairSuggestion(payAssetId: AssetId.mockEthereum().identifier, receiveAssetId: AssetId.mockSolana().identifier)
         let model = SwapSceneViewModel.mock(
-            swapService: GemSwapServiceMock(pairSuggestion: suggestion),
+            service: GemSwapQuoteServiceMock(pairSuggestion: suggestion),
             pairSelector: SwapPairSelectorViewModel(fromAssetId: .mockEthereum(), toAssetId: .mockEthereumUSDT()),
         )
 
@@ -148,11 +145,11 @@ struct SwapSceneViewModelTests {
 
     @Test
     func cancelledTaskDoesNotUpdateStateWithError() async throws {
-        let swapService = GemSwapServiceMock(
+        let service = GemSwapQuoteServiceMock(
             quotesDelay: .milliseconds(100),
             quotesError: SwapperError.NoQuoteAvailable,
         )
-        let model = SwapSceneViewModel.mock(swapService: swapService)
+        let model = SwapSceneViewModel.mock(service: service)
 
         let task = Task {
             await model.load()
@@ -169,11 +166,11 @@ struct SwapSceneViewModelTests {
 
     @Test
     func emptyInputDoesNotApplyLateQuote() async throws {
-        let swapService = GemSwapServiceMock(
+        let service = GemSwapQuoteServiceMock(
             quotes: [.mock()],
             quotesDelay: .milliseconds(100),
         )
-        let model = SwapSceneViewModel.mock(swapService: swapService)
+        let model = SwapSceneViewModel.mock(service: service)
 
         let task = Task {
             await model.load()
@@ -207,11 +204,11 @@ struct SwapSceneViewModelTests {
 
     @Test
     func emptyInputDoesNotApplyLateError() async throws {
-        let swapService = GemSwapServiceMock(
+        let service = GemSwapQuoteServiceMock(
             quotesDelay: .milliseconds(100),
             quotesError: SwapperError.NoQuoteAvailable,
         )
-        let model = SwapSceneViewModel.mock(swapService: swapService)
+        let model = SwapSceneViewModel.mock(service: service)
 
         let task = Task {
             await model.load()
@@ -304,13 +301,13 @@ struct SwapSceneViewModelTests {
 
     @Test
     func refreshedQuotesKeepSelectedProvider() async {
-        let swapService = GemSwapServiceMock(
+        let service = GemSwapQuoteServiceMock(
             quotes: [
                 .mock(toValue: "260000000000", provider: .uniswapV3),
                 .mock(toValue: "250000000000", provider: .thorchain),
             ],
         )
-        let model = SwapSceneViewModel.mock(swapService: swapService)
+        let model = SwapSceneViewModel.mock(service: service)
 
         model.onFinishSwapProviderSelection(.mock(toValue: "249000000000", provider: .thorchain))
         await model.load()
@@ -321,13 +318,13 @@ struct SwapSceneViewModelTests {
 
     @Test
     func providerSelectionAppliesWithoutRefetch() async {
-        let swapService = GemSwapServiceMock(
+        let service = GemSwapQuoteServiceMock(
             quotes: [
                 .mock(toValue: "260000000000", provider: .uniswapV3),
                 .mock(toValue: "250000000000", provider: .thorchain),
             ],
         )
-        let model = SwapSceneViewModel.mock(swapService: swapService)
+        let model = SwapSceneViewModel.mock(service: service)
         await model.load()
 
         #expect(model.selectedSwapQuote?.data.provider.id == .uniswapV3)
@@ -349,7 +346,7 @@ struct SwapSceneViewModelTests {
 
     @Test
     func increasedAmountSelectsBestProviderWithoutManualSelection() async {
-        let model = SwapSceneViewModel.mock(swapService: GemSwapServiceMock(quotes: quotesByAmount))
+        let model = SwapSceneViewModel.mock(service: GemSwapQuoteServiceMock(quotes: quotesByAmount))
 
         await model.load()
 
@@ -364,8 +361,8 @@ struct SwapSceneViewModelTests {
 
     @Test
     func refreshedQuotesFallBackWhenSelectedProviderDisappears() async {
-        let swapService = GemSwapServiceMock(quotes: [.mock(toValue: "260000000000", provider: .uniswapV3)])
-        let model = SwapSceneViewModel.mock(swapService: swapService)
+        let service = GemSwapQuoteServiceMock(quotes: [.mock(toValue: "260000000000", provider: .uniswapV3)])
+        let model = SwapSceneViewModel.mock(service: service)
 
         model.onFinishSwapProviderSelection(.mock(toValue: "249000000000", provider: .thorchain))
         await model.load()
@@ -375,13 +372,13 @@ struct SwapSceneViewModelTests {
 
     @Test
     func changedPairDropsManualProviderSelection() async {
-        let swapService = GemSwapServiceMock(
+        let service = GemSwapQuoteServiceMock(
             quotes: [
                 .mock(toValue: "260000000000", provider: .uniswapV3),
                 .mock(toValue: "250000000000", provider: .thorchain),
             ],
         )
-        let model = SwapSceneViewModel.mock(swapService: swapService)
+        let model = SwapSceneViewModel.mock(service: service)
 
         model.onFinishSwapProviderSelection(.mock(toValue: "249000000000", provider: .thorchain))
         model.onChangeToAsset(old: .mock(asset: .mockEthereum()), new: .mock(asset: .mockEthereumUSDT()))
@@ -392,14 +389,14 @@ struct SwapSceneViewModelTests {
 
     @Test
     func slippagePersistsAcrossSessions() {
-        let preferencesService = GemPreferencesService(store: GemPreferencesStoreMock())
-        let model = SwapSceneViewModel.mock(preferencesService: preferencesService)
+        let service = GemSwapQuoteServiceMock()
+        let model = SwapSceneViewModel.mock(service: service)
         #expect(model.selectedSlippage == .auto)
 
         model.onSelectSlippage(.manual(bps: 150))
 
-        #expect(preferencesService.swapSlippage == .manual(bps: 150))
-        #expect(SwapSceneViewModel.mock(preferencesService: preferencesService).selectedSlippage == .manual(bps: 150))
+        #expect(service.slippageBps() == 150)
+        #expect(SwapSceneViewModel.mock(service: service).selectedSlippage == .manual(bps: 150))
     }
 
     @Test
@@ -449,8 +446,8 @@ struct SwapSceneViewModelTests {
     private func model(
         toValueMock: String = "250000000000",
     ) async -> SwapSceneViewModel {
-        let swapService = GemSwapServiceMock(quotes: [.mock(toValue: toValueMock)])
-        let model = SwapSceneViewModel.mock(swapService: swapService)
+        let service = GemSwapQuoteServiceMock(quotes: [.mock(toValue: toValueMock)])
+        let model = SwapSceneViewModel.mock(service: service)
         await model.load()
         return model
     }
@@ -458,20 +455,15 @@ struct SwapSceneViewModelTests {
 
 extension SwapSceneViewModel {
     static func mock(
-        swapService: any GemSwapServiceProtocol = GemSwapServiceMock(),
-        preferencesService: any GemPreferencesServiceProtocol = GemPreferencesService(store: GemPreferencesStoreMock()),
+        service: any GemSwapQuoteServiceProtocol = GemSwapQuoteServiceMock(),
         pairSelector: SwapPairSelectorViewModel = SwapPairSelectorViewModel(fromAssetId: .mockEthereum(), toAssetId: nil),
     ) -> SwapSceneViewModel {
         let model = SwapSceneViewModel(
-            preferencesService: preferencesService,
+            service: service,
             input: .init(
                 wallet: .mock(accounts: [.mock(chain: .ethereum)]),
                 pairSelector: pairSelector,
             ),
-            balanceService: GemBalanceServiceMock(),
-            priceUpdater: .mock(),
-            swapService: swapService,
-            swapQuoteService: GemSwapQuoteService(),
         )
         model.fromAssetQuery.value = .mock(asset: .mockEthereum(), balance: .mock())
         model.toAssetQuery.value = .mock(asset: .mockEthereumUSDT())

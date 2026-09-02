@@ -4,25 +4,31 @@ import BigInt
 import Foundation
 import typealias Gemstone.Asset
 import typealias Gemstone.AssetId
-import class Gemstone.GemSwapQuoteService
-import protocol Gemstone.GemSwapServiceProtocol
+import typealias Gemstone.Chain
+import typealias Gemstone.Currency
+import enum Gemstone.GemSlippageCheck
+import class Gemstone.GemSwapQuoteSummary
+import protocol Gemstone.GemSwapQuoteServiceProtocol
 import struct Gemstone.GemSwapPairSuggestion
 import struct Gemstone.GemSwapTransfer
 import struct Gemstone.SwapperAssetList
 import struct Gemstone.SwapperQuote
+import struct Gemstone.SwapperSlippage
 import typealias Gemstone.Wallet
+import typealias Gemstone.WalletId
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
 
-public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendable {
+public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchecked Sendable {
     private let quotes: @Sendable (BigInt) -> [SwapperQuote]
     private let quoteData: Primitives.SwapQuoteData
     private let assetList: SwapperAssetList
     private let quotesDelay: Duration?
     private let quotesError: Error?
     private let pairSuggestion: GemSwapPairSuggestion?
-    private let assetPair: GemSwapPairSuggestion?
+    private let slippageCheckResult: GemSlippageCheck
+    public private(set) var storedSlippageBps: UInt32?
 
     public init(
         quotes: @escaping @Sendable (BigInt) -> [SwapperQuote],
@@ -31,7 +37,8 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
         quotesDelay: Duration? = nil,
         quotesError: Error? = nil,
         pairSuggestion: GemSwapPairSuggestion? = nil,
-        assetPair: GemSwapPairSuggestion? = nil,
+        slippageBps: UInt32? = nil,
+        slippageCheck: GemSlippageCheck = .valid,
     ) {
         self.quotes = quotes
         self.quoteData = quoteData
@@ -39,7 +46,8 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
         self.quotesDelay = quotesDelay
         self.quotesError = quotesError
         self.pairSuggestion = pairSuggestion
-        self.assetPair = assetPair
+        storedSlippageBps = slippageBps
+        slippageCheckResult = slippageCheck
     }
 
     public convenience init(
@@ -49,7 +57,8 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
         quotesDelay: Duration? = nil,
         quotesError: Error? = nil,
         pairSuggestion: GemSwapPairSuggestion? = nil,
-        assetPair: GemSwapPairSuggestion? = nil,
+        slippageBps: UInt32? = nil,
+        slippageCheck: GemSlippageCheck = .valid,
     ) {
         self.init(
             quotes: { _ in quotes },
@@ -58,9 +67,38 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
             quotesDelay: quotesDelay,
             quotesError: quotesError,
             pairSuggestion: pairSuggestion,
-            assetPair: assetPair,
+            slippageBps: slippageBps,
+            slippageCheck: slippageCheck,
         )
     }
+
+    public func currency() -> Currency {
+        Primitives.Currency.usd.rawValue
+    }
+
+    public func slippageBps() -> UInt32? {
+        storedSlippageBps
+    }
+
+    public func setSlippageBps(bps: UInt32?) throws {
+        storedSlippageBps = bps
+    }
+
+    public func slippageCheck(bps _: UInt32) -> GemSlippageCheck {
+        slippageCheckResult
+    }
+
+    public func defaultSlippage(chain _: Chain) -> SwapperSlippage {
+        SwapperSlippage(bps: 100, mode: .auto)
+    }
+
+    public func refreshIntervalMilliseconds() -> UInt64 {
+        30_000
+    }
+
+    public func updateBalances(walletId _: WalletId, assetIds _: [AssetId]) async throws {}
+
+    public func addPrices(assetIds _: [AssetId]) async throws {}
 
     public func getQuotes(wallet _: Wallet, fromAsset _: Asset, toAsset _: Asset, value: String, useMaxAmount _: Bool, slippageBps _: UInt32?) async throws -> [SwapperQuote] {
         if let quotesDelay {
@@ -74,7 +112,7 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
 
     public func getTransfer(wallet _: Wallet, quote: SwapperQuote) async throws -> GemSwapTransfer {
         try GemSwapTransfer(
-            quote: GemSwapQuoteService().quote(quote: quote),
+            quote: GemSwapQuoteSummary.fromQuote(quote: quote).quote(),
             data: quoteData.json(),
             recipient: quote.request.destinationAddress,
             value: quote.request.value,
@@ -88,9 +126,5 @@ public final class GemSwapServiceMock: GemSwapServiceProtocol, @unchecked Sendab
 
     public func suggestPair(walletId _: String, payAssetId _: AssetId?) async throws -> GemSwapPairSuggestion? {
         pairSuggestion
-    }
-
-    public func pairForAsset(assetId: AssetId, hasBalance _: Bool) -> GemSwapPairSuggestion {
-        assetPair ?? GemSwapPairSuggestion(payAssetId: assetId, receiveAssetId: nil)
     }
 }

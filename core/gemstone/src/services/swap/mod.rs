@@ -1,5 +1,5 @@
-pub mod config;
 pub mod model;
+pub mod quote;
 pub mod rules;
 pub mod store;
 
@@ -20,7 +20,7 @@ use crate::message::signer::MessageSigner;
 use crate::models::swap::GemSwapQuoteData;
 use crate::services::error::GemServiceError;
 use crate::services::wallet::GemKeystorePassword;
-pub use model::{GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapTransfer};
+pub use model::{GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapQuoteSummary, GemSwapTransfer};
 use primitives::{AssetId, WalletId};
 pub use store::GemSwapStore;
 

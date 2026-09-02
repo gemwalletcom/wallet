@@ -15,7 +15,6 @@ import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemPreferencesService
-import uniffi.gemstone.GemSwapQuoteService
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemTransactionSigner
 import com.gemwallet.android.application.PasswordStore
@@ -60,7 +59,6 @@ object DataModule {
         confirmService: GemConfirmServiceInterface,
         explorerService: GemExplorerService,
         nameService: GemNameService,
-        swapQuoteService: GemSwapQuoteService,
         signer: GemTransactionSigner,
         passwordStore: PasswordStore,
         recentActivity: GemRecentActivityService,
@@ -70,7 +68,6 @@ object DataModule {
         explorerService,
         nameService,
         GemAssetConfigService(),
-        swapQuoteService,
         signer,
         GemstoneKeystorePassword(passwordStore),
         recentActivity,

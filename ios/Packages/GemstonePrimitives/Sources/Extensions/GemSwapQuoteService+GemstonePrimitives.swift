@@ -2,12 +2,27 @@
 
 import BigInt
 import Foundation
-import protocol Gemstone.GemSwapServiceProtocol
+import protocol Gemstone.GemSwapQuoteServiceProtocol
 import struct Gemstone.SwapperQuote
 import Primitives
 import struct Gemstone.GemTransferData
 
-public extension GemSwapServiceProtocol {
+public extension GemSwapQuoteServiceProtocol {
+    var currencyCode: String {
+        currency()
+    }
+
+    var slippage: SwapSlippage {
+        switch slippageBps() {
+        case let .some(bps): .manual(bps: bps)
+        case .none: .auto
+        }
+    }
+
+    func setSlippage(_ slippage: SwapSlippage) throws {
+        try setSlippageBps(bps: slippage.exactBps)
+    }
+
     func supportedAssets(for assetId: Primitives.AssetId) -> ([Primitives.Chain], [Primitives.AssetId]) {
         let assetList = supportedAssets(assetId: assetId.identifier)
         return (
@@ -38,6 +53,14 @@ public extension GemSwapServiceProtocol {
 
     func getTransferData(wallet: Primitives.Wallet, fromAsset: Asset, toAsset: Asset, quote: SwapperQuote) async throws -> GemTransferData {
         try GemTransferData(swap: await getTransfer(wallet: wallet.json(), quote: quote), fromAsset: fromAsset, toAsset: toAsset)
+    }
+
+    func updateBalances(walletId: WalletId, assetIds: [Primitives.AssetId]) async throws {
+        try await updateBalances(walletId: walletId.id, assetIds: assetIds.ids)
+    }
+
+    func addPrices(assetIds: [Primitives.AssetId]) async throws {
+        try await addPrices(assetIds: assetIds.ids)
     }
 }
 

@@ -4,14 +4,14 @@ import BigInt
 import Foundation
 import struct Gemstone.GemSwapTransfer
 import struct Gemstone.SwapperQuote
-import class Gemstone.GemSwapQuoteService
+import class Gemstone.GemSwapQuoteSummary
 import Primitives
 import struct Gemstone.GemRecipient
 import struct Gemstone.GemTransferData
 
 public extension Gemstone.SwapperQuote {
-    func map(swapQuoteService: GemSwapQuoteService) throws -> Primitives.SwapQuote {
-        try Primitives.SwapQuote(swapQuoteService.quote(quote: self))
+    func map() throws -> Primitives.SwapQuote {
+        try Primitives.SwapQuote(GemSwapQuoteSummary.fromQuote(quote: self).quote())
     }
 
     var toValueBigInt: BigInt {

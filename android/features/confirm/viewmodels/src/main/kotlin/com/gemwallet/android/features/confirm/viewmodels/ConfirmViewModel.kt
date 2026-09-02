@@ -37,6 +37,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemConfirmTransferService
+import uniffi.gemstone.GemSwapQuoteSummary
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.model.FeeAssetSelection
@@ -408,6 +409,7 @@ class ConfirmViewModel @Inject constructor(
         val assetsInfo = assetsInfo ?: return null
         val fromAssetInfo = assetsInfo.getByAssetId(inputType.asset.id) ?: return null
         val toAssetInfo = assetsInfo.getByAssetId(inputType.toAsset?.id ?: return null) ?: return null
+        val summary = GemSwapQuoteSummary(swapData.quote.toJson())
 
         val provider = SwapProviderUIModelFactory.create(
             providerId = swapData.providerId,
@@ -426,14 +428,11 @@ class ConfirmViewModel @Inject constructor(
                 selectedSlippage = swapData.quote.slippageBps,
                 etaInSeconds = swapData.quote.etaInSeconds,
                 isProviderSelectable = false,
-                priceImpact = confirmService.swapPriceImpact(
-                    fromAssetInfo.swapValue(transfer.value),
-                    toAssetInfo.swapValue(swapData.quote.toValue),
-                )?.decodeJson(),
-                minReceiveValue = confirmService
-                    .minReceiveValue(swapData.quote.toValue, swapData.quote.slippageBps)
-                    .toBigInteger(),
-                etaMinutes = swapData.quote.etaInSeconds?.let { confirmService.etaMinutes(it) },
+                priceImpact = fromAssetInfo.swapValue(transfer.value)
+                    .priceImpact(toAssetInfo.swapValue(swapData.quote.toValue))
+                    ?.decodeJson(),
+                minReceiveValue = summary.minReceiveValue().toBigInteger(),
+                etaMinutes = summary.etaMinutes(),
             ),
         ) ?: return null
 

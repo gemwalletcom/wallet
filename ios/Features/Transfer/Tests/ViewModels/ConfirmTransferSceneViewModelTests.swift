@@ -2,7 +2,6 @@
 
 import class Gemstone.GemAmountService
 import class Gemstone.GemApplicationMetadataService
-import class Gemstone.GemSwapQuoteService
 import class Gemstone.GemTransferService
 import protocol Gemstone.GemNameServiceProtocol
 import GemstonePrimitivesTestKit

@@ -35,6 +35,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.swap.SwapSlippage
+import uniffi.gemstone.GemSlippageCheck
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
@@ -46,7 +47,7 @@ fun SwapSlippageBottomSheet(
     isVisible: Boolean,
     currentBps: UInt?,
     defaultBps: UInt?,
-    warningThresholdBps: UInt,
+    slippageCheck: (UInt) -> GemSlippageCheck,
     onConfirm: (UInt?) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -62,11 +63,9 @@ fun SwapSlippageBottomSheet(
         }
         val focusRequester = remember { FocusRequester() }
 
-        val isOverMax = !isAuto && SwapSlippage.isOverMax(input)
-        val isBelowMin = !isAuto && SwapSlippage.isBelowMin(input)
         val bps = SwapSlippage.parseBps(input)
-        val isConfirmEnabled = isAuto || (bps != null && !isOverMax && !isBelowMin)
-        val showWarning = !isAuto && !isOverMax && bps != null && bps >= warningThresholdBps
+        val check = if (isAuto) null else bps?.let(slippageCheck)
+        val isConfirmEnabled = isAuto || check == GemSlippageCheck.VALID || check == GemSlippageCheck.HIGH
 
         val commit by rememberUpdatedState {
             if (isConfirmEnabled) onConfirm(if (isAuto) null else bps)
@@ -113,19 +112,20 @@ fun SwapSlippageBottomSheet(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     )
                 }
-                when {
-                    isOverMax -> FooterText(
+                when (check) {
+                    GemSlippageCheck.ABOVE_MAXIMUM -> FooterText(
                         text = stringResource(R.string.common_maximum_value, SwapSlippage.maxPercentLabel),
                         color = MaterialTheme.colorScheme.error,
                     )
-                    isBelowMin -> FooterText(
+                    GemSlippageCheck.BELOW_MINIMUM -> FooterText(
                         text = stringResource(R.string.common_minimum_value, SwapSlippage.minPercentLabel),
                         color = MaterialTheme.colorScheme.error,
                     )
-                    showWarning -> FooterText(
+                    GemSlippageCheck.HIGH -> FooterText(
                         text = stringResource(R.string.swap_slippage_warning),
                         color = MaterialTheme.colorScheme.error,
                     )
+                    GemSlippageCheck.VALID, null -> Unit
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 SuggestionsBar(
