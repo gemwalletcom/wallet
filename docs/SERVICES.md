@@ -501,7 +501,9 @@ having the parent vend the child view model.
 
 | view model | services | non-private |
 |---|---|---|
-| `Gem/ViewModels/RootSceneViewModel.swift` | 4 | 0 |
+| `Gem/ViewModels/RootSceneViewModel.swift` | 4 | 0 — the launch host: app start, app update, device, session |
+| `Onboarding/ViewModels/ImportWalletViewModel.swift` | 3 | 0 — a flow parent vending `ImportWalletSceneViewModel` (+ `nameService` for the shared address input) and `WalletImageViewModel` (`avatarService`); the Onboarding package cannot see `ViewModelFactory` |
+| `Contacts/ViewModels/ManageContactViewModel.swift` | 2 | 0 — `nameService` for the shared address input, above |
 
 
 ### 10. Rules still living in app-only enums
