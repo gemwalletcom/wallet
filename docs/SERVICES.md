@@ -424,9 +424,10 @@ setup rather than retrying it.
 Each iOS scene view model should hold at most one private Core service per
 [ARCHITECTURE.md § 7](ARCHITECTURE.md#7-at-most-one-core-service-on-ios-narrow-cases-on-android).
 `ManageContactViewModel`, `ContactsViewModel` and `ManageContactAddressViewModel` meet the field-count
-ceiling, but `GemContactsService` is forwarding-only and `GemManageContactService.names()` /
-`chains()` remain reach-through debt until the shared components receive narrow
-dependencies directly. `ConfirmTransferSceneViewModel` is done: it holds `service` alone, with `signer`, the keystore
+ceiling; `GemContactsService` is forwarding-only. The shared `AddressInputViewModel` takes the
+narrow `AddressInputResolving` protocol, which `GemNameService`, `GemRecipientService` and
+`GemManageContactService` satisfy directly, so `names()` is no longer handed out; `chains()` stays
+only for the onboarding chain picker. `ConfirmTransferSceneViewModel` is done: it holds `service` alone, with `signer`, the keystore
 password and the recent-activity store as outbound ports the app implements and
 `GemConfirmTransferService` owns, and reads the currency from `service.currency()`. It hands out no
 other service: `GemFeeService` is deleted (the custom-fee estimate is a `GemCustomFee.estimate`
@@ -443,7 +444,6 @@ having the parent vend the child view model.
 |---|---|---|
 | `Gem/ViewModels/RootSceneViewModel.swift` | 5 | 1 |
 | `Settings/Settings/ViewModels/DeveloperViewModel.swift` | 5 | 0 |
-| `Transfer/RecipientSceneViewModel.swift` | 3 | 0 |
 | `Assets/SelectAssetViewModel.swift` | 2 | 0 |
 | `Transactions/TransactionsViewModel.swift` | 2 | 0 |
 | `Perpetuals/PerpetualsSceneViewModel.swift` | 2 | 0 |

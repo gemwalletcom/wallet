@@ -2,7 +2,6 @@
 
 import struct Gemstone.GemRecipient
 import GemstonePrimitives
-import class Gemstone.GemPaymentService
 import GemstonePrimitivesTestKit
 import Components
 import Formatters
@@ -10,7 +9,7 @@ import Primitives
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
-import class Gemstone.GemWalletSessionService
+import class Gemstone.GemRecipientService
 import GemstoneServices
 import GemstoneServicesTestKit
 
@@ -156,13 +155,11 @@ extension RecipientSceneViewModel {
         RecipientSceneViewModel(
             wallet: wallet,
             asset: asset,
-            walletSessionService: GemWalletSessionService.mock(),
-            nameService: GemNameServiceMock(nameRecord: .mock()),
+            service: GemRecipientService.mock(),
             type: type,
             recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
-            paymentService: GemPaymentService.mock(),
         )
     }
 }

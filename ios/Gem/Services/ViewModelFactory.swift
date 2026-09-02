@@ -34,6 +34,7 @@ import class Gemstone.GemFiatQuoteService
 import class Gemstone.GemPaymentService
 import class Gemstone.GemPerpetualDetailsService
 import class Gemstone.GemReceiveService
+import class Gemstone.GemRecipientService
 import class Gemstone.GemRewardsService
 import class Gemstone.GemPerpetualService
 import class Gemstone.GemPreferencesService
@@ -483,13 +484,11 @@ public struct ViewModelFactory: Sendable {
         RecipientSceneViewModel(
             wallet: wallet,
             asset: asset,
-            walletSessionService: walletSessionService,
-            nameService: nameService,
+            service: GemRecipientService(names: nameService, payments: paymentService, session: walletSessionService),
             type: type,
             recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
-            paymentService: paymentService,
         )
     }
 

@@ -8,7 +8,9 @@ import class Gemstone.GemDeviceKeyService
 import class Gemstone.GemExplorerService
 import class Gemstone.GemNameService
 import class Gemstone.GemOnboardingService
+import class Gemstone.GemPaymentService
 import class Gemstone.GemPreferencesService
+import class Gemstone.GemRecipientService
 import class Gemstone.GemWalletPreferencesService
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
@@ -58,6 +60,12 @@ public extension GemWalletService {
             preferences: GemWalletPreferencesService.mock(),
             explorer: GemExplorerService(preferences: appPreferences),
         )
+    }
+}
+
+public extension GemRecipientService {
+    static func mock() -> GemRecipientService {
+        GemRecipientService(names: GemNameService.mock(), payments: GemPaymentService.mock(), session: GemWalletSessionService.mock())
     }
 }
 

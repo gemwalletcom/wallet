@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemNameServiceProtocol
 import struct Gemstone.GemRecipient
 import struct Gemstone.GemRecipientValidation
 import Components
@@ -17,7 +16,7 @@ import Validators
 public final class AddressInputViewModel {
     let placeholder: String
     public let nameRecordViewModel: NameRecordViewModel
-    private let nameService: any GemNameServiceProtocol
+    private let nameService: any AddressInputResolving
 
     public var chain: Chain {
         didSet { onChangeChain() }
@@ -27,7 +26,7 @@ public final class AddressInputViewModel {
 
     public init(
         chain: Chain,
-        nameService: any GemNameServiceProtocol,
+        nameService: any AddressInputResolving,
         placeholder: String,
     ) {
         self.chain = chain
@@ -140,7 +139,7 @@ extension AddressInputViewModel {
         }
     }
 
-    private static func validators(chain: Chain, placeholder: String, nameService: any GemNameServiceProtocol) -> [any TextValidator] {
+    private static func validators(chain: Chain, placeholder: String, nameService: any AddressInputResolving) -> [any TextValidator] {
         [.required(requireName: placeholder), .address(Asset(chain), nameService: nameService)]
     }
 }

@@ -41,7 +41,7 @@ public final class ManageContactAddressViewModel {
     }
 
     private let mode: Mode
-    private let service: any GemManageContactServiceProtocol
+    private let service: any GemManageContactServiceProtocol & AddressInputResolving
     private let onComplete: (Input) -> Void
 
     var addressInputModel: AddressInputViewModel
@@ -49,7 +49,7 @@ public final class ManageContactAddressViewModel {
     var isPresentingScanner = false
 
     public init(
-        service: any GemManageContactServiceProtocol,
+        service: any GemManageContactServiceProtocol & AddressInputResolving,
         mode: Mode,
         onComplete: @escaping (Input) -> Void,
     ) {
@@ -60,7 +60,7 @@ public final class ManageContactAddressViewModel {
 
         addressInputModel = AddressInputViewModel(
             chain: mode.contactAddress?.chain ?? service.defaultContactChain,
-            nameService: service.names(),
+            nameService: service,
             placeholder: title,
         )
 

@@ -40,7 +40,7 @@ public final class ManageContactViewModel {
         }
     }
 
-    private let service: any GemManageContactServiceProtocol
+    private let service: any GemManageContactServiceProtocol & AddressInputResolving
     private let mode: Mode
 
     let contactId: String
@@ -55,7 +55,7 @@ public final class ManageContactViewModel {
     let emojiList: [EmojiValue] = Emoji.WalletAvatar.allCases.map { EmojiValue(emoji: $0.rawValue, color: Colors.grayVeryLight) }
 
     public init(
-        service: any GemManageContactServiceProtocol,
+        service: any GemManageContactServiceProtocol & AddressInputResolving,
         mode: Mode,
     ) {
         self.service = service

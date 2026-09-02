@@ -239,7 +239,7 @@ private func contactService() -> GemContactService {
     )
 }
 
-public final class GemManageContactServiceMock: GemManageContactServiceProtocol, @unchecked Sendable {
+public final class GemManageContactServiceMock: GemManageContactServiceProtocol, AddressInputResolving, @unchecked Sendable {
     private let service: GemManageContactService
 
     public init() {
@@ -251,12 +251,24 @@ public final class GemManageContactServiceMock: GemManageContactServiceProtocol,
         )
     }
 
-    public func names() -> GemNameService {
-        service.names()
-    }
-
     public func chains() -> GemChainService {
         service.chains()
+    }
+
+    public func validateRecipient(chain: Gemstone.Chain, input: String, nameRecord: Gemstone.NameRecord?) -> GemRecipientValidation {
+        service.validateRecipient(chain: chain, input: input, nameRecord: nameRecord)
+    }
+
+    public func recipient(chain: Gemstone.Chain, input: String, nameRecord: Gemstone.NameRecord?, memo: String?, references: [String]) throws -> GemRecipient {
+        try service.recipient(chain: chain, input: input, nameRecord: nameRecord, memo: memo, references: references)
+    }
+
+    public func isNameSupported(name: String) -> Bool {
+        service.isNameSupported(name: name)
+    }
+
+    public func getNameRecord(name: String, chain: Gemstone.Chain) async throws -> Gemstone.NameRecord? {
+        try await service.getNameRecord(name: name, chain: chain)
     }
 
     public func defaultChain() -> Gemstone.Chain {
@@ -395,7 +407,7 @@ public extension GemNameService {
     }
 }
 
-public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendable {
+public final class GemNameServiceMock: GemNameServiceProtocol, AddressInputResolving, @unchecked Sendable {
     private let rules = GemNameService.mock()
     private let addressNames: [Primitives.AddressName]
     private let nameRecord: Primitives.NameRecord?

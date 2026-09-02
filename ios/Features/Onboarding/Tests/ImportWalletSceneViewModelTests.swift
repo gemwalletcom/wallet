@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstonePrimitivesTestKit
-import protocol Gemstone.GemNameServiceProtocol
+import GemstonePrimitives
 import GemstoneServices
 import GemstoneServicesTestKit
 import class Gemstone.GemOnboardingService
@@ -73,7 +73,7 @@ struct ImportWalletSceneViewModelTests {
 private extension ImportWalletSceneViewModel {
     static func mock(
         service: GemOnboardingService? = nil,
-        nameService: any GemNameServiceProtocol = GemNameServiceMock(nameRecord: .mock()),
+        nameService: any AddressInputResolving = GemNameServiceMock(nameRecord: .mock()),
     ) -> ImportWalletSceneViewModel {
         ImportWalletSceneViewModel(
             service: service ?? .mock(),

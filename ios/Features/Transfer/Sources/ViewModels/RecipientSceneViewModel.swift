@@ -2,14 +2,12 @@
 
 import struct Gemstone.GemRecipient
 import BigInt
-import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemRecipientServiceProtocol
 import Components
-import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import GemstonePrimitives
 import GemstoneServices
 import Localization
-import class Gemstone.GemPaymentService
 import Primitives
 import PrimitivesComponents
 import Store
@@ -28,8 +26,7 @@ public final class RecipientSceneViewModel {
 
     public let onTransferAction: TransferDataAction
 
-    private let walletSessionService: any GemWalletSessionServiceProtocol
-    private let paymentService: GemPaymentService
+    private let service: any GemRecipientServiceProtocol & AddressInputResolving
     private let onRecipientDataAction: RecipientDataAction
     private let assetImageFormatter: AssetImageFormatter
 
@@ -43,31 +40,25 @@ public final class RecipientSceneViewModel {
         contactsQuery.value
     }
 
-    private let nameService: any GemNameServiceProtocol
-
     public init(
         wallet: Wallet,
         asset: Asset,
-        walletSessionService: any GemWalletSessionServiceProtocol,
-        nameService: any GemNameServiceProtocol,
+        service: any GemRecipientServiceProtocol & AddressInputResolving,
         type: RecipientAssetType,
         assetImageFormatter: AssetImageFormatter = .shared,
         recipient: RecipientData? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
-        paymentService: GemPaymentService,
     ) {
         self.wallet = wallet
         self.asset = asset
-        self.walletSessionService = walletSessionService
+        self.service = service
         self.assetImageFormatter = assetImageFormatter
         self.type = type
         self.onRecipientDataAction = onRecipientDataAction
         self.onTransferAction = onTransferAction
-        self.paymentService = paymentService
-        self.nameService = nameService
 
-        addressInputModel = AddressInputViewModel(chain: asset.chain, nameService: nameService, placeholder: recipientField)
+        addressInputModel = AddressInputViewModel(chain: asset.chain, nameService: service, placeholder: recipientField)
 
         contactsQuery = ObservableQuery(ContactsRequest(chain: asset.chain), initialValue: [])
 
@@ -177,7 +168,7 @@ extension RecipientSceneViewModel {
 
     func onSelectRecipient(_ recipient: GemRecipient) {
         do {
-            let validated = try nameService.recipient(
+            let validated = try service.recipient(
                 chain: asset.chain.rawValue,
                 input: recipient.address,
                 nameRecord: nil,
@@ -205,7 +196,7 @@ extension RecipientSceneViewModel {
             ContactRecipientSectionViewModel(contacts: contacts).listItems
         case .pinned, .wallets, .view:
             WalletRecipientSectionViewModel(
-                wallets: walletSessionService.wallets.filter { $0.id != wallet.id },
+                wallets: service.otherWallets(wallet: wallet),
                 section: section,
                 chain: asset.chain,
             ).listItems
@@ -231,19 +222,11 @@ extension RecipientSceneViewModel {
     }
 
     private func handleAddressScan(_ string: String) throws {
-        switch try Primitives.Payment.decode(string, paymentService: paymentService) {
-        case let .request(payment):
-            try handle(payment: payment)
-        case .link:
-            throw AnyError(Localized.Errors.invalidAssetAddress(asset.name))
-        }
-    }
-
-    private func handle(payment: PaymentRequest) throws {
-        switch (try PaymentDestinationBuilder.transfer(payment: payment, asset: asset, paymentService: paymentService), type) {
-        case let (.confirm(data), .asset): handle(transferData: data)
-        case let (.confirm(data), .nft): update(from: RecipientData(recipient: data.recipient, amount: .none))
-        case let (.recipient(data), _): update(from: data)
+        switch (try service.scanDestination(url: string, asset: asset.paymentWalletAsset), type) {
+        case let (.confirm(transfer), .asset): handle(transferData: service.transferData(transfer: transfer, asset: asset.map()))
+        case let (.confirm(transfer), .nft): update(from: RecipientData(recipient: service.transferData(transfer: transfer, asset: asset.map()).recipient, amount: .none))
+        case let (.recipient(_, recipient, amount), _): update(from: RecipientData(recipient: recipient, amount: amount))
+        case (.selectAsset, _), (.unsupported, _): throw AnyError(Localized.Errors.invalidAssetAddress(asset.name))
         }
     }
 

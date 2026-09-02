@@ -379,9 +379,12 @@ root and injected. Returning `Arc<GemFooService>` from an exported service is mi
 an exception to this rule.
 
 The reusable exception is a **shared component** — `AddressInputViewModel`,
-`NetworkSelectorViewModel` — which takes a narrow Core protocol. The parent view model may vend
-that component model and supply its dependency; the Core service still never returns another
-service.
+`NetworkSelectorViewModel` — which takes a narrow protocol. On iOS that protocol is
+`AddressInputResolving`: four methods every screen service that owns a recipient input already
+exports (`GemNameService`, `GemRecipientService`, `GemManageContactService` conform through an
+empty extension), so the parent passes its own service and no Core service returns another
+service. `NetworkSelectorViewModel` needs only the dependency-free `GemChainService` and builds it
+itself.
 
 ### The parent vends the child model, the view never reaches in
 

@@ -1,5 +1,4 @@
 import protocol Gemstone.GemOnboardingServiceProtocol
-import protocol Gemstone.GemNameServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
@@ -33,7 +32,7 @@ final class ImportWalletSceneViewModel {
     init(
         service: any GemOnboardingServiceProtocol,
         preferences: ObservablePreferences,
-        nameService: any GemNameServiceProtocol,
+        nameService: any AddressInputResolving,
         type: ImportWalletType,
         onComplete: (@MainActor @Sendable (ImportWalletSceneResult) -> Void)?,
     ) {
