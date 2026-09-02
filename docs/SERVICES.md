@@ -376,8 +376,6 @@ and `GemTransferService`.
 
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
-- **Receiver transport cleanup.** `GemContactsService` only forwards update/delete to
-  `GemContactService`, so iOS should use the owning service directly.
 - **Confirm error conversion.** `GemConfirmService` repeats the same
   `GemServiceError` → `GemConfirmError::Load` closure across store reads. Implement the typed
   conversion once and use `?`; keep explicit mappings where the operation changes the category,
@@ -430,9 +428,13 @@ setup rather than retrying it.
   `otherWallets`, `scanDestination`, `transferData`) and feeds `AddressInputModel` with
   `service.addressInput()`; `ManageContactViewModel` and `ImportViewModel` take the Hilt-bound
   `AddressInputResolving` over `GemNameService`. `GetNameRecord`, `GetWallets` on the recipient
-  screen and `PaymentDestination.transfer` are gone. `ManageContactViewModel` still carries
-  `GetContacts`/`SaveContact`/`AddContactAddress`/`GemPaymentService` — the next step is
-  `GemManageContactService` as on iOS.
+  screen and `PaymentDestination.transfer` are gone.
+- **Contacts**: `ContactsViewModel` deletes through `GemContactService` and `ManageContactViewModel`
+  holds `GemManageContactService` (`saveContact`, `defaultChain`, `addressInput()`) with
+  `GemContactAddressInput.addAddress` on the value, as iOS; `SaveContact`, `AddContactAddress`,
+  `DeleteContact` and `ContactsCoordinator` are gone. It still injects `GemPaymentService` to
+  decode a scanned payment URL into the address field — iOS pastes the raw scan — so either that
+  decode moves onto `GemManageContactService` or Android drops it.
 - **Price alerts**: `PriceAlertViewModel`, `PriceAlertTargetViewModel` and `AssetPriceAlertsViewModel`
   call `GemPriceAlertService` directly (`sync`, `setEnabled`/`isEnabled`, `setAutoAlert`,
   `enablePriceAlert`, `deletePriceAlerts`, `currency`) and the asset screen syncs through
@@ -455,7 +457,8 @@ setup rather than retrying it.
 Each iOS scene view model should hold at most one private Core service per
 [ARCHITECTURE.md § 7](ARCHITECTURE.md#7-at-most-one-core-service-on-ios-narrow-cases-on-android).
 `ManageContactViewModel`, `ContactsViewModel` and `ManageContactAddressViewModel` meet the field-count
-ceiling; `GemContactsService` is forwarding-only. The shared `AddressInputViewModel` takes the
+ceiling; the forwarding-only `GemContactsService` is deleted and `ContactsViewModel` holds the
+owning `GemContactService`. The shared `AddressInputViewModel` takes the
 narrow `AddressInputResolving` protocol, which `GemNameService`, `GemRecipientService` and
 `GemManageContactService` satisfy directly, so `names()` is no longer handed out; `chains()` stays
 only for the onboarding chain picker. `ConfirmTransferSceneViewModel` is done: it holds `service` alone, with `signer`, the keystore

@@ -100,27 +100,6 @@ impl GemContactService {
 }
 
 #[derive(uniffi::Object)]
-pub struct GemContactsService {
-    contacts: Arc<GemContactService>,
-}
-
-#[uniffi::export]
-impl GemContactsService {
-    #[uniffi::constructor]
-    pub fn new(contacts: Arc<GemContactService>) -> Self {
-        Self { contacts }
-    }
-
-    pub async fn update_contact(&self, contact: Contact, addresses: Vec<ContactAddress>) -> Result<(), GemServiceError> {
-        self.contacts.update_contact(contact, addresses).await
-    }
-
-    pub async fn delete_contact(&self, contact: Contact) -> Result<(), GemServiceError> {
-        self.contacts.delete_contact(contact).await
-    }
-}
-
-#[derive(uniffi::Object)]
 pub struct GemManageContactService {
     contacts: Arc<GemContactService>,
     addresses: Arc<GemAddressService>,

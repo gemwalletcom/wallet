@@ -7,6 +7,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameRecord
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemManageContactServiceInterface
 import uniffi.gemstone.GemNameServiceInterface
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemRecipientServiceInterface
@@ -16,6 +17,9 @@ fun GemNameServiceInterface.addressInput(): AddressInputResolving =
     ServiceAddressInput(::validateRecipient, ::recipient, ::isNameSupported, ::getNameRecord)
 
 fun GemRecipientServiceInterface.addressInput(): AddressInputResolving =
+    ServiceAddressInput(::validateRecipient, ::recipient, ::isNameSupported, ::getNameRecord)
+
+fun GemManageContactServiceInterface.addressInput(): AddressInputResolving =
     ServiceAddressInput(::validateRecipient, ::recipient, ::isNameSupported, ::getNameRecord)
 
 private class ServiceAddressInput(

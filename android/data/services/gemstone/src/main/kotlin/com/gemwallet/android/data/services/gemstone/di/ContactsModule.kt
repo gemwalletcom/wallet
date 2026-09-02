@@ -1,5 +1,11 @@
 package com.gemwallet.android.data.services.gemstone.di
 
+import uniffi.gemstone.GemAddressService
+import uniffi.gemstone.GemChainService
+import uniffi.gemstone.GemContactServiceInterface
+import uniffi.gemstone.GemManageContactService
+import uniffi.gemstone.GemManageContactServiceInterface
+import uniffi.gemstone.GemNameService
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneContactStore
 import com.gemwallet.android.data.service.store.database.AddressesDao
 import com.gemwallet.android.data.service.store.database.ContactsDao
@@ -30,4 +36,15 @@ object ContactsModule {
     @Provides
     fun provideGemContactService(store: GemContactStore, addressStore: GemAddressStore, fileStore: GemFileStore): GemContactService =
         GemContactService(store, addressStore, fileStore)
+
+    @Provides
+    fun provideGemContactServiceInterface(service: GemContactService): GemContactServiceInterface = service
+
+    @Provides
+    fun provideGemManageContactService(
+        contacts: GemContactService,
+        addresses: GemAddressService,
+        names: GemNameService,
+        chains: GemChainService,
+    ): GemManageContactServiceInterface = GemManageContactService(contacts, addresses, names, chains)
 }

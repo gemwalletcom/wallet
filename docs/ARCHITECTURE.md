@@ -351,8 +351,9 @@ product behavior.
 
 When a real screen-level service is needed, name it for the screen it backs, not for the layer:
 `GemManageContactService` backs the add-and-edit screen. No `Scene` or `Facade` in the name. A
-`GemContactsService` that only forwards calls to `GemContactService` is wrapper debt, not the
-pattern. When a screen needs a cohesive answer from several Core owners, Core composes them:
+`GemContactsService` that only forwarded calls to `GemContactService` was wrapper debt, not the
+pattern, and is deleted: the list screen holds the owning `GemContactService`. When a screen needs
+a cohesive answer from several Core owners, Core composes them:
 
 ```rust
 #[derive(uniffi::Object)]

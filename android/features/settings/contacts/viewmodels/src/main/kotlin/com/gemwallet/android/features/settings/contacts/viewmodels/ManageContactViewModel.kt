@@ -4,11 +4,12 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.contacts.cases.AddContactAddress
+import android.util.Log
 import com.gemwallet.android.application.contacts.cases.GetContacts
-import com.gemwallet.android.application.contacts.cases.SaveContact
-import com.gemwallet.android.domains.name.AddressInputResolving
+import com.gemwallet.android.ext.addressInput
 import com.gemwallet.android.ext.decodePayment
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.isValidAddress
 import com.gemwallet.android.ext.request
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressForm
@@ -33,7 +34,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemContactAddressInput
 import uniffi.gemstone.GemContactAvatar
+import uniffi.gemstone.GemContactInput
+import uniffi.gemstone.GemManageContactServiceInterface
 import uniffi.gemstone.GemPaymentService
 import java.util.UUID
 import javax.inject.Inject
@@ -41,11 +47,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ManageContactViewModel @Inject constructor(
     private val getContacts: GetContacts,
-    private val saveContactCase: SaveContact,
-    private val addContactAddress: AddContactAddress,
     @param:ApplicationContext private val context: Context,
     private val paymentService: GemPaymentService,
-    addressResolving: AddressInputResolving,
+    private val service: GemManageContactServiceInterface,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -61,7 +65,7 @@ class ManageContactViewModel @Inject constructor(
     private val contactId: String = (mode as? Mode.Edit)?.contactId ?: UUID.randomUUID().toString()
     private var contact: Contact? = null
 
-    private val addressInput = AddressInputModel(addressResolving, viewModelScope)
+    private val addressInput = AddressInputModel(service.addressInput(), viewModelScope)
 
     private val state = MutableStateFlow(ManageContactState(isEdit = mode is Mode.Edit))
     val uiState: StateFlow<ManageContactUIState> = combine(
@@ -131,7 +135,7 @@ class ManageContactViewModel @Inject constructor(
     }
 
     fun addAddress() {
-        val form = ContactAddressForm(chain = addContactAddress.defaultChain())
+        val form = ContactAddressForm(chain = service.defaultChain().toChain() ?: Chain.Bitcoin)
         addressInput.reset()
         addressInput.setChain(form.chain)
         state.update { it.copy(page = ManageContactPage.Address, form = form) }
@@ -198,14 +202,13 @@ class ManageContactViewModel @Inject constructor(
         addressInput.reset()
         state.update { current ->
             current.copy(
-                addresses = addContactAddress.addAddress(
-                    addresses = current.addresses,
+                addresses = GemContactAddressInput(
                     contactId = contactId,
-                    chain = input.chain,
+                    chain = input.chain.string,
                     address = address,
                     memo = input.memo,
                     replacingId = input.editingId,
-                ),
+                ).addAddress(current.addresses.map { it.toJson() }).map { it.decodeJson<ContactAddress>() },
                 page = ManageContactPage.Form,
             )
         }
@@ -217,9 +220,9 @@ class ManageContactViewModel @Inject constructor(
         state.update { it.copy(isSaving = true) }
 
         viewModelScope.launch(Dispatchers.IO) {
-            saveContactCase.saveContact(
+            val input = GemContactInput(
                 id = contactId,
-                existing = contact,
+                existing = contact?.toJson(),
                 name = current.name,
                 description = current.description,
                 avatar = when (val avatar = current.avatar) {
@@ -229,9 +232,18 @@ class ManageContactViewModel @Inject constructor(
                         EmojiAvatarRenderer.render(context, avatar.emoji, avatar.backgroundColor)
                     )
                 },
-                addresses = current.addresses,
+                addresses = current.addresses.map { it.toJson() },
             )
-            state.update { it.copy(saved = true) }
+            runCatchingCancellable { service.saveContact(input) }
+                .onSuccess { state.update { it.copy(saved = true) } }
+                .onFailure { error ->
+                    Log.e(TAG, "saving contact $contactId failed", error)
+                    state.update { it.copy(isSaving = false) }
+                }
         }
+    }
+
+    private companion object {
+        const val TAG = "ManageContact"
     }
 }

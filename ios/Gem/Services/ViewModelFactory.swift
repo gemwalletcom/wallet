@@ -17,7 +17,7 @@ import class Gemstone.GemChartService
 import class Gemstone.GemRecentActivityService
 import class Gemstone.GemConfirmTransferService
 import class Gemstone.GemConfirmService
-import class Gemstone.GemContactsService
+import class Gemstone.GemContactService
 import class Gemstone.GemCurrencyService
 import class Gemstone.GemManageContactService
 import class Gemstone.GemDeeplinkService
@@ -95,7 +95,7 @@ public struct ViewModelFactory: Sendable {
     let bannerService: GemBannerService
     let balanceService: GemBalanceService
     let confirmService: GemConfirmService
-    let contactsService: GemContactsService
+    let contactService: GemContactService
     let manageContactService: GemManageContactService
     let deeplinkService: GemDeeplinkService
     let explorerService: GemExplorerService
@@ -350,7 +350,7 @@ public struct ViewModelFactory: Sendable {
 
     @MainActor
     public func contactsScene(mode: ContactsViewModel.Mode = .list) -> ContactsViewModel {
-        ContactsViewModel(service: contactsService, manageContact: manageContactScene, mode: mode)
+        ContactsViewModel(service: contactService, manageContact: manageContactScene, mode: mode)
     }
 
     @MainActor
