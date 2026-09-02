@@ -21,8 +21,8 @@ import SwiftUI
 final class PerpetualsSceneViewModel {
 
     private let observerService: any PerpetualObservable
-    let perpetualService: any GemPerpetualServiceProtocol
-    let recentAssetsService: any GemRecentActivityServiceProtocol
+    private let perpetualService: any GemPerpetualServiceProtocol
+    private let recentAssetsService: any GemRecentActivityServiceProtocol
 
     let wallet: Wallet
 
