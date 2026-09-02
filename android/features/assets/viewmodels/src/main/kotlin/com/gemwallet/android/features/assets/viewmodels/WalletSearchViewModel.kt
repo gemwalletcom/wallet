@@ -1,20 +1,18 @@
 package com.gemwallet.android.features.assets.viewmodels
 
+import com.wallet.core.primitives.Wallet
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemSearchScope
+import uniffi.gemstone.GemAssetSelectionServiceInterface
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
 import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
-import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.cases.SetAssetPinned
-import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
 import com.gemwallet.android.application.assets.cases.GetSearchLists
 import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
-import com.gemwallet.android.application.perpetual.cases.SetPerpetualPinned
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.config.showPerpetuals
-import com.gemwallet.android.data.services.gemstone.tokens.WalletSearch
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.search.WalletSearchConfig
@@ -43,7 +41,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
-import uniffi.gemstone.GemAssetConfigService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -51,26 +48,21 @@ class WalletSearchViewModel @Inject constructor(
     getSession: GetSession,
     searchSelectAssets: SearchSelectAssets,
     getRecentAssets: GetRecentAssets,
-    updateRecentAsset: UpdateRecentAsset,
-    switchAssetVisibility: SwitchAssetVisibility,
-    setAssetPinned: SetAssetPinned,
-    @WalletSearch searchTokensCase: SearchTokens,
-    assetConfig: GemAssetConfigService,
+    service: GemAssetSelectionServiceInterface,
     getPerpetuals: GetPerpetuals,
     getNftCollections: GetNftCollections,
     getSearchLists: GetSearchLists,
     userConfig: UserConfig,
-    private val setPerpetualPinned: SetPerpetualPinned,
 ) : BaseAssetSelectViewModel(
     getSession,
     getRecentAssets,
-    updateRecentAsset,
-    switchAssetVisibility,
-    setAssetPinned,
-    searchTokensCase,
+    service,
     BaseSelectSearch(searchSelectAssets),
-    assetConfig,
 ) {
+
+    override suspend fun searchRemote(wallet: Wallet, query: String) {
+        service.search(wallet.toJson(), query, GemSearchScope.All)
+    }
 
     private val showPerpetuals = userConfig.showPerpetuals(getSession())
 

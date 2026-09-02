@@ -5,6 +5,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemAssetSelectionService
+import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemBalanceService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
@@ -25,7 +27,10 @@ import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemChainSettingsService
 import uniffi.gemstone.GemChainSettingsServiceInterface
+import uniffi.gemstone.GemPerpetualService
+import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemPriceService
+import uniffi.gemstone.GemSearchService
 import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemTransactionStateService
 import uniffi.gemstone.TransactionSimulationService
@@ -53,6 +58,23 @@ object DataModule {
     fun provideGemRecentActivityService(
         recentAssetsService: RecentAssetsService,
     ): GemRecentActivityService = GemRecentActivityService(GemstoneRecentActivityStore(recentAssetsService))
+
+    @Provides
+    fun provideGemAssetSelectionService(
+        searchService: GemSearchService,
+        balanceService: GemBalanceService,
+        priceAlertService: GemPriceAlertService,
+        recentActivity: GemRecentActivityService,
+        preferencesService: GemPreferencesService,
+        perpetualService: GemPerpetualService,
+    ): GemAssetSelectionServiceInterface = GemAssetSelectionService(
+        searchService,
+        balanceService,
+        priceAlertService,
+        recentActivity,
+        preferencesService,
+        perpetualService,
+    )
 
     @Provides
     @Singleton

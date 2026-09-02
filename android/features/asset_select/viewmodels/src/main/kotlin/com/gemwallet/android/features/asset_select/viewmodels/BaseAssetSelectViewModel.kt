@@ -5,18 +5,18 @@ import androidx.compose.foundation.text.input.clearText
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.util.Log
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
-import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.cases.SetAssetPinned
-import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.NO_QUERY_LIMIT
 import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isTokenSupported
 import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
@@ -31,11 +31,11 @@ import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.PerpetualId
 import com.gemwallet.android.ext.toAssetId
 import uniffi.gemstone.GemAssetConfigService
-import com.wallet.core.primitives.Currency
+import uniffi.gemstone.GemAssetSelectionServiceInterface
 import com.wallet.core.primitives.Wallet
-import com.wallet.core.primitives.WalletType
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -54,19 +54,18 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 open class BaseAssetSelectViewModel(
     getSession: GetSession,
     private val getRecentAssets: GetRecentAssets,
-    private val updateRecentAsset: UpdateRecentAsset,
-    private val switchAssetVisibility: SwitchAssetVisibility,
-    private val setAssetPinned: SetAssetPinned,
-    private val searchTokensCase: SearchTokens,
+    protected val service: GemAssetSelectionServiceInterface,
     val search: SelectSearch,
-    protected val assetConfig: GemAssetConfigService,
     private val remoteSearch: Boolean = true,
 ) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
+
+    private val assetConfig = GemAssetConfigService()
 
     val queryState = TextFieldState()
     val chainFilter = MutableStateFlow<List<Chain>>(emptyList())
@@ -91,7 +90,7 @@ open class BaseAssetSelectViewModel(
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     private val searchRequests = combine(currentQuery.debounce(SEARCH_DEBOUNCE_MS), session) { query, session ->
-        SearchRequest(query, session?.currency ?: Currency.USD, walletSearchChains(session?.wallet))
+        query to session?.wallet
     }.distinctUntilChanged()
 
     private val filters = combine(
@@ -179,19 +178,23 @@ open class BaseAssetSelectViewModel(
         }
     }
 
-    fun onTogglePin(assetId: AssetId) = viewModelScope.launch {
+    fun onTogglePin(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
         val session = session.value ?: return@launch
         session.wallet.getAccount(assetId.chain) ?: return@launch
         val item = assets.value.firstOrNull { it.asset.id == assetId }
         val willPin = item?.pinned != true
-        setAssetPinned(assetId, willPin)
+        runCatchingCancellable { service.setAssetPinned(session.wallet.id.id, assetId.toIdentifier(), willPin) }
+            .onFailure { Log.e(TAG, "pinning ${assetId.toIdentifier()} failed", it) }
         item?.let { emitToast(AssetToast.Pin(it.asset.name, willPin)) }
     }
 
     private suspend fun setVisibility(assetId: AssetId, visible: Boolean): Boolean {
         val session = session.value ?: return false
         session.wallet.getAccount(assetId.chain) ?: return false
-        switchAssetVisibility(session.wallet.id, assetId, visible)
+        withContext(Dispatchers.IO) {
+            runCatchingCancellable { service.setAssetsEnabled(session.wallet.id.id, listOf(assetId.toIdentifier()), visible) }
+                .onFailure { Log.e(TAG, "setting ${assetId.toIdentifier()} enabled=$visible failed", it) }
+        }
         return true
     }
 
@@ -225,12 +228,11 @@ open class BaseAssetSelectViewModel(
     init {
         if (remoteSearch) {
             viewModelScope.launch(Dispatchers.IO) {
-                searchRequests.collectLatest { (query, currency, chains) ->
-                    isSearching.value = query.isNotEmpty()
+                searchRequests.collectLatest { (query, wallet) ->
+                    if (query.isEmpty() || wallet == null) return@collectLatest
+                    isSearching.value = true
                     try {
-                        runCatchingCancellable {
-                            searchTokensCase.search(query, currency, chains)
-                        }
+                        runCatchingCancellable { searchRemote(wallet, query) }
                     } finally {
                         isSearching.value = false
                     }
@@ -239,14 +241,21 @@ open class BaseAssetSelectViewModel(
         }
     }
 
-    protected fun walletSearchChains(wallet: Wallet?): List<Chain> = when (wallet?.type) {
-        WalletType.Multicoin -> emptyList()
-        WalletType.Single, WalletType.PrivateKey, WalletType.View -> listOfNotNull(wallet.accounts.firstOrNull()?.chain)
-        null -> emptyList()
+    protected open suspend fun searchRemote(wallet: Wallet, query: String) {
+        service.searchAssets(wallet.toJson(), query)
+    }
+
+    protected suspend fun setPerpetualPinned(perpetualId: PerpetualId, pinned: Boolean) {
+        withContext(Dispatchers.IO) {
+            runCatchingCancellable { service.setPerpetualPinned(perpetualId.toIdentifier(), pinned) }
+                .onFailure { Log.e(TAG, "pinning perpetual ${perpetualId.toIdentifier()} failed", it) }
+        }
     }
 
     fun updateRecent(assetId: AssetId, type: RecentActivityType) = viewModelScope.launch(Dispatchers.IO) {
-        updateRecentAsset(assetId, type)
+        val wallet = session.value?.wallet ?: return@launch
+        runCatchingCancellable { service.addRecentAsset(type.toGem(), assetId.toIdentifier(), wallet.id.id) }
+            .onFailure { Log.e(TAG, "recording recent ${assetId.toIdentifier()} failed", it) }
     }
 
     open val showRecents: Boolean get() = true
@@ -257,13 +266,8 @@ open class BaseAssetSelectViewModel(
 
     open fun assetsSearchLimit(query: String): Int = NO_QUERY_LIMIT
 
-    private data class SearchRequest(
-        val query: String,
-        val currency: Currency,
-        val chains: List<Chain>,
-    )
-
     private companion object {
+        private const val TAG = "AssetSelect"
         private const val SEARCH_DEBOUNCE_MS = 250L
     }
 }

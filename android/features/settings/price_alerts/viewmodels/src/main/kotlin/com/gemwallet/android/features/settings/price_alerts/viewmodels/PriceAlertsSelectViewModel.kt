@@ -1,11 +1,8 @@
 package com.gemwallet.android.features.settings.price_alerts.viewmodels
 
+import uniffi.gemstone.GemAssetSelectionServiceInterface
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
-import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.cases.SetAssetPinned
-import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
@@ -18,27 +15,18 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
-import uniffi.gemstone.GemAssetConfigService
 
 @HiltViewModel
 class PriceAlertsSelectViewModel @Inject constructor(
     getSession: GetSession,
     getRecentAssets: GetRecentAssets,
-    updateRecentAsset: UpdateRecentAsset,
-    switchAssetVisibility: SwitchAssetVisibility,
-    setAssetPinned: SetAssetPinned,
     searchService: AssetsSearchService,
-    searchTokensCase: SearchTokens,
-    assetConfig: GemAssetConfigService,
+    service: GemAssetSelectionServiceInterface,
 ) : BaseAssetSelectViewModel(
     getSession,
     getRecentAssets,
-    updateRecentAsset,
-    switchAssetVisibility,
-    setAssetPinned,
-    searchTokensCase,
+    service,
     PriceAlertSelectSearch(searchService),
-    assetConfig,
 ) {
     override val showRecents: Boolean get() = false
 }

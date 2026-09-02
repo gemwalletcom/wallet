@@ -410,6 +410,15 @@ setup rather than retrying it.
 - **Earn flow.** No Earn surface exists (no `StakeProviderType.Earn` reader, no `AmountParams.Earn`, no `ConfirmParams.Earn`; `GemDelegationAction.DEPOSIT` maps to nothing). Build the scene, amount provider and confirm params on `GemStakeService.sync_earn`/`get_earn_data`, `GemAmountType::Earn` and `GemTransactionInputType::Earn`; iOS `EarnSceneViewModel` + `AmountEarnViewModel` are the reference. A feature, not a consolidation — plan it as its own batch.
 - **Dead `NOT NULL` columns** with no iOS counterpart: `AssetStore.saveAsset` bumps `updatedAt`, `TransactionStateStore` writes swap amounts, `NftStore` fills two legacy image columns. minSdk 28 has no `ALTER TABLE DROP COLUMN`, so removing them means recreating tables (`asset` behind its foreign keys) and instrumented migration tests do not run in CI — batch them with a migration that has another reason to touch those tables.
 - `PriceStore` still stamps `prices.currency` (now only the label `AssetPriceInfo.currency` reads) and `mapNotNull`s unparsable ids where iOS maps straight through.
+- **Asset selection**: `BaseAssetSelectViewModel` and its seven subclasses (select, send, buy,
+  swap, price-alert select, wallet search, search results) hold `GemAssetSelectionService` for the
+  remote search (`searchAssets` / `search(scope)`), visibility, pinning, perpetual pinning and the
+  recent-activity write, matching iOS `SelectAssetViewModel`; only the observed reads
+  (`GetRecentAssets`, the `SelectSearch` sources) stay as cases. `WalletSearchTokens`,
+  `WalletSearchScope`, the `@WalletSearch` qualifier and `SearchTokens.search(query, …)` are gone;
+  `SearchTokens` keeps the widget's `syncAssets` call only. `UpdateRecentAsset`,
+  `SwitchAssetVisibility`, `SetAssetPinned` and `SetPerpetualPinned` remain for
+  `PerpetualMarketViewModel`, `NetworkAssetsViewModel` and `AssetsViewModel`.
 - **Price alerts**: `PriceAlertViewModel`, `PriceAlertTargetViewModel` and `AssetPriceAlertsViewModel`
   call `GemPriceAlertService` directly (`sync`, `setEnabled`/`isEnabled`, `setAutoAlert`,
   `enablePriceAlert`, `deletePriceAlerts`, `currency`) and the asset screen syncs through
