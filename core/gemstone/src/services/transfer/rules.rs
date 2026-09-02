@@ -10,6 +10,7 @@ use primitives::{
 };
 
 use super::model::{GemPendingTransactionInput, GemRecentActivity, GemTransferBalance, GemTransferData, GemTransferOutput};
+use crate::config::chain::is_memo_supported;
 use crate::models::transaction::{GemTransactionInputType, transaction_metadata_block_number, transaction_metadata_sequence};
 use crate::services::amount::model::GemAmountError;
 
@@ -23,6 +24,13 @@ impl GemTransactionInputType {
         match self {
             Self::TransferNft { asset, .. } => Asset::from_chain(asset.chain()),
             _ => self.asset().clone(),
+        }
+    }
+
+    pub fn shows_memo(&self) -> bool {
+        match self {
+            Self::Transfer { .. } | Self::Deposit { .. } | Self::Withdrawal { .. } => is_memo_supported(self.asset().chain()),
+            _ => false,
         }
     }
 
@@ -498,6 +506,19 @@ mod tests {
         assert_eq!(metadata["toValue"], "90");
         assert!(input.approval(TransactionType::TokenApproval).is_err());
         assert_eq!(input.approval(TransactionType::Swap).unwrap(), None);
+    }
+
+    #[test]
+    fn test_memo_row_only_for_sends_on_memo_chains() {
+        assert!(GemTransactionInputType::Transfer { asset: asset(Chain::Cosmos) }.shows_memo());
+        assert!(!GemTransactionInputType::Transfer { asset: asset(Chain::Ethereum) }.shows_memo());
+        assert!(
+            !GemTransactionInputType::Stake {
+                asset: asset(Chain::Cosmos),
+                stake_type: StakeType::Rewards(vec![]),
+            }
+            .shows_memo()
+        );
     }
 
     #[test]

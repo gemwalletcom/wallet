@@ -4,7 +4,6 @@ import uniffi.gemstone.GemExplorerService
 import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.asset.isMemoSupport
 import com.gemwallet.android.domains.confirm.ConfirmProperty
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.stakeType
@@ -14,7 +13,6 @@ import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.StakeType
 import com.wallet.core.primitives.Wallet
-import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransferData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -57,12 +55,7 @@ class BuildConfirmPropertiesImpl(
                 }
             )
             add(ConfirmProperty.Network(chain.asset()))
-            add(
-                ConfirmProperty.Memo(transfer.recipient.memo.orEmpty()).takeIf {
-                    transfer.inputType is GemTransactionInputType.Transfer
-                            && asset.isMemoSupport()
-                }
-            )
+            add(ConfirmProperty.Memo(transfer.recipient.memo.orEmpty()).takeIf { transfer.inputType.showsMemo() })
         }.filterNotNull()
         }
     }

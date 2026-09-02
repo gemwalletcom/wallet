@@ -9,17 +9,23 @@ mod factory;
 pub mod model;
 pub mod providers;
 
-pub use config::{ScanProviderConfig, ScanProviderRemoteConfig};
+pub use config::{AddressScanProviderConfig, ScanProviderRemoteConfig, TokenScanProviderConfig};
 pub use factory::ScanProviderFactory;
 pub use model::{AddressTarget, ScanResult, TokenTarget};
 
-pub type ScanProviders = Vec<Arc<dyn ScanProvider>>;
+pub type AddressScanProviders = Vec<Arc<dyn AddressScanProvider>>;
+pub type TokenScanProviders = Vec<Arc<dyn TokenScanProvider>>;
 
 #[async_trait]
-pub trait ScanProvider: Send + Sync {
+pub trait AddressScanProvider: Send + Sync {
     fn name(&self) -> &'static str;
-    fn supports_address_chain(&self, chain: Chain) -> bool;
-    fn supports_token_chain(&self, chain: Chain) -> bool;
+    fn supports_chain(&self, chain: Chain) -> bool;
     async fn scan_address(&self, target: &AddressTarget) -> Result<ScanResult<AddressTarget>, Box<dyn Error + Send + Sync>>;
+}
+
+#[async_trait]
+pub trait TokenScanProvider: Send + Sync {
+    fn name(&self) -> &'static str;
+    fn supports_chain(&self, chain: Chain) -> bool;
     async fn scan_token(&self, target: &TokenTarget) -> Result<ScanResult<TokenTarget>, Box<dyn Error + Send + Sync>>;
 }

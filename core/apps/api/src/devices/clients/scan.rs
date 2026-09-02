@@ -4,15 +4,15 @@ use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::{AssetId, ChainAddress, ScanTransaction, ScanTransactionPayload, asset_score::AssetRank};
 use rocket::futures::future;
 use security_provider::providers::goplus::GoPlusProvider;
-use security_provider::{AddressTarget, ScanProviderConfig, ScanProviderFactory, ScanProviderRemoteConfig, ScanProviders, ScanResult};
+use security_provider::{AddressScanProviderConfig, AddressScanProviders, AddressTarget, ScanProviderFactory, ScanProviderRemoteConfig, ScanResult};
 use settings::Settings;
 use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
 use storage::{AssetsRepository, Database, ScanAddressesRepository};
 
-pub fn scan_providers(settings: &Settings, cacher: CacherClient, timeout: Duration) -> Result<ScanProviders, Box<dyn Error + Send + Sync>> {
-    let config = ScanProviderConfig {
+pub fn scan_providers(settings: &Settings, cacher: CacherClient, timeout: Duration) -> Result<AddressScanProviders, Box<dyn Error + Send + Sync>> {
+    let config = AddressScanProviderConfig {
         timeout,
         goplus: ScanProviderRemoteConfig {
             url: settings.security.goplus.url.clone(),
@@ -25,18 +25,18 @@ pub fn scan_providers(settings: &Settings, cacher: CacherClient, timeout: Durati
             secret_key: settings.security.hashdit.key.secret.clone(),
         },
     };
-    ScanProviderFactory::new_providers(config, Arc::new(AccessTokenCacherClient::new(cacher, GoPlusProvider::<ReqwestClient>::NAME)))
+    ScanProviderFactory::new_address_providers(config, Arc::new(AccessTokenCacherClient::new(cacher, GoPlusProvider::<ReqwestClient>::NAME)))
 }
 
 #[derive(Clone)]
 pub struct ScanClient {
     database: Database,
-    providers: ScanProviders,
+    providers: AddressScanProviders,
     enable: bool,
 }
 
 impl ScanClient {
-    pub fn new(database: Database, providers: ScanProviders, enable: bool) -> Self {
+    pub fn new(database: Database, providers: AddressScanProviders, enable: bool) -> Self {
         Self { database, providers, enable }
     }
 
@@ -129,7 +129,7 @@ impl ScanClient {
         future::join_all(
             self.providers
                 .iter()
-                .filter(|provider| provider.supports_address_chain(target.chain))
+                .filter(|provider| provider.supports_chain(target.chain))
                 .map(|provider| async { (provider.name(), provider.scan_address(&target).await) }),
         )
         .await

@@ -2,7 +2,7 @@ use crate::providers::goplus::{
     mapper,
     models::{AccessToken, AccessTokenRequest, Response, SecurityAddress, SecurityToken},
 };
-use crate::{AddressTarget, ScanProvider, ScanResult, TokenTarget};
+use crate::{AddressScanProvider, AddressTarget, ScanResult, TokenScanProvider, TokenTarget};
 use async_trait::async_trait;
 use gem_client::{Client, ClientExt, build_path_with_query};
 use primitives::{AccessTokenCacher, Chain};
@@ -67,17 +67,13 @@ impl<C: Client> GoPlusProvider<C> {
 }
 
 #[async_trait]
-impl<C: Client> ScanProvider for GoPlusProvider<C> {
+impl<C: Client> AddressScanProvider for GoPlusProvider<C> {
     fn name(&self) -> &'static str {
         Self::NAME
     }
 
-    fn supports_address_chain(&self, chain: Chain) -> bool {
+    fn supports_chain(&self, chain: Chain) -> bool {
         mapper::map_address_chain(chain).is_ok()
-    }
-
-    fn supports_token_chain(&self, chain: Chain) -> bool {
-        mapper::map_token_chain(chain).is_ok()
     }
 
     async fn scan_address(&self, target: &AddressTarget) -> Result<ScanResult<AddressTarget>, Box<dyn std::error::Error + Send + Sync>> {
@@ -103,8 +99,19 @@ impl<C: Client> ScanProvider for GoPlusProvider<C> {
             } else {
                 security.is_none().then(|| "No address data found".to_string())
             },
-            provider: self.name().into(),
+            provider: Self::NAME.into(),
         })
+    }
+}
+
+#[async_trait]
+impl<C: Client> TokenScanProvider for GoPlusProvider<C> {
+    fn name(&self) -> &'static str {
+        Self::NAME
+    }
+
+    fn supports_chain(&self, chain: Chain) -> bool {
+        mapper::map_token_chain(chain).is_ok()
     }
 
     async fn scan_token(&self, target: &TokenTarget) -> Result<ScanResult<TokenTarget>, Box<dyn std::error::Error + Send + Sync>> {
@@ -141,7 +148,7 @@ impl<C: Client> ScanProvider for GoPlusProvider<C> {
             target: target.clone(),
             is_malicious,
             reason,
-            provider: self.name().into(),
+            provider: Self::NAME.into(),
         })
     }
 }

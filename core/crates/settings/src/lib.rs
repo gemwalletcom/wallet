@@ -386,6 +386,7 @@ pub struct Security {
     pub abuseipdb: UrlSecretKeySettings,
     pub goplus: UrlKeySettings,
     pub hashdit: UrlKeySettings,
+    pub jupiter: ProviderSettings,
     pub ipapi: UrlSecretKeySettings,
 }
 
