@@ -65,11 +65,8 @@ impl GemConfirmService {
 
     pub fn metadata(&self, wallet_id: WalletId, asset_id: AssetId, fee_asset_id: AssetId, extra_asset_ids: Vec<AssetId>) -> Result<GemConfirmMetadata, GemConfirmError> {
         let asset_ids = rules::metadata_asset_ids(&asset_id, &fee_asset_id, extra_asset_ids);
-        let balances = self
-            .balance
-            .balances(wallet_id, asset_ids.clone())
-            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
-        let prices = self.price.prices(asset_ids).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        let balances = self.balance.balances(wallet_id, asset_ids.clone())?;
+        let prices = self.price.prices(asset_ids)?;
         rules::build_metadata(asset_id, fee_asset_id, balances, prices)
     }
 
@@ -90,22 +87,16 @@ impl GemConfirmService {
         if fee_asset_ids.is_empty() {
             return Ok(Vec::new());
         }
-        let assets = self
-            .assets
-            .assets(fee_asset_ids.clone())
-            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
-        let balances = self
-            .balance
-            .balances(wallet_id, fee_asset_ids.clone())
-            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
-        let prices = self.price.prices(fee_asset_ids).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        let assets = self.assets.assets(fee_asset_ids.clone())?;
+        let balances = self.balance.balances(wallet_id, fee_asset_ids.clone())?;
+        let prices = self.price.prices(fee_asset_ids)?;
         Ok(rules::selectable_fee_assets(assets, balances, prices))
     }
 
     pub fn simulation(&self, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> Result<GemConfirmSimulation, GemConfirmError> {
         let asset_ids = simulation.as_ref().map(SimulationResult::asset_ids).unwrap_or_default();
         let has_critical_warning = simulation.as_ref().map(SimulationResult::has_critical_warning).unwrap_or(false);
-        let assets = self.assets.assets(asset_ids).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        let assets = self.assets.assets(asset_ids)?;
         let approval = input_type.approval_value();
         let shows_header = self.simulation_formatter.shows_header(simulation.clone(), approval.is_some());
         let payload_fields = self
@@ -155,8 +146,7 @@ impl GemConfirmService {
         let metadata = self.input_metadata(wallet_id.clone(), &confirm_data.input.transfer.input_type, fee_asset_id.clone())?;
         let fee_asset = self
             .assets
-            .assets(vec![fee_asset_id.clone()])
-            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?
+            .assets(vec![fee_asset_id.clone()])?
             .into_iter()
             .next()
             .ok_or(GemConfirmError::BalanceMissing { asset_id: fee_asset_id.clone() })?;

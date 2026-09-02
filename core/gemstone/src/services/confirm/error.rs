@@ -1,5 +1,6 @@
 use crate::GemstoneError;
 use crate::gateway::GatewayError;
+use crate::services::error::GemServiceError;
 use crate::signer::GemSignerError;
 use primitives::{AssetId, Chain};
 
@@ -50,6 +51,12 @@ impl From<GemstoneError> for GemConfirmError {
                 msg,
             },
         }
+    }
+}
+
+impl From<GemServiceError> for GemConfirmError {
+    fn from(error: GemServiceError) -> Self {
+        Self::Load { msg: error.to_string() }
     }
 }
 

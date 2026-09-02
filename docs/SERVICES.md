@@ -374,10 +374,6 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
-- **Confirm error conversion.** `GemConfirmService` repeats the same
-  `GemServiceError` → `GemConfirmError::Load` closure across store reads. Implement the typed
-  conversion once and use `?`; keep explicit mappings where the operation changes the category,
-  such as `Record` or gateway-specific `Offline`/`Network`.
 - **Android confirm error collapse.**
   [`ConfirmErrorMapper.kt`](../android/features/confirm/viewmodels/src/main/kotlin/com/gemwallet/android/features/confirm/viewmodels/ConfirmErrorMapper.kt)
   translates `GemConfirmException` into parallel
