@@ -354,10 +354,6 @@ metadata already carries the balances and prices the screen shows. Moving the fe
 the amount/swap details onto `GemConfirmMetadata`/`GemFeeAsset` removes those three cases and
 `BuildConfirmProperties`' `assetsInfo` parameter.
 
-`hasPerpetualsSupport` (iOS `Wallet+Primitives`, Android `ext/Wallet.kt`) is the wallet half of
-Core's `show_perpetuals`, kept on the apps only to fill the banner input record. Let Core derive it
-from the wallet it is already handed and drop the field.
-
 ### 4. Core surface
 
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.

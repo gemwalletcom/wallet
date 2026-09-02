@@ -29,10 +29,6 @@ public extension Wallet {
             $0.chain == .arbitrum || $0.chain == .hyperCore || $0.chain == .hyperliquid
         }
     }
-
-    var hasPerpetualsSupport: Bool {
-        isMultiCoins && hyperliquidAccount != nil
-    }
 }
 
 /// factory

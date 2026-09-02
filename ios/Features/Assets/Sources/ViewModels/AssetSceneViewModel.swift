@@ -226,14 +226,13 @@ public final class AssetSceneViewModel: Sendable {
 
     private var bannerContext: GemBannerContext {
         GemBannerContext(
-            hasWallet: true,
+            wallet: wallet.json(),
             hasAsset: true,
             isStakeable: assetData.metadata.isStakeEnabled,
             hasStakeBalance: stakedValue > .zero,
             hasAvailableBalance: assetData.balance.available > 0,
             isAssetActivated: assetData.metadata.isActive,
             assetRankScore: assetData.metadata.rankScore,
-            hasPerpetualsSupport: wallet.hasPerpetualsSupport,
             isWalletEmpty: false,
         )
     }

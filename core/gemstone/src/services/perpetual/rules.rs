@@ -124,7 +124,11 @@ pub fn includes_perpetual_collateral(mode: PerpetualAccountMode) -> bool {
 }
 
 pub fn show_perpetuals(enabled: bool, wallet: &Wallet) -> bool {
-    enabled && wallet.wallet_type == WalletType::Multicoin && crate::services::stream::rules::hyperliquid_account(&wallet.accounts).is_some()
+    enabled && supports_perpetuals(wallet)
+}
+
+pub fn supports_perpetuals(wallet: &Wallet) -> bool {
+    wallet.wallet_type == WalletType::Multicoin && crate::services::stream::rules::hyperliquid_account(&wallet.accounts).is_some()
 }
 
 fn is_markets_stale(updated_at: Option<i64>, now: i64) -> bool {

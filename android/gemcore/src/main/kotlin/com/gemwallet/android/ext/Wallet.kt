@@ -31,8 +31,5 @@ val Wallet.hyperliquidAccount: Account?
         it.chain == Chain.Arbitrum || it.chain == Chain.HyperCore || it.chain == Chain.Hyperliquid
     }
 
-val Wallet.hasPerpetualsSupport: Boolean
-    get() = type == WalletType.Multicoin && hyperliquidAccount != null
-
 val HypercoreUSDC: Asset = Chain.HyperCore.defaultAssets
     .first { it.type == AssetType.PERPETUAL }

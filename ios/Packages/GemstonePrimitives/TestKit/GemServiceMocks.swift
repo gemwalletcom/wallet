@@ -122,7 +122,7 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
     public func setPerpetualEnabled(enabled: Bool) throws { perpetualEnabled = enabled }
 
     public func showPerpetuals(wallet: Gemstone.Wallet) -> Bool {
-        perpetualEnabled && ((try? Primitives.Wallet(wallet).hasPerpetualsSupport) ?? false)
+        perpetualEnabled && ((try? Primitives.Wallet(wallet).supportsPerpetuals) ?? false)
     }
 
     public var collectionsShown = true
@@ -611,7 +611,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     }
 
     public func shouldConnectPerpetuals(wallet: Gemstone.Wallet?) -> Bool {
-        isPerpetualEnabled && (wallet.flatMap { try? Primitives.Wallet($0).hasPerpetualsSupport } ?? false)
+        isPerpetualEnabled && (wallet.flatMap { try? Primitives.Wallet($0).supportsPerpetuals } ?? false)
     }
 
     public func syncMarketsIfNeeded(chain: Gemstone.Chain, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
@@ -912,5 +912,11 @@ public extension Gemstone.GemFeeAsset {
             ),
             price: price,
         )
+    }
+}
+
+private extension Primitives.Wallet {
+    var supportsPerpetuals: Bool {
+        isMultiCoins && hyperliquidAccount != nil
     }
 }

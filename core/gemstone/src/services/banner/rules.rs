@@ -62,7 +62,7 @@ fn is_visible_event(event: BannerEvent, context: &GemBannerContext) -> bool {
         BannerEvent::Stake => context.has_asset && !context.has_stake_balance,
         BannerEvent::ActivateAsset => context.has_asset && !context.is_asset_activated,
         BannerEvent::SuspiciousAsset => context.has_asset && is_suspicious(context),
-        BannerEvent::TradePerpetuals => context.has_asset && context.has_perpetuals_support,
+        BannerEvent::TradePerpetuals => context.has_asset && context.wallet.as_ref().is_some_and(crate::services::perpetual::rules::supports_perpetuals),
         BannerEvent::Onboarding => !context.has_asset && context.is_wallet_empty,
     }
 }
@@ -189,7 +189,7 @@ fn event_priority(event: BannerEvent) -> u8 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{WalletId, WalletType};
+    use primitives::{Account, WalletId, WalletType};
 
     #[test]
     fn test_setup_keys() {
@@ -235,14 +235,13 @@ mod tests {
 
     fn context(has_asset: bool) -> GemBannerContext {
         GemBannerContext {
-            has_wallet: true,
+            wallet: Some(Wallet::mock_with_accounts(Account::mock_chains(&[Chain::Ethereum, Chain::HyperCore], "address"))),
             has_asset,
             is_stakeable: true,
             has_stake_balance: false,
             has_available_balance: false,
             is_asset_activated: true,
             asset_rank_score: Some(50),
-            has_perpetuals_support: true,
             is_wallet_empty: false,
         }
     }
@@ -289,10 +288,12 @@ mod tests {
         let perpetuals = vec![item(BannerEvent::TradePerpetuals, BannerState::Active)];
         assert_eq!(events(&visible_banners(perpetuals.clone(), &context(true))), vec![BannerEvent::TradePerpetuals]);
         let unsupported = GemBannerContext {
-            has_perpetuals_support: false,
+            wallet: Some(Wallet::mock_with_accounts(Account::mock_chains(&[Chain::Ethereum], "address"))),
             ..context(true)
         };
-        assert!(visible_banners(perpetuals, &unsupported).is_empty());
+        assert!(visible_banners(perpetuals.clone(), &unsupported).is_empty());
+        let no_wallet = GemBannerContext { wallet: None, ..context(true) };
+        assert!(visible_banners(perpetuals, &no_wallet).is_empty());
     }
 
     #[test]

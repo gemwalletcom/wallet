@@ -6,7 +6,6 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ext.hasPerpetualsSupport
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.toStakeBalance
@@ -51,14 +50,13 @@ class GetActiveBannersImpl(
     }
 
     private fun bannerContext(wallet: Wallet?, assetInfo: AssetInfo?) = GemBannerContext(
-        hasWallet = wallet != null,
+        wallet = wallet?.toJson(),
         hasAsset = assetInfo != null,
         isStakeable = assetInfo?.metadata?.isStakeEnabled == true,
         hasStakeBalance = hasStakeBalance(assetInfo),
         hasAvailableBalance = (assetInfo?.balance?.balance?.available?.toBigIntegerOrNull() ?: BigInteger.ZERO) > BigInteger.ZERO,
         isAssetActivated = assetInfo?.balance?.isActive != false,
         assetRankScore = assetInfo?.metadata?.rankScore,
-        hasPerpetualsSupport = wallet?.hasPerpetualsSupport == true,
         isWalletEmpty = false,
     )
 
