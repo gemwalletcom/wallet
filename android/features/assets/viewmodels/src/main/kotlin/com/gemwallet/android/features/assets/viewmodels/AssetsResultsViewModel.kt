@@ -7,6 +7,7 @@ import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import android.content.Context
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
@@ -83,7 +84,7 @@ class AssetsResultsViewModel @Inject constructor(
         is WalletSearchTag.List ->
             combine(
                 getPerpetuals.getPerpetuals(listPriorityQuery(scope.id)),
-                getSession().map { session -> session?.wallet?.let { service.showPerpetuals(it.toJson()) } ?: false },
+                getSession().map { service.showPerpetuals() },
             ) { items, show ->
                 if (show) items.take(WalletSearchConfig.resultsLimit) else emptyList()
             }
@@ -119,8 +120,8 @@ class AssetsResultsViewModel @Inject constructor(
             isFetching.value = true
             if (pull) isPullRefreshing.value = true
             try {
-                val session = getSession().filterNotNull().first()
-                runCatchingCancellable { service.search(session.wallet.toJson(), queryState.text.toString(), scope.toGem()) }
+                runCatchingCancellable { service.search(queryState.text.toString(), scope.toGem()) }
+                    .onFailure { Log.e("AssetsResults", "search failed", it) }
             } finally {
                 isFetching.value = false
                 isPullRefreshing.value = false

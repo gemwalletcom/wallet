@@ -69,6 +69,7 @@ object DataModule {
         recentActivity: GemRecentActivityService,
         preferencesService: GemPreferencesService,
         perpetualService: GemPerpetualService,
+        walletSessionService: GemWalletSessionService,
     ): GemAssetSelectionServiceInterface = GemAssetSelectionService(
         searchService,
         balanceService,
@@ -76,6 +77,7 @@ object DataModule {
         recentActivity,
         preferencesService,
         perpetualService,
+        walletSessionService,
     )
 
     @Provides

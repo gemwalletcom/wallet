@@ -58,11 +58,11 @@ class WalletSearchViewModel @Inject constructor(
     BaseSelectSearch(searchSelectAssets),
 ) {
 
-    override suspend fun searchRemote(wallet: Wallet, query: String) {
-        service.search(wallet.toJson(), query, GemSearchScope.All)
+    override suspend fun searchRemote(query: String) {
+        service.search(query, GemSearchScope.All)
     }
 
-    private val showPerpetuals = getSession().map { session -> session?.wallet?.let { service.showPerpetuals(it.toJson()) } ?: false }
+    private val showPerpetuals = getSession().map { service.showPerpetuals() }
 
     private val visiblePerpetuals = combine(
         getPerpetuals.getPerpetuals(currentQuery.map { it.takeIf(String::isNotEmpty) }),

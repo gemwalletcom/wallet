@@ -7,8 +7,8 @@ import Primitives
 
 public extension GemAssetSelectionServiceProtocol {
     @discardableResult
-    func search(wallet: Primitives.Wallet, query: String, scope: WalletSearchTag) async throws -> Bool {
-        try await search(wallet: wallet.json(), query: query, scope: scope.gemScope)
+    func search(query: String, scope: WalletSearchTag) async throws -> Bool {
+        try await search(query: query, scope: scope.gemScope)
     }
 }
 

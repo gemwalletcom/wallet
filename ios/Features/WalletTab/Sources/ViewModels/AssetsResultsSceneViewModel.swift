@@ -70,7 +70,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     }
 
     var showPerpetuals: Bool {
-        searchQuery.request.scope.isList && sections.perpetuals.isNotEmpty && service.showPerpetuals(wallet: wallet.json())
+        searchQuery.request.scope.isList && sections.perpetuals.isNotEmpty && service.showPerpetuals()
     }
 
     var showEmpty: Bool {
@@ -110,7 +110,7 @@ extension AssetsResultsSceneViewModel {
     func refresh() async {
         state = .loading
         do {
-            try await service.search(wallet: wallet, query: searchQuery.request.searchBy, scope: searchQuery.request.scope)
+            try await service.search(query: searchQuery.request.searchBy, scope: searchQuery.request.scope)
             state = .data(true)
         } catch {
             state.setError(error)
@@ -131,11 +131,11 @@ extension AssetsResultsSceneViewModel {
 
 extension AssetsResultsSceneViewModel {
     func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws {
-        try await service.setAssetPinned(walletId: wallet.id.id, assetId: assetId.identifier, pinned: pinned)
+        try await service.setAssetPinned(assetId: assetId.identifier, pinned: pinned)
     }
 
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
-        try await service.setAssetsEnabled(walletId: wallet.id.id, assetIds: assetIds.ids, enabled: enabled)
+        try await service.setAssetsEnabled(assetIds: assetIds.ids, enabled: enabled)
     }
 
     func setPerpetualPinned(_ perpetualId: PerpetualId, pinned: Bool) async throws {

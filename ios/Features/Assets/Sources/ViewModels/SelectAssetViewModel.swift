@@ -165,7 +165,7 @@ extension SelectAssetViewModel {
         switch flow.rowSelection {
         case .toggle:
             do {
-                try await service.setAssetsEnabled(walletId: wallet.id.id, assetIds: [assetId.identifier], enabled: enabled)
+                try await service.setAssetsEnabled(assetIds: [assetId.identifier], enabled: enabled)
             } catch {
                 debugLog("SelectAssetViewModel handleAction error: \(error)")
             }
@@ -274,7 +274,7 @@ extension SelectAssetViewModel {
 
     private func searchAssets(query: String) async {
         do {
-            let assets = try await service.searchAssets(wallet: wallet.json(), query: query).map { try AssetBasic($0) }
+            let assets = try await service.searchAssets(query: query).map { try AssetBasic($0) }
             state = .data(assets)
         } catch {
             handle(error: error)

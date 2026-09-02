@@ -335,6 +335,7 @@ public struct ViewModelFactory: Sendable {
             recentActivity: recentAssetsService,
             preferences: preferencesService,
             perpetuals: perpetualService,
+            session: walletSessionService,
         )
     }
 

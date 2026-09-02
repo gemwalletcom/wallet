@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{Asset, AssetBasic, AssetId, Wallet, WalletId};
+use primitives::{Asset, AssetBasic, AssetId};
 
 use super::model::GemAssetAction;
 
@@ -12,6 +12,7 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::price_alert::GemPriceAlertService;
 use crate::services::search::{GemSearchScope, GemSearchService};
 use crate::services::transfer::GemRecentActivityService;
+use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemAssetSelectionService {
@@ -21,6 +22,7 @@ pub struct GemAssetSelectionService {
     recent_activity: Arc<GemRecentActivityService>,
     preferences: Arc<GemPreferencesService>,
     perpetuals: Arc<GemPerpetualService>,
+    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
@@ -33,6 +35,7 @@ impl GemAssetSelectionService {
         recent_activity: Arc<GemRecentActivityService>,
         preferences: Arc<GemPreferencesService>,
         perpetuals: Arc<GemPerpetualService>,
+        session: Arc<GemWalletSessionService>,
     ) -> Self {
         Self {
             search,
@@ -41,6 +44,7 @@ impl GemAssetSelectionService {
             recent_activity,
             preferences,
             perpetuals,
+            session,
         }
     }
 
@@ -48,24 +52,28 @@ impl GemAssetSelectionService {
         self.preferences.get_currency()
     }
 
-    pub fn show_perpetuals(&self, wallet: Wallet) -> bool {
-        self.preferences.show_perpetuals(wallet)
+    pub fn show_perpetuals(&self) -> bool {
+        self.session
+            .get_current_wallet()
+            .ok()
+            .flatten()
+            .is_some_and(|wallet| self.preferences.show_perpetuals(wallet))
     }
 
-    pub async fn search_assets(&self, wallet: Wallet, query: String) -> Result<Vec<AssetBasic>, GemServiceError> {
-        self.search.search_assets(wallet, query, self.currency()).await
+    pub async fn search_assets(&self, query: String) -> Result<Vec<AssetBasic>, GemServiceError> {
+        self.search.search_assets(self.session.current_wallet()?, query, self.currency()).await
     }
 
-    pub async fn search(&self, wallet: Wallet, query: String, scope: GemSearchScope) -> Result<bool, GemServiceError> {
-        self.search.search(wallet, query, scope, self.currency()).await
+    pub async fn search(&self, query: String, scope: GemSearchScope) -> Result<bool, GemServiceError> {
+        self.search.search(self.session.current_wallet()?, query, scope, self.currency()).await
     }
 
-    pub async fn set_assets_enabled(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
-        self.balances.set_assets_enabled(wallet_id, asset_ids, enabled).await
+    pub async fn set_assets_enabled(&self, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
+        self.balances.set_assets_enabled(self.session.current_wallet_id()?, asset_ids, enabled).await
     }
 
-    pub async fn set_asset_pinned(&self, wallet_id: WalletId, asset_id: AssetId, pinned: bool) -> Result<(), GemServiceError> {
-        self.balances.set_asset_pinned(wallet_id, asset_id, pinned).await
+    pub async fn set_asset_pinned(&self, asset_id: AssetId, pinned: bool) -> Result<(), GemServiceError> {
+        self.balances.set_asset_pinned(self.session.current_wallet_id()?, asset_id, pinned).await
     }
 
     pub async fn set_perpetual_pinned(&self, perpetual_id: String, pinned: bool) -> Result<(), GemServiceError> {

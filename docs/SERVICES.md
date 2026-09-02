@@ -423,10 +423,12 @@ Three gotchas if you repeat the sweep, all met on this pass:
   wallet takes the session and drops the parameter — `GemRecentActivityService::add_recent`,
   `GemNotificationService::open` and `GemWalletHomeService` are converted (`current_wallet_id()`
   / `current_wallet()` on the session are the Core-internal accessors that fail with `NotFound`).
-  `GemAssetDetailsService` and `GemPerpetualDetailsService` too. Still to convert, in this
-  order: `GemTransactionsService::sync`, `GemAssetSelectionService` (`show_perpetuals`, `search`,
-  `search_assets`, `set_assets_enabled`, `set_asset_pinned`), `GemPerpetualService`
-  (`sync_enablement`, `should_connect_perpetuals`, `connection`, `sync_positions`). Keep an explicit
+  `GemAssetDetailsService`, `GemPerpetualDetailsService` and `GemAssetSelectionService` too.
+  Still to convert: `GemTransactionsService::sync` (its screen callers — iOS
+  `FiatTransactionsViewModel`, Android `SyncTransactionsImpl`), `GemSwapQuoteService::update_balances`,
+  `GemPerpetualService` (`sync_enablement`, `should_connect_perpetuals`, `connection`,
+  `sync_positions`). `GemBalanceService` and `GemTransactionsService` stay explicit underneath: the
+  app-start and observer flows call them for a named wallet. Keep an explicit
   wallet only where a screen acts on a wallet that is not current (`GemWalletService` rename,
   delete, pin, `export_secret`; `GemAppStartService::setup_wallet`).
 

@@ -91,9 +91,7 @@ open class BaseAssetSelectViewModel(
     protected val currentQuery = snapshotFlow { queryState.text.toString() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    private val searchRequests = combine(currentQuery.debounce(SEARCH_DEBOUNCE_MS), session) { query, session ->
-        query to session?.wallet
-    }.distinctUntilChanged()
+    private val searchRequests = currentQuery.debounce(SEARCH_DEBOUNCE_MS).distinctUntilChanged()
 
     private val filters = combine(
         session,
@@ -175,29 +173,22 @@ open class BaseAssetSelectViewModel(
     }
 
     fun onAddToWallet(assetId: AssetId) = viewModelScope.launch {
-        if (setVisibility(assetId, visible = true)) {
+        if (setVisibility(assetId, visible = true).isSuccess) {
             emitToast(AssetToast.AddedToWallet)
         }
     }
 
     fun onTogglePin(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
-        val session = session.value ?: return@launch
-        session.wallet.getAccount(assetId.chain) ?: return@launch
         val item = assets.value.firstOrNull { it.asset.id == assetId }
         val willPin = item?.pinned != true
-        runCatchingCancellable { service.setAssetPinned(session.wallet.id.id, assetId.toIdentifier(), willPin) }
+        runCatchingCancellable { service.setAssetPinned(assetId.toIdentifier(), willPin) }
             .onFailure { Log.e(TAG, "pinning ${assetId.toIdentifier()} failed", it) }
         item?.let { emitToast(AssetToast.Pin(it.asset.name, willPin)) }
     }
 
-    private suspend fun setVisibility(assetId: AssetId, visible: Boolean): Boolean {
-        val session = session.value ?: return false
-        session.wallet.getAccount(assetId.chain) ?: return false
-        withContext(Dispatchers.IO) {
-            runCatchingCancellable { service.setAssetsEnabled(session.wallet.id.id, listOf(assetId.toIdentifier()), visible) }
-                .onFailure { Log.e(TAG, "setting ${assetId.toIdentifier()} enabled=$visible failed", it) }
-        }
-        return true
+    private suspend fun setVisibility(assetId: AssetId, visible: Boolean): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatchingCancellable { service.setAssetsEnabled(listOf(assetId.toIdentifier()), visible) }
+            .onFailure { Log.e(TAG, "setting ${assetId.toIdentifier()} enabled=$visible failed", it) }
     }
 
     fun setChainFilter(chains: List<Chain>) {
@@ -230,11 +221,12 @@ open class BaseAssetSelectViewModel(
     init {
         if (remoteSearch) {
             viewModelScope.launch(Dispatchers.IO) {
-                searchRequests.collectLatest { (query, wallet) ->
-                    if (query.isEmpty() || wallet == null) return@collectLatest
+                searchRequests.collectLatest { query ->
+                    if (query.isEmpty()) return@collectLatest
                     isSearching.value = true
                     try {
-                        runCatchingCancellable { searchRemote(wallet, query) }
+                        runCatchingCancellable { searchRemote(query) }
+                            .onFailure { Log.e(TAG, "search failed", it) }
                     } finally {
                         isSearching.value = false
                     }
@@ -243,8 +235,8 @@ open class BaseAssetSelectViewModel(
         }
     }
 
-    protected open suspend fun searchRemote(wallet: Wallet, query: String) {
-        service.searchAssets(wallet.toJson(), query)
+    protected open suspend fun searchRemote(query: String) {
+        service.searchAssets(query)
     }
 
     protected suspend fun setPerpetualPinned(perpetualId: PerpetualId, pinned: Boolean) {
