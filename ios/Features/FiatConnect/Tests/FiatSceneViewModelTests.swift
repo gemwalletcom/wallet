@@ -337,15 +337,6 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
-    func secondFetchSkippedWhenDataExistsForSameAmount() {
-        let model = FiatSceneViewModelTests.mock()
-
-        model.buyViewModel.quotesState = .data(FiatQuotes(amount: 100.0, quotes: []))
-
-        #expect(model.buyViewModel.shouldSkipFetch(for: 100.0) == true)
-    }
-
-    @Test
     func fetchAllowedForDifferentAmount() {
         let model = FiatSceneViewModelTests.mock()
 

@@ -103,16 +103,7 @@ final class FiatOperationViewModel {
     }
 
     func shouldSkipFetch(for amount: Double) -> Bool {
-        if loadingAmount == amount {
-            return true
-        }
-
-        switch quotesState {
-        case let .data(fiatQuotes):
-            return fiatQuotes.amount == amount
-        case .loading, .noData, .error:
-            return false
-        }
+        loadingAmount == amount
     }
 
     func updateValidators() {
