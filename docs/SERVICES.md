@@ -447,7 +447,11 @@ having the parent vend the child view model.
 
 Both apps carry Core's `GemTransferData`, `GemConfirmInput` and `GemTransactionInputType`
 end to end, per [ARCHITECTURE.md](ARCHITECTURE.md) § 6 — iOS's `TransferDataType` and
-`TransferData` and Android's `ConfirmParams` are all gone.
+`TransferData` and Android's `ConfirmParams` are all gone. The perpetual provider's recipient
+(the `"Hyperliquid"` name and the deposit address) is `GemPerpetual::recipient` /
+`deposit_recipient`, and `GemPerpetual::transfer_data` builds the close/modify transfer, so
+neither app spells the provider name or the address (iOS `GemRecipient.hyperliquidProvider`
+and Android `HyperliquidRecipient` are gone).
 
 Two recent-activity rules are still app-side, on `SelectAssetType` and `SelectedAssetType`.
 Both are Swift-only enums with no Core counterpart, so the enums move first.

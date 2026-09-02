@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
-import com.gemwallet.android.model.HyperliquidRecipient
 import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
@@ -10,7 +9,10 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.wallet.core.primitives.Asset
 import kotlinx.coroutines.CoroutineScope
+import com.gemwallet.android.ext.toGem
+import com.wallet.core.primitives.PerpetualProvider
 import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemPerpetual
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.domains.confirm.confirmInput
@@ -66,7 +68,7 @@ class AmountTransferProvider(
         val current = assetInfo.value ?: error("assetInfo not loaded")
         val owner = current.owner ?: error("owner missing")
         val (inputType, recipient) = when (params) {
-            is AmountParams.Deposit -> GemTransactionInputType.deposit(current.asset) to HyperliquidRecipient.deposit
+            is AmountParams.Deposit -> GemTransactionInputType.deposit(current.asset) to GemPerpetual(PerpetualProvider.Hypercore.toGem()).use { it.depositRecipient() }
             is AmountParams.Withdraw -> GemTransactionInputType.withdrawal(current.asset) to GemRecipient(owner.address)
             is AmountParams.Transfer -> GemTransactionInputType.transfer(current.asset) to
                 params.destination.copy(memo = params.memo, references = params.references)

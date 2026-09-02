@@ -13,7 +13,6 @@ import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
-import struct Gemstone.GemTransferData
 
 @Observable
 @MainActor
@@ -251,11 +250,7 @@ public extension PerpetualSceneViewModel {
                 asset: asset,
                 baseAsset: Chain.hyperCore.defaultAsset(type: .perpetual),
             )
-            onTransferData?(GemTransferData(
-                inputType: .perpetual(asset, .close(data)),
-                recipient: .hyperliquidProvider,
-                value: .zero,
-            ))
+            onTransferData?(PerpetualFormatter(provider: perpetual.provider).transferData(asset: asset, perpetualType: .close(data)))
         } catch {
             debugLog("perpetual scene: close position error \(error)")
         }
@@ -362,7 +357,7 @@ private extension PerpetualSceneViewModel {
 
     func onPositionAction(_ positionAction: PerpetualPositionAction) {
         let recipientData = PerpetualRecipientData(
-            recipient: .hyperliquid(),
+            recipient: RecipientData(recipient: PerpetualFormatter(provider: perpetual.provider).recipient, amount: .none),
             positionAction: positionAction,
         )
         onPerpetualRecipientData?(recipientData)

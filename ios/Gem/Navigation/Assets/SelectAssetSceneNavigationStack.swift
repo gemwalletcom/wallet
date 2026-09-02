@@ -86,7 +86,7 @@ struct SelectAssetSceneNavigationStack: View {
                         AmountNavigationView(
                             model: viewModelFactory.amountScene(
                                 input: AmountInput(
-                                    type: .deposit(recipient: .hyperliquidDeposit),
+                                    type: .deposit(recipient: RecipientData(recipient: PerpetualFormatter(provider: .hypercore).depositRecipient, amount: .none)),
                                     asset: input.asset,
                                 ),
                                 wallet: model.wallet,

@@ -10,10 +10,16 @@ use primitives::{
     PerpetualType, TpslType,
 };
 
+use crate::config::perpetual_config::HYPERLIQUID_DEPOSIT_ADDRESS;
+use crate::models::custom_types::GemBigInt;
 use crate::models::perpetual::GemPerpetualSubscription;
+use crate::models::{GemAsset, GemTransactionInputType};
 use crate::services::error::GemServiceError;
 use crate::services::perpetual::model::{GemPerpetualCloseInput, GemPerpetualOrderInput};
 use crate::services::perpetual::rules as perpetual_rules;
+use crate::services::transfer::model::{GemRecipient, GemTransferData};
+
+const HYPERLIQUID_NAME: &str = "Hyperliquid";
 
 #[derive(Debug, uniffi::Object)]
 pub struct GemPerpetual {
@@ -55,6 +61,40 @@ impl GemPerpetual {
 
     pub fn close_order(&self, input: GemPerpetualCloseInput) -> PerpetualConfirmData {
         perpetual_rules::close_order(self.provider.clone(), input)
+    }
+
+    pub fn recipient(&self) -> GemRecipient {
+        GemRecipient {
+            address: String::new(),
+            name: Some(self.name().to_string()),
+            memo: None,
+            references: vec![],
+        }
+    }
+
+    pub fn deposit_recipient(&self) -> GemRecipient {
+        let address = match self.provider {
+            PerpetualProvider::Hypercore => HYPERLIQUID_DEPOSIT_ADDRESS.to_string(),
+        };
+        GemRecipient { address, ..self.recipient() }
+    }
+
+    pub fn transfer_data(&self, asset: GemAsset, perpetual_type: PerpetualType, value: GemBigInt, use_max_amount: bool) -> GemTransferData {
+        GemTransferData {
+            input_type: GemTransactionInputType::Perpetual { asset, perpetual_type },
+            recipient: self.recipient(),
+            value,
+            use_max_amount,
+            minimum_value: None,
+        }
+    }
+}
+
+impl GemPerpetual {
+    fn name(&self) -> &'static str {
+        match self.provider {
+            PerpetualProvider::Hypercore => HYPERLIQUID_NAME,
+        }
     }
 }
 

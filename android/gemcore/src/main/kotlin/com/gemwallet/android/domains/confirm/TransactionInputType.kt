@@ -73,6 +73,3 @@ fun GemTransactionInputType.Companion.stake(asset: Asset, stakeType: StakeType):
 
 fun GemTransactionInputType.Companion.account(asset: Asset, accountType: AccountDataType): GemTransactionInputType =
     GemTransactionInputType.Account(asset.toGem(), accountType.toJson())
-
-fun GemTransactionInputType.Companion.perpetual(asset: Asset, perpetualType: PerpetualType): GemTransactionInputType =
-    GemTransactionInputType.Perpetual(asset.toGem(), perpetualType.toGem())

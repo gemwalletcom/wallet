@@ -12,7 +12,6 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 import class Gemstone.GemAutocloseEstimator
-import struct Gemstone.GemTransferData
 
 @Observable
 @MainActor
@@ -121,13 +120,7 @@ public extension AutocloseSceneViewModel {
                 stopLossOrderId: stopLossOrderId,
             )
 
-            onTransferAction?(
-                GemTransferData(
-                    inputType: .perpetual(position.asset, .modify(data)),
-                    recipient: .hyperliquidProvider,
-                    value: .zero,
-                ),
-            )
+            onTransferAction?(PerpetualFormatter(provider: position.perpetual.provider).transferData(asset: position.asset, perpetualType: .modify(data)))
 
         case let .open(_, onComplete):
             onComplete(input.takeProfit, input.stopLoss)
