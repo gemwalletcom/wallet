@@ -2,7 +2,6 @@
 
 import GemstonePrimitivesTestKit
 import Components
-import class Gemstone.GemTransactionFormatter
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
@@ -28,25 +27,6 @@ final class TransactionViewModelTests {
         #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "100"))).subtitleTextValue?.text == "+0.0001 USDT")
         #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10"))).subtitleTextValue?.text == "+<0.0001 USDT")
         #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1"))).subtitleTextValue?.text == "+<0.0001 USDT")
-    }
-
-    @Test
-    func participant_returnsCorrectAddress() {
-        let outgoingViewModel = TransactionViewModel.mock(
-            type: .transfer,
-            direction: .outgoing,
-            to: "to_address",
-            metadata: .encode(TransactionSwapMetadata.mock()),
-        )
-        #expect(outgoingViewModel.participant == "to_address")
-
-        let selfTransferViewModel = TransactionViewModel.mock(
-            type: .transfer,
-            direction: .selfTransfer,
-            to: "self_address",
-            metadata: .encode(TransactionSwapMetadata.mock()),
-        )
-        #expect(selfTransferViewModel.participant == "self_address")
     }
 
     @Test
@@ -197,8 +177,6 @@ final class TransactionViewModelTests {
     @Test
     func titleExtraHidesEmptySender() {
         let model = TransactionViewModel(
-            explorerService: GemExplorerServiceMock(),
-            transactionFormatter: GemTransactionFormatter(),
             transaction: .mock(
                 transaction: .mock(
                     type: .transfer,
@@ -231,8 +209,7 @@ final class TransactionViewModelTests {
     }
 
     func testTransactionTitle(expectedTitle: String, transaction: Transaction) {
-        #expect(TransactionViewModel(explorerService: GemExplorerServiceMock(),
-            transactionFormatter: GemTransactionFormatter(), transaction: .mock(transaction: transaction), currency: "USD").titleTextValue.text == expectedTitle)
+        #expect(TransactionViewModel(transaction: .mock(transaction: transaction), currency: "USD").titleTextValue.text == expectedTitle)
     }
 }
 
@@ -270,8 +247,6 @@ extension TransactionViewModel {
         )
 
         return TransactionViewModel(
-            explorerService: GemExplorerServiceMock(),
-            transactionFormatter: GemTransactionFormatter(),
             transaction: extended,
             currency: "USD",
         )

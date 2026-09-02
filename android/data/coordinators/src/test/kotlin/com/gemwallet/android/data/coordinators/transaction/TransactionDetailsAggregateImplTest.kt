@@ -9,6 +9,8 @@ import com.gemwallet.android.model.TransactionExtended
 import com.gemwallet.android.serializer.jsonEncoder
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockNftAssetId
+import com.wallet.core.primitives.AddressName
+import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
@@ -22,15 +24,18 @@ import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.VerificationStatus
 import org.junit.Assert
 import org.junit.Test
 import java.text.DateFormat
 import java.util.Date
+import uniffi.gemstone.GemBlockExplorerLink
+import uniffi.gemstone.GemTransactionParticipant
+import uniffi.gemstone.GemTransactionParticipantRole
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.SwapperProviderMode
 import uniffi.gemstone.SwapperProviderType
 import uniffi.gemstone.SwapperSlippageMode
-import uniffi.gemstone.GemTransactionFormatter
 
 class TransactionDetailsAggregateImplTest {
 
@@ -129,6 +134,7 @@ class TransactionDetailsAggregateImplTest {
         currency: Currency = Currency.USD,
         swapMetadata: TransactionSwapMetadata? = null,
         swapProvider: SwapperProviderType? = null,
+        participant: GemTransactionParticipant? = null,
     ) = TransactionDetailsAggregateImpl(
         data = data,
         associatedAssets = associatedAssets,
@@ -136,8 +142,8 @@ class TransactionDetailsAggregateImplTest {
         explorer = TransactionDetailsValue.Explorer("https://example.com", "Explorer"),
         currency = currency,
         swapProvider = swapProvider,
-            transactionFormatter = GemTransactionFormatter(),
-        )
+        participant = participant,
+    )
 
     private fun createSwapProvider(
         mode: SwapperProviderMode = SwapperProviderMode.CrossChain,
@@ -872,54 +878,6 @@ class TransactionDetailsAggregateImplTest {
     }
 
     @Test
-    fun testDestination_transferOutgoing() {
-        val transaction = createTransaction(
-            type = TransactionType.Transfer,
-            direction = TransactionDirection.Outgoing,
-            to = "recipient-address",
-        )
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        val destination = aggregate.destination
-        Assert.assertTrue(destination is TransactionDetailsValue.Destination.Recipient)
-        val recipient = destination as TransactionDetailsValue.Destination.Recipient
-        Assert.assertEquals("recipient-address", recipient.data)
-    }
-
-    @Test
-    fun testDestination_transferIncoming() {
-        val transaction = createTransaction(
-            type = TransactionType.Transfer,
-            direction = TransactionDirection.Incoming,
-            from = "sender-address",
-        )
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        val destination = aggregate.destination
-        Assert.assertTrue(destination is TransactionDetailsValue.Destination.Sender)
-        val sender = destination as TransactionDetailsValue.Destination.Sender
-        Assert.assertEquals("sender-address", sender.data)
-    }
-
-    @Test
-    fun testDestination_transferSelfTransfer() {
-        val transaction = createTransaction(
-            type = TransactionType.Transfer,
-            direction = TransactionDirection.SelfTransfer,
-            to = "self-address",
-        )
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        val destination = aggregate.destination
-        Assert.assertTrue(destination is TransactionDetailsValue.Destination.Recipient)
-        val recipient = destination as TransactionDetailsValue.Destination.Recipient
-        Assert.assertEquals("self-address", recipient.data)
-    }
-
-    @Test
     fun testAmountSwap_invalidMetadataValues() {
         val swapMetadata = TransactionSwapMetadata(
             fromAsset = ethAsset.id,
@@ -943,6 +901,26 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertTrue(aggregate.amount is TransactionDetailsValue.Amount.None)
         Assert.assertNull(aggregate.swapProgress)
         Assert.assertNull(aggregate.rate)
+    }
+
+    @Test
+    fun testDestination_showsCoreParticipantWithItsAddressName() {
+        val transaction = createTransaction(type = TransactionType.Transfer, direction = TransactionDirection.Incoming, from = "sender-address")
+        val extended = createTransactionExtended(transaction).copy(fromAddress = AddressName(Chain.Bitcoin, "sender-address", "Alice", AddressType.Contact, VerificationStatus.Verified))
+        val link = GemBlockExplorerLink("Explorer", "https://example.com/sender-address")
+
+        val sender = createAggregate(extended, participant = GemTransactionParticipant(GemTransactionParticipantRole.SENDER, "sender-address", link)).destination
+        Assert.assertTrue(sender is TransactionDetailsValue.Destination.Sender)
+        Assert.assertEquals("sender-address", sender?.data)
+        Assert.assertEquals("Alice", sender?.name)
+        Assert.assertEquals(AddressType.Contact, sender?.addressType)
+        Assert.assertEquals("https://example.com/sender-address", sender?.explorerLink?.link)
+
+        val validator = createAggregate(extended, participant = GemTransactionParticipant(GemTransactionParticipantRole.VALIDATOR, "validator-address", link)).destination
+        Assert.assertTrue(validator is TransactionDetailsValue.Destination.Validator)
+        Assert.assertNull(validator?.name)
+
+        Assert.assertNull(createAggregate(extended, participant = null).destination)
     }
 
     @Test
@@ -983,101 +961,6 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertTrue(destination is TransactionDetailsValue.Destination.Provider)
         val provider = destination as TransactionDetailsValue.Destination.Provider
         Assert.assertEquals("unswap", provider.data)
-    }
-
-    @Test
-    fun testDestination_stakeDelegate() {
-        val transaction = createTransaction(
-            type = TransactionType.StakeDelegate,
-            to = "validator-address",
-        )
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        val destination = aggregate.destination
-        Assert.assertTrue(destination is TransactionDetailsValue.Destination.Validator)
-        val validator = destination as TransactionDetailsValue.Destination.Validator
-        Assert.assertEquals("validator-address", validator.data)
-    }
-
-    @Test
-    fun testDestination_tokenApproval() {
-        val transaction = createTransaction(
-            type = TransactionType.TokenApproval,
-            to = "contract-address",
-        )
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        val destination = aggregate.destination
-        Assert.assertTrue(destination is TransactionDetailsValue.Destination.Contract)
-        val contract = destination as TransactionDetailsValue.Destination.Contract
-        Assert.assertEquals("contract-address", contract.data)
-    }
-
-    @Test
-    fun testDestination_earnDeposit() {
-        val transaction = createTransaction(
-            type = TransactionType.EarnDeposit,
-            to = "provider-address",
-        )
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        val destination = aggregate.destination
-        Assert.assertTrue(destination is TransactionDetailsValue.Destination.ProviderAddress)
-        val provider = destination as TransactionDetailsValue.Destination.ProviderAddress
-        Assert.assertEquals("provider-address", provider.data)
-    }
-
-    @Test
-    fun testDestination_earnWithdraw() {
-        val transaction = createTransaction(
-            type = TransactionType.EarnWithdraw,
-            direction = TransactionDirection.Incoming,
-            from = "provider-address",
-        )
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        val destination = aggregate.destination
-        Assert.assertTrue(destination is TransactionDetailsValue.Destination.ProviderAddress)
-        val provider = destination as TransactionDetailsValue.Destination.ProviderAddress
-        Assert.assertEquals("provider-address", provider.data)
-    }
-
-    @Test
-    fun testDestination_smartContractCallSendable() {
-        val metadata = """{"outputAction":"send"}"""
-        val transaction = createTransaction(
-            type = TransactionType.SmartContractCall,
-            to = "recipient-address",
-            metadata = metadata,
-        )
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        val destination = aggregate.destination
-        Assert.assertTrue(destination is TransactionDetailsValue.Destination.Recipient)
-        val recipient = destination as TransactionDetailsValue.Destination.Recipient
-        Assert.assertEquals("recipient-address", recipient.data)
-    }
-
-    @Test
-    fun testDestination_smartContractCallSignable() {
-        val metadata = """{"outputAction":"sign"}"""
-        val transaction = createTransaction(
-            type = TransactionType.SmartContractCall,
-            to = "contract-address",
-            metadata = metadata,
-        )
-        val extended = createTransactionExtended(transaction)
-        val aggregate = createAggregate(extended)
-
-        val destination = aggregate.destination
-        Assert.assertTrue(destination is TransactionDetailsValue.Destination.Contract)
-        val contract = destination as TransactionDetailsValue.Destination.Contract
-        Assert.assertEquals("contract-address", contract.data)
     }
 
     @Test

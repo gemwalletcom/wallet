@@ -122,7 +122,7 @@ class GemstonePriceAlertStore(
 }
 ```
 
-The two adapters are mirrors: same methods, same conflict behaviour (upsert where the other upserts), same "write only rows whose values differ" rule, same treatment of a missing row. A difference between them is a bug in one of them, not a platform choice. Types retained as JSON custom types (`Account`, `Wallet`, `SimulationResult`, …) arrive as `String` typealiases and are decoded once at the relevant FFI/app boundary. That boundary may be a store adapter, coordinator, or feature mapper; undecoded JSON must not travel deeper into the app. Types supported through `EXPOSED_TYPES`, such as `Asset`, use generated structural mappers instead.
+The two adapters are mirrors: same methods, same conflict behaviour (upsert where the other upserts), same "write only rows whose values differ" rule, same treatment of a missing row. A difference between them is a bug in one of them, not a platform choice. Types retained as JSON custom types (`Account`, `Wallet`, `SimulationResult`, …) arrive as `String` typealiases and are decoded once at the relevant FFI/app boundary. That boundary may be a store adapter, coordinator, or feature mapper; undecoded JSON must not travel deeper into the app. Types listed in `core/bin/generate/remote_types.yml`, such as `Asset`, use generated structural mappers instead; enums listed there as codes (`Currency`) cross as their string code with a generated `Currency(core:)` / `toCurrency()`.
 
 ### 4. Construct it once
 
@@ -375,15 +375,7 @@ swap slippage bounds · collections availability · the custom-fee minimum check
 - **`AddressFormatter` (iOS)**, 23 uses / ~60 construction sites. Attempted and reverted: threading the service reaches `WalletViewModel`, then spreads into `extension Wallet: SimpleListItemViewable`, which builds a `WalletViewModel` only to read `avatarImage` and never touches the formatter. The fix is smaller than the threading — split the display-only parts (`avatarImage`, `name`) from the address-formatting parts so only the latter needs the service. Design change, wants a decision.
 - **`GemSecurityService` (iOS)** is a *defaulted* parameter on `BiometryAuthenticationService`. Making it required pushes the default into `SecurityViewModel` and `LockSceneViewModel`, which also default-construct the whole service — a lock-manager pass, not a one-liner.
 
-### 5. Shared iOS views still taking Core services
-
-`TransactionsList` takes `explorerService` and `transactionFormatter` only to build a
-`TransactionViewModel` per row, so every screen showing it — asset, transactions, wallet — carries
-both services purely to pass them down. `AssetSceneViewModel` keeps its last two Core services for
-exactly this reason. Give `TransactionViewModel` the values it renders, or let the list take
-pre-built row models, and those two dependencies disappear from three view models at once.
-
-### 6. Tests that cannot fail
+### 5. Tests that cannot fail
 
 `SettingsViewModelTest` (Android) fails intermittently across unrelated changes — seen on both
 `single wallet hides rewards` and `rewards stay available while no wallets are loaded`, each passing
@@ -432,20 +424,18 @@ having the parent vend the child view model.
 | view model | services | non-private |
 |---|---|---|
 | `Gem/ViewModels/RootSceneViewModel.swift` | 11 | 4 |
-| `Assets/AssetSceneViewModel.swift` | 3 | 2 |
 | `Assets/SelectAssetViewModel.swift` | 3 | 0 |
 | `WalletTab/AssetsResultsSceneViewModel.swift` | 5 | 2 |
 | `Settings/Settings/ViewModels/DeveloperViewModel.swift` | 5 | 0 |
 | `Onboarding/ImportWalletViewModel.swift` | 4 | 4 |
-| `Transactions/TransactionsViewModel.swift` | 4 | 2 |
+| `Transactions/TransactionsViewModel.swift` | 3 | 1 |
 | `WalletTab/WalletSearchSceneViewModel.swift` | 4 | 2 |
 | `WalletTab/WalletSceneViewModel.swift` | 4 | 1 |
 | `Settings/Settings/ViewModels/NotificationsViewModel.swift` | 4 | 0 |
 | `Swap/SwapSceneViewModel.swift` | 4 | 0 |
 | `Settings/ChainSettings/ViewModels/ChainSettingsSceneViewModel.swift` | 3 | 2 |
 | `NFT/CollectibleViewModel.swift` | 3 | 1 |
-| `Perpetuals/PerpetualSceneViewModel.swift` | 3 | 1 |
-| `Transactions/TransactionSceneViewModel.swift` | 3 | 0 |
+| `Perpetuals/PerpetualSceneViewModel.swift` | 2 | 1 |
 | `Transfer/ReceiveViewModel.swift` | 3 | 0 |
 | `Transfer/RecipientSceneViewModel.swift` | 3 | 0 |
 | `WalletConnector/WalletConnector/ViewModels/SignMessageSceneViewModel.swift` | 3 | 0 |
@@ -512,7 +502,7 @@ Two warnings worth keeping:
 ### How to work this list
 
 - One change at a time: implement in Core → if a UniFFI signature, TypeShare model,
-  `EXPOSED_TYPES` entry or mobile boundary changed, run `just generate` from the repo root (never
+  `remote_types.yml` entry or mobile boundary changed, run `just generate` from the repo root (never
   while an iOS build is running or against half-edited Core) → wire both apps → delete the app code
   it replaces → verify → commit and push to `main` directly (no PR, no
   `Co-Authored-By`/session trailers) → fix red CI before anything else.

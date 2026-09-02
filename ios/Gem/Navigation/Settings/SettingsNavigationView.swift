@@ -33,7 +33,6 @@ struct SettingsNavigationView: View {
     @Environment(\.preferencesService) private var preferencesService
     @Environment(\.deviceKeyService) private var deviceKeyService
     @Environment(\.priceService) private var priceService
-    @Environment(\.chartService) private var chartService
     @Environment(\.nodeService) private var nodeService
     @Environment(\.chainService) private var chainService
     @Environment(\.gatewayService) private var gatewayService
@@ -114,9 +113,8 @@ struct SettingsNavigationView: View {
         }
         .navigationDestination(for: Scenes.Price.self) { scene in
             ChartScene(
-                model: ChartSceneViewModel(
-                    service: chartService,
-                    assetModel: AssetViewModel(asset: scene.asset),
+                model: viewModelFactory.chartScene(
+                    asset: scene.asset,
                     walletId: walletId,
                     onSetPriceAlert: { _ in },
                 ),

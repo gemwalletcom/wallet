@@ -8,7 +8,6 @@ import class Gemstone.GemAssetConfigService
 import class Gemstone.GemDeeplinkService
 import class Gemstone.GemChainService
 import class Gemstone.GemReceiveService
-import class Gemstone.GemTransactionFormatter
 import protocol Gemstone.GemSwapServiceProtocol
 import class Gemstone.GemDeviceKeyService
 import protocol Gemstone.GemPerpetualServiceProtocol
@@ -20,7 +19,6 @@ import protocol Gemstone.GemAppUpdateServiceProtocol
 import protocol Gemstone.GemAvatarServiceProtocol
 import class Gemstone.GemStreamSubscriptionService
 import protocol Gemstone.GemPriceAlertServiceProtocol
-import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemPortfolioServiceProtocol
@@ -38,7 +36,6 @@ import ConnectionStatusService
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import Preferences
-import protocol Gemstone.GemChartServiceProtocol
 import protocol Gemstone.GemPriceServiceProtocol
 import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
@@ -58,7 +55,6 @@ extension EnvironmentValues {
     @Entry var nodeStatusService: any GemNodeStatusServiceProtocol = AppResolver.main.services.nodeStatusService
     @Entry var serviceStatusService: any GemServiceStatusProtocol = AppResolver.main.services.serviceStatusService
     @Entry var priceService: any GemPriceServiceProtocol = AppResolver.main.services.priceService
-    @Entry var chartService: any GemChartServiceProtocol = AppResolver.main.services.chartService
     @Entry var streamSubscriptionService: GemStreamSubscriptionService = AppResolver.main.services.streamSubscriptionService
     @Entry var assetDiscoveryService: any GemAssetDiscoveryServiceProtocol = AppResolver.main.services.assetDiscoveryService
     @Entry var walletPreferencesService: any GemWalletPreferencesServiceProtocol = AppResolver.main.services.walletPreferencesService
@@ -82,14 +78,12 @@ extension EnvironmentValues {
     @Entry var walletConnectorPresenter: WalletConnectorPresenter = AppResolver.main.services.walletConnectorPresenter
     @Entry var chainService: GemChainService = AppResolver.main.services.chainService
     @Entry var receiveService: GemReceiveService = AppResolver.main.services.receiveService
-    @Entry var transactionFormatter: GemTransactionFormatter = AppResolver.main.services.transactionFormatter
     @Entry var swapService: any GemSwapServiceProtocol = AppResolver.main.services.swapService
     @Entry var nftService: any GemNftServiceProtocol = AppResolver.main.services.nftService
     @Entry var avatarService: any GemAvatarServiceProtocol = AppResolver.main.services.avatarService
     @Entry var appUpdateService: any GemAppUpdateServiceProtocol = AppResolver.main.services.appUpdateService
     @Entry var perpetualService: any GemPerpetualServiceProtocol = AppResolver.main.services.perpetualService
     @Entry var hyperliquidObserverService: any PerpetualObservable = AppResolver.main.services.hyperliquidObserverService
-    @Entry var nameService: any GemNameServiceProtocol = AppResolver.main.services.nameService
     @Entry var recentAssetsService: any GemRecentActivityServiceProtocol = AppResolver.main.services.recentAssetsService
     @Entry var addressService: any GemAddressServiceProtocol = AppResolver.main.services.addressService
     @Entry var applicationMetadataService: GemApplicationMetadataService = AppResolver.main.services.viewModelFactory.applicationMetadataService

@@ -6,7 +6,6 @@ import protocol Gemstone.GemPriceAlertServiceProtocol
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import BigInt
-import class Gemstone.GemTransactionFormatter
 import Primitives
 import PrimitivesTestKit
 @testable import Store
@@ -118,8 +117,6 @@ extension AssetSceneViewModel {
     ) -> AssetSceneViewModel {
         let model = AssetSceneViewModel(
             service: service,
-            explorerService: GemExplorerServiceMock(),
-            transactionFormatter: GemTransactionFormatter(),
             preferences: .mock(),
             input: AssetSceneInput(
                 wallet: .mock(),

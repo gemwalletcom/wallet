@@ -7,12 +7,14 @@ import protocol Gemstone.GemSupportServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import class Gemstone.GemAddressService
 import class Gemstone.GemAmountService
+import class Gemstone.GemApiClient
 import class Gemstone.GemApplicationMetadataService
 import class Gemstone.GemAssetConfigService
 import class Gemstone.GemAssetsService
 import class Gemstone.GemAvatarService
 import class Gemstone.GemBalanceService
 import class Gemstone.GemChainService
+import class Gemstone.GemChartService
 import class Gemstone.GemRecentActivityService
 import class Gemstone.GemConfirmTransferService
 import class Gemstone.GemConfirmService
@@ -34,6 +36,7 @@ import class Gemstone.GemStakeService
 import class Gemstone.GemStreamSubscriptionService
 import class Gemstone.GemSwapQuoteService
 import class Gemstone.GemSwapService
+import class Gemstone.GemTransactionDetailsService
 import class Gemstone.GemTransactionStateService
 import class Gemstone.GemTransferService
 import class Gemstone.GemWalletService
@@ -45,6 +48,7 @@ import Foundation
 import GemstoneServices
 import LockManager
 import ManageWallets
+import MarketInsight
 import Onboarding
 import Preferences
 import GemstonePrimitives
@@ -55,19 +59,20 @@ import Stake
 import Store
 import Swap
 import SwiftUI
+import Transactions
 import Transfer
 import WalletConnector
 import WalletConnectorService
 import WalletTab
 import class Gemstone.GemAssetDetailsService
 import class Gemstone.GemAssetSelectionService
-import class Gemstone.GemTransactionFormatter
 import class Gemstone.GemBannerService
 import class Gemstone.GemTransactionsService
 import struct Gemstone.GemTransferData
 
 public struct ViewModelFactory: Sendable {
     let addressService: GemAddressService
+    let apiClient: GemApiClient
     let applicationMetadataService: GemApplicationMetadataService
     let assetConfig: GemAssetConfigService
     let assetsService: GemAssetsService
@@ -106,7 +111,6 @@ public struct ViewModelFactory: Sendable {
     let recentAssetsService: GemRecentActivityService
     let amountService: AmountService
     let toastPresenter: ToastPresenter
-    let transactionFormatter: GemTransactionFormatter
     let walletPreferencesService: GemWalletPreferencesService
     let deviceKeyService: GemDeviceKeyService
     let storeManager: StoreManager
@@ -132,11 +136,45 @@ public struct ViewModelFactory: Sendable {
                 stream: streamSubscriptionService,
                 deeplinks: deeplinkService,
             ),
-            explorerService: explorerService,
-            transactionFormatter: transactionFormatter,
             preferences: observablePreferences,
             input: AssetSceneInput(wallet: wallet, asset: asset),
             isPresentingSelectedAssetInput: isPresentingSelectedAssetInput,
+        )
+    }
+
+    @MainActor
+    public func chartScene(
+        asset: Asset,
+        walletId: WalletId,
+        onSetPriceAlert: @escaping (Asset) -> Void,
+    ) -> ChartSceneViewModel {
+        ChartSceneViewModel(
+            service: Gemstone.GemChartService(
+                api: apiClient,
+                price: priceService,
+                preferences: preferencesService,
+                priceAlerts: priceAlertService,
+                explorer: explorerService,
+            ),
+            assetModel: AssetViewModel(asset: asset),
+            walletId: walletId,
+            onSetPriceAlert: onSetPriceAlert,
+        )
+    }
+
+    @MainActor
+    public func transactionScene(
+        transaction: TransactionExtended,
+        walletId: WalletId,
+        onHeaderAction: @escaping (TransactionHeaderAction) -> Void,
+        onAddContact: @escaping (AddContactType) -> Void,
+    ) -> TransactionSceneViewModel {
+        TransactionSceneViewModel(
+            transaction: transaction,
+            walletId: walletId,
+            service: Gemstone.GemTransactionDetailsService(explorer: explorerService, preferences: preferencesService),
+            onHeaderAction: onHeaderAction,
+            onAddContact: onAddContact,
         )
     }
 

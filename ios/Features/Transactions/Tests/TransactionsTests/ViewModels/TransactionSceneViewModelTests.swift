@@ -1,11 +1,10 @@
-import class Gemstone.GemExplorerService
+import class Gemstone.GemTransactionDetailsService
 import GemstonePrimitivesTestKit
 import Components
 import Foundation
 import Localization
 import Preferences
 import PreferencesTestKit
-import class Gemstone.GemTransactionFormatter
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
@@ -51,9 +50,7 @@ struct TransactionSceneViewModelTests {
                 ),
             ),
             walletId: .mock(),
-            preferencesService: GemPreferencesServiceMock(),
-            explorerService: GemExplorerService.mock(),
-            transactionFormatter: GemTransactionFormatter(),
+            service: GemTransactionDetailsService.mock(),
             onHeaderAction: { selectedAction = $0 },
         )
 
@@ -74,9 +71,7 @@ struct TransactionSceneViewModelTests {
                 ),
             ),
             walletId: .mock(),
-            preferencesService: GemPreferencesServiceMock(),
-            explorerService: GemExplorerService.mock(),
-            transactionFormatter: GemTransactionFormatter(),
+            service: GemTransactionDetailsService.mock(),
         )
 
         #expect(model.onTransactionHeaderTap == nil)
@@ -319,9 +314,7 @@ struct TransactionSceneViewModelTests {
         let modelWithAddresses = TransactionSceneViewModel(
             transaction: transaction,
             walletId: .mock(),
-            preferencesService: GemPreferencesServiceMock(),
-            explorerService: GemExplorerService.mock(),
-            transactionFormatter: GemTransactionFormatter(),
+            service: GemTransactionDetailsService.mock(),
         )
 
         if case let .participant(item) = modelWithAddresses.item(for: TransactionItem.participant) {
@@ -517,9 +510,7 @@ extension TransactionSceneViewModel {
                 confirmationEtaSeconds: confirmationEtaSeconds,
             ),
             walletId: .mock(),
-            preferencesService: GemPreferencesServiceMock(),
-            explorerService: GemExplorerService.mock(),
-            transactionFormatter: GemTransactionFormatter(),
+            service: GemTransactionDetailsService.mock(),
         )
     }
 

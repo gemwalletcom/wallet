@@ -7,7 +7,6 @@ import protocol Gemstone.GemTransactionStateServiceProtocol
 import class Gemstone.GemChainService
 import class Gemstone.GemOnboardingService
 import class Gemstone.GemReceiveService
-import class Gemstone.GemTransactionFormatter
 import class Gemstone.GemDeviceKeyService
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
@@ -17,7 +16,6 @@ import protocol Gemstone.GemAppUpdateServiceProtocol
 import protocol Gemstone.GemAvatarServiceProtocol
 import class Gemstone.GemStreamSubscriptionService
 import protocol Gemstone.GemPriceAlertServiceProtocol
-import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemAppStartServiceProtocol
 import protocol Gemstone.GemPortfolioServiceProtocol
 import protocol Gemstone.GemRewardsServiceProtocol
@@ -26,7 +24,6 @@ import protocol Gemstone.GemSwapServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemBannerServiceProtocol
-import protocol Gemstone.GemFiatServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
 import class Gemstone.GemNodeService
 import class Gemstone.GemNodeStatusService
@@ -40,7 +37,6 @@ import Foundation
 import Preferences
 import protocol Gemstone.GemDeviceServiceProtocol
 import protocol Gemstone.GemAssetsServiceProtocol
-import protocol Gemstone.GemChartServiceProtocol
 import protocol Gemstone.GemPriceServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
 import protocol Gemstone.GemNotificationServiceProtocol
@@ -68,7 +64,6 @@ extension AppResolver {
         let streamObserverService: StreamObserverService
         let streamSubscriptionService: GemStreamSubscriptionService
         let priceService: any GemPriceServiceProtocol
-        let chartService: any GemChartServiceProtocol
         let stakeService: any GemStakeServiceProtocol
         let transactionsService: any GemTransactionsServiceProtocol
         let transactionStateService: any GemTransactionStateServiceProtocol
@@ -93,10 +88,8 @@ extension AppResolver {
         let walletConnectorPresenter: WalletConnectorPresenter
         let chainService: GemChainService
         let receiveService: GemReceiveService
-        let transactionFormatter: GemTransactionFormatter
         let perpetualService: any GemPerpetualServiceProtocol
         let hyperliquidObserverService: any PerpetualObservable
-        let nameService: any GemNameServiceProtocol
         let recentAssetsService: any GemRecentActivityServiceProtocol
         let toastPresenter: ToastPresenter
         let addressService: any GemAddressServiceProtocol
@@ -106,8 +99,6 @@ extension AppResolver {
         let appLifecycleService: AppLifecycleService
         let inAppNotificationService: any GemNotificationServiceProtocol
         let portfolioService: any GemPortfolioServiceProtocol
-        let fiatService: any GemFiatServiceProtocol
         let supportService: any GemSupportServiceProtocol
-        let supportStore: GemstoneSupportStore
     }
 }

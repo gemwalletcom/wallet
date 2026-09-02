@@ -1,8 +1,7 @@
 package com.gemwallet.android.data.coordinators.di
 
-import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemTransactionDetailsService
 import uniffi.gemstone.GemAddressService
-import uniffi.gemstone.GemTransactionFormatter
 import com.gemwallet.android.application.transactions.cases.GetTransactionDetails
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.SyncAssetTransactions
@@ -35,9 +34,8 @@ object TransactionModule {
     fun provideGetTransactions(
         getCurrentWalletId: GetCurrentWalletId,
         transactionStore: GemstoneTransactionStore,
-        transactionFormatter: GemTransactionFormatter,
         addressService: GemAddressService,
-    ): GetTransactions = GetTransactionsImpl(getCurrentWalletId, transactionStore, transactionFormatter, addressService)
+    ): GetTransactions = GetTransactionsImpl(getCurrentWalletId, transactionStore, addressService)
 
     @Provides
     @Singleton
@@ -76,15 +74,13 @@ object TransactionModule {
         getSession: GetSession,
         getTransaction: GetTransaction,
         getWalletAssets: GetWalletAssets,
-        explorerService: GemExplorerService,
-        transactionFormatter: GemTransactionFormatter,
+        transactionDetailsService: GemTransactionDetailsService,
     ): GetTransactionDetails {
         return GetTransactionDetailsImpl(
             getSession = getSession,
             getTransaction = getTransaction,
             getWalletAssets = getWalletAssets,
-            explorerService = explorerService,
-            transactionFormatter = transactionFormatter,
+            transactionDetailsService = transactionDetailsService,
         )
     }
 }

@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.coordinators.transaction
 
 import com.gemwallet.android.ext.hash
-import uniffi.gemstone.GemExplorerService
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.transactions.cases.GetTransactionDetails
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
@@ -20,7 +19,6 @@ import com.gemwallet.android.ext.getNftMetadata
 import com.gemwallet.android.ext.getPerpetualMetadata
 import com.gemwallet.android.ext.getResourceMetadata
 import com.gemwallet.android.ext.getSwapMetadata
-import com.gemwallet.android.ext.getWalletConnectOutputAction
 import com.gemwallet.android.ext.isCompleted
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.AssetInfo
@@ -39,9 +37,11 @@ import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
 import com.gemwallet.android.serializer.toJson
-import uniffi.gemstone.GemTransactionFormatter
+import uniffi.gemstone.GemTransactionDetailsService
+import uniffi.gemstone.GemTransactionParticipant
+import uniffi.gemstone.GemTransactionParticipantRole
+import uniffi.gemstone.GemTransactionSummary
 import uniffi.gemstone.GemTransactionTitle
-import com.wallet.core.primitives.TransferDataOutputAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -61,8 +61,7 @@ class GetTransactionDetailsImpl(
     private val getSession: GetSession,
     private val getTransaction: GetTransaction,
     private val getWalletAssets: GetWalletAssets,
-    private val explorerService: GemExplorerService,
-    private val transactionFormatter: GemTransactionFormatter,
+    private val transactionDetailsService: GemTransactionDetailsService,
 ) : GetTransactionDetails {
 
     override fun getTransactionDetails(id: TransactionId): Flow<TransactionDetailsAggregate?> {
@@ -73,7 +72,7 @@ class GetTransactionDetailsImpl(
             .flatMapLatest { (session, data) ->
                 val ids = data?.transaction?.getAssociatedAssetIds() ?: return@flatMapLatest emptyFlow()
                 val swapMetadata = data.transaction.getSwapMetadata()
-                val explorerInfo = explorerService.getTransactionLink(
+                val explorerInfo = transactionDetailsService.transactionLink(
                     chain = data.transaction.assetId.chain.string,
                     hash = data.transaction.hash,
                     provider = swapMetadata?.provider,
@@ -91,9 +90,7 @@ class GetTransactionDetailsImpl(
                         currency = session.currency,
                         swapProvider = swapProvider,
                         swapMetadata = swapMetadata,
-                        senderExplorerLink = explorerService.getAddressUrl(data.asset.chain.string, data.transaction.from).let { BlockExplorerLink(it.name, it.link) },
-                        recipientExplorerLink = explorerService.getAddressUrl(data.asset.chain.string, data.transaction.to).let { BlockExplorerLink(it.name, it.link) },
-                        transactionFormatter = transactionFormatter,
+                        participant = transactionDetailsService.participant(data.transaction.toJson()),
                     )
                 }
             }
@@ -109,10 +106,10 @@ class TransactionDetailsAggregateImpl(
     override val explorer: TransactionDetailsValue.Explorer,
     override val currency: Currency,
     private val swapProvider: SwapperProviderType? = null,
-    private val senderExplorerLink: BlockExplorerLink? = null,
-    private val recipientExplorerLink: BlockExplorerLink? = null,
-    private val transactionFormatter: GemTransactionFormatter,
+    private val participant: GemTransactionParticipant? = null,
 ) : TransactionDetailsAggregate {
+
+    private val row = GemTransactionSummary(data.transaction.toJson())
 
     private val swapMetadata = swapMetadata?.takeIf {
         it.fromValue.toBigIntegerOrNull() != null && it.toValue.toBigIntegerOrNull() != null
@@ -121,7 +118,7 @@ class TransactionDetailsAggregateImpl(
     override val id: String = data.transaction.id.identifier
 
     override val asset: Asset = data.asset
-    override val title: GemTransactionTitle = transactionFormatter.title(data.transaction.toJson())
+    override val title: GemTransactionTitle = row.title()
 
     override val type: TransactionType = data.transaction.type
     override val direction: TransactionDirection = data.transaction.direction
@@ -171,7 +168,7 @@ class TransactionDetailsAggregateImpl(
                         TransactionType.StakeFreeze,
                         TransactionType.StakeUnfreeze -> Pair(formatter.string(value.atomicValue, asset), fiat)
                         TransactionType.Transfer -> Pair(
-                            transactionFormatter.value(data.transaction.toJson()).sign().format(formatter.string(value.atomicValue, asset)),
+                            row.value().sign().format(formatter.string(value.atomicValue, asset)),
                             fiat,
                         )
                         TransactionType.TransferNFT,
@@ -231,51 +228,21 @@ class TransactionDetailsAggregateImpl(
         ?.let { TransactionDetailsValue.Price(usdFormatter.string(it)) }
 
     override val destination: TransactionDetailsValue.Destination? = when (data.transaction.type) {
-        TransactionType.StakeUndelegate,
-        TransactionType.StakeRewards,
-        TransactionType.StakeRedelegate,
-        TransactionType.AssetActivation,
-        TransactionType.PerpetualOpenPosition,
-        TransactionType.PerpetualClosePosition,
-        TransactionType.StakeFreeze,
-        TransactionType.StakeUnfreeze,
-        TransactionType.PerpetualModifyPosition,
-        TransactionType.StakeWithdraw -> null
-        TransactionType.TokenApproval -> destinationAddress { address, name, explorerLink ->
-            TransactionDetailsValue.Destination.Contract(address, data.asset.chain, name, explorerLink)
-        }
-        TransactionType.StakeDelegate -> destinationAddress { address, name, explorerLink ->
-            TransactionDetailsValue.Destination.Validator(address, data.asset.chain, name, explorerLink)
-        }
-        TransactionType.SmartContractCall -> destinationAddress { address, name, explorerLink ->
-            when (data.transaction.getWalletConnectOutputAction()) {
-                TransferDataOutputAction.Send -> TransactionDetailsValue.Destination.Recipient(data = address, chain = data.asset.chain, name = name, explorerLink = explorerLink)
-                TransferDataOutputAction.Sign,
-                null -> TransactionDetailsValue.Destination.Contract(address, data.asset.chain, name, explorerLink)
+        TransactionType.Swap -> swapProvider?.name?.let { TransactionDetailsValue.Destination.Provider(it) }
+        else -> participant?.let { participant ->
+            val addressName = when (participant.address) {
+                data.transaction.from -> data.fromAddress
+                data.transaction.to -> data.toAddress
+                else -> null
             }
-        }
-        TransactionType.EarnWithdraw,
-        TransactionType.EarnDeposit -> destinationAddress { address, name, explorerLink ->
-            TransactionDetailsValue.Destination.ProviderAddress(address, data.asset.chain, name, explorerLink)
-        }
-        TransactionType.Swap -> this@TransactionDetailsAggregateImpl.swapProvider?.name?.let { TransactionDetailsValue.Destination.Provider(it) }
-        TransactionType.Transfer,
-        TransactionType.TransferNFT -> when (data.transaction.direction) {
-            TransactionDirection.SelfTransfer,
-            TransactionDirection.Outgoing -> TransactionDetailsValue.Destination.Recipient(
-                data = data.transaction.to,
-                chain = data.asset.chain,
-                name = data.toAddress?.name,
-                addressType = data.toAddress?.type,
-                explorerLink = recipientExplorerLink,
-            )
-            TransactionDirection.Incoming -> TransactionDetailsValue.Destination.Sender(
-                data = data.transaction.from,
-                chain = data.asset.chain,
-                name = data.fromAddress?.name,
-                addressType = data.fromAddress?.type,
-                explorerLink = senderExplorerLink,
-            )
+            val explorerLink = BlockExplorerLink(participant.link.name, participant.link.link)
+            when (participant.role) {
+                GemTransactionParticipantRole.SENDER -> TransactionDetailsValue.Destination.Sender(participant.address, data.asset.chain, addressName?.name, addressName?.type, explorerLink)
+                GemTransactionParticipantRole.RECIPIENT -> TransactionDetailsValue.Destination.Recipient(participant.address, data.asset.chain, addressName?.name, addressName?.type, explorerLink)
+                GemTransactionParticipantRole.CONTRACT -> TransactionDetailsValue.Destination.Contract(participant.address, data.asset.chain, addressName?.name, explorerLink)
+                GemTransactionParticipantRole.VALIDATOR -> TransactionDetailsValue.Destination.Validator(participant.address, data.asset.chain, addressName?.name, explorerLink)
+                GemTransactionParticipantRole.PROVIDER -> TransactionDetailsValue.Destination.ProviderAddress(participant.address, data.asset.chain, addressName?.name, explorerLink)
+            }
         }
     }
 
@@ -353,33 +320,6 @@ class TransactionDetailsAggregateImpl(
                 toAssetId = metadata.toAsset,
             )
         }
-
-    private val participantAddress: String
-        get() = when (data.transaction.direction) {
-            TransactionDirection.Incoming -> data.transaction.from
-            TransactionDirection.Outgoing,
-            TransactionDirection.SelfTransfer -> data.transaction.to
-        }
-
-    private val participantAddressName: String?
-        get() = when (data.transaction.direction) {
-            TransactionDirection.Incoming -> data.fromAddress?.name
-            TransactionDirection.Outgoing,
-            TransactionDirection.SelfTransfer -> data.toAddress?.name
-        }
-
-    private val participantExplorerLink: BlockExplorerLink?
-        get() = when (participantAddress) {
-            data.transaction.from -> senderExplorerLink
-            data.transaction.to -> recipientExplorerLink
-            else -> null
-        }
-
-    private inline fun destinationAddress(
-        build: (address: String, name: String?, explorerLink: BlockExplorerLink?) -> TransactionDetailsValue.Destination,
-    ): TransactionDetailsValue.Destination? = participantAddress
-        .takeIf { it.isNotEmpty() }
-        ?.let { build(it, participantAddressName, participantExplorerLink) }
 }
 
 private val SwapperProviderMode.isCrossChain: Boolean

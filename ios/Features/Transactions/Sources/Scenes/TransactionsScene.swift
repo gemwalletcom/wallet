@@ -19,9 +19,7 @@ public struct TransactionsScene: View {
         VStack {
             List {
                 TransactionsList(
-                    explorerService: model.explorerService,
-                    transactionFormatter: model.transactionFormatter,
-                    model.transactions,
+                                        model.transactions,
                     currency: model.currency,
                 )
                 .listRowInsets(.assetListRowInsets)

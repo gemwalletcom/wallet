@@ -702,6 +702,13 @@ public extension GemExplorerService {
     }
 }
 
+public extension GemTransactionDetailsService {
+    static func mock() -> GemTransactionDetailsService {
+        let preferences = GemPreferencesService(store: GemPreferencesStoreMock())
+        return GemTransactionDetailsService(explorer: GemExplorerService(preferences: preferences), preferences: preferences)
+    }
+}
+
 public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Sendable {
     public private(set) var closedKeys: [GemBannerKey] = []
     public private(set) var handledActions: [GemBannerAction] = []

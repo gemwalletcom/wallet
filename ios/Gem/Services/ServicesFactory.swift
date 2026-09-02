@@ -192,13 +192,6 @@ struct ServicesFactory {
             webSocket: webSocket,
         )
         let explorerService = Gemstone.GemExplorerService(preferences: preferencesService)
-        let chartService = Gemstone.GemChartService(
-            api: apiClient,
-            price: priceService,
-            preferences: preferencesService,
-            priceAlerts: priceAlertService,
-            explorer: explorerService,
-        )
         let swapper = GemSwapper(rpcProvider: NativeProvider(nodeProvider: nodeProvider))
         let swapService = Gemstone.GemSwapService(
             swapper: swapper,
@@ -214,7 +207,6 @@ struct ServicesFactory {
         let chainService = Gemstone.GemChainService()
         let addressService = Gemstone.GemAddressService()
         let receiveService = Gemstone.GemReceiveService()
-        let transactionFormatter = Gemstone.GemTransactionFormatter()
         let walletConnectorPresenter = WalletConnectorPresenter()
         let walletConnectorInteractor = WalletConnectorInteractor(presenter: walletConnectorPresenter)
         let walletConnector = Self.makeWalletConnector(
@@ -351,6 +343,7 @@ struct ServicesFactory {
         )
         let viewModelFactory = ViewModelFactory(
             addressService: addressService,
+            apiClient: apiClient,
             applicationMetadataService: Gemstone.GemApplicationMetadataService(),
             assetConfig: Gemstone.GemAssetConfigService(),
             assetsService: assetsService,
@@ -396,7 +389,6 @@ struct ServicesFactory {
             recentAssetsService: recentAssetsService,
             amountService: AmountService(stakeService: stakeService, amountService: Gemstone.GemAmountService()),
             toastPresenter: toastPresenter,
-            transactionFormatter: transactionFormatter,
             walletPreferencesService: walletPreferencesService,
             deviceKeyService: deviceKeyService,
             storeManager: storeManager,
@@ -419,7 +411,6 @@ struct ServicesFactory {
             streamObserverService: streamObserverService,
             streamSubscriptionService: streamSubscriptionService,
             priceService: priceService,
-            chartService: chartService,
             stakeService: stakeService,
             transactionsService: transactionsService,
             transactionStateService: transactionStateService,
@@ -444,10 +435,8 @@ struct ServicesFactory {
             walletConnectorPresenter: walletConnectorPresenter,
             chainService: chainService,
             receiveService: receiveService,
-            transactionFormatter: transactionFormatter,
             perpetualService: perpetualService,
             hyperliquidObserverService: hyperliquidObserverService,
-            nameService: nameService,
             recentAssetsService: recentAssetsService,
             toastPresenter: toastPresenter,
             addressService: addressService,
@@ -457,9 +446,7 @@ struct ServicesFactory {
             appLifecycleService: appLifecycleService,
             inAppNotificationService: inAppNotificationService,
             portfolioService: portfolioService,
-            fiatService: fiatService,
             supportService: supportService,
-            supportStore: gemstoneSupportStore,
         )
     }
 }

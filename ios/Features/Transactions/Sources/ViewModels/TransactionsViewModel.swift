@@ -3,8 +3,6 @@
 import protocol Gemstone.GemChainServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
 import Components
-import protocol Gemstone.GemExplorerServiceProtocol
-import class Gemstone.GemTransactionFormatter
 import Foundation
 import protocol Gemstone.GemPreferencesServiceProtocol
 import Localization
@@ -16,8 +14,6 @@ import GemstoneServices
 @Observable
 @MainActor
 public final class TransactionsViewModel {
-    public let explorerService: any GemExplorerServiceProtocol
-    let transactionFormatter: GemTransactionFormatter
     public let transactionsService: any GemTransactionsServiceProtocol
     private let preferencesService: any GemPreferencesServiceProtocol
 
@@ -37,16 +33,12 @@ public final class TransactionsViewModel {
 
     public init(
         transactionsService: any GemTransactionsServiceProtocol,
-        explorerService: any GemExplorerServiceProtocol,
-        transactionFormatter: GemTransactionFormatter,
         wallet: Wallet,
         type: TransactionsRequestType,
         chainService: any GemChainServiceProtocol,
         preferencesService: any GemPreferencesServiceProtocol,
     ) {
         self.transactionsService = transactionsService
-        self.explorerService = explorerService
-        self.transactionFormatter = transactionFormatter
         self.type = type
         self.chainService = chainService
         self.wallet = wallet

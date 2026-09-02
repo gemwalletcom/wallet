@@ -18,7 +18,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uniffi.gemstone.GemTransactionFormatter
 
 class TransactionDetailsAggregateResourceTest {
 
@@ -89,7 +88,6 @@ class TransactionDetailsAggregateResourceTest {
         associatedAssets = emptyList(),
         explorer = TransactionDetailsValue.Explorer("https://example.com", "Explorer"),
         currency = Currency.USD,
-            transactionFormatter = GemTransactionFormatter(),
         )
 
     private fun createTransaction(

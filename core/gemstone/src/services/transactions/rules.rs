@@ -1,8 +1,9 @@
 use primitives::{
     AssetId, PerpetualDirection, Transaction, TransactionDirection, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionType,
+    TransactionWalletConnectMetadata, TransferDataOutputAction,
 };
 
-use super::model::{GemAmountSign, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue};
+use super::model::{GemAmountSign, GemTransactionParticipantRole, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue};
 use crate::services::collections::unique;
 
 pub fn transaction_asset_ids(transactions: &[Transaction]) -> Vec<AssetId> {
@@ -66,6 +67,38 @@ pub fn transaction_subtitle(transaction: &Transaction) -> GemTransactionSubtitle
     }
 }
 
+pub fn transaction_participant(transaction: &Transaction) -> Option<(GemTransactionParticipantRole, String)> {
+    let role = match transaction.transaction_type {
+        TransactionType::Transfer | TransactionType::TransferNFT => match transaction.direction {
+            TransactionDirection::Incoming => GemTransactionParticipantRole::Sender,
+            TransactionDirection::Outgoing | TransactionDirection::SelfTransfer => GemTransactionParticipantRole::Recipient,
+        },
+        TransactionType::TokenApproval => GemTransactionParticipantRole::Contract,
+        TransactionType::SmartContractCall => match wallet_connect_metadata(transaction).map(|metadata| metadata.output_action) {
+            Some(TransferDataOutputAction::Send) => GemTransactionParticipantRole::Recipient,
+            Some(TransferDataOutputAction::Sign) | None => GemTransactionParticipantRole::Contract,
+        },
+        TransactionType::StakeDelegate => GemTransactionParticipantRole::Validator,
+        TransactionType::EarnDeposit | TransactionType::EarnWithdraw => GemTransactionParticipantRole::Provider,
+        TransactionType::Swap
+        | TransactionType::StakeUndelegate
+        | TransactionType::StakeRedelegate
+        | TransactionType::StakeRewards
+        | TransactionType::StakeWithdraw
+        | TransactionType::StakeFreeze
+        | TransactionType::StakeUnfreeze
+        | TransactionType::AssetActivation
+        | TransactionType::PerpetualOpenPosition
+        | TransactionType::PerpetualClosePosition
+        | TransactionType::PerpetualModifyPosition => return None,
+    };
+    let address = match transaction.direction {
+        TransactionDirection::Incoming => &transaction.from,
+        TransactionDirection::Outgoing | TransactionDirection::SelfTransfer => &transaction.to,
+    };
+    (!address.is_empty()).then(|| (role, address.clone()))
+}
+
 pub fn transaction_value(transaction: &Transaction) -> GemTransactionValue {
     match transaction.transaction_type {
         TransactionType::Swap => GemTransactionValue::SwapReceived,
@@ -112,6 +145,11 @@ fn resource(transaction: &Transaction) -> Option<primitives::Resource> {
     serde_json::from_value::<TransactionResourceTypeMetadata>(metadata)
         .ok()
         .map(|metadata| metadata.resource_type)
+}
+
+fn wallet_connect_metadata(transaction: &Transaction) -> Option<TransactionWalletConnectMetadata> {
+    let metadata = transaction.metadata.clone()?;
+    serde_json::from_value::<TransactionWalletConnectMetadata>(metadata).ok()
 }
 
 fn perpetual_metadata(transaction: &Transaction) -> Option<TransactionPerpetualMetadata> {
@@ -265,6 +303,46 @@ mod tests {
             .unwrap(),
         );
         assert_eq!(transaction_subtitle(&open), GemTransactionSubtitle::Price { value: 12.5 });
+    }
+
+    #[test]
+    fn test_transaction_participant_names_the_role_of_the_address_the_screen_shows() {
+        use GemTransactionParticipantRole::{Contract, Provider, Recipient, Sender, Validator};
+        use TransactionDirection::{Incoming, Outgoing, SelfTransfer};
+
+        let confirmed = |transaction_type, direction| typed(transaction_type, TransactionState::Confirmed, direction);
+        let participant = |transaction_type, direction| transaction_participant(&confirmed(transaction_type, direction));
+
+        assert_eq!(participant(TransactionType::Transfer, Incoming), Some((Sender, "from".to_string())));
+        assert_eq!(participant(TransactionType::Transfer, Outgoing), Some((Recipient, "to".to_string())));
+        assert_eq!(participant(TransactionType::TransferNFT, SelfTransfer), Some((Recipient, "to".to_string())));
+        assert_eq!(participant(TransactionType::TokenApproval, Outgoing), Some((Contract, "to".to_string())));
+        assert_eq!(participant(TransactionType::StakeDelegate, Outgoing), Some((Validator, "to".to_string())));
+        assert_eq!(participant(TransactionType::EarnWithdraw, Outgoing), Some((Provider, "to".to_string())));
+        assert_eq!(participant(TransactionType::SmartContractCall, Outgoing), Some((Contract, "to".to_string())));
+        assert_eq!(participant(TransactionType::Swap, Outgoing), None);
+        assert_eq!(participant(TransactionType::StakeUndelegate, Outgoing), None);
+        assert_eq!(participant(TransactionType::StakeFreeze, Outgoing), None);
+
+        let mut send = confirmed(TransactionType::SmartContractCall, Outgoing);
+        send.metadata = Some(
+            serde_json::to_value(TransactionWalletConnectMetadata {
+                output_action: TransferDataOutputAction::Send,
+            })
+            .unwrap(),
+        );
+        assert_eq!(transaction_participant(&send), Some((Recipient, "to".to_string())));
+        send.metadata = Some(
+            serde_json::to_value(TransactionWalletConnectMetadata {
+                output_action: TransferDataOutputAction::Sign,
+            })
+            .unwrap(),
+        );
+        assert_eq!(transaction_participant(&send), Some((Contract, "to".to_string())));
+
+        let mut blank = confirmed(TransactionType::Transfer, Outgoing);
+        blank.to = String::new();
+        assert_eq!(transaction_participant(&blank), None);
     }
 
     #[test]

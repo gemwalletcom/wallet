@@ -3,8 +3,6 @@
 import BigInt
 import Components
 import protocol Gemstone.GemAssetDetailsServiceProtocol
-import protocol Gemstone.GemExplorerServiceProtocol
-import class Gemstone.GemTransactionFormatter
 import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerContext
 import GemstoneServices
@@ -27,9 +25,6 @@ public final class AssetSceneViewModel: Sendable {
     private let service: any GemAssetDetailsServiceProtocol
     private let preferences: ObservablePreferences
 
-    let explorerService: any GemExplorerServiceProtocol
-    let transactionFormatter: GemTransactionFormatter
-
     private var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
 
     public var isPresentingToastMessage: ToastMessage?
@@ -42,15 +37,11 @@ public final class AssetSceneViewModel: Sendable {
 
     public init(
         service: any GemAssetDetailsServiceProtocol,
-        explorerService: any GemExplorerServiceProtocol,
-        transactionFormatter: GemTransactionFormatter,
         preferences: ObservablePreferences,
         input: AssetSceneInput,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
         self.service = service
-        self.explorerService = explorerService
-        self.transactionFormatter = transactionFormatter
         self.preferences = preferences
 
         self.input = input

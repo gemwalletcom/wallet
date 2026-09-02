@@ -21,13 +21,11 @@ import WalletTab
 struct WalletNavigationView: View {
     @Environment(\.explorerService) private var explorerService
     @Environment(\.deeplinkService) private var deeplinkService
-    @Environment(\.transactionFormatter) private var transactionFormatter
     @Environment(\.balanceService) private var balanceService
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
     @Environment(\.priceService) private var priceService
-    @Environment(\.chartService) private var chartService
     @Environment(\.portfolioService) private var portfolioService
     @Environment(\.priceAlertService) private var priceAlertService
     @Environment(\.preferencesService) private var preferencesService
@@ -121,12 +119,9 @@ struct WalletNavigationView: View {
         }
         .navigationDestination(for: Scenes.Transaction.self) {
             TransactionNavigationView(
-                model: TransactionSceneViewModel(
+                model: viewModelFactory.transactionScene(
                     transaction: $0.transaction,
                     walletId: model.wallet.id,
-                    preferencesService: preferencesService,
-                    explorerService: explorerService,
-                    transactionFormatter: transactionFormatter,
                     onHeaderAction: onSelectTransactionHeaderAction,
                     onAddContact: { model.isPresentingSheet = .addContact($0) },
                 ),
@@ -168,9 +163,8 @@ struct WalletNavigationView: View {
         }
         .navigationDestination(for: Scenes.Price.self) {
             ChartScene(
-                model: ChartSceneViewModel(
-                    service: chartService,
-                    assetModel: AssetViewModel(asset: $0.asset),
+                model: viewModelFactory.chartScene(
+                    asset: $0.asset,
                     walletId: model.wallet.id,
                     onSetPriceAlert: model.presentPriceAlert,
                 ),
@@ -209,8 +203,6 @@ struct WalletNavigationView: View {
                 perpetualService: perpetualService,
                 transactionsService: transactionsService,
                 observerService: hyperliquidObserverService,
-                explorerService: explorerService,
-                transactionFormatter: transactionFormatter,
                 preferencesService: preferencesService,
                 isPresentingSheet: $model.isPresentingSheet,
             )
