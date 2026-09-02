@@ -81,7 +81,8 @@ struct ConfirmSubmissionTests {
         let usdt = Asset.mockEthereumUSDT()
         let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
             simulation: GemConfirmSimulation(
-                payloadFields: [],
+                primaryFields: [],
+                secondaryFields: [],
                 header: GemSimulationValue(asset: usdt.map(), value: .exact(value: "1000000")),
                 balanceChanges: [],
             ),
@@ -99,7 +100,8 @@ struct ConfirmSubmissionTests {
         let usdt = Asset.mockEthereumUSDT()
         let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
             simulation: GemConfirmSimulation(
-                payloadFields: [],
+                primaryFields: [],
+                secondaryFields: [],
                 header: GemSimulationValue(asset: usdt.map(), value: .unlimited),
                 balanceChanges: [],
             ),
@@ -109,10 +111,10 @@ struct ConfirmSubmissionTests {
     }
 
     @Test
-    func simulationStateSplitsPayloadFieldsByDisplay() {
+    func simulationStateKeepsPrimaryAndSecondaryFieldsApart() {
         let primary = SimulationPayloadField.standard(kind: .contract, value: "0x1", fieldType: .text, display: .primary)
         let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
-            simulation: GemConfirmSimulation(payloadFields: [primary.json()], header: nil, balanceChanges: []),
+            simulation: GemConfirmSimulation(primaryFields: [primary.json()], secondaryFields: [], header: nil, balanceChanges: []),
         ))
 
         let state = service.state.simulation
@@ -127,7 +129,8 @@ struct ConfirmSubmissionTests {
         let usdt = Asset.mockEthereumUSDT()
         let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
             simulation: GemConfirmSimulation(
-                payloadFields: [],
+                primaryFields: [],
+                secondaryFields: [],
                 header: nil,
                 balanceChanges: [GemSimulationBalanceChange(asset: usdt.map(), value: "-25")],
             ),
@@ -147,7 +150,7 @@ struct ConfirmSubmissionTests {
                     prices: [],
                 )),
                 preload: .success(.mock()),
-                simulation: GemConfirmSimulation(payloadFields: [field.json()], header: nil, balanceChanges: []),
+                simulation: GemConfirmSimulation(primaryFields: [field.json()], secondaryFields: [], header: nil, balanceChanges: []),
             ),
             nameService: GemNameServiceMock(error: NSError(domain: "test", code: 404)),
         )

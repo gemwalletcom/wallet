@@ -20,7 +20,6 @@ import class Gemstone.GemContactsService
 import class Gemstone.GemManageContactService
 import class Gemstone.GemDeeplinkService
 import class Gemstone.GemExplorerService
-import class Gemstone.GemFeeService
 import class Gemstone.GemFiatService
 import class Gemstone.GemNameService
 import class Gemstone.GemOnboardingService
@@ -75,7 +74,6 @@ public struct ViewModelFactory: Sendable {
     let manageContactService: GemManageContactService
     let deeplinkService: GemDeeplinkService
     let explorerService: GemExplorerService
-    let feeService: GemFeeService
     let fiatService: GemFiatService
     let nameService: GemNameService
     let onboardingService: GemOnboardingService
@@ -264,7 +262,6 @@ public struct ViewModelFactory: Sendable {
             explorer: explorerService,
             names: nameService,
             assetConfig: assetConfig,
-            fee: feeService,
             swapQuote: swapQuoteService,
             signer: KeystoreTransactionSigner(keystore: keystore),
             password: GemstoneKeystorePassword(keystore: keystore),

@@ -6,7 +6,6 @@ import protocol Gemstone.GemAddressServiceProtocol
 import class Gemstone.GemApplicationMetadataService
 import class Gemstone.GemAssetConfigService
 import class Gemstone.GemDeeplinkService
-import class Gemstone.GemFeeService
 import class Gemstone.GemChainService
 import class Gemstone.GemReceiveService
 import class Gemstone.GemTransactionFormatter
@@ -91,7 +90,6 @@ extension EnvironmentValues {
     @Entry var nameService: any GemNameServiceProtocol = AppResolver.main.services.nameService
     @Entry var recentAssetsService: any GemRecentActivityServiceProtocol = AppResolver.main.services.recentAssetsService
     @Entry var addressService: any GemAddressServiceProtocol = AppResolver.main.services.addressService
-    @Entry var feeService: GemFeeService = AppResolver.main.services.viewModelFactory.feeService
     @Entry var applicationMetadataService: GemApplicationMetadataService = AppResolver.main.services.viewModelFactory.applicationMetadataService
     @Entry var deeplinkService: GemDeeplinkService = AppResolver.main.services.viewModelFactory.deeplinkService
     @Entry var assetConfig: GemAssetConfigService = AppResolver.main.services.viewModelFactory.assetConfig

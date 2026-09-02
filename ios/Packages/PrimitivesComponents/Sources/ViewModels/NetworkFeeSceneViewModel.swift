@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import class Gemstone.GemFeeService
 import Components
 import Localization
 import Primitives
@@ -16,7 +15,6 @@ public struct NetworkFeeSceneViewModel {
     private let feeAssetPrice: Price?
     private let feeAmount: BigInt?
     private let feeAssets: [FeeAssetItem]
-    private let feeService: GemFeeService
     private let onSelect: (@MainActor (FeeSelection) -> Void)?
     private let onSelectFeeAsset: (@MainActor (AssetId) -> Void)?
 
@@ -28,7 +26,6 @@ public struct NetworkFeeSceneViewModel {
         feeAssetPrice: Price? = nil,
         feeAmount: BigInt? = nil,
         feeAssets: [FeeAssetItem] = [],
-        feeService: GemFeeService,
         onSelect: (@MainActor (FeeSelection) -> Void)? = nil,
         onSelectFeeAsset: (@MainActor (AssetId) -> Void)? = nil,
     ) {
@@ -39,7 +36,6 @@ public struct NetworkFeeSceneViewModel {
         self.feeAssetPrice = feeAssetPrice
         self.feeAmount = feeAmount
         self.feeAssets = feeAssets
-        self.feeService = feeService
         self.onSelect = onSelect
         self.onSelectFeeAsset = onSelectFeeAsset
     }
@@ -129,7 +125,6 @@ public struct NetworkFeeSceneViewModel {
             baseTotal: selectedBaseTotalFee,
             normalTotal: (rates.first(where: { $0.priority == .normal }) ?? rates.first).map { totalFee(for: $0.gasPriceType) } ?? selectedBaseTotalFee,
             initialRate: selection.customRate,
-            feeService: feeService,
             onSelect: { onSelect?(.custom($0)) },
         )
     }

@@ -15,7 +15,6 @@ import uniffi.gemstone.GemRecentActivityService
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemNameService
-import uniffi.gemstone.GemFeeService
 import uniffi.gemstone.GemSwapQuoteService
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemTransactionSigner
@@ -60,7 +59,6 @@ object DataModule {
         confirmService: GemConfirmServiceInterface,
         explorerService: GemExplorerService,
         nameService: GemNameService,
-        feeService: GemFeeService,
         swapQuoteService: GemSwapQuoteService,
         signer: GemTransactionSigner,
         passwordStore: PasswordStore,
@@ -70,7 +68,6 @@ object DataModule {
         explorerService,
         nameService,
         GemAssetConfigService(),
-        feeService,
         swapQuoteService,
         signer,
         GemstoneKeystorePassword(passwordStore),

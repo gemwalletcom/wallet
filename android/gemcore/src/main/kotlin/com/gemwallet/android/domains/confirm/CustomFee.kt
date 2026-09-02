@@ -6,7 +6,7 @@ import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.FeePriority
 import uniffi.gemstone.GemFeeRate
-import uniffi.gemstone.GemFeeService
+import uniffi.gemstone.GemCustomFee
 import java.math.BigInteger
 
 data class CustomFee(
@@ -28,31 +28,30 @@ data class CustomFee(
             decimals: Int,
             maxMultiplier: Int,
             minimumCustomFeeRate: BigInteger?,
-            feeService: GemFeeService,
         ): CustomFee {
             val baseTotal = baseTotal(selection, feeRates, currentFee.priority)
             val normalTotal = normalTotal(feeRates) ?: baseTotal
             val rate = input.parseInputNumberOrNull()?.movePointRight(decimals)?.toBigInteger()?.takeIf { it > BigInteger.ZERO }
             val isBelowMinimum = rate != null && minimumCustomFeeRate != null && rate < minimumCustomFeeRate
 
-            val estimate = feeService.customFeeEstimate(
+            return GemCustomFee.estimate(
                 rate = rate?.toString(),
                 loadedFee = currentFee.amount.toString(),
                 baseTotal = baseTotal.toString(),
                 normalTotal = normalTotal.toString(),
                 maxMultiplier = maxMultiplier.toUInt(),
-            )
-
-            return CustomFee(
-                rate = rate,
-                placeholder = ValueFormatter(style = ValueFormatter.Style.Auto).string(baseTotal, decimals),
-                networkFee = FeeUIModel.FeeInfo(BigInteger(estimate.feeValue), currentFee.feeAsset, currentFee.price, currentFee.currency, currentFee.priority),
-                maxRateText = format(BigInteger(estimate.maxRate), decimals),
-                minRateText = minimumCustomFeeRate?.let { format(it, decimals) } ?: "",
-                isOverMax = estimate.isOverMax,
-                isBelowMinimum = isBelowMinimum,
-                isConfirmEnabled = rate != null && !estimate.isOverMax && !isBelowMinimum,
-            )
+            ).use { estimate ->
+                CustomFee(
+                    rate = rate,
+                    placeholder = ValueFormatter(style = ValueFormatter.Style.Auto).string(baseTotal, decimals),
+                    networkFee = FeeUIModel.FeeInfo(BigInteger(estimate.feeValue()), currentFee.feeAsset, currentFee.price, currentFee.currency, currentFee.priority),
+                    maxRateText = format(BigInteger(estimate.maxRate()), decimals),
+                    minRateText = minimumCustomFeeRate?.let { format(it, decimals) } ?: "",
+                    isOverMax = estimate.isOverMax(),
+                    isBelowMinimum = isBelowMinimum,
+                    isConfirmEnabled = rate != null && !estimate.isOverMax() && !isBelowMinimum,
+                )
+            }
         }
 
         fun format(value: BigInteger, decimals: Int): String =

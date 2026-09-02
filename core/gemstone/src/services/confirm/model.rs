@@ -91,8 +91,9 @@ pub struct GemFeeAsset {
 
 impl GemConfirmSimulation {
     pub(super) fn address_requests(&self, chain: Chain) -> Vec<ChainAddress> {
-        self.payload_fields
+        self.primary_fields
             .iter()
+            .chain(self.secondary_fields.iter())
             .filter(|field| field.field_type == SimulationPayloadFieldType::Address)
             .map(|field| ChainAddress::new(chain, field.value.clone()))
             .collect()
@@ -146,7 +147,8 @@ pub struct GemSimulationBalanceChange {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmSimulation {
-    pub payload_fields: Vec<SimulationPayloadField>,
+    pub primary_fields: Vec<SimulationPayloadField>,
+    pub secondary_fields: Vec<SimulationPayloadField>,
     pub header: Option<GemSimulationValue>,
     pub balance_changes: Vec<GemSimulationBalanceChange>,
 }

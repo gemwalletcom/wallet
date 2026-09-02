@@ -19,7 +19,6 @@ import com.gemwallet.android.domains.swap.providerId
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import uniffi.gemstone.GemFeeRate
-import uniffi.gemstone.GemFeeService
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
 import com.gemwallet.android.application.confirm.cases.ConfirmTransaction
@@ -97,7 +96,6 @@ class ConfirmViewModel @Inject constructor(
     private val buildConfirmProperties: BuildConfirmProperties,
     private val confirmService: GemConfirmTransferService,
     private val savedStateHandle: SavedStateHandle,
-    private val feeService: GemFeeService,
     private val transferService: GemTransferService,
     private val swapQuoteService: GemSwapQuoteService,
 ) : ViewModel() {
@@ -322,7 +320,7 @@ class ConfirmViewModel @Inject constructor(
         feeAssetInfo: AssetInfo,
         feeRates: List<GemFeeRate>,
         unitSymbol: String,
-    ): FeeDetailsModel = FeeDetailsModel.from(currentFee, feeAssetInfo, feeRates, unitSymbol, feeService)
+    ): FeeDetailsModel = FeeDetailsModel.from(currentFee, feeAssetInfo, feeRates, unitSymbol)
 
     fun changeFeeSelection(selection: FeeSelection) {
         if (selection == feeSelection.value) return

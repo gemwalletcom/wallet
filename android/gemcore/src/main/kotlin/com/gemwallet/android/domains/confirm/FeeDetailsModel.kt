@@ -9,13 +9,11 @@ import com.gemwallet.android.model.FeeSelection
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
 import uniffi.gemstone.GemFeeRate
-import uniffi.gemstone.GemFeeService
 import java.math.BigInteger
 
 class FeeDetailsModel(
     private val currentFee: FeeUIModel.FeeInfo,
     private val feeRates: List<GemFeeRate>,
-    private val feeService: GemFeeService,
     private val maxMultiplier: Int,
     private val minimumCustomFeeRate: BigInteger?,
     val feeUnitType: FeeUnitType?,
@@ -31,7 +29,6 @@ class FeeDetailsModel(
         decimals,
         maxMultiplier,
         minimumCustomFeeRate,
-        feeService,
     )
 
     companion object {
@@ -40,7 +37,6 @@ class FeeDetailsModel(
             feeAssetInfo: AssetInfo,
             feeRates: List<GemFeeRate>,
             unitSymbol: String,
-            feeService: GemFeeService,
         ): FeeDetailsModel {
             val chain = feeAssetInfo.asset.chain
             val feeUnitType = chain.feeUnitType()
@@ -51,7 +47,6 @@ class FeeDetailsModel(
             return FeeDetailsModel(
                 currentFee = currentFee,
                 feeRates = feeRates,
-                feeService = feeService,
                 maxMultiplier = feeConfig.maxMultiplier.toInt(),
                 minimumCustomFeeRate = feeConfig.minimumCustomFeeRate?.toLong()?.toBigInteger(),
                 feeUnitType = feeUnitType,

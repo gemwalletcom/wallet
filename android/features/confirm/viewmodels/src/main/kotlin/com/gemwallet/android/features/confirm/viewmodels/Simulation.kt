@@ -13,7 +13,6 @@ import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.SimulationPayloadField
-import com.wallet.core.primitives.SimulationPayloadFieldDisplay
 import com.wallet.core.primitives.SimulationWarning
 import java.math.BigInteger
 
@@ -38,14 +37,13 @@ fun GemConfirmSimulationState.toSimulation(
     confirmService: GemConfirmTransferService,
 ): Simulation {
     val details = simulation ?: return Simulation(warnings = warnings)
-    val fields = details.payloadFields.map { it.decodeJson<SimulationPayloadField>() }
     val header = details.header
 
     return Simulation(
         warnings = warnings,
-        primaryPayloadFields = fields.filter { it.display == SimulationPayloadFieldDisplay.Primary }
+        primaryPayloadFields = details.primaryFields.map { it.decodeJson<SimulationPayloadField>() }
             .withExplorerLinks(chain, confirmService),
-        secondaryPayloadFields = fields.filter { it.display == SimulationPayloadFieldDisplay.Secondary }
+        secondaryPayloadFields = details.secondaryFields.map { it.decodeJson<SimulationPayloadField>() }
             .withExplorerLinks(chain, confirmService),
         headerAsset = header?.asset?.toPrimitives(),
         headerValue = (header?.value as? GemApprovalValue.Exact)?.value,

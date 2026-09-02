@@ -25,7 +25,7 @@ use crate::services::price::GemPriceService;
 use crate::services::transaction_state::GemTransactionStateService;
 use crate::signer::GemSignerError;
 use crate::transaction_simulation::{GemSimulationFormatter, TransactionSimulationService};
-use primitives::{AssetId, Chain, SimulationResult, Transaction, TransferDataOutputAction, WalletId};
+use primitives::{AssetId, Chain, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransferDataOutputAction, WalletId};
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmService {
@@ -132,7 +132,16 @@ impl GemConfirmService {
             })
             .collect();
         Ok(GemConfirmSimulation {
-            payload_fields,
+            primary_fields: payload_fields
+                .iter()
+                .filter(|field| field.display == SimulationPayloadFieldDisplay::Primary)
+                .cloned()
+                .collect(),
+            secondary_fields: payload_fields
+                .iter()
+                .filter(|field| field.display == SimulationPayloadFieldDisplay::Secondary)
+                .cloned()
+                .collect(),
             header,
             balance_changes,
         })

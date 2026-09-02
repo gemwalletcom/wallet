@@ -23,7 +23,6 @@ import Testing
 @testable import Transfer
 import TransferTestKit
 import Validators
-import class Gemstone.GemFeeService
 import class Gemstone.GemSimulationFormatter
 import class Gemstone.GemAssetConfigService
 import struct Gemstone.GemTransferData

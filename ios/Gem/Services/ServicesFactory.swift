@@ -370,7 +370,6 @@ struct ServicesFactory {
             ),
             deeplinkService: Gemstone.GemDeeplinkService(),
             explorerService: explorerService,
-            feeService: Gemstone.GemFeeService(),
             fiatService: fiatService,
             nameService: nameService,
             onboardingService: onboardingService,

@@ -20,7 +20,6 @@ import WalletTab
 
 struct WalletNavigationView: View {
     @Environment(\.explorerService) private var explorerService
-    @Environment(\.feeService) private var feeService
     @Environment(\.deeplinkService) private var deeplinkService
     @Environment(\.transactionFormatter) private var transactionFormatter
     @Environment(\.balanceService) private var balanceService
@@ -141,7 +140,6 @@ struct WalletNavigationView: View {
                     preferencesService: preferencesService,
                     explorerService: explorerService,
                     transactionFormatter: transactionFormatter,
-                    feeService: feeService,
                     onHeaderAction: onSelectTransactionHeaderAction,
                     onAddContact: { model.isPresentingSheet = .addContact($0) },
                 ),

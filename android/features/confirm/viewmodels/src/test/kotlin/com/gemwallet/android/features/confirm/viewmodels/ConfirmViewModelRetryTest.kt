@@ -105,7 +105,6 @@ class ConfirmViewModelRetryTest {
             buildConfirmProperties = mockk(relaxed = true),
             confirmService = mockk(relaxed = true),
             savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transferService.pack(input)))),
-            feeService = uniffi.gemstone.GemFeeService(),
             transferService = uniffi.gemstone.GemTransferService(),
             swapQuoteService = mockk(relaxed = true),
         )

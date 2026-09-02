@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import class Gemstone.GemFeeService
 import Components
 import protocol Gemstone.GemExplorerServiceProtocol
 import class Gemstone.GemTransactionFormatter
@@ -20,7 +19,6 @@ public final class TransactionSceneViewModel {
     private let preferencesService: any GemPreferencesServiceProtocol
     private let explorerService: any GemExplorerServiceProtocol
     private let transactionFormatter: GemTransactionFormatter
-    private let feeService: GemFeeService
     private let onHeaderAction: ((TransactionHeaderAction) -> Void)?
     private let onAddContact: ((AddContactType) -> Void)?
 
@@ -38,14 +36,12 @@ public final class TransactionSceneViewModel {
         preferencesService: any GemPreferencesServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
         transactionFormatter: GemTransactionFormatter,
-        feeService: GemFeeService,
         onHeaderAction: ((TransactionHeaderAction) -> Void)? = nil,
         onAddContact: ((AddContactType) -> Void)? = nil,
     ) {
         self.preferencesService = preferencesService
         self.explorerService = explorerService
         self.transactionFormatter = transactionFormatter
-        self.feeService = feeService
         self.onHeaderAction = onHeaderAction
         self.onAddContact = onAddContact
         query = ObservableQuery(TransactionRequest(walletId: walletId, transactionId: transaction.transaction.id), initialValue: transaction)
@@ -226,7 +222,6 @@ extension TransactionSceneViewModel {
             selection: .preset(.normal),
             feeAssetPrice: model.transaction.feePrice,
             feeAmount: BigInt(model.transaction.transaction.fee),
-            feeService: feeService,
         )
     }
 }

@@ -3,7 +3,6 @@ use std::sync::Arc;
 use primitives::{AddressName, Chain, PerpetualModifyConfirmData, SimulationResult, Transaction, WalletId};
 
 use crate::block_explorer::GemBlockExplorerLink;
-use crate::fee::GemFeeService;
 use crate::models::transaction::GemTransactionInputType;
 use crate::services::assets::config::GemAssetConfigService;
 use crate::services::confirm::rules::is_insufficient_network_fee;
@@ -26,7 +25,6 @@ pub struct GemConfirmTransferService {
     explorer: Arc<GemExplorerService>,
     names: Arc<GemNameService>,
     asset_config: Arc<GemAssetConfigService>,
-    fee: Arc<GemFeeService>,
     swap_quote: Arc<GemSwapQuoteService>,
     signer: Arc<dyn GemTransactionSigner>,
     password: Arc<dyn GemKeystorePassword>,
@@ -41,7 +39,6 @@ impl GemConfirmTransferService {
         explorer: Arc<GemExplorerService>,
         names: Arc<GemNameService>,
         asset_config: Arc<GemAssetConfigService>,
-        fee: Arc<GemFeeService>,
         swap_quote: Arc<GemSwapQuoteService>,
         signer: Arc<dyn GemTransactionSigner>,
         password: Arc<dyn GemKeystorePassword>,
@@ -52,7 +49,6 @@ impl GemConfirmTransferService {
             explorer,
             names,
             asset_config,
-            fee,
             swap_quote,
             signer,
             password,
@@ -157,10 +153,6 @@ impl GemConfirmTransferService {
 
     pub fn acquire_asset_flow(&self, chain: Chain) -> GemAcquireAssetFlow {
         self.asset_config.acquire_flow(chain)
-    }
-
-    pub fn fee(&self) -> Arc<GemFeeService> {
-        self.fee.clone()
     }
 
     pub fn swap_quote(&self) -> Arc<GemSwapQuoteService> {

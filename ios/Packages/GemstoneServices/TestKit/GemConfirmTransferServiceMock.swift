@@ -21,7 +21,6 @@ public import enum Gemstone.GemExecuteResult
 public import enum Gemstone.GemTransactionInputType
 public import enum Gemstone.GemAcquireAssetFlow
 public import class Gemstone.GemAssetConfigService
-public import class Gemstone.GemFeeService
 public import class Gemstone.GemSwapQuoteService
 public import typealias Gemstone.AddressName
 public import typealias Gemstone.Chain
@@ -39,7 +38,6 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
     private let transactionState: any GemTransactionStateServiceProtocol
     private let signer: any GemTransactionSigner
     private let authenticationValue: GemKeystoreAuthentication
-    private let feeService = GemFeeService()
     private let assetConfig = GemAssetConfigService()
     private let swapQuoteService = GemSwapQuoteService()
 
@@ -138,8 +136,6 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
     public func acquireAssetFlow(chain: Chain) -> GemAcquireAssetFlow {
         assetConfig.acquireFlow(chain: chain)
     }
-
-    public func fee() -> GemFeeService { feeService }
 
     public func swapQuote() -> GemSwapQuoteService { swapQuoteService }
 }

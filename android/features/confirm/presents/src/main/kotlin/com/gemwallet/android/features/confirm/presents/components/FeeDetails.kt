@@ -71,7 +71,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
 import uniffi.gemstone.GemFeeRate
-import uniffi.gemstone.GemFeeService
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

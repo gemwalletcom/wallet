@@ -69,8 +69,11 @@ public final class GemConfirmServiceMock: GemConfirmServiceProtocol, @unchecked 
         let isApproval = if case .tokenApprove = inputType { true } else { false }
         let showsHeader = simulationFormatter.showsHeader(simulation: simulation, isApproval: isApproval)
         let payload = simulation.flatMap { try? Primitives.SimulationResult($0) }?.payload ?? []
+        let fields = simulationFormatter.payloadFields(payload: payload.map { $0.json() }, showsHeader: showsHeader)
+            .compactMap { try? Primitives.SimulationPayloadField($0) }
         return GemConfirmSimulation(
-            payloadFields: simulationFormatter.payloadFields(payload: payload.map { $0.json() }, showsHeader: showsHeader),
+            primaryFields: fields.filter { $0.display == .primary }.map { $0.json() },
+            secondaryFields: fields.filter { $0.display == .secondary }.map { $0.json() },
             header: nil,
             balanceChanges: [],
         )
