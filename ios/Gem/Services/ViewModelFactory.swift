@@ -58,6 +58,7 @@ import Preferences
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
+import Recents
 import Settings
 import Stake
 import Store
@@ -154,17 +155,55 @@ public struct ViewModelFactory: Sendable {
         isPresentingWallets: Binding<Bool>,
     ) -> WalletSceneViewModel {
         WalletSceneViewModel(
-            service: GemWalletHomeService(
-                balances: balanceService,
-                discovery: assetDiscoveryService,
-                banners: bannerService,
-                walletPreferences: walletPreferencesService,
-            ),
+            service: walletHomeService(),
             observablePreferences: observablePreferences,
             collectionsModel: CollectionsViewModel(nftService: nftService, wallet: wallet),
             wallet: wallet,
             isPresentingSelectedAssetInput: isPresentingSelectedAssetInput,
             isPresentingWallets: isPresentingWallets,
+        )
+    }
+
+    @MainActor
+    public func walletSearchScene(
+        wallet: Wallet,
+        onDismissSearch: VoidAction,
+        onSelectAssetAction: AssetAction,
+        onAddToken: VoidAction,
+    ) -> WalletSearchSceneViewModel {
+        WalletSearchSceneViewModel(
+            wallet: wallet,
+            service: assetSelectionService(),
+            recentModel: RecentAssetsModel(walletId: wallet.id, types: RecentActivityType.allCases, recentAssetsService: recentAssetsService),
+            onDismissSearch: onDismissSearch,
+            onSelectAssetAction: onSelectAssetAction,
+            onAddToken: onAddToken,
+        )
+    }
+
+    @MainActor
+    public func networkAssetsScene(wallet: Wallet, chain: Chain, onManageAssets: @escaping () -> Void) -> NetworkAssetsSceneViewModel {
+        NetworkAssetsSceneViewModel(wallet: wallet, chain: chain, service: walletHomeService(), onManageAssets: onManageAssets)
+    }
+
+    private func walletHomeService() -> GemWalletHomeService {
+        GemWalletHomeService(
+            balances: balanceService,
+            discovery: assetDiscoveryService,
+            banners: bannerService,
+            walletPreferences: walletPreferencesService,
+            preferences: preferencesService,
+        )
+    }
+
+    private func assetSelectionService() -> GemAssetSelectionService {
+        GemAssetSelectionService(
+            search: searchService,
+            balances: balanceService,
+            priceAlerts: priceAlertService,
+            recentActivity: recentAssetsService,
+            preferences: preferencesService,
+            perpetuals: perpetualService,
         )
     }
 
@@ -299,13 +338,7 @@ public struct ViewModelFactory: Sendable {
         SelectAssetViewModel(
             wallet: wallet,
             selectType: selectType,
-            service: GemAssetSelectionService(
-                search: searchService,
-                balances: balanceService,
-                priceAlerts: priceAlertService,
-                recentActivity: recentAssetsService,
-                preferences: preferencesService,
-            ),
+            service: assetSelectionService(),
             chainService: chainService,
             recentAssetsService: recentAssetsService,
             selectAssetAction: selectAssetAction,
@@ -322,11 +355,7 @@ public struct ViewModelFactory: Sendable {
     ) -> AssetsResultsSceneViewModel {
         AssetsResultsSceneViewModel(
             wallet: wallet,
-            balanceService: balanceService,
-            preferencesService: preferencesService,
-            searchService: searchService,
-            perpetualService: perpetualService,
-            recentAssetsService: recentAssetsService,
+            service: assetSelectionService(),
             request: request,
             title: title,
             onSelectAsset: onSelectAsset,

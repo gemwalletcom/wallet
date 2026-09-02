@@ -10,6 +10,10 @@ public extension GemWalletHomeServiceProtocol {
         try await refresh(walletId: wallet.id.id, assetIds: assetIds.ids)
     }
 
+    func updateBalances(wallet: Wallet, assetIds: [AssetId]) async throws {
+        try await updateBalances(walletId: wallet.id.id, assetIds: assetIds.ids)
+    }
+
     func setAssetsEnabled(wallet: Wallet, assetIds: [AssetId], enabled: Bool) async throws {
         try await setAssetsEnabled(walletId: wallet.id.id, assetIds: assetIds.ids, enabled: enabled)
     }

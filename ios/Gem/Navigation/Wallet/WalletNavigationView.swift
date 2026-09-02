@@ -22,7 +22,6 @@ import WalletTab
 struct WalletNavigationView: View {
     @Environment(\.explorerService) private var explorerService
     @Environment(\.deeplinkService) private var deeplinkService
-    @Environment(\.balanceService) private var balanceService
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
@@ -39,7 +38,6 @@ struct WalletNavigationView: View {
     @Environment(\.perpetualService) private var perpetualService
     @Environment(\.hyperliquidObserverService) private var hyperliquidObserverService
     @Environment(\.recentAssetsService) private var recentAssetsService
-    @Environment(\.searchService) private var searchService
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.avatarService) private var avatarService
     @Environment(\.nftService) private var nftService
@@ -58,13 +56,8 @@ struct WalletNavigationView: View {
 
             if model.isPresentingSearch {
                 WalletSearchScene(
-                    model: WalletSearchSceneViewModel(
+                    model: viewModelFactory.walletSearchScene(
                         wallet: model.wallet,
-                        searchService: searchService,
-                        recentAssetsService: recentAssetsService,
-                        balanceService: balanceService,
-                        perpetualService: perpetualService,
-                        preferences: preferences,
                         onDismissSearch: model.onToggleSearch,
                         onSelectAssetAction: navigationState.openAsset,
                         onAddToken: model.onSelectAddCustomToken,
@@ -109,11 +102,9 @@ struct WalletNavigationView: View {
         }
         .navigationDestination(for: Scenes.NetworkAssets.self) { destination in
             NetworkAssetsScene(
-                model: NetworkAssetsSceneViewModel(
+                model: viewModelFactory.networkAssetsScene(
                     wallet: model.wallet,
                     chain: destination.chain,
-                    balanceService: balanceService,
-                    preferencesService: preferencesService,
                     onManageAssets: { model.onSelectManage(chains: [destination.chain]) },
                 ),
             )

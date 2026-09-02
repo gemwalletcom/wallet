@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstonePrimitives
-import protocol Gemstone.GemPerpetualServiceProtocol
 import GemstoneServices
 import Components
 import Foundation
@@ -52,8 +51,8 @@ extension AssetActions {
 
 @MainActor
 protocol PerpetualPinActions: AnyObject {
-    var perpetualService: any GemPerpetualServiceProtocol { get }
     var isPresentingToastMessage: ToastMessage? { get set }
+    func setPerpetualPinned(_ perpetualId: PerpetualId, pinned: Bool) async throws
 }
 
 extension PerpetualPinActions {
@@ -61,7 +60,7 @@ extension PerpetualPinActions {
         let pinned = !perpetualData.metadata.isPinned
         Task {
             do {
-                try await perpetualService.setPinned(pinned, perpetualId: perpetualData.perpetual.id)
+                try await setPerpetualPinned(perpetualData.perpetual.id, pinned: pinned)
                 isPresentingToastMessage = .pin(perpetualData.perpetual.name, pinned: pinned)
             } catch {
                 debugLog("\(Self.self) pin perpetual error: \(error)")

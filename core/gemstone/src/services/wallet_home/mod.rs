@@ -2,12 +2,13 @@ mod rules;
 
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, BannerEvent, WalletId};
+use primitives::{Asset, AssetId, BannerEvent, Currency, WalletId};
 
 use crate::services::asset_discovery::GemAssetDiscoveryService;
 use crate::services::balance::GemBalanceService;
 use crate::services::banner::{GemBannerAction, GemBannerContent, GemBannerKey, GemBannerService};
 use crate::services::error::GemServiceError;
+use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_preferences::{GemDiscoveryStep, GemWalletPreferencesService};
 
 #[derive(uniffi::Object)]
@@ -16,6 +17,7 @@ pub struct GemWalletHomeService {
     discovery: Arc<GemAssetDiscoveryService>,
     banners: Arc<GemBannerService>,
     wallet_preferences: Arc<GemWalletPreferencesService>,
+    preferences: Arc<GemPreferencesService>,
 }
 
 #[uniffi::export]
@@ -26,13 +28,23 @@ impl GemWalletHomeService {
         discovery: Arc<GemAssetDiscoveryService>,
         banners: Arc<GemBannerService>,
         wallet_preferences: Arc<GemWalletPreferencesService>,
+        preferences: Arc<GemPreferencesService>,
     ) -> Self {
         Self {
             balances,
             discovery,
             banners,
             wallet_preferences,
+            preferences,
         }
+    }
+
+    pub fn currency(&self) -> Currency {
+        self.preferences.get_currency()
+    }
+
+    pub async fn update_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+        self.balances.update(wallet_id, asset_ids).await
     }
 
     pub fn includes_perpetual_collateral(&self, wallet_id: WalletId) -> bool {

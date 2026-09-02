@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemBalanceServiceProtocol
-import protocol Gemstone.GemPreferencesServiceProtocol
+import protocol Gemstone.GemWalletHomeServiceProtocol
 import GemstoneServices
 import Components
 import Foundation
@@ -15,8 +14,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class NetworkAssetsSceneViewModel: AssetActions {
-    private let balanceService: any GemBalanceServiceProtocol
-    private let preferencesService: any GemPreferencesServiceProtocol
+    private let service: any GemWalletHomeServiceProtocol
     let wallet: Wallet
     private let onManageAssetsAction: () -> Void
 
@@ -28,13 +26,11 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     public init(
         wallet: Wallet,
         chain: Chain,
-        balanceService: any GemBalanceServiceProtocol,
-        preferencesService: any GemPreferencesServiceProtocol,
+        service: any GemWalletHomeServiceProtocol,
         onManageAssets: @escaping () -> Void,
     ) {
         self.wallet = wallet
-        self.balanceService = balanceService
-        self.preferencesService = preferencesService
+        self.service = service
         onManageAssetsAction = onManageAssets
         activeQuery = ObservableQuery(
             AssetsRequest(walletId: wallet.id, filters: [.chains([chain.rawValue]), .enabledBalance]),
@@ -59,7 +55,7 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     }
 
     var currencyCode: String {
-        preferencesService.currencyCode
+        service.currency()
     }
 
     var active: [AssetData] {
@@ -108,7 +104,7 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
 
     func updateBalances() async {
         do {
-            try await balanceService.update(walletId: wallet.id.id, assetIds: assetIds.ids)
+            try await service.updateBalances(wallet: wallet, assetIds: assetIds)
         } catch {
             debugLog("update balance error: \(error)")
         }
@@ -121,10 +117,10 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
 
 extension NetworkAssetsSceneViewModel {
     func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws {
-        try await balanceService.setAssetPinned(wallet: wallet, assetId: assetId, pinned: pinned)
+        try await service.setAssetPinned(wallet: wallet, assetId: assetId, pinned: pinned)
     }
 
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
-        try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: assetIds, enabled: enabled)
+        try await service.setAssetsEnabled(wallet: wallet, assetIds: assetIds, enabled: enabled)
     }
 }

@@ -431,11 +431,9 @@ having the parent vend the child view model.
 |---|---|---|
 | `Gem/ViewModels/RootSceneViewModel.swift` | 11 | 4 |
 | `Assets/SelectAssetViewModel.swift` | 3 | 0 |
-| `WalletTab/AssetsResultsSceneViewModel.swift` | 5 | 2 |
 | `Settings/Settings/ViewModels/DeveloperViewModel.swift` | 5 | 0 |
 | `Onboarding/ImportWalletViewModel.swift` | 4 | 4 |
 | `Transactions/TransactionsViewModel.swift` | 3 | 1 |
-| `WalletTab/WalletSearchSceneViewModel.swift` | 4 | 2 |
 | `Settings/Settings/ViewModels/NotificationsViewModel.swift` | 4 | 0 |
 | `Settings/ChainSettings/ViewModels/ChainSettingsSceneViewModel.swift` | 3 | 2 |
 | `NFT/CollectibleViewModel.swift` | 3 | 1 |
@@ -450,7 +448,6 @@ having the parent vend the child view model.
 | `ManageWallets/WalletIDetailViewModel.swift` | 2 | 1 |
 | `Transfer/AmountEarnViewModel.swift` | 2 | 1 |
 | `WalletConnector/WalletConnector/ViewModels/ConnectionsViewModel.swift` | 2 | 1 |
-| `WalletTab/NetworkAssetsSceneViewModel.swift` | 2 | 1 |
 | `Assets/AddAssetSceneViewModel.swift` | 2 | 0 |
 | `Assets/AssetsFilterViewModel.swift` | 2 | 0 |
 | `PriceAlerts/PriceAlertsSceneViewModel.swift` | 2 | 0 |

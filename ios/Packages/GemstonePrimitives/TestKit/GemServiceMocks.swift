@@ -723,6 +723,12 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
 
     public init() {}
 
+    public func currency() -> Gemstone.Currency {
+        Primitives.Currency.usd.rawValue
+    }
+
+    public func updateBalances(walletId _: Gemstone.WalletId, assetIds _: [Gemstone.AssetId]) async throws {}
+
     public func includesPerpetualCollateral(walletId _: Gemstone.WalletId) -> Bool {
         false
     }
