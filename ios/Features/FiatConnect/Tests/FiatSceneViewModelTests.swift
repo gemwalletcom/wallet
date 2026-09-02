@@ -120,7 +120,7 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
-    func unsupportedSellRouteStaysOnSellWithAmount() {
+    func unsupportedSellRouteFallsBackToBuyWithAmount() {
         let model = FiatSceneViewModelTests.mock(type: .sell, amount: 40)
         let previousAssetData = model.assetData
         let unsupportedAssetData = AssetData.mock(metadata: .mock(isSellEnabled: false))
@@ -128,10 +128,10 @@ final class FiatSceneViewModelTests {
         model.onAssetDataChange(previousAssetData, unsupportedAssetData)
 
         #expect(!model.showFiatTypePicker)
-        #expect(model.type == .sell)
+        #expect(model.type == .buy)
         #expect(model.sellViewModel.amount == "40")
-        #expect(model.buyViewModel.amount == "50")
-        #expect(model.title == Localized.Sell.title(model.asset.name))
+        #expect(model.buyViewModel.amount == "40")
+        #expect(model.title == Localized.Buy.title(model.asset.name))
     }
 
     @Test

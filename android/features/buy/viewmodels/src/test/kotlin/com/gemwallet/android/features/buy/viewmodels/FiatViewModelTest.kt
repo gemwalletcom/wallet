@@ -223,7 +223,7 @@ class FiatViewModelTest {
     }
 
     @Test
-    fun `sell route arguments open sell with the requested amount`() = runTest(testDispatcher) {
+    fun `unsupported sell route falls back to buy with the requested amount`() = runTest(testDispatcher) {
         assetDataFlow.value = null
         val viewModel = createViewModel(initialAmount = 25, initialType = FiatQuoteType.Sell)
 
@@ -237,16 +237,11 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
             assertFalse(viewModel.showFiatTypePicker.value)
-            assertEquals(FiatQuoteType.Sell, viewModel.type.value)
+            assertEquals(FiatQuoteType.Buy, viewModel.type.value)
             assertEquals("25", viewModel.amount.value)
             coVerify(exactly = 1) {
-                service.quotes(FiatQuoteType.Sell.toJson(), asset.id.toIdentifier(), 25.0)
+                service.quotes(FiatQuoteType.Buy.toJson(), asset.id.toIdentifier(), 25.0)
             }
-
-            viewModel.setType(FiatQuoteType.Buy)
-            advanceTimeBy(DebounceSettleMs)
-            runCurrent()
-            assertEquals("50", viewModel.amount.value)
         } finally {
             viewModel.viewModelScope.cancel()
         }

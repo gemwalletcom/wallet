@@ -80,7 +80,9 @@ impl GemTransactionInputType {
             | Self::Withdrawal { .. } => None,
         }
     }
+}
 
+impl GemTransactionInputType {
     pub fn output(&self) -> GemTransferOutput {
         match self {
             Self::Generic { extra, .. } => GemTransferOutput {
@@ -93,9 +95,7 @@ impl GemTransactionInputType {
             },
         }
     }
-}
 
-impl GemTransactionInputType {
     pub fn asset_ids(&self) -> Vec<AssetId> {
         match self {
             Self::Swap { from_asset, to_asset, .. } => vec![from_asset.id.clone(), to_asset.id.clone()],

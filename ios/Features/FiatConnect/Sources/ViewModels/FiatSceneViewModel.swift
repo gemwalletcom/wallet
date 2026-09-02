@@ -209,6 +209,12 @@ extension FiatSceneViewModel {
     func onAssetDataChange(_: AssetData, _ newValue: AssetData) {
         buyViewModel.onAssetDataChange(newValue)
         sellViewModel.onAssetDataChange(newValue)
+
+        if !newValue.metadata.isSellEnabled, type == .sell {
+            let amount = sellViewModel.amount
+            type = .buy
+            buyViewModel.setAmount(amount)
+        }
     }
 
     func onSelectContinue() {

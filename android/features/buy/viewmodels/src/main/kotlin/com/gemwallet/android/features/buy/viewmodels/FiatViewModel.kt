@@ -45,6 +45,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -105,6 +106,12 @@ class FiatViewModel @Inject constructor(
         .filterNotNull()
         .map { it.showFiatTypePicker() }
         .distinctUntilChanged()
+        .onEach { showFiatTypePicker ->
+            if (!showFiatTypePicker && type.value == FiatQuoteType.Sell) {
+                buyOperation.updateAmount(sellOperation.amount.value)
+                type.value = FiatQuoteType.Buy
+            }
+        }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val suggestedAmounts = type.mapLatest {
