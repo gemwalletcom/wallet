@@ -1,10 +1,11 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
-import uniffi.gemstone.GemChainService
+import kotlinx.coroutines.CancellationException
+import uniffi.gemstone.GatewayException
+import uniffi.gemstone.GemGateway
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.blockchain.services.NodeStatusService
 import com.gemwallet.android.cases.nodes.AddNodeCase
 import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
 import com.gemwallet.android.model.NodeStatus
@@ -26,10 +27,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddNodeViewModel @Inject constructor(
-    private val nodeStatusClient: NodeStatusService,
+    private val gateway: GemGateway,
     private val addNodeCase: AddNodeCase,
     private val setCurrentNodeCase: SetCurrentNodeCase,
-    private val chainService: GemChainService,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(State())
@@ -47,29 +47,27 @@ class AddNodeViewModel @Inject constructor(
     private suspend fun checkUrl(url: String) {
         state.update { it.copy(checking = true, nodeState = null, errorResId = null) }
         val chain = state.value.chain ?: return
-        val status = nodeStatusClient.getNodeStatus(chain, url)
-        when {
-            status == null -> state.update {
+        try {
+            val status = gateway.checkNode(chain.string, url)
+            state.update {
                 it.copy(
-                    checking = false,
-                    errorResId = R.string.errors_error_occurred,
-                )
-            }
-
-            !chainService.isValidNetworkId(chain.string, status.chainId) -> state.update {
-                it.copy(
-                    checking = false,
-                    errorResId = R.string.errors_invalid_network_id,
-                )
-            }
-
-            else -> state.update {
-                it.copy(
-                    nodeState = status,
+                    nodeState = NodeStatus(
+                        url = url,
+                        chainId = status.chainId,
+                        blockNumber = status.latestBlockNumber,
+                        inSync = true,
+                        latency = status.latencyMs,
+                    ),
                     checking = false,
                     errorResId = null,
                 )
             }
+        } catch (error: GatewayException.NetworkIdMismatch) {
+            state.update { it.copy(checking = false, errorResId = R.string.errors_invalid_network_id) }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Throwable) {
+            state.update { it.copy(checking = false, errorResId = R.string.errors_error_occurred) }
         }
     }
 
