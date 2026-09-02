@@ -1,6 +1,5 @@
 package com.gemwallet.android.di
 
-import com.gemwallet.android.blockchain.services.NodeStatusService
 import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.services.SyncService
 import dagger.Module
@@ -25,6 +24,7 @@ import uniffi.gemstone.GemConfirmService
 import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemNodeStatusService
 import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemTransactionStateService
@@ -87,11 +87,9 @@ object DataModule {
 
     @Singleton
     @Provides
-    fun provideNodeStatusService(
+    fun provideGemNodeStatusService(
         gateway: GemGateway,
-    ): NodeStatusService {
-        return NodeStatusService(gateway)
-    }
+    ): GemNodeStatusService = GemNodeStatusService(gateway)
 
     @Singleton
     @Provides

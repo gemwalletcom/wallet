@@ -7,7 +7,8 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.blockchain.services.NodeStatusService
+import com.gemwallet.android.domains.node.toNodeStatus
+import uniffi.gemstone.GemNodeStatusService
 import com.gemwallet.android.cases.nodes.DeleteNodeCase
 import com.gemwallet.android.cases.nodes.GetCurrentNodeCase
 import com.gemwallet.android.cases.nodes.GetNodesCase
@@ -44,7 +45,7 @@ class NetworksViewModel @Inject constructor(
     private val getCurrentNodeCase: GetCurrentNodeCase,
     private val setCurrentNodeCase: SetCurrentNodeCase,
     private val deleteNodeCase: DeleteNodeCase,
-    private val nodeStatusClient: NodeStatusService,
+    private val nodeStatusService: GemNodeStatusService,
     private val config: Config,
     private val chainService: GemChainService,
 ) : ViewModel() {
@@ -184,7 +185,7 @@ class NetworksViewModel @Inject constructor(
                 nodes.forEach { node ->
                     launch {
                         val nodeState = withContext(Dispatchers.IO) {
-                            nodeStatusClient.getNodeStatus(chain, node.url).toStatusState()
+                            runCatching { nodeStatusService.nodeStatus(chain.string, node.url).toNodeStatus(node.url) }.getOrNull().toStatusState()
                         }
                         updateNodesIfCurrent(chain, refreshNonce) { current ->
                             if (current.nodes.none { it.url == node.url }) {

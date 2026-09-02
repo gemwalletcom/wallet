@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNodeStatusServiceProtocol
 import Formatters
 import Foundation
 import protocol Gemstone.GemExplorerServiceProtocol
@@ -15,7 +16,7 @@ public final class ChainSettingsSceneViewModel {
     private let explorerService: any GemExplorerServiceProtocol
 
     let nodeService: GemNodeService
-    let gatewayService: GatewayService
+    let nodeStatusService: any GemNodeStatusServiceProtocol
     let chain: Chain
 
     var selectedExplorer: String?
@@ -31,12 +32,12 @@ public final class ChainSettingsSceneViewModel {
 
     public init(
         nodeService: GemNodeService,
-        gatewayService: GatewayService,
+        nodeStatusService: any GemNodeStatusServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
         chain: Chain,
     ) {
         self.nodeService = nodeService
-        self.gatewayService = gatewayService
+        self.nodeStatusService = nodeStatusService
         self.explorerService = explorerService
 
         self.chain = chain
@@ -186,7 +187,7 @@ extension ChainSettingsSceneViewModel {
             return .error(error: URLError(.badURL))
         }
         do {
-            let nodeStatus = try await gatewayService.nodeStatus(chain: chain, url: url.absoluteString)
+            let nodeStatus = try await nodeStatusService.nodeStatus(chain: chain.rawValue, url: url.absoluteString).map()
             return .result(nodeStatus)
         } catch {
             return .error(error: error)

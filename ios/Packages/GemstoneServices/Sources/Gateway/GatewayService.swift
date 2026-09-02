@@ -31,6 +31,10 @@ public actor GatewayService: Sendable {
         GatewayService(provider: provider, preferences: preferences, securePreferences: securePreferences)
     }
 
+    public nonisolated func nodeStatusService() -> GemNodeStatusService {
+        GemNodeStatusService(gateway: gateway)
+    }
+
     public nonisolated func stakeService(staticApi: GemStaticApiClient, store: any GemStakeStore, addressStore: any GemAddressStore) -> GemStakeService {
         GemStakeService(gateway: gateway, staticApi: staticApi, store: store, addressStore: addressStore)
     }
@@ -120,13 +124,6 @@ public extension GatewayService {
         try await gateway.getBlockNumber(chain: chain.rawValue).asBigInt
     }
 
-    func nodeStatus(chain: Primitives.Chain, url: String) async throws -> Primitives.NodeStatus {
-        try await gateway.getNodeStatus(chain: chain.rawValue, url: url).map()
-    }
-
-    func checkNode(chain: Primitives.Chain, url: String) async throws -> Primitives.NodeStatus {
-        try await gateway.checkNode(chain: chain.rawValue, url: url).map()
-    }
 }
 
 // MARK: - Token

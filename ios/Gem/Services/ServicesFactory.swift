@@ -405,6 +405,7 @@ struct ServicesFactory {
             connectionStatusObserver: connectionStatusObserver,
             deviceService: deviceService,
             nodeService: nodeService,
+            nodeStatusService: gatewayService.nodeStatusService(),
             serviceStatusService: serviceStatusService,
             navigationHandler: navigationHandler,
             navigationPresenter: navigationPresenter,

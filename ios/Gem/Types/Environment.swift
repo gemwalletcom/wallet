@@ -30,6 +30,7 @@ import protocol Gemstone.GemTransactionsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
 import class Gemstone.GemNodeService
+import protocol Gemstone.GemNodeStatusServiceProtocol
 import GemstoneServices
 import AppService
 import WalletConnectorService
@@ -54,6 +55,7 @@ import WalletConnector
 extension EnvironmentValues {
     @Entry var navigationState: NavigationStateManager = AppResolver.main.navigation
     @Entry var nodeService: GemNodeService = AppResolver.main.services.nodeService
+    @Entry var nodeStatusService: any GemNodeStatusServiceProtocol = AppResolver.main.services.nodeStatusService
     @Entry var serviceStatusService: any GemServiceStatusProtocol = AppResolver.main.services.serviceStatusService
     @Entry var priceService: any GemPriceServiceProtocol = AppResolver.main.services.priceService
     @Entry var chartService: any GemChartServiceProtocol = AppResolver.main.services.chartService

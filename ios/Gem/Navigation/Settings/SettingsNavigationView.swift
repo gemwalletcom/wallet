@@ -24,6 +24,7 @@ struct SettingsNavigationView: View {
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.transactionsService) private var transactionsService
     @Environment(\.explorerService) private var explorerService
+    @Environment(\.nodeStatusService) private var nodeStatusService
     @Environment(\.bannerService) private var bannerService
     @Environment(\.walletConnector) private var walletConnector
     @Environment(\.balanceService) private var balanceService
@@ -193,7 +194,7 @@ struct SettingsNavigationView: View {
             ChainSettingsScene(
                 model: ChainSettingsSceneViewModel(
                     nodeService: nodeService,
-                    gatewayService: gatewayService,
+                    nodeStatusService: nodeStatusService,
                     explorerService: explorerService,
                     chain: $0.chain,
                 ),

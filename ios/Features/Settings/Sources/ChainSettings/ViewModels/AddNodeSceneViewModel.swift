@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import protocol Gemstone.GemNodeStatusServiceProtocol
 import Components
 import GemstonePrimitives
 import GemstoneServices
@@ -15,7 +16,7 @@ import class Gemstone.GemNodeService
 @Observable
 final class AddNodeSceneViewModel {
     private let nodeService: GemNodeService
-    private let gatewayService: GatewayService
+    private let nodeStatusService: any GemNodeStatusServiceProtocol
 
     let chain: Chain
 
@@ -25,10 +26,10 @@ final class AddNodeSceneViewModel {
     var isPresentingAlertMessage: AlertMessage?
     var loadTrigger: AddNodeLoadTrigger?
 
-    init(chain: Chain, nodeService: GemNodeService, gatewayService: GatewayService) {
+    init(chain: Chain, nodeService: GemNodeService, nodeStatusService: any GemNodeStatusServiceProtocol) {
         self.chain = chain
         self.nodeService = nodeService
-        self.gatewayService = gatewayService
+        self.nodeStatusService = nodeStatusService
     }
 
     var title: String {
@@ -114,7 +115,7 @@ extension AddNodeSceneViewModel {
         state = .loading
 
         do {
-            let status = try await gatewayService.checkNode(chain: chain, url: url.absoluteString)
+            let status = try await nodeStatusService.checkNode(chain: chain.rawValue, url: url.absoluteString).map()
             state = .data(AddNodeResultViewModel(addNodeResult: AddNodeResult(
                 url: url,
                 chainID: status.chainId,
