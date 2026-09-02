@@ -86,7 +86,7 @@ impl<C: Client> ScanProvider for GoPlusProvider<C> {
         let url = build_path_with_query(&path, &query)?;
         let response = self.client.get_with_headers::<Response<Option<SecurityAddress>>>(&url, self.headers().await?).await?;
         if response.code != 1 && response.code != 2 {
-            return Err(response.message.into());
+            return Err(format!("GoPlus error code={}: {}", response.code, response.message).into());
         }
         let security = response.result;
         let is_partial = response.code == 2;
@@ -257,5 +257,24 @@ mod tests {
             .unwrap_err();
 
         assert_eq!(error.to_string(), "Wrong Signature");
+    }
+
+    #[tokio::test]
+    async fn test_scan_address_returns_api_code() {
+        let client = MockClient::new().with_get(|path| {
+            assert_eq!(path, "/api/v1/address_security/0xabc?chain_id=1");
+            Ok(br#"{"code":5000,"message":"system error","result":null}"#.to_vec())
+        });
+        let provider = GoPlusProvider::mock(client);
+
+        let error = provider
+            .scan_address(&AddressTarget {
+                address: "0xabc".to_string(),
+                chain: Chain::Ethereum,
+            })
+            .await
+            .unwrap_err();
+
+        assert_eq!(error.to_string(), "GoPlus error code=5000: system error");
     }
 }

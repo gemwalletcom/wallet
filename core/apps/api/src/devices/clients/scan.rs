@@ -102,7 +102,7 @@ impl ScanClient {
     }
 
     fn is_scan_complete<T>(enable: bool, scans: &[Option<T>]) -> bool {
-        enable && scans.iter().all(Option::is_some)
+        enable && !scans.is_empty() && scans.iter().all(Option::is_some)
     }
 
     fn token_asset_ids(payload: &ScanTransactionPayload) -> Vec<AssetId> {
@@ -172,9 +172,10 @@ mod tests {
     }
 
     #[test]
-    fn test_a_disabled_scanner_never_reports_a_complete_scan() {
+    fn test_scan_complete_requires_provider_results() {
         assert!(ScanClient::is_scan_complete(true, &[Some(()), Some(())]));
         assert!(!ScanClient::is_scan_complete(true, &[Some(()), None]));
+        assert!(!ScanClient::is_scan_complete::<()>(true, &[]));
         assert!(!ScanClient::is_scan_complete(false, &[Some(()), Some(())]));
         assert!(!ScanClient::is_scan_complete::<()>(false, &[]));
     }
