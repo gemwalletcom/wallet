@@ -47,14 +47,11 @@ extension AppResolver {
         let walletConnector: WalletConnectorService
         let connectionStatusObserver: ConnectionStatusObserver
         let deviceService: any GemDeviceServiceProtocol
-        let serviceStatusService: any GemServiceStatusProtocol
         let navigationHandler: NavigationHandler
         let navigationPresenter: NavigationPresenter
-        let priceAlertService: any GemPriceAlertServiceProtocol
         let streamObserverService: StreamObserverService
         let streamSubscriptionService: GemStreamSubscriptionService
         let priceService: any GemPriceServiceProtocol
-        let stakeService: any GemStakeServiceProtocol
         let transactionStateService: any GemTransactionStateServiceProtocol
         let walletPreferencesService: any GemWalletPreferencesServiceProtocol
         let preferencesService: any GemPreferencesServiceProtocol
@@ -62,9 +59,7 @@ extension AppResolver {
         let observablePreferences: ObservablePreferences
         let walletSessionService: any GemWalletSessionServiceProtocol
         let assetsService: any GemAssetsServiceProtocol
-        let explorerService: any GemExplorerServiceProtocol
         let nftService: any GemNftServiceProtocol
-        let avatarService: any GemAvatarServiceProtocol
         let swapService: any GemSwapServiceProtocol
         let appUpdateService: any GemAppUpdateServiceProtocol
         let rateService: RateService
@@ -72,15 +67,12 @@ extension AppResolver {
         let appStartService: any GemAppStartServiceProtocol
         let pushNotificationEnablerService: PushNotificationEnablerService
         let walletConnectorPresenter: WalletConnectorPresenter
-        let chainService: GemChainService
         let perpetualService: any GemPerpetualServiceProtocol
         let hyperliquidObserverService: any PerpetualObservable
         let recentAssetsService: any GemRecentActivityServiceProtocol
         let toastPresenter: ToastPresenter
         let viewModelFactory: ViewModelFactory
-        let searchService: any GemSearchServiceProtocol
         let appLifecycleService: AppLifecycleService
-        let inAppNotificationService: any GemNotificationServiceProtocol
         let supportService: any GemSupportServiceProtocol
     }
 }

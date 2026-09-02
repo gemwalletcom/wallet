@@ -19,7 +19,6 @@ struct MainTabView: View {
     @Environment(\.priceService) private var priceService
     @Environment(\.preferencesService) private var preferencesService
     @Environment(\.assetsService) private var assetsService
-    @Environment(\.priceAlertService) private var priceAlertService
     @Environment(\.viewModelFactory) private var viewModelFactory
 
     let wallet: Wallet
@@ -101,13 +100,7 @@ struct MainTabView: View {
         }
         .sheet(item: presenter.isPresentingPriceAlert) { input in
             SetPriceAlertNavigationStack(
-                model: SetPriceAlertViewModel(
-                    walletId: wallet.id,
-                    asset: input.asset,
-                    priceAlertService: priceAlertService,
-                    price: input.price,
-                    onComplete: onSetPriceAlertComplete,
-                ),
+                model: viewModelFactory.setPriceAlertScene(walletId: wallet.id, asset: input.asset, price: input.price, onComplete: onSetPriceAlertComplete),
             )
         }
         .toast(message: $model.isPresentingToastMessage)

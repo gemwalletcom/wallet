@@ -12,7 +12,6 @@ import Transfer
 
 struct AmountNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.stakeService) private var stakeService
     @State private var model: AmountSceneViewModel
 
     init(model: AmountSceneViewModel) {
@@ -66,8 +65,7 @@ struct AmountNavigationView: View {
                    case let .validator(validatorSelection) = stake.selection
                 {
                     ValidatorSelectScene(
-                        model: ValidatorSelectSceneViewModel(
-                            stakeService: stakeService,
+                        model: viewModelFactory.validatorSelectScene(
                             type: stake.validatorSelectType,
                             chain: model.asset.chain,
                             currentValidator: validator,

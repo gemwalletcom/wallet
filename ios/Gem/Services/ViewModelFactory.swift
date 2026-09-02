@@ -26,7 +26,11 @@ import class Gemstone.GemFiatService
 import class Gemstone.GemNameService
 import protocol Gemstone.GemNotificationPermissions
 import class Gemstone.GemNotificationsService
+import class Gemstone.GemChainService
 import class Gemstone.GemNftService
+import class Gemstone.GemNotificationService
+import class Gemstone.GemServiceStatus
+import class Gemstone.GemAppUpdateService
 import class Gemstone.GemNodeService
 import class Gemstone.GemWalletService
 import class Gemstone.GemCollectibleService
@@ -55,6 +59,8 @@ import class Gemstone.GemWalletHomeService
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
 import Assets
+import InAppNotifications
+import PriceAlerts
 import Contacts
 import FiatConnect
 import Foundation
@@ -123,6 +129,9 @@ public struct ViewModelFactory: Sendable {
     let transferService: GemTransferService
     let walletService: GemWalletService
     let walletSessionService: GemWalletSessionService
+    let serviceStatusService: GemServiceStatus
+    let appUpdateService: GemAppUpdateService
+    let inAppNotificationService: GemNotificationService
 
     let biometryService: any BiometryAuthenticatable
     let keystore: any Keystore
@@ -177,7 +186,7 @@ public struct ViewModelFactory: Sendable {
         WalletSceneViewModel(
             service: walletHomeService(),
             observablePreferences: observablePreferences,
-            collectionsModel: CollectionsViewModel(nftService: nftService, wallet: wallet),
+            collectionsModel: CollectionsViewModel(service: nftService, wallet: wallet),
             wallet: wallet,
             isPresentingSelectedAssetInput: isPresentingSelectedAssetInput,
             isPresentingWallets: isPresentingWallets,
@@ -187,6 +196,74 @@ public struct ViewModelFactory: Sendable {
     @MainActor
     public func notificationsScene() -> NotificationsViewModel {
         NotificationsViewModel(service: GemNotificationsService(device: deviceService, preferences: preferencesService, permissions: notificationPermissions))
+    }
+
+    @MainActor
+    public func settingsScene(walletId: WalletId) -> SettingsViewModel {
+        SettingsViewModel(walletId: walletId, service: walletSessionService, observablePreferences: observablePreferences)
+    }
+
+    @MainActor
+    public func preferencesScene(currencyModel: CurrencySceneViewModel) -> PreferencesViewModel {
+        PreferencesViewModel(currencyModel: currencyModel, service: preferencesService, preferences: observablePreferences)
+    }
+
+    @MainActor
+    public func aboutUsScene() -> AboutUsViewModel {
+        AboutUsViewModel(preferences: observablePreferences, service: appUpdateService)
+    }
+
+    @MainActor
+    public func chainListSettingsScene() -> ChainListSettingsViewModel {
+        ChainListSettingsViewModel(service: GemChainService())
+    }
+
+    @MainActor
+    public func serviceStatusScene() -> ServiceStatusViewModel {
+        ServiceStatusViewModel(service: serviceStatusService)
+    }
+
+    @MainActor
+    public func priceAlertsScene() -> PriceAlertsSceneViewModel {
+        PriceAlertsSceneViewModel(service: priceAlertService)
+    }
+
+    @MainActor
+    public func assetPriceAlertsScene(walletId: WalletId, asset: Asset) -> AssetPriceAlertsViewModel {
+        AssetPriceAlertsViewModel(service: priceAlertService, walletId: walletId, asset: asset)
+    }
+
+    @MainActor
+    public func setPriceAlertScene(walletId: WalletId, asset: Asset, price: Double? = nil, onComplete: StringAction) -> SetPriceAlertViewModel {
+        SetPriceAlertViewModel(walletId: walletId, asset: asset, service: priceAlertService, price: price, onComplete: onComplete)
+    }
+
+    @MainActor
+    public func inAppNotificationsScene() -> InAppNotificationsViewModel? {
+        walletSessionService.currentWallet.map { InAppNotificationsViewModel(wallet: $0, service: inAppNotificationService) }
+    }
+
+    @MainActor
+    public func collectionsScene(wallet: Wallet) -> CollectionsViewModel {
+        CollectionsViewModel(service: nftService, wallet: wallet)
+    }
+
+    @MainActor
+    public func validatorSelectScene(
+        type: ValidatorSelectType,
+        chain: Chain,
+        currentValidator: DelegationValidator?,
+        validators: [DelegationValidator],
+        selectValidator: @escaping (DelegationValidator) -> Void,
+    ) -> ValidatorSelectSceneViewModel {
+        ValidatorSelectSceneViewModel(
+            service: stakeService,
+            type: type,
+            chain: chain,
+            currentValidator: currentValidator,
+            validators: validators,
+            selectValidator: selectValidator,
+        )
     }
 
     @MainActor

@@ -11,7 +11,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class PriceAlertsSceneViewModel: Sendable {
-    private let priceAlertService: any GemPriceAlertServiceProtocol
+    private let service: any GemPriceAlertServiceProtocol
 
     public let query: ObservableQuery<PriceAlertsRequest>
     var priceAlerts: [PriceAlertData] {
@@ -21,10 +21,10 @@ public final class PriceAlertsSceneViewModel: Sendable {
     var isPriceAlertsEnabled: Bool
 
     public init(
-        priceAlertService: any GemPriceAlertServiceProtocol,
+        service: any GemPriceAlertServiceProtocol,
     ) {
-        self.priceAlertService = priceAlertService
-        isPriceAlertsEnabled = priceAlertService.isEnabled()
+        self.service = service
+        isPriceAlertsEnabled = service.isEnabled()
         query = ObservableQuery(PriceAlertsRequest(), initialValue: [])
     }
 
@@ -33,7 +33,7 @@ public final class PriceAlertsSceneViewModel: Sendable {
     }
 
     var currencyCode: String {
-        priceAlertService.currency()
+        service.currency()
     }
 
     var enableTitle: String {
@@ -66,7 +66,7 @@ public final class PriceAlertsSceneViewModel: Sendable {
 extension PriceAlertsSceneViewModel {
     public func load() async {
         do {
-            try await priceAlertService.sync(assetId: nil)
+            try await service.sync(assetId: nil)
         } catch {
             debugLog("getPriceAlerts error: \(error)")
         }
@@ -74,7 +74,7 @@ extension PriceAlertsSceneViewModel {
 
     func deletePriceAlert(priceAlert: PriceAlert) async {
         do {
-            try await priceAlertService.delete(priceAlerts: [priceAlert])
+            try await service.delete(priceAlerts: [priceAlert])
         } catch {
             debugLog("deletePriceAlert error: \(error)")
         }
@@ -82,9 +82,9 @@ extension PriceAlertsSceneViewModel {
 
     func handleAlertsEnabled(enabled: Bool) async {
         do {
-            try await priceAlertService.setEnabled(enabled: enabled)
+            try await service.setEnabled(enabled: enabled)
         } catch {
-            isPriceAlertsEnabled = priceAlertService.isEnabled()
+            isPriceAlertsEnabled = service.isEnabled()
             debugLog("setPriceAlertsEnabled error: \(error)")
         }
     }

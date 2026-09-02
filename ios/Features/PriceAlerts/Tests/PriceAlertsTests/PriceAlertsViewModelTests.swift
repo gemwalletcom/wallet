@@ -12,7 +12,7 @@ import Testing
 struct PriceAlertsViewModelTests {
     @Test @MainActor
     func testSections() {
-        let model = PriceAlertsSceneViewModel(priceAlertService: GemPriceAlertServiceMock())
+        let model = PriceAlertsSceneViewModel(service: GemPriceAlertServiceMock())
 
         let autoAlert = PriceAlertData.mock()
         let manualAlert = PriceAlertData.mock(priceAlert: .mock(price: 5, priceDirection: .down))

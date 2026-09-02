@@ -10,10 +10,10 @@ import PrimitivesComponents
 @Observable
 @MainActor
 public final class ChainListSettingsViewModel {
-    private let chainService: any GemChainServiceProtocol
+    private let service: any GemChainServiceProtocol
 
-    public init(chainService: any GemChainServiceProtocol) {
-        self.chainService = chainService
+    public init(service: any GemChainServiceProtocol) {
+        self.service = service
     }
 
     var emptyContent: EmptyContentTypeViewModel {
@@ -21,6 +21,6 @@ public final class ChainListSettingsViewModel {
     }
 
     func filterChains(for query: String) -> [Chain] {
-        chainService.getChains(query: query).map { Chain(core: $0) }
+        service.getChains(query: query).map { Chain(core: $0) }
     }
 }

@@ -17,7 +17,7 @@ public extension WalletSceneViewModel {
         WalletSceneViewModel(
             service: GemWalletHomeServiceMock(),
             observablePreferences: .mock(),
-            collectionsModel: CollectionsViewModel(nftService: GemNftService.mock(), wallet: wallet),
+            collectionsModel: CollectionsViewModel(service: GemNftService.mock(), wallet: wallet),
             wallet: wallet,
             isPresentingSelectedAssetInput: .constant(.none),
             isPresentingWallets: .constant(false),

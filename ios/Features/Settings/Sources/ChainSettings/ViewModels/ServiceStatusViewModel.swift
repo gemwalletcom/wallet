@@ -10,13 +10,13 @@ import Primitives
 @Observable
 @MainActor
 public final class ServiceStatusViewModel {
-    private let serviceStatusService: any GemServiceStatusProtocol
+    private let service: any GemServiceStatusProtocol
     private let endpoints: [GemServiceEndpoint]
     private var statusStates: [ServiceStatusState]
 
-    public init(serviceStatusService: any GemServiceStatusProtocol) {
-        self.serviceStatusService = serviceStatusService
-        endpoints = serviceStatusService.getEndpoints()
+    public init(service: any GemServiceStatusProtocol) {
+        self.service = service
+        endpoints = service.getEndpoints()
         statusStates = Array(repeating: .loading, count: endpoints.count)
     }
 
@@ -37,7 +37,7 @@ extension ServiceStatusViewModel {
     func load() async {
         statusStates = Array(repeating: .loading, count: endpoints.count)
 
-        let service = serviceStatusService
+        let service = service
         await withTaskGroup(of: (Int, ServiceStatusState).self) { group in
             for (index, endpoint) in endpoints.enumerated() {
                 group.addTask {

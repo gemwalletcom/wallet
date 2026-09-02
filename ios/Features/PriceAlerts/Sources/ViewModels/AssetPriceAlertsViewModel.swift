@@ -13,7 +13,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class AssetPriceAlertsViewModel: Sendable {
-    let priceAlertService: any GemPriceAlertServiceProtocol
+    private let service: any GemPriceAlertServiceProtocol
     let walletId: WalletId
     let asset: Asset
 
@@ -27,11 +27,11 @@ public final class AssetPriceAlertsViewModel: Sendable {
     var isPresentingToastMessage: ToastMessage?
 
     public init(
-        priceAlertService: any GemPriceAlertServiceProtocol,
+        service: any GemPriceAlertServiceProtocol,
         walletId: WalletId,
         asset: Asset,
     ) {
-        self.priceAlertService = priceAlertService
+        self.service = service
         self.walletId = walletId
         self.asset = asset
         query = ObservableQuery(PriceAlertsRequest(assetId: asset.id), initialValue: [])
@@ -49,7 +49,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
                 price: priceQuery.value?.price,
                 priceAlert: .default(for: asset.id, currency: .default),
             ),
-            currency: priceAlertService.currency(),
+            currency: service.currency(),
         )
     }
 
@@ -66,7 +66,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
         priceAlerts
             .filter { $0.priceAlert.type != .auto }
             .displayedAlerts
-            .map { PriceAlertItemViewModel(data: $0, currency: priceAlertService.currency()) }
+            .map { PriceAlertItemViewModel(data: $0, currency: service.currency()) }
     }
 }
 
@@ -75,7 +75,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
 extension AssetPriceAlertsViewModel {
     func load() async {
         do {
-            try await priceAlertService.sync(assetId: asset.id.identifier)
+            try await service.sync(assetId: asset.id.identifier)
         } catch {
             debugLog("load error: \(error)")
         }
@@ -83,7 +83,7 @@ extension AssetPriceAlertsViewModel {
 
     func toggleAutoAlert(enabled: Bool) async {
         do {
-            try await priceAlertService.setAutoAlert(assetId: asset.id.identifier, enabled: enabled)
+            try await service.setAutoAlert(assetId: asset.id.identifier, enabled: enabled)
         } catch {
             debugLog("toggleAutoAlert error: \(error)")
         }
@@ -91,7 +91,7 @@ extension AssetPriceAlertsViewModel {
 
     func deletePriceAlert(priceAlert: PriceAlert) async {
         do {
-            try await priceAlertService.delete(priceAlerts: [priceAlert])
+            try await service.delete(priceAlerts: [priceAlert])
         } catch {
             debugLog("deletePriceAlert error: \(error)")
         }
@@ -104,5 +104,9 @@ extension AssetPriceAlertsViewModel {
     func onSetPriceAlertComplete(message: String) {
         isPresentingSetPriceAlert = false
         isPresentingToastMessage = .priceAlert(message: message)
+    }
+
+    func setPriceAlertModel() -> SetPriceAlertViewModel {
+        SetPriceAlertViewModel(walletId: walletId, asset: asset, service: service) { [weak self] in self?.onSetPriceAlertComplete(message: $0) }
     }
 }

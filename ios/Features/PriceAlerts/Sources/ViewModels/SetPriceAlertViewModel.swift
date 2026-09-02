@@ -16,7 +16,7 @@ import Style
 @Observable
 public final class SetPriceAlertViewModel {
     private let asset: Primitives.Asset
-    private let priceAlertService: any GemPriceAlertServiceProtocol
+    private let service: any GemPriceAlertServiceProtocol
     private let onComplete: StringAction
     private let currencyFormatter: CurrencyFormatter
     private let numericFormatter = NumericFormatter()
@@ -33,13 +33,13 @@ public final class SetPriceAlertViewModel {
     public init(
         walletId: Primitives.WalletId,
         asset: Primitives.Asset,
-        priceAlertService: any GemPriceAlertServiceProtocol,
+        service: any GemPriceAlertServiceProtocol,
         price: Double? = nil,
         onComplete: StringAction,
     ) {
         self.asset = asset
-        self.priceAlertService = priceAlertService
-        currencyFormatter = CurrencyFormatter(currencyCode: priceAlertService.currency())
+        self.service = service
+        currencyFormatter = CurrencyFormatter(currencyCode: service.currency())
         self.onComplete = onComplete
         state = SetPriceAlertViewModelState(price: price)
         assetQuery = ObservableQuery(AssetRequest(walletId: walletId, assetId: asset.id), initialValue: .with(asset: asset))
@@ -149,7 +149,7 @@ public final class SetPriceAlertViewModel {
         }
         return Primitives.PriceAlert(
             assetId: asset.id,
-            currency: Currency(core: priceAlertService.currency()),
+            currency: Currency(core: service.currency()),
             price: price,
             pricePercentChange: pricePercentChange,
             priceDirection: alertDirection,
@@ -172,7 +172,7 @@ extension SetPriceAlertViewModel {
         let priceAlert = priceAlert()
         onComplete?(completeMessage)
         do {
-            try await priceAlertService.enable(priceAlert: priceAlert)
+            try await service.enable(priceAlert: priceAlert)
         } catch {
             debugLog("Set price alert error: \(error.localizedDescription)")
         }

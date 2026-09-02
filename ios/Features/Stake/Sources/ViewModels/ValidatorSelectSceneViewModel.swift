@@ -15,17 +15,17 @@ public final class ValidatorSelectSceneViewModel {
     public let currentValidator: DelegationValidator?
     private let validators: [DelegationValidator]
     public var selectValidator: ((DelegationValidator) -> Void)?
-    private let stakeService: any GemStakeServiceProtocol
+    private let service: any GemStakeServiceProtocol
 
     public init(
-        stakeService: any GemStakeServiceProtocol,
+        service: any GemStakeServiceProtocol,
         type: ValidatorSelectType,
         chain: Chain,
         currentValidator: DelegationValidator?,
         validators: [DelegationValidator],
         selectValidator: ((DelegationValidator) -> Void)? = nil,
     ) {
-        self.stakeService = stakeService
+        self.service = service
         self.type = type
         self.chain = chain
         self.currentValidator = currentValidator
@@ -40,7 +40,7 @@ public final class ValidatorSelectSceneViewModel {
     public var list: [ListItemValueSection<DelegationValidator>] {
         switch type {
         case .stake:
-            let recommended = Set(stakeService.recommendedValidatorIds(chain: chain.rawValue))
+            let recommended = Set(service.recommendedValidatorIds(chain: chain.rawValue))
             return [
                 listSection(
                     title: Localized.Common.recommended,
@@ -62,7 +62,7 @@ public final class ValidatorSelectSceneViewModel {
     }
 
     public func explorerLink(for validator: DelegationValidator) -> BlockExplorerLink? {
-        stakeService.validatorUrl(validator: validator.json()).map { BlockExplorerLink($0) }
+        service.validatorUrl(validator: validator.json()).map { BlockExplorerLink($0) }
     }
 
     public func explorerContext(for validator: DelegationValidator) -> ExplorerContextData? {

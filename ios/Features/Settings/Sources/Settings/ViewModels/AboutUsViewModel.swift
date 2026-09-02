@@ -16,14 +16,14 @@ import SwiftUI
 @MainActor
 public final class AboutUsViewModel: Sendable {
     private let preferences: ObservablePreferences
-    private let appUpdateService: any GemAppUpdateServiceProtocol
+    private let service: any GemAppUpdateServiceProtocol
 
     public init(
         preferences: ObservablePreferences,
-        appUpdateService: any GemAppUpdateServiceProtocol,
+        service: any GemAppUpdateServiceProtocol,
     ) {
         self.preferences = preferences
-        self.appUpdateService = appUpdateService
+        self.service = service
     }
 
     var title: String {
@@ -121,7 +121,7 @@ extension AboutUsViewModel {
     }
 
     func load() async {
-        release = await appUpdateService.newestRelease()
+        release = await service.newestRelease()
     }
 
     func onUpdate() {

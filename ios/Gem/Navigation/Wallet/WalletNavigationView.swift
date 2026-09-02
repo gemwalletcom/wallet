@@ -25,11 +25,9 @@ struct WalletNavigationView: View {
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
     @Environment(\.priceService) private var priceService
-    @Environment(\.priceAlertService) private var priceAlertService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.bannerService) private var bannerService
     @Environment(\.swapService) private var swapService
-    @Environment(\.stakeService) private var stakeService
     @Environment(\.streamSubscriptionService) private var streamSubscriptionService
     @Environment(\.perpetualService) private var perpetualService
     @Environment(\.hyperliquidObserverService) private var hyperliquidObserverService
@@ -119,10 +117,7 @@ struct WalletNavigationView: View {
         }
         .navigationDestination(for: Scenes.Collections.self) { _ in
             CollectionsSceneNavigationView(
-                model: CollectionsViewModel(
-                    nftService: nftService,
-                    wallet: model.wallet,
-                ),
+                model: viewModelFactory.collectionsScene(wallet: model.wallet),
             )
         }
         .navigationDestination(for: Scenes.Collection.self) { scene in
@@ -187,11 +182,7 @@ struct WalletNavigationView: View {
         }
         .navigationDestination(for: Scenes.AssetPriceAlert.self) {
             AssetPriceAlertsScene(
-                model: AssetPriceAlertsViewModel(
-                    priceAlertService: priceAlertService,
-                    walletId: model.wallet.id,
-                    asset: $0.asset,
-                ),
+                model: viewModelFactory.assetPriceAlertsScene(walletId: model.wallet.id, asset: $0.asset),
             )
         }
         .scanReceiveSheet(isPresented: $model.isPresentingScanner, action: onScan)
@@ -222,11 +213,7 @@ struct WalletNavigationView: View {
                     )
                 case let .setPriceAlert(asset):
                     SetPriceAlertNavigationStack(
-                        model: SetPriceAlertViewModel(
-                            walletId: model.wallet.id,
-                            asset: asset,
-                            priceAlertService: priceAlertService,
-                        ) { model.onSetPriceAlertComplete(message: $0) },
+                        model: viewModelFactory.setPriceAlertScene(walletId: model.wallet.id, asset: asset) { model.onSetPriceAlertComplete(message: $0) },
                     )
                 case .addAsset:
                     AddAssetNavigationStack(wallet: model.wallet)

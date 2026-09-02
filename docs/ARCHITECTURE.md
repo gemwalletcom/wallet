@@ -717,7 +717,10 @@ takes the raw event and returns the reply and what (if anything) to tell the use
 used to compose (`handle_request`, the connection lookup) stopped being exported.
 
 **A launch-time entry is not the place for a screen's dependency.** `GemRewardsService`,
-`GemReceiveService`, `GemNodeStatusService` and `GemPerpetualDetailsService`'s inputs were
-`@Entry` values on iOS only so a navigation view could assemble a view model. Every one is now
-built in `ViewModelFactory.xxxScene(...)`; the environment keeps only what the app needs at
-launch.
+`GemReceiveService`, `GemNodeStatusService`, `GemPerpetualDetailsService`, `GemPriceAlertService`,
+`GemServiceStatus`, `GemAppUpdateService`, `GemNotificationService`, `GemNftService`,
+`GemStakeService` and `GemChainService` were `@Entry` values on iOS only so a navigation view
+could assemble a view model. Every scene is now built in `ViewModelFactory.xxxScene(...)`; the
+environment (and `AppResolver.Services`) keeps only what the app needs at launch, and a scene
+that needs the current wallet gets it from the factory (`inAppNotificationsScene()`), not from a
+session read in the view.

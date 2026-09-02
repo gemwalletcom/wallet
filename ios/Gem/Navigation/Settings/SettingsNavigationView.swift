@@ -21,17 +21,10 @@ struct SettingsNavigationView: View {
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.walletConnector) private var walletConnector
     @Environment(\.balanceService) private var balanceService
-    @Environment(\.walletSessionService) private var walletSessionService
-    @Environment(\.priceAlertService) private var priceAlertService
-    @Environment(\.preferencesService) private var preferencesService
     @Environment(\.deviceKeyService) private var deviceKeyService
-    @Environment(\.chainService) private var chainService
-    @Environment(\.serviceStatusService) private var serviceStatusService
     @Environment(\.observablePreferences) private var observablePreferences
-    @Environment(\.appUpdateService) private var appUpdateService
     @Environment(\.perpetualService) private var perpetualService
     @Environment(\.walletConnectorPresenter) private var walletConnectorPresenter
-    @Environment(\.inAppNotificationService) private var inAppNotificationService
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.supportService) private var supportService
     @Environment(\.walletPreferencesService) private var walletPreferencesService
@@ -57,11 +50,7 @@ struct SettingsNavigationView: View {
 
     var body: some View {
         SettingsScene(
-            model: SettingsViewModel(
-                walletId: walletId,
-                walletSessionService: walletSessionService,
-                observablePreferences: observablePreferences,
-            ),
+            model: viewModelFactory.settingsScene(walletId: walletId),
             isPresentingWallets: presenter.isPresentingWallets,
             isPresentingSupport: $isPresentingSupport,
         )
@@ -76,16 +65,12 @@ struct SettingsNavigationView: View {
         }
         .navigationDestination(for: Scenes.PriceAlerts.self) { _ in
             PriceAlertsNavigationView(
-                model: PriceAlertsSceneViewModel(priceAlertService: priceAlertService),
+                model: viewModelFactory.priceAlertsScene(),
             )
         }
         .navigationDestination(for: Scenes.AssetPriceAlert.self) {
             AssetPriceAlertsScene(
-                model: AssetPriceAlertsViewModel(
-                    priceAlertService: priceAlertService,
-                    walletId: walletId,
-                    asset: $0.asset,
-                ),
+                model: viewModelFactory.assetPriceAlertsScene(walletId: walletId, asset: $0.asset),
             )
         }
         .navigationDestination(for: Scenes.Price.self) { scene in
@@ -98,17 +83,14 @@ struct SettingsNavigationView: View {
             )
         }
         .navigationDestination(for: Scenes.Chains.self) { _ in
-            ChainListSettingsScene(model: ChainListSettingsViewModel(chainService: chainService))
+            ChainListSettingsScene(model: viewModelFactory.chainListSettingsScene())
         }
         .navigationDestination(for: Scenes.ServiceStatus.self) { _ in
-            ServiceStatusScene(model: ServiceStatusViewModel(serviceStatusService: serviceStatusService))
+            ServiceStatusScene(model: viewModelFactory.serviceStatusScene())
         }
         .navigationDestination(for: Scenes.AboutUs.self) { _ in
             AboutUsScene(
-                model: AboutUsViewModel(
-                    preferences: observablePreferences,
-                    appUpdateService: appUpdateService,
-                ),
+                model: viewModelFactory.aboutUsScene(),
             )
         }
         .navigationDestination(for: Scenes.WalletConnect.self) { _ in
@@ -128,20 +110,15 @@ struct SettingsNavigationView: View {
             }
         }
         .navigationDestination(for: Scenes.InAppNotifications.self) { _ in
-            if let wallet = walletSessionService.currentWallet {
-                InAppNotificationsScene(
-                    model: InAppNotificationsViewModel(
-                        wallet: wallet,
-                        notificationService: inAppNotificationService,
-                    ),
-                )
+            if let model = viewModelFactory.inAppNotificationsScene() {
+                InAppNotificationsScene(model: model)
             }
         }
         .navigationDestination(for: Scenes.Currency.self) { _ in
             CurrencyScene(model: currencyModel)
         }
         .navigationDestination(for: Scenes.Preferences.self) { _ in
-            PreferencesScene(model: PreferencesViewModel(currencyModel: currencyModel, preferencesService: preferencesService, preferences: observablePreferences))
+            PreferencesScene(model: viewModelFactory.preferencesScene(currencyModel: currencyModel))
         }
         .navigationDestination(for: Scenes.Appearance.self) { _ in
             AppearanceScene(model: AppearanceViewModel(preferences: observablePreferences))

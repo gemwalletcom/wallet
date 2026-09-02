@@ -51,13 +51,7 @@ public struct AssetPriceAlertsScene: View {
             }
         }
         .sheet(isPresented: $model.isPresentingSetPriceAlert) {
-            SetPriceAlertNavigationStack(
-                model: SetPriceAlertViewModel(
-                    walletId: model.walletId,
-                    asset: model.asset,
-                    priceAlertService: model.priceAlertService,
-                ) { model.onSetPriceAlertComplete(message: $0) },
-            )
+            SetPriceAlertNavigationStack(model: model.setPriceAlertModel())
         }
         .toast(message: $model.isPresentingToastMessage)
     }
