@@ -15,6 +15,8 @@ import com.wallet.core.primitives.swap.SwapQuoteData
 import com.wallet.core.primitives.swap.SwapQuote
 import com.wallet.core.primitives.swap.SwapData
 import com.wallet.core.primitives.swap.SwapQuoteDataType
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemSwapTransfer
 import java.math.BigInteger
 
 fun mockSwapQuote(
@@ -80,3 +82,26 @@ fun mockSwapParams(
         minimumValue = minFromAmount?.toString(),
     ).confirmInput(from)
 }
+
+fun mockGemSwapTransfer(
+    from: Account = mockAccount(),
+    fromAmount: BigInteger = BigInteger.ZERO,
+    toAmount: BigInteger = BigInteger.ONE,
+    toAddress: String = from.address,
+    useMaxAmount: Boolean = false,
+    memo: String? = null,
+) = GemSwapTransfer(
+    quote = mockSwapQuote(from = from, fromAmount = fromAmount, toAmount = toAmount, toAddress = toAddress, useMaxAmount = useMaxAmount).toJson(),
+    data = SwapQuoteData(
+        to = toAddress,
+        dataType = SwapQuoteDataType.Contract,
+        value = "0",
+        data = "",
+        memo = memo,
+        approval = null,
+        gasLimit = null,
+    ).toJson(),
+    recipient = from.address,
+    value = fromAmount.toString(),
+    useMaxAmount = useMaxAmount,
+)

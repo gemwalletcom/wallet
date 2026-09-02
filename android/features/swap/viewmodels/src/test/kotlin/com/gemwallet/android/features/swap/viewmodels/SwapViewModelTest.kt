@@ -4,9 +4,7 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.assets.cases.EnableAsset
-import com.gemwallet.android.application.swap.cases.BuildSwapConfirmInput
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
-import com.gemwallet.android.application.swap.cases.SwapNoQuoteException
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
@@ -21,7 +19,7 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
 import uniffi.gemstone.GemConfirmInput
-import com.gemwallet.android.testkit.mockSwapParams
+import com.gemwallet.android.testkit.mockGemSwapTransfer
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetInfo
@@ -35,7 +33,6 @@ import com.gemwallet.android.ui.models.swap.SwapPriceImpactUIModel
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModel
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.swap.SwapPriceImpactType
-import com.wallet.core.primitives.swap.SwapQuoteDataType
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import uniffi.gemstone.GemSwapPairSuggestion
@@ -107,7 +104,6 @@ class SwapViewModelTest {
         every { this@mockk(usdcAsset.id) } returns flowOf(usdcInfo)
     }
     private val enableAsset = mockk<EnableAsset>(relaxed = true)
-    private val buildSwapConfirmInput = mockk<BuildSwapConfirmInput>(relaxed = true)
     private val requestSwapQuotes = mockk<RequestSwapQuotes>(relaxed = true)
     private val swapQuoteService = mockk<GemSwapQuoteServiceInterface>(relaxed = true) {
         every { slippageBps() } returns null
@@ -120,7 +116,8 @@ class SwapViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         mockkObject(SwapDetailsUIModelFactory)
-        clearMocks(getSession, getAssetInfo, buildSwapConfirmInput, requestSwapQuotes)
+        clearMocks(getSession, getAssetInfo, requestSwapQuotes)
+        clearMocks(swapQuoteService, answers = false)
         every { getSession() } returns MutableStateFlow(null)
         every { getAssetInfo(solAsset.id) } returns flowOf(solInfo)
         every { getAssetInfo(usdcAsset.id) } returns flowOf(usdcInfo)
@@ -140,7 +137,6 @@ class SwapViewModelTest {
         getSession = getSession,
         getAssetInfo = getAssetInfo,
         enableAsset = enableAsset,
-        buildSwapConfirmInput = buildSwapConfirmInput,
         requestSwapQuotes = requestSwapQuotes,
         swapQuoteService = swapQuoteService,
         savedStateHandle = savedStateHandle,
@@ -336,7 +332,7 @@ class SwapViewModelTest {
         every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
-        coEvery { buildSwapConfirmInput(any(), any(), any()) } throws SwapNoQuoteException()
+        coEvery { swapQuoteService.getTransfer(any(), any()) } throws SwapperException.NoQuoteAvailable()
 
         val viewModel = createViewModel(
             swapSavedState()
@@ -362,7 +358,7 @@ class SwapViewModelTest {
         every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
-        coEvery { buildSwapConfirmInput(any(), any(), any()) } throws SwapperException.InvalidRoute()
+        coEvery { swapQuoteService.getTransfer(any(), any()) } throws SwapperException.InvalidRoute()
 
         val viewModel = createViewModel(swapSavedState())
         advanceUntilIdle()
@@ -377,9 +373,7 @@ class SwapViewModelTest {
         assertEquals(ButtonState.Enabled, state.buttonState)
         assertEquals("2500000", viewModel.quote.value?.quote?.toValue)
 
-        clearMocks(buildSwapConfirmInput, answers = false)
-        val confirmInput = mockk<GemConfirmInput>(relaxed = true)
-        coEvery { buildSwapConfirmInput(any(), any(), any()) } returns confirmInput
+        coEvery { swapQuoteService.getTransfer(any(), any()) } returns mockGemSwapTransfer(from = solInfo.owner!!, toAddress = "0xconfirm")
 
         var confirmed: GemConfirmInput? = null
         viewModel.onPrimaryAction(
@@ -389,7 +383,7 @@ class SwapViewModelTest {
         )
         awaitCondition { confirmed != null }
 
-        assertEquals(confirmInput, confirmed)
+        assertEquals(solInfo.owner!!.address, confirmed?.transfer?.recipient?.address)
     }
 
     @Test
@@ -401,7 +395,7 @@ class SwapViewModelTest {
         every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
-        coEvery { buildSwapConfirmInput(any(), any(), any()) } throws SwapNoQuoteException()
+        coEvery { swapQuoteService.getTransfer(any(), any()) } throws SwapperException.NoQuoteAvailable()
 
         val viewModel = createViewModel(
             swapSavedState()
@@ -715,20 +709,15 @@ class SwapViewModelTest {
     }
 
     private fun stubBuildConfirmInput(beforeReturn: suspend () -> Unit = {}) {
-        coEvery { buildSwapConfirmInput(any(), any(), any()) } coAnswers {
+        coEvery { swapQuoteService.getTransfer(any(), any()) } coAnswers {
             beforeReturn()
-            val quote = firstArg<SwapperQuote>()
-            val pay = secondArg<AssetInfo>()
-            val receive = thirdArg<AssetInfo>()
-            mockSwapParams(
-                from = pay.owner!!,
-                fromAsset = pay.asset,
+            val quote = secondArg<SwapperQuote>()
+            mockGemSwapTransfer(
+                from = solInfo.owner!!,
                 fromAmount = BigInteger(quote.fromValue),
-                toAsset = receive.asset,
                 toAmount = BigInteger(quote.toValue),
                 useMaxAmount = quote.request.options.useMaxAmount,
                 toAddress = "0xconfirm",
-                dataType = SwapQuoteDataType.Contract,
             )
         }
     }

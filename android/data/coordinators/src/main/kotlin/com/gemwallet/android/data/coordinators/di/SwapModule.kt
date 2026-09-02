@@ -1,10 +1,8 @@
 package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.application.swap.cases.BuildSwapConfirmInput
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
 import com.gemwallet.android.application.swap.cases.SearchSwapAssets
-import com.gemwallet.android.data.coordinators.swap.BuildSwapConfirmInputImpl
 import com.gemwallet.android.data.coordinators.swap.RequestSwapQuotesImpl
 import com.gemwallet.android.data.coordinators.swap.SearchSwapAssetsImpl
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
@@ -75,16 +73,6 @@ object SwapModule {
         getSession: GetSession,
         swapService: GemSwapServiceInterface,
     ): RequestSwapQuotes = RequestSwapQuotesImpl(
-        getSession = getSession,
-        swapService = swapService,
-    )
-
-    @Singleton
-    @Provides
-    fun provideBuildSwapConfirmInput(
-        getSession: GetSession,
-        swapService: GemSwapServiceInterface,
-    ): BuildSwapConfirmInput = BuildSwapConfirmInputImpl(
         getSession = getSession,
         swapService = swapService,
     )

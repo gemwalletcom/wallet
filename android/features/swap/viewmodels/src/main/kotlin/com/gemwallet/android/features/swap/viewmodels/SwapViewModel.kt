@@ -1,5 +1,9 @@
 package com.gemwallet.android.features.swap.viewmodels
 
+import com.gemwallet.android.domains.confirm.confirmInput
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.serializer.toJson
+import kotlinx.coroutines.CancellationException
 import com.wallet.core.primitives.swap.SwapPriceImpact
 import com.gemwallet.android.serializer.decodeJson
 
@@ -12,9 +16,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.EnableAsset
-import com.gemwallet.android.application.swap.cases.BuildSwapConfirmInput
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
-import com.gemwallet.android.application.swap.cases.SwapNoQuoteException
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
@@ -85,7 +87,6 @@ import uniffi.gemstone.GemSwapButtonInput
 import uniffi.gemstone.GemSlippageCheck
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemSwapQuoteSummary
-import uniffi.gemstone.SwapperException
 import uniffi.gemstone.SwapperProvider
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -98,7 +99,6 @@ class SwapViewModel @Inject constructor(
     private val getSession: GetSession,
     private val getAssetInfo: GetAssetInfo,
     private val enableAsset: EnableAsset,
-    private val buildSwapConfirmInput: BuildSwapConfirmInput,
     requestSwapQuotes: RequestSwapQuotes,
     private val savedStateHandle: SavedStateHandle,
     private val swapQuoteService: GemSwapQuoteServiceInterface,
@@ -357,14 +357,15 @@ class SwapViewModel @Inject constructor(
         session.value = started.first
 
         try {
-            val params = buildSwapConfirmInput(
-                quote = pending.quote,
-                pay = pending.pay,
-                receive = pending.receive,
-            ) ?: run {
+            val wallet = getSession().value?.wallet
+            val from = pending.pay.owner
+            if (wallet == null || from == null) {
                 session.update { it.onTransferAbandoned(transfer) }
                 return@launch
             }
+            val params = swapQuoteService.getTransfer(wallet.toJson(), pending.quote)
+                .transferData(pending.pay.asset.toGem(), pending.receive.asset.toGem())
+                .confirmInput(from)
             if (session.value.transferPhase != transfer) {
                 return@launch
             }
@@ -372,8 +373,8 @@ class SwapViewModel @Inject constructor(
                 onConfirm(params)
             }
             session.update { it.onTransferHandedOff(transfer) }
-        } catch (err: SwapNoQuoteException) {
-            session.update { it.onTransferFailed(transfer, err.cause ?: SwapperException.NoQuoteAvailable()) }
+        } catch (err: CancellationException) {
+            throw err
         } catch (err: Throwable) {
             session.update { it.onTransferFailed(transfer, err) }
         }

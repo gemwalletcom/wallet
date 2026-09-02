@@ -1,7 +1,9 @@
 use crate::models::custom_types::GemBigInt;
 use crate::models::custom_types::GemBigUint;
-use primitives::AssetId;
-use primitives::swap::{SwapQuote, SwapQuoteData};
+use crate::models::transaction::GemTransactionInputType;
+use crate::services::transfer::{GemRecipient, GemTransferData};
+use primitives::swap::{SwapData, SwapQuote, SwapQuoteData};
+use primitives::{Asset, AssetId};
 use swapper::{Quote, SwapperError};
 
 use super::rules;
@@ -49,6 +51,31 @@ pub struct GemSwapTransfer {
     pub recipient: String,
     pub value: GemBigUint,
     pub use_max_amount: bool,
+}
+
+#[uniffi::export]
+impl GemSwapTransfer {
+    pub fn transfer_data(&self, from_asset: Asset, to_asset: Asset) -> GemTransferData {
+        GemTransferData {
+            input_type: GemTransactionInputType::Swap {
+                from_asset,
+                to_asset,
+                swap_data: SwapData {
+                    quote: self.quote.clone(),
+                    data: self.data.clone(),
+                },
+            },
+            recipient: GemRecipient {
+                address: self.recipient.clone(),
+                name: None,
+                memo: self.data.memo.clone(),
+                references: vec![],
+            },
+            value: self.value.clone().into(),
+            use_max_amount: self.use_max_amount,
+            minimum_value: self.quote.min_from_value.clone().map(Into::into),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

@@ -429,6 +429,12 @@ setup rather than retrying it.
   `service.addressInput()`; `ManageContactViewModel` and `ImportViewModel` take the Hilt-bound
   `AddressInputResolving` over `GemNameService`. `GetNameRecord`, `GetWallets` on the recipient
   screen and `PaymentDestination.transfer` are gone.
+- **Swap confirm**: `GemSwapTransfer::transfer_data(from_asset, to_asset)` builds the swap
+  `GemTransferData` in Core (recipient is the wallet's to-chain address, memo from the quote data,
+  minimum value from the quote), so iOS's `GemTransferData(swap:)` initialiser and Android's
+  `BuildSwapConfirmInput` case are gone; `SwapViewModel` calls `getTransfer(...).transferData(...)`
+  on `GemSwapQuoteService` directly. Before this Android sent the swap-data memo and iOS sent none —
+  Cosmos swaps sign with that memo, so the Core rule keeps it.
 - **Contacts**: `ContactsViewModel` deletes through `GemContactService` and `ManageContactViewModel`
   holds `GemManageContactService` (`saveContact`, `defaultChain`, `addressInput()`) with
   `GemContactAddressInput.addAddress` on the value, as iOS; `SaveContact`, `AddContactAddress`,

@@ -52,7 +52,7 @@ public extension GemSwapQuoteServiceProtocol {
     }
 
     func getTransferData(wallet: Primitives.Wallet, fromAsset: Asset, toAsset: Asset, quote: SwapperQuote) async throws -> GemTransferData {
-        try GemTransferData(swap: await getTransfer(wallet: wallet.json(), quote: quote), fromAsset: fromAsset, toAsset: toAsset)
+        try await getTransfer(wallet: wallet.json(), quote: quote).transferData(fromAsset: fromAsset.map(), toAsset: toAsset.map())
     }
 
     func updateBalances(walletId: WalletId, assetIds: [Primitives.AssetId]) async throws {
