@@ -179,25 +179,35 @@ impl GemAssetsService {
     }
 
     pub async fn sync_availability(&self, versions: ConfigVersions) -> Result<(), GemServiceError> {
-        for (list, remote_version) in rules::asset_list_versions(&versions) {
-            if !rules::is_asset_list_outdated(self.preferences.get_assets_version(list).as_deref(), remote_version) {
-                continue;
-            }
-            let assets = match list {
-                AssetList::Buy => self.get_fiat_assets(FiatQuoteType::Buy).await?,
-                AssetList::Sell => self.get_fiat_assets(FiatQuoteType::Sell).await?,
-                AssetList::Swap => self.get_swap_assets().await?,
-            };
-            let asset_ids = rules::asset_ids(&assets.asset_ids);
-            self.sync_missing_assets(asset_ids.clone()).await?;
-            match list {
-                AssetList::Buy => self.store.set_buyable_assets(asset_ids).await?,
-                AssetList::Sell => self.store.set_sellable_assets(asset_ids).await?,
-                AssetList::Swap => self.store.set_swappable_assets(asset_ids).await?,
-            }
-            self.preferences.set_assets_version(list, assets.version.to_string())?;
+        let results = futures::future::join_all(
+            rules::asset_list_versions(&versions)
+                .into_iter()
+                .map(|(list, remote_version)| self.sync_availability_list(list, remote_version)),
+        )
+        .await;
+        for result in results {
+            result?;
         }
         Ok(())
+    }
+
+    async fn sync_availability_list(&self, list: AssetList, remote_version: i32) -> Result<(), GemServiceError> {
+        if !rules::is_asset_list_outdated(self.preferences.get_assets_version(list).as_deref(), remote_version) {
+            return Ok(());
+        }
+        let assets = match list {
+            AssetList::Buy => self.get_fiat_assets(FiatQuoteType::Buy).await?,
+            AssetList::Sell => self.get_fiat_assets(FiatQuoteType::Sell).await?,
+            AssetList::Swap => self.get_swap_assets().await?,
+        };
+        let asset_ids = rules::asset_ids(&assets.asset_ids);
+        self.sync_missing_assets(asset_ids.clone()).await?;
+        match list {
+            AssetList::Buy => self.store.set_buyable_assets(asset_ids).await?,
+            AssetList::Sell => self.store.set_sellable_assets(asset_ids).await?,
+            AssetList::Swap => self.store.set_swappable_assets(asset_ids).await?,
+        }
+        self.preferences.set_assets_version(list, assets.version.to_string())
     }
 
     pub async fn search_tokens(&self, token_id: String, chains: Vec<Chain>) -> Vec<AssetBasic> {
