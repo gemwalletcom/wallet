@@ -308,7 +308,6 @@ public struct ViewModelFactory: Sendable {
         WalletsSceneViewModel(
             navigationPath: navigationPath,
             walletService: walletService,
-            session: walletSessionService,
             preferences: observablePreferences,
             isPresentingCreateWalletSheet: isPresentingCreateWalletSheet,
             isPresentingImportWalletSheet: isPresentingImportWalletSheet,
@@ -323,7 +322,6 @@ public struct ViewModelFactory: Sendable {
             walletService: walletService,
             keystore: keystore,
             preferences: observablePreferences,
-            explorerService: explorerService,
         )
     }
 

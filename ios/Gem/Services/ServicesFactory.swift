@@ -100,6 +100,7 @@ struct ServicesFactory {
             provider: NativeProvider(session: URLSession(configuration: serviceStatusConfiguration), url: Constants.apiURL),
         )
         let walletSessionService = Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(store: preferencesStore), wallets: gemstoneWalletStore)
+        let explorerService = Gemstone.GemExplorerService(preferences: preferencesService)
         let walletService = Gemstone.GemWalletService(
             keystore: storages.keystore.gemKeystore,
             password: GemstoneKeystorePassword(keystore: storages.keystore),
@@ -108,6 +109,7 @@ struct ServicesFactory {
             appPreferences: preferencesService,
             files: gemstoneFileStore,
             preferences: walletPreferencesService,
+            explorer: explorerService,
         )
         let avatarService = Gemstone.GemAvatarService(wallets: gemstoneWalletStore, files: gemstoneFileStore, provider: nativeProvider)
         let webSocket = Self.makeWebSocket(deviceKeyService: deviceKeyService, reconnection: connectionService)
@@ -126,7 +128,6 @@ struct ServicesFactory {
             stream: streamSubscriptionService,
             preferences: preferencesService,
         )
-        let explorerService = Gemstone.GemExplorerService(preferences: preferencesService)
         let stakeService = gatewayService.stakeService(
             staticApi: staticApiClient,
             store: GemstoneStakeStore(store: storeManager.stakeStore),

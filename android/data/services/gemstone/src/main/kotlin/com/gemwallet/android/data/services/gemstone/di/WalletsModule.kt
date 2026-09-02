@@ -24,6 +24,7 @@ import com.gemwallet.android.data.services.gemstone.GemstoneFileStore
 import com.gemwallet.android.data.service.store.LocalStore
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemAvatarService
+import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemFileStore
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemWalletPreferencesService
@@ -47,6 +48,7 @@ object WalletsModule {
         preferencesService: GemPreferencesService,
         fileStore: GemFileStore,
         walletPreferencesService: GemWalletPreferencesService,
+        explorerService: GemExplorerService,
     ): GemWalletService = GemWalletService(
         keystore,
         GemstoneKeystorePassword(passwordStore),
@@ -55,6 +57,7 @@ object WalletsModule {
         preferencesService,
         fileStore,
         walletPreferencesService,
+        explorerService,
     )
 
     @Provides

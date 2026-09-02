@@ -6,6 +6,15 @@ import protocol Gemstone.GemWalletServiceProtocol
 import Primitives
 
 public extension GemWalletServiceProtocol {
+    var currentWalletId: WalletId? {
+        do {
+            return try currentWalletId().map { try WalletId.from(id: $0) }
+        } catch {
+            debugLog("current wallet id unavailable: \(error)")
+            return .none
+        }
+    }
+
     func nextWalletIndex() throws -> Int {
         Int(try nextWalletIndex() as Int32)
     }

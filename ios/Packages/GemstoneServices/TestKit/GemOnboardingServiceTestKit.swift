@@ -5,6 +5,7 @@ import class Gemstone.GemAvatarService
 import class Gemstone.GemChainService
 import class Gemstone.GemDeviceApiClient
 import class Gemstone.GemDeviceKeyService
+import class Gemstone.GemExplorerService
 import class Gemstone.GemNameService
 import class Gemstone.GemOnboardingService
 import class Gemstone.GemPreferencesService
@@ -30,15 +31,7 @@ public extension GemOnboardingService {
         let provider = NativeProvider(url: Constants.apiURL)
         let api = GemDeviceApiClient(provider: provider, baseUrl: Constants.apiURL.absoluteString, deviceKey: GemDeviceKeyService(store: GemSecureStoreMock()))
         return GemOnboardingService(
-            wallets: GemWalletService(
-                keystore: keystore.gemKeystore,
-                password: GemstoneKeystorePassword(keystore: keystore),
-                store: gemWalletStore,
-                session: session,
-                appPreferences: GemPreferencesService(store: GemPreferencesStoreMock()),
-                files: GemstoneFileStore(),
-                preferences: GemWalletPreferencesService.mock(),
-            ),
+            wallets: GemWalletService.mock(keystore: keystore, walletStore: walletStore, sessionStore: sessionStore),
             session: session,
             avatars: GemAvatarService(wallets: gemWalletStore, files: GemstoneFileStore(), provider: provider),
             names: GemNameService(api: api, store: GemstoneAddressStore(store: addressStore)),
@@ -54,14 +47,16 @@ public extension GemWalletService {
         sessionStore: GemstoneWalletSessionStore = .mock(),
     ) -> GemWalletService {
         let gemWalletStore = GemstoneWalletStore(store: walletStore)
+        let appPreferences = GemPreferencesService(store: GemPreferencesStoreMock())
         return GemWalletService(
             keystore: keystore.gemKeystore,
             password: GemstoneKeystorePassword(keystore: keystore),
             store: gemWalletStore,
             session: GemWalletSessionService(store: sessionStore, wallets: gemWalletStore),
-            appPreferences: GemPreferencesService(store: GemPreferencesStoreMock()),
+            appPreferences: appPreferences,
             files: GemstoneFileStore(),
             preferences: GemWalletPreferencesService.mock(),
+            explorer: GemExplorerService(preferences: appPreferences),
         )
     }
 }

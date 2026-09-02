@@ -20,16 +20,7 @@ struct WalletServiceTests {
         walletStore: WalletStore = .mock(),
         sessionStore: GemstoneWalletSessionStore = .mock(),
     ) -> GemWalletService {
-        let gemWalletStore = GemstoneWalletStore(store: walletStore)
-        return GemWalletService(
-            keystore: keystore.gemKeystore,
-            password: GemstoneKeystorePassword(keystore: keystore),
-            store: gemWalletStore,
-            session: GemWalletSessionService(store: sessionStore, wallets: gemWalletStore),
-            appPreferences: GemPreferencesService(store: GemPreferencesStoreMock()),
-            files: GemstoneFileStore(),
-            preferences: GemWalletPreferencesService.mock(),
-        )
+        GemWalletService.mock(keystore: keystore, walletStore: walletStore, sessionStore: sessionStore)
     }
 
     @Test

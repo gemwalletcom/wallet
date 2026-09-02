@@ -1,5 +1,4 @@
 import Components
-import protocol Gemstone.GemExplorerServiceProtocol
 import GemstonePrimitives
 import Localization
 import Onboarding
@@ -19,7 +18,6 @@ public final class WalletDetailViewModel {
     private let walletService: any GemWalletServiceProtocol
     private let keystore: any Keystore
     private let preferences: ObservablePreferences
-    private let explorerService: any GemExplorerServiceProtocol
 
     var nameInput: String
     var isPresentingAlertMessage: AlertMessage?
@@ -37,13 +35,11 @@ public final class WalletDetailViewModel {
         walletService: any GemWalletServiceProtocol,
         keystore: any Keystore,
         preferences: ObservablePreferences,
-        explorerService: any GemExplorerServiceProtocol,
     ) {
         self.navigationPath = navigationPath
         self.walletService = walletService
         self.keystore = keystore
         self.preferences = preferences
-        self.explorerService = explorerService
         nameInput = wallet.name
         isPresentingAlertMessage = nil
         isPresentingDeleteConfirmation = nil
@@ -77,7 +73,7 @@ public final class WalletDetailViewModel {
     }
 
     func addressLink(account: SimpleAccount) -> BlockExplorerLink {
-        BlockExplorerLink(explorerService.getAddressUrl(chain: account.chain.rawValue, address: account.address))
+        BlockExplorerLink(walletService.addressUrl(chain: account.chain.rawValue, address: account.address))
     }
 
     func avatarAssetImage(for wallet: Wallet) -> AssetImage {
