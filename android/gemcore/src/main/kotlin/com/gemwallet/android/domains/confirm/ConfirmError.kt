@@ -3,6 +3,7 @@ package com.gemwallet.android.domains.confirm
 import com.gemwallet.android.model.GemNetworkError
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemSignerError
 import uniffi.gemstone.GemTransferAmountException
 import java.math.BigInteger
 
@@ -45,3 +46,11 @@ private fun amountRequirement(required: String, available: String) = BalanceRequ
     required = BigInteger(required),
     available = BigInteger(available),
 )
+
+fun GemSignerError.toConfirmError(chain: Chain): ConfirmError = when (this) {
+    GemSignerError.DustThreshold -> ConfirmError.DustThreshold(chain)
+    is GemSignerError.InvalidInput,
+    is GemSignerError.SigningError,
+    GemSignerError.InsufficientFunds,
+    GemSignerError.SwapValueBelowMinimum -> ConfirmError.SignFail
+}

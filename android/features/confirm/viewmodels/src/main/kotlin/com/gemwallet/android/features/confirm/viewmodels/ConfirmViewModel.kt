@@ -24,19 +24,22 @@ import androidx.lifecycle.ViewModel
 import uniffi.gemstone.GemFeeRate
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
-import com.gemwallet.android.application.confirm.cases.ConfirmTransaction
 import com.gemwallet.android.application.confirm.cases.GetFeeAssets
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
+import com.gemwallet.android.blockchain.services.confirmLoadOptions
+import com.gemwallet.android.blockchain.services.toSignerParams
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmTransferService
+import uniffi.gemstone.GemExecuteResult
+import uniffi.gemstone.GemSendInput
 import uniffi.gemstone.GemSwapQuoteSummary
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.FeeSelection
@@ -60,11 +63,13 @@ import com.gemwallet.android.domains.confirm.toConfirmError
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.wallet.core.primitives.AddressName
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -93,9 +98,7 @@ class ConfirmViewModel @Inject constructor(
     private val getSession: GetSession,
     private val getWalletAssets: GetWalletAssets,
     private val getAssetInfo: GetAssetInfo,
-    private val signerPreloader: SignerPreloaderProxy,
     private val getFeeAssets: GetFeeAssets,
-    private val confirmTransaction: ConfirmTransaction,
     private val buildConfirmProperties: BuildConfirmProperties,
     private val confirmService: GemConfirmTransferService,
     private val savedStateHandle: SavedStateHandle,
@@ -179,14 +182,17 @@ class ConfirmViewModel @Inject constructor(
         }
 
         val preload = try {
-            val result = signerPreloader.preload(
+            val result = confirmService.preload(
                 walletId = session.wallet.id.id,
                 input = request,
-                selection = feeSelection,
-                feeAssetSelection = feeAssetSelection,
+                options = confirmLoadOptions(feeSelection, feeAssetSelection),
             )
-            result.simulation?.let { simulationResult.value = it }
-            result
+            result.confirmData.simulation?.let { simulationResult.value = it.decodeJson() }
+            Preload(
+                signerParams = result.toSignerParams(request),
+                amount = result.amount,
+                feeAsset = result.feeAsset.toPrimitives(),
+            )
         } catch (error: CancellationException) {
             throw error
         } catch (err: Throwable) {
@@ -359,13 +365,7 @@ class ConfirmViewModel @Inject constructor(
                 is GemTransferAmountResult.Amount -> BigInteger(calculated.amount.value)
                 is GemTransferAmountResult.Error -> throw calculated.error.toConfirmError(calculated.asset.toPrimitives())
             }
-            val transactionHash = confirmTransaction(
-                signerParams.copy(finalAmount = amount),
-                session,
-                assetInfo,
-                viewModelScope,
-                simulationResult.value,
-            )
+            val transactionHash = execute(signerParams.copy(finalAmount = amount), session.wallet)
             state.update { ConfirmState.Result(transactionHash = transactionHash) }
             viewModelScope.launch(Dispatchers.Main) {
                 finishAction(transactionHash)
@@ -376,6 +376,31 @@ class ConfirmViewModel @Inject constructor(
             state.update { ConfirmState.BroadcastError(err.toBroadcastConfirmError()) }
         }
     }
+
+    private suspend fun execute(signerParams: SignerParams, wallet: Wallet): String {
+        val input = GemSendInput(
+            wallet = wallet.toJson(),
+            confirm = signerParams.confirmData,
+            value = signerParams.finalAmount.toString(),
+            networkFee = signerParams.fee.amount.toString(),
+            simulation = simulationResult.value?.toJson(),
+        )
+        val result = try {
+            confirmService.execute(input)
+        } catch (error: GemConfirmException.Sign) {
+            throw error.error.toConfirmError(signerParams.input.transfer.inputType.asset.id.chain)
+        }
+        return when (result) {
+            is GemExecuteResult.Signed -> result.data.first()
+            is GemExecuteResult.Sent -> result.hashes.last()
+        }
+    }
+
+    private data class Preload(
+        val signerParams: SignerParams,
+        val amount: GemTransferAmountResult,
+        val feeAsset: Asset,
+    )
 
     private fun List<AssetInfo>.getByAssetId(assetId: AssetId): AssetInfo? {
         val str = assetId.toIdentifier()

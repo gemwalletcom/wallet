@@ -348,6 +348,12 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 ### 3. Rules still written once per platform
 
+Android's confirm screen still reads its assets through `GetWalletAssets`/`GetAssetInfo` and
+its fee assets through `GetFeeAssets` (store-backed `AssetInfo`), where Core's `GemConfirmPreload`
+metadata already carries the balances and prices the screen shows. Moving the fee-asset picker and
+the amount/swap details onto `GemConfirmMetadata`/`GemFeeAsset` removes those three cases and
+`BuildConfirmProperties`' `assetsInfo` parameter.
+
 `hasPerpetualsSupport` (iOS `Wallet+Primitives`, Android `ext/Wallet.kt`) is the wallet half of
 Core's `show_perpetuals`, kept on the apps only to fill the banner input record. Let Core derive it
 from the wallet it is already handed and drop the field.

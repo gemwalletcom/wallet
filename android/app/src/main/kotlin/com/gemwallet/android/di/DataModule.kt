@@ -1,6 +1,5 @@
 package com.gemwallet.android.di
 
-import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.services.SyncService
 import dagger.Module
 import dagger.Provides
@@ -73,14 +72,6 @@ object DataModule {
         recentActivity,
         preferencesService,
     )
-
-    @Provides
-    @Singleton
-    fun provideSignerPreloader(
-        confirmService: GemConfirmTransferService,
-    ): SignerPreloaderProxy {
-        return SignerPreloaderProxy(confirmService)
-    }
 
     @Singleton
     @Provides
