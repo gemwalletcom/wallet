@@ -1,8 +1,8 @@
 pub mod store;
 
-use crate::clock::unix_seconds;
 use crate::services::error::GemServiceError;
 use primitives::WalletId;
+use primitives::unix_seconds;
 use std::sync::Arc;
 
 use crate::api::GemDeviceApiClient;

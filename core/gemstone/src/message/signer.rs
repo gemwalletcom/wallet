@@ -1,6 +1,5 @@
 use std::borrow::Cow;
 
-use crate::clock::unix_seconds;
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use bs58;
@@ -10,6 +9,7 @@ use gem_sui::signer as sui_signer;
 use gem_ton::address::base64_to_hex_address;
 use gem_ton::signer::{TonSignDataResponse, TonSignMessageData, TonSignResult, TonSigner};
 use primitives::hex::encode_with_0x;
+use primitives::unix_seconds;
 use signer::{SIGNATURE_LENGTH, Signer, ensure_ethereum_signature_recovery_id_offset, hash_eip712};
 use sui_types::PersonalMessage;
 

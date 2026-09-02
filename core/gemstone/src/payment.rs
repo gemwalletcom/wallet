@@ -43,10 +43,6 @@ impl GemPaymentService {
         payment_transfer_destination(&request, asset)
     }
 
-    pub fn decoded_transfer(&self, request: GemPaymentRequest, asset: GemPaymentWalletAsset) -> Option<GemPaymentConfirmTransfer> {
-        payment_decoded_transfer(&request, asset)
-    }
-
     pub fn transfer_data(&self, transfer: GemPaymentConfirmTransfer, asset: Asset) -> GemTransferData {
         transfer_data(&transfer, asset)
     }

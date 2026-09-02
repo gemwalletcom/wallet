@@ -1,4 +1,4 @@
-use crate::clock::unix_milliseconds;
+use primitives::unix_milliseconds;
 
 use zeroize::Zeroizing;
 

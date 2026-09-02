@@ -9,9 +9,9 @@ use primitives::ChartPeriod;
 use primitives::currency::Currency;
 use primitives::{Appearance, Chain, ConfigResponse, Device, Wallet};
 
-use crate::clock::unix_seconds;
 use crate::config::perpetual_config;
 use crate::services::assets::AssetList;
+use primitives::unix_seconds;
 
 pub use store::{GemPreferencesStore, GemSecureStore};
 

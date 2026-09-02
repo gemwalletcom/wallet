@@ -257,8 +257,15 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
             .map_err(|error| ClientError::Serialization(error.to_string()))?
             .as_millis() as u64;
 
-        let header = build_device_auth_header(&self.device_key.private_key()?, target.method().as_ref(), signed_path, target.wallet_id(), body, timestamp_ms)
-            .map_err(|error| ClientError::Serialization(error.to_string()))?;
+        let header = build_device_auth_header(
+            &self.device_key.private_key()?,
+            target.method().as_ref(),
+            signed_path,
+            target.wallet_id(),
+            body,
+            timestamp_ms,
+        )
+        .map_err(|error| ClientError::Serialization(error.to_string()))?;
 
         Ok(HashMap::from([("Authorization".to_string(), header)]))
     }

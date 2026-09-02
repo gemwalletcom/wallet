@@ -3,9 +3,9 @@ pub mod model;
 pub mod rules;
 pub mod store;
 
-use crate::clock::unix_seconds;
 use crate::keystore::decode_password;
 use crate::models::custom_types::GemBigUint;
+use primitives::unix_seconds;
 use std::sync::Arc;
 
 use primitives::{Asset, Wallet};

@@ -6,7 +6,6 @@ pub mod application;
 pub mod auth;
 pub mod balance_calculator;
 pub mod block_explorer;
-pub mod clock;
 pub mod config;
 pub mod crypto_fiat_converter;
 pub mod deeplink;

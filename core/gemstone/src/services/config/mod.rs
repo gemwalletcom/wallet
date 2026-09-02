@@ -45,8 +45,8 @@ mod tests {
     use async_trait::async_trait;
     use primitives::{Chain, ConfigVersions, SwapConfig};
     use std::collections::HashMap;
-    use std::sync::Mutex;
     use std::future::Future;
+    use std::sync::Mutex;
     use std::sync::atomic::{AtomicUsize, Ordering};
     use std::task::{Context, Poll};
 
