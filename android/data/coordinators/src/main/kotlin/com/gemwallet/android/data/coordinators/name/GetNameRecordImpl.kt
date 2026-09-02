@@ -5,13 +5,15 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameRecord
 import uniffi.gemstone.GemNameService
 import com.gemwallet.android.serializer.decodeJson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class GetNameRecordImpl(
     private val nameService: GemNameService,
 ) : GetNameRecord {
 
-    override suspend fun getNameRecord(name: String, chain: Chain): NameRecord? {
-        return nameService.getNameRecord(name, chain.string)?.decodeJson<NameRecord>()
+    override suspend fun getNameRecord(name: String, chain: Chain): NameRecord? = withContext(Dispatchers.IO) {
+        nameService.getNameRecord(name, chain.string)?.decodeJson<NameRecord>()
     }
 
     override fun isNameSupported(name: String): Boolean = nameService.isNameSupported(name)

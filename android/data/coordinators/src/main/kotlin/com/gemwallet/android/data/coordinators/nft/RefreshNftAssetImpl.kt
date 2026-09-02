@@ -6,6 +6,8 @@ import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.NFTAssetId
 import kotlinx.coroutines.flow.firstOrNull
 import uniffi.gemstone.GemNftService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class RefreshNftAssetImpl(
     private val getSession: GetSession,
@@ -14,6 +16,6 @@ class RefreshNftAssetImpl(
 
     override suspend fun invoke(assetId: NFTAssetId) {
         val wallet = getSession().firstOrNull()?.wallet ?: return
-        nftService.refreshAsset(wallet.id.id, assetId.toIdentifier())
+        withContext(Dispatchers.IO) { nftService.refreshAsset(wallet.id.id, assetId.toIdentifier()) }
     }
 }

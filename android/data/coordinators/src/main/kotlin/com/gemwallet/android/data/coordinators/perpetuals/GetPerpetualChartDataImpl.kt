@@ -9,6 +9,8 @@ import com.gemwallet.android.ext.twoSubtokenIds
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class GetPerpetualChartDataImpl(
     private val perpetualService: GemPerpetualService,
@@ -19,6 +21,8 @@ class GetPerpetualChartDataImpl(
         period: ChartPeriod
     ): List<ChartCandleStick> {
         val symbol = assetId.twoSubtokenIds()?.second ?: return emptyList()
-        return perpetualService.getCandlesticks(Chain.HyperCore.string, symbol, period.toJson()).map { it.decodeJson() }
+        return withContext(Dispatchers.IO) {
+            perpetualService.getCandlesticks(Chain.HyperCore.string, symbol, period.toJson()).map { it.decodeJson() }
+        }
     }
 }

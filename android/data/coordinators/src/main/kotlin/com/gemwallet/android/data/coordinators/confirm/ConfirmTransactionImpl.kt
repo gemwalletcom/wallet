@@ -19,6 +19,8 @@ import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemExecuteResult
 import uniffi.gemstone.GemSendInput
 import uniffi.gemstone.GemSignerError
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class ConfirmTransactionImpl(
     private val confirmService: GemConfirmTransferService,
@@ -32,7 +34,7 @@ class ConfirmTransactionImpl(
         simulation: SimulationResult?,
     ): String {
         val result = try {
-            confirmService.execute(signerParams.toSendInput(session.wallet, simulation))
+            withContext(Dispatchers.IO) { confirmService.execute(signerParams.toSendInput(session.wallet, simulation)) }
         } catch (error: GemConfirmException.Broadcast) {
             createTransactionsCase.trackPendingTransactions()
             throw error

@@ -5,11 +5,13 @@ import com.gemwallet.android.application.wallet_import.cases.SetupWallet
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemAppStartService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class SetupWalletImpl(
     private val appStartService: GemAppStartService,
 ) : SetupWallet {
-    override suspend fun setup(wallet: Wallet) {
+    override suspend fun setup(wallet: Wallet) = withContext(Dispatchers.IO) {
         appStartService.setupWallet(wallet.toJson()).forEach { failure ->
             Log.e("SetupWallet", "${failure.step} failed: ${failure.message}")
         }

@@ -13,6 +13,8 @@ import com.wallet.core.primitives.Release
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import uniffi.gemstone.GemAppUpdateService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class AppUpdateCoordinator(
     private val appUpdateService: GemAppUpdateService,
@@ -26,13 +28,14 @@ class AppUpdateCoordinator(
     override fun observeAppUpdateOffer(): Flow<AppUpdateOffer?> = offer
 
     override suspend fun skipAppUpdate(version: String) {
-        appUpdateService.skip(version)
+        withContext(Dispatchers.IO) { appUpdateService.skip(version) }
         offer.value = check()
     }
 
     private suspend fun check(): AppUpdateOffer? {
-        val release = runCatching { appUpdateService.check(buildInfo.platformStore.toJson(), buildInfo.versionName) }
-            .getOrNull()?.decodeJson<Release>() ?: return null
+        val release = withContext(Dispatchers.IO) {
+            runCatching { appUpdateService.check(buildInfo.platformStore.toJson(), buildInfo.versionName) }.getOrNull()
+        }?.decodeJson<Release>() ?: return null
         return AppUpdateOffer(
             version = release.version,
             isRequired = release.upgradeRequired,

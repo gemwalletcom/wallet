@@ -19,6 +19,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import uniffi.gemstone.GemPriceAlertService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 
 class PriceAlertsCoordinator(
     private val priceAlertService: GemPriceAlertService,
@@ -30,9 +33,10 @@ class PriceAlertsCoordinator(
     override fun isPriceAlertsEnabled(): Flow<Boolean> = changes
         .onStart { emit(Unit) }
         .map { priceAlertService.isEnabled() }
+        .flowOn(Dispatchers.IO)
 
     override suspend fun setPriceAlertsEnabled(enabled: Boolean) {
-        priceAlertService.setEnabled(enabled)
+        withContext(Dispatchers.IO) { priceAlertService.setEnabled(enabled) }
         changes.emit(Unit)
     }
 

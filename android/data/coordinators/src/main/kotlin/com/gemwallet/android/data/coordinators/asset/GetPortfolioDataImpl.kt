@@ -12,6 +12,8 @@ import com.wallet.core.primitives.PortfolioData
 import com.wallet.core.primitives.PortfolioType
 import uniffi.gemstone.GemPortfolioDataInput
 import uniffi.gemstone.GemPortfolioService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class GetPortfolioDataImpl(
     private val portfolioService: GemPortfolioService,
@@ -22,7 +24,10 @@ class GetPortfolioDataImpl(
         type: PortfolioType,
         period: ChartPeriod,
         currency: Currency,
-    ): PortfolioData = portfolioService.portfolioData(input(type, period, currency)).decodeJson()
+    ): PortfolioData {
+        val input = input(type, period, currency)
+        return withContext(Dispatchers.IO) { portfolioService.portfolioData(input) }.decodeJson()
+    }
 
     private suspend fun input(type: PortfolioType, period: ChartPeriod, currency: Currency): GemPortfolioDataInput = when (type) {
         PortfolioType.Wallet -> {

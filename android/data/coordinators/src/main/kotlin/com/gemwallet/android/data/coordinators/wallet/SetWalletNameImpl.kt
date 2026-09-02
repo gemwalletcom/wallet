@@ -4,6 +4,8 @@ import com.gemwallet.android.application.wallet.cases.SetWalletName
 import com.gemwallet.android.application.addresses.cases.RenameWalletAddresses
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemWalletService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class SetWalletNameImpl(
     private val walletService: GemWalletService,
@@ -11,7 +13,7 @@ class SetWalletNameImpl(
 ) : SetWalletName {
 
     override suspend fun setWalletName(walletId: WalletId, name: String) {
-        walletService.rename(walletId.id, name)
+        withContext(Dispatchers.IO) { walletService.rename(walletId.id, name) }
         renameWalletAddresses.rename(walletId, name)
     }
 }

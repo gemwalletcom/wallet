@@ -11,6 +11,8 @@ import com.wallet.core.primitives.Wallet
 import javax.inject.Inject
 import javax.inject.Singleton
 import uniffi.gemstone.GemTransactionsService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Singleton
 class SyncTransactionsImpl @Inject constructor(
@@ -18,15 +20,18 @@ class SyncTransactionsImpl @Inject constructor(
     private val getCurrentWallet: GetCurrentWallet,
 ) : SyncTransactions, SyncAssetTransactions {
 
-    override suspend fun syncTransactions(wallet: Wallet): Boolean =
+    override suspend fun syncTransactions(wallet: Wallet): Boolean = withContext(Dispatchers.IO) {
         runCatchingCancellable { transactionsService.sync(wallet.id.id, null) }
             .onFailure { Log.e(TAG, "transactions sync failed for ${wallet.id.id}", it) }
             .isSuccess
+    }
 
     override suspend fun syncAssetTransactions(assetId: AssetId) {
         val wallet = getCurrentWallet.getCurrentWallet() ?: return
-        runCatchingCancellable { transactionsService.sync(wallet.id.id, assetId.toIdentifier()) }
-            .onFailure { Log.e(TAG, "asset transactions sync failed for ${assetId.toIdentifier()}", it) }
+        withContext(Dispatchers.IO) {
+            runCatchingCancellable { transactionsService.sync(wallet.id.id, assetId.toIdentifier()) }
+                .onFailure { Log.e(TAG, "asset transactions sync failed for ${assetId.toIdentifier()}", it) }
+        }
     }
 
     private companion object {

@@ -10,6 +10,8 @@ import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.ChartValue
 import com.wallet.core.primitives.Currency
 import uniffi.gemstone.GemChartService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class GetAssetChartDataImpl(
     private val chartService: GemChartService,
@@ -20,8 +22,10 @@ class GetAssetChartDataImpl(
         period: ChartPeriod,
         currency: Currency,
     ): List<ChartValue> {
-        return chartService.syncCharts(assetId.toIdentifier(), period.toJson(), currency.toJson())
-            .map { it.decodeJson<ChartDateValue>() }
-            .map { ChartValue(timestamp = (it.date / 1000).toInt(), value = it.value.toFloat()) }
+        return withContext(Dispatchers.IO) {
+            chartService.syncCharts(assetId.toIdentifier(), period.toJson(), currency.toJson())
+                .map { it.decodeJson<ChartDateValue>() }
+                .map { ChartValue(timestamp = (it.date / 1000).toInt(), value = it.value.toFloat()) }
+        }
     }
 }

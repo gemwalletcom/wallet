@@ -5,6 +5,8 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemBalanceService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class SetAssetPinnedImpl(
     private val getSession: GetSession,
@@ -13,10 +15,12 @@ class SetAssetPinnedImpl(
 
     override suspend fun invoke(assetId: AssetId, pinned: Boolean) {
         val session = getSession().value ?: return
-        balanceService.setAssetPinned(
-            walletId = session.wallet.id.id,
-            assetId = assetId.toIdentifier(),
-            pinned = pinned,
-        )
+        withContext(Dispatchers.IO) {
+            balanceService.setAssetPinned(
+                walletId = session.wallet.id.id,
+                assetId = assetId.toIdentifier(),
+                pinned = pinned,
+            )
+        }
     }
 }

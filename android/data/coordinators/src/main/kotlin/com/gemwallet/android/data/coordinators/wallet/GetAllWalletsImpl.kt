@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetAllWalletsImpl(
@@ -41,6 +43,7 @@ class GetAllWalletsImpl(
                 }
             }
         }
+        .flowOn(Dispatchers.IO)
     }
 }
 

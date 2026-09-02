@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import uniffi.gemstone.GemNftService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
 
 class GetListNftImpl(
     private val nftStore: GemstoneNftStore,
@@ -51,6 +53,6 @@ class GetAssetNftImpl(
         return flow {
             val assetData = nftService.ensureAsset(assetId.toIdentifier()).decodeJson<NFTAssetData>()
             emit(NFTData(collection = assetData.collection, assets = listOf(assetData.asset)))
-        }
+        }.flowOn(Dispatchers.IO)
     }
 }

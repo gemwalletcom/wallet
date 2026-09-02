@@ -9,6 +9,8 @@ import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemRewardsService
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class RedeemImpl(
     private val rewardsService: GemRewardsService,
@@ -18,6 +20,8 @@ class RedeemImpl(
         if (rewards.points < option.points) {
             throw ReferralError.InsufficientPoints
         }
-        return rewardsService.redeem(wallet = wallet.toJson(), redemptionId = option.id).decodeJson()
+        return withContext(Dispatchers.IO) {
+            rewardsService.redeem(wallet = wallet.toJson(), redemptionId = option.id).decodeJson()
+        }
     }
 }

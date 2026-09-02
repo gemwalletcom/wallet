@@ -19,6 +19,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.firstOrNull
 import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.SwapperQuote
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class BuildSwapConfirmInputImpl(
     private val getSession: GetSession,
@@ -34,7 +36,7 @@ class BuildSwapConfirmInputImpl(
         val from = pay.owner ?: throw SwapNoQuoteException()
 
         val (transfer, swapQuote, swapData) = try {
-            val transfer = swapService.getTransfer(wallet.toJson(), quote)
+            val transfer = withContext(Dispatchers.IO) { swapService.getTransfer(wallet.toJson(), quote) }
             Triple(transfer, transfer.quote.decodeJson<SwapQuote>(), transfer.data.decodeJson<SwapQuoteData>())
         } catch (error: CancellationException) {
             throw error

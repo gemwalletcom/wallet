@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import uniffi.gemstone.GemWalletPreferencesService
 import com.gemwallet.android.domains.perpetual.values.PerpetualBalance as PerpetualBalanceDisplay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
 
 private val EmptyBalance = PerpetualBalance(available = 0.0, reserved = 0.0, withdrawable = 0.0)
 
@@ -44,6 +46,7 @@ class PerpetualBalanceCoordinator(
                 else -> perpetualStore.observeBalance(wallet.id, HypercoreUSDC.id)
             }
         }
+        .flowOn(Dispatchers.IO)
 }
 
 private class PerpetualBalanceDisplayValue(val balance: PerpetualBalance) : PerpetualBalanceDisplay {

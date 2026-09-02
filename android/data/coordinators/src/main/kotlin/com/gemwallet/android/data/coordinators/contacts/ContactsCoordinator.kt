@@ -13,6 +13,8 @@ import uniffi.gemstone.GemContactAddressInput
 import uniffi.gemstone.GemContactAvatar
 import uniffi.gemstone.GemContactInput
 import uniffi.gemstone.GemContactService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class ContactsCoordinator(
     private val contactService: GemContactService,
@@ -25,7 +27,8 @@ class ContactsCoordinator(
         description: String,
         avatar: GemContactAvatar,
         addresses: List<ContactAddress>,
-    ): Contact = contactService.saveContact(
+    ): Contact = withContext(Dispatchers.IO) {
+        contactService.saveContact(
         GemContactInput(
             id = id,
             existing = existing?.toJson(),
@@ -33,11 +36,13 @@ class ContactsCoordinator(
             description = description,
             avatar = avatar,
             addresses = addresses.map { it.toJson() },
-        )
-    ).decodeJson<Contact>()
+            )
+        ).decodeJson<Contact>()
+    }
 
-    override suspend fun saveAddresses(contact: Contact, addresses: List<ContactAddress>) =
+    override suspend fun saveAddresses(contact: Contact, addresses: List<ContactAddress>) = withContext(Dispatchers.IO) {
         contactService.updateContact(contact.toJson(), addresses.map { it.toJson() })
+    }
 
     override fun addAddress(
         addresses: List<ContactAddress>,
@@ -58,5 +63,7 @@ class ContactsCoordinator(
 
     override fun defaultChain(): Chain = contactService.defaultChain().toChain() ?: Chain.Bitcoin
 
-    override suspend fun deleteContact(contact: Contact) = contactService.deleteContact(contact.toJson())
+    override suspend fun deleteContact(contact: Contact) = withContext(Dispatchers.IO) {
+        contactService.deleteContact(contact.toJson())
+    }
 }

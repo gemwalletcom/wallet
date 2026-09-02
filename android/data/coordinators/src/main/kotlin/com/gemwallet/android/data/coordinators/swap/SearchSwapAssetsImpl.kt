@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.SwapperAssetList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchSwapAssetsImpl(
@@ -63,5 +65,6 @@ class SearchSwapAssetsImpl(
                 SwapItemType.Receive -> GemAssetAction.SWAP_RECEIVE.eligible(items)
             }
         }
+        .flowOn(Dispatchers.IO)
     }
 }

@@ -19,6 +19,8 @@ import com.wallet.core.primitives.StakeType
 import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransferData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class BuildConfirmPropertiesImpl(
     private val getStakeValidator: GetStakeValidator,
@@ -33,9 +35,11 @@ class BuildConfirmPropertiesImpl(
     ): List<ConfirmProperty> {
         val assetInfo = assetsInfo.getByAssetId(transfer.inputType.asset.id) ?: return emptyList()
         val chain = assetInfo.asset.id.chain
-        return mutableListOf<ConfirmProperty?>().apply {
+        val validator = getValidator(transfer)
+        return withContext(Dispatchers.IO) {
+        mutableListOf<ConfirmProperty?>().apply {
             add(ConfirmProperty.Source(wallet.name, wallet.type, assetInfo.owner?.chain, wallet.imageUrl))
-            val destination = ConfirmProperty.Destination.map(transfer, getValidator(transfer), addressName)
+            val destination = ConfirmProperty.Destination.map(transfer, validator, addressName)
             add(
                 when (destination) {
                     is ConfirmProperty.Destination.Transfer -> ConfirmProperty.Destination.Transfer(
@@ -64,6 +68,7 @@ class BuildConfirmPropertiesImpl(
                 }
             )
         }.filterNotNull()
+        }
     }
 
     private suspend fun getValidator(transfer: GemTransferData): DelegationValidator? {

@@ -6,14 +6,16 @@ import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemRewardsService
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class CreateReferralImpl(
     private val rewardsService: GemRewardsService,
 ) : CreateReferral {
 
 
-    override suspend fun createReferral(code: String, wallet: Wallet): Rewards {
-        return rewardsService.createReferral(
+    override suspend fun createReferral(code: String, wallet: Wallet): Rewards = withContext(Dispatchers.IO) {
+        rewardsService.createReferral(
             wallet = wallet.toJson(),
             code = code,
         ).decodeJson<Rewards>()

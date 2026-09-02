@@ -7,6 +7,8 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.first
 import uniffi.gemstone.GemFiatService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class SyncFiatTransactionsImpl(
     private val getSession: GetSession,
@@ -15,8 +17,10 @@ class SyncFiatTransactionsImpl(
 
     override suspend fun invoke(walletId: WalletId?) {
         val resolvedWalletId = walletId ?: getSession().first()?.wallet?.id ?: return
-        runCatchingCancellable { fiatService.syncTransactions(resolvedWalletId.id) }
-            .onFailure { Log.e(TAG, "fiat transactions sync failed for ${resolvedWalletId.id}", it) }
+        withContext(Dispatchers.IO) {
+            runCatchingCancellable { fiatService.syncTransactions(resolvedWalletId.id) }
+                .onFailure { Log.e(TAG, "fiat transactions sync failed for ${resolvedWalletId.id}", it) }
+        }
     }
 
     private companion object {
