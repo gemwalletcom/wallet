@@ -173,7 +173,6 @@ final class FiatSceneViewModelTests {
         )
         let quote = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 104.97, type: .sell)
         model.sellViewModel.selectedQuote = quote
-        model.sellViewModel.updateValidators()
         model.inputValidationModel.text = "100"
 
         #expect(model.inputValidationModel.update() == false)
@@ -186,6 +185,33 @@ final class FiatSceneViewModelTests {
         #expect(model.buyViewModel.availableBalance == BigInt(415_650_000))
         #expect(model.sellViewModel.availableBalance == BigInt(415_650_000))
         #expect(model.inputValidationModel.update() == true)
+    }
+
+    @Test
+    func selectingProviderRevalidatesSellBalance() {
+        let asset = Asset.mockEthereumUSDT()
+        let formatter = CurrencyFormatter(locale: .US, currencyCode: Currency.usd.rawValue)
+        let affordable = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 100, type: .sell)
+        let unaffordable = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 300, type: .sell)
+        let model = FiatSceneViewModelTests.mock(
+            assetAddress: .mock(asset: asset),
+            type: .sell,
+        )
+
+        model.onAssetDataChange(
+            .mock(asset: asset),
+            .mock(asset: asset, balance: .mock(available: BigInt(200_000_000))),
+        )
+        model.inputValidationModel.text = "100"
+        model.sellViewModel.quotesState = .data(FiatQuotes(amount: 100, quotes: [affordable, unaffordable]))
+        model.sellViewModel.selectedQuote = affordable
+
+        #expect(model.actionButtonState.value != nil)
+
+        model.onSelectQuotes([FiatQuoteViewModel(asset: asset, quote: unaffordable, formatter: formatter)])
+
+        #expect(model.inputValidationModel.isInvalid)
+        #expect(model.actionButtonState.value == nil)
     }
 
     @Test
