@@ -2,7 +2,6 @@
 
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import class Gemstone.GemRecentActivityService
-import class Gemstone.GemChainService
 import protocol Gemstone.GemBalanceServiceProtocol
 import GemstoneServicesTestKit
 @testable import Assets
@@ -28,7 +27,6 @@ public extension SelectAssetViewModel {
             wallet: wallet,
             selectType: selectType,
             service: service,
-            chainService: GemChainService(),
             recentAssetsService: GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock())),
         )
         model.assetsQuery.value = assets

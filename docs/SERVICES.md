@@ -65,9 +65,9 @@ real mutation-checked test remains with its owning Core implementation; app test
 mapping, wiring and state.
 
 The narrow exception is a dependency-free FFI transport adapter for a type whose receiver methods
-cannot cross the boundary. `GemSimulationFormatter` and `PriceAlertFormatter` may be constructed
-locally; they have no state, I/O or substitutable dependency. Keep the adapter cohesive and do not
-create one object per method.
+cannot cross the boundary. `GemSimulationFormatter`, `PriceAlertFormatter` and the config lookup
+`GemChainService` inside `NetworkSelectorViewModel` may be constructed locally; they have no state,
+I/O or substitutable dependency. Keep the adapter cohesive and do not create one object per method.
 
 ### 2. Pick the store the value belongs in
 
@@ -432,10 +432,10 @@ having the parent vend the child view model.
 | `Gem/ViewModels/RootSceneViewModel.swift` | 5 | 1 |
 | `Settings/Settings/ViewModels/DeveloperViewModel.swift` | 5 | 0 |
 | `Transfer/RecipientSceneViewModel.swift` | 3 | 0 |
-| `Assets/SelectAssetViewModel.swift` | 3 | 0 |
+| `Assets/SelectAssetViewModel.swift` | 2 | 0 |
 | `NFT/CollectibleViewModel.swift` | 3 | 1 |
 | `Settings/ChainSettings/ViewModels/ChainSettingsSceneViewModel.swift` | 3 | 2 |
-| `Transactions/TransactionsViewModel.swift` | 3 | 1 |
+| `Transactions/TransactionsViewModel.swift` | 2 | 0 |
 | `WalletConnector/WalletConnector/ViewModels/SignMessageSceneViewModel.swift` | 3 | 0 |
 | `FiatConnect/FiatSceneViewModel.swift` | 2 | 1 |
 | `ManageWallets/WalletIDetailViewModel.swift` | 2 | 0 |

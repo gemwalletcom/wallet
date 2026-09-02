@@ -14,7 +14,6 @@ import class Gemstone.GemAssetDiscoveryService
 import class Gemstone.GemAssetsService
 import class Gemstone.GemAvatarService
 import class Gemstone.GemBalanceService
-import class Gemstone.GemChainService
 import class Gemstone.GemChartService
 import class Gemstone.GemRecentActivityService
 import class Gemstone.GemConfirmTransferService
@@ -88,7 +87,6 @@ public struct ViewModelFactory: Sendable {
     let avatarService: GemAvatarService
     let bannerService: GemBannerService
     let balanceService: GemBalanceService
-    let chainService: GemChainService
     let confirmService: GemConfirmService
     let contactsService: GemContactsService
     let manageContactService: GemManageContactService
@@ -357,7 +355,6 @@ public struct ViewModelFactory: Sendable {
             wallet: wallet,
             selectType: selectType,
             service: assetSelectionService(),
-            chainService: chainService,
             recentAssetsService: recentAssetsService,
             selectAssetAction: selectAssetAction,
             chains: chains,

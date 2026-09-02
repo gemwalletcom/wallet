@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemChainServiceProtocol
 import Components
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
@@ -20,7 +19,6 @@ import SwiftUI
 @MainActor
 public final class SelectAssetViewModel {
     private let service: any GemAssetSelectionServiceProtocol
-    private let chainService: any GemChainServiceProtocol
     private let recentAssetsService: any GemRecentActivityServiceProtocol
     let selectType: SelectAssetType
     let flow: SelectAssetFlow
@@ -49,7 +47,6 @@ public final class SelectAssetViewModel {
         wallet: Wallet,
         selectType: SelectAssetType,
         service: any GemAssetSelectionServiceProtocol,
-        chainService: any GemChainServiceProtocol,
         recentAssetsService: any GemRecentActivityServiceProtocol,
         selectAssetAction: AssetAction = .none,
         chains: [Chain] = [],
@@ -57,7 +54,6 @@ public final class SelectAssetViewModel {
         self.service = service
         self.wallet = wallet
         self.selectType = selectType
-        self.chainService = chainService
         self.recentAssetsService = recentAssetsService
         flow = selectType.flow()
         onSelectAssetAction = selectAssetAction
@@ -68,7 +64,6 @@ public final class SelectAssetViewModel {
                 chains: wallet.chains,
                 selected: chains,
             ),
-            chainService: chainService,
         )
         filterModel = filter
 

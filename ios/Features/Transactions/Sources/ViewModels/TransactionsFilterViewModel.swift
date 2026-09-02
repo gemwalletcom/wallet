@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemChainServiceProtocol
 import Foundation
 import Localization
 import Primitives
@@ -12,7 +11,6 @@ import Store
 public final class TransactionsFilterViewModel {
     private let wallet: Wallet
     private let type: TransactionsRequestType
-    private let chainService: any GemChainServiceProtocol
 
     public var chainsFilter: ChainsFilterViewModel {
         didSet { query.request.filters = requestFilters }
@@ -31,12 +29,7 @@ public final class TransactionsFilterViewModel {
     var isPresentingChains: Bool = false
     var isPresentingTypes: Bool = false
 
-    public init(
-        wallet: Wallet,
-        type: TransactionsRequestType,
-        chainService: any GemChainServiceProtocol,
-    ) {
-        self.chainService = chainService
+    public init(wallet: Wallet, type: TransactionsRequestType) {
         self.wallet = wallet
         self.type = type
 
@@ -72,7 +65,6 @@ public final class TransactionsFilterViewModel {
             state: .data(.plain(chainsFilter.allChains)),
             selectedItems: chainsFilter.selectedChains,
             selectionType: .multiSelection,
-            chainService: chainService,
         )
     }
 

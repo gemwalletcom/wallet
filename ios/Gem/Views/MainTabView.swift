@@ -13,7 +13,6 @@ import GemstoneServices
 import WalletTab
 
 struct MainTabView: View {
-    @Environment(\.chainService) private var chainService
     @Environment(\.deviceService) private var deviceService
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
@@ -63,7 +62,6 @@ struct MainTabView: View {
                         transactionsService: transactionsService,
                         wallet: wallet,
                         type: .all,
-                        chainService: chainService,
                         preferencesService: preferencesService,
                     ),
                 )

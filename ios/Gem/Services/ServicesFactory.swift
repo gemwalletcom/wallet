@@ -349,7 +349,6 @@ struct ServicesFactory {
             avatarService: avatarService,
             bannerService: bannerService,
             balanceService: balanceService,
-            chainService: chainService,
             confirmService: confirmService,
             contactsService: Gemstone.GemContactsService(contacts: contactService),
             manageContactService: Gemstone.GemManageContactService(
