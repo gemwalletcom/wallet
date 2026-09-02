@@ -348,15 +348,14 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 ### 3. Rules still written once per platform
 
-- **The amount screen composes its own service on the app.** iOS `AmountService` is a struct
-  holding `GemStakeService` + `GemAmountService`; `GemAmountService` is a `new()` with no fields
-  whose one method validates a value against an available and a minimum. The iOS providers
-  (`AmountTransferViewModel`, `AmountStakeViewModel`, `AmountPerpetualViewModel`,
-  `AmountEarnViewModel`, 1.1k lines) and Android's `providers/*` (1k lines) each derive the
-  available value, the minimum, the max button and the fiat conversion from `GemAmountRules`.
-  Build `GemAmountService { stake, preferences }` per screen with `currency()`, `limits(...)`,
-  `validate(...)`, `earn_data(...)`, and let both providers read one `GemAmountLimits` instead of
-  computing it; the iOS `AmountService` struct and the stateless object go with it.
+- **The amount providers still mirror each other.** `GemAmountType::validate` now checks a value
+  against the type's own available value and minimum, so neither app hands those in, and
+  `GemAmountService { stake, preferences }` answers the currency, the earn data and the perpetual
+  defaults. What is left is the provider layer itself: the iOS providers (`AmountTransferViewModel`,
+  `AmountStakeViewModel`, `AmountPerpetualViewModel`, `AmountEarnViewModel`) and Android's
+  `providers/*` each derive the max button, the equivalent value and the confirm input from
+  `GemAmountRules` / `GemAmountLimits`; a Core `GemAmountInput` value that carries all of it per
+  type would let both collapse to a view-state mapping.
 - **The WalletConnect sign-message and request screens.** iOS `SignMessageSceneViewModel` holds
   explorer, name and application-metadata services; Android `WCRequestViewModel` holds ten
   dependencies. `GemWalletConnectService::handle_request` already decodes and simulates the
@@ -448,7 +447,6 @@ having the parent vend the child view model.
 | `Transactions/TransactionsViewModel.swift` | 2 | 0 |
 | `WalletConnector/WalletConnector/ViewModels/SignMessageSceneViewModel.swift` | 3 | 0 |
 | `Perpetuals/PerpetualsSceneViewModel.swift` | 2 | 0 |
-| `Transfer/AmountEarnViewModel.swift` | 2 | 1 |
 
 Single-service view models that only need the property made `private`:
 

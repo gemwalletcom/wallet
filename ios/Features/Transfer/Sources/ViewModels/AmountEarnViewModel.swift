@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAmountService
 import BigInt
 import Foundation
 import enum Gemstone.GemAmountType
-import protocol Gemstone.GemStakeServiceProtocol
+import protocol Gemstone.GemAmountServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -14,22 +13,14 @@ import struct Gemstone.GemTransferData
 public final class AmountEarnViewModel: AmountDataProvidable {
     let asset: Asset
     let action: EarnType
-    private let stakeService: any GemStakeServiceProtocol
+    private let service: any GemAmountServiceProtocol
     private let wallet: Wallet
-    let amountService: GemAmountService
 
-    init(
-        asset: Asset,
-        action: EarnType,
-        stakeService: any GemStakeServiceProtocol,
-        wallet: Wallet,
-        amountService: GemAmountService,
-    ) {
+    init(asset: Asset, action: EarnType, service: any GemAmountServiceProtocol, wallet: Wallet) {
         self.asset = asset
         self.action = action
-        self.stakeService = stakeService
+        self.service = service
         self.wallet = wallet
-        self.amountService = amountService
     }
 
     var provider: DelegationValidator {
@@ -70,7 +61,7 @@ public final class AmountEarnViewModel: AmountDataProvidable {
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData {
         let address = try wallet.account(for: asset.chain).address
-        let earnData = try await ContractCallData(stakeService.getEarnData(
+        let earnData = try await ContractCallData(service.earnData(
             assetId: asset.id.identifier,
             address: address,
             value: String(value),

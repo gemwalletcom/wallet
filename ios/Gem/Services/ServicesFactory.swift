@@ -391,7 +391,7 @@ struct ServicesFactory {
             keystore: storages.keystore,
             observablePreferences: observablePreferences,
             recentAssetsService: recentAssetsService,
-            amountService: AmountService(stakeService: stakeService, amountService: Gemstone.GemAmountService()),
+            amountService: Gemstone.GemAmountService(stake: stakeService, preferences: preferencesService),
             toastPresenter: toastPresenter,
             walletPreferencesService: walletPreferencesService,
             deviceKeyService: deviceKeyService,

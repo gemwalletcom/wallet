@@ -38,14 +38,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigInteger
 import javax.inject.Inject
-import uniffi.gemstone.GemAmountService
+import uniffi.gemstone.GemAmountType
+import uniffi.gemstone.GemTransferBalance
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AmountViewModel @Inject constructor(
     factory: AmountProviderFactory,
     savedStateHandle: SavedStateHandle,
-    private val amountService: GemAmountService,
 ) : ViewModel() {
 
     private val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Auto)
@@ -106,10 +106,10 @@ class AmountViewModel @Inject constructor(
             snapshotFlow { amount },
             amountInputType,
             provider.assetInfo,
-            provider.availableBalance,
-            provider.minimumValue,
-        ) { input, type, current, balance, minimum ->
-            ValidationInputs(input, type, current?.asset, balance, minimum)
+            provider.amountType,
+            provider.balance,
+        ) { input, type, current, amountType, balance ->
+            ValidationInputs(input, type, current?.asset, amountType, balance)
         }
             .mapLatest { validate(it) }
             .onEach { amountError.value = it }
@@ -146,7 +146,9 @@ class AmountViewModel @Inject constructor(
                 AmountValidation.parseAmount(asset, amount)
                 val price = current.price?.price?.price ?: 0.0
                 val crypto = amountInputType.value.getAmount(amount, asset.decimals, price)
-                AmountValidation.validate(amountService, asset, crypto, provider.availableBalance.value, provider.minimumValue.value)
+                val amountType = provider.amountType.value ?: return@launch
+                val balance = provider.balance.value ?: return@launch
+                AmountValidation.validate(amountType, asset, crypto, balance)
                 amountError.value = AmountError.None
                 val isMax = crypto.atomicValue == provider.maxValue()
                 onConfirm(provider.buildConfirmInput(crypto, isMax))
@@ -167,7 +169,9 @@ class AmountViewModel @Inject constructor(
             AmountValidation.parseAmount(asset, inputs.amount)
             val price = current.price?.price?.price ?: 0.0
             val crypto = inputs.inputType.getAmount(inputs.amount, asset.decimals, price)
-            AmountValidation.validate(amountService, asset, crypto, inputs.availableBalance, inputs.minimumValue)
+            val amountType = inputs.amountType ?: return AmountError.None
+            val balance = inputs.balance ?: return AmountError.None
+            AmountValidation.validate(amountType, asset, crypto, balance)
             AmountError.None
         } catch (err: Throwable) {
             err as? AmountError ?: AmountError.None
@@ -209,6 +213,6 @@ private data class ValidationInputs(
     val amount: String,
     val inputType: AmountInputType,
     val asset: Asset?,
-    val availableBalance: BigInteger,
-    val minimumValue: BigInteger,
+    val amountType: GemAmountType?,
+    val balance: GemTransferBalance?,
 )

@@ -34,6 +34,10 @@ impl GemAmountType {
             reserves_fee,
         })
     }
+
+    pub fn validate(&self, asset: &Asset, balance: &GemTransferBalance, value: String) -> Result<(), GemAmountError> {
+        validate(&parse_value(&value)?, &self.available_value(asset, balance)?, &minimum_value(self, asset))
+    }
 }
 
 impl GemAmountType {
@@ -384,6 +388,22 @@ mod tests {
         assert_eq!(validate(&BigInt::from(0), &BigInt::from(10), &BigInt::from(5)), Err(GemAmountError::Zero));
         assert_eq!(validate(&BigInt::from(-1), &BigInt::from(10), &BigInt::from(5)), Err(GemAmountError::Zero));
         assert_eq!(parse_value("abc"), Err(GemAmountError::InvalidValue { value: "abc".into() }));
+
+        let stake = GemAmountType::Stake {
+            stake_type: GemAmountStakeType::Stake,
+        };
+        let bnb = asset(Chain::SmartChain);
+        assert_eq!(
+            stake.validate(&bnb, &balance(5_000_000_000_000_000_000, 0, 0, 0), "990000000000000000".to_string()),
+            Err(GemAmountError::BelowMinimum {
+                minimum: "1000000000000000000".into()
+            })
+        );
+        assert_eq!(stake.validate(&bnb, &balance(5_000_000_000_000_000_000, 0, 0, 0), "1500000000000000000".to_string()), Ok(()));
+        assert_eq!(
+            GemAmountType::Transfer.validate(&bnb, &balance(10, 0, 0, 0), "11".to_string()),
+            Err(GemAmountError::InsufficientBalance { available: "10".into() })
+        );
     }
 
     #[test]

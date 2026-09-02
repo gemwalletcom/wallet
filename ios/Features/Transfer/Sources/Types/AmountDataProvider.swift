@@ -1,7 +1,6 @@
-import protocol Gemstone.GemPreferencesServiceProtocol
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAmountService
+import protocol Gemstone.GemAmountServiceProtocol
 import enum Gemstone.GemAmountType
 import BigInt
 import GemstonePrimitives
@@ -14,34 +13,25 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
     case perpetual(AmountPerpetualViewModel)
     case earn(AmountEarnViewModel)
 
-    static func make(
-        from input: AmountInput,
-        wallet: Wallet,
-        service: AmountService,
-        preferencesService: any GemPreferencesServiceProtocol,
-    ) -> AmountDataProvider {
+    static func make(from input: AmountInput, wallet: Wallet, service: any GemAmountServiceProtocol) -> AmountDataProvider {
         switch input.type {
         case let .transfer(recipient):
-            .transfer(AmountTransferViewModel(asset: input.asset, action: .send(recipient), amountService: service.amountService))
+            .transfer(AmountTransferViewModel(asset: input.asset, action: .send(recipient)))
         case let .deposit(recipient):
-            .transfer(AmountTransferViewModel(asset: input.asset, action: .deposit(recipient), amountService: service.amountService))
+            .transfer(AmountTransferViewModel(asset: input.asset, action: .deposit(recipient)))
         case let .withdraw(recipient):
-            .transfer(AmountTransferViewModel(asset: input.asset, action: .withdraw(recipient), amountService: service.amountService))
+            .transfer(AmountTransferViewModel(asset: input.asset, action: .withdraw(recipient)))
         case let .stake(stakeType):
-            .stake(AmountStakeViewModel(asset: input.asset, type: stakeType, amountService: service.amountService))
+            .stake(AmountStakeViewModel(asset: input.asset, type: stakeType))
         case let .perpetual(data):
-            .perpetual(AmountPerpetualViewModel(asset: input.asset, data: data, preferencesService: preferencesService, amountService: service.amountService))
+            .perpetual(AmountPerpetualViewModel(asset: input.asset, data: data, service: service))
         case let .earn(earnType):
-            .earn(AmountEarnViewModel(asset: input.asset, action: earnType, stakeService: service.stakeService, wallet: wallet, amountService: service.amountService))
+            .earn(AmountEarnViewModel(asset: input.asset, action: earnType, service: service, wallet: wallet))
         }
     }
 
     var asset: Asset {
         provider.asset
-    }
-
-    var amountService: GemAmountService {
-        provider.amountService
     }
 
     var title: String {

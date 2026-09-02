@@ -27,7 +27,7 @@ abstract class AmountDataProvider(
     abstract val assetInfo: StateFlow<AssetInfo?>
     abstract val amountType: StateFlow<GemAmountType?>
 
-    protected open val balance: StateFlow<GemTransferBalance?> by lazy {
+    open val balance: StateFlow<GemTransferBalance?> by lazy {
         assetInfo.map { it?.toAmountBalance() }.stateIn(scope, SharingStarted.Eagerly, null)
     }
 

@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAmountService
 import BigInt
 import Formatters
 import Foundation
@@ -23,11 +22,9 @@ public enum AmountStakeSelection {
 public final class AmountStakeViewModel: AmountDataProvidable {
     let asset: Asset
     let action: AmountStakeType
-    let amountService: GemAmountService
     public let selection: AmountStakeSelection
 
-    init(asset: Asset, type: AmountStakeType, amountService: GemAmountService) {
-        self.amountService = amountService
+    init(asset: Asset, type: AmountStakeType) {
         self.asset = asset
         action = type
         selection = Self.makeSelection(type: type)

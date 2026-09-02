@@ -314,6 +314,22 @@ public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Se
     public func handle(event _: Gemstone.StreamEvent, currency _: Gemstone.Currency) async throws {}
 }
 
+public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Sendable {
+    public init() {}
+
+    public func currency() -> Gemstone.Currency { Primitives.Currency.usd.rawValue }
+
+    public func earnData(assetId _: Gemstone.AssetId, address _: String, value _: String, earnType _: Gemstone.EarnType) async throws -> Gemstone.ContractCallData {
+        throw AnyError("not stubbed")
+    }
+
+    public func perpetualLeverage() -> UInt8 { 5 }
+
+    public func perpetualStopLossPercent() -> UInt8 { 0 }
+
+    public func perpetualTakeProfitPercent() -> UInt8 { 0 }
+}
+
 public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchecked Sendable {
     private let quotes: [Primitives.FiatQuote]
     private let check: @Sendable (Primitives.FiatQuote?) -> GemFiatAmountCheck

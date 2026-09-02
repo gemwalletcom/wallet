@@ -6,7 +6,6 @@ import struct Gemstone.GemTransferBalance
 import enum Gemstone.GemAmountError
 import struct Gemstone.GemAmountLimits
 import struct Gemstone.GemAmountRules
-import class Gemstone.GemAmountService
 import enum Gemstone.GemAmountType
 import GemstonePrimitives
 import Primitives
@@ -14,7 +13,6 @@ import struct Gemstone.GemTransferData
 
 protocol AmountDataProvidable {
     var asset: Asset { get }
-    var amountService: GemAmountService { get }
     var title: String { get }
     var amountType: AmountType { get }
     var gemAmountType: GemAmountType { get }
@@ -67,7 +65,7 @@ extension AmountDataProvidable {
     }
 }
 
-private extension GemTransferBalance {
+extension GemTransferBalance {
     init(_ balance: Balance) {
         self.init(
             available: balance.available.description,

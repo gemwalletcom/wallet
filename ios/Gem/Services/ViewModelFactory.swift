@@ -125,7 +125,7 @@ public struct ViewModelFactory: Sendable {
     let keystore: any Keystore
     let observablePreferences: ObservablePreferences
     let recentAssetsService: GemRecentActivityService
-    let amountService: AmountService
+    let amountService: GemAmountService
     let toastPresenter: ToastPresenter
     let walletPreferencesService: GemWalletPreferencesService
     let deviceKeyService: GemDeviceKeyService
@@ -493,7 +493,6 @@ public struct ViewModelFactory: Sendable {
             input: input,
             wallet: wallet,
             service: amountService,
-            preferencesService: preferencesService,
             onTransferAction: onTransferAction,
         )
     }

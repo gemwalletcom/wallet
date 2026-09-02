@@ -5,7 +5,7 @@ import Components
 import GemstoneServices
 import Formatters
 import Foundation
-import protocol Gemstone.GemPreferencesServiceProtocol
+import protocol Gemstone.GemAmountServiceProtocol
 import GemstoneFormatters
 import InfoSheet
 import Localization
@@ -21,6 +21,7 @@ import struct Gemstone.GemTransferData
 @MainActor
 @Observable
 public final class AmountSceneViewModel {
+    private let service: any GemAmountServiceProtocol
     private let wallet: Wallet
     private let onTransferAction: TransferDataAction
 
@@ -47,14 +48,14 @@ public final class AmountSceneViewModel {
     public init(
         input: AmountInput,
         wallet: Wallet,
-        service: AmountService,
-        preferencesService: any GemPreferencesServiceProtocol,
+        service: any GemAmountServiceProtocol,
         onTransferAction: TransferDataAction,
     ) {
         self.wallet = wallet
+        self.service = service
         self.onTransferAction = onTransferAction
-        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferencesService.currencyCode)
-        provider = .make(from: input, wallet: wallet, service: service, preferencesService: preferencesService)
+        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: service.currency())
+        provider = .make(from: input, wallet: wallet, service: service)
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
         amountInputModel = InputValidationViewModel(mode: .onDemand, validators: [])
         amountInputModel.update(validators: inputValidators)
@@ -272,7 +273,7 @@ private extension AmountSceneViewModel {
                 source: source,
                 decimals: asset.decimals.asInt,
                 validators: [
-                    AmountValueValidator(asset: asset, available: provider.availableValue(from: assetData), minimum: provider.minimumValue, amountService: provider.amountService),
+                    AmountValueValidator(type: provider.gemAmountType, asset: asset, balance: assetData.balance),
                 ],
             ),
         ]

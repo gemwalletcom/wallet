@@ -39,7 +39,8 @@ import org.junit.Before
 import org.junit.Test
 import java.math.BigInteger
 import uniffi.gemstone.GemAmountLimits
-import uniffi.gemstone.GemAmountService
+import uniffi.gemstone.GemAmountType
+import uniffi.gemstone.GemTransferBalance
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountViewModelTest {
@@ -59,8 +60,12 @@ class AmountViewModelTest {
     private val builtIsMax = mutableListOf<Boolean>()
     private val confirmInput = mockk<GemConfirmInput>(relaxed = true)
 
+    private val balanceFlow = MutableStateFlow<GemTransferBalance?>(transferBalance(HundredAtom))
+
     private val provider = mockk<AmountDataProvider>(relaxed = true) {
         every { assetInfo } returns assetInfoFlow
+        every { amountType } returns MutableStateFlow(GemAmountType.Transfer)
+        every { balance } returns balanceFlow
         every { availableBalance } returns availableBalanceFlow
         every { minimumValue } returns MutableStateFlow(BigInteger.ZERO)
         every { canChangeValue } returns MutableStateFlow(true)
@@ -94,6 +99,7 @@ class AmountViewModelTest {
         assertEquals(ButtonState.Disabled, viewModel.buttonState.value)
 
         availableBalanceFlow.value = OneAtom
+        balanceFlow.value = transferBalance(OneAtom)
         viewModel.setAmount("5")
         assertEquals(ButtonState.Disabled, viewModel.buttonState.value)
         assertTrue(viewModel.amountError.value is AmountError.InsufficientBalance)
@@ -121,6 +127,7 @@ class AmountViewModelTest {
     @Test
     fun `onNext rejects an amount over balance without confirming`() = viewModelTest { viewModel ->
         availableBalanceFlow.value = OneAtom
+        balanceFlow.value = transferBalance(OneAtom)
         viewModel.setAmount("5")
 
         assertNull(viewModel.confirm())
@@ -197,9 +204,11 @@ class AmountViewModelTest {
         assertNotNull(viewModel.reserveForFeeFormatted.value)
     }
 
+    private fun transferBalance(available: BigInteger) = GemTransferBalance(available.toString(), "0", "0", "0", 0u)
+
     private fun viewModelTest(block: suspend TestScope.(AmountViewModel) -> Unit) = runTest(testDispatcher) {
         val params = AmountParams.Transfer(asset.id, GemRecipient(address = "to", name = null))
-        val viewModel = AmountViewModel(factory, SavedStateHandle(mapOf(RouteArgument.Params.key to params.pack())), GemAmountService())
+        val viewModel = AmountViewModel(factory, SavedStateHandle(mapOf(RouteArgument.Params.key to params.pack())))
         try {
             runCurrent()
             block(viewModel)
