@@ -1,13 +1,12 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
-import com.gemwallet.android.domains.node.toNodeStatus
+import uniffi.gemstone.GemAddNodeException
 import uniffi.gemstone.GemChainSettingsServiceInterface
+import uniffi.gemstone.GemNodeCheck
 import kotlinx.coroutines.CancellationException
-import uniffi.gemstone.GatewayException
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.model.NodeStatus
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.features.settings.networks.viewmodels.models.AddNodeUIModel
 import com.wallet.core.primitives.Chain
@@ -43,9 +42,11 @@ class AddNodeViewModel @Inject constructor(
         state.update { it.copy(checking = true, nodeState = null, errorResId = null) }
         val chain = state.value.chain ?: return
         try {
-            val status = service.checkNode(chain.string, url).toNodeStatus(url)
+            val status = service.checkNode(chain.string, url)
             state.update { it.copy(nodeState = status, checking = false, errorResId = null) }
-        } catch (error: GatewayException.NetworkIdMismatch) {
+        } catch (error: GemAddNodeException.InvalidUrl) {
+            state.update { it.copy(checking = false, errorResId = R.string.errors_invalid_url) }
+        } catch (error: GemAddNodeException.InvalidNetworkId) {
             state.update { it.copy(checking = false, errorResId = R.string.errors_invalid_network_id) }
         } catch (error: CancellationException) {
             throw error
@@ -73,20 +74,18 @@ class AddNodeViewModel @Inject constructor(
         val input = url.value.trim()
         state.update { it.copy(nodeState = null, checking = false, errorResId = null) }
 
-        val nodeUrl = NodeUrlParser.parse(input)
-        if (nodeUrl != null) {
-            checkUrlJob = viewModelScope.launch {
-                delay(500)
-                if (nodeUrl == NodeUrlParser.parse(url.value.trim())) {
-                    checkUrl(nodeUrl)
-                }
-            }
+        if (input.isEmpty()) {
+            return
+        }
+        checkUrlJob = viewModelScope.launch {
+            delay(service.nodeCheckDebounceMilliseconds().toLong())
+            checkUrl(input)
         }
     }
 
     private data class State(
         val chain: Chain? = null,
-        val nodeState: NodeStatus? = null,
+        val nodeState: GemNodeCheck? = null,
         val checking: Boolean = false,
         val errorResId: Int? = null,
     ) {

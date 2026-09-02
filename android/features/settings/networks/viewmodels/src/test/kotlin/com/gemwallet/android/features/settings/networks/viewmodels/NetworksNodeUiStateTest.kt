@@ -1,7 +1,5 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
-import com.gemwallet.android.model.NodeStatus
-import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeStatusState
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Node
 import com.wallet.core.primitives.NodeState
@@ -9,6 +7,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemNodeStatusState
+import uniffi.gemstone.Latency
+import uniffi.gemstone.LatencyType
 
 class NetworksNodeUiStateTest {
 
@@ -30,12 +31,11 @@ class NetworksNodeUiStateTest {
             priority = 0,
         )
         val nodeStates = mapOf(
-            gemNode.url to NodeStatusState.Loading,
-            remainingNode.url to NodeStatusState.Error,
-            deletedNode.url to NodeStatusState.Result(
-                latestBlock = 1UL,
-                latency = 20UL,
-                chainId = "bitcoin",
+            gemNode.url to GemNodeStatusState.Loading,
+            remainingNode.url to GemNodeStatusState.Error,
+            deletedNode.url to GemNodeStatusState.Result(
+                latestBlockNumber = 1UL,
+                latency = Latency(LatencyType.FAST, 20.0),
             ),
         )
 
@@ -68,7 +68,7 @@ class NetworksNodeUiStateTest {
         val rows = buildNodeRows(
             nodes = listOf(gemNode, defaultNode, customNode),
             currentNode = gemNode,
-            nodeStates = mapOf(customNode.url to NodeStatusState.Error),
+            nodeStates = mapOf(customNode.url to GemNodeStatusState.Error),
             gemNodeFlag = { url -> "🇺🇸".takeIf { url == gemNode.url } },
             canDelete = { url -> url == customNode.url },
         )
@@ -76,39 +76,6 @@ class NetworksNodeUiStateTest {
         assertFalse(rows.first { it.node.url == gemNode.url }.canDelete)
         assertFalse(rows.first { it.node.url == defaultNode.url }.canDelete)
         assertTrue(rows.first { it.node.url == customNode.url }.canDelete)
-        assertEquals(NodeStatusState.Error, rows.first { it.node.url == customNode.url }.statusState)
-    }
-
-    @Test
-    fun `toStatusState maps zero latest block to error`() {
-        val status = NodeStatus(
-            url = "https://rpc.example.com/bitcoin",
-            chainId = "bitcoin",
-            blockNumber = 0UL,
-            inSync = true,
-            latency = 20UL,
-        )
-
-        assertEquals(NodeStatusState.Error, status.toStatusState())
-    }
-
-    @Test
-    fun `toStatusState keeps successful node responses as result`() {
-        val status = NodeStatus(
-            url = "https://rpc.example.com/bitcoin",
-            chainId = "bitcoin",
-            blockNumber = 42UL,
-            inSync = true,
-            latency = 20UL,
-        )
-
-        assertEquals(
-            NodeStatusState.Result(
-                latestBlock = 42UL,
-                latency = 20UL,
-                chainId = "bitcoin",
-            ),
-            status.toStatusState()
-        )
+        assertEquals(GemNodeStatusState.Error, rows.first { it.node.url == customNode.url }.statusState)
     }
 }

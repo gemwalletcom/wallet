@@ -100,7 +100,7 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
                     PropertyDataText(
                         "",
                         badge = {
-                            if (status.inSync) {
+                            if (status.isInSync) {
                                 Icon(
                                     imageVector = AppIcons.CheckCircleOutlined,
                                     tint = MaterialTheme.colorScheme.tertiary,
@@ -117,10 +117,10 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
                     )
                 },
             )
-            PropertyItem(R.string.nodes_import_node_latest_block, nf.format(status.blockNumber.toLong()))
+            PropertyItem(R.string.nodes_import_node_latest_block, nf.format(status.latestBlockNumber.toLong()))
             PropertyItem(
                 R.string.nodes_import_node_latency,
-                stringResource(R.string.common_latency_in_ms, status.latency.toLong())
+                stringResource(R.string.common_latency_in_ms, status.latency.value.toLong())
             )
             WarningItem()
         }

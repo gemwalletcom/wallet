@@ -18,7 +18,7 @@ struct LatencyViewModel {
     }
 
     var color: Color {
-        switch latency.type {
+        switch latency.latencyType {
         case .fast: Colors.green
         case .normal: Colors.orange
         case .slow: Colors.red

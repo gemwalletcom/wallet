@@ -2,6 +2,10 @@ use crate::services::collections::unique_by;
 use primitives::Chain;
 use primitives::node::{Node, NodeState};
 use primitives::node_config::{self, NodePriority, NodeRegion};
+use url::Url;
+
+const NODE_URL_SCHEME: &str = "https";
+const NODE_CHECK_DEBOUNCE_MILLISECONDS: u64 = 250;
 
 pub fn merge_nodes(default_nodes: Vec<Node>, stored_nodes: Vec<Node>) -> Vec<Node> {
     unique_by(default_nodes.into_iter().chain(stored_nodes), |node| node.url.clone())
@@ -67,6 +71,20 @@ pub fn default_nodes(chain: Chain) -> Vec<Node> {
         .collect()
 }
 
+pub fn node_check_debounce_milliseconds() -> u64 {
+    NODE_CHECK_DEBOUNCE_MILLISECONDS
+}
+
+pub fn node_url(input: &str) -> Option<String> {
+    let input = input.trim();
+    let candidate = match input.contains("://") {
+        true => input.to_string(),
+        false => format!("{NODE_URL_SCHEME}://{input}"),
+    };
+    let url = Url::parse(&candidate).ok()?;
+    (url.scheme() == NODE_URL_SCHEME && url.host_str().is_some_and(|host| host.contains('.'))).then_some(candidate)
+}
+
 pub fn websocket_url(url: &str) -> String {
     let base = url.trim_end_matches('/');
     let base = match base.strip_prefix("http") {
@@ -98,6 +116,18 @@ mod tests {
         assert_eq!(websocket_url("https://rpc.hypercore.dev/ws"), "wss://rpc.hypercore.dev/ws");
         assert_eq!(websocket_url("http://localhost:8545"), "ws://localhost:8545/ws");
         assert_eq!(websocket_url("wss://api.hyperliquid.xyz"), "wss://api.hyperliquid.xyz/ws");
+    }
+
+    #[test]
+    fn test_node_url_requires_https_and_a_dotted_host() {
+        assert_eq!(node_url("cloudflare-eth.com").as_deref(), Some("https://cloudflare-eth.com"));
+        assert_eq!(node_url(" https://rpc.example.com/v1 ").as_deref(), Some("https://rpc.example.com/v1"));
+        assert_eq!(node_url("http://cloudflare-eth.com"), None);
+        assert_eq!(node_url("ws://rpc.example.com"), None);
+        assert_eq!(node_url("https:///missing-host"), None);
+        assert_eq!(node_url("localhost:8545"), None);
+        assert_eq!(node_url("not-a-url"), None);
+        assert_eq!(node_url(""), None);
     }
 
     #[test]

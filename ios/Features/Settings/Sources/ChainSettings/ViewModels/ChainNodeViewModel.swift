@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import Foundation
+import enum Gemstone.GemNodeStatusState
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -12,13 +13,13 @@ struct ChainNodeViewModel {
     let chainNode: ChainNode
 
     private let gemNodeFlag: String?
-    private let statusState: NodeStatusState
+    private let statusState: GemNodeStatusState
     private let formatter: ValueFormatter
 
     init(
         chainNode: ChainNode,
         gemNodeFlag: String?,
-        statusState: NodeStatusState,
+        statusState: GemNodeStatusState,
         formatter: ValueFormatter,
     ) {
         self.chainNode = chainNode

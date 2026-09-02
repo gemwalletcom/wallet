@@ -19,7 +19,7 @@ enum class LatencyType(val string: String) {
 
 @Serializable
 data class Latency (
-	val latency_type: LatencyType,
+	val latencyType: LatencyType,
 	val value: Double
 )
 

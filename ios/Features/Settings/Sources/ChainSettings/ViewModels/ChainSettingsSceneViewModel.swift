@@ -3,8 +3,8 @@
 import Formatters
 import Foundation
 import protocol Gemstone.GemChainSettingsServiceProtocol
+import enum Gemstone.GemNodeStatusState
 import GemstonePrimitives
-import GemstoneServices
 import Localization
 import Primitives
 
@@ -23,7 +23,7 @@ public final class ChainSettingsSceneViewModel {
     private let formatter = ValueFormatter.full_US
 
     private var nodes: [ChainNode] = []
-    private var statusStateByNodeId: [String: NodeStatusState] = [:]
+    private var statusStateByNodeId: [String: GemNodeStatusState] = [:]
 
     public init(chain: Chain, service: any GemChainSettingsServiceProtocol) {
         self.chain = chain
@@ -46,7 +46,7 @@ public final class ChainSettingsSceneViewModel {
             ChainNodeViewModel(
                 chainNode: node,
                 gemNodeFlag: service.nodeFlag(url: node.node.url),
-                statusState: statusStateByNodeId[node.id] ?? .none,
+                statusState: statusStateByNodeId[node.id] ?? .loading,
                 formatter: formatter,
             )
         }
@@ -148,10 +148,10 @@ extension ChainSettingsSceneViewModel {
     }
 
     private func loadNodesStates() async {
-        await withTaskGroup(of: (ChainNode, NodeStatusState).self) { group in
+        await withTaskGroup(of: (ChainNode, GemNodeStatusState).self) { group in
             for node in nodes {
                 group.addTask {
-                    await (node, self.loadNodeStatusState(for: node))
+                    await (node, self.service.nodeStatus(chain: self.chain.rawValue, url: node.node.url))
                 }
             }
 
@@ -170,17 +170,5 @@ extension ChainSettingsSceneViewModel {
 
     private func currentNode() throws -> ChainNode {
         try ChainNode(chain: chain.rawValue, node: Primitives.Node(service.selectedNode(chain: chain.rawValue)))
-    }
-
-    private func loadNodeStatusState(for node: ChainNode) async -> NodeStatusState {
-        guard let url = URL(string: node.node.url) else {
-            return .error(error: URLError(.badURL))
-        }
-        do {
-            let nodeStatus = try await service.nodeStatus(chain: chain.rawValue, url: url.absoluteString).map()
-            return .result(nodeStatus)
-        } catch {
-            return .error(error: error)
-        }
     }
 }

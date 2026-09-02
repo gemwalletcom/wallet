@@ -3,6 +3,7 @@
 import Foundation
 import struct Gemstone.GemServiceEndpoint
 import protocol Gemstone.GemServiceStatusProtocol
+import GemstonePrimitives
 import Localization
 import Primitives
 
@@ -41,8 +42,7 @@ extension ServiceStatusViewModel {
             for (index, endpoint) in endpoints.enumerated() {
                 group.addTask {
                     do {
-                        let milliseconds = try await service.getEndpointLatency(url: endpoint.url)
-                        return (index, .result(milliseconds))
+                        return try await (index, .result(service.getEndpointLatency(url: endpoint.url).map()))
                     } catch {
                         return (index, .error)
                     }

@@ -1,15 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemChainSettingsServiceProtocol
 import Components
-import GemstonePrimitives
-import GemstoneServices
+import protocol Gemstone.GemChainSettingsServiceProtocol
 import Localization
 import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import Validators
 
 @MainActor
 @Observable
@@ -18,7 +15,7 @@ final class AddNodeSceneViewModel {
 
     let chain: Chain
 
-    var urlInputModel = InputValidationViewModel(mode: .onDemand, validators: [.url])
+    var urlInputModel = InputValidationViewModel(mode: .onDemand)
     var state: StateViewType<AddNodeResultViewModel> = .noData
     var isPresentingScanner: Bool = false
     var isPresentingAlertMessage: AlertMessage?
@@ -80,7 +77,7 @@ extension AddNodeSceneViewModel {
 
     private func setLoadTrigger(isImmediate: Bool) {
         let text = urlInputModel.text
-        guard text.isNotEmpty, urlInputModel.isValid else {
+        guard text.isNotEmpty else {
             state = .noData
             loadTrigger = nil
             return
@@ -93,27 +90,13 @@ extension AddNodeSceneViewModel {
             throw AnyError("Unknown result")
         }
 
-        try await service.addNode(chain: chain.rawValue, url: model.url.absoluteString)
+        try await service.addNode(chain: chain.rawValue, url: model.url)
     }
 
     func load() async {
-        guard let url = try? URLDecoder().decode(urlInputModel.text) else {
-            // safety check for onSubmitUrl
-            state = .error(AnyError(AddNodeError.invalidURL.errorDescription ?? ""))
-            return
-        }
-
         state = .loading
-
         do {
-            let status = try await service.checkNode(chain: chain.rawValue, url: url.absoluteString).map()
-            state = .data(AddNodeResultViewModel(addNodeResult: AddNodeResult(
-                url: url,
-                chainID: status.chainId,
-                blockNumber: status.latestBlockNumber,
-                isInSync: true,
-                latency: status.latency,
-            )))
+            state = try await .data(AddNodeResultViewModel(result: service.checkNode(chain: chain.rawValue, url: urlInputModel.text)))
         } catch {
             state.setError(error)
         }

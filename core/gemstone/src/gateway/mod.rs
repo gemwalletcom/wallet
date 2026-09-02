@@ -10,6 +10,7 @@ pub use preferences::EmptyPreferences;
 pub(crate) use preferences::{PreferencesWrapper, SecureStoreWrapper};
 
 use crate::services::chain::rules as chain_rules;
+use crate::services::node::GemNodeCheck;
 use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
 
 use crate::alien::{AlienProvider, AlienProviderWrapper, coalescing_provider};
@@ -22,7 +23,7 @@ use swapper::swapper::GemSwapper as Swapper;
 use yielder::Yielder;
 
 use primitives::perpetual::{PerpetualData, PerpetualPositionsSummary};
-use primitives::{AssetBalance, AssetId, Chain, ChartPeriod, Transaction, TransactionUpdate};
+use primitives::{AssetBalance, AssetId, Chain, ChartPeriod, Latency, NodeStatus, Transaction, TransactionUpdate};
 
 #[derive(uniffi::Object)]
 pub struct GemGateway {
@@ -84,6 +85,35 @@ impl GemGateway {
             .get_positions(&address, &asset_id)
             .await
             .map_err(|e| GatewayError::NetworkError { msg: e.to_string() })
+    }
+}
+
+impl GemGateway {
+    pub async fn get_node_status(&self, chain: Chain, url: &str) -> Result<NodeStatus, GatewayError> {
+        let provider = self.chain_factory.create_with_url(chain, url.to_string()).await?;
+        provider.get_nodes_status().await.map_err(map_network_error)
+    }
+
+    pub async fn check_node(&self, chain: Chain, url: &str) -> Result<GemNodeCheck, GatewayError> {
+        let provider = self.chain_factory.create_with_url(chain, url.to_string()).await?;
+        let status = provider.get_nodes_status().await.map_err(map_network_error)?;
+        if !chain_rules::is_valid_network_id(chain, &status.chain_id) {
+            return Err(GatewayError::NetworkIdMismatch {
+                chain: chain.to_string(),
+                network_id: status.chain_id,
+            });
+        }
+        if let Some(address) = chain_rules::node_verification_address(chain) {
+            provider.get_balance_coin(address).await.map_err(map_network_error)?;
+        }
+        let sync = provider.get_node_status().await.map_err(map_network_error)?;
+        Ok(GemNodeCheck {
+            url: url.to_string(),
+            chain_id: status.chain_id,
+            latest_block_number: status.latest_block_number,
+            is_in_sync: sync.in_sync,
+            latency: Latency::from_milliseconds(status.latency_ms),
+        })
     }
 }
 
@@ -190,26 +220,6 @@ impl GemGateway {
             .get_data(&asset_id, &address, &value, &earn_type)
             .await
             .map_err(|e| GatewayError::NetworkError { msg: e.to_string() })
-    }
-
-    pub async fn get_node_status(&self, chain: Chain, url: &str) -> Result<GemNodeStatus, GatewayError> {
-        let provider = self.chain_factory.create_with_url(chain, url.to_string()).await?;
-        provider.get_nodes_status().await.map_err(map_network_error)
-    }
-
-    pub async fn check_node(&self, chain: Chain, url: &str) -> Result<GemNodeStatus, GatewayError> {
-        let provider = self.chain_factory.create_with_url(chain, url.to_string()).await?;
-        let status = provider.get_nodes_status().await.map_err(map_network_error)?;
-        if !chain_rules::is_valid_network_id(chain, &status.chain_id) {
-            return Err(GatewayError::NetworkIdMismatch {
-                chain: chain.to_string(),
-                network_id: status.chain_id,
-            });
-        }
-        if let Some(address) = chain_rules::node_verification_address(chain) {
-            provider.get_balance_coin(address).await.map_err(map_network_error)?;
-        }
-        Ok(status)
     }
 }
 

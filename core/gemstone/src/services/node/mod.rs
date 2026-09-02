@@ -1,3 +1,4 @@
+pub mod model;
 pub mod rules;
 pub mod settings;
 pub mod store;
@@ -10,6 +11,7 @@ use primitives::Chain;
 use primitives::node::{Node, NodeState};
 use primitives::node_config::NodeRegion;
 
+pub use model::{GemAddNodeError, GemNodeCheck, GemNodeStatusState};
 pub use settings::GemChainSettingsService;
 pub use store::GemNodeStore;
 

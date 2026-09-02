@@ -5,12 +5,10 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.domains.node.toNodeStatus
 import uniffi.gemstone.GemChainSettingsServiceInterface
+import uniffi.gemstone.GemNodeStatusState
 import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.model.NodeStatus
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUiModel
-import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeStatusState
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NetworksUIState
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Node
@@ -148,7 +146,7 @@ class NetworksViewModel @Inject constructor(
             }
 
             val currentNode = currentNodeFor(chain, nodes, state.value.currentNode)
-            val loadingStates = nodes.associate { it.url to NodeStatusState.Loading }
+            val loadingStates = nodes.associate { it.url to GemNodeStatusState.Loading }
             updateState { current ->
                 if (current.chain != chain) {
                     current
@@ -165,7 +163,7 @@ class NetworksViewModel @Inject constructor(
                 nodes.forEach { node ->
                     launch {
                         val nodeState = withContext(Dispatchers.IO) {
-                            runCatching { service.nodeStatus(chain.string, node.url).toNodeStatus(node.url) }.getOrNull().toStatusState()
+                            service.nodeStatus(chain.string, node.url)
                         }
                         updateNodesIfCurrent(chain, refreshNonce) { current ->
                             if (current.nodes.none { it.url == node.url }) {
@@ -214,7 +212,7 @@ class NetworksViewModel @Inject constructor(
         val explorers: List<String> = emptyList(),
         val currentNode: Node? = null,
         val currentExplorer: String? = null,
-        val nodeStates: Map<String, NodeStatusState> = emptyMap(),
+        val nodeStates: Map<String, GemNodeStatusState> = emptyMap(),
         val nodes: List<Node> = emptyList(),
         val availableChains: List<Chain> = emptyList(),
         val selectChain: Boolean = true,
@@ -247,8 +245,8 @@ class NetworksViewModel @Inject constructor(
 
 internal fun visibleNodeStates(
     nodes: List<Node>,
-    nodeStates: Map<String, NodeStatusState>,
-): Map<String, NodeStatusState> {
+    nodeStates: Map<String, GemNodeStatusState>,
+): Map<String, GemNodeStatusState> {
     val nodeUrls = nodes.mapTo(hashSetOf()) { it.url }
     return nodeStates.filterKeys(nodeUrls::contains)
 }
@@ -256,7 +254,7 @@ internal fun visibleNodeStates(
 internal fun buildNodeRows(
     nodes: List<Node>,
     currentNode: Node,
-    nodeStates: Map<String, NodeStatusState>,
+    nodeStates: Map<String, GemNodeStatusState>,
     gemNodeFlag: (String) -> String?,
     canDelete: (String) -> Boolean,
 ): List<NodeRowUiModel> {
@@ -267,18 +265,9 @@ internal fun buildNodeRows(
             gemNodeFlag = gemNodeFlag(node.url),
             selected = node.url == currentNode.url,
             canDelete = canDelete(node.url),
-            statusState = nodeStates[node.url] ?: NodeStatusState.Loading,
+            statusState = nodeStates[node.url] ?: GemNodeStatusState.Loading,
         )
     }
-}
-
-internal fun NodeStatus?.toStatusState(): NodeStatusState = when {
-    this == null || blockNumber == 0UL -> NodeStatusState.Error
-    else -> NodeStatusState.Result(
-        latestBlock = blockNumber,
-        latency = latency,
-        chainId = chainId,
-    )
 }
 
 private fun displayHost(url: String): String {

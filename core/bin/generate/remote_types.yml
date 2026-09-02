@@ -12,6 +12,8 @@ remote:
   - SimulationPayloadFieldDisplay
   - SimulationPayloadFieldKind
   - SimulationPayloadField
+  - LatencyType
+  - Latency
 codes:
   - Currency
 identifiers:

@@ -1,11 +1,12 @@
 use std::sync::Arc;
 
-use primitives::Chain;
 use primitives::node::Node;
 use primitives::node_config::NodeRegion;
+use primitives::{Chain, Latency};
 
-use crate::gateway::{GatewayError, GemGateway};
-use crate::models::node::GemNodeStatus;
+use super::model::{GemAddNodeError, GemNodeCheck, GemNodeStatusState};
+use super::rules;
+use crate::gateway::GemGateway;
 use crate::services::chain::rules as chain_rules;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
@@ -70,11 +71,22 @@ impl GemChainSettingsService {
         NodeRegion::from_url(&url).map(|region| region.flag().to_string())
     }
 
-    pub async fn node_status(&self, chain: Chain, url: String) -> Result<GemNodeStatus, GatewayError> {
-        self.gateway.get_node_status(chain, &url).await
+    pub async fn node_status(&self, chain: Chain, url: String) -> GemNodeStatusState {
+        match self.gateway.get_node_status(chain, &url).await {
+            Ok(status) if status.latest_block_number > 0 => GemNodeStatusState::Result {
+                latest_block_number: status.latest_block_number,
+                latency: Latency::from_milliseconds(status.latency_ms),
+            },
+            Ok(_) | Err(_) => GemNodeStatusState::Error,
+        }
     }
 
-    pub async fn check_node(&self, chain: Chain, url: String) -> Result<GemNodeStatus, GatewayError> {
-        self.gateway.check_node(chain, &url).await
+    pub fn node_check_debounce_milliseconds(&self) -> u64 {
+        rules::node_check_debounce_milliseconds()
+    }
+
+    pub async fn check_node(&self, chain: Chain, url: String) -> Result<GemNodeCheck, GemAddNodeError> {
+        let url = rules::node_url(&url).ok_or(GemAddNodeError::InvalidUrl)?;
+        Ok(self.gateway.check_node(chain, &url).await?)
     }
 }

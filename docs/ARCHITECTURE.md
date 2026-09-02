@@ -585,7 +585,13 @@ Putting `check_node` on it was tried and does not compose. The networks screen's
 `GemChainSettingsService` sits above the gateway and composes it with `GemNodeService` and
 `GemExplorerService`, so status, validation, the node list and the explorer choice come from one
 per-screen service; `GemNodeService` keeps the list. Both apps' hand-written node wrappers went with
-the change.
+the change. The same service now finishes the two screens: `check_node` takes the raw input, applies
+the one URL rule (`https`, dotted host, bare host gets the scheme) and returns `GemNodeCheck` with
+the sync flag the provider reports and a classified `Latency`, failing with a typed
+`GemAddNodeError`; `node_status` returns `GemNodeStatusState` — `Error` for a failed call *or* a
+zero block, so neither app keeps a "block is zero" rule — and `Latency::from_milliseconds` owns the
+fast/normal/slow thresholds both apps had copied. iOS's `URLDecoder`/`URLTextValidator`, Android's
+`NodeUrlParser` and the hand-written `NodeStatus` models on both went with it.
 
 **Core returns the decision, not the ingredients for it.** When both apps would derive the same
 thing from a returned list, return the derived thing: `GemChart { values, current }` instead of

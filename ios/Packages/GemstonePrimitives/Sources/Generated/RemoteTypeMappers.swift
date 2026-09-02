@@ -73,6 +73,26 @@ public extension Primitives.FeePriority {
     }
 }
 
+public extension Gemstone.LatencyType {
+    func map() -> Primitives.LatencyType {
+        switch self {
+        case .fast: .fast
+        case .normal: .normal
+        case .slow: .slow
+        }
+    }
+}
+
+public extension Primitives.LatencyType {
+    func map() -> Gemstone.LatencyType {
+        switch self {
+        case .fast: .fast
+        case .normal: .normal
+        case .slow: .slow
+        }
+    }
+}
+
 public extension Gemstone.PerpetualProvider {
     func map() -> Primitives.PerpetualProvider {
         switch self {
@@ -283,6 +303,24 @@ public extension Primitives.Asset {
             symbol: symbol,
             decimals: decimals,
             assetType: type.map(),
+        )
+    }
+}
+
+public extension Gemstone.Latency {
+    func map() -> Primitives.Latency {
+        Primitives.Latency(
+            latencyType: latencyType.map(),
+            value: value,
+        )
+    }
+}
+
+public extension Primitives.Latency {
+    func map() -> Gemstone.Latency {
+        Gemstone.Latency(
+            latencyType: latencyType.map(),
+            value: value,
         )
     }
 }

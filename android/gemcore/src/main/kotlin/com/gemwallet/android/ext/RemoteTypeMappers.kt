@@ -52,6 +52,18 @@ fun com.wallet.core.primitives.FeePriority.toGem(): uniffi.gemstone.FeePriority 
     com.wallet.core.primitives.FeePriority.Fast -> uniffi.gemstone.FeePriority.FAST
 }
 
+fun uniffi.gemstone.LatencyType.toPrimitives(): com.wallet.core.primitives.LatencyType = when (this) {
+    uniffi.gemstone.LatencyType.FAST -> com.wallet.core.primitives.LatencyType.Fast
+    uniffi.gemstone.LatencyType.NORMAL -> com.wallet.core.primitives.LatencyType.Normal
+    uniffi.gemstone.LatencyType.SLOW -> com.wallet.core.primitives.LatencyType.Slow
+}
+
+fun com.wallet.core.primitives.LatencyType.toGem(): uniffi.gemstone.LatencyType = when (this) {
+    com.wallet.core.primitives.LatencyType.Fast -> uniffi.gemstone.LatencyType.FAST
+    com.wallet.core.primitives.LatencyType.Normal -> uniffi.gemstone.LatencyType.NORMAL
+    com.wallet.core.primitives.LatencyType.Slow -> uniffi.gemstone.LatencyType.SLOW
+}
+
 fun uniffi.gemstone.PerpetualProvider.toPrimitives(): com.wallet.core.primitives.PerpetualProvider = when (this) {
     uniffi.gemstone.PerpetualProvider.HYPERCORE -> com.wallet.core.primitives.PerpetualProvider.Hypercore
 }
@@ -184,6 +196,16 @@ fun com.wallet.core.primitives.Asset.toGem(): uniffi.gemstone.Asset = uniffi.gem
     symbol = symbol,
     decimals = decimals,
     assetType = type.toGem(),
+)
+
+fun uniffi.gemstone.Latency.toPrimitives(): com.wallet.core.primitives.Latency = com.wallet.core.primitives.Latency(
+    latencyType = latencyType.toPrimitives(),
+    value = value,
+)
+
+fun com.wallet.core.primitives.Latency.toGem(): uniffi.gemstone.Latency = uniffi.gemstone.Latency(
+    latencyType = latencyType.toGem(),
+    value = value,
 )
 
 fun uniffi.gemstone.SimulationPayloadField.toPrimitives(): com.wallet.core.primitives.SimulationPayloadField = com.wallet.core.primitives.SimulationPayloadField(

@@ -40,6 +40,16 @@ extension Gemstone.GatewayError: @retroactive LocalizedError {
     }
 }
 
+extension Gemstone.GemAddNodeError: @retroactive LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .InvalidUrl: Localized.Errors.invalidUrl
+        case .InvalidNetworkId: Localized.Errors.invalidNetworkId
+        case let .Gateway(error): error.errorDescription
+        }
+    }
+}
+
 extension Gemstone.GemstoneError: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {
