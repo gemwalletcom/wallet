@@ -61,7 +61,7 @@ class SessionCoordinator(
 
     init {
         scope.launch {
-            setCurrency(preferencesService.setupCurrency(sessionStore.storedCurrency()?.string ?: localeCurrencyCode()).toCurrency())
+            setCurrency(preferencesService.setupCurrency(sessionStore.storedCurrency()?.toGem() ?: localeCurrencyCode()).toCurrency())
         }
     }
 

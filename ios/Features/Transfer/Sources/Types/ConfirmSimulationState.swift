@@ -54,10 +54,7 @@ struct ConfirmSimulationState {
                 guard let value = try? header.value.map() else { return nil }
                 return AssetValueHeaderData(asset: header.asset.map(), value: value)
             },
-            balanceChanges: details?.balanceChanges.compactMap { change in
-                guard let value = BigInt(change.value, radix: 10) else { return nil }
-                return SimulationAssetChange(asset: change.asset.map(), value: value)
-            } ?? [],
+            balanceChanges: details?.balanceChanges.map { SimulationAssetChange(asset: $0.asset.map(), value: BigInt(core: $0.value)) } ?? [],
         )
     }
 }

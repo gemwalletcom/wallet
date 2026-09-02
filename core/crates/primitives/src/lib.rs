@@ -77,6 +77,7 @@ pub mod duration;
 pub use self::duration::{DAY, HOUR, MINUTE, MONTH, SECONDS_PER_DAY, SECONDS_PER_HOUR, SECONDS_PER_MINUTE, SECONDS_PER_WEEK, WEEK, parse_duration};
 pub mod currency;
 pub use self::asset::{Asset, AssetVecExt, ChainAsset};
+pub use self::currency::Currency;
 pub mod asset_id;
 pub use self::asset_id::{AssetId, AssetIdVecExt, CHAIN_SEPARATOR, TOKEN_ID_SEPARATOR};
 pub use crate::asset::AssetHashSetExt;

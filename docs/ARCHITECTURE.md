@@ -307,12 +307,16 @@ narrowest Rust visibility. Derive `uniffi::Record`/`uniffi::Enum` only for types
 FFI. After changing an exported member or type, regenerate bindings and build both apps — one
 platform may never have called the method the other still needs.
 
-Encoding members are scaffolding, not a pattern to copy. Before adding a type to `EXPOSED_TYPES`,
-verify that `core/bin/generate/src/remote_mappers.rs` can represent its full shape and inspect both
-generated mappers. The current generator handles fieldless enums; `StakeType` has data-carrying
-variants, so adding it mechanically would produce an incomplete mapping. Keep a single JSON bridge
-at the boundary until the generator supports the type; never add a second app-side model or copy
-policy to avoid that bridge.
+Encoding members are scaffolding, not a pattern to copy. `core/bin/generate/remote_types.yml`
+lists what `just generate-models` maps: `remote` types get `#[uniffi::remote]` and structural
+mappers on both apps; `codes` are string-backed enums that cross as their code and get
+`Primitives.X(core:)` / `.rawValue` on iOS and `toX()` / `toGem()` on Android; `identifiers` are
+hand-written parsers the record mappers call by convention (`X(core:)` / `.identifier`,
+`toX()` / `toIdentifier()`). Before adding a `remote` type, verify that the generator can represent
+its full shape and inspect both generated mappers. It handles fieldless enums; `StakeType` has
+data-carrying variants, so adding it mechanically would produce an incomplete mapping. Keep a single
+JSON bridge at the boundary until the generator supports the type; never add a second app-side
+model or copy policy to avoid that bridge.
 
 ## 7. At most one Core service on iOS; narrow cases on Android
 
@@ -414,8 +418,15 @@ case interfaces; lower layers that directly integrate Core use the generated
 
 A `GemFooService()` in a field initialiser or at file scope is a second instance the graph does not know about, and it is where an app-side variant creeps back in.
 
-- **iOS** — registered in `ServicesFactory`, exposed through an `@Entry` in `ios/Gem/Types/Environment.swift`, passed into the view model.
-- **Android** — provided in a Hilt module, injected. A Compose scene reads one instance from a `CompositionLocal` provided at `MainActivity` (`LocalChainService`, `LocalAssetConfigService`). A non-`@Composable` helper takes an explicit parameter — a `CompositionLocal` cannot be read outside a composable.
+- **iOS** — an owner (a service with a store, a client, a stream, or anything the app needs from
+  launch) is registered in `ServicesFactory`, exposed through an `@Entry` in
+  `ios/Gem/Types/Environment.swift`, and passed into the view model. A screen service — one that
+  only composes owners for a single screen (`GemAssetDetailsService`, `GemChartService`,
+  `GemTransactionDetailsService`) — is built in the `ViewModelFactory.xxxScene(...)` that builds
+  its view model, from the owners the factory already holds. It is never a field of
+  `AppResolver.Services` and never an `@Entry`: that constructs it on every launch of an app that
+  may never open the screen, and hands views a composition detail.
+- **Android** — provided in a Hilt module, injected. A Compose scene reads one instance from a `CompositionLocal` provided at `MainActivity` (`LocalChainService`, `LocalAssetConfigService`). A non-`@Composable` helper takes an explicit parameter — a `CompositionLocal` cannot be read outside a composable. A screen service is a `@Provides` like any other — Hilt builds it when its view model first asks, so nothing is built at launch — and is never read from a `CompositionLocal`.
 - **A value type or a namespace of statics** takes the service as a method parameter only when the
   answer genuinely requires that service's dependencies. A pure receiver-owned answer stays on
   the receiver according to § 6.
@@ -510,7 +521,7 @@ A mock's defaults should be the *usual* case. A mock that fails by default becom
 ## 11. Landing a change
 
 1. Implement in Core with the rule test.
-2. If a UniFFI signature, TypeShare model, `EXPOSED_TYPES` entry or mobile integration boundary
+2. If a UniFFI signature, TypeShare model, `remote_types.yml` entry or mobile integration boundary
    changed, run `just generate` from the repo root. Internal Core changes that preserve those
    contracts do not require regeneration. Never generate against half-edited Core.
 3. Wire both platforms.
@@ -566,12 +577,13 @@ step too early.
 path Core makes impossible; it was written three times before being removed. The only way that
 parse fails is a generation mismatch between two artifacts of one Rust enum, so it is handled
 once, by a named conversion with the same contract as UniFFI's own `try_lift` — `Currency(core:)`
-on iOS, `toCurrency()` on Android — and never per call site.
+on iOS, `toCurrency()` on Android, both generated from `remote_types.yml` — and never per call site.
 
-**Construct a screen service where the screen is constructed.** `ViewModelFactory.assetScene(...)`
-builds `GemAssetDetailsService` when the asset screen opens. An `@Entry` on `EnvironmentValues`
-builds it for every launch of an app that may never show that screen, and puts a composition
-detail where views can see it.
+**Construct a screen service where the screen is constructed.** `GemChartService` and
+`GemTransactionDetailsService` first landed as `ServicesFactory` fields with an `@Entry` each,
+and were moved into `ViewModelFactory.chartScene(...)` / `.transactionScene(...)` (§ 8): an
+`@Entry` builds a screen service on every launch of an app that may never show that screen, and
+puts a composition detail where views can see it.
 
 **An extension that repeats conversions for a composed service is duplication, not convenience.**
 `setAssetPinned(wallet:)` on `GemAssetDetailsServiceProtocol` copied the same `wallet.id.id` /
@@ -587,3 +599,16 @@ single-element list makes `any` and `all` indistinguishable.
 **Stage explicit paths in a shared checkout.** A `git add -A` sweep committed another session's
 half-applied view-model edit with no Core counterpart and broke `main` for everyone until the
 Core half was written. Nothing in this repo is safe to stage blind.
+
+**Never hand-edit a generated file.** `toPrimitivesOrNull()` was added by hand to the generated
+`RemoteTypeMappers.kt`; the next `just generate-models` erased it and broke the confirm screen.
+It was also a fallback Core makes impossible — an `Asset` Core returns always carries a valid
+`AssetId` — so the honest fix was `toPrimitives()` at the call site, not a generator change.
+When a generated shape is genuinely wrong, change `remote_types.yml` or the generator.
+
+**A "which address, which role" decision is a rule.** The transaction participant — sender or
+recipient by direction, contract for approvals, validator for delegations, provider for earn,
+recipient-or-contract from WalletConnect metadata — lived in a 35-line Swift `switch` and a
+40-line Kotlin `when`, each also choosing the explorer link. `transaction_participant` in Core
+returns the role and address, `GemTransactionDetailsService::participant` attaches the link, and
+each app maps a role to its localized title.

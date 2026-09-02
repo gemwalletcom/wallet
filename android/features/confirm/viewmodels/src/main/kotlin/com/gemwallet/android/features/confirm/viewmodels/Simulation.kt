@@ -8,7 +8,7 @@ import com.gemwallet.android.ui.models.withExplorerLinks
 import uniffi.gemstone.GemApprovalValue
 import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemConfirmTransferService
-import com.gemwallet.android.ext.toPrimitivesOrNull
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
@@ -37,7 +37,7 @@ fun GemConfirmSimulationState.toSimulation(
     confirmService: GemConfirmTransferService,
 ): Simulation {
     val details = simulation ?: return Simulation(warnings = warnings)
-    val header = details.header?.takeIf { it.asset.toPrimitivesOrNull() != null }
+    val header = details.header
 
     return Simulation(
         warnings = warnings,
@@ -45,14 +45,10 @@ fun GemConfirmSimulationState.toSimulation(
             .withExplorerLinks(chain, confirmService),
         secondaryPayloadFields = details.secondaryFields.map { it.decodeJson<SimulationPayloadField>() }
             .withExplorerLinks(chain, confirmService),
-        headerAsset = header?.asset?.toPrimitivesOrNull(),
+        headerAsset = header?.asset?.toPrimitives(),
         headerValue = (header?.value as? GemApprovalValue.Exact)?.value,
         headerIsUnlimited = header?.value is GemApprovalValue.Unlimited,
-        balanceChanges = details.balanceChanges.mapNotNull { change ->
-            val asset = change.asset.toPrimitivesOrNull() ?: return@mapNotNull null
-            val value = change.value.toBigIntegerOrNull() ?: return@mapNotNull null
-            SimulationAssetChange(asset = asset, value = value)
-        },
+        balanceChanges = details.balanceChanges.map { SimulationAssetChange(asset = it.asset.toPrimitives(), value = it.value.toBigInteger()) },
     )
 }
 

@@ -1,0 +1,8 @@
+remote:
+  - AssetType
+  - Asset
+  - RecentActivityType
+codes:
+  - Currency
+identifiers:
+  - AssetId

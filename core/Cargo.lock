@@ -4173,8 +4173,10 @@ dependencies = [
 name = "generate"
 version = "2.114.11"
 dependencies = [
+ "config",
  "fluent-syntax",
  "primitives",
+ "serde",
  "serde_json",
 ]
 

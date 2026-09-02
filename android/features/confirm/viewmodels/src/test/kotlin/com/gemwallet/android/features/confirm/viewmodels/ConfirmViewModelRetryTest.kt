@@ -11,6 +11,7 @@ import com.gemwallet.android.domains.confirm.confirmInput
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.domains.confirm.perpetual
 import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.testkit.mockAccount
@@ -103,7 +104,9 @@ class ConfirmViewModelRetryTest {
             getFeeAssets = mockk(relaxed = true),
             confirmTransaction = mockk(relaxed = true),
             buildConfirmProperties = mockk(relaxed = true),
-            confirmService = mockk(relaxed = true),
+            confirmService = mockk(relaxed = true) {
+                coEvery { simulationState(any(), any()) } returns GemConfirmSimulationState(simulation = null, addressNames = emptyList())
+            },
             savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transferService.pack(input)))),
             transferService = uniffi.gemstone.GemTransferService(),
         )

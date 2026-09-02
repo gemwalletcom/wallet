@@ -28,14 +28,13 @@ class SimulationTest {
     }
 
     @Test
-    fun `a balance change with an unreadable value is dropped`() {
+    fun `balance changes keep their sign and asset`() {
         val solana = mockAssetSolana()
         val usdc = mockAssetSolanaUSDC()
         val simulation = state(
             balanceChanges = listOf(
                 GemSimulationBalanceChange(asset = solana.toGem(), value = "-100005000"),
                 GemSimulationBalanceChange(asset = usdc.toGem(), value = "750000"),
-                GemSimulationBalanceChange(asset = usdc.toGem(), value = ""),
             ),
         ).toSimulation(warnings = emptyList(), chain = null, confirmService = confirmService)
 
@@ -64,22 +63,6 @@ class SimulationTest {
 
         assertEquals(false, exact.headerIsUnlimited)
         assertEquals("750000", exact.headerValue)
-    }
-
-    @Test
-    fun `an unreadable header asset drops the header instead of crashing`() {
-        val unreadable = uniffi.gemstone.Asset(
-            id = "",
-            name = "",
-            symbol = "",
-            decimals = 0,
-            assetType = uniffi.gemstone.AssetType.NATIVE,
-        )
-        val simulation = state(header = GemSimulationValue(asset = unreadable, value = GemApprovalValue.Exact("1")))
-            .toSimulation(warnings = emptyList(), chain = null, confirmService = confirmService)
-
-        assertNull(simulation.headerAsset)
-        assertNull(simulation.headerValue)
     }
 
     private fun state(
