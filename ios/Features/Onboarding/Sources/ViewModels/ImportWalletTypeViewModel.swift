@@ -48,4 +48,3 @@ extension ImportWalletTypeViewModel: Hashable {
         hasher.combine(filterChains(for: ""))
     }
 }
-
