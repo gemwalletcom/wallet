@@ -13,6 +13,7 @@ use super::model::{GemConfirmDestination, GemPendingTransactionInput, GemRecentA
 use crate::config::chain::is_memo_supported;
 use crate::models::transaction::{GemTransactionInputType, transaction_metadata_block_number, transaction_metadata_sequence};
 use crate::services::amount::model::GemAmountError;
+use crate::services::transactions::GemTransactionHeaderKind;
 
 #[uniffi::export]
 impl GemTransactionInputType {
@@ -24,6 +25,19 @@ impl GemTransactionInputType {
         match self {
             Self::TransferNft { asset, .. } => Asset::from_chain(asset.chain()),
             _ => self.asset().clone(),
+        }
+    }
+
+    pub fn header_kind(&self) -> GemTransactionHeaderKind {
+        match self {
+            Self::Transfer { .. } | Self::Deposit { .. } | Self::Withdrawal { .. } | Self::Stake { .. } | Self::Earn { .. } | Self::Generic { .. } => {
+                GemTransactionHeaderKind::Amount { shows_fiat: true }
+            }
+            Self::Account { .. } => GemTransactionHeaderKind::Amount { shows_fiat: false },
+            Self::TokenApprove { .. } => GemTransactionHeaderKind::AssetImage,
+            Self::TransferNft { .. } => GemTransactionHeaderKind::Nft,
+            Self::Swap { .. } => GemTransactionHeaderKind::Swap,
+            Self::Perpetual { .. } => GemTransactionHeaderKind::Symbol,
         }
     }
 
@@ -556,6 +570,23 @@ mod tests {
         assert_eq!(metadata["toValue"], "90");
         assert!(input.approval(TransactionType::TokenApproval).is_err());
         assert_eq!(input.approval(TransactionType::Swap).unwrap(), None);
+    }
+
+    #[test]
+    fn test_header_kind_by_input_type() {
+        assert_eq!(
+            GemTransactionInputType::Transfer { asset: asset(Chain::Ethereum) }.header_kind(),
+            GemTransactionHeaderKind::Amount { shows_fiat: true }
+        );
+        assert_eq!(
+            GemTransactionInputType::TokenApprove {
+                asset: asset(Chain::Ethereum),
+                approval_data: primitives::swap::ApprovalData::mock(),
+            }
+            .header_kind(),
+            GemTransactionHeaderKind::AssetImage
+        );
+        assert_eq!(perpetual_input(asset(Chain::HyperCore)).header_kind(), GemTransactionHeaderKind::Symbol);
     }
 
     #[test]

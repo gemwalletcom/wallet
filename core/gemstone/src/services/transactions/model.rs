@@ -105,3 +105,12 @@ impl GemTransactionSummary {
         self.equivalent_value.clone()
     }
 }
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemTransactionHeaderKind {
+    Amount { shows_fiat: bool },
+    Swap,
+    Nft,
+    Symbol,
+    AssetImage,
+}

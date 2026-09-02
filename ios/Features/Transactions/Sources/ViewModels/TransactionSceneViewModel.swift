@@ -166,6 +166,7 @@ extension TransactionSceneViewModel {
     private var headerViewModel: TransactionHeaderViewModel {
         TransactionHeaderViewModel(
             transaction: model.transaction,
+            kind: service.headerKind(transaction: transactionExtended.transaction.json()),
             infoModel: model.infoModel,
         )
     }

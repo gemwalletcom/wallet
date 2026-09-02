@@ -3,7 +3,7 @@ use primitives::{
     TransactionWalletConnectMetadata, TransferDataOutputAction,
 };
 
-use super::model::{GemAmountSign, GemTransactionParticipantRole, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue};
+use super::model::{GemAmountSign, GemTransactionHeaderKind, GemTransactionParticipantRole, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue};
 use crate::services::collections::unique;
 
 pub fn transaction_asset_ids(transactions: &[Transaction]) -> Vec<AssetId> {
@@ -145,6 +145,34 @@ fn resource(transaction: &Transaction) -> Option<primitives::Resource> {
     serde_json::from_value::<TransactionResourceTypeMetadata>(metadata)
         .ok()
         .map(|metadata| metadata.resource_type)
+}
+
+pub fn header_kind(transaction: &Transaction) -> GemTransactionHeaderKind {
+    match transaction.transaction_type {
+        TransactionType::Transfer
+        | TransactionType::StakeDelegate
+        | TransactionType::StakeUndelegate
+        | TransactionType::StakeRedelegate
+        | TransactionType::StakeRewards
+        | TransactionType::StakeWithdraw
+        | TransactionType::StakeFreeze
+        | TransactionType::StakeUnfreeze
+        | TransactionType::EarnDeposit
+        | TransactionType::EarnWithdraw
+        | TransactionType::SmartContractCall => GemTransactionHeaderKind::Amount { shows_fiat: true },
+        TransactionType::Swap => match transaction.swap_metadata() {
+            Some(_) => GemTransactionHeaderKind::Swap,
+            None => GemTransactionHeaderKind::Amount { shows_fiat: true },
+        },
+        TransactionType::TransferNFT => match transaction.nft_asset_id() {
+            Some(_) => GemTransactionHeaderKind::Nft,
+            None => GemTransactionHeaderKind::Amount { shows_fiat: false },
+        },
+        TransactionType::TokenApproval => GemTransactionHeaderKind::AssetImage,
+        TransactionType::AssetActivation | TransactionType::PerpetualOpenPosition | TransactionType::PerpetualClosePosition | TransactionType::PerpetualModifyPosition => {
+            GemTransactionHeaderKind::Symbol
+        }
+    }
 }
 
 fn wallet_connect_metadata(transaction: &Transaction) -> Option<TransactionWalletConnectMetadata> {
@@ -303,6 +331,28 @@ mod tests {
             .unwrap(),
         );
         assert_eq!(transaction_subtitle(&open), GemTransactionSubtitle::Price { value: 12.5 });
+    }
+
+    #[test]
+    fn test_header_kind_falls_back_to_an_amount_without_metadata() {
+        let mut swap = Transaction::mock();
+        swap.transaction_type = TransactionType::Swap;
+        swap.metadata = None;
+        assert_eq!(header_kind(&swap), GemTransactionHeaderKind::Amount { shows_fiat: true });
+        swap.metadata = Some(
+            serde_json::to_value(primitives::TransactionSwapMetadata {
+                from_asset: AssetId::from_chain(primitives::Chain::Ethereum),
+                from_value: 1u32.into(),
+                to_asset: AssetId::from_chain(primitives::Chain::Bitcoin),
+                to_value: 1u32.into(),
+                provider: None,
+            })
+            .unwrap(),
+        );
+        assert_eq!(header_kind(&swap), GemTransactionHeaderKind::Swap);
+        let mut approval = Transaction::mock();
+        approval.transaction_type = TransactionType::TokenApproval;
+        assert_eq!(header_kind(&approval), GemTransactionHeaderKind::AssetImage);
     }
 
     #[test]

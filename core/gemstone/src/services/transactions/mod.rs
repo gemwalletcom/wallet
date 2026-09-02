@@ -10,7 +10,10 @@ use chrono::Utc;
 use primitives::{AssetId, Currency, WalletId};
 
 pub use details::GemTransactionDetailsService;
-pub use model::{GemAmountSign, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionSubtitle, GemTransactionSummary, GemTransactionTitle, GemTransactionValue};
+pub use model::{
+    GemAmountSign, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionSubtitle, GemTransactionSummary, GemTransactionTitle,
+    GemTransactionValue,
+};
 pub use store::GemTransactionStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};

@@ -669,6 +669,16 @@ Android keeps its dApp-name row beside it, as iOS keeps `.app`. The tests that p
 tables on each app — `ConfirmRecipientViewModelTests` with its silently-passing `guard case`,
 `ConfirmDestinationTableTest` — became one Core test plus a mapping test on iOS.
 
+**Which header a transaction gets is a rule too.** iOS kept two tables in
+`TransactionHeaderTypeBuilder` (by transaction type, by input type) and Android two more (the
+details `amount` getter, the confirm screen's `when`), disagreeing on approvals (asset image vs
+amount) and contract calls (amount vs symbol). `GemTransactionHeaderKind { Amount { shows_fiat }
+| Swap | Nft | Symbol | AssetImage }` comes from `GemTransactionDetailsService::header_kind` for
+a stored transaction (falling back to an amount when swap or NFT metadata is missing) and
+`GemTransactionInputType::header_kind` for a confirm input; the apps only build the header the
+kind names. The Android details amount also takes its sign from Core's row value now, as iOS
+always did.
+
 **A "which address, which role" decision is a rule.** The transaction participant — sender or
 recipient by direction, contract for approvals, validator for delegations, provider for earn,
 recipient-or-contract from WalletConnect metadata — lived in a 35-line Swift `switch` and a

@@ -38,6 +38,7 @@ import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
 import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemTransactionDetailsService
+import uniffi.gemstone.GemTransactionHeaderKind
 import uniffi.gemstone.GemTransactionParticipant
 import uniffi.gemstone.GemTransactionParticipantRole
 import uniffi.gemstone.GemTransactionSummary
@@ -91,6 +92,7 @@ class GetTransactionDetailsImpl(
                         swapProvider = swapProvider,
                         swapMetadata = swapMetadata,
                         participant = transactionDetailsService.participant(data.transaction.toJson()),
+                        headerKind = transactionDetailsService.headerKind(data.transaction.toJson()),
                     )
                 }
             }
@@ -107,6 +109,7 @@ class TransactionDetailsAggregateImpl(
     override val currency: Currency,
     private val swapProvider: SwapperProviderType? = null,
     private val participant: GemTransactionParticipant? = null,
+    private val headerKind: GemTransactionHeaderKind = GemTransactionHeaderKind.Amount(showsFiat = true),
 ) : TransactionDetailsAggregate {
 
     private val row = GemTransactionSummary(data.transaction.toJson())
@@ -125,63 +128,35 @@ class TransactionDetailsAggregateImpl(
     override val state: TransactionState = data.transaction.state
 
     override val amount: TransactionDetailsValue.Amount
-        get() {
-            return when (data.transaction.type) {
-                TransactionType.Swap -> {
-                    val fromAsset = associatedAssets.firstOrNull { it.id() == swapMetadata?.fromAsset }
-                    val toAsset = associatedAssets.firstOrNull { it.id() == swapMetadata?.toAsset }
-
-                    if (swapMetadata == null || fromAsset == null || toAsset == null) {
-                        TransactionDetailsValue.Amount.None
-                    } else {
-                        TransactionDetailsValue.Amount.Swap(
-                            fromAsset = fromAsset,
-                            toAsset = toAsset,
-                            fromValue = swapMetadata.fromValue,
-                            toValue = swapMetadata.toValue,
-                            currency = currency,
-                        )
-                    }
-                }
-                TransactionType.TransferNFT -> {
-                    data.transaction.getNftMetadata()?.let { TransactionDetailsValue.Amount.NFT(it) }
-                        ?: TransactionDetailsValue.Amount.None
-                }
-
-                else -> {
-                    val value = Crypto(data.transaction.value)
-                    val fiat = data.price?.price?.let {
-                        CryptoFiatConverter.toFiatString(value, asset.decimals, it, currency)
-                    } ?: ""
-
-                    val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
-
-                    val (amount, equivalent) = when (data.transaction.type) {
-                        TransactionType.StakeDelegate,
-                        TransactionType.StakeUndelegate,
-                        TransactionType.StakeRewards,
-                        TransactionType.StakeRedelegate,
-                        TransactionType.StakeWithdraw,
-                        TransactionType.EarnWithdraw,
-                        TransactionType.EarnDeposit,
-                        TransactionType.Swap,
-                        TransactionType.StakeFreeze,
-                        TransactionType.StakeUnfreeze -> Pair(formatter.string(value.atomicValue, asset), fiat)
-                        TransactionType.Transfer -> Pair(
-                            row.value().sign().format(formatter.string(value.atomicValue, asset)),
-                            fiat,
-                        )
-                        TransactionType.TransferNFT,
-                        TransactionType.AssetActivation,
-                        TransactionType.SmartContractCall,
-                        TransactionType.PerpetualOpenPosition,
-                        TransactionType.PerpetualClosePosition,
-                        TransactionType.PerpetualModifyPosition,
-                        TransactionType.TokenApproval -> Pair(data.asset.symbol, null)
-                    }
-                    TransactionDetailsValue.Amount.Plain(data.asset, amount, equivalent)
+        get() = when (val kind = headerKind) {
+            is GemTransactionHeaderKind.Swap -> {
+                val fromAsset = associatedAssets.firstOrNull { it.id() == swapMetadata?.fromAsset }
+                val toAsset = associatedAssets.firstOrNull { it.id() == swapMetadata?.toAsset }
+                if (swapMetadata == null || fromAsset == null || toAsset == null) {
+                    TransactionDetailsValue.Amount.None
+                } else {
+                    TransactionDetailsValue.Amount.Swap(
+                        fromAsset = fromAsset,
+                        toAsset = toAsset,
+                        fromValue = swapMetadata.fromValue,
+                        toValue = swapMetadata.toValue,
+                        currency = currency,
+                    )
                 }
             }
+            is GemTransactionHeaderKind.Nft -> data.transaction.getNftMetadata()?.let { TransactionDetailsValue.Amount.NFT(it) }
+                ?: TransactionDetailsValue.Amount.None
+            is GemTransactionHeaderKind.Amount -> {
+                val value = Crypto(data.transaction.value)
+                val formatted = row.value().sign().format(ValueFormatter(style = ValueFormatter.Style.Full).string(value.atomicValue, asset))
+                val fiat = data.price?.price
+                    ?.takeIf { kind.showsFiat }
+                    ?.let { CryptoFiatConverter.toFiatString(value, asset.decimals, it, currency) }
+                    ?: ""
+                TransactionDetailsValue.Amount.Plain(data.asset, formatted, fiat)
+            }
+            is GemTransactionHeaderKind.Symbol,
+            is GemTransactionHeaderKind.AssetImage -> TransactionDetailsValue.Amount.Plain(data.asset, data.asset.symbol, null)
         }
 
     override val fee: TransactionDetailsValue.Fee

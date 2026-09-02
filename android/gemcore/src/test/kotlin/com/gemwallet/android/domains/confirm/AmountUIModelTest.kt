@@ -5,6 +5,7 @@ import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.TransactionType
+import uniffi.gemstone.GemTransactionHeaderKind
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -27,6 +28,7 @@ class AmountUIModelTest {
 
     private fun model(price: Double?) = AmountUIModel(
         transactionType = TransactionType.Transfer,
+        headerKind = GemTransactionHeaderKind.Amount(showsFiat = true),
         amount = BigInteger("1000000000"),
         fromAsset = AssetPriceValue(mockAssetSolana(), price?.let { mockAssetPriceInfo(price = it) }),
         toAsset = null,

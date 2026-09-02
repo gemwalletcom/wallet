@@ -52,6 +52,7 @@ import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.domains.confirm.applicationMetadata
 import com.gemwallet.android.domains.confirm.asset
 import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransactionHeaderKind
 import uniffi.gemstone.GemTransactionInputType
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
@@ -186,7 +187,7 @@ fun ConfirmScreen(
                         }
                         AmountListHead(amount = title, icon = asset)
                     }
-                    amountModel?.transactionType == TransactionType.Swap -> {
+                    amountModel?.headerKind is GemTransactionHeaderKind.Swap -> {
                         val model = requireNotNull(amountModel)
                         SwapListHead(
                             fromAsset = model.fromAsset,
@@ -197,9 +198,9 @@ fun ConfirmScreen(
                         )
                     }
 
-                    amountModel?.transactionType == TransactionType.TransferNFT -> amountModel?.nftAsset?.let { NftHead(it) }
+                    amountModel?.headerKind is GemTransactionHeaderKind.Nft -> amountModel?.nftAsset?.let { NftHead(it) }
 
-                    perpetualType != null -> {
+                    amountModel?.headerKind is GemTransactionHeaderKind.Symbol || amountModel?.headerKind is GemTransactionHeaderKind.AssetImage -> {
                         val asset = amountModel?.asset
                         AmountListHead(
                             amount = asset?.symbol.orEmpty(),
@@ -209,7 +210,7 @@ fun ConfirmScreen(
 
                     else -> AmountListHead(
                         amount = amountModel?.cryptoAmount ?: "",
-                        equivalent = amountModel?.amountEquivalent,
+                        equivalent = amountModel?.amountEquivalent?.takeIf { (amountModel?.headerKind as? GemTransactionHeaderKind.Amount)?.showsFiat != false },
                         icon = if (input?.transfer?.inputType is GemTransactionInputType.Withdrawal) {
                             PerpetualConfig.depositAsset
                         } else {

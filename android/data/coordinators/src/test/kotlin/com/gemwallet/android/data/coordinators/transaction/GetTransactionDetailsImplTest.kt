@@ -3,6 +3,7 @@ package com.gemwallet.android.data.coordinators.transaction
 import com.gemwallet.android.ext.hash
 import uniffi.gemstone.GemBlockExplorerLink
 import uniffi.gemstone.GemTransactionDetailsService
+import uniffi.gemstone.GemTransactionHeaderKind
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransaction
@@ -86,6 +87,7 @@ class GetTransactionDetailsImplTest {
             "https://explorer.near-intents.org/transactions/${transaction.to}",
         )
         every { transactionDetailsService.participant(any()) } returns null
+        every { transactionDetailsService.headerKind(any()) } returns GemTransactionHeaderKind.Swap
 
         val result = subject.getTransactionDetails(transaction.id).first()
 

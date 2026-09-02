@@ -30,6 +30,7 @@ import org.junit.Test
 import java.text.DateFormat
 import java.util.Date
 import uniffi.gemstone.GemBlockExplorerLink
+import uniffi.gemstone.GemTransactionHeaderKind
 import uniffi.gemstone.GemTransactionParticipant
 import uniffi.gemstone.GemTransactionParticipantRole
 import uniffi.gemstone.SwapperProvider
@@ -135,6 +136,7 @@ class TransactionDetailsAggregateImplTest {
         swapMetadata: TransactionSwapMetadata? = null,
         swapProvider: SwapperProviderType? = null,
         participant: GemTransactionParticipant? = null,
+        headerKind: GemTransactionHeaderKind = headerKind(data.transaction),
     ) = TransactionDetailsAggregateImpl(
         data = data,
         associatedAssets = associatedAssets,
@@ -143,7 +145,14 @@ class TransactionDetailsAggregateImplTest {
         currency = currency,
         swapProvider = swapProvider,
         participant = participant,
+        headerKind = headerKind,
     )
+
+    private fun headerKind(transaction: Transaction): GemTransactionHeaderKind = when (transaction.type) {
+        TransactionType.Swap -> GemTransactionHeaderKind.Swap
+        TransactionType.TransferNFT -> GemTransactionHeaderKind.Nft
+        else -> GemTransactionHeaderKind.Amount(showsFiat = true)
+    }
 
     private fun createSwapProvider(
         mode: SwapperProviderMode = SwapperProviderMode.CrossChain,
@@ -262,19 +271,6 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertEquals(Currency.USD, swapAmount.currency)
     }
 
-    @Test
-    fun testAmountSwap_missingMetadata() {
-        val transaction = createTransaction(
-            type = TransactionType.Swap,
-            value = "90000000000000000",
-            metadata = null,
-        )
-        val extended = createTransactionExtended(transaction, asset = ethAsset)
-        val aggregate = createAggregate(extended)
-
-        val amount = aggregate.amount
-        Assert.assertTrue(amount is TransactionDetailsValue.Amount.None)
-    }
 
     @Test
     fun testAmountSwap_missingAssets() {
@@ -702,19 +698,6 @@ class TransactionDetailsAggregateImplTest {
         Assert.assertEquals(assetId, nftAmount.metadata.assetId)
     }
 
-    @Test
-    fun testAmountNFT_missingMetadata() {
-        val transaction = createTransaction(
-            type = TransactionType.TransferNFT,
-            value = "1",
-            metadata = null,
-        )
-        val extended = createTransactionExtended(transaction, asset = ethAsset)
-        val aggregate = createAggregate(extended)
-
-        val amount = aggregate.amount
-        Assert.assertTrue(amount is TransactionDetailsValue.Amount.None)
-    }
 
     @Test
     fun testFee_withPrice() {

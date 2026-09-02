@@ -8,10 +8,12 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.TransactionType
+import uniffi.gemstone.GemTransactionHeaderKind
 import java.math.BigInteger
 
 class AmountUIModel(
     val transactionType: TransactionType,
+    val headerKind: GemTransactionHeaderKind,
     val amount: BigInteger,
     val fromAsset: AssetPriceValue,
     val toAsset: AssetPriceValue?,
