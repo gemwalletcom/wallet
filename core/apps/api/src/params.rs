@@ -1,5 +1,6 @@
+pub(crate) use primitives::MAX_QUERY_LIMIT;
 use primitives::currency::Currency;
-use primitives::{AssetId, Chain, ChartPeriod, FiatProviderName, FiatQuoteType, NFTAssetId, NFTCollectionId, SwapProvider, TRANSACTIONS_PAGE_SIZE, TransactionId};
+use primitives::{AssetId, Chain, ChartPeriod, FiatProviderName, FiatQuoteType, NFTAssetId, NFTCollectionId, SwapProvider, TransactionId};
 use rocket::Request;
 use rocket::form::{self, FromFormField, ValueField};
 use rocket::http::Status;
@@ -10,8 +11,6 @@ const MAX_ADDRESS_LENGTH: usize = 256;
 const MAX_ASSET_ID_LENGTH: usize = 256;
 const MAX_NFT_ID_LENGTH: usize = 256;
 const MAX_SEARCH_QUERY_LENGTH: usize = 128;
-pub(crate) const MAX_QUERY_LIMIT: usize = TRANSACTIONS_PAGE_SIZE;
-
 #[derive(Clone, Copy)]
 pub struct QueryLimitParam(pub usize);
 

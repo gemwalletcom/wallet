@@ -8,9 +8,9 @@ use gem_jsonrpc::{RpcClientError, RpcProvider, Target};
 use primitives::name::NameRecord;
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{
-    AddressName, AuthNonce, AuthenticatedRequest, ChainAddress, ChartPeriod, Device, FiatQuoteType, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, NFTAssetData,
-    NFTAssetId, NFTData, PortfolioAssets, PortfolioAssetsRequest, PriceAlert, ReferralCode, ReportNft, Rewards, ScanTransaction, ScanTransactionPayload, SupportMessage,
-    SupportMessageInput, TRANSACTIONS_MAX_PAGES, TRANSACTIONS_PAGE_SIZE, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains,
+    AddressName, AuthNonce, AuthenticatedRequest, ChainAddress, ChartPeriod, Device, FiatQuoteType, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification,
+    MAX_QUERY_LIMIT, MAX_QUERY_PAGES, NFTAssetData, NFTAssetId, NFTData, PortfolioAssets, PortfolioAssetsRequest, PriceAlert, ReferralCode, ReportNft, Rewards, ScanTransaction,
+    ScanTransactionPayload, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains,
 };
 use serde::de::DeserializeOwned;
 
@@ -108,14 +108,14 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
         let mut transactions = Vec::new();
         let mut address_names = Vec::new();
 
-        for _ in 0..TRANSACTIONS_MAX_PAGES {
+        for _ in 0..MAX_QUERY_PAGES {
             let offset = transactions.len();
             let response: TransactionsResponse = self
                 .send(GemDeviceApiTarget::GetTransactions {
                     wallet_id: wallet_id.clone(),
                     asset_id: asset_id.clone(),
                     from_timestamp,
-                    limit: TRANSACTIONS_PAGE_SIZE,
+                    limit: MAX_QUERY_LIMIT,
                     offset,
                 })
                 .await?;
@@ -128,7 +128,7 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
                 }
             }
 
-            if page_size < TRANSACTIONS_PAGE_SIZE {
+            if page_size < MAX_QUERY_LIMIT {
                 break;
             }
         }

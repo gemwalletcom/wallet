@@ -9,9 +9,6 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashSet, vec};
 use typeshare::typeshare;
 
-pub const TRANSACTIONS_PAGE_SIZE: usize = 100;
-pub const TRANSACTIONS_MAX_PAGES: usize = 100;
-
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[typeshare(swift = "Sendable, Equatable")]
 #[serde(rename_all = "camelCase")]
