@@ -70,7 +70,7 @@ fun AssetInfo.formatFiat(value: BigDecimal): String {
 fun AssetInfo.isMemoSupport() = asset.isMemoSupport()
 
 fun AssetInfo.swapValue(value: String): GemSwapValue = GemSwapValue(
-    value = value.toBigIntegerOrNull()?.toString() ?: "0",
+    value = value,
     decimals = asset.decimals.toUInt(),
     price = price?.price?.price,
 )
