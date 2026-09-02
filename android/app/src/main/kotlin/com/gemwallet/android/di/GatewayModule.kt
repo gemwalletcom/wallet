@@ -42,6 +42,7 @@ import uniffi.gemstone.GemBannerService
 import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPortfolioService
+import uniffi.gemstone.GemPortfolioServiceInterface
 import uniffi.gemstone.GemPortfolioStore
 import uniffi.gemstone.GemRewardsService
 import uniffi.gemstone.GemRewardsServiceInterface
@@ -229,7 +230,11 @@ object GatewayModule {
         store: GemPortfolioStore,
         priceService: GemPriceService,
         perpetualService: GemPerpetualService,
-    ): GemPortfolioService = GemPortfolioService(apiClient, store, priceService, perpetualService)
+        preferencesService: GemPreferencesService,
+    ): GemPortfolioService = GemPortfolioService(apiClient, store, priceService, perpetualService, preferencesService)
+
+    @Provides
+    fun provideGemPortfolioServiceInterface(service: GemPortfolioService): GemPortfolioServiceInterface = service
 
     @Provides
     @Singleton

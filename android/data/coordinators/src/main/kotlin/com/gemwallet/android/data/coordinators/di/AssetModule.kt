@@ -11,7 +11,6 @@ import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
 import com.gemwallet.android.application.assets.cases.GetHideBalancesState
 import com.gemwallet.android.application.assets.cases.GetImportInProgress
 import com.gemwallet.android.application.assets.cases.GetSearchLists
-import com.gemwallet.android.application.assets.cases.GetPortfolioData
 import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
 import uniffi.gemstone.GemBannerService
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
@@ -33,7 +32,6 @@ import com.gemwallet.android.data.coordinators.asset.GetChainAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetHideBalancesStateImpl
 import com.gemwallet.android.data.coordinators.asset.GetImportInProgressImpl
 import com.gemwallet.android.data.coordinators.asset.GetSearchListsImpl
-import com.gemwallet.android.data.coordinators.asset.GetPortfolioDataImpl
 import com.gemwallet.android.data.coordinators.asset.GetShowWelcomeBannerImpl
 import com.gemwallet.android.data.coordinators.asset.GetWalletSummaryImpl
 import com.gemwallet.android.data.coordinators.asset.SyncMissingAssetsImpl
@@ -59,7 +57,6 @@ import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemWalletPreferencesService
-import uniffi.gemstone.GemPortfolioService
 import javax.inject.Singleton
 import uniffi.gemstone.GemStreamSubscriptionService
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
@@ -132,15 +129,6 @@ object AssetModule {
     )
 
 
-    @Provides
-    @Singleton
-    fun provideGetPortfolioData(
-        portfolioService: GemPortfolioService,
-        getCurrentWallet: GetCurrentWallet,
-    ): GetPortfolioData = GetPortfolioDataImpl(
-        portfolioService = portfolioService,
-        getCurrentWallet = getCurrentWallet,
-    )
 
     @Provides
     @Singleton

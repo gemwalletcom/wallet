@@ -109,6 +109,24 @@ public extension Primitives.PerpetualProvider {
     }
 }
 
+public extension Gemstone.PortfolioType {
+    func map() -> Primitives.PortfolioType {
+        switch self {
+        case .wallet: .wallet
+        case .perpetuals: .perpetuals
+        }
+    }
+}
+
+public extension Primitives.PortfolioType {
+    func map() -> Gemstone.PortfolioType {
+        switch self {
+        case .wallet: .wallet
+        case .perpetuals: .perpetuals
+        }
+    }
+}
+
 public extension Gemstone.RecentActivityType {
     func map() -> Primitives.RecentActivityType {
         switch self {

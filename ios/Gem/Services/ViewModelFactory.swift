@@ -37,6 +37,7 @@ import class Gemstone.GemReceiveService
 import class Gemstone.GemRecipientService
 import class Gemstone.GemRewardsService
 import class Gemstone.GemPerpetualService
+import class Gemstone.GemPortfolioService
 import class Gemstone.GemPreferencesService
 import class Gemstone.GemPriceAlertService
 import class Gemstone.GemPriceService
@@ -107,6 +108,7 @@ public struct ViewModelFactory: Sendable {
     let nodeService: GemNodeService
     let paymentService: GemPaymentService
     let perpetualService: GemPerpetualService
+    let portfolioService: GemPortfolioService
     let preferencesService: GemPreferencesService
     let priceAlertService: GemPriceAlertService
     let priceService: GemPriceService
@@ -159,6 +161,11 @@ public struct ViewModelFactory: Sendable {
             input: AssetSceneInput(wallet: wallet, asset: asset),
             isPresentingSelectedAssetInput: isPresentingSelectedAssetInput,
         )
+    }
+
+    @MainActor
+    public func portfolioScene(wallet: Wallet, defaultType: PortfolioType) -> PortfolioSceneViewModel {
+        PortfolioSceneViewModel(wallet: wallet, service: portfolioService, preferences: observablePreferences, defaultType: defaultType)
     }
 
     @MainActor

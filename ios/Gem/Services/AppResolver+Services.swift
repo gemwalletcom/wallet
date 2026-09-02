@@ -81,7 +81,6 @@ extension AppResolver {
         let searchService: any GemSearchServiceProtocol
         let appLifecycleService: AppLifecycleService
         let inAppNotificationService: any GemNotificationServiceProtocol
-        let portfolioService: any GemPortfolioServiceProtocol
         let supportService: any GemSupportServiceProtocol
     }
 }

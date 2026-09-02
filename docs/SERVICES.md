@@ -309,6 +309,7 @@ consolidation, and a second Core service in a view model is the one to remove.
 | `GemNotificationsService` | `NotificationsViewModel` | — (`SettingsViewModel` uses push cases) |
 | `GemPerpetualDetailsService` | `PerpetualSceneViewModel` | `PerpetualDetailsViewModel` |
 | `GemPerpetualService` | `PerpetualsSceneViewModel` (+ recent activity) | `PerpetualMarketViewModel` (+ recent activity) |
+| `GemPortfolioService` | `PortfolioSceneViewModel` | `PortfolioChartViewModel` |
 | `GemPriceAlertService` | `PriceAlertsSceneViewModel`, `SetPriceAlertViewModel` | `PriceAlertViewModel`, `PriceAlertTargetViewModel` |
 | `GemReceiveService` | `ReceiveViewModel` | `ReceiveViewModel` |
 | `GemRecipientService` | `RecipientSceneViewModel` (+ `nameService`) | `RecipientViewModel` (+ `GemNameServiceInterface`) |

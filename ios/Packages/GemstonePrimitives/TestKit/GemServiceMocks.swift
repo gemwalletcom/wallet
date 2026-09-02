@@ -451,24 +451,12 @@ public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchec
         self.allTimeLow = allTimeLow
     }
 
-    public func syncWalletValues(walletId _: Gemstone.WalletId, period _: Gemstone.ChartPeriod, currency _: Gemstone.Currency) async throws -> GemPortfolioValues {
-        try GemPortfolioValues(values: [], allTimeHigh: allTimeHigh?.json(), allTimeLow: allTimeLow?.json())
-    }
-
-    public func portfolioData(input _: Gemstone.GemPortfolioDataInput) async throws -> Gemstone.PortfolioData {
+    public func portfolioData(wallet _: Gemstone.Wallet, portfolioType _: Gemstone.PortfolioType, period _: Gemstone.ChartPeriod) async throws -> Gemstone.PortfolioData {
         try Primitives.PortfolioData(
             charts: [PortfolioChartData(chartType: .value, values: [])],
             statistics: [allTimeHigh.map { .allTimeHigh($0) }, allTimeLow.map { .allTimeLow($0) }].compactMap(\.self),
             availablePeriods: [.day, .week, .month, .year, .all],
         ).json()
-    }
-
-    public func getAssets(period _: Gemstone.ChartPeriod, request _: Gemstone.PortfolioAssetsRequest) async throws -> Gemstone.PortfolioAssets {
-        try Primitives.PortfolioAssets(totalValue: 0, values: [], allTimeHigh: allTimeHigh, allTimeLow: allTimeLow, allocation: []).json()
-    }
-
-    public func getWalletAssets(walletId _: Gemstone.WalletId, period: Gemstone.ChartPeriod) async throws -> Gemstone.PortfolioAssets {
-        try await getAssets(period: period, request: Primitives.PortfolioAssetsRequest(assets: []).json())
     }
 }
 

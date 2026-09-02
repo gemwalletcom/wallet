@@ -25,7 +25,6 @@ struct WalletNavigationView: View {
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
     @Environment(\.priceService) private var priceService
-    @Environment(\.portfolioService) private var portfolioService
     @Environment(\.priceAlertService) private var priceAlertService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.bannerService) private var bannerService
@@ -232,14 +231,7 @@ struct WalletNavigationView: View {
                 case .addAsset:
                     AddAssetNavigationStack(wallet: model.wallet)
                 case let .portfolio(defaultType):
-                    PortfolioScene(
-                        model: PortfolioSceneViewModel(
-                            wallet: model.wallet,
-                            portfolioService: portfolioService,
-                            preferences: preferences,
-                            defaultType: defaultType,
-                        ),
-                    )
+                    PortfolioScene(model: viewModelFactory.portfolioScene(wallet: model.wallet, defaultType: defaultType))
                 case let .addContact(action):
                     AddContactNavigationView(action: action)
                 }

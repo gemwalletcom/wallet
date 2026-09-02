@@ -162,6 +162,7 @@ struct ServicesFactory {
             store: GemstonePortfolioStore(assetStore: storeManager.assetStore),
             price: priceService,
             perpetual: perpetualService,
+            preferences: preferencesService,
         )
         let priceAlertService = Gemstone.GemPriceAlertService(
             api: deviceApiClient,
@@ -359,6 +360,7 @@ struct ServicesFactory {
             nodeService: nodeService,
             paymentService: paymentService,
             perpetualService: perpetualService,
+            portfolioService: portfolioService,
             preferencesService: preferencesService,
             priceAlertService: priceAlertService,
             priceService: priceService,
@@ -431,7 +433,6 @@ struct ServicesFactory {
             searchService: searchService,
             appLifecycleService: appLifecycleService,
             inAppNotificationService: inAppNotificationService,
-            portfolioService: portfolioService,
             supportService: supportService,
         )
     }

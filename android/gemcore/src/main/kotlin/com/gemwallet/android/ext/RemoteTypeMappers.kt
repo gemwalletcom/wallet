@@ -72,6 +72,16 @@ fun com.wallet.core.primitives.PerpetualProvider.toGem(): uniffi.gemstone.Perpet
     com.wallet.core.primitives.PerpetualProvider.Hypercore -> uniffi.gemstone.PerpetualProvider.HYPERCORE
 }
 
+fun uniffi.gemstone.PortfolioType.toPrimitives(): com.wallet.core.primitives.PortfolioType = when (this) {
+    uniffi.gemstone.PortfolioType.WALLET -> com.wallet.core.primitives.PortfolioType.Wallet
+    uniffi.gemstone.PortfolioType.PERPETUALS -> com.wallet.core.primitives.PortfolioType.Perpetuals
+}
+
+fun com.wallet.core.primitives.PortfolioType.toGem(): uniffi.gemstone.PortfolioType = when (this) {
+    com.wallet.core.primitives.PortfolioType.Wallet -> uniffi.gemstone.PortfolioType.WALLET
+    com.wallet.core.primitives.PortfolioType.Perpetuals -> uniffi.gemstone.PortfolioType.PERPETUALS
+}
+
 fun uniffi.gemstone.RecentActivityType.toPrimitives(): com.wallet.core.primitives.RecentActivityType = when (this) {
     uniffi.gemstone.RecentActivityType.SEARCH -> com.wallet.core.primitives.RecentActivityType.Search
     uniffi.gemstone.RecentActivityType.TRANSFER -> com.wallet.core.primitives.RecentActivityType.Transfer

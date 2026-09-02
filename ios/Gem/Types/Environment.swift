@@ -74,6 +74,5 @@ extension EnvironmentValues {
     @Entry var viewModelFactory: ViewModelFactory = AppResolver.main.services.viewModelFactory
     @Entry var searchService: any GemSearchServiceProtocol = AppResolver.main.services.searchService
     @Entry var inAppNotificationService: any GemNotificationServiceProtocol = AppResolver.main.services.inAppNotificationService
-    @Entry var portfolioService: any GemPortfolioServiceProtocol = AppResolver.main.services.portfolioService
     @Entry var supportService: any GemSupportServiceProtocol = AppResolver.main.services.supportService
 }
