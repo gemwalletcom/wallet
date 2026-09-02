@@ -47,11 +47,7 @@ public struct SelectWalletViewModel: SelectableListAdoptable {
     }
 }
 
-extension SelectWalletViewModel: SelectableListNavigationAdoptable {
-    public var doneTitle: String {
-        Localized.Common.done
-    }
-}
+extension SelectWalletViewModel: SelectableListNavigationAdoptable {}
 
 extension Wallet: @retroactive SimpleListItemViewable {
     public var title: String {

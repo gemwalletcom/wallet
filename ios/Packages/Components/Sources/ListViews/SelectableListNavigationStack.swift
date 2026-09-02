@@ -5,7 +5,6 @@ import SwiftUI
 
 public protocol SelectableListNavigationAdoptable {
     var title: String { get }
-    var doneTitle: String { get }
 }
 
 public struct SelectableListNavigationStack<ViewModel: SelectableListAdoptable & SelectableListNavigationAdoptable, Content: View>: View {
