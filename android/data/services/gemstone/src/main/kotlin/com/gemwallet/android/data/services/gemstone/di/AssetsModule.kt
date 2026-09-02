@@ -20,7 +20,13 @@ import com.gemwallet.android.data.services.gemstone.stores.GemstonePortfolioStor
 import uniffi.gemstone.GemApiClient
 import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemAssetStore
+import uniffi.gemstone.GemAssetDetailsService
 import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemSwapServiceInterface
+import uniffi.gemstone.GemSwapService
+import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemDeeplinkService
+import uniffi.gemstone.GemBannerService
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBalanceStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import dagger.Lazy
@@ -177,6 +183,30 @@ object AssetsModule {
     @Provides
     @Singleton
     fun provideGemPortfolioStore(assetsDao: AssetsDao): GemPortfolioStore = GemstonePortfolioStore(assetsDao)
+
+    @Provides
+    @Singleton
+    fun provideGemAssetDetailsService(
+        assetsService: GemAssetsService,
+        balanceService: GemBalanceService,
+        transactionsService: GemTransactionsService,
+        bannerService: GemBannerService,
+        swapService: GemSwapServiceInterface,
+        explorerService: GemExplorerService,
+        priceAlertService: GemPriceAlertService,
+        streamSubscriptionService: GemStreamSubscriptionService,
+        deeplinkService: GemDeeplinkService,
+    ): GemAssetDetailsService = GemAssetDetailsService(
+        assetsService,
+        balanceService,
+        transactionsService,
+        bannerService,
+        swapService as GemSwapService,
+        explorerService,
+        priceAlertService,
+        streamSubscriptionService,
+        deeplinkService,
+    )
 
     @Provides
     @Singleton

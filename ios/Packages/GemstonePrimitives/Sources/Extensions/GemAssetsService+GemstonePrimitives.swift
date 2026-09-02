@@ -17,14 +17,4 @@ public extension GemAssetsServiceProtocol {
         try await ensureTokenAsset(assetId: assetId.identifier).map()
     }
 
-    @discardableResult
-    func syncMissingAssets(for assetIds: [Primitives.AssetId]) async throws -> [Primitives.AssetId] {
-        try await syncMissingAssets(assetIds: assetIds.ids).map { try Primitives.AssetId(id: $0) }
-    }
-
-    @discardableResult
-    func syncAsset(for assetId: Primitives.AssetId, currency: Primitives.Currency) async throws -> Primitives.AssetFull {
-        try await Primitives.AssetFull(syncAsset(assetId: assetId.identifier, currency: currency.json()))
-    }
-
 }

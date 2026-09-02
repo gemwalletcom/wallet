@@ -345,14 +345,11 @@ public extension AssetSceneViewModel {
         Task {
             await load()
         }
-        Task {
-            await updateAsset()
-        }
     }
 
     internal func load() async {
         await withTaskGroup(of: Void.self) { group in
-            group.addTask { await self.updateWallet() }
+            group.addTask { await self.refresh() }
             if assetData.priceAlerts.isNotEmpty {
                 group.addTask { await self.updatePriceAlerts() }
             }
@@ -540,15 +537,6 @@ extension AssetSceneViewModel {
         isPresentingAssetSheet = .url(url)
     }
 
-    private func loadTransactions() async {
-        do {
-            try await service.syncTransactions(walletId: walletModel.wallet.id.id, assetId: assetModel.asset.id.identifier)
-        } catch {
-            // TODO: - handle loadTransactions error
-            debugLog("asset scene: loadTransactions error \(error)")
-        }
-    }
-
     private func setPriceAlert(enabled: Bool) async throws {
         let currency = try Currency(id: preferences.currency)
         let priceAlert = PriceAlert.default(for: assetModel.asset.id, currency: currency)
@@ -559,52 +547,15 @@ extension AssetSceneViewModel {
         }
     }
 
-    private func updateAsset() async {
-        async let asset: Void = updateAssetData()
-        async let prices: Void = updatePrices()
-        _ = await (asset, prices)
-    }
-
-    private func updateAssetData() async {
-        let associations: [AssetAssociation]
-        do {
-            let asset = try await AssetFull(service.syncAsset(
-                assetId: assetModel.asset.id.identifier,
-                currency: Currency(id: preferences.currency).json(),
-            ))
-            associations = asset.associations
-        } catch {
-            // TODO: - handle updateAsset error
-            debugLog("asset scene: updateAsset error \(error)")
-            return
-        }
-
-        do {
-            _ = try await service.syncMissingAssets(assetIds: associations.map(\.assetId).ids)
-        } catch {
-            debugLog("asset scene: prefetch associations error \(error)")
-        }
-    }
-
-    private func updatePrices() async {
-        do {
-            try await service.addPrices(assetIds: [assetModel.asset.id.identifier])
-        } catch {
-            debugLog("asset scene: addPrices error \(error)")
-        }
-    }
-
-    private func updateWallet() async {
-        async let balance: Void = updateBalance()
-        async let transactions: Void = loadTransactions()
-        _ = await (balance, transactions)
-    }
-
-    private func updateBalance() async {
-        do {
-            try await service.updateBalances(walletId: walletModel.wallet.id.id, assetIds: [assetModel.asset.id.identifier])
-        } catch {
-            debugLog("asset scene: balance update error \(error)")
+    private func refresh() async {
+        guard let currency = try? Currency(id: preferences.currency) else { return }
+        let failures = await service.refresh(
+            walletId: walletModel.wallet.id.id,
+            assetId: assetModel.asset.id.identifier,
+            currency: currency.json(),
+        )
+        for failure in failures {
+            debugLog("asset scene: refresh \(failure.step) failed: \(failure.message)")
         }
     }
 

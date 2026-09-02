@@ -12,6 +12,7 @@ import protocol Gemstone.GemAssetDetailsServiceProtocol
 import struct Gemstone.GemBannerContent
 import enum Gemstone.GemBannerAction
 import struct Gemstone.GemBannerKey
+import struct Gemstone.GemAssetRefreshFailure
 import struct Gemstone.GemBlockExplorerLink
 import class Gemstone.GemDeeplinkService
 import class Gemstone.GemSimulationFormatter
@@ -29,6 +30,8 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
     public init(assetPair: GemSwapPairSuggestion? = nil) {
         self.assetPair = assetPair
     }
+
+    public func refresh(walletId: WalletId, assetId: AssetId, currency: Currency) async -> [GemAssetRefreshFailure] { [] }
 
     public func syncAsset(assetId: AssetId, currency: Currency) async throws -> AssetFull {
         Primitives.AssetFull.mock().json()

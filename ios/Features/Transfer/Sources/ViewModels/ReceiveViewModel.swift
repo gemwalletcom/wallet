@@ -175,8 +175,8 @@ public final class ReceiveViewModel: Sendable {
 
     private func prefetchAssociations() async {
         do {
-            try await assetsService.syncMissingAssets(
-                for: networkAssetIds.filter { $0 != assetModel.asset.id },
+            _ = try await assetsService.syncMissingAssets(
+                assetIds: networkAssetIds.filter { $0 != assetModel.asset.id }.ids,
             )
         } catch {
             debugLog("ReceiveViewModel prefetchAssociations error: \(error)")

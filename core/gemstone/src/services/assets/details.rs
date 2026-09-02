@@ -1,3 +1,4 @@
+use futures::TryFutureExt;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
@@ -14,7 +15,32 @@ use crate::services::stream::GemStreamSubscriptionService;
 use crate::services::swap::{GemSwapPairSuggestion, GemSwapService};
 use crate::services::transactions::GemTransactionsService;
 
+use crate::services::failures::{StepFailure, record};
+
 use super::GemAssetsService;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAssetRefreshStep {
+    AddPrices,
+    SyncAsset,
+    SyncAssociations,
+    UpdateBalances,
+    SyncTransactions,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemAssetRefreshFailure {
+    pub step: GemAssetRefreshStep,
+    pub message: String,
+}
+
+impl StepFailure for GemAssetRefreshFailure {
+    type Step = GemAssetRefreshStep;
+
+    fn new(step: GemAssetRefreshStep, message: String) -> Self {
+        Self { step, message }
+    }
+}
 
 #[derive(uniffi::Object)]
 pub struct GemAssetDetailsService {
@@ -54,6 +80,36 @@ impl GemAssetDetailsService {
             stream,
             deeplinks,
         }
+    }
+
+    pub async fn refresh(&self, wallet_id: WalletId, asset_id: AssetId, currency: Currency) -> Vec<GemAssetRefreshFailure> {
+        let mut failures = Vec::new();
+        record(&mut failures, GemAssetRefreshStep::AddPrices, self.stream.add_prices(vec![asset_id.clone()])).await;
+
+        let associations = match self.assets.sync_asset(asset_id.clone(), currency).await {
+            Ok(asset) => asset.associations.into_iter().map(|association| association.asset_id).collect(),
+            Err(error) => {
+                failures.push(GemAssetRefreshFailure::new(GemAssetRefreshStep::SyncAsset, error.to_string()));
+                Vec::new()
+            }
+        };
+        if !associations.is_empty() {
+            record(
+                &mut failures,
+                GemAssetRefreshStep::SyncAssociations,
+                self.assets.sync_missing_assets(associations).map_ok(|_| ()),
+            )
+            .await;
+        }
+
+        record(
+            &mut failures,
+            GemAssetRefreshStep::UpdateBalances,
+            self.balances.update(wallet_id.clone(), vec![asset_id.clone()]),
+        )
+        .await;
+        record(&mut failures, GemAssetRefreshStep::SyncTransactions, self.transactions.sync(wallet_id, Some(asset_id))).await;
+        failures
     }
 
     pub async fn sync_asset(&self, asset_id: AssetId, currency: Currency) -> Result<AssetFull, GemServiceError> {

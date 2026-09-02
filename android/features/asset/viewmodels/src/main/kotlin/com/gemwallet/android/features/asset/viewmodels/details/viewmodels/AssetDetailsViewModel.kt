@@ -1,17 +1,20 @@
 package com.gemwallet.android.features.asset.viewmodels.details.viewmodels
 
+import android.util.Log
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemAssetDetailsService
 import uniffi.gemstone.GemExplorerService
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.EnableAsset
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
-import com.gemwallet.android.application.assets.cases.SyncAssetInfo
 import com.gemwallet.android.application.assets.cases.SetAssetPinned
 import com.gemwallet.android.application.pricealerts.cases.SyncAssetPriceAlerts
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.application.transactions.cases.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.application.banner.cases.HasMultiSign
 import com.gemwallet.android.domains.asset.chain
@@ -27,7 +30,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -49,12 +51,12 @@ class AssetDetailsViewModel @Inject constructor(
     private val getChainAssetInfo: GetChainAssetInfo,
     private val setAssetPinned: SetAssetPinned,
     private val enableAsset: EnableAsset,
-    private val syncAssetInfo: SyncAssetInfo,
     private val getTransactions: GetTransactions,
     private val syncAssetPriceAlerts: SyncAssetPriceAlerts,
+    private val assetDetailsService: GemAssetDetailsService,
+    private val getCurrentCurrency: GetCurrentCurrency,
     private val explorerService: GemExplorerService,
     private val hasMultiSign: HasMultiSign,
-    private val syncAssetTransactions: SyncAssetTransactions,
     private val assetInfoUIModelFactory: AssetInfoUIModelFactory,
 ) : ViewModel() {
     private var syncJob: Job? = null
@@ -143,9 +145,11 @@ class AssetDetailsViewModel @Inject constructor(
         syncAssetPriceAlerts(assetId)
     }
 
-    private suspend fun syncAssetDetails(wallet: Wallet) = coroutineScope {
-        launch { syncAssetInfo.syncAssetInfo(assetId = assetId, wallet = wallet) }
-        launch { syncAssetTransactions.syncAssetTransactions(assetId) }
+    private suspend fun syncAssetDetails(wallet: Wallet) {
+        wallet.getAccount(assetId) ?: return
+        assetDetailsService
+            .refresh(wallet.id.id, assetId.toIdentifier(), getCurrentCurrency.getCurrentCurrency().toJson())
+            .forEach { Log.e(TAG, "asset refresh ${it.step} failed: ${it.message}") }
     }
 
     fun pin() = viewModelScope.launch(Dispatchers.IO) {
@@ -166,6 +170,10 @@ class AssetDetailsViewModel @Inject constructor(
     private suspend fun add(wallet: Wallet, assetId: AssetId) {
         wallet.getAccount(assetId) ?: return
         enableAsset(wallet.id, assetId)
+    }
+
+    private companion object {
+        const val TAG = "AssetDetails"
     }
 
     private data class Model(
