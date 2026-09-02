@@ -25,6 +25,7 @@ import uniffi.gemstone.GemSwapQuoteService
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemSwapService
 import uniffi.gemstone.GemSwapServiceInterface
+import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemSwapper
 
 @InstallIn(SingletonComponent::class)
@@ -60,22 +61,20 @@ object SwapModule {
         preferencesService: GemPreferencesService,
         balanceService: GemBalanceService,
         streamSubscriptionService: GemStreamSubscriptionService,
+        walletSessionService: GemWalletSessionService,
     ): GemSwapQuoteServiceInterface = GemSwapQuoteService(
         swap = swapService as GemSwapService,
         preferences = preferencesService,
         balances = balanceService,
         stream = streamSubscriptionService,
+        session = walletSessionService,
     )
 
     @Singleton
     @Provides
     fun provideRequestSwapQuotes(
-        getSession: GetSession,
-        swapService: GemSwapServiceInterface,
-    ): RequestSwapQuotes = RequestSwapQuotesImpl(
-        getSession = getSession,
-        swapService = swapService,
-    )
+        swapService: GemSwapQuoteServiceInterface,
+    ): RequestSwapQuotes = RequestSwapQuotesImpl(swapService)
 
     @Singleton
     @Provides

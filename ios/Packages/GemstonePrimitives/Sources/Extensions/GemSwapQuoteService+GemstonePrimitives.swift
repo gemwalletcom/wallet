@@ -32,7 +32,6 @@ public extension GemSwapQuoteServiceProtocol {
     }
 
     func getQuotes(
-        wallet: Primitives.Wallet,
         fromAsset: Asset,
         toAsset: Asset,
         amount: BigInt,
@@ -40,7 +39,6 @@ public extension GemSwapQuoteServiceProtocol {
         slippage: SwapSlippage,
     ) async throws -> [SwapperQuote] {
         let quotes = try await getQuotes(
-            wallet: wallet.json(),
             fromAsset: fromAsset.map(),
             toAsset: toAsset.map(),
             value: amount.description,
@@ -51,12 +49,12 @@ public extension GemSwapQuoteServiceProtocol {
         return quotes
     }
 
-    func getTransferData(wallet: Primitives.Wallet, fromAsset: Asset, toAsset: Asset, quote: SwapperQuote) async throws -> GemTransferData {
-        try await getTransfer(wallet: wallet.json(), quote: quote).transferData(fromAsset: fromAsset.map(), toAsset: toAsset.map())
+    func getTransferData(fromAsset: Asset, toAsset: Asset, quote: SwapperQuote) async throws -> GemTransferData {
+        try await getTransfer(quote: quote).transferData(fromAsset: fromAsset.map(), toAsset: toAsset.map())
     }
 
-    func updateBalances(walletId: WalletId, assetIds: [Primitives.AssetId]) async throws {
-        try await updateBalances(walletId: walletId.id, assetIds: assetIds.ids)
+    func updateBalances(assetIds: [Primitives.AssetId]) async throws {
+        try await updateBalances(assetIds: assetIds.ids)
     }
 
     func addPrices(assetIds: [Primitives.AssetId]) async throws {

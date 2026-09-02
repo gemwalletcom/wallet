@@ -231,7 +231,7 @@ extension SwapSceneViewModel {
     func suggestPair() async {
         guard
             pairSelectorModel.toAssetId == nil,
-            let pair = try? await service.suggestPair(walletId: wallet.id.id, payAssetId: pairSelectorModel.fromAssetId?.identifier)?.map()
+            let pair = try? await service.suggestPair(payAssetId: pairSelectorModel.fromAssetId?.identifier)?.map()
         else { return }
         pairSelectorModel = pair
     }
@@ -430,7 +430,6 @@ extension SwapSceneViewModel {
             do {
                 swapState.swapTransferData = .loading
                 let transferData = try await service.getTransferData(
-                    wallet: wallet,
                     fromAsset: fromAsset.asset,
                     toAsset: toAsset.asset,
                     quote: quote,
@@ -450,7 +449,6 @@ extension SwapSceneViewModel {
             swapState.quotes = .loading
             resetToValue()
             let swapQuotes = try await service.getQuotes(
-                wallet: wallet,
                 fromAsset: input.fromAsset,
                 toAsset: input.toAsset,
                 amount: input.value,
@@ -476,7 +474,7 @@ extension SwapSceneViewModel {
 
     private func performUpdate(for assetIds: [AssetId]) async {
         do {
-            try await service.updateBalances(walletId: wallet.id, assetIds: assetIds)
+            try await service.updateBalances(assetIds: assetIds)
         } catch {
             debugLog("SwapScene balance update error: \(error)")
         }

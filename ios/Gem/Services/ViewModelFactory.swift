@@ -654,6 +654,7 @@ public struct ViewModelFactory: Sendable {
                 preferences: preferencesService,
                 balances: balanceService,
                 stream: streamSubscriptionService,
+                session: walletSessionService,
             ),
             input: input,
             onSwap: onSwap,

@@ -107,7 +107,7 @@ class SwapViewModelTest {
     private val requestSwapQuotes = mockk<RequestSwapQuotes>(relaxed = true)
     private val swapQuoteService = mockk<GemSwapQuoteServiceInterface>(relaxed = true) {
         every { slippageBps() } returns null
-        coEvery { suggestPair(any(), any()) } returns null
+        coEvery { suggestPair(any()) } returns null
     }
 
     private val createdViewModels = mutableListOf<SwapViewModel>()
@@ -173,7 +173,7 @@ class SwapViewModelTest {
         createViewModel(savedState)
         advanceUntilIdle()
 
-        coVerify(exactly = 0) { swapQuoteService.suggestPair(any(), any()) }
+        coVerify(exactly = 0) { swapQuoteService.suggestPair(any()) }
         assertEquals(solAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.FromAssetId.key))
         assertEquals(usdcAsset.id.toIdentifier(), savedState.get<String?>(RouteArgument.ToAssetId.key))
     }
@@ -182,7 +182,7 @@ class SwapViewModelTest {
     fun `init applies the suggested pair when the screen opens empty`() = runTest(testDispatcher) {
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { getSession() } returns MutableStateFlow(Session(wallet = wallet, currency = Currency.USD))
-        coEvery { swapQuoteService.suggestPair(wallet.id.id, null) } returns GemSwapPairSuggestion(
+        coEvery { swapQuoteService.suggestPair(null) } returns GemSwapPairSuggestion(
             payAssetId = solAsset.id.toIdentifier(),
             receiveAssetId = usdcAsset.id.toIdentifier(),
         )
@@ -332,7 +332,7 @@ class SwapViewModelTest {
         every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
-        coEvery { swapQuoteService.getTransfer(any(), any()) } throws SwapperException.NoQuoteAvailable()
+        coEvery { swapQuoteService.getTransfer(any()) } throws SwapperException.NoQuoteAvailable()
 
         val viewModel = createViewModel(
             swapSavedState()
@@ -358,7 +358,7 @@ class SwapViewModelTest {
         every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
-        coEvery { swapQuoteService.getTransfer(any(), any()) } throws SwapperException.InvalidRoute()
+        coEvery { swapQuoteService.getTransfer(any()) } throws SwapperException.InvalidRoute()
 
         val viewModel = createViewModel(swapSavedState())
         advanceUntilIdle()
@@ -373,7 +373,7 @@ class SwapViewModelTest {
         assertEquals(ButtonState.Enabled, state.buttonState)
         assertEquals("2500000", viewModel.quote.value?.quote?.toValue)
 
-        coEvery { swapQuoteService.getTransfer(any(), any()) } returns mockGemSwapTransfer(from = solInfo.owner!!, toAddress = "0xconfirm")
+        coEvery { swapQuoteService.getTransfer(any()) } returns mockGemSwapTransfer(from = solInfo.owner!!, toAddress = "0xconfirm")
 
         var confirmed: GemConfirmInput? = null
         viewModel.onPrimaryAction(
@@ -395,7 +395,7 @@ class SwapViewModelTest {
         every { getSession() } returns MutableStateFlow(
             Session(wallet = wallet, currency = Currency.USD)
         )
-        coEvery { swapQuoteService.getTransfer(any(), any()) } throws SwapperException.NoQuoteAvailable()
+        coEvery { swapQuoteService.getTransfer(any()) } throws SwapperException.NoQuoteAvailable()
 
         val viewModel = createViewModel(
             swapSavedState()
@@ -709,9 +709,9 @@ class SwapViewModelTest {
     }
 
     private fun stubBuildConfirmInput(beforeReturn: suspend () -> Unit = {}) {
-        coEvery { swapQuoteService.getTransfer(any(), any()) } coAnswers {
+        coEvery { swapQuoteService.getTransfer(any()) } coAnswers {
             beforeReturn()
-            val quote = secondArg<SwapperQuote>()
+            val quote = firstArg<SwapperQuote>()
             mockGemSwapTransfer(
                 from = solInfo.owner!!,
                 fromAmount = BigInteger(quote.fromValue),

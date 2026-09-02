@@ -252,9 +252,8 @@ class SwapViewModel @Inject constructor(
         if (savedStateHandle.get<String?>(RouteArgument.ToAssetId.key) != null) {
             return
         }
-        val walletId = getSession().firstOrNull()?.wallet?.id ?: return
         val payAssetId = savedStateHandle.get<String?>(RouteArgument.FromAssetId.key)
-        val suggestion = runCatchingCancellable { swapQuoteService.suggestPair(walletId.id, payAssetId) }.getOrNull() ?: return
+        val suggestion = runCatchingCancellable { swapQuoteService.suggestPair(payAssetId) }.getOrNull() ?: return
         savedStateHandle[RouteArgument.FromAssetId.key] = suggestion.payAssetId
         savedStateHandle[RouteArgument.ToAssetId.key] = suggestion.receiveAssetId
     }
@@ -358,13 +357,12 @@ class SwapViewModel @Inject constructor(
         session.value = started.first
 
         try {
-            val wallet = getSession().value?.wallet
             val from = pending.pay.owner
-            if (wallet == null || from == null) {
+            if (from == null) {
                 session.update { it.onTransferAbandoned(transfer) }
                 return@launch
             }
-            val params = swapQuoteService.getTransfer(wallet.toJson(), pending.quote)
+            val params = swapQuoteService.getTransfer(pending.quote)
                 .transferData(pending.pay.asset.toGem(), pending.receive.asset.toGem())
                 .confirmInput(from)
             if (session.value.transferPhase != transfer) {

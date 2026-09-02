@@ -14,8 +14,6 @@ import struct Gemstone.GemSwapTransfer
 import struct Gemstone.SwapperAssetList
 import struct Gemstone.SwapperQuote
 import struct Gemstone.SwapperSlippage
-import typealias Gemstone.Wallet
-import typealias Gemstone.WalletId
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
@@ -100,11 +98,11 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         250
     }
 
-    public func updateBalances(walletId _: WalletId, assetIds _: [AssetId]) async throws {}
+    public func updateBalances(assetIds _: [AssetId]) async throws {}
 
     public func addPrices(assetIds _: [AssetId]) async throws {}
 
-    public func getQuotes(wallet _: Wallet, fromAsset _: Asset, toAsset _: Asset, value: String, useMaxAmount _: Bool, slippageBps _: UInt32?) async throws -> [SwapperQuote] {
+    public func getQuotes(fromAsset _: Asset, toAsset _: Asset, value: String, useMaxAmount _: Bool, slippageBps _: UInt32?) async throws -> [SwapperQuote] {
         if let quotesDelay {
             try await Task.sleep(for: quotesDelay)
         }
@@ -114,7 +112,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         return try quotes(BigInt.from(string: value))
     }
 
-    public func getTransfer(wallet _: Wallet, quote: SwapperQuote) async throws -> GemSwapTransfer {
+    public func getTransfer(quote: SwapperQuote) async throws -> GemSwapTransfer {
         try GemSwapTransfer(
             quote: GemSwapQuoteSummary.fromQuote(quote: quote).quote(),
             data: quoteData.json(),
@@ -128,7 +126,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         assetList
     }
 
-    public func suggestPair(walletId _: String, payAssetId _: AssetId?) async throws -> GemSwapPairSuggestion? {
+    public func suggestPair(payAssetId _: AssetId?) async throws -> GemSwapPairSuggestion? {
         pairSuggestion
     }
 }
