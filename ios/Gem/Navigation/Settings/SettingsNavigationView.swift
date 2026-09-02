@@ -19,7 +19,6 @@ struct SettingsNavigationView: View {
     @Environment(\.navigationState) private var navigationState
     @Environment(\.deeplinkService) private var deeplinkService
     @Environment(\.navigationHandler) private var navigationHandler
-    @Environment(\.transactionsService) private var transactionsService
     @Environment(\.walletConnector) private var walletConnector
     @Environment(\.balanceService) private var balanceService
     @Environment(\.walletSessionService) private var walletSessionService

@@ -3,7 +3,6 @@
 import protocol Gemstone.GemTransactionsServiceProtocol
 import Components
 import Foundation
-import protocol Gemstone.GemPreferencesServiceProtocol
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -13,9 +12,7 @@ import GemstoneServices
 @Observable
 @MainActor
 public final class TransactionsViewModel {
-    private let transactionsService: any GemTransactionsServiceProtocol
-    private let preferencesService: any GemPreferencesServiceProtocol
-
+    private let service: any GemTransactionsServiceProtocol
     private let type: TransactionsRequestType
 
     public let wallet: Wallet
@@ -30,16 +27,14 @@ public final class TransactionsViewModel {
     public var isPresentingToastMessage: ToastMessage?
 
     public init(
-        transactionsService: any GemTransactionsServiceProtocol,
+        service: any GemTransactionsServiceProtocol,
         wallet: Wallet,
         type: TransactionsRequestType,
-        preferencesService: any GemPreferencesServiceProtocol,
     ) {
-        self.transactionsService = transactionsService
+        self.service = service
         self.type = type
         self.wallet = wallet
         filterModel = TransactionsFilterViewModel(wallet: wallet, type: type)
-        self.preferencesService = preferencesService
     }
 
     public var title: String {
@@ -51,7 +46,7 @@ public final class TransactionsViewModel {
     }
 
     public var currency: String {
-        preferencesService.currencyCode
+        service.currency()
     }
 
     public var emptyContentModel: EmptyContentTypeViewModel {
@@ -72,7 +67,7 @@ public extension TransactionsViewModel {
 
     func load() async {
         do {
-            try await transactionsService.sync(walletId: walletId.id, assetId: nil)
+            try await service.sync(walletId: walletId.id, assetId: nil)
         } catch {
             debugLog("load getTransactions error \(error)")
         }

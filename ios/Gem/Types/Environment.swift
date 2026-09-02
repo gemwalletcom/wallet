@@ -20,7 +20,6 @@ import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemPortfolioServiceProtocol
 import protocol Gemstone.GemSearchServiceProtocol
-import protocol Gemstone.GemTransactionsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
 import GemstoneServices
@@ -56,7 +55,6 @@ extension EnvironmentValues {
     @Entry var deviceService: any GemDeviceServiceProtocol = AppResolver.main.services.deviceService
     @Entry var balanceService: any GemBalanceServiceProtocol = AppResolver.main.services.balanceService
     @Entry var bannerService: any GemBannerServiceProtocol = AppResolver.main.services.bannerService
-    @Entry var transactionsService: any GemTransactionsServiceProtocol = AppResolver.main.services.transactionsService
     @Entry var assetsService: any GemAssetsServiceProtocol = AppResolver.main.services.assetsService
     @Entry var navigationPresenter: NavigationPresenter = AppResolver.main.services.navigationPresenter
     @Entry var navigationHandler: NavigationHandler = AppResolver.main.services.navigationHandler

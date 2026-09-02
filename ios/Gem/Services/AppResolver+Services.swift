@@ -18,7 +18,6 @@ import protocol Gemstone.GemAppStartServiceProtocol
 import protocol Gemstone.GemPortfolioServiceProtocol
 import protocol Gemstone.GemSearchServiceProtocol
 import protocol Gemstone.GemSwapServiceProtocol
-import protocol Gemstone.GemTransactionsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
@@ -57,7 +56,6 @@ extension AppResolver {
         let streamSubscriptionService: GemStreamSubscriptionService
         let priceService: any GemPriceServiceProtocol
         let stakeService: any GemStakeServiceProtocol
-        let transactionsService: any GemTransactionsServiceProtocol
         let transactionStateService: any GemTransactionStateServiceProtocol
         let onboardingService: GemOnboardingService
         let walletPreferencesService: any GemWalletPreferencesServiceProtocol

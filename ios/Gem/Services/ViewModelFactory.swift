@@ -270,6 +270,11 @@ public struct ViewModelFactory: Sendable {
     }
 
     @MainActor
+    public func transactionsScene(wallet: Wallet, type: TransactionsRequestType) -> TransactionsViewModel {
+        TransactionsViewModel(service: transactionsService, wallet: wallet, type: type)
+    }
+
+    @MainActor
     public func supportChatScene() -> SupportChatSceneViewModel {
         SupportChatSceneViewModel(service: supportService, typing: supportTyping)
     }

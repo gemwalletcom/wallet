@@ -7,7 +7,7 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use chrono::Utc;
-use primitives::{AssetId, WalletId};
+use primitives::{AssetId, Currency, WalletId};
 
 pub use details::GemTransactionDetailsService;
 pub use model::{GemAmountSign, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionSubtitle, GemTransactionSummary, GemTransactionTitle, GemTransactionValue};
@@ -16,6 +16,7 @@ pub use store::GemTransactionStore;
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::assets::GemAssetsService;
 use crate::services::name::GemAddressStore;
+use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 
 #[derive(uniffi::Object)]
@@ -24,7 +25,8 @@ pub struct GemTransactionsService {
     assets: Arc<GemAssetsService>,
     store: Arc<dyn GemTransactionStore>,
     address_store: Arc<dyn GemAddressStore>,
-    preferences: Arc<GemWalletPreferencesService>,
+    wallet_preferences: Arc<GemWalletPreferencesService>,
+    preferences: Arc<GemPreferencesService>,
 }
 
 #[uniffi::export]
@@ -35,19 +37,25 @@ impl GemTransactionsService {
         assets: Arc<GemAssetsService>,
         store: Arc<dyn GemTransactionStore>,
         address_store: Arc<dyn GemAddressStore>,
-        preferences: Arc<GemWalletPreferencesService>,
+        wallet_preferences: Arc<GemWalletPreferencesService>,
+        preferences: Arc<GemPreferencesService>,
     ) -> Self {
         Self {
             api,
             assets,
             store,
             address_store,
+            wallet_preferences,
             preferences,
         }
     }
 
+    pub fn currency(&self) -> Currency {
+        self.preferences.get_currency()
+    }
+
     pub async fn sync(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
-        let from_timestamp = self.preferences.get_transactions_timestamp(wallet_id.clone(), asset_id.clone());
+        let from_timestamp = self.wallet_preferences.get_transactions_timestamp(wallet_id.clone(), asset_id.clone());
         let timestamp = Utc::now().timestamp() as u64;
         let response = self
             .api
@@ -62,6 +70,6 @@ impl GemTransactionsService {
         }
         self.store.save_transactions(wallet_id.clone(), response.transactions).await?;
         self.address_store.save_address_names(response.address_names).await?;
-        self.preferences.set_transactions_timestamp(wallet_id, asset_id, timestamp)
+        self.wallet_preferences.set_transactions_timestamp(wallet_id, asset_id, timestamp)
     }
 }

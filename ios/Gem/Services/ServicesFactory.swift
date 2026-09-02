@@ -3,7 +3,6 @@
 import class Gemstone.GemRecentActivityService
 import protocol Gemstone.GemPriceServiceProtocol
 import protocol Gemstone.GemPortfolioServiceProtocol
-import protocol Gemstone.GemTransactionsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemFiatServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
@@ -81,7 +80,8 @@ struct ServicesFactory {
             assets: assetsService,
             store: GemstoneTransactionStore(store: storeManager.transactionStore),
             addressStore: gemstoneAddressStore,
-            preferences: walletPreferencesService,
+            walletPreferences: walletPreferencesService,
+            preferences: preferencesService,
         )
         let recentAssetsService = GemRecentActivityService(store: GemstoneRecentActivityStore(store: storeManager.recentActivityStore))
         let scanConfiguration = URLSessionConfiguration.default
@@ -415,7 +415,6 @@ struct ServicesFactory {
             streamSubscriptionService: streamSubscriptionService,
             priceService: priceService,
             stakeService: stakeService,
-            transactionsService: transactionsService,
             transactionStateService: transactionStateService,
             onboardingService: onboardingService,
             walletPreferencesService: walletPreferencesService,

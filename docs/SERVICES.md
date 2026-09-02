@@ -447,7 +447,6 @@ having the parent vend the child view model.
 | `Gem/ViewModels/RootSceneViewModel.swift` | 5 | 1 |
 | `Settings/Settings/ViewModels/DeveloperViewModel.swift` | 5 | 0 |
 | `Assets/SelectAssetViewModel.swift` | 2 | 0 |
-| `Transactions/TransactionsViewModel.swift` | 2 | 0 |
 | `Perpetuals/PerpetualsSceneViewModel.swift` | 2 | 0 |
 
 Single-service view models that only need the property made `private`:

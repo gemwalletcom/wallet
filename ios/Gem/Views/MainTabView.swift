@@ -20,7 +20,6 @@ struct MainTabView: View {
     @Environment(\.preferencesService) private var preferencesService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.priceAlertService) private var priceAlertService
-    @Environment(\.transactionsService) private var transactionsService
     @Environment(\.viewModelFactory) private var viewModelFactory
 
     let wallet: Wallet
@@ -58,12 +57,7 @@ struct MainTabView: View {
 
             NavigationStack(path: navigationState.activity.binding) {
                 TransactionsNavigationView(
-                    model: TransactionsViewModel(
-                        transactionsService: transactionsService,
-                        wallet: wallet,
-                        type: .all,
-                        preferencesService: preferencesService,
-                    ),
+                    model: viewModelFactory.transactionsScene(wallet: wallet, type: .all),
                 )
                 .id(wallet.id)
             }
