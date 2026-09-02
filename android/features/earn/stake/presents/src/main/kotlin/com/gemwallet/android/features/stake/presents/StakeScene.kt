@@ -47,7 +47,7 @@ import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
-import com.gemwallet.android.features.stake.models.StakeActionItem
+import uniffi.gemstone.GemStakeActionItem
 import com.gemwallet.android.features.stake.presents.components.stakeActions
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Delegation
@@ -57,7 +57,8 @@ import uniffi.gemstone.Config
 internal fun StakeScene(
     inSync: Boolean,
     assetInfo: AssetInfo,
-    actions: List<StakeActionItem>,
+    actions: List<GemStakeActionItem>,
+    rewardsText: String,
     delegations: List<Delegation>,
     stakeInfoUrl: String?,
     amountAction: AmountTransactionAction,
@@ -94,6 +95,7 @@ internal fun StakeScene(
 
                 stakeActions(
                     actions = actions,
+                    rewardsText = rewardsText,
                     assetId = assetInfo.id(),
                     amountAction = amountAction,
                     onRewards = { onAction(StakeSceneAction.ClaimRewards) },

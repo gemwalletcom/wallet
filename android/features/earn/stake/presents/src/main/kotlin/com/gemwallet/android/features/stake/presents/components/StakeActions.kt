@@ -22,12 +22,13 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.theme.secondaryFaded
-import com.gemwallet.android.features.stake.models.StakeAction
-import com.gemwallet.android.features.stake.models.StakeActionItem
+import uniffi.gemstone.GemStakeAction
+import uniffi.gemstone.GemStakeActionItem
 import com.wallet.core.primitives.AssetId
 
 internal fun LazyListScope.stakeActions(
-    actions: List<StakeActionItem>,
+    actions: List<GemStakeActionItem>,
+    rewardsText: String,
     assetId: AssetId,
     amountAction: AmountTransactionAction,
     onRewards: () -> Unit
@@ -41,39 +42,39 @@ internal fun LazyListScope.stakeActions(
     itemsPositioned(actions) { position, item ->
         val action = item.action
         val title = when (action) {
-            is StakeAction.Rewards -> R.string.transfer_claim_rewards_title
-            StakeAction.Stake -> R.string.transfer_stake_title
-            StakeAction.Freeze -> R.string.transfer_freeze_title
-            StakeAction.Unfreeze -> R.string.transfer_unfreeze_title
+            GemStakeAction.CLAIM_REWARDS -> R.string.transfer_claim_rewards_title
+            GemStakeAction.STAKE -> R.string.transfer_stake_title
+            GemStakeAction.FREEZE -> R.string.transfer_freeze_title
+            GemStakeAction.UNFREEZE -> R.string.transfer_unfreeze_title
         }
         val onClick = when (action) {
-            StakeAction.Stake -> {
+            GemStakeAction.STAKE -> {
                 { amountAction(AmountParams.Stake.Delegate(assetId)) }
             }
-            StakeAction.Freeze -> {
+            GemStakeAction.FREEZE -> {
                 { amountAction(AmountParams.Stake.Freeze(assetId, Resource.Bandwidth)) }
             }
-            StakeAction.Unfreeze -> {
+            GemStakeAction.UNFREEZE -> {
                 { amountAction(AmountParams.Stake.Unfreeze(assetId, Resource.Bandwidth)) }
             }
-            is StakeAction.Rewards -> onRewards
+            GemStakeAction.CLAIM_REWARDS -> onRewards
         }
-        val info = InfoSheetEntity.StakeFrozenRequired(assetId.getIconUrl()).takeIf { item.frozenRequired }
+        val info = InfoSheetEntity.StakeFrozenRequired(assetId.getIconUrl()).takeIf { item.requiresFrozenBalance }
         var showInfo by remember { mutableStateOf(false) }
         PropertyItem(
-            modifier = Modifier.clickable(enabled = item.enabled) {
-                if (item.frozenRequired) showInfo = true else onClick()
+            modifier = Modifier.clickable(enabled = item.isEnabled) {
+                if (item.requiresFrozenBalance) showInfo = true else onClick()
             },
             title = {
                 PropertyTitleText(
                     text = title,
-                    color = if (item.frozenRequired) MaterialTheme.colorScheme.secondaryFaded else MaterialTheme.colorScheme.onSurface,
+                    color = if (item.requiresFrozenBalance) MaterialTheme.colorScheme.secondaryFaded else MaterialTheme.colorScheme.onSurface,
                     info = info,
                 )
             },
             data = {
                 PropertyDataText(
-                    text = action.data ?: "",
+                    text = if (action == GemStakeAction.CLAIM_REWARDS) rewardsText else "",
                     badge = { DataBadgeChevron() },
                 )
             },

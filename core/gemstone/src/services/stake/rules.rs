@@ -9,7 +9,7 @@ use primitives::AddressName;
 use primitives::{AddressType, Chain, DelegationBase, DelegationState, DelegationValidator, StakeChain, StakeProviderType, VerificationStatus, WalletType};
 use rand::seq::IndexedRandom;
 
-use super::model::{GemDelegationAction, GemStakeBalance};
+use super::model::{GemDelegationAction, GemStakeAction, GemStakeActionItem, GemStakeBalance};
 use crate::models::custom_types::GemBigInt;
 
 const SYSTEM_VALIDATOR_IDS: [&str; 2] = [DelegationValidator::SYSTEM_ID, "unstaking"];
@@ -79,6 +79,36 @@ pub fn can_claim_stake_rewards(chain: Chain, rewards_value: &str) -> bool {
         return false;
     };
     config.can_claim_rewards && is_positive(rewards_value)
+}
+
+pub fn can_claim_all_rewards(chain: Chain, delegations_with_rewards: u32) -> bool {
+    let claims_all = StakeChain::from_str(chain.as_ref())
+        .ok()
+        .map(get_stake_config)
+        .is_some_and(|config| config.can_claim_all_rewards);
+    claims_all || delegations_with_rewards == 1
+}
+
+pub fn stake_actions(wallet_type: WalletType, chain: Chain, has_validators: bool, frozen_value: &str, rewards_value: &str) -> Vec<GemStakeActionItem> {
+    let Some(config) = StakeChain::from_str(chain.as_ref()).ok().map(get_stake_config).filter(|_| wallet_type != WalletType::View) else {
+        return vec![];
+    };
+    let uses_freeze = config.uses_freeze;
+    let requires_frozen_balance = requires_frozen_balance(chain, frozen_value);
+    let item = |action: GemStakeAction, is_enabled: bool, requires_frozen_balance: bool| GemStakeActionItem {
+        action,
+        is_enabled,
+        requires_frozen_balance,
+    };
+    [
+        Some(item(GemStakeAction::Stake, has_validators || requires_frozen_balance, requires_frozen_balance)),
+        uses_freeze.then(|| item(GemStakeAction::Freeze, true, false)),
+        uses_freeze.then(|| item(GemStakeAction::Unfreeze, true, false)),
+        can_claim_stake_rewards(chain, rewards_value).then(|| item(GemStakeAction::ClaimRewards, true, false)),
+    ]
+    .into_iter()
+    .flatten()
+    .collect()
 }
 
 fn is_positive(amount: &str) -> bool {
@@ -297,6 +327,43 @@ mod tests {
             delegation_actions(WalletType::Multicoin, Chain::Ethereum, StakeProviderType::Earn, DelegationState::Inactive),
             vec![Withdraw]
         );
+    }
+
+    #[test]
+    fn test_stake_actions_follow_the_wallet_chain_and_balance() {
+        use GemStakeAction::*;
+        let actions = |chain, has_validators, frozen, rewards| {
+            stake_actions(WalletType::Multicoin, chain, has_validators, frozen, rewards)
+                .into_iter()
+                .map(|item| (item.action, item.is_enabled, item.requires_frozen_balance))
+                .collect::<Vec<_>>()
+        };
+
+        assert_eq!(actions(Chain::Cosmos, true, "0", "0"), vec![(Stake, true, false)]);
+        assert_eq!(actions(Chain::Cosmos, false, "0", "0"), vec![(Stake, false, false)]);
+        assert_eq!(actions(Chain::Cosmos, true, "0", "5"), vec![(Stake, true, false), (ClaimRewards, true, false)]);
+        assert_eq!(
+            actions(Chain::Tron, true, "0", "0"),
+            vec![(Stake, true, true), (Freeze, true, false), (Unfreeze, true, false)],
+            "a freeze chain with nothing frozen asks for a frozen balance before staking"
+        );
+        assert_eq!(
+            actions(Chain::Tron, false, "10", "0"),
+            vec![(Stake, false, false), (Freeze, true, false), (Unfreeze, true, false)]
+        );
+        assert!(stake_actions(WalletType::View, Chain::Cosmos, true, "0", "5").is_empty());
+        assert!(
+            stake_actions(WalletType::Multicoin, Chain::Bitcoin, true, "0", "5").is_empty(),
+            "a chain without staking has no actions"
+        );
+    }
+
+    #[test]
+    fn test_can_claim_all_rewards() {
+        assert!(can_claim_all_rewards(Chain::Cosmos, 3));
+        assert!(!can_claim_all_rewards(Chain::Sui, 3));
+        assert!(can_claim_all_rewards(Chain::Sui, 1));
+        assert!(!can_claim_all_rewards(Chain::Bitcoin, 2));
     }
 
     #[test]

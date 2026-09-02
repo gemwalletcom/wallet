@@ -4,6 +4,8 @@ import BigInt
 import Components
 import Formatters
 import Foundation
+import enum Gemstone.GemStakeAction
+import struct Gemstone.GemStakeActionItem
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import InfoSheet
@@ -128,7 +130,7 @@ public final class StakeSceneViewModel {
     }
 
     var showManage: Bool {
-        wallet.canSign
+        stakeActions.isNotEmpty
     }
 
     var recommendedCurrentValidator: DelegationValidator? {
@@ -175,12 +177,11 @@ public final class StakeSceneViewModel {
     }
 
     var showRewards: Bool {
-        stakeService.canClaimStakeRewards(chain: chain.chain.rawValue, rewardsValue: rewardsValue.description)
+        stakeAction(.claimRewards) != nil
     }
 
     var canClaimAllRewards: Bool {
-        guard showRewards else { return false }
-        return chain.supportClaimAllRewards || delegationsWithRewards.count == 1
+        showRewards && stakeService.canClaimAllRewards(chain: chain.chain.rawValue, delegationsWithRewards: UInt32(delegationsWithRewards.count))
     }
 
     var claimRewardsDestination: any Hashable {
@@ -221,19 +222,19 @@ public final class StakeSceneViewModel {
     }
 
     var showFreeze: Bool {
-        StakeChain(rawValue: chain.rawValue)?.usesFreeze ?? false
+        stakeAction(.freeze) != nil
     }
 
     var showUnfreeze: Bool {
-        balanceModel.hasStakingResources
+        stakeAction(.unfreeze) != nil
     }
 
     var isStakeEnabled: Bool {
-        validators.isNotEmpty && !stakeFrozenRequired
+        stakeAction(.stake)?.isEnabled ?? false
     }
 
     var stakeInfoAction: InfoSheetAction? {
-        guard stakeFrozenRequired else { return nil }
+        guard stakeAction(.stake)?.requiresFrozenBalance == true else { return nil }
         return onStakeFrozenInfo
     }
 
@@ -288,8 +289,18 @@ extension StakeSceneViewModel {
         chain.chain.asset
     }
 
-    private var stakeFrozenRequired: Bool {
-        stakeService.requiresFrozenBalance(chain: chain.chain.rawValue, frozenValue: balanceModel.frozenResources.description)
+    private var stakeActions: [GemStakeActionItem] {
+        stakeService.stakeActions(
+            walletType: wallet.type.map(),
+            chain: chain.chain.rawValue,
+            hasValidators: validators.isNotEmpty,
+            frozenValue: balanceModel.frozenResources.description,
+            rewardsValue: rewardsValue.description,
+        )
+    }
+
+    private func stakeAction(_ action: GemStakeAction) -> GemStakeActionItem? {
+        stakeActions.first { $0.action == action }
     }
 
     private var balanceModel: BalanceViewModel {

@@ -23,6 +23,7 @@ fun StakeScreen(
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
     val delegations by viewModel.delegations.collectAsStateWithLifecycle()
     val actions by viewModel.actions.collectAsStateWithLifecycle()
+    val rewardsText by viewModel.rewardsText.collectAsStateWithLifecycle()
     val stakeInfoUrl by viewModel.stakeInfoUrl.collectAsStateWithLifecycle()
 
     val stakeAssetInfo = assetInfo
@@ -37,6 +38,7 @@ fun StakeScreen(
             assetInfo = stakeAssetInfo,
             delegations = delegations,
             actions = actions,
+            rewardsText = rewardsText,
             stakeInfoUrl = stakeInfoUrl,
             amountAction = amountAction,
             onAction = { action ->

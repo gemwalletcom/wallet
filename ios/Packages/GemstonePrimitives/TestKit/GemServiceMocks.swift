@@ -523,12 +523,12 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         rewardsShown
     }
 
-    public func canClaimStakeRewards(chain _: Gemstone.Chain, rewardsValue _: String) -> Bool {
-        claimable
+    public func stakeActions(walletType _: Gemstone.WalletType, chain _: Gemstone.Chain, hasValidators: Bool, frozenValue _: GemBigInt, rewardsValue _: GemBigInt) -> [GemStakeActionItem] {
+        [GemStakeActionItem(action: .stake, isEnabled: hasValidators, requiresFrozenBalance: false)]
     }
 
-    public func requiresFrozenBalance(chain _: Gemstone.Chain, frozenValue _: String) -> Bool {
-        false
+    public func canClaimAllRewards(chain _: Gemstone.Chain, delegationsWithRewards: UInt32) -> Bool {
+        delegationsWithRewards == 1
     }
 
     public func recommendedValidatorIds(chain _: Gemstone.Chain) -> [String] {

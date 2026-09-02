@@ -15,10 +15,8 @@ import com.gemwallet.android.domains.stake.sumRewardsBalance
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.stakeChain
 import com.gemwallet.android.AppUrl
-import com.gemwallet.android.ext.claimAllAvailable
-import com.gemwallet.android.ext.canClaimRewards
-import com.gemwallet.android.ext.freezed
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AmountParams
@@ -32,11 +30,8 @@ import com.gemwallet.android.model.getFrozenResourceAmount
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.gemwallet.android.features.stake.models.StakeAction
-import com.gemwallet.android.features.stake.models.StakeActionItem
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationState
-import com.wallet.core.primitives.WalletType
 import com.gemwallet.android.ext.isViewOnly
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -99,58 +94,32 @@ class StakeViewModel @Inject constructor(
         .flatMapLatest { (walletId, assetId) -> getDelegations(walletId, assetId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val isStakeEnabled = assetId
+    private val hasValidators = assetId
         .flatMapLatest { getValidators(it) }
         .mapLatest { validators -> validators.isNotEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    private val stakeFrozenRequired = assetInfo
-        .mapLatest { assetInfo ->
-            assetInfo != null && stakeService.requiresFrozenBalance(
-                assetInfo.asset.chain.string,
-                assetInfo.balance.balance.getFrozenResourceAmount().toString(),
-            )
-        }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    val rewardsBalance = delegations
+    private val rewardsBalance = delegations
         .mapLatest { delegations -> delegations.sumRewardsBalance() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, BigInteger.ZERO)
 
+    val rewardsText = combine(rewardsBalance, assetInfo.filterNotNull()) { rewardsBalance, assetInfo ->
+        ValueFormatter(style = ValueFormatter.Style.Auto).string(rewardsBalance, assetInfo.asset)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
+
     val actions = combine(
-        session.mapLatest { it?.wallet?.type }.filterNotNull(),
+        walletType.filterNotNull(),
         rewardsBalance,
         assetInfo.filterNotNull(),
-        isStakeEnabled,
-        stakeFrozenRequired,
-    ) { walletType, rewardsBalance, assetInfo, isStakeEnabled, stakeFrozenRequired ->
-        if (walletType == WalletType.View) {
-            return@combine emptyList()
-        }
-        listOfNotNull(
-            StakeAction.Stake,
-            StakeAction.Freeze.takeIf { assetInfo.stakeChain?.freezed() == true },
-            StakeAction.Unfreeze.takeIf { assetInfo.stakeChain?.freezed() == true },
-            rewardsBalance
-                .takeIf { stakeService.canClaimStakeRewards(assetInfo.asset.chain.string, rewardsBalance.toString()) }
-                ?.let {
-                    StakeAction.Rewards(
-                        data = ValueFormatter(style = ValueFormatter.Style.Auto)
-                            .string(rewardsBalance, assetInfo.asset),
-                    )
-                },
-        ).map { action ->
-            val frozenRequired = action == StakeAction.Stake && stakeFrozenRequired
-            StakeActionItem(
-                action = action,
-                enabled = when {
-                    frozenRequired -> true
-                    action == StakeAction.Stake -> isStakeEnabled
-                    else -> true
-                },
-                frozenRequired = frozenRequired,
-            )
-        }
+        hasValidators,
+    ) { walletType, rewardsBalance, assetInfo, hasValidators ->
+        stakeService.stakeActions(
+            walletType = walletType.toGem(),
+            chain = assetInfo.asset.chain.string,
+            hasValidators = hasValidators,
+            frozenValue = assetInfo.balance.balance.getFrozenResourceAmount().toString(),
+            rewardsValue = rewardsBalance.toString(),
+        )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val sync = MutableStateFlow<Boolean>(true)
@@ -201,8 +170,7 @@ class StakeViewModel @Inject constructor(
         val assetInfo = assetInfo.value ?: return
         val account = account.value ?: return
         val withRewards = delegations.value.filter { it.hasRewards() }
-        val canClaimAllRewards = assetInfo.chain.claimAllAvailable || withRewards.size == 1
-        if (canClaimAllRewards) {
+        if (stakeService.canClaimAllRewards(assetInfo.asset.chain.string, withRewards.size.toUInt())) {
             onConfirm(
                 GemTransferData.stake(
                     asset = assetInfo.asset,

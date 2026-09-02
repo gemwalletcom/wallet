@@ -10,9 +10,10 @@ use primitives::{AssetId, Chain, Currency, DelegationState, DelegationValidator,
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
+use crate::models::custom_types::GemBigInt;
 use crate::models::{GemContractCallData, GemEarnType};
 
-pub use model::{GemDelegationAction, GemStakeBalance};
+pub use model::{GemDelegationAction, GemStakeAction, GemStakeActionItem, GemStakeBalance};
 pub use store::GemStakeStore;
 
 use crate::block_explorer::GemBlockExplorerLink;
@@ -96,12 +97,12 @@ impl GemStakeService {
         rules::shows_rewards(state, &rewards)
     }
 
-    pub fn can_claim_stake_rewards(&self, chain: Chain, rewards_value: String) -> bool {
-        rules::can_claim_stake_rewards(chain, &rewards_value)
+    pub fn stake_actions(&self, wallet_type: WalletType, chain: Chain, has_validators: bool, frozen_value: GemBigInt, rewards_value: GemBigInt) -> Vec<GemStakeActionItem> {
+        rules::stake_actions(wallet_type, chain, has_validators, &frozen_value.to_string(), &rewards_value.to_string())
     }
 
-    pub fn requires_frozen_balance(&self, chain: Chain, frozen_value: String) -> bool {
-        rules::requires_frozen_balance(chain, &frozen_value)
+    pub fn can_claim_all_rewards(&self, chain: Chain, delegations_with_rewards: u32) -> bool {
+        rules::can_claim_all_rewards(chain, delegations_with_rewards)
     }
 
     pub fn recommended_validator_ids(&self, chain: Chain) -> Vec<String> {

@@ -677,6 +677,15 @@ import set the wallet up twice. Both apps now do what iOS did: `GemWalletService
 then `setCurrentWalletId`, and the root's wallet-change handler does the rest. The Android
 "importing" indicator (`SyncWalletImport`) stays; it is a platform progress port, not setup.
 
+**A screen's action list is a Core answer.** The stake screen's manage rows — stake (and whether
+it is enabled or first needs a frozen balance), freeze, unfreeze, claim rewards — were derived on
+both apps from five chain flags and two balance checks, with the view-only gate on one app only.
+`GemStakeService::stake_actions(wallet_type, chain, has_validators, frozen, rewards)` returns
+`[GemStakeActionItem { action, is_enabled, requires_frozen_balance }]` and
+`can_claim_all_rewards(chain, delegations_with_rewards)` the claim-all decision, so both apps
+render the list and neither reads a stake flag; the chain-flag extensions that existed only to
+feed those rules went with it.
+
 **The app forwards the SDK event; Core decides the reply.** The WalletConnect request path
 was the same eight-step dance on both apps — dedupe, find the session, check the origin, handle,
 respond, reject on error, notify the user, log — with different message-id formats and one app
