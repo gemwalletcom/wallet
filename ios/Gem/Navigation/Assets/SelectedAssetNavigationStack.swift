@@ -11,9 +11,6 @@ import struct Gemstone.GemTransferData
 
 struct SelectedAssetNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.balanceService) private var balanceService
-    @Environment(\.assetsService) private var assetsService
-    @Environment(\.receiveService) private var receiveService
     @Environment(\.recentAssetsService) private var recentAssetsService
 
     @State private var navigationPath = NavigationPath()
@@ -52,15 +49,7 @@ struct SelectedAssetNavigationStack: View {
                         ),
                     )
                 case .receive:
-                    ReceiveScene(
-                        model: ReceiveViewModel(
-                            assetData: input.assetData,
-                            wallet: wallet,
-                            balanceService: balanceService,
-                            assetsService: assetsService,
-                            receiveService: receiveService,
-                        ),
-                    )
+                    ReceiveScene(model: viewModelFactory.receiveScene(assetData: input.assetData, wallet: wallet))
                 case let .buy(_, amount):
                     FiatConnectNavigationView(
                         model: viewModelFactory.fiatScene(

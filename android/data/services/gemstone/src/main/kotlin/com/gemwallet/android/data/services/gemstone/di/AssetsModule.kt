@@ -37,6 +37,8 @@ import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPortfolioStore
 import uniffi.gemstone.GemPriceAlertStore
 import uniffi.gemstone.GemPriceService
+import uniffi.gemstone.GemReceiveService
+import uniffi.gemstone.GemReceiveServiceInterface
 import uniffi.gemstone.GemSupportStore
 import uniffi.gemstone.GemNotificationStore
 import uniffi.gemstone.GemFiatService
@@ -217,6 +219,12 @@ object AssetsModule {
         priceService: GemPriceService,
         preferencesService: GemPreferencesService,
     ): GemAssetsService = GemAssetsService(apiClient, gateway, assetStore, priceService, preferencesService)
+
+    @Provides
+    fun provideGemReceiveService(
+        balanceService: GemBalanceService,
+        assetsService: GemAssetsService,
+    ): GemReceiveServiceInterface = GemReceiveService(balanceService, assetsService)
 
     @Provides
     @Singleton

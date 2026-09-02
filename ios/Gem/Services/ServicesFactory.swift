@@ -208,7 +208,6 @@ struct ServicesFactory {
 
         let chainService = Gemstone.GemChainService()
         let addressService = Gemstone.GemAddressService()
-        let receiveService = Gemstone.GemReceiveService()
         let walletConnectorPresenter = WalletConnectorPresenter()
         let walletConnectorInteractor = WalletConnectorInteractor(presenter: walletConnectorPresenter)
         let walletConnector = Self.makeWalletConnector(
@@ -435,7 +434,6 @@ struct ServicesFactory {
             pushNotificationEnablerService: pushNotificationEnablerService,
             walletConnectorPresenter: walletConnectorPresenter,
             chainService: chainService,
-            receiveService: receiveService,
             perpetualService: perpetualService,
             hyperliquidObserverService: hyperliquidObserverService,
             recentAssetsService: recentAssetsService,

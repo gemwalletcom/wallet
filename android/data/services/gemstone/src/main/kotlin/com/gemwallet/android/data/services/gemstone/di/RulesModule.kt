@@ -10,7 +10,6 @@ import uniffi.gemstone.BalanceCalculator
 import uniffi.gemstone.GemApplicationMetadataService
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemConnectionService
-import uniffi.gemstone.GemReceiveService
 import uniffi.gemstone.GemSecurityService
 import uniffi.gemstone.GemSimulationFormatter
 import uniffi.gemstone.GemTransferService
@@ -44,10 +43,6 @@ object RulesModule {
     @Provides
     @Singleton
     fun provideGemConnectionService(): GemConnectionService = GemConnectionService()
-
-    @Provides
-    @Singleton
-    fun provideGemReceiveService(): GemReceiveService = GemReceiveService()
 
 
     @Provides

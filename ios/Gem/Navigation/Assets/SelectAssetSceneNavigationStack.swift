@@ -15,9 +15,6 @@ import struct Gemstone.GemTransferData
 
 struct SelectAssetSceneNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.balanceService) private var balanceService
-    @Environment(\.assetsService) private var assetsService
-    @Environment(\.receiveService) private var receiveService
     @Environment(\.dismiss) private var dismiss
 
     @State private var isPresentingFilteringView: Bool = false
@@ -77,15 +74,7 @@ struct SelectAssetSceneNavigationStack: View {
                             ),
                         )
                     case .receive:
-                        ReceiveScene(
-                            model: ReceiveViewModel(
-                                assetData: input.assetData,
-                                wallet: model.wallet,
-                                balanceService: balanceService,
-                                assetsService: assetsService,
-                                receiveService: receiveService,
-                            ),
-                        )
+                        ReceiveScene(model: viewModelFactory.receiveScene(assetData: input.assetData, wallet: model.wallet))
                     case .buy:
                         FiatConnectNavigationView(
                             model: viewModelFactory.fiatScene(

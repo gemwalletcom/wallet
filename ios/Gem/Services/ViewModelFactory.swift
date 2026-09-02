@@ -31,6 +31,7 @@ import class Gemstone.GemNotificationsService
 import class Gemstone.GemNftService
 import class Gemstone.GemOnboardingService
 import class Gemstone.GemPaymentService
+import class Gemstone.GemReceiveService
 import class Gemstone.GemPerpetualService
 import class Gemstone.GemPreferencesService
 import class Gemstone.GemPriceAlertService
@@ -413,6 +414,20 @@ public struct ViewModelFactory: Sendable {
             recentActivity: recentAssetsService,
             preferences: preferencesService,
         )
+    }
+
+    @MainActor
+    public func receiveScene(assetData: AssetData, wallet: Wallet) -> ReceiveViewModel {
+        ReceiveViewModel(assetData: assetData, wallet: wallet, service: receiveService())
+    }
+
+    @MainActor
+    public func receiveScene(assetAddress: AssetAddress, wallet: Wallet) -> ReceiveViewModel {
+        ReceiveViewModel(assetAddress: assetAddress, wallet: wallet, service: receiveService())
+    }
+
+    private func receiveService() -> GemReceiveService {
+        GemReceiveService(balances: balanceService, assets: assetsService)
     }
 
     @MainActor

@@ -4,9 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.SyncAssetInfo
 import com.gemwallet.android.application.receive.cases.GetReceiveAssetInfo
-import com.gemwallet.android.application.receive.cases.SetAssetVisible
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -26,16 +27,15 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemMemoWarning
-import uniffi.gemstone.GemReceiveService
+import uniffi.gemstone.GemReceiveServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel(assistedFactory = ReceiveViewModel.Factory::class)
 class ReceiveViewModel @AssistedInject constructor(
     @Assisted private val sourceAssetId: AssetId,
     private val getReceiveAssetInfo: GetReceiveAssetInfo,
-    private val setAssetVisible: SetAssetVisible,
     private val syncAssetInfo: SyncAssetInfo,
-    private val receiveService: GemReceiveService,
+    private val service: GemReceiveServiceInterface,
     getSession: GetSession,
 ) : ViewModel() {
 
@@ -51,9 +51,11 @@ class ReceiveViewModel @AssistedInject constructor(
         asset.filterNotNull().filter { it.asset.id == sourceAssetId },
         session.filterNotNull(),
     ) { assetInfo, session ->
-        (listOf(assetInfo.asset.id) + assetInfo.associations.map { it.assetId })
-            .filter { session.wallet.getAccount(it) != null }
-            .distinct()
+        service.networkAssetIds(
+            assetInfo.asset.id.toIdentifier(),
+            assetInfo.associations.map { it.assetId.toIdentifier() },
+            session.wallet.toJson(),
+        ).map { it.toAssetId()!! }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, listOf(sourceAssetId))
 
@@ -63,7 +65,7 @@ class ReceiveViewModel @AssistedInject constructor(
         }
     }
 
-    fun memoWarning(chain: Chain): GemMemoWarning = receiveService.memoWarning(chain.string)
+    fun memoWarning(chain: Chain): GemMemoWarning = service.memoWarning(chain.string)
 
     fun selectAsset(assetId: AssetId) {
         selectedAssetId.value = assetId
@@ -74,8 +76,9 @@ class ReceiveViewModel @AssistedInject constructor(
         fun create(assetId: AssetId): ReceiveViewModel
     }
 
-    fun setVisible() = viewModelScope.launch {
+    fun setVisible() = viewModelScope.launch(Dispatchers.IO) {
         val assetId = asset.value?.asset?.id ?: return@launch
-        setAssetVisible(assetId)
+        val wallet = session.filterNotNull().first().wallet
+        service.enableAsset(wallet.id.id, assetId.toIdentifier())
     }
 }
