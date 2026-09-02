@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::sync::Mutex;
 use std::time::Duration;
 
@@ -23,35 +23,45 @@ pub struct Tracking {
 
 #[derive(Default)]
 struct TrackingState {
-    generation: u64,
-    transactions: HashSet<TransactionId>,
+    last_poll: u64,
+    polls: HashMap<TransactionId, u64>,
+}
+
+pub struct TrackedTransactions<'a> {
+    tracking: &'a Tracking,
+    poll: u64,
 }
 
 impl Tracking {
-    pub fn start(&self, transaction_id: &TransactionId) -> Option<u64> {
+    pub fn start(&self, transaction_id: &TransactionId) -> Option<TrackedTransactions<'_>> {
         let mut state = self.state.lock().unwrap();
-        state.transactions.insert(transaction_id.clone()).then_some(state.generation)
-    }
-
-    pub fn add(&self, transaction_id: &TransactionId) {
-        self.state.lock().unwrap().transactions.insert(transaction_id.clone());
-    }
-
-    pub fn finish(&self, transaction_ids: &[TransactionId]) {
-        let mut state = self.state.lock().unwrap();
-        for transaction_id in transaction_ids {
-            state.transactions.remove(transaction_id);
+        if state.polls.contains_key(transaction_id) {
+            return None;
         }
-    }
-
-    pub fn is_current(&self, generation: u64) -> bool {
-        self.state.lock().unwrap().generation == generation
+        state.last_poll += 1;
+        let poll = state.last_poll;
+        state.polls.insert(transaction_id.clone(), poll);
+        Some(TrackedTransactions { tracking: self, poll })
     }
 
     pub fn cancel(&self) {
-        let mut state = self.state.lock().unwrap();
-        state.generation += 1;
-        state.transactions.clear();
+        self.state.lock().unwrap().polls.clear();
+    }
+}
+
+impl TrackedTransactions<'_> {
+    fn is_tracking(&self) -> bool {
+        self.tracking.state.lock().unwrap().polls.values().any(|poll| *poll == self.poll)
+    }
+
+    fn follow(&self, transaction_id: &TransactionId) {
+        self.tracking.state.lock().unwrap().polls.insert(transaction_id.clone(), self.poll);
+    }
+}
+
+impl Drop for TrackedTransactions<'_> {
+    fn drop(&mut self) {
+        self.tracking.state.lock().unwrap().polls.retain(|_, poll| *poll != self.poll);
     }
 }
 
@@ -63,17 +73,16 @@ pub async fn poll(
     wallet_id: WalletId,
     transaction: Transaction,
 ) {
-    let Some(generation) = tracking.start(&transaction.id) else {
+    let Some(tracked) = tracking.start(&transaction.id) else {
         return;
     };
-    let mut tracked = vec![transaction.id.clone()];
     let mut current = transaction;
     let mut interval = configuration.initial_interval_ms;
 
     loop {
         sleep(Duration::from_millis(u64::from(interval))).await;
         interval = configuration.next_interval_ms(interval);
-        if !tracking.is_current(generation) {
+        if !tracked.is_tracking() {
             break;
         }
         let result = match updater.update(wallet_id.clone(), current.clone()).await {
@@ -82,8 +91,7 @@ pub async fn poll(
             Err(_) => continue,
         };
         if result.transaction_id != current.id {
-            tracking.add(&result.transaction_id);
-            tracked.push(result.transaction_id.clone());
+            tracked.follow(&result.transaction_id);
         }
         let stored = store.get_transaction(wallet_id.clone(), result.transaction_id.clone()).await;
         let Ok(Some(pending)) = stored else {
@@ -94,14 +102,14 @@ pub async fn poll(
             break;
         }
     }
-
-    tracking.finish(&tracked);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use primitives::{AssetId, Chain, TransactionState, Wallet};
+    use std::future::Future;
+    use std::task::Context;
 
     use crate::services::transaction_state::model::{GemPendingTransaction, GemTransactionStateUpdate};
 
@@ -241,7 +249,7 @@ mod tests {
         let pending = transaction("hash", TransactionState::Pending);
         let updater = StubUpdater::default();
         let tracking = Tracking::default();
-        tracking.start(&pending.id);
+        let _owner = tracking.start(&pending.id).unwrap();
 
         run(&updater, &StubStore::default(), &tracking, pending);
 
@@ -249,17 +257,60 @@ mod tests {
     }
 
     #[test]
-    fn test_cancel_ends_the_current_generation_and_frees_tracked_transactions() {
+    fn test_cancel_stops_the_running_poll_and_frees_its_transactions() {
         let pending = transaction("hash", TransactionState::Pending);
         let tracking = Tracking::default();
-        let generation = tracking.start(&pending.id).unwrap();
+        let tracked = tracking.start(&pending.id).unwrap();
 
         assert!(tracking.start(&pending.id).is_none());
-        assert!(tracking.is_current(generation));
+        assert!(tracked.is_tracking());
 
         tracking.cancel();
 
-        assert!(!tracking.is_current(generation));
+        assert!(!tracked.is_tracking());
+        assert!(tracking.start(&pending.id).is_some());
+    }
+
+    #[test]
+    fn test_a_poll_dropped_mid_flight_releases_the_transaction() {
+        let pending = transaction("hash", TransactionState::Pending);
+        let updater = StubUpdater::default();
+        let store = StubStore::default();
+        let tracking = Tracking::default();
+
+        {
+            let mut polling = Box::pin(poll(
+                &updater,
+                &store,
+                &tracking,
+                configuration(),
+                WalletId::Multicoin("wallet".into()),
+                pending.clone(),
+            ));
+            let waker = futures::task::noop_waker();
+            assert!(polling.as_mut().poll(&mut Context::from_waker(&waker)).is_pending());
+            assert!(tracking.start(&pending.id).is_none(), "the poll owns the transaction while it runs");
+        }
+
+        assert!(
+            tracking.start(&pending.id).is_some(),
+            "a poll dropped at its first sleep must free the transaction, or it is never tracked again"
+        );
+    }
+
+    #[test]
+    fn test_a_poll_dropped_after_a_restart_leaves_the_new_owner_alone() {
+        let pending = transaction("hash", TransactionState::Pending);
+        let tracking = Tracking::default();
+        let stopped = tracking.start(&pending.id).unwrap();
+
+        tracking.cancel();
+        let restarted = tracking.start(&pending.id).unwrap();
+        drop(stopped);
+
+        assert!(tracking.start(&pending.id).is_none(), "the restarted poll still owns the transaction");
+
+        drop(restarted);
         assert!(tracking.start(&pending.id).is_some());
     }
 }
