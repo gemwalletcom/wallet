@@ -29,6 +29,7 @@ import class Gemstone.GemNotificationsService
 import class Gemstone.GemNftService
 import class Gemstone.GemNodeService
 import class Gemstone.GemOnboardingService
+import class Gemstone.GemCollectibleService
 import class Gemstone.GemFiatQuoteService
 import class Gemstone.GemPaymentService
 import class Gemstone.GemPerpetualDetailsService
@@ -433,6 +434,16 @@ public struct ViewModelFactory: Sendable {
             observerService: hyperliquidObserverService,
             onTransferData: onTransferData,
             onPerpetualRecipientData: onPerpetualRecipientData,
+        )
+    }
+
+    @MainActor
+    public func collectibleScene(wallet: Wallet, assetData: NFTAssetData, isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>) -> CollectibleViewModel {
+        CollectibleViewModel(
+            wallet: wallet,
+            assetData: assetData,
+            service: GemCollectibleService(nfts: nftService, avatars: avatarService, explorer: explorerService),
+            isPresentingSelectedAssetInput: isPresentingSelectedAssetInput,
         )
     }
 

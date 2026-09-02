@@ -14,10 +14,8 @@ import Transactions
 
 struct TransactionsNavigationView: View {
     @Environment(\.navigationState) private var navigationState
-    @Environment(\.explorerService) private var explorerService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.avatarService) private var avatarService
     @Environment(\.navigationPresenter) private var presenter
     @Environment(\.nftService) private var nftService
 
@@ -51,16 +49,7 @@ struct TransactionsNavigationView: View {
                 )
             }
             .navigationDestination(for: Scenes.Collectible.self) {
-                CollectibleScene(
-                    model: CollectibleViewModel(
-                        wallet: model.wallet,
-                        assetData: $0.assetData,
-                        avatarService: avatarService,
-                        nftService: nftService,
-                        explorerService: explorerService,
-                        isPresentingSelectedAssetInput: presenter.isPresentingAssetInput,
-                    ),
-                )
+                CollectibleScene(model: viewModelFactory.collectibleScene(wallet: model.wallet, assetData: $0.assetData, isPresentingSelectedAssetInput: presenter.isPresentingAssetInput))
             }
             .toast(message: $model.isPresentingToastMessage)
             .sheet(item: $model.isPresentingSheet) { type in

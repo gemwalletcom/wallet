@@ -47,13 +47,7 @@ public struct CollectibleScene: View {
         .alertSheet($model.isPresentingAlertMessage)
         .toast(message: $model.isPresentingToast)
         .sheet(isPresented: $model.isPresentingReportSheet) {
-            ReportNavigationStack(
-                model: ReportNftViewModel(
-                    nftService: model.nftService,
-                    assetData: model.assetData,
-                    onComplete: model.onReportComplete,
-                ),
-            )
+            ReportNavigationStack(model: model.reportModel())
         }
         .sheet(item: $model.isPresentingInfoSheet) {
             InfoSheetScene(model: InfoSheetModelFactory.create(from: $0))

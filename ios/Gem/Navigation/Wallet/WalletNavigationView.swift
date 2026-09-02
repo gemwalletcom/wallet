@@ -20,7 +20,6 @@ import Transfer
 import WalletTab
 
 struct WalletNavigationView: View {
-    @Environment(\.explorerService) private var explorerService
     @Environment(\.deeplinkService) private var deeplinkService
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.navigationState) private var navigationState
@@ -37,7 +36,6 @@ struct WalletNavigationView: View {
     @Environment(\.hyperliquidObserverService) private var hyperliquidObserverService
     @Environment(\.recentAssetsService) private var recentAssetsService
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.avatarService) private var avatarService
     @Environment(\.nftService) private var nftService
     @Environment(\.observablePreferences) private var preferences
 
@@ -118,16 +116,7 @@ struct WalletNavigationView: View {
             )
         }
         .navigationDestination(for: Scenes.Collectible.self) {
-            CollectibleScene(
-                model: CollectibleViewModel(
-                    wallet: model.wallet,
-                    assetData: $0.assetData,
-                    avatarService: avatarService,
-                    nftService: nftService,
-                    explorerService: explorerService,
-                    isPresentingSelectedAssetInput: model.isPresentingSelectedAssetInput,
-                ),
-            )
+            CollectibleScene(model: viewModelFactory.collectibleScene(wallet: model.wallet, assetData: $0.assetData, isPresentingSelectedAssetInput: model.isPresentingSelectedAssetInput))
         }
         .navigationDestination(for: Scenes.Collections.self) { _ in
             CollectionsSceneNavigationView(

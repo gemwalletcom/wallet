@@ -1,3 +1,4 @@
+pub mod collectible;
 pub mod rules;
 pub mod store;
 
@@ -7,6 +8,7 @@ use std::sync::Arc;
 
 use primitives::{NFTAssetData, NFTAssetId, NFTData, ReportNft, WalletId};
 
+pub use collectible::{GemCollectibleLinks, GemCollectibleService};
 pub use store::GemNftStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
