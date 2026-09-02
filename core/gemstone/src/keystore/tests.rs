@@ -1,5 +1,5 @@
-use primitives::{Chain, WalletType};
 use primitives::testkit::ABANDON_PHRASE;
+use primitives::{Chain, WalletType};
 use tempfile::TempDir;
 use zeroize::Zeroizing;
 

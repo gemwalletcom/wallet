@@ -136,9 +136,19 @@ pub struct GemPaymentConfirmTransfer {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemPaymentDestination {
-    Confirm { transfer: GemPaymentConfirmTransfer },
-    Recipient { asset_id: AssetId, recipient: GemRecipient, amount: Option<String> },
-    SelectAsset { recipient: GemRecipient, amount: Option<String>, chains: Vec<Chain> },
+    Confirm {
+        transfer: GemPaymentConfirmTransfer,
+    },
+    Recipient {
+        asset_id: AssetId,
+        recipient: GemRecipient,
+        amount: Option<String>,
+    },
+    SelectAsset {
+        recipient: GemRecipient,
+        amount: Option<String>,
+        chains: Vec<Chain>,
+    },
     Unsupported,
 }
 

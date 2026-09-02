@@ -1,5 +1,5 @@
-use primitives::perpetual::{CancelOrderData, PerpetualModifyPositionType, TPSLOrderData};
 use primitives::PerpetualDirection;
+use primitives::perpetual::{CancelOrderData, PerpetualModifyPositionType, TPSLOrderData};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAutocloseField {
@@ -43,7 +43,10 @@ impl GemAutocloseField {
     }
 
     fn cancel(&self, asset_index: i32) -> Option<CancelOrderData> {
-        self.should_cancel().then_some(()).and(self.order_id).map(|order_id| CancelOrderData { asset_index, order_id })
+        self.should_cancel()
+            .then_some(())
+            .and(self.order_id)
+            .map(|order_id| CancelOrderData { asset_index, order_id })
     }
 
     fn set_price(&self) -> Option<String> {
@@ -152,7 +155,9 @@ mod tests {
         let both = modify(field(Some(120.0), Some(100.0), true, Some(12345)), field(Some(80.0), Some(90.0), true, Some(67890))).build();
         assert_eq!(both.len(), 2);
         assert!(matches!(&both[0], PerpetualModifyPositionType::Cancel(cancels) if cancels.len() == 2));
-        assert!(matches!(&both[1], PerpetualModifyPositionType::Tpsl(order) if order.take_profit.as_deref() == Some("120.0") && order.stop_loss.as_deref() == Some("80.0") && order.size == "0"));
+        assert!(
+            matches!(&both[1], PerpetualModifyPositionType::Tpsl(order) if order.take_profit.as_deref() == Some("120.0") && order.stop_loss.as_deref() == Some("80.0") && order.size == "0")
+        );
 
         let unchanged_stop_loss = modify(field(Some(120.0), Some(100.0), true, Some(12345)), field(Some(90.0), Some(90.0), true, Some(67890))).build();
         assert!(matches!(&unchanged_stop_loss[1], PerpetualModifyPositionType::Tpsl(order) if order.stop_loss.is_none()));

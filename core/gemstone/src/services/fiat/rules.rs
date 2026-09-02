@@ -85,9 +85,15 @@ mod tests {
                 available: BigUint::from(100u32),
             }
         );
-        assert_eq!(amount_check(&config, FiatQuoteType::Sell, 100.0, Some(&quote(100)), &BigUint::from(100u32)), GemFiatAmountCheck::Valid);
+        assert_eq!(
+            amount_check(&config, FiatQuoteType::Sell, 100.0, Some(&quote(100)), &BigUint::from(100u32)),
+            GemFiatAmountCheck::Valid
+        );
         assert_eq!(amount_check(&config, FiatQuoteType::Sell, 100.0, None, &BigUint::ZERO), GemFiatAmountCheck::Valid);
-        assert_eq!(amount_check(&config, FiatQuoteType::Buy, 100.0, Some(&quote(200)), &BigUint::ZERO), GemFiatAmountCheck::Valid);
+        assert_eq!(
+            amount_check(&config, FiatQuoteType::Buy, 100.0, Some(&quote(200)), &BigUint::ZERO),
+            GemFiatAmountCheck::Valid
+        );
     }
 
     #[test]

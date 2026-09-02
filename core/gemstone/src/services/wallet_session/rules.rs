@@ -9,9 +9,7 @@ pub fn rewards_wallets(wallets: Vec<Wallet>) -> Vec<Wallet> {
 }
 
 pub fn rewards_wallet(current: Option<Wallet>, wallets: &[Wallet]) -> Option<Wallet> {
-    current
-        .filter(|wallet| wallet.wallet_type == WalletType::Multicoin)
-        .or_else(|| wallets.first().cloned())
+    current.filter(|wallet| wallet.wallet_type == WalletType::Multicoin).or_else(|| wallets.first().cloned())
 }
 
 #[cfg(test)]
@@ -37,7 +35,10 @@ mod tests {
         };
         let wallets = rewards_wallets(vec![wallet(WalletType::Single), other.clone(), current.clone()]);
 
-        assert_eq!(wallets.iter().map(|wallet| wallet.id.clone()).collect::<Vec<_>>(), vec![other.id.clone(), current.id.clone()]);
+        assert_eq!(
+            wallets.iter().map(|wallet| wallet.id.clone()).collect::<Vec<_>>(),
+            vec![other.id.clone(), current.id.clone()]
+        );
         assert_eq!(rewards_wallet(Some(current.clone()), &wallets).map(|wallet| wallet.id), Some(current.id));
         assert_eq!(rewards_wallet(Some(wallet(WalletType::Single)), &wallets).map(|wallet| wallet.id), Some(other.id));
         assert!(rewards_wallet(None, &[]).is_none());

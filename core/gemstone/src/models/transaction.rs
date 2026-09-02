@@ -7,9 +7,9 @@ use primitives::nft::NFTAsset;
 use primitives::solana_nft::SolanaNftStandard;
 use primitives::solana_token_program::SolanaTokenProgramId;
 use primitives::{
-    AccountDataType, AssetId, EarnType, FeeOption, GasPriceType, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, PerpetualType, SignerInput,
-    StakeType, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransactionType, TransferDataExtra, TransferDataOutputAction,
-    TransferDataOutputType, TronStakeData, perpetual::PerpetualReduceData,
+    AccountDataType, AssetId, EarnType, FeeOption, GasPriceType, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, PerpetualType, SignerInput, StakeType, TransactionFee,
+    TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransactionType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, TronStakeData,
+    perpetual::PerpetualReduceData,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
