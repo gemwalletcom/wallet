@@ -1,6 +1,5 @@
 use crate::services::error::GemServiceError;
-use futures::channel::oneshot;
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::Arc;
 
 use primitives::ConfigResponse;
 
@@ -8,75 +7,32 @@ use crate::api::{GemApiClient, GemApiError};
 use crate::services::preferences::GemPreferencesService;
 
 type ConfigResult = Result<ConfigResponse, GemServiceError>;
-type Waiters = Option<Vec<oneshot::Sender<ConfigResult>>>;
 
 #[derive(uniffi::Object)]
 pub struct GemConfigService {
     api: Arc<GemApiClient>,
     preferences: Arc<GemPreferencesService>,
-    waiters: Mutex<Waiters>,
 }
 
 #[uniffi::export]
 impl GemConfigService {
     #[uniffi::constructor]
     pub fn new(api: Arc<GemApiClient>, preferences: Arc<GemPreferencesService>) -> Self {
-        Self {
-            api,
-            preferences,
-            waiters: Mutex::new(None),
-        }
+        Self { api, preferences }
     }
 
     pub async fn update_config(&self) -> ConfigResult {
-        let receiver = {
-            let mut waiters = self.waiters();
-            match waiters.as_mut() {
-                Some(pending) => {
-                    let (sender, receiver) = oneshot::channel();
-                    pending.push(sender);
-                    Some(receiver)
-                }
-                None => {
-                    *waiters = Some(Vec::new());
-                    None
-                }
-            }
-        };
-        if let Some(receiver) = receiver {
-            return receiver.await.unwrap_or(Err(GemServiceError::Cancelled));
-        }
-        let result = self.load_config().await;
-        for sender in self.waiters().take().unwrap_or_default() {
-            let _ = sender.send(result.clone());
-        }
-        result
+        let config = self.api.client.get_config().await.map_err(GemApiError::from)?;
+        self.preferences.set_config(&config)?;
+        Ok(config)
     }
 }
 
 impl GemConfigService {
     pub async fn get_config(&self) -> ConfigResult {
-        if self.waiters().is_some() {
-            return self.update_config().await;
-        }
         match self.preferences.get_config() {
             Some(config) => Ok(config),
             None => self.update_config().await,
-        }
-    }
-}
-
-impl GemConfigService {
-    async fn load_config(&self) -> ConfigResult {
-        let config = self.api.client.get_config().await.map_err(GemApiError::from)?;
-        self.preferences.set_config(&config)?;
-        Ok(config)
-    }
-
-    fn waiters(&self) -> MutexGuard<'_, Waiters> {
-        match self.waiters.lock() {
-            Ok(waiters) => waiters,
-            Err(poisoned) => poisoned.into_inner(),
         }
     }
 }
@@ -89,8 +45,10 @@ mod tests {
     use async_trait::async_trait;
     use primitives::{Chain, ConfigVersions, SwapConfig};
     use std::collections::HashMap;
+    use std::sync::Mutex;
+    use std::future::Future;
     use std::sync::atomic::{AtomicUsize, Ordering};
-    use std::task::Poll;
+    use std::task::{Context, Poll};
 
     #[derive(Default)]
     struct MemoryStore {
@@ -173,6 +131,24 @@ mod tests {
         assert_eq!(first.unwrap().versions.fiat_on_ramp_assets, 0);
         assert_eq!(second.unwrap().versions.fiat_on_ramp_assets, 0);
         assert_eq!(cached.unwrap().versions.fiat_on_ramp_assets, 0);
+    }
+
+    #[test]
+    fn a_dropped_update_leaves_the_next_caller_free_to_read_the_stored_config() {
+        let provider = Arc::new(ConfigProvider::default());
+        let service = service(provider.clone());
+        futures::executor::block_on(service.update_config()).unwrap();
+
+        {
+            let mut update = Box::pin(service.update_config());
+            let waker = futures::task::noop_waker();
+            assert!(update.as_mut().poll(&mut Context::from_waker(&waker)).is_pending());
+        }
+
+        let cached = futures::executor::block_on(service.get_config()).unwrap();
+
+        assert_eq!(cached.versions.fiat_on_ramp_assets, 0);
+        assert_eq!(provider.requests.load(Ordering::SeqCst), 2);
     }
 
     #[test]

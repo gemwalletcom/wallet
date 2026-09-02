@@ -279,14 +279,7 @@ mod tests {
         let tracking = Tracking::default();
 
         {
-            let mut polling = Box::pin(poll(
-                &updater,
-                &store,
-                &tracking,
-                configuration(),
-                WalletId::Multicoin("wallet".into()),
-                pending.clone(),
-            ));
+            let mut polling = Box::pin(poll(&updater, &store, &tracking, configuration(), WalletId::Multicoin("wallet".into()), pending.clone()));
             let waker = futures::task::noop_waker();
             assert!(polling.as_mut().poll(&mut Context::from_waker(&waker)).is_pending());
             assert!(tracking.start(&pending.id).is_none(), "the poll owns the transaction while it runs");
