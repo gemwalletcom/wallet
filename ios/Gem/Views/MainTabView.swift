@@ -12,20 +12,14 @@ import GemstoneServices
 import WalletTab
 
 struct MainTabView: View {
-    @Environment(\.assetDiscoveryService) private var assetDiscoveryService
     @Environment(\.chainService) private var chainService
-    @Environment(\.balanceService) private var balanceService
-    @Environment(\.bannerService) private var bannerService
     @Environment(\.deviceService) private var deviceService
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
-    @Environment(\.nftService) private var nftService
     @Environment(\.priceService) private var priceService
-    @Environment(\.observablePreferences) private var observablePreferences
     @Environment(\.preferencesService) private var preferencesService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.priceAlertService) private var priceAlertService
-    @Environment(\.walletPreferencesService) private var walletPreferencesService
     @Environment(\.transactionsService) private var transactionsService
     @Environment(\.viewModelFactory) private var viewModelFactory
 
@@ -49,13 +43,7 @@ struct MainTabView: View {
         TabView(selection: tabViewSelection) {
             NavigationStack(path: navigationState.wallet.binding) {
                 WalletNavigationView(
-                    model: WalletSceneViewModel(
-                        assetDiscoveryService: assetDiscoveryService,
-                        balanceService: balanceService,
-                        bannerService: bannerService,
-                        nftService: nftService,
-                        walletPreferencesService: walletPreferencesService,
-                        observablePreferences: observablePreferences,
+                    model: viewModelFactory.walletScene(
                         wallet: wallet,
                         isPresentingSelectedAssetInput: presenter.isPresentingAssetInput,
                         isPresentingWallets: presenter.isPresentingWallets,

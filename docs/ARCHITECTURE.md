@@ -430,7 +430,7 @@ A `GemFooService()` in a field initialiser or at file scope is a second instance
   launch) is registered in `ServicesFactory`, exposed through an `@Entry` in
   `ios/Gem/Types/Environment.swift`, and passed into the view model. A screen service — one that
   only composes owners for a single screen (`GemAssetDetailsService`, `GemChartService`,
-  `GemTransactionDetailsService`) — is built in the `ViewModelFactory.xxxScene(...)` that builds
+  `GemTransactionDetailsService`, `GemWalletHomeService`) — is built in the `ViewModelFactory.xxxScene(...)` that builds
   its view model, from the owners the factory already holds. It is never a field of
   `AppResolver.Services` and never an `@Entry`: that constructs it on every launch of an app that
   may never open the screen, and hands views a composition detail.

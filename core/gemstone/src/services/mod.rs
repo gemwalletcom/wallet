@@ -48,6 +48,7 @@ pub mod transfer;
 pub mod wallet;
 pub mod wallet_configuration;
 pub mod wallet_connect;
+pub mod wallet_home;
 pub mod wallet_preferences;
 pub mod wallet_session;
 
@@ -94,5 +95,6 @@ pub use transactions::{GemTransactionStore, GemTransactionsService};
 pub use wallet::{GemKeystoreAuthentication, GemKeystorePassword, GemWalletImportResult, GemWalletImportType, GemWalletService, GemWalletSource, GemWalletStore};
 pub use wallet_configuration::GemWalletConfigurationService;
 pub use wallet_connect::{GemSessionApproval, GemSessionProposal, GemWalletConnectRequest, GemWalletConnectResponse, GemWalletConnectService, GemWalletConnectSigner};
+pub use wallet_home::GemWalletHomeService;
 pub use wallet_preferences::{GemDiscoveryStep, GemWalletPreferencesService, GemWalletPreferencesStore};
 pub use wallet_session::{GemWalletSessionService, GemWalletSessionStore};

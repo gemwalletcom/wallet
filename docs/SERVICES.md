@@ -436,7 +436,6 @@ having the parent vend the child view model.
 | `Onboarding/ImportWalletViewModel.swift` | 4 | 4 |
 | `Transactions/TransactionsViewModel.swift` | 3 | 1 |
 | `WalletTab/WalletSearchSceneViewModel.swift` | 4 | 2 |
-| `WalletTab/WalletSceneViewModel.swift` | 4 | 1 |
 | `Settings/Settings/ViewModels/NotificationsViewModel.swift` | 4 | 0 |
 | `Settings/ChainSettings/ViewModels/ChainSettingsSceneViewModel.swift` | 3 | 2 |
 | `NFT/CollectibleViewModel.swift` | 3 | 1 |

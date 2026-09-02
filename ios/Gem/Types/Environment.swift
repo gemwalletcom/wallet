@@ -40,7 +40,6 @@ import protocol Gemstone.GemPriceServiceProtocol
 import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
 import protocol Gemstone.GemNotificationServiceProtocol
-import protocol Gemstone.GemAssetDiscoveryServiceProtocol
 import GRDB
 import Primitives
 import protocol Gemstone.GemServiceStatusProtocol
@@ -56,7 +55,6 @@ extension EnvironmentValues {
     @Entry var serviceStatusService: any GemServiceStatusProtocol = AppResolver.main.services.serviceStatusService
     @Entry var priceService: any GemPriceServiceProtocol = AppResolver.main.services.priceService
     @Entry var streamSubscriptionService: GemStreamSubscriptionService = AppResolver.main.services.streamSubscriptionService
-    @Entry var assetDiscoveryService: any GemAssetDiscoveryServiceProtocol = AppResolver.main.services.assetDiscoveryService
     @Entry var walletPreferencesService: any GemWalletPreferencesServiceProtocol = AppResolver.main.services.walletPreferencesService
     @Entry var observablePreferences: ObservablePreferences = AppResolver.main.services.observablePreferences
     @Entry var preferencesService: any GemPreferencesServiceProtocol = AppResolver.main.services.preferencesService

@@ -15,7 +15,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class NetworkAssetsSceneViewModel: AssetActions {
-    let balanceService: any GemBalanceServiceProtocol
+    private let balanceService: any GemBalanceServiceProtocol
     private let preferencesService: any GemPreferencesServiceProtocol
     let wallet: Wallet
     private let onManageAssetsAction: () -> Void
@@ -116,5 +116,15 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
 
     func onCopyAddress(_ message: String) {
         isPresentingToastMessage = .copy(message)
+    }
+}
+
+extension NetworkAssetsSceneViewModel {
+    func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws {
+        try await balanceService.setAssetPinned(wallet: wallet, assetId: assetId, pinned: pinned)
+    }
+
+    func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
+        try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: assetIds, enabled: enabled)
     }
 }

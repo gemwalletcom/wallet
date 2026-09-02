@@ -24,7 +24,7 @@ import SwiftUI
 public final class WalletSearchSceneViewModel: Sendable, AssetActions, PerpetualPinActions {
     private let searchService: any GemSearchServiceProtocol
     private let recentAssetsService: any GemRecentActivityServiceProtocol
-    let balanceService: any GemBalanceServiceProtocol
+    private let balanceService: any GemBalanceServiceProtocol
     let perpetualService: any GemPerpetualServiceProtocol
     private let preferences: ObservablePreferences
 
@@ -299,5 +299,15 @@ extension WalletSearchSceneViewModel {
             state.setError(error)
             debugLog("Search error: \(error)")
         }
+    }
+}
+
+extension WalletSearchSceneViewModel {
+    func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws {
+        try await balanceService.setAssetPinned(wallet: wallet, assetId: assetId, pinned: pinned)
+    }
+
+    func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
+        try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: assetIds, enabled: enabled)
     }
 }

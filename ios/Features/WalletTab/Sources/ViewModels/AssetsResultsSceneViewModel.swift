@@ -22,7 +22,7 @@ import SwiftUI
 public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinActions {
     public static let defaultLimit = 100
 
-    let balanceService: any GemBalanceServiceProtocol
+    private let balanceService: any GemBalanceServiceProtocol
     private let preferencesService: any GemPreferencesServiceProtocol
     private let searchService: any GemSearchServiceProtocol
     let perpetualService: any GemPerpetualServiceProtocol
@@ -148,5 +148,15 @@ extension AssetsResultsSceneViewModel {
                 debugLog("AssetsResultsSceneViewModel update recent error: \(error)")
             }
         }
+    }
+}
+
+extension AssetsResultsSceneViewModel {
+    func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws {
+        try await balanceService.setAssetPinned(wallet: wallet, assetId: assetId, pinned: pinned)
+    }
+
+    func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
+        try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: assetIds, enabled: enabled)
     }
 }

@@ -40,7 +40,6 @@ import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemPriceServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
 import protocol Gemstone.GemNotificationServiceProtocol
-import protocol Gemstone.GemAssetDiscoveryServiceProtocol
 import Primitives
 import PrimitivesComponents
 import protocol Gemstone.GemServiceStatusProtocol
@@ -73,7 +72,6 @@ extension AppResolver {
         let deviceKeyService: GemDeviceKeyService
         let observablePreferences: ObservablePreferences
         let walletSessionService: any GemWalletSessionServiceProtocol
-        let assetDiscoveryService: any GemAssetDiscoveryServiceProtocol
         let assetsService: any GemAssetsServiceProtocol
         let explorerService: any GemExplorerServiceProtocol
         let gatewayService: GatewayService

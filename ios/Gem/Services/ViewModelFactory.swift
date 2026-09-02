@@ -10,6 +10,7 @@ import class Gemstone.GemAmountService
 import class Gemstone.GemApiClient
 import class Gemstone.GemApplicationMetadataService
 import class Gemstone.GemAssetConfigService
+import class Gemstone.GemAssetDiscoveryService
 import class Gemstone.GemAssetsService
 import class Gemstone.GemAvatarService
 import class Gemstone.GemBalanceService
@@ -24,6 +25,7 @@ import class Gemstone.GemDeeplinkService
 import class Gemstone.GemExplorerService
 import class Gemstone.GemFiatService
 import class Gemstone.GemNameService
+import class Gemstone.GemNftService
 import class Gemstone.GemOnboardingService
 import class Gemstone.GemPaymentService
 import class Gemstone.GemPerpetualService
@@ -39,6 +41,7 @@ import class Gemstone.GemSwapService
 import class Gemstone.GemTransactionDetailsService
 import class Gemstone.GemTransactionStateService
 import class Gemstone.GemTransferService
+import class Gemstone.GemWalletHomeService
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
 import Assets
@@ -49,6 +52,7 @@ import GemstoneServices
 import LockManager
 import ManageWallets
 import MarketInsight
+import NFT
 import Onboarding
 import Preferences
 import GemstonePrimitives
@@ -75,6 +79,7 @@ public struct ViewModelFactory: Sendable {
     let apiClient: GemApiClient
     let applicationMetadataService: GemApplicationMetadataService
     let assetConfig: GemAssetConfigService
+    let assetDiscoveryService: GemAssetDiscoveryService
     let assetsService: GemAssetsService
     let avatarService: GemAvatarService
     let bannerService: GemBannerService
@@ -87,6 +92,7 @@ public struct ViewModelFactory: Sendable {
     let explorerService: GemExplorerService
     let fiatService: GemFiatService
     let nameService: GemNameService
+    let nftService: GemNftService
     let onboardingService: GemOnboardingService
     let paymentService: GemPaymentService
     let perpetualService: GemPerpetualService
@@ -138,6 +144,27 @@ public struct ViewModelFactory: Sendable {
             preferences: observablePreferences,
             input: AssetSceneInput(wallet: wallet, asset: asset),
             isPresentingSelectedAssetInput: isPresentingSelectedAssetInput,
+        )
+    }
+
+    @MainActor
+    public func walletScene(
+        wallet: Wallet,
+        isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
+        isPresentingWallets: Binding<Bool>,
+    ) -> WalletSceneViewModel {
+        WalletSceneViewModel(
+            service: GemWalletHomeService(
+                balances: balanceService,
+                discovery: assetDiscoveryService,
+                banners: bannerService,
+                walletPreferences: walletPreferencesService,
+            ),
+            observablePreferences: observablePreferences,
+            collectionsModel: CollectionsViewModel(nftService: nftService, wallet: wallet),
+            wallet: wallet,
+            isPresentingSelectedAssetInput: isPresentingSelectedAssetInput,
+            isPresentingWallets: isPresentingWallets,
         )
     }
 

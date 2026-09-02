@@ -715,6 +715,41 @@ public extension GemTransactionDetailsService {
     }
 }
 
+public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unchecked Sendable {
+    public private(set) var handledActions: [GemBannerAction] = []
+    public private(set) var pinned: [(assetId: Gemstone.AssetId, pinned: Bool)] = []
+    public private(set) var enabled: [(assetIds: [Gemstone.AssetId], enabled: Bool)] = []
+    public var showsLoading = false
+
+    public init() {}
+
+    public func includesPerpetualCollateral(walletId _: Gemstone.WalletId) -> Bool {
+        false
+    }
+
+    public func showsInitialLoading(walletId _: Gemstone.WalletId) throws -> Bool {
+        showsLoading
+    }
+
+    public func refresh(walletId _: Gemstone.WalletId, assetIds _: [Gemstone.AssetId]) async throws {}
+
+    public func setAssetPinned(walletId _: Gemstone.WalletId, assetId: Gemstone.AssetId, pinned isPinned: Bool) async throws {
+        pinned.append((assetId, isPinned))
+    }
+
+    public func setAssetsEnabled(walletId _: Gemstone.WalletId, assetIds: [Gemstone.AssetId], enabled isEnabled: Bool) async throws {
+        enabled.append((assetIds, isEnabled))
+    }
+
+    public func bannerContent(event _: Gemstone.BannerEvent, asset _: Gemstone.Asset?) -> GemBannerContent {
+        GemBannerContent(icon: .none, title: .none, description: .none)
+    }
+
+    public func applyBannerAction(key _: GemBannerKey, action: GemBannerAction) async throws {
+        handledActions.append(action)
+    }
+}
+
 public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Sendable {
     public private(set) var closedKeys: [GemBannerKey] = []
     public private(set) var handledActions: [GemBannerAction] = []
