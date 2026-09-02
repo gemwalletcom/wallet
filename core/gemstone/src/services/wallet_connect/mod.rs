@@ -1,6 +1,7 @@
 pub mod error;
 pub mod model;
 mod rules;
+pub mod sign_message;
 pub mod signer;
 pub mod store;
 
@@ -20,6 +21,7 @@ pub use model::{
     GemSessionApproval, GemSessionProposal, GemWalletConnectMessageRequest, GemWalletConnectRequest, GemWalletConnectResponse, GemWalletConnectRpcError,
     GemWalletConnectTransactionAction, GemWalletConnectTransactionRequest,
 };
+pub use sign_message::{GemSignMessagePreview, GemSignMessageService};
 pub use signer::GemWalletConnectSigner;
 pub use store::GemConnectionStore;
 

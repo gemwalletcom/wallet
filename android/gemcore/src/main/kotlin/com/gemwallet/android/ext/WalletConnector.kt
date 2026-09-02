@@ -23,5 +23,5 @@ fun uniffi.gemstone.Account.toPrimitives(): Account? {
     )
 }
 
-fun ApplicationMetadata.shortName(applicationMetadataService: GemApplicationMetadataService): String =
-    applicationMetadataService.shortName(toJson())
+val ApplicationMetadata.shortName: String
+    get() = GemApplicationMetadataService().use { it.shortName(toJson()) }

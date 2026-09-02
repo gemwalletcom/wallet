@@ -2,7 +2,6 @@
 
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import class Gemstone.GemRecentActivityService
-import class Gemstone.GemApplicationMetadataService
 import class Gemstone.GemAssetConfigService
 import class Gemstone.GemDeeplinkService
 import class Gemstone.GemChainService
@@ -75,7 +74,6 @@ extension EnvironmentValues {
     @Entry var perpetualService: any GemPerpetualServiceProtocol = AppResolver.main.services.perpetualService
     @Entry var hyperliquidObserverService: any PerpetualObservable = AppResolver.main.services.hyperliquidObserverService
     @Entry var recentAssetsService: any GemRecentActivityServiceProtocol = AppResolver.main.services.recentAssetsService
-    @Entry var applicationMetadataService: GemApplicationMetadataService = AppResolver.main.services.viewModelFactory.applicationMetadataService
     @Entry var deeplinkService: GemDeeplinkService = AppResolver.main.services.viewModelFactory.deeplinkService
     @Entry var assetConfig: GemAssetConfigService = AppResolver.main.services.viewModelFactory.assetConfig
     @Entry var viewModelFactory: ViewModelFactory = AppResolver.main.services.viewModelFactory

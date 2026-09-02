@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
-import uniffi.gemstone.GemApplicationMetadataService
 import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
 import androidx.lifecycle.ViewModel
@@ -33,7 +32,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProposalSceneViewModel @Inject constructor(
-    private val applicationMetadataService: GemApplicationMetadataService,
     private val approveWalletConnection: ApproveWalletConnection,
     private val prepareSessionProposal: PrepareSessionProposal,
     private val originVerifier: WalletConnectOriginVerifier,
@@ -46,7 +44,7 @@ class ProposalSceneViewModel @Inject constructor(
     private val _proposal = MutableStateFlow<WalletConnectSessionProposal?>(null)
     private val _sessionProposal = MutableStateFlow<WalletConnectionSessionProposal?>(null)
 
-    val proposal = _sessionProposal.map { it?.metadata?.toSessionUI(applicationMetadataService) }
+    val proposal = _sessionProposal.map { it?.metadata?.toSessionUI() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val availableWallets = _sessionProposal.map { it?.wallets.orEmpty() }

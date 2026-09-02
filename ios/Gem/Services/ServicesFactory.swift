@@ -344,7 +344,6 @@ struct ServicesFactory {
         )
         let viewModelFactory = ViewModelFactory(
             apiClient: apiClient,
-            applicationMetadataService: Gemstone.GemApplicationMetadataService(),
             assetConfig: Gemstone.GemAssetConfigService(),
             assetDiscoveryService: assetDiscoveryService,
             assetsService: assetsService,

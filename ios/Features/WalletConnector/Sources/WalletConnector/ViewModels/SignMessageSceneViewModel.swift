@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemApplicationMetadataService
-import protocol Gemstone.GemNameServiceProtocol
+import struct Gemstone.GemSignMessagePreview
+import protocol Gemstone.GemSignMessageServiceProtocol
 import GemstoneServices
 import Components
-import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
 import class Gemstone.MessageSigner
 import GemstonePrimitives
@@ -17,53 +16,29 @@ import WalletConnectorService
 @Observable
 @MainActor
 public final class SignMessageSceneViewModel {
-    private let explorerService: any GemExplorerServiceProtocol
+    private let service: any GemSignMessageServiceProtocol
     private let keystore: any Keystore
-    private let nameService: any GemNameServiceProtocol
     private let payload: SignMessagePayload
     private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate
     private let signer: MessageSigner
-    private let plainMessage: String
-    private let applicationMetadataService: GemApplicationMetadataService
-    public let messageDisplayType: SignMessageDisplayType
+    private let preview: GemSignMessagePreview
 
     public var isPresentingUrl: URL?
     public var isPresentingPayloadDetails: Bool = false
     private var payloadAddressNames: [ChainAddress: AddressName] = [:]
 
     public init(
-        explorerService: any GemExplorerServiceProtocol,
+        service: any GemSignMessageServiceProtocol,
         keystore: any Keystore,
-        nameService: any GemNameServiceProtocol,
         payload: SignMessagePayload,
         confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
-        applicationMetadataService: GemApplicationMetadataService,
     ) {
-        self.applicationMetadataService = applicationMetadataService
-        self.explorerService = explorerService
+        self.service = service
         self.keystore = keystore
-        self.nameService = nameService
         self.payload = payload
-        let signer = MessageSigner(message: payload.message)
-        self.signer = signer
-        let plainMessage = signer.plainPreview()
-        self.plainMessage = plainMessage
-        let messageDisplayType: SignMessageDisplayType = {
-            do {
-                let simulationPayload = payload.simulation.payload.map { $0.map() }
-                guard let preview = try signer.payloadPreview(simulationPayload: simulationPayload) else {
-                    return .text(plainMessage)
-                }
-                return .payload(
-                    primary: preview.primary.map { $0.map() },
-                    secondary: preview.secondary.map { $0.map() },
-                )
-            } catch {
-                return .text(plainMessage)
-            }
-        }()
-        self.messageDisplayType = messageDisplayType
         self.confirmTransferDelegate = confirmTransferDelegate
+        signer = MessageSigner(message: payload.message)
+        preview = service.preview(message: payload.message, simulation: payload.simulation.json())
     }
 
     public var networkText: String {
@@ -83,14 +58,11 @@ public final class SignMessageSceneViewModel {
     }
 
     public var connectionViewModel: WalletConnectionViewModel {
-        WalletConnectionViewModel(
-            connection: WalletConnection(session: payload.session, wallet: payload.wallet),
-            applicationMetadataService: applicationMetadataService,
-        )
+        WalletConnectionViewModel(connection: WalletConnection(session: payload.session, wallet: payload.wallet))
     }
 
     public var appName: String {
-        payload.session.metadata.shortName(applicationMetadataService: applicationMetadataService)
+        payload.session.metadata.shortName
     }
 
     public var appAssetImage: AssetImage {
@@ -117,8 +89,12 @@ public final class SignMessageSceneViewModel {
         )
     }
 
+    var messageText: String {
+        preview.text
+    }
+
     var textMessageViewModel: TextMessageViewModel {
-        TextMessageViewModel(message: plainMessage)
+        TextMessageViewModel(message: preview.text)
     }
 
     public var simulationWarnings: [SimulationWarning] {
@@ -126,17 +102,12 @@ public final class SignMessageSceneViewModel {
     }
 
     public var payloadModel: SimulationPayloadModel {
-        switch messageDisplayType {
-        case let .payload(primaryFields, secondaryFields):
-            SimulationPayloadModel(
-                chain: payload.chain,
-                primaryFields: primaryFields,
-                secondaryFields: secondaryFields,
-                addressNames: payloadAddressNames,
-            )
-        case .text:
-            SimulationPayloadModel(chain: payload.chain, primaryFields: [], secondaryFields: [])
-        }
+        SimulationPayloadModel(
+            chain: payload.chain,
+            primaryFields: preview.primaryFields.map { $0.map() },
+            secondaryFields: preview.secondaryFields.map { $0.map() },
+            addressNames: payloadAddressNames,
+        )
     }
 
     public var hasWarnings: Bool {
@@ -169,7 +140,7 @@ public extension SignMessageSceneViewModel {
     func contextMenuItems(for field: SimulationPayloadField) -> [ContextMenuItemType] {
         payloadModel.contextMenuItems(
             for: field,
-            explorerLink: { BlockExplorerLink(explorerService.getAddressUrl(chain: payload.chain.rawValue, address: $0)) },
+            explorerLink: { BlockExplorerLink(service.addressUrl(chain: payload.chain.rawValue, address: $0)) },
             onOpenURL: { [weak self] in self?.isPresentingUrl = $0 },
         )
     }
@@ -183,6 +154,6 @@ private extension SignMessageSceneViewModel {
     func loadPayloadAddressNamesIfNeeded() async {
         guard payloadAddressNames.isEmpty, payloadModel.hasFields else { return }
 
-        payloadAddressNames = await (try? nameService.addressNames(requests: payloadModel.addressRequests)) ?? [:]
+        payloadAddressNames = await service.addressNames(chain: payload.chain, preview: preview)
     }
 }

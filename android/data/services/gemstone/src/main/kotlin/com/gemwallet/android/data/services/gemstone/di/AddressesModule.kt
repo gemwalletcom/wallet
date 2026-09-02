@@ -8,7 +8,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAddressStore
 import uniffi.gemstone.GemDeviceApiClient
+import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemNameService
+import uniffi.gemstone.GemSignMessageService
+import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemNameServiceInterface
 import javax.inject.Singleton
 
@@ -31,5 +34,9 @@ object AddressesModule {
     @Provides
     @Singleton
     fun provideGemNameServiceInterface(service: GemNameService): GemNameServiceInterface = service
+
+    @Provides
+    fun provideGemSignMessageService(names: GemNameService, explorer: GemExplorerService): GemSignMessageServiceInterface =
+        GemSignMessageService(names, explorer)
 
 }

@@ -40,9 +40,9 @@ fun GemConfirmSimulationState.toSimulation(
     return Simulation(
         warnings = warnings,
         primaryPayloadFields = details.primaryFields.map { it.toPrimitives() }
-            .withExplorerLinks(chain, confirmService),
+            .withExplorerLinks(chain) { chain, address -> confirmService.addressUrl(chain.string, address) },
         secondaryPayloadFields = details.secondaryFields.map { it.toPrimitives() }
-            .withExplorerLinks(chain, confirmService),
+            .withExplorerLinks(chain) { chain, address -> confirmService.addressUrl(chain.string, address) },
         headerAsset = header?.asset?.toPrimitives(),
         headerValue = (header?.value as? GemApprovalValue.Exact)?.value,
         headerIsUnlimited = header?.value is GemApprovalValue.Unlimited,

@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
-import uniffi.gemstone.GemApplicationMetadataService
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -29,23 +28,26 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemWalletConnectService
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class WCRequestViewModel @Inject constructor(
-    private val applicationMetadataService: GemApplicationMetadataService,
     private val getWalletConnections: GetWalletConnections,
     private val respondWalletConnectRequest: RespondWalletConnectRequest,
     private val requestHandler: WalletConnectRequestHandler,
     private val pendingRequests: WalletConnectPendingRequests,
     private val signMessageOperator: GemSignMessageOperator,
-    private val explorerService: GemExplorerService,
+    private val signMessageService: GemSignMessageServiceInterface,
     private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectService,
@@ -54,8 +56,18 @@ class WCRequestViewModel @Inject constructor(
     private val state = MutableStateFlow(RequestViewModelState())
     private var requestJob: Job? = null
 
-    val sceneState = combine(state, pendingRequests.current) { state, pending ->
-        state.toSceneState(state.approved ?: pending?.takeIf { it.sessionId == state.sessionRequest?.topic }?.let(::toRequest))
+    private val request = combine(state, pendingRequests.current) { state, pending ->
+        state.approved ?: pending?.takeIf { it.sessionId == state.sessionRequest?.topic }?.let(::toRequest)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val payloadAddressNames = request
+        .map { it as? WCRequest.SignMessage }
+        .distinctUntilChanged { old, new -> old?.pending === new?.pending }
+        .mapLatest { request -> request?.addressNames().orEmpty() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+
+    val sceneState = combine(state, request, payloadAddressNames) { state, request, addressNames ->
+        state.toSceneState((request as? WCRequest.SignMessage)?.withAddressNames(addressNames) ?: request)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, RequestSceneState.Loading)
 
     val buttonState = sceneState.map { scene ->
@@ -167,8 +179,8 @@ class WCRequestViewModel @Inject constructor(
     }
 
     private fun toRequest(pending: WalletConnectPendingRequest): WCRequest = when (pending) {
-        is WalletConnectPendingRequest.SignMessage -> WCRequest.SignMessage(pending, explorerService, applicationMetadataService)
-        is WalletConnectPendingRequest.Transaction -> WCRequest.Transaction(pending, applicationMetadataService)
+        is WalletConnectPendingRequest.SignMessage -> WCRequest.SignMessage(pending, signMessageService)
+        is WalletConnectPendingRequest.Transaction -> WCRequest.Transaction(pending)
     }
 
     private fun respond(sessionRequest: WalletConnectSessionRequest, response: WalletConnectJsonRpcResponse, onError: (String) -> Unit) {

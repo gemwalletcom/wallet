@@ -376,6 +376,12 @@ public extension GemPaymentService {
     }
 }
 
+public extension GemSignMessageService {
+    static func mock() -> GemSignMessageService {
+        GemSignMessageService(names: GemNameService.mock(), explorer: GemExplorerService(preferences: GemPreferencesService(store: GemPreferencesStoreMock())))
+    }
+}
+
 public extension GemNameService {
     static func mock() -> GemNameService {
         GemNameService(

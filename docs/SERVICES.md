@@ -356,11 +356,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `providers/*` each derive the max button, the equivalent value and the confirm input from
   `GemAmountRules` / `GemAmountLimits`; a Core `GemAmountInput` value that carries all of it per
   type would let both collapse to a view-state mapping.
-- **The WalletConnect sign-message and request screens.** iOS `SignMessageSceneViewModel` holds
-  explorer, name and application-metadata services; Android `WCRequestViewModel` holds ten
-  dependencies. `GemWalletConnectService::handle_request` already decodes and simulates the
-  message; a per-request service that also answers the payload address names and links would
-  leave the screens with one dependency each.
+- **The WalletConnect request screen on Android.** `GemSignMessageService { names, explorer }`
+  now answers the preview, the payload address names and the explorer links for the sign-message
+  screen on both apps, and `ApplicationMetadata.shortName` is a dependency-free property, so iOS
+  `SignMessageSceneViewModel` holds one service. Android `WCRequestViewModel` still injects nine
+  ports (connections, responder, request handler, pending requests, sign operator, origin
+  verifier, active request, `GemWalletConnectService`); the request lifecycle around
+  `GemWalletConnectService::handle_request` is the next thing to move into Core.
 
 Android's confirm screen still reads its assets through `GetWalletAssets`/`GetAssetInfo` and
 its fee assets through `GetFeeAssets` (store-backed `AssetInfo`), where Core's `GemConfirmPreload`
@@ -445,7 +447,6 @@ having the parent vend the child view model.
 | `Assets/SelectAssetViewModel.swift` | 2 | 0 |
 | `NFT/CollectibleViewModel.swift` | 3 | 1 |
 | `Transactions/TransactionsViewModel.swift` | 2 | 0 |
-| `WalletConnector/WalletConnector/ViewModels/SignMessageSceneViewModel.swift` | 3 | 0 |
 | `Perpetuals/PerpetualsSceneViewModel.swift` | 2 | 0 |
 
 Single-service view models that only need the property made `private`:

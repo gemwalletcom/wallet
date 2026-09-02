@@ -8,7 +8,6 @@ import protocol Gemstone.GemSupportServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import class Gemstone.GemAmountService
 import class Gemstone.GemApiClient
-import class Gemstone.GemApplicationMetadataService
 import class Gemstone.GemAssetConfigService
 import class Gemstone.GemAssetDiscoveryService
 import class Gemstone.GemAssetsService
@@ -40,6 +39,7 @@ import class Gemstone.GemPreferencesService
 import class Gemstone.GemPriceAlertService
 import class Gemstone.GemPriceService
 import class Gemstone.GemSearchService
+import class Gemstone.GemSignMessageService
 import class Gemstone.GemSimulationFormatter
 import class Gemstone.GemStakeService
 import class Gemstone.GemStreamSubscriptionService
@@ -85,7 +85,6 @@ import struct Gemstone.GemTransferData
 
 public struct ViewModelFactory: Sendable {
     let apiClient: GemApiClient
-    let applicationMetadataService: GemApplicationMetadataService
     let assetConfig: GemAssetConfigService
     let assetDiscoveryService: GemAssetDiscoveryService
     let assetsService: GemAssetsService
@@ -580,12 +579,10 @@ public struct ViewModelFactory: Sendable {
         confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
     ) -> SignMessageSceneViewModel {
         SignMessageSceneViewModel(
-            explorerService: explorerService,
+            service: GemSignMessageService(names: nameService, explorer: explorerService),
             keystore: keystore,
-            nameService: nameService,
             payload: payload,
             confirmTransferDelegate: confirmTransferDelegate,
-            applicationMetadataService: applicationMetadataService,
         )
     }
 }

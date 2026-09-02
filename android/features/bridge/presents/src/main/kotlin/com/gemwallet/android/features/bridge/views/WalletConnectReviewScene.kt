@@ -74,6 +74,7 @@ internal fun WalletConnectReviewScene(
             if (model.hasPayload) {
                 simulationPayloadFieldsContent(
                     fields = model.primaryPayloadFields,
+                    addressNames = model.addressNames,
                     onDetailsClick = { sheetType = WalletConnectReviewSheetType.Details },
                 )
             } else {
@@ -87,6 +88,7 @@ internal fun WalletConnectReviewScene(
             WalletConnectPayloadDetailsSheet(
                 primaryFields = model.primaryPayloadFields,
                 secondaryFields = model.secondaryPayloadFields,
+                addressNames = model.addressNames,
                 onViewFullMessage = { sheetType = WalletConnectReviewSheetType.FullMessage },
                 onDismissRequest = { sheetType = null },
             )

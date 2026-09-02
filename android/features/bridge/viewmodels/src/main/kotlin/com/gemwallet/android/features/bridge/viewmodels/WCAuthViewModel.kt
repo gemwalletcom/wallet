@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
-import uniffi.gemstone.GemApplicationMetadataService
 import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemWalletConnectService
 import androidx.lifecycle.ViewModel
@@ -49,7 +48,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WCAuthViewModel @Inject constructor(
-    private val applicationMetadataService: GemApplicationMetadataService,
     private val approveWalletConnectAuthentication: ApproveWalletConnectAuthentication,
     private val prepareSessionProposal: PrepareSessionProposal,
     private val signMessageOperator: GemSignMessageOperator,
@@ -108,7 +106,7 @@ class WCAuthViewModel @Inject constructor(
                 }
                 _state.update {
                     AuthSceneState.Request(
-                        peer = prepared.proposal.metadata.toSessionUI(applicationMetadataService),
+                        peer = prepared.proposal.metadata.toSessionUI(),
                         availableWallets = prepared.proposal.wallets,
                         selectedWallet = selectedWallet,
                         approval = approval,
