@@ -32,10 +32,6 @@ impl GemNodeService {
         Self { store, preferences }
     }
 
-    pub fn get_default_nodes(&self, chain: Chain) -> Vec<Node> {
-        rules::default_nodes(chain)
-    }
-
     pub async fn get_nodes(&self, chain: Chain) -> Result<Vec<Node>, GemServiceError> {
         let stored = self.store.get_nodes(chain).await?;
         let nodes = rules::merge_nodes(rules::default_nodes(chain), stored);
@@ -49,10 +45,6 @@ impl GemNodeService {
 
     pub fn can_delete_node(&self, chain: Chain, url: String) -> bool {
         rules::can_delete_node(chain, &url)
-    }
-
-    pub fn sorted_nodes(&self, chain: Chain, nodes: Vec<Node>) -> Vec<Node> {
-        rules::sorted_nodes(chain, nodes)
     }
 
     pub fn node_url(&self, chain: Chain) -> String {
@@ -97,6 +89,15 @@ impl GemNodeService {
             self.set_selected_url(chain, rules::region_node(chain, NodeRegion::Us).url)?;
         }
         self.store.delete_node(chain, url).await
+    }
+}
+
+impl GemNodeService {
+    pub fn get_default_nodes(&self, chain: Chain) -> Vec<Node> {
+        rules::default_nodes(chain)
+    }
+    pub fn sorted_nodes(&self, chain: Chain, nodes: Vec<Node>) -> Vec<Node> {
+        rules::sorted_nodes(chain, nodes)
     }
 }
 

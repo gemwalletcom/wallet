@@ -56,7 +56,9 @@ impl GemNameService {
     pub fn address_name(&self, chain: Chain, address: String) -> Result<Option<AddressName>, GemServiceError> {
         self.store.get_address_name(chain, address)
     }
+}
 
+impl GemNameService {
     pub async fn get_address_names(&self, requests: Vec<ChainAddress>) -> Result<Vec<AddressName>, GemServiceError> {
         let requests = rules::unique_requests(requests);
         if requests.is_empty() {

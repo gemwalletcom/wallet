@@ -83,10 +83,6 @@ impl GemWalletConnectService {
         Ok(())
     }
 
-    pub fn validate_origin(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> WalletConnectionVerificationStatus {
-        self.wallet_connect.validate_origin(metadata_url, origin, validation)
-    }
-
     pub fn config_session_properties(&self, properties: HashMap<String, String>, caip2_chains: Vec<String>, accounts: Vec<Account>) -> HashMap<String, String> {
         self.wallet_connect.config_session_properties(properties, caip2_chains, accounts)
     }
@@ -177,6 +173,12 @@ impl GemWalletConnectService {
             Err(GemServiceError::Cancelled) => GemWalletConnectOutcome::rejected(None),
             Err(error) => GemWalletConnectOutcome::rejected(Some(GemWalletConnectFailure::Failed { message: error.to_string() })),
         }
+    }
+}
+
+impl GemWalletConnectService {
+    pub fn validate_origin(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> WalletConnectionVerificationStatus {
+        self.wallet_connect.validate_origin(metadata_url, origin, validation)
     }
 }
 

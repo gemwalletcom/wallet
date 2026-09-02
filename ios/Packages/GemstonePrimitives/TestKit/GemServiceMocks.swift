@@ -24,8 +24,6 @@ public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
         return try Primitives.Device.mock().json()
     }
 
-    public func isRegistered() async throws -> Bool { true }
-
     public func setPushEnabled(enabled: Bool) async throws {
         pushEnabledValues.append(enabled)
         if let syncError {
@@ -85,10 +83,6 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         self.priceAlertsEnabled = priceAlertsEnabled
     }
 
-    public func isPriceAlertsEnabled() -> Bool {
-        lock.withLock { priceAlertsEnabled }
-    }
-
     public func setPriceAlertsEnabled(enabled: Bool) throws {
         lock.withLock { priceAlertsEnabled = enabled }
     }
@@ -103,17 +97,9 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
 
     public func setChartPeriod(period _: Gemstone.ChartPeriod) throws {}
 
-    public func getPerpetualChartPeriod() -> Gemstone.ChartPeriod { (Primitives.ChartPeriod.day.json()) ?? "\"day\"" }
-
-    public func setPerpetualChartPeriod(period _: Gemstone.ChartPeriod) throws {}
-
     public func isPushNotificationsEnabled() -> Bool { false }
 
     public func setPushNotificationsEnabled(enabled _: Bool) throws {}
-
-    public func isPushNotificationsDeclined() -> Bool { false }
-
-    public func setPushNotificationsDeclined(declined _: Bool) throws {}
 
     private var perpetualEnabled = false
     private var hideBalanceEnabled = false
@@ -167,8 +153,6 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
 
     public func setPerpetualStopLossPercent(percent _: UInt8) throws {}
 
-    public func getLaunchesCount() -> UInt32 { 0 }
-
     public func incrementLaunchesCount() throws -> UInt32 { 1 }
 
     public func shouldRequestReview() -> Bool { false }
@@ -178,10 +162,6 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
     public func shouldAskNotifications() -> Bool { false }
 
     public func setNotificationsAsked() throws {}
-
-    public func defaultCurrency(localeCurrency _: String?) -> Gemstone.Currency {
-        "\"USD\""
-    }
 
     public func clear() throws {}
 }
@@ -426,13 +406,6 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
         try rules.recipient(chain: chain, input: input, nameRecord: nameRecord, memo: memo, references: references)
     }
 
-    public func getAddressNames(requests: [Gemstone.ChainAddress]) async throws -> [Gemstone.AddressName] {
-        if error != nil { return [] }
-        let requested = try requests.map { try Primitives.ChainAddress($0) }
-        return try addressNames
-            .filter { name in requested.contains { $0.chain == name.chain && $0.address == name.address } }
-            .map { $0.json() }
-    }
 }
 
 public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchecked Sendable {
@@ -621,10 +594,6 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         autocloseSummary
     }
 
-    public func collateralAssetId(chain _: Gemstone.Chain) -> Gemstone.AssetId? {
-        .none
-    }
-
     public func syncEnablement(trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
         if isPerpetualEnabled {
             _ = try await syncMarketsIfNeeded(chain: "hypercore", trigger: trigger)
@@ -674,8 +643,6 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 
     public func setPinned(perpetualId _: String, pinned _: Bool) async throws {}
 
-    public func getCandlesticks(chain _: Gemstone.Chain, symbol _: String, period _: Gemstone.ChartPeriod) async throws -> [Gemstone.ChartCandleStick] { [] }
-
     public func candleInterval(period _: Gemstone.ChartPeriod) -> String { "" }
 
     public func mergeCandle(candles: [Gemstone.ChartCandleStick], candle: Gemstone.ChartCandleStick) -> [Gemstone.ChartCandleStick] {
@@ -709,10 +676,6 @@ public final class GemExplorerServiceMock: GemExplorerServiceProtocol, @unchecke
 
     public init() {}
 
-    public func getExplorers(chain _: Gemstone.Chain) -> [String] {
-        ["MockExplorer"]
-    }
-
     public func getExplorerName(chain: Gemstone.Chain) -> String {
         lock.withLock { names[chain] ?? "MockExplorer" }
     }
@@ -725,24 +688,12 @@ public final class GemExplorerServiceMock: GemExplorerServiceProtocol, @unchecke
         link("https://mock.explorer/\(chain)/tx/\(hash)")
     }
 
-    public func getTransactionLink(chain: Gemstone.Chain, hash: String, provider _: String?, recipient _: String?, memo _: String?) -> GemBlockExplorerLink {
-        getTransactionUrl(chain: chain, hash: hash)
-    }
-
     public func getAddressUrl(chain: Gemstone.Chain, address: String) -> GemBlockExplorerLink {
         link("https://mock.explorer/\(chain)/address/\(address)")
     }
 
     public func getTokenUrl(chain: Gemstone.Chain, address: String) -> GemBlockExplorerLink? {
         link("https://mock.explorer/\(chain)/token/\(address)")
-    }
-
-    public func getNftUrl(chain: Gemstone.Chain, contractAddress: String, tokenId: String) -> GemBlockExplorerLink? {
-        link("https://mock.explorer/\(chain)/nft/\(contractAddress)/\(tokenId)")
-    }
-
-    public func getValidatorUrl(chain: Gemstone.Chain, address: String) -> GemBlockExplorerLink? {
-        link("https://mock.explorer/\(chain)/validator/\(address)")
     }
 
     private func link(_ url: String) -> GemBlockExplorerLink {

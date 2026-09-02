@@ -43,6 +43,15 @@ impl GemAssetAction {
         }
     }
 
+    pub fn recent_activity_types(&self) -> Vec<RecentActivityType> {
+        match self {
+            Self::SwapPay | Self::SwapReceive => vec![RecentActivityType::SwapSelect, RecentActivityType::Swap],
+            Self::Open | Self::Send | Self::Receive | Self::Buy | Self::Sell => RecentActivityType::iter().collect(),
+        }
+    }
+}
+
+impl GemAssetAction {
     pub fn recent_activity_type(&self, asset: &Asset) -> Option<RecentActivityType> {
         match self {
             Self::Open => Some(match asset.asset_type {
@@ -54,13 +63,6 @@ impl GemAssetAction {
             Self::Buy => Some(RecentActivityType::FiatBuy),
             Self::Sell => Some(RecentActivityType::FiatSell),
             Self::SwapPay | Self::SwapReceive => Some(RecentActivityType::SwapSelect),
-        }
-    }
-
-    pub fn recent_activity_types(&self) -> Vec<RecentActivityType> {
-        match self {
-            Self::SwapPay | Self::SwapReceive => vec![RecentActivityType::SwapSelect, RecentActivityType::Swap],
-            Self::Open | Self::Send | Self::Receive | Self::Buy | Self::Sell => RecentActivityType::iter().collect(),
         }
     }
 }

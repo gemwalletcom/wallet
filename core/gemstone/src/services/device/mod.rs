@@ -51,10 +51,6 @@ impl GemDeviceService {
         }
     }
 
-    pub async fn is_registered(&self) -> Result<bool, GemServiceError> {
-        Ok(self.preferences.is_device_registered())
-    }
-
     pub async fn synchronize(&self) -> Result<Device, GemServiceError> {
         let _guard = self.sync_lock.lock().await;
         self.sync(self.current_device().await?).await
@@ -73,6 +69,12 @@ impl GemDeviceService {
             self.sync(device).await?;
         }
         Ok(())
+    }
+}
+
+impl GemDeviceService {
+    pub async fn is_registered(&self) -> Result<bool, GemServiceError> {
+        Ok(self.preferences.is_device_registered())
     }
 }
 

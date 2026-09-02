@@ -768,6 +768,17 @@ them — `Open` is `Perpetual` for a perpetual asset and `Search` otherwise — 
 already had instead of an id the view model looked back up, and iOS's `SelectAssetFlow` lost the
 `selectionEffect` enum that re-encoded which flows record.
 
+**An export nobody on either app calls is a Core-internal method.** A sweep of every
+`#[uniffi::export]` method against both apps' non-generated sources found forty with no caller:
+raw API pass-throughs (`GemAssetsService::{get_asset, get_assets, search, search_assets}`),
+whole services only ever passed as dependencies (`GemPriceService`), pieces of a flow Core
+already composes (`GemConfirmService::{preload, simulation, fee_assets}`,
+`GemTransactionInputType::{fee_asset, asset_ids, recent_activity}`) and preferences only Core
+reads. Each moved to a plain `impl`. The iOS `GemConfirmTransferServiceMock` had been the only
+thing keeping the confirm pieces exported — it recomposed Core's flow from them — so it now
+answers from premises and takes the concrete confirm mock. Re-run the sweep after removing a
+caller: `grep -rl '#\[uniffi::export\]'`, list the `pub fn`s, camel-case each, grep both apps.
+
 **A debug screen is a screen.** iOS's `DeveloperViewModel` held five Core services; Android's
 `DevelopViewModel` three cases and a `PlatformStore`. `GemDeveloperService` composes the device
 platform, the preferences, the transaction-state store and the perpetual service, so each app

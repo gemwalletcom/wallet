@@ -3,7 +3,6 @@
 public import typealias Gemstone.Currency
 public import enum Gemstone.GemKeystoreAuthentication
 public import protocol Gemstone.GemConfirmTransferServiceProtocol
-public import protocol Gemstone.GemConfirmServiceProtocol
 public import protocol Gemstone.GemNameServiceProtocol
 public import protocol Gemstone.GemTransactionStateServiceProtocol
 public import protocol Gemstone.GemTransactionSigner
@@ -32,7 +31,7 @@ import Primitives
 import GemstonePrimitivesTestKit
 
 public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProtocol, @unchecked Sendable {
-    private let confirm: any GemConfirmServiceProtocol
+    private let confirm: GemConfirmServiceMock
     private let names: any GemNameServiceProtocol
     private let transactionState: any GemTransactionStateServiceProtocol
     private let signer: any GemTransactionSigner
@@ -40,7 +39,7 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
     private let assetConfig = GemAssetConfigService()
 
     public init(
-        confirm: any GemConfirmServiceProtocol = GemConfirmServiceMock(),
+        confirm: GemConfirmServiceMock = GemConfirmServiceMock(),
         names: any GemNameServiceProtocol = GemNameServiceMock(),
         transactionState: any GemTransactionStateServiceProtocol = GemTransactionStateServiceMock(),
         signer: any GemTransactionSigner = GemTransactionSignerMock(),
@@ -65,15 +64,15 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
         try confirm.metadata(
             walletId: walletId,
             assetId: inputType.transactionAsset().id,
-            feeAssetId: inputType.feeAsset().id,
-            extraAssetIds: inputType.assetIds(),
+            feeAssetId: inputType.transactionAsset().id,
+            extraAssetIds: [],
         )
     }
 
     public func initialState(walletId: WalletId, inputType: GemTransactionInputType, simulation result: SimulationResult?) -> GemConfirmInitialState {
         GemConfirmInitialState(
             feePriority: inputType.defaultFeePriority(),
-            feeAsset: inputType.feeAsset(),
+            feeAsset: inputType.transactionAsset(),
             metadata: try? metadata(walletId: walletId, inputType: inputType),
             simulation: try? confirm.simulation(inputType: inputType, simulation: result),
         )

@@ -84,10 +84,6 @@ impl GemPerpetualService {
         rules::autoclose_summary(&data)
     }
 
-    pub fn markets_updated_at(&self) -> Result<Option<i64>, GemServiceError> {
-        self.preferences.get_perpetual_markets_updated_at()
-    }
-
     pub async fn sync_markets(&self, chain: Chain) -> Result<(), GemServiceError> {
         let currency = self.preferences.get_currency();
         let data = self.gateway.get_perpetuals_data(chain).await?;
@@ -124,10 +120,6 @@ impl GemPerpetualService {
             .is_some_and(|wallet| rules::show_perpetuals(self.preferences.is_perpetual_enabled(), &wallet))
     }
 
-    pub async fn get_candlesticks(&self, chain: Chain, symbol: String, period: ChartPeriod) -> Result<Vec<GemChartCandleStick>, GemServiceError> {
-        Ok(self.gateway.get_perpetual_candlesticks(chain, symbol, period.as_ref().to_string()).await?)
-    }
-
     pub fn candle_interval(&self, period: ChartPeriod) -> String {
         rules::candle_interval(&period).to_string()
     }
@@ -138,11 +130,6 @@ impl GemPerpetualService {
 
     pub async fn get_portfolio(&self, chain: Chain, address: String) -> Result<PerpetualPortfolio, GemServiceError> {
         Ok(self.gateway.get_perpetual_portfolio(chain, address).await?)
-    }
-
-    pub async fn clear_markets(&self) -> Result<(), GemServiceError> {
-        self.store.delete_perpetuals().await?;
-        self.preferences.set_perpetual_markets_updated_at(None)
     }
 
     pub async fn set_pinned(&self, perpetual_id: String, pinned: bool) -> Result<(), GemServiceError> {
@@ -208,7 +195,19 @@ impl GemPerpetualService {
         };
         Ok(Some(GemPerpetualConnection { address, mode }))
     }
+}
 
+impl GemPerpetualService {
+    pub fn markets_updated_at(&self) -> Result<Option<i64>, GemServiceError> {
+        self.preferences.get_perpetual_markets_updated_at()
+    }
+    pub async fn get_candlesticks(&self, chain: Chain, symbol: String, period: ChartPeriod) -> Result<Vec<GemChartCandleStick>, GemServiceError> {
+        Ok(self.gateway.get_perpetual_candlesticks(chain, symbol, period.as_ref().to_string()).await?)
+    }
+    pub async fn clear_markets(&self) -> Result<(), GemServiceError> {
+        self.store.delete_perpetuals().await?;
+        self.preferences.set_perpetual_markets_updated_at(None)
+    }
     pub fn collateral_asset_id(&self, chain: Chain) -> Option<AssetId> {
         rules::collateral_asset_id(chain)
     }
