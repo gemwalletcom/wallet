@@ -90,8 +90,7 @@ Authorization: Gem base64(<device_id_hex>.<timestamp_ms>.<wallet_id>.<body_hash_
 ## Implementation
 
 References for implementation details:
-- Wallet signature verification: `crates/gem_auth/src/signature.rs`
-- Authentication guards: `apps/api/src/auth/guard.rs`
-- Nonce management: `crates/gem_auth/src/client.rs`
-- Auth primitives: `crates/primitives/src/auth.rs`
-- Tests: `crates/gem_auth/src/signature.rs#L48`
+- [Wallet signature verification and tests](../core/crates/gem_auth/src/signature.rs)
+- [Authentication guards](../core/apps/api/src/auth/guard.rs)
+- [Nonce management](../core/crates/gem_auth/src/client.rs)
+- [Auth primitives](../core/crates/primitives/src/auth.rs)

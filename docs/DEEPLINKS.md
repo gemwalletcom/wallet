@@ -1,20 +1,20 @@
 # Deep links
 
-A deep link opens a screen inside the app. The same paths are served under two schemes: `gem://` is handled only by the app, `https://gemwallet.com/` is a universal link on iOS and an Android App Link.
+A deep link opens a screen inside the app. Core parses the same paths under two schemes: `gem://` is handled only by the app, while `https://gemwallet.com/` reaches an installed app only when that path is included in the platform's verified-link configuration.
 
 ## Supported links
 
 An asset is written as `{chain}` for a coin and `{chain}/{token_id}` for a token. A screen for that asset is an action appended to its path.
 
-| Screen | Path | Parameters |
-|---|---|---|
-| Asset | `/tokens/{asset}` | — |
-| Receive | `/tokens/{asset}/receive` | — |
-| Buy | `/tokens/{asset}/buy?amount={fiat}` | Amount is optional |
-| Sell | `/tokens/{asset}/sell?amount={fiat}` | Amount is optional |
-| Swap | `/tokens/{asset}/swap` | Opens swap with the asset to pay from |
-| Perpetuals | `/perpetuals` | — |
-| Rewards | `/rewards?code={code}`, `/join/{code}` | Referral code is optional |
+| Screen | Path | Parameters | Verified HTTPS app-link coverage |
+|---|---|---|---|
+| Asset | `/tokens/{asset}` | — | iOS and Android |
+| Receive | `/tokens/{asset}/receive` | — | iOS and Android |
+| Buy | `/tokens/{asset}/buy?amount={fiat}` | Amount is optional | iOS and Android |
+| Sell | `/tokens/{asset}/sell?amount={fiat}` | Amount is optional | iOS and Android |
+| Swap | `/tokens/{asset}/swap` | Opens swap with the asset to pay from | iOS and Android |
+| Perpetuals | `/perpetuals` | — | Android only; iOS association is outstanding |
+| Rewards | `/rewards?code={code}`, `/join/{code}` | Referral code is optional | Use `/join/{code}` for iOS and Android; `/rewards` is app-scheme only |
 
 Examples:
 
@@ -28,7 +28,7 @@ https://gemwallet.com/tokens/solana/buy?amount=25
 
 `amount` is a fiat amount in whole USD, not a crypto amount. Values that are not a positive whole number, including fractional ones like `49.5`, are ignored and the screen opens with its default amount. A locale segment in front of the path is accepted and skipped, so `https://gemwallet.com/zh-cn/tokens/bitcoin/buy` resolves like `https://gemwallet.com/tokens/bitcoin/buy`. Every action requires an asset. A link with an unknown path, an unknown chain, an unknown action, or a missing asset is not a deep link and opens in the browser.
 
-Sell also requires the asset to be sellable. A sell link for an asset without sell support falls back to buy on the same screen.
+Sell availability controls whether Sell can be selected in the screen. A direct sell link still opens Sell when the asset is not marked as sellable.
 
 ## Links in the support chat
 
@@ -49,8 +49,9 @@ Support chat messages are parsed in Core, and a link whose URL is a deep link is
 
 ## Web requirements
 
-`https://gemwallet.com/` links only reach the app when the website serves them and publishes the app association files. Both platforms verify the association from the domain, so a new path works as a web link before it works as an app link.
+`https://gemwallet.com/` links only reach the app when the app declares them and the website publishes the matching association. They should also have a browser fallback for people without the app.
 
-- `https://gemwallet.com/.well-known/apple-app-site-association` must list `/tokens/*` for the iOS app
+- `https://gemwallet.com/.well-known/apple-app-site-association` currently lists token and join paths; `/perpetuals` and `/rewards` are not iOS Universal Links
 - `https://gemwallet.com/.well-known/assetlinks.json` must list the Android package and signing certificate
-- The action paths hang off `/tokens/*`, which the site already serves, so `/tokens/bitcoin/buy` should resolve rather than 404 for people without the app
+- Android currently declares token, join, and perpetual paths; it does not declare `/rewards`
+- As checked on 2026-09-02, token action URLs such as `/tokens/bitcoin/buy` return `404` in a browser. Publishing a non-app fallback remains required

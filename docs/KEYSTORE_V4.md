@@ -1,6 +1,6 @@
 # Gem Keystore v4 Implementation Source of Truth
 
-Last checked against implementation: 2026-07-04.
+Last checked against implementation: 2026-09-02.
 
 This is the short as-built reference for Gem Keystore v4. The long design doc keeps history and rationale; this file records the current implementation contract. The code remains canonical.
 
@@ -14,7 +14,7 @@ Gem Keystore v4 stores one encrypted secret file per controlled wallet. Wallet/a
 - `gem_derivation`: wallet id derivation, account derivation, private-key import validation, chain address creation, account public keys (`Account.extended_public_key`).
 - `gem_auth`: shared device-auth header format (Ed25519 build + verify), used by both the client and the backend.
 - `gemstone`: UniFFI boundary over `gem_keystore` and `gem_derivation`, plus keystore-internal signing (`GemKeystore.sign`/`sign_auth`, `MessageSigner.sign_with_keystore`) routed over the per-chain `gem_*` signer crates, and the client device-auth wrappers.
-- Mobile apps own wallet name, order, current wallet, account rows, duplicate checks, subscriptions, UI, and secure password storage.
+- `GemWalletService` owns create/import/delete/export orchestration, duplicate detection, wallet-store updates, current-wallet changes, and subscription invalidation. Mobile apps provide the database, file, authentication, and secure-password adapters plus UI.
 
 `gem_keystore` must stay secret-storage-only. It must not depend on app primitives, chain crates, signer, or account derivation. The signing dispatch lives in `gemstone`, not in `gem_keystore`.
 
@@ -74,9 +74,9 @@ Current crypto:
 
 `gem_keystore` serializes every file operation (create, read, delete, migrate) through a process-global lock (`OnceLock<Mutex<()>>` in `storage/queue.rs`); each `FileKeystore` operation takes the lock before touching disk.
 
-- The guarantee holds regardless of how callers construct keystores. Android operators open a fresh `GemKeystore(baseDir)` per call and iOS shares one instance; both serialize through the same lock because it is static, not per-instance.
+- The guarantee holds regardless of how callers construct keystores. Both apps provide a shared `GemKeystore`; the remaining Android transaction-signing adapter can also open a transient instance. Every instance serializes through the same static lock.
 - Concurrent create/read/delete on one wallet — across threads and across separate keystore instances through the UniFFI binding — cannot corrupt the file or produce duplicates, and create stays idempotent (deterministic id, atomic rename).
-- A poisoned lock surfaces as a typed `KeystoreError`, not a panic across the FFI boundary.
+- A poisoned lock is recovered with `PoisonError::into_inner`, so subsequent file access remains serialized instead of panicking across the FFI boundary.
 - Coverage: Android instrumented `GemKeystoreConcurrencyTest` races 8 threads through create/read/delete on one wallet from independent `GemKeystore` instances.
 
 ## Secret Payload
@@ -119,12 +119,11 @@ iOS:
 
 Android:
 
-- Wallets created before the app-wide-password rollout keep their password in the `wallet_password` secure-store namespace under their wallet id (`wallet.id.id`).
-- New wallets reuse the app-wide password stored in that namespace under the key `password`.
-- The app-wide value is also mirrored under each new wallet's id (`wallet.id.id`) so existing direct readers and Tink-based rollback builds remain compatible.
-- Password lookup prefers the wallet-id entry and falls back to the app-wide entry. Missing passwords may be created only while importing a new wallet.
-- WalletCore v3 migration passes decoded raw bytes.
-- v4 APIs pass decoded raw bytes.
+- Legacy wallet-id entries in the `wallet_password` secure-store namespace are migration inputs only.
+- New wallets and routine signing use the single app-wide value stored under `password`; it is not mirrored under wallet ids.
+- Startup first migrates any WalletCore v3 file with its legacy wallet password, then `GemWalletService.migrate_to_shared_password` re-encrypts v4 files as needed and deletes the legacy wallet-id entries.
+- The shared password may be created only while importing the first stored wallet.
+- WalletCore v3 migration and v4 APIs pass decoded raw bytes.
 
 Empty v4 passwords are rejected. v3 empty passwords are accepted only for legacy compatibility.
 
@@ -145,8 +144,9 @@ Boundaries:
 
 App entrypoints:
 
-- iOS: `keystore.sign(wallet:input:)`, `keystore.signMessage(signer:wallet:)`, `keystore.signAuthMessageHash(wallet:chain:hash:)`. The old `getPrivateKey` / `ChainSigner` / `SwapSigner` paths are removed.
-- Android: `GemSignTransactionOperator`, `GemSignMessageOperator`, `GemSignAuthOperator`, all via `withGemKeystore`. The old `SignClient` / `SignService` paths are removed.
+- Transaction signing uses the platform `KeystoreTransactionSigner`: [iOS](../ios/Packages/GemstoneServices/Sources/Signer/KeystoreTransactionSigner.swift) delegates to `LocalKeystore.sign`, while [Android](../android/blockchain/src/main/kotlin/com/gemwallet/android/blockchain/services/KeystoreTransactionSigner.kt) uses `withGemKeystore`.
+- WalletConnect message signing is owned by [`GemSignMessageService`](../core/gemstone/src/services/wallet_connect/sign_message.rs).
+- Wallet authentication signing is owned by [`GemAuthService`](../core/gemstone/src/services/auth/mod.rs).
 
 ## Device Authentication
 
@@ -161,10 +161,11 @@ Keystore side:
 
 Source paths:
 
-- `ios/Packages/Keystore/Sources/Extensions/Wallet+Keystore.swift`
-- `ios/Packages/Keystore/Sources/LocalKeystore.swift`
-- `ios/Packages/FeatureServices/WalletService/WalletService.swift`
-- `ios/Packages/GemstonePrimitives/Sources/Extensions/GemKeystore+GemstonePrimitives.swift`
+- [Wallet legacy-id extension](../ios/Packages/GemstonePrimitives/Sources/Extensions/Wallet+GemstonePrimitives.swift)
+- [Local keystore](../ios/Packages/GemstoneServices/Sources/Keystore/LocalKeystore.swift)
+- [Transaction signer adapter](../ios/Packages/GemstoneServices/Sources/Signer/KeystoreTransactionSigner.swift)
+- [Core wallet service](../core/gemstone/src/services/wallet/mod.rs)
+- [GemKeystore extensions](../ios/Packages/GemstonePrimitives/Sources/Extensions/GemKeystore+GemstonePrimitives.swift)
 
 Rules:
 
@@ -178,7 +179,7 @@ Rules:
 - If migration fails before the verified v4 write, the v3 file remains and startup retries later.
 - If the app crashes after v4 write, the next launch re-runs migration idempotently and finishes the v3 cleanup.
 - Startup logs per-wallet migration failures instead of swallowing them silently.
-- Deleting a wallet removes every copy: the v4 file and any v3 file that never migrated.
+- Deleting a wallet removes every secret copy: the v4 file and any v3 file that never migrated. It does not delete the shared app-wide password.
 
 Important test coverage:
 
@@ -205,7 +206,7 @@ Rules:
 - There is no v3-to-v4 DB update.
 - Migration failures are logged and retried next launch while the v3 file remains.
 - Account backfill uses Rust `add_accounts`; it should not export mnemonic/private key into Kotlin.
-- Deleting a wallet removes every copy (the v4 file and any v3 file that never migrated); the stored password is cleared only when both are gone.
+- Deleting a wallet removes every secret copy (the v4 file and any v3 file that never migrated); it does not delete the shared app-wide password.
 
 ## Migration Semantics
 
@@ -217,14 +218,14 @@ Rules:
 - If the target v4 file already exists, Rust authenticates it with the supplied new password, re-verifies the binding, and finishes the v3 cleanup (crash-safe idempotent retry).
 - A corrupt staged v4 file (parse/authenticated-header corruption, not a wrong password) is deleted and rebuilt from the v3 file on the next migration run.
 - Wrong password never overwrites an existing v4 file.
-- Deleting a wallet is app-owned and must remove every on-disk copy (the v4 file and any v3 file that never migrated) so no secret is orphaned; the password is cleared only after all copies are gone.
+- `GemWalletService.delete_wallet` removes every on-disk copy (the v4 file and any v3 file that never migrated) before deleting wallet metadata, so no secret is orphaned. Deleting one wallet must not delete the shared app-wide password.
 - Downgrading to a pre-v4 build after migration is not supported: the v3 file is gone once the wallet has migrated.
 
 ## Mobile Import/Create Flow
 
 - Preview/import planning derives wallet id and accounts without writing a keystore file.
 - Create/import writes v4 under `keystore_id_for_wallet(wallet_id)`.
-- The app inserts wallet/account metadata into its DB.
+- `GemWalletService` inserts wallet/account metadata through the app's store adapter.
 - New v4 wallets never write WalletCore v3 files.
 - iOS maps new v4 wallets with `externalId: nil`.
 - Android stores no external id for v4 lookup.
@@ -235,7 +236,7 @@ Rules:
 - Routine maintenance paths must call Rust APIs returning non-secret outputs.
 - Routine signing runs inside Rust (`GemKeystore.sign`/`sign_auth`, `MessageSigner.sign_with_keystore`); the decrypted key does not cross the FFI boundary, and raw-key signers are not exported.
 - Mnemonic/private-key export is only for explicit backup/recovery UI.
-- Deleting a wallet must remove every on-disk secret copy (v4 and any v3); clear the stored password only after all copies are gone.
+- Deleting a wallet must remove every on-disk secret copy (v4 and any v3) before wallet metadata; retain the shared app-wide password.
 - Header inspection is diagnostic only and never migration proof.
 - All path construction must go through validated keystore ids.
 - Keep v3 parsing capped and typed-error based.

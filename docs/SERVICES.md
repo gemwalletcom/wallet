@@ -126,16 +126,16 @@ The two adapters are mirrors: same methods, same conflict behaviour (upsert wher
 
 ### 4. Construct it once
 
-iOS builds the store and the service in [`ServicesFactory.swift`](../ios/Gem/Services/ServicesFactory.swift) and publishes the service through `AppResolver` and an `@Entry` on the environment:
+iOS builds the store and service once in [`ServicesFactory.swift`](../ios/Gem/Services/ServicesFactory.swift), then passes the service through [`ViewModelFactory.swift`](../ios/Gem/Services/ViewModelFactory.swift) to each scene that needs it:
 
 ```swift
-let gemPriceAlertStore = GemstonePriceAlertStore(store: storeManager.priceAlertStore)
+let gemstonePriceAlertStore = GemstonePriceAlertStore(store: storeManager.priceAlertStore)
 let priceAlertService = Gemstone.GemPriceAlertService(
-    api: gemDeviceApiClient,
+    api: deviceApiClient,
     preferences: preferencesService,
-    store: gemPriceAlertStore,
+    store: gemstonePriceAlertStore,
     device: deviceService,
-    permissions: GemstoneNotificationPermissions(service: pushNotificationEnablerService),
+    permissions: notificationPermissions,
 )
 ```
 
@@ -143,13 +143,16 @@ Android provides the store and the service from one Hilt module ([`PriceAlertsMo
 
 ```kotlin
 @Singleton @Provides
-fun provideGemPriceAlertStore(priceAlertsDao: PriceAlertsDao): GemPriceAlertStore = GemstonePriceAlertStore(priceAlertsDao)
+fun provideGemstonePriceAlertStore(priceAlertsDao: PriceAlertsDao): GemstonePriceAlertStore = GemstonePriceAlertStore(priceAlertsDao)
+
+@Provides
+fun provideGemPriceAlertStore(store: GemstonePriceAlertStore): GemPriceAlertStore = store
 
 @Singleton @Provides
 fun provideGemPriceAlertService(...): GemPriceAlertService = GemPriceAlertService(api, preferences, store, device, permissions)
 ```
 
-### 5. Call it from the app — the service itself on iOS, a case on Android
+### 5. Call the service directly; keep observed reads narrow
 
 **iOS: the view model holds the Core protocol.** Nothing sits in between.
 
@@ -158,98 +161,34 @@ fun provideGemPriceAlertService(...): GemPriceAlertService = GemPriceAlertServic
 @MainActor
 public final class SupportChatSceneViewModel {
     private let service: any GemSupportServiceProtocol
-    private let typing: SupportTypingState
+    private let typing: ObservableSupportTyping
 
-    public init(service: any GemSupportServiceProtocol, typing: SupportTypingState) {
+    public init(service: any GemSupportServiceProtocol, typing: ObservableSupportTyping) {
         self.service = service
         self.typing = typing
     }
 }
 ```
 
-The screen reads the service out of the environment and passes it in —
-`@Environment(\.supportService)`, built once in `ServicesFactory`. **Do not write an app service
-around a Core service.** The distinction is which way the dependency points: a class that
+`ViewModelFactory.supportChatScene()` passes the service into the view model. Feature packages do not read app-level environment service keys. **Do not write an app service around a Core service.** The distinction is which way the dependency points: a class that
 *implements* a Core trait is an adapter and is required (the `Gemstone*Store` classes,
 `GemstoneNotificationPermissions`, the WalletConnect signer); a class that only calls a Core
 service and re-exposes it is a wrapper, and the view model should hold the protocol instead.
 
-**Android: the view model holds cases, never a repository.** A case is three files: the interface the screen asks for, the implementation that holds the Core service, and the view model that injects the interface.
-
-`gemcore/.../application/pricealerts/cases/SetPriceAlertsEnabled.kt` — the case:
+**Android follows the same direct-service rule.** Hilt constructs one `GemPriceAlertService`, and [`PriceAlertViewModel`](../android/features/settings/price_alerts/viewmodels/src/main/kotlin/com/gemwallet/android/features/settings/price_alerts/viewmodels/PriceAlertViewModel.kt) injects it for Core-owned commands and point reads:
 
 ```kotlin
-interface SetPriceAlertsEnabled {
-    suspend fun setPriceAlertsEnabled(enabled: Boolean)
+private val alertsEnabled = MutableStateFlow(service.isEnabled())
+
+fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+    service.setEnabled(enable)
+    alertsEnabled.value = service.isEnabled()
 }
 ```
 
-`data/coordinators/.../pricealerts/PriceAlertsCoordinator.kt` — the implementation. It owns the
-signal shared by all five price-alert cases; this excerpt shows the enabled read/write pair:
+Android keeps a narrow case only when the screen needs a reactive Room read or app-side aggregation that the synchronous Core service does not provide. [`GetPriceAlertsImpl`](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/pricealerts/GetPriceAlertsImpl.kt) and [`GetAssetPriceAlertStateImpl`](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/pricealerts/GetAssetPriceAlertStateImpl.kt) observe the `GemstonePriceAlertStore`; they do not wrap Core commands. Such cases hold the `Gemstone*Store` adapter, never the DAO and never a repository for data a Core service owns.
 
-```kotlin
-class PriceAlertsCoordinator(
-    private val priceAlertService: GemPriceAlertService,
-    private val getCurrentCurrency: GetCurrentCurrency,
-) : GetPriceAlertsEnabled, SetPriceAlertsEnabled, IncludePriceAlert, ExcludePriceAlert, SetAssetPriceAlertEnabled {
-
-    private val changes = MutableSharedFlow<Unit>()
-
-    override fun isPriceAlertsEnabled(): Flow<Boolean> = changes
-        .onStart { emit(Unit) }
-        .map { priceAlertService.isEnabled() }
-
-    override suspend fun setPriceAlertsEnabled(enabled: Boolean) {
-        priceAlertService.setEnabled(enabled)
-        changes.emit(Unit)
-    }
-}
-```
-
-Hilt builds it once and binds both interfaces to it, so the view model asks for the case it needs and nothing else:
-
-```kotlin
-@Provides @Singleton
-fun providePriceAlertsCoordinator(
-    priceAlertService: GemPriceAlertService,
-    getCurrentCurrency: GetCurrentCurrency,
-) = PriceAlertsCoordinator(priceAlertService, getCurrentCurrency)
-
-@Provides
-fun provideGetPriceAlertsEnabled(coordinator: PriceAlertsCoordinator): GetPriceAlertsEnabled = coordinator
-
-@Provides
-fun provideSetPriceAlertsEnabled(coordinator: PriceAlertsCoordinator): SetPriceAlertsEnabled = coordinator
-```
-
-**Two shapes, and the name says which:** `*Impl` is one case with no state — it forwards to Core,
-or returns the Room `Flow` the database already makes reactive (`GetAssetPriceAlertState`).
-`*Coordinator` implements the read and every writer for one subject and owns the signal between
-them; use it when Core answers with a point read that screens must observe.
-
-Prefer the coordinator over refreshing state in each view model: `PriceAlertsCoordinator` owns the
-enabled read plus every writer that can change it, so all successful writes emit through the same
-signal. A screen holding its own copy goes stale when another path enables an alert. If Core ever
-publishes preference changes as a stream, this coordinator can collapse into stateless `*Impl`s.
-
-**A case composing other cases is always fine** — `SyncAssetPriceAlertsImpl` holds `HasAssetPriceAlerts` and `UpdatePriceAlerts` — that is how a flow is assembled; what a case must not hold is a repository.
-
-`features/settings/price_alerts/.../PriceAlertViewModel.kt` — the screen's view model, which injects the cases and never the service or a repository:
-
-```kotlin
-val priceAlertEnabled = getPriceAlertsEnabled.isPriceAlertsEnabled()
-    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch {
-    setPriceAlertsEnabled.setPriceAlertsEnabled(enable)
-}
-```
-
-A case may compose other cases ([`SyncAssetPriceAlertsImpl`](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/pricealerts/SyncAssetPriceAlertsImpl.kt) calls `HasAssetPriceAlerts` and `UpdatePriceAlerts`), and it holds the `Gemstone*Store` adapter when the screen needs an observed read — never the DAO, and never a repository for data a Core service owns. The repositories left in the graph are legacy and shrink as services land; `SessionRepository` is the one still in wide use, and Core's `GemWalletSessionService` is replacing it.
-
-**An iOS screen asks at most one Core service; an Android screen asks one or more narrow cases.** An iOS
-view model that combines multiple `Gem*Service` protocols is doing the feature's job in the view
-layer. Compose the decision in Core, while keeping platform-only ports explicit.
+**A screen asks at most one Core service.** Android may additionally inject narrow observed-read cases. A view model that combines multiple `Gem*Service` protocols is doing the feature's job in the view layer. Compose the decision in Core, while keeping platform-only ports explicit.
 
 Rules belong in `gemstone`, not in an app class wrapping several services — `GemChainSettingsService.check_node` owns the URL rule, the network-id check and the node status `AddNodeSceneViewModel` used to assemble. One constraint: `GemNodeService` cannot hold the gateway, because the gateway's transport picks node URLs *through* `GemNodeService`. Check where a service sits in that graph before giving it a new collaborator.
 
@@ -280,7 +219,7 @@ The precedent that made this work: `GemWalletStore.get_wallets`/`get_wallet` are
 - Core has the flow, the rules and their tests; the app code it replaced is deleted in the same commit.
 - Both apps implement the same store trait the same way, and both build and pass their suites.
 - No app-side copy of a Core decision, no raw preference keys, no swallowed store failure, and no app service reading a table a `Gem*Store` owns.
-- Nothing was added to reach it: iOS injects the protocol, Android calls a case — no wrapper service, no repository. A feature service or case that gathers several collaborators for one screen is not a wrapper; a class that forwards one call is.
+- Nothing was added to reach it: both apps inject the generated Core service directly, with narrow Android cases only for observed reads or app-side aggregation — no forwarding wrapper and no repository.
 - No `private let`/`private val` holding a `Gem*Service` at file scope. A service comes from the initializer or from Hilt, so a test can substitute it.
 - Its store and both adapters are documented where the migration needs them, and its line in the
   plan below is removed.
@@ -288,7 +227,7 @@ The precedent that made this work: `GemWalletStore.get_wallets`/`get_wallet` are
 ## Screen services
 
 One Core service per screen, held by the screen's view model on both apps. Re-run the holder sweep
-(`grep -rl "Gem<Name>ServiceProtocol"` under `ios/Features`, `"Gem<Name>ServiceInterface"` under
+(`rg -l "Gem<Name>ServiceProtocol"` under `ios/Features`, `"Gem<Name>ServiceInterface"` under
 `android/features`) before adding a service: a screen service that only one app holds is the next
 consolidation, and a second Core service in a view model is the one to remove.
 
@@ -344,7 +283,7 @@ What stays on the app side, because it is a platform concern with no Core counte
 
 Any other app-side service must own a real platform concern. A class that merely forwards a Core
 call is migration debt. A Core export needs a real consumer, but both apps do not have to consume
-the identical façade when iOS protocols and Android cases expose the same Core decisions; document
+the identical façade when their generated bindings expose the same Core decisions; document
 intentional one-sided integration surfaces.
 
 ## Remaining
@@ -410,7 +349,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
   to `Failed { message }`. Both apps send `response` back to the SDK and show `failure` if there
   is one; iOS's `handleRequest`/`rejectRequest` and Android's `WalletConnectRequestHandler`, the
   connection lookup and the per-request origin check are gone, and `WCRequestViewModel` holds
-  the Core service plus the SDK responder, the pending-request port, the sign operator and the
+  the Core service plus the SDK responder, the pending-request port, `GemSignMessageService` and the
   active-request tracker. `GemSignMessageService { names, explorer }` answers the preview, the
   payload address names and the explorer links for the sign-message screen on both apps.
 
@@ -457,7 +396,7 @@ setup rather than retrying it.
 
 `Migration_88_89Test.kt:35` seeds a multi-sig banner with `asset_id NULL` — the pre-`46889318bc` contract — and only calls `runMigrationsAndValidate`, which checks the schema and never asserts the row survived, so it cannot fail on data loss. It is an `androidTest`, so fixing it means running it on a device.
 
-### 7. Android
+### 6. Android
 
 - **Earn flow.** No Earn surface exists (no `StakeProviderType.Earn` reader, no `AmountParams.Earn`, no `ConfirmParams.Earn`; `GemDelegationAction.DEPOSIT` maps to nothing). Build the scene, amount provider and confirm params on `GemStakeService.sync_earn`/`get_earn_data`, `GemAmountType::Earn` and `GemTransactionInputType::Earn`; iOS `EarnSceneViewModel` + `AmountEarnViewModel` are the reference. A feature, not a consolidation — plan it as its own batch.
 - **Dead `NOT NULL` columns** with no iOS counterpart: `AssetStore.saveAsset` bumps `updatedAt`, `TransactionStateStore` writes swap amounts, `NftStore` fills two legacy image columns. minSdk 28 has no `ALTER TABLE DROP COLUMN`, so removing them means recreating tables (`asset` behind its foreign keys) and instrumented migration tests do not run in CI — batch them with a migration that has another reason to touch those tables.
@@ -467,14 +406,14 @@ setup rather than retrying it.
 - Consistency: `toChain()` (nullable) and `requireChain()` (throws) are picked arbitrarily at call sites; `*Service` classes live inside the coordinators module.
 - Localization: 59 hardcoded `dp` values (worst: `SupportMessageBubble`, `ReceiveScreen`, `ImportScreen`, `WalletTypeTab`, `FiatScene`).
 
-### 8. iOS
+### 7. iOS
 
 - Image URLs come from `GemImage { Asset, Validator, NftAsset, AssetList }::url()` on both apps (iOS `AssetImageFormatter`, Android's remote-URL half of `IconUrlGeneration.kt` and both apps' `assets.gemwallet.com` constants are gone). The one exception is `GemPriceWidget`, which does not link Gemstone — a widget extension cannot afford the Rust binary — so `WidgetPriceService.tokenImageURL` spells the token logo URL itself; bundled chain/provider icons stay platform paths.
 - Naming: untyped `.map()` conversions where Android has `toPrimitives()`.
 - `NavigationHandler`'s `.stake` deep link is an unimplemented branch and `TransactionScene`'s corner radius is an open iOS 26 styling question — both mark real gaps, keep the TODOs until closed.
 - The two "delete in 2026" `FileMigrator` calls (`LocalKeystore`, `DB.swift`) move the keystore and database from documents to application support on launch. Deleting them strands anyone who has not opened the app since the move — losing their keystore — so this needs install-base data, not a code decision.
 
-### 9. iOS view models holding more than one Core service
+### 8. iOS view models holding more than one Core service
 
 Each iOS scene view model should hold at most one private Core service per
 [ARCHITECTURE.md § 7](ARCHITECTURE.md#7-at-most-one-core-service-on-ios-narrow-cases-on-android).
@@ -506,7 +445,7 @@ having the parent vend the child view model.
 | `Contacts/ViewModels/ManageContactViewModel.swift` | 2 | 0 — `nameService` for the shared address input, above |
 
 
-### 10. Rules still living in app-only enums
+### 9. Rules still living in app-only enums
 
 Both apps carry Core's `GemTransferData`, `GemConfirmInput` and `GemTransactionInputType`
 end to end, per [ARCHITECTURE.md](ARCHITECTURE.md) § 6 — iOS's `TransferDataType` and
@@ -553,8 +492,8 @@ Two warnings worth keeping:
 
 ### Verification
 
-- Core: `cargo fmt --all && cargo clippy -p gemstone --all-targets --all-features -- -D warnings && cargo test -p gemstone --lib --all-features`. CI also compiles the workspace with `--features unit_tests` and `chain_integration_tests`.
-- Android: `just test` from `android/` plus `assembleGoogleDebug` (DI failures surface at assembly, not compile) and `assembleGoogleDebugAndroidTest` — `androidTest` sources are **not** compiled by `testGoogleDebugUnitTest`.
+- Core: from `core/`, run `cargo fmt --all && cargo clippy -p gemstone --all-targets --all-features -- -D warnings && cargo test -p gemstone --lib --all-features`. CI also compiles the workspace with `--features unit_tests` and `chain_integration_tests`.
+- Android: from `android/`, run `just test`, `./gradlew assembleGoogleDebug`, and `./gradlew assembleGoogleDebugAndroidTest` (DI failures surface at assembly, not compile; `androidTest` sources are **not** compiled by `testGoogleDebugUnitTest`).
 - iOS: `just build && just test` from `ios/`. A raw `xcodebuild` invocation must pass `GEMSTONE_LINKER_FLAGS` or every test bundle fails to link against the Rust library.
 
 ## Conventions

@@ -4,7 +4,7 @@
 
 ## Quote flow
 
-iOS and Android call `preload_routes` immediately before `get_quote`. Asset selection does not start preload work. Providers without reusable route discovery use the default no-op implementation.
+`GemSwapService` calls `preload_routes` immediately before `get_quote`; iOS and Android request quotes through that Core service. Asset selection does not start preload work. Providers without reusable route discovery use the default no-op implementation.
 
 ```mermaid
 flowchart LR
@@ -45,6 +45,8 @@ The apps keep one `GemSwapper` per process. The cache survives swap screen recre
 - [Cetus discovery](../core/crates/swapper/src/cetus_clmm/client.rs)
 - [STON.fi discovery](../core/crates/swapper/src/stonfi/provider.rs)
 - [Gemstone bridge](../core/gemstone/src/gem_swapper/mod.rs)
+- [Core quote orchestration](../core/gemstone/src/services/swap/mod.rs)
+- [Core screen-facing quote service](../core/gemstone/src/services/swap/quote.rs)
 - [RPC coalescing](../core/gemstone/src/alien/coalescing_provider.rs)
-- [iOS quote path](../ios/Packages/FeatureServices/SwapService/SwapService.swift)
-- [Android quote path](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/swap/GetSwapQuotesImpl.kt)
+- [iOS quote path](../ios/Features/Swap/Sources/ViewModels/SwapSceneViewModel.swift)
+- [Android quote path](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/swap/RequestSwapQuotesImpl.kt)

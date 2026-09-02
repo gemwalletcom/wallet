@@ -798,7 +798,7 @@ already composes (`GemConfirmService::{preload, simulation, fee_assets}`,
 reads. Each moved to a plain `impl`. The iOS `GemConfirmTransferServiceMock` had been the only
 thing keeping the confirm pieces exported — it recomposed Core's flow from them — so it now
 answers from premises and takes the concrete confirm mock. Re-run the sweep after removing a
-caller: `grep -rl '#\[uniffi::export\]'`, list the `pub fn`s, camel-case each, grep both apps.
+caller: `rg -l '#\[uniffi::export\]'`, list the `pub fn`s, camel-case each, search both apps.
 
 **A debug screen is a screen.** iOS's `DeveloperViewModel` held five Core services; Android's
 `DevelopViewModel` three cases and a `PlatformStore`. `GemDeveloperService` composes the device

@@ -43,17 +43,16 @@ A fresh install imports a wallet and immediately asks for its assets, so the sub
 
 The local record of what was published is written only after a successful sync, so a failed sync leaves the divergence in place and the next trigger retries it. A sync must never record success it did not achieve. Concurrent triggers collapse into a single network sync rather than one per caller.
 
-## iOS and Android
+## Shared ownership and platform triggers
 
-| | iOS | Android |
+[`GemDeviceService`](../core/gemstone/src/services/device/mod.rs) owns registration, divergence detection, serialization of concurrent syncs, and the published-state checkpoint on both platforms. [`GemSubscriptionService`](../core/gemstone/src/services/subscription/mod.rs) owns subscription reconciliation. Divergence is derived from the current device plus a deterministic wallet/account signature; mutation sites do not maintain a separate pending flag.
+
+Both apps construct these Core services once. Wallet/account observers call `synchronizeIfNeeded()` when local subscriptions change, and the general device API client runs the same check as a preflight before wallet-scoped requests. The registration client used by the sync services has no preflight, which prevents recursive synchronization.
+
+| Platform | Wallet-change trigger | Platform adapter |
 |---|---|---|
-| Entry point | `DeviceService.update()`, `synchronizeIfNeeded()` | `SyncDevice.syncDevice()` |
-| Needs-sync decision | `isSynchronized`: registered and no pending-changes flag | `needsSynchronization()`: registered and current state equals the last published state |
-| Change tracking | each mutation site sets the pending flag | none, divergence is derived by comparison |
-| Concurrency | `DeviceSyncCoordinator` joins the in-flight task | `DeviceSyncCoordinator` joins the in-flight task |
-| Wallet changes | `SubscriptionsObserver` on accounts, via `DeviceObserverService` | `DeviceObserverService` on wallets and accounts |
-
-Deliberate differences today: iOS marks a flag at each mutation site while Android compares against the last published state, so Android needs no marking discipline and makes no requests on an unchanged relaunch; Android also runs the sync at the top of the device-assets fetch, while iOS relies on the sync having started at wallet insert.
+| iOS | `SubscriptionsObserver`, consumed by `AppLifecycleService` | `GemstoneDevicePlatform` |
+| Android | `DeviceObserverService` | `GemstoneDevicePlatform` |
 
 ## Rules
 
@@ -69,6 +68,9 @@ Keep this document current in the same change when the sync triggers, the reconc
 
 ## Code map
 
-- [iOS device sync](../ios/Packages/FeatureServices/DeviceService/DeviceService.swift)
-- [iOS subscriptions](../ios/Packages/FeatureServices/DeviceService/SubscriptionService.swift)
-- [Android device sync and subscriptions](../android/data/repositories/src/main/kotlin/com/gemwallet/android/data/repositories/device/DeviceRepository.kt)
+- [Core device sync](../core/gemstone/src/services/device/mod.rs)
+- [Core subscription reconciliation](../core/gemstone/src/services/subscription/mod.rs)
+- [iOS device platform](../ios/Packages/GemstoneServices/Sources/Device/DevicePlatform.swift)
+- [iOS wallet/account trigger](../ios/Packages/FeatureServices/AppService/AppLifecycleService.swift)
+- [Android device platform](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/device/DevicePlatform.kt)
+- [Android wallet trigger](../android/data/services/gemstone/src/main/kotlin/com/gemwallet/android/data/services/gemstone/device/DeviceObserverService.kt)
