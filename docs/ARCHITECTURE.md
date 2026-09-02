@@ -568,9 +568,11 @@ its four methods are the same shape.
 
 **Split by responsibility to break a composition cycle; never reach through it.** `GemNodeService`
 supplies node URLs to the provider the gateway is built on, so it can never hold the gateway.
-Putting `check_node` on it was tried and does not compose. `GemNodeStatusService` sits above the
-gateway and owns status and validation; `GemNodeService` keeps the list. Both apps' hand-written
-node wrappers went with the change.
+Putting `check_node` on it was tried and does not compose. The networks screen's
+`GemChainSettingsService` sits above the gateway and composes it with `GemNodeService` and
+`GemExplorerService`, so status, validation, the node list and the explorer choice come from one
+per-screen service; `GemNodeService` keeps the list. Both apps' hand-written node wrappers went with
+the change.
 
 **Core returns the decision, not the ingredients for it.** When both apps would derive the same
 thing from a returned list, return the derived thing: `GemChart { values, current }` instead of
