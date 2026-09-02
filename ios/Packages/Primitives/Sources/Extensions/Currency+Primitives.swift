@@ -12,15 +12,6 @@ public extension Currency {
             throw AnyError("invalid currency: \(id)")
         }
     }
-
-    static var nativeCurrencies: [Locale.Currency] {
-        Locale.Currency.isoCurrencies.filter {
-            if let currency = Currency(rawValue: $0.identifier) {
-                return Currency.allCases.contains(currency)
-            }
-            return false
-        }
-    }
 }
 
 extension Currency: Identifiable {

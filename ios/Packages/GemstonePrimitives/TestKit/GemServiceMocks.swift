@@ -838,6 +838,14 @@ public final class GemCurrencyServiceMock: GemCurrencyServiceProtocol, @unchecke
         if let error { throw error }
         setCurrencies.append(currency)
     }
+
+    public func recommendedCurrencies(locale _: Gemstone.Currency?) -> [Gemstone.Currency] {
+        [currency()]
+    }
+
+    public func otherCurrencies(locale _: Gemstone.Currency?) -> [Gemstone.Currency] {
+        []
+    }
 }
 
 public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Sendable {

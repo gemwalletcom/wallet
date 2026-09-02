@@ -302,7 +302,7 @@ consolidation, and a second Core service in a view model is the one to remove.
 | `GemChartService` | `ChartSceneViewModel` | `ChartViewModel` |
 | `GemConfirmTransferService` | `ConfirmTransferSceneViewModel` | `ConfirmViewModel` |
 | `GemContactService` | `ContactsViewModel` | `ContactsViewModel` |
-| `GemCurrencyService` | `CurrencySceneViewModel` | `SessionCoordinator` (currency screen reads the session) |
+| `GemCurrencyService` | `CurrencySceneViewModel` | `CurrenciesViewModel` (+ session currency cases) |
 | `GemFiatQuoteService` | `FiatSceneViewModel` | `FiatViewModel` |
 | `GemManageContactService` | `ManageContactViewModel` (+ `nameService`) | `ManageContactViewModel` (+ `GemNameServiceInterface`) |
 | `GemNotificationService` | `InAppNotificationsViewModel` | `InAppNotificationsViewModel` |

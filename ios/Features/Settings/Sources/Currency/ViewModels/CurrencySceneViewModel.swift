@@ -13,7 +13,6 @@ import Primitives
 public final class CurrencySceneViewModel {
     private var currencyStorage: CurrencyStorable
     private let service: any GemCurrencyServiceProtocol
-    private let defaultCurrencies: [Currency] = [.usd, .eur, .gbp, .cny, .jpy, .inr, .rub]
 
     private(set) var currency: Currency {
         get {
@@ -74,16 +73,15 @@ public final class CurrencySceneViewModel {
 // MARK: - Private
 
 extension CurrencySceneViewModel {
+    private var localeCurrency: Currency? {
+        Locale.current.currency.flatMap { Currency(rawValue: $0.identifier) }
+    }
+
     private var recommendedCurrencies: [Currency] {
-        guard let current = Locale.current.currency,
-              let currency = Currency(rawValue: current.identifier)
-        else {
-            return defaultCurrencies
-        }
-        return ([self.currency, currency] + defaultCurrencies).unique()
+        service.recommendedCurrencies(locale: localeCurrency?.rawValue).compactMap { Currency(rawValue: $0) }
     }
 
     private var allCurrencies: [Currency] {
-        Currency.nativeCurrencies.compactMap { Currency(rawValue: $0.identifier) }
+        service.otherCurrencies(locale: localeCurrency?.rawValue).compactMap { Currency(rawValue: $0) }
     }
 }
