@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemRewardsServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
@@ -23,8 +22,7 @@ public final class RewardsViewModel: Sendable {
         return formatter
     }()
 
-    private let rewardsService: any GemRewardsServiceProtocol
-    private let preferencesService: any GemPreferencesServiceProtocol
+    private let service: any GemRewardsServiceProtocol
     private let activateCode: String?
 
     private(set) var selectedWallet: Wallet
@@ -35,17 +33,11 @@ public final class RewardsViewModel: Sendable {
     var isPresentingSheet: RewardsSheetType?
     var isPresentingAlert: AlertMessage?
 
-    public init(
-        rewardsService: any GemRewardsServiceProtocol,
-        wallet: Wallet,
-        wallets: [Wallet],
-        activateCode: String? = nil,
-        preferencesService: any GemPreferencesServiceProtocol,
-    ) {
-        self.rewardsService = rewardsService
-        self.preferencesService = preferencesService
+    public init?(service: any GemRewardsServiceProtocol, activateCode: String? = nil) throws {
+        guard let wallet = try service.selectedWallet().map({ try Wallet($0) }) else { return nil }
+        self.service = service
         selectedWallet = wallet
-        self.wallets = wallets
+        wallets = try service.wallets().map { try Wallet($0) }
         self.activateCode = activateCode
     }
 
@@ -116,13 +108,13 @@ public final class RewardsViewModel: Sendable {
 
     var shareText: String? {
         guard let code = rewards?.code else { return nil }
-        let link = (try? rewardsService.referralLink(code: code).absoluteString) ?? ""
+        let link = (try? service.referralLink(code: code).absoluteString) ?? ""
         return Localized.Rewards.shareText(link)
     }
 
     var referralLink: String? {
         guard let code = rewards?.code else { return nil }
-        return (try? rewardsService.referralLink(code: code).absoluteString) ?? ""
+        return (try? service.referralLink(code: code).absoluteString) ?? ""
     }
 
     var hasReferralCode: Bool {
@@ -206,7 +198,7 @@ public final class RewardsViewModel: Sendable {
 
     var createCodeViewModel: CreateRewardsCodeViewModel {
         CreateRewardsCodeViewModel(
-            rewardsService: rewardsService,
+            rewardsService: service,
             wallet: selectedWallet,
         ) { [weak self] rewards in
             self?.state = .data(rewards)
@@ -215,7 +207,7 @@ public final class RewardsViewModel: Sendable {
 
     func redeemCodeViewModel(code: String) -> RedeemRewardsCodeViewModel {
         RedeemRewardsCodeViewModel(
-            rewardsService: rewardsService,
+            rewardsService: service,
             wallet: selectedWallet,
             code: code,
         ) { [weak self] _ in
@@ -249,7 +241,7 @@ public final class RewardsViewModel: Sendable {
     private func useReferralCode() async {
         guard let code = activateCode else { return }
         do {
-            try await rewardsService.useReferralCode(wallet: selectedWallet, code: code)
+            try await service.useReferralCode(wallet: selectedWallet, code: code)
             showActivatedToast()
             await load()
         } catch {
@@ -260,7 +252,7 @@ public final class RewardsViewModel: Sendable {
     func activatePendingReferral() async {
         guard let code = rewards?.usedReferralCode else { return }
         do {
-            try await rewardsService.useReferralCode(wallet: selectedWallet, code: code)
+            try await service.useReferralCode(wallet: selectedWallet, code: code)
             showActivatedToast()
             await load()
         } catch {
@@ -292,7 +284,7 @@ public final class RewardsViewModel: Sendable {
 
     func redeem(option: RewardRedemptionOption) async {
         do {
-            _ = try await rewardsService.redeem(wallet: selectedWallet, redemptionId: option.id)
+            _ = try await service.redeem(wallet: selectedWallet, redemptionId: option.id)
             toastMessage = ToastMessage.success(Localized.Common.done)
         } catch {
             showError(error.localizedDescription)
@@ -314,7 +306,7 @@ public final class RewardsViewModel: Sendable {
     private func load(wallet: Wallet) async {
         state = .loading
         do {
-            let rewards = try await rewardsService.getRewards(wallet: wallet)
+            let rewards = try await service.getRewards(wallet: wallet)
             state = .data(rewards)
         } catch {
             state = .noData

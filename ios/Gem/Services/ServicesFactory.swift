@@ -273,7 +273,8 @@ struct ServicesFactory {
                 password: GemstoneKeystorePassword(keystore: storages.keystore),
                 deviceKey: deviceKeyService,
             ),
-            balance: balanceService
+            balance: balanceService,
+            session: walletSessionService,
         )
         let toastPresenter = ToastPresenter()
         let pushNotificationService = Gemstone.GemPushNotificationService()
@@ -371,6 +372,7 @@ struct ServicesFactory {
             preferencesService: preferencesService,
             priceAlertService: priceAlertService,
             priceService: priceService,
+            rewardsService: rewardsService,
             searchService: searchService,
             simulationFormatter: Gemstone.GemSimulationFormatter(),
             stakeService: stakeService,
@@ -439,7 +441,6 @@ struct ServicesFactory {
             recentAssetsService: recentAssetsService,
             toastPresenter: toastPresenter,
             viewModelFactory: viewModelFactory,
-            rewardsService: rewardsService,
             searchService: searchService,
             appLifecycleService: appLifecycleService,
             inAppNotificationService: inAppNotificationService,

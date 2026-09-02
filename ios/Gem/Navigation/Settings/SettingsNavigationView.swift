@@ -34,7 +34,6 @@ struct SettingsNavigationView: View {
     @Environment(\.appUpdateService) private var appUpdateService
     @Environment(\.perpetualService) private var perpetualService
     @Environment(\.walletConnectorPresenter) private var walletConnectorPresenter
-    @Environment(\.rewardsService) private var rewardsService
     @Environment(\.inAppNotificationService) private var inAppNotificationService
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.supportService) private var supportService
@@ -152,17 +151,8 @@ struct SettingsNavigationView: View {
             AppearanceScene(model: AppearanceViewModel(preferences: observablePreferences))
         }
         .navigationDestination(for: Scenes.Referral.self) { scene in
-            let wallets = walletSessionService.wallets.filter { $0.type == .multicoin }
-            if let wallet = wallets.first(where: { $0.id == walletSessionService.currentWallet?.id }) ?? wallets.first {
-                RewardsScene(
-                    model: RewardsViewModel(
-                        rewardsService: rewardsService,
-                        wallet: wallet,
-                        wallets: wallets,
-                        activateCode: scene.code,
-                        preferencesService: preferencesService,
-                    ),
-                )
+            if let model = viewModelFactory.rewardsScene(activateCode: scene.code) {
+                RewardsScene(model: model)
             }
         }
         .navigationDestination(for: Scenes.ChainSettings.self) {

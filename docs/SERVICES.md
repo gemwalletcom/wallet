@@ -436,7 +436,6 @@ having the parent vend the child view model.
 | `ManageWallets/WalletIDetailViewModel.swift` | 2 | 0 |
 | `ManageWallets/WalletsSceneViewModel.swift` | 2 | 0 |
 | `Perpetuals/PerpetualsSceneViewModel.swift` | 2 | 0 |
-| `Settings/Settings/ViewModels/RewardsViewModel.swift` | 2 | 0 |
 | `Transfer/AmountEarnViewModel.swift` | 2 | 1 |
 
 Single-service view models that only need the property made `private`:

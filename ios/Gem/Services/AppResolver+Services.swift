@@ -16,7 +16,6 @@ import class Gemstone.GemStreamSubscriptionService
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import protocol Gemstone.GemAppStartServiceProtocol
 import protocol Gemstone.GemPortfolioServiceProtocol
-import protocol Gemstone.GemRewardsServiceProtocol
 import protocol Gemstone.GemSearchServiceProtocol
 import protocol Gemstone.GemSwapServiceProtocol
 import protocol Gemstone.GemTransactionsServiceProtocol
@@ -84,7 +83,6 @@ extension AppResolver {
         let recentAssetsService: any GemRecentActivityServiceProtocol
         let toastPresenter: ToastPresenter
         let viewModelFactory: ViewModelFactory
-        let rewardsService: any GemRewardsServiceProtocol
         let searchService: any GemSearchServiceProtocol
         let appLifecycleService: AppLifecycleService
         let inAppNotificationService: any GemNotificationServiceProtocol

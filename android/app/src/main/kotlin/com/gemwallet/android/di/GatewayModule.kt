@@ -43,6 +43,8 @@ import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPortfolioService
 import uniffi.gemstone.GemPortfolioStore
 import uniffi.gemstone.GemRewardsService
+import uniffi.gemstone.GemRewardsServiceInterface
+import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemSupportService
 import uniffi.gemstone.GemSupportStore
 import uniffi.gemstone.GemWalletConfigurationService
@@ -196,7 +198,8 @@ object GatewayModule {
         apiClient: GemstoneDeviceApiClient,
         authService: GemAuthService,
         balanceService: GemBalanceService,
-    ): GemRewardsService = GemRewardsService(apiClient, authService, balanceService)
+        sessionService: GemWalletSessionService,
+    ): GemRewardsServiceInterface = GemRewardsService(apiClient, authService, balanceService, sessionService)
 
 
     @Provides

@@ -33,6 +33,7 @@ import class Gemstone.GemOnboardingService
 import class Gemstone.GemPaymentService
 import class Gemstone.GemPerpetualDetailsService
 import class Gemstone.GemReceiveService
+import class Gemstone.GemRewardsService
 import class Gemstone.GemPerpetualService
 import class Gemstone.GemPreferencesService
 import class Gemstone.GemPriceAlertService
@@ -107,6 +108,7 @@ public struct ViewModelFactory: Sendable {
     let preferencesService: GemPreferencesService
     let priceAlertService: GemPriceAlertService
     let priceService: GemPriceService
+    let rewardsService: GemRewardsService
     let searchService: GemSearchService
     let simulationFormatter: GemSimulationFormatter
     let stakeService: GemStakeService
@@ -434,6 +436,11 @@ public struct ViewModelFactory: Sendable {
             onTransferData: onTransferData,
             onPerpetualRecipientData: onPerpetualRecipientData,
         )
+    }
+
+    @MainActor
+    public func rewardsScene(activateCode: String?) -> RewardsViewModel? {
+        try? RewardsViewModel(service: rewardsService, activateCode: activateCode)
     }
 
     @MainActor

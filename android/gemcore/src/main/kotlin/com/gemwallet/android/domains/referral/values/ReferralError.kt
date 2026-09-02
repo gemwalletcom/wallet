@@ -6,6 +6,4 @@ sealed class ReferralError(message: String = "") : Exception(message) {
     object BadWallet : ReferralError("Bad Wallet")
 
     object InsufficientPoints : ReferralError()
-
-    object NotCreated : ReferralError()
 }
