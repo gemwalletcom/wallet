@@ -66,12 +66,6 @@ struct AmountPerpetualViewModelTests {
     }
 
     @Test
-    func minimumValue() {
-        let model = AmountPerpetualViewModel(asset: .mock(), data: .mock(), service: GemAmountServiceMock())
-        #expect(model.minimumValue > .zero)
-    }
-
-    @Test
     func autocloseText() {
         let model = AmountPerpetualViewModel(asset: .mock(), data: .mock(), service: GemAmountServiceMock())
 

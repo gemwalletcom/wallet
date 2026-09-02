@@ -16,15 +16,6 @@ struct AmountTransferViewModelTests {
     }
 
     @Test
-    func minimumValue() {
-        let usdc = Asset.mock(symbol: "USDC")
-
-        #expect(AmountTransferViewModel(asset: .mock(), action: .send(.mock())).minimumValue == .zero)
-        #expect(AmountTransferViewModel(asset: usdc, action: .deposit(.mock())).minimumValue == PerpetualConfig.minDeposit)
-        #expect(AmountTransferViewModel(asset: usdc, action: .withdraw(.mock())).minimumValue == PerpetualConfig.minWithdraw)
-    }
-
-    @Test
     func displayAsset() {
         let usdc = Asset.mock(symbol: "USDC")
 

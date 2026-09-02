@@ -77,14 +77,6 @@ struct AmountStakeViewModelTests {
     }
 
     @Test
-    func minimumValue() {
-        #expect(AmountStakeViewModel(asset: .mockBNB(), type: .stake(validators: [.mock()], recommended: nil)).minimumValue > .zero)
-        #expect(AmountStakeViewModel(asset: .mockBNB(), type: .unstake(.mock())).minimumValue == .zero)
-        #expect(AmountStakeViewModel(asset: .mockTron(), type: .freeze(.bandwidth)).minimumValue > .zero)
-        #expect(AmountStakeViewModel(asset: .mockTron(), type: .unfreeze(.bandwidth)).minimumValue == .zero)
-    }
-
-    @Test
     func availableValue() {
         let delegation = Delegation.mock(base: .mock(state: .active, balance: "5000000"))
         let assetData = AssetData.mock(asset: .mockBNB(), balance: .mock(available: 1000))

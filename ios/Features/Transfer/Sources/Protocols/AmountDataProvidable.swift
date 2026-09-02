@@ -25,10 +25,6 @@ extension AmountDataProvidable {
         gemAmountType.rules(asset: asset.map())
     }
 
-    var minimumValue: BigInt {
-        BigInt(stringLiteral: rules.minimumValue)
-    }
-
     var reserveForFee: BigInt {
         BigInt(stringLiteral: rules.reserveForFee)
     }
