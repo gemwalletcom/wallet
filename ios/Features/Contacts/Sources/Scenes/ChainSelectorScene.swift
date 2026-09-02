@@ -17,7 +17,7 @@ struct ChainSelectorScene: View {
     }
 
     var body: some View {
-        SearchableSelectableListView(
+        SelectableListView(
             model: $model,
             onFinishSelection: { chains in
                 if let chain = chains.first {
