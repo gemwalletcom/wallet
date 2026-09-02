@@ -218,7 +218,7 @@ extension FiatSceneViewModel {
             urlState = .loading
 
             do {
-                guard let url = try await service.quoteUrl(walletId: wallet.id, asset: asset, quoteId: selectedQuote.id).redirectUrl.asURL else {
+                guard let url = try await service.quoteUrl(asset: asset, quoteId: selectedQuote.id).redirectUrl.asURL else {
                     urlState = .noData
                     return
                 }

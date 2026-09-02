@@ -358,13 +358,13 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
 
     public func quoteRefreshIntervalMilliseconds() -> UInt64 { 300_000 }
 
-    public func syncTransactions(walletId _: Gemstone.WalletId) async throws {}
+    public func syncTransactions() async throws {}
 
-    public func quotes(walletId _: Gemstone.WalletId, quoteType _: Gemstone.FiatQuoteType, assetId _: Gemstone.AssetId, amount _: Double) async throws -> [Gemstone.FiatQuote] {
+    public func quotes(quoteType _: Gemstone.FiatQuoteType, assetId _: Gemstone.AssetId, amount _: Double) async throws -> [Gemstone.FiatQuote] {
         quotes.map { $0.json() }
     }
 
-    public func quoteUrl(walletId _: Gemstone.WalletId, assetId _: Gemstone.AssetId, quoteId _: String) async throws -> Gemstone.FiatQuoteUrl {
+    public func quoteUrl(assetId _: Gemstone.AssetId, quoteId _: String) async throws -> Gemstone.FiatQuoteUrl {
         throw AnyError("not stubbed")
     }
 }

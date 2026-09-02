@@ -151,7 +151,7 @@ class FiatViewModel @Inject constructor(
             operation.updateState(FiatSceneState.Loading)
             operation.clearQuotes()
             val quotes = try {
-                service.quotes(data.walletId.id, currentType.toJson(), data.asset.id.toIdentifier(), amountParsed!!).map { it.decodeJson<FiatQuote>() }
+                service.quotes(currentType.toJson(), data.asset.id.toIdentifier(), amountParsed!!).map { it.decodeJson<FiatQuote>() }
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {
@@ -238,7 +238,7 @@ class FiatViewModel @Inject constructor(
         viewModelScope.launch {
             val data = assetData.value ?: return@launch callback(null)
             val quoteId = currentSelectedQuote.value?.id ?: return@launch callback(null)
-            callback(runCatching { service.quoteUrl(data.walletId.id, data.asset.id.toIdentifier(), quoteId).decodeJson<FiatQuoteUrl>().redirectUrl }.getOrNull())
+            callback(runCatching { service.quoteUrl(data.asset.id.toIdentifier(), quoteId).decodeJson<FiatQuoteUrl>().redirectUrl }.getOrNull())
         }
     }
 

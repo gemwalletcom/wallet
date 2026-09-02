@@ -67,7 +67,7 @@ public extension TransactionsViewModel {
 
     func load() async {
         do {
-            try await service.sync(walletId: walletId.id, assetId: nil)
+            try await service.sync(assetId: nil)
         } catch {
             debugLog("load getTransactions error \(error)")
         }

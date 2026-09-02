@@ -44,36 +44,36 @@ class TransactionsViewModelSyncTest {
 
     @Test
     fun `failed sync is retried on the next screen entry`() = runBlocking {
-        coEvery { syncTransactions.syncTransactions(any()) } returns false
+        coEvery { syncTransactions.syncTransactions() } returns false
         val viewModel = createViewModel()
 
         viewModel.syncIfNeeded()?.join()
         viewModel.syncIfNeeded()?.join()
 
-        coVerify(exactly = 2) { syncTransactions.syncTransactions(any()) }
+        coVerify(exactly = 2) { syncTransactions.syncTransactions() }
     }
 
     @Test
     fun `successful sync is not repeated for the same wallet`() = runBlocking {
-        coEvery { syncTransactions.syncTransactions(any()) } returns true
+        coEvery { syncTransactions.syncTransactions() } returns true
         val viewModel = createViewModel()
 
         viewModel.syncIfNeeded()?.join()
         viewModel.syncIfNeeded()?.join()
 
-        coVerify(exactly = 1) { syncTransactions.syncTransactions(any()) }
+        coVerify(exactly = 1) { syncTransactions.syncTransactions() }
     }
 
     @Test
     fun `wallet switch syncs the new wallet`() = runBlocking {
-        coEvery { syncTransactions.syncTransactions(any()) } returns true
+        coEvery { syncTransactions.syncTransactions() } returns true
         val viewModel = createViewModel()
 
         viewModel.syncIfNeeded()?.join()
         session.value = mockSession(wallet = mockWallet(id = "wallet-2"))
         viewModel.syncIfNeeded()?.join()
 
-        coVerify { syncTransactions.syncTransactions(match { it.id.id == "wallet-2" }) }
+        coVerify(exactly = 2) { syncTransactions.syncTransactions() }
     }
 
     private fun createViewModel() = TransactionsViewModel(

@@ -18,6 +18,7 @@ use crate::services::assets::GemAssetsService;
 use crate::services::name::GemAddressStore;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
+use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemTransactionsService {
@@ -27,6 +28,7 @@ pub struct GemTransactionsService {
     address_store: Arc<dyn GemAddressStore>,
     wallet_preferences: Arc<GemWalletPreferencesService>,
     preferences: Arc<GemPreferencesService>,
+    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
@@ -39,6 +41,7 @@ impl GemTransactionsService {
         address_store: Arc<dyn GemAddressStore>,
         wallet_preferences: Arc<GemWalletPreferencesService>,
         preferences: Arc<GemPreferencesService>,
+        session: Arc<GemWalletSessionService>,
     ) -> Self {
         Self {
             api,
@@ -47,6 +50,7 @@ impl GemTransactionsService {
             address_store,
             wallet_preferences,
             preferences,
+            session,
         }
     }
 
@@ -54,7 +58,13 @@ impl GemTransactionsService {
         self.preferences.get_currency()
     }
 
-    pub async fn sync(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
+    pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
+        self.sync_wallet(self.session.current_wallet_id()?, asset_id).await
+    }
+}
+
+impl GemTransactionsService {
+    pub async fn sync_wallet(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
         let from_timestamp = self.wallet_preferences.get_transactions_timestamp(wallet_id.clone(), asset_id.clone());
         let timestamp = Utc::now().timestamp() as u64;
         let response = self

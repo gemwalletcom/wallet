@@ -115,7 +115,12 @@ impl GemAssetDetailsService {
             self.balances.update(wallet_id.clone(), vec![asset_id.clone()]),
         )
         .await;
-        record(&mut failures, GemAssetRefreshStep::SyncTransactions, self.transactions.sync(wallet_id, Some(asset_id))).await;
+        record(
+            &mut failures,
+            GemAssetRefreshStep::SyncTransactions,
+            self.transactions.sync_wallet(wallet_id, Some(asset_id)),
+        )
+        .await;
         failures
     }
 
@@ -128,7 +133,7 @@ impl GemAssetDetailsService {
     }
 
     pub async fn sync_transactions(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
-        self.transactions.sync(self.session.current_wallet_id()?, asset_id).await
+        self.transactions.sync_wallet(self.session.current_wallet_id()?, asset_id).await
     }
 
     pub async fn update_balances(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {

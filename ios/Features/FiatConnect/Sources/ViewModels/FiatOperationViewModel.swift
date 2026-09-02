@@ -97,7 +97,7 @@ final class FiatOperationViewModel {
             selectedQuote = nil
 
             do {
-                let quotes = try await service.quotes(walletId: walletId, type: type, asset: asset, amount: amount)
+                let quotes = try await service.quotes(type: type, asset: asset, amount: amount)
                 try Task.checkCancellation()
 
                 if quotes.isNotEmpty {

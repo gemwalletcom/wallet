@@ -4,7 +4,6 @@ import uniffi.gemstone.GemTransactionDetailsService
 import uniffi.gemstone.GemAddressService
 import com.gemwallet.android.application.transactions.cases.GetTransactionDetails
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.application.transactions.cases.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.cases.SyncTransactions
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionDetailsImpl
 import com.gemwallet.android.data.coordinators.transaction.GetTransactionsImpl
@@ -56,11 +55,6 @@ object TransactionModule {
         syncTransactionsImpl: SyncTransactionsImpl,
     ): SyncTransactions = syncTransactionsImpl
 
-    @Provides
-    @Singleton
-    fun provideSyncAssetTransactions(
-        syncTransactionsImpl: SyncTransactionsImpl,
-    ): SyncAssetTransactions = syncTransactionsImpl
 
     @Provides
     @Singleton

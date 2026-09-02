@@ -635,7 +635,7 @@ public struct ViewModelFactory: Sendable {
         amount: Int? = nil,
     ) -> FiatSceneViewModel {
         FiatSceneViewModel(
-            service: GemFiatQuoteService(fiat: fiatService, balances: balanceService),
+            service: GemFiatQuoteService(fiat: fiatService, balances: balanceService, session: walletSessionService),
             assetAddress: assetAddress,
             wallet: wallet,
             type: type,

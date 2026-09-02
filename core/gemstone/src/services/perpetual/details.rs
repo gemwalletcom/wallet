@@ -66,6 +66,6 @@ impl GemPerpetualDetailsService {
     }
 
     pub async fn sync_transactions(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
-        self.transactions.sync(self.session.current_wallet_id()?, Some(asset_id)).await
+        self.transactions.sync_wallet(self.session.current_wallet_id()?, Some(asset_id)).await
     }
 }

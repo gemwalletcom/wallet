@@ -40,7 +40,7 @@ public final class FiatTransactionsViewModel {
 
     func load() async {
         do {
-            try await service.syncTransactions(walletId: walletId.id)
+            try await service.syncTransactions()
         } catch {
             debugLog("FiatTransactionsViewModel load error: \(error)")
         }

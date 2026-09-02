@@ -71,7 +71,7 @@ class FiatViewModelTest {
         every { amountCheck(any(), any(), any(), any()) } returns GemFiatAmountCheck.Valid
         every { quoteDebounceMilliseconds() } returns 250uL
         every { quoteRefreshIntervalMilliseconds() } returns 300_000uL
-        coEvery { quotes(any(), any(), any(), any()) } returns listOf(mockFiatQuote().toJson())
+        coEvery { quotes(any(), any(), any()) } returns listOf(mockFiatQuote().toJson())
     }
 
     @Before
@@ -97,7 +97,7 @@ class FiatViewModelTest {
             runCurrent()
 
             coVerify(exactly = 1) {
-                service.quotes(walletId.id, FiatQuoteType.Buy.toJson(), asset.id.toIdentifier(), 50.0)
+                service.quotes(FiatQuoteType.Buy.toJson(), asset.id.toIdentifier(), 50.0)
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -119,7 +119,7 @@ class FiatViewModelTest {
             runCurrent()
 
             coVerify(exactly = 1) {
-                service.quotes(walletId.id, FiatQuoteType.Buy.toJson(), asset.id.toIdentifier(), 50.0)
+                service.quotes(FiatQuoteType.Buy.toJson(), asset.id.toIdentifier(), 50.0)
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -136,7 +136,7 @@ class FiatViewModelTest {
 
             assertEquals("10", viewModel.amount.value)
             coVerify(exactly = 1) {
-                service.quotes(walletId.id, FiatQuoteType.Buy.toJson(), asset.id.toIdentifier(), 10.0)
+                service.quotes(FiatQuoteType.Buy.toJson(), asset.id.toIdentifier(), 10.0)
             }
         } finally {
             viewModel.viewModelScope.cancel()

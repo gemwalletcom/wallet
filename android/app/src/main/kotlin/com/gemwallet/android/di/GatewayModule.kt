@@ -210,8 +210,11 @@ object GatewayModule {
     fun provideGemFiatServiceInterface(service: GemFiatService): GemFiatServiceInterface = service
 
     @Provides
-    fun provideGemFiatQuoteService(fiatService: GemFiatService, balanceService: GemBalanceService): GemFiatQuoteServiceInterface =
-        GemFiatQuoteService(fiatService, balanceService)
+    fun provideGemFiatQuoteService(
+        fiatService: GemFiatService,
+        balanceService: GemBalanceService,
+        walletSessionService: GemWalletSessionService,
+    ): GemFiatQuoteServiceInterface = GemFiatQuoteService(fiatService, balanceService, walletSessionService)
 
 
     @Provides
