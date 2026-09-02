@@ -7,6 +7,8 @@ import GemstonePrimitives
 import WalletConnectorService
 import ConnectionStatusService
 import GemstoneServices
+import protocol Gemstone.GemDeviceServiceProtocol
+import Store
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import Primitives
@@ -16,7 +18,8 @@ import SwiftUI
 public actor AppLifecycleService: Sendable {
     private let walletConnector: any WalletConnectorServiceable
     private let connectionStatusObserver: ConnectionStatusObserver
-    private let deviceObserverService: DeviceObserverService
+    private let deviceService: any GemDeviceServiceProtocol
+    private let subscriptionsObserver: SubscriptionsObserver
     private let streamObserverService: StreamObserverService
     private let streamSubscriptionService: any GemStreamSubscriptionServiceProtocol
     private let perpetualService: any GemPerpetualServiceProtocol
@@ -27,7 +30,8 @@ public actor AppLifecycleService: Sendable {
     public init(
         walletConnector: any WalletConnectorServiceable,
         connectionStatusObserver: ConnectionStatusObserver,
-        deviceObserverService: DeviceObserverService,
+        deviceService: any GemDeviceServiceProtocol,
+        subscriptionsObserver: SubscriptionsObserver,
         streamObserverService: StreamObserverService,
         streamSubscriptionService: any GemStreamSubscriptionServiceProtocol,
         perpetualService: any GemPerpetualServiceProtocol,
@@ -37,7 +41,8 @@ public actor AppLifecycleService: Sendable {
     ) {
         self.walletConnector = walletConnector
         self.connectionStatusObserver = connectionStatusObserver
-        self.deviceObserverService = deviceObserverService
+        self.deviceService = deviceService
+        self.subscriptionsObserver = subscriptionsObserver
         self.streamObserverService = streamObserverService
         self.streamSubscriptionService = streamSubscriptionService
         self.perpetualService = perpetualService
@@ -103,7 +108,9 @@ extension AppLifecycleService {
 
     private func setupDeviceObserver() async {
         do {
-            try await deviceObserverService.startSubscriptionsObserver()
+            for try await _ in subscriptionsObserver.observe().dropFirst() {
+                try await deviceService.synchronizeIfNeeded()
+            }
         } catch {
             debugLog("AppLifecycleService setupDeviceObserver error: \(error)")
         }
@@ -145,7 +152,7 @@ extension AppLifecycleService {
 
     private func registerDevice() async {
         do {
-            try await deviceObserverService.synchronizeIfNeeded()
+            try await deviceService.synchronizeIfNeeded()
         } catch {
             debugLog("AppLifecycleService registerDevice error: \(error)")
         }

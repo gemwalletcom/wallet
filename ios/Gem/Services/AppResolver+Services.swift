@@ -85,7 +85,6 @@ extension AppResolver {
         let swapService: any GemSwapServiceProtocol
         let appUpdateService: any GemAppUpdateServiceProtocol
         let rateService: RateService
-        let deviceObserverService: DeviceObserverService
         let onstartService: OnstartService
         let appStartService: any GemAppStartServiceProtocol
         let pushNotificationEnablerService: PushNotificationEnablerService

@@ -56,10 +56,6 @@ struct ServicesFactory {
         )
         let deviceApiClient = Self.makeDeviceApiClient(provider: nativeProvider, devicePrivateKey: devicePrivateKey)
         deviceApiClient.setDeviceSyncPreflight(device: deviceService)
-        let deviceObserverService = Self.makeDeviceObserverService(
-            deviceService: deviceService,
-            walletStore: storeManager.walletStore,
-        )
 
         let nodeProvider: any NodeURLProvidable = nodeService
         let connectionService = Gemstone.GemConnectionService()
@@ -335,7 +331,8 @@ struct ServicesFactory {
         let appLifecycleService = AppLifecycleService(
             walletConnector: walletConnector,
             connectionStatusObserver: connectionStatusObserver,
-            deviceObserverService: deviceObserverService,
+            deviceService: deviceService,
+            subscriptionsObserver: storeManager.walletStore.observer(),
             streamObserverService: streamObserverService,
             streamSubscriptionService: streamSubscriptionService,
             perpetualService: perpetualService,
@@ -437,7 +434,6 @@ struct ServicesFactory {
             swapService: swapService,
             appUpdateService: appUpdateService,
             rateService: rateService,
-            deviceObserverService: deviceObserverService,
             onstartService: onStartService,
             appStartService: appStartService,
             pushNotificationEnablerService: pushNotificationEnablerService,
@@ -475,16 +471,6 @@ extension ServicesFactory {
             provider: provider,
             baseUrl: Constants.apiURL.absoluteString,
             devicePrivateKey: devicePrivateKey,
-        )
-    }
-
-    private static func makeDeviceObserverService(
-        deviceService: any GemDeviceServiceProtocol,
-        walletStore: WalletStore,
-    ) -> DeviceObserverService {
-        DeviceObserverService(
-            deviceService: deviceService,
-            subscriptionsObserver: walletStore.observer(),
         )
     }
 
