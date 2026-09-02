@@ -18,7 +18,10 @@ final class FiatOperationViewModel {
     private let currencyFormatter: CurrencyFormatter
 
     var quotesState: StateViewType<FiatQuotes> = .loading
-    var selectedQuote: FiatQuote?
+    var selectedQuote: FiatQuote? {
+        didSet { updateValidators() }
+    }
+
     var loadTask: Task<Void, Never>?
     var amount: String
     var loadingAmount: Double?
@@ -88,7 +91,6 @@ final class FiatOperationViewModel {
                 if quotes.isNotEmpty {
                     selectedQuote = quotes.first
                     quotesState = .data(FiatQuotes(amount: amount, quotes: quotes))
-                    updateValidators()
                 } else {
                     quotesState = .noData
                 }
@@ -103,16 +105,7 @@ final class FiatOperationViewModel {
     }
 
     func shouldSkipFetch(for amount: Double) -> Bool {
-        if loadingAmount == amount {
-            return true
-        }
-
-        switch quotesState {
-        case let .data(fiatQuotes):
-            return fiatQuotes.amount == amount
-        case .loading, .noData, .error:
-            return false
-        }
+        loadingAmount == amount
     }
 
     func updateValidators() {

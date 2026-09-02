@@ -47,35 +47,9 @@ final class FiatOperationViewModelTests {
     }
 
     @Test
-    func shouldSkipFetchWhenDataExists() {
+    func shouldNotSkipFetchWhenQuotesAlreadyLoadedForSameAmount() {
         let model = FiatOperationViewModelTests.mock()
-        let quotes = FiatQuotes(amount: 100.0, quotes: [.mock()])
-        model.quotesState = .data(quotes)
-
-        #expect(model.shouldSkipFetch(for: 100.0) == true)
-        #expect(model.shouldSkipFetch(for: 50.0) == false)
-    }
-
-    @Test
-    func shouldNotSkipFetchForErrorState() {
-        let model = FiatOperationViewModelTests.mock()
-        model.quotesState = .error(NSError(domain: "test", code: 1))
-
-        #expect(model.shouldSkipFetch(for: 100.0) == false)
-    }
-
-    @Test
-    func shouldNotSkipFetchForLoadingState() {
-        let model = FiatOperationViewModelTests.mock()
-        model.quotesState = .loading
-
-        #expect(model.shouldSkipFetch(for: 100.0) == false)
-    }
-
-    @Test
-    func shouldNotSkipFetchForNoDataState() {
-        let model = FiatOperationViewModelTests.mock()
-        model.quotesState = .noData
+        model.quotesState = .data(FiatQuotes(amount: 100.0, quotes: [.mock()]))
 
         #expect(model.shouldSkipFetch(for: 100.0) == false)
     }
