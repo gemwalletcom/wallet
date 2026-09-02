@@ -451,7 +451,7 @@ extension ServicesFactory {
     }
 
     private static func makeWalletConnector(
-        connectionsStore: ConnectionsStore,
+        connectionsStore: ConnectionStore,
         interactor: WalletConnectorInteractor,
         transactionSimulationService: TransactionSimulationService,
         walletSessionService: GemWalletSessionService,

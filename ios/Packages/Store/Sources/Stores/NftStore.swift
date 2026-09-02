@@ -2,7 +2,7 @@ import Foundation
 import GRDB
 import Primitives
 
-public struct NFTStore: Sendable {
+public struct NftStore: Sendable {
     private let db: DatabaseQueue
 
     public init(db: DB) {

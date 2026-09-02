@@ -18,7 +18,7 @@ struct ConnectionStoreTests {
         let walletB = Wallet.mock(id: .multicoin(address: "0xb"), name: "Wallet B", accounts: [.mock(chain: .ethereum)])
         try walletStore.addWallet(walletA)
         try walletStore.addWallet(walletB)
-        let store = GemstoneConnectionStore(store: ConnectionsStore(db: db))
+        let store = GemstoneConnectionStore(store: ConnectionStore(db: db))
 
         try await store.addConnection(connection: WalletConnection(session: .mock(id: "a", sessionId: "a"), wallet: walletA).json())
         try await store.addConnection(connection: WalletConnection(session: .mock(id: "b", sessionId: "b"), wallet: walletB).json())
@@ -36,7 +36,7 @@ struct ConnectionStoreTests {
         let db = DB.mockWithChains([.ethereum])
         let wallet = Wallet.mock(id: .multicoin(address: "0xa"), accounts: [.mock(chain: .ethereum)])
         try WalletStore(db: db).addWallet(wallet)
-        let store = GemstoneConnectionStore(store: ConnectionsStore(db: db))
+        let store = GemstoneConnectionStore(store: ConnectionStore(db: db))
         try await store.addConnection(connection: WalletConnection(session: .mock(id: "a", sessionId: "a", chains: [.ethereum]), wallet: wallet).json())
 
         try await store.updateSession(session: WalletConnectionSession.mock(id: "a", sessionId: "a", chains: [.ethereum, .solana]).json())

@@ -4,7 +4,7 @@ import Foundation
 import GRDB
 import Primitives
 
-public struct ConnectionsStore: Sendable {
+public struct ConnectionStore: Sendable {
     let db: DatabaseQueue
 
     public init(db: DB) {

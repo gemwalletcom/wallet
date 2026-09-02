@@ -17,7 +17,7 @@ import Store
 import StoreTestKit
 
 public extension GemCollectibleService {
-    static func mock(nftStore: NFTStore = .mock(), explorer: GemExplorerService = .mock()) -> GemCollectibleService {
+    static func mock(nftStore: NftStore = .mock(), explorer: GemExplorerService = .mock()) -> GemCollectibleService {
         GemCollectibleService(
             nfts: GemNftService.mock(nftStore: nftStore),
             avatars: GemAvatarService(wallets: GemstoneWalletStore(store: .mock()), files: GemstoneFileStore(), provider: NativeProvider()),
@@ -27,7 +27,7 @@ public extension GemCollectibleService {
 }
 
 public extension GemNftService {
-    static func mock(nftStore: NFTStore = .mock()) -> GemNftService {
+    static func mock(nftStore: NftStore = .mock()) -> GemNftService {
         GemNftService(
             api: GemDeviceApiClient(
                 provider: NativeProvider(),

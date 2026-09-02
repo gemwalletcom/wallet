@@ -3,10 +3,10 @@
 import Foundation
 import Store
 
-public extension ConnectionsStore {
+public extension ConnectionStore {
     static func mock(
         db: DB = .mock(),
-    ) -> ConnectionsStore {
-        ConnectionsStore(db: db)
+    ) -> ConnectionStore {
+        ConnectionStore(db: db)
     }
 }

@@ -6,12 +6,12 @@ import Store
 import StoreTestKit
 import Testing
 
-struct ConnectionsStoreTests {
+struct ConnectionStoreTests {
     @Test
     func getConnectionReturnsBoundWallet() throws {
         let db = DB.mockWithChains([.ethereum])
         let walletStore = WalletStore(db: db)
-        let connectionsStore = ConnectionsStore(db: db)
+        let connectionsStore = ConnectionStore(db: db)
 
         let walletA = Wallet.mock(id: .multicoin(address: "0xa"), accounts: [.mock(chain: .ethereum)])
         let walletB = Wallet.mock(id: .multicoin(address: "0xb"), accounts: [.mock(chain: .ethereum)])
@@ -27,6 +27,6 @@ struct ConnectionsStoreTests {
 
     @Test
     func getConnectionIsNilForNonexistentSession() throws {
-        #expect(try ConnectionsStore.mock().getConnection(sessionId: "nonexistent") == nil)
+        #expect(try ConnectionStore.mock().getConnection(sessionId: "nonexistent") == nil)
     }
 }
