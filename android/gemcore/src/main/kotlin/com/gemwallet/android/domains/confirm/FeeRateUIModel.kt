@@ -1,7 +1,7 @@
 package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.CurrencyFormatter
@@ -13,7 +13,7 @@ import java.math.BigInteger
 
 data class FeeRateUIModel(
     val feeRate: GemFeeRate,
-    val feeAsset: AssetInfo,
+    val feeAsset: AssetPriceValue,
     val feeUnitType: FeeUnitType?,
     val feeRateDecimals: Int,
     val totalFee: BigInteger,

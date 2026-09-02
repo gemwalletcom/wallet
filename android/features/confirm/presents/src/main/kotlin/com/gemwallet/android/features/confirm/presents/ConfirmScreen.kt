@@ -107,7 +107,7 @@ fun ConfirmScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val feeRates by viewModel.feeRates.collectAsStateWithLifecycle()
     val feeAssets by viewModel.feeAssets.collectAsStateWithLifecycle()
-    val feeAssetInfo by viewModel.feeAssetInfo.collectAsStateWithLifecycle()
+    val feeAsset by viewModel.feeAsset.collectAsStateWithLifecycle()
     val feeSelection by viewModel.feeSelection.collectAsStateWithLifecycle()
     val simulation by viewModel.simulation.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
@@ -195,7 +195,7 @@ fun ConfirmScreen(
                     amountModel?.transactionType == TransactionType.TransferNFT -> amountModel?.nftAsset?.let { NftHead(it) }
 
                     perpetualType != null -> {
-                        val asset = amountModel?.asset?.asset
+                        val asset = amountModel?.asset
                         AmountListHead(
                             amount = asset?.symbol.orEmpty(),
                             icon = asset,
@@ -208,7 +208,7 @@ fun ConfirmScreen(
                         icon = if (input?.transfer?.inputType is GemTransactionInputType.Withdrawal) {
                             PerpetualConfig.depositAsset
                         } else {
-                            amountModel?.asset?.asset
+                            amountModel?.asset
                         },
                     )
                 }
@@ -256,10 +256,9 @@ fun ConfirmScreen(
             confirmBalanceChangesContent(simulation.balanceChanges)
             item {
                 feeModel?.let {
-                    val feeAsset = feeAssetInfo?.asset
                     val feeInfo = InfoSheetEntity.NetworkFeeInfo(
-                        feeAsset?.name.orEmpty(),
-                        feeAsset?.symbol.orEmpty(),
+                        feeAsset?.asset?.name.orEmpty(),
+                        feeAsset?.asset?.symbol.orEmpty(),
                     )
                     when (it) {
                         FeeUIModel.Calculating -> PropertyItem(
@@ -301,7 +300,7 @@ fun ConfirmScreen(
             selection = feeSelection,
             feeRates = feeRates,
             feeDetailsModel = viewModel::feeDetailsModel,
-            feeAssetInfo = feeAssetInfo,
+            feeAsset = feeAsset,
             feeAssets = feeAssets,
             onSelect = viewModel::changeFeeSelection,
             onSelectFeeAsset = viewModel::changeFeeAsset,

@@ -8,6 +8,7 @@ import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.FeeAssetSelection
 import com.gemwallet.android.model.FeeSelection
+import com.gemwallet.android.testkit.mockGemConfirmMetadata
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetTempoUSDCe
@@ -23,9 +24,6 @@ import uniffi.gemstone.GemGasPriceType
 import uniffi.gemstone.GemTransactionLoadFee
 import uniffi.gemstone.GemTransactionLoadMetadata
 import java.math.BigInteger
-import com.gemwallet.android.ext.toIdentifier
-import uniffi.gemstone.GemAssetBalance
-import uniffi.gemstone.GemConfirmMetadata
 import uniffi.gemstone.GemConfirmPreload
 import uniffi.gemstone.GemTransferAmount
 import uniffi.gemstone.GemTransferAmountResult
@@ -68,11 +66,7 @@ class GemConfirmMapperTest {
                 simulation = null,
                 input = input,
             ),
-            metadata = GemConfirmMetadata(
-                assetBalance = gemBalance(asset.id.toIdentifier()),
-                feeAssetBalance = gemBalance(asset.id.toIdentifier()),
-                prices = emptyList(),
-            ),
+            metadata = mockGemConfirmMetadata(asset),
             feeAsset = asset.toGem(),
             amount = GemTransferAmountResult.Amount(GemTransferAmount(value = "1", networkFee = "1", isMaxAmount = false)),
         )
@@ -85,18 +79,3 @@ class GemConfirmMapperTest {
         assertEquals(GemTransactionLoadMetadata.None, result.confirmData.metadata)
     }
 }
-
-private fun gemBalance(assetId: String) = GemAssetBalance(
-    assetId = assetId,
-    available = "0",
-    frozen = "0",
-    locked = "0",
-    staked = "0",
-    pending = "0",
-    pendingUnconfirmed = "0",
-    rewards = "0",
-    reserved = "0",
-    withdrawable = "0",
-    earn = "0",
-    metadata = null,
-)

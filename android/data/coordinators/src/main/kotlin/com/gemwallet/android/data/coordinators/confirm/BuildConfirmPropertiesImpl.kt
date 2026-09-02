@@ -9,10 +9,7 @@ import com.gemwallet.android.domains.confirm.ConfirmProperty
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.stakeType
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.AddressName
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.StakeType
@@ -30,15 +27,14 @@ class BuildConfirmPropertiesImpl(
     override suspend fun invoke(
         transfer: GemTransferData,
         wallet: Wallet,
-        assetsInfo: List<AssetInfo>,
         addressName: AddressName?,
     ): List<ConfirmProperty> {
-        val assetInfo = assetsInfo.getByAssetId(transfer.inputType.asset.id) ?: return emptyList()
-        val chain = assetInfo.asset.id.chain
+        val asset = transfer.inputType.asset
+        val chain = asset.id.chain
         val validator = getValidator(transfer)
         return withContext(Dispatchers.IO) {
         mutableListOf<ConfirmProperty?>().apply {
-            add(ConfirmProperty.Source(wallet.name, wallet.type, assetInfo.owner?.chain, wallet.imageUrl))
+            add(ConfirmProperty.Source(wallet.name, wallet.type, chain, wallet.imageUrl))
             val destination = ConfirmProperty.Destination.map(transfer, validator, addressName)
             add(
                 when (destination) {
@@ -60,11 +56,11 @@ class BuildConfirmPropertiesImpl(
                     else -> destination
                 }
             )
-            add(ConfirmProperty.Network(assetInfo.chain.asset()))
+            add(ConfirmProperty.Network(chain.asset()))
             add(
                 ConfirmProperty.Memo(transfer.recipient.memo.orEmpty()).takeIf {
                     transfer.inputType is GemTransactionInputType.Transfer
-                            && assetInfo.asset.isMemoSupport()
+                            && asset.isMemoSupport()
                 }
             )
         }.filterNotNull()
@@ -84,9 +80,5 @@ class BuildConfirmPropertiesImpl(
             null -> null
         }
         return getStakeValidator(inputType.asset.id, validatorId ?: return null)
-    }
-
-    private fun List<AssetInfo>.getByAssetId(assetId: AssetId): AssetInfo? {
-        return firstOrNull { it.id().toIdentifier() == assetId.toIdentifier() }
     }
 }

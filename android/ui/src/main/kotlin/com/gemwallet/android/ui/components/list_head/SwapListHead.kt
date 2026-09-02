@@ -15,7 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.ValueFormatter
@@ -32,9 +32,9 @@ import com.wallet.core.primitives.Currency
 
 @Composable
 fun SwapListHead(
-    fromAsset: AssetInfo?,
+    fromAsset: AssetPriceValue?,
     fromValue: String,
-    toAsset: AssetInfo?,
+    toAsset: AssetPriceValue?,
     toValue: String,
     currency: Currency? = null,
     onSwapClick: (() -> Unit)? = null,
@@ -81,7 +81,7 @@ fun SwapListHead(
 
 @Composable
 private fun SwapItem(
-    assetInfo: AssetInfo,
+    assetInfo: AssetPriceValue,
     value: String,
     currency: Currency?,
     onSwapClick: (() -> Unit)?,

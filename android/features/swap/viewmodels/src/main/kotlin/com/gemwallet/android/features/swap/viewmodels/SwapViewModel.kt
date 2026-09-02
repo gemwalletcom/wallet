@@ -47,6 +47,7 @@ import com.gemwallet.android.features.swap.viewmodels.models.startTransfer
 import com.gemwallet.android.math.multiplyByPercent
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.toAssetPriceValue
 import uniffi.gemstone.GemConfirmInput
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CurrencyFormatter
@@ -177,7 +178,7 @@ class SwapViewModel @Inject constructor(
             quoteState.items.map { item ->
                 SwapProviderUIModelFactory.create(
                     provider = item.data.provider,
-                    receiveAsset = quoteState.receive,
+                    receiveAsset = quoteState.receive.toAssetPriceValue(),
                     toValue = item.toValue,
                 )
             }
@@ -205,14 +206,14 @@ class SwapViewModel @Inject constructor(
                     item.title == quote.quote.data.provider.protocol
             } ?: SwapProviderUIModelFactory.create(
                 provider = quote.quote.data.provider,
-                receiveAsset = quote.receive,
+                receiveAsset = quote.receive.toAssetPriceValue(),
                 toValue = quote.quote.toValue,
             )
 
             SwapDetailsUIModelFactory.create(
                 SwapDetailsUIModelInput(
-                    payAsset = quote.pay,
-                    receiveAsset = quote.receive,
+                    payAsset = quote.pay.toAssetPriceValue(),
+                    receiveAsset = quote.receive.toAssetPriceValue(),
                     fromValue = quote.quote.fromValue,
                     toValue = quote.quote.toValue,
                     provider = provider,

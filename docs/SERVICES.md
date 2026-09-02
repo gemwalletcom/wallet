@@ -364,11 +364,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
   verifier, active request, `GemWalletConnectService`); the request lifecycle around
   `GemWalletConnectService::handle_request` is the next thing to move into Core.
 
-Android's confirm screen still reads its assets through `GetWalletAssets`/`GetAssetInfo` and
-its fee assets through `GetFeeAssets` (store-backed `AssetInfo`), where Core's `GemConfirmPreload`
-metadata already carries the balances and prices the screen shows. Moving the fee-asset picker and
-the amount/swap details onto `GemConfirmMetadata`/`GemFeeAsset` removes those three cases and
-`BuildConfirmProperties`' `assetsInfo` parameter.
+Android's confirm screen now reads everything it shows from one `GemConfirmTransferService.load`
+call: `GemConfirmMetadata` (balances and prices) feeds the amount header, the swap details and the
+fee-asset row through `AssetPriceValue`/`FeeAssetUIModel`, and `GemFeeAsset` feeds the fee-asset
+picker. `GetWalletAssets`, `GetAssetInfo` and the `GetFeeAssets`/`FeeAssetProvider` chain are out of
+the view model, `BuildConfirmProperties` takes the transfer, the wallet and the recipient name only,
+and `ConfirmViewModel` injects `GetSession`, `BuildConfirmProperties`, `GemConfirmTransferService`
+and `GemTransferService`.
 
 ### 4. Core surface
 

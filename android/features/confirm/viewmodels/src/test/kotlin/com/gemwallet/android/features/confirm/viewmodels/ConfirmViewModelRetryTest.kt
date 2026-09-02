@@ -24,17 +24,20 @@ import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.SignerParams
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetHyperCoreUBTC
+import com.gemwallet.android.testkit.mockGemConfirmMetadata
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualType
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -46,6 +49,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -84,9 +88,12 @@ class ConfirmViewModelRetryTest {
         runCurrent()
 
         coVerify(timeout = 5_000, exactly = 2) { confirmService.load(any(), any(), any(), any()) }
+        assertTrue(viewModel.state.first { it is ConfirmState.Ready } is ConfirmState.Ready)
+        assertEquals(asset, viewModel.feeAsset.first { it != null }?.asset)
     }
 
     private fun viewModel(input: GemConfirmInput): ConfirmViewModel {
+        every { confirmService.currency() } returns Currency.USD.toGem()
         var calls = 0
         coEvery { confirmService.load(any(), any(), any(), any()) } answers {
             calls += 1
@@ -111,7 +118,7 @@ class ConfirmViewModelRetryTest {
                         simulation = null,
                         input = input,
                     ),
-                    metadata = mockk(relaxed = true),
+                    metadata = mockGemConfirmMetadata(asset),
                     feeAsset = asset.toGem(),
                     amount = GemTransferAmountResult.Amount(GemTransferAmount(value = "1", networkFee = "1", isMaxAmount = false)),
                     ),
@@ -120,13 +127,10 @@ class ConfirmViewModelRetryTest {
         }
         return ConfirmViewModel(
             getSession = mockk<GetSession> {
-                io.mockk.every { this@mockk() } returns MutableStateFlow(
+                every { this@mockk() } returns MutableStateFlow(
                     mockSession(wallet = mockWallet(accounts = listOf(account))),
                 )
             },
-            getWalletAssets = mockk(relaxed = true),
-            getAssetInfo = mockk(relaxed = true),
-            getFeeAssets = mockk(relaxed = true),
             buildConfirmProperties = mockk(relaxed = true),
             confirmService = confirmService,
             savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transferService.pack(input)))),

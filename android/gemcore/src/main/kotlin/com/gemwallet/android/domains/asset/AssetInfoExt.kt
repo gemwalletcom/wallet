@@ -4,6 +4,7 @@ import uniffi.gemstone.GemSwapValue
 import android.text.format.DateUtils
 import com.gemwallet.android.ext.millisToSeconds
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.toAssetPriceValue
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.CurrencyFormatter
@@ -47,30 +48,12 @@ val AssetInfo.availableBalanceAmount: String
         .string(balance.balance.available.toBigInteger(), decimals = asset.decimals)
 
 
-fun AssetInfo.calculateFiat(rawInput: String): BigDecimal {
-    val value = Crypto(rawInput.toBigIntegerOrNull() ?: BigInteger.ZERO)
-        .value(asset.decimals)
-    return calculateFiat(value)
-}
+fun AssetInfo.calculateFiat(rawInput: String): BigDecimal = toAssetPriceValue().calculateFiat(rawInput)
 
-fun AssetInfo.calculateFiat(value: BigDecimal): BigDecimal {
-    return price?.takeIf { it.price.price > 0.0 }?.let {
-        value * it.price.price.toBigDecimal()
-    } ?: return BigDecimal.ZERO
-}
+fun AssetInfo.calculateFiat(value: BigDecimal): BigDecimal = toAssetPriceValue().calculateFiat(value)
 
-fun AssetInfo.formatFiat(value: BigDecimal): String {
-    if (value <= BigDecimal.ZERO) {
-        return ""
-    }
-
-    return price?.currency?.let { CurrencyFormatter(currency = it).string(value) } ?: ""
-}
+fun AssetInfo.formatFiat(value: BigDecimal): String = toAssetPriceValue().formatFiat(value)
 
 fun AssetInfo.isMemoSupport() = asset.isMemoSupport()
 
-fun AssetInfo.swapValue(value: String): GemSwapValue = GemSwapValue(
-    value = value,
-    decimals = asset.decimals.toUInt(),
-    price = price?.price?.price,
-)
+fun AssetInfo.swapValue(value: String): GemSwapValue = toAssetPriceValue().swapValue(value)

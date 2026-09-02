@@ -2,7 +2,7 @@ package com.gemwallet.android.ui.models.swap
 
 import uniffi.gemstone.GemSwapQuoteSummary
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockAssetInfo
+import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockSwapQuote
 import com.gemwallet.android.serializer.toJson
@@ -205,7 +205,7 @@ class SwapDetailsUIModelFactoryTest {
 
     private fun provider(
         toValue: String,
-        receiveAsset: com.gemwallet.android.model.AssetInfo = this.receiveAsset,
+        receiveAsset: AssetPriceValue = this.receiveAsset,
     ) = SwapProviderUIModelFactory.create(
         providerId = SwapperProvider.OKX,
         title = "OKX (DEX)",
@@ -216,9 +216,8 @@ class SwapDetailsUIModelFactoryTest {
     private fun assetInfo(
         symbol: String,
         decimals: Int = 18,
-    ) = mockAssetInfo(
+    ) = AssetPriceValue(
         asset = mockAsset(symbol = symbol, name = symbol, decimals = decimals),
-    ).copy(
         price = mockAssetPriceInfo(price = 1.0),
     )
 

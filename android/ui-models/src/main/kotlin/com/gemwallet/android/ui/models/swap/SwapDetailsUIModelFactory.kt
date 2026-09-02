@@ -1,14 +1,12 @@
 package com.gemwallet.android.ui.models.swap
 
-import com.gemwallet.android.domains.asset.calculateFiat
-import com.gemwallet.android.domains.asset.formatFiat
 import com.gemwallet.android.domains.asset.getSwapProviderIcon
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.domains.swap.buildAssetRatePair
 import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.swap.SwapPriceImpact
@@ -19,7 +17,7 @@ import uniffi.gemstone.SwapperProviderType
 object SwapProviderUIModelFactory {
     fun create(
         provider: SwapperProviderType,
-        receiveAsset: AssetInfo,
+        receiveAsset: AssetPriceValue,
         toValue: String,
     ): SwapProviderUIModel {
         return create(
@@ -33,7 +31,7 @@ object SwapProviderUIModelFactory {
     fun create(
         providerId: SwapperProvider,
         title: String,
-        receiveAsset: AssetInfo,
+        receiveAsset: AssetPriceValue,
         toValue: String,
     ): SwapProviderUIModel {
         val toAmount = Crypto(toValue)
@@ -51,8 +49,8 @@ object SwapProviderUIModelFactory {
 }
 
 data class SwapDetailsUIModelInput(
-    val payAsset: AssetInfo,
-    val receiveAsset: AssetInfo,
+    val payAsset: AssetPriceValue,
+    val receiveAsset: AssetPriceValue,
     val fromValue: String,
     val toValue: String,
     val provider: SwapProviderUIModel,
