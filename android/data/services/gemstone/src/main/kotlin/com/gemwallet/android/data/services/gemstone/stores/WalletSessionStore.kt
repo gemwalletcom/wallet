@@ -13,7 +13,7 @@ class GemstoneWalletSessionStore(
     private val preferencesService: GemPreferencesService,
 ) : GemWalletSessionStore {
 
-    override fun getCurrentWalletId(): String? = sessionDao.getSession()?.walletId
+    override fun getCurrentWalletId(): String? { probeMainThread("WalletSessionStore.getCurrentWalletId"); return sessionDao.getSession()?.walletId }
 
     override fun setCurrentWalletId(walletId: String?) {
         val walletId = walletId ?: return sessionDao.clearNow()

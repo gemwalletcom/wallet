@@ -36,8 +36,10 @@ class GemstoneAssetStore(
         assetsDao.getAssetIds(assetIds)
     }
 
-    override fun getAssets(assetIds: List<String>): List<uniffi.gemstone.Asset> =
-        assetsDao.getAssetsByIds(assetIds).toDTO().map { it.toGem() }
+    override fun getAssets(assetIds: List<String>): List<uniffi.gemstone.Asset> {
+        probeMainThread("AssetStore.getAssets")
+        return assetsDao.getAssetsByIds(assetIds).toDTO().map { it.toGem() }
+    }
 
     override suspend fun saveAssets(assets: List<String>) = withContext(Dispatchers.IO) {
         val basics = assets.map { it.decodeJson<AssetBasic>() }

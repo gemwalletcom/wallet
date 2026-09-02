@@ -4,13 +4,10 @@ import android.util.Log
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemAssetDetailsService
-import uniffi.gemstone.GemExplorerService
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.cases.EnableAsset
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
-import com.gemwallet.android.application.assets.cases.SetAssetPinned
 import com.gemwallet.android.application.pricealerts.cases.SyncAssetPriceAlerts
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession
@@ -49,13 +46,10 @@ class AssetDetailsViewModel @Inject constructor(
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
     private val getChainAssetInfo: GetChainAssetInfo,
-    private val setAssetPinned: SetAssetPinned,
-    private val enableAsset: EnableAsset,
     private val getTransactions: GetTransactions,
     private val syncAssetPriceAlerts: SyncAssetPriceAlerts,
     private val assetDetailsService: GemAssetDetailsService,
     private val getCurrentCurrency: GetCurrentCurrency,
-    private val explorerService: GemExplorerService,
     private val hasMultiSign: HasMultiSign,
     private val assetInfoUIModelFactory: AssetInfoUIModelFactory,
 ) : ViewModel() {
@@ -80,7 +74,7 @@ class AssetDetailsViewModel @Inject constructor(
     .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     private val model = chainAssetInfo.map { chainInfo ->
-        val explorerName = explorerService.getExplorerName(chainInfo.assetInfo.asset.chain.string)
+        val explorerName = assetDetailsService.explorerName(chainInfo.assetInfo.asset.chain.string)
         Model(
             chainAssetInfo = chainInfo,
             explorerName = explorerName,
@@ -104,10 +98,10 @@ class AssetDetailsViewModel @Inject constructor(
                 explorerName = it.explorerName,
                 walletType = wallet.type,
                 explorerAddressUrl = it.chainAssetInfo.assetInfo.owner?.address?.let { address ->
-                    explorerService.getAddressUrl(asset.chain.string, address).link
+                    assetDetailsService.addressUrl(asset.chain.string, address).link
                 },
                 explorerTokenUrl = asset.id.tokenId?.let { tokenId ->
-                    explorerService.getTokenUrl(asset.chain.string, tokenId)?.link
+                    assetDetailsService.tokenUrl(asset.chain.string, tokenId)?.link
                 },
             )
         }
@@ -157,7 +151,7 @@ class AssetDetailsViewModel @Inject constructor(
         val assetInfo = model.value?.chainAssetInfo?.assetInfo ?: return@launch
         val assetId = assetInfo.id()
         wallet.getAccount(assetId) ?: return@launch
-        setAssetPinned(assetId, !assetInfo.metadata.isPinned)
+        assetDetailsService.setAssetPinned(wallet.id.id, assetId.toIdentifier(), !assetInfo.metadata.isPinned)
     }
 
     fun add() = viewModelScope.launch(Dispatchers.IO) {
@@ -169,7 +163,7 @@ class AssetDetailsViewModel @Inject constructor(
 
     private suspend fun add(wallet: Wallet, assetId: AssetId) {
         wallet.getAccount(assetId) ?: return
-        enableAsset(wallet.id, assetId)
+        assetDetailsService.setAssetsEnabled(wallet.id.id, listOf(assetId.toIdentifier()), true)
     }
 
     private companion object {

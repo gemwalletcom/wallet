@@ -152,6 +152,10 @@ impl GemAssetDetailsService {
         self.swap.pair_for_asset(asset_id, has_balance)
     }
 
+    pub fn explorer_name(&self, chain: Chain) -> String {
+        self.explorer.get_explorer_name(chain)
+    }
+
     pub fn address_url(&self, chain: Chain, address: String) -> GemBlockExplorerLink {
         self.explorer.get_address_url(chain, address)
     }
