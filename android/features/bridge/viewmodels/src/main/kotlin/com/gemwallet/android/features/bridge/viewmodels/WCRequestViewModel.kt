@@ -3,9 +3,7 @@ package com.gemwallet.android.features.bridge.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.getKeystorePassword
-import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectJsonRpcResponse
@@ -46,7 +44,6 @@ class WCRequestViewModel @Inject constructor(
     private val service: GemWalletConnectServiceInterface,
     private val respondWalletConnectRequest: RespondWalletConnectRequest,
     private val pendingRequests: WalletConnectPendingRequests,
-    private val signMessageOperator: GemSignMessageOperator,
     private val signMessageService: GemSignMessageServiceInterface,
     private val activeRequest: ActiveWalletConnectRequest,
 ) : ViewModel() {
@@ -121,7 +118,7 @@ class WCRequestViewModel @Inject constructor(
         state.update { it.copy(responseState = RequestResponseState.Responding, approved = request) }
         viewModelScope.launch(Dispatchers.IO) {
             val signature = try {
-                signMessageOperator.sign(request.signer, request.wallet)
+                signMessageService.sign(request.wallet.id.id, request.signMessage)
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {

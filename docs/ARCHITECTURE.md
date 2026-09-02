@@ -736,7 +736,28 @@ held the iOS `Keystore` next to `GemWalletService` only to export the secret phr
 key, while `GemWalletService` already holds the keystore and the password port. `export_secret`
 returns `GemWalletSecret { Words | PrivateKey }` by wallet type, so the view model holds one
 service and the type-to-secret rule lives in `rules::secret_export` with a flip test. Android
-keeps its prompt-driven export until S3 decides where authentication is enforced.
+keeps its prompt-driven export until S3 decides where authentication is enforced. The same
+shape held the WalletConnect message screens: iOS `SignMessageSceneViewModel` built a
+`MessageSigner` and signed through the `Keystore`, Android through a `GemSignMessageOperator`
+reading the same unauthenticated password store the Core port wraps. `GemSignMessageService`
+now holds the keystore and the password port and `sign(wallet_id, message)` is the one path on
+both apps; the operator and the view-model signer are gone.
+
+**A nullable wallet at a call site is a session read that belongs in Core.** Android's
+`updateRecent` began with `session.value?.wallet ?: return@launch` and iOS threaded
+`wallet.id.id` into every recent-activity call, because the service took the wallet id as an
+argument. Core already owns the current wallet in `GemWalletSessionService`, so
+`GemRecentActivityService` reads it there and fails with `NotFound` when there is none — no
+caller carries a wallet, and none returns silently. When an app reaches for the session to feed
+a Core call, hand the session to the service instead.
+
+**Two entry points that record the same thing are one method and a rule.** `add_recent_asset`
+took a type the app had chosen and `add_recent_search` derived it from the asset; the perpetual
+screen picked `Perpetual` by hand. `GemAssetAction::recent_activity_type(asset)` answers all of
+them — `Open` is `Perpetual` for a perpetual asset and `Search` otherwise — behind one
+`add_recent(action, asset)`. Android's select and search actions now carry the `Asset` the row
+already had instead of an id the view model looked back up, and iOS's `SelectAssetFlow` lost the
+`selectionEffect` enum that re-encoded which flows record.
 
 **A debug screen is a screen.** iOS's `DeveloperViewModel` held five Core services; Android's
 `DevelopViewModel` three cases and a `PlatformStore`. `GemDeveloperService` composes the device

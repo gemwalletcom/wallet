@@ -22,13 +22,9 @@ struct SelectAssetFlowTests {
     }
 
     @Test
-    func selectionEffect() {
-        #expect(SelectAssetType.priceAlert.flow().selectionEffect == .enablePriceAlert)
-        #expect(SelectAssetType.swap(.pay).flow().selectionEffect == .recordRecent)
-        #expect(SelectAssetType.swap(.receive(chains: [], assetIds: [])).flow().selectionEffect == .recordRecent)
-        #expect(SelectAssetType.receive(.asset).flow().selectionEffect == .recordRecent)
-        #expect(SelectAssetType.receive(.collection).flow().selectionEffect == .recordRecent)
-        #expect(SelectAssetType.buy.flow().selectionEffect == .recordRecent)
+    func enablesPriceAlert() {
+        #expect(SelectAssetType.priceAlert.flow().enablesPriceAlert == true)
+        #expect(SelectAssetType.buy.flow().enablesPriceAlert == false)
     }
 
     @Test

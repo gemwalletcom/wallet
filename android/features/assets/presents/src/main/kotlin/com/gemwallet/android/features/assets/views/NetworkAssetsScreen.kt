@@ -88,7 +88,7 @@ private fun LazyListScope.networkAssetRows(
 ) {
     assetRows(
         items = items,
-        onSelect = onSelect,
+        onSelect = { onSelect(it.id) },
         support = { assetPriceSupport(it.price) },
         titleBadge = ::getAssetBadge,
         itemTrailing = { getBalanceInfo(it)() },

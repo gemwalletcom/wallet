@@ -149,7 +149,7 @@ public final class SelectAssetViewModel {
 
 extension SelectAssetViewModel {
     func selectAsset(asset: Asset) {
-        applySelectionEffect(assetId: asset.id)
+        applySelectionEffect(asset: asset)
         onSelectAssetAction?(asset)
     }
 
@@ -208,7 +208,7 @@ extension SelectAssetViewModel {
     }
 
     func onSelectAsset(_ assetData: AssetData) {
-        applySelectionEffect(assetId: assetData.asset.id)
+        applySelectionEffect(asset: assetData.asset)
         assetSelection = SelectAssetInput(type: selectType, assetData: assetData)
     }
 
@@ -245,26 +245,19 @@ extension SelectAssetViewModel {
 // MARK: - Private
 
 extension SelectAssetViewModel {
-    private func applySelectionEffect(assetId: AssetId) {
-        switch flow.selectionEffect {
-        case .enablePriceAlert:
+    private func applySelectionEffect(asset: Asset) {
+        if flow.enablesPriceAlert {
             Task {
-                await setPriceAlert(assetId: assetId, enabled: true)
+                await setPriceAlert(assetId: asset.id, enabled: true)
             }
-        case .recordRecent:
-            updateRecent(assetId: assetId)
-        case .none:
-            break
         }
-    }
-
-    private func updateRecent(assetId: AssetId) {
-        guard let activityType = selectType.action?.recentActivityType() else { return }
-        Task { [service, wallet] in
-            do {
-                try await service.addRecentAsset(activityType: activityType, assetId: assetId.identifier, walletId: wallet.id.id)
-            } catch {
-                debugLog("Failed to update recent activity: \(error)")
+        if let action = selectType.action {
+            Task { [service] in
+                do {
+                    try await service.addRecent(action: action, asset: asset.map())
+                } catch {
+                    debugLog("Failed to update recent activity: \(error)")
+                }
             }
         }
     }

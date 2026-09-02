@@ -10,6 +10,7 @@ import com.gemwallet.android.domains.confirm.confirmInput
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
 import uniffi.gemstone.GemSignMessagePreview
+import uniffi.gemstone.SignMessage as GemSignMessage
 import uniffi.gemstone.GemSignMessageServiceInterface
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AddressName
@@ -20,7 +21,6 @@ import com.wallet.core.primitives.SimulationWarning
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.TransferDataOutputAction
 import uniffi.gemstone.GemConfirmInput
-import uniffi.gemstone.MessageSigner
 
 sealed class WCRequest(
     internal val pending: WalletConnectPendingRequest,
@@ -45,7 +45,7 @@ sealed class WCRequest(
         private val service: GemSignMessageServiceInterface,
         override val addressNames: Map<String, String> = emptyMap(),
     ) : WCRequest(request), WalletConnectReviewModel {
-        val signer: MessageSigner by lazy { MessageSigner(request.message) }
+        val signMessage: GemSignMessage get() = request.message
 
         private val preview: GemSignMessagePreview by lazy { service.preview(request.message, simulation.toJson()) }
 

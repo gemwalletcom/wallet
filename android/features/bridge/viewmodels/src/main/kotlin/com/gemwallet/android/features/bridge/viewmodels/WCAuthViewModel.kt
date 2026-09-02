@@ -4,12 +4,10 @@ import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemWalletConnectService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.getKeystorePassword
 import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.blockchain.services.GemSignMessageOperator
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
 import com.gemwallet.android.application.wallet_connect.ChainNamespace
@@ -41,6 +39,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.MessageSigner
 import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
@@ -50,11 +49,11 @@ import javax.inject.Inject
 class WCAuthViewModel @Inject constructor(
     private val approveWalletConnectAuthentication: ApproveWalletConnectAuthentication,
     private val prepareSessionProposal: PrepareSessionProposal,
-    private val signMessageOperator: GemSignMessageOperator,
     private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectService,
     private val chainService: GemChainService,
+    private val signMessageService: GemSignMessageServiceInterface,
 ) : ViewModel() {
 
     private var authRequest: WalletConnectAuthenticationRequest? = null
@@ -308,20 +307,14 @@ class WCAuthViewModel @Inject constructor(
         wallet: Wallet,
         chain: Chain,
         message: String,
-    ): String {
-        val signer = MessageSigner(
-            SignMessage(
-                chain = chain.string,
-                signType = SignDigestType.SIWE,
-                data = message.toByteArray(),
-            )
-        )
-        return try {
-            signMessageOperator.sign(signer, wallet)
-        } finally {
-            signer.close()
-        }
-    }
+    ): String = signMessageService.sign(
+        wallet.id.id,
+        SignMessage(
+            chain = chain.string,
+            signType = SignDigestType.SIWE,
+            data = message.toByteArray(),
+        ),
+    )
 
 }
 

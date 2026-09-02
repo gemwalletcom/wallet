@@ -15,9 +15,9 @@ import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isTokenSupported
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.RecentActivityType
 import uniffi.gemstone.GemAssetAction
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
@@ -254,24 +254,10 @@ open class BaseAssetSelectViewModel(
         }
     }
 
-    fun updateRecent(assetId: AssetId, action: GemAssetAction) {
-        action.recentActivityType()?.let { updateRecent(assetId, it.toPrimitives()) }
+    fun updateRecent(asset: Asset, action: GemAssetAction) = viewModelScope.launch(Dispatchers.IO) {
+        runCatchingCancellable { service.addRecent(action, asset.toGem()) }
+            .onFailure { Log.e(TAG, "recording recent ${asset.id.toIdentifier()} failed", it) }
     }
-
-    fun updateRecent(assetId: AssetId, type: RecentActivityType) = viewModelScope.launch(Dispatchers.IO) {
-        val wallet = session.value?.wallet ?: return@launch
-        runCatchingCancellable { service.addRecentAsset(type.toGem(), assetId.toIdentifier(), wallet.id.id) }
-            .onFailure { Log.e(TAG, "recording recent ${assetId.toIdentifier()} failed", it) }
-    }
-
-    fun updateRecentSearch(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
-        val wallet = session.value?.wallet ?: return@launch
-        val asset = searchedAsset(assetId) ?: return@launch
-        runCatchingCancellable { service.addRecentSearch(asset.toGem(), wallet.id.id) }
-            .onFailure { Log.e(TAG, "recording recent ${assetId.toIdentifier()} failed", it) }
-    }
-
-    protected open fun searchedAsset(assetId: AssetId): Asset? = assets.value.firstOrNull { it.asset.id == assetId }?.asset
 
     open val showRecents: Boolean get() = true
 

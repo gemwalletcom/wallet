@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.assets.views
 
 import androidx.compose.foundation.layout.fillMaxSize
+import uniffi.gemstone.GemAssetAction
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -26,6 +27,7 @@ import com.gemwallet.android.ui.components.screen.AssetToastEffect
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.AssetsGroupType
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualId
 
@@ -44,12 +46,12 @@ fun AssetsResultsScreen(
     val snackbar = remember { SnackbarHostState() }
     AssetToastEffect(viewModel.toastEvents, snackbar)
 
-    val onAssetClick: (AssetId) -> Unit = {
-        viewModel.updateRecentSearch(it)
+    val onAssetClick: (Asset) -> Unit = {
+        viewModel.updateRecent(it, GemAssetAction.OPEN)
         onAction(WalletSearchAction.OpenAsset(it))
     }
-    val onPerpetualClick: (AssetId) -> Unit = {
-        viewModel.updateRecentSearch(it)
+    val onPerpetualClick: (Asset) -> Unit = {
+        viewModel.updateRecent(it, GemAssetAction.OPEN)
         onAction(WalletSearchAction.OpenPerpetual(it))
     }
     val contextActions = remember(viewModel) {
@@ -98,7 +100,7 @@ fun AssetsResultsScreen(
                             listPosition = position,
                             longPressState = longPressedPerpetual,
                             onTogglePin = viewModel::onTogglePerpetualPin,
-                            onClick = onPerpetualClick,
+                            onClick = { onPerpetualClick(item.asset) },
                         )
                     }
                 }

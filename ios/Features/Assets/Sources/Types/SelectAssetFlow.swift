@@ -15,12 +15,6 @@ public struct SelectAssetFlow: Sendable {
         case select
     }
 
-    public enum SelectionEffect: Sendable, Equatable {
-        case enablePriceAlert
-        case recordRecent
-        case none
-    }
-
     public struct Capabilities: OptionSet, Sendable {
         public let rawValue: Int
 
@@ -42,7 +36,7 @@ public struct SelectAssetFlow: Sendable {
     public let listType: AssetListType
     public let defaultFilters: [AssetsRequestFilter]
     public let rowSelection: RowSelection
-    public let selectionEffect: SelectionEffect
+    public let enablesPriceAlert: Bool
     public let capabilities: Capabilities
 
     init(
@@ -51,7 +45,7 @@ public struct SelectAssetFlow: Sendable {
         listType: AssetListType,
         defaultFilters: [AssetsRequestFilter],
         rowSelection: RowSelection,
-        selectionEffect: SelectionEffect = .none,
+        enablesPriceAlert: Bool = false,
         capabilities: Capabilities = [],
     ) {
         self.title = title
@@ -59,7 +53,7 @@ public struct SelectAssetFlow: Sendable {
         self.listType = listType
         self.defaultFilters = defaultFilters
         self.rowSelection = rowSelection
-        self.selectionEffect = selectionEffect
+        self.enablesPriceAlert = enablesPriceAlert
         self.capabilities = capabilities
     }
 }
@@ -100,7 +94,6 @@ public extension SelectAssetType {
                     listType: .copy(.asset),
                     defaultFilters: [.enabled],
                     rowSelection: .navigate,
-                    selectionEffect: .recordRecent,
                     capabilities: [.networkSearch, .chainFilter, .recents],
                 )
             case .collection:
@@ -113,7 +106,6 @@ public extension SelectAssetType {
                         .chainsOrAssets([], Chain.allCases.filter(\.isNFTSupported).map(\.rawValue)),
                     ],
                     rowSelection: .navigate,
-                    selectionEffect: .recordRecent,
                     capabilities: [.networkSearch, .recents],
                 )
             }
@@ -123,7 +115,6 @@ public extension SelectAssetType {
                 listType: .view,
                 defaultFilters: .filters(for: .buy),
                 rowSelection: .navigate,
-                selectionEffect: .recordRecent,
                 capabilities: [.networkSearch, .chainFilter, .recents, .popularSection],
             )
         case let .swap(type):
@@ -134,7 +125,6 @@ public extension SelectAssetType {
                     listType: .view,
                     defaultFilters: .filters(for: .swapPay),
                     rowSelection: .select,
-                    selectionEffect: .recordRecent,
                     capabilities: [.chainFilter, .recents],
                 )
             case let .receive(chains, assetIds):
@@ -143,7 +133,6 @@ public extension SelectAssetType {
                     listType: .view,
                     defaultFilters: .filters(for: .swapReceive) + [.chainsOrAssets(chains.map(\.rawValue), assetIds.map(\.identifier))],
                     rowSelection: .select,
-                    selectionEffect: .recordRecent,
                     capabilities: [.networkSearch, .chainFilter, .recents],
                 )
             }
@@ -161,7 +150,7 @@ public extension SelectAssetType {
                 listType: .price,
                 defaultFilters: [.enabled, .priceAlerts],
                 rowSelection: .select,
-                selectionEffect: .enablePriceAlert,
+                enablesPriceAlert: true,
                 capabilities: [.networkSearch, .chainFilter, .popularSection],
             )
         case .deposit:

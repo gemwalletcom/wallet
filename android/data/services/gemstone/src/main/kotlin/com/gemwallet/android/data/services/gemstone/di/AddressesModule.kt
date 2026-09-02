@@ -1,6 +1,9 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import uniffi.gemstone.GemPaymentService
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
+import com.gemwallet.android.application.PasswordStore
+import uniffi.gemstone.GemKeystore
 import uniffi.gemstone.GemRecipientService
 import uniffi.gemstone.GemRecipientServiceInterface
 import uniffi.gemstone.GemWalletSessionService
@@ -47,7 +50,11 @@ object AddressesModule {
     ): GemRecipientServiceInterface = GemRecipientService(names, payments, session)
 
     @Provides
-    fun provideGemSignMessageService(names: GemNameService, explorer: GemExplorerService): GemSignMessageServiceInterface =
-        GemSignMessageService(names, explorer)
+    fun provideGemSignMessageService(
+        names: GemNameService,
+        explorer: GemExplorerService,
+        keystore: GemKeystore,
+        passwordStore: PasswordStore,
+    ): GemSignMessageServiceInterface = GemSignMessageService(names, explorer, keystore, GemstoneKeystorePassword(passwordStore))
 
 }

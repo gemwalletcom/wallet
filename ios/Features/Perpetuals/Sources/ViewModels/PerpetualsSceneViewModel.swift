@@ -206,7 +206,7 @@ extension PerpetualsSceneViewModel {
 
     func onSelectPerpetual(asset: Asset) {
         onSelectAsset?(asset)
-        recentModel.add(activityType: .perpetual, assetId: asset.id)
+        recentModel.add(action: .open, asset: asset)
     }
 
     func onSelectRecent(asset: Asset) {

@@ -315,7 +315,7 @@ consolidation, and a second Core service in a view model is the one to remove.
 | `GemReceiveService` | `ReceiveViewModel` | `ReceiveViewModel` |
 | `GemRecipientService` | `RecipientSceneViewModel` (+ `nameService`) | `RecipientViewModel` (+ `GemNameServiceInterface`) |
 | `GemRewardsService` | `RewardsViewModel`, `CreateRewardsCodeViewModel`, `RedeemRewardsCodeViewModel` | `ReferralViewModel` |
-| `GemSignMessageService` | `SignMessageSceneViewModel` | `WCRequestViewModel` |
+| `GemSignMessageService` | `SignMessageSceneViewModel` | `WCRequestViewModel`, `WCAuthViewModel` |
 | `GemStakeService` | `StakeSceneViewModel`, `DelegationSceneViewModel`, `EarnSceneViewModel` | `StakeViewModel`, `DelegationViewModel` (earn flow missing, § 7) |
 | `GemSupportService` | `SupportChatSceneViewModel` | `SupportChatSceneViewModel` |
 | `GemSwapQuoteService` | `SwapSceneViewModel` | `SwapViewModel` |
@@ -492,9 +492,10 @@ neither app spells the provider name or the address (iOS `GemRecipient.hyperliqu
 and Android `HyperliquidRecipient` are gone).
 
 Which recent activity a selection records, and which types a select screen lists, are
-`GemAssetAction::recent_activity_type` / `recent_activity_types` on both apps (iOS maps
-`SelectAssetType` and `SelectedAssetType` to the action; Android's select screens pass it). A
-completed transfer is recorded by `GemConfirmTransferService` on both.
+`GemAssetAction::recent_activity_type(asset)` / `recent_activity_types` on both apps (iOS maps
+`SelectAssetType` and `SelectedAssetType` to the action; Android's select and search actions carry
+the asset and the action), recorded through one `add_recent(action, asset)` that reads the current
+wallet from Core's session. A completed transfer is recorded by `GemConfirmTransferService` on both.
 
 Android hand-wrote `RecentType` with different case names from the generated
 `RecentActivityType` — `Send` against `Transfer`, `Buy` against `FiatBuy` — and those names

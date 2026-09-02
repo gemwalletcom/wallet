@@ -134,8 +134,6 @@ class AssetsResultsViewModel @Inject constructor(
         emitToast(AssetToast.Pin(item.name, !item.isPinned))
     }
 
-    override fun searchedAsset(assetId: AssetId): Asset? =
-        super.searchedAsset(assetId) ?: previewPerpetuals.value.firstOrNull { it.asset.id == assetId }?.asset
 }
 
 private fun selectSearchOf(

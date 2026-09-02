@@ -126,8 +126,8 @@ struct SelectedAssetNavigationStack: View {
 
 extension SelectedAssetNavigationStack {
     private func updateRecent() {
-        if let activityType = input.type.action?.recentActivityType() {
-            Task { try? await recentAssetsService.addAsset(activityType: activityType, assetId: input.asset.id.identifier, walletId: wallet.id.id) }
+        if let action = input.type.action {
+            Task { try? await recentAssetsService.addRecent(action: action, asset: input.asset.map()) }
         }
     }
 }

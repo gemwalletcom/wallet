@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemAssetAction
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import class Gemstone.GemRecentActivityService
 import GemstoneServices
@@ -65,10 +66,10 @@ public extension RecentAssetsModel {
         isPresenting = false
     }
 
-    func add(activityType: RecentActivityType, assetId: AssetId) {
-        Task { [service, walletId] in
+    func add(action: GemAssetAction, asset: Asset) {
+        Task { [service] in
             do {
-                try await service.addAsset(activityType: activityType.map(), assetId: assetId.identifier, walletId: walletId.id)
+                try await service.addRecent(action: action, asset: asset.map())
             } catch {
                 debugLog("Failed to update recent activity: \(error)")
             }

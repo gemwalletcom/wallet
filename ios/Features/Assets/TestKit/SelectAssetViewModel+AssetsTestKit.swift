@@ -27,7 +27,7 @@ public extension SelectAssetViewModel {
             wallet: wallet,
             selectType: selectType,
             service: service,
-            recentAssetsService: GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock())),
+            recentAssetsService: GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock()), session: .mock()),
         )
         model.assetsQuery.value = assets
         model.state = state

@@ -119,9 +119,9 @@ extension AssetsResultsSceneViewModel {
 
     func onSelectAsset(_ asset: Asset) {
         onSelectAssetAction?(asset)
-        Task { [service, wallet] in
+        Task { [service] in
             do {
-                try await service.addRecentSearch(asset: asset.map(), walletId: wallet.id.id)
+                try await service.addRecent(action: .open, asset: asset.map())
             } catch {
                 debugLog("AssetsResultsSceneViewModel update recent error: \(error)")
             }

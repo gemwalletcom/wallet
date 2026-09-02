@@ -7,7 +7,7 @@ import typealias Gemstone.AssetId
 import typealias Gemstone.Currency
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import enum Gemstone.GemSearchScope
-import enum Gemstone.RecentActivityType
+import enum Gemstone.GemAssetAction
 import typealias Gemstone.Wallet
 import typealias Gemstone.WalletId
 import Primitives
@@ -63,9 +63,7 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         onSetAssetsEnabled?(walletId, assetIds, enabled)
     }
 
-    public func addRecentAsset(activityType: RecentActivityType, assetId: AssetId, walletId: WalletId) async throws {}
-
-    public func addRecentSearch(asset: Asset, walletId: WalletId) async throws {}
+    public func addRecent(action: GemAssetAction, asset: Asset) async throws {}
 
     public func setPriceAlert(assetId: AssetId, enabled: Bool) async throws {}
 }

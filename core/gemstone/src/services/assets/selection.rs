@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{Asset, AssetBasic, AssetId, RecentActivityType, Wallet, WalletId};
+use primitives::{Asset, AssetBasic, AssetId, Wallet, WalletId};
 
-use super::rules;
+use super::model::GemAssetAction;
+
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 use crate::services::perpetual::GemPerpetualService;
@@ -71,12 +72,8 @@ impl GemAssetSelectionService {
         self.perpetuals.set_pinned(perpetual_id, pinned).await
     }
 
-    pub async fn add_recent_asset(&self, activity_type: RecentActivityType, asset_id: AssetId, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        self.recent_activity.add_asset(activity_type, asset_id, wallet_id).await
-    }
-
-    pub async fn add_recent_search(&self, asset: Asset, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        self.recent_activity.add_asset(rules::search_activity(&asset), asset.id, wallet_id).await
+    pub async fn add_recent(&self, action: GemAssetAction, asset: Asset) -> Result<(), GemServiceError> {
+        self.recent_activity.add_recent(action, asset).await
     }
 
     pub async fn set_price_alert(&self, asset_id: AssetId, enabled: bool) -> Result<(), GemServiceError> {

@@ -89,12 +89,6 @@ class WalletSearchViewModel @Inject constructor(
         .map { items -> items.size > WalletSearchConfig.perpetualsPreviewLimit }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val perpetualRecentIds: StateFlow<Set<String>> =
-        getRecentAssets(RecentAssetsRequest(types = listOf(RecentActivityType.Perpetual)))
-            .map { items -> items.mapTo(HashSet()) { it.asset.id.toIdentifier() } }
-            .flowOn(Dispatchers.IO)
-            .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
-
     private val nftData: Flow<List<NFTData>> = getNftCollections(null)
         .map { data -> data.filter { it.assets.isNotEmpty() } }
         .flowOn(Dispatchers.IO)
@@ -177,6 +171,4 @@ class WalletSearchViewModel @Inject constructor(
         emitToast(AssetToast.Pin(item.name, !item.isPinned))
     }
 
-    override fun searchedAsset(assetId: AssetId): Asset? =
-        super.searchedAsset(assetId) ?: visiblePerpetuals.value.firstOrNull { it.asset.id == assetId }?.asset
 }

@@ -1,6 +1,8 @@
 package com.gemwallet.android.features.assets.views
 
 import androidx.compose.foundation.clickable
+import uniffi.gemstone.GemAssetAction
+import com.wallet.core.primitives.AssetType
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
@@ -58,7 +60,6 @@ fun WalletSearchScreen(
     val previewPerpetuals by viewModel.previewPerpetuals.collectAsStateWithLifecycle()
     val hasMorePerpetuals by viewModel.hasMorePerpetuals.collectAsStateWithLifecycle()
     val pinnedPerpetuals by viewModel.pinnedPerpetuals.collectAsStateWithLifecycle()
-    val perpetualRecentIds by viewModel.perpetualRecentIds.collectAsStateWithLifecycle()
     val previewNfts by viewModel.previewNfts.collectAsStateWithLifecycle()
     val hasMoreNfts by viewModel.hasMoreNfts.collectAsStateWithLifecycle()
     val lists by viewModel.lists.collectAsStateWithLifecycle()
@@ -74,18 +75,18 @@ fun WalletSearchScreen(
             is WalletSearchAction.TogglePerpetualPin -> viewModel.onTogglePerpetualPin(action.perpetualId)
             WalletSearchAction.OpenRecentsSheet -> recentsViewModel.show(filters = viewModel.assetFilters())
             is WalletSearchAction.OpenRecent -> onAction(
-                if (action.assetId.toIdentifier() in perpetualRecentIds) {
-                    WalletSearchAction.OpenPerpetual(action.assetId)
+                if (action.asset.type == AssetType.PERPETUAL) {
+                    WalletSearchAction.OpenPerpetual(action.asset)
                 } else {
-                    WalletSearchAction.OpenAsset(action.assetId)
+                    WalletSearchAction.OpenAsset(action.asset)
                 }
             )
             is WalletSearchAction.OpenAsset -> {
-                viewModel.updateRecentSearch(action.assetId)
+                viewModel.updateRecent(action.asset, GemAssetAction.OPEN)
                 onAction(action)
             }
             is WalletSearchAction.OpenPerpetual -> {
-                viewModel.updateRecentSearch(action.assetId)
+                viewModel.updateRecent(action.asset, GemAssetAction.OPEN)
                 onAction(action)
             }
             WalletSearchAction.AddAsset,
@@ -106,7 +107,7 @@ fun WalletSearchScreen(
                 listPosition = position,
                 longPressState = longPressedPerpetual,
                 onTogglePin = { handleAction(WalletSearchAction.TogglePerpetualPin(it)) },
-                onClick = { handleAction(WalletSearchAction.OpenPerpetual(it)) },
+                onClick = { handleAction(WalletSearchAction.OpenPerpetual(item.asset)) },
             )
         }
     }
@@ -122,7 +123,7 @@ fun WalletSearchScreen(
                     listPosition = position,
                     longPressState = longPressedPerpetual,
                     onTogglePin = { handleAction(WalletSearchAction.TogglePerpetualPin(it)) },
-                    onClick = { handleAction(WalletSearchAction.OpenPerpetual(it)) },
+                    onClick = { handleAction(WalletSearchAction.OpenPerpetual(item.asset)) },
                 )
             }
         }
@@ -197,8 +198,8 @@ fun WalletSearchScreen(
                 AssetSelectAction.ShowAllAssets -> handleAction(
                     WalletSearchAction.ShowAllAssets(viewModel.queryState.text.toString())
                 )
-                is AssetSelectAction.Select -> handleAction(WalletSearchAction.OpenAsset(action.assetId))
-                is AssetSelectAction.SelectRecent -> handleAction(WalletSearchAction.OpenRecent(action.assetId))
+                is AssetSelectAction.Select -> handleAction(WalletSearchAction.OpenAsset(action.asset))
+                is AssetSelectAction.SelectRecent -> handleAction(WalletSearchAction.OpenRecent(action.asset))
                 is AssetSelectAction.ChainFilter,
                 is AssetSelectAction.BalanceFilter,
                 AssetSelectAction.ClearFilters -> Unit

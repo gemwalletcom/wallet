@@ -84,7 +84,6 @@ struct ServicesFactory {
             walletPreferences: walletPreferencesService,
             preferences: preferencesService,
         )
-        let recentAssetsService = GemRecentActivityService(store: GemstoneRecentActivityStore(store: storeManager.recentActivityStore))
         let scanConfiguration = URLSessionConfiguration.default
         scanConfiguration.timeoutIntervalForRequest = TimeInterval(Config().getScanConfig().timeoutSeconds)
         let scanService = Gemstone.GemScanService(
@@ -101,6 +100,7 @@ struct ServicesFactory {
             provider: NativeProvider(session: URLSession(configuration: serviceStatusConfiguration)),
         )
         let walletSessionService = Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(store: preferencesStore), wallets: gemstoneWalletStore)
+        let recentAssetsService = GemRecentActivityService(store: GemstoneRecentActivityStore(store: storeManager.recentActivityStore), session: walletSessionService)
         let explorerService = Gemstone.GemExplorerService(preferences: preferencesService)
         let walletService = Gemstone.GemWalletService(
             keystore: storages.keystore.gemKeystore,
@@ -390,6 +390,12 @@ struct ServicesFactory {
             amountService: Gemstone.GemAmountService(stake: stakeService, preferences: preferencesService),
             toastPresenter: toastPresenter,
             walletPreferencesService: walletPreferencesService,
+            signMessageService: Gemstone.GemSignMessageService(
+                names: nameService,
+                explorer: explorerService,
+                keystore: storages.keystore.gemKeystore,
+                password: GemstoneKeystorePassword(keystore: storages.keystore),
+            ),
             developerService: Gemstone.GemDeveloperService(
                 platform: devicePlatform,
                 preferences: preferencesService,

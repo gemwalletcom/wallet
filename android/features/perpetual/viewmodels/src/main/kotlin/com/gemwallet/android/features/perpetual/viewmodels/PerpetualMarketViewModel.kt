@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.perpetual.viewmodels
 
 import androidx.lifecycle.ViewModel
+import uniffi.gemstone.GemAssetAction
 import androidx.lifecycle.viewModelScope
 import android.util.Log
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
@@ -105,11 +106,10 @@ class PerpetualMarketViewModel @Inject constructor(
             .onFailure { Log.e(TAG, "pinning perpetual ${perpetualId.toIdentifier()} failed", it) }
     }
 
-    fun onOpenPerpetual(assetId: AssetId) {
+    fun onOpenPerpetual(asset: Asset) {
         viewModelScope.launch(Dispatchers.IO) {
-            val wallet = getSession().value?.wallet ?: return@launch
-            runCatchingCancellable { recentActivity.addAsset(RecentActivityType.Perpetual.toGem(), assetId.toIdentifier(), wallet.id.id) }
-                .onFailure { Log.e(TAG, "recording recent perpetual ${assetId.toIdentifier()} failed", it) }
+            runCatchingCancellable { recentActivity.addRecent(GemAssetAction.OPEN, asset.toGem()) }
+                .onFailure { Log.e(TAG, "recording recent perpetual ${asset.id.toIdentifier()} failed", it) }
         }
     }
 

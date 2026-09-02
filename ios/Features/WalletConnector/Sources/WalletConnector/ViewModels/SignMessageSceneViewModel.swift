@@ -2,10 +2,8 @@
 
 import struct Gemstone.GemSignMessagePreview
 import protocol Gemstone.GemSignMessageServiceProtocol
-import GemstoneServices
 import Components
 import Foundation
-import class Gemstone.MessageSigner
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -17,10 +15,8 @@ import WalletConnectorService
 @MainActor
 public final class SignMessageSceneViewModel {
     private let service: any GemSignMessageServiceProtocol
-    private let keystore: any Keystore
     private let payload: SignMessagePayload
     private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate
-    private let signer: MessageSigner
     private let preview: GemSignMessagePreview
 
     public var isPresentingUrl: URL?
@@ -29,15 +25,12 @@ public final class SignMessageSceneViewModel {
 
     public init(
         service: any GemSignMessageServiceProtocol,
-        keystore: any Keystore,
         payload: SignMessagePayload,
         confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
     ) {
         self.service = service
-        self.keystore = keystore
         self.payload = payload
         self.confirmTransferDelegate = confirmTransferDelegate
-        signer = MessageSigner(message: payload.message)
         preview = service.preview(message: payload.message, simulation: payload.simulation.json())
     }
 
@@ -123,7 +116,7 @@ public final class SignMessageSceneViewModel {
     }
 
     public func signMessage() async throws {
-        let signature = try await keystore.signMessage(signer: signer, wallet: payload.wallet)
+        let signature = try await service.sign(walletId: payload.wallet.id.id, message: payload.message)
         confirmTransferDelegate(.success(signature))
     }
 }

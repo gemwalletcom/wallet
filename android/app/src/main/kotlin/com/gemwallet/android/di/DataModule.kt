@@ -12,6 +12,7 @@ import uniffi.gemstone.GemBalanceService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneRecentActivityStore
 import uniffi.gemstone.GemRecentActivityService
+import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemNameService
@@ -57,7 +58,8 @@ object DataModule {
     @Singleton
     fun provideGemRecentActivityService(
         recentAssetsService: RecentAssetsService,
-    ): GemRecentActivityService = GemRecentActivityService(GemstoneRecentActivityStore(recentAssetsService))
+        walletSessionService: GemWalletSessionService,
+    ): GemRecentActivityService = GemRecentActivityService(GemstoneRecentActivityStore(recentAssetsService), walletSessionService)
 
     @Provides
     fun provideGemAssetSelectionService(

@@ -6,6 +6,7 @@ import class Gemstone.GemNameService
 import class Gemstone.GemPaymentService
 import class Gemstone.GemPreferencesService
 import class Gemstone.GemRecipientService
+import class Gemstone.GemSignMessageService
 import class Gemstone.GemWalletPreferencesService
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
@@ -55,5 +56,16 @@ public extension GemWalletSessionService {
         let store = WalletStore.mock(db: .mock())
         try store.addWallet(wallet)
         return GemWalletSessionService(store: GemstoneWalletSessionStore.mock(), wallets: GemstoneWalletStore(store: store))
+    }
+}
+
+public extension GemSignMessageService {
+    static func mock(keystore: LocalKeystore = LocalKeystore.mock()) -> GemSignMessageService {
+        GemSignMessageService(
+            names: GemNameService.mock(),
+            explorer: GemExplorerService(preferences: GemPreferencesService(store: GemPreferencesStoreMock())),
+            keystore: keystore.gemKeystore,
+            password: GemstoneKeystorePassword(keystore: keystore),
+        )
     }
 }

@@ -1,4 +1,4 @@
-use primitives::{Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, ConfigVersions, RecentActivityType, Wallet};
+use primitives::{Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, Chain, ConfigVersions, Wallet};
 
 use super::model::AssetList;
 
@@ -80,13 +80,6 @@ pub fn popular_asset_ids() -> Vec<AssetId> {
     [Chain::Bitcoin, Chain::Ethereum, Chain::Solana].into_iter().map(AssetId::from_chain).collect()
 }
 
-pub fn search_activity(asset: &Asset) -> RecentActivityType {
-    match asset.asset_type {
-        AssetType::PERPETUAL => RecentActivityType::Perpetual,
-        _ => RecentActivityType::Search,
-    }
-}
-
 pub fn can_open(wallet: &Wallet, asset_id: &AssetId) -> bool {
     (asset_id.is_token() || asset_id.chain.has_native_asset()) && wallet.account(asset_id.chain).is_some()
 }
@@ -126,16 +119,6 @@ mod tests {
         assert!(ids.iter().all(|id| id.is_native() && id.chain.has_native_asset()));
         assert_eq!(unique(ids.clone()).len(), ids.len());
         assert_eq!(ids.first(), Some(&AssetId::from_chain(Chain::Bitcoin)));
-    }
-
-    #[test]
-    fn test_search_activity_keeps_perpetuals_apart_from_assets() {
-        let perpetual = Asset {
-            asset_type: AssetType::PERPETUAL,
-            ..Asset::from_chain(Chain::HyperCore)
-        };
-        assert_eq!(search_activity(&perpetual), RecentActivityType::Perpetual);
-        assert_eq!(search_activity(&Asset::from_chain(Chain::Ethereum)), RecentActivityType::Search);
     }
 
     #[test]

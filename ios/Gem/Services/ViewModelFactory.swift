@@ -140,6 +140,7 @@ public struct ViewModelFactory: Sendable {
     let amountService: GemAmountService
     let toastPresenter: ToastPresenter
     let walletPreferencesService: GemWalletPreferencesService
+    let signMessageService: GemSignMessageService
     let developerService: GemDeveloperService
     let deviceService: GemDeviceService
     let notificationPermissions: any GemNotificationPermissions
@@ -706,8 +707,7 @@ public struct ViewModelFactory: Sendable {
         confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
     ) -> SignMessageSceneViewModel {
         SignMessageSceneViewModel(
-            service: GemSignMessageService(names: nameService, explorer: explorerService),
-            keystore: keystore,
+            service: signMessageService,
             payload: payload,
             confirmTransferDelegate: confirmTransferDelegate,
         )

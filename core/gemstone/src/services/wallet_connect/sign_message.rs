@@ -1,12 +1,15 @@
 use std::sync::Arc;
 
-use primitives::{AddressName, Chain, ChainAddress, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult};
+use primitives::{AddressName, Chain, ChainAddress, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, WalletId};
 
 use crate::block_explorer::GemBlockExplorerLink;
+use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};
 use crate::message::sign_type::SignMessage;
 use crate::message::signer::MessageSigner;
+use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
+use crate::services::wallet::GemKeystorePassword;
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemSignMessagePreview {
@@ -19,13 +22,25 @@ pub struct GemSignMessagePreview {
 pub struct GemSignMessageService {
     names: Arc<GemNameService>,
     explorer: Arc<GemExplorerService>,
+    keystore: Arc<GemKeystore>,
+    password: Arc<dyn GemKeystorePassword>,
 }
 
 #[uniffi::export]
 impl GemSignMessageService {
     #[uniffi::constructor]
-    pub fn new(names: Arc<GemNameService>, explorer: Arc<GemExplorerService>) -> Self {
-        Self { names, explorer }
+    pub fn new(names: Arc<GemNameService>, explorer: Arc<GemExplorerService>, keystore: Arc<GemKeystore>, password: Arc<dyn GemKeystorePassword>) -> Self {
+        Self {
+            names,
+            explorer,
+            keystore,
+            password,
+        }
+    }
+
+    pub async fn sign(&self, wallet_id: WalletId, message: SignMessage) -> Result<String, GemServiceError> {
+        let password = decode_password(&self.password.get_password(false)?);
+        Ok(MessageSigner::new(message).sign_with_keystore(self.keystore.clone(), keystore_id_for_wallet(wallet_id.id()), password)?)
     }
 
     pub fn preview(&self, message: SignMessage, simulation: SimulationResult) -> GemSignMessagePreview {

@@ -28,7 +28,6 @@ struct SignMessageSceneViewModelTests {
 
         let viewModel = SignMessageSceneViewModel(
             service: GemSignMessageService.mock(),
-            keystore: KeystoreMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -51,7 +50,6 @@ struct SignMessageSceneViewModelTests {
 
         let viewModel = SignMessageSceneViewModel(
             service: GemSignMessageService.mock(),
-            keystore: KeystoreMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -72,7 +70,6 @@ struct SignMessageSceneViewModelTests {
 
         let viewModel = SignMessageSceneViewModel(
             service: GemSignMessageService.mock(),
-            keystore: KeystoreMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -93,7 +90,6 @@ struct SignMessageSceneViewModelTests {
 
         let viewModel = SignMessageSceneViewModel(
             service: GemSignMessageService.mock(),
-            keystore: KeystoreMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -129,7 +125,6 @@ struct SignMessageSceneViewModelTests {
 
         let viewModel = SignMessageSceneViewModel(
             service: GemSignMessageService.mock(),
-            keystore: KeystoreMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -150,7 +145,6 @@ struct SignMessageSceneViewModelTests {
 
         let viewModel = SignMessageSceneViewModel(
             service: GemSignMessageService.mock(),
-            keystore: KeystoreMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -172,7 +166,6 @@ struct SignMessageSceneViewModelTests {
 
         let viewModel = SignMessageSceneViewModel(
             service: GemSignMessageService.mock(),
-            keystore: KeystoreMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -197,7 +190,6 @@ struct SignMessageSceneViewModelTests {
 
         let viewModel = SignMessageSceneViewModel(
             service: GemSignMessageService.mock(),
-            keystore: KeystoreMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -229,7 +221,6 @@ struct SignMessageSceneViewModelTests {
 
         let viewModel = SignMessageSceneViewModel(
             service: GemSignMessageService.mock(),
-            keystore: KeystoreMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -251,7 +242,6 @@ struct SignMessageSceneViewModelTests {
 
         let viewModel = SignMessageSceneViewModel(
             service: GemSignMessageService.mock(),
-            keystore: KeystoreMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -283,7 +273,6 @@ struct SignMessageSceneViewModelTests {
 
         let viewModel = SignMessageSceneViewModel(
             service: GemSignMessageService.mock(),
-            keystore: KeystoreMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -353,7 +342,6 @@ struct SignMessageSceneViewModelTests {
 
         let viewModel = SignMessageSceneViewModel(
             service: GemSignMessageService.mock(),
-            keystore: KeystoreMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -389,7 +377,6 @@ struct SignMessageSceneViewModelTests {
 
         let viewModel = SignMessageSceneViewModel(
             service: GemSignMessageService.mock(),
-            keystore: KeystoreMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
@@ -427,7 +414,6 @@ struct SignMessageSceneViewModelTests {
 
         let viewModel = SignMessageSceneViewModel(
             service: GemSignMessageService.mock(),
-            keystore: KeystoreMock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
         )
