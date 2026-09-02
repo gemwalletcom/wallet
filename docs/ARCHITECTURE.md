@@ -390,10 +390,10 @@ an exception to this rule.
 
 The reusable exception is a **shared component** — `AddressInputViewModel`,
 `NetworkSelectorViewModel` — which takes a narrow protocol. On iOS that protocol is
-`AddressInputResolving`: four methods every screen service that owns a recipient input already
+`AddressInputResolving`: the five methods every screen service that owns a recipient input already
 exports (`GemNameService`, `GemRecipientService`, `GemManageContactService` conform through an
 empty extension), so the parent passes its own service and no Core service returns another
-service. Android's `AddressInputModel` takes the same four-method `AddressInputResolving`; Kotlin
+service. Android's `AddressInputModel` takes the same five-method `AddressInputResolving`; Kotlin
 has no retroactive conformance, so `GemNameServiceInterface.addressInput()` and
 `GemRecipientServiceInterface.addressInput()` wrap the service's own methods, and the parent passes
 `service.addressInput()`. `NetworkSelectorViewModel` needs only the dependency-free
@@ -579,8 +579,7 @@ not a compromise.
 **A stateless object with a no-argument constructor is not a service.** `GemFeeService` was an
 empty struct wrapping one pure function. The answer belongs on the value type as a constructor —
 `GemCustomFee::estimate(...)` — and the service is deleted along with the field, the environment
-entry and the `fee()` accessor that handed it out. `GemSwapQuoteService` is the remaining case;
-its four methods are the same shape.
+entry and the `fee()` accessor that handed it out.
 
 **Split by responsibility to break a composition cycle; never reach through it.** `GemNodeService`
 supplies node URLs to the provider the gateway is built on, so it can never hold the gateway.
