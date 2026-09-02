@@ -37,6 +37,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemConfirmException
+import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemExecuteResult
 import uniffi.gemstone.GemSendInput
@@ -119,40 +120,6 @@ class ConfirmViewModel @Inject constructor(
     val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val simulationState = combine(request.filterNotNull(), simulationResult) { request, result ->
-        request.transfer.inputType to result
-    }
-        .distinctUntilChanged()
-        .map { (inputType, result) -> confirmService.simulationState(inputType, result?.toJson()) }
-        .flowOn(Dispatchers.IO)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val simulation = combine(simulationState, simulationResult, request) { state, result, params ->
-        state?.toSimulation(
-            warnings = result?.warnings.orEmpty(),
-            chain = params?.transfer?.inputType?.asset?.id?.chain,
-            confirmService = confirmService,
-        ) ?: Simulation()
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, Simulation())
-
-    val payloadAddressNames = simulationState
-        .map { state ->
-            state?.addressNames.orEmpty()
-                .map { it.decodeJson<AddressName>() }
-                .filter { it.name.isNotEmpty() && !it.name.equals(it.address, ignoreCase = true) }
-                .associate { it.address.lowercase() to it.name }
-        }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
-
-    val buttonState = combine(state, simulation) { state, simulation ->
-        buttonState(
-            enabled = state !is ConfirmState.Prepare
-                && state !is ConfirmState.Sending
-                && !simulation.warnings.hasCriticalWarning(),
-            loading = state is ConfirmState.Sending || state is ConfirmState.Prepare || state is ConfirmState.Result,
-        )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Loading)
-
     private val assetsInfo = request.filterNotNull().mapNotNull {
         val inputType = it.transfer.inputType
         listOfNotNull(inputType.asset.id, inputType.toAsset?.id)
@@ -182,16 +149,18 @@ class ConfirmViewModel @Inject constructor(
         }
 
         val preload = try {
-            val result = confirmService.preload(
+            val scene = confirmService.load(
                 walletId = session.wallet.id.id,
                 input = request,
                 options = confirmLoadOptions(feeSelection, feeAssetSelection),
+                simulation = simulationResult.value?.toJson(),
             )
-            result.confirmData.simulation?.let { simulationResult.value = it.decodeJson() }
+            scene.preload.confirmData.simulation?.let { simulationResult.value = it.decodeJson() }
             Preload(
-                signerParams = result.toSignerParams(request),
-                amount = result.amount,
-                feeAsset = result.feeAsset.toPrimitives(),
+                signerParams = scene.preload.toSignerParams(request),
+                amount = scene.preload.amount,
+                feeAsset = scene.preload.feeAsset.toPrimitives(),
+                simulation = scene.simulation,
             )
         } catch (error: CancellationException) {
             throw error
@@ -208,6 +177,32 @@ class ConfirmViewModel @Inject constructor(
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val simulation = combine(preloadData, simulationResult, request) { preload, result, params ->
+        preload?.simulation?.toSimulation(
+            warnings = result?.warnings.orEmpty(),
+            chain = params?.transfer?.inputType?.asset?.id?.chain,
+            confirmService = confirmService,
+        ) ?: Simulation()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, Simulation())
+
+    val payloadAddressNames = preloadData
+        .map { preload ->
+            preload?.simulation?.addressNames.orEmpty()
+                .map { it.decodeJson<AddressName>() }
+                .filter { it.name.isNotEmpty() && !it.name.equals(it.address, ignoreCase = true) }
+                .associate { it.address.lowercase() to it.name }
+        }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+
+    val buttonState = combine(state, simulation) { state, simulation ->
+        buttonState(
+            enabled = state !is ConfirmState.Prepare
+                && state !is ConfirmState.Sending
+                && !simulation.warnings.hasCriticalWarning(),
+            loading = state is ConfirmState.Sending || state is ConfirmState.Prepare || state is ConfirmState.Result,
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Loading)
 
     val feeAssetInfo = preloadData.flatMapLatest { preload ->
         if (preload == null) {
@@ -400,6 +395,7 @@ class ConfirmViewModel @Inject constructor(
         val signerParams: SignerParams,
         val amount: GemTransferAmountResult,
         val feeAsset: Asset,
+        val simulation: GemConfirmSimulationState,
     )
 
     private fun List<AssetInfo>.getByAssetId(assetId: AssetId): AssetInfo? {

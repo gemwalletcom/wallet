@@ -13,6 +13,7 @@ import com.gemwallet.android.domains.confirm.perpetual
 import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemConfirmData
 import uniffi.gemstone.GemConfirmPreload
+import uniffi.gemstone.GemConfirmSceneLoad
 import uniffi.gemstone.GemFeeOptions
 import uniffi.gemstone.GemGasPriceType
 import uniffi.gemstone.GemTransactionLoadFee
@@ -58,9 +59,7 @@ class ConfirmViewModelRetryTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private val asset = mockAssetHyperCoreUBTC()
     private val account = mockAccount(chain = Chain.HyperCore)
-    private val confirmService = mockk<GemConfirmTransferService>(relaxed = true) {
-        coEvery { simulationState(any(), any()) } returns GemConfirmSimulationState(simulation = null, addressNames = emptyList())
-    }
+    private val confirmService = mockk<GemConfirmTransferService>(relaxed = true)
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
@@ -77,24 +76,27 @@ class ConfirmViewModelRetryTest {
         ).confirmInput(account)
         val viewModel = viewModel(input)
         runCurrent()
-        coVerify(timeout = 5_000, exactly = 1) { confirmService.preload(any(), any(), any()) }
+        coVerify(timeout = 5_000, exactly = 1) { confirmService.load(any(), any(), any(), any()) }
 
         assertTrue(viewModel.state.first { it is ConfirmState.Error } is ConfirmState.Error)
 
         viewModel.send(FinishConfirmAction { _ -> })
         runCurrent()
 
-        coVerify(timeout = 5_000, exactly = 2) { confirmService.preload(any(), any(), any()) }
+        coVerify(timeout = 5_000, exactly = 2) { confirmService.load(any(), any(), any(), any()) }
     }
 
     private fun viewModel(input: GemConfirmInput): ConfirmViewModel {
         var calls = 0
-        coEvery { confirmService.preload(any(), any(), any()) } answers {
+        coEvery { confirmService.load(any(), any(), any(), any()) } answers {
             calls += 1
             if (calls == 1) {
                 throw IllegalStateException("preload failed")
             } else {
-                GemConfirmPreload(
+                GemConfirmSceneLoad(
+                    feeAssets = emptyList(),
+                    simulation = GemConfirmSimulationState(simulation = null, addressNames = emptyList()),
+                    preload = GemConfirmPreload(
                     confirmData = GemConfirmData(
                         fee = GemTransactionLoadFee(
                             fee = "1",
@@ -112,6 +114,7 @@ class ConfirmViewModelRetryTest {
                     metadata = mockk(relaxed = true),
                     feeAsset = asset.toGem(),
                     amount = GemTransferAmountResult.Amount(GemTransferAmount(value = "1", networkFee = "1", isMaxAmount = false)),
+                    ),
                 )
             }
         }

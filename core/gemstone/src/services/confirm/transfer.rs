@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use primitives::currency::Currency;
 use primitives::{AddressName, Chain, PerpetualModifyConfirmData, SimulationResult, Transaction, WalletId};
@@ -30,6 +30,7 @@ pub struct GemConfirmTransferService {
     password: Arc<dyn GemKeystorePassword>,
     recent_activity: Arc<GemRecentActivityService>,
     preferences: Arc<GemPreferencesService>,
+    scene: Mutex<Option<GemConfirmSceneLoad>>,
 }
 
 #[uniffi::export]
@@ -54,6 +55,7 @@ impl GemConfirmTransferService {
             password,
             recent_activity,
             preferences,
+            scene: Mutex::new(None),
         }
     }
 
@@ -78,18 +80,6 @@ impl GemConfirmTransferService {
         }
     }
 
-    pub fn fee_assets(&self, wallet_id: WalletId, chain: Chain) -> Result<Vec<GemFeeAsset>, GemConfirmError> {
-        self.confirm.fee_assets(wallet_id, chain)
-    }
-
-    pub async fn preload(&self, wallet_id: WalletId, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmPreload, GemConfirmError> {
-        let input_type = input.transfer.input_type.clone();
-        match self.confirm.preload(wallet_id.clone(), input, options).await {
-            Ok(preload) => Ok(preload),
-            Err(error) => Err(self.missing_network_fee(wallet_id, input_type).unwrap_or(error)),
-        }
-    }
-
     pub async fn execute(&self, input: GemSendInput) -> Result<GemExecuteResult, GemConfirmError> {
         let wallet_id = input.wallet.id.clone();
         let input_type = input.confirm.input.transfer.input_type.clone();
@@ -100,40 +90,24 @@ impl GemConfirmTransferService {
         Ok(result)
     }
 
-    pub async fn load_scene(
+    pub async fn load(
         &self,
         wallet_id: WalletId,
         input: GemConfirmInput,
         options: GemConfirmLoadOptions,
         simulation: Option<SimulationResult>,
     ) -> Result<GemConfirmSceneLoad, GemConfirmError> {
-        let input_type = input.transfer.input_type.clone();
-        let fee_assets = self.fee_assets(wallet_id.clone(), input_type.transaction_asset().chain())?;
-        let preload = self.preload(wallet_id, input, options).await?;
-        let simulation = simulation.or_else(|| preload.confirm_data.simulation.clone());
-        Ok(GemConfirmSceneLoad {
-            fee_assets,
-            simulation: self.simulation_state(input_type, simulation).await,
-            preload,
-        })
-    }
-
-    pub async fn simulation_state(&self, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> GemConfirmSimulationState {
-        if let Some(simulation) = &simulation {
-            let _ = self.confirm.sync_missing_assets(simulation.asset_ids()).await;
-        }
-        let Ok(details) = self.confirm.simulation(input_type.clone(), simulation) else {
-            return GemConfirmSimulationState {
-                simulation: None,
-                address_names: Vec::new(),
-            };
+        let loaded = self.scene.lock().expect("confirm scene lock").clone();
+        let scene = match loaded {
+            Some(previous) => GemConfirmSceneLoad {
+                preload: self.preload(wallet_id, input, options).await?,
+                fee_assets: previous.fee_assets,
+                simulation: previous.simulation,
+            },
+            None => self.load_scene(wallet_id, input, options, simulation).await?,
         };
-        let requests = details.address_requests(input_type.transaction_asset().chain());
-        let address_names = self.names.get_address_names(requests).await.unwrap_or_default();
-        GemConfirmSimulationState {
-            simulation: Some(details),
-            address_names,
-        }
+        *self.scene.lock().expect("confirm scene lock") = Some(scene.clone());
+        Ok(scene)
     }
 
     pub async fn track_pending(&self) -> Result<(), GemServiceError> {
@@ -169,6 +143,54 @@ fn is_broadcast(result: &GemExecuteResult) -> bool {
 }
 
 impl GemConfirmTransferService {
+    fn fee_assets(&self, wallet_id: WalletId, chain: Chain) -> Result<Vec<GemFeeAsset>, GemConfirmError> {
+        self.confirm.fee_assets(wallet_id, chain)
+    }
+
+    async fn preload(&self, wallet_id: WalletId, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmPreload, GemConfirmError> {
+        let input_type = input.transfer.input_type.clone();
+        match self.confirm.preload(wallet_id.clone(), input, options).await {
+            Ok(preload) => Ok(preload),
+            Err(error) => Err(self.missing_network_fee(wallet_id, input_type).unwrap_or(error)),
+        }
+    }
+
+    async fn load_scene(
+        &self,
+        wallet_id: WalletId,
+        input: GemConfirmInput,
+        options: GemConfirmLoadOptions,
+        simulation: Option<SimulationResult>,
+    ) -> Result<GemConfirmSceneLoad, GemConfirmError> {
+        let input_type = input.transfer.input_type.clone();
+        let fee_assets = self.fee_assets(wallet_id.clone(), input_type.transaction_asset().chain())?;
+        let preload = self.preload(wallet_id, input, options).await?;
+        let simulation = simulation.or_else(|| preload.confirm_data.simulation.clone());
+        Ok(GemConfirmSceneLoad {
+            fee_assets,
+            simulation: self.simulation_state(input_type, simulation).await,
+            preload,
+        })
+    }
+
+    async fn simulation_state(&self, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> GemConfirmSimulationState {
+        if let Some(simulation) = &simulation {
+            let _ = self.confirm.sync_missing_assets(simulation.asset_ids()).await;
+        }
+        let Ok(details) = self.confirm.simulation(input_type.clone(), simulation) else {
+            return GemConfirmSimulationState {
+                simulation: None,
+                address_names: Vec::new(),
+            };
+        };
+        let requests = details.address_requests(input_type.transaction_asset().chain());
+        let address_names = self.names.get_address_names(requests).await.unwrap_or_default();
+        GemConfirmSimulationState {
+            simulation: Some(details),
+            address_names,
+        }
+    }
+
     fn missing_network_fee(&self, wallet_id: WalletId, input_type: GemTransactionInputType) -> Option<GemConfirmError> {
         let balance = self.metadata(wallet_id, input_type).ok()?.fee_asset_balance;
         is_insufficient_network_fee(balance.asset_id.clone(), &balance.available.to_string()).then_some(GemConfirmError::InsufficientNetworkFee { asset_id: balance.asset_id })

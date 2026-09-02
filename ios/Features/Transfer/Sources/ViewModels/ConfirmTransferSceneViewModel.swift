@@ -309,21 +309,7 @@ extension ConfirmTransferSceneViewModel {
     func load() async {
         state.transaction = .loading
         do {
-            if state.feeRates.isEmpty {
-                let data = try await load(
-                    request: request,
-                    selection: feeSelection,
-                    feeAssetSelection: feeAssetSelection,
-                )
-                state = .loaded(data)
-            } else {
-                let preload = try await preload(
-                    request: request,
-                    selection: feeSelection,
-                    feeAssetSelection: feeAssetSelection,
-                )
-                state.update(preload)
-            }
+            state = .loaded(try await load(request: request, selection: feeSelection, feeAssetSelection: feeAssetSelection))
         } catch {
             guard !Task.isCancelled else { return }
             state.transaction.setError(error)
@@ -416,7 +402,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func load(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferData {
-        let scene = try await service.loadScene(
+        let scene = try await service.load(
             walletId: request.wallet.id.id,
             input: try request.confirmInput(),
             options: options(selection: selection, feeAssetSelection: feeAssetSelection),
@@ -431,16 +417,6 @@ extension ConfirmTransferSceneViewModel {
                 state: scene.simulation,
             ),
             feeAssets: scene.feeAssets,
-        )
-    }
-
-    func preload(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferPreload {
-        try ConfirmTransferPreload(
-            await service.preload(
-                walletId: request.wallet.id.id,
-                input: try request.confirmInput(),
-                options: options(selection: selection, feeAssetSelection: feeAssetSelection),
-            )
         )
     }
 

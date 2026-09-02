@@ -614,6 +614,12 @@ It was also a fallback Core makes impossible — an `Asset` Core returns always 
 `AssetId` — so the honest fix was `toPrimitives()` at the call site, not a generator change.
 When a generated shape is genuinely wrong, change `remote_types.yml` or the generator.
 
+**A screen service built per screen may keep that screen's state.** The confirm screen kept a
+mutable `ConfirmTransferState` on iOS and three stitched flows on Android so a fee change would
+re-run only the preload and keep the fee assets and simulation. `GemConfirmTransferService` is
+constructed when the screen opens, so it holds the loaded scene itself: every call is `load`, and
+the second one reuses what did not change. The apps replace their state wholesale.
+
 **A "which address, which role" decision is a rule.** The transaction participant — sender or
 recipient by direction, contract for approvals, validator for delegations, provider for earn,
 recipient-or-contract from WalletConnect metadata — lived in a 35-line Swift `switch` and a

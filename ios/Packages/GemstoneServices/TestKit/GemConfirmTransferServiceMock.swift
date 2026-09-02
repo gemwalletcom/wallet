@@ -11,11 +11,9 @@ public import struct Gemstone.GemBlockExplorerLink
 public import struct Gemstone.GemConfirmInput
 public import struct Gemstone.GemConfirmLoadOptions
 public import struct Gemstone.GemConfirmMetadata
-public import struct Gemstone.GemConfirmPreload
 public import struct Gemstone.GemConfirmSceneLoad
 public import struct Gemstone.GemConfirmSceneState
 public import struct Gemstone.GemConfirmSimulationState
-public import struct Gemstone.GemFeeAsset
 public import struct Gemstone.GemSendInput
 public import struct Gemstone.GemAutocloseSummary
 public import enum Gemstone.GemExecuteResult
@@ -81,40 +79,25 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
         )
     }
 
-    public func feeAssets(walletId: WalletId, chain: Chain) throws -> [GemFeeAsset] {
-        try confirm.feeAssets(walletId: walletId, chain: chain)
-    }
-
-    public func preload(walletId: WalletId, input: GemConfirmInput, options: GemConfirmLoadOptions) async throws -> GemConfirmPreload {
-        try await confirm.preload(walletId: walletId, input: input, options: options)
-    }
-
-    public func loadScene(
+    public func load(
         walletId: WalletId,
         input: GemConfirmInput,
         options: GemConfirmLoadOptions,
         simulation: SimulationResult?,
     ) async throws -> GemConfirmSceneLoad {
-        let preload = try await preload(walletId: walletId, input: input, options: options)
+        let preload = try await confirm.preload(walletId: walletId, input: input, options: options)
         return GemConfirmSceneLoad(
-            feeAssets: try feeAssets(walletId: walletId, chain: input.transfer.inputType.chain.rawValue),
+            feeAssets: try confirm.feeAssets(walletId: walletId, chain: input.transfer.inputType.chain.rawValue),
             preload: preload,
-            simulation: await simulationState(
-                inputType: input.transfer.inputType,
-                simulation: simulation ?? preload.confirmData.simulation,
+            simulation: GemConfirmSimulationState(
+                simulation: try? confirm.simulation(inputType: input.transfer.inputType, simulation: simulation ?? preload.confirmData.simulation),
+                addressNames: [],
             ),
         )
     }
 
     public func execute(input: GemSendInput) async throws -> GemExecuteResult {
         try await confirm.execute(input: input, signer: signer)
-    }
-
-    public func simulationState(inputType: GemTransactionInputType, simulation: SimulationResult?) async -> GemConfirmSimulationState {
-        GemConfirmSimulationState(
-            simulation: try? confirm.simulation(inputType: inputType, simulation: simulation),
-            addressNames: [],
-        )
     }
 
     public func trackPending() async throws {

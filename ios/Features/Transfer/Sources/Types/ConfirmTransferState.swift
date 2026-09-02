@@ -28,13 +28,6 @@ extension ConfirmTransferState {
         )
     }
 
-    mutating func update(_ preload: ConfirmTransferPreload) {
-        metadata = preload.metadata
-        feeRates = preload.feeRates
-        feeAsset = preload.input.feeAsset
-        transaction = .data(preload.input)
-    }
-
     var transactionError: ConfirmTransferError? {
         if case let .error(error) = transaction { return ConfirmTransferError(error: error) }
         if case let .failure(error)? = transaction.value?.transferAmount { return .amount(error) }

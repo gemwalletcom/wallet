@@ -258,7 +258,7 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func fetchAfterFeeChangeKeepsSimulationState() async {
+    func fetchAfterFeeChangeReplacesTheSceneWithTheServiceAnswer() async {
         let rates = [
             FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 20)),
             FeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 30)),
@@ -273,12 +273,11 @@ struct ConfirmTransferSceneViewModelTests {
         await model.load()
         #expect(model.state.feeRates == rates)
 
-        let sentinel = ConfirmSimulationState.mock(warnings: [SimulationWarning(severity: .warning, warning: .externallyOwnedSpender, message: nil)])
-        model.state.simulation = sentinel
+        model.state.simulation = .mock(warnings: [SimulationWarning(severity: .warning, warning: .externallyOwnedSpender, message: nil)])
         model.feeSelection = .preset(.fast)
         await model.load()
 
-        #expect(model.state.simulation.warnings == sentinel.warnings)
+        #expect(model.state.simulation.warnings.isEmpty)
         #expect(model.state.transaction.value != nil)
         #expect(model.state.feeRates == rates)
     }
