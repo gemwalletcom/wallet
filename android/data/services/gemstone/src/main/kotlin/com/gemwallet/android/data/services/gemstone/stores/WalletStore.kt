@@ -29,9 +29,9 @@ class GemstoneWalletStore(
     private val transactionRunner: StoreTransactionRunner,
 ) : GemWalletStore {
 
-    override fun getWallets(): List<String> { probeMainThread("WalletStore.getWallets"); return getAllNow().map { it.toJson() } }
+    override fun getWallets(): List<String> = getAllNow().map { it.toJson() }
 
-    override fun getWallet(walletId: String): String? { probeMainThread("WalletStore.getWallet"); return getWalletNow(WalletId(walletId))?.toJson() }
+    override fun getWallet(walletId: String): String? = getWalletNow(WalletId(walletId))?.toJson()
 
     override suspend fun addWallet(wallet: String) {
         addWallet(wallet.decodeJson<Wallet>())

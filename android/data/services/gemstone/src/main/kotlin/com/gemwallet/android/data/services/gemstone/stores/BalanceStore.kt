@@ -16,10 +16,8 @@ class GemstoneBalanceStore(
     private val transactionRunner: StoreTransactionRunner,
 ) : GemBalanceStore {
 
-    override fun getAvailableBalances(walletId: String, assetIds: List<String>): List<GemAssetBalance> {
-        probeMainThread("BalanceStore.getAvailableBalances")
-        return assetIds.mapNotNull { balancesDao.getByAsset(walletId, it)?.toGemAssetBalance() }
-    }
+    override fun getAvailableBalances(walletId: String, assetIds: List<String>): List<GemAssetBalance> =
+        assetIds.mapNotNull { balancesDao.getByAsset(walletId, it)?.toGemAssetBalance() }
 
     override suspend fun getEnabledAssetIds(walletId: String, assetIds: List<String>): List<String> =
         balancesDao.getVisibleAssetIds(walletId, assetIds)
