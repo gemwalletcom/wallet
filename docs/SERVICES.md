@@ -322,7 +322,6 @@ Each is one question. Nothing below is blocked on investigation.
 
 | Item | Question | Recommendation |
 |---|---|---|
-| S1 keystore password scope | `GemKeystorePassword` is per-wallet; neither platform honours it (iOS returns one global Keychain secret, Android writes the same global secret under each wallet id). Make it genuinely per-wallet with a re-encrypt migration, or drop `wallet_id` from the trait? | Drop the parameter. The contract currently promises something untrue; re-adding it later is cheap, a bad migration is not. |
 | S3 biometric gate | iOS gates at the Keychain ACL so every secret read prompts; Android calls a UI prompt at each call site and `PasswordStore` itself is unauthenticated, so any new caller bypasses it. | Core should mark which operations require authentication, and the adapter enforces it. |
 | N1 notification permission | Core owns "granted / denied / never asked", but Android's adapter holds an application `Context` and cannot tell "never asked" from "denied", so it opens Settings for a first-time user. | Core owns the three-state decision; Android needs an activity-scoped requester. |
 | Stake push notification target | iOS `case .stake: break` selects the wallet tab behind a TODO; Android opens the asset. | Navigation decision. |
