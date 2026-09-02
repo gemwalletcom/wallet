@@ -3,7 +3,7 @@ use primitives::{AssetId, AssetSubtype, Chain, FeeOption, FeePriority, FeeRate, 
 use std::collections::HashMap;
 
 use crate::{
-    constants::{DEFAULT_GAS_LIMIT, DEFAULT_SWAP_GAS_LIMIT, STATIC_BASE_FEE},
+    constants::{DEFAULT_COMPUTE_UNIT_LIMIT, DEFAULT_SWAP_COMPUTE_UNIT_LIMIT, STATIC_BASE_FEE},
     models::prioritization_fee::SolanaPrioritizationFee,
 };
 
@@ -24,7 +24,7 @@ pub fn calculate_transaction_fee(input_type: &TransactionInputType, gas_price_ty
     TransactionFee::new_gas_price_type(
         gas_price_type.clone(),
         gas_price_type.total_fee(),
-        get_gas_limit(input_type),
+        get_compute_unit_limit(input_type),
         options,
         AssetId::from_chain(Chain::Solana),
     )
@@ -46,7 +46,7 @@ pub fn calculate_priority_fee(input_type: &TransactionInputType, prioritization_
     }
 }
 
-fn get_gas_limit(input_type: &TransactionInputType) -> BigInt {
+fn get_compute_unit_limit(input_type: &TransactionInputType) -> BigInt {
     match input_type {
         TransactionInputType::Transfer(_)
         | TransactionInputType::Deposit(_)
@@ -55,15 +55,15 @@ fn get_gas_limit(input_type: &TransactionInputType) -> BigInt {
         | TransactionInputType::TokenApprove(_, _)
         | TransactionInputType::Generic(_, _, _)
         | TransactionInputType::Perpetual(_, _)
-        | TransactionInputType::Earn(_, _, _) => BigInt::from(DEFAULT_GAS_LIMIT),
+        | TransactionInputType::Earn(_, _, _) => BigInt::from(DEFAULT_COMPUTE_UNIT_LIMIT),
         TransactionInputType::Swap(_, _, swap_data) => swap_data
             .data
             .gas_limit
             .as_ref()
             .and_then(|x| x.parse::<u64>().ok())
             .map(BigInt::from)
-            .unwrap_or(BigInt::from(DEFAULT_SWAP_GAS_LIMIT)),
-        TransactionInputType::Stake(_, _) => BigInt::from(DEFAULT_GAS_LIMIT),
+            .unwrap_or(BigInt::from(DEFAULT_SWAP_COMPUTE_UNIT_LIMIT)),
+        TransactionInputType::Stake(_, _) => BigInt::from(DEFAULT_COMPUTE_UNIT_LIMIT),
     }
 }
 
@@ -109,7 +109,7 @@ pub fn calculate_fee_rates(input_type: &TransactionInputType, prioritization_fee
         BigInt::from(std::cmp::max(rounded, multiple_of))
     };
 
-    let gas_limit = get_gas_limit(input_type);
+    let compute_unit_limit = get_compute_unit_limit(input_type);
 
     [FeePriority::Normal, FeePriority::Fast]
         .iter()
@@ -119,7 +119,7 @@ pub fn calculate_fee_rates(input_type: &TransactionInputType, prioritization_fee
                 FeePriority::Fast => &total_priority_base * 3,
             };
 
-            let priority_fee = (total_priority.clone() * gas_limit.clone()) / BigInt::from(SOLANA_PRIORITY_FEE_SCALE);
+            let priority_fee = (total_priority.clone() * compute_unit_limit.clone()) / BigInt::from(SOLANA_PRIORITY_FEE_SCALE);
             let unit_price = total_priority;
 
             FeeRate::new(*priority, GasPriceType::solana(static_base_fee.clone(), priority_fee, unit_price))
@@ -167,7 +167,7 @@ mod tests {
         let fee = calculate_transaction_fee(&input_type, &gas_price_type, Some("recipient_token_address".to_string()));
 
         assert_eq!(fee.fee, BigInt::from(35_000u64));
-        assert_eq!(fee.gas_limit, BigInt::from(DEFAULT_SWAP_GAS_LIMIT));
+        assert_eq!(fee.gas_limit, BigInt::from(DEFAULT_SWAP_COMPUTE_UNIT_LIMIT));
     }
 
     #[test]

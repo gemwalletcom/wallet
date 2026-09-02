@@ -15,13 +15,13 @@ struct AccountFlags {
 
 pub(crate) fn compute_budget_instructions(fee: &TransactionFee) -> Result<Vec<Instruction>, SignerError> {
     let unit_price = fee.unit_price_u64()?;
-    let gas_limit = fee.gas_limit.to_u32().ok_or_else(|| SignerError::invalid_input("invalid gas limit"))?;
+    let compute_unit_limit = fee.gas_limit.to_u32().ok_or_else(|| SignerError::invalid_input("invalid gas limit"))?;
     let mut instructions = Vec::new();
     if unit_price > 0 {
         instructions.push(set_compute_unit_price(unit_price));
     }
-    if gas_limit > 0 {
-        instructions.push(set_compute_unit_limit(gas_limit));
+    if compute_unit_limit > 0 {
+        instructions.push(set_compute_unit_limit(compute_unit_limit));
     }
     Ok(instructions)
 }

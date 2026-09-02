@@ -1,7 +1,7 @@
 use super::model::BuildResponse;
 use crate::SwapperError;
 use gem_encoding::encode_base64;
-use gem_solana::{DEFAULT_SWAP_GAS_LIMIT, JUPITER_PROGRAM_ID, instruction_from_primitive, instructions_from_primitives};
+use gem_solana::{JUPITER_PROGRAM_ID, MAX_COMPUTE_UNIT_LIMIT, instruction_from_primitive, instructions_from_primitives};
 use solana_primitives::{
     AddressLookupTableAccount, MAX_TRANSACTION_SIZE, Pubkey, TransactionBuilder,
     compute_budget::{ensure_compute_unit_price, parse_compute_unit_limit_data, set_compute_unit_limit},
@@ -26,7 +26,7 @@ impl BuildResponse {
 
         let mut compute_budget_instructions = instructions_from_primitives(self.compute_budget_instructions).map_err(SwapperError::transaction_error)?;
         compute_budget_instructions.retain(|instruction| parse_compute_unit_limit_data(&instruction.data).is_none());
-        let mut instructions = vec![set_compute_unit_limit(DEFAULT_SWAP_GAS_LIMIT)];
+        let mut instructions = vec![set_compute_unit_limit(MAX_COMPUTE_UNIT_LIMIT)];
         instructions.extend(compute_budget_instructions);
         ensure_compute_unit_price(&mut instructions, 0);
         instructions.extend(instructions_from_primitives(self.setup_instructions).map_err(SwapperError::transaction_error)?);
@@ -64,7 +64,7 @@ impl BuildResponse {
 mod tests {
     use super::*;
     use crate::jupiter::model::BlockhashWithMetadata;
-    use gem_solana::{DEFAULT_SWAP_GAS_LIMIT, USDC_TOKEN_MINT, decode_transaction};
+    use gem_solana::{USDC_TOKEN_MINT, decode_transaction};
     use primitives::{SolanaAccountMeta, SolanaInstruction};
     use std::collections::BTreeMap;
 
@@ -105,7 +105,7 @@ mod tests {
     fn test_into_transaction() {
         let transaction = build_response().into_transaction(PAYER, FEE_ACCOUNT).unwrap();
         let decoded = decode_transaction(&transaction).unwrap();
-        assert_eq!(decoded.get_compute_unit_limit(), Some(DEFAULT_SWAP_GAS_LIMIT));
+        assert_eq!(decoded.get_compute_unit_limit(), Some(MAX_COMPUTE_UNIT_LIMIT));
         assert_eq!(decoded.get_compute_unit_price(), Some(0));
 
         assert_eq!(

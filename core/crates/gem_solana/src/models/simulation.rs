@@ -6,6 +6,7 @@ use crate::models::token::TokenBalance;
 #[serde(rename_all = "camelCase")]
 pub struct SimulateTransactionResult {
     pub err: Option<serde_json::Value>,
+    pub units_consumed: Option<u64>,
     #[serde(default)]
     pub pre_balances: Vec<u64>,
     #[serde(default)]

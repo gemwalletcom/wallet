@@ -4,7 +4,7 @@ use gem_client::Client;
 use gem_evm::contracts::IERC20;
 use gem_evm::u256::biguint_to_u256;
 use gem_evm::u256::u256_to_biguint;
-use gem_solana::DEFAULT_SWAP_GAS_LIMIT;
+use gem_solana::DEFAULT_SWAP_COMPUTE_UNIT_LIMIT;
 use num_bigint::BigUint;
 use num_traits::ToPrimitive;
 use std::{fmt::Debug, sync::Arc, time::Duration};
@@ -374,7 +374,7 @@ where
                     BigUint::ZERO,
                     data,
                     None,
-                    Some(DEFAULT_SWAP_GAS_LIMIT.to_string()),
+                    Some(DEFAULT_SWAP_COMPUTE_UNIT_LIMIT.to_string()),
                 ))
             }
             _ => Err(SwapperError::InvalidRoute),

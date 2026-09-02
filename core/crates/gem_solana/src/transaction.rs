@@ -2,7 +2,7 @@ use gem_encoding::{decode_base64, encode_base64};
 use num_bigint::BigUint;
 use primitives::{AssetId, Chain, SolanaInstruction, TransactionType};
 use solana_primitives::{
-    AccountMeta, AddressLookupTableAccount, Instruction, Pubkey, TransactionBuilder, VersionedTransaction,
+    AccountMeta, AddressLookupTableAccount, Instruction, Pubkey, SolanaError, TransactionBuilder, VersionedTransaction,
     instructions::program_ids::{ASSOCIATED_TOKEN_PROGRAM_ID, COMPUTE_BUDGET_PROGRAM_ID, MEMO_PROGRAM_ID, SYSTEM_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID},
 };
 
@@ -166,6 +166,15 @@ fn try_decode_transaction_message(message: &[u8]) -> Option<VersionedTransaction
 
 pub fn decode_transaction(transaction_base64: &str) -> Result<VersionedTransaction, String> {
     try_decode_transaction(transaction_base64).ok_or_else(|| "failed to decode transaction".to_string())
+}
+
+pub fn set_encoded_transaction_compute_unit_limit(transaction_base64: &str, compute_unit_limit: u32) -> Result<String, SolanaError> {
+    let mut transaction = try_decode_transaction(transaction_base64).ok_or(SolanaError::InvalidTransaction)?;
+    if !transaction.set_compute_unit_limit(compute_unit_limit)? {
+        return Err(SolanaError::GenericError("Solana transaction is missing a compute unit limit".to_string()));
+    }
+    let transaction = transaction.serialize()?;
+    Ok(encode_base64(&transaction))
 }
 
 pub fn try_decode_blockhash(blockhash: &str) -> Option<[u8; 32]> {

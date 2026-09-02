@@ -3,7 +3,7 @@ use crate::{SwapperError, SwapperQuoteData, alien::RpcProvider, client_factory::
 use num_bigint::BigUint;
 
 use gem_encoding::encode_base64;
-use gem_solana::{DEFAULT_SWAP_GAS_LIMIT, SolanaClient, try_decode_blockhash};
+use gem_solana::{DEFAULT_SWAP_COMPUTE_UNIT_LIMIT, SolanaClient, try_decode_blockhash};
 use gem_tron::address::TronAddress;
 use primitives::{
     Chain,
@@ -53,7 +53,7 @@ pub(super) fn build_solana_transaction(fee_payer: &str, response: &SolanaVaultSw
     let instruction = InstructionBuilder::new(program_id).accounts(accounts).data(data).build();
 
     let mut transaction_builder = TransactionBuilder::new(fee_payer, blockhash);
-    transaction_builder.add_instruction(set_compute_unit_limit(DEFAULT_SWAP_GAS_LIMIT));
+    transaction_builder.add_instruction(set_compute_unit_limit(DEFAULT_SWAP_COMPUTE_UNIT_LIMIT));
     transaction_builder.add_instruction(instruction);
 
     let transaction = transaction_builder.build().map_err(SwapperError::transaction_error)?;

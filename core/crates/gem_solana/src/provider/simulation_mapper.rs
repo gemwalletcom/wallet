@@ -150,6 +150,7 @@ mod tests {
             &signers(&["wallet"]),
             SimulateTransactionResult {
                 err: None,
+                units_consumed: None,
                 pre_balances: vec![1_000_000_000],
                 post_balances: vec![999_995_000],
                 pre_token_balances: Some(vec![TokenBalance::mock(SOLANA_USDC_TOKEN_ID, "wallet", 20_000_000)]),
@@ -274,6 +275,7 @@ mod tests {
             &HashSet::new(),
             SimulateTransactionResult {
                 err: Some(serde_json::json!({"InstructionError":[1, "InvalidArgument"]})),
+                units_consumed: None,
                 pre_balances: vec![],
                 post_balances: vec![],
                 pre_token_balances: None,
