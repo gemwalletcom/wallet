@@ -348,6 +348,18 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 ### 3. Rules still written once per platform
 
+- **Recipient input validates twice on iOS.** `AddressInputViewModel` runs `AddressTextValidator`
+  (`addressService.isValidAddress`, error text) and then Core's `validateRecipient` (validity,
+  resolved address, `shows_error`) on the same text; `ManageContactAddressViewModel` does the same.
+  Make Core's validation the only one — it already knows when to show the error — and the input
+  model, the recipient screen and the contact editor stop needing `GemAddressService`.
+- **`GemPaymentService` is a `new()` with no fields** (`decode_url`, `destination`,
+  `transfer_destination`, `transfer_data`): the same shape `GemSwapQuoteService` and
+  `GemRecipientService` had. Its `Recipient` destination also returns only an asset id, so
+  `PaymentDestinationBuilder.recipientData` re-checksums the address with `GemAddressService` on
+  the app. Return the checksummed `GemRecipient` and amount from Core and move the rules onto the
+  payment value.
+
 Android's confirm screen still reads its assets through `GetWalletAssets`/`GetAssetInfo` and
 its fee assets through `GetFeeAssets` (store-backed `AssetInfo`), where Core's `GemConfirmPreload`
 metadata already carries the balances and prices the screen shows. Moving the fee-asset picker and
