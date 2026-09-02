@@ -8,7 +8,7 @@ const TRADE_PERPETUALS_CHAINS: [Chain; 2] = [Chain::HyperCore, Chain::Hyperliqui
 
 const SUSPICIOUS_RANK_SCORE: i32 = 5;
 
-pub fn is_visible(state: BannerState) -> bool {
+fn is_visible(state: BannerState) -> bool {
     match state {
         BannerState::Active | BannerState::AlwaysActive => true,
         BannerState::Cancelled => false,
@@ -55,7 +55,7 @@ pub fn wallet_setup_keys(wallet: &Wallet) -> Vec<GemBannerKey> {
         .collect()
 }
 
-pub fn is_visible_event(event: BannerEvent, context: &GemBannerContext) -> bool {
+fn is_visible_event(event: BannerEvent, context: &GemBannerContext) -> bool {
     match event {
         BannerEvent::AccountBlockedMultiSignature => true,
         BannerEvent::AccountActivation => !context.has_asset || !context.has_available_balance,

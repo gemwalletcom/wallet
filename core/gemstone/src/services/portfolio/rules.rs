@@ -22,7 +22,7 @@ fn converted_percentage(value: ChartValuePercentage, rate: f64) -> ChartValuePer
     }
 }
 
-pub fn wallet_periods() -> Vec<ChartPeriod> {
+fn wallet_periods() -> Vec<ChartPeriod> {
     vec![ChartPeriod::Day, ChartPeriod::Week, ChartPeriod::Month, ChartPeriod::Year, ChartPeriod::All]
 }
 

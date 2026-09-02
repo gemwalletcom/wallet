@@ -80,7 +80,7 @@ pub fn next_wallet_index(wallets: &[Wallet]) -> i32 {
     wallets.iter().map(|wallet| wallet.index).max().map(|index| index + 1).unwrap_or(1)
 }
 
-pub fn missing_chains(wallet: &Wallet, chains: &[Chain]) -> Vec<Chain> {
+fn missing_chains(wallet: &Wallet, chains: &[Chain]) -> Vec<Chain> {
     chains.iter().copied().filter(|chain| wallet.account(*chain).is_none()).collect()
 }
 

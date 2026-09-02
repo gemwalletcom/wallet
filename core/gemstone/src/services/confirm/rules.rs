@@ -97,7 +97,7 @@ pub fn approval_value_from(value: &Option<GemBigUint>, is_unlimited: bool) -> Ge
     }
 }
 
-pub fn gem_approval_value(value: &GemBigUint, is_unlimited: bool) -> GemApprovalValue {
+fn gem_approval_value(value: &GemBigUint, is_unlimited: bool) -> GemApprovalValue {
     if is_unlimited {
         GemApprovalValue::Unlimited
     } else {

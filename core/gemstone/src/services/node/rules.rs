@@ -49,7 +49,7 @@ pub fn region_node(chain: Chain, region: NodeRegion) -> Node {
     }
 }
 
-pub fn config_node(node: node_config::Node) -> Node {
+fn config_node(node: node_config::Node) -> Node {
     let (status, priority) = match node.priority {
         NodePriority::High => (NodeState::Active, 3),
         NodePriority::Medium => (NodeState::Active, 2),

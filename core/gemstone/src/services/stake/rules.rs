@@ -136,7 +136,7 @@ pub fn merge_validators(validators: Vec<DelegationValidator>, delegation_validat
         .collect()
 }
 
-pub fn inactive_validator(chain: Chain, id: String, name: String) -> DelegationValidator {
+fn inactive_validator(chain: Chain, id: String, name: String) -> DelegationValidator {
     DelegationValidator {
         chain,
         id,

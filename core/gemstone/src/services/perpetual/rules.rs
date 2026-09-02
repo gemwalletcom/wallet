@@ -100,7 +100,7 @@ impl GemPerpetualOrderAction {
     }
 }
 
-pub fn slippage_price(market_price: f64, direction: PerpetualDirection, opens: bool, slippage: f64) -> f64 {
+fn slippage_price(market_price: f64, direction: PerpetualDirection, opens: bool, slippage: f64) -> f64 {
     let fraction = slippage / 100.0;
     let multiplier = match (direction, opens) {
         (PerpetualDirection::Long, true) | (PerpetualDirection::Short, false) => 1.0 + fraction,
@@ -109,7 +109,7 @@ pub fn slippage_price(market_price: f64, direction: PerpetualDirection, opens: b
     market_price * multiplier
 }
 
-pub fn order_amounts(usd_amount: f64, leverage: u8, price: f64) -> (f64, f64, f64) {
+fn order_amounts(usd_amount: f64, leverage: u8, price: f64) -> (f64, f64, f64) {
     let size = (usd_amount * f64::from(leverage)) / price;
     let fiat_value = price * size;
     let margin_amount = fiat_value / f64::from(leverage);
