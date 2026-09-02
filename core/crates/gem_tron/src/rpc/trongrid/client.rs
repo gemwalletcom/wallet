@@ -10,6 +10,23 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::result::Result;
 
+const TRANSACTIONS_PAGE_SIZE: usize = 200;
+
+#[derive(Clone, Copy)]
+enum TransactionEndpoint {
+    Transactions,
+    Trc20,
+}
+
+impl TransactionEndpoint {
+    fn path(self, address: &str) -> String {
+        match self {
+            Self::Transactions => format!("/v1/accounts/{address}/transactions"),
+            Self::Trc20 => format!("/v1/accounts/{address}/transactions/trc20"),
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct TronGridClient<C: Client> {
     client: C,
@@ -31,14 +48,59 @@ impl<C: Client> TronGridClient<C> {
         }
     }
 
-    pub async fn get_transactions(&self, address: &str, limit: usize) -> Result<Data<Vec<TronGridTransaction>>, Box<dyn Error + Send + Sync>> {
-        let path = &format!("/v1/accounts/{}/transactions?limit={}", address, limit);
-        Ok(self.client.get_with_headers(path, self.headers()).await?)
+    async fn get_transaction_page(
+        &self,
+        address: &str,
+        endpoint: TransactionEndpoint,
+        limit: usize,
+        fingerprint: Option<&str>,
+    ) -> Result<Data<Vec<TronGridTransaction>>, Box<dyn Error + Send + Sync>> {
+        let fingerprint_parameter = fingerprint.map(|value| format!("&fingerprint={value}")).unwrap_or_default();
+        let path = format!("{}?limit={limit}{fingerprint_parameter}", endpoint.path(address));
+        Ok(self.client.get_with_headers(&path, self.headers()).await?)
     }
 
-    pub async fn get_trc20_transactions(&self, address: &str, limit: usize) -> Result<Data<Vec<TronGridTransaction>>, Box<dyn Error + Send + Sync>> {
-        let path = &format!("/v1/accounts/{}/transactions/trc20?limit={}", address, limit);
-        Ok(self.client.get_with_headers(path, self.headers()).await?)
+    async fn get_transaction_pages(
+        &self,
+        address: &str,
+        endpoint: TransactionEndpoint,
+        limit: usize,
+        page_size: usize,
+    ) -> Result<Vec<TronGridTransaction>, Box<dyn Error + Send + Sync>> {
+        if limit == 0 {
+            return Ok(Vec::new());
+        }
+
+        let mut transactions = Vec::with_capacity(limit);
+        let mut fingerprint = None;
+        let max_pages = limit.div_ceil(page_size);
+
+        for _ in 0..max_pages {
+            let page_limit = (limit - transactions.len()).min(page_size);
+            let page = self.get_transaction_page(address, endpoint, page_limit, fingerprint.as_deref()).await?;
+            let is_empty = page.data.is_empty();
+
+            transactions.extend(page.data);
+            if transactions.len() >= limit || is_empty {
+                break;
+            }
+
+            let Some(next_fingerprint) = page.meta.and_then(|meta| meta.fingerprint) else {
+                break;
+            };
+            fingerprint = Some(next_fingerprint);
+        }
+
+        transactions.truncate(limit);
+        Ok(transactions)
+    }
+
+    pub async fn get_transactions(&self, address: &str, limit: usize) -> Result<Vec<TronGridTransaction>, Box<dyn Error + Send + Sync>> {
+        self.get_transaction_pages(address, TransactionEndpoint::Transactions, limit, TRANSACTIONS_PAGE_SIZE).await
+    }
+
+    pub async fn get_trc20_transactions(&self, address: &str, limit: usize) -> Result<Vec<TronGridTransaction>, Box<dyn Error + Send + Sync>> {
+        self.get_transaction_pages(address, TransactionEndpoint::Trc20, limit, TRANSACTIONS_PAGE_SIZE).await
     }
 
     pub async fn get_accounts(&self, address: &str) -> Result<Data<Vec<TronGridAccount>>, Box<dyn Error + Send + Sync>> {
@@ -53,10 +115,51 @@ impl<C: Client> ChainTransactions for TronGridClient<C> {
         let TransactionsRequest { address, limit, .. } = request;
         let (transactions, trc20_transactions) = futures::try_join!(self.get_transactions(&address, limit), self.get_trc20_transactions(&address, limit))?;
         Ok(TransactionsResult::TransactionRequests(TronGridMapper::map_transaction_requests(
-            transactions.data,
-            trc20_transactions.data,
+            transactions,
+            trc20_transactions,
             limit,
         )))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::{Arc, Mutex};
+
+    use gem_client::testkit::MockClient;
+
+    use super::*;
+
+    const TRANSACTIONS_RESPONSE: &str = include_str!("../../../testdata/transactions_by_address.json");
+    const TRANSACTIONS_PAGE_2_RESPONSE: &str = include_str!("../../../testdata/transactions_by_address_page_2.json");
+
+    #[tokio::test]
+    async fn test_get_transaction_pages() {
+        let paths = Arc::new(Mutex::new(Vec::new()));
+        let paths_handler = paths.clone();
+        let client = TronGridClient::new(
+            MockClient::new().with_get(move |path| {
+                paths_handler.lock().unwrap().push(path.to_string());
+                if path.contains("fingerprint=") {
+                    Ok(TRANSACTIONS_PAGE_2_RESPONSE.as_bytes().to_vec())
+                } else {
+                    Ok(TRANSACTIONS_RESPONSE.as_bytes().to_vec())
+                }
+            }),
+            String::new(),
+        );
+
+        let transactions = client.get_transaction_pages("address", TransactionEndpoint::Transactions, 6, 4).await.unwrap();
+
+        assert_eq!(transactions.len(), 6);
+        assert_eq!(transactions.last().unwrap().transaction_id, "page-two-transaction-2");
+        assert_eq!(
+            *paths.lock().unwrap(),
+            vec![
+                "/v1/accounts/address/transactions?limit=4",
+                "/v1/accounts/address/transactions?limit=2&fingerprint=2NgPQPX6mkxX1nyEcdNgHL1S2oc6C2YNniHptY2Nbq9Ja5fetDtG2WmdZHJ6LSz5JcuhU5ofSuCDwavxdAmdx4HY3kqMowHJwVn1V9kHL4MLPEgGQSNYpmjSu9z6tWbuTpaLashp8XLgJgxbyK1kTinb6THXLug265TJGCo9LU4VbEDG8kbG9AgpSsQqcSm3AxRhcu56RqnsdVDTTM4gTjJ1uRc",
+            ]
+        );
     }
 }
 

@@ -5,6 +5,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Data<T> {
     pub data: T,
+    #[serde(default)]
+    pub meta: Option<Meta>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Meta {
+    pub fingerprint: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
