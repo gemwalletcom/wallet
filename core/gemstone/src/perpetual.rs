@@ -14,7 +14,6 @@ use crate::config::perpetual_config::HYPERLIQUID_DEPOSIT_ADDRESS;
 use crate::models::custom_types::GemBigInt;
 use crate::models::perpetual::GemPerpetualSubscription;
 use crate::models::{GemAsset, GemTransactionInputType};
-use crate::services::error::GemServiceError;
 use crate::services::perpetual::model::{GemPerpetualCloseInput, GemPerpetualOrderInput};
 use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
@@ -55,7 +54,7 @@ impl GemPerpetual {
         perpetual_rules::funding_apr(funding)
     }
 
-    pub fn order(&self, input: GemPerpetualOrderInput) -> Result<PerpetualType, GemServiceError> {
+    pub fn order(&self, input: GemPerpetualOrderInput) -> PerpetualType {
         perpetual_rules::order(self.provider.clone(), input)
     }
 

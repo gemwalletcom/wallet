@@ -1,3 +1,4 @@
+use crate::models::custom_types::GemBigInt;
 use primitives::chart::ChartCandleUpdate;
 use primitives::{Asset, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType};
 
@@ -26,7 +27,7 @@ pub struct GemPerpetualOrderInput {
     pub asset: Asset,
     pub asset_index: i32,
     pub price: f64,
-    pub usdc_value: String,
+    pub usdc_value: GemBigInt,
     pub usdc_decimals: i32,
     pub leverage: u8,
     pub slippage: Option<f64>,

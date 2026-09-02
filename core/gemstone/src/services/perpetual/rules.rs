@@ -10,12 +10,9 @@ use primitives::{
 
 use super::model::{GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualCloseInput, GemPerpetualOrderAction, GemPerpetualOrderInput};
 use crate::perpetual::GemPerpetual;
-use crate::services::error::GemServiceError;
-use num_bigint::BigInt;
 use primitives::{PerpetualConfirmData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, PerpetualType};
 use std::cmp::Ordering;
 use std::collections::HashSet;
-use std::str::FromStr;
 
 use crate::models::asset::wallet_default_assets;
 use crate::services::balance::{GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
@@ -189,9 +186,8 @@ pub fn collateral_price(chain: Chain) -> Option<AssetPrice> {
     collateral_asset_id(chain).map(|asset_id| AssetPrice::new(asset_id, 1.0, 0.0, Utc::now()))
 }
 
-pub fn order(provider: PerpetualProvider, input: GemPerpetualOrderInput) -> Result<PerpetualType, GemServiceError> {
-    let usdc_value = BigInt::from_str(&input.usdc_value).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() })?;
-    let usd_amount = usdc_value.to_string().parse::<f64>().unwrap_or_default() / 10f64.powi(input.usdc_decimals);
+pub fn order(provider: PerpetualProvider, input: GemPerpetualOrderInput) -> PerpetualType {
+    let usd_amount = input.usdc_value.to_string().parse::<f64>().unwrap_or_default() / 10f64.powi(input.usdc_decimals);
     let slippage = slippage_percent(input.slippage);
     let (size, fiat_value, margin_amount) = order_amounts(usd_amount, input.leverage, input.price);
     let price = slippage_price(input.price, input.direction.clone(), input.action.opens_position(), slippage);
@@ -215,11 +211,11 @@ pub fn order(provider: PerpetualProvider, input: GemPerpetualOrderInput) -> Resu
         stop_loss: input.stop_loss,
     };
 
-    Ok(match input.action {
+    match input.action {
         GemPerpetualOrderAction::Open => PerpetualType::Open(data),
         GemPerpetualOrderAction::Increase => PerpetualType::Increase(data),
         GemPerpetualOrderAction::Reduce { position_direction } => PerpetualType::Reduce(PerpetualReduceData { data, position_direction }),
-    })
+    }
 }
 
 pub fn close_order(provider: PerpetualProvider, input: GemPerpetualCloseInput) -> PerpetualConfirmData {
@@ -269,6 +265,7 @@ pub fn merge_candle(candles: Vec<ChartCandleStick>, candle: ChartCandleStick) ->
 mod tests {
     use super::*;
     use chrono::DateTime;
+    use num_bigint::BigInt;
     use num_bigint::BigUint;
     use primitives::{Asset, ChartPeriod, PerpetualDirection, PerpetualId, PerpetualMarginType};
 
@@ -489,7 +486,7 @@ mod tests {
             asset: Asset::mock(),
             asset_index: 1,
             price: 100.0,
-            usdc_value: "50000000".to_string(),
+            usdc_value: BigInt::from(50_000_000),
             usdc_decimals: 6,
             leverage: 4,
             slippage: None,
@@ -500,15 +497,14 @@ mod tests {
 
     #[test]
     fn test_perpetual_order_keeps_the_position_action_and_prices_in_the_slippage() {
-        let open = order(PerpetualProvider::Hypercore, order_input(GemPerpetualOrderAction::Open)).unwrap();
-        let increase = order(PerpetualProvider::Hypercore, order_input(GemPerpetualOrderAction::Increase)).unwrap();
+        let open = order(PerpetualProvider::Hypercore, order_input(GemPerpetualOrderAction::Open));
+        let increase = order(PerpetualProvider::Hypercore, order_input(GemPerpetualOrderAction::Increase));
         let reduce = order(
             PerpetualProvider::Hypercore,
             order_input(GemPerpetualOrderAction::Reduce {
                 position_direction: PerpetualDirection::Short,
             }),
-        )
-        .unwrap();
+        );
 
         let PerpetualType::Open(data) = open else { panic!("expected an open order") };
         assert_eq!(data.slippage, 2.0);
