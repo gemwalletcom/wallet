@@ -7,6 +7,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountDataProvider
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountProviderFactory
@@ -38,12 +39,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigInteger
 import javax.inject.Inject
+import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemTransferBalance
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AmountViewModel @Inject constructor(
+    service: GemAmountServiceInterface,
     factory: AmountProviderFactory,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -89,9 +92,7 @@ class AmountViewModel @Inject constructor(
         calculateEquivalent(input, direction, current.asset, price.price.price, price.currency)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    val currency: StateFlow<Currency> = provider.assetInfo
-        .mapLatest { it?.price?.currency ?: Currency.USD }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, Currency.USD)
+    val currency: Currency = service.currency().toCurrency()
 
     val buttonState: StateFlow<ButtonState> = combine(
         snapshotFlow { amount },

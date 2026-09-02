@@ -348,7 +348,11 @@ Three gotchas if you repeat the sweep, all met on this pass:
 - **The amount providers still mirror each other.** `GemAmountType::validate` now checks a value
   against the type's own available value and minimum, so neither app hands those in, and
   `GemAmountService { stake, preferences }` answers the currency, the earn data and the perpetual
-  defaults. What is left is the provider layer itself: the iOS providers (`AmountTransferViewModel`,
+  defaults on both apps: `perpetual_leverage(max_leverage)` picks the preferred option and
+  `perpetual_autoclose(price, direction, leverage)` turns the preference percents into target
+  prices, so neither app reads the perpetual preferences or runs the estimator itself (Android's
+  `AmountPerpetualProvider` took `UserConfig` for that, and `AmountViewModel` read the currency
+  off the price with a `USD` fallback). What is left is the provider layer itself: the iOS providers (`AmountTransferViewModel`,
   `AmountStakeViewModel`, `AmountPerpetualViewModel`, `AmountEarnViewModel`) and Android's
   `providers/*` each derive the max button, the equivalent value and the confirm input from
   `GemAmountRules` / `GemAmountLimits`; a Core `GemAmountInput` value that carries all of it per

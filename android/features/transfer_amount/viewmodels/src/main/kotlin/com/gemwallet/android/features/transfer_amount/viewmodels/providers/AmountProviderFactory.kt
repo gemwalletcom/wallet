@@ -7,9 +7,9 @@ import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.model.AmountParams
 import kotlinx.coroutines.CoroutineScope
+import uniffi.gemstone.GemAmountServiceInterface
 import javax.inject.Inject
 
 class AmountProviderFactory @Inject constructor(
@@ -20,7 +20,7 @@ class AmountProviderFactory @Inject constructor(
     private val getStakeValidator: GetStakeValidator,
     private val getPerpetual: GetPerpetual,
     private val getPerpetualBalance: GetPerpetualBalance,
-    private val userConfig: UserConfig,
+    private val service: GemAmountServiceInterface,
 ) {
     fun create(params: AmountParams, scope: CoroutineScope): AmountDataProvider = when (params) {
         is AmountParams.Transfer,
@@ -41,7 +41,7 @@ class AmountProviderFactory @Inject constructor(
         )
         is AmountParams.Perpetual -> AmountPerpetualProvider(
             params = params,
-            userConfig = userConfig,
+            service = service,
             getAssetInfo = getAssetInfo,
             getPerpetual = getPerpetual,
             getPerpetualBalance = getPerpetualBalance,

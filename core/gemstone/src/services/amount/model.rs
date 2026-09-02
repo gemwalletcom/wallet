@@ -54,6 +54,12 @@ pub struct GemAmountRules {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualAutoclose {
+    pub take_profit: Option<f64>,
+    pub stop_loss: Option<f64>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAmountLimits {
     pub available_value: GemBigInt,
     pub max_value: GemBigInt,

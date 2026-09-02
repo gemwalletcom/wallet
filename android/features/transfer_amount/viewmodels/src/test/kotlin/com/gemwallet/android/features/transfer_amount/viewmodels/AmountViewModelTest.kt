@@ -38,7 +38,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.math.BigInteger
+import com.wallet.core.primitives.Currency
 import uniffi.gemstone.GemAmountLimits
+import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemTransferBalance
 
@@ -76,6 +78,7 @@ class AmountViewModelTest {
         coEvery { buildConfirmInput(capture(builtAmounts), capture(builtIsMax)) } returns confirmInput
     }
     private val factory = mockk<AmountProviderFactory> { every { create(any(), any()) } returns provider }
+    private val service = mockk<GemAmountServiceInterface> { every { currency() } returns Currency.USD.string }
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
@@ -208,7 +211,7 @@ class AmountViewModelTest {
 
     private fun viewModelTest(block: suspend TestScope.(AmountViewModel) -> Unit) = runTest(testDispatcher) {
         val params = AmountParams.Transfer(asset.id, GemRecipient(address = "to", name = null))
-        val viewModel = AmountViewModel(factory, SavedStateHandle(mapOf(RouteArgument.Params.key to params.pack())))
+        val viewModel = AmountViewModel(service, factory, SavedStateHandle(mapOf(RouteArgument.Params.key to params.pack())))
         try {
             runCurrent()
             block(viewModel)

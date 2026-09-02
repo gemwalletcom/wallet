@@ -322,11 +322,11 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         throw AnyError("not stubbed")
     }
 
-    public func perpetualLeverage() -> UInt8 { 5 }
+    public func perpetualLeverage(maxLeverage: UInt8) -> UInt8 { min(5, maxLeverage) }
 
-    public func perpetualStopLossPercent() -> UInt8 { 0 }
-
-    public func perpetualTakeProfitPercent() -> UInt8 { 0 }
+    public func perpetualAutoclose(price _: Double, direction _: Gemstone.PerpetualDirection, leverage _: UInt8) -> GemPerpetualAutoclose {
+        GemPerpetualAutoclose(takeProfit: nil, stopLoss: nil)
+    }
 }
 
 public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchecked Sendable {

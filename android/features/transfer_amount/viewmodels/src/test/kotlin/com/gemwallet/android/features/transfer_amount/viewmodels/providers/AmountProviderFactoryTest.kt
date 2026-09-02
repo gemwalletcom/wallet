@@ -8,7 +8,7 @@ import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import uniffi.gemstone.GemAmountServiceInterface
 import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.mockAssetCosmos
@@ -48,9 +48,7 @@ class AmountProviderFactoryTest {
         getPerpetualBalance = mockk<GetPerpetualBalance>(relaxed = true) {
             every { getBalance() } returns flowOf(null)
         },
-        userConfig = mockk<UserConfig>(relaxed = true) {
-            every { perpetualLeverage() } returns flowOf(5)
-        },
+        service = mockk<GemAmountServiceInterface>(relaxed = true),
     )
     private val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
 

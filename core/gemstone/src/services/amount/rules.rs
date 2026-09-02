@@ -1,9 +1,9 @@
 use std::str::FromStr;
 
 use num_bigint::{BigInt, BigUint};
-use primitives::{Asset, Chain, StakeChain};
+use primitives::{Asset, AutocloseEstimator, Chain, PerpetualDirection, StakeChain, TpslType};
 
-use super::model::{GemAmountEarnType, GemAmountError, GemAmountLimits, GemAmountPerpetualPosition, GemAmountRules, GemAmountStakeType, GemAmountType};
+use super::model::{GemAmountEarnType, GemAmountError, GemAmountLimits, GemAmountPerpetualPosition, GemAmountRules, GemAmountStakeType, GemAmountType, GemPerpetualAutoclose};
 use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT};
 use crate::config::stake::get_stake_config;
 use crate::services::transfer::GemTransferBalance;
@@ -63,6 +63,15 @@ impl GemAmountType {
                 GemAmountPerpetualPosition::Reduce { available } => available.clone(),
             },
         })
+    }
+}
+
+pub fn perpetual_autoclose(price: f64, direction: PerpetualDirection, leverage: u8, take_profit_percent: u8, stop_loss_percent: u8) -> GemPerpetualAutoclose {
+    let estimator = AutocloseEstimator::for_open(price, 0.0, leverage, direction);
+    let target = |percent: u8, trigger_type: TpslType| (percent > 0).then(|| estimator.target_price_from_roe(i32::from(percent), trigger_type));
+    GemPerpetualAutoclose {
+        take_profit: target(take_profit_percent, TpslType::TakeProfit),
+        stop_loss: target(stop_loss_percent, TpslType::StopLoss),
     }
 }
 
@@ -374,6 +383,28 @@ mod tests {
     }
 
     #[test]
+    fn test_perpetual_autoclose_follows_the_preference_percents() {
+        let long = perpetual_autoclose(100.0, PerpetualDirection::Long, 10, 50, 20);
+        assert_eq!(long.take_profit, Some(105.0));
+        assert_eq!(long.stop_loss, Some(98.0));
+
+        let short = perpetual_autoclose(100.0, PerpetualDirection::Short, 10, 50, 20);
+        assert_eq!(short.take_profit, Some(95.0));
+        assert_eq!(short.stop_loss, Some(102.0));
+
+        let off = perpetual_autoclose(100.0, PerpetualDirection::Long, 10, 0, 20);
+        assert_eq!(off.take_profit, None);
+        assert_eq!(off.stop_loss, Some(98.0));
+        assert_eq!(
+            perpetual_autoclose(100.0, PerpetualDirection::Long, 10, 0, 0),
+            GemPerpetualAutoclose {
+                take_profit: None,
+                stop_loss: None
+            }
+        );
+    }
+
+    #[test]
     fn test_validate() {
         assert_eq!(validate(&BigInt::from(0), &BigInt::from(10), &BigInt::from(0)), Err(GemAmountError::Zero));
         assert_eq!(
@@ -399,7 +430,10 @@ mod tests {
                 minimum: "1000000000000000000".into()
             })
         );
-        assert_eq!(stake.validate(&bnb, &balance(5_000_000_000_000_000_000, 0, 0, 0), "1500000000000000000".to_string()), Ok(()));
+        assert_eq!(
+            stake.validate(&bnb, &balance(5_000_000_000_000_000_000, 0, 0, 0), "1500000000000000000".to_string()),
+            Ok(())
+        );
         assert_eq!(
             GemAmountType::Transfer.validate(&bnb, &balance(10, 0, 0, 0), "11".to_string()),
             Err(GemAmountError::InsufficientBalance { available: "10".into() })

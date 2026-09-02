@@ -1,21 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemAmountServiceProtocol
 import BigInt
 import Formatters
 import Foundation
-import protocol Gemstone.GemPreferencesServiceProtocol
-import enum Gemstone.GemAmountType
 import enum Gemstone.GemAmountPerpetualPosition
+import protocol Gemstone.GemAmountServiceProtocol
+import enum Gemstone.GemAmountType
+import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import Localization
 import Perpetuals
-import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Style
-import class Gemstone.GemAutocloseEstimator
-import struct Gemstone.GemTransferData
 
 @Observable
 public final class AmountPerpetualViewModel: AmountDataProvidable {
@@ -24,28 +21,21 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     let leverageSelection: SelectionState<LeverageOption>?
     let leverageTextStyle: TextStyle
     let currencyFormatter: CurrencyFormatter
+    private let service: any GemAmountServiceProtocol
     private let numericFormatter = NumericFormatter()
 
     var takeProfit: String?
     var stopLoss: String?
 
-    private let takeProfitPercent: UInt8
-    private let stopLossPercent: UInt8
     private var isAutocloseEdited = false
 
     init(asset: Asset, data: PerpetualRecipientData, service: any GemAmountServiceProtocol) {
         self.asset = asset
         self.data = data
+        self.service = service
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: service.currency())
-        takeProfitPercent = service.perpetualTakeProfitPercent()
-        stopLossPercent = service.perpetualStopLossPercent()
-        (leverageSelection, leverageTextStyle) = Self.makeLeverageSelection(data: data, leverage: service.perpetualLeverage())
-        (takeProfit, stopLoss) = Self.makeDefaultAutoclose(
-            data: data,
-            leverage: leverageSelection?.selected.value ?? data.positionAction.transferData.leverage,
-            takeProfitPercent: takeProfitPercent,
-            stopLossPercent: stopLossPercent,
-        )
+        (leverageSelection, leverageTextStyle) = Self.makeLeverageSelection(data: data, service: service)
+        (takeProfit, stopLoss) = Self.makeDefaultAutoclose(data: data, leverage: leverageSelection?.selected.value ?? data.positionAction.transferData.leverage, service: service)
     }
 
     var leverageTitle: String {
@@ -148,12 +138,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
 
     func onChangeLeverage() {
         guard !isAutocloseEdited else { return }
-        (takeProfit, stopLoss) = Self.makeDefaultAutoclose(
-            data: data,
-            leverage: leverage,
-            takeProfitPercent: takeProfitPercent,
-            stopLossPercent: stopLossPercent,
-        )
+        (takeProfit, stopLoss) = Self.makeDefaultAutoclose(data: data, leverage: leverage, service: service)
     }
 
     func updateAutoclose(takeProfit: String?, stopLoss: String?) {
@@ -164,23 +149,20 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
 
     private static func makeLeverageSelection(
         data: PerpetualRecipientData,
-        leverage: UInt8,
+        service: any GemAmountServiceProtocol,
     ) -> (SelectionState<LeverageOption>?, TextStyle) {
         guard case let .open(openData) = data.positionAction else {
             return (nil, .callout)
         }
 
-        let transferData = data.positionAction.transferData
-        let options = LeverageOption.options(maxLeverage: transferData.leverage)
-        let selected = LeverageOption.option(desiredValue: leverage, from: options)
+        let maxLeverage = data.positionAction.transferData.leverage
         let textStyle = TextStyle(
             font: .callout,
             color: PerpetualDirectionViewModel(direction: openData.direction).color,
         )
-
         let selection = SelectionState(
-            options: options,
-            selected: selected,
+            options: LeverageOption.options(maxLeverage: maxLeverage),
+            selected: LeverageOption(value: service.perpetualLeverage(maxLeverage: maxLeverage)),
             isEnabled: true,
             title: Localized.Perpetual.leverage,
         )
@@ -191,31 +173,17 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     private static func makeDefaultAutoclose(
         data: PerpetualRecipientData,
         leverage: UInt8,
-        takeProfitPercent: UInt8,
-        stopLossPercent: UInt8,
+        service: any GemAmountServiceProtocol,
     ) -> (takeProfit: String?, stopLoss: String?) {
         guard case .open = data.positionAction else {
             return (nil, nil)
         }
-        guard takeProfitPercent > 0 || stopLossPercent > 0 else {
-            return (nil, nil)
-        }
-
         let transferData = data.positionAction.transferData
-        let estimator = GemAutocloseEstimator(
-            entryPrice: transferData.price,
-            positionSize: 0,
-            direction: transferData.direction.json(),
-            leverage: leverage,
-        )
+        let autoclose = service.perpetualAutoclose(price: transferData.price, direction: transferData.direction.json(), leverage: leverage)
         let formatter = PerpetualFormatter(provider: .hypercore)
-        func price(_ percent: UInt8, _ type: TpslType) -> String? {
-            guard percent > 0 else { return nil }
-            return formatter.formatInputPrice(
-                estimator.targetPriceFromRoe(roePercent: Int32(percent), triggerType: type.map()),
-                decimals: transferData.asset.decimals,
-            )
-        }
-        return (price(takeProfitPercent, .takeProfit), price(stopLossPercent, .stopLoss))
+        return (
+            autoclose.takeProfit.map { formatter.formatInputPrice($0, decimals: transferData.asset.decimals) },
+            autoclose.stopLoss.map { formatter.formatInputPrice($0, decimals: transferData.asset.decimals) },
+        )
     }
 }

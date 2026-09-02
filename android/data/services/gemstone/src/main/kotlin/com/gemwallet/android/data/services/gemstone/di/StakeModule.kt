@@ -7,6 +7,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemAmountService
+import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemExplorerService
@@ -44,4 +46,7 @@ object StakeModule {
     @Singleton
     fun provideGemStakeServiceInterface(service: GemStakeService): GemStakeServiceInterface = service
 
+    @Provides
+    fun provideGemAmountService(stake: GemStakeService, preferences: GemPreferencesService): GemAmountServiceInterface =
+        GemAmountService(stake, preferences)
 }

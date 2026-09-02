@@ -3,7 +3,6 @@ package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
@@ -27,6 +26,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemAmountServiceInterface
+import uniffi.gemstone.GemPerpetualAutoclose
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -74,10 +75,9 @@ class AmountPerpetualProviderTest {
         val getAssetInfo = mockk<GetAssetInfo>(relaxed = true) {
             every { this@mockk.invoke(any()) } returns flowOf(null)
         }
-        val userConfig = mockk<UserConfig>(relaxed = true) {
-            every { perpetualLeverage() } returns flowOf(5)
-            every { perpetualTakeProfit() } returns flowOf(0)
-            every { perpetualStopLoss() } returns flowOf(0)
+        val service = mockk<GemAmountServiceInterface> {
+            every { perpetualLeverage(any()) } returns 5u
+            every { perpetualAutoclose(any(), any(), any()) } returns GemPerpetualAutoclose(takeProfit = null, stopLoss = null)
         }
         val perpetualAggregate = mockk<PerpetualDetailsDataAggregate>(relaxed = true)
         val getPerpetual = mockk<GetPerpetual>(relaxed = true) {
@@ -88,7 +88,7 @@ class AmountPerpetualProviderTest {
         }
         return AmountPerpetualProvider(
             params = AmountParams.Perpetual(asset.id, PerpetualId(PerpetualProvider.Hypercore, "BTC-PERP"), positionAction),
-            userConfig = userConfig,
+            service = service,
             getAssetInfo = getAssetInfo,
             getPerpetual = getPerpetual,
             getPerpetualBalance = getPerpetualBalance,
