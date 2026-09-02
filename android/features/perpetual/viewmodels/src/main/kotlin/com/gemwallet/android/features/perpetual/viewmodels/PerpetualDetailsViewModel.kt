@@ -8,7 +8,6 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPosition
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 
-import com.gemwallet.android.application.perpetual.cases.SyncPerpetualPositions
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
@@ -59,11 +58,10 @@ class PerpetualDetailsViewModel @Inject constructor(
     private val getPerpetual: GetPerpetual,
     private val getPerpetualPosition: GetPerpetualPosition,
     private val getTransactions: GetTransactions,
-    private val syncPerpetualPositions: SyncPerpetualPositions,
     private val buildPerpetualParams: BuildPerpetualParams,
     private val perpetualObserver: PerpetualObserver,
     private val service: GemPerpetualDetailsServiceInterface,
-    getSession: GetSession,
+    private val getSession: GetSession,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -188,7 +186,7 @@ class PerpetualDetailsViewModel @Inject constructor(
     fun fetch() {
         refreshTrigger.update { it + 1 }
         viewModelScope.launch(Dispatchers.IO) {
-            syncPerpetualPositions.syncPerpetualPositions()
+            getSession().value?.wallet?.let { perpetualObserver.update(it) }
         }
     }
 

@@ -7,9 +7,6 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPosition
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
-import com.gemwallet.android.application.perpetual.cases.SyncPerpetualPositions
-import com.gemwallet.android.application.perpetual.cases.SyncPerpetuals
-import com.gemwallet.android.application.perpetual.cases.SetPerpetualPinned
 import com.gemwallet.android.data.coordinators.perpetuals.BuildPerpetualParamsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualAccountModeImpl
 import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
@@ -18,9 +15,6 @@ import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualPositionImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualPositionsImpl
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualsImpl
-import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualPositionsImpl
-import com.gemwallet.android.data.coordinators.perpetuals.SyncPerpetualsImpl
-import com.gemwallet.android.data.coordinators.perpetuals.SetPerpetualPinnedImpl
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.application.session.cases.GetSession
@@ -39,30 +33,10 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByA
 object PerpetualModule {
     @Provides
     @Singleton
-    fun provideSyncPerpetuals(
-        perpetualService: GemPerpetualService,
-    ): SyncPerpetuals {
-        return SyncPerpetualsImpl(perpetualService = perpetualService)
-    }
-
-    @Provides
-    @Singleton
     fun provideGetPerpetualAccountMode(
         perpetualService: GemPerpetualService,
     ): GetPerpetualAccountMode {
         return GetPerpetualAccountModeImpl(perpetualService)
-    }
-
-    @Provides
-    @Singleton
-    fun provideSyncPerpetualPositions(
-        getSession: GetSession,
-        perpetualService: GemPerpetualService,
-    ): SyncPerpetualPositions {
-        return SyncPerpetualPositionsImpl(
-            getSession = getSession,
-            perpetualService = perpetualService,
-        )
     }
 
     @Provides
@@ -127,12 +101,6 @@ object PerpetualModule {
             observePerpetualWallet = observePerpetualWallet,
             walletPreferencesService = walletPreferencesService,
         )
-    }
-
-    @Provides
-    @Singleton
-    fun provideSetPerpetualPinned(perpetualService: GemPerpetualService): SetPerpetualPinned {
-        return SetPerpetualPinnedImpl(perpetualService)
     }
 
     @Provides

@@ -418,7 +418,11 @@ setup rather than retrying it.
   `WalletSearchScope`, the `@WalletSearch` qualifier and `SearchTokens.search(query, …)` are gone;
   `SearchTokens` keeps the widget's `syncAssets` call only. `UpdateRecentAsset`,
   `SwitchAssetVisibility`, `SetAssetPinned` and `SetPerpetualPinned` remain for
-  `PerpetualMarketViewModel`, `NetworkAssetsViewModel` and `AssetsViewModel`.
+  `NetworkAssetsViewModel` and `AssetsViewModel`.
+- **Perpetual market**: `PerpetualMarketViewModel` holds `GemPerpetualService` (`syncMarketsIfNeeded`,
+  `setPinned`) and `GemRecentActivityService`, and position sync is `PerpetualObserver.update(wallet)`
+  exactly as iOS's `PerpetualObservable.update(for:)`, so `SyncPerpetuals`, `SyncPerpetualPositions`,
+  `SetPerpetualPinned` and `UpdateRecentAsset` are gone.
 - **Price alerts**: `PriceAlertViewModel`, `PriceAlertTargetViewModel` and `AssetPriceAlertsViewModel`
   call `GemPriceAlertService` directly (`sync`, `setEnabled`/`isEnabled`, `setAutoAlert`,
   `enablePriceAlert`, `deletePriceAlerts`, `currency`) and the asset screen syncs through

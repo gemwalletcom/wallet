@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
-import com.gemwallet.android.application.perpetual.cases.SyncPerpetuals
 import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.services.gemstone.perpetual.HyperliquidObserverService
 import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
@@ -78,7 +77,6 @@ object PerpetualModule {
     @Singleton
     fun provideHyperliquidObserverService(
         observePerpetualWallet: ObservePerpetualWallet,
-        syncPerpetuals: SyncPerpetuals,
         perpetualService: GemPerpetualService,
         getNodeUrlCase: GetNodeUrlCase,
         okHttpClient: OkHttpClient,
@@ -93,7 +91,6 @@ object PerpetualModule {
         )
         return HyperliquidObserverService(
             observePerpetualWallet = observePerpetualWallet,
-            syncPerpetuals = syncPerpetuals,
             perpetualService = perpetualService,
             streamService = GemPerpetualStreamService(perpetualService, GemstonePerpetualStreamConnection(connection)),
             connection = connection,

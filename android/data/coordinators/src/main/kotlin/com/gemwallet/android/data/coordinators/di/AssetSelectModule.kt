@@ -7,7 +7,6 @@ import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
 import com.gemwallet.android.application.asset_select.cases.SearchListAssets
 import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
 import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
-import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
 import com.gemwallet.android.application.assets.cases.EnableAsset
 import com.gemwallet.android.data.coordinators.asset_select.ClearRecentAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.GetChainAssetsImpl
@@ -16,7 +15,6 @@ import com.gemwallet.android.data.coordinators.asset_select.GetSelectAssetsInfoI
 import com.gemwallet.android.data.coordinators.asset_select.SearchListAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.SearchSelectAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.SwitchAssetVisibilityImpl
-import com.gemwallet.android.data.coordinators.asset_select.UpdateRecentAssetImpl
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.application.session.cases.GetSession
@@ -71,13 +69,6 @@ object AssetSelectModule {
     fun provideSwitchAssetVisibility(
         enableAsset: EnableAsset,
     ): SwitchAssetVisibility = SwitchAssetVisibilityImpl(enableAsset)
-
-    @Provides
-    @Singleton
-    fun provideUpdateRecentAsset(
-        getSession: GetSession,
-        recentAssetsService: RecentAssetsService,
-    ): UpdateRecentAsset = UpdateRecentAssetImpl(getSession, recentAssetsService)
 
     @Provides
     @Singleton
