@@ -11,12 +11,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import uniffi.gemstone.GemRecipientService
+import uniffi.gemstone.GemNameServiceInterface
 import uniffi.gemstone.GemRecipientValidation
 
 class AddressInputModel(
     private val getNameRecord: GetNameRecord,
-    private val recipientService: GemRecipientService,
+    private val nameService: GemNameServiceInterface,
     scope: CoroutineScope,
     initialChain: Chain? = null,
 ) {
@@ -85,5 +85,5 @@ class AddressInputModel(
     }
 
     private fun validation(text: String, nameRecord: NameRecord?, chain: Chain): GemRecipientValidation =
-        recipientService.validate(chain.string, text, nameRecord?.toJson())
+        nameService.validateRecipient(chain.string, text, nameRecord?.toJson())
 }

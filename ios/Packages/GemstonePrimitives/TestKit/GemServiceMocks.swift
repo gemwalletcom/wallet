@@ -246,14 +246,7 @@ public final class GemManageContactServiceMock: GemManageContactServiceProtocol,
         service = GemManageContactService(
             contacts: contactService(),
             addresses: GemAddressService(),
-            names: GemNameService(
-                api: GemDeviceApiClient(
-                    provider: StubAlienProvider(),
-                    baseUrl: "https://localhost",
-                    deviceKey: GemDeviceKeyService(store: GemSecureStoreMock()),
-                ),
-                store: GemAddressStoreMock(),
-            ),
+            names: GemNameService.mock(),
             chains: GemChainService(),
         )
     }
@@ -348,8 +341,21 @@ public final class GemFiatServiceMock: GemFiatServiceProtocol, @unchecked Sendab
 
 }
 
+public extension GemNameService {
+    static func mock() -> GemNameService {
+        GemNameService(
+            api: GemDeviceApiClient(
+                provider: StubAlienProvider(),
+                baseUrl: "https://localhost",
+                deviceKey: GemDeviceKeyService(store: GemSecureStoreMock()),
+            ),
+            store: GemAddressStoreMock(),
+        )
+    }
+}
+
 public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendable {
-    private let recipientService = GemRecipientService()
+    private let rules = GemNameService.mock()
     private let addressNames: [Primitives.AddressName]
     private let nameRecord: Primitives.NameRecord?
     private let error: Error?
@@ -375,8 +381,12 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
         try addressNames.first { $0.chain.rawValue == chain && $0.address == address }?.json()
     }
 
-    public func recipients() -> GemRecipientService {
-        recipientService
+    public func validateRecipient(chain: Gemstone.Chain, input: String, nameRecord: Gemstone.NameRecord?) -> GemRecipientValidation {
+        rules.validateRecipient(chain: chain, input: input, nameRecord: nameRecord)
+    }
+
+    public func recipient(chain: Gemstone.Chain, input: String, nameRecord: Gemstone.NameRecord?, memo: String?, references: [String]) throws -> GemRecipient {
+        try rules.recipient(chain: chain, input: input, nameRecord: nameRecord, memo: memo, references: references)
     }
 
     public func getAddressNames(requests: [Gemstone.ChainAddress]) async throws -> [Gemstone.AddressName] {

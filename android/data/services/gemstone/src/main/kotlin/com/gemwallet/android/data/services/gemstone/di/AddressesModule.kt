@@ -9,6 +9,7 @@ import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAddressStore
 import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemNameService
+import uniffi.gemstone.GemNameServiceInterface
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -26,5 +27,9 @@ object AddressesModule {
     @Singleton
     @Provides
     fun provideGemNameService(apiClient: GemDeviceApiClient, store: GemAddressStore): GemNameService = GemNameService(apiClient, store)
+
+    @Provides
+    @Singleton
+    fun provideGemNameServiceInterface(service: GemNameService): GemNameServiceInterface = service
 
 }

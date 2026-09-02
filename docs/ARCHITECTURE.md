@@ -614,6 +614,12 @@ It was also a fallback Core makes impossible — an `Asset` Core returns always 
 `AssetId` — so the honest fix was `toPrimitives()` at the call site, not a generator change.
 When a generated shape is genuinely wrong, change `remote_types.yml` or the generator.
 
+**A rule with no dependencies belongs to the owner that has them, not to an empty object.**
+`GemRecipientService` was a `new()` with no fields whose two methods validated and built a
+recipient from a chain, an input and a name record; `GemNameService` handed it out through
+`recipients()`. Both rules are now methods on `GemNameService`, the owner of name records, and
+the hand-out is gone.
+
 **A screen service built per screen may keep that screen's state.** The confirm screen kept a
 mutable `ConfirmTransferState` on iOS and three stitched flows on Android so a fee change would
 re-run only the preload and keep the fee assets and simulation. `GemConfirmTransferService` is

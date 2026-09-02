@@ -3,7 +3,6 @@
 import struct Gemstone.GemRecipient
 import BigInt
 import protocol Gemstone.GemNameServiceProtocol
-import class Gemstone.GemRecipientService
 import Components
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
@@ -46,7 +45,7 @@ public final class RecipientSceneViewModel {
         contactsQuery.value
     }
 
-    private let recipientService: GemRecipientService
+    private let nameService: any GemNameServiceProtocol
 
     public init(
         wallet: Wallet,
@@ -70,7 +69,7 @@ public final class RecipientSceneViewModel {
         self.onTransferAction = onTransferAction
         self.addressService = addressService
         self.paymentService = paymentService
-        recipientService = nameService.recipients()
+        self.nameService = nameService
 
         addressInputModel = AddressInputViewModel(
             chain: asset.chain,
@@ -191,7 +190,7 @@ extension RecipientSceneViewModel {
 
     func onSelectRecipient(_ recipient: GemRecipient) {
         do {
-            let validated = try recipientService.recipient(
+            let validated = try nameService.recipient(
                 chain: asset.chain.rawValue,
                 input: recipient.address,
                 nameRecord: nil,

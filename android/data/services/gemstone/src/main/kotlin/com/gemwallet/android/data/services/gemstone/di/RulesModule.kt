@@ -10,9 +10,7 @@ import uniffi.gemstone.BalanceCalculator
 import uniffi.gemstone.GemApplicationMetadataService
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemConnectionService
-import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemReceiveService
-import uniffi.gemstone.GemRecipientService
 import uniffi.gemstone.GemSecurityService
 import uniffi.gemstone.GemSimulationFormatter
 import uniffi.gemstone.GemTransferService
@@ -51,9 +49,6 @@ object RulesModule {
     @Singleton
     fun provideGemReceiveService(): GemReceiveService = GemReceiveService()
 
-    @Provides
-    @Singleton
-    fun provideGemRecipientService(nameService: GemNameService): GemRecipientService = nameService.recipients()
 
     @Provides
     @Singleton

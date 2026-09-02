@@ -8,7 +8,8 @@ use primitives::name::NameRecord;
 use primitives::{AddressName, Chain, ChainAddress};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
-use crate::services::recipient::GemRecipientService;
+use crate::services::recipient::{GemRecipientError, GemRecipientValidation, rules as recipient_rules};
+use crate::services::transfer::GemRecipient;
 
 pub use store::GemAddressStore;
 
@@ -16,22 +17,28 @@ pub use store::GemAddressStore;
 pub struct GemNameService {
     api: Arc<GemDeviceApiClient>,
     store: Arc<dyn GemAddressStore>,
-    recipients: Arc<GemRecipientService>,
 }
 
 #[uniffi::export]
 impl GemNameService {
     #[uniffi::constructor]
     pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemAddressStore>) -> Self {
-        Self {
-            api,
-            store,
-            recipients: Arc::new(GemRecipientService::new()),
-        }
+        Self { api, store }
     }
 
-    pub fn recipients(&self) -> Arc<GemRecipientService> {
-        self.recipients.clone()
+    pub fn validate_recipient(&self, chain: Chain, input: String, name_record: Option<NameRecord>) -> GemRecipientValidation {
+        recipient_rules::validation(chain, &input, name_record.as_ref())
+    }
+
+    pub fn recipient(
+        &self,
+        chain: Chain,
+        input: String,
+        name_record: Option<NameRecord>,
+        memo: Option<String>,
+        references: Vec<String>,
+    ) -> Result<GemRecipient, GemRecipientError> {
+        recipient_rules::recipient(chain, &input, name_record.as_ref(), memo, references)
     }
 
     pub fn is_name_supported(&self, name: String) -> bool {

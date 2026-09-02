@@ -43,7 +43,7 @@ import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.NameRecord
 import uniffi.gemstone.GemRecipientException
 import uniffi.gemstone.GemPaymentService
-import uniffi.gemstone.GemRecipientService
+import uniffi.gemstone.GemNameServiceInterface
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.domains.confirm.confirmInput
@@ -82,14 +82,14 @@ class RecipientViewModel @Inject constructor(
     private val getAssetNft: GetAssetNft,
     private val getNameRecord: GetNameRecord,
     savedStateHandle: SavedStateHandle,
-    private val recipientService: GemRecipientService,
+    private val nameService: GemNameServiceInterface,
     private val paymentService: GemPaymentService,
     private val addressService: GemAddressService,
 ) : ViewModel() {
 
     private val addressInput = AddressInputModel(
         getNameRecord = getNameRecord,
-        recipientService = recipientService,
+        nameService = nameService,
         scope = viewModelScope,
     )
 
@@ -196,7 +196,7 @@ class RecipientViewModel @Inject constructor(
     ) {
         val chain = type.assetInfo.asset.chain
         val recipient = try {
-            recipientService.recipient(chain.string, input, nameRecord?.toJson(), memo.value, references)
+            nameService.recipient(chain.string, input, nameRecord?.toJson(), memo.value, references)
         } catch (_: GemRecipientException) {
             if (!getNameRecord.isNameSupported(input)) {
                 addressInput.markInvalid()
