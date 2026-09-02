@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use primitives::currency::Currency;
 use primitives::{AddressName, Chain, PerpetualModifyConfirmData, SimulationResult, Transaction, WalletId};
 
 use crate::block_explorer::GemBlockExplorerLink;
@@ -15,6 +16,7 @@ use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
 use crate::services::perpetual::model::GemAutocloseSummary;
 use crate::services::perpetual::rules::autoclose_summary;
+use crate::services::preferences::GemPreferencesService;
 use crate::services::swap::config::GemSwapQuoteService;
 use crate::services::transfer::GemRecentActivityService;
 use crate::services::wallet::{GemKeystoreAuthentication, GemKeystorePassword};
@@ -29,6 +31,7 @@ pub struct GemConfirmTransferService {
     signer: Arc<dyn GemTransactionSigner>,
     password: Arc<dyn GemKeystorePassword>,
     recent_activity: Arc<GemRecentActivityService>,
+    preferences: Arc<GemPreferencesService>,
 }
 
 #[uniffi::export]
@@ -43,6 +46,7 @@ impl GemConfirmTransferService {
         signer: Arc<dyn GemTransactionSigner>,
         password: Arc<dyn GemKeystorePassword>,
         recent_activity: Arc<GemRecentActivityService>,
+        preferences: Arc<GemPreferencesService>,
     ) -> Self {
         Self {
             confirm,
@@ -53,7 +57,12 @@ impl GemConfirmTransferService {
             signer,
             password,
             recent_activity,
+            preferences,
         }
+    }
+
+    pub fn currency(&self) -> Currency {
+        self.preferences.get_currency()
     }
 
     pub fn authentication(&self) -> GemKeystoreAuthentication {

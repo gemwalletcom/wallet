@@ -54,22 +54,23 @@ public final class ConfirmTransferSceneViewModel {
     public let recipientAddressNameQuery: ObservableQuery<AddressNameRequest>
 
     private let request: ConfirmTransferRequest
-    private let currency: Currency
     private let onComplete: VoidAction
+
+    private var currency: Currency {
+        (try? Currency(service.currency())) ?? .usd
+    }
 
     private let service: any GemConfirmTransferServiceProtocol
 
     public init(
         request: ConfirmTransferRequest,
         service: any GemConfirmTransferServiceProtocol,
-        currency: Currency,
         onComplete: VoidAction,
     ) {
         self.request = request
         self.service = service
         self.onComplete = onComplete
 
-        self.currency = currency
         let sceneState = service.sceneState(
             walletId: request.wallet.id.id,
             inputType: request.data.inputType,

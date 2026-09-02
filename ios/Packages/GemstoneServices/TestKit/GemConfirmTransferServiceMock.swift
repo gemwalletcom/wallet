@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+public import typealias Gemstone.Currency
 public import enum Gemstone.GemKeystoreAuthentication
 public import protocol Gemstone.GemConfirmTransferServiceProtocol
 public import protocol Gemstone.GemConfirmServiceProtocol
@@ -30,6 +31,7 @@ public import typealias Gemstone.Transaction
 public import typealias Gemstone.WalletId
 import Foundation
 import GemstonePrimitives
+import Primitives
 import GemstonePrimitivesTestKit
 
 public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProtocol, @unchecked Sendable {
@@ -53,6 +55,10 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
         self.transactionState = transactionState
         self.signer = signer
         self.authenticationValue = authentication
+    }
+
+    public func currency() -> Currency {
+        Primitives.Currency.usd.json()
     }
 
     public func authentication() -> GemKeystoreAuthentication {

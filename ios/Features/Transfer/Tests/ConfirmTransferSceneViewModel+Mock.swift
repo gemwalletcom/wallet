@@ -27,7 +27,6 @@ extension ConfirmTransferSceneViewModel {
         gemConfirmService: GemConfirmServiceMock = GemConfirmServiceMock(),
         nameService: any GemNameServiceProtocol = GemNameServiceMock(),
         transactionStateService: any GemTransactionStateServiceProtocol = GemTransactionStateServiceMock(),
-        currency: Currency = .usd,
         onComplete: VoidAction = nil,
     ) -> ConfirmTransferSceneViewModel {
         ConfirmTransferSceneViewModel(
@@ -41,7 +40,6 @@ extension ConfirmTransferSceneViewModel {
                 names: nameService,
                 transactionState: transactionStateService,
             ),
-            currency: currency,
             onComplete: onComplete,
         )
     }
