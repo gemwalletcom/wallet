@@ -13,17 +13,28 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.GemFeeAsset
 import uniffi.gemstone.GemConfirmServiceInterface
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class GetFeeAssetsImplTest {
+
+    private val mainDispatcher = StandardTestDispatcher()
 
     private val walletId = mockWalletId()
     private val assetStore = mockk<GemstoneAssetStore>()
@@ -56,6 +67,34 @@ class GetFeeAssetsImplTest {
         val result = subject(Chain.Tempo).first()
 
         assertEquals(funded.map { it.asset.id }, result.map { it.asset.id })
+    }
+
+    @Before
+    fun setUpMain() = Dispatchers.setMain(mainDispatcher)
+
+    @After
+    fun tearDownMain() = Dispatchers.resetMain()
+
+    @Test
+    fun `fee assets are resolved off the collecting thread`() = runTest(mainDispatcher) {
+        val asset = Chain.Tempo.defaultAssets.first()
+        val info = mockAssetInfo(asset = asset, balance = AssetBalance.create(asset, available = "1"))
+        val serviceThreads = mutableListOf<String>()
+        every { assetStore.observeAssetsInfoByChain(walletId.id, Chain.Tempo) } returns flowOf(listOf(info))
+        every { assetStore.observeHiddenAssetsInfoByChain(walletId.id, Chain.Tempo) } returns flowOf(emptyList())
+        every { confirmService.feeAssets(walletId.id, Chain.Tempo.string) } answers {
+            serviceThreads += Thread.currentThread().name
+            listOf(GemFeeAsset(asset = info.asset.toGem(), balance = mockGemAssetBalance(info.asset.id.toIdentifier()), price = null))
+        }
+
+        subject(Chain.Tempo).first()
+
+        val serviceThread = serviceThreads.single()
+        assertTrue(
+            "feeAssets is a synchronous Core call that reads AssetStore and BalanceStore through Room; " +
+                "collecting it on the main thread throws. Got $serviceThread",
+            serviceThread.startsWith("DefaultDispatcher-worker"),
+        )
     }
 
     @Test

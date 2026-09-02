@@ -9,8 +9,10 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -33,5 +35,6 @@ class ChainFeeAssetProvider(
                 val selected = confirmService.feeAssets(walletId.id, chain.string).map { it.asset.toPrimitives().id.toIdentifier() }.toSet()
                 assets.filter { it.asset.id.toIdentifier() in selected }
             }
+            .flowOn(Dispatchers.IO)
     }
 }
