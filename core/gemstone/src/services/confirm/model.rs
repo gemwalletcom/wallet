@@ -151,4 +151,5 @@ pub struct GemConfirmSimulation {
     pub secondary_fields: Vec<SimulationPayloadField>,
     pub header: Option<GemSimulationValue>,
     pub balance_changes: Vec<GemSimulationBalanceChange>,
+    pub has_critical_warning: bool,
 }

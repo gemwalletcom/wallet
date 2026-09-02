@@ -76,6 +76,7 @@ public final class GemConfirmServiceMock: GemConfirmServiceProtocol, @unchecked 
             secondaryFields: fields.filter { $0.display == .secondary }.map { $0.json() },
             header: nil,
             balanceChanges: [],
+            hasCriticalWarning: simulation.flatMap { try? Primitives.SimulationResult($0) }?.warnings.contains { $0.severity == .critical } ?? false,
         )
     }
 

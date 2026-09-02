@@ -85,6 +85,7 @@ struct ConfirmSubmissionTests {
                 secondaryFields: [],
                 header: GemSimulationValue(asset: usdt.map(), value: .exact(value: "1000000")),
                 balanceChanges: [],
+                hasCriticalWarning: false,
             ),
         ))
 
@@ -104,6 +105,7 @@ struct ConfirmSubmissionTests {
                 secondaryFields: [],
                 header: GemSimulationValue(asset: usdt.map(), value: .unlimited),
                 balanceChanges: [],
+                hasCriticalWarning: false,
             ),
         ))
 
@@ -114,7 +116,7 @@ struct ConfirmSubmissionTests {
     func simulationStateKeepsPrimaryAndSecondaryFieldsApart() {
         let primary = SimulationPayloadField.standard(kind: .contract, value: "0x1", fieldType: .text, display: .primary)
         let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
-            simulation: GemConfirmSimulation(primaryFields: [primary.json()], secondaryFields: [], header: nil, balanceChanges: []),
+            simulation: GemConfirmSimulation(primaryFields: [primary.json()], secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
         ))
 
         let state = service.state.simulation
@@ -133,6 +135,7 @@ struct ConfirmSubmissionTests {
                 secondaryFields: [],
                 header: nil,
                 balanceChanges: [GemSimulationBalanceChange(asset: usdt.map(), value: "-25")],
+                hasCriticalWarning: false,
             ),
         ))
 
@@ -150,7 +153,7 @@ struct ConfirmSubmissionTests {
                     prices: [],
                 )),
                 preload: .success(.mock()),
-                simulation: GemConfirmSimulation(primaryFields: [field.json()], secondaryFields: [], header: nil, balanceChanges: []),
+                simulation: GemConfirmSimulation(primaryFields: [field.json()], secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
             ),
             nameService: GemNameServiceMock(error: NSError(domain: "test", code: 404)),
         )

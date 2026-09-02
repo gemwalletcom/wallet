@@ -86,7 +86,7 @@ class SimulationTest {
         balanceChanges: List<GemSimulationBalanceChange> = emptyList(),
         header: GemSimulationValue? = null,
     ) = GemConfirmSimulationState(
-        simulation = GemConfirmSimulation(primaryFields = emptyList(), secondaryFields = emptyList(), header = header, balanceChanges = balanceChanges),
+        simulation = GemConfirmSimulation(primaryFields = emptyList(), secondaryFields = emptyList(), header = header, balanceChanges = balanceChanges, hasCriticalWarning = false),
         addressNames = emptyList(),
     )
 }

@@ -104,6 +104,7 @@ impl GemConfirmService {
 
     pub fn simulation(&self, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> Result<GemConfirmSimulation, GemConfirmError> {
         let asset_ids = simulation.as_ref().map(SimulationResult::asset_ids).unwrap_or_default();
+        let has_critical_warning = simulation.as_ref().map(SimulationResult::has_critical_warning).unwrap_or(false);
         let assets = self.assets.assets(asset_ids).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
         let approval = input_type.approval_value();
         let shows_header = self.simulation_formatter.shows_header(simulation.clone(), approval.is_some());
@@ -132,6 +133,7 @@ impl GemConfirmService {
             })
             .collect();
         Ok(GemConfirmSimulation {
+            has_critical_warning,
             primary_fields: payload_fields
                 .iter()
                 .filter(|field| field.display == SimulationPayloadFieldDisplay::Primary)
