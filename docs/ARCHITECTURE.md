@@ -217,10 +217,49 @@ override fun getFeeAssets(): Flow<List<AssetInfo>> = getCurrentWalletId().flatMa
             val selected = confirmService.feeAssets(walletId.id, chain.string).map { it.asset.toPrimitives().id.toIdentifier() }.toSet()
             assets.filter { it.asset.id.toIdentifier() in selected }
         }
+        .flowOn(Dispatchers.IO)
 }
 ```
 
 The store is the change trigger. Core is the decider. Core has no observation primitive, and that is the only reason the app watches its own tables.
+
+### Never call Core from the main thread
+
+The `flowOn` above is not decoration. Core reaches back into the app through the store traits, and
+several of those callbacks are synchronous — blocking Room reads. UniFFI polls the Rust future on
+the thread that called it, so a Core call started on the main dispatcher runs the store callback
+there too and Room throws before any work happens. The widest case is
+`GemWalletStore.get_wallets`: the device client runs a preflight before every wallet-scoped
+request, so any of those reached from main fails this way.
+
+iOS has no equivalent assertion, so this is an Android-only trap, and it fails silently wherever
+the caller swallows the error — a screen that renders nothing and reports nothing.
+
+**The coordinator dispatches. It does not leave that to whoever calls it.** Whether a given Core
+method touches a store is Core's business and can change without the call site noticing.
+
+```kotlin
+// A suspend call: move the call.
+override suspend fun invoke(walletId: WalletId, ...): List<FiatQuote> = withContext(Dispatchers.IO) {
+    fiatService.getQuotes(walletId = walletId.id, ...).map { it.decodeJson<FiatQuote>() }
+}
+
+// A Flow: move the operator that calls Core, with flowOn after it.
+override fun getFeeAssets(): Flow<List<AssetInfo>> = observed()
+    .map { assets -> confirmService.feeAssets(...).let { selected -> assets.filter(selected) } }
+    .flowOn(Dispatchers.IO)
+```
+
+`CoreCallDispatchTest` fails on a coordinator that calls a Core service without dispatching. Its
+allowlist is for coordinators that call *only* pure rules, and each entry says so.
+
+The other half of the rule belongs to Core: **an exported method that reads a store, calls the
+network or reads the clock is `async`.** A synchronous exported method is a pure rule and is safe
+to call from anywhere — that is what makes `Config().getFiatConfig()` or
+`swapQuoteService.defaultSlippage(...)` fine on the main thread. Three methods on
+`GemConfirmService` (`fee_assets`, `metadata`, `simulation`) are still synchronous while reading a
+store; until they are `async`, their call sites carry the knowledge instead, which is exactly the
+fragility this rule exists to remove.
 
 ## 6. Where derived domain answers live
 
