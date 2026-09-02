@@ -11,7 +11,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -37,17 +36,9 @@ class InAppNotificationsViewModel @Inject constructor(
         viewModelScope.launch {
             val wallet = getCurrentWallet.getCurrentWallet() ?: return@launch
             try {
-                notificationService.sync(wallet.id.id)
+                notificationService.open(wallet.id.id)
             } catch (err: Throwable) {
-                Log.e(TAG, "Sync notifications error", err)
-            }
-            try {
-                val hasUnread = getInAppNotifications(wallet.id).first().any { it.readAt == null }
-                if (hasUnread) {
-                    notificationService.markRead()
-                }
-            } catch (err: Throwable) {
-                Log.e(TAG, "Mark notifications read error", err)
+                Log.e(TAG, "Open notifications error", err)
             }
         }
     }

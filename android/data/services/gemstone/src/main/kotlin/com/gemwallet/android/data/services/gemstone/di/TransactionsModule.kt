@@ -57,23 +57,22 @@ object TransactionsModule {
 
     @Singleton
     @Provides
-    fun provideTransactionStateService(
+    fun provideTransactionStateStore(
         transactionsDao: TransactionsDao,
         walletStore: GemstoneWalletStore,
+        transactionRunner: StoreTransactionRunner,
+    ): GemstoneTransactionStateStore = GemstoneTransactionStateStore(transactionsDao, walletStore, transactionRunner)
+
+    @Singleton
+    @Provides
+    fun provideTransactionStateService(
+        store: GemstoneTransactionStateStore,
         gateway: GemGateway,
         assetsService: GemAssetsService,
         balanceService: GemBalanceService,
         stakeService: GemStakeService,
         nftService: GemNftService,
-        transactionRunner: StoreTransactionRunner,
-    ): GemTransactionStateService = GemTransactionStateService(
-        gateway,
-        GemstoneTransactionStateStore(transactionsDao, walletStore, transactionRunner),
-        assetsService,
-        balanceService,
-        stakeService,
-        nftService,
-    )
+    ): GemTransactionStateService = GemTransactionStateService(gateway, store, assetsService, balanceService, stakeService, nftService)
 
     @Singleton
     @Provides

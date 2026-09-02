@@ -1,15 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
+import enum Gemstone.GemWalletSecret
 
-public enum ExportWalletType: Identifiable {
+extension GemWalletSecret: @retroactive Identifiable {
     public var id: String {
         switch self {
         case .words: "words"
         case .privateKey: "privateKey"
         }
     }
-
-    case words([String])
-    case privateKey(String)
 }

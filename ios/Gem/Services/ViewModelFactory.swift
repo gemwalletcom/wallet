@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Support
-import class Gemstone.GemDeviceKeyService
+import class Gemstone.GemDeveloperService
 import class Gemstone.GemDeviceService
 import class Gemstone.GemWalletPreferencesService
 import protocol Gemstone.GemSupportServiceProtocol
@@ -140,7 +140,7 @@ public struct ViewModelFactory: Sendable {
     let amountService: GemAmountService
     let toastPresenter: ToastPresenter
     let walletPreferencesService: GemWalletPreferencesService
-    let deviceKeyService: GemDeviceKeyService
+    let developerService: GemDeveloperService
     let deviceService: GemDeviceService
     let notificationPermissions: any GemNotificationPermissions
     let storeManager: StoreManager
@@ -385,16 +385,12 @@ public struct ViewModelFactory: Sendable {
     public func developerScene(walletId: WalletId) -> DeveloperViewModel {
         DeveloperViewModel(
             walletId: walletId,
+            service: developerService,
             transactionStore: storeManager.transactionStore,
             assetStore: storeManager.assetStore,
             stakeStore: storeManager.stakeStore,
             bannerStore: storeManager.bannerStore,
             priceStore: storeManager.priceStore,
-            perpetualService: perpetualService,
-            walletPreferencesService: walletPreferencesService,
-            preferencesService: preferencesService,
-            deviceKeyService: deviceKeyService,
-            deeplinkService: deeplinkService,
         )
     }
 
@@ -429,7 +425,6 @@ public struct ViewModelFactory: Sendable {
             navigationPath: navigationPath,
             wallet: wallet,
             service: walletService,
-            keystore: keystore,
             preferences: observablePreferences,
         )
     }

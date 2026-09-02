@@ -7,22 +7,21 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
+import enum Gemstone.GemWalletSecret
 import protocol Gemstone.GemWalletServiceProtocol
 import Preferences
-import GemstoneServices
 
 @Observable
 @MainActor
 public final class WalletDetailViewModel {
     private let navigationPath: Binding<NavigationPath>
     private let service: any GemWalletServiceProtocol
-    private let keystore: any Keystore
     private let preferences: ObservablePreferences
 
     var nameInput: String
     var isPresentingAlertMessage: AlertMessage?
     var isPresentingDeleteConfirmation: Bool?
-    var isPresentingExportWallet: ExportWalletType?
+    var isPresentingExportWallet: GemWalletSecret?
 
     public let walletQuery: ObservableQuery<WalletRequest>
     public var wallet: Wallet {
@@ -33,12 +32,10 @@ public final class WalletDetailViewModel {
         navigationPath: Binding<NavigationPath>,
         wallet: Wallet,
         service: any GemWalletServiceProtocol,
-        keystore: any Keystore,
         preferences: ObservablePreferences,
     ) {
         self.navigationPath = navigationPath
         self.service = service
-        self.keystore = keystore
         self.preferences = preferences
         nameInput = wallet.name
         isPresentingAlertMessage = nil
@@ -94,15 +91,6 @@ extension WalletDetailViewModel {
         try await service.rename(walletId: wallet.id, newName: name)
     }
 
-    func getMnemonicWords() async throws -> [String] {
-        try await keystore.getMnemonic(wallet: wallet)
-    }
-
-    func getPrivateKey() async throws -> String {
-        let chain = wallet.accounts[0].chain
-        return try await keystore.getPrivateKeyEncoded(wallet: wallet, chain: chain)
-    }
-
     func delete() async throws {
         switch try await service.delete(wallet) {
         case .walletsRemaining: break
@@ -126,20 +114,10 @@ extension WalletDetailViewModel {
         }
     }
 
-    func onShowSecretPhrase() {
+    func onShowSecret() {
         Task {
             do {
-                isPresentingExportWallet = try await .words(getMnemonicWords())
-            } catch {
-                isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
-            }
-        }
-    }
-
-    func onShowPrivateKey() {
-        Task {
-            do {
-                isPresentingExportWallet = try await .privateKey(getPrivateKey())
+                isPresentingExportWallet = try await service.exportSecret(walletId: wallet.id.id)
             } catch {
                 isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
             }

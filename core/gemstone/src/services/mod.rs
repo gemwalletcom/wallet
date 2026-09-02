@@ -16,6 +16,7 @@ pub mod confirm;
 pub mod connection;
 pub mod contact;
 pub mod currency;
+pub mod developer;
 pub mod device;
 pub mod error;
 pub mod explorer;

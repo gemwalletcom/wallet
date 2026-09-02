@@ -46,9 +46,6 @@ public final class InAppNotificationsViewModel {
         ).build()
     }
 
-    private var hasUnreadNotifications: Bool {
-        notifications.contains { !$0.isRead }
-    }
 }
 
 // MARK: - Actions
@@ -56,20 +53,9 @@ public final class InAppNotificationsViewModel {
 public extension InAppNotificationsViewModel {
     func load() async {
         do {
-            try await service.sync(walletId: wallet.id.id)
-            if hasUnreadNotifications {
-                await markAsRead()
-            }
+            try await service.open(walletId: wallet.id.id)
         } catch {
             debugLog("load notifications error: \(error)")
-        }
-    }
-
-    private func markAsRead() async {
-        do {
-            try await service.markRead()
-        } catch {
-            debugLog("markAsRead error: \(error)")
         }
     }
 

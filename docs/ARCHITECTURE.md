@@ -724,3 +724,22 @@ could assemble a view model. Every scene is now built in `ViewModelFactory.xxxSc
 environment (and `AppResolver.Services`) keeps only what the app needs at launch, and a scene
 that needs the current wallet gets it from the factory (`inAppNotificationsScene()`), not from a
 session read in the view.
+
+**Two service calls with a condition between them are one Core call.** The notifications screen
+on both apps ran `sync`, then read the store for an unread row, then called `markRead` — the same
+three steps with the same `if`. That `if` is a rule, so `GemNotificationService::open(wallet_id)`
+owns it and the store port answers `has_unread_notifications`; `sync` and `mark_read` stopped
+being exported. When a view model sequences service calls, the sequence is the thing to move.
+
+**A secure port beside the service is the service missing a method.** `WalletDetailViewModel`
+held the iOS `Keystore` next to `GemWalletService` only to export the secret phrase or private
+key, while `GemWalletService` already holds the keystore and the password port. `export_secret`
+returns `GemWalletSecret { Words | PrivateKey }` by wallet type, so the view model holds one
+service and the type-to-secret rule lives in `rules::secret_export` with a flip test. Android
+keeps its prompt-driven export until S3 decides where authentication is enforced.
+
+**A debug screen is a screen.** iOS's `DeveloperViewModel` held five Core services; Android's
+`DevelopViewModel` three cases and a `PlatformStore`. `GemDeveloperService` composes the device
+platform, the preferences, the transaction-state store and the perpetual service, so each app
+holds it alone (iOS keeps the plain stores it wipes); `reset_transactions_timestamp` and
+`delete_preferences` stopped being exported from `GemWalletPreferencesService`.

@@ -303,6 +303,7 @@ consolidation, and a second Core service in a view model is the one to remove.
 | `GemConfirmTransferService` | `ConfirmTransferSceneViewModel` | `ConfirmViewModel` |
 | `GemContactService` | `ContactsViewModel` | `ContactsViewModel` |
 | `GemCurrencyService` | `CurrencySceneViewModel` | `CurrenciesViewModel` (+ session currency cases) |
+| `GemDeveloperService` | `DeveloperViewModel` (+ the iOS stores it wipes) | `DevelopViewModel` |
 | `GemFiatQuoteService` | `FiatSceneViewModel` | `FiatViewModel` |
 | `GemManageContactService` | `ManageContactViewModel` (+ `nameService`) | `ManageContactViewModel` (+ `GemNameServiceInterface`) |
 | `GemNotificationService` | `InAppNotificationsViewModel` | `InAppNotificationsViewModel` |
@@ -322,7 +323,7 @@ consolidation, and a second Core service in a view model is the one to remove.
 | `GemTransactionsService` | `TransactionsViewModel` | `SyncTransactionsImpl` |
 | `GemWalletConnectService` | `WalletConnectorService` | `WCRequestViewModel`, `ProposalSceneViewModel`, `WCAuthViewModel` |
 | `GemWalletHomeService` | `WalletSceneViewModel`, `NetworkAssetsSceneViewModel` | `AssetsViewModel`, `NetworkAssetsViewModel` |
-| `GemWalletService` | onboarding and manage-wallet view models | `CreateWalletViewModel`, `ImportViewModel`, wallet cases |
+| `GemWalletService` | onboarding and manage-wallet view models (`WalletDetailViewModel` exports the secret through `export_secret`) | `CreateWalletViewModel`, `ImportViewModel`, wallet cases (secret export still prompts in the UI, § 1 S3) |
 
 Android holds an observed Room read beside the service where the screen lists rows (a `Get*` case);
 that is the platform's reactive read, not a second service.
@@ -418,7 +419,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**
-- **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `nft::report` (Android report screen), `wallet_preferences::is_initial_load_completed` (iOS wallet empty state), `reset_transactions_timestamp` (iOS developer action).
+- **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `nft::report` (Android report screen), `wallet_preferences::is_initial_load_completed` (iOS wallet empty state), `GemDeveloperService::{reset_transactions_timestamp, delete_wallet_preferences, clear_preferences, clear_perpetual_markets, deeplink_url}` (iOS developer actions Android's develop screen does not offer), `GemWalletService::export_secret` (Android's wallet detail still takes the password from its own biometric prompt — S3).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
 - **`AddressFormatter` (iOS)**, 23 uses / ~60 construction sites. Attempted and reverted: threading the service reaches `WalletViewModel`, then spreads into `extension Wallet: SimpleListItemViewable`, which builds a `WalletViewModel` only to read `avatarImage` and never touches the formatter. The fix is smaller than the threading — split the display-only parts (`avatarImage`, `name`) from the address-formatting parts so only the latter needs the service. Design change, wants a decision.
 - **`GemSecurityService` (iOS)** is a *defaulted* parameter on `BiometryAuthenticationService`. Making it required pushes the default into `SecurityViewModel` and `LockSceneViewModel`, which also default-construct the whole service — a lock-manager pass, not a one-liner.
@@ -478,7 +479,6 @@ having the parent vend the child view model.
 | view model | services | non-private |
 |---|---|---|
 | `Gem/ViewModels/RootSceneViewModel.swift` | 4 | 0 |
-| `Settings/Settings/ViewModels/DeveloperViewModel.swift` | 5 | 0 |
 
 
 ### 10. Rules still living in app-only enums

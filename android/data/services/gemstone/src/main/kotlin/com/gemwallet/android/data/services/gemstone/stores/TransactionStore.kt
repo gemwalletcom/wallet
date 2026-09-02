@@ -37,5 +37,4 @@ class GemstoneTransactionStore(
     fun observeTransactionsCount(walletId: WalletId, filters: List<TransactionsRequestFilter>): Flow<Int?> =
         transactionsDao.getTransactionsCount(walletId, filters)
 
-    suspend fun deletePending(state: TransactionState) = transactionsDao.deleteByState(state)
 }

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemWalletSecret
 import Localization
 import Primitives
 import SwiftUI
@@ -10,10 +11,10 @@ enum ExportWalletDestination: Hashable {
 }
 
 public struct ExportWalletNavigationStack: View {
-    private let flow: ExportWalletType
+    private let flow: GemWalletSecret
     @State private var navigationPath: NavigationPath = .init()
 
-    public init(flow: ExportWalletType) {
+    public init(flow: GemWalletSecret) {
         self.flow = flow
     }
 

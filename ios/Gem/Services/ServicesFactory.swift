@@ -40,11 +40,12 @@ struct ServicesFactory {
 
         let gemstoneWalletStore = GemstoneWalletStore(store: storeManager.walletStore)
         let walletPreferencesService = Gemstone.GemWalletPreferencesService(store: GemstoneWalletPreferencesStore())
+        let devicePlatform = MainActor.assumeIsolated { GemstoneDevicePlatform(preferencesService: preferencesService, deviceKeyService: deviceKeyService, securePreferences: securePreferences) }
         let deviceService = Gemstone.GemDeviceService(
             api: deviceRegistrationClient,
             subscriptions: Gemstone.GemSubscriptionService(api: deviceRegistrationClient, store: gemstoneWalletStore),
             walletStore: gemstoneWalletStore,
-            platform: MainActor.assumeIsolated { GemstoneDevicePlatform(preferencesService: preferencesService, deviceKeyService: deviceKeyService, securePreferences: securePreferences) },
+            platform: devicePlatform,
             preferences: preferencesService,
         )
         let deviceApiClient = Self.makeDeviceApiClient(provider: nativeProvider, deviceKey: deviceKeyService)
@@ -136,8 +137,9 @@ struct ServicesFactory {
             preferences: preferencesService,
         )
         let nftService = Gemstone.GemNftService(api: deviceApiClient, store: GemstoneNftStore(store: storeManager.nftStore))
+        let transactionStateStore = GemstoneTransactionStateStore(store: storeManager.transactionStore)
         let transactionStateService = gatewayService.transactionStateService(
-            store: GemstoneTransactionStateStore(store: storeManager.transactionStore),
+            store: transactionStateStore,
             assets: assetsService,
             balance: balanceService,
             stake: stakeService,
@@ -388,7 +390,13 @@ struct ServicesFactory {
             amountService: Gemstone.GemAmountService(stake: stakeService, preferences: preferencesService),
             toastPresenter: toastPresenter,
             walletPreferencesService: walletPreferencesService,
-            deviceKeyService: deviceKeyService,
+            developerService: Gemstone.GemDeveloperService(
+                platform: devicePlatform,
+                preferences: preferencesService,
+                walletPreferences: walletPreferencesService,
+                transactions: transactionStateStore,
+                perpetual: perpetualService,
+            ),
             deviceService: deviceService,
             notificationPermissions: notificationPermissions,
             storeManager: storeManager,

@@ -17,6 +17,8 @@ class GemstoneNotificationStore(
     override suspend fun saveNotifications(notifications: List<uniffi.gemstone.InAppNotification>) =
         notificationsDao.put(notifications.map { it.decodeJson<InAppNotification>().toRecord() })
 
+    override suspend fun hasUnreadNotifications(walletId: String): Boolean = notificationsDao.hasUnread(walletId)
+
     fun observeNotifications(walletId: WalletId): Flow<List<InAppNotification>> =
         notificationsDao.getNotifications(walletId.id).map { records -> records.map { it.toModel() } }
 }

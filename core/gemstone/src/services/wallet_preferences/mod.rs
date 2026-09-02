@@ -45,13 +45,6 @@ impl GemWalletPreferencesService {
         self.get_timestamp(wallet_id, WalletPreferenceKey::AssetsTimestamp)
     }
 
-    pub fn reset_transactions_timestamp(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        self.store
-            .set(wallet_id.clone(), WalletPreferenceKey::TransactionsTimestamp.as_ref().to_string(), 0.to_string())?;
-        self.store
-            .set(wallet_id, WalletPreferenceKey::CompleteInitialLoadTransactions.as_ref().to_string(), "false".to_string())
-    }
-
     pub fn is_initial_load_completed(&self, wallet_id: WalletId, step: GemDiscoveryStep) -> Result<bool, GemServiceError> {
         self.get_flag(wallet_id, initial_load_key(step))
     }
@@ -67,13 +60,20 @@ impl GemWalletPreferencesService {
             _ => PerpetualAccountMode::Standard,
         })
     }
+}
+
+impl GemWalletPreferencesService {
+    pub fn reset_transactions_timestamp(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        self.store
+            .set(wallet_id.clone(), WalletPreferenceKey::TransactionsTimestamp.as_ref().to_string(), 0.to_string())?;
+        self.store
+            .set(wallet_id, WalletPreferenceKey::CompleteInitialLoadTransactions.as_ref().to_string(), "false".to_string())
+    }
 
     pub fn delete_preferences(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
         self.store.delete_preferences(wallet_id)
     }
-}
 
-impl GemWalletPreferencesService {
     pub fn set_assets_timestamp(&self, wallet_id: WalletId, timestamp: u64) -> Result<(), GemServiceError> {
         self.set_value(wallet_id, WalletPreferenceKey::AssetsTimestamp.as_ref().to_string(), timestamp.to_string())
     }

@@ -17,12 +17,4 @@ public extension GemWalletPreferencesServiceProtocol {
     func getAssetsTimestamp(walletId: WalletId) -> UInt64 {
         getAssetsTimestamp(walletId: walletId.id)
     }
-
-    func resetTransactionsTimestamp(walletId: WalletId) throws {
-        try resetTransactionsTimestamp(walletId: walletId.id)
-    }
-
-    func deletePreferences(walletId: WalletId) throws {
-        try deletePreferences(walletId: walletId.id)
-    }
 }

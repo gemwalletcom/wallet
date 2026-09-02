@@ -19,3 +19,9 @@ pub enum GemWalletDeletion {
     WalletsRemaining,
     LastWalletDeleted,
 }
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemWalletSecret {
+    Words { words: Vec<String> },
+    PrivateKey { key: String },
+}

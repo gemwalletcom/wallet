@@ -48,6 +48,21 @@ fn validated_words(words: Vec<String>) -> Result<Vec<String>, GemWalletImportErr
     Ok(words)
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum SecretExport {
+    Words,
+    PrivateKey(Chain),
+    None,
+}
+
+pub fn secret_export(wallet: &Wallet) -> SecretExport {
+    match wallet.wallet_type {
+        WalletType::Multicoin | WalletType::Single => SecretExport::Words,
+        WalletType::PrivateKey => wallet.accounts.first().map(|account| SecretExport::PrivateKey(account.chain)).unwrap_or(SecretExport::None),
+        WalletType::View => SecretExport::None,
+    }
+}
+
 pub fn view_wallet(name: String, chain: Chain, address: String) -> Wallet {
     Wallet {
         id: WalletId::View(chain, address.clone()),
