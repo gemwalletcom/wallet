@@ -2,6 +2,7 @@ pub mod config;
 pub mod details;
 pub mod model;
 pub mod rules;
+pub mod selection;
 pub mod store;
 
 use crate::services::error::GemServiceError;
@@ -12,6 +13,7 @@ use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, Chain, Confi
 
 pub use details::GemAssetDetailsService;
 pub use model::{AssetList, GemAssetAction, GemAssetFilter};
+pub use selection::GemAssetSelectionService;
 pub use store::GemAssetStore;
 
 use crate::api::{GemApiClient, GemApiError};

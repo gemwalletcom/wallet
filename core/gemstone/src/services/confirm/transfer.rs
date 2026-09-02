@@ -101,7 +101,7 @@ impl GemConfirmTransferService {
         let input_type = input.confirm.input.transfer.input_type.clone();
         let result = self.confirm.execute(input, self.signer.clone()).await?;
         if is_broadcast(&result) {
-            let _ = self.recent_activity.record(input_type, wallet_id).await;
+            let _ = self.recent_activity.add(input_type, wallet_id).await;
         }
         Ok(result)
     }

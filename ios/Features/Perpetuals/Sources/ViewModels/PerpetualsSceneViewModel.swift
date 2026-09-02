@@ -210,7 +210,7 @@ extension PerpetualsSceneViewModel {
         onSelectAsset?(asset)
         Task { [recentAssetsService, wallet] in
             do {
-                try await recentAssetsService.recordAsset(activityType: .perpetual, assetId: asset.id.identifier, walletId: wallet.id.id)
+                try await recentAssetsService.addAsset(activityType: .perpetual, assetId: asset.id.identifier, walletId: wallet.id.id)
             } catch {
                 debugLog("Failed to update recent activity: \(error)")
             }

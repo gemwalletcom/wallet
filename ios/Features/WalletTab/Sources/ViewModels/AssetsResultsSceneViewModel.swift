@@ -143,7 +143,7 @@ extension AssetsResultsSceneViewModel {
         onSelectAssetAction?(asset)
         Task { [recentAssetsService, wallet] in
             do {
-                try await recentAssetsService.recordAsset(activityType: .search, assetId: asset.id.identifier, walletId: wallet.id.id)
+                try await recentAssetsService.addAsset(activityType: .search, assetId: asset.id.identifier, walletId: wallet.id.id)
             } catch {
                 debugLog("AssetsResultsSceneViewModel update recent error: \(error)")
             }

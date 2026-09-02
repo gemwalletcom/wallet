@@ -18,14 +18,14 @@ impl GemRecentActivityService {
         Self { store }
     }
 
-    pub async fn record(&self, input_type: GemTransactionInputType, wallet_id: WalletId) -> Result<(), GemServiceError> {
+    pub async fn add(&self, input_type: GemTransactionInputType, wallet_id: WalletId) -> Result<(), GemServiceError> {
         match input_type.recent_activity() {
             Some(activity) => self.store.add(activity, wallet_id).await,
             None => Ok(()),
         }
     }
 
-    pub async fn record_asset(&self, activity_type: RecentActivityType, asset_id: AssetId, wallet_id: WalletId) -> Result<(), GemServiceError> {
+    pub async fn add_asset(&self, activity_type: RecentActivityType, asset_id: AssetId, wallet_id: WalletId) -> Result<(), GemServiceError> {
         self.store
             .add(
                 GemRecentActivity {
@@ -76,10 +76,10 @@ mod tests {
         let asset = Asset::from_chain(Chain::Ethereum);
         let wallet_id = WalletId::Multicoin("address".to_string());
 
-        futures::executor::block_on(service.record(GemTransactionInputType::Transfer { asset: asset.clone() }, wallet_id.clone())).unwrap();
+        futures::executor::block_on(service.add(GemTransactionInputType::Transfer { asset: asset.clone() }, wallet_id.clone())).unwrap();
         assert_eq!(store.added.lock().unwrap().len(), 1);
 
-        futures::executor::block_on(service.record(
+        futures::executor::block_on(service.add(
             GemTransactionInputType::Stake {
                 asset,
                 stake_type: StakeType::Rewards(vec![]),

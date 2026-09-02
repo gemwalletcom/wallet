@@ -60,6 +60,7 @@ import WalletConnector
 import WalletConnectorService
 import WalletTab
 import class Gemstone.GemAssetDetailsService
+import class Gemstone.GemAssetSelectionService
 import class Gemstone.GemTransactionFormatter
 import class Gemstone.GemBannerService
 import class Gemstone.GemTransactionsService
@@ -234,12 +235,15 @@ public struct ViewModelFactory: Sendable {
         SelectAssetViewModel(
             wallet: wallet,
             selectType: selectType,
-            searchService: searchService,
-            balanceService: balanceService,
-            priceAlertService: priceAlertService,
-            recentAssetsService: recentAssetsService,
-            preferencesService: preferencesService,
+            service: GemAssetSelectionService(
+                search: searchService,
+                balances: balanceService,
+                priceAlerts: priceAlertService,
+                recentActivity: recentAssetsService,
+                preferences: preferencesService,
+            ),
             chainService: chainService,
+            recentAssetsService: recentAssetsService,
             selectAssetAction: selectAssetAction,
             chains: chains,
         )

@@ -49,12 +49,12 @@ struct SelectAssetViewModelTests {
     @Test
     func toggleFlowEnablesAssets() async {
         await confirmation { enabledAssets in
-            let enabler: GemBalanceServiceMock = .mock(onSetAssetsEnabled: { _, assetIds, enabled in
+            let enabler = GemAssetSelectionServiceMock(onSetAssetsEnabled: { _, assetIds, enabled in
                 #expect(assetIds == [AssetId.mock().identifier])
                 #expect(enabled == true)
                 enabledAssets()
             })
-            await SelectAssetViewModel.mock(selectType: .manage, balanceService: enabler)
+            await SelectAssetViewModel.mock(selectType: .manage, service: enabler)
                 .handleAction(assetId: .mock(), enabled: true)
         }
     }
@@ -62,8 +62,8 @@ struct SelectAssetViewModelTests {
     @Test
     func nonToggleFlowNeverEnablesAssets() async {
         await confirmation(expectedCount: 0) { enabledAssets in
-            let enabler: GemBalanceServiceMock = .mock(onSetAssetsEnabled: { _, _, _ in enabledAssets() })
-            await SelectAssetViewModel.mock(selectType: .receive(.asset), balanceService: enabler)
+            let enabler = GemAssetSelectionServiceMock(onSetAssetsEnabled: { _, _, _ in enabledAssets() })
+            await SelectAssetViewModel.mock(selectType: .receive(.asset), service: enabler)
                 .handleAction(assetId: .mock(), enabled: true)
         }
     }
