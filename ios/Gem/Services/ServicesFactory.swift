@@ -424,7 +424,6 @@ struct ServicesFactory {
             walletSessionService: walletSessionService,
             assetsService: assetsService,
             explorerService: explorerService,
-            gatewayService: gatewayService,
             nftService: nftService,
             avatarService: avatarService,
             swapService: swapService,

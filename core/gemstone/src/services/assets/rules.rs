@@ -70,6 +70,12 @@ pub fn default_token_chain(chains: &[Chain]) -> Option<Chain> {
     chains.iter().find(|chain| **chain == Chain::Ethereum).or(chains.first()).copied()
 }
 
+pub fn token_chains(wallet: &Wallet) -> Vec<Chain> {
+    let mut chains = unique(wallet.accounts.iter().map(|account| account.chain).filter(|chain| chain.default_asset_type().is_some()));
+    chains.sort_by_key(|chain| std::cmp::Reverse(AssetId::from_chain(*chain).default_rank()));
+    chains
+}
+
 pub fn popular_asset_ids() -> Vec<AssetId> {
     [Chain::Bitcoin, Chain::Ethereum, Chain::Solana].into_iter().map(AssetId::from_chain).collect()
 }
@@ -96,6 +102,13 @@ mod tests {
         assert_eq!(default_token_chain(&[Chain::Solana, Chain::Ethereum]), Some(Chain::Ethereum));
         assert_eq!(default_token_chain(&[Chain::Solana, Chain::Tron]), Some(Chain::Solana));
         assert_eq!(default_token_chain(&[]), None);
+    }
+
+    #[test]
+    fn test_token_chains_keeps_token_networks_by_rank() {
+        let multicoin = wallet(WalletType::Multicoin, &[Chain::Bitcoin, Chain::Doge, Chain::Near, Chain::Xrp, Chain::Ethereum, Chain::Near]);
+        assert_eq!(token_chains(&multicoin), vec![Chain::Ethereum, Chain::Xrp, Chain::Near]);
+        assert!(token_chains(&wallet(WalletType::Single, &[Chain::Bitcoin])).is_empty());
     }
 
     #[test]

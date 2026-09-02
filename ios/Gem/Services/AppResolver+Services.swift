@@ -65,7 +65,6 @@ extension AppResolver {
         let walletSessionService: any GemWalletSessionServiceProtocol
         let assetsService: any GemAssetsServiceProtocol
         let explorerService: any GemExplorerServiceProtocol
-        let gatewayService: GatewayService
         let nftService: any GemNftServiceProtocol
         let avatarService: any GemAvatarServiceProtocol
         let swapService: any GemSwapServiceProtocol

@@ -132,18 +132,6 @@ public extension GatewayService {
 
 }
 
-// MARK: - Token
-
-public extension GatewayService {
-    func tokenData(chain: Primitives.Chain, tokenId: String) async throws -> Primitives.Asset {
-        try await gateway.getTokenData(chain: chain.rawValue, tokenId: tokenId).map()
-    }
-
-    func isTokenAddress(chain: Primitives.Chain, tokenId: String) async throws -> Bool {
-        try await gateway.getIsTokenAddress(chain: chain.rawValue, tokenId: tokenId)
-    }
-}
-
 // MARK: - Staking
 
 public extension GatewayService {

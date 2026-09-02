@@ -447,11 +447,15 @@ having the parent vend the child view model.
 | `Gem/ViewModels/RootSceneViewModel.swift` | 5 | 1 |
 | `Settings/Settings/ViewModels/DeveloperViewModel.swift` | 5 | 0 |
 | `Assets/SelectAssetViewModel.swift` | 2 | 0 |
-| `Perpetuals/PerpetualsSceneViewModel.swift` | 2 | 0 |
+| `Perpetuals/PerpetualsSceneViewModel.swift` | 3 | 0 |
+
+`AddAssetSceneViewModel` holds `GemAddAssetService { assets, balances, explorer }` alone on both
+apps: the token-chain list, the default chain, the chain filter, the token lookup (checksummed and
+stored through `ensure_token_asset`), the explorer link and the add itself are its methods, so
+Android's four `add_asset/cases/*` and iOS's `GatewayService.tokenData`/`chainsWithTokens` are gone.
 
 Single-service view models that only need the property made `private`:
 
-- `Assets/AddAssetViewModel.swift` — `explorerService`
 - `Settings/ChainSettings/ViewModels/ChainListSettingsViewModel.swift` — `chainService`
 - `Transfer/AmountPerpetualViewModel.swift` — `amountService`
 - `Transfer/AmountStakeViewModel.swift` — `amountService`

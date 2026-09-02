@@ -26,7 +26,6 @@ struct SettingsNavigationView: View {
     @Environment(\.preferencesService) private var preferencesService
     @Environment(\.deviceKeyService) private var deviceKeyService
     @Environment(\.chainService) private var chainService
-    @Environment(\.gatewayService) private var gatewayService
     @Environment(\.serviceStatusService) private var serviceStatusService
     @Environment(\.observablePreferences) private var observablePreferences
     @Environment(\.appUpdateService) private var appUpdateService

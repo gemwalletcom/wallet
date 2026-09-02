@@ -2,7 +2,6 @@
 
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import class Gemstone.GemRecentActivityService
-import class Gemstone.GemAssetConfigService
 import class Gemstone.GemDeeplinkService
 import class Gemstone.GemChainService
 import protocol Gemstone.GemSwapServiceProtocol
@@ -60,7 +59,6 @@ extension EnvironmentValues {
     @Entry var navigationHandler: NavigationHandler = AppResolver.main.services.navigationHandler
     @Entry var stakeService: any GemStakeServiceProtocol = AppResolver.main.services.stakeService
     @Entry var explorerService: any GemExplorerServiceProtocol = AppResolver.main.services.explorerService
-    @Entry var gatewayService: GatewayService = AppResolver.main.services.gatewayService
     @Entry var walletConnector: WalletConnectorService = AppResolver.main.services.walletConnector
     @Entry var connectionStatus: ConnectionStatusObserver = AppResolver.main.services.connectionStatusObserver
     @Entry var walletConnectorPresenter: WalletConnectorPresenter = AppResolver.main.services.walletConnectorPresenter
@@ -73,7 +71,6 @@ extension EnvironmentValues {
     @Entry var hyperliquidObserverService: any PerpetualObservable = AppResolver.main.services.hyperliquidObserverService
     @Entry var recentAssetsService: any GemRecentActivityServiceProtocol = AppResolver.main.services.recentAssetsService
     @Entry var deeplinkService: GemDeeplinkService = AppResolver.main.services.viewModelFactory.deeplinkService
-    @Entry var assetConfig: GemAssetConfigService = AppResolver.main.services.viewModelFactory.assetConfig
     @Entry var viewModelFactory: ViewModelFactory = AppResolver.main.services.viewModelFactory
     @Entry var searchService: any GemSearchServiceProtocol = AppResolver.main.services.searchService
     @Entry var inAppNotificationService: any GemNotificationServiceProtocol = AppResolver.main.services.inAppNotificationService

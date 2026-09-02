@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import Assets
-import class Gemstone.GemAssetConfigService
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import Primitives
@@ -42,9 +41,7 @@ extension AddAssetSceneViewModel {
     static func mock() -> AddAssetSceneViewModel {
         AddAssetSceneViewModel(
             wallet: .mock(accounts: [.mock(chain: .ethereum)]),
-            gatewayService: .mock(),
-            explorerService: GemExplorerServiceMock(),
-            assetConfig: GemAssetConfigService(),
+            service: GemAddAssetServiceMock(),
         )
     }
 }

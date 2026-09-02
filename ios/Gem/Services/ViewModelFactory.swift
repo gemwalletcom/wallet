@@ -80,6 +80,7 @@ import WalletConnector
 import WalletConnectorService
 import WalletTab
 import class Gemstone.GemAssetDetailsService
+import class Gemstone.GemAddAssetService
 import class Gemstone.GemAssetSelectionService
 import class Gemstone.GemBannerService
 import class Gemstone.GemTransactionsService
@@ -355,6 +356,14 @@ public struct ViewModelFactory: Sendable {
     @MainActor
     public func manageContactScene(mode: ManageContactViewModel.Mode) -> ManageContactViewModel {
         ManageContactViewModel(service: manageContactService, mode: mode)
+    }
+
+    @MainActor
+    public func addAssetScene(wallet: Wallet) -> AddAssetSceneViewModel {
+        AddAssetSceneViewModel(
+            wallet: wallet,
+            service: Gemstone.GemAddAssetService(assets: assetsService, balances: balanceService, explorer: explorerService),
+        )
     }
 
     @MainActor

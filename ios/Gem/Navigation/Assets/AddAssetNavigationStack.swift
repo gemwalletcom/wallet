@@ -1,8 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Assets
-import GemstonePrimitives
-import GemstoneServices
 import Localization
 import Primitives
 import Style
@@ -10,23 +8,14 @@ import SwiftUI
 
 struct AddAssetNavigationStack: View {
     let wallet: Wallet
-    @Environment(\.gatewayService) private var gatewayService
-    @Environment(\.assetConfig) private var assetConfig
-    @Environment(\.explorerService) private var explorerService
-    @Environment(\.assetsService) private var assetsService
-    @Environment(\.balanceService) private var balanceService
+    @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
             AddAssetScene(
-                model: AddAssetSceneViewModel(
-                    wallet: wallet,
-                    gatewayService: gatewayService,
-                    explorerService: explorerService,
-                    assetConfig: assetConfig,
-                ),
-                action: addAsset,
+                model: viewModelFactory.addAssetScene(wallet: wallet),
+                onComplete: { dismiss() },
             )
             .navigationTitle(Localized.Settings.Networks.title)
             .navigationBarTitleDisplayMode(.inline)
@@ -38,19 +27,5 @@ struct AddAssetNavigationStack: View {
                 }
             }
         }
-    }
-}
-
-extension AddAssetNavigationStack {
-    private func addAsset(_ asset: Asset) {
-        Task {
-            do {
-                let asset = try await assetsService.ensureTokenAsset(for: asset.id)
-                try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: [asset.id], enabled: true)
-            } catch {
-                debugLog("AddAssetNavigationStack add asset error: \(error)")
-            }
-        }
-        dismiss()
     }
 }
