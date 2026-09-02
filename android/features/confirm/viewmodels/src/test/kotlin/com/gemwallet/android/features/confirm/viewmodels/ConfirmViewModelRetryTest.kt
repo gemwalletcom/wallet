@@ -13,7 +13,7 @@ import com.gemwallet.android.domains.confirm.perpetual
 import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemConfirmData
 import uniffi.gemstone.GemConfirmPreload
-import uniffi.gemstone.GemConfirmSceneLoad
+import uniffi.gemstone.GemConfirmLoad
 import uniffi.gemstone.GemFeeOptions
 import uniffi.gemstone.GemGasPriceType
 import uniffi.gemstone.GemTransactionLoadFee
@@ -93,7 +93,7 @@ class ConfirmViewModelRetryTest {
             if (calls == 1) {
                 throw IllegalStateException("preload failed")
             } else {
-                GemConfirmSceneLoad(
+                GemConfirmLoad(
                     feeAssets = emptyList(),
                     simulation = GemConfirmSimulationState(simulation = null, addressNames = emptyList()),
                     preload = GemConfirmPreload(

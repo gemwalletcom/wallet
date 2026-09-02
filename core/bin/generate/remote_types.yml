@@ -2,6 +2,10 @@ remote:
   - AssetType
   - Asset
   - RecentActivityType
+  - SimulationPayloadFieldType
+  - SimulationPayloadFieldDisplay
+  - SimulationPayloadFieldKind
+  - SimulationPayloadField
 codes:
   - Currency
 identifiers:

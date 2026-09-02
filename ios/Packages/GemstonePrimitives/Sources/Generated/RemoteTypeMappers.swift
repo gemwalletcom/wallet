@@ -85,6 +85,70 @@ public extension Primitives.RecentActivityType {
     }
 }
 
+public extension Gemstone.SimulationPayloadFieldDisplay {
+    func map() -> Primitives.SimulationPayloadFieldDisplay {
+        switch self {
+        case .primary: .primary
+        case .secondary: .secondary
+        }
+    }
+}
+
+public extension Primitives.SimulationPayloadFieldDisplay {
+    func map() -> Gemstone.SimulationPayloadFieldDisplay {
+        switch self {
+        case .primary: .primary
+        case .secondary: .secondary
+        }
+    }
+}
+
+public extension Gemstone.SimulationPayloadFieldKind {
+    func map() -> Primitives.SimulationPayloadFieldKind {
+        switch self {
+        case .contract: .contract
+        case .method: .method
+        case .token: .token
+        case .spender: .spender
+        case .value: .value
+        case .custom: .custom
+        }
+    }
+}
+
+public extension Primitives.SimulationPayloadFieldKind {
+    func map() -> Gemstone.SimulationPayloadFieldKind {
+        switch self {
+        case .contract: .contract
+        case .method: .method
+        case .token: .token
+        case .spender: .spender
+        case .value: .value
+        case .custom: .custom
+        }
+    }
+}
+
+public extension Gemstone.SimulationPayloadFieldType {
+    func map() -> Primitives.SimulationPayloadFieldType {
+        switch self {
+        case .text: .text
+        case .address: .address
+        case .timestamp: .timestamp
+        }
+    }
+}
+
+public extension Primitives.SimulationPayloadFieldType {
+    func map() -> Gemstone.SimulationPayloadFieldType {
+        switch self {
+        case .text: .text
+        case .address: .address
+        case .timestamp: .timestamp
+        }
+    }
+}
+
 public extension Gemstone.Asset {
     func map() -> Primitives.Asset {
         Primitives.Asset(
@@ -105,6 +169,30 @@ public extension Primitives.Asset {
             symbol: symbol,
             decimals: decimals,
             assetType: type.map(),
+        )
+    }
+}
+
+public extension Gemstone.SimulationPayloadField {
+    func map() -> Primitives.SimulationPayloadField {
+        Primitives.SimulationPayloadField(
+            kind: kind.map(),
+            label: label,
+            value: value,
+            fieldType: fieldType.map(),
+            display: display.map(),
+        )
+    }
+}
+
+public extension Primitives.SimulationPayloadField {
+    func map() -> Gemstone.SimulationPayloadField {
+        Gemstone.SimulationPayloadField(
+            kind: kind.map(),
+            label: label,
+            value: value,
+            fieldType: fieldType.map(),
+            display: display.map(),
         )
     }
 }

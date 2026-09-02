@@ -71,12 +71,12 @@ public final class ConfirmTransferSceneViewModel {
         self.service = service
         self.onComplete = onComplete
 
-        let sceneState = service.sceneState(
+        let initialState = service.initialState(
             walletId: request.wallet.id.id,
             inputType: request.data.inputType,
             simulation: request.simulation?.json(),
         )
-        feeSelection = .preset(sceneState.feePriority.map())
+        feeSelection = .preset(initialState.feePriority.map())
         feeAssetSelection = .automatic
 
         let recipientAddress = request.data.recipient.address
@@ -89,10 +89,10 @@ public final class ConfirmTransferSceneViewModel {
             simulation: ConfirmSimulationState(
                 data: request.data,
                 simulation: request.simulation,
-                state: GemConfirmSimulationState(simulation: sceneState.simulation, addressNames: []),
+                state: GemConfirmSimulationState(simulation: initialState.simulation, addressNames: []),
             ),
-            metadata: sceneState.metadata,
-            feeAsset: sceneState.feeAsset.map(),
+            metadata: initialState.metadata,
+            feeAsset: initialState.feeAsset.map(),
             transaction: .loading,
         )
     }

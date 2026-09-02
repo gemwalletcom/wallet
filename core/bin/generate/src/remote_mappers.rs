@@ -109,7 +109,7 @@ fn fields(body: &[&str]) -> Vec<Field> {
             rename = Some(value);
         } else if let Some((rust, Some(type_name))) = member(line) {
             fields.push(Field {
-                serialized: rename.take().unwrap_or_else(|| rust.clone()),
+                serialized: rename.take().unwrap_or_else(|| camel_case(&rust)),
                 rust,
                 type_name,
             });
@@ -145,10 +145,15 @@ pub fn remote_types(types: &[RemoteType]) -> String {
             RemoteType::Record { name, fields } => {
                 out.push_str(&format!("\n#[uniffi::remote(Record)]\npub struct {name} {{\n"));
                 for field in fields {
-                    let known = types.iter().any(|other| other.name() == field.type_name) || SCALARS.contains(&field.type_name.as_str());
+                    let (inner, optional) = optional_inner(&field.type_name);
+                    let known = types.iter().any(|other| other.name() == inner) || SCALARS.contains(&inner);
                     let declared = match known {
-                        true => field.type_name.clone(),
-                        false => format!("primitives::{}", field.type_name),
+                        true => inner.to_string(),
+                        false => format!("primitives::{inner}"),
+                    };
+                    let declared = match optional {
+                        true => format!("Option<{declared}>"),
+                        false => declared,
                     };
                     out.push_str(&format!("    pub {}: {declared},\n", field.rust));
                 }
@@ -159,23 +164,40 @@ pub fn remote_types(types: &[RemoteType]) -> String {
     out
 }
 
+fn optional_inner(type_name: &str) -> (&str, bool) {
+    match type_name.strip_prefix("Option<").and_then(|inner| inner.strip_suffix('>')) {
+        Some(inner) => (inner, true),
+        None => (type_name, false),
+    }
+}
+
 struct Language {
     functions: [&'static str; 2],
     codes: [&'static str; 2],
     identifiers: [&'static str; 2],
+    optional: &'static str,
+    element: &'static str,
     core_module: &'static str,
     app_module: &'static str,
 }
 
 impl Language {
     fn convert(&self, config: &Config, type_name: &str, expression: &str, index: usize) -> String {
-        let template = match type_name {
+        let (inner, optional) = optional_inner(type_name);
+        if optional {
+            let converted = self.convert(config, inner, self.element, index);
+            return match converted == self.element {
+                true => expression.to_string(),
+                false => self.optional.replace("{}", expression).replace("{inner}", &converted),
+            };
+        }
+        let template = match inner {
             name if SCALARS.contains(&name) => return expression.to_string(),
             name if config.codes.iter().any(|code| code == name) => self.codes[index],
             name if config.identifiers.iter().any(|identifier| identifier == name) => self.identifiers[index],
             _ => return format!("{expression}.{}()", self.functions[index]),
         };
-        template.replace("{name}", type_name).replace("{}", expression)
+        template.replace("{name}", inner).replace("{}", expression)
     }
 
     fn direction(&self, index: usize) -> (&'static str, &'static str, &'static str) {
@@ -239,6 +261,8 @@ pub fn swift(types: &[RemoteType]) -> String {
         functions: ["map", "map"],
         codes: ["Primitives.{name}(core: {})", "{}.rawValue"],
         identifiers: ["Primitives.{name}(core: {})", "{}.identifier"],
+        optional: "{}.map { {inner} }",
+        element: "$0",
         core_module: "Gemstone",
         app_module: "Primitives",
     };
@@ -284,6 +308,8 @@ pub fn kotlin(types: &[RemoteType]) -> String {
         functions: ["toPrimitives", "toGem"],
         codes: ["{}.to{name}()", "{}.toGem()"],
         identifiers: ["{}.to{name}()!!", "{}.toIdentifier()"],
+        optional: "{}?.let { {inner} }",
+        element: "it",
         core_module: "uniffi.gemstone",
         app_module: "com.wallet.core.primitives",
     };

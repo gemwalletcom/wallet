@@ -3,17 +3,16 @@ package com.gemwallet.android.features.bridge.viewmodels.model
 import uniffi.gemstone.GemApplicationMetadataService
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
 import com.gemwallet.android.ext.getShortUrl
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.shortName
 import com.gemwallet.android.domains.confirm.confirmInput
-import com.gemwallet.android.serializer.decodeJsonOrNull
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
 import uniffi.gemstone.GemExplorerService
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.SimulationPayloadField
 import com.wallet.core.primitives.SimulationResult
 import com.wallet.core.primitives.SimulationWarning
 import com.wallet.core.primitives.Wallet
@@ -48,7 +47,7 @@ sealed class WCRequest(
         val signer: MessageSigner by lazy { MessageSigner(request.message) }
 
         private val payloadPreview by lazy {
-            runCatching { signer.payloadPreview(simulation.payload.map { it.toJson() }) }.getOrNull()
+            runCatching { signer.payloadPreview(simulation.payload.map { it.toGem() }) }.getOrNull()
         }
 
         override val message: String
@@ -59,14 +58,14 @@ sealed class WCRequest(
 
         override val primaryPayloadFields: List<PayloadField> by lazy {
             payloadPreview?.primary
-                ?.mapNotNull { it.decodeJsonOrNull<SimulationPayloadField>() }
+                ?.map { it.toPrimitives() }
                 .orEmpty()
                 .withExplorerLinks(chain, explorerService)
         }
 
         override val secondaryPayloadFields: List<PayloadField> by lazy {
             payloadPreview?.secondary
-                ?.mapNotNull { it.decodeJsonOrNull<SimulationPayloadField>() }
+                ?.map { it.toPrimitives() }
                 .orEmpty()
                 .withExplorerLinks(chain, explorerService)
         }

@@ -8,8 +8,8 @@ use crate::models::transaction::GemTransactionInputType;
 use crate::services::assets::config::GemAssetConfigService;
 use crate::services::confirm::rules::is_insufficient_network_fee;
 use crate::services::confirm::{
-    GemAcquireAssetFlow, GemConfirmError, GemConfirmInput, GemConfirmLoadOptions, GemConfirmMetadata, GemConfirmPreload, GemConfirmSceneLoad, GemConfirmSceneState,
-    GemConfirmService, GemConfirmSimulationState, GemExecuteResult, GemFeeAsset, GemSendInput, GemTransactionSigner,
+    GemAcquireAssetFlow, GemConfirmError, GemConfirmInitialState, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmMetadata, GemConfirmPreload, GemConfirmService,
+    GemConfirmSimulationState, GemExecuteResult, GemFeeAsset, GemSendInput, GemTransactionSigner,
 };
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
@@ -30,7 +30,7 @@ pub struct GemConfirmTransferService {
     password: Arc<dyn GemKeystorePassword>,
     recent_activity: Arc<GemRecentActivityService>,
     preferences: Arc<GemPreferencesService>,
-    scene: Mutex<Option<GemConfirmSceneLoad>>,
+    loaded: Mutex<Option<GemConfirmLoad>>,
 }
 
 #[uniffi::export]
@@ -55,7 +55,7 @@ impl GemConfirmTransferService {
             password,
             recent_activity,
             preferences,
-            scene: Mutex::new(None),
+            loaded: Mutex::new(None),
         }
     }
 
@@ -71,8 +71,8 @@ impl GemConfirmTransferService {
         self.confirm.input_metadata(wallet_id, &input_type, input_type.fee_asset().id)
     }
 
-    pub fn scene_state(&self, wallet_id: WalletId, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> GemConfirmSceneState {
-        GemConfirmSceneState {
+    pub fn initial_state(&self, wallet_id: WalletId, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> GemConfirmInitialState {
+        GemConfirmInitialState {
             fee_priority: input_type.default_fee_priority(),
             fee_asset: input_type.fee_asset(),
             metadata: self.metadata(wallet_id, input_type.clone()).ok(),
@@ -96,18 +96,18 @@ impl GemConfirmTransferService {
         input: GemConfirmInput,
         options: GemConfirmLoadOptions,
         simulation: Option<SimulationResult>,
-    ) -> Result<GemConfirmSceneLoad, GemConfirmError> {
-        let loaded = self.scene.lock().expect("confirm scene lock").clone();
-        let scene = match loaded {
-            Some(previous) => GemConfirmSceneLoad {
+    ) -> Result<GemConfirmLoad, GemConfirmError> {
+        let previous = self.loaded.lock().expect("confirm load lock").clone();
+        let load = match previous {
+            Some(previous) => GemConfirmLoad {
                 preload: self.preload(wallet_id, input, options).await?,
                 fee_assets: previous.fee_assets,
                 simulation: previous.simulation,
             },
-            None => self.load_scene(wallet_id, input, options, simulation).await?,
+            None => self.initial_load(wallet_id, input, options, simulation).await?,
         };
-        *self.scene.lock().expect("confirm scene lock") = Some(scene.clone());
-        Ok(scene)
+        *self.loaded.lock().expect("confirm load lock") = Some(load.clone());
+        Ok(load)
     }
 
     pub async fn track_pending(&self) -> Result<(), GemServiceError> {
@@ -155,18 +155,18 @@ impl GemConfirmTransferService {
         }
     }
 
-    async fn load_scene(
+    async fn initial_load(
         &self,
         wallet_id: WalletId,
         input: GemConfirmInput,
         options: GemConfirmLoadOptions,
         simulation: Option<SimulationResult>,
-    ) -> Result<GemConfirmSceneLoad, GemConfirmError> {
+    ) -> Result<GemConfirmLoad, GemConfirmError> {
         let input_type = input.transfer.input_type.clone();
         let fee_assets = self.fee_assets(wallet_id.clone(), input_type.transaction_asset().chain())?;
         let preload = self.preload(wallet_id, input, options).await?;
         let simulation = simulation.or_else(|| preload.confirm_data.simulation.clone());
-        Ok(GemConfirmSceneLoad {
+        Ok(GemConfirmLoad {
             fee_assets,
             simulation: self.simulation_state(input_type, simulation).await,
             preload,

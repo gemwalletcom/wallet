@@ -116,7 +116,7 @@ struct ConfirmSubmissionTests {
     func simulationStateKeepsPrimaryAndSecondaryFieldsApart() {
         let primary = SimulationPayloadField.standard(kind: .contract, value: "0x1", fieldType: .text, display: .primary)
         let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
-            simulation: GemConfirmSimulation(primaryFields: [primary.json()], secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
+            simulation: GemConfirmSimulation(primaryFields: [primary.map()], secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
         ))
 
         let state = service.state.simulation
@@ -153,7 +153,7 @@ struct ConfirmSubmissionTests {
                     prices: [],
                 )),
                 preload: .success(.mock()),
-                simulation: GemConfirmSimulation(primaryFields: [field.json()], secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
+                simulation: GemConfirmSimulation(primaryFields: [field.map()], secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
             ),
             nameService: GemNameServiceMock(error: NSError(domain: "test", code: 404)),
         )

@@ -41,8 +41,8 @@ struct ConfirmSimulationState {
         let addressNames = state.names
         var payload = SimulationPayloadModel(
             chain: data.chain,
-            primaryFields: details?.primaryFields.compactMap { try? SimulationPayloadField($0) } ?? [],
-            secondaryFields: details?.secondaryFields.compactMap { try? SimulationPayloadField($0) } ?? [],
+            primaryFields: details?.primaryFields.map { $0.map() } ?? [],
+            secondaryFields: details?.secondaryFields.map { $0.map() } ?? [],
         )
         payload.addressNames = addressNames
         self.init(

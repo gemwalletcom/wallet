@@ -64,6 +64,46 @@ fun com.wallet.core.primitives.RecentActivityType.toGem(): uniffi.gemstone.Recen
     com.wallet.core.primitives.RecentActivityType.Perpetual -> uniffi.gemstone.RecentActivityType.PERPETUAL
 }
 
+fun uniffi.gemstone.SimulationPayloadFieldDisplay.toPrimitives(): com.wallet.core.primitives.SimulationPayloadFieldDisplay = when (this) {
+    uniffi.gemstone.SimulationPayloadFieldDisplay.PRIMARY -> com.wallet.core.primitives.SimulationPayloadFieldDisplay.Primary
+    uniffi.gemstone.SimulationPayloadFieldDisplay.SECONDARY -> com.wallet.core.primitives.SimulationPayloadFieldDisplay.Secondary
+}
+
+fun com.wallet.core.primitives.SimulationPayloadFieldDisplay.toGem(): uniffi.gemstone.SimulationPayloadFieldDisplay = when (this) {
+    com.wallet.core.primitives.SimulationPayloadFieldDisplay.Primary -> uniffi.gemstone.SimulationPayloadFieldDisplay.PRIMARY
+    com.wallet.core.primitives.SimulationPayloadFieldDisplay.Secondary -> uniffi.gemstone.SimulationPayloadFieldDisplay.SECONDARY
+}
+
+fun uniffi.gemstone.SimulationPayloadFieldKind.toPrimitives(): com.wallet.core.primitives.SimulationPayloadFieldKind = when (this) {
+    uniffi.gemstone.SimulationPayloadFieldKind.CONTRACT -> com.wallet.core.primitives.SimulationPayloadFieldKind.Contract
+    uniffi.gemstone.SimulationPayloadFieldKind.METHOD -> com.wallet.core.primitives.SimulationPayloadFieldKind.Method
+    uniffi.gemstone.SimulationPayloadFieldKind.TOKEN -> com.wallet.core.primitives.SimulationPayloadFieldKind.Token
+    uniffi.gemstone.SimulationPayloadFieldKind.SPENDER -> com.wallet.core.primitives.SimulationPayloadFieldKind.Spender
+    uniffi.gemstone.SimulationPayloadFieldKind.VALUE -> com.wallet.core.primitives.SimulationPayloadFieldKind.Value
+    uniffi.gemstone.SimulationPayloadFieldKind.CUSTOM -> com.wallet.core.primitives.SimulationPayloadFieldKind.Custom
+}
+
+fun com.wallet.core.primitives.SimulationPayloadFieldKind.toGem(): uniffi.gemstone.SimulationPayloadFieldKind = when (this) {
+    com.wallet.core.primitives.SimulationPayloadFieldKind.Contract -> uniffi.gemstone.SimulationPayloadFieldKind.CONTRACT
+    com.wallet.core.primitives.SimulationPayloadFieldKind.Method -> uniffi.gemstone.SimulationPayloadFieldKind.METHOD
+    com.wallet.core.primitives.SimulationPayloadFieldKind.Token -> uniffi.gemstone.SimulationPayloadFieldKind.TOKEN
+    com.wallet.core.primitives.SimulationPayloadFieldKind.Spender -> uniffi.gemstone.SimulationPayloadFieldKind.SPENDER
+    com.wallet.core.primitives.SimulationPayloadFieldKind.Value -> uniffi.gemstone.SimulationPayloadFieldKind.VALUE
+    com.wallet.core.primitives.SimulationPayloadFieldKind.Custom -> uniffi.gemstone.SimulationPayloadFieldKind.CUSTOM
+}
+
+fun uniffi.gemstone.SimulationPayloadFieldType.toPrimitives(): com.wallet.core.primitives.SimulationPayloadFieldType = when (this) {
+    uniffi.gemstone.SimulationPayloadFieldType.TEXT -> com.wallet.core.primitives.SimulationPayloadFieldType.Text
+    uniffi.gemstone.SimulationPayloadFieldType.ADDRESS -> com.wallet.core.primitives.SimulationPayloadFieldType.Address
+    uniffi.gemstone.SimulationPayloadFieldType.TIMESTAMP -> com.wallet.core.primitives.SimulationPayloadFieldType.Timestamp
+}
+
+fun com.wallet.core.primitives.SimulationPayloadFieldType.toGem(): uniffi.gemstone.SimulationPayloadFieldType = when (this) {
+    com.wallet.core.primitives.SimulationPayloadFieldType.Text -> uniffi.gemstone.SimulationPayloadFieldType.TEXT
+    com.wallet.core.primitives.SimulationPayloadFieldType.Address -> uniffi.gemstone.SimulationPayloadFieldType.ADDRESS
+    com.wallet.core.primitives.SimulationPayloadFieldType.Timestamp -> uniffi.gemstone.SimulationPayloadFieldType.TIMESTAMP
+}
+
 fun uniffi.gemstone.Asset.toPrimitives(): com.wallet.core.primitives.Asset = com.wallet.core.primitives.Asset(
     id = id.toAssetId()!!,
     name = name,
@@ -78,4 +118,20 @@ fun com.wallet.core.primitives.Asset.toGem(): uniffi.gemstone.Asset = uniffi.gem
     symbol = symbol,
     decimals = decimals,
     assetType = type.toGem(),
+)
+
+fun uniffi.gemstone.SimulationPayloadField.toPrimitives(): com.wallet.core.primitives.SimulationPayloadField = com.wallet.core.primitives.SimulationPayloadField(
+    kind = kind.toPrimitives(),
+    label = label,
+    value = value,
+    fieldType = fieldType.toPrimitives(),
+    display = display.toPrimitives(),
+)
+
+fun com.wallet.core.primitives.SimulationPayloadField.toGem(): uniffi.gemstone.SimulationPayloadField = uniffi.gemstone.SimulationPayloadField(
+    kind = kind.toGem(),
+    label = label,
+    value = value,
+    fieldType = fieldType.toGem(),
+    display = display.toGem(),
 )

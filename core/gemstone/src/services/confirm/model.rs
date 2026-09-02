@@ -20,7 +20,7 @@ pub struct GemConfirmInput {
 }
 
 #[derive(uniffi::Record)]
-pub struct GemConfirmSceneState {
+pub struct GemConfirmInitialState {
     pub fee_priority: FeePriority,
     pub fee_asset: Asset,
     pub metadata: Option<GemConfirmMetadata>,
@@ -101,7 +101,7 @@ impl GemConfirmSimulation {
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
-pub struct GemConfirmSceneLoad {
+pub struct GemConfirmLoad {
     pub fee_assets: Vec<GemFeeAsset>,
     pub preload: GemConfirmPreload,
     pub simulation: GemConfirmSimulationState,

@@ -11,8 +11,8 @@ public import struct Gemstone.GemBlockExplorerLink
 public import struct Gemstone.GemConfirmInput
 public import struct Gemstone.GemConfirmLoadOptions
 public import struct Gemstone.GemConfirmMetadata
-public import struct Gemstone.GemConfirmSceneLoad
-public import struct Gemstone.GemConfirmSceneState
+public import struct Gemstone.GemConfirmLoad
+public import struct Gemstone.GemConfirmInitialState
 public import struct Gemstone.GemConfirmSimulationState
 public import struct Gemstone.GemSendInput
 public import struct Gemstone.GemAutocloseSummary
@@ -70,8 +70,8 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
         )
     }
 
-    public func sceneState(walletId: WalletId, inputType: GemTransactionInputType, simulation result: SimulationResult?) -> GemConfirmSceneState {
-        GemConfirmSceneState(
+    public func initialState(walletId: WalletId, inputType: GemTransactionInputType, simulation result: SimulationResult?) -> GemConfirmInitialState {
+        GemConfirmInitialState(
             feePriority: inputType.defaultFeePriority(),
             feeAsset: inputType.feeAsset(),
             metadata: try? metadata(walletId: walletId, inputType: inputType),
@@ -84,9 +84,9 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
         input: GemConfirmInput,
         options: GemConfirmLoadOptions,
         simulation: SimulationResult?,
-    ) async throws -> GemConfirmSceneLoad {
+    ) async throws -> GemConfirmLoad {
         let preload = try await confirm.preload(walletId: walletId, input: input, options: options)
-        return GemConfirmSceneLoad(
+        return GemConfirmLoad(
             feeAssets: try confirm.feeAssets(walletId: walletId, chain: input.transfer.inputType.chain.rawValue),
             preload: preload,
             simulation: GemConfirmSimulationState(

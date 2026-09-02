@@ -9,10 +9,8 @@ import uniffi.gemstone.GemApprovalValue
 import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemConfirmTransferService
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.SimulationPayloadField
 import com.wallet.core.primitives.SimulationWarning
 import java.math.BigInteger
 
@@ -41,9 +39,9 @@ fun GemConfirmSimulationState.toSimulation(
 
     return Simulation(
         warnings = warnings,
-        primaryPayloadFields = details.primaryFields.map { it.decodeJson<SimulationPayloadField>() }
+        primaryPayloadFields = details.primaryFields.map { it.toPrimitives() }
             .withExplorerLinks(chain, confirmService),
-        secondaryPayloadFields = details.secondaryFields.map { it.decodeJson<SimulationPayloadField>() }
+        secondaryPayloadFields = details.secondaryFields.map { it.toPrimitives() }
             .withExplorerLinks(chain, confirmService),
         headerAsset = header?.asset?.toPrimitives(),
         headerValue = (header?.value as? GemApprovalValue.Exact)?.value,

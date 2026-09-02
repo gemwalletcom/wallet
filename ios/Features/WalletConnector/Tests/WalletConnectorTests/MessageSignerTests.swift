@@ -38,7 +38,7 @@ struct MessageSignerTests {
         )
 
         let preview = try signer.payloadPreview(simulationPayload: [])
-        let primary = try preview?.primary.map { try SimulationPayloadField($0) }
+        let primary = preview?.primary.map { $0.map() }
 
         #expect(primary?.map(\.value) == ["thepoc.xyz", "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4"])
         #expect(preview?.secondary.count == 5)
