@@ -25,6 +25,7 @@ import com.gemwallet.android.features.buy.viewmodels.FiatViewModel
 import com.gemwallet.android.features.buy.viewmodels.models.BuyError
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.localizedDescription
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.models.ButtonState
@@ -82,6 +83,7 @@ fun FiatNavScreen(
         onAmount = viewModel::updateAmount,
         onLotSelect = viewModel::updateAmount,
         onProviderSelect = viewModel::setProvider,
+        onRetry = viewModel::retry,
         onFiatTransactions = onFiatTransactions,
         onBuy = {
             urlLoading.value = true
@@ -151,6 +153,8 @@ fun BuyError.mapError(type: FiatQuoteType, asset: Asset) = when (this) {
     is BuyError.MinimumAmount -> stringResource(id = R.string.transfer_minimum_amount, "${minimum}$")
     is BuyError.MaximumAmount -> stringResource(id = R.string.transfer_maximum_amount, "${maximum}$")
     BuyError.QuoteNotAvailable -> stringResource(id = R.string.buy_no_results)
+    is BuyError.QuoteRequestFailed -> networkError?.localizedDescription()
+        ?: stringResource(R.string.errors_unknown_try_again)
     BuyError.ValueIncorrect -> stringResource(id = R.string.errors_invalid_amount)
     BuyError.EmptyAmount -> stringResource(
         R.string.input_enter_amount_to, when (type) {

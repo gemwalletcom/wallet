@@ -1,15 +1,18 @@
 package com.gemwallet.android.features.buy.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.features.buy.viewmodels.models.BuyError
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSceneState
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetData
 import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.model.GemNetworkError
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetMetaData
@@ -26,6 +29,8 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -45,6 +50,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.net.UnknownHostException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FiatViewModelTest {
@@ -77,10 +83,13 @@ class FiatViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+        mockkStatic(Log::class)
+        every { Log.e(any(), any(), any()) } returns 0
     }
 
     @After
     fun tearDown() {
+        unmockkStatic(Log::class)
         Dispatchers.resetMain()
     }
 
@@ -183,6 +192,49 @@ class FiatViewModelTest {
             assertTrue(viewModel.quotes.value.isEmpty())
             assertEquals(FiatSceneState.Loading, viewModel.state.value)
             assertEquals(null, viewModel.selectedProvider.value)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `quote request failure is distinct from an empty quote list and can retry`() = runTest(testDispatcher) {
+        coEvery { service.quotes(any(), any(), any()) } throws UnknownHostException("offline")
+        val viewModel = createViewModel()
+
+        try {
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+
+            assertEquals(
+                FiatSceneState.Error(BuyError.QuoteRequestFailed(GemNetworkError.Offline)),
+                viewModel.state.value,
+            )
+
+            coEvery { service.quotes(any(), any(), any()) } returns listOf(mockFiatQuote().toJson())
+            viewModel.retry()
+            runCurrent()
+
+            assertEquals(FiatSceneState.Ready, viewModel.state.value)
+            assertTrue(viewModel.quotes.value.isNotEmpty())
+            coVerify(exactly = 2) {
+                service.quotes(FiatQuoteType.Buy.toJson(), asset.id.toIdentifier(), 50.0)
+            }
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `empty quote list remains quote not available`() = runTest(testDispatcher) {
+        coEvery { service.quotes(any(), any(), any()) } returns emptyList()
+        val viewModel = createViewModel()
+
+        try {
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+
+            assertEquals(FiatSceneState.Error(BuyError.QuoteNotAvailable), viewModel.state.value)
         } finally {
             viewModel.viewModelScope.cancel()
         }

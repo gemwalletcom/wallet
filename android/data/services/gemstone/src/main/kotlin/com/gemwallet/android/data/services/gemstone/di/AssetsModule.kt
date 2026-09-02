@@ -11,7 +11,6 @@ import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.math.fromHex
-import kotlinx.coroutines.runBlocking
 import uniffi.gemstone.GemDeviceRequestSigner
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePortfolioStore
@@ -28,7 +27,6 @@ import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemBannerService
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBalanceStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
-import dagger.Lazy
 import uniffi.gemstone.GemBalanceService
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceStore
 import com.gemwallet.android.data.service.store.database.PricesDao
@@ -55,6 +53,8 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import uniffi.gemstone.GemGateway
 import javax.inject.Singleton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.gemwallet.android.data.services.gemstone.stream.GemstoneStreamConnection
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnectable
 import uniffi.gemstone.GemStreamSubscriptionService
@@ -118,17 +118,24 @@ object AssetsModule {
     @Provides
     @Singleton
     fun provideStreamConnection(
-        deviceRequestSigner: Lazy<GemDeviceRequestSigner>,
+        deviceKeyService: GemDeviceKeyService,
         okHttpClient: OkHttpClient,
         connectionService: GemConnectionService,
-    ): WebSocketConnectable = WebSocketConnection(
-        client = okHttpClient,
-        requestProvider = {
-            val stream = deviceRequestSigner.get().deviceStreamRequest()
-            WebSocketRequest(url = stream.url, headers = mapOf("Authorization" to stream.authorization))
-        },
-        connectionService = connectionService,
-    )
+    ): WebSocketConnectable {
+        val deviceRequestSigner by lazy {
+            GemDeviceRequestSigner(deviceKeyService.keyPair().privateKey)
+        }
+        return WebSocketConnection(
+            client = okHttpClient,
+            requestProvider = {
+                withContext(Dispatchers.IO) {
+                    val stream = deviceRequestSigner.deviceStreamRequest()
+                    WebSocketRequest(url = stream.url, headers = mapOf("Authorization" to stream.authorization))
+                }
+            },
+            connectionService = connectionService,
+        )
+    }
 
     @Provides
     @Singleton
@@ -141,14 +148,6 @@ object AssetsModule {
         alerts = priceAlertStore,
         connection = GemstoneStreamConnection(connection),
     )
-
-    @Provides
-    @Singleton
-    fun provideDeviceRequestSigner(
-        deviceKeyService: GemDeviceKeyService,
-    ): GemDeviceRequestSigner = runBlocking {
-        GemDeviceRequestSigner(deviceKeyService.keyPair().privateKey)
-    }
 
     @Provides
     @Singleton

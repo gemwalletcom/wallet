@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
 import com.gemwallet.android.ext.tickerFlow
+import com.gemwallet.android.ext.toGemNetworkError
 import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.buy.viewmodels.models.BuyError
@@ -126,6 +127,7 @@ class FiatViewModel @Inject constructor(
 
     private val ticker = tickerFlow(service.quoteRefreshIntervalMilliseconds().toLong()) {}
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
+    private val quoteRetry = MutableStateFlow(0L)
 
     init {
         type.flatMapLatest { currentType ->
@@ -133,17 +135,19 @@ class FiatViewModel @Inject constructor(
                 assetData.filterNotNull(),
                 operationFor(currentType).amount.debounce(service.quoteDebounceMilliseconds().toLong()),
                 ticker,
-            ) { data, amount, tick ->
+                quoteRetry,
+            ) { data, amount, tick, retry ->
                 QuoteFetchParams(
                     assetData = data,
                     type = currentType,
                     amount = amount,
                     ticker = tick,
+                    retry = retry,
                 )
             }
         }
         .distinctUntilChanged { old, new ->
-            old.type == new.type && old.amount == new.amount && old.ticker == new.ticker
+            old.type == new.type && old.amount == new.amount && old.ticker == new.ticker && old.retry == new.retry
         }
         .mapLatest { params ->
             val (data, currentType, amount, _) = params
@@ -162,7 +166,11 @@ class FiatViewModel @Inject constructor(
                 throw err
             } catch (err: Throwable) {
                 Log.e(TAG, "fiat quotes request failed", err)
-                emptyList()
+                if (operation.amount.value == amount) {
+                    operation.updateState(FiatSceneState.Error(BuyError.QuoteRequestFailed(err.toGemNetworkError())))
+                    operation.clearQuotes()
+                }
+                return@mapLatest
             }
             if (operation.amount.value != amount) return@mapLatest
             if (quotes.isEmpty()) {
@@ -223,6 +231,10 @@ class FiatViewModel @Inject constructor(
         this.type.value = type
     }
 
+    fun retry() {
+        quoteRetry.value += 1
+    }
+
     private fun randomAmount(): Int = service.randomAmount().toInt()
 
     private fun amountError(type: FiatQuoteType, amount: Double?, data: AssetData, quote: FiatQuote?): BuyError? {
@@ -253,6 +265,7 @@ class FiatViewModel @Inject constructor(
         val type: FiatQuoteType,
         val amount: String,
         val ticker: Long,
+        val retry: Long,
     )
 
 }

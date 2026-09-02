@@ -1,6 +1,6 @@
 # Core Features and Providers
 
-These tables describe the current implementation, not a product promise. `Address history` means that `get_transactions_by_address` has a chain-specific implementation; it does not imply that every client constructor wires that implementation. `Simulation` means that the chain overrides the default unsupported simulation behavior. `WalletConnect` means that the chain is advertised for sessions and has request handling.
+These tables describe the current implementation, not a product promise. Runtime availability can be disabled by server-provided asset flags even when a capability is implemented here. `Address history` means that `get_transactions_by_address` has a chain-specific implementation; it does not imply that every client constructor wires that implementation. `Simulation` means that the chain overrides the default unsupported simulation behavior. `WalletConnect` means that the chain is advertised for sessions and has request handling.
 
 Availability legend used across comparison tables:
 
@@ -42,13 +42,13 @@ Review cadence: weekly, and immediately when a referenced Core mapping changes.
 | opBNB | EVM | ❌ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Fantom | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
 | Gnosis | EVM | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
-| Celestia | Cosmos | ✅ | ❌ | ➖ | ❌ | ✅ | ➖ | ❌ |
-| Injective | Cosmos | ✅ | ❌ | ➖ | ❌ | ✅ | ❌ | ❌ |
-| Sei | Cosmos | ✅ | ❌ | ➖ | ❌ | ✅ | ❌ | ❌ |
+| Celestia | Cosmos | ✅ | ❌ | ➖ | ✅ | ✅ | ➖ | ❌ |
+| Injective | Cosmos | ✅ | ❌ | ➖ | ✅ | ✅ | ❌ | ❌ |
+| Sei | Cosmos | ✅ | ❌ | ➖ | ✅ | ✅ | ❌ | ❌ |
 | Sei EVM | EVM | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Manta | EVM | ❌ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Blast | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
-| Noble | Cosmos | ✅ | ❌ | ➖ | ❌ | ➖ | ➖ | ❌ |
+| Noble | Cosmos | ✅ | ❌ | ➖ | ✅ | ➖ | ➖ | ❌ |
 | ZKsync | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ✅ |
 | Linea | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ✅ |
 | Mantle | EVM | ❌ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
@@ -73,7 +73,7 @@ Review cadence: weekly, and immediately when a referenced Core mapping changes.
 | Stable | EVM | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Tempo | EVM | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 
-<sub>Reviewed 2026-09-02. Sources: [chain list](../core/crates/primitives/src/chain.rs), [feature configuration](../core/crates/primitives/src/chain_config.rs), [address-history contract](../core/crates/chain_traits/src/lib.rs), [simulation implementations](../core/crates/gem_evm/src/provider/simulation.rs), [Solana](../core/crates/gem_solana/src/provider/simulation.rs), [Sui](../core/crates/gem_sui/src/provider/simulation.rs), [TON](../core/crates/gem_ton/src/provider/simulation.rs), [Tron](../core/crates/gem_tron/src/provider/simulation.rs), [WalletConnect chain configuration](../core/gemstone/src/config/wallet_connect.rs), and [WalletConnect request handlers](../core/crates/gem_wallet_connect/src/request_handler/mod.rs).</sub>
+<sub>Reviewed 2026-09-02. Sources: [chain list](../core/crates/primitives/src/chain.rs), [feature configuration](../core/crates/primitives/src/chain_config.rs), [Squid chain coverage](../core/crates/swapper/src/squid/mod.rs), [address-history contract](../core/crates/chain_traits/src/lib.rs), [simulation implementations](../core/crates/gem_evm/src/provider/simulation.rs), [Solana](../core/crates/gem_solana/src/provider/simulation.rs), [Sui](../core/crates/gem_sui/src/provider/simulation.rs), [TON](../core/crates/gem_ton/src/provider/simulation.rs), [Tron](../core/crates/gem_tron/src/provider/simulation.rs), [WalletConnect chain configuration](../core/gemstone/src/config/wallet_connect.rs), and [WalletConnect request handlers](../core/crates/gem_wallet_connect/src/request_handler/mod.rs).</sub>
 
 ## WalletConnect
 
