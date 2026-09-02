@@ -56,6 +56,7 @@ import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemApiClient as GemstoneApiClient
 import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemStaticApiClient
+import uniffi.gemstone.PublicUrl
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPreferencesStore
 import uniffi.gemstone.GemSecureStore
@@ -233,7 +234,7 @@ object GatewayModule {
     @Provides
     @Singleton
     fun provideGemStaticApiClient(alienProvider: AlienProvider): GemStaticApiClient =
-        GemStaticApiClient(alienProvider, Constants.ASSETS_URL)
+        GemStaticApiClient(alienProvider, PublicUrl.ASSETS.url())
 
 
     @Provides

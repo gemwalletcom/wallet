@@ -2,6 +2,7 @@ pub mod chain;
 pub mod docs;
 pub mod fee_config;
 pub mod fiat_config;
+pub mod image;
 pub mod node;
 pub mod perpetual_config;
 pub mod public;

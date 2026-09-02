@@ -4,6 +4,7 @@ import BigInt
 import Components
 import Formatters
 import Foundation
+import enum Gemstone.GemImage
 import GemstonePrimitives
 import Primitives
 
@@ -75,7 +76,7 @@ public struct TransactionInfoViewModel: Sendable {
                 name: name,
                 image: AssetImage(
                     type: .text("NFT"),
-                    imageURL: AssetImageFormatter().getNFTUrl(for: id),
+                    imageURL: GemImage.nftAsset(assetId: id).imageURL,
                     placeholder: .none,
                     chainPlaceholder: .none,
                 ),

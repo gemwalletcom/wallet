@@ -1,12 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemAmountSign
-import class Gemstone.GemTransactionSummary
-import enum Gemstone.GemTransactionValue
 import BigInt
 import Components
 import Formatters
 import Foundation
+import enum Gemstone.GemAmountSign
+import enum Gemstone.GemImage
+import class Gemstone.GemTransactionSummary
+import enum Gemstone.GemTransactionValue
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -17,7 +18,6 @@ public struct TransactionViewModel: Sendable {
     public let transaction: TransactionExtended
 
     private let row: GemTransactionSummary
-    private let assetImageFormatter = AssetImageFormatter()
     private let currency: String
     private let formatter: ValueFormatter = .short
 
@@ -35,7 +35,7 @@ public struct TransactionViewModel: Sendable {
         if let nftMetadata = transaction.transaction.metadata?.decode(TransactionNFTTransferMetadata.self) {
             return AssetImage(
                 type: .text(""),
-                imageURL: assetImageFormatter.getNFTUrl(for: nftMetadata.assetId.identifier),
+                imageURL: GemImage.nftAsset(assetId: nftMetadata.assetId.identifier).imageURL,
                 placeholder: asset.placeholder,
                 chainPlaceholder: overlayImage,
             )

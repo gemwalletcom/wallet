@@ -1,19 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemImage
+import GemstonePrimitives
 import Primitives
 import SwiftUI
 
 public struct AssetIdViewModel: Sendable {
     private let assetId: AssetId
-    private let assetFormatter: AssetImageFormatter
 
-    public init(
-        assetId: AssetId,
-        assetFormatter: AssetImageFormatter = AssetImageFormatter(),
-    ) {
+    public init(assetId: AssetId) {
         self.assetId = assetId
-        self.assetFormatter = assetFormatter
     }
 
     public var networkAssetImage: AssetImage {
@@ -51,7 +48,7 @@ public struct AssetIdViewModel: Sendable {
     private var imageURL: URL? {
         switch assetId.type {
         case .native: .none
-        case .token: assetFormatter.getURL(for: assetId)
+        case .token: GemImage.asset(assetId: assetId.identifier).imageURL
         }
     }
 

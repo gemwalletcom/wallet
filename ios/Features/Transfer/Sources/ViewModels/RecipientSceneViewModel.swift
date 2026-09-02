@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemImage
 import struct Gemstone.GemRecipient
 import BigInt
 import protocol Gemstone.GemNameServiceProtocol
@@ -29,7 +30,6 @@ public final class RecipientSceneViewModel {
 
     private let service: any GemRecipientServiceProtocol
     private let onRecipientDataAction: RecipientDataAction
-    private let assetImageFormatter: AssetImageFormatter
 
     public var isPresentingScanner: RecipientScene.Field?
     var addressInputModel: AddressInputViewModel
@@ -47,7 +47,6 @@ public final class RecipientSceneViewModel {
         service: any GemRecipientServiceProtocol,
         nameService: any GemNameServiceProtocol,
         type: RecipientAssetType,
-        assetImageFormatter: AssetImageFormatter = .shared,
         recipient: RecipientData? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
@@ -55,7 +54,6 @@ public final class RecipientSceneViewModel {
         self.wallet = wallet
         self.asset = asset
         self.service = service
-        self.assetImageFormatter = assetImageFormatter
         self.type = type
         self.onRecipientDataAction = onRecipientDataAction
         self.onTransferAction = onTransferAction
@@ -81,7 +79,7 @@ public final class RecipientSceneViewModel {
     func nftAssetImage(for nftAsset: NFTAsset) -> AssetImage {
         AssetImage(
             type: .text("NFT"),
-            imageURL: assetImageFormatter.getNFTUrl(for: nftAsset.id.identifier),
+            imageURL: GemImage.nftAsset(assetId: nftAsset.id.identifier).imageURL,
             placeholder: .none,
             chainPlaceholder: .none,
         )

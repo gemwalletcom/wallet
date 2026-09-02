@@ -59,7 +59,7 @@ struct ServicesFactory {
             ],
         )
         let apiClient = Gemstone.GemApiClient(provider: nativeProvider, baseUrl: Constants.apiURL.absoluteString)
-        let staticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider, baseUrl: Constants.assetsURL.absoluteString)
+        let staticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider, baseUrl: PublicUrl.assets.url())
         let priceService = Gemstone.GemPriceService(
             api: apiClient,
             store: GemstonePriceStore(priceStore: storeManager.priceStore, fiatRateStore: storeManager.fiatRateStore),

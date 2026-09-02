@@ -7,12 +7,11 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import Style
+import enum Gemstone.GemImage
 import SwiftUI
 
 public struct ValidatorViewModel {
     public let validator: DelegationValidator
-    private let imageFormatter = AssetImageFormatter()
-
     public init(validator: DelegationValidator) {
         self.validator = validator
     }
@@ -37,8 +36,8 @@ public struct ValidatorViewModel {
         switch validator.providerType {
         case .stake:
             validator.id == DelegationValidator.systemId
-                ? imageFormatter.getURL(for: validator.chain.assetId)
-                : imageFormatter.getValidatorUrl(chain: validator.chain, id: validator.id)
+                ? GemImage.asset(assetId: validator.chain.assetId.identifier).imageURL
+                : GemImage.validator(chain: validator.chain.rawValue, validatorId: validator.id).imageURL
         case .earn:
             nil
         }
