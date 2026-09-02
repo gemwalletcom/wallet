@@ -361,13 +361,13 @@ pub struct GemManageContactService {
     contacts: Arc<GemContactService>,
     addresses: Arc<GemAddressService>,
     names: Arc<GemNameService>,
-    chains: Arc<GemChainService>,
+    payments: Arc<GemPaymentService>,
 }
 
 #[uniffi::export]
 impl GemManageContactService {
     #[uniffi::constructor]
-    pub fn new(contacts: Arc<GemContactService>, addresses: Arc<GemAddressService>, names: Arc<GemNameService>, chains: Arc<GemChainService>) -> Self { ... }
+    pub fn new(contacts: Arc<GemContactService>, addresses: Arc<GemAddressService>, names: Arc<GemNameService>, payments: Arc<GemPaymentService>) -> Self { ... }
 
     pub fn default_chain(&self) -> Chain { self.contacts.default_chain() }
     pub async fn save_contact(&self, input: GemContactInput) -> Result<Contact, GemServiceError> { ... }
