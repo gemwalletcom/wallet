@@ -198,7 +198,7 @@ public final class RewardsViewModel: Sendable {
 
     var createCodeViewModel: CreateRewardsCodeViewModel {
         CreateRewardsCodeViewModel(
-            rewardsService: service,
+            service: service,
             wallet: selectedWallet,
         ) { [weak self] rewards in
             self?.state = .data(rewards)
@@ -207,7 +207,7 @@ public final class RewardsViewModel: Sendable {
 
     func redeemCodeViewModel(code: String) -> RedeemRewardsCodeViewModel {
         RedeemRewardsCodeViewModel(
-            rewardsService: service,
+            service: service,
             wallet: selectedWallet,
             code: code,
         ) { [weak self] _ in

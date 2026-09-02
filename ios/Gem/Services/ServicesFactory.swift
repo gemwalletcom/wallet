@@ -397,38 +397,27 @@ struct ServicesFactory {
         )
 
         return AppResolver.Services(
-            balanceService: balanceService,
-            bannerService: bannerService,
             walletConnector: walletConnector,
             connectionStatusObserver: connectionStatusObserver,
             deviceService: deviceService,
             navigationHandler: navigationHandler,
             navigationPresenter: navigationPresenter,
             streamObserverService: streamObserverService,
-            streamSubscriptionService: streamSubscriptionService,
-            priceService: priceService,
             transactionStateService: transactionStateService,
-            walletPreferencesService: walletPreferencesService,
-            preferencesService: preferencesService,
-            deviceKeyService: deviceKeyService,
             observablePreferences: observablePreferences,
             walletSessionService: walletSessionService,
             assetsService: assetsService,
             nftService: nftService,
-            swapService: swapService,
             appUpdateService: appUpdateService,
             rateService: rateService,
             onstartService: onStartService,
             appStartService: appStartService,
             pushNotificationEnablerService: pushNotificationEnablerService,
             walletConnectorPresenter: walletConnectorPresenter,
-            perpetualService: perpetualService,
-            hyperliquidObserverService: hyperliquidObserverService,
             recentAssetsService: recentAssetsService,
             toastPresenter: toastPresenter,
             viewModelFactory: viewModelFactory,
             appLifecycleService: appLifecycleService,
-            supportService: supportService,
         )
     }
 }

@@ -14,7 +14,7 @@ import Store
 @MainActor
 @Observable
 public final class EarnSceneViewModel {
-    private let stakeService: any GemStakeServiceProtocol
+    private let service: any GemStakeServiceProtocol
     private var viewState: StateViewType<Bool> = .loading
 
     public let wallet: Wallet
@@ -39,11 +39,11 @@ public final class EarnSceneViewModel {
     public init(
         wallet: Wallet,
         asset: Asset,
-        stakeService: any GemStakeServiceProtocol,
+        service: any GemStakeServiceProtocol,
     ) {
         self.wallet = wallet
         self.asset = asset
-        self.stakeService = stakeService
+        self.service = service
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: asset.id), initialValue: .with(asset: asset))
         positionsQuery = ObservableQuery(
             DelegationsRequest(walletId: wallet.id, assetId: asset.id, providerType: .earn),
@@ -60,7 +60,7 @@ public final class EarnSceneViewModel {
     }
 
     private func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
-        (try? stakeService.selectableValidators(validators: validators.map { $0.json() }).map { try DelegationValidator($0) }) ?? []
+        (try? service.selectableValidators(validators: validators.map { $0.json() }).map { try DelegationValidator($0) }) ?? []
     }
 
     var assetModel: AssetViewModel {
@@ -95,7 +95,7 @@ public final class EarnSceneViewModel {
     var positionModels: [DelegationViewModel] {
         positions
             .filter { (BigInt($0.base.balance) ?? .zero) > 0 }
-            .map { DelegationViewModel(stakeService: stakeService, delegation: $0, asset: asset, currencyCode: stakeService.currency()) }
+            .map { DelegationViewModel(service: service, delegation: $0, asset: asset, currencyCode: service.currency()) }
     }
 
     var hasPositions: Bool {
@@ -127,7 +127,7 @@ extension EarnSceneViewModel {
         viewState = .loading
         do {
             let address = try wallet.account(for: asset.id.chain).address
-            try await stakeService.syncEarn(
+            try await service.syncEarn(
                 walletId: wallet.id.id,
                 assetId: asset.id.identifier,
                 address: address,

@@ -9,15 +9,15 @@ import Preferences
 
 public struct ImportWalletTypeViewModel {
     private let preferences: ObservablePreferences
-    private let chainService: any GemChainServiceProtocol
+    private let service: any GemChainServiceProtocol
 
-    public init(preferences: ObservablePreferences, chainService: any GemChainServiceProtocol) {
+    public init(preferences: ObservablePreferences, service: any GemChainServiceProtocol) {
         self.preferences = preferences
-        self.chainService = chainService
+        self.service = service
     }
 
     func filterChains(for query: String) -> [Chain] {
-        chainService.getChains(query: query).map { Chain(core: $0) }
+        service.getChains(query: query).map { Chain(core: $0) }
     }
 
     var title: String {

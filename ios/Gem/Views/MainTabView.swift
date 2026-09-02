@@ -16,8 +16,6 @@ struct MainTabView: View {
     @Environment(\.deviceService) private var deviceService
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
-    @Environment(\.priceService) private var priceService
-    @Environment(\.preferencesService) private var preferencesService
     @Environment(\.assetsService) private var assetsService
     @Environment(\.viewModelFactory) private var viewModelFactory
 

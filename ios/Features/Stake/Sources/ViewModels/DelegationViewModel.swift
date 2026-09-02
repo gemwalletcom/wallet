@@ -15,7 +15,7 @@ public struct DelegationViewModel: Sendable {
     public let currencyCode: String
     private let asset: Asset
     private let formatter: ValueFormatter
-    private let stakeService: any GemStakeServiceProtocol
+    private let service: any GemStakeServiceProtocol
     private let priceFormatter: CurrencyFormatter
 
     private static let dateFormatterDefault: DateComponentsFormatter = {
@@ -35,7 +35,7 @@ public struct DelegationViewModel: Sendable {
     }()
 
     public init(
-        stakeService: any GemStakeServiceProtocol,
+        service: any GemStakeServiceProtocol,
         delegation: Delegation,
         asset: Asset,
         formatter: ValueFormatter = .short,
@@ -45,7 +45,7 @@ public struct DelegationViewModel: Sendable {
         self.currencyCode = currencyCode
         self.asset = asset
         self.formatter = formatter
-        self.stakeService = stakeService
+        self.service = service
         priceFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
     }
 
@@ -82,7 +82,7 @@ public struct DelegationViewModel: Sendable {
     }
 
     private var showsRewards: Bool {
-        stakeService.showsRewards(state: delegation.base.state.json(), rewards: delegation.base.rewards)
+        service.showsRewards(state: delegation.base.state.json(), rewards: delegation.base.rewards)
     }
 
     public var rewardsText: String? {
@@ -112,11 +112,11 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var validatorUrl: URL? {
-        stakeService.validatorUrl(validator: delegation.validator.json()).map { BlockExplorerLink($0) }?.url
+        service.validatorUrl(validator: delegation.validator.json()).map { BlockExplorerLink($0) }?.url
     }
 
     public var completionDateText: String? {
-        guard stakeService.showsCompletionDate(state: delegation.base.state.json()) else { return nil }
+        guard service.showsCompletionDate(state: delegation.base.state.json()) else { return nil }
         let now = Date.now
         if let completionDate = delegation.base.completionDate, completionDate > now {
             if now.distance(to: completionDate) < 86400 {

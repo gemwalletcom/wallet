@@ -18,10 +18,10 @@ import SwiftUI
 
 @Observable
 @MainActor
-final class PerpetualsSceneViewModel {
+public final class PerpetualsSceneViewModel {
 
     private let observerService: any PerpetualObservable
-    private let perpetualService: any GemPerpetualServiceProtocol
+    private let service: any GemPerpetualServiceProtocol
 
     let wallet: Wallet
 
@@ -50,9 +50,9 @@ final class PerpetualsSceneViewModel {
     let onSelectAsset: ((Asset) -> Void)?
     let onSelectPortfolio: VoidAction
 
-    init(
+    public init(
         wallet: Wallet,
-        perpetualService: any GemPerpetualServiceProtocol,
+        service: any GemPerpetualServiceProtocol,
         observerService: any PerpetualObservable,
         recentAssetsService: any GemRecentActivityServiceProtocol,
         onSelectAssetType: ((SelectAssetType) -> Void)? = nil,
@@ -60,7 +60,7 @@ final class PerpetualsSceneViewModel {
         onSelectPortfolio: (() -> Void)? = nil,
     ) {
         self.wallet = wallet
-        self.perpetualService = perpetualService
+        self.service = service
         self.observerService = observerService
         self.onSelectAssetType = onSelectAssetType
         self.onSelectAsset = onSelectAsset
@@ -71,7 +71,7 @@ final class PerpetualsSceneViewModel {
             PerpetualWalletBalanceRequest(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
             initialValue: .zero,
         )
-        recentModel = RecentAssetsModel(walletId: wallet.id, types: [.perpetual], recentAssetsService: recentAssetsService)
+        recentModel = RecentAssetsModel(walletId: wallet.id, types: [.perpetual], service: recentAssetsService)
     }
 
     var navigationTitle: String {
@@ -161,7 +161,7 @@ extension PerpetualsSceneViewModel {
 
     func updateMarkets(source: RefreshSource) async {
         do {
-            try await perpetualService.updateMarkets(trigger: source.marketsRefreshTrigger)
+            try await service.updateMarkets(trigger: source.marketsRefreshTrigger)
         } catch {
             debugLog("Failed to update markets: \(error)")
         }
@@ -181,7 +181,7 @@ extension PerpetualsSceneViewModel {
     func onPinPerpetual(_ perpetualData: PerpetualData) {
         Task {
             do {
-                try await perpetualService.setPinned(!perpetualData.metadata.isPinned, perpetualId: perpetualData.perpetual.id)
+                try await service.setPinned(!perpetualData.metadata.isPinned, perpetualId: perpetualData.perpetual.id)
             } catch {
                 debugLog("PerpetualsSceneViewModel pin perpetual error: \(error)")
             }

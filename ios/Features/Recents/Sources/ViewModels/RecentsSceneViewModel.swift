@@ -14,7 +14,7 @@ import Store
 @Observable
 @MainActor
 public final class RecentsSceneViewModel {
-    private let recentAssetsService: any GemRecentActivityServiceProtocol
+    private let service: any GemRecentActivityServiceProtocol
     private let walletId: WalletId
 
     public let query: ObservableQuery<RecentActivityRequest>
@@ -30,11 +30,11 @@ public final class RecentsSceneViewModel {
         walletId: WalletId,
         types: [RecentActivityType],
         filters: [AssetsRequestFilter] = [],
-        recentAssetsService: any GemRecentActivityServiceProtocol,
+        service: any GemRecentActivityServiceProtocol,
         onSelect: @escaping (Asset) -> Void,
     ) {
         self.walletId = walletId
-        self.recentAssetsService = recentAssetsService
+        self.service = service
         query = ObservableQuery(RecentActivityRequest(walletId: walletId, limit: .max, types: types, filters: filters), initialValue: [])
         self.onSelect = onSelect
     }
@@ -76,9 +76,9 @@ public final class RecentsSceneViewModel {
 
 extension RecentsSceneViewModel {
     func onSelectClear() {
-        Task { [recentAssetsService, walletId, types = query.request.types] in
+        Task { [service, walletId, types = query.request.types] in
             do {
-                try await recentAssetsService.clear(walletId: walletId.id, types: types.map { $0.map() })
+                try await service.clear(walletId: walletId.id, types: types.map { $0.map() })
             } catch {
                 debugLog("RecentsSceneViewModel clear error: \(error)")
             }

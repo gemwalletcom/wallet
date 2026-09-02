@@ -70,7 +70,7 @@ public final class SelectAssetViewModel {
             walletId: wallet.id,
             types: selectType.recentActivityTypes,
             filters: filter.defaultFilters,
-            recentAssetsService: recentAssetsService,
+            service: recentAssetsService,
         )
     }
 

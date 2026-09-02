@@ -51,7 +51,7 @@ extension PerpetualsSceneViewModel {
     ) -> PerpetualsSceneViewModel {
         PerpetualsSceneViewModel(
             wallet: wallet,
-            perpetualService: perpetualService,
+            service: perpetualService,
             observerService: observerService,
             recentAssetsService: recentAssetsService,
         )

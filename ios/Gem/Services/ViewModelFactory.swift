@@ -244,6 +244,24 @@ public struct ViewModelFactory: Sendable {
     }
 
     @MainActor
+    public func perpetualsScene(
+        wallet: Wallet,
+        onSelectAssetType: @escaping (SelectAssetType) -> Void,
+        onSelectAsset: @escaping (Asset) -> Void,
+        onSelectPortfolio: @escaping () -> Void,
+    ) -> PerpetualsSceneViewModel {
+        PerpetualsSceneViewModel(
+            wallet: wallet,
+            service: perpetualService,
+            observerService: hyperliquidObserverService,
+            recentAssetsService: recentAssetsService,
+            onSelectAssetType: onSelectAssetType,
+            onSelectAsset: onSelectAsset,
+            onSelectPortfolio: onSelectPortfolio,
+        )
+    }
+
+    @MainActor
     public func collectionsScene(wallet: Wallet) -> CollectionsViewModel {
         CollectionsViewModel(service: nftService, wallet: wallet)
     }
@@ -284,7 +302,7 @@ public struct ViewModelFactory: Sendable {
         WalletSearchSceneViewModel(
             wallet: wallet,
             service: assetSelectionService(),
-            recentModel: RecentAssetsModel(walletId: wallet.id, types: RecentActivityType.allCases, recentAssetsService: recentAssetsService),
+            recentModel: RecentAssetsModel(walletId: wallet.id, types: RecentActivityType.allCases, service: recentAssetsService),
             onDismissSearch: onDismissSearch,
             onSelectAssetAction: onSelectAssetAction,
             onAddToken: onAddToken,
@@ -410,7 +428,7 @@ public struct ViewModelFactory: Sendable {
         WalletDetailViewModel(
             navigationPath: navigationPath,
             wallet: wallet,
-            walletService: walletService,
+            service: walletService,
             keystore: keystore,
             preferences: observablePreferences,
         )
@@ -651,7 +669,7 @@ public struct ViewModelFactory: Sendable {
         StakeSceneViewModel(
             wallet: wallet,
             chain: StakeChain(rawValue: chain.rawValue)!, // Expected Only StakeChain accepted.
-            stakeService: stakeService,
+            service: stakeService,
         )
     }
 
@@ -663,7 +681,7 @@ public struct ViewModelFactory: Sendable {
         EarnSceneViewModel(
             wallet: wallet,
             asset: asset,
-            stakeService: stakeService,
+            service: stakeService,
         )
     }
 
@@ -678,9 +696,9 @@ public struct ViewModelFactory: Sendable {
     ) -> DelegationSceneViewModel {
         DelegationSceneViewModel(
             wallet: wallet,
-            model: DelegationViewModel(stakeService: stakeService, delegation: delegation, asset: asset, formatter: .auto, currencyCode: stakeService.currency()),
+            model: DelegationViewModel(service: stakeService, delegation: delegation, asset: asset, formatter: .auto, currencyCode: stakeService.currency()),
             asset: asset,
-            stakeService: stakeService,
+            service: stakeService,
             validators: validators,
             onAmountInputAction: onAmountInputAction,
             onTransferAction: onTransferAction,

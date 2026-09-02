@@ -16,18 +16,11 @@ import SwiftUI
 import WalletConnector
 
 struct SettingsNavigationView: View {
-    @Environment(\.navigationState) private var navigationState
-    @Environment(\.deeplinkService) private var deeplinkService
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.walletConnector) private var walletConnector
-    @Environment(\.balanceService) private var balanceService
-    @Environment(\.deviceKeyService) private var deviceKeyService
     @Environment(\.observablePreferences) private var observablePreferences
-    @Environment(\.perpetualService) private var perpetualService
     @Environment(\.walletConnectorPresenter) private var walletConnectorPresenter
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.supportService) private var supportService
-    @Environment(\.walletPreferencesService) private var walletPreferencesService
     @Environment(\.navigationPresenter) private var presenter
 
     @State private var currencyModel: CurrencySceneViewModel

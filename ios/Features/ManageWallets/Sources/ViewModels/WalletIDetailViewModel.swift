@@ -15,7 +15,7 @@ import GemstoneServices
 @MainActor
 public final class WalletDetailViewModel {
     private let navigationPath: Binding<NavigationPath>
-    private let walletService: any GemWalletServiceProtocol
+    private let service: any GemWalletServiceProtocol
     private let keystore: any Keystore
     private let preferences: ObservablePreferences
 
@@ -32,12 +32,12 @@ public final class WalletDetailViewModel {
     public init(
         navigationPath: Binding<NavigationPath>,
         wallet: Wallet,
-        walletService: any GemWalletServiceProtocol,
+        service: any GemWalletServiceProtocol,
         keystore: any Keystore,
         preferences: ObservablePreferences,
     ) {
         self.navigationPath = navigationPath
-        self.walletService = walletService
+        self.service = service
         self.keystore = keystore
         self.preferences = preferences
         nameInput = wallet.name
@@ -73,7 +73,7 @@ public final class WalletDetailViewModel {
     }
 
     func addressLink(account: SimpleAccount) -> BlockExplorerLink {
-        BlockExplorerLink(walletService.addressUrl(chain: account.chain.rawValue, address: account.address))
+        BlockExplorerLink(service.addressUrl(chain: account.chain.rawValue, address: account.address))
     }
 
     func avatarAssetImage(for wallet: Wallet) -> AssetImage {
@@ -91,7 +91,7 @@ public final class WalletDetailViewModel {
 
 extension WalletDetailViewModel {
     func rename(name: String) async throws {
-        try await walletService.rename(walletId: wallet.id, newName: name)
+        try await service.rename(walletId: wallet.id, newName: name)
     }
 
     func getMnemonicWords() async throws -> [String] {
@@ -104,7 +104,7 @@ extension WalletDetailViewModel {
     }
 
     func delete() async throws {
-        switch try await walletService.delete(wallet) {
+        switch try await service.delete(wallet) {
         case .walletsRemaining: break
         case .lastWalletDeleted: preferences.reload()
         }

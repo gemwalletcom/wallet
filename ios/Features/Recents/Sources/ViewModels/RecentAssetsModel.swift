@@ -15,7 +15,7 @@ public final class RecentAssetsModel {
     private static let sectionLimit: Int = 10
 
     private let walletId: WalletId
-    private let recentAssetsService: any GemRecentActivityServiceProtocol
+    private let service: any GemRecentActivityServiceProtocol
 
     public let query: ObservableQuery<RecentActivityRequest>
     public var isPresenting: Bool = false
@@ -24,10 +24,10 @@ public final class RecentAssetsModel {
         walletId: WalletId,
         types: [RecentActivityType],
         filters: [AssetsRequestFilter] = [],
-        recentAssetsService: any GemRecentActivityServiceProtocol,
+        service: any GemRecentActivityServiceProtocol,
     ) {
         self.walletId = walletId
-        self.recentAssetsService = recentAssetsService
+        self.service = service
         query = ObservableQuery(
             RecentActivityRequest(
                 walletId: walletId,
@@ -48,7 +48,7 @@ public final class RecentAssetsModel {
             walletId: walletId,
             types: query.request.types,
             filters: query.request.filters,
-            recentAssetsService: recentAssetsService,
+            service: service,
             onSelect: onSelect,
         )
     }
@@ -66,9 +66,9 @@ public extension RecentAssetsModel {
     }
 
     func add(activityType: RecentActivityType, assetId: AssetId) {
-        Task { [recentAssetsService, walletId] in
+        Task { [service, walletId] in
             do {
-                try await recentAssetsService.addAsset(activityType: activityType.map(), assetId: assetId.identifier, walletId: walletId.id)
+                try await service.addAsset(activityType: activityType.map(), assetId: assetId.identifier, walletId: walletId.id)
             } catch {
                 debugLog("Failed to update recent activity: \(error)")
             }

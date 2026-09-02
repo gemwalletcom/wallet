@@ -23,7 +23,7 @@ public extension WalletSearchSceneViewModel {
             recentModel: RecentAssetsModel(
                 walletId: wallet.id,
                 types: RecentActivityType.allCases,
-                recentAssetsService: GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock())),
+                service: GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock())),
             ),
             onDismissSearch: {},
             onSelectAssetAction: { _ in },

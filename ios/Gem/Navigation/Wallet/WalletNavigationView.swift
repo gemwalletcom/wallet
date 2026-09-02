@@ -20,21 +20,12 @@ import Transfer
 import WalletTab
 
 struct WalletNavigationView: View {
-    @Environment(\.deeplinkService) private var deeplinkService
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
-    @Environment(\.priceService) private var priceService
     @Environment(\.assetsService) private var assetsService
-    @Environment(\.bannerService) private var bannerService
-    @Environment(\.swapService) private var swapService
-    @Environment(\.streamSubscriptionService) private var streamSubscriptionService
-    @Environment(\.perpetualService) private var perpetualService
-    @Environment(\.hyperliquidObserverService) private var hyperliquidObserverService
-    @Environment(\.recentAssetsService) private var recentAssetsService
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.nftService) private var nftService
-    @Environment(\.observablePreferences) private var preferences
 
     @State private var model: WalletSceneViewModel
 
@@ -145,13 +136,12 @@ struct WalletNavigationView: View {
         }
         .navigationDestination(for: Scenes.Perpetuals.self) { _ in
             PerpetualsNavigationView(
-                wallet: model.wallet,
-                perpetualService: perpetualService,
-                observerService: hyperliquidObserverService,
-                recentAssetsService: recentAssetsService,
-                onSelectAssetType: { model.isPresentingSheet = .selectAsset($0, chains: []) },
-                onSelectAsset: navigationState.openAsset,
-                onSelectPortfolio: { model.isPresentingSheet = .portfolio(.perpetuals) },
+                model: viewModelFactory.perpetualsScene(
+                    wallet: model.wallet,
+                    onSelectAssetType: { model.isPresentingSheet = .selectAsset($0, chains: []) },
+                    onSelectAsset: navigationState.openAsset,
+                    onSelectPortfolio: { model.isPresentingSheet = .portfolio(.perpetuals) },
+                ),
             )
         }
         .navigationDestination(for: Scenes.AssetsResults.self) { destination in

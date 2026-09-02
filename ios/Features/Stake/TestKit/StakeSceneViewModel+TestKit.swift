@@ -15,7 +15,7 @@ public extension StakeSceneViewModel {
         StakeSceneViewModel(
             wallet: wallet,
             chain: chain,
-            stakeService: stakeService,
+            service: stakeService,
         )
     }
 }
