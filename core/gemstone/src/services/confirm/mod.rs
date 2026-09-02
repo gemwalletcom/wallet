@@ -9,7 +9,7 @@ mod transfer;
 use std::sync::Arc;
 use std::time::Duration;
 
-pub use error::GemConfirmError;
+pub use error::{GemBalanceRequirement, GemConfirmError};
 pub use model::*;
 pub use rules::acquire_asset_flow;
 pub use signer::GemTransactionSigner;
@@ -163,10 +163,12 @@ impl GemConfirmService {
 
     pub async fn execute(&self, input: GemSendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {
         let signer_input = input.signer_input()?;
-        let transactions = signer.sign(input.wallet.clone(), signer_input).await?;
+        let chain = input.confirm.input.transfer.input_type.asset().chain();
+        let transactions = signer.sign(input.wallet.clone(), signer_input).await.map_err(|error| error::sign_error(chain, error))?;
         if transactions.is_empty() {
             return Err(GemConfirmError::Sign {
                 error: GemSignerError::SigningError("no signed transactions".to_string()),
+                chain,
                 msg: "no signed transactions".to_string(),
             });
         }

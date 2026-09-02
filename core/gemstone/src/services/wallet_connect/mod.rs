@@ -164,10 +164,7 @@ impl GemWalletConnectService {
             return GemWalletConnectOutcome::rejected(None);
         };
         let domain = connection.session.metadata.url;
-        let Some(validation) = request.validation else {
-            return GemWalletConnectOutcome::rejected(None);
-        };
-        if self.is_origin_rejected(domain.clone(), request.origin, validation) {
+        if self.is_origin_rejected(domain.clone(), request.origin, request.validation) {
             return GemWalletConnectOutcome::rejected(Some(GemWalletConnectFailure::MaliciousOrigin));
         }
         let Some(chain_id) = request.chain_id else {
@@ -400,7 +397,7 @@ mod tests {
             params: r#"["0x48656c6c6f", "0xaddress"]"#.to_string(),
             chain_id: Some("eip155:1".to_string()),
             origin: Some("https://example.com".to_string()),
-            validation: Some(WalletConnectionVerificationStatus::Verified),
+            validation: WalletConnectionVerificationStatus::Verified,
         }
     }
 
@@ -437,21 +434,12 @@ mod tests {
 
         let malicious = service
             .process_request(GemWalletConnectSessionRequest {
-                validation: Some(WalletConnectionVerificationStatus::Malicious),
+                validation: WalletConnectionVerificationStatus::Malicious,
                 ..request("2")
             })
             .await;
         assert_eq!(malicious.failure, Some(GemWalletConnectFailure::MaliciousOrigin));
         assert_eq!(malicious.response, rejected());
-
-        let unverified = service.process_request(GemWalletConnectSessionRequest { validation: None, ..request("3") }).await;
-        assert_eq!(
-            unverified,
-            GemWalletConnectOutcome {
-                response: rejected(),
-                failure: None
-            }
-        );
 
         let unknown_session = service
             .process_request(GemWalletConnectSessionRequest {

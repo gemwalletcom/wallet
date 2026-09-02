@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemBalanceRequirement
 import BigInt
 import Foundation
 @testable import GemstonePrimitives
@@ -99,7 +100,7 @@ struct ConfirmNetworkFeeViewModelTests {
 
     @Test
     func calculatorError() {
-        let input = ConfirmTransferInput.mock(transferAmount: .failure(.InsufficientBalance(asset: Asset.mock().map(), required: "1", available: "0")))
+        let input = ConfirmTransferInput.mock(transferAmount: .failure(.InsufficientBalance(asset: Asset.mock().map(), requirement: GemBalanceRequirement(required: "1", available: "0", shortfall: "1"))))
         let feeModel = feeModel(feeAssetPrice: Price(price: 2500, priceChangePercentage24h: 0, updatedAt: Date()))
         let model = ConfirmNetworkFeeViewModel(
             state: .data(input),

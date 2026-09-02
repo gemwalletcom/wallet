@@ -195,8 +195,7 @@ impl GemConfirmTransferService {
         let balance = self.metadata(wallet_id, input_type).ok()?.fee_asset_balance;
         is_insufficient_network_fee(balance.asset_id.clone(), &balance.available.to_string()).then(|| GemConfirmError::InsufficientNetworkFee {
             asset: Asset::from_chain(balance.asset_id.chain),
-            required: None,
-            available: None,
+            requirement: None,
         })
     }
 }

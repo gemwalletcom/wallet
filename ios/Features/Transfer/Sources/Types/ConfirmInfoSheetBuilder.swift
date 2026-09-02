@@ -12,7 +12,6 @@ import PrimitivesComponents
 enum ConfirmInfoSheetBuilder {
     static func build(
         for error: ConfirmTransferError,
-        asset: Asset,
         feePrice: Price?,
         currency: String,
         onGetAsset: @escaping @MainActor @Sendable (Asset, Int?) -> Void,
@@ -20,8 +19,6 @@ enum ConfirmInfoSheetBuilder {
         switch error {
         case let .confirm(error):
             confirmSheet(for: error, feePrice: feePrice, currency: currency, onGetAsset: onGetAsset)
-        case .chain(.dustThreshold):
-            .dustThreshold(asset.chain, image: image(for: asset))
         case .chain, .other:
             nil
         }
@@ -34,17 +31,19 @@ enum ConfirmInfoSheetBuilder {
         onGetAsset: @escaping @MainActor @Sendable (Asset, Int?) -> Void,
     ) -> InfoSheetType? {
         switch error {
-        case let .InsufficientBalance(asset, required, available):
+        case let .InsufficientBalance(asset, requirement):
             let asset = asset.map()
-            let requirement = BalanceRequirement(required: BigInt(core: required), available: BigInt(core: available))
-            return .balanceRequired(asset, image: image(for: asset), requirement: requirement, action: { onGetAsset(asset, nil) })
-        case let .InsufficientNetworkFee(asset, _, _):
+            return .balanceRequired(asset, image: image(for: asset), requirement: requirement.map(), action: { onGetAsset(asset, nil) })
+        case let .InsufficientNetworkFee(asset, requirement):
             let asset = asset.map()
-            return .insufficientNetworkFee(asset, image: image(for: asset), requirement: error.balanceRequirement, price: feePrice, currency: currency, action: {
+            return .insufficientNetworkFee(asset, image: image(for: asset), requirement: requirement?.map(), price: feePrice, currency: currency, action: {
                 onGetAsset(asset, FiatConfig.insufficientNetworkFeeBuyAmount)
             })
-        case let .MinimumAccountBalanceTooLow(asset, required, _):
-            return .accountMinimalBalance(asset.map(), required: BigInt(core: required))
+        case let .MinimumAccountBalanceTooLow(asset, requirement):
+            return .accountMinimalBalance(asset.map(), required: BigInt(core: requirement.required))
+        case let .Sign(.dustThreshold, chain, _):
+            let chain = Chain(core: chain)
+            return .dustThreshold(chain, image: image(for: chain.asset))
         case .ScanMalicious: return .maliciousTransaction
         case let .ScanMemoRequired(symbol): return .memoRequired(symbol: symbol)
         default: return nil

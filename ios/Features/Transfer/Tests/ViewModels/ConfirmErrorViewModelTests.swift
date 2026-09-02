@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemBalanceRequirement
 import Localization
 @testable import Primitives
 import PrimitivesTestKit
@@ -25,7 +26,7 @@ struct ConfirmErrorViewModelTests {
 
     @Test
     func transferFailure() {
-        let input = ConfirmTransferInput.mock(transferAmount: .failure(.InsufficientBalance(asset: Asset.mock().map(), required: "1", available: "0")))
+        let input = ConfirmTransferInput.mock(transferAmount: .failure(.InsufficientBalance(asset: Asset.mock().map(), requirement: GemBalanceRequirement(required: "1", available: "0", shortfall: "1"))))
         let state = ConfirmTransferState.mock(transaction: .data(input))
         let model = ConfirmErrorViewModel(error: state.transactionError, onSelectListError: { _ in })
 

@@ -6,6 +6,7 @@ import GemstonePrimitives
 import InfoSheet
 import Primitives
 import PrimitivesTestKit
+import struct Gemstone.GemBalanceRequirement
 import enum Gemstone.GemConfirmError
 import Testing
 @testable import Transfer
@@ -17,7 +18,7 @@ struct ConfirmInfoSheetBuilderTests {
         let asset = Asset.mock()
         let requirement = BalanceRequirement(required: 2, available: 1)
 
-        guard case let .balanceRequired(sheetAsset, _, sheetRequirement, _) = build(for: GemConfirmError.InsufficientBalance(asset: asset.map(), required: "2", available: "1")) else {
+        guard case let .balanceRequired(sheetAsset, _, sheetRequirement, _) = build(for: GemConfirmError.InsufficientBalance(asset: asset.map(), requirement: GemBalanceRequirement(required: "2", available: "1", shortfall: "1"))) else {
             Issue.record("Expected balanceRequired sheet")
             return
         }
@@ -27,7 +28,7 @@ struct ConfirmInfoSheetBuilderTests {
 
     @Test
     func minimumAccountBalanceSheet() {
-        guard case let .accountMinimalBalance(_, required) = build(for: GemConfirmError.MinimumAccountBalanceTooLow(asset: Asset.mock().map(), required: "10", available: "0")) else {
+        guard case let .accountMinimalBalance(_, required) = build(for: GemConfirmError.MinimumAccountBalanceTooLow(asset: Asset.mock().map(), requirement: GemBalanceRequirement(required: "10", available: "0", shortfall: "10"))) else {
             Issue.record("Expected accountMinimalBalance sheet")
             return
         }
@@ -36,14 +37,13 @@ struct ConfirmInfoSheetBuilderTests {
 
     @Test
     func dustThresholdSheet() {
-        let asset = Asset.mock()
-        let error = GemstoneError.SignerError(error: .dustThreshold, msg: "message can change")
+        let error = GemConfirmError.Sign(error: .dustThreshold, chain: Chain.bitcoin.rawValue, msg: "message can change")
 
-        guard case let .dustThreshold(chain, _) = build(for: error, asset: asset) else {
+        guard case let .dustThreshold(chain, _) = build(for: error) else {
             Issue.record("Expected dustThreshold sheet")
             return
         }
-        #expect(chain == asset.chain)
+        #expect(chain == .bitcoin)
     }
 
     @Test
@@ -55,10 +55,9 @@ struct ConfirmInfoSheetBuilderTests {
         #expect(build(for: chainErrorWithoutSheet) == nil)
     }
 
-    private func build(for error: Error, asset: Asset = .mock()) -> InfoSheetType? {
+    private func build(for error: Error) -> InfoSheetType? {
         ConfirmInfoSheetBuilder.build(
             for: ConfirmTransferError(error: error),
-            asset: asset,
             feePrice: nil,
             currency: Currency.usd.rawValue,
             onGetAsset: { _, _ in },

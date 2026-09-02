@@ -3,7 +3,7 @@ use primitives::{
     Wallet,
 };
 
-use super::error::GemConfirmError;
+use super::error::{GemBalanceRequirement, GemConfirmError};
 use super::model::{
     GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemFeeAsset, GemSendInput, GemTransferAmountResult,
 };
@@ -134,18 +134,15 @@ fn amount_error(error: GemTransferAmountError, asset: &Asset, fee_asset: &Asset)
     match error {
         GemTransferAmountError::InsufficientBalance { asset_id, required, available } => GemConfirmError::InsufficientBalance {
             asset: error_asset(&asset_id),
-            required,
-            available,
+            requirement: GemBalanceRequirement::new(required, available),
         },
         GemTransferAmountError::InsufficientNetworkFee { asset_id, required, available } => GemConfirmError::InsufficientNetworkFee {
             asset: error_asset(&asset_id),
-            required: Some(required),
-            available: Some(available),
+            requirement: Some(GemBalanceRequirement::new(required, available)),
         },
         GemTransferAmountError::MinimumAccountBalanceTooLow { asset_id, required, available } => GemConfirmError::MinimumAccountBalanceTooLow {
             asset: error_asset(&asset_id),
-            required,
-            available,
+            requirement: GemBalanceRequirement::new(required, available),
         },
     }
 }
@@ -856,15 +853,12 @@ mod tests {
 
         match data.preload_amount(&short, &asset).unwrap() {
             GemTransferAmountResult::Error {
-                error: GemConfirmError::InsufficientBalance {
-                    asset: error_asset,
-                    required,
-                    available,
-                },
+                error: GemConfirmError::InsufficientBalance { asset: error_asset, requirement },
             } => {
                 assert_eq!(error_asset, asset, "the error names the asset the screen shows, not just its id");
-                assert_eq!(required, BigInt::from(1_001));
-                assert_eq!(available, BigInt::from(10));
+                assert_eq!(requirement.required, BigInt::from(1_001));
+                assert_eq!(requirement.available, BigInt::from(10));
+                assert_eq!(requirement.shortfall, BigInt::from(991));
             }
             other => panic!("expected an insufficient balance error, got {other:?}"),
         }

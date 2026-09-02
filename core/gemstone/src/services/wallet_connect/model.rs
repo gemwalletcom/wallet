@@ -12,7 +12,7 @@ pub struct GemWalletConnectSessionRequest {
     pub params: String,
     pub chain_id: Option<String>,
     pub origin: Option<String>,
-    pub validation: Option<WalletConnectionVerificationStatus>,
+    pub validation: WalletConnectionVerificationStatus,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

@@ -16,11 +16,11 @@ extension GemConfirmError: @retroactive LocalizedError {
         case let .ScanMemoRequired(symbol): Localized.Errors.ScanTransaction.memoRequired(symbol.boldMarkdown())
         case .FeeRatesMissing: Localized.Errors.unableEstimateNetworkFee
         case .AccountMissing, .BalanceMissing, .SenderMismatch: Localized.Errors.unknown
-        case let .InsufficientBalance(asset, _, _): Localized.Transfer.insufficientBalance(Self.title(asset: asset))
-        case let .InsufficientNetworkFee(asset, _, _): Localized.Transfer.insufficientNetworkFeeBalance(Self.title(asset: asset))
-        case let .MinimumAccountBalanceTooLow(asset, required, _):
-            Localized.Transfer.minimumAccountBalance(ValueFormatter(style: .full).string(BigInt(core: required), asset: asset.map()).boldMarkdown())
-        case let .Network(msg), let .Load(msg), let .Broadcast(_, msg), let .Record(msg), let .Sign(_, msg), let .ApprovalInvalid(msg): msg
+        case let .InsufficientBalance(asset, _): Localized.Transfer.insufficientBalance(Self.title(asset: asset))
+        case let .InsufficientNetworkFee(asset, _): Localized.Transfer.insufficientNetworkFeeBalance(Self.title(asset: asset))
+        case let .MinimumAccountBalanceTooLow(asset, requirement):
+            Localized.Transfer.minimumAccountBalance(ValueFormatter(style: .full).string(BigInt(core: requirement.required), asset: asset.map()).boldMarkdown())
+        case let .Network(msg), let .Load(msg), let .Broadcast(_, msg), let .Record(msg), let .Sign(_, _, msg), let .ApprovalInvalid(msg): msg
         }
     }
 }
@@ -28,7 +28,7 @@ extension GemConfirmError: @retroactive LocalizedError {
 extension GemConfirmError {
     var hasInfoSheet: Bool {
         switch self {
-        case .ScanMalicious, .ScanMemoRequired, .InsufficientBalance, .InsufficientNetworkFee, .MinimumAccountBalanceTooLow: true
+        case .ScanMalicious, .ScanMemoRequired, .InsufficientBalance, .InsufficientNetworkFee, .MinimumAccountBalanceTooLow, .Sign(.dustThreshold, _, _): true
         default: false
         }
     }

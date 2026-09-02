@@ -292,7 +292,6 @@ fun ConfirmScreen(
             item {
                 ConfirmErrorInfo(
                     state = state,
-                    chain = input?.transfer?.inputType?.asset?.id?.chain,
                     fee = feeModel as? FeeUIModel.FeeInfo,
                     isShowBottomSheetInfo = isShowBottomSheetInfo,
                     onAcquireAsset = onAcquireAsset,
@@ -432,7 +431,7 @@ private fun Throwable.toConfirmLabel(): String? = when (this) {
     is GemConfirmException.InsufficientNetworkFee -> stringResource(R.string.transfer_insufficient_network_fee_balance, asset.toPrimitives().title.boldMarkdown())
     is GemConfirmException.MinimumAccountBalanceTooLow -> stringResource(
         R.string.transfer_minimum_account_balance,
-        ValueFormatter(style = ValueFormatter.Style.Full).string(BigInteger(required), asset.toPrimitives()).boldMarkdown(),
+        ValueFormatter(style = ValueFormatter.Style.Full).string(BigInteger(requirement.required), asset.toPrimitives()).boldMarkdown(),
     )
     is GemConfirmException.Offline -> GemNetworkError.Offline.localizedDescription()
     is GemConfirmException.Network -> msg

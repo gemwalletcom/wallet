@@ -8,56 +8,21 @@ use primitives::{Asset, AssetId, Chain};
 #[derive(Debug, Clone, uniffi::Error)]
 pub enum GemConfirmError {
     ScanMalicious,
-    ScanMemoRequired {
-        symbol: String,
-    },
+    ScanMemoRequired { symbol: String },
     FeeRatesMissing,
     Offline,
-    Network {
-        msg: String,
-    },
-    Load {
-        msg: String,
-    },
-    Broadcast {
-        hashes: Vec<String>,
-        msg: String,
-    },
-    Record {
-        msg: String,
-    },
-    AccountMissing {
-        chain: Chain,
-    },
-    BalanceMissing {
-        asset_id: AssetId,
-    },
-    InsufficientBalance {
-        asset: Asset,
-        required: GemBigInt,
-        available: GemBigInt,
-    },
-    InsufficientNetworkFee {
-        asset: Asset,
-        required: Option<GemBigInt>,
-        available: Option<GemBigInt>,
-    },
-    MinimumAccountBalanceTooLow {
-        asset: Asset,
-        required: GemBigInt,
-        available: GemBigInt,
-    },
-    SenderMismatch {
-        from: String,
-        signer: String,
-    },
-    Sign {
-        error: GemSignerError,
-        msg: String,
-    },
-    ApprovalInvalid {
-        msg: String,
-    },
+    Network { msg: String },
+    Load { msg: String },
+    Broadcast { hashes: Vec<String>, msg: String },
+    Record { msg: String },
+    AccountMissing { chain: Chain },
+    BalanceMissing { asset_id: AssetId },
+    InsufficientBalance { asset: Asset, requirement: GemBalanceRequirement },
+    InsufficientNetworkFee { asset: Asset, requirement: Option<GemBalanceRequirement> },
+    MinimumAccountBalanceTooLow { asset: Asset, requirement: GemBalanceRequirement },
+    SenderMismatch { from: String, signer: String },
+    Sign { error: GemSignerError, chain: Chain, msg: String },
+    ApprovalInvalid { msg: String },
 }
 
 impl std::fmt::Display for GemConfirmError {
@@ -71,7 +36,7 @@ impl std::fmt::Display for GemConfirmError {
             Self::BalanceMissing { asset_id } => write!(f, "no stored balance for {asset_id}"),
             Self::InsufficientBalance { asset, .. } => write!(f, "not enough {} balance", asset.symbol),
             Self::InsufficientNetworkFee { asset, .. } => write!(f, "not enough {} to pay the network fee", asset.symbol),
-            Self::MinimumAccountBalanceTooLow { asset, required, .. } => write!(f, "{} balance must stay above {required}", asset.symbol),
+            Self::MinimumAccountBalanceTooLow { asset, requirement } => write!(f, "{} balance must stay above {}", asset.symbol, requirement.required),
             Self::SenderMismatch { from, signer } => write!(f, "transaction was built for {from} but would be signed by {signer}"),
             Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg, .. } | Self::Record { msg } | Self::Sign { msg, .. } | Self::ApprovalInvalid { msg } => {
                 write!(f, "{msg}")
@@ -82,15 +47,28 @@ impl std::fmt::Display for GemConfirmError {
 
 impl std::error::Error for GemConfirmError {}
 
-impl From<GemstoneError> for GemConfirmError {
-    fn from(error: GemstoneError) -> Self {
-        match error {
-            GemstoneError::SignerError { error, msg } => Self::Sign { error, msg },
-            GemstoneError::AnyError { msg } => Self::Sign {
-                error: GemSignerError::SigningError(msg.clone()),
-                msg,
-            },
-        }
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemBalanceRequirement {
+    pub required: GemBigInt,
+    pub available: GemBigInt,
+    pub shortfall: GemBigInt,
+}
+
+impl GemBalanceRequirement {
+    pub fn new(required: GemBigInt, available: GemBigInt) -> Self {
+        let shortfall = (&required - &available).max(GemBigInt::ZERO);
+        Self { required, available, shortfall }
+    }
+}
+
+pub(super) fn sign_error(chain: Chain, error: GemstoneError) -> GemConfirmError {
+    match error {
+        GemstoneError::SignerError { error, msg } => GemConfirmError::Sign { error, chain, msg },
+        GemstoneError::AnyError { msg } => GemConfirmError::Sign {
+            error: GemSignerError::SigningError(msg.clone()),
+            chain,
+            msg,
+        },
     }
 }
 

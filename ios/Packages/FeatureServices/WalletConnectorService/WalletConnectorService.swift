@@ -154,7 +154,7 @@ extension WalletConnectorService {
                 params: (try? JSONEncoder().encode(request.params).encodeString()) ?? "",
                 chainId: request.chainId.absoluteString,
                 origin: verifyContext?.origin,
-                validation: verifyContext?.validation.map(),
+                validation: verifyContext?.validation.map() ?? .unknown,
             ))
             do {
                 try await WalletKit.instance.respond(topic: request.topic, requestId: request.id, response: outcome.response.map())

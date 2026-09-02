@@ -36,7 +36,7 @@ public enum ChainCoreError: String, Error, Equatable {
         if case let GemstoneError.SignerError(signerError, _) = error {
             return signerError
         }
-        if case let GemConfirmError.Sign(signerError, _) = error {
+        if case let GemConfirmError.Sign(signerError, _, _) = error {
             return signerError
         }
         return nil

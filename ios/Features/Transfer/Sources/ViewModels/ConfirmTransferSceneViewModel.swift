@@ -252,7 +252,6 @@ extension ConfirmTransferSceneViewModel {
     func onSelectListError(error: ConfirmTransferError) {
         guard let sheet = ConfirmInfoSheetBuilder.build(
             for: error,
-            asset: dataModel.asset,
             feePrice: state.metadata?.feePrice,
             currency: currency.rawValue,
             onGetAsset: { [weak self] asset, buyAmount in self?.onSelectGetAsset(asset, buyAmount: buyAmount) },
