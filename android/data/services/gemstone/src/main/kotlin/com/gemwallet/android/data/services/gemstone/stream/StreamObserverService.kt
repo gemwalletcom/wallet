@@ -68,7 +68,7 @@ class StreamObserverService(
 
     private fun handleMessage(text: String) {
         scope.launch {
-            runCatchingCancellable { streamService.handle(text, getCurrentCurrency.getCurrentCurrency().toGem()) }
+            runCatchingCancellable { streamService.handle(text, getCurrentCurrency.getCurrency().value.toGem()) }
                 .onFailure { Log.e(TAG, "Event handler error", it) }
         }
     }

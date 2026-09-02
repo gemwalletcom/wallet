@@ -28,7 +28,6 @@ class CurrenciesViewModel @Inject constructor(
         ?.let { Currency.entries.firstOrNull { currency -> currency.string == it } }
 
     val currency = getCurrentCurrency.getCurrency()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, Currency.USD)
 
     val recommendedCurrencies = currency.mapLatest {
         service.recommendedCurrencies(localeCurrency?.toGem()).map { it.toCurrency() }

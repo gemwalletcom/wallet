@@ -19,6 +19,7 @@ interface DelegationInfoUIModel {
 class HeadDelegationInfo(
     private val delegation: Delegation,
     private val assetInfo: AssetInfo,
+    override val currency: Currency,
 ) : DelegationInfoUIModel, CryptoFormattedUIModel, FiatFormattedUIModel {
 
     override val iconUrl: String
@@ -27,9 +28,6 @@ class HeadDelegationInfo(
     override val cryptoAmount: Double by lazy {
         Crypto(delegation.base.balance).value(asset.decimals).toDouble()
     }
-
-    override val currency: Currency
-        get() = assetInfo.price?.currency ?: Currency.USD
 
     override val fiat: Double? by lazy {
         val price = assetInfo.price?.price?.price ?: 0.0

@@ -71,9 +71,7 @@ class SessionCoordinator(
 
     override fun observe(): Flow<Wallet?> = session.map { it?.wallet }.distinctUntilChanged()
 
-    override suspend fun getCurrentCurrency(): Currency = currencyState.value
-
-    override fun getCurrency(): Flow<Currency> = currencyState
+    override fun getCurrency(): StateFlow<Currency> = currencyState
 
     override fun setCurrentCurrency(currency: Currency) {
         scope.launch {

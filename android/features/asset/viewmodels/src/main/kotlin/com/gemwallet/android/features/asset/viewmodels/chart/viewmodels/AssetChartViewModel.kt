@@ -54,7 +54,7 @@ class AssetChartViewModel internal constructor(
         asset,
         links,
         market,
-        getCurrentCurrency.getCurrency().distinctUntilChanged(),
+        getCurrentCurrency.getCurrency(),
     ) { asset, links, market, currency ->
         asset?.let {
             AssetMarketUIModel(

@@ -1,10 +1,8 @@
 package com.gemwallet.android.application.session.cases
 
 import com.wallet.core.primitives.Currency
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 interface GetCurrentCurrency {
-    suspend fun getCurrentCurrency(): Currency
-
-    fun getCurrency(): Flow<Currency>
+    fun getCurrency(): StateFlow<Currency>
 }

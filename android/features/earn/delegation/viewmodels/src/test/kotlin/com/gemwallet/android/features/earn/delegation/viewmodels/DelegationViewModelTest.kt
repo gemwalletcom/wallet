@@ -12,6 +12,8 @@ import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ext.toGem
+import com.wallet.core.primitives.Currency
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -62,7 +64,9 @@ class DelegationViewModelTest {
         val viewModel = DelegationViewModel(
             getAssetInfo = getAssetInfo,
             getDelegation = getDelegation,
-            stakeService = mockk<GemStakeServiceInterface>(relaxed = true),
+            stakeService = mockk<GemStakeServiceInterface>(relaxed = true) {
+                every { currency() } returns Currency.USD.toGem()
+            },
             getSession = getSession,
             savedStateHandle = SavedStateHandle(
                 mapOf(

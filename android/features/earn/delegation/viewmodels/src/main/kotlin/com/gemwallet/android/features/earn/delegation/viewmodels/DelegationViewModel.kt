@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.earn.delegation.viewmodels
 
 import uniffi.gemstone.GemStakeServiceInterface
+import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.StakeProviderType
@@ -141,11 +142,11 @@ class DelegationViewModel @Inject constructor(
         delegation,
         assetInfo,
         getSession().filterNotNull(),
-    ) { delegation, assetInfo, session ->
+    ) { delegation, assetInfo, _ ->
         if (assetInfo == null || delegation == null) {
             return@combine null
         }
-        HeadDelegationInfo(delegation, assetInfo)
+        HeadDelegationInfo(delegation, assetInfo, stakeService.currency().toCurrency())
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
