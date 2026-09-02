@@ -13,8 +13,6 @@ import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.domains.duration.formatAvailableIn
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.ext.currentTimestamp
-import com.gemwallet.android.ext.secondsToMillis
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.models.ListPosition
@@ -81,9 +79,14 @@ private val DelegationValidator.placeholder: String
     get() = name.firstOrNull()?.toString() ?: id.firstOrNull()?.toString() ?: "V"
 
 fun availableIn(delegation: Delegation?): String {
-    val remaining = ((delegation?.base?.completionDate ?: return "") - currentTimestamp()).secondsToMillis()
+    val remaining = availableInDurationMillis(delegation) ?: return ""
     return formatAvailableIn(remaining)
 }
+
+internal fun availableInDurationMillis(
+    delegation: Delegation?,
+    currentTimeMillis: Long = System.currentTimeMillis(),
+): Long? = delegation?.base?.completionDate?.minus(currentTimeMillis)
 
 @Composable
 @Preview
