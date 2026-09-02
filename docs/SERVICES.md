@@ -430,7 +430,9 @@ Three gotchas if you repeat the sweep, all met on this pass:
   / `should_connect_perpetuals` (the `Option<Wallet>` argument is gone), and
   `GemStakeService::{sync, sync_earn}`, which take the chain or asset and look the account up on
   the session wallet (`sync_wallet` / `sync_earn_wallet` stay for the transaction-state
-  post-processing). Still to convert: `GemNftService::sync` (collections screen). `GemBalanceService`,
+  post-processing), and `GemNftService::sync` (`sync_wallet` underneath). The batch is done;
+  what remains on Android is the perpetual observer (socket-scoped), the welcome-banner key and
+  `ClearRecentAssets`, each reading the session for a wallet id Core could hand out. `GemBalanceService`,
   `GemSwapService` and the socket-driven `GemPerpetualService::{connection, sync_positions,
   apply_socket_message}` stay explicit underneath: the app-start and observer flows call them
   for the wallet whose socket they hold. Keep an explicit

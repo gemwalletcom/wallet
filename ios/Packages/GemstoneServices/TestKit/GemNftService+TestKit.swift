@@ -34,6 +34,7 @@ public extension GemNftService {
                 deviceKey: GemDeviceKeyService(store: GemSecureStoreMock()),
             ),
             store: GemstoneNftStore(store: nftStore),
+            session: .mock(),
         )
     }
 }

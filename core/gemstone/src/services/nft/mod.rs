@@ -14,25 +14,24 @@ pub use collectible::{GemCollectibleLinks, GemCollectibleService};
 pub use store::GemNftStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
+use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemNftService {
     api: Arc<GemDeviceApiClient>,
     store: Arc<dyn GemNftStore>,
+    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
 impl GemNftService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemNftStore>) -> Self {
-        Self { api, store }
+    pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemNftStore>, session: Arc<GemWalletSessionService>) -> Self {
+        Self { api, store, session }
     }
 
-    pub async fn sync(&self, wallet_id: WalletId) -> Result<u32, GemServiceError> {
-        let data = self.api.client.get_nft_assets(wallet_id.id()).await.map_err(GemApiError::from)?;
-        let count = data.len() as u32;
-        self.store.save_nfts(wallet_id, data).await?;
-        Ok(count)
+    pub async fn sync(&self) -> Result<u32, GemServiceError> {
+        self.sync_wallet(self.session.current_wallet_id()?).await
     }
 
     pub async fn ensure_asset(&self, asset_id: NFTAssetId) -> Result<NFTAssetData, GemServiceError> {
@@ -75,6 +74,15 @@ where
     let data = load.await?;
     store.save_asset(data.clone()).await?;
     Ok(data)
+}
+
+impl GemNftService {
+    pub async fn sync_wallet(&self, wallet_id: WalletId) -> Result<u32, GemServiceError> {
+        let data = self.api.client.get_nft_assets(wallet_id.id()).await.map_err(GemApiError::from)?;
+        let count = data.len() as u32;
+        self.store.save_nfts(wallet_id, data).await?;
+        Ok(count)
+    }
 }
 
 #[cfg(test)]

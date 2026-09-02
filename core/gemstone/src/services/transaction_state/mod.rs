@@ -140,7 +140,7 @@ impl GemTransactionStateService {
             .await;
         }
         if processing.sync_nfts {
-            record(&mut failures, GemPostProcessingStep::Nfts, async { self.nft.sync(wallet_id).await.map(|_| ()) }).await;
+            record(&mut failures, GemPostProcessingStep::Nfts, async { self.nft.sync_wallet(wallet_id).await.map(|_| ()) }).await;
         }
         failures
     }

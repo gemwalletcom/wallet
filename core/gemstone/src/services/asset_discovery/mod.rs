@@ -51,7 +51,9 @@ impl GemAssetDiscoveryService {
         let (asset_ids, _, _) = futures::try_join!(
             self.discover_assets(wallet_id.clone()),
             self.complete(wallet_id.clone(), GemDiscoveryStep::Transactions, self.transactions.sync_wallet(wallet_id.clone(), None)),
-            self.complete(wallet_id.clone(), GemDiscoveryStep::Nfts, async { self.nft.sync(wallet_id.clone()).await.map(|_| ()) }),
+            self.complete(wallet_id.clone(), GemDiscoveryStep::Nfts, async {
+                self.nft.sync_wallet(wallet_id.clone()).await.map(|_| ())
+            }),
         )?;
         Ok(asset_ids)
     }
