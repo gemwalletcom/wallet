@@ -2,6 +2,7 @@ package com.gemwallet.android.features.asset.viewmodels.details.viewmodels
 
 import android.util.Log
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemAssetDetailsService
@@ -9,7 +10,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
-import com.gemwallet.android.application.pricealerts.cases.SyncAssetPriceAlerts
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
@@ -48,7 +48,6 @@ class AssetDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getChainAssetInfo: GetChainAssetInfo,
     private val getTransactions: GetTransactions,
-    private val syncAssetPriceAlerts: SyncAssetPriceAlerts,
     private val assetDetailsService: GemAssetDetailsService,
     private val getCurrentCurrency: GetCurrentCurrency,
     private val hasMultiSign: HasMultiSign,
@@ -137,7 +136,8 @@ class AssetDetailsViewModel @Inject constructor(
     }
 
     private fun syncPriceAlerts() = viewModelScope.launch(Dispatchers.IO) {
-        syncAssetPriceAlerts(assetId)
+        runCatchingCancellable { assetDetailsService.syncPriceAlerts(assetId.toIdentifier()) }
+            .onFailure { Log.e(TAG, "price alerts sync failed for ${assetId.toIdentifier()}", it) }
     }
 
     private suspend fun syncAssetDetails(wallet: Wallet) {
