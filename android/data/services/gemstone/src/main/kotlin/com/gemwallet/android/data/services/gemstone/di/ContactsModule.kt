@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import uniffi.gemstone.GemAddressService
-import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemContactServiceInterface
 import uniffi.gemstone.GemManageContactService
 import uniffi.gemstone.GemManageContactServiceInterface
@@ -46,7 +45,6 @@ object ContactsModule {
         contacts: GemContactService,
         addresses: GemAddressService,
         names: GemNameService,
-        chains: GemChainService,
         payments: GemPaymentService,
-    ): GemManageContactServiceInterface = GemManageContactService(contacts, addresses, names, chains, payments)
+    ): GemManageContactServiceInterface = GemManageContactService(contacts, addresses, names, payments)
 }

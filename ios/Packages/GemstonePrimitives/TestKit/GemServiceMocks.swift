@@ -247,17 +247,12 @@ public final class GemManageContactServiceMock: GemManageContactServiceProtocol,
             contacts: contactService(),
             addresses: GemAddressService(),
             names: GemNameService.mock(),
-            chains: GemChainService(),
             payments: GemPaymentService.mock(),
         )
     }
 
     public func scannedAddress(input: String) -> GemContactScannedAddress {
         service.scannedAddress(input: input)
-    }
-
-    public func chains() -> GemChainService {
-        service.chains()
     }
 
     public func validateRecipient(chain: Gemstone.Chain, input: String, nameRecord: Gemstone.NameRecord?) -> GemRecipientValidation {

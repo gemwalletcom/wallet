@@ -11,7 +11,6 @@ use primitives::name::NameRecord;
 use primitives::{Chain, Contact};
 
 use crate::address_formatter::{GemAddressFormatStyle, GemAddressService};
-use crate::services::chain::GemChainService;
 use crate::services::file::GemFileStore;
 use crate::models::payment::GemPayment;
 use crate::payment::GemPaymentService;
@@ -106,7 +105,6 @@ pub struct GemManageContactService {
     contacts: Arc<GemContactService>,
     addresses: Arc<GemAddressService>,
     names: Arc<GemNameService>,
-    chains: Arc<GemChainService>,
     payments: Arc<GemPaymentService>,
 }
 
@@ -117,14 +115,12 @@ impl GemManageContactService {
         contacts: Arc<GemContactService>,
         addresses: Arc<GemAddressService>,
         names: Arc<GemNameService>,
-        chains: Arc<GemChainService>,
         payments: Arc<GemPaymentService>,
     ) -> Self {
         Self {
             contacts,
             addresses,
             names,
-            chains,
             payments,
         }
     }
@@ -174,9 +170,5 @@ impl GemManageContactService {
 
     pub async fn get_name_record(&self, name: String, chain: Chain) -> Result<Option<NameRecord>, GemServiceError> {
         self.names.get_name_record(name, chain).await
-    }
-
-    pub fn chains(&self) -> Arc<GemChainService> {
-        self.chains.clone()
     }
 }
