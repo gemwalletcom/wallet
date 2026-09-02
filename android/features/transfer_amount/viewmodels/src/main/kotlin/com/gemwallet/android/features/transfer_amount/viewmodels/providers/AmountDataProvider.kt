@@ -4,6 +4,7 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.toGem
 import com.gemwallet.android.serializer.toJson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -12,7 +13,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.GemConfirmInput
-import uniffi.gemstone.GemTransferBalance
+import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.GemAmountLimits
 import uniffi.gemstone.GemAmountRules
 import uniffi.gemstone.GemAmountType
@@ -26,8 +27,8 @@ abstract class AmountDataProvider(
     abstract val assetInfo: StateFlow<AssetInfo?>
     abstract val amountType: StateFlow<GemAmountType?>
 
-    open val balance: StateFlow<GemTransferBalance?> by lazy {
-        assetInfo.map { it?.toAmountBalance() }.stateIn(scope, SharingStarted.Eagerly, null)
+    open val balance: StateFlow<GemAssetBalance?> by lazy {
+        assetInfo.map { it?.balance?.toGem() }.stateIn(scope, SharingStarted.Eagerly, null)
     }
 
     val rules: StateFlow<GemAmountRules?> by lazy {
@@ -52,11 +53,3 @@ abstract class AmountDataProvider(
 
     abstract suspend fun buildConfirmInput(amount: Crypto, isMax: Boolean): GemConfirmInput
 }
-
-fun AssetInfo.toAmountBalance(): GemTransferBalance = GemTransferBalance(
-    available = balance.balance.available,
-    frozen = balance.balance.frozen,
-    locked = balance.balance.locked,
-    withdrawable = balance.balance.withdrawable,
-    votes = balance.metadata?.votes ?: 0u,
-)

@@ -347,7 +347,8 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `AmountStakeViewModel`, `AmountPerpetualViewModel`, `AmountEarnViewModel`) and Android's
   `providers/*` each derive the max button, the equivalent value and the confirm input from
   `GemAmountRules` / `GemAmountLimits` (`limits` is infallible — the available value exists for
-  every type — so neither app carries a catch that handed back zero limits); a Core
+  every type — so neither app carries a catch that handed back zero limits; the balance they hand
+  in is the one `GemAssetBalance` record, bridged once per app); a Core
   `GemAmountInput` value that carries all of it per type would let both collapse to a view-state
   mapping.
 - **The WalletConnect request lifecycle is one Core call.**

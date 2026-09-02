@@ -70,14 +70,6 @@ public struct BalanceViewModel: Sendable {
         usesFreeze
     }
 
-    public var hasFrozenResources: Bool {
-        usesFreeze && !frozenResources.isZero
-    }
-
-    public var frozenResources: BigInt {
-        balance.frozen + balance.locked
-    }
-
     private var usesFreeze: Bool {
         StakeChain(rawValue: asset.chain.rawValue)?.usesFreeze ?? false
     }

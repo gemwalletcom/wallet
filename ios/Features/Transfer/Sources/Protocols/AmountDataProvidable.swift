@@ -2,7 +2,7 @@
 
 import BigInt
 import Foundation
-import struct Gemstone.GemTransferBalance
+import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemAmountLimits
 import struct Gemstone.GemAmountRules
 import enum Gemstone.GemAmountType
@@ -37,7 +37,7 @@ extension AmountDataProvidable {
     }
 
     func limits(from assetData: AssetData) -> GemAmountLimits {
-        gemAmountType.limits(asset: asset.map(), balance: GemTransferBalance(assetData.balance))
+        gemAmountType.limits(asset: asset.map(), balance: GemAssetBalance(assetData.balance, assetId: asset.id))
     }
 
     func availableValue(from assetData: AssetData) -> BigInt {
@@ -50,17 +50,5 @@ extension AmountDataProvidable {
 
     func shouldReserveFee(from assetData: AssetData) -> Bool {
         limits(from: assetData).reservesFee
-    }
-}
-
-extension GemTransferBalance {
-    init(_ balance: Balance) {
-        self.init(
-            available: balance.available.description,
-            frozen: balance.frozen.description,
-            locked: balance.locked.description,
-            withdrawable: balance.withdrawable.description,
-            votes: UInt32(balance.metadata?.votes ?? 0),
-        )
     }
 }

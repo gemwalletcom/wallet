@@ -54,15 +54,6 @@ pub struct GemTransferData {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemTransferBalance {
-    pub available: GemBigInt,
-    pub frozen: GemBigInt,
-    pub locked: GemBigInt,
-    pub withdrawable: GemBigInt,
-    pub votes: u32,
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTransferOutput {
     pub output_type: TransferDataOutputType,
     pub output_action: TransferDataOutputAction,

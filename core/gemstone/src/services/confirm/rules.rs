@@ -12,7 +12,7 @@ use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPrel
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput};
 use crate::services::balance::GemAssetBalance;
 use crate::services::price::GemAssetPrice;
-use crate::services::transfer::{GemPendingTransactionInput, GemTransferBalance};
+use crate::services::transfer::GemPendingTransactionInput;
 use crate::transfer_amount::{GemTransferAmountError, GemTransferAmountInput};
 
 impl GemSendInput {
@@ -62,16 +62,6 @@ pub fn metadata_asset_ids(asset_id: &AssetId, fee_asset_id: &AssetId, extra_asse
     asset_ids
 }
 
-fn transfer_balance(balance: &GemAssetBalance) -> GemTransferBalance {
-    GemTransferBalance {
-        available: balance.available.clone().into(),
-        frozen: balance.frozen.clone().into(),
-        locked: balance.locked.clone().into(),
-        withdrawable: balance.withdrawable.clone().into(),
-        votes: balance.metadata.as_ref().map(|metadata| metadata.votes).unwrap_or_default(),
-    }
-}
-
 impl GemTransactionInputType {
     pub(super) fn approval_value(&self) -> Option<(AssetId, GemApprovalValue)> {
         match self {
@@ -108,8 +98,9 @@ fn gem_approval_value(value: &GemBigUint, is_unlimited: bool) -> GemApprovalValu
 impl GemConfirmData {
     pub(super) fn preload_amount(&self, metadata: &GemConfirmMetadata, fee_asset: &Asset) -> Result<GemTransferAmountResult, GemConfirmError> {
         let transfer = &self.input.transfer;
-        let balance = transfer_balance(&metadata.asset_balance);
-        let available_value = transfer.available_value(&balance).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        let available_value = transfer
+            .available_value(&metadata.asset_balance)
+            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
         let input = GemTransferAmountInput {
             input_type: transfer.input_type.clone(),
             value: transfer.value.clone(),
@@ -882,22 +873,6 @@ mod tests {
         assert!((GemTransactionInputType::Transfer { asset }).approval_value().is_none());
         assert!(matches!(gem_approval_value(&GemBigUint::from(42u32), false), GemApprovalValue::Exact { value } if value == GemBigUint::from(42u32)));
         assert!(matches!(gem_approval_value(&GemBigUint::from(42u32), true), GemApprovalValue::Unlimited));
-    }
-
-    #[test]
-    fn test_transfer_balance_carries_the_vote_count_a_tron_staker_already_used() {
-        let asset_id = AssetId::from_chain(Chain::Tron);
-        let mut staked = balance(&asset_id, 0);
-        staked.metadata = Some(primitives::asset_balance::BalanceMetadata {
-            votes: 7,
-            energy_available: 0,
-            energy_total: 0,
-            bandwidth_available: 0,
-            bandwidth_total: 0,
-        });
-
-        assert_eq!(transfer_balance(&balance(&asset_id, 0)).votes, 0);
-        assert_eq!(transfer_balance(&staked).votes, 7);
     }
 
     fn balance(asset_id: &AssetId, available: u32) -> GemAssetBalance {

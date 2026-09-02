@@ -8,7 +8,7 @@ import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemAmountException
 import uniffi.gemstone.GemAmountType
-import uniffi.gemstone.GemTransferBalance
+import uniffi.gemstone.GemAssetBalance
 
 object AmountValidation {
     fun parseAmount(asset: Asset, amount: String): Crypto {
@@ -23,7 +23,7 @@ object AmountValidation {
         return Crypto(number, asset.decimals)
     }
 
-    fun validate(type: GemAmountType, asset: Asset, amount: Crypto, balance: GemTransferBalance) {
+    fun validate(type: GemAmountType, asset: Asset, amount: Crypto, balance: GemAssetBalance) {
         try {
             type.validate(asset.toGem(), balance, amount.atomicValue.toString())
         } catch (error: GemAmountException) {

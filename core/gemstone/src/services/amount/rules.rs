@@ -6,7 +6,7 @@ use primitives::{Asset, AutocloseEstimator, Chain, PerpetualDirection, StakeChai
 use super::model::{GemAmountEarnType, GemAmountError, GemAmountLimits, GemAmountPerpetualPosition, GemAmountRules, GemAmountStakeType, GemAmountType, GemPerpetualAutoclose};
 use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT};
 use crate::config::stake::get_stake_config;
-use crate::services::transfer::GemTransferBalance;
+use crate::services::balance::GemAssetBalance;
 use crate::services::transfer::rules as transfer_rules;
 use gem_hypercore::perpetual_formatter::PerpetualFormatter;
 
@@ -23,7 +23,7 @@ impl GemAmountType {
         }
     }
 
-    pub fn limits(&self, asset: &Asset, balance: &GemTransferBalance) -> GemAmountLimits {
+    pub fn limits(&self, asset: &Asset, balance: &GemAssetBalance) -> GemAmountLimits {
         let available = self.available_value(asset, balance);
         let reserve = reserve_for_fee(self, asset);
         let max_after_fee = (&available - &reserve).max(BigInt::from(0));
@@ -35,19 +35,19 @@ impl GemAmountType {
         }
     }
 
-    pub fn validate(&self, asset: &Asset, balance: &GemTransferBalance, value: String) -> Result<(), GemAmountError> {
+    pub fn validate(&self, asset: &Asset, balance: &GemAssetBalance, value: String) -> Result<(), GemAmountError> {
         validate(&parse_value(&value)?, &self.available_value(asset, balance), &minimum_value(self, asset))
     }
 }
 
 impl GemAmountType {
-    fn available_value(&self, asset: &Asset, balance: &GemTransferBalance) -> BigInt {
+    fn available_value(&self, asset: &Asset, balance: &GemAssetBalance) -> BigInt {
         match self {
-            Self::Transfer | Self::Deposit => balance.available.clone(),
-            Self::Withdraw => balance.withdrawable.clone(),
+            Self::Transfer | Self::Deposit => BigInt::from(balance.available.clone()),
+            Self::Withdraw => BigInt::from(balance.withdrawable.clone()),
             Self::Stake { stake_type } => match stake_type {
                 GemAmountStakeType::Stake if asset.chain() == Chain::Tron => transfer_rules::tron_stake_available(asset, balance),
-                GemAmountStakeType::Stake | GemAmountStakeType::Freeze { .. } => balance.available.clone(),
+                GemAmountStakeType::Stake | GemAmountStakeType::Freeze { .. } => BigInt::from(balance.available.clone()),
                 GemAmountStakeType::Unstake { delegation } | GemAmountStakeType::Redelegate { delegation } | GemAmountStakeType::Withdraw { delegation } => {
                     BigInt::from(delegation.base.balance.clone())
                 }
@@ -55,11 +55,11 @@ impl GemAmountType {
                 GemAmountStakeType::Unfreeze { resource } => transfer_rules::unfreeze_available(resource, balance),
             },
             Self::Earn { earn_type } => match earn_type {
-                GemAmountEarnType::Deposit => balance.available.clone(),
+                GemAmountEarnType::Deposit => BigInt::from(balance.available.clone()),
                 GemAmountEarnType::Withdraw { delegation } => BigInt::from(delegation.base.balance.clone()),
             },
             Self::Perpetual { position, .. } => match position {
-                GemAmountPerpetualPosition::Open | GemAmountPerpetualPosition::Increase => balance.available.clone(),
+                GemAmountPerpetualPosition::Open | GemAmountPerpetualPosition::Increase => BigInt::from(balance.available.clone()),
                 GemAmountPerpetualPosition::Reduce { available } => available.clone(),
             },
         }
@@ -167,8 +167,9 @@ fn stake_chain(chain: Chain) -> Option<StakeChain> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::custom_types::GemBigInt;
+    use crate::models::custom_types::GemBigUint;
     use primitives::Resource;
+    use primitives::asset_balance::BalanceMetadata;
     use primitives::{AssetId, AssetType, Delegation, DelegationBase, DelegationState, DelegationValidator, StakeProviderType};
 
     fn asset(chain: Chain) -> Asset {
@@ -179,13 +180,17 @@ mod tests {
         Asset::new(AssetId::from(Chain::HyperCore, Some("usdc".into())), "USDC".into(), "USDC".into(), 6, AssetType::TOKEN)
     }
 
-    fn balance(available: u64, frozen: u64, locked: u64, votes: u32) -> GemTransferBalance {
-        GemTransferBalance {
-            available: BigInt::from(available),
-            frozen: BigInt::from(frozen),
-            locked: BigInt::from(locked),
-            withdrawable: BigInt::from(7),
-            votes,
+    fn balance(available: u64, frozen: u64, locked: u64, votes: u32) -> GemAssetBalance {
+        GemAssetBalance {
+            available: BigUint::from(available),
+            frozen: BigUint::from(frozen),
+            locked: BigUint::from(locked),
+            withdrawable: BigUint::from(7u32),
+            metadata: Some(BalanceMetadata {
+                votes,
+                ..BalanceMetadata::default()
+            }),
+            ..GemAssetBalance::mock()
         }
     }
 
@@ -428,7 +433,7 @@ mod tests {
 
     #[test]
     fn test_transfer_balance_carries_big_integers_so_a_malformed_value_cannot_read_as_zero() {
-        let _: fn(GemTransferBalance) -> (GemBigInt, GemBigInt, GemBigInt, GemBigInt) = |balance| (balance.available, balance.frozen, balance.locked, balance.withdrawable);
+        let _: fn(GemAssetBalance) -> (GemBigUint, GemBigUint, GemBigUint, GemBigUint) = |balance| (balance.available, balance.frozen, balance.locked, balance.withdrawable);
         assert_eq!(GemAmountType::Transfer.available_value(&asset(Chain::Ethereum), &balance(500, 0, 0, 0)), BigInt::from(500));
     }
 }

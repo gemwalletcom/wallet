@@ -12,7 +12,7 @@ import com.gemwallet.android.model.ChainAssetInfo
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.getTotalAmount
-import com.gemwallet.android.model.toStakeBalance
+import com.gemwallet.android.model.toGem
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Currency
@@ -92,7 +92,7 @@ class AssetInfoUIModelFactory @Inject constructor(
 
     private fun formatStake(assetInfo: AssetInfo, formatter: ValueFormatter): String {
         val balances = assetInfo.balance
-        val stakeBalance = balances.balance.toStakeBalance()
+        val stakeBalance = balances.toGem()
         val chain = assetInfo.asset.chain.string
         if (!stakeBalance.showsStakeBalance(chain, assetInfo.metadata.isStakeEnabled)) {
             return ""

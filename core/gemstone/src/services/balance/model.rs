@@ -58,3 +58,9 @@ pub struct GemAssetBalance {
     pub earn: GemBigUint,
     pub metadata: Option<BalanceMetadata>,
 }
+
+impl GemAssetBalance {
+    pub fn votes(&self) -> u32 {
+        self.metadata.as_ref().map(|metadata| metadata.votes).unwrap_or_default()
+    }
+}

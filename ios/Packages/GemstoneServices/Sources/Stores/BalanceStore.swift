@@ -21,7 +21,8 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
     public func getAvailableBalances(walletId: String, assetIds: [Gemstone.AssetId]) throws -> [GemAssetBalance] {
         let walletId = try WalletId.from(id: walletId)
         return try assetIds.compactMap { assetId in
-            try store.getBalance(walletId: walletId, assetId: Primitives.AssetId(id: assetId))?.gem(assetId: assetId)
+            let assetId = try Primitives.AssetId(id: assetId)
+            return try store.getBalance(walletId: walletId, assetId: assetId).map { GemAssetBalance($0, assetId: assetId) }
         }
     }
 
@@ -78,24 +79,5 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
 
     private func value(_ value: GemBalanceValue) -> UpdateBalanceValue {
         UpdateBalanceValue(value: value.value, amount: value.amount)
-    }
-}
-
-private extension Primitives.Balance {
-    func gem(assetId: Gemstone.AssetId) -> GemAssetBalance {
-        GemAssetBalance(
-            assetId: assetId,
-            available: available.description,
-            frozen: frozen.description,
-            locked: locked.description,
-            staked: staked.description,
-            pending: pending.description,
-            pendingUnconfirmed: pendingUnconfirmed.description,
-            rewards: rewards.description,
-            reserved: reserved.description,
-            withdrawable: withdrawable.description,
-            earn: earn.description,
-            metadata: metadata?.json(),
-        )
     }
 }

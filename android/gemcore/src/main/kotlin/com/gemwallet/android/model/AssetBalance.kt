@@ -1,8 +1,10 @@
 package com.gemwallet.android.model
 
 import com.wallet.core.primitives.Asset
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.BalanceMetadata
-import uniffi.gemstone.GemStakeBalance
+import uniffi.gemstone.GemAssetBalance
 import java.math.BigInteger
 
 data class AssetBalance(
@@ -77,8 +79,6 @@ fun Balance<String>.hasAvailable() = try {
     false
 }
 
-fun Balance<String>.rewardsBalance() = rewards.toBigIntegerOrNull() ?: BigInteger.ZERO
-
 fun Balance<Double>.getTotalAmount() = available + frozen + locked + staked + pending + rewards + earn
 
 fun Balance<String>.getTotalAmount() = BigInteger(available) +
@@ -89,12 +89,17 @@ fun Balance<String>.getTotalAmount() = BigInteger(available) +
         BigInteger(rewards) +
         BigInteger(earn)
 
-fun Balance<String>.toStakeBalance() = GemStakeBalance(
-    frozen = frozen,
-    locked = locked,
-    staked = staked,
-    pending = pending,
-    rewards = rewards,
+fun AssetBalance.toGem() = GemAssetBalance(
+    assetId = asset.id.toIdentifier(),
+    available = balance.available,
+    frozen = balance.frozen,
+    locked = balance.locked,
+    staked = balance.staked,
+    pending = balance.pending,
+    pendingUnconfirmed = balance.pendingUnconfirmed,
+    rewards = balance.rewards,
+    reserved = balance.reserved,
+    withdrawable = balance.withdrawable,
+    earn = balance.earn,
+    metadata = metadata?.toJson(),
 )
-
-fun Balance<String>.getFrozenResourceAmount() = BigInteger(frozen) + BigInteger(locked)

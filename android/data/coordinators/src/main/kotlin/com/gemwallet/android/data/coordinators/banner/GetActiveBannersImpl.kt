@@ -8,7 +8,7 @@ import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.toStakeBalance
+import com.gemwallet.android.model.toGem
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
@@ -61,7 +61,7 @@ class GetActiveBannersImpl(
     )
 
     private fun hasStakeBalance(assetInfo: AssetInfo?): Boolean {
-        val balance = assetInfo?.balance?.balance ?: return false
-        return balance.toStakeBalance().stakedValue(assetInfo.asset.chain.string).toBigInteger() > BigInteger.ZERO
+        val balance = assetInfo?.balance ?: return false
+        return balance.toGem().stakedValue(assetInfo.asset.chain.string).toBigInteger() > BigInteger.ZERO
     }
 }

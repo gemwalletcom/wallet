@@ -18,6 +18,7 @@ import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.toGem
 import com.gemwallet.android.model.NumericFormatter
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TpslType
@@ -35,7 +36,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import uniffi.gemstone.GemTransferBalance
+import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.GemAmountPerpetualPosition
 import uniffi.gemstone.GemAmountType
 import com.gemwallet.android.serializer.toJson
@@ -155,10 +156,10 @@ class AmountPerpetualProvider(
         .flatMapLatest { getAssetInfo(HypercoreUSDC.id) }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
-    override val balance: StateFlow<GemTransferBalance?> = getPerpetualBalance.getBalance()
+    override val balance: StateFlow<GemAssetBalance?> = getPerpetualBalance.getBalance()
         .combine(assetInfo.filterNotNull()) { perpetualBalance, current ->
             val available = perpetualBalance?.available ?: 0.0
-            current.toAmountBalance().copy(available = Crypto(available.toBigDecimal(), current.asset.decimals).atomicValue.toString())
+            current.balance.toGem().copy(available = Crypto(available.toBigDecimal(), current.asset.decimals).atomicValue.toString())
         }
         .stateIn(scope, SharingStarted.Eagerly, null)
 

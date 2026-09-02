@@ -3,6 +3,7 @@ package com.gemwallet.android.features.transfer_amount.viewmodels
 import com.gemwallet.android.features.transfer_amount.models.AmountError
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.testkit.mockAssetCosmos
+import com.gemwallet.android.testkit.mockGemAssetBalance
 import com.gemwallet.android.testkit.mockAssetSmartChain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -10,13 +11,12 @@ import org.junit.Test
 import java.math.BigInteger
 import uniffi.gemstone.GemAmountStakeType
 import uniffi.gemstone.GemAmountType
-import uniffi.gemstone.GemTransferBalance
 
 class AmountValidationTest {
 
     private val asset = mockAssetCosmos()
 
-    private fun balance(available: String) = GemTransferBalance(available, "0", "0", "0", 0u)
+    private fun balance(available: String) = mockGemAssetBalance(asset, available)
 
     @Test
     fun `insufficient balance error uses asset symbol`() {

@@ -9,10 +9,11 @@ use primitives::{
     TransactionSwapMetadata, TransactionType, TransactionWalletConnectMetadata, TransferDataOutputAction, TransferDataOutputType,
 };
 
-use super::model::{GemConfirmDestination, GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferBalance, GemTransferData, GemTransferOutput};
+use super::model::{GemConfirmDestination, GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferData, GemTransferOutput};
 use crate::config::chain::is_memo_supported;
 use crate::models::transaction::{GemTransactionInputType, transaction_metadata_block_number, transaction_metadata_sequence};
 use crate::services::amount::model::GemAmountError;
+use crate::services::balance::GemAssetBalance;
 use crate::services::transactions::GemTransactionHeaderKind;
 
 #[uniffi::export]
@@ -234,15 +235,15 @@ impl GemTransactionInputType {
     }
 }
 
-pub(crate) fn tron_stake_available(asset: &Asset, balance: &GemTransferBalance) -> BigInt {
-    let staked = BigInt::from(balance.votes) * BigInt::from(10u32).pow(asset.decimals.max(0) as u32);
-    (&balance.frozen + &balance.locked - staked).max(BigInt::from(0))
+pub(crate) fn tron_stake_available(asset: &Asset, balance: &GemAssetBalance) -> BigInt {
+    let staked = BigInt::from(balance.votes()) * BigInt::from(10u32).pow(asset.decimals.max(0) as u32);
+    (BigInt::from(&balance.frozen + &balance.locked) - staked).max(BigInt::from(0))
 }
 
-pub(crate) fn unfreeze_available(resource: &primitives::Resource, balance: &GemTransferBalance) -> BigInt {
+pub(crate) fn unfreeze_available(resource: &primitives::Resource, balance: &GemAssetBalance) -> BigInt {
     match resource {
-        primitives::Resource::Bandwidth => balance.frozen.clone(),
-        primitives::Resource::Energy => balance.locked.clone(),
+        primitives::Resource::Bandwidth => BigInt::from(balance.frozen.clone()),
+        primitives::Resource::Energy => BigInt::from(balance.locked.clone()),
     }
 }
 
@@ -332,21 +333,21 @@ pub fn earn_transfer_data(asset: Asset, earn_type: EarnType, data: ContractCallD
 }
 
 impl GemTransferData {
-    pub(crate) fn available_value(&self, balance: &GemTransferBalance) -> Result<BigInt, GemAmountError> {
+    pub(crate) fn available_value(&self, balance: &GemAssetBalance) -> Result<BigInt, GemAmountError> {
         let asset = self.input_type.asset();
         Ok(match &self.input_type {
-            GemTransactionInputType::Withdrawal { .. } => balance.withdrawable.clone(),
+            GemTransactionInputType::Withdrawal { .. } => BigInt::from(balance.withdrawable.clone()),
             GemTransactionInputType::Stake { stake_type, .. } => match stake_type {
                 StakeType::Unstake(delegation) | StakeType::Withdraw(delegation) => BigInt::from(delegation.base.balance.clone()),
                 StakeType::Redelegate(data) => BigInt::from(data.delegation.base.balance.clone()),
                 StakeType::Rewards(_) => self.value.clone(),
                 StakeType::Unfreeze(resource) => unfreeze_available(resource, balance),
                 StakeType::Stake(_) if asset.chain() == Chain::Tron => tron_stake_available(asset, balance),
-                StakeType::Stake(_) | StakeType::Freeze(_) => balance.available.clone(),
+                StakeType::Stake(_) | StakeType::Freeze(_) => BigInt::from(balance.available.clone()),
             },
             GemTransactionInputType::Earn { earn_type, .. } => match earn_type {
                 EarnType::Withdraw(delegation) => BigInt::from(delegation.base.balance.clone()),
-                EarnType::Deposit(_) => balance.available.clone(),
+                EarnType::Deposit(_) => BigInt::from(balance.available.clone()),
             },
             GemTransactionInputType::Transfer { .. }
             | GemTransactionInputType::Deposit { .. }
@@ -355,7 +356,7 @@ impl GemTransferData {
             | GemTransactionInputType::Generic { .. }
             | GemTransactionInputType::TransferNft { .. }
             | GemTransactionInputType::Account { .. }
-            | GemTransactionInputType::Perpetual { .. } => balance.available.clone(),
+            | GemTransactionInputType::Perpetual { .. } => BigInt::from(balance.available.clone()),
         })
     }
 }
@@ -466,6 +467,7 @@ mod tests {
     use crate::models::gateway::GemGasPriceType;
     use crate::models::transaction::{GemFeeOptions, GemTransactionLoadFee, GemTransactionLoadMetadata};
     use num_bigint::BigUint;
+    use primitives::asset_balance::BalanceMetadata;
     use primitives::{
         Delegation, DelegationBase, DelegationState, DelegationValidator, NFTAsset, PerpetualConfirmData, PerpetualDirection, Resource, StakeProviderType, SwapProvider,
         TransactionType, TransferDataExtra,
@@ -562,13 +564,19 @@ mod tests {
         }
     }
 
-    fn balance(available: u64, frozen: u64, locked: u64) -> GemTransferBalance {
-        GemTransferBalance {
-            available: BigInt::from(available),
-            frozen: BigInt::from(frozen),
-            locked: BigInt::from(locked),
-            withdrawable: BigInt::ZERO,
-            votes: 0,
+    fn votes(votes: u32) -> BalanceMetadata {
+        BalanceMetadata {
+            votes,
+            ..BalanceMetadata::default()
+        }
+    }
+
+    fn balance(available: u64, frozen: u64, locked: u64) -> GemAssetBalance {
+        GemAssetBalance {
+            available: BigUint::from(available),
+            frozen: BigUint::from(frozen),
+            locked: BigUint::from(locked),
+            ..GemAssetBalance::mock()
         }
     }
 
@@ -841,8 +849,8 @@ mod tests {
         };
         assert_eq!(
             transfer(tron_stake, "1")
-                .available_value(&GemTransferBalance {
-                    votes: 2,
+                .available_value(&GemAssetBalance {
+                    metadata: Some(votes(2)),
                     ..balance(1, 5_000_000, 3_000_000)
                 })
                 .unwrap(),
@@ -854,8 +862,8 @@ mod tests {
         };
         assert_eq!(
             transfer(overvoted, "1")
-                .available_value(&GemTransferBalance {
-                    votes: 9,
+                .available_value(&GemAssetBalance {
+                    metadata: Some(votes(9)),
                     ..balance(1, 5_000_000, 3_000_000)
                 })
                 .unwrap(),
@@ -864,8 +872,8 @@ mod tests {
         let withdrawal = GemTransactionInputType::Withdrawal { asset: asset(Chain::HyperCore) };
         assert_eq!(
             transfer(withdrawal, "1")
-                .available_value(&GemTransferBalance {
-                    withdrawable: BigInt::from(9),
+                .available_value(&GemAssetBalance {
+                    withdrawable: BigUint::from(9u32),
                     ..balance(10, 0, 0)
                 })
                 .unwrap(),

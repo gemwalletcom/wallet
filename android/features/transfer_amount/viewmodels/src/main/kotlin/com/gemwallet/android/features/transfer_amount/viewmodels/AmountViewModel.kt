@@ -41,7 +41,7 @@ import java.math.BigInteger
 import javax.inject.Inject
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountType
-import uniffi.gemstone.GemTransferBalance
+import uniffi.gemstone.GemAssetBalance
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -215,5 +215,5 @@ private data class ValidationInputs(
     val inputType: AmountInputType,
     val asset: Asset?,
     val amountType: GemAmountType?,
-    val balance: GemTransferBalance?,
+    val balance: GemAssetBalance?,
 )

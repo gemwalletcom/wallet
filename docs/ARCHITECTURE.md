@@ -825,3 +825,25 @@ now takes the `Delegation` (or its `DelegationBase`) and reads the chain, provid
 rewards itself; the rewards compare as the `BigUint` they already are instead of re-parsing a
 string. When a Core method's parameters are three fields of one typeshare value the app
 already holds, pass the value.
+
+**One balance record crosses the FFI.** Core carried three — `GemAssetBalance` for the balance
+store, `GemTransferBalance` (available, frozen, locked, withdrawable, votes) for the amount rules
+and `GemStakeBalance` (frozen, locked, staked, pending, rewards) for the staked-value rule — and
+each app wrote a field-copy bridge per record from its own balance model, so a new Core rule that
+needed the balance meant a fourth copy (`GemTransferBalance+GemstonePrimitives.swift` lasted one
+commit). Core even converted `GemAssetBalance` into `GemTransferBalance` internally on the confirm
+path. `GemAssetBalance` is the one balance input now: the amount rules, `available_value`,
+`stake_actions` and `staked_value`/`shows_stake_balance` take it, and each app keeps a single
+bridge — iOS `GemAssetBalance(balance, assetId:)`, Android `AssetBalance.toGem()`. A Core record
+that is a subset of another Core record is a second bridge on both apps; take the whole value.
+
+**A screen's decision that ends in a transfer is a Core answer with the transfer inside.** The
+stake screen decided on both apps whether claiming rewards goes straight to confirm or through
+the amount screen — filter the delegations with rewards, count them, ask Core `can_claim_all_rewards`,
+sum the rewards, build the transfer — and computed the frozen balance and the reward total for
+`stake_actions` itself. `GemStakeService::claim_rewards(chain, delegations)` returns the total and
+`GemClaimRewardsDestination::{Transfer, Amount}`, and `stake_actions` takes the balance and the
+delegations; iOS's `frozenResources`/`rewardsValue`/`delegationsWithRewards` and Android's
+`getFrozenResourceAmount`/`sumRewardsBalance` are gone, and `can_claim_all_rewards` is no longer
+exported.
+

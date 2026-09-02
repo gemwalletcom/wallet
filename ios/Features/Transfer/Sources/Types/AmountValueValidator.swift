@@ -4,7 +4,7 @@ import BigInt
 import Foundation
 import enum Gemstone.GemAmountError
 import enum Gemstone.GemAmountType
-import struct Gemstone.GemTransferBalance
+import struct Gemstone.GemAssetBalance
 import GemstonePrimitives
 import Primitives
 import Validators
@@ -22,7 +22,7 @@ struct AmountValueValidator: ValueValidator {
 
     func validate(_ value: BigInt) throws {
         do {
-            try type.validate(asset: asset.map(), balance: GemTransferBalance(balance), value: value.description)
+            try type.validate(asset: asset.map(), balance: GemAssetBalance(balance, assetId: asset.id), value: value.description)
         } catch GemAmountError.Zero {
             throw SilentValidationError()
         } catch GemAmountError.InvalidValue {

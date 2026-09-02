@@ -4,13 +4,17 @@ use crate::services::collections::{stale, unique};
 
 use std::str::FromStr;
 
-use num_bigint::BigUint;
+use num_bigint::{BigInt, BigUint};
 use primitives::AddressName;
-use primitives::{AddressType, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, StakeChain, StakeProviderType, VerificationStatus, WalletType};
+use primitives::{
+    AddressType, Asset, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, StakeChain, StakeProviderType, StakeType, VerificationStatus, WalletType,
+};
 use rand::seq::IndexedRandom;
 
-use super::model::{GemDelegationAction, GemStakeAction, GemStakeActionItem, GemStakeBalance};
-use crate::models::custom_types::GemBigInt;
+use super::model::{GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemStakeAction, GemStakeActionItem};
+use crate::models::custom_types::GemBigUint;
+use crate::services::balance::GemAssetBalance;
+use crate::services::transfer::rules as transfer_rules;
 
 const SYSTEM_VALIDATOR_IDS: [&str; 2] = [DelegationValidator::SYSTEM_ID, "unstaking"];
 use crate::config::stake::get_stake_config;
@@ -68,21 +72,21 @@ pub fn shows_rewards(delegation: &DelegationBase) -> bool {
     delegation.state == DelegationState::Active && delegation.rewards > BigUint::ZERO
 }
 
-pub fn requires_frozen_balance(chain: Chain, frozen_value: &str) -> bool {
+pub fn requires_frozen_balance(chain: Chain, frozen_value: &BigUint) -> bool {
     let Some(config) = StakeChain::from_str(chain.as_ref()).ok().map(get_stake_config) else {
         return false;
     };
-    config.uses_freeze && !is_positive(frozen_value)
+    config.uses_freeze && *frozen_value == BigUint::ZERO
 }
 
-pub fn can_claim_stake_rewards(chain: Chain, rewards_value: &str) -> bool {
+pub fn can_claim_stake_rewards(chain: Chain, rewards_value: &BigUint) -> bool {
     let Some(config) = StakeChain::from_str(chain.as_ref()).ok().map(get_stake_config) else {
         return false;
     };
-    config.can_claim_rewards && is_positive(rewards_value)
+    config.can_claim_rewards && *rewards_value > BigUint::ZERO
 }
 
-pub fn can_claim_all_rewards(chain: Chain, delegations_with_rewards: u32) -> bool {
+pub fn can_claim_all_rewards(chain: Chain, delegations_with_rewards: usize) -> bool {
     let claims_all = StakeChain::from_str(chain.as_ref())
         .ok()
         .map(get_stake_config)
@@ -90,12 +94,16 @@ pub fn can_claim_all_rewards(chain: Chain, delegations_with_rewards: u32) -> boo
     claims_all || delegations_with_rewards == 1
 }
 
-pub fn stake_actions(wallet_type: WalletType, chain: Chain, has_validators: bool, frozen_value: &str, rewards_value: &str) -> Vec<GemStakeActionItem> {
+pub fn rewards_value(delegations: &[Delegation]) -> BigUint {
+    delegations.iter().map(|delegation| delegation.base.rewards.clone()).sum()
+}
+
+pub fn stake_actions(wallet_type: WalletType, chain: Chain, has_validators: bool, balance: &GemAssetBalance, delegations: &[Delegation]) -> Vec<GemStakeActionItem> {
     let Some(config) = StakeChain::from_str(chain.as_ref()).ok().map(get_stake_config).filter(|_| wallet_type != WalletType::View) else {
         return vec![];
     };
     let uses_freeze = config.uses_freeze;
-    let requires_frozen_balance = requires_frozen_balance(chain, frozen_value);
+    let requires_frozen_balance = requires_frozen_balance(chain, &(&balance.frozen + &balance.locked));
     let item = |action: GemStakeAction, is_enabled: bool, requires_frozen_balance: bool| GemStakeActionItem {
         action,
         is_enabled,
@@ -105,20 +113,30 @@ pub fn stake_actions(wallet_type: WalletType, chain: Chain, has_validators: bool
         Some(item(GemStakeAction::Stake, has_validators || requires_frozen_balance, requires_frozen_balance)),
         uses_freeze.then(|| item(GemStakeAction::Freeze, true, false)),
         uses_freeze.then(|| item(GemStakeAction::Unfreeze, true, false)),
-        can_claim_stake_rewards(chain, rewards_value).then(|| item(GemStakeAction::ClaimRewards, true, false)),
+        can_claim_stake_rewards(chain, &rewards_value(delegations)).then(|| item(GemStakeAction::ClaimRewards, true, false)),
     ]
     .into_iter()
     .flatten()
     .collect()
 }
 
-fn is_positive(amount: &str) -> bool {
-    BigUint::from_str(amount).is_ok_and(|amount| amount > BigUint::ZERO)
+pub fn claim_rewards(chain: Chain, delegations: Vec<Delegation>) -> GemClaimRewards {
+    let with_rewards: Vec<Delegation> = delegations.into_iter().filter(|delegation| delegation.base.rewards > BigUint::ZERO).collect();
+    let value = BigInt::from(rewards_value(&with_rewards));
+    let destination = if can_claim_all_rewards(chain, with_rewards.len()) {
+        let validators = with_rewards.into_iter().map(|delegation| delegation.validator).collect();
+        GemClaimRewardsDestination::Transfer {
+            transfer: transfer_rules::stake_transfer_data(Asset::from_chain(chain), StakeType::Rewards(validators), value.clone(), false),
+        }
+    } else {
+        GemClaimRewardsDestination::Amount { delegations: with_rewards }
+    };
+    GemClaimRewards { value, destination }
 }
 
 #[uniffi::export]
-impl GemStakeBalance {
-    pub fn staked_value(&self, chain: Chain) -> GemBigInt {
+impl GemAssetBalance {
+    pub fn staked_value(&self, chain: Chain) -> GemBigUint {
         let principal = match StakeChain::from_str(chain.as_ref()) {
             Ok(stake_chain) if stake_chain.get_uses_freeze() => &self.frozen + &self.locked,
             _ => self.staked.clone(),
@@ -127,7 +145,7 @@ impl GemStakeBalance {
     }
 
     pub fn shows_stake_balance(&self, chain: Chain, is_stake_enabled: bool) -> bool {
-        StakeChain::from_str(chain.as_ref()).is_ok() && (is_stake_enabled || self.staked_value(chain) > GemBigInt::ZERO)
+        StakeChain::from_str(chain.as_ref()).is_ok() && (is_stake_enabled || self.staked_value(chain) > GemBigUint::ZERO)
     }
 }
 
@@ -243,13 +261,14 @@ mod tests {
     use super::*;
     use primitives::AssetId;
 
-    fn stake_balance(frozen: i64, locked: i64, staked: i64, pending: i64, rewards: i64) -> GemStakeBalance {
-        GemStakeBalance {
-            frozen: GemBigInt::from(frozen),
-            locked: GemBigInt::from(locked),
-            staked: GemBigInt::from(staked),
-            pending: GemBigInt::from(pending),
-            rewards: GemBigInt::from(rewards),
+    fn stake_balance(frozen: u32, locked: u32, staked: u32, pending: u32, rewards: u32) -> GemAssetBalance {
+        GemAssetBalance {
+            frozen: BigUint::from(frozen),
+            locked: BigUint::from(locked),
+            staked: BigUint::from(staked),
+            pending: BigUint::from(pending),
+            rewards: BigUint::from(rewards),
+            ..GemAssetBalance::mock()
         }
     }
 
@@ -348,30 +367,33 @@ mod tests {
     #[test]
     fn test_stake_actions_follow_the_wallet_chain_and_balance() {
         use GemStakeAction::*;
-        let actions = |chain, has_validators, frozen, rewards| {
-            stake_actions(WalletType::Multicoin, chain, has_validators, frozen, rewards)
+        let balance = |frozen: u32, locked: u32| stake_balance(frozen, locked, 0, 0, 0);
+        let rewards = |chain, rewards| vec![delegation(chain, StakeProviderType::Stake, DelegationState::Active, rewards)];
+        let actions = |chain, has_validators, balance: GemAssetBalance, rewards: Vec<Delegation>| {
+            stake_actions(WalletType::Multicoin, chain, has_validators, &balance, &rewards)
                 .into_iter()
                 .map(|item| (item.action, item.is_enabled, item.requires_frozen_balance))
                 .collect::<Vec<_>>()
         };
 
-        assert_eq!(actions(Chain::Cosmos, true, "0", "0"), vec![(Stake, true, false)]);
-        assert_eq!(actions(Chain::Cosmos, false, "0", "0"), vec![(Stake, false, false)]);
-        assert_eq!(actions(Chain::Cosmos, true, "0", "5"), vec![(Stake, true, false), (ClaimRewards, true, false)]);
+        assert_eq!(actions(Chain::Cosmos, true, balance(0, 0), vec![]), vec![(Stake, true, false)]);
+        assert_eq!(actions(Chain::Cosmos, false, balance(0, 0), vec![]), vec![(Stake, false, false)]);
         assert_eq!(
-            actions(Chain::Tron, true, "0", "0"),
+            actions(Chain::Cosmos, true, balance(0, 0), rewards(Chain::Cosmos, 5)),
+            vec![(Stake, true, false), (ClaimRewards, true, false)]
+        );
+        assert_eq!(
+            actions(Chain::Tron, true, balance(0, 0), vec![]),
             vec![(Stake, true, true), (Freeze, true, false), (Unfreeze, true, false)],
             "a freeze chain with nothing frozen asks for a frozen balance before staking"
         );
         assert_eq!(
-            actions(Chain::Tron, false, "10", "0"),
-            vec![(Stake, false, false), (Freeze, true, false), (Unfreeze, true, false)]
+            actions(Chain::Tron, false, balance(0, 10), vec![]),
+            vec![(Stake, false, false), (Freeze, true, false), (Unfreeze, true, false)],
+            "a locked balance counts as frozen"
         );
-        assert!(stake_actions(WalletType::View, Chain::Cosmos, true, "0", "5").is_empty());
-        assert!(
-            stake_actions(WalletType::Multicoin, Chain::Bitcoin, true, "0", "5").is_empty(),
-            "a chain without staking has no actions"
-        );
+        assert!(stake_actions(WalletType::View, Chain::Cosmos, true, &balance(0, 0), &rewards(Chain::Cosmos, 5)).is_empty());
+        assert!(stake_actions(WalletType::Multicoin, Chain::Bitcoin, true, &balance(0, 0), &rewards(Chain::Bitcoin, 5)).is_empty());
     }
 
     #[test]
@@ -380,6 +402,16 @@ mod tests {
         assert!(!can_claim_all_rewards(Chain::Sui, 3));
         assert!(can_claim_all_rewards(Chain::Sui, 1));
         assert!(!can_claim_all_rewards(Chain::Bitcoin, 2));
+
+        let sui = |rewards| delegation(Chain::Sui, StakeProviderType::Stake, DelegationState::Active, rewards);
+        let one = claim_rewards(Chain::Sui, vec![sui(0), sui(7)]);
+        assert_eq!(one.value, BigInt::from(7));
+        assert!(matches!(one.destination, GemClaimRewardsDestination::Transfer { ref transfer } if transfer.value == BigInt::from(7)));
+        let several = claim_rewards(Chain::Sui, vec![sui(3), sui(4), sui(0)]);
+        assert_eq!(several.value, BigInt::from(7));
+        assert!(matches!(several.destination, GemClaimRewardsDestination::Amount { ref delegations } if delegations.len() == 2));
+        let cosmos = claim_rewards(Chain::Cosmos, vec![sui(3), sui(4)]);
+        assert!(matches!(cosmos.destination, GemClaimRewardsDestination::Transfer { .. }));
     }
 
     #[test]
@@ -481,17 +513,17 @@ mod tests {
 
     #[test]
     fn test_freeze_chains_need_a_frozen_balance_before_staking() {
-        assert!(requires_frozen_balance(Chain::Tron, "0"));
-        assert!(!requires_frozen_balance(Chain::Tron, "10"));
-        assert!(!requires_frozen_balance(Chain::Cosmos, "0"));
-        assert!(!requires_frozen_balance(Chain::Bitcoin, "0"));
+        assert!(requires_frozen_balance(Chain::Tron, &BigUint::ZERO));
+        assert!(!requires_frozen_balance(Chain::Tron, &BigUint::from(10u32)));
+        assert!(!requires_frozen_balance(Chain::Cosmos, &BigUint::ZERO));
+        assert!(!requires_frozen_balance(Chain::Bitcoin, &BigUint::ZERO));
     }
 
     #[test]
     fn test_claiming_needs_rewards_on_a_chain_that_claims() {
-        assert!(can_claim_stake_rewards(Chain::Cosmos, "10"));
-        assert!(!can_claim_stake_rewards(Chain::Cosmos, "0"));
-        assert!(!can_claim_stake_rewards(Chain::Bitcoin, "10"));
+        assert!(can_claim_stake_rewards(Chain::Cosmos, &BigUint::from(10u32)));
+        assert!(!can_claim_stake_rewards(Chain::Cosmos, &BigUint::ZERO));
+        assert!(!can_claim_stake_rewards(Chain::Bitcoin, &BigUint::from(10u32)));
     }
 
     #[test]
@@ -514,23 +546,23 @@ mod tests {
 
     #[test]
     fn test_staked_value_counts_rewards_on_delegating_chains() {
-        assert_eq!(stake_balance(0, 0, 100, 20, 5).staked_value(Chain::Cosmos), GemBigInt::from(125));
-        assert_eq!(stake_balance(0, 0, 100, 20, 0).staked_value(Chain::Cosmos), GemBigInt::from(120));
-        assert_eq!(stake_balance(0, 0, 700, 30, 3).staked_value(Chain::Solana), GemBigInt::from(733));
-        assert_eq!(stake_balance(9, 9, 100, 0, 0).staked_value(Chain::Cosmos), GemBigInt::from(100));
+        assert_eq!(stake_balance(0, 0, 100, 20, 5).staked_value(Chain::Cosmos), GemBigUint::from(125u32));
+        assert_eq!(stake_balance(0, 0, 100, 20, 0).staked_value(Chain::Cosmos), GemBigUint::from(120u32));
+        assert_eq!(stake_balance(0, 0, 700, 30, 3).staked_value(Chain::Solana), GemBigUint::from(733u32));
+        assert_eq!(stake_balance(9, 9, 100, 0, 0).staked_value(Chain::Cosmos), GemBigUint::from(100u32));
     }
 
     #[test]
     fn test_unclaimed_rewards_alone_are_a_staked_position() {
         let rewards_only = stake_balance(0, 0, 0, 0, 7);
-        assert_eq!(rewards_only.staked_value(Chain::Cosmos), GemBigInt::from(7));
+        assert_eq!(rewards_only.staked_value(Chain::Cosmos), GemBigUint::from(7u32));
         assert!(rewards_only.shows_stake_balance(Chain::Cosmos, false));
     }
 
     #[test]
     fn test_staked_value_uses_the_frozen_balance_on_freeze_chains() {
-        assert_eq!(stake_balance(40, 60, 0, 10, 5).staked_value(Chain::Tron), GemBigInt::from(115));
-        assert_eq!(stake_balance(40, 60, 999, 0, 0).staked_value(Chain::Tron), GemBigInt::from(100));
+        assert_eq!(stake_balance(40, 60, 0, 10, 5).staked_value(Chain::Tron), GemBigUint::from(115u32));
+        assert_eq!(stake_balance(40, 60, 999, 0, 0).staked_value(Chain::Tron), GemBigUint::from(100u32));
     }
 
     #[test]
@@ -545,8 +577,8 @@ mod tests {
 
     #[test]
     fn test_stake_balance_carries_big_integers_so_a_malformed_value_cannot_read_as_zero() {
-        let _: fn(GemStakeBalance) -> (GemBigInt, GemBigInt, GemBigInt, GemBigInt, GemBigInt) =
+        let _: fn(GemAssetBalance) -> (GemBigUint, GemBigUint, GemBigUint, GemBigUint, GemBigUint) =
             |balance| (balance.frozen, balance.locked, balance.staked, balance.pending, balance.rewards);
-        assert_eq!(stake_balance(0, 0, 100, 20, 5).staked_value(Chain::Cosmos), GemBigInt::from(125));
+        assert_eq!(stake_balance(0, 0, 100, 20, 5).staked_value(Chain::Cosmos), GemBigUint::from(125u32));
     }
 }

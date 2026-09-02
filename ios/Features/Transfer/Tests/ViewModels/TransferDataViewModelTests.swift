@@ -2,11 +2,9 @@
 
 import GemstonePrimitives
 import enum Gemstone.GemTransactionInputType
-import BigInt
 import Localization
 @testable import Primitives
 import PrimitivesTestKit
-import class Gemstone.GemTransferService
 import Testing
 import struct Gemstone.GemTransferData
 @testable import Transfer
@@ -27,14 +25,6 @@ struct TransferDataViewModelTests {
     func genericSignTitle() {
         let type = GemTransactionInputType.generic(asset: .mock(), metadata: .mock(), extra: .mock(outputAction: .sign))
         #expect(TransferDataViewModel.mock(type: type).title == Localized.Transfer.reviewRequest)
-    }
-
-    @Test
-    func availableValueForUnfreeze() throws {
-        let balance = Balance(available: 1000, frozen: 500, locked: 300)
-
-        #expect(try GemTransferData.mock(type: .stake(.mock(), .unfreeze(.bandwidth))).availableValue(balance: balance, transferService: GemTransferService()) == BigInt(500))
-        #expect(try GemTransferData.mock(type: .stake(.mock(), .unfreeze(.energy))).availableValue(balance: balance, transferService: GemTransferService()) == BigInt(300))
     }
 }
 

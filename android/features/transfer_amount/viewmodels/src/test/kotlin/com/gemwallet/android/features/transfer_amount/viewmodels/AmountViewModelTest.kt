@@ -12,6 +12,7 @@ import com.gemwallet.android.model.AssetInfo
 import uniffi.gemstone.GemConfirmInput
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.testkit.mockAssetCosmos
+import com.gemwallet.android.testkit.mockGemAssetBalance
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.ui.models.AmountInputType
@@ -42,7 +43,7 @@ import com.wallet.core.primitives.Currency
 import uniffi.gemstone.GemAmountLimits
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountType
-import uniffi.gemstone.GemTransferBalance
+import uniffi.gemstone.GemAssetBalance
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountViewModelTest {
@@ -62,7 +63,7 @@ class AmountViewModelTest {
     private val builtIsMax = mutableListOf<Boolean>()
     private val confirmInput = mockk<GemConfirmInput>(relaxed = true)
 
-    private val balanceFlow = MutableStateFlow<GemTransferBalance?>(transferBalance(HundredAtom))
+    private val balanceFlow = MutableStateFlow<GemAssetBalance?>(transferBalance(HundredAtom))
 
     private val provider = mockk<AmountDataProvider>(relaxed = true) {
         every { assetInfo } returns assetInfoFlow
@@ -207,7 +208,7 @@ class AmountViewModelTest {
         assertNotNull(viewModel.reserveForFeeFormatted.value)
     }
 
-    private fun transferBalance(available: BigInteger) = GemTransferBalance(available.toString(), "0", "0", "0", 0u)
+    private fun transferBalance(available: BigInteger) = mockGemAssetBalance(asset, available.toString())
 
     private fun viewModelTest(block: suspend TestScope.(AmountViewModel) -> Unit) = runTest(testDispatcher) {
         val params = AmountParams.Transfer(asset.id, GemRecipient(address = "to", name = null))

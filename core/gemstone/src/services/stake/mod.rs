@@ -13,10 +13,11 @@ use crate::gateway::GemGateway;
 use crate::models::custom_types::GemBigInt;
 use crate::models::{GemContractCallData, GemEarnType};
 
-pub use model::{GemDelegationAction, GemStakeAction, GemStakeActionItem, GemStakeBalance};
+pub use model::{GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemStakeAction, GemStakeActionItem};
 pub use store::GemStakeStore;
 
 use crate::block_explorer::GemBlockExplorerLink;
+use crate::services::balance::GemAssetBalance;
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemAddressStore;
 use crate::services::preferences::GemPreferencesService;
@@ -97,12 +98,12 @@ impl GemStakeService {
         rules::shows_rewards(&delegation)
     }
 
-    pub fn stake_actions(&self, wallet_type: WalletType, chain: Chain, has_validators: bool, frozen_value: GemBigInt, rewards_value: GemBigInt) -> Vec<GemStakeActionItem> {
-        rules::stake_actions(wallet_type, chain, has_validators, &frozen_value.to_string(), &rewards_value.to_string())
+    pub fn stake_actions(&self, wallet_type: WalletType, chain: Chain, has_validators: bool, balance: GemAssetBalance, delegations: Vec<Delegation>) -> Vec<GemStakeActionItem> {
+        rules::stake_actions(wallet_type, chain, has_validators, &balance, &delegations)
     }
 
-    pub fn can_claim_all_rewards(&self, chain: Chain, delegations_with_rewards: u32) -> bool {
-        rules::can_claim_all_rewards(chain, delegations_with_rewards)
+    pub fn claim_rewards(&self, chain: Chain, delegations: Vec<Delegation>) -> GemClaimRewards {
+        rules::claim_rewards(chain, delegations)
     }
 
     pub fn recommended_validator_ids(&self, chain: Chain) -> Vec<String> {

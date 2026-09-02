@@ -486,12 +486,12 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         rewardsShown
     }
 
-    public func stakeActions(walletType _: Gemstone.WalletType, chain _: Gemstone.Chain, hasValidators: Bool, frozenValue _: GemBigInt, rewardsValue _: GemBigInt) -> [GemStakeActionItem] {
+    public func stakeActions(walletType _: Gemstone.WalletType, chain _: Gemstone.Chain, hasValidators: Bool, balance _: GemAssetBalance, delegations _: [Gemstone.Delegation]) -> [GemStakeActionItem] {
         [GemStakeActionItem(action: .stake, isEnabled: hasValidators, requiresFrozenBalance: false)]
     }
 
-    public func canClaimAllRewards(chain _: Gemstone.Chain, delegationsWithRewards: UInt32) -> Bool {
-        delegationsWithRewards == 1
+    public func claimRewards(chain _: Gemstone.Chain, delegations: [Gemstone.Delegation]) -> GemClaimRewards {
+        GemClaimRewards(value: "0", destination: .amount(delegations: delegations))
     }
 
     public func recommendedValidatorIds(chain _: Gemstone.Chain) -> [String] {
@@ -670,9 +670,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 public final class GemAssetDiscoveryServiceMock: GemAssetDiscoveryServiceProtocol, @unchecked Sendable {
     public init() {}
 
-    public func discover(walletId _: String) async throws -> [Gemstone.AssetId] {
-        []
-    }
+    public func discover(walletId _: String) async throws {}
 }
 
 public final class GemExplorerServiceMock: GemExplorerServiceProtocol, @unchecked Sendable {

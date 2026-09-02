@@ -6,6 +6,8 @@ import Formatters
 import Foundation
 import enum Gemstone.GemStakeAction
 import struct Gemstone.GemStakeActionItem
+import struct Gemstone.GemClaimRewards
+import struct Gemstone.GemAssetBalance
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import InfoSheet
@@ -173,30 +175,18 @@ public final class StakeSceneViewModel {
     }
 
     var claimRewardsText: String {
-        formatter.string(rewardsValue, decimals: asset.decimals.asInt, currency: asset.symbol)
+        formatter.string(BigInt(core: claimRewards.value), decimals: asset.decimals.asInt, currency: asset.symbol)
     }
 
     var showRewards: Bool {
         stakeAction(.claimRewards) != nil
     }
 
-    var canClaimAllRewards: Bool {
-        showRewards && service.canClaimAllRewards(chain: chain.chain.rawValue, delegationsWithRewards: UInt32(delegationsWithRewards.count))
-    }
-
     var claimRewardsDestination: any Hashable {
-        if canClaimAllRewards {
-            return service.stakeTransferData(
-                asset: chain.chain.asset.map(),
-                stakeType: StakeType.rewards(delegationsWithRewards.map(\.validator)).json(),
-                value: rewardsValue.description,
-                useMaxAmount: false,
-            )
+        switch claimRewards.destination {
+        case let .transfer(transfer): transfer
+        case let .amount(delegations): AmountInput(type: .stake(.claimRewards(delegations: delegations.map { Delegation(core: $0) })), asset: asset)
         }
-        return AmountInput(
-            type: .stake(.claimRewards(delegations: delegationsWithRewards)),
-            asset: asset,
-        )
     }
 
     var stakeDestination: any Hashable {
@@ -288,9 +278,13 @@ extension StakeSceneViewModel {
             walletType: wallet.type.map(),
             chain: chain.chain.rawValue,
             hasValidators: validators.isNotEmpty,
-            frozenValue: balanceModel.frozenResources.description,
-            rewardsValue: rewardsValue.description,
+            balance: GemAssetBalance(assetData.balance, assetId: asset.id),
+            delegations: delegations.map { $0.json() },
         )
+    }
+
+    private var claimRewards: GemClaimRewards {
+        service.claimRewards(chain: chain.chain.rawValue, delegations: delegations.map { $0.json() })
     }
 
     private func stakeAction(_ action: GemStakeAction) -> GemStakeActionItem? {
@@ -299,14 +293,6 @@ extension StakeSceneViewModel {
 
     private var balanceModel: BalanceViewModel {
         BalanceViewModel(asset: asset, balance: assetData.balance, formatter: formatter)
-    }
-
-    private var rewardsValue: BigInt {
-        delegations.map(\.base.rewardsValue).reduce(0, +)
-    }
-
-    private var delegationsWithRewards: [Delegation] {
-        delegations.filter { $0.base.rewardsValue > 0 }
     }
 
     private func destination(type: AmountType) -> any Hashable {

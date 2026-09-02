@@ -6,7 +6,7 @@ import protocol Gemstone.GemAssetDetailsServiceProtocol
 import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerContext
 import GemstoneServices
-import struct Gemstone.GemStakeBalance
+import struct Gemstone.GemAssetBalance
 import GemstonePrimitives
 import Localization
 import Preferences
@@ -506,8 +506,8 @@ extension AssetSceneViewModel {
         BlockExplorerLink(service.addressUrl(chain: assetModel.asset.chain.rawValue, address: assetDataModel.address))
     }
 
-    private var stakeBalance: GemStakeBalance {
-        GemStakeBalance(assetData.balance)
+    private var stakeBalance: GemAssetBalance {
+        GemAssetBalance(assetData.balance, assetId: asset.id)
     }
 
     private var stakedValue: BigInt {
