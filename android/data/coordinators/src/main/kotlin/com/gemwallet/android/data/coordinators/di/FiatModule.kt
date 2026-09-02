@@ -2,14 +2,10 @@ package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
-import com.gemwallet.android.application.fiat.cases.GetBuyQuoteUrl
-import com.gemwallet.android.application.fiat.cases.GetBuyQuotes
 import com.gemwallet.android.application.fiat.cases.ObserveFiatTransactions
 import com.gemwallet.android.application.fiat.cases.SyncFiatTransactions
 import com.gemwallet.android.data.coordinators.fiat.GetAssetPriceUsdImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyAssetInfoImpl
-import com.gemwallet.android.data.coordinators.fiat.GetBuyQuoteUrlImpl
-import com.gemwallet.android.data.coordinators.fiat.GetBuyQuotesImpl
 import com.gemwallet.android.data.coordinators.fiat.ObserveFiatTransactionsImpl
 import com.gemwallet.android.data.coordinators.fiat.SyncFiatTransactionsImpl
 import com.gemwallet.android.application.session.cases.GetSession
@@ -70,22 +66,6 @@ object FiatModule {
         priceStore: GemstonePriceStore,
     ): GetAssetPriceUsd {
         return GetAssetPriceUsdImpl(priceStore)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetBuyQuotes(
-        fiatService: GemFiatService,
-    ): GetBuyQuotes {
-        return GetBuyQuotesImpl(fiatService)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetBuyQuoteUrl(
-        fiatService: GemFiatService,
-    ): GetBuyQuoteUrl {
-        return GetBuyQuoteUrlImpl(fiatService)
     }
 
 }

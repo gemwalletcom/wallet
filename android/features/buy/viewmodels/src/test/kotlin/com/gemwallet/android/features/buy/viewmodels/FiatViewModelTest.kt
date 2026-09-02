@@ -4,9 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
-import com.gemwallet.android.application.fiat.cases.GetBuyQuoteUrl
-import com.gemwallet.android.application.fiat.cases.GetBuyQuotes
-import com.gemwallet.android.domains.fiat.FiatConfig
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.model.AssetBalance
@@ -20,14 +17,14 @@ import com.gemwallet.android.testkit.mockFiatQuote
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatQuoteType
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkObject
-import io.mockk.unmockkObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -35,7 +32,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
-import uniffi.gemstone.GemFiatServiceInterface
+import uniffi.gemstone.GemFiatAmountCheck
+import uniffi.gemstone.GemFiatQuoteServiceInterface
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -60,62 +58,30 @@ class FiatViewModelTest {
         override fun invoke(assetId: AssetId): Flow<AssetData?> = assetDataFlow
     }
     private val assetPriceUsdFlow = MutableStateFlow<Double?>(100.0)
-    private val fiatService = mockk<GemFiatServiceInterface> {
-        every { quoteDebounceMilliseconds() } returns 250uL
-        every { quoteRefreshIntervalMilliseconds() } returns 300_000uL
-    }
-
     private val getAssetPriceUsd = object : GetAssetPriceUsd {
         override fun invoke(assetId: AssetId): Flow<Double?> = assetPriceUsdFlow
     }
     private val fiatFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
-    private val getBuyQuotes = mockk<GetBuyQuotes>(relaxed = true) {
-        coEvery {
-            invoke(
-                walletId = any(),
-                asset = any(),
-                type = any(),
-                currency = any(),
-                amount = any(),
-            )
-        } returns listOf(mockFiatQuote())
-        coEvery {
-            invoke(
-                walletId = walletId,
-                asset = asset,
-                type = any(),
-                currency = Currency.USD,
-                amount = 50.0,
-            )
-        } returns listOf(mockFiatQuote())
-        coEvery {
-            invoke(
-                walletId = walletId,
-                asset = asset,
-                type = FiatQuoteType.Sell,
-                currency = Currency.USD,
-                amount = 100.0,
-            )
-        } returns listOf(mockFiatQuote())
+    private val service = mockk<GemFiatQuoteServiceInterface> {
+        every { currency() } returns Currency.USD.toGem()
+        every { config() } returns uniffi.gemstone.FiatConfig(50, 100, 5, 10000, 1000, listOf(100, 250), 10)
+        every { defaultAmount(FiatQuoteType.Buy.toJson()) } returns 50u
+        every { defaultAmount(FiatQuoteType.Sell.toJson()) } returns 100u
+        every { randomAmount() } returns 500u
+        every { amountCheck(any(), any(), any(), any()) } returns GemFiatAmountCheck.Valid
+        every { quoteDebounceMilliseconds() } returns 250uL
+        every { quoteRefreshIntervalMilliseconds() } returns 300_000uL
+        coEvery { quotes(any(), any(), any(), any()) } returns listOf(mockFiatQuote().toJson())
     }
-    private val getBuyQuoteUrl = mockk<GetBuyQuoteUrl>(relaxed = true)
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        mockkObject(FiatConfig)
-        every { FiatConfig.defaultBuyAmount } returns 50
-        every { FiatConfig.defaultSellAmount } returns 100
-        every { FiatConfig.minimumAmount } returns 5
-        every { FiatConfig.maximumAmount } returns 10000
-        every { FiatConfig.randomMaxAmount } returns 1000
-        every { FiatConfig.suggestedAmounts } returns listOf(100, 250)
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
-        unmockkObject(FiatConfig)
     }
 
     @Test
@@ -131,13 +97,7 @@ class FiatViewModelTest {
             runCurrent()
 
             coVerify(exactly = 1) {
-                getBuyQuotes(
-                    walletId = walletId,
-                    asset = asset,
-                    type = FiatQuoteType.Buy,
-                    currency = Currency.USD,
-                    amount = 50.0,
-                )
+                service.quotes(walletId.id, FiatQuoteType.Buy.toJson(), asset.id.toIdentifier(), 50.0)
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -159,13 +119,7 @@ class FiatViewModelTest {
             runCurrent()
 
             coVerify(exactly = 1) {
-                getBuyQuotes(
-                    walletId = walletId,
-                    asset = asset,
-                    type = FiatQuoteType.Buy,
-                    currency = Currency.USD,
-                    amount = 50.0,
-                )
+                service.quotes(walletId.id, FiatQuoteType.Buy.toJson(), asset.id.toIdentifier(), 50.0)
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -182,13 +136,7 @@ class FiatViewModelTest {
 
             assertEquals("10", viewModel.amount.value)
             coVerify(exactly = 1) {
-                getBuyQuotes(
-                    walletId = walletId,
-                    asset = asset,
-                    type = FiatQuoteType.Buy,
-                    currency = Currency.USD,
-                    amount = 10.0,
-                )
+                service.quotes(walletId.id, FiatQuoteType.Buy.toJson(), asset.id.toIdentifier(), 10.0)
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -275,7 +223,7 @@ class FiatViewModelTest {
             viewModel.setType(FiatQuoteType.Buy)
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
-            assertEquals(FiatConfig.defaultBuyAmount.toString(), viewModel.amount.value)
+            assertEquals("50", viewModel.amount.value)
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -289,9 +237,9 @@ class FiatViewModelTest {
             viewModel.updateAmount("1000")
 
             viewModel.updateAmount(FiatSuggestion.RandomAmount)
+            runCurrent()
 
-            val randomAmount = viewModel.amount.value.toInt()
-            assertTrue(randomAmount in FiatConfig.minimumAmount..FiatConfig.randomMaxAmount)
+            assertEquals("500", viewModel.amount.value)
         } finally {
             viewModel.viewModelScope.cancel()
         }
@@ -321,11 +269,9 @@ class FiatViewModelTest {
         initialAmount?.let { arguments[RouteArgument.FiatAmount.key] = it }
         initialType?.let { arguments[RouteArgument.Type.key] = it }
         return FiatViewModel(
-            getBuyQuotes = getBuyQuotes,
-            getBuyQuoteUrl = getBuyQuoteUrl,
             getBuyAssetInfo = getBuyAssetInfo,
             getAssetPriceUsd = getAssetPriceUsd,
-            fiatService = fiatService,
+            service = service,
             savedStateHandle = SavedStateHandle(arguments),
         )
     }

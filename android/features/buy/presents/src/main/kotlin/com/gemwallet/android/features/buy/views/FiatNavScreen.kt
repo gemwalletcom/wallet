@@ -21,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.domains.fiat.FiatConfig
 import com.gemwallet.android.features.buy.viewmodels.FiatViewModel
 import com.gemwallet.android.features.buy.viewmodels.models.BuyError
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
@@ -143,8 +142,8 @@ fun LotButton(fiatSuggestion: FiatSuggestion, onLotClick: (FiatSuggestion) -> Un
 
 @Composable
 fun BuyError.mapError(type: FiatQuoteType, asset: Asset) = when (this) {
-    BuyError.MinimumAmount -> stringResource(id = R.string.transfer_minimum_amount, "${FiatConfig.minimumAmount}$")
-    BuyError.MaximumAmount -> stringResource(id = R.string.transfer_maximum_amount, "${FiatConfig.maximumAmount}$")
+    is BuyError.MinimumAmount -> stringResource(id = R.string.transfer_minimum_amount, "${minimum}$")
+    is BuyError.MaximumAmount -> stringResource(id = R.string.transfer_maximum_amount, "${maximum}$")
     BuyError.QuoteNotAvailable -> stringResource(id = R.string.buy_no_results)
     BuyError.ValueIncorrect -> stringResource(id = R.string.errors_invalid_amount)
     BuyError.EmptyAmount -> stringResource(

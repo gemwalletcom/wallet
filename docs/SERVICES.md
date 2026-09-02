@@ -432,7 +432,6 @@ having the parent vend the child view model.
 | `NFT/CollectibleViewModel.swift` | 3 | 1 |
 | `Transactions/TransactionsViewModel.swift` | 2 | 0 |
 | `WalletConnector/WalletConnector/ViewModels/SignMessageSceneViewModel.swift` | 3 | 0 |
-| `FiatConnect/FiatSceneViewModel.swift` | 2 | 1 |
 | `Perpetuals/PerpetualsSceneViewModel.swift` | 2 | 0 |
 | `Transfer/AmountEarnViewModel.swift` | 2 | 1 |
 

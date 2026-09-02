@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.StateFlow
 
 class FiatOperationState(
     val defaultAmount: String,
-    val minFiatAmount: Double,
 ) {
     private val _amount = MutableStateFlow(defaultAmount)
     val amount: StateFlow<String> get() = _amount

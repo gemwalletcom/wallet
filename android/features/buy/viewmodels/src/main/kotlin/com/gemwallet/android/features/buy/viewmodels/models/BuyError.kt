@@ -3,9 +3,9 @@ package com.gemwallet.android.features.buy.viewmodels.models
 sealed interface BuyError {
     data object EmptyAmount : BuyError
 
-    data object MinimumAmount : BuyError
+    data class MinimumAmount(val minimum: Int) : BuyError
 
-    data object MaximumAmount : BuyError
+    data class MaximumAmount(val maximum: Int) : BuyError
 
     data object QuoteNotAvailable : BuyError
 
