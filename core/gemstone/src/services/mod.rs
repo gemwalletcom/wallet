@@ -98,7 +98,7 @@ pub use transaction_state::{GemPendingTransaction, GemTransactionStateService, G
 pub use transactions::{GemTransactionStore, GemTransactionsService};
 pub use wallet::{GemKeystoreAuthentication, GemKeystorePassword, GemWalletImportResult, GemWalletImportType, GemWalletService, GemWalletStore};
 pub use wallet_configuration::GemWalletConfigurationService;
-pub use wallet_connect::{GemSessionApproval, GemSessionProposal, GemWalletConnectRequest, GemWalletConnectResponse, GemWalletConnectService, GemWalletConnectSigner};
+pub use wallet_connect::{GemSessionApproval, GemSessionProposal, GemWalletConnectResponse, GemWalletConnectService, GemWalletConnectSigner};
 pub use wallet_home::GemWalletHomeService;
 pub use wallet_preferences::{GemDiscoveryStep, GemWalletPreferencesService, GemWalletPreferencesStore};
 pub use wallet_session::{GemWalletSessionService, GemWalletSessionStore};

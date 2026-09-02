@@ -2,7 +2,9 @@
 
 import class Gemstone.GemChainService
 import Foundation
-import struct Gemstone.GemWalletConnectRequest
+import enum Gemstone.GemWalletConnectFailure
+import struct Gemstone.GemWalletConnectSessionRequest
+import enum Gemstone.GemWalletConnectError
 import protocol Gemstone.GemWalletConnectServiceProtocol
 import GemstonePrimitives
 import protocol Gemstone.GemWalletSessionServiceProtocol
@@ -145,23 +147,22 @@ extension WalletConnectorService {
             debugLog("Session request received: \(request.method)")
             debugLog("Verify context: \(String(describing: verifyContext))")
 
-            let session = WalletKit.instance.getSessions().first { $0.topic == request.topic }
-
-            guard let verifyContext, let session else {
-                try? await rejectRequest(request)
-                continue
-            }
-
+            let outcome = await service.processRequest(request: GemWalletConnectSessionRequest(
+                topic: request.topic,
+                requestId: request.id.string,
+                method: request.method,
+                params: (try? JSONEncoder().encode(request.params).encodeString()) ?? "",
+                chainId: request.chainId.absoluteString,
+                origin: verifyContext?.origin,
+                validation: verifyContext?.validation.map(),
+            ))
             do {
-                if service.isOriginRejected(metadataUrl: session.peer.url, origin: verifyContext.origin, validation: verifyContext.validation.map()) {
-                    debugLog("Warning: rejected request origin for \(session.peer.url)")
-                    try await rejectRequest(request)
-                    continue
-                }
-
-                try await handleRequest(request: request, session: session)
+                try await WalletKit.instance.respond(topic: request.topic, requestId: request.id, response: outcome.response.map())
             } catch {
-                debugLog("Error handling request: \(error)")
+                debugLog("Error responding to request: \(error)")
+            }
+            if let failure = outcome.failure {
+                await walletConnectorInteractor.sessionReject(error: failure.error)
             }
         }
     }
@@ -192,50 +193,6 @@ extension WalletConnectorService {
 
     private func metadata(_ metadata: AppMetadata) throws -> ApplicationMetadata {
         try service.metadata(name: metadata.name, description: metadata.description, url: metadata.url, icons: metadata.icons)
-    }
-
-    private func handleRequest(request: WalletConnectSign.Request, session: Session) async throws {
-        let messageId = request.messageId
-
-        guard service.shouldProcessMessage(messageId: messageId) else {
-            debugLog("Ignoring duplicate request with ID: \(messageId)")
-            try await rejectRequest(request)
-            return
-        }
-
-        debugLog("handleMethod received: \(request.method), params: \(request.params)")
-
-        do {
-            let params = try JSONEncoder().encode(request.params).encodeString()
-            let response = try await service.handleRequest(
-                request: GemWalletConnectRequest(
-                    topic: request.topic,
-                    method: request.method,
-                    params: params,
-                    chainId: request.chainId.absoluteString,
-                    domain: session.peer.url,
-                ),
-            )
-            debugLog("handle method result: \(request.method) \(response)")
-            try await WalletKit.instance.respond(topic: request.topic, requestId: request.id, response: response.map())
-        } catch let requestError {
-            debugLog("handle method error: \(requestError)")
-            do {
-                try await rejectRequest(request)
-            } catch {
-                debugLog("Error rejecting request: \(error)")
-            }
-            await walletConnectorInteractor.sessionReject(error: requestError)
-        }
-    }
-
-    private func rejectRequest(_ request: WalletConnectSign.Request) async throws {
-        let rejection = service.userRejectedError()
-        try await WalletKit.instance.respond(
-            topic: request.topic,
-            requestId: request.id,
-            response: .error(JSONRPCError(code: Int(rejection.code), message: rejection.message)),
-        )
     }
 
     private func processSession(proposal: Session.Proposal, verifyContext: VerifyContext) async throws {
@@ -286,5 +243,14 @@ extension WalletConnectorService {
             namespaces: sessionNamespaces,
             sessionProperties: sessionProperties,
         )
+    }
+}
+
+private extension GemWalletConnectFailure {
+    var error: any Error {
+        switch self {
+        case .maliciousOrigin: GemWalletConnectError.InvalidOrigin
+        case let .failed(message): AnyError(message)
+        }
     }
 }

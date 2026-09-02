@@ -677,6 +677,14 @@ import set the wallet up twice. Both apps now do what iOS did: `GemWalletService
 then `setCurrentWalletId`, and the root's wallet-change handler does the rest. The Android
 "importing" indicator (`SyncWalletImport`) stays; it is a platform progress port, not setup.
 
+**The app forwards the SDK event; Core decides the reply.** The WalletConnect request path
+was the same eight-step dance on both apps — dedupe, find the session, check the origin, handle,
+respond, reject on error, notify the user, log — with different message-id formats and one app
+notifying on a malicious origin and the other not. `GemWalletConnectService::process_request`
+takes the raw event and returns the reply and what (if anything) to tell the user, so each app is
+"build the request from the SDK event, send the response, show the failure". The pieces the apps
+used to compose (`handle_request`, the connection lookup) stopped being exported.
+
 **A launch-time entry is not the place for a screen's dependency.** `GemRewardsService`,
 `GemReceiveService`, `GemNodeStatusService` and `GemPerpetualDetailsService`'s inputs were
 `@Entry` values on iOS only so a navigation view could assemble a view model. Every one is now

@@ -21,6 +21,7 @@ use num_bigint::BigInt;
 use primitives::{Asset, TransactionType, TransferDataOutputAction, TransferDataOutputType};
 
 pub const USER_REJECTED_ERROR_CODE: i32 = 4001;
+const METHOD_NOT_FOUND_ERROR_CODE: i32 = -32601;
 
 pub fn session_account(connection: &WalletConnection, chain: Chain) -> Result<Account, GemServiceError> {
     validate_session_chain(&connection.session, chain)?;
@@ -157,6 +158,17 @@ pub fn user_rejected_error() -> GemWalletConnectRpcError {
         code: USER_REJECTED_ERROR_CODE,
         message: "User rejected the request".to_string(),
     }
+}
+
+pub fn method_not_found_error() -> GemWalletConnectRpcError {
+    GemWalletConnectRpcError {
+        code: METHOD_NOT_FOUND_ERROR_CODE,
+        message: "Method not found".to_string(),
+    }
+}
+
+pub fn request_message_id(topic: &str, request_id: &str) -> String {
+    format!("request-{topic}-{request_id}")
 }
 
 pub fn session_methods() -> Vec<String> {

@@ -357,13 +357,18 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `providers/*` each derive the max button, the equivalent value and the confirm input from
   `GemAmountRules` / `GemAmountLimits`; a Core `GemAmountInput` value that carries all of it per
   type would let both collapse to a view-state mapping.
-- **The WalletConnect request screen on Android.** `GemSignMessageService { names, explorer }`
-  now answers the preview, the payload address names and the explorer links for the sign-message
-  screen on both apps, and `ApplicationMetadata.shortName` is a dependency-free property, so iOS
-  `SignMessageSceneViewModel` holds one service. Android `WCRequestViewModel` still injects nine
-  ports (connections, responder, request handler, pending requests, sign operator, origin
-  verifier, active request, `GemWalletConnectService`); the request lifecycle around
-  `GemWalletConnectService::handle_request` is the next thing to move into Core.
+- **The WalletConnect request lifecycle is one Core call.**
+  `GemWalletConnectService::process_request` takes the SDK's session request as it arrives
+  (topic, request id, method, params, chain id, origin, verification) and returns
+  `GemWalletConnectOutcome { response, failure }`: it dedupes the relay retry, looks the
+  connection up in its own store, rejects an unverified or malicious origin, runs the request
+  through the signer port and maps a cancel to a silent user-rejected reply and any other error
+  to `Failed { message }`. Both apps send `response` back to the SDK and show `failure` if there
+  is one; iOS's `handleRequest`/`rejectRequest` and Android's `WalletConnectRequestHandler`, the
+  connection lookup and the per-request origin check are gone, and `WCRequestViewModel` holds
+  the Core service plus the SDK responder, the pending-request port, the sign operator and the
+  active-request tracker. `GemSignMessageService { names, explorer }` answers the preview, the
+  payload address names and the explorer links for the sign-message screen on both apps.
 
 ### 4. Core surface
 

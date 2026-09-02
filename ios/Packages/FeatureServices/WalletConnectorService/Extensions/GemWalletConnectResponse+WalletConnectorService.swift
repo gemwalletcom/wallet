@@ -9,7 +9,7 @@ extension GemWalletConnectResponse {
         switch self {
         case let .response(value): .response(value.map())
         case .null: .response(AnyCodable.null())
-        case .methodNotFound: .error(.methodNotFound)
+        case let .error(error): .error(JSONRPCError(code: Int(error.code), message: error.message))
         }
     }
 }
