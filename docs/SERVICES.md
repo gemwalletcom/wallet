@@ -255,7 +255,7 @@ consolidation, and a second Core service in a view model is the one to remove.
 | `GemRecipientService` | `RecipientSceneViewModel` (+ `nameService`) | `RecipientViewModel` (+ `GemNameServiceInterface`) |
 | `GemRewardsService` | `RewardsViewModel`, `CreateRewardsCodeViewModel`, `RedeemRewardsCodeViewModel` | `ReferralViewModel` |
 | `GemSignMessageService` | `SignMessageSceneViewModel` | `WCRequestViewModel`, `WCAuthViewModel` |
-| `GemStakeService` | `StakeSceneViewModel`, `DelegationSceneViewModel`, `EarnSceneViewModel` | `StakeViewModel`, `DelegationViewModel` (earn flow missing, § 7) |
+| `GemStakeService` | `StakeSceneViewModel`, `DelegationSceneViewModel`, `EarnSceneViewModel` | `StakeViewModel`, `DelegationViewModel` (earn flow missing, § 6) |
 | `GemSupportService` | `SupportChatSceneViewModel` | `SupportChatSceneViewModel` |
 | `GemSwapQuoteService` | `SwapSceneViewModel` | `SwapViewModel` |
 | `GemTransactionDetailsService` | `TransactionSceneViewModel` | `GetTransactionDetailsImpl` (observed read + links) |
@@ -346,8 +346,10 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `TransferData(...)` builders are gone. What is left is the provider layer itself: the iOS providers (`AmountTransferViewModel`,
   `AmountStakeViewModel`, `AmountPerpetualViewModel`, `AmountEarnViewModel`) and Android's
   `providers/*` each derive the max button, the equivalent value and the confirm input from
-  `GemAmountRules` / `GemAmountLimits`; a Core `GemAmountInput` value that carries all of it per
-  type would let both collapse to a view-state mapping.
+  `GemAmountRules` / `GemAmountLimits` (`limits` is infallible — the available value exists for
+  every type — so neither app carries a catch that handed back zero limits); a Core
+  `GemAmountInput` value that carries all of it per type would let both collapse to a view-state
+  mapping.
 - **The WalletConnect request lifecycle is one Core call.**
   `GemWalletConnectService::process_request` takes the SDK's session request as it arrives
   (topic, request id, method, params, chain id, origin, verification) and returns

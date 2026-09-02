@@ -3,7 +3,6 @@
 import BigInt
 import Foundation
 import struct Gemstone.GemTransferBalance
-import enum Gemstone.GemAmountError
 import struct Gemstone.GemAmountLimits
 import struct Gemstone.GemAmountRules
 import enum Gemstone.GemAmountType
@@ -38,14 +37,7 @@ extension AmountDataProvidable {
     }
 
     func limits(from assetData: AssetData) -> GemAmountLimits {
-        do {
-            return try gemAmountType.limits(asset: asset.map(), balance: GemTransferBalance(assetData.balance))
-        } catch let error as GemAmountError {
-            debugLog("amount limits unavailable: \(error)")
-            return GemAmountLimits(availableValue: "0", maxValue: "0", reservesFee: false)
-        } catch {
-            preconditionFailure("Unencodable amount asset: \(error)")
-        }
+        gemAmountType.limits(asset: asset.map(), balance: GemTransferBalance(assetData.balance))
     }
 
     func availableValue(from assetData: AssetData) -> BigInt {

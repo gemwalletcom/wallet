@@ -15,7 +15,6 @@ import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemTransferBalance
 import uniffi.gemstone.GemAmountLimits
 import uniffi.gemstone.GemAmountRules
-import uniffi.gemstone.GemAmountException
 import uniffi.gemstone.GemAmountType
 import java.math.BigInteger
 
@@ -39,15 +38,7 @@ abstract class AmountDataProvider(
 
     val limits: StateFlow<GemAmountLimits?> by lazy {
         combine(amountType, assetInfo, balance) { type, current, currentBalance ->
-            if (type == null || current == null || currentBalance == null) {
-                null
-            } else {
-                try {
-                    type.limits(current.asset.toGem(), currentBalance)
-                } catch (_: GemAmountException) {
-                    null
-                }
-            }
+            if (type == null || current == null || currentBalance == null) null else type.limits(current.asset.toGem(), currentBalance)
         }.stateIn(scope, SharingStarted.Eagerly, null)
     }
 
