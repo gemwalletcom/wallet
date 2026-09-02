@@ -2,10 +2,10 @@ package com.gemwallet.android
 
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
+import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.wallet.core.primitives.Chain
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 import uniffi.gemstone.Deeplink
 
@@ -18,10 +18,6 @@ class WebDeepLinksTest {
         assertEquals(AssetRoute(mockAssetId(Chain.Solana, tokenId)), Deeplink.Asset(assetId = "solana_$tokenId").toRoute())
         assertEquals(ReferralRoute(code = "gemcoder"), Deeplink.Rewards(code = "gemcoder").toRoute())
         assertEquals(ReferralRoute(), Deeplink.Rewards(code = null).toRoute())
-    }
-
-    @Test
-    fun toRoute_rejectsUnsupportedLinks() {
-        assertNull(Deeplink.Perpetuals.toRoute())
+        assertEquals(PerpetualRoute, Deeplink.Perpetuals.toRoute())
     }
 }

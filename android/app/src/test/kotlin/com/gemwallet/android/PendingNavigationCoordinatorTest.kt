@@ -2,6 +2,7 @@ package com.gemwallet.android
 
 import android.content.Intent
 import com.gemwallet.android.model.PushNotificationField
+import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.wallet.core.primitives.Payment
 import io.mockk.coEvery
@@ -63,6 +64,24 @@ class PendingNavigationCoordinatorTest {
 
         val routes = (coordinator.pendingNavigation.value as PendingNavigation.Routes).routes
         assertEquals(listOf(ReferralRoute(code = "gemcoder")), routes)
+    }
+
+    @Test
+    fun buildRoutes_perpetualDeepLinks_storeRoute() = runTest {
+        val uris = listOf(
+            "gem://perpetuals",
+            "https://gemwallet.com/perpetuals",
+            "https://gemwallet.com/perpetuals/",
+            "https://gemwallet.com/es/perpetuals/",
+        )
+
+        uris.forEach { uri ->
+            coordinator.handleScan(uri)
+            coordinator.buildRoutes(NoOpWalletConnect)
+
+            val routes = (coordinator.pendingNavigation.value as PendingNavigation.Routes).routes
+            assertEquals(uri, listOf(PerpetualRoute), routes)
+        }
     }
 
     @Test
