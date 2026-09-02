@@ -23,8 +23,6 @@ import protocol Gemstone.GemTransactionsServiceProtocol
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemBannerServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
-import class Gemstone.GemNodeService
-import class Gemstone.GemNodeStatusService
 import GemstoneServices
 import AppService
 import WalletConnectorService
@@ -52,8 +50,6 @@ extension AppResolver {
         let walletConnector: WalletConnectorService
         let connectionStatusObserver: ConnectionStatusObserver
         let deviceService: any GemDeviceServiceProtocol
-        let nodeService: GemNodeService
-        let nodeStatusService: GemNodeStatusService
         let serviceStatusService: any GemServiceStatusProtocol
         let navigationHandler: NavigationHandler
         let navigationPresenter: NavigationPresenter

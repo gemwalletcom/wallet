@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemNodeStatusServiceProtocol
+import protocol Gemstone.GemChainSettingsServiceProtocol
 import Components
 import GemstonePrimitives
 import GemstoneServices
@@ -10,13 +10,11 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 import Validators
-import class Gemstone.GemNodeService
 
 @MainActor
 @Observable
 final class AddNodeSceneViewModel {
-    private let nodeService: GemNodeService
-    private let nodeStatusService: any GemNodeStatusServiceProtocol
+    private let service: any GemChainSettingsServiceProtocol
 
     let chain: Chain
 
@@ -26,10 +24,9 @@ final class AddNodeSceneViewModel {
     var isPresentingAlertMessage: AlertMessage?
     var loadTrigger: AddNodeLoadTrigger?
 
-    init(chain: Chain, nodeService: GemNodeService, nodeStatusService: any GemNodeStatusServiceProtocol) {
+    init(chain: Chain, service: any GemChainSettingsServiceProtocol) {
         self.chain = chain
-        self.nodeService = nodeService
-        self.nodeStatusService = nodeStatusService
+        self.service = service
     }
 
     var title: String {
@@ -96,13 +93,7 @@ extension AddNodeSceneViewModel {
             throw AnyError("Unknown result")
         }
 
-        // TODO: - implement disable after user selects "import node button", we can't use state: StateViewType<ImportNodeResult> progress
-        try await nodeService.addNode(chain: chain.rawValue, url: model.url.absoluteString)
-
-        // TODO: - implement correct way of selection node
-        /*
-         try nodeService.setNodeSelected(chain: chain, node: node)
-          */
+        try await service.addNode(chain: chain.rawValue, url: model.url.absoluteString)
     }
 
     func load() async {
@@ -115,7 +106,7 @@ extension AddNodeSceneViewModel {
         state = .loading
 
         do {
-            let status = try await nodeStatusService.checkNode(chain: chain.rawValue, url: url.absoluteString).map()
+            let status = try await service.checkNode(chain: chain.rawValue, url: url.absoluteString).map()
             state = .data(AddNodeResultViewModel(addNodeResult: AddNodeResult(
                 url: url,
                 chainID: status.chainId,

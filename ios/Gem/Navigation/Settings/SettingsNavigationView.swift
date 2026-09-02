@@ -21,15 +21,12 @@ struct SettingsNavigationView: View {
     @Environment(\.deeplinkService) private var deeplinkService
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.transactionsService) private var transactionsService
-    @Environment(\.explorerService) private var explorerService
-    @Environment(\.nodeStatusService) private var nodeStatusService
     @Environment(\.walletConnector) private var walletConnector
     @Environment(\.balanceService) private var balanceService
     @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.priceAlertService) private var priceAlertService
     @Environment(\.preferencesService) private var preferencesService
     @Environment(\.deviceKeyService) private var deviceKeyService
-    @Environment(\.nodeService) private var nodeService
     @Environment(\.chainService) private var chainService
     @Environment(\.gatewayService) private var gatewayService
     @Environment(\.serviceStatusService) private var serviceStatusService
@@ -169,14 +166,7 @@ struct SettingsNavigationView: View {
             }
         }
         .navigationDestination(for: Scenes.ChainSettings.self) {
-            ChainSettingsScene(
-                model: ChainSettingsSceneViewModel(
-                    nodeService: nodeService,
-                    nodeStatusService: nodeStatusService,
-                    explorerService: explorerService,
-                    chain: $0.chain,
-                ),
-            )
+            ChainSettingsScene(model: viewModelFactory.chainSettingsScene(chain: $0.chain))
         }
         .navigationDestination(for: Scenes.Contacts.self) { _ in
             ContactsNavigationView(model: viewModelFactory.contactsScene())

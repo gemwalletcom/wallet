@@ -28,6 +28,7 @@ import class Gemstone.GemNameService
 import protocol Gemstone.GemNotificationPermissions
 import class Gemstone.GemNotificationsService
 import class Gemstone.GemNftService
+import class Gemstone.GemNodeService
 import class Gemstone.GemOnboardingService
 import class Gemstone.GemPaymentService
 import class Gemstone.GemReceiveService
@@ -93,8 +94,10 @@ public struct ViewModelFactory: Sendable {
     let deeplinkService: GemDeeplinkService
     let explorerService: GemExplorerService
     let fiatService: GemFiatService
+    let gatewayService: GatewayService
     let nameService: GemNameService
     let nftService: GemNftService
+    let nodeService: GemNodeService
     let onboardingService: GemOnboardingService
     let paymentService: GemPaymentService
     let perpetualService: GemPerpetualService
@@ -411,6 +414,11 @@ public struct ViewModelFactory: Sendable {
             recentActivity: recentAssetsService,
             preferences: preferencesService,
         )
+    }
+
+    @MainActor
+    public func chainSettingsScene(chain: Chain) -> ChainSettingsSceneViewModel {
+        ChainSettingsSceneViewModel(chain: chain, service: gatewayService.chainSettingsService(nodes: nodeService, explorer: explorerService))
     }
 
     @MainActor

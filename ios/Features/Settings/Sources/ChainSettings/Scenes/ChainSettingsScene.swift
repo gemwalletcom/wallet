@@ -86,14 +86,7 @@ public struct ChainSettingsScene: View {
         }
         .sheet(isPresented: $model.isPresentingImportNode) {
             NavigationStack {
-                AddNodeScene(
-                    model: AddNodeSceneViewModel(
-                        chain: model.chain,
-                        nodeService: model.nodeService,
-                        nodeStatusService: model.nodeStatusService,
-                    ),
-                    onDismiss: model.onDismissImportNode,
-                )
+                AddNodeScene(model: model.addNodeModel(), onDismiss: model.onDismissImportNode)
             }
         }
         .navigationTitle(model.title)

@@ -31,8 +31,8 @@ public actor GatewayService: Sendable {
         GatewayService(provider: provider, preferences: preferences, securePreferences: securePreferences)
     }
 
-    public nonisolated func nodeStatusService() -> GemNodeStatusService {
-        GemNodeStatusService(gateway: gateway)
+    public nonisolated func chainSettingsService(nodes: GemNodeService, explorer: GemExplorerService) -> GemChainSettingsService {
+        GemChainSettingsService(nodes: nodes, explorer: explorer, gateway: gateway)
     }
 
     public nonisolated func stakeService(

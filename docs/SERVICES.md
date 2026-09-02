@@ -430,7 +430,6 @@ having the parent vend the child view model.
 | `Transfer/RecipientSceneViewModel.swift` | 3 | 0 |
 | `Assets/SelectAssetViewModel.swift` | 2 | 0 |
 | `NFT/CollectibleViewModel.swift` | 3 | 1 |
-| `Settings/ChainSettings/ViewModels/ChainSettingsSceneViewModel.swift` | 3 | 2 |
 | `Transactions/TransactionsViewModel.swift` | 2 | 0 |
 | `WalletConnector/WalletConnector/ViewModels/SignMessageSceneViewModel.swift` | 3 | 0 |
 | `FiatConnect/FiatSceneViewModel.swift` | 2 | 1 |
@@ -438,7 +437,6 @@ having the parent vend the child view model.
 | `ManageWallets/WalletsSceneViewModel.swift` | 2 | 0 |
 | `Perpetuals/PerpetualSceneViewModel.swift` | 2 | 0 |
 | `Perpetuals/PerpetualsSceneViewModel.swift` | 2 | 2 |
-| `Settings/ChainSettings/ViewModels/AddNodeSceneViewModel.swift` | 2 | 0 |
 | `Settings/Settings/ViewModels/RewardsViewModel.swift` | 2 | 0 |
 | `Transfer/AmountEarnViewModel.swift` | 2 | 1 |
 

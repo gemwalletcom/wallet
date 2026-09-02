@@ -1,5 +1,5 @@
 pub mod rules;
-pub mod status;
+pub mod settings;
 pub mod store;
 
 use crate::services::error::GemServiceError;
@@ -10,7 +10,7 @@ use primitives::Chain;
 use primitives::node::{Node, NodeState};
 use primitives::node_config::NodeRegion;
 
-pub use status::GemNodeStatusService;
+pub use settings::GemChainSettingsService;
 pub use store::GemNodeStore;
 
 const NODE: &str = "node";

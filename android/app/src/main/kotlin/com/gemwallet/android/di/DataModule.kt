@@ -13,6 +13,7 @@ import uniffi.gemstone.GemRecentActivityService
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemNameService
+import uniffi.gemstone.GemNodeService
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemTransactionSigner
@@ -22,7 +23,8 @@ import uniffi.gemstone.GemConfirmService
 import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemGateway
-import uniffi.gemstone.GemNodeStatusService
+import uniffi.gemstone.GemChainSettingsService
+import uniffi.gemstone.GemChainSettingsServiceInterface
 import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemTransactionStateService
@@ -73,11 +75,12 @@ object DataModule {
         preferencesService,
     )
 
-    @Singleton
     @Provides
-    fun provideGemNodeStatusService(
+    fun provideGemChainSettingsService(
+        nodeService: GemNodeService,
+        explorerService: GemExplorerService,
         gateway: GemGateway,
-    ): GemNodeStatusService = GemNodeStatusService(gateway)
+    ): GemChainSettingsServiceInterface = GemChainSettingsService(nodeService, explorerService, gateway)
 
     @Singleton
     @Provides

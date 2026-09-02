@@ -69,7 +69,7 @@ class NetworksNodeUiStateTest {
             nodes = listOf(gemNode, defaultNode, customNode),
             currentNode = gemNode,
             nodeStates = mapOf(customNode.url to NodeStatusState.Error),
-            gemNodeFlags = mapOf(gemNode.url to "🇺🇸"),
+            gemNodeFlag = { url -> "🇺🇸".takeIf { url == gemNode.url } },
             canDelete = { url -> url == customNode.url },
         )
 
