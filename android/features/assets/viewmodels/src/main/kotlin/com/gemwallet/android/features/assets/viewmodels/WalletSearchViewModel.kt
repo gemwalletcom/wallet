@@ -11,8 +11,6 @@ import com.gemwallet.android.application.assets.cases.GetSearchLists
 import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
-import com.gemwallet.android.data.services.gemstone.config.showPerpetuals
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.search.WalletSearchConfig
@@ -52,7 +50,6 @@ class WalletSearchViewModel @Inject constructor(
     getPerpetuals: GetPerpetuals,
     getNftCollections: GetNftCollections,
     getSearchLists: GetSearchLists,
-    userConfig: UserConfig,
 ) : BaseAssetSelectViewModel(
     getSession,
     getRecentAssets,
@@ -64,7 +61,7 @@ class WalletSearchViewModel @Inject constructor(
         service.search(wallet.toJson(), query, GemSearchScope.All)
     }
 
-    private val showPerpetuals = userConfig.showPerpetuals(getSession())
+    private val showPerpetuals = getSession().map { session -> session?.wallet?.let { service.showPerpetuals(it.toJson()) } ?: false }
 
     private val visiblePerpetuals = combine(
         getPerpetuals.getPerpetuals(currentQuery.map { it.takeIf(String::isNotEmpty) }),

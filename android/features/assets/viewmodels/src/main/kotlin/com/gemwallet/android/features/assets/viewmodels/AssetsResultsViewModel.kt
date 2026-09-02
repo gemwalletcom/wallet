@@ -14,8 +14,6 @@ import com.gemwallet.android.application.asset_select.cases.SearchListAssets
 import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
-import com.gemwallet.android.data.services.gemstone.config.showPerpetuals
 import com.gemwallet.android.data.services.gemstone.assets.listPriorityQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
@@ -41,6 +39,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
@@ -57,7 +56,6 @@ class AssetsResultsViewModel @Inject constructor(
     getRecentAssets: GetRecentAssets,
     service: GemAssetSelectionServiceInterface,
     getPerpetuals: GetPerpetuals,
-    userConfig: UserConfig,
     @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle,
 ) : BaseAssetSelectViewModel(
@@ -85,7 +83,7 @@ class AssetsResultsViewModel @Inject constructor(
         is WalletSearchTag.List ->
             combine(
                 getPerpetuals.getPerpetuals(listPriorityQuery(scope.id)),
-                userConfig.showPerpetuals(getSession()),
+                getSession().map { session -> session?.wallet?.let { service.showPerpetuals(it.toJson()) } ?: false },
             ) { items, show ->
                 if (show) items.take(WalletSearchConfig.resultsLimit) else emptyList()
             }
