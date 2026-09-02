@@ -2,9 +2,9 @@ package com.gemwallet.android.features.import_wallet.viewmodels
 
 import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
 import com.gemwallet.android.blockchain.operators.gemstone.GemValidatePhraseOperator
-import com.gemwallet.android.domains.name.AddressInputResolving
-import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemRecipientValidation
+import com.gemwallet.android.serializer.toJson
+import io.mockk.coEvery
+import uniffi.gemstone.GemOnboardingServiceInterface
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.models.name.NameRecordState
@@ -39,32 +39,24 @@ class ImportViewModelTest {
         provider = NameProvider.Ens,
     )
 
-    private class FakeAddressInput(private val result: NameRecord?) : AddressInputResolving {
+    private class NameRequests(private val result: NameRecord?) {
         val requests = mutableListOf<Pair<String, Chain>>()
 
-        override suspend fun getNameRecord(name: String, chain: Chain): NameRecord? {
-            requests.add(name to chain)
-            return result
+        fun service(): GemOnboardingServiceInterface = mockk(relaxed = true) {
+            every { isNameSupported(any()) } answers { firstArg<String>().split(".").size >= 2 }
+            every { nameRecordDebounceMilliseconds() } returns 500u
+            coEvery { getNameRecord(any(), any()) } answers {
+                requests.add(firstArg<String>() to Chain.entries.first { it.string == secondArg<String>() })
+                result?.toJson()
+            }
         }
-
-        override fun isNameSupported(name: String): Boolean = name.split(".").size >= 2
-
-        override fun nameRecordDebounceMilliseconds(): Long = 500
-
-        override fun validateRecipient(chain: Chain, input: String, nameRecord: NameRecord?): GemRecipientValidation =
-            GemRecipientValidation(isValid = true, address = nameRecord?.address ?: input, showsError = false)
-
-        override fun recipient(chain: Chain, input: String, nameRecord: NameRecord?, memo: String?, references: List<String>): GemRecipient =
-            GemRecipient(address = nameRecord?.address ?: input, name = nameRecord?.name)
     }
 
-    private fun viewModel(addressInput: AddressInputResolving) = ImportViewModel(
-        walletService = mockk(relaxed = true),
-        importWalletService = mockk(relaxed = true),
-        setCurrentWallet = mockk(relaxed = true),
+    private fun viewModel(service: GemOnboardingServiceInterface) = ImportViewModel(
+        service = service,
+        syncWalletImport = mockk(relaxed = true),
         validatePhrase = GemValidatePhraseOperator(),
         findPhraseWord = GemFindPhraseWord(),
-        addressInput = addressInput,
     )
 
     @Before
@@ -82,8 +74,8 @@ class ImportViewModelTest {
     @Test
     fun privateKeyInputNeverReachesTheResolver() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-        val addressInput = FakeAddressInput(record)
-        val viewModel = viewModel(addressInput)
+        val addressInput = NameRequests(record)
+        val viewModel = viewModel(addressInput.service())
 
         viewModel.importSelect(ImportType(WalletType.PrivateKey, chain)).join()
         advanceUntilIdle()
@@ -97,8 +89,8 @@ class ImportViewModelTest {
     @Test
     fun viewAddressInputResolves() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-        val addressInput = FakeAddressInput(record)
-        val viewModel = viewModel(addressInput)
+        val addressInput = NameRequests(record)
+        val viewModel = viewModel(addressInput.service())
 
         viewModel.importSelect(ImportType(WalletType.View, chain)).join()
         advanceUntilIdle()

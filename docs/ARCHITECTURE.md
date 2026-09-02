@@ -667,6 +667,13 @@ debounce (250/500 ms) went the same way: `name_record_debounce_milliseconds` on 
 forwarded by `GemRecipientService` and `GemManageContactService` so the `AddressInputResolving`
 port carries it to the shared input model on both apps.
 
+**Post-import setup belongs to the wallet-change reaction, not the import call.** Android's
+`PhraseAddressImportWalletService` ran `setupWallet` and a device sync inline after every import
+while `AppViewModel` already runs `setupWallet` whenever the session's wallet changes — every
+import set the wallet up twice. Both apps now do what iOS did: `GemOnboardingService.importWallet`
+then `setCurrentWallet`, and the root's wallet-change handler does the rest. The Android
+"importing" indicator (`SyncWalletImport`) stays; it is a platform progress port, not setup.
+
 **A launch-time entry is not the place for a screen's dependency.** `GemRewardsService`,
 `GemReceiveService`, `GemNodeStatusService` and `GemPerpetualDetailsService`'s inputs were
 `@Entry` values on iOS only so a navigation view could assemble a view model. Every one is now

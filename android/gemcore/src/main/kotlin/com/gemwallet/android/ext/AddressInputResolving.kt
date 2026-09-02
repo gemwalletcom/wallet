@@ -5,10 +5,9 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameRecord
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemManageContactServiceInterface
 import uniffi.gemstone.GemNameServiceInterface
+import uniffi.gemstone.GemOnboardingServiceInterface
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemRecipientServiceInterface
 import uniffi.gemstone.GemRecipientValidation
@@ -20,6 +19,9 @@ fun GemRecipientServiceInterface.addressInput(): AddressInputResolving =
     ServiceAddressInput(::validateRecipient, ::recipient, ::isNameSupported, ::getNameRecord, ::nameRecordDebounceMilliseconds)
 
 fun GemManageContactServiceInterface.addressInput(): AddressInputResolving =
+    ServiceAddressInput(::validateRecipient, ::recipient, ::isNameSupported, ::getNameRecord, ::nameRecordDebounceMilliseconds)
+
+fun GemOnboardingServiceInterface.addressInput(): AddressInputResolving =
     ServiceAddressInput(::validateRecipient, ::recipient, ::isNameSupported, ::getNameRecord, ::nameRecordDebounceMilliseconds)
 
 private class ServiceAddressInput(
@@ -38,9 +40,7 @@ private class ServiceAddressInput(
 
     override fun isNameSupported(name: String): Boolean = supported(name)
 
-    override suspend fun getNameRecord(name: String, chain: Chain): NameRecord? = withContext(Dispatchers.IO) {
-        record(name, chain.string)?.decodeJson<NameRecord>()
-    }
+    override suspend fun getNameRecord(name: String, chain: Chain): NameRecord? = record(name, chain.string)?.decodeJson<NameRecord>()
 
     override fun nameRecordDebounceMilliseconds(): Long = debounce().toLong()
 }
