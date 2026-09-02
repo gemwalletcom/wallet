@@ -87,7 +87,7 @@ impl ScanClient {
         let is_memo_required = addresses.iter().any(|address| address.is_memo_required);
         let malicious_assets = token_assets
             .into_iter()
-            .filter(|asset| asset.score.rank_type() == AssetRank::Fraudulent)
+            .filter(|asset| Self::is_malicious_asset_rank(asset.score.rank))
             .map(|asset| asset.asset.id)
             .collect::<Vec<_>>();
 
@@ -103,6 +103,10 @@ impl ScanClient {
 
     fn is_scan_complete<T>(enable: bool, scans: &[Option<T>]) -> bool {
         enable && !scans.is_empty() && scans.iter().all(Option::is_some)
+    }
+
+    fn is_malicious_asset_rank(rank: i32) -> bool {
+        rank <= AssetRank::Spam.threshold()
     }
 
     fn token_asset_ids(payload: &ScanTransactionPayload) -> Vec<AssetId> {
@@ -178,6 +182,14 @@ mod tests {
         assert!(!ScanClient::is_scan_complete::<()>(true, &[]));
         assert!(!ScanClient::is_scan_complete(false, &[Some(()), Some(())]));
         assert!(!ScanClient::is_scan_complete::<()>(false, &[]));
+    }
+
+    #[test]
+    fn test_spam_or_lower_asset_rank_is_malicious() {
+        assert!(!ScanClient::is_malicious_asset_rank(-14));
+        assert!(ScanClient::is_malicious_asset_rank(-15));
+        assert!(ScanClient::is_malicious_asset_rank(-20));
+        assert!(ScanClient::is_malicious_asset_rank(i32::MIN));
     }
 
     #[test]
