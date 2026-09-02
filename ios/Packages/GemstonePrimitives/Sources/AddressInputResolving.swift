@@ -12,6 +12,7 @@ public protocol AddressInputResolving: AnyObject, Sendable {
     func recipient(chain: String, input: String, nameRecord: String?, memo: String?, references: [String]) throws -> GemRecipient
     func isNameSupported(name: String) -> Bool
     func getNameRecord(name: String, chain: String) async throws -> String?
+    func nameRecordDebounceMilliseconds() -> UInt64
 }
 
 public extension AddressInputResolving {

@@ -14,19 +14,20 @@ import uniffi.gemstone.GemRecipientServiceInterface
 import uniffi.gemstone.GemRecipientValidation
 
 fun GemNameServiceInterface.addressInput(): AddressInputResolving =
-    ServiceAddressInput(::validateRecipient, ::recipient, ::isNameSupported, ::getNameRecord)
+    ServiceAddressInput(::validateRecipient, ::recipient, ::isNameSupported, ::getNameRecord, ::nameRecordDebounceMilliseconds)
 
 fun GemRecipientServiceInterface.addressInput(): AddressInputResolving =
-    ServiceAddressInput(::validateRecipient, ::recipient, ::isNameSupported, ::getNameRecord)
+    ServiceAddressInput(::validateRecipient, ::recipient, ::isNameSupported, ::getNameRecord, ::nameRecordDebounceMilliseconds)
 
 fun GemManageContactServiceInterface.addressInput(): AddressInputResolving =
-    ServiceAddressInput(::validateRecipient, ::recipient, ::isNameSupported, ::getNameRecord)
+    ServiceAddressInput(::validateRecipient, ::recipient, ::isNameSupported, ::getNameRecord, ::nameRecordDebounceMilliseconds)
 
 private class ServiceAddressInput(
     private val validate: (String, String, String?) -> GemRecipientValidation,
     private val build: (String, String, String?, String?, List<String>) -> GemRecipient,
     private val supported: (String) -> Boolean,
     private val record: suspend (String, String) -> String?,
+    private val debounce: () -> ULong,
 ) : AddressInputResolving {
 
     override fun validateRecipient(chain: Chain, input: String, nameRecord: NameRecord?): GemRecipientValidation =
@@ -40,4 +41,6 @@ private class ServiceAddressInput(
     override suspend fun getNameRecord(name: String, chain: Chain): NameRecord? = withContext(Dispatchers.IO) {
         record(name, chain.string)?.decodeJson<NameRecord>()
     }
+
+    override fun nameRecordDebounceMilliseconds(): Long = debounce().toLong()
 }

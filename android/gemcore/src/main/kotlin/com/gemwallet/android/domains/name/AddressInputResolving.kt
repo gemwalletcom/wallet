@@ -13,4 +13,6 @@ interface AddressInputResolving {
     fun isNameSupported(name: String): Boolean
 
     suspend fun getNameRecord(name: String, chain: Chain): NameRecord?
+
+    fun nameRecordDebounceMilliseconds(): Long
 }

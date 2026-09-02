@@ -45,6 +45,10 @@ impl GemNameService {
         rules::is_name_supported(&name)
     }
 
+    pub fn name_record_debounce_milliseconds(&self) -> u64 {
+        rules::name_record_debounce_milliseconds()
+    }
+
     pub async fn get_name_record(&self, name: String, chain: Chain) -> Result<Option<NameRecord>, GemServiceError> {
         Ok(self.api.client.get_name_record(name, chain.to_string()).await.map_err(GemApiError::from)?)
     }

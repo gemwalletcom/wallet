@@ -663,7 +663,10 @@ the asset it just sold a quote for.
 250 ms on iOS and 500 ms on Android; `GemSwapQuoteService::quote_debounce_milliseconds` (250,
 matching the fiat quote debounce) sits beside `refresh_interval_milliseconds`, iOS passes it to
 `debouncedTask(interval:)` and Android's `RequestSwapQuotes` takes it as a parameter, so neither
-app keeps a number of its own. Android's stop-on-failed-quote break stays.
+app keeps a number of its own. Android's stop-on-failed-quote break stays. The name-record
+debounce (250/500 ms) went the same way: `name_record_debounce_milliseconds` on `GemNameService`,
+forwarded by `GemRecipientService` and `GemManageContactService` so the `AddressInputResolving`
+port carries it to the shared input model on both apps.
 
 **A launch-time entry is not the place for a screen's dependency.** `GemRewardsService`,
 `GemReceiveService`, `GemNodeStatusService` and `GemPerpetualDetailsService`'s inputs were

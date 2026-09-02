@@ -267,6 +267,10 @@ public final class GemManageContactServiceMock: GemManageContactServiceProtocol,
         service.isNameSupported(name: name)
     }
 
+    public func nameRecordDebounceMilliseconds() -> UInt64 {
+        service.nameRecordDebounceMilliseconds()
+    }
+
     public func getNameRecord(name: String, chain: Gemstone.Chain) async throws -> Gemstone.NameRecord? {
         try await service.getNameRecord(name: name, chain: chain)
     }
@@ -428,6 +432,10 @@ public final class GemNameServiceMock: GemNameServiceProtocol, AddressInputResol
 
     public func isNameSupported(name: String) -> Bool {
         name.split(separator: ".").count >= 2
+    }
+
+    public func nameRecordDebounceMilliseconds() -> UInt64 {
+        0
     }
 
     public func addressName(chain: String, address: String) throws -> Gemstone.AddressName? {

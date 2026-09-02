@@ -150,6 +150,10 @@ impl GemManageContactService {
         self.names.is_name_supported(name)
     }
 
+    pub fn name_record_debounce_milliseconds(&self) -> u64 {
+        self.names.name_record_debounce_milliseconds()
+    }
+
     pub async fn get_name_record(&self, name: String, chain: Chain) -> Result<Option<NameRecord>, GemServiceError> {
         self.names.get_name_record(name, chain).await
     }

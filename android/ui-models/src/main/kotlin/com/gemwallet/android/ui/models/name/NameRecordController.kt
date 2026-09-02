@@ -39,7 +39,7 @@ class NameRecordController(
         }
         _state.value = NameRecordState.Loading
         job = scope.launch {
-            delay(DEBOUNCE_MS)
+            delay(resolving.nameRecordDebounceMilliseconds())
             val record = try {
                 resolving.getNameRecord(input, chain)
             } catch (e: CancellationException) {
@@ -60,9 +60,5 @@ class NameRecordController(
     fun reset() {
         job?.cancel()
         _state.value = NameRecordState.None
-    }
-
-    private companion object {
-        const val DEBOUNCE_MS = 500L
     }
 }

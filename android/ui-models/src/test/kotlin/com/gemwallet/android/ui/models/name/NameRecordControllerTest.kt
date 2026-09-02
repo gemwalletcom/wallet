@@ -34,6 +34,8 @@ class NameRecordControllerTest {
 
         override fun isNameSupported(name: String): Boolean = name.split(".").size >= 2
 
+        override fun nameRecordDebounceMilliseconds(): Long = 500
+
         override fun validateRecipient(chain: Chain, input: String, nameRecord: NameRecord?): GemRecipientValidation =
             GemRecipientValidation(isValid = true, address = nameRecord?.address ?: input, showsError = false)
 
