@@ -9,7 +9,7 @@ import PrimitivesTestKit
 import Testing
 
 struct PaymentTransferTests {
-    let paymentService = GemPaymentService()
+    let paymentService = GemPaymentService.mock()
 
     @Test
     func transactionUsesDecodedTransfer() throws {

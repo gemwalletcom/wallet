@@ -40,7 +40,9 @@ flowchart TD
     Assets -->|"One, amount or required memo missing/unusable"| Recipient["Recipient review"]
 ```
 
-Routing is decided in Core by [payment_destination](../core/gemstone/src/payment.rs): it matches wallet assets, validates and checksums the address, converts the amount exactly (excess precision is never rounded), and requires a memo only on chains where the QR tag identifies the deposit (Cosmos, TON, XRP, Stellar, Algorand). Solana Pay transfers confirm without a memo.
+Routing is decided in Core by [payment_destination](../core/gemstone/src/payment.rs): it matches wallet assets, validates and checksums the address, converts the amount exactly (excess precision is never rounded), and requires a memo only on chains where the QR tag identifies the deposit (Cosmos, TON, XRP, Stellar, Algorand). Solana Pay transfers confirm without a memo. A recipient-review destination carries the checksummed `GemRecipient` (address, memo, references) and the requested amount, so the apps prefill the recipient screen from Core's answer without re-checksumming.
+
+`GemPaymentService` is the one payment object on both apps: it decodes URLs, routes destinations, builds transfer data and loads Solana transaction links through the alien provider it is constructed with.
 
 WalletConnect and Gem deeplinks are routed before payments. Solana transaction links load the merchant and encoded transaction through the payment service before opening confirmation. Confirmation then preloads the transaction and simulates it concurrently using the same transaction simulation service as WalletConnect.
 

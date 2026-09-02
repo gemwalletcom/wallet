@@ -162,7 +162,7 @@ extension RecipientSceneViewModel {
             recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
-            paymentService: GemPaymentService(),
+            paymentService: GemPaymentService.mock(),
         )
     }
 }

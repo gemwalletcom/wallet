@@ -55,8 +55,6 @@ import uniffi.gemstone.GemStaticApiClient
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPreferencesStore
 import uniffi.gemstone.GemSecureStore
-import uniffi.gemstone.GemPaymentLinkService
-import uniffi.gemstone.GemPaymentLinkServiceInterface
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemServiceStatus
 import uniffi.gemstone.serviceStatusTimeoutSeconds
@@ -268,11 +266,7 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun providePaymentLinkService(alienProvider: AlienProvider): GemPaymentLinkServiceInterface = GemPaymentLinkService(alienProvider)
-
-    @Provides
-    @Singleton
-    fun provideGemPaymentService(): GemPaymentService = GemPaymentService()
+    fun provideGemPaymentService(alienProvider: AlienProvider): GemPaymentService = GemPaymentService(alienProvider)
 
 
     @Provides

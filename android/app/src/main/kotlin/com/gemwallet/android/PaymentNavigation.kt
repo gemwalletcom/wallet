@@ -20,13 +20,11 @@ import com.wallet.core.primitives.PaymentRequest
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import com.wallet.core.primitives.ChainAddress
-import uniffi.gemstone.GemPaymentLinkServiceInterface
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemTransferService
 
 class PaymentNavigation @Inject constructor(
     private val getSelectAssetsInfo: GetSelectAssetsInfo,
-    private val paymentLinkService: GemPaymentLinkServiceInterface,
     private val paymentService: GemPaymentService,
     private val transferService: GemTransferService,
 ) {
@@ -49,7 +47,7 @@ class PaymentNavigation @Inject constructor(
     private suspend fun linkRoutes(link: PaymentLink): List<NavKey> {
         val assets = getSelectAssetsInfo().first()
         val accounts = assets.mapNotNull { it.owner }.distinctBy { it.chain }
-        val payment = paymentLinkService.load(
+        val payment = paymentService.load(
             link.toJson(),
             accounts.map { ChainAddress(chain = it.chain, address = it.address).toJson() },
         )

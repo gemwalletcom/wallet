@@ -348,12 +348,6 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 ### 3. Rules still written once per platform
 
-- **`GemPaymentService` is a `new()` with no fields** (`decode_url`, `destination`,
-  `transfer_destination`, `transfer_data`): the same shape `GemSwapQuoteService` and
-  `GemRecipientService` had. Its destinations now carry the checksummed `GemRecipient` and the
-  requested amount, so neither app touches `GemAddressService` for a payment any more; what is left
-  is to move the rules onto the payment value and delete the object.
-
 Android's confirm screen still reads its assets through `GetWalletAssets`/`GetAssetInfo` and
 its fee assets through `GetFeeAssets` (store-backed `AssetInfo`), where Core's `GemConfirmPreload`
 metadata already carries the balances and prices the screen shows. Moving the fee-asset picker and

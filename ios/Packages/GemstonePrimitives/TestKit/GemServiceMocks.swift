@@ -337,6 +337,12 @@ public final class GemFiatServiceMock: GemFiatServiceProtocol, @unchecked Sendab
 
 }
 
+public extension GemPaymentService {
+    static func mock() -> GemPaymentService {
+        GemPaymentService(provider: StubAlienProvider())
+    }
+}
+
 public extension GemNameService {
     static func mock() -> GemNameService {
         GemNameService(

@@ -21,14 +21,22 @@ pub enum GemPaymentError {
     Network { reason: String },
 }
 
-#[derive(Default, uniffi::Object)]
-pub struct GemPaymentService {}
+#[derive(uniffi::Object)]
+pub struct GemPaymentService {
+    service: CorePaymentService,
+}
 
 #[uniffi::export]
 impl GemPaymentService {
     #[uniffi::constructor]
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(provider: Arc<dyn AlienProvider>) -> Self {
+        Self {
+            service: CorePaymentService::new(Arc::new(AlienProviderWrapper::new(provider))),
+        }
+    }
+
+    pub async fn load(&self, link: GemPaymentLink, addresses: Vec<ChainAddress>) -> Result<GemPaymentTransaction, GemPaymentError> {
+        self.service.load(&link, &addresses).await
     }
 
     pub fn decode_url(&self, string: String) -> Result<GemPayment, GemstoneError> {
@@ -249,29 +257,11 @@ fn transfer_value(request: &GemPaymentRequest, decimals: i32) -> Option<BigUint>
     }
 }
 
-#[derive(uniffi::Object)]
-pub struct GemPaymentLinkService {
-    service: CorePaymentService,
-}
-
-#[uniffi::export]
-impl GemPaymentLinkService {
-    #[uniffi::constructor]
-    pub fn new(provider: Arc<dyn AlienProvider>) -> Self {
-        Self {
-            service: CorePaymentService::new(Arc::new(AlienProviderWrapper::new(provider))),
-        }
-    }
-
-    pub async fn load(&self, link: GemPaymentLink, addresses: Vec<ChainAddress>) -> Result<GemPaymentTransaction, GemPaymentError> {
-        self.service.load(&link, &addresses).await
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::models::payment::{GemPaymentAmount, GemPaymentLink, GemPaymentRequest};
+    use crate::testkit::TestAlienProvider;
     use primitives::{ApplicationMetadata, Asset, AssetId, AssetType, Chain, ChainAddress, TransactionType};
 
     const BITCOIN_ADDRESS: &str = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
@@ -453,7 +443,7 @@ mod tests {
             memo: Some("order 7".to_string()),
             request,
         };
-        let service = GemPaymentService::new();
+        let service = GemPaymentService::new(Arc::new(TestAlienProvider::with_status(200)));
 
         let decoded = service.transaction_transfer_data(
             transaction(Some(request(
@@ -492,7 +482,7 @@ mod tests {
 
     #[test]
     fn test_request() {
-        let decode_url = |url: &str| GemPaymentService::new().decode_url(url.to_string());
+        let decode_url = |url: &str| GemPaymentService::new(Arc::new(TestAlienProvider::with_status(200))).decode_url(url.to_string());
         assert_eq!(
             decode_url("solana:3u3ta6yXYgpheLGc2GVF3QkLHAUwBrvX71Eg8XXjJHGw?amount=0.42301").unwrap(),
             GemPayment::Request(GemPaymentRequest {
@@ -507,7 +497,7 @@ mod tests {
 
     #[test]
     fn test_link() {
-        let decode_url = |url: &str| GemPaymentService::new().decode_url(url.to_string());
+        let decode_url = |url: &str| GemPaymentService::new(Arc::new(TestAlienProvider::with_status(200))).decode_url(url.to_string());
         const CONSTANT_K: &str = "https://www.constant-k.com/ck-txreq/?tok=MjYyfG9wZXJhdG9yfGFubnVhbHx8MTc4NzUyOTMxOXw3M2FiNDFhZmIwNTAxZWNjNjE2Y2E4NmIxZGE5N2FlOWZjM2Y1OGMzZWZhMGYxMjNiOGI4ZGYzZmU2YzQ3ZmM4";
 
         assert_eq!(

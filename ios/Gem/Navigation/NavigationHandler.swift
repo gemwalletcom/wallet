@@ -10,7 +10,6 @@ import protocol Gemstone.GemAssetsServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import enum Gemstone.GemPushNotification
 import protocol Gemstone.GemPushNotificationServiceProtocol
-import class Gemstone.GemPaymentLinkService
 import GemstonePrimitives
 import Localization
 import class Gemstone.GemPaymentService
@@ -29,7 +28,6 @@ final class NavigationHandler: Sendable {
     private let assetStore: AssetStore
     private let walletConnector: any WalletConnectorServiceable
     private let toastPresenter: ToastPresenter
-    private let paymentLinkService: GemPaymentLinkService
     private let pushNotificationService: any GemPushNotificationServiceProtocol
     private let transactionStore: TransactionStore
     private let urlParser: URLParser
@@ -45,7 +43,6 @@ final class NavigationHandler: Sendable {
         assetStore: AssetStore,
         walletConnector: any WalletConnectorServiceable,
         toastPresenter: ToastPresenter,
-        paymentLinkService: GemPaymentLinkService,
         pushNotificationService: any GemPushNotificationServiceProtocol,
         transactionStore: TransactionStore,
         urlParser: URLParser,
@@ -60,7 +57,6 @@ final class NavigationHandler: Sendable {
         self.assetStore = assetStore
         self.walletConnector = walletConnector
         self.toastPresenter = toastPresenter
-        self.paymentLinkService = paymentLinkService
         self.pushNotificationService = pushNotificationService
         self.transactionStore = transactionStore
         self.urlParser = urlParser
@@ -177,7 +173,7 @@ extension NavigationHandler {
         case let .link(link):
             toastPresenter.toastMessage = ToastMessage(title: Localized.Common.loading, image: SystemImage.network)
             let addresses = wallet.accounts.map { ChainAddress(chain: $0.chain, address: $0.address) }
-            let transaction = try await paymentLinkService.load(link: link, addresses: addresses)
+            let transaction = try await paymentService.load(link: link, addresses: addresses)
             let chain = try Primitives.ChainAddress(transaction.account).chain
             let assetId = try transaction.request?.map().assetId ?? chain.asset.id
             let asset = try await assetsService.ensureTokenAsset(for: assetId)
