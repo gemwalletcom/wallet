@@ -358,11 +358,8 @@ swap slippage bounds · min-receive BPS math · swap ETA truncation · the criti
 
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
-- **Receiver transport cleanup.** Android still reimplements `SimulationResult.asset_ids()` in
-  `ConfirmViewModel.kt`; add the projection to the existing `GemSimulationFormatter` or fold the
-  asset synchronization into the confirm aggregate, then delete the app copy. Do not restore it
-  on `GemConfirmTransferService`. `GemContactsService` is the other transport debt: it only
-  forwards update/delete to `GemContactService`, so iOS should use the owning service directly.
+- **Receiver transport cleanup.** `GemContactsService` only forwards update/delete to
+  `GemContactService`, so iOS should use the owning service directly.
 - **Confirm error conversion.** `GemConfirmService` repeats the same
   `GemServiceError` → `GemConfirmError::Load` closure across store reads. Implement the typed
   conversion once and use `?`; keep explicit mappings where the operation changes the category,
@@ -378,13 +375,34 @@ swap slippage bounds · min-receive BPS math · swap ETA truncation · the criti
 - **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `nft::report` (Android report screen), `wallet_preferences::is_initial_load_completed` (iOS wallet empty state), `reset_transactions_timestamp` (iOS developer action).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
 - **`AddressFormatter` (iOS)**, 23 uses / ~60 construction sites. Attempted and reverted: threading the service reaches `WalletViewModel`, then spreads into `extension Wallet: SimpleListItemViewable`, which builds a `WalletViewModel` only to read `avatarImage` and never touches the formatter. The fix is smaller than the threading — split the display-only parts (`avatarImage`, `name`) from the address-formatting parts so only the latter needs the service. Design change, wants a decision.
+- **Three homes for clock code.** `primitives::time::unix_timestamp` panics on clock skew and has
+  no caller outside its own re-export; `gemstone::clock` has the `Result`-returning
+  `unix_seconds`/`unix_milliseconds` that six gemstone modules use; `gemstone::services::clock`
+  holds an async `sleep` plus `parse_timestamp*`. Move the two `unix_*` readings into
+  `primitives::time` in place of the panicking one, and decide whether the timestamp parsing goes
+  with them — `sleep` is runtime plumbing and stays in gemstone.
+
 - **`GemSecurityService` (iOS)** is a *defaulted* parameter on `BiometryAuthenticationService`. Making it required pushes the default into `SecurityViewModel` and `LockSceneViewModel`, which also default-construct the whole service — a lock-manager pass, not a one-liner.
 
-### 5. Tests that cannot fail
+### 5. Shared iOS views still taking Core services
+
+`TransactionsList` takes `explorerService` and `transactionFormatter` only to build a
+`TransactionViewModel` per row, so every screen showing it — asset, transactions, wallet — carries
+both services purely to pass them down. `AssetSceneViewModel` keeps its last two Core services for
+exactly this reason. Give `TransactionViewModel` the values it renders, or let the list take
+pre-built row models, and those two dependencies disappear from three view models at once.
+
+### 6. Tests that cannot fail
+
+`SettingsViewModelTest` (Android) fails intermittently across unrelated changes — seen on both
+`single wallet hides rewards` and `rewards stay available while no wallets are loaded`, each passing
+on an immediate rerun with an `IllegalStateException` from `TestMainDispatcher`. A flake in a
+wallet-settings suite is a false signal every contributor has to re-run past; fix the dispatcher
+setup rather than retrying it.
 
 `Migration_88_89Test.kt:35` seeds a multi-sig banner with `asset_id NULL` — the pre-`46889318bc` contract — and only calls `runMigrationsAndValidate`, which checks the schema and never asserts the row survived, so it cannot fail on data loss. It is an `androidTest`, so fixing it means running it on a device.
 
-### 6. Android
+### 7. Android
 
 - **Earn flow.** No Earn surface exists (no `StakeProviderType.Earn` reader, no `AmountParams.Earn`, no `ConfirmParams.Earn`; `GemDelegationAction.DEPOSIT` maps to nothing). Build the scene, amount provider and confirm params on `GemStakeService.sync_earn`/`get_earn_data`, `GemAmountType::Earn` and `GemTransactionInputType::Earn`; iOS `EarnSceneViewModel` + `AmountEarnViewModel` are the reference. A feature, not a consolidation — plan it as its own batch.
 - **Dead `NOT NULL` columns** with no iOS counterpart: `AssetStore.saveAsset` bumps `updatedAt`, `TransactionStateStore` writes swap amounts, `NftStore` fills two legacy image columns. minSdk 28 has no `ALTER TABLE DROP COLUMN`, so removing them means recreating tables (`asset` behind its foreign keys) and instrumented migration tests do not run in CI — batch them with a migration that has another reason to touch those tables.
@@ -394,25 +412,27 @@ swap slippage bounds · min-receive BPS math · swap ETA truncation · the criti
 - Consistency: `toChain()` (nullable) and `requireChain()` (throws) are picked arbitrarily at call sites; `*Service` classes live inside the coordinators module.
 - Localization: 59 hardcoded `dp` values (worst: `SupportMessageBubble`, `ReceiveScreen`, `ImportScreen`, `WalletTypeTab`, `FiatScene`).
 
-### 7. iOS
+### 8. iOS
 
 - Naming: `GemstoneNftStore` wraps `NFTStore` and `ConnectionStore` wraps `ConnectionsStore` (one name per store); untyped `.map()` conversions where Android has `toPrimitives()`.
 - `NavigationHandler`'s `.stake` deep link is an unimplemented branch and `TransactionScene`'s corner radius is an open iOS 26 styling question — both mark real gaps, keep the TODOs until closed.
 - The two "delete in 2026" `FileMigrator` calls (`LocalKeystore`, `DB.swift`) move the keystore and database from documents to application support on launch. Deleting them strands anyone who has not opened the app since the move — losing their keystore — so this needs install-base data, not a code decision.
 
-### 8. iOS view models holding more than one Core service
+### 9. iOS view models holding more than one Core service
 
 Each iOS scene view model should hold at most one private Core service per
 [ARCHITECTURE.md § 7](ARCHITECTURE.md#7-at-most-one-core-service-on-ios-narrow-cases-on-android).
 `ManageContactViewModel`, `ContactsViewModel` and `ManageContactAddressViewModel` meet the field-count
 ceiling, but `GemContactsService` is forwarding-only and `GemManageContactService.names()` /
 `addresses()` / `chains()` remain reach-through debt until the shared components receive narrow
-dependencies directly. `ConfirmTransferSceneViewModel` is done: it holds `service` alone, with
-`signer`, the keystore password and the recent-activity store as outbound ports the app implements
-and `GemConfirmTransferService` owns, and takes `currency` as a value rather than reading it from
-preferences. Its `fee()` and `swapQuote()` accessors still hand out other services so that
-`NetworkFeeSceneViewModel` and `SwapDetailsViewModel` can be built; those two are shared with the
-swap scene, so closing that reach-through means giving them narrow dependencies first.
+dependencies directly. `ConfirmTransferSceneViewModel` is done: it holds `service` alone, with `signer`, the keystore
+password and the recent-activity store as outbound ports the app implements and
+`GemConfirmTransferService` owns, and reads the currency from `service.currency()`. It hands out no
+other service: `GemFeeService` is deleted (the custom-fee estimate is a `GemCustomFee.estimate`
+constructor, so `NetworkFeeSceneViewModel` needs no dependency at all), and `swapQuote()` is
+replaced by `swap_price_impact`, which takes `GemSwapValue` on each side and does the fiat
+conversion Core-side, so `SwapDetailsViewModel` takes the computed impact and a ready
+`[SwapProviderItem]` list instead of a service.
 
 The inventory below tracks remaining multi-service view models. Re-run the audit before a bulk
 migration; a non-private service means the view is reaching through the model, so fix that first by
@@ -421,8 +441,8 @@ having the parent vend the child view model.
 | view model | services | non-private |
 |---|---|---|
 | `Gem/ViewModels/RootSceneViewModel.swift` | 11 | 4 |
-| `Assets/AssetSceneViewModel.swift` | 9 | 2 |
-| `Assets/SelectAssetViewModel.swift` | 6 | 5 |
+| `Assets/AssetSceneViewModel.swift` | 3 | 2 |
+| `Assets/SelectAssetViewModel.swift` | 3 | 0 |
 | `WalletTab/AssetsResultsSceneViewModel.swift` | 5 | 2 |
 | `Settings/Settings/ViewModels/DeveloperViewModel.swift` | 5 | 0 |
 | `Onboarding/ImportWalletViewModel.swift` | 4 | 4 |
@@ -465,14 +485,13 @@ Single-service view models that only need the property made `private`:
 
 - `Assets/AddAssetViewModel.swift` — `explorerService`
 - `Settings/ChainSettings/ViewModels/ChainListSettingsViewModel.swift` — `chainService`
-- `Swap/PriceImpactViewModel.swift` — `swapQuoteService`
 - `Transfer/AmountPerpetualViewModel.swift` — `amountService`
 - `Transfer/AmountStakeViewModel.swift` — `amountService`
 - `Transfer/AmountTransferViewModel.swift` — `amountService`
 - `WalletConnector/WalletConnector/ViewModels/ConnectionSceneViewModel.swift` — `connector`
 - `WalletConnector/WalletConnector/ViewModels/WalletConnectionViewModel.swift` — `applicationMetadataService`
 
-### 9. Rules still living in app-only enums
+### 10. Rules still living in app-only enums
 
 Both apps carry Core's `GemTransferData`, `GemConfirmInput` and `GemTransactionInputType`
 end to end, per [ARCHITECTURE.md](ARCHITECTURE.md) § 6 — iOS's `TransferDataType` and
