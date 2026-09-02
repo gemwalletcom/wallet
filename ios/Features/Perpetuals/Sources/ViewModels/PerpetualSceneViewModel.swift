@@ -365,7 +365,7 @@ private extension PerpetualSceneViewModel {
 
     func updateTransactions() async {
         do {
-            try await service.syncTransactions(walletId: wallet.id.id, assetId: asset.id.identifier)
+            try await service.syncTransactions(assetId: asset.id.identifier)
         } catch {
             debugLog("perpetual scene: loadTransactions error \(error)")
         }

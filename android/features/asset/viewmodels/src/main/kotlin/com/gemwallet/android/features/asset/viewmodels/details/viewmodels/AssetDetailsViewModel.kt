@@ -19,7 +19,6 @@ import com.gemwallet.android.model.ChainAssetInfo
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModelFactory
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
@@ -59,10 +58,7 @@ class AssetDetailsViewModel @Inject constructor(
     private val assetId = savedStateHandle.requireAssetId()
 
     private val chainAssetInfo = getChainAssetInfo(assetId)
-        .onStart {
-            val wallet = session.value?.wallet ?: return@onStart
-            restartAssetSync(wallet)
-        }
+        .onStart { restartAssetSync() }
         .filterNotNull()
 
     val isOperationEnabled = session.filterNotNull().flatMapLatest {
@@ -106,7 +102,6 @@ class AssetDetailsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun refresh() {
-        val wallet = session.value?.wallet ?: return
         if (syncJob?.isActive == true) {
             return
         }
@@ -115,20 +110,20 @@ class AssetDetailsViewModel @Inject constructor(
         syncPriceAlerts()
         syncJob = viewModelScope.launch(Dispatchers.IO) {
             try {
-                syncAssetDetails(wallet)
+                syncAssetDetails()
             } finally {
                 isRefreshing.value = false
             }
         }
     }
 
-    private fun restartAssetSync(wallet: Wallet) {
+    private fun restartAssetSync() {
         val previousJob = syncJob
 
         syncPriceAlerts()
         syncJob = viewModelScope.launch(Dispatchers.IO) {
             previousJob?.cancelAndJoin()
-            syncAssetDetails(wallet)
+            syncAssetDetails()
         }
     }
 
@@ -137,31 +132,20 @@ class AssetDetailsViewModel @Inject constructor(
             .onFailure { Log.e(TAG, "price alerts sync failed for ${assetId.toIdentifier()}", it) }
     }
 
-    private suspend fun syncAssetDetails(wallet: Wallet) {
-        wallet.getAccount(assetId) ?: return
+    private suspend fun syncAssetDetails() {
         assetDetailsService
-            .refresh(wallet.id.id, assetId.toIdentifier())
+            .refresh(assetId.toIdentifier())
             .forEach { Log.e(TAG, "asset refresh ${it.step} failed: ${it.message}") }
     }
 
     fun pin() = viewModelScope.launch(Dispatchers.IO) {
-        val wallet = session.value?.wallet ?: return@launch
         val assetInfo = model.value?.chainAssetInfo?.assetInfo ?: return@launch
-        val assetId = assetInfo.id()
-        wallet.getAccount(assetId) ?: return@launch
-        assetDetailsService.setAssetPinned(wallet.id.id, assetId.toIdentifier(), !assetInfo.metadata.isPinned)
+        assetDetailsService.setAssetPinned(assetInfo.id().toIdentifier(), !assetInfo.metadata.isPinned)
     }
 
     fun add() = viewModelScope.launch(Dispatchers.IO) {
-        val session = session.value ?: return@launch
         val assetInfo = model.value?.chainAssetInfo?.assetInfo ?: return@launch
-
-        add(session.wallet, assetInfo.id())
-    }
-
-    private suspend fun add(wallet: Wallet, assetId: AssetId) {
-        wallet.getAccount(assetId) ?: return
-        assetDetailsService.setAssetsEnabled(wallet.id.id, listOf(assetId.toIdentifier()), true)
+        assetDetailsService.setAssetsEnabled(listOf(assetInfo.id().toIdentifier()), true)
     }
 
     private companion object {

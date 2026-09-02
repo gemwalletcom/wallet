@@ -19,6 +19,7 @@ import uniffi.gemstone.GemApiClient
 import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemAssetStore
 import uniffi.gemstone.GemAssetDetailsService
+import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.GemSwapService
@@ -196,6 +197,7 @@ object AssetsModule {
         priceAlertService: GemPriceAlertService,
         streamSubscriptionService: GemStreamSubscriptionService,
         deeplinkService: GemDeeplinkService,
+        walletSessionService: GemWalletSessionService,
     ): GemAssetDetailsService = GemAssetDetailsService(
         assetsService,
         balanceService,
@@ -206,6 +208,7 @@ object AssetsModule {
         priceAlertService,
         streamSubscriptionService,
         deeplinkService,
+        walletSessionService,
     )
 
     @Provides

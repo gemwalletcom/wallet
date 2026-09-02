@@ -16,7 +16,6 @@ import struct Gemstone.GemBlockExplorerLink
 import class Gemstone.GemDeeplinkService
 import class Gemstone.GemSimulationFormatter
 import struct Gemstone.GemSwapPairSuggestion
-import typealias Gemstone.WalletId
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
@@ -29,7 +28,7 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         self.assetPair = assetPair
     }
 
-    public func refresh(walletId: WalletId, assetId: AssetId) async -> [GemAssetRefreshFailure] { [] }
+    public func refresh(assetId: AssetId) async -> [GemAssetRefreshFailure] { [] }
 
     public func syncAsset(assetId: AssetId) async throws -> AssetFull {
         Primitives.AssetFull.mock().json()
@@ -37,13 +36,13 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
 
     public func syncMissingAssets(assetIds: [AssetId]) async throws -> [AssetId] { [] }
 
-    public func syncTransactions(walletId: WalletId, assetId: AssetId?) async throws {}
+    public func syncTransactions(assetId: AssetId?) async throws {}
 
-    public func updateBalances(walletId: WalletId, assetIds: [AssetId]) async throws {}
+    public func updateBalances(assetIds: [AssetId]) async throws {}
 
-    public func setAssetPinned(walletId: WalletId, assetId: AssetId, pinned: Bool) async throws {}
+    public func setAssetPinned(assetId: AssetId, pinned: Bool) async throws {}
 
-    public func setAssetsEnabled(walletId: WalletId, assetIds: [AssetId], enabled: Bool) async throws {}
+    public func setAssetsEnabled(assetIds: [AssetId], enabled: Bool) async throws {}
 
     public func addPrices(assetIds: [AssetId]) async throws {}
 

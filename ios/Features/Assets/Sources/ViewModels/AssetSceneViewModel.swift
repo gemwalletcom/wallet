@@ -452,7 +452,7 @@ public extension AssetSceneViewModel {
         let pinned = !assetData.metadata.isPinned
         Task {
             do {
-                try await service.setAssetPinned(walletId: wallet.id.id, assetId: asset.id.identifier, pinned: pinned)
+                try await service.setAssetPinned(assetId: asset.id.identifier, pinned: pinned)
                 isPresentingToastMessage = .pin(asset.name, pinned: pinned)
             } catch {
                 debugLog("onSelectPin error: \(error)")
@@ -464,7 +464,7 @@ public extension AssetSceneViewModel {
         Task {
             let enabled = !assetData.metadata.isBalanceEnabled
             do {
-                try await service.setAssetsEnabled(walletId: wallet.id.id, assetIds: [asset.id.identifier], enabled: enabled)
+                try await service.setAssetsEnabled(assetIds: [asset.id.identifier], enabled: enabled)
                 isPresentingToastMessage = .showAsset(visible: enabled)
             } catch {
                 debugLog("onSelectEnable error: \(error)")
@@ -532,7 +532,7 @@ extension AssetSceneViewModel {
     }
 
     private func refresh() async {
-        let failures = await service.refresh(walletId: walletModel.wallet.id.id, assetId: assetModel.asset.id.identifier)
+        let failures = await service.refresh(assetId: assetModel.asset.id.identifier)
         for failure in failures {
             debugLog("asset scene: refresh \(failure.step) failed: \(failure.message)")
         }

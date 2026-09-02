@@ -1,7 +1,7 @@
 use futures::TryFutureExt;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetFull, AssetId, BannerEvent, Chain, Deeplink, WalletId};
+use primitives::{Asset, AssetFull, AssetId, BannerEvent, Chain, Deeplink};
 
 use crate::block_explorer::GemBlockExplorerLink;
 use crate::deeplink::GemDeeplinkService;
@@ -13,6 +13,7 @@ use crate::services::price_alert::GemPriceAlertService;
 use crate::services::stream::GemStreamSubscriptionService;
 use crate::services::swap::{GemSwapPairSuggestion, GemSwapService};
 use crate::services::transactions::GemTransactionsService;
+use crate::services::wallet_session::GemWalletSessionService;
 
 use crate::services::failures::{StepFailure, record};
 
@@ -52,6 +53,7 @@ pub struct GemAssetDetailsService {
     price_alerts: Arc<GemPriceAlertService>,
     stream: Arc<GemStreamSubscriptionService>,
     deeplinks: Arc<GemDeeplinkService>,
+    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
@@ -67,6 +69,7 @@ impl GemAssetDetailsService {
         price_alerts: Arc<GemPriceAlertService>,
         stream: Arc<GemStreamSubscriptionService>,
         deeplinks: Arc<GemDeeplinkService>,
+        session: Arc<GemWalletSessionService>,
     ) -> Self {
         Self {
             assets,
@@ -78,11 +81,16 @@ impl GemAssetDetailsService {
             price_alerts,
             stream,
             deeplinks,
+            session,
         }
     }
 
-    pub async fn refresh(&self, wallet_id: WalletId, asset_id: AssetId) -> Vec<GemAssetRefreshFailure> {
+    pub async fn refresh(&self, asset_id: AssetId) -> Vec<GemAssetRefreshFailure> {
         let mut failures = Vec::new();
+        let wallet_id = match self.session.current_wallet_id() {
+            Ok(wallet_id) => wallet_id,
+            Err(error) => return vec![GemAssetRefreshFailure::new(GemAssetRefreshStep::UpdateBalances, error.to_string())],
+        };
         record(&mut failures, GemAssetRefreshStep::AddPrices, self.stream.add_prices(vec![asset_id.clone()])).await;
 
         let associations = match self.assets.sync_asset(asset_id.clone()).await {
@@ -119,20 +127,20 @@ impl GemAssetDetailsService {
         self.assets.sync_missing_assets(asset_ids).await
     }
 
-    pub async fn sync_transactions(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
-        self.transactions.sync(wallet_id, asset_id).await
+    pub async fn sync_transactions(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
+        self.transactions.sync(self.session.current_wallet_id()?, asset_id).await
     }
 
-    pub async fn update_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
-        self.balances.update(wallet_id, asset_ids).await
+    pub async fn update_balances(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+        self.balances.update(self.session.current_wallet_id()?, asset_ids).await
     }
 
-    pub async fn set_asset_pinned(&self, wallet_id: WalletId, asset_id: AssetId, pinned: bool) -> Result<(), GemServiceError> {
-        self.balances.set_asset_pinned(wallet_id, asset_id, pinned).await
+    pub async fn set_asset_pinned(&self, asset_id: AssetId, pinned: bool) -> Result<(), GemServiceError> {
+        self.balances.set_asset_pinned(self.session.current_wallet_id()?, asset_id, pinned).await
     }
 
-    pub async fn set_assets_enabled(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
-        self.balances.set_assets_enabled(wallet_id, asset_ids, enabled).await
+    pub async fn set_assets_enabled(&self, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
+        self.balances.set_assets_enabled(self.session.current_wallet_id()?, asset_ids, enabled).await
     }
 
     pub async fn add_prices(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {

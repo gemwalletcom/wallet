@@ -82,9 +82,7 @@ class PerpetualDetailsViewModel @Inject constructor(
     )
 
     private val transactionSync = flow {
-        getSession().filterNotNull().first().wallet.id.id.let { walletId ->
-            runCatchingCancellable { service.syncTransactions(walletId, assetId.toIdentifier()) }
-        }
+        runCatchingCancellable { service.syncTransactions(assetId.toIdentifier()) }
         emit(Unit)
     }
         .onStart { emit(Unit) }

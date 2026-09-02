@@ -166,6 +166,7 @@ public struct ViewModelFactory: Sendable {
                 priceAlerts: priceAlertService,
                 stream: streamSubscriptionService,
                 deeplinks: deeplinkService,
+                session: walletSessionService,
             ),
             preferences: observablePreferences,
             input: AssetSceneInput(wallet: wallet, asset: asset),
@@ -549,7 +550,7 @@ public struct ViewModelFactory: Sendable {
         PerpetualSceneViewModel(
             wallet: wallet,
             asset: asset,
-            service: GemPerpetualDetailsService(perpetuals: perpetualService, transactions: transactionsService, preferences: preferencesService),
+            service: GemPerpetualDetailsService(perpetuals: perpetualService, transactions: transactionsService, preferences: preferencesService, session: walletSessionService),
             observerService: hyperliquidObserverService,
             onTransferData: onTransferData,
             onPerpetualRecipientData: onPerpetualRecipientData,

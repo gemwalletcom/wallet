@@ -1,28 +1,36 @@
 use std::sync::Arc;
 
-use primitives::{AssetId, Chain, ChartPeriod, Currency, WalletId};
+use primitives::{AssetId, Chain, ChartPeriod, Currency};
 
 use super::GemPerpetualService;
 use crate::models::perpetual::{GemChartCandleStick, GemPerpetualSubscription};
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::transactions::GemTransactionsService;
+use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemPerpetualDetailsService {
     perpetuals: Arc<GemPerpetualService>,
     transactions: Arc<GemTransactionsService>,
     preferences: Arc<GemPreferencesService>,
+    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
 impl GemPerpetualDetailsService {
     #[uniffi::constructor]
-    pub fn new(perpetuals: Arc<GemPerpetualService>, transactions: Arc<GemTransactionsService>, preferences: Arc<GemPreferencesService>) -> Self {
+    pub fn new(
+        perpetuals: Arc<GemPerpetualService>,
+        transactions: Arc<GemTransactionsService>,
+        preferences: Arc<GemPreferencesService>,
+        session: Arc<GemWalletSessionService>,
+    ) -> Self {
         Self {
             perpetuals,
             transactions,
             preferences,
+            session,
         }
     }
 
@@ -57,7 +65,7 @@ impl GemPerpetualDetailsService {
         self.perpetuals.merge_candle(candles, candle)
     }
 
-    pub async fn sync_transactions(&self, wallet_id: WalletId, asset_id: AssetId) -> Result<(), GemServiceError> {
-        self.transactions.sync(wallet_id, Some(asset_id)).await
+    pub async fn sync_transactions(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
+        self.transactions.sync(self.session.current_wallet_id()?, Some(asset_id)).await
     }
 }

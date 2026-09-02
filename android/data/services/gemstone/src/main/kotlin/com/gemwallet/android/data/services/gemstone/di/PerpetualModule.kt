@@ -21,6 +21,7 @@ import uniffi.gemstone.GemAssetStore
 import uniffi.gemstone.GemPerpetualDetailsService
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualService
+import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualStreamService
 import uniffi.gemstone.GemPreferencesService
@@ -71,7 +72,8 @@ object PerpetualModule {
         perpetualService: GemPerpetualService,
         transactionsService: GemTransactionsService,
         preferencesService: GemPreferencesService,
-    ): GemPerpetualDetailsServiceInterface = GemPerpetualDetailsService(perpetualService, transactionsService, preferencesService)
+        walletSessionService: GemWalletSessionService,
+    ): GemPerpetualDetailsServiceInterface = GemPerpetualDetailsService(perpetualService, transactionsService, preferencesService, walletSessionService)
 
     @Provides
     @Singleton
