@@ -13,7 +13,3 @@ async-trait = { workspace = true }
 gem_client = { path = "../gem_client" }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
 percent-encoding = { workspace = true }
-
-[dev-dependencies]
-primitives = { path = "../primitives", features = ["testkit"] }
-tokio = { workspace = true, features = ["macros", "rt"] }
