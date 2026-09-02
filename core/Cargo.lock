@@ -3465,6 +3465,7 @@ dependencies = [
  "serde",
  "serde_json",
  "strum",
+ "tokio",
 ]
 
 [[package]]

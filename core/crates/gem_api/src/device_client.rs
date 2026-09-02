@@ -16,6 +16,8 @@ use serde::de::DeserializeOwned;
 
 use crate::device_target::{GemDeviceApiBody, GemDeviceApiTarget};
 
+const TRANSACTIONS_PAGE_SIZE: usize = 100;
+
 /// Runs before any request scoped to a wallet, so the app can make sure the
 /// backend already knows that wallet before the call goes out.
 #[async_trait::async_trait]
@@ -105,12 +107,35 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
     }
 
     pub async fn get_transactions(&self, wallet_id: String, asset_id: Option<String>, from_timestamp: u64) -> Result<TransactionsResponse, ClientError> {
-        self.send(GemDeviceApiTarget::GetTransactions {
-            wallet_id,
-            asset_id,
-            from_timestamp,
-        })
-        .await
+        let mut transactions = Vec::new();
+        let mut address_names = Vec::new();
+
+        loop {
+            let offset = transactions.len();
+            let response: TransactionsResponse = self
+                .send(GemDeviceApiTarget::GetTransactions {
+                    wallet_id: wallet_id.clone(),
+                    asset_id: asset_id.clone(),
+                    from_timestamp,
+                    limit: TRANSACTIONS_PAGE_SIZE,
+                    offset,
+                })
+                .await?;
+            let page_size = response.transactions.len();
+
+            transactions.extend(response.transactions);
+            for address_name in response.address_names {
+                if !address_names.contains(&address_name) {
+                    address_names.push(address_name);
+                }
+            }
+
+            if page_size < TRANSACTIONS_PAGE_SIZE {
+                break;
+            }
+        }
+
+        Ok(TransactionsResponse::new(transactions, address_names))
     }
 
     pub async fn get_assets_list(&self, wallet_id: String, from_timestamp: u64) -> Result<Vec<String>, ClientError> {
@@ -268,5 +293,73 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
         .map_err(|error| ClientError::Serialization(error.to_string()))?;
 
         Ok(HashMap::from([("Authorization".to_string(), header)]))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Mutex;
+
+    use async_trait::async_trait;
+    use gem_client::Response;
+    use gem_jsonrpc::alien::AlienError;
+    use gem_jsonrpc::{RpcProvider, Target};
+    use primitives::{Chain, Transaction, TransactionsResponse};
+
+    use super::*;
+
+    #[derive(Debug, Default)]
+    struct PaginationProvider {
+        urls: Mutex<Vec<String>>,
+    }
+
+    #[async_trait]
+    impl RpcProvider for PaginationProvider {
+        type Error = AlienError;
+
+        async fn request(&self, target: Target) -> Result<Response, Self::Error> {
+            let offset = if target.url.contains("offset=100") { 100 } else { 0 };
+            let count = if offset == 0 { TRANSACTIONS_PAGE_SIZE } else { 1 };
+            self.urls.lock().unwrap().push(target.url);
+
+            let transactions = (offset..offset + count)
+                .map(|index| {
+                    let mut transaction = Transaction::mock();
+                    transaction.id.hash = index.to_string();
+                    transaction
+                })
+                .collect();
+            let response = TransactionsResponse::new(transactions, Vec::new());
+            Ok(Response {
+                status: Some(200),
+                data: serde_json::to_vec(&response).unwrap(),
+            })
+        }
+
+        fn get_endpoint(&self, _chain: Chain) -> Result<String, Self::Error> {
+            Ok(String::new())
+        }
+    }
+
+    #[derive(Debug)]
+    struct TestDeviceKey;
+
+    impl DeviceKey for TestDeviceKey {
+        fn private_key(&self) -> Result<Vec<u8>, ClientError> {
+            Ok(vec![1; 32])
+        }
+    }
+
+    #[tokio::test]
+    async fn get_transactions_fetches_every_page() {
+        let provider = Arc::new(PaginationProvider::default());
+        let client = GemDeviceApiClient::new("https://example.com".to_string(), provider.clone(), Arc::new(TestDeviceKey));
+
+        let response = client.get_transactions("wallet".to_string(), None, 0).await.unwrap();
+
+        assert_eq!(response.transactions.len(), 101);
+        assert_eq!(provider.urls.lock().unwrap().len(), 2);
+        assert!(provider.urls.lock().unwrap()[0].ends_with("from_timestamp=0&limit=100&offset=0"));
+        assert!(provider.urls.lock().unwrap()[1].ends_with("from_timestamp=0&limit=100&offset=100"));
     }
 }

@@ -44,6 +44,7 @@ pub struct DeviceTransactionsParams {
     asset_id: Option<AssetIdParam>,
     from_timestamp: Option<u64>,
     limit: QueryLimitParam,
+    offset: Option<usize>,
 }
 
 #[derive(FromForm)]
@@ -90,6 +91,7 @@ pub async fn get_device_transactions_v2(
             params.asset_id.map(|x| x.0),
             params.from_timestamp,
             params.limit.0,
+            params.offset.unwrap_or_default(),
         )
         .await?
         .into())
