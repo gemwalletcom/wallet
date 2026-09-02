@@ -426,12 +426,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `GemAssetDetailsService`, `GemPerpetualDetailsService`, `GemAssetSelectionService`,
   `GemSwapQuoteService`, `GemFiatQuoteService` and `GemTransactionsService::sync` too (Android's
   `RequestSwapQuotesImpl` now asks the quote service, not `GemSwapService`, for quotes; the
-  Core-internal wallet-scoped sync is `sync_wallet`). Still to convert: `GemPerpetualService`
-  (`sync_enablement`, `should_connect_perpetuals`, `connection`, `sync_positions`),
+  Core-internal wallet-scoped sync is `sync_wallet`), and `GemPerpetualService::sync_enablement`
+  / `should_connect_perpetuals` (the `Option<Wallet>` argument is gone). Still to convert:
   `GemNftService::sync` (collections screen) and `GemStakeService::sync` (stake screens, which
-  could take the chain and read the account from the session wallet). `GemBalanceService` and
-  `GemSwapService` stay explicit underneath: the app-start and observer flows call them for a
-  named wallet. Keep an explicit
+  could take the chain and read the account from the session wallet). `GemBalanceService`,
+  `GemSwapService` and the socket-driven `GemPerpetualService::{connection, sync_positions,
+  apply_socket_message}` stay explicit underneath: the app-start and observer flows call them
+  for the wallet whose socket they hold. Keep an explicit
   wallet only where a screen acts on a wallet that is not current (`GemWalletService` rename,
   delete, pin, `export_secret`; `GemAppStartService::setup_wallet`).
 

@@ -749,7 +749,10 @@ both apps; the operator and the view-model signer are gone.
 argument. Core already owns the current wallet in `GemWalletSessionService`, so
 `GemRecentActivityService` reads it there and fails with `NotFound` when there is none — no
 caller carries a wallet, and none returns silently. When an app reaches for the session to feed
-a Core call, hand the session to the service instead.
+a Core call, hand the session to the service instead. The same move removed the
+`Option<Wallet>` on `GemPerpetualService::sync_enablement`, and with it the iOS mock's copy of
+the connect rule: the lifecycle tests now set `connects` as a premise and check that the observer
+reacts, which is the only thing the app decides.
 
 **Two entry points that record the same thing are one method and a rule.** `add_recent_asset`
 took a type the app had chosen and `add_recent_search` derived it from the asset; the perpetual

@@ -66,7 +66,7 @@ class HyperliquidObserverService(
                 .distinctUntilChangedBy { it?.id?.id }
                 .collectLatest { wallet ->
                     if (wallet == null) return@collectLatest
-                    runCatchingCancellable { perpetualService.syncEnablement(null, GemMarketsRefreshTrigger.SCHEDULED) }
+                    runCatchingCancellable { perpetualService.syncEnablement(GemMarketsRefreshTrigger.SCHEDULED) }
                         .onFailure { Log.e(TAG, "perpetual markets sync failed", it) }
                 }
         }

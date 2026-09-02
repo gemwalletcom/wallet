@@ -83,6 +83,7 @@ public actor GatewayService: Sendable {
         preferences: GemPreferencesService,
         balance: GemBalanceService,
         walletPreferences: GemWalletPreferencesService,
+        session: GemWalletSessionService,
     ) -> GemPerpetualService {
         GemPerpetualService(
             gateway: gateway,
@@ -92,6 +93,7 @@ public actor GatewayService: Sendable {
             preferences: preferences,
             balance: balance,
             walletPreferences: walletPreferences,
+            session: session,
         )
     }
 

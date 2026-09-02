@@ -60,8 +60,9 @@ object PerpetualModule {
         preferencesService: GemPreferencesService,
         balanceService: GemBalanceService,
         walletPreferencesService: GemWalletPreferencesService,
+        walletSessionService: GemWalletSessionService,
     ): GemPerpetualService =
-        GemPerpetualService(gateway, priceService, perpetualStore, assetStore, preferencesService, balanceService, walletPreferencesService)
+        GemPerpetualService(gateway, priceService, perpetualStore, assetStore, preferencesService, balanceService, walletPreferencesService, walletSessionService)
 
     @Provides
     @Singleton

@@ -603,6 +603,7 @@ public extension GemBalanceServiceProtocol where Self == GemBalanceServiceMock {
 public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchecked Sendable {
     public var autocloseSummary: GemAutocloseSummary?
     public var isPerpetualEnabled = true
+    public var connects = true
     public private(set) var syncMarketsCount = 0
     public private(set) var clearMarketsCount = 0
     public var connectionFailures = 0
@@ -624,17 +625,17 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         .none
     }
 
-    public func syncEnablement(wallet: Gemstone.Wallet?, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
+    public func syncEnablement(trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
         if isPerpetualEnabled {
             _ = try await syncMarketsIfNeeded(chain: "hypercore", trigger: trigger)
         } else {
             try await clearMarkets()
         }
-        return shouldConnectPerpetuals(wallet: wallet)
+        return shouldConnectPerpetuals()
     }
 
-    public func shouldConnectPerpetuals(wallet: Gemstone.Wallet?) -> Bool {
-        isPerpetualEnabled && (wallet.flatMap { try? Primitives.Wallet($0).supportsPerpetuals } ?? false)
+    public func shouldConnectPerpetuals() -> Bool {
+        isPerpetualEnabled && connects
     }
 
     public func syncMarketsIfNeeded(chain: Gemstone.Chain, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {

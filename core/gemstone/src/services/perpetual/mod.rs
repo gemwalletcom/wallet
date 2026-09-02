@@ -31,6 +31,7 @@ use crate::services::assets::GemAssetStore;
 use crate::services::balance::GemBalanceService;
 use crate::services::price::GemPriceService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
+use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemPerpetualService {
@@ -41,6 +42,7 @@ pub struct GemPerpetualService {
     preferences: Arc<GemPreferencesService>,
     balance: Arc<GemBalanceService>,
     wallet_preferences: Arc<GemWalletPreferencesService>,
+    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
@@ -54,6 +56,7 @@ impl GemPerpetualService {
         preferences: Arc<GemPreferencesService>,
         balance: Arc<GemBalanceService>,
         wallet_preferences: Arc<GemWalletPreferencesService>,
+        session: Arc<GemWalletSessionService>,
     ) -> Self {
         Self {
             gateway,
@@ -63,6 +66,7 @@ impl GemPerpetualService {
             preferences,
             balance,
             wallet_preferences,
+            session,
         }
     }
 
@@ -103,19 +107,21 @@ impl GemPerpetualService {
         Ok(true)
     }
 
-    pub async fn sync_enablement(&self, wallet: Option<Wallet>, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
+    pub async fn sync_enablement(&self, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
         if !self.preferences.is_perpetual_enabled() {
             self.clear_markets().await?;
             return Ok(false);
         }
         self.sync_markets_if_needed(Chain::HyperCore, trigger).await?;
-        Ok(self.should_connect_perpetuals(wallet))
+        Ok(self.should_connect_perpetuals())
     }
 
-    pub fn should_connect_perpetuals(&self, wallet: Option<Wallet>) -> bool {
-        wallet
-            .as_ref()
-            .is_some_and(|wallet| rules::show_perpetuals(self.preferences.is_perpetual_enabled(), wallet))
+    pub fn should_connect_perpetuals(&self) -> bool {
+        self.session
+            .get_current_wallet()
+            .ok()
+            .flatten()
+            .is_some_and(|wallet| rules::show_perpetuals(self.preferences.is_perpetual_enabled(), &wallet))
     }
 
     pub async fn get_candlesticks(&self, chain: Chain, symbol: String, period: ChartPeriod) -> Result<Vec<GemChartCandleStick>, GemServiceError> {
