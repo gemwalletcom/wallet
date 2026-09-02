@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
@@ -67,16 +68,16 @@ class AddAssetViewModel @Inject constructor(
 
     private val chain = MutableStateFlow<Chain?>(null)
     val selectedChain = availableChains.combine(chain) { availableChains, chain ->
-        chain ?: service.defaultChain(availableChains.orEmpty().map { it.string })?.toChain() ?: Chain.Ethereum
+        chain ?: service.defaultChain(availableChains.orEmpty().map { it.string })?.requireChain()
     }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, Chain.Ethereum)
+    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val addressState = mutableStateOf("")
 
     val searchState = snapshotFlow { addressState.value }.combine(selectedChain) { address, chain -> chain to address }
         .flatMapLatest { (chain, address) ->
             flow {
-                if (address.isEmpty()) {
+                if (address.isEmpty() || chain == null) {
                     emit(TokenSearchState.Idle)
                     return@flow
                 }

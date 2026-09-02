@@ -52,7 +52,7 @@ fun AddAssetScreen(
             AddAssetScene(
                 searchState = searchState,
                 addressState = viewModel.addressState,
-                network = network.asset(),
+                network = network?.asset(),
                 token = token,
                 explorerLink = explorerLink,
                 buttonState = buttonState,

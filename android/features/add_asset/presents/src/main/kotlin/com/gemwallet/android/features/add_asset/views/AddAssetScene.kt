@@ -58,7 +58,7 @@ import uniffi.gemstone.DocsUrl
 internal fun AddAssetScene(
     searchState: TokenSearchState,
     addressState: MutableState<String>,
-    network: Asset,
+    network: Asset?,
     token: Asset?,
     explorerLink: BlockExplorerLink?,
     buttonState: ButtonState,
@@ -83,18 +83,20 @@ internal fun AddAssetScene(
         onClose = { onAction(AddAssetAction.Cancel) },
     ) {
         SubheaderItem(R.string.transfer_network)
-        ChainItem(
-            modifier = Modifier.height(64.dp),
-            title = network.name,
-            icon = network.chain,
-            onClick = if (canSelectChain) {
-                { onAction(AddAssetAction.SelectChain) }
-            } else null,
-            listPosition = ListPosition.Single,
-            trailing = if (canSelectChain) {
-                { DataBadgeChevron() }
-            } else null
-        )
+        if (network != null) {
+            ChainItem(
+                modifier = Modifier.height(64.dp),
+                title = network.name,
+                icon = network.chain,
+                onClick = if (canSelectChain) {
+                    { onAction(AddAssetAction.SelectChain) }
+                } else null,
+                listPosition = ListPosition.Single,
+                trailing = if (canSelectChain) {
+                    { DataBadgeChevron() }
+                } else null
+            )
+        }
         Column {
             AddressChainField(
                 label = stringResource(R.string.wallet_import_contract_address_field),
