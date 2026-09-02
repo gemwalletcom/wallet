@@ -322,6 +322,7 @@ public struct ViewModelFactory: Sendable {
             banners: bannerService,
             walletPreferences: walletPreferencesService,
             preferences: preferencesService,
+            session: walletSessionService,
         )
     }
 

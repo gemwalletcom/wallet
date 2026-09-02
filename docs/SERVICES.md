@@ -416,6 +416,21 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 ### 4. Core surface
 
+- **Current-wallet screen services read the session.** Every Android view model that calls a
+  wallet-scoped Core method starts with `session.value?.wallet ?: return@launch`, and every iOS one
+  threads `wallet.id.id`, because the method takes the wallet as an argument. Core owns the current
+  wallet (`GemWalletSessionService`), so a service whose screen only ever acts on the current
+  wallet takes the session and drops the parameter — `GemRecentActivityService::add_recent`,
+  `GemNotificationService::open` and `GemWalletHomeService` are converted (`current_wallet_id()`
+  / `current_wallet()` on the session are the Core-internal accessors that fail with `NotFound`).
+  Still to convert, in this order: `GemAssetDetailsService` (`refresh`,
+  `sync_transactions`, `update_balances`, `set_asset_pinned`, `set_assets_enabled`),
+  `GemTransactionsService::sync`, `GemAssetSelectionService` (`show_perpetuals`, `search`,
+  `search_assets`, `set_assets_enabled`, `set_asset_pinned`), `GemPerpetualService`
+  (`sync_enablement`, `should_connect_perpetuals`, `connection`, `sync_positions`). Keep an explicit
+  wallet only where a screen acts on a wallet that is not current (`GemWalletService` rename,
+  delete, pin, `export_secret`; `GemAppStartService::setup_wallet`).
+
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**

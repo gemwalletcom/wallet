@@ -90,28 +90,24 @@ class AssetsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     fun onRefresh() = viewModelScope.launch(Dispatchers.IO) {
-        val wallet = getSession().value?.wallet ?: return@launch
         isRefreshing.value = true
         try {
             val assetIds = assetGroups.value.let { it.pinned + it.unpinned }.map { it.id.toIdentifier() }
-            runCatchingCancellable { service.refresh(wallet.id.id, assetIds) }
-                .onFailure { Log.e(TAG, "assets refresh failed for ${wallet.id.id}", it) }
+            runCatchingCancellable { service.refresh(assetIds) }
+                .onFailure { Log.e(TAG, "assets refresh failed", it) }
         } finally {
             isRefreshing.value = false
         }
     }
 
     fun hideAsset(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
-        val wallet = getSession().value?.wallet ?: return@launch
-        wallet.getAccount(assetId.chain) ?: return@launch
-        runCatchingCancellable { service.setAssetsEnabled(wallet.id.id, listOf(assetId.toIdentifier()), false) }
+        runCatchingCancellable { service.setAssetsEnabled(listOf(assetId.toIdentifier()), false) }
             .onFailure { Log.e(TAG, "hiding ${assetId.toIdentifier()} failed", it) }
     }
 
     fun togglePin(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
-        val wallet = getSession().value?.wallet ?: return@launch
         val item = assetGroups.value.let { it.pinned + it.unpinned }.firstOrNull { it.id == assetId } ?: return@launch
-        runCatchingCancellable { service.setAssetPinned(wallet.id.id, assetId.toIdentifier(), !item.pinned) }
+        runCatchingCancellable { service.setAssetPinned(assetId.toIdentifier(), !item.pinned) }
             .onFailure { Log.e(TAG, "pinning ${assetId.toIdentifier()} failed", it) }
         emitToast(AssetToast.Pin(item.asset.name, !item.pinned))
     }

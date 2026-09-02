@@ -12,22 +12,25 @@ use crate::api::{GemApiError, GemDeviceApiClient};
 pub use store::GemNotificationStore;
 
 use crate::services::wallet_preferences::GemWalletPreferencesService;
+use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemNotificationService {
     api: Arc<GemDeviceApiClient>,
     store: Arc<dyn GemNotificationStore>,
     preferences: Arc<GemWalletPreferencesService>,
+    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
 impl GemNotificationService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemNotificationStore>, preferences: Arc<GemWalletPreferencesService>) -> Self {
-        Self { api, store, preferences }
+    pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemNotificationStore>, preferences: Arc<GemWalletPreferencesService>, session: Arc<GemWalletSessionService>) -> Self {
+        Self { api, store, preferences, session }
     }
 
-    pub async fn open(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+    pub async fn open(&self) -> Result<(), GemServiceError> {
+        let wallet_id = self.session.current_wallet_id()?;
         self.sync(wallet_id.clone()).await?;
         if self.store.has_unread_notifications(wallet_id).await? {
             self.api.client.mark_notifications_read().await.map_err(GemApiError::from)?;
@@ -51,7 +54,9 @@ mod tests {
     use super::*;
     use crate::gateway::EmptyPreferences;
     use crate::services::device::GemDeviceKeyService;
+    use crate::services::wallet::testkit::MemoryWalletStore;
     use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
+    use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
     use crate::testkit::TestAlienProvider;
     use testkit::MemoryNotificationStore;
 
@@ -60,10 +65,12 @@ mod tests {
         let api = Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
         let store = Arc::new(MemoryNotificationStore { unread, ..Default::default() });
         let preferences = Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default())));
-        GemNotificationService::new(api, store, preferences)
-            .open(WalletId::Multicoin("wallet".to_string()))
-            .await
-            .unwrap();
+        let session = Arc::new(GemWalletSessionService::new(
+            Arc::new(MemoryWalletSessionStore::default()),
+            Arc::new(MemoryWalletStore::default()),
+        ));
+        session.set_current_wallet_id(Some(WalletId::Multicoin("wallet".to_string()))).unwrap();
+        GemNotificationService::new(api, store, preferences, session).open().await.unwrap();
         provider.requested_paths()
     }
 

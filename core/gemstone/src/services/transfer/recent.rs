@@ -25,9 +25,7 @@ impl GemRecentActivityService {
         let Some(activity_type) = action.recent_activity_type(&asset) else {
             return Ok(());
         };
-        let wallet_id = self.session.get_current_wallet_id()?.ok_or_else(|| GemServiceError::NotFound {
-            msg: "no current wallet".to_string(),
-        })?;
+        let wallet_id = self.session.current_wallet_id()?;
         self.store
             .add(
                 GemRecentActivity {

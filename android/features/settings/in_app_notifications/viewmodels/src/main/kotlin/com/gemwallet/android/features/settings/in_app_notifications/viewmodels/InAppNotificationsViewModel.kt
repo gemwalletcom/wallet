@@ -34,9 +34,8 @@ class InAppNotificationsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val wallet = getCurrentWallet.getCurrentWallet() ?: return@launch
             try {
-                notificationService.open(wallet.id.id)
+                notificationService.open()
             } catch (err: Throwable) {
                 Log.e(TAG, "Open notifications error", err)
             }

@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.util.Log
 import com.gemwallet.android.application.asset_select.cases.GetChainAssets
-import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
@@ -34,7 +33,6 @@ import javax.inject.Inject
 @HiltViewModel
 class NetworkAssetsViewModel @Inject constructor(
     getChainAssets: GetChainAssets,
-    private val getSession: GetSession,
     private val service: GemWalletHomeServiceInterface,
     @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle,
@@ -77,15 +75,12 @@ class NetworkAssetsViewModel @Inject constructor(
     fun addToWallet(assetId: AssetId) = setEnabled(assetId, true)
 
     fun togglePin(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
-        val wallet = getSession().value?.wallet ?: return@launch
-        runCatchingCancellable { service.setAssetPinned(wallet.id.id, assetId.toIdentifier(), pinned.value.none { it.id == assetId }) }
+        runCatchingCancellable { service.setAssetPinned(assetId.toIdentifier(), pinned.value.none { it.id == assetId }) }
             .onFailure { Log.e(TAG, "pinning ${assetId.toIdentifier()} failed", it) }
     }
 
     private fun setEnabled(assetId: AssetId, enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {
-        val wallet = getSession().value?.wallet ?: return@launch
-        wallet.getAccount(assetId.chain) ?: return@launch
-        runCatchingCancellable { service.setAssetsEnabled(wallet.id.id, listOf(assetId.toIdentifier()), enabled) }
+        runCatchingCancellable { service.setAssetsEnabled(listOf(assetId.toIdentifier()), enabled) }
             .onFailure { Log.e(TAG, "setting ${assetId.toIdentifier()} enabled=$enabled failed", it) }
     }
 

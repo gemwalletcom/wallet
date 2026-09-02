@@ -774,23 +774,23 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         Primitives.Currency.usd.rawValue
     }
 
-    public func updateBalances(walletId _: Gemstone.WalletId, assetIds _: [Gemstone.AssetId]) async throws {}
+    public func updateBalances(assetIds _: [Gemstone.AssetId]) async throws {}
 
-    public func includesPerpetualCollateral(walletId _: Gemstone.WalletId) -> Bool {
+    public func includesPerpetualCollateral() -> Bool {
         false
     }
 
-    public func showsInitialLoading(walletId _: Gemstone.WalletId) throws -> Bool {
+    public func showsInitialLoading() throws -> Bool {
         showsLoading
     }
 
-    public func refresh(walletId _: Gemstone.WalletId, assetIds _: [Gemstone.AssetId]) async throws {}
+    public func refresh(assetIds _: [Gemstone.AssetId]) async throws {}
 
-    public func setAssetPinned(walletId _: Gemstone.WalletId, assetId: Gemstone.AssetId, pinned isPinned: Bool) async throws {
+    public func setAssetPinned(assetId: Gemstone.AssetId, pinned isPinned: Bool) async throws {
         pinned.append((assetId, isPinned))
     }
 
-    public func setAssetsEnabled(walletId _: Gemstone.WalletId, assetIds: [Gemstone.AssetId], enabled isEnabled: Bool) async throws {
+    public func setAssetsEnabled(assetIds: [Gemstone.AssetId], enabled isEnabled: Bool) async throws {
         enabled.append((assetIds, isEnabled))
     }
 

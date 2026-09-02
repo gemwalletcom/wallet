@@ -66,7 +66,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
                 walletId: wallet.id,
                 type: .wallet,
                 perpetualAssetId: Chain.hyperCore.defaultAsset(type: .perpetual).id,
-                includesPerpetualCollateral: service.includesPerpetualCollateral(walletId: wallet.id.id),
+                includesPerpetualCollateral: service.includesPerpetualCollateral(),
             ),
             initialValue: [],
         )
@@ -279,14 +279,14 @@ extension WalletSceneViewModel {
 
     private func updateWallet(for wallet: Wallet) async {
         do {
-            try await service.refresh(wallet: wallet, assetIds: assets.map(\.asset.id))
+            try await service.refresh(assetIds: assets.map(\.asset.id))
         } catch {
             debugLog("WalletSceneViewModel refresh error: \(error)")
         }
     }
 
     private func shouldShowInitialLoadingAssets(for wallet: Wallet) -> Bool {
-        (try? service.showsInitialLoading(walletId: wallet.id.id)) ?? false
+        (try? service.showsInitialLoading()) ?? false
     }
 
     private func handleBanner(action: BannerAction) async throws {
@@ -294,10 +294,10 @@ extension WalletSceneViewModel {
     }
 
     func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws {
-        try await service.setAssetPinned(wallet: wallet, assetId: assetId, pinned: pinned)
+        try await service.setAssetPinned(assetId: assetId, pinned: pinned)
     }
 
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
-        try await service.setAssetsEnabled(wallet: wallet, assetIds: assetIds, enabled: enabled)
+        try await service.setAssetsEnabled(assetIds: assetIds, enabled: enabled)
     }
 }

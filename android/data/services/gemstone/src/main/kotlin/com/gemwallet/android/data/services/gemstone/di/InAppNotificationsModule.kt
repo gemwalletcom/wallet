@@ -11,6 +11,7 @@ import uniffi.gemstone.GemNotificationService
 import uniffi.gemstone.GemNotificationStore
 import javax.inject.Singleton
 import uniffi.gemstone.GemWalletPreferencesService
+import uniffi.gemstone.GemWalletSessionService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -32,5 +33,6 @@ object InAppNotificationsModule {
         apiClient: GemDeviceApiClient,
         store: GemNotificationStore,
         walletPreferencesService: GemWalletPreferencesService,
-    ): GemNotificationService = GemNotificationService(apiClient, store, walletPreferencesService)
+        walletSessionService: GemWalletSessionService,
+    ): GemNotificationService = GemNotificationService(apiClient, store, walletPreferencesService, walletSessionService)
 }

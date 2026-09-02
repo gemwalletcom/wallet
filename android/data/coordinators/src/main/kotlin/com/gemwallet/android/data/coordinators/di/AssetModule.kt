@@ -44,6 +44,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import uniffi.gemstone.GemAssetDiscoveryService
 import uniffi.gemstone.GemWalletHomeService
+import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemNftService
@@ -183,12 +184,14 @@ object AssetModule {
         bannerService: GemBannerService,
         walletPreferencesService: GemWalletPreferencesService,
         preferencesService: GemPreferencesService,
+        walletSessionService: GemWalletSessionService,
     ): GemWalletHomeServiceInterface = GemWalletHomeService(
         balanceService,
         discoveryService,
         bannerService,
         walletPreferencesService,
         preferencesService,
+        walletSessionService,
     )
 
     @Provides

@@ -104,7 +104,7 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
 
     func updateBalances() async {
         do {
-            try await service.updateBalances(wallet: wallet, assetIds: assetIds)
+            try await service.updateBalances(assetIds: assetIds)
         } catch {
             debugLog("update balance error: \(error)")
         }
@@ -117,10 +117,10 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
 
 extension NetworkAssetsSceneViewModel {
     func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws {
-        try await service.setAssetPinned(wallet: wallet, assetId: assetId, pinned: pinned)
+        try await service.setAssetPinned(assetId: assetId, pinned: pinned)
     }
 
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
-        try await service.setAssetsEnabled(wallet: wallet, assetIds: assetIds, enabled: enabled)
+        try await service.setAssetsEnabled(assetIds: assetIds, enabled: enabled)
     }
 }

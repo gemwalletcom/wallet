@@ -53,7 +53,7 @@ public final class InAppNotificationsViewModel {
 public extension InAppNotificationsViewModel {
     func load() async {
         do {
-            try await service.open(walletId: wallet.id.id)
+            try await service.open()
         } catch {
             debugLog("load notifications error: \(error)")
         }

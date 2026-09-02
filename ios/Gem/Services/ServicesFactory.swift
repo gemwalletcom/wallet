@@ -308,6 +308,7 @@ struct ServicesFactory {
             api: deviceApiClient,
             store: gemstoneNotificationStore,
             preferences: walletPreferencesService,
+            session: walletSessionService,
         )
 
         let contactService = Gemstone.GemContactService(

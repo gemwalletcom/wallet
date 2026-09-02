@@ -6,20 +6,20 @@ import protocol Gemstone.GemWalletHomeServiceProtocol
 import Primitives
 
 public extension GemWalletHomeServiceProtocol {
-    func refresh(wallet: Wallet, assetIds: [AssetId]) async throws {
-        try await refresh(walletId: wallet.id.id, assetIds: assetIds.ids)
+    func refresh(assetIds: [AssetId]) async throws {
+        try await refresh(assetIds: assetIds.ids)
     }
 
-    func updateBalances(wallet: Wallet, assetIds: [AssetId]) async throws {
-        try await updateBalances(walletId: wallet.id.id, assetIds: assetIds.ids)
+    func updateBalances(assetIds: [AssetId]) async throws {
+        try await updateBalances(assetIds: assetIds.ids)
     }
 
-    func setAssetsEnabled(wallet: Wallet, assetIds: [AssetId], enabled: Bool) async throws {
-        try await setAssetsEnabled(walletId: wallet.id.id, assetIds: assetIds.ids, enabled: enabled)
+    func setAssetsEnabled(assetIds: [AssetId], enabled: Bool) async throws {
+        try await setAssetsEnabled(assetIds: assetIds.ids, enabled: enabled)
     }
 
-    func setAssetPinned(wallet: Wallet, assetId: AssetId, pinned: Bool) async throws {
-        try await setAssetPinned(walletId: wallet.id.id, assetId: assetId.identifier, pinned: pinned)
+    func setAssetPinned(assetId: AssetId, pinned: Bool) async throws {
+        try await setAssetPinned(assetId: assetId.identifier, pinned: pinned)
     }
 
     func content(for banner: Banner) -> GemBannerContent {

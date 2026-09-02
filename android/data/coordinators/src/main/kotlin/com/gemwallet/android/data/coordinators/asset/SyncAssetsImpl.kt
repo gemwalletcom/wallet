@@ -20,7 +20,7 @@ class SyncAssetsImpl(
     override suspend fun invoke() = withContext(Dispatchers.IO) {
         val wallet = getSession().value?.wallet ?: return@withContext
         val assetIds = getWalletAssets(wallet.id).firstOrNull().orEmpty().map { it.asset.id.toIdentifier() }
-        runCatchingCancellable { homeService.refresh(wallet.id.id, assetIds) }
+        runCatchingCancellable { homeService.refresh(assetIds) }
             .onFailure { Log.e(TAG, "assets refresh failed for ${wallet.id.id}", it) }
         Unit
     }
