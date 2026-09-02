@@ -15,7 +15,6 @@ import com.gemwallet.android.features.asset_select.presents.views.getAssetBadge
 import com.gemwallet.android.features.asset_select.presents.views.searchState
 import com.gemwallet.android.features.assets.viewmodels.AssetsResultsViewModel
 import com.gemwallet.android.features.perpetual.views.components.PerpetualItem
-import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.list_item.PinnedAssetsHeaderItem
@@ -46,11 +45,11 @@ fun AssetsResultsScreen(
     AssetToastEffect(viewModel.toastEvents, snackbar)
 
     val onAssetClick: (AssetId) -> Unit = {
-        viewModel.updateRecent(it, RecentActivityType.Search)
+        viewModel.updateRecentSearch(it)
         onAction(WalletSearchAction.OpenAsset(it))
     }
     val onPerpetualClick: (AssetId) -> Unit = {
-        viewModel.onOpenPerpetual(it)
+        viewModel.updateRecentSearch(it)
         onAction(WalletSearchAction.OpenPerpetual(it))
     }
     val contextActions = remember(viewModel) {

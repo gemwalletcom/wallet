@@ -22,7 +22,6 @@ import com.gemwallet.android.features.asset_select.presents.views.getAssetBadge
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.gemwallet.android.features.assets.viewmodels.WalletSearchViewModel
 import com.gemwallet.android.features.perpetual.views.components.PerpetualItem
-import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.image.AsyncImage
@@ -82,11 +81,11 @@ fun WalletSearchScreen(
                 }
             )
             is WalletSearchAction.OpenAsset -> {
-                viewModel.updateRecent(action.assetId, RecentActivityType.Search)
+                viewModel.updateRecentSearch(action.assetId)
                 onAction(action)
             }
             is WalletSearchAction.OpenPerpetual -> {
-                viewModel.onOpenPerpetual(action.assetId)
+                viewModel.updateRecentSearch(action.assetId)
                 onAction(action)
             }
             WalletSearchAction.AddAsset,

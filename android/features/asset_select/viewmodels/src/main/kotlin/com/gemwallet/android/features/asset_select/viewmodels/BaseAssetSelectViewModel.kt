@@ -264,6 +264,15 @@ open class BaseAssetSelectViewModel(
             .onFailure { Log.e(TAG, "recording recent ${assetId.toIdentifier()} failed", it) }
     }
 
+    fun updateRecentSearch(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
+        val wallet = session.value?.wallet ?: return@launch
+        val asset = searchedAsset(assetId) ?: return@launch
+        runCatchingCancellable { service.addRecentSearch(asset.toGem(), wallet.id.id) }
+            .onFailure { Log.e(TAG, "recording recent ${assetId.toIdentifier()} failed", it) }
+    }
+
+    protected open fun searchedAsset(assetId: AssetId): Asset? = assets.value.firstOrNull { it.asset.id == assetId }?.asset
+
     open val showRecents: Boolean get() = true
 
     open val action: GemAssetAction? get() = null

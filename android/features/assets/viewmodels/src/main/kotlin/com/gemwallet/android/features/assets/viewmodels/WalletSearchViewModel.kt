@@ -19,9 +19,10 @@ import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectVie
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.gemwallet.android.model.RecentAssetsRequest
-import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.NftItemUIModel
+import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.RecentActivityType
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetList
 import com.wallet.core.primitives.NFTData
@@ -176,7 +177,6 @@ class WalletSearchViewModel @Inject constructor(
         emitToast(AssetToast.Pin(item.name, !item.isPinned))
     }
 
-    fun onOpenPerpetual(assetId: AssetId) {
-        updateRecent(assetId, RecentActivityType.Perpetual)
-    }
+    override fun searchedAsset(assetId: AssetId): Asset? =
+        super.searchedAsset(assetId) ?: visiblePerpetuals.value.firstOrNull { it.asset.id == assetId }?.asset
 }

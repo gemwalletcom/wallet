@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import typealias Gemstone.Asset
 import typealias Gemstone.AssetBasic
 import typealias Gemstone.AssetId
 import typealias Gemstone.Currency
@@ -63,6 +64,8 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
     }
 
     public func addRecentAsset(activityType: RecentActivityType, assetId: AssetId, walletId: WalletId) async throws {}
+
+    public func addRecentSearch(asset: Asset, walletId: WalletId) async throws {}
 
     public func setPriceAlert(assetId: AssetId, enabled: Bool) async throws {}
 }

@@ -25,10 +25,10 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectS
 import com.gemwallet.android.features.asset_select.viewmodels.models.ListSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
-import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -134,9 +134,8 @@ class AssetsResultsViewModel @Inject constructor(
         emitToast(AssetToast.Pin(item.name, !item.isPinned))
     }
 
-    fun onOpenPerpetual(assetId: AssetId) {
-        updateRecent(assetId, RecentActivityType.Perpetual)
-    }
+    override fun searchedAsset(assetId: AssetId): Asset? =
+        super.searchedAsset(assetId) ?: previewPerpetuals.value.firstOrNull { it.asset.id == assetId }?.asset
 }
 
 private fun selectSearchOf(
