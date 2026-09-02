@@ -59,6 +59,8 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         assetPair ?? GemSwapPairSuggestion(payAssetId: assetId, receiveAssetId: nil)
     }
 
+    public func explorerName(chain: Chain) -> String { "Explorer" }
+
     public func addressUrl(chain: Chain, address: String) -> GemBlockExplorerLink {
         GemBlockExplorerLink(name: "Explorer", link: "https://gemwallet.com/\(address)")
     }
