@@ -1,7 +1,5 @@
 package com.gemwallet.android.data.services.nativeprovider
 
-import com.gemwallet.android.cases.nodes.GetNodeUrlCase
-import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
@@ -11,9 +9,12 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import io.mockk.every
+import io.mockk.mockk
 import uniffi.gemstone.AlienException
 import uniffi.gemstone.AlienHttpMethod
 import uniffi.gemstone.AlienTarget
+import uniffi.gemstone.GemNodeServiceInterface
 import java.io.EOFException
 import java.io.IOException
 import java.net.UnknownHostException
@@ -139,7 +140,7 @@ class NativeProviderTest {
     }
 
     @Test
-    fun getEndpointUsesNodeUrlCase() {
+    fun getEndpointUsesTheNodeService() {
         val provider = nativeProvider()
 
         assertEquals("https://gemnodes.com/bitcoin", provider.getEndpoint("bitcoin"))
@@ -149,10 +150,8 @@ class NativeProviderTest {
         httpClient: OkHttpClient = OkHttpClient(),
     ): NativeProvider {
         return NativeProvider(
-            getNodeUrlCase = object : GetNodeUrlCase {
-                override fun getNodeUrl(chain: Chain): String = "https://gemnodes.com/${chain.string}"
-
-                override fun getWebSocketNodeUrl(chain: Chain): String = "wss://gemnodes.com/${chain.string}/ws"
+            nodeService = mockk<GemNodeServiceInterface> {
+                every { nodeUrl(any()) } answers { "https://gemnodes.com/${firstArg<String>()}" }
             },
             httpClient = httpClient,
         )

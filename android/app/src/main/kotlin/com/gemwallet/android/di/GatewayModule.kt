@@ -2,7 +2,6 @@ package com.gemwallet.android.di
 
 import android.content.Context
 import com.gemwallet.android.Constants
-import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.password.TinkGemPreferences
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePreferencesStore
 import com.gemwallet.android.math.fromHex
@@ -70,6 +69,7 @@ import uniffi.gemstone.GemFileStore
 import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemNodeServiceInterface
 import uniffi.gemstone.GemDeviceKeyService
 
 @InstallIn(SingletonComponent::class)
@@ -84,11 +84,11 @@ object GatewayModule {
     @Singleton
     @Provides
     fun provideAlienProvider(
-        getNodeUrlCase: GetNodeUrlCase,
+        nodeService: GemNodeServiceInterface,
         okHttpClient: OkHttpClient,
     ): AlienProvider {
         return NativeProvider(
-            getNodeUrlCase = getNodeUrlCase,
+            nodeService = nodeService,
             httpClient = okHttpClient,
         )
     }
@@ -257,12 +257,12 @@ object GatewayModule {
     @Singleton
     fun provideGemScanService(
         okHttpClient: OkHttpClient,
-        getNodeUrlCase: GetNodeUrlCase,
+        nodeService: GemNodeServiceInterface,
         deviceKeyService: GemDeviceKeyService,
     ): GemScanService = GemScanService(
         GemstoneDeviceApiClient(
             NativeProvider(
-                getNodeUrlCase = getNodeUrlCase,
+                nodeService = nodeService,
                 httpClient = okHttpClient.newBuilder()
                     .callTimeout(Config().getScanConfig().timeoutSeconds.toLong(), TimeUnit.SECONDS)
                     .build(),
@@ -282,14 +282,14 @@ object GatewayModule {
     @Provides
     @Singleton
     fun provideGemServiceStatus(
-        getNodeUrlCase: GetNodeUrlCase,
+        nodeService: GemNodeServiceInterface,
         okHttpClient: OkHttpClient,
     ): GemServiceStatus {
         val httpClient = okHttpClient.newBuilder()
             .callTimeout(serviceStatusTimeoutSeconds().toLong(), TimeUnit.SECONDS)
             .build()
         val provider = NativeProvider(
-            getNodeUrlCase = getNodeUrlCase,
+            nodeService = nodeService,
             httpClient = httpClient,
         )
         return GemServiceStatus(provider)
