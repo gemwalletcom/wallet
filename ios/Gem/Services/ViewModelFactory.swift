@@ -30,6 +30,7 @@ import class Gemstone.GemNotificationsService
 import class Gemstone.GemNftService
 import class Gemstone.GemNodeService
 import class Gemstone.GemOnboardingService
+import class Gemstone.GemFiatQuoteService
 import class Gemstone.GemPaymentService
 import class Gemstone.GemPerpetualDetailsService
 import class Gemstone.GemReceiveService
@@ -505,10 +506,9 @@ public struct ViewModelFactory: Sendable {
         amount: Int? = nil,
     ) -> FiatSceneViewModel {
         FiatSceneViewModel(
-            fiatService: fiatService,
+            service: GemFiatQuoteService(fiat: fiatService, balances: balanceService),
             assetAddress: assetAddress,
             wallet: wallet,
-            balanceService: balanceService,
             type: type,
             amount: amount,
         )

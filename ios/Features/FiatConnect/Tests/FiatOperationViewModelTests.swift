@@ -2,38 +2,26 @@
 
 import BigInt
 @testable import FiatConnect
+import protocol Gemstone.GemFiatQuoteServiceProtocol
+import GemstonePrimitivesTestKit
 import Formatters
 import Foundation
 import Primitives
 import PrimitivesTestKit
 import Testing
-import Validators
 
 @MainActor
 final class FiatOperationViewModelTests {
-    private struct MockFiatOperation: FiatOperation {
-        var quotes: [FiatQuote] = []
-        var defaultAmount: Int = 50
-        var emptyAmountTitle: String = "Mock Title"
-
-        func load(amount _: Double) async throws -> [FiatQuote] {
-            quotes
-        }
-
-        func validators(availableBalance _: BigInt, selectedQuote _: FiatQuote?) -> [any TextValidator] {
-            []
-        }
-    }
-
     private static func mock(
-        operation: FiatOperation = MockFiatOperation(),
+        service: any GemFiatQuoteServiceProtocol = GemFiatQuoteServiceMock(),
         asset: Asset = .mock(),
-        currencyFormatter: CurrencyFormatter = .init(locale: .US, currencyCode: Currency.usd.rawValue),
     ) -> FiatOperationViewModel {
         FiatOperationViewModel(
-            operation: operation,
+            service: service,
+            type: .buy,
             asset: asset,
-            currencyFormatter: currencyFormatter,
+            walletId: .mock(),
+            currencyFormatter: CurrencyFormatter(locale: .US, currencyCode: Currency.usd.rawValue),
         )
     }
 
@@ -121,7 +109,7 @@ final class FiatOperationViewModelTests {
 
     @Test
     func fetchSetsNoDataWhenValidationFailsWithNoMatchingQuotes() {
-        let model = FiatOperationViewModelTests.mock(operation: MockFiatOperationWithValidator())
+        let model = FiatOperationViewModelTests.mock(service: GemFiatQuoteServiceMock(check: { _ in .aboveMaximum(maximum: 10000) }))
         model.inputValidationModel.text = "20000"
         model.quotesState = .loading
 
@@ -132,7 +120,7 @@ final class FiatOperationViewModelTests {
 
     @Test
     func fetchPreservesQuotesWhenValidationInvalidForSameAmount() {
-        let model = FiatOperationViewModelTests.mock(operation: MockFiatOperationWithValidator())
+        let model = FiatOperationViewModelTests.mock(service: GemFiatQuoteServiceMock(check: { _ in .aboveMaximum(maximum: 10000) }))
         let quote = FiatQuote.mock()
         let quotes = FiatQuotes(amount: 20000.0, quotes: [quote])
         model.quotesState = .data(quotes)
@@ -147,7 +135,7 @@ final class FiatOperationViewModelTests {
 
     @Test
     func fetchSetsNoDataWhenValidationFailsForDifferentAmount() {
-        let model = FiatOperationViewModelTests.mock(operation: MockFiatOperationWithValidator())
+        let model = FiatOperationViewModelTests.mock(service: GemFiatQuoteServiceMock(check: { _ in .aboveMaximum(maximum: 10000) }))
         let quote = FiatQuote.mock()
         let quotes = FiatQuotes(amount: 100.0, quotes: [quote])
         model.quotesState = .data(quotes)
@@ -157,23 +145,5 @@ final class FiatOperationViewModelTests {
         model.load()
 
         #expect(model.quotesState.isNoData == true)
-    }
-
-    private struct MockFiatOperationWithValidator: FiatOperation {
-        var defaultAmount: Int = 50
-        var emptyAmountTitle: String = "Mock Title"
-
-        func load(amount _: Double) async throws -> [FiatQuote] {
-            []
-        }
-
-        func validators(availableBalance _: BigInt, selectedQuote _: FiatQuote?) -> [any TextValidator] {
-            let rangeValidator = FiatRangeValidator(
-                range: BigInt(25) ... BigInt(10000),
-                minimumValueText: "$25",
-                maximumValueText: "$10,000",
-            )
-            return [.assetAmount(decimals: 0, validators: [rangeValidator])]
-        }
     }
 }

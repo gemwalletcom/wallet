@@ -2,6 +2,8 @@
 
 import BigInt
 import Components
+import protocol Gemstone.GemFiatQuoteServiceProtocol
+import GemstonePrimitives
 import Formatters
 import Foundation
 import Localization
@@ -13,8 +15,10 @@ import Validators
 @MainActor
 @Observable
 final class FiatOperationViewModel {
-    private let operation: FiatOperation
+    private let service: any GemFiatQuoteServiceProtocol
+    private let type: FiatQuoteType
     private let asset: Asset
+    private let walletId: WalletId
     private let currencyFormatter: CurrencyFormatter
 
     var quotesState: StateViewType<FiatQuotes> = .loading
@@ -29,14 +33,18 @@ final class FiatOperationViewModel {
     var availableBalance: BigInt = 0
 
     init(
-        operation: FiatOperation,
+        service: any GemFiatQuoteServiceProtocol,
+        type: FiatQuoteType,
         asset: Asset,
+        walletId: WalletId,
         currencyFormatter: CurrencyFormatter,
     ) {
-        self.operation = operation
+        self.service = service
+        self.type = type
         self.asset = asset
+        self.walletId = walletId
         self.currencyFormatter = currencyFormatter
-        amount = String(operation.defaultAmount)
+        amount = String(service.defaultAmount(quoteType: type.json()))
         inputValidationModel = InputValidationViewModel(
             mode: .onDemand,
             validators: [],
@@ -56,7 +64,11 @@ final class FiatOperationViewModel {
     }
 
     var emptyTitle: String {
-        inputValidationModel.text.isEmptyOrZero ? operation.emptyAmountTitle : Localized.Buy.noResults
+        guard inputValidationModel.text.isEmptyOrZero else { return Localized.Buy.noResults }
+        return switch type {
+        case .buy: Localized.Input.enterAmountTo(Localized.Wallet.buy)
+        case .sell: Localized.Input.enterAmountTo(Localized.Wallet.sell)
+        }
     }
 
     func load() {
@@ -85,7 +97,7 @@ final class FiatOperationViewModel {
             selectedQuote = nil
 
             do {
-                let quotes = try await operation.load(amount: amount)
+                let quotes = try await service.quotes(walletId: walletId, type: type, asset: asset, amount: amount)
                 try Task.checkCancellation()
 
                 if quotes.isNotEmpty {
@@ -109,12 +121,15 @@ final class FiatOperationViewModel {
     }
 
     func updateValidators() {
-        inputValidationModel.update(
-            validators: operation.validators(
-                availableBalance: availableBalance,
-                selectedQuote: selectedQuote,
-            ),
+        let validator = FiatAmountValidator(
+            service: service,
+            type: type,
+            asset: asset,
+            quote: selectedQuote,
+            availableBalance: availableBalance,
+            currencyFormatter: currencyFormatter,
         )
+        inputValidationModel.update(validators: [.assetAmount(decimals: 0, validators: [validator])])
     }
 
     func onAssetDataChange(_ assetData: AssetData) {

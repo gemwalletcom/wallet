@@ -1,3 +1,6 @@
+pub mod model;
+pub mod quote;
+pub mod rules;
 pub mod store;
 
 use crate::services::error::GemServiceError;
@@ -9,6 +12,8 @@ use primitives::{AssetId, FiatQuote, FiatQuoteType, FiatQuoteUrl, WalletId};
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::assets::GemAssetsService;
 
+pub use model::GemFiatAmountCheck;
+pub use quote::GemFiatQuoteService;
 pub use store::GemFiatStore;
 
 const QUOTE_DEBOUNCE_MILLISECONDS: u64 = 250;

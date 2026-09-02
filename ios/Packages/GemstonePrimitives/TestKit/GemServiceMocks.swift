@@ -314,27 +314,44 @@ public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Se
     public func handle(event _: Gemstone.StreamEvent, currency _: Gemstone.Currency) async throws {}
 }
 
-public final class GemFiatServiceMock: GemFiatServiceProtocol, @unchecked Sendable {
+public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchecked Sendable {
     private let quotes: [Primitives.FiatQuote]
+    private let check: @Sendable (Primitives.FiatQuote?) -> GemFiatAmountCheck
 
-    public init(quotes: [Primitives.FiatQuote] = []) {
+    public init(quotes: [Primitives.FiatQuote] = [], check: @escaping @Sendable (Primitives.FiatQuote?) -> GemFiatAmountCheck = { _ in .valid }) {
         self.quotes = quotes
+        self.check = check
+    }
+
+    public func currency() -> Gemstone.Currency { Primitives.Currency.usd.rawValue }
+
+    public func config() -> Gemstone.FiatConfig {
+        Gemstone.FiatConfig(defaultBuyAmount: 50, defaultSellAmount: 100, minimumAmount: 5, maximumAmount: 10000, randomMaxAmount: 1000, suggestedAmounts: [100, 250], insufficientNetworkFeeBuyAmount: 10)
+    }
+
+    public func defaultAmount(quoteType: Gemstone.FiatQuoteType) -> UInt32 {
+        (try? Primitives.FiatQuoteType(quoteType)) == .sell ? 100 : 50
+    }
+
+    public func randomAmount() -> UInt32 { 50 }
+
+    public func amountCheck(quoteType _: Gemstone.FiatQuoteType, amount _: Double, quote: Gemstone.FiatQuote?, available _: GemBigUint) -> GemFiatAmountCheck {
+        check(quote.flatMap { try? Primitives.FiatQuote($0) })
     }
 
     public func quoteDebounceMilliseconds() -> UInt64 { 250 }
 
     public func quoteRefreshIntervalMilliseconds() -> UInt64 { 300_000 }
 
-    public func syncTransactions(walletId _: String) async throws {}
+    public func syncTransactions(walletId _: Gemstone.WalletId) async throws {}
 
-    public func getQuotes(walletId _: String, quoteType _: Gemstone.FiatQuoteType, assetId _: String, amount _: Double, currency _: String) async throws -> [Gemstone.FiatQuote] {
+    public func quotes(walletId _: Gemstone.WalletId, quoteType _: Gemstone.FiatQuoteType, assetId _: Gemstone.AssetId, amount _: Double) async throws -> [Gemstone.FiatQuote] {
         quotes.map { $0.json() }
     }
 
-    public func getQuoteUrl(walletId _: String, quoteId _: String) async throws -> Gemstone.FiatQuoteUrl {
+    public func quoteUrl(walletId _: Gemstone.WalletId, assetId _: Gemstone.AssetId, quoteId _: String) async throws -> Gemstone.FiatQuoteUrl {
         throw AnyError("not stubbed")
     }
-
 }
 
 public extension GemPaymentService {
