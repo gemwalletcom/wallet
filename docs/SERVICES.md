@@ -438,7 +438,7 @@ having the parent vend the child view model.
 
 | view model | services | non-private |
 |---|---|---|
-| `Gem/ViewModels/RootSceneViewModel.swift` | 5 | 1 |
+| `Gem/ViewModels/RootSceneViewModel.swift` | 4 | 0 |
 | `Settings/Settings/ViewModels/DeveloperViewModel.swift` | 5 | 0 |
 
 

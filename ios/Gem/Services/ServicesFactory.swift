@@ -416,7 +416,6 @@ struct ServicesFactory {
             priceService: priceService,
             stakeService: stakeService,
             transactionStateService: transactionStateService,
-            onboardingService: onboardingService,
             walletPreferencesService: walletPreferencesService,
             preferencesService: preferencesService,
             deviceKeyService: deviceKeyService,

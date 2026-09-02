@@ -32,7 +32,7 @@ struct GemApp: App {
                     appLifecycleService: resolver.services.appLifecycleService,
                     navigationHandler: resolver.services.navigationHandler,
                     lockWindowManager: LockWindowManager(lockModel: resolver.services.viewModelFactory.lockScene()),
-                    onboardingService: resolver.services.onboardingService,
+                    viewModelFactory: resolver.services.viewModelFactory,
                     walletSessionService: resolver.services.walletSessionService,
                     appUpdateService: resolver.services.appUpdateService,
                     rateService: resolver.services.rateService,
