@@ -62,11 +62,11 @@ data class SwapDetailsUIModelInput(
     val etaInSeconds: UInt?,
     val isProviderSelectable: Boolean,
     val priceImpact: SwapPriceImpact? = null,
+    val minReceiveValue: BigInteger = BigInteger.ZERO,
+    val etaMinutes: UInt? = null,
 )
 
 object SwapDetailsUIModelFactory {
-    private const val BPS_SCALE = 10_000
-
     private val rateFormatter = AssetRateFormatter()
 
     fun create(input: SwapDetailsUIModelInput): SwapDetailsUIModel? {
@@ -89,7 +89,7 @@ object SwapDetailsUIModelFactory {
         }
 
         val toAmount = Crypto(input.toValue)
-        val minReceiveAtomic = minimumReceiveAtomic(toAmount.atomicValue, input.slippageBps)
+        val minReceiveAtomic = input.minReceiveValue
 
         return SwapDetailsUIModel(
             provider = input.provider,
@@ -101,20 +101,10 @@ object SwapDetailsUIModelFactory {
             slippageText = slippagePercent.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess),
             slippageBps = input.slippageBps,
             selectedSlippage = input.selectedSlippage,
-            estimatedTime = input.etaInSeconds?.formatSwapEta(),
+            estimatedTime = input.etaMinutes?.let { "≈ $it min" },
             isProviderSelectable = input.isProviderSelectable,
         )
     }
 
-    internal fun minimumReceiveAtomic(atomicValue: BigInteger, slippageBps: UInt): BigInteger =
-        atomicValue * (BPS_SCALE - slippageBps.toInt()).toBigInteger() / BPS_SCALE.toBigInteger()
 }
 
-private fun UInt.formatSwapEta(): String? {
-    if (this <= 60u) {
-        return null
-    }
-
-    val minutes = (this / 60u).toInt().coerceAtLeast(1)
-    return "≈ $minutes min"
-}

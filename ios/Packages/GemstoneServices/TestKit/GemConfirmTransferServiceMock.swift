@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 public import typealias Gemstone.Currency
+public import typealias Gemstone.GemBigUint
 public import struct Gemstone.GemSwapValue
 public import typealias Gemstone.SwapPriceImpact
 public import enum Gemstone.GemKeystoreAuthentication
@@ -57,6 +58,14 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
         self.transactionState = transactionState
         self.signer = signer
         self.authenticationValue = authentication
+    }
+
+    public func minReceiveValue(value: GemBigUint, slippageBps: UInt32) -> GemBigUint {
+        swapQuoteService.minReceiveValue(value: value, slippageBps: slippageBps)
+    }
+
+    public func etaMinutes(seconds: UInt32) -> UInt32? {
+        swapQuoteService.etaMinutes(seconds: seconds)
     }
 
     public func swapPriceImpact(pay: GemSwapValue, receive: GemSwapValue) -> SwapPriceImpact? {

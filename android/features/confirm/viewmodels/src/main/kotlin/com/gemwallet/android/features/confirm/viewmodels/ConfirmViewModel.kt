@@ -430,6 +430,10 @@ class ConfirmViewModel @Inject constructor(
                     fromAssetInfo.swapValue(transfer.value),
                     toAssetInfo.swapValue(swapData.quote.toValue),
                 )?.decodeJson(),
+                minReceiveValue = confirmService
+                    .minReceiveValue(swapData.quote.toValue, swapData.quote.slippageBps)
+                    .toBigInteger(),
+                etaMinutes = swapData.quote.etaInSeconds?.let { confirmService.etaMinutes(it) },
             ),
         ) ?: return null
 

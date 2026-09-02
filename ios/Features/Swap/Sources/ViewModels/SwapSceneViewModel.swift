@@ -124,6 +124,8 @@ public final class SwapSceneViewModel {
                 pay: fromAssetPrice.swapValue(selectedQuote.fromValue),
                 receive: toAssetPrice.swapValue(selectedQuote.toValue),
             ).flatMap { try? Primitives.SwapPriceImpact($0) },
+            minReceiveValue: (try? BigInt.from(string: swapQuoteService.minReceiveValue(value: selectedQuote.toValue, slippageBps: selectedQuote.slippageBps))) ?? .zero,
+            etaMinutes: selectedQuote.etaInSeconds.flatMap { swapQuoteService.etaMinutes(seconds: $0) },
             swapProviderSelectAction: { [weak self] quote in
                 self?.onFinishSwapProviderSelection(quote)
             },

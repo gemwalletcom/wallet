@@ -25,6 +25,21 @@ pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, valu
     })
 }
 
+const BASIS_POINTS: u32 = 10_000;
+const ETA_MINIMUM_SECONDS: u32 = 60;
+
+pub fn min_receive_value(value: &BigUint, slippage_bps: u32) -> BigUint {
+    let kept = BASIS_POINTS.saturating_sub(slippage_bps);
+    value * BigUint::from(kept) / BigUint::from(BASIS_POINTS)
+}
+
+pub fn eta_minutes(seconds: u32) -> Option<u32> {
+    match seconds > ETA_MINIMUM_SECONDS {
+        true => Some(seconds / ETA_MINIMUM_SECONDS),
+        false => None,
+    }
+}
+
 pub fn sort_quotes(mut quotes: Vec<Quote>) -> Vec<Quote> {
     quotes.sort_by_key(|quote| std::cmp::Reverse(to_value(quote)));
     quotes
@@ -197,6 +212,19 @@ pub fn pair_for_asset(asset_id: AssetId, has_balance: bool) -> GemSwapPairSugges
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_min_receive_value_and_eta() {
+        let value = BigUint::from(1_000_000u32);
+        assert_eq!(min_receive_value(&value, 0), value);
+        assert_eq!(min_receive_value(&value, 100), BigUint::from(990_000u32));
+        assert_eq!(min_receive_value(&value, BASIS_POINTS), BigUint::from(0u32));
+        assert_eq!(min_receive_value(&value, BASIS_POINTS + 1), BigUint::from(0u32));
+
+        assert_eq!(eta_minutes(60), None);
+        assert_eq!(eta_minutes(61), Some(1));
+        assert_eq!(eta_minutes(180), Some(3));
+    }
+
     #[test]
     fn test_pair_for_asset_pays_with_the_native_asset_only_when_the_token_is_unheld() {
         let ethereum = AssetId::from_chain(Chain::Ethereum);

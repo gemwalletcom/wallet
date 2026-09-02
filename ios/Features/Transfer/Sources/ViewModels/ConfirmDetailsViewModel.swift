@@ -4,6 +4,7 @@ import GemstonePrimitives
 import struct Gemstone.GemConfirmMetadata
 import protocol Gemstone.GemConfirmTransferServiceProtocol
 import enum Gemstone.GemTransactionInputType
+import BigInt
 import Components
 import Primitives
 import PrimitivesComponents
@@ -49,6 +50,8 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
                         pay: fromAssetPrice.swapValue(quote.fromValue),
                         receive: toAssetPrice.swapValue(quote.toValue),
                     ).flatMap { try? Primitives.SwapPriceImpact($0) },
+                    minReceiveValue: (try? BigInt.from(string: service.minReceiveValue(value: quote.toValue, slippageBps: quote.slippageBps))) ?? .zero,
+                    etaMinutes: quote.etaInSeconds.flatMap { service.etaMinutes(seconds: $0) },
                 ),
             )
         case let .perpetual(_, perpetualType):

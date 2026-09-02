@@ -8,6 +8,17 @@ class NodeStatusService(
     private val gateway: GemGateway,
 ) {
 
+    suspend fun checkNode(chain: Chain, url: String): NodeStatus =
+        gateway.checkNode(chain.string, url).let {
+            NodeStatus(
+                url = url,
+                chainId = it.chainId,
+                blockNumber = it.latestBlockNumber,
+                inSync = true,
+                latency = it.latencyMs,
+            )
+        }
+
     suspend fun getNodeStatus(chain: Chain, url: String): NodeStatus? {
         return try {
             val result = gateway.getNodeStatus(chain.string, url)

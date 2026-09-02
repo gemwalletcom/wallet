@@ -4,6 +4,7 @@ use primitives::currency::Currency;
 use primitives::{AddressName, Chain, PerpetualModifyConfirmData, SimulationResult, Transaction, WalletId};
 
 use crate::block_explorer::GemBlockExplorerLink;
+use crate::models::custom_types::GemBigUint;
 use crate::models::swap::GemSwapValue;
 use crate::models::transaction::GemTransactionInputType;
 use crate::services::assets::config::GemAssetConfigService;
@@ -164,6 +165,14 @@ impl GemConfirmTransferService {
 
     pub fn acquire_asset_flow(&self, chain: Chain) -> GemAcquireAssetFlow {
         self.asset_config.acquire_flow(chain)
+    }
+
+    pub fn min_receive_value(&self, value: GemBigUint, slippage_bps: u32) -> GemBigUint {
+        self.swap_quote.min_receive_value(value, slippage_bps)
+    }
+
+    pub fn eta_minutes(&self, seconds: u32) -> Option<u32> {
+        self.swap_quote.eta_minutes(seconds)
     }
 
     pub fn swap_price_impact(&self, pay: GemSwapValue, receive: GemSwapValue) -> Option<SwapPriceImpact> {

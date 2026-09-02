@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.models.swap
 
+import uniffi.gemstone.GemSwapQuoteService
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
@@ -14,6 +15,8 @@ import com.wallet.core.primitives.swap.SwapPriceImpactType
 import uniffi.gemstone.SwapperProvider
 
 class SwapDetailsUIModelFactoryTest {
+
+    private val swapQuoteService = GemSwapQuoteService()
 
     private val payAsset = assetInfo(symbol = "AAA")
     private val receiveAsset = assetInfo(symbol = "BBB")
@@ -190,6 +193,8 @@ class SwapDetailsUIModelFactoryTest {
             etaInSeconds = etaInSeconds,
             isProviderSelectable = isProviderSelectable,
             priceImpact = priceImpact,
+            minReceiveValue = swapQuoteService.minReceiveValue(toValue, slippageBps).toBigInteger(),
+            etaMinutes = etaInSeconds?.let { swapQuoteService.etaMinutes(it) },
         ),
     )
 

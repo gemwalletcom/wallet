@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Components
 import Formatters
 import Foundation
@@ -31,6 +32,8 @@ public final class SwapDetailsViewModel {
     private let priceViewModel: PriceViewModel
     private let isProviderSelectionEnabled: Bool
     private let swapPriceImpact: Primitives.SwapPriceImpact?
+    private let minReceiveValue: BigInt
+    private let etaMinutes: UInt32?
     private let swapProviderSelectAction: ((SwapperQuote) -> Void)?
 
     public init(
@@ -42,6 +45,8 @@ public final class SwapDetailsViewModel {
         currency: String,
         isProviderSelectionEnabled: Bool = true,
         swapPriceImpact: Primitives.SwapPriceImpact?,
+        minReceiveValue: BigInt,
+        etaMinutes: UInt32?,
         swapProviderSelectAction: ((SwapperQuote) -> Void)? = nil,
     ) {
         self.state = state
@@ -53,6 +58,8 @@ public final class SwapDetailsViewModel {
         priceViewModel = PriceViewModel(price: toAssetPrice.price, currencyCode: currency)
         self.isProviderSelectionEnabled = isProviderSelectionEnabled
         self.swapPriceImpact = swapPriceImpact
+        self.minReceiveValue = minReceiveValue
+        self.etaMinutes = etaMinutes
         self.swapProviderSelectAction = swapProviderSelectAction
     }
 
@@ -88,8 +95,8 @@ public final class SwapDetailsViewModel {
 
     var swapEstimationField: ListItemField? {
         guard
-            let estimation = selectedQuote.etaInSeconds, estimation > 60,
-            let estimationTime = Self.timeFormatter.string(from: TimeInterval(estimation))
+            let etaMinutes,
+            let estimationTime = Self.timeFormatter.string(from: TimeInterval(etaMinutes) * 60)
         else {
             return nil
         }
@@ -148,7 +155,7 @@ public final class SwapDetailsViewModel {
     var minReceiveField: ListItemField {
         ListItemField(
             title: Localized.Swap.minReceive,
-            value: valueFormatter.string(selectedQuote.toValueBigInt.decrease(byBasisPoints: Int(selectedQuote.slippageBps)), asset: toAssetPrice.asset),
+            value: valueFormatter.string(minReceiveValue, asset: toAssetPrice.asset),
         )
     }
 

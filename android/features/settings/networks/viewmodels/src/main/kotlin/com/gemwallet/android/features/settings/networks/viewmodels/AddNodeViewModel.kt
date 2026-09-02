@@ -1,8 +1,8 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
+import com.gemwallet.android.blockchain.services.NodeStatusService
 import kotlinx.coroutines.CancellationException
 import uniffi.gemstone.GatewayException
-import uniffi.gemstone.GemGateway
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,7 +27,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddNodeViewModel @Inject constructor(
-    private val gateway: GemGateway,
+    private val nodeStatusService: NodeStatusService,
     private val addNodeCase: AddNodeCase,
     private val setCurrentNodeCase: SetCurrentNodeCase,
 ) : ViewModel() {
@@ -48,20 +48,8 @@ class AddNodeViewModel @Inject constructor(
         state.update { it.copy(checking = true, nodeState = null, errorResId = null) }
         val chain = state.value.chain ?: return
         try {
-            val status = gateway.checkNode(chain.string, url)
-            state.update {
-                it.copy(
-                    nodeState = NodeStatus(
-                        url = url,
-                        chainId = status.chainId,
-                        blockNumber = status.latestBlockNumber,
-                        inSync = true,
-                        latency = status.latencyMs,
-                    ),
-                    checking = false,
-                    errorResId = null,
-                )
-            }
+            val status = nodeStatusService.checkNode(chain, url)
+            state.update { it.copy(nodeState = status, checking = false, errorResId = null) }
         } catch (error: GatewayException.NetworkIdMismatch) {
             state.update { it.copy(checking = false, errorResId = R.string.errors_invalid_network_id) }
         } catch (error: CancellationException) {

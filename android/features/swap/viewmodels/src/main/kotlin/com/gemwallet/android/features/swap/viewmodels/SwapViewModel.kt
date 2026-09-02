@@ -228,6 +228,10 @@ class SwapViewModel @Inject constructor(
                         quote.pay.swapValue(quote.quote.fromValue),
                         quote.receive.swapValue(quote.quote.toValue),
                     )?.decodeJson(),
+                    minReceiveValue = swapQuoteService
+                        .minReceiveValue(quote.quote.toValue, quote.quote.data.slippageBps)
+                        .toBigInteger(),
+                    etaMinutes = quote.quote.etaInSeconds?.let { swapQuoteService.etaMinutes(it) },
                 ),
             )
         }

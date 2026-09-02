@@ -51,6 +51,8 @@ extension SwapDetailsViewModel {
             slippage: .auto,
             currency: Currency.usd.rawValue,
             swapPriceImpact: nil,
+            minReceiveValue: (try? BigInt.from(string: GemSwapQuoteService().minReceiveValue(value: selectedQuote.toValue, slippageBps: selectedQuote.slippageBps))) ?? .zero,
+            etaMinutes: selectedQuote.etaInSeconds.flatMap { GemSwapQuoteService().etaMinutes(seconds: $0) },
             swapProviderSelectAction: nil,
         )
     }
