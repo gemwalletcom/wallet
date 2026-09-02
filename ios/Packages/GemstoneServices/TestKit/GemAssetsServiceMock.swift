@@ -6,7 +6,6 @@ import GemstonePrimitives
 import Primitives
 
 public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Sendable {
-    private let searchAssetsResult: [Primitives.AssetBasic]
     private let assetsResult: [Primitives.AssetBasic]
     private let assetResult: Primitives.AssetFull?
     private let buyableFiatAssets: Primitives.FiatAssets?
@@ -15,7 +14,6 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
     private let store: (any GemAssetStore)?
 
     public init(
-        searchAssetsResult: [Primitives.AssetBasic] = [],
         assetsResult: [Primitives.AssetBasic] = [],
         assetResult: Primitives.AssetFull? = nil,
         buyableFiatAssets: Primitives.FiatAssets? = nil,
@@ -23,37 +21,12 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
         swapAssets: Primitives.FiatAssets? = nil,
         store: (any GemAssetStore)? = nil,
     ) {
-        self.searchAssetsResult = searchAssetsResult
         self.assetsResult = assetsResult
         self.assetResult = assetResult
         self.buyableFiatAssets = buyableFiatAssets
         self.sellableFiatAssets = sellableFiatAssets
         self.swapAssets = swapAssets
         self.store = store
-    }
-
-    public func assets(assetIds: [Gemstone.AssetId]) throws -> [Gemstone.Asset] {
-        if let store {
-            return try store.getAssets(assetIds: assetIds)
-        }
-        return assetsResult.filter { assetIds.contains($0.asset.id.identifier) }.map { $0.asset.map() }
-    }
-
-    public func getAsset(assetId _: Gemstone.AssetId) async throws -> Gemstone.AssetFull {
-        guard let assetResult else { throw AnyError("not stubbed") }
-        return assetResult.json()
-    }
-
-    public func getAssets(assetIds _: [Gemstone.AssetId], currency _: String?) async throws -> [Gemstone.AssetBasic] {
-        assetsResult.map { $0.json() }
-    }
-
-    public func search(query _: String, chains _: [Gemstone.Chain], tags _: [String]) async throws -> Gemstone.SearchResponse {
-        try Primitives.SearchResponse(assets: [], perpetuals: [], nfts: [], lists: []).json()
-    }
-
-    public func searchAssets(query _: String, chains _: [Gemstone.Chain]) async throws -> [Gemstone.AssetBasic] {
-        searchAssetsResult.map { $0.json() }
     }
 
     public func syncMissingAssets(assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.AssetId] {
@@ -76,10 +49,6 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
     public func ensureTokenAsset(assetId: Gemstone.AssetId) async throws -> Gemstone.Asset {
         try await ensureAsset(assetId: assetId)
     }
-
-    public func addMissingBalances(walletId _: String, assetIds _: [Gemstone.AssetId]) async throws {}
-
-    public func setupWallet(wallet _: Gemstone.Wallet) async throws {}
 
     public func syncAssets(assetIds _: [Gemstone.AssetId]) async throws {}
 

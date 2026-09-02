@@ -112,14 +112,6 @@ impl GemAssetsService {
         Ok(assets.into_iter().map(|asset| asset.asset.id).collect())
     }
 
-    pub async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
-        let stored = self.store.get_asset_ids(asset_ids).await?;
-        if stored.is_empty() {
-            return Ok(());
-        }
-        self.store.add_missing_balances(wallet_id, stored).await
-    }
-
     pub async fn open_wallet_asset(&self, wallet: Wallet, asset_id: AssetId) -> Result<Option<Asset>, GemServiceError> {
         if !rules::can_open(&wallet, &asset_id) {
             return Ok(None);
@@ -127,6 +119,16 @@ impl GemAssetsService {
         let asset = self.ensure_asset(asset_id.clone()).await?;
         self.add_missing_balances(wallet.id, vec![asset_id]).await?;
         Ok(Some(asset))
+    }
+}
+
+impl GemAssetsService {
+    pub async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+        let stored = self.store.get_asset_ids(asset_ids).await?;
+        if stored.is_empty() {
+            return Ok(());
+        }
+        self.store.add_missing_balances(wallet_id, stored).await
     }
 
     pub async fn setup_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {
@@ -154,9 +156,7 @@ impl GemAssetsService {
     pub async fn search(&self, query: String, chains: Vec<Chain>, tags: Vec<String>) -> Result<SearchResponse, GemApiError> {
         Ok(self.api.client.get_search(query, chains, tags).await?)
     }
-}
 
-impl GemAssetsService {
     async fn search_token_asset(&self, asset_id: &AssetId, token_id: String) -> Result<Option<Asset>, GemApiError> {
         let assets = self.api.client.get_search_assets(token_id, vec![asset_id.chain]).await?;
         Ok(assets.into_iter().map(|basic| basic.asset).find(|asset| &asset.id == asset_id))

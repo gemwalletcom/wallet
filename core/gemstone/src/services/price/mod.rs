@@ -29,13 +29,15 @@ impl GemPriceService {
     pub fn new(api: Arc<GemApiClient>, store: Arc<dyn GemPriceStore>) -> Self {
         Self { api, store }
     }
+}
 
+impl GemPriceService {
     pub fn prices(&self, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetPrice>, GemServiceError> {
         self.store.get_prices(asset_ids)
     }
 
-    pub async fn get_prices(&self, currency: Option<Currency>, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPrice>, GemApiError> {
-        Ok(self.api.client.get_prices(currency, asset_ids).await?)
+    pub async fn get_prices(&self, currency: Currency, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPrice>, GemApiError> {
+        Ok(self.api.client.get_prices(Some(currency), asset_ids).await?)
     }
 
     pub async fn update_prices(&self, prices: Vec<AssetPrice>, currency: Currency) -> Result<(), GemServiceError> {
