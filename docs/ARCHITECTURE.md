@@ -634,3 +634,17 @@ recipient-or-contract from WalletConnect metadata — lived in a 35-line Swift `
 40-line Kotlin `when`, each also choosing the explorer link. `transaction_participant` in Core
 returns the role and address, `GemTransactionDetailsService::participant` attaches the link, and
 each app maps a role to its localized title.
+
+**When both apps validate the same input differently, pick the exact one.** The fiat sell
+check compared a fiat→crypto conversion through the session price on Android and the selected
+quote's `crypto_amount` on iOS. `GemFiatQuoteService::amount_check` compares the quote's atomic
+`value` (a field the apps never saw) to the available balance after the range check, so both
+apps map one `GemFiatAmountCheck` to their error and neither converts anything. The random
+amount, the defaults and the suggestions come from the same service, and `quote_url` enables
+the asset it just sold a quote for.
+
+**A launch-time entry is not the place for a screen's dependency.** `GemRewardsService`,
+`GemReceiveService`, `GemNodeStatusService` and `GemPerpetualDetailsService`'s inputs were
+`@Entry` values on iOS only so a navigation view could assemble a view model. Every one is now
+built in `ViewModelFactory.xxxScene(...)`; the environment keeps only what the app needs at
+launch.
