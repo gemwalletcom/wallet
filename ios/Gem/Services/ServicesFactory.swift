@@ -136,6 +136,7 @@ struct ServicesFactory {
             addressStore: gemstoneAddressStore,
             explorer: explorerService,
             preferences: preferencesService,
+            session: walletSessionService,
         )
         let nftService = Gemstone.GemNftService(api: deviceApiClient, store: GemstoneNftStore(store: storeManager.nftStore))
         let transactionStateStore = GemstoneTransactionStateStore(store: storeManager.transactionStore)

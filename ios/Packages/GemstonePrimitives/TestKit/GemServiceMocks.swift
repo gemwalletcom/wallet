@@ -524,9 +524,9 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         self.validators
     }
 
-    public func sync(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws {}
+    public func sync(chain _: Gemstone.Chain) async throws {}
 
-    public func syncEarn(walletId _: String, assetId _: Gemstone.AssetId, address _: String) async throws {}
+    public func syncEarn(assetId _: Gemstone.AssetId) async throws {}
 
     public func getEarnData(assetId _: Gemstone.AssetId, address _: String, value _: String, earnType _: Gemstone.EarnType) async throws -> Gemstone.ContractCallData {
         earnData

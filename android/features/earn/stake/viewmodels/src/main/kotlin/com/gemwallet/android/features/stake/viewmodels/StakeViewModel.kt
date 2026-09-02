@@ -132,14 +132,8 @@ class StakeViewModel @Inject constructor(
                     return@flow
                 }
                 val assetInfo = assetInfo.filterNotNull().first()
-                val account = account.filterNotNull().first()
-                val walletId = session.filterNotNull().first().wallet.id
                 emit(true)
-                syncStakeDelegations.sync(
-                    walletId = walletId,
-                    assetId = assetInfo.asset.id,
-                    address = account.address,
-                )
+                syncStakeDelegations.sync(assetInfo.asset.id.chain)
                 emit(false)
                 sync.update { false }
             }

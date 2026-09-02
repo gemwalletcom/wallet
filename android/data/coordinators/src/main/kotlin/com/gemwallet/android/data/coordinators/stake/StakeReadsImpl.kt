@@ -14,6 +14,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.StakeProviderType
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -27,8 +28,8 @@ class SyncStakeDelegationsImpl(
     private val stakeService: GemStakeService,
 ) : SyncStakeDelegations {
 
-    override suspend fun sync(walletId: WalletId, assetId: AssetId, address: String) = withContext(Dispatchers.IO) {
-        stakeService.sync(walletId.id, assetId.chain.string, address)
+    override suspend fun sync(chain: Chain) = withContext(Dispatchers.IO) {
+        stakeService.sync(chain.string)
     }
 }
 

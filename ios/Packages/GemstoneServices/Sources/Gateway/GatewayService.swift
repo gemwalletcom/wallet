@@ -41,8 +41,9 @@ public actor GatewayService: Sendable {
         addressStore: any GemAddressStore,
         explorer: GemExplorerService,
         preferences: GemPreferencesService,
+        session: GemWalletSessionService,
     ) -> GemStakeService {
-        GemStakeService(gateway: gateway, staticApi: staticApi, store: store, addressStore: addressStore, explorer: explorer, preferences: preferences)
+        GemStakeService(gateway: gateway, staticApi: staticApi, store: store, addressStore: addressStore, explorer: explorer, preferences: preferences, session: session)
     }
 
     public nonisolated func transactionStateService(

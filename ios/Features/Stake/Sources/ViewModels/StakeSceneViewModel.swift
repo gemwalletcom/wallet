@@ -249,8 +249,7 @@ extension StakeSceneViewModel {
     func load() async {
         delegationsState = .loading
         do {
-            let account = try wallet.account(for: chain.chain)
-            try await service.sync(walletId: wallet.id.id, chain: chain.chain.rawValue, address: account.address)
+            try await service.sync(chain: chain.chain.rawValue)
             delegationsState = .data(true)
         } catch {
             debugLog("Stake scene load error: \(error)")

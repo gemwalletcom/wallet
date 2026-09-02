@@ -1,8 +1,7 @@
 package com.gemwallet.android.application.stake.cases
 
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.WalletId
+import com.wallet.core.primitives.Chain
 
 interface SyncStakeDelegations {
-    suspend fun sync(walletId: WalletId, assetId: AssetId, address: String)
+    suspend fun sync(chain: Chain)
 }

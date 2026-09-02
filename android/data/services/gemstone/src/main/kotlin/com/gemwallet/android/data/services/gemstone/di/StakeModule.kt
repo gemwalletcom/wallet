@@ -14,6 +14,7 @@ import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemAddressStore
 import uniffi.gemstone.GemStakeService
+import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemStakeStore
 import uniffi.gemstone.GemStaticApiClient
@@ -40,7 +41,8 @@ object StakeModule {
         addressStore: GemAddressStore,
         explorerService: GemExplorerService,
         preferencesService: GemPreferencesService,
-    ): GemStakeService = GemStakeService(gateway, staticApiClient, store, addressStore, explorerService, preferencesService)
+        walletSessionService: GemWalletSessionService,
+    ): GemStakeService = GemStakeService(gateway, staticApiClient, store, addressStore, explorerService, preferencesService, walletSessionService)
 
     @Provides
     @Singleton

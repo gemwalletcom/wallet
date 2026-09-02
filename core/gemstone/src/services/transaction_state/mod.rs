@@ -127,7 +127,7 @@ impl GemTransactionStateService {
             record(
                 &mut failures,
                 GemPostProcessingStep::Stake,
-                self.stake.sync(wallet_id.clone(), chain, transaction.from.clone()),
+                self.stake.sync_wallet(wallet_id.clone(), chain, transaction.from.clone()),
             )
             .await;
         }
@@ -135,7 +135,7 @@ impl GemTransactionStateService {
             record(
                 &mut failures,
                 GemPostProcessingStep::Earn,
-                self.stake.sync_earn(wallet_id.clone(), asset_id, transaction.from.clone()),
+                self.stake.sync_earn_wallet(wallet_id.clone(), asset_id, transaction.from.clone()),
             )
             .await;
         }

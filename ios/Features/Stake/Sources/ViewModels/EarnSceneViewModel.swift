@@ -126,12 +126,7 @@ extension EarnSceneViewModel {
     func load() async {
         viewState = .loading
         do {
-            let address = try wallet.account(for: asset.id.chain).address
-            try await service.syncEarn(
-                walletId: wallet.id.id,
-                assetId: asset.id.identifier,
-                address: address,
-            )
+            try await service.syncEarn(assetId: asset.id.identifier)
             viewState = .data(true)
         } catch {
             viewState = .error(error)
