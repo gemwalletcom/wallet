@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import android.util.Log
 import com.gemwallet.android.application.contacts.cases.GetContacts
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.isValidAddress
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressForm
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressInput
@@ -132,7 +132,7 @@ class ManageContactViewModel @Inject constructor(
     }
 
     fun addAddress() {
-        val form = ContactAddressForm(chain = service.defaultChain().toChain() ?: Chain.Bitcoin)
+        val form = ContactAddressForm(chain = service.defaultChain().requireChain())
         addressInput.reset()
         addressInput.setChain(form.chain)
         state.update { it.copy(page = ManageContactPage.Address, form = form) }
