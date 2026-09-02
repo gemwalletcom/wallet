@@ -429,28 +429,23 @@ having the parent vend the child view model.
 
 | view model | services | non-private |
 |---|---|---|
-| `Gem/ViewModels/RootSceneViewModel.swift` | 11 | 4 |
-| `Assets/SelectAssetViewModel.swift` | 3 | 0 |
+| `Gem/ViewModels/RootSceneViewModel.swift` | 5 | 1 |
 | `Settings/Settings/ViewModels/DeveloperViewModel.swift` | 5 | 0 |
-| `Onboarding/ImportWalletViewModel.swift` | 4 | 4 |
-| `Transactions/TransactionsViewModel.swift` | 3 | 1 |
-| `Settings/ChainSettings/ViewModels/ChainSettingsSceneViewModel.swift` | 3 | 2 |
+| `Transfer/RecipientSceneViewModel.swift` | 4 | 0 |
+| `Assets/SelectAssetViewModel.swift` | 3 | 0 |
 | `NFT/CollectibleViewModel.swift` | 3 | 1 |
-| `Perpetuals/PerpetualSceneViewModel.swift` | 2 | 1 |
+| `Settings/ChainSettings/ViewModels/ChainSettingsSceneViewModel.swift` | 3 | 2 |
+| `Transactions/TransactionsViewModel.swift` | 3 | 1 |
 | `Transfer/ReceiveViewModel.swift` | 3 | 0 |
-| `Transfer/RecipientSceneViewModel.swift` | 3 | 0 |
 | `WalletConnector/WalletConnector/ViewModels/SignMessageSceneViewModel.swift` | 3 | 0 |
-| `Onboarding/ImportWalletTypeViewModel.swift` | 2 | 2 |
-| `Perpetuals/PerpetualsSceneViewModel.swift` | 2 | 2 |
 | `FiatConnect/FiatSceneViewModel.swift` | 2 | 1 |
-| `ManageWallets/WalletIDetailViewModel.swift` | 2 | 1 |
-| `Transfer/AmountEarnViewModel.swift` | 2 | 1 |
-| `WalletConnector/WalletConnector/ViewModels/ConnectionsViewModel.swift` | 2 | 1 |
-| `Assets/AddAssetSceneViewModel.swift` | 2 | 0 |
-| `Assets/AssetsFilterViewModel.swift` | 2 | 0 |
+| `ManageWallets/WalletIDetailViewModel.swift` | 2 | 0 |
+| `ManageWallets/WalletsSceneViewModel.swift` | 2 | 0 |
+| `Perpetuals/PerpetualSceneViewModel.swift` | 2 | 0 |
+| `Perpetuals/PerpetualsSceneViewModel.swift` | 2 | 2 |
 | `Settings/ChainSettings/ViewModels/AddNodeSceneViewModel.swift` | 2 | 0 |
 | `Settings/Settings/ViewModels/RewardsViewModel.swift` | 2 | 0 |
-| `Transfer/ConfirmDetailsViewModel.swift` | 2 | 0 |
+| `Transfer/AmountEarnViewModel.swift` | 2 | 1 |
 | `PrimitivesComponents/AddressInputViewModel.swift` | 2 | 0 |
 
 Single-service view models that only need the property made `private`:
