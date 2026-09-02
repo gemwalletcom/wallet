@@ -203,7 +203,6 @@ struct WalletNavigationView: View {
             AssetPriceAlertsScene(
                 model: AssetPriceAlertsViewModel(
                     priceAlertService: priceAlertService,
-                    preferencesService: preferencesService,
                     walletId: model.wallet.id,
                     asset: $0.asset,
                 ),
@@ -241,7 +240,6 @@ struct WalletNavigationView: View {
                             walletId: model.wallet.id,
                             asset: asset,
                             priceAlertService: priceAlertService,
-                            preferencesService: preferencesService,
                         ) { model.onSetPriceAlertComplete(message: $0) },
                     )
                 case .addAsset:

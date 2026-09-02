@@ -1,16 +1,14 @@
 package com.gemwallet.android.data.coordinators.pricealerts
 
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
-import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PriceAlert
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -32,39 +30,28 @@ class PriceAlertsCoordinatorTest {
     }
 
     @Test
-    fun includingAnAlertEnablesThemThroughCoreOnly() = runBlocking {
+    fun anAssetAlertTogglesThroughCoreOnly() = runBlocking {
         val service = service(enabled = false)
-        val alert = slot<String>()
-        coEvery { service.enablePriceAlert(capture(alert)) } answers { }
+        coEvery { service.setAutoAlert(any(), any()) } answers { }
         val coordinator = coordinator(service)
 
         coordinator.setAssetPriceAlertEnabled(AssetId(Chain.SmartChain), enabled = true)
+        coordinator.setAssetPriceAlertEnabled(AssetId(Chain.SmartChain), enabled = false)
 
         coVerify(exactly = 0) { service.setEnabled(any()) }
-        assertEquals(AssetId(Chain.SmartChain), alert.captured.decodeJson<PriceAlert>().assetId)
+        coVerify(exactly = 1) { service.setAutoAlert(AssetId(Chain.SmartChain).toIdentifier(), true) }
+        coVerify(exactly = 1) { service.setAutoAlert(AssetId(Chain.SmartChain).toIdentifier(), false) }
     }
 
     @Test
     fun aFailedIncludeNeverReportsTheAlertAsSet() = runBlocking {
         val service = service(enabled = false)
-        coEvery { service.enablePriceAlert(any()) } throws IllegalStateException("offline")
+        coEvery { service.setAutoAlert(any(), any()) } throws IllegalStateException("offline")
         val coordinator = coordinator(service)
 
         coordinator.setAssetPriceAlertEnabled(AssetId(Chain.SmartChain), enabled = true)
 
         assertEquals(false, coordinator.isPriceAlertsEnabled().first())
-    }
-
-    @Test
-    fun disable_deletesTheAlertForTheAsset() = runBlocking {
-        val service = service(enabled = true)
-        val alerts = slot<List<String>>()
-        coEvery { service.deletePriceAlerts(capture(alerts)) } answers { }
-        val coordinator = coordinator(service)
-
-        coordinator.setAssetPriceAlertEnabled(AssetId(Chain.SmartChain), enabled = false)
-
-        assertEquals(listOf(AssetId(Chain.SmartChain)), alerts.captured.map { it.decodeJson<PriceAlert>().assetId })
     }
 
     private fun coordinator(service: GemPriceAlertService) = PriceAlertsCoordinator(

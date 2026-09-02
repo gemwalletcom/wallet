@@ -41,11 +41,9 @@ class PriceAlertsCoordinator(
     }
 
     override suspend fun setAssetPriceAlertEnabled(assetId: AssetId, enabled: Boolean) {
-        if (enabled) {
-            includePriceAlert(assetId)
-        } else {
-            excludePriceAlert(assetId)
-        }
+        runCatchingCancellable { priceAlertService.setAutoAlert(assetId.toIdentifier(), enabled) }
+            .onSuccess { changes.emit(Unit) }
+            .onFailure { Log.e(TAG, "setting the auto price alert for ${assetId.toIdentifier()} failed", it) }
     }
 
     override suspend fun includePriceAlert(

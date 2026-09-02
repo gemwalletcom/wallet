@@ -36,7 +36,6 @@ extension AssetPriceAlertsViewModel {
     ) -> AssetPriceAlertsViewModel {
         AssetPriceAlertsViewModel(
             priceAlertService: priceAlertService,
-            preferencesService: GemPreferencesServiceMock(),
             walletId: walletId,
             asset: asset,
         )

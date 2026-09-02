@@ -98,14 +98,13 @@ struct SettingsNavigationView: View {
         }
         .navigationDestination(for: Scenes.PriceAlerts.self) { _ in
             PriceAlertsNavigationView(
-                model: PriceAlertsSceneViewModel(priceAlertService: priceAlertService, preferencesService: preferencesService),
+                model: PriceAlertsSceneViewModel(priceAlertService: priceAlertService),
             )
         }
         .navigationDestination(for: Scenes.AssetPriceAlert.self) {
             AssetPriceAlertsScene(
                 model: AssetPriceAlertsViewModel(
                     priceAlertService: priceAlertService,
-                    preferencesService: preferencesService,
                     walletId: walletId,
                     asset: $0.asset,
                 ),

@@ -443,15 +443,12 @@ having the parent vend the child view model.
 | `WalletConnector/WalletConnector/ViewModels/SignMessageSceneViewModel.swift` | 3 | 0 |
 | `Onboarding/ImportWalletTypeViewModel.swift` | 2 | 2 |
 | `Perpetuals/PerpetualsSceneViewModel.swift` | 2 | 2 |
-| `PriceAlerts/AssetPriceAlertsViewModel.swift` | 2 | 2 |
 | `FiatConnect/FiatSceneViewModel.swift` | 2 | 1 |
 | `ManageWallets/WalletIDetailViewModel.swift` | 2 | 1 |
 | `Transfer/AmountEarnViewModel.swift` | 2 | 1 |
 | `WalletConnector/WalletConnector/ViewModels/ConnectionsViewModel.swift` | 2 | 1 |
 | `Assets/AddAssetSceneViewModel.swift` | 2 | 0 |
 | `Assets/AssetsFilterViewModel.swift` | 2 | 0 |
-| `PriceAlerts/PriceAlertsSceneViewModel.swift` | 2 | 0 |
-| `PriceAlerts/SetPriceAlertViewModel.swift` | 2 | 0 |
 | `Settings/ChainSettings/ViewModels/AddNodeSceneViewModel.swift` | 2 | 0 |
 | `Settings/Currency/ViewModels/CurrencySceneViewModel.swift` | 2 | 0 |
 | `Settings/Settings/ViewModels/RewardsViewModel.swift` | 2 | 0 |

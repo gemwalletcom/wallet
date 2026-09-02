@@ -4,7 +4,6 @@ import Components
 import Formatters
 import Foundation
 import Gemstone
-import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import GemstoneServices
 import Localization
@@ -19,7 +18,6 @@ public final class SetPriceAlertViewModel {
     private let asset: Primitives.Asset
     private let priceAlertService: any GemPriceAlertServiceProtocol
     private let onComplete: StringAction
-    private let preferencesService: any GemPreferencesServiceProtocol
     private let currencyFormatter: CurrencyFormatter
     private let numericFormatter = NumericFormatter()
     private let priceAlertFormatter = PriceAlertFormatter()
@@ -36,14 +34,12 @@ public final class SetPriceAlertViewModel {
         walletId: Primitives.WalletId,
         asset: Primitives.Asset,
         priceAlertService: any GemPriceAlertServiceProtocol,
-        preferencesService: any GemPreferencesServiceProtocol,
         price: Double? = nil,
         onComplete: StringAction,
     ) {
         self.asset = asset
         self.priceAlertService = priceAlertService
-        self.preferencesService = preferencesService
-        currencyFormatter = CurrencyFormatter(currencyCode: preferencesService.currencyCode)
+        currencyFormatter = CurrencyFormatter(currencyCode: priceAlertService.currency())
         self.onComplete = onComplete
         state = SetPriceAlertViewModelState(price: price)
         assetQuery = ObservableQuery(AssetRequest(walletId: walletId, assetId: asset.id), initialValue: .with(asset: asset))
@@ -153,7 +149,7 @@ public final class SetPriceAlertViewModel {
         }
         return Primitives.PriceAlert(
             assetId: asset.id,
-            currency: preferencesService.currency,
+            currency: Currency(core: priceAlertService.currency()),
             price: price,
             pricePercentChange: pricePercentChange,
             priceDirection: alertDirection,

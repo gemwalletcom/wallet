@@ -114,7 +114,6 @@ struct MainTabView: View {
                     walletId: wallet.id,
                     asset: input.asset,
                     priceAlertService: priceAlertService,
-                    preferencesService: preferencesService,
                     price: input.price,
                     onComplete: onSetPriceAlertComplete,
                 ),

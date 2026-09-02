@@ -206,6 +206,14 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
 
     public func deletePriceAlerts(alerts _: [Gemstone.PriceAlert]) async throws {}
 
+    public func currency() -> Gemstone.Currency {
+        Primitives.Currency.usd.rawValue
+    }
+
+    public func setAutoAlert(assetId _: Gemstone.AssetId, enabled isEnabled: Bool) async throws {
+        lock.withLock { enabled = isEnabled }
+    }
+
     public func priceAlertId(alert: Gemstone.PriceAlert) -> String {
         (try? Primitives.PriceAlert(alert).id) ?? ""
     }

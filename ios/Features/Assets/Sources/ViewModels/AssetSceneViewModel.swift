@@ -529,13 +529,7 @@ extension AssetSceneViewModel {
     }
 
     private func setPriceAlert(enabled: Bool) async throws {
-        let currency = try Currency(id: preferences.currency)
-        let priceAlert = PriceAlert.default(for: assetModel.asset.id, currency: currency)
-        if enabled {
-            try await service.enablePriceAlert(alert: priceAlert.json())
-        } else {
-            try await service.deletePriceAlerts(alerts: [priceAlert.json()])
-        }
+        try await service.setPriceAlert(assetId: assetModel.asset.id.identifier, enabled: enabled)
     }
 
     private func refresh() async {

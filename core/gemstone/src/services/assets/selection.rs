@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{AssetBasic, AssetId, PriceAlert, RecentActivityType, Wallet, WalletId};
+use primitives::{AssetBasic, AssetId, RecentActivityType, Wallet, WalletId};
 
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
@@ -75,10 +75,6 @@ impl GemAssetSelectionService {
     }
 
     pub async fn set_price_alert(&self, asset_id: AssetId, enabled: bool) -> Result<(), GemServiceError> {
-        let alert = PriceAlert::new_auto(asset_id, self.currency());
-        match enabled {
-            true => self.price_alerts.enable_price_alert(alert).await,
-            false => self.price_alerts.delete_price_alerts(vec![alert]).await,
-        }
+        self.price_alerts.set_auto_alert(asset_id, enabled).await
     }
 }

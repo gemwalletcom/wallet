@@ -56,7 +56,6 @@ public struct AssetPriceAlertsScene: View {
                     walletId: model.walletId,
                     asset: model.asset,
                     priceAlertService: model.priceAlertService,
-                    preferencesService: model.preferencesService,
                 ) { model.onSetPriceAlertComplete(message: $0) },
             )
         }

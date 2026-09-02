@@ -2,7 +2,7 @@ use futures::TryFutureExt;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{Asset, AssetFull, AssetId, BannerEvent, Chain, Deeplink, PriceAlert, WalletId};
+use primitives::{Asset, AssetFull, AssetId, BannerEvent, Chain, Deeplink, WalletId};
 
 use crate::block_explorer::GemBlockExplorerLink;
 use crate::deeplink::GemDeeplinkService;
@@ -164,12 +164,8 @@ impl GemAssetDetailsService {
         self.explorer.get_token_url(chain, address)
     }
 
-    pub async fn enable_price_alert(&self, alert: PriceAlert) -> Result<(), GemServiceError> {
-        self.price_alerts.enable_price_alert(alert).await
-    }
-
-    pub async fn delete_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
-        self.price_alerts.delete_price_alerts(alerts).await
+    pub async fn set_price_alert(&self, asset_id: AssetId, enabled: bool) -> Result<(), GemServiceError> {
+        self.price_alerts.set_auto_alert(asset_id, enabled).await
     }
 
     pub async fn sync_price_alerts(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {

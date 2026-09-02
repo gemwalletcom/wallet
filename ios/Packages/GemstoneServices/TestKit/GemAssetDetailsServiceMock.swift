@@ -17,7 +17,6 @@ import struct Gemstone.GemBlockExplorerLink
 import class Gemstone.GemDeeplinkService
 import class Gemstone.GemSimulationFormatter
 import struct Gemstone.GemSwapPairSuggestion
-import typealias Gemstone.PriceAlert
 import typealias Gemstone.WalletId
 import GemstonePrimitives
 import Primitives
@@ -67,9 +66,7 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
 
     public func tokenUrl(chain: Chain, address: String) -> GemBlockExplorerLink? { .none }
 
-    public func enablePriceAlert(alert: PriceAlert) async throws {}
-
-    public func deletePriceAlerts(alerts: [PriceAlert]) async throws {}
+    public func setPriceAlert(assetId _: AssetId, enabled _: Bool) async throws {}
 
     public func syncPriceAlerts(assetId: AssetId?) async throws {}
 
