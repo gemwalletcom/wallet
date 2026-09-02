@@ -30,18 +30,6 @@ fun GemTransferService.pack(input: GemConfirmInput): String? =
 fun GemTransferService.unpack(packed: String): GemConfirmInput? =
     runCatching { decodeConfirmInput(packed.unpackRouteString()) }.getOrNull()
 
-fun GemTransferData.Companion.stake(
-    asset: Asset,
-    stakeType: StakeType,
-    value: BigInteger,
-    useMaxAmount: Boolean = false,
-): GemTransferData = GemTransferData(
-    inputType = GemTransactionInputType.stake(asset, stakeType),
-    recipient = GemRecipient(stakeType.validatorId.orEmpty()),
-    value = value.toString(),
-    useMaxAmount = useMaxAmount,
-)
-
 fun GemTransferData.Companion.perpetual(
     asset: Asset,
     perpetualType: PerpetualType,
@@ -53,14 +41,3 @@ fun GemTransferData.Companion.perpetual(
 
 fun String.toTransactionData(): ByteArray =
     if (has0xPrefix()) runCatching { fromHex() }.getOrElse { toByteArray() } else toByteArray()
-
-private val StakeType.validatorId: String?
-    get() = when (this) {
-        is StakeType.Stake -> content.id
-        is StakeType.Unstake -> content.validator.id
-        is StakeType.Withdraw -> content.validator.id
-        is StakeType.Redelegate,
-        is StakeType.Rewards,
-        is StakeType.Freeze,
-        is StakeType.Unfreeze -> null
-    }

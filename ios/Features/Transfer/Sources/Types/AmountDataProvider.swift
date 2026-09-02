@@ -22,11 +22,11 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
         case let .withdraw(recipient):
             .transfer(AmountTransferViewModel(asset: input.asset, action: .withdraw(recipient)))
         case let .stake(stakeType):
-            .stake(AmountStakeViewModel(asset: input.asset, type: stakeType))
+            .stake(AmountStakeViewModel(asset: input.asset, type: stakeType, service: service))
         case let .perpetual(data):
             .perpetual(AmountPerpetualViewModel(asset: input.asset, data: data, service: service))
         case let .earn(earnType):
-            .earn(AmountEarnViewModel(asset: input.asset, action: earnType, service: service, wallet: wallet))
+            .earn(AmountEarnViewModel(asset: input.asset, action: earnType, service: service))
         }
     }
 

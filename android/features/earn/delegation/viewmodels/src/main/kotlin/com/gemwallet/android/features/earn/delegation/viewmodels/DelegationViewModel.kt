@@ -17,9 +17,7 @@ import com.gemwallet.android.ext.byChain
 import com.gemwallet.android.ext.changeAmountOnUnstake
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.domains.confirm.confirmInput
-import com.gemwallet.android.domains.confirm.stake
 import com.wallet.core.primitives.StakeType
-import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.ui.components.list_item.availableIn
 import com.gemwallet.android.ui.models.RewardsInfoUIModel
@@ -178,7 +176,7 @@ class DelegationViewModel @Inject constructor(
         }
         val from = assetInfo.owner ?: return
         val balance = Crypto(delegation.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO)
-        confirmCall(GemTransferData.stake(assetInfo.asset, StakeType.Unstake(delegation), balance.atomicValue).confirmInput(from))
+        confirmCall(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Unstake(delegation).toJson(), balance.atomicValue.toString(), false).confirmInput(from))
     }
 
     fun onRedelegate(call: AmountTransactionAction) {
@@ -190,7 +188,7 @@ class DelegationViewModel @Inject constructor(
         val from = assetInfo.owner ?: return
         val delegation = delegation.value ?: return
         val balance = Crypto(delegation.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO)
-        call(GemTransferData.stake(assetInfo.asset, StakeType.Withdraw(delegation), balance.atomicValue).confirmInput(from))
+        call(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toJson(), balance.atomicValue.toString(), false).confirmInput(from))
     }
 
     fun onClaimRewards(call: ConfirmTransactionAction) {
@@ -198,10 +196,11 @@ class DelegationViewModel @Inject constructor(
         val from = assetInfo.owner ?: return
         val delegation = delegation.value ?: return
         call(
-            GemTransferData.stake(
-                asset = assetInfo.asset,
-                stakeType = StakeType.Rewards(listOf(delegation.validator)),
-                value = delegation.rewardsBalance(),
+            stakeService.stakeTransferData(
+                assetInfo.asset.toGem(),
+                StakeType.Rewards(listOf(delegation.validator)).toJson(),
+                delegation.rewardsBalance().toString(),
+                false,
             ).confirmInput(from)
         )
     }

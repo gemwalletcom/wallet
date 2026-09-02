@@ -335,7 +335,15 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `perpetual_autoclose(price, direction, leverage)` turns the preference percents into target
   prices, so neither app reads the perpetual preferences or runs the estimator itself (Android's
   `AmountPerpetualProvider` took `UserConfig` for that, and `AmountViewModel` read the currency
-  off the price with a `USD` fallback). What is left is the provider layer itself: the iOS providers (`AmountTransferViewModel`,
+  off the price with a `USD` fallback). The stake and earn confirm transfers are Core's too:
+  `stake_transfer_data(asset, stake_type, value, use_max_amount)` (on `GemAmountService` and
+  `GemStakeService`, for the amount screen and the stake/delegation screens) names the validator
+  as the recipient, carries the resource for a freeze, and keeps max only for a new stake or a
+  freeze; `GemAmountService::earn_transfer_data(asset, earn_type, value, use_max_amount)` finds
+  the account on the session wallet, asks the gateway for the contract call and addresses it to
+  the contract under the provider name, so `get_earn_data` is no longer exported. Android's
+  `GemTransferData.stake` (with its `StakeType.validatorId` switch) and iOS's inline
+  `TransferData(...)` builders are gone. What is left is the provider layer itself: the iOS providers (`AmountTransferViewModel`,
   `AmountStakeViewModel`, `AmountPerpetualViewModel`, `AmountEarnViewModel`) and Android's
   `providers/*` each derive the max button, the equivalent value and the confirm input from
   `GemAmountRules` / `GemAmountLimits`; a Core `GemAmountInput` value that carries all of it per
@@ -398,7 +406,7 @@ setup rather than retrying it.
 
 ### 6. Android
 
-- **Earn flow.** No Earn surface exists (no `StakeProviderType.Earn` reader, no `AmountParams.Earn`, no `ConfirmParams.Earn`; `GemDelegationAction.DEPOSIT` maps to nothing). Build the scene, amount provider and confirm params on `GemStakeService.sync_earn`/`get_earn_data`, `GemAmountType::Earn` and `GemTransactionInputType::Earn`; iOS `EarnSceneViewModel` + `AmountEarnViewModel` are the reference. A feature, not a consolidation — plan it as its own batch.
+- **Earn flow.** No Earn surface exists (no `StakeProviderType.Earn` reader, no `AmountParams.Earn`, no `ConfirmParams.Earn`; `GemDelegationAction.DEPOSIT` maps to nothing). Build the scene, amount provider and confirm params on `GemStakeService.sync_earn`, `GemAmountService::earn_transfer_data`, `GemAmountType::Earn` and `GemTransactionInputType::Earn`; iOS `EarnSceneViewModel` + `AmountEarnViewModel` are the reference. A feature, not a consolidation — plan it as its own batch.
 - **Dead `NOT NULL` columns** with no iOS counterpart: `AssetStore.saveAsset` bumps `updatedAt`, `TransactionStateStore` writes swap amounts, `NftStore` fills two legacy image columns. minSdk 28 has no `ALTER TABLE DROP COLUMN`, so removing them means recreating tables (`asset` behind its foreign keys) and instrumented migration tests do not run in CI — batch them with a migration that has another reason to touch those tables.
 - `PriceStore` still stamps `prices.currency` (now only the label `AssetPriceInfo.currency` reads; the column goes with the dead-column migration). The `USD` fallbacks are gone: `AssetInfoDataAggregate` only formats fiat inside the price it has, `HeadDelegationInfo` takes `GemStakeService::currency`, and `GetCurrentCurrency::getCurrency()` is a `StateFlow` so `SettingsViewModel` and `CurrenciesViewModel` start from the real value. The perpetual screens' `Currency.USD` is deliberate (Hyperliquid is USD-denominated). (`AddAssetViewModel` now keeps the chain optional until the wallet's chains load, like iOS.)
 - **Node screens**: `AddNodeViewModel` and `NetworksViewModel` hold `GemChainSettingsService` alone and keep no node rule of their own; the legacy `cases/<area>/` tree is gone — `NativeProvider` and the Hyperliquid socket read `GemNodeServiceInterface` directly.

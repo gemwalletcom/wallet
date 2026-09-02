@@ -154,21 +154,6 @@ public extension GatewayService {
     }
 }
 
-// MARK: - Earn
-
-public extension GatewayService {
-    func getEarnData(
-        assetId: Primitives.AssetId,
-        address: String,
-        value: String,
-        earnType: Primitives.EarnType,
-    ) async throws -> Primitives.ContractCallData {
-        try await Primitives.ContractCallData(
-            gateway.getEarnData(assetId: assetId.identifier, address: address, value: value, earnType: earnType.json()),
-        )
-    }
-}
-
 // MARK: - Perpetual
 
 public extension GatewayService {

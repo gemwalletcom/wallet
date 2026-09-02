@@ -22,6 +22,24 @@ pub struct GemRecipient {
     pub references: Vec<String>,
 }
 
+impl GemRecipient {
+    pub fn address(address: String) -> Self {
+        Self {
+            address,
+            name: None,
+            memo: None,
+            references: Vec::new(),
+        }
+    }
+
+    pub fn named(address: String, name: String) -> Self {
+        Self {
+            name: Some(name),
+            ..Self::address(address)
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, uniffi::Record)]
 pub struct GemTransferData {
     pub input_type: GemTransactionInputType,

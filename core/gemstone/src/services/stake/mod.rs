@@ -6,7 +6,7 @@ use crate::services::error::GemServiceError;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use primitives::{AssetId, Chain, Currency, DelegationState, DelegationValidator, StakeProviderType, WalletId, WalletType};
+use primitives::{Asset, AssetId, Chain, Currency, DelegationState, DelegationValidator, StakeProviderType, StakeType, WalletId, WalletType};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
@@ -20,6 +20,8 @@ use crate::block_explorer::GemBlockExplorerLink;
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemAddressStore;
 use crate::services::preferences::GemPreferencesService;
+use crate::services::transfer::GemTransferData;
+use crate::services::transfer::rules as transfer_rules;
 use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
@@ -60,6 +62,10 @@ impl GemStakeService {
         self.preferences.get_currency()
     }
 
+    pub fn stake_transfer_data(&self, asset: Asset, stake_type: StakeType, value: GemBigInt, use_max_amount: bool) -> GemTransferData {
+        transfer_rules::stake_transfer_data(asset, stake_type, value, use_max_amount)
+    }
+
     pub fn validator_url(&self, validator: DelegationValidator) -> Option<GemBlockExplorerLink> {
         let address = rules::validator_explorer_address(&validator)?;
         self.explorer.get_validator_url(validator.chain, address)
@@ -73,10 +79,6 @@ impl GemStakeService {
     pub async fn sync_earn(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
         let (wallet_id, address) = self.current_account(asset_id.chain)?;
         self.sync_earn_wallet(wallet_id, asset_id, address).await
-    }
-
-    pub async fn get_earn_data(&self, asset_id: AssetId, address: String, value: String, earn_type: GemEarnType) -> Result<GemContractCallData, GemServiceError> {
-        Ok(self.gateway.get_earn_data(asset_id, address, value, earn_type).await?)
     }
 
     pub fn delegation_actions(&self, wallet_type: WalletType, chain: Chain, provider: StakeProviderType, state: DelegationState) -> Vec<GemDelegationAction> {
@@ -117,6 +119,10 @@ impl GemStakeService {
 }
 
 impl GemStakeService {
+    pub async fn get_earn_data(&self, asset_id: AssetId, address: String, value: String, earn_type: GemEarnType) -> Result<GemContractCallData, GemServiceError> {
+        Ok(self.gateway.get_earn_data(asset_id, address, value, earn_type).await?)
+    }
+
     pub async fn sync_wallet(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<(), GemServiceError> {
         let apr = self.store.get_apr(AssetId::from_chain(chain), StakeProviderType::Stake).await?.unwrap_or_default();
         let names = self.sync_validators(chain, &address, apr).await?;

@@ -14,13 +14,11 @@ public final class AmountEarnViewModel: AmountDataProvidable {
     let asset: Asset
     let action: EarnType
     private let service: any GemAmountServiceProtocol
-    private let wallet: Wallet
 
-    init(asset: Asset, action: EarnType, service: any GemAmountServiceProtocol, wallet: Wallet) {
+    init(asset: Asset, action: EarnType, service: any GemAmountServiceProtocol) {
         self.asset = asset
         self.action = action
         self.service = service
-        self.wallet = wallet
     }
 
     var provider: DelegationValidator {
@@ -60,18 +58,6 @@ public final class AmountEarnViewModel: AmountDataProvidable {
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData {
-        let address = try wallet.account(for: asset.chain).address
-        let earnData = try await ContractCallData(service.earnData(
-            assetId: asset.id.identifier,
-            address: address,
-            value: String(value),
-            earnType: action.json(),
-        ))
-        return GemTransferData(
-            inputType: .earn(asset, action, earnData),
-            recipient: GemRecipient(address: earnData.contractAddress, name: provider.name, memo: nil),
-            value: value,
-            useMaxAmount: useMaxAmount,
-        )
+        try await service.earnTransferData(asset: asset.map(), earnType: action.json(), value: value.description, useMaxAmount: useMaxAmount)
     }
 }

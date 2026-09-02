@@ -20,6 +20,10 @@ import com.wallet.core.primitives.Resource
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import uniffi.gemstone.GemAmountServiceInterface
+import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.GemTransferData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -61,6 +65,15 @@ class AmountStakeProviderTest {
     private val getStakeValidator = mockk<GetStakeValidator> {
         coEvery { this@mockk.invoke(asset.id, "v1") } returns validator
     }
+    private val service = mockk<GemAmountServiceInterface> {
+        every { stakeTransferData(any(), any(), any(), any()) } answers {
+            GemTransferData(
+                inputType = GemTransactionInputType.Stake(firstArg(), secondArg()),
+                recipient = GemRecipient(address = ""),
+                value = thirdArg(),
+            )
+        }
+    }
     private val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
 
     private fun makeProvider(params: AmountParams.Stake) = AmountStakeProvider(
@@ -70,6 +83,7 @@ class AmountStakeProviderTest {
         getDelegations = getDelegations,
         getRecommendedValidator = getRecommendedValidator,
         getStakeValidator = getStakeValidator,
+        service = service,
         scope = scope,
     )
 

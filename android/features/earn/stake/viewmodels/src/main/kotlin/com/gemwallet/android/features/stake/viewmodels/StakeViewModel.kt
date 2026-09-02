@@ -17,13 +17,12 @@ import com.gemwallet.android.domains.asset.stakeChain
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.domains.confirm.confirmInput
-import com.gemwallet.android.domains.confirm.stake
 import com.wallet.core.primitives.StakeType
-import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.getFrozenResourceAmount
@@ -157,7 +156,7 @@ class StakeViewModel @Inject constructor(
         val assetInfo = assetInfo.value ?: return
         val from = assetInfo.owner ?: return
         val balance = Crypto(delegation.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO)
-        onConfirm(GemTransferData.stake(assetInfo.asset, StakeType.Withdraw(delegation), balance.atomicValue).confirmInput(from))
+        onConfirm(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toJson(), balance.atomicValue.toString(), false).confirmInput(from))
     }
 
     fun onRewards(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
@@ -166,10 +165,11 @@ class StakeViewModel @Inject constructor(
         val withRewards = delegations.value.filter { it.hasRewards() }
         if (stakeService.canClaimAllRewards(assetInfo.asset.chain.string, withRewards.size.toUInt())) {
             onConfirm(
-                GemTransferData.stake(
-                    asset = assetInfo.asset,
-                    stakeType = StakeType.Rewards(withRewards.map { it.validator }),
-                    value = withRewards.sumOf { it.rewardsBalance() },
+                stakeService.stakeTransferData(
+                    assetInfo.asset.toGem(),
+                    StakeType.Rewards(withRewards.map { it.validator }).toJson(),
+                    withRewards.sumOf { it.rewardsBalance() }.toString(),
+                    false,
                 ).confirmInput(account)
             )
         } else {

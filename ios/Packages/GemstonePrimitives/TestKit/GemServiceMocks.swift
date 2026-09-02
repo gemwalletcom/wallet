@@ -294,11 +294,19 @@ public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Se
 }
 
 public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Sendable {
-    public init() {}
+    private let builder: any GemAmountServiceProtocol
+
+    public init(builder: any GemAmountServiceProtocol) {
+        self.builder = builder
+    }
 
     public func currency() -> Gemstone.Currency { Primitives.Currency.usd.rawValue }
 
-    public func earnData(assetId _: Gemstone.AssetId, address _: String, value _: String, earnType _: Gemstone.EarnType) async throws -> Gemstone.ContractCallData {
+    public func stakeTransferData(asset: Gemstone.Asset, stakeType: Gemstone.StakeType, value: Gemstone.GemBigInt, useMaxAmount: Bool) -> GemTransferData {
+        builder.stakeTransferData(asset: asset, stakeType: stakeType, value: value, useMaxAmount: useMaxAmount)
+    }
+
+    public func earnTransferData(asset _: Gemstone.Asset, earnType _: Gemstone.EarnType, value _: Gemstone.GemBigInt, useMaxAmount _: Bool) async throws -> GemTransferData {
         throw AnyError("not stubbed")
     }
 
@@ -427,7 +435,6 @@ public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchec
 }
 
 public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Sendable {
-    private let earnData: String
     private let rewardsShown: Bool
     private let completionDateShown: Bool
     private let claimable: Bool
@@ -436,7 +443,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     private let validators: [Gemstone.DelegationValidator]
 
     public init(
-        earnData: String = "{}",
         rewardsShown: Bool = false,
         completionDateShown: Bool = false,
         claimable: Bool = false,
@@ -444,13 +450,16 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         actions: [Gemstone.GemDelegationAction] = [],
         validators: [Gemstone.DelegationValidator] = [],
     ) {
-        self.earnData = earnData
         self.rewardsShown = rewardsShown
         self.completionDateShown = completionDateShown
         self.claimable = claimable
         self.explorerAddress = explorerAddress
         self.actions = actions
         self.validators = validators
+    }
+
+    public func stakeTransferData(asset: Gemstone.Asset, stakeType: Gemstone.StakeType, value: Gemstone.GemBigInt, useMaxAmount: Bool) -> GemTransferData {
+        GemTransferData(inputType: .stake(asset: asset, stakeType: stakeType), recipient: GemRecipient(address: ""), value: value, useMaxAmount: useMaxAmount)
     }
 
     public func delegationActions(walletType _: Gemstone.WalletType, chain _: Gemstone.Chain, provider _: Gemstone.StakeProviderType, state _: Gemstone.DelegationState) -> [Gemstone.GemDelegationAction] {
@@ -500,10 +509,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     public func sync(chain _: Gemstone.Chain) async throws {}
 
     public func syncEarn(assetId _: Gemstone.AssetId) async throws {}
-
-    public func getEarnData(assetId _: Gemstone.AssetId, address _: String, value _: String, earnType _: Gemstone.EarnType) async throws -> Gemstone.ContractCallData {
-        earnData
-    }
 }
 
 public final class GemTransactionStateServiceMock: GemTransactionStateServiceProtocol, @unchecked Sendable {

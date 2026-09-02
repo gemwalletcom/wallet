@@ -37,6 +37,7 @@ class AmountProviderFactory @Inject constructor(
             getDelegations = getDelegations,
             getRecommendedValidator = getRecommendedValidator,
             getStakeValidator = getStakeValidator,
+            service = service,
             scope = scope,
         )
         is AmountParams.Perpetual -> AmountPerpetualProvider(

@@ -15,7 +15,6 @@ import PrimitivesComponents
 import GemstoneServices
 import Store
 import SwiftUI
-import struct Gemstone.GemRecipient
 import struct Gemstone.GemTransferData
 
 @MainActor
@@ -144,10 +143,11 @@ public final class StakeSceneViewModel {
     func navigationDestination(for delegation: DelegationViewModel) -> any Hashable {
         switch delegation.state {
         case .awaitingWithdrawal:
-            GemTransferData(
-                inputType: .stake(asset, .withdraw(delegation.delegation)),
-                recipient: GemRecipient(address: delegation.delegation.validator.id, name: delegation.validatorText, memo: ""),
-                value: delegation.delegation.base.balanceValue,
+            service.stakeTransferData(
+                asset: asset.map(),
+                stakeType: StakeType.withdraw(delegation.delegation).json(),
+                value: delegation.delegation.base.balanceValue.description,
+                useMaxAmount: false,
             )
         case .active, .pending, .inactive, .activating, .deactivating:
             delegation.delegation
@@ -186,16 +186,11 @@ public final class StakeSceneViewModel {
 
     var claimRewardsDestination: any Hashable {
         if canClaimAllRewards {
-            let validators = delegationsWithRewards.map(\.validator)
-            let recipient = if validators.count == 1, let validator = validators.first {
-                GemRecipient(address: validator.id, name: validator.name)
-            } else {
-                GemRecipient(address: "")
-            }
-            return GemTransferData(
-                inputType: .stake(chain.chain.asset, .rewards(validators)),
-                recipient: recipient,
-                value: rewardsValue,
+            return service.stakeTransferData(
+                asset: chain.chain.asset.map(),
+                stakeType: StakeType.rewards(delegationsWithRewards.map(\.validator)).json(),
+                value: rewardsValue.description,
+                useMaxAmount: false,
             )
         }
         return AmountInput(

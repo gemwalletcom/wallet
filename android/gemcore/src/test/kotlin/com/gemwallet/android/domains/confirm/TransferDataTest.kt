@@ -2,17 +2,10 @@ package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetHyperCoreUBTC
-import com.gemwallet.android.testkit.mockDelegation
-import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
 import com.gemwallet.android.testkit.mockPerpetualReduceData
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualType
-import com.wallet.core.primitives.RedelegateData
-import com.wallet.core.primitives.Resource
-import com.wallet.core.primitives.StakeType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -25,41 +18,6 @@ import java.math.BigInteger
 class TransferDataTest {
 
     private val transferService = GemTransferService()
-
-    private val stakeAsset = mockAssetCosmos()
-    private val validator = mockDelegationValidator(chain = Chain.Cosmos, id = "validator-id")
-    private val delegation = mockDelegation(assetId = stakeAsset.id, validator = validator)
-
-    @Test
-    fun aStakeSendsToTheValidatorItActsOn() {
-        val stakingToTheValidator = listOf(
-            StakeType.Stake(validator),
-            StakeType.Unstake(delegation),
-            StakeType.Withdraw(delegation),
-        )
-
-        stakingToTheValidator.forEach { stakeType ->
-            val transfer = GemTransferData.stake(stakeAsset, stakeType, BigInteger.TEN)
-
-            assertEquals("validator-id", transfer.recipient.address)
-        }
-    }
-
-    @Test
-    fun aStakeWithNoSingleValidatorHasNoRecipient() {
-        val withoutASingleValidator = listOf(
-            StakeType.Redelegate(RedelegateData(delegation, validator)),
-            StakeType.Rewards(listOf(validator)),
-            StakeType.Freeze(Resource.Bandwidth),
-            StakeType.Unfreeze(Resource.Energy),
-        )
-
-        withoutASingleValidator.forEach { stakeType ->
-            val transfer = GemTransferData.stake(stakeAsset, stakeType, BigInteger.TEN)
-
-            assertEquals("", transfer.recipient.address)
-        }
-    }
 
     @Test
     fun everyPerpetualGoesToTheHyperliquidProvider() {

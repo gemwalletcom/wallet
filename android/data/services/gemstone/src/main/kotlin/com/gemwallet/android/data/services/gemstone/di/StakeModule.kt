@@ -49,6 +49,9 @@ object StakeModule {
     fun provideGemStakeServiceInterface(service: GemStakeService): GemStakeServiceInterface = service
 
     @Provides
-    fun provideGemAmountService(stake: GemStakeService, preferences: GemPreferencesService): GemAmountServiceInterface =
-        GemAmountService(stake, preferences)
+    fun provideGemAmountService(
+        stake: GemStakeService,
+        preferences: GemPreferencesService,
+        walletSessionService: GemWalletSessionService,
+    ): GemAmountServiceInterface = GemAmountService(stake, preferences, walletSessionService)
 }

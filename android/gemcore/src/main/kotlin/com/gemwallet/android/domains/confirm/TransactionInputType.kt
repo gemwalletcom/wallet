@@ -68,8 +68,5 @@ fun GemTransactionInputType.Companion.transferNft(asset: Asset, nftAsset: NFTAss
 fun GemTransactionInputType.Companion.swap(fromAsset: Asset, toAsset: Asset, swapData: SwapData): GemTransactionInputType =
     GemTransactionInputType.Swap(fromAsset.toGem(), toAsset.toGem(), swapData.toJson())
 
-fun GemTransactionInputType.Companion.stake(asset: Asset, stakeType: StakeType): GemTransactionInputType =
-    GemTransactionInputType.Stake(asset.toGem(), stakeType.toJson())
-
 fun GemTransactionInputType.Companion.account(asset: Asset, accountType: AccountDataType): GemTransactionInputType =
     GemTransactionInputType.Account(asset.toGem(), accountType.toJson())

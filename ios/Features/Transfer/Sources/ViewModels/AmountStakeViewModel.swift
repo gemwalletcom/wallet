@@ -5,6 +5,7 @@ import Formatters
 import Foundation
 import enum Gemstone.GemAmountType
 import enum Gemstone.GemAmountStakeType
+import protocol Gemstone.GemAmountServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -23,9 +24,11 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     let asset: Asset
     let action: AmountStakeType
     public let selection: AmountStakeSelection
+    private let service: any GemAmountServiceProtocol
 
-    init(asset: Asset, type: AmountStakeType) {
+    init(asset: Asset, type: AmountStakeType, service: any GemAmountServiceProtocol) {
         self.asset = asset
+        self.service = service
         action = type
         selection = Self.makeSelection(type: type)
     }
@@ -140,12 +143,7 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> GemTransferData {
-        try GemTransferData(
-            inputType: .stake(asset, getStakeType()),
-            recipient: recipientData().recipient,
-            value: value,
-            useMaxAmount: useMaxAmount,
-        )
+        try service.stakeTransferData(asset: asset.map(), stakeType: getStakeType().json(), value: value.description, useMaxAmount: useMaxAmount)
     }
 
     private func getStakeType() throws -> StakeType {

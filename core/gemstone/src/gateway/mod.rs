@@ -115,6 +115,13 @@ impl GemGateway {
             latency: Latency::from_milliseconds(status.latency_ms),
         })
     }
+
+    pub async fn get_earn_data(&self, asset_id: AssetId, address: String, value: String, earn_type: GemEarnType) -> Result<GemContractCallData, GatewayError> {
+        self.yielder
+            .get_data(&asset_id, &address, &value, &earn_type)
+            .await
+            .map_err(|e| GatewayError::NetworkError { msg: e.to_string() })
+    }
 }
 
 #[uniffi::export]
@@ -213,13 +220,6 @@ impl GemGateway {
 
     pub async fn get_is_token_address(&self, chain: Chain, token_id: String) -> Result<bool, GatewayError> {
         Ok(self.chain_factory.create(chain).await?.get_is_token_address(&token_id))
-    }
-
-    pub async fn get_earn_data(&self, asset_id: AssetId, address: String, value: String, earn_type: GemEarnType) -> Result<GemContractCallData, GatewayError> {
-        self.yielder
-            .get_data(&asset_id, &address, &value, &earn_type)
-            .await
-            .map_err(|e| GatewayError::NetworkError { msg: e.to_string() })
     }
 }
 

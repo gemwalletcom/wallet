@@ -31,14 +31,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountStakeType
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemConfirmInput
-import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.domains.confirm.confirmInput
-import com.gemwallet.android.domains.confirm.stake
 import com.wallet.core.primitives.RedelegateData
 import com.wallet.core.primitives.StakeType
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -49,6 +49,7 @@ class AmountStakeProvider(
     private val getDelegations: GetDelegations,
     private val getRecommendedValidator: GetRecommendedValidator,
     private val getStakeValidator: GetStakeValidator,
+    private val service: GemAmountServiceInterface,
     scope: CoroutineScope,
 ) : AmountDataProvider(scope) {
 
@@ -189,12 +190,7 @@ class AmountStakeProvider(
             is AmountParams.Stake.Freeze -> StakeType.Freeze(selectedResource.value)
             is AmountParams.Stake.Unfreeze -> StakeType.Unfreeze(selectedResource.value)
         }
-        return GemTransferData.stake(
-            asset = current.asset,
-            stakeType = stakeType,
-            value = amount.atomicValue,
-            useMaxAmount = isMax && (params is AmountParams.Stake.Delegate || params is AmountParams.Stake.Freeze),
-        ).confirmInput(owner)
+        return service.stakeTransferData(current.asset.toGem(), stakeType.toJson(), amount.atomicValue.toString(), isMax).confirmInput(owner)
     }
 
     private val currentValidator: DelegationValidator

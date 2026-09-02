@@ -805,3 +805,13 @@ caller: `rg -l '#\[uniffi::export\]'`, list the `pub fn`s, camel-case each, sear
 platform, the preferences, the transaction-state store and the perpetual service, so each app
 holds it alone (iOS keeps the plain stores it wipes); `reset_transactions_timestamp` and
 `delete_preferences` stopped being exported from `GemWalletPreferencesService`.
+
+**A transfer the confirm screen receives is built by Core, not assembled at the call site.**
+Both apps built the stake confirm transfer themselves — Android's `GemTransferData.stake` with
+a `StakeType.validatorId` switch, iOS's inline `TransferData(...)` in three view models — and
+each decided on its own which stake types keep the max flag and which name the validator.
+`stake_transfer_data(asset, stake_type, value, use_max_amount)` on `GemAmountService` and
+`GemStakeService` and `GemAmountService::earn_transfer_data` answer that once; the earn builder
+also finds the account on the session wallet and asks the gateway itself, so the apps stopped
+calling `get_earn_data`. When a screen packs a `GemTransferData` by hand, the recipient and the
+flags it picks are a rule Core should own.

@@ -4,12 +4,12 @@ use primitives::SwapProvider;
 use primitives::known_assets::wallet_default_assets;
 use primitives::swap::ApprovalData;
 use primitives::{
-    ApplicationMetadataSource, Asset, AssetId, AssetType, Chain, DelegationValidator, EarnType, FeePriority, PerpetualType, RecentActivityType, StakeType, Transaction,
-    TransactionDirection, TransactionInputType, TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState,
+    ApplicationMetadataSource, Asset, AssetId, AssetType, Chain, ContractCallData, DelegationValidator, EarnType, FeePriority, PerpetualType, RecentActivityType, StakeType,
+    Transaction, TransactionDirection, TransactionInputType, TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState,
     TransactionSwapMetadata, TransactionType, TransactionWalletConnectMetadata, TransferDataOutputAction, TransferDataOutputType,
 };
 
-use super::model::{GemConfirmDestination, GemPendingTransactionInput, GemRecentActivity, GemTransferBalance, GemTransferData, GemTransferOutput};
+use super::model::{GemConfirmDestination, GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferBalance, GemTransferData, GemTransferOutput};
 use crate::config::chain::is_memo_supported;
 use crate::models::transaction::{GemTransactionInputType, transaction_metadata_block_number, transaction_metadata_sequence};
 use crate::services::amount::model::GemAmountError;
@@ -293,6 +293,41 @@ impl GemTransferData {
             }
             GemTransactionInputType::Swap { .. } | GemTransactionInputType::Account { .. } | GemTransactionInputType::Perpetual { .. } => None,
         }
+    }
+}
+
+pub fn stake_transfer_data(asset: Asset, stake_type: StakeType, value: BigInt, use_max_amount: bool) -> GemTransferData {
+    let recipient = match &stake_type {
+        StakeType::Stake(validator) => GemRecipient::named(validator.id.clone(), validator.name.clone()),
+        StakeType::Redelegate(data) => GemRecipient::named(data.to_validator.id.clone(), data.to_validator.name.clone()),
+        StakeType::Unstake(delegation) | StakeType::Withdraw(delegation) => GemRecipient::named(delegation.validator.id.clone(), delegation.validator.name.clone()),
+        StakeType::Rewards(validators) => match validators.first() {
+            Some(validator) => GemRecipient::named(validator.id.clone(), validator.name.clone()),
+            None => GemRecipient::address(String::new()),
+        },
+        StakeType::Freeze(resource) | StakeType::Unfreeze(resource) => GemRecipient::address(resource.as_ref().to_string()),
+    };
+    let use_max_amount = use_max_amount && matches!(stake_type, StakeType::Stake(_) | StakeType::Freeze(_));
+    GemTransferData {
+        input_type: GemTransactionInputType::Stake { asset, stake_type },
+        recipient,
+        value,
+        use_max_amount,
+        minimum_value: None,
+    }
+}
+
+pub fn earn_transfer_data(asset: Asset, earn_type: EarnType, data: ContractCallData, value: BigInt, use_max_amount: bool) -> GemTransferData {
+    let provider = match &earn_type {
+        EarnType::Deposit(provider) => provider,
+        EarnType::Withdraw(delegation) => &delegation.validator,
+    };
+    GemTransferData {
+        recipient: GemRecipient::named(data.contract_address.clone(), provider.name.clone()),
+        input_type: GemTransactionInputType::Earn { asset, earn_type, data },
+        value,
+        use_max_amount,
+        minimum_value: None,
     }
 }
 
@@ -587,6 +622,33 @@ mod tests {
             GemTransactionHeaderKind::AssetImage
         );
         assert_eq!(perpetual_input(asset(Chain::HyperCore)).header_kind(), GemTransactionHeaderKind::Symbol);
+    }
+
+    #[test]
+    fn test_stake_transfer_data_names_the_validator_and_keeps_max_for_new_stake_only() {
+        let validator = primitives::DelegationValidator::mock();
+        let staked = stake_transfer_data(Asset::from_chain(Chain::Cosmos), StakeType::Stake(validator.clone()), BigInt::from(5), true);
+        assert_eq!(staked.recipient.address, validator.id);
+        assert_eq!(staked.recipient.name.as_deref(), Some(validator.name.as_str()));
+        assert!(staked.use_max_amount);
+        let unstaked = stake_transfer_data(Asset::from_chain(Chain::Cosmos), StakeType::Unstake(primitives::Delegation::mock()), BigInt::from(5), true);
+        assert!(!unstaked.use_max_amount);
+        assert_eq!(unstaked.value, BigInt::from(5));
+    }
+
+    #[test]
+    fn test_earn_transfer_data_sends_to_the_contract_under_the_provider_name() {
+        let provider = primitives::DelegationValidator::mock();
+        let data = ContractCallData {
+            contract_address: "0xvault".to_string(),
+            call_data: "0x".to_string(),
+            approval: None,
+            gas_limit: None,
+        };
+        let transfer = earn_transfer_data(Asset::from_chain(Chain::Ethereum), EarnType::Deposit(provider.clone()), data, BigInt::from(1), false);
+        assert_eq!(transfer.recipient.address, "0xvault");
+        assert_eq!(transfer.recipient.name.as_deref(), Some(provider.name.as_str()));
+        assert!(matches!(transfer.input_type, GemTransactionInputType::Earn { .. }));
     }
 
     #[test]

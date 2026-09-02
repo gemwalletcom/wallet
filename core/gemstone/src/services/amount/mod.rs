@@ -3,28 +3,33 @@ pub mod rules;
 
 use std::sync::Arc;
 
-use primitives::{AssetId, Currency, PerpetualDirection};
+use primitives::{Asset, Currency, PerpetualDirection, StakeType};
 
 pub use model::{GemAmountEarnType, GemAmountError, GemAmountLimits, GemAmountPerpetualPosition, GemAmountRules, GemAmountStakeType, GemAmountType, GemPerpetualAutoclose};
 
 use crate::config::perpetual_config::{leverage_options, select_leverage};
 
-use crate::models::{GemContractCallData, GemEarnType};
+use crate::models::GemEarnType;
+use crate::models::custom_types::GemBigInt;
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::stake::GemStakeService;
+use crate::services::transfer::GemTransferData;
+use crate::services::transfer::rules as transfer_rules;
+use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemAmountService {
     stake: Arc<GemStakeService>,
     preferences: Arc<GemPreferencesService>,
+    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
 impl GemAmountService {
     #[uniffi::constructor]
-    pub fn new(stake: Arc<GemStakeService>, preferences: Arc<GemPreferencesService>) -> Self {
-        Self { stake, preferences }
+    pub fn new(stake: Arc<GemStakeService>, preferences: Arc<GemPreferencesService>, session: Arc<GemWalletSessionService>) -> Self {
+        Self { stake, preferences, session }
     }
 
     pub fn currency(&self) -> Currency {
@@ -45,7 +50,19 @@ impl GemAmountService {
         )
     }
 
-    pub async fn earn_data(&self, asset_id: AssetId, address: String, value: String, earn_type: GemEarnType) -> Result<GemContractCallData, GemServiceError> {
-        self.stake.get_earn_data(asset_id, address, value, earn_type).await
+    pub fn stake_transfer_data(&self, asset: Asset, stake_type: StakeType, value: GemBigInt, use_max_amount: bool) -> GemTransferData {
+        transfer_rules::stake_transfer_data(asset, stake_type, value, use_max_amount)
+    }
+
+    pub async fn earn_transfer_data(&self, asset: Asset, earn_type: GemEarnType, value: GemBigInt, use_max_amount: bool) -> Result<GemTransferData, GemServiceError> {
+        let wallet = self.session.current_wallet()?;
+        let account = wallet.account(asset.chain()).ok_or_else(|| GemServiceError::NotFound {
+            msg: format!("wallet {} has no {} account", wallet.id.id(), asset.chain()),
+        })?;
+        let data = self
+            .stake
+            .get_earn_data(asset.id.clone(), account.address.clone(), value.to_string(), earn_type.clone())
+            .await?;
+        Ok(transfer_rules::earn_transfer_data(asset, earn_type, data, value, use_max_amount))
     }
 }
