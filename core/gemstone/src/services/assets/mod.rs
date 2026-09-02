@@ -1,4 +1,5 @@
 pub mod config;
+pub mod details;
 pub mod model;
 pub mod rules;
 pub mod store;
@@ -9,6 +10,7 @@ use std::sync::Arc;
 use primitives::currency::Currency;
 use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, Chain, ConfigVersions, FiatAssets, FiatQuoteType, SearchResponse, Wallet, WalletId};
 
+pub use details::GemAssetDetailsService;
 pub use model::{AssetList, GemAssetAction, GemAssetFilter};
 pub use store::GemAssetStore;
 

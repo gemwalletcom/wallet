@@ -101,22 +101,9 @@ struct WalletNavigationView: View {
         }
         .navigationDestination(for: Scenes.Asset.self) {
             AssetNavigationView(
-                model: AssetSceneViewModel(
-                    balanceService: balanceService,
-                    assetsService: assetsService,
-                    transactionsService: transactionsService,
-                    priceUpdater: streamSubscriptionService,
-                    priceAlertService: priceAlertService,
-                    bannerService: bannerService,
-                    swapService: swapService,
-                    explorerService: explorerService,
-                    transactionFormatter: transactionFormatter,
-                    deeplinkService: deeplinkService,
-                    preferences: preferences,
-                    input: AssetSceneInput(
-                        wallet: model.wallet,
-                        asset: $0.asset,
-                    ),
+                model: viewModelFactory.assetScene(
+                    wallet: model.wallet,
+                    asset: $0.asset,
                     isPresentingSelectedAssetInput: model.isPresentingSelectedAssetInput,
                 ),
             )

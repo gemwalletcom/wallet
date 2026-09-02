@@ -13,7 +13,7 @@ import PrimitivesTestKit
 import SwiftUI
 import PreferencesTestKit
 import Testing
-import protocol Gemstone.GemSwapServiceProtocol
+import protocol Gemstone.GemAssetDetailsServiceProtocol
 import struct Gemstone.GemSwapPairSuggestion
 
 @MainActor
@@ -36,7 +36,7 @@ struct AssetSceneViewModelTests {
         let asset = Asset.mockEthereumUSDT()
         let model = AssetSceneViewModel.mock(
             .mock(asset: asset, balance: .mock()),
-            swapService: GemSwapServiceMock(assetPair: GemSwapPairSuggestion(payAssetId: asset.id.identifier, receiveAssetId: nil)),
+            service: GemAssetDetailsServiceMock(assetPair: GemSwapPairSuggestion(payAssetId: asset.id.identifier, receiveAssetId: nil)),
         )
 
         #expect(model.swapAssetType == .swap(asset, nil))
@@ -47,7 +47,7 @@ struct AssetSceneViewModelTests {
         let asset = Asset.mockEthereumUSDT()
         let model = AssetSceneViewModel.mock(
             .mock(asset: asset, balance: .zero),
-            swapService: GemSwapServiceMock(
+            service: GemAssetDetailsServiceMock(
                 assetPair: GemSwapPairSuggestion(payAssetId: asset.chain.assetId.identifier, receiveAssetId: asset.id.identifier),
             ),
         )
@@ -114,19 +114,12 @@ struct AssetSceneViewModelTests {
 extension AssetSceneViewModel {
     static func mock(
         _ assetData: AssetData = AssetData.mock(),
-        swapService: any GemSwapServiceProtocol = GemSwapServiceMock(),
+        service: any GemAssetDetailsServiceProtocol = GemAssetDetailsServiceMock(),
     ) -> AssetSceneViewModel {
         let model = AssetSceneViewModel(
-            balanceService: GemBalanceServiceMock(),
-            assetsService: GemAssetsServiceMock(),
-            transactionsService: GemTransactionsServiceMock(),
-            priceUpdater: .mock(),
-            priceAlertService: GemPriceAlertServiceMock(),
-            bannerService: GemBannerServiceMock(),
-            swapService: swapService,
+            service: service,
             explorerService: GemExplorerServiceMock(),
             transactionFormatter: GemTransactionFormatter(),
-            deeplinkService: GemDeeplinkService(),
             preferences: .mock(),
             input: AssetSceneInput(
                 wallet: .mock(),

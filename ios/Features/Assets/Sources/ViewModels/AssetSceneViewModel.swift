@@ -1,19 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemDeeplinkService
-import protocol Gemstone.GemPriceAlertServiceProtocol
 import BigInt
 import Components
-import protocol Gemstone.GemAssetsServiceProtocol
-import protocol Gemstone.GemBalanceServiceProtocol
-import struct Gemstone.GemBannerContent
-import struct Gemstone.GemBannerContext
-import protocol Gemstone.GemBannerServiceProtocol
-import protocol Gemstone.GemTransactionsServiceProtocol
-import GemstoneServices
+import protocol Gemstone.GemAssetDetailsServiceProtocol
 import protocol Gemstone.GemExplorerServiceProtocol
 import class Gemstone.GemTransactionFormatter
-import protocol Gemstone.GemSwapServiceProtocol
+import struct Gemstone.GemBannerContent
+import struct Gemstone.GemBannerContext
+import GemstoneServices
 import struct Gemstone.GemStakeBalance
 import GemstonePrimitives
 import Localization
@@ -30,20 +24,11 @@ import struct Gemstone.GemTransferData
 @Observable
 @MainActor
 public final class AssetSceneViewModel: Sendable {
-    private let balanceService: any GemBalanceServiceProtocol
-    private let assetsService: any GemAssetsServiceProtocol
-    private let deeplinkService: GemDeeplinkService
-    private let transactionsService: any GemTransactionsServiceProtocol
-    private let priceUpdater: any PriceUpdater
-    private let bannerService: any GemBannerServiceProtocol
-    private let swapService: any GemSwapServiceProtocol
-
+    private let service: any GemAssetDetailsServiceProtocol
     private let preferences: ObservablePreferences
 
     let explorerService: any GemExplorerServiceProtocol
-
     let transactionFormatter: GemTransactionFormatter
-    public let priceAlertService: any GemPriceAlertServiceProtocol
 
     private var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
 
@@ -56,28 +41,14 @@ public final class AssetSceneViewModel: Sendable {
     public let transactionsQuery: ObservableQuery<TransactionsRequest>
 
     public init(
-        balanceService: any GemBalanceServiceProtocol,
-        assetsService: any GemAssetsServiceProtocol,
-        transactionsService: any GemTransactionsServiceProtocol,
-        priceUpdater: any PriceUpdater,
-        priceAlertService: any GemPriceAlertServiceProtocol,
-        bannerService: any GemBannerServiceProtocol,
-        swapService: any GemSwapServiceProtocol,
+        service: any GemAssetDetailsServiceProtocol,
         explorerService: any GemExplorerServiceProtocol,
         transactionFormatter: GemTransactionFormatter,
-        deeplinkService: GemDeeplinkService,
         preferences: ObservablePreferences,
         input: AssetSceneInput,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
-        self.balanceService = balanceService
-        self.assetsService = assetsService
-        self.deeplinkService = deeplinkService
-        self.transactionsService = transactionsService
-        self.priceUpdater = priceUpdater
-        self.priceAlertService = priceAlertService
-        self.bannerService = bannerService
-        self.swapService = swapService
+        self.service = service
         self.explorerService = explorerService
         self.transactionFormatter = transactionFormatter
         self.preferences = preferences
@@ -259,7 +230,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     func bannerContent(for banner: Banner) -> GemBannerContent {
-        bannerService.content(for: banner)
+        service.bannerContent(event: banner.event.json(), asset: banner.asset?.map())
     }
 
     private var bannerContext: GemBannerContext {
@@ -285,7 +256,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     public var shareAssetUrl: URL {
-        DeepLink.asset(assetDataModel.asset.id).url(deeplinkService: deeplinkService)
+        service.deeplinkUrl(deeplink: DeepLink.asset(assetDataModel.asset.id).map()).asURL!
     }
 
     public var assetModel: AssetViewModel {
@@ -331,10 +302,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     var swapAssetType: SelectedAssetType {
-        let pair = swapService.pairForAsset(
-            assetId: assetData.asset.id.identifier,
-            hasBalance: assetData.balance.available > .zero,
-        )
+        let pair = service.swapPair(assetId: assetData.asset.id.identifier, hasBalance: assetData.balance.available > .zero)
         guard pair.receiveAssetId != nil else { return .swap(assetData.asset, nil) }
         return .swap(assetData.asset.chain.asset, assetData.asset)
     }
@@ -430,11 +398,11 @@ public extension AssetSceneViewModel {
                  .accountBlockedMultiSignature,
                  .onboarding:
                 Task {
-                    try await bannerService.applyAction(key: action.banner.gemKey, action: action.type.gemAction)
+                    try await service.applyBannerAction(key: action.banner.gemKey, action: action.type.gemAction)
                 }
             case .suspiciousAsset: break
             case .tradePerpetuals:
-                UIApplication.shared.open(DeepLink.perpetuals.gemUrl(deeplinkService: deeplinkService))
+                UIApplication.shared.open(service.deeplinkGemUrl(deeplink: DeepLink.perpetuals.map()).asURL!)
                 preferences.isPerpetualEnabled = true
             }
         case let .button(bannerButton):
@@ -444,7 +412,7 @@ public extension AssetSceneViewModel {
             }
         case .closeBanner:
             Task {
-                try await bannerService.applyAction(key: action.banner.gemKey, action: action.type.gemAction)
+                try await service.applyBannerAction(key: action.banner.gemKey, action: action.type.gemAction)
             }
         }
         onSelect(url: action.url)
@@ -497,7 +465,7 @@ public extension AssetSceneViewModel {
         let pinned = !assetData.metadata.isPinned
         Task {
             do {
-                try await balanceService.setAssetPinned(wallet: wallet, assetId: asset.id, pinned: pinned)
+                try await service.setAssetPinned(walletId: wallet.id.id, assetId: asset.id.identifier, pinned: pinned)
                 isPresentingToastMessage = .pin(asset.name, pinned: pinned)
             } catch {
                 debugLog("onSelectPin error: \(error)")
@@ -509,7 +477,7 @@ public extension AssetSceneViewModel {
         Task {
             let enabled = !assetData.metadata.isBalanceEnabled
             do {
-                try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: [asset.id], enabled: enabled)
+                try await service.setAssetsEnabled(walletId: wallet.id.id, assetIds: [asset.id.identifier], enabled: enabled)
                 isPresentingToastMessage = .showAsset(visible: enabled)
             } catch {
                 debugLog("onSelectEnable error: \(error)")
@@ -544,11 +512,11 @@ extension AssetSceneViewModel {
         guard let tokenId = assetModel.asset.tokenId else {
             return .none
         }
-        return explorerService.getTokenUrl(chain: assetModel.asset.chain.rawValue, address: tokenId).map { BlockExplorerLink($0) }
+        return service.tokenUrl(chain: assetModel.asset.chain.rawValue, address: tokenId).map { BlockExplorerLink($0) }
     }
 
     private var addressLink: BlockExplorerLink {
-        BlockExplorerLink(explorerService.getAddressUrl(chain: assetModel.asset.chain.rawValue, address: assetDataModel.address))
+        BlockExplorerLink(service.addressUrl(chain: assetModel.asset.chain.rawValue, address: assetDataModel.address))
     }
 
     private var stakeBalance: GemStakeBalance {
@@ -574,7 +542,7 @@ extension AssetSceneViewModel {
 
     private func loadTransactions() async {
         do {
-            try await transactionsService.sync(walletId: walletModel.wallet.id.id, assetId: assetModel.asset.id.identifier)
+            try await service.syncTransactions(walletId: walletModel.wallet.id.id, assetId: assetModel.asset.id.identifier)
         } catch {
             // TODO: - handle loadTransactions error
             debugLog("asset scene: loadTransactions error \(error)")
@@ -585,9 +553,9 @@ extension AssetSceneViewModel {
         let currency = try Currency(id: preferences.currency)
         let priceAlert = PriceAlert.default(for: assetModel.asset.id, currency: currency)
         if enabled {
-            try await priceAlertService.enable(priceAlert: priceAlert)
+            try await service.enablePriceAlert(alert: priceAlert.json())
         } else {
-            try await priceAlertService.delete(priceAlerts: [priceAlert])
+            try await service.deletePriceAlerts(alerts: [priceAlert.json()])
         }
     }
 
@@ -600,10 +568,10 @@ extension AssetSceneViewModel {
     private func updateAssetData() async {
         let associations: [AssetAssociation]
         do {
-            let asset = try await assetsService.syncAsset(
-                for: assetModel.asset.id,
-                currency: preferences.currency,
-            )
+            let asset = try await AssetFull(service.syncAsset(
+                assetId: assetModel.asset.id.identifier,
+                currency: Currency(id: preferences.currency).json(),
+            ))
             associations = asset.associations
         } catch {
             // TODO: - handle updateAsset error
@@ -612,7 +580,7 @@ extension AssetSceneViewModel {
         }
 
         do {
-            try await assetsService.syncMissingAssets(for: associations.map(\.assetId))
+            _ = try await service.syncMissingAssets(assetIds: associations.map(\.assetId).ids)
         } catch {
             debugLog("asset scene: prefetch associations error \(error)")
         }
@@ -620,7 +588,7 @@ extension AssetSceneViewModel {
 
     private func updatePrices() async {
         do {
-            try await priceUpdater.addPrices(assetIds: [assetModel.asset.id])
+            try await service.addPrices(assetIds: [assetModel.asset.id.identifier])
         } catch {
             debugLog("asset scene: addPrices error \(error)")
         }
@@ -634,7 +602,7 @@ extension AssetSceneViewModel {
 
     private func updateBalance() async {
         do {
-            try await balanceService.update(walletId: walletModel.wallet.id.id, assetIds: [assetModel.asset.id.identifier])
+            try await service.updateBalances(walletId: walletModel.wallet.id.id, assetIds: [assetModel.asset.id.identifier])
         } catch {
             debugLog("asset scene: balance update error \(error)")
         }
@@ -642,7 +610,7 @@ extension AssetSceneViewModel {
 
     private func updatePriceAlerts() async {
         do {
-            try await priceAlertService.sync(assetId: asset.id.identifier)
+            try await service.syncPriceAlerts(assetId: asset.id.identifier)
         } catch {
             debugLog("asset scene: price alerts update error \(error)")
         }

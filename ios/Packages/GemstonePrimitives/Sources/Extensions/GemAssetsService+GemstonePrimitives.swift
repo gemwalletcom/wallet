@@ -23,11 +23,8 @@ public extension GemAssetsServiceProtocol {
     }
 
     @discardableResult
-    func syncAsset(for assetId: Primitives.AssetId, currency: String) async throws -> Primitives.AssetFull {
-        guard let currency = Primitives.Currency(rawValue: currency) else {
-            throw AnyError("unknown currency: \(currency)")
-        }
-        return try await Primitives.AssetFull(syncAsset(assetId: assetId.identifier, currency: currency.json()))
+    func syncAsset(for assetId: Primitives.AssetId, currency: Primitives.Currency) async throws -> Primitives.AssetFull {
+        try await Primitives.AssetFull(syncAsset(assetId: assetId.identifier, currency: currency.json()))
     }
 
 }

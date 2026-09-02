@@ -19,9 +19,7 @@ struct AssetNavigationView: View {
     }
 
     var body: some View {
-        AssetScene(
-            model: model,
-        )
+        AssetScene(model: model)
         .bindQuery(model.assetQuery, model.bannersQuery, model.transactionsQuery)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {

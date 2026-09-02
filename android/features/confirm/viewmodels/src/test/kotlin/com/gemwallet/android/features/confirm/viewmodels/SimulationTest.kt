@@ -66,6 +66,22 @@ class SimulationTest {
         assertEquals("750000", exact.headerValue)
     }
 
+    @Test
+    fun `an unreadable header asset drops the header instead of crashing`() {
+        val unreadable = uniffi.gemstone.Asset(
+            id = "",
+            name = "",
+            symbol = "",
+            decimals = 0,
+            assetType = uniffi.gemstone.AssetType.NATIVE,
+        )
+        val simulation = state(header = GemSimulationValue(asset = unreadable, value = GemApprovalValue.Exact("1")))
+            .toSimulation(warnings = emptyList(), chain = null, confirmService = confirmService)
+
+        assertNull(simulation.headerAsset)
+        assertNull(simulation.headerValue)
+    }
+
     private fun state(
         balanceChanges: List<GemSimulationBalanceChange> = emptyList(),
         header: GemSimulationValue? = null,

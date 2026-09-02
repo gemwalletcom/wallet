@@ -59,13 +59,17 @@ fun com.wallet.core.primitives.RecentActivityType.toGem(): uniffi.gemstone.Recen
     com.wallet.core.primitives.RecentActivityType.Perpetual -> uniffi.gemstone.RecentActivityType.PERPETUAL
 }
 
-fun uniffi.gemstone.Asset.toPrimitives(): com.wallet.core.primitives.Asset = com.wallet.core.primitives.Asset(
-    id = id.toAssetId()!!,
-    name = name,
-    symbol = symbol,
-    decimals = decimals,
-    type = assetType.toPrimitives(),
-)
+fun uniffi.gemstone.Asset.toPrimitives(): com.wallet.core.primitives.Asset = toPrimitivesOrNull()!!
+
+fun uniffi.gemstone.Asset.toPrimitivesOrNull(): com.wallet.core.primitives.Asset? = id.toAssetId()?.let { assetId ->
+    com.wallet.core.primitives.Asset(
+        id = assetId,
+        name = name,
+        symbol = symbol,
+        decimals = decimals,
+        type = assetType.toPrimitives(),
+    )
+}
 
 fun com.wallet.core.primitives.Asset.toGem(): uniffi.gemstone.Asset = uniffi.gemstone.Asset(
     id = id.toIdentifier(),

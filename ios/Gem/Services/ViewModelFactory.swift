@@ -59,6 +59,10 @@ import Transfer
 import WalletConnector
 import WalletConnectorService
 import WalletTab
+import class Gemstone.GemAssetDetailsService
+import class Gemstone.GemTransactionFormatter
+import class Gemstone.GemBannerService
+import class Gemstone.GemTransactionsService
 import struct Gemstone.GemTransferData
 
 public struct ViewModelFactory: Sendable {
@@ -67,6 +71,7 @@ public struct ViewModelFactory: Sendable {
     let assetConfig: GemAssetConfigService
     let assetsService: GemAssetsService
     let avatarService: GemAvatarService
+    let bannerService: GemBannerService
     let balanceService: GemBalanceService
     let chainService: GemChainService
     let confirmService: GemConfirmService
@@ -89,6 +94,7 @@ public struct ViewModelFactory: Sendable {
     let swapQuoteService: GemSwapQuoteService
     let swapService: GemSwapService
     let transactionStateService: GemTransactionStateService
+    let transactionsService: GemTransactionsService
     let transferService: GemTransferService
     let walletService: GemWalletService
     let walletSessionService: GemWalletSessionService
@@ -99,12 +105,39 @@ public struct ViewModelFactory: Sendable {
     let recentAssetsService: GemRecentActivityService
     let amountService: AmountService
     let toastPresenter: ToastPresenter
+    let transactionFormatter: GemTransactionFormatter
     let walletPreferencesService: GemWalletPreferencesService
     let deviceKeyService: GemDeviceKeyService
     let storeManager: StoreManager
     let supportService: any GemSupportServiceProtocol
     let supportTyping: ObservableSupportTyping
 
+
+    @MainActor
+    public func assetScene(
+        wallet: Wallet,
+        asset: Asset,
+        isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
+    ) -> AssetSceneViewModel {
+        AssetSceneViewModel(
+            service: Gemstone.GemAssetDetailsService(
+                assets: assetsService,
+                balances: balanceService,
+                transactions: transactionsService,
+                banners: bannerService,
+                swap: swapService,
+                explorer: explorerService,
+                priceAlerts: priceAlertService,
+                stream: streamSubscriptionService,
+                deeplinks: deeplinkService,
+            ),
+            explorerService: explorerService,
+            transactionFormatter: transactionFormatter,
+            preferences: observablePreferences,
+            input: AssetSceneInput(wallet: wallet, asset: asset),
+            isPresentingSelectedAssetInput: isPresentingSelectedAssetInput,
+        )
+    }
 
     @MainActor
     public func supportChatScene() -> SupportChatSceneViewModel {
