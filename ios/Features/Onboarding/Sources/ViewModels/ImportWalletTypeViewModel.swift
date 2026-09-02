@@ -1,5 +1,6 @@
 import Foundation
 import protocol Gemstone.GemChainServiceProtocol
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -8,11 +9,15 @@ import Preferences
 
 public struct ImportWalletTypeViewModel {
     private let preferences: ObservablePreferences
-    public let chainService: any GemChainServiceProtocol
+    private let chainService: any GemChainServiceProtocol
 
     public init(preferences: ObservablePreferences, chainService: any GemChainServiceProtocol) {
         self.preferences = preferences
         self.chainService = chainService
+    }
+
+    func filterChains(for query: String) -> [Chain] {
+        chainService.getChains(query: query).map { Chain(core: $0) }
     }
 
     var title: String {
@@ -44,6 +49,3 @@ extension ImportWalletTypeViewModel: Hashable {
     }
 }
 
-// MARK: - ChainFilterable
-
-extension ImportWalletTypeViewModel: ChainFilterable {}

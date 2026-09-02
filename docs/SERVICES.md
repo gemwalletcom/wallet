@@ -364,14 +364,6 @@ Three gotchas if you repeat the sweep, all met on this pass:
   verifier, active request, `GemWalletConnectService`); the request lifecycle around
   `GemWalletConnectService::handle_request` is the next thing to move into Core.
 
-Android's confirm screen now reads everything it shows from one `GemConfirmTransferService.load`
-call: `GemConfirmMetadata` (balances and prices) feeds the amount header, the swap details and the
-fee-asset row through `AssetPriceValue`/`FeeAssetUIModel`, and `GemFeeAsset` feeds the fee-asset
-picker. `GetWalletAssets`, `GetAssetInfo` and the `GetFeeAssets`/`FeeAssetProvider` chain are out of
-the view model, `BuildConfirmProperties` takes the transfer, the wallet and the recipient name only,
-and `ConfirmViewModel` injects `GetSession`, `BuildConfirmProperties`, `GemConfirmTransferService`
-and `GemTransferService`.
-
 ### 4. Core surface
 
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
@@ -408,45 +400,9 @@ setup rather than retrying it.
 - **Earn flow.** No Earn surface exists (no `StakeProviderType.Earn` reader, no `AmountParams.Earn`, no `ConfirmParams.Earn`; `GemDelegationAction.DEPOSIT` maps to nothing). Build the scene, amount provider and confirm params on `GemStakeService.sync_earn`/`get_earn_data`, `GemAmountType::Earn` and `GemTransactionInputType::Earn`; iOS `EarnSceneViewModel` + `AmountEarnViewModel` are the reference. A feature, not a consolidation — plan it as its own batch.
 - **Dead `NOT NULL` columns** with no iOS counterpart: `AssetStore.saveAsset` bumps `updatedAt`, `TransactionStateStore` writes swap amounts, `NftStore` fills two legacy image columns. minSdk 28 has no `ALTER TABLE DROP COLUMN`, so removing them means recreating tables (`asset` behind its foreign keys) and instrumented migration tests do not run in CI — batch them with a migration that has another reason to touch those tables.
 - `PriceStore` still stamps `prices.currency` (now only the label `AssetPriceInfo.currency` reads) and `mapNotNull`s unparsable ids where iOS maps straight through.
-- **Asset selection**: `BaseAssetSelectViewModel` and its seven subclasses (select, send, buy,
-  swap, price-alert select, wallet search, search results) hold `GemAssetSelectionService` for the
-  remote search (`searchAssets` / `search(scope)`), visibility, pinning, perpetual pinning and the
-  recent-activity write, matching iOS `SelectAssetViewModel`; only the observed reads
-  (`GetRecentAssets`, the `SelectSearch` sources) stay as cases. `WalletSearchTokens`,
-  `WalletSearchScope`, the `@WalletSearch` qualifier and `SearchTokens.search(query, …)` are gone;
-  `SearchTokens` keeps the widget's `syncAssets` call only.
-- **Wallet home**: `AssetsViewModel` and `NetworkAssetsViewModel` hold `GemWalletHomeService`
-  (`refresh`, `setAssetPinned`, `setAssetsEnabled`, `applyBannerAction`) like iOS
-  `WalletSceneViewModel`; `SyncAssets` (the wallet-switch sync in `StreamObserverService`) is one
-  `refresh` call, and `HideAsset`, `SetAssetPinned`, `SwitchAssetVisibility`, `ToggleHideBalances`,
-  `HideWelcomeBanner` and `DeviceAssetsSyncService` are gone.
-- **Perpetual market**: `PerpetualMarketViewModel` holds `GemPerpetualService` (`syncMarketsIfNeeded`,
-  `setPinned`) and `GemRecentActivityService`, and position sync is `PerpetualObserver.update(wallet)`
-  exactly as iOS's `PerpetualObservable.update(for:)`, so `SyncPerpetuals`, `SyncPerpetualPositions`,
-  `SetPerpetualPinned` and `UpdateRecentAsset` are gone.
-- **Recipient**: `RecipientViewModel` holds `GemRecipientService` (`recipient`, `isNameSupported`,
-  `otherWallets`, `scanDestination`, `transferData`) and feeds `AddressInputModel` with
-  `service.addressInput()`; `ManageContactViewModel` and `ImportViewModel` take the Hilt-bound
-  `AddressInputResolving` over `GemNameService`. `GetNameRecord`, `GetWallets` on the recipient
-  screen and `PaymentDestination.transfer` are gone.
-- **Swap confirm**: `GemSwapTransfer::transfer_data(from_asset, to_asset)` builds the swap
-  `GemTransferData` in Core (recipient is the wallet's to-chain address, memo from the quote data,
-  minimum value from the quote), so iOS's `GemTransferData(swap:)` initialiser and Android's
-  `BuildSwapConfirmInput` case are gone; `SwapViewModel` calls `getTransfer(...).transferData(...)`
-  on `GemSwapQuoteService` directly. Before this Android sent the swap-data memo and iOS sent none —
-  Cosmos swaps sign with that memo, so the Core rule keeps it.
-- **Contacts**: `ContactsViewModel` deletes through `GemContactService` and `ManageContactViewModel`
-  holds `GemManageContactService` (`saveContact`, `defaultChain`, `addressInput()`) with
-  `GemContactAddressInput.addAddress` on the value, as iOS; `SaveContact`, `AddContactAddress`,
-  `DeleteContact` and `ContactsCoordinator` are gone. It still injects `GemPaymentService` to
-  decode a scanned payment URL into the address field — iOS pastes the raw scan — so either that
-  decode moves onto `GemManageContactService` or Android drops it.
-- **Price alerts**: `PriceAlertViewModel`, `PriceAlertTargetViewModel` and `AssetPriceAlertsViewModel`
-  call `GemPriceAlertService` directly (`sync`, `setEnabled`/`isEnabled`, `setAutoAlert`,
-  `enablePriceAlert`, `deletePriceAlerts`, `currency`) and the asset screen syncs through
-  `GemAssetDetailsService.syncPriceAlerts` like iOS; only the two observed reads (`GetPriceAlerts`,
-  `GetAssetPriceAlertState`) remain as cases. The `PriceAlertsCoordinator` forwarder and its five
-  interfaces are gone.
+- **Contact address scan**: `ManageContactViewModel` injects `GemPaymentService` to decode a scanned
+  payment URL into the address field; iOS pastes the raw scan. Either the decode moves onto
+  `GemManageContactService` or Android drops it.
 - **Node screens**: `AddNodeViewModel` and `NetworksViewModel` hold `GemChainSettingsService` alone; `cases/nodes/GetNodeUrlCase` over `GemNodeService` is the last of the legacy `cases/<area>/` tree (the native provider and the perpetual module read it).
 - `UserConfig`: delete the `ConfigStore` fallback for `auth` once enough installs have written the secure value.
 - Consistency: `toChain()` (nullable) and `requireChain()` (throws) are picked arbitrarily at call sites; `*Service` classes live inside the coordinators module.
@@ -485,24 +441,6 @@ having the parent vend the child view model.
 | `Gem/ViewModels/RootSceneViewModel.swift` | 5 | 1 |
 | `Settings/Settings/ViewModels/DeveloperViewModel.swift` | 5 | 0 |
 
-`SelectAssetViewModel` and `PerpetualsSceneViewModel` pass `GemRecentActivityService` straight
-into the `RecentAssetsModel` they own and keep nothing else; recording a recent perpetual is
-`recentModel.add(activityType:assetId:)`, so each holds one Core service (the perpetuals scene also
-keeps the app's `PerpetualObservable` stream port).
-
-`AddAssetSceneViewModel` holds `GemAddAssetService { assets, balances, explorer }` alone on both
-apps: the token-chain list, the default chain, the chain filter, the token lookup (checksummed and
-stored through `ensure_token_asset`), the explorer link and the add itself are its methods, so
-Android's four `add_asset/cases/*` and iOS's `GatewayService.tokenData`/`chainsWithTokens` are gone.
-
-Single-service view models that only need the property made `private`:
-
-- `Settings/ChainSettings/ViewModels/ChainListSettingsViewModel.swift` — `chainService`
-- `Transfer/AmountPerpetualViewModel.swift` — `amountService`
-- `Transfer/AmountStakeViewModel.swift` — `amountService`
-- `Transfer/AmountTransferViewModel.swift` — `amountService`
-- `WalletConnector/WalletConnector/ViewModels/ConnectionSceneViewModel.swift` — `connector`
-- `WalletConnector/WalletConnector/ViewModels/WalletConnectionViewModel.swift` — `applicationMetadataService`
 
 ### 10. Rules still living in app-only enums
 

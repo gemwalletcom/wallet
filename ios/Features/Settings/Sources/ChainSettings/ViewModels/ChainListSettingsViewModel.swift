@@ -3,13 +3,14 @@
 import Components
 import Foundation
 import protocol Gemstone.GemChainServiceProtocol
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 
 @Observable
 @MainActor
 public final class ChainListSettingsViewModel {
-    public let chainService: any GemChainServiceProtocol
+    private let chainService: any GemChainServiceProtocol
 
     public init(chainService: any GemChainServiceProtocol) {
         self.chainService = chainService
@@ -18,8 +19,8 @@ public final class ChainListSettingsViewModel {
     var emptyContent: EmptyContentTypeViewModel {
         EmptyContentTypeViewModel(type: .search(type: .networks))
     }
+
+    func filterChains(for query: String) -> [Chain] {
+        chainService.getChains(query: query).map { Chain(core: $0) }
+    }
 }
-
-// MARK: - ChainFilterable
-
-extension ChainListSettingsViewModel: ChainFilterable {}
