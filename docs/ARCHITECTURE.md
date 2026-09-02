@@ -232,6 +232,18 @@ it the read lands on main, where Room throws before any work happens.
 The coordinator dispatches; it does not leave that to its caller. Whether a Core method touches a
 store is Core's business and can change without the call site noticing.
 
+```kotlin
+// suspend: move the call
+override suspend fun invoke(...): List<FiatQuote> = withContext(Dispatchers.IO) {
+    fiatService.getQuotes(...).map { it.decodeJson<FiatQuote>() }
+}
+
+// Flow: flowOn after the operator that calls Core
+override fun getFeeAssets(): Flow<List<AssetInfo>> = observed()
+    .map { assets -> confirmService.feeAssets(...) ... }
+    .flowOn(Dispatchers.IO)
+```
+
 ## 6. Where derived domain answers live
 
 The app uses Core's types. It does not declare a parallel record or enum of the same shape — that
