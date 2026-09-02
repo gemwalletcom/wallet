@@ -111,6 +111,10 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
 
     public func setPushNotificationsEnabled(enabled _: Bool) throws {}
 
+    public func isPushNotificationsDeclined() -> Bool { false }
+
+    public func setPushNotificationsDeclined(declined _: Bool) throws {}
+
     private var perpetualEnabled = false
     private var hideBalanceEnabled = false
     private var developerEnabled = false

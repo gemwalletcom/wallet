@@ -61,6 +61,7 @@ impl GemDeviceService {
     }
 
     pub async fn set_push_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
+        self.preferences.set_push_notifications_declined(!enabled)?;
         self.preferences.set_push_notifications_enabled(enabled)?;
         self.synchronize_if_needed().await
     }
