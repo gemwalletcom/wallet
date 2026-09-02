@@ -9,7 +9,6 @@ import Foundation
 import GemstonePrimitives
 import GemstoneServices
 import Localization
-import protocol Gemstone.GemAddressServiceProtocol
 import class Gemstone.GemPaymentService
 import Primitives
 import PrimitivesComponents
@@ -30,7 +29,6 @@ public final class RecipientSceneViewModel {
     public let onTransferAction: TransferDataAction
 
     private let walletSessionService: any GemWalletSessionServiceProtocol
-    private let addressService: any GemAddressServiceProtocol
     private let paymentService: GemPaymentService
     private let onRecipientDataAction: RecipientDataAction
     private let assetImageFormatter: AssetImageFormatter
@@ -57,7 +55,6 @@ public final class RecipientSceneViewModel {
         recipient: RecipientData? = .none,
         onRecipientDataAction: RecipientDataAction,
         onTransferAction: TransferDataAction,
-        addressService: any GemAddressServiceProtocol,
         paymentService: GemPaymentService,
     ) {
         self.wallet = wallet
@@ -67,20 +64,10 @@ public final class RecipientSceneViewModel {
         self.type = type
         self.onRecipientDataAction = onRecipientDataAction
         self.onTransferAction = onTransferAction
-        self.addressService = addressService
         self.paymentService = paymentService
         self.nameService = nameService
 
-        addressInputModel = AddressInputViewModel(
-            chain: asset.chain,
-            nameService: nameService,
-            placeholder: recipientField,
-            addressService: addressService,
-            validators: [
-                .required(requireName: recipientField),
-                .address(asset, addressService: addressService),
-            ],
-        )
+        addressInputModel = AddressInputViewModel(chain: asset.chain, nameService: nameService, placeholder: recipientField)
 
         contactsQuery = ObservableQuery(ContactsRequest(chain: asset.chain), initialValue: [])
 
@@ -253,19 +240,10 @@ extension RecipientSceneViewModel {
     }
 
     private func handle(payment: PaymentRequest) throws {
-        switch type {
-        case let .asset(asset):
-            switch try PaymentDestinationBuilder.transfer(payment: payment, asset: asset, addressService: addressService, paymentService: paymentService) {
-            case let .confirm(data): handle(transferData: data)
-            case let .recipient(data): update(from: data)
-            }
-        case .nft:
-            update(
-                from: RecipientData(
-                    recipient: GemRecipient(address: chain.checksumAddress(payment.address, addressService: addressService), memo: payment.memo),
-                    amount: .none,
-                ),
-            )
+        switch (try PaymentDestinationBuilder.transfer(payment: payment, asset: asset, paymentService: paymentService), type) {
+        case let (.confirm(data), .asset): handle(transferData: data)
+        case let (.confirm(data), .nft): update(from: RecipientData(recipient: data.recipient, amount: .none))
+        case let (.recipient(data), _): update(from: data)
         }
     }
 

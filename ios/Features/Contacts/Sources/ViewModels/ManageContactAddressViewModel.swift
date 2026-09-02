@@ -58,14 +58,10 @@ public final class ManageContactAddressViewModel {
         self.onComplete = onComplete
         title = Localized.Common.address
 
-        let addressService = service.addresses()
-        let chain = mode.contactAddress?.chain ?? service.defaultContactChain
         addressInputModel = AddressInputViewModel(
-            chain: chain,
+            chain: mode.contactAddress?.chain ?? service.defaultContactChain,
             nameService: service.names(),
             placeholder: title,
-            addressService: addressService,
-            validators: [.required(requireName: title), .address(Asset(chain), addressService: addressService)],
         )
 
         if let address = mode.contactAddress {

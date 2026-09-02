@@ -255,10 +255,6 @@ public final class GemManageContactServiceMock: GemManageContactServiceProtocol,
         service.names()
     }
 
-    public func addresses() -> GemAddressService {
-        service.addresses()
-    }
-
     public func chains() -> GemChainService {
         service.chains()
     }

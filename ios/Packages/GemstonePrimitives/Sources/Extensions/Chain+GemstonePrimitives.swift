@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.GemAssetConfigService
-import protocol Gemstone.GemAddressServiceProtocol
 import BigInt
 import Foundation
 import Gemstone
@@ -136,14 +135,6 @@ public extension Primitives.Chain {
             preconditionFailure("Missing \(type) default asset for \(self)")
         }
         return asset
-    }
-
-    func isValidAddress(_ address: String, addressService: any GemAddressServiceProtocol) -> Bool {
-        addressService.validate(address: checksumAddress(address, addressService: addressService), chain: rawValue)
-    }
-
-    func checksumAddress(_ address: String, addressService: any GemAddressServiceProtocol) -> String {
-        addressService.checksum(address: address, chain: rawValue)
     }
 
     var isPrivateKeyImportSupported: Bool {

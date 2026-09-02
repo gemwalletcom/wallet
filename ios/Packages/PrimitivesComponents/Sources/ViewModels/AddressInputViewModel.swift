@@ -5,7 +5,6 @@ import struct Gemstone.GemRecipient
 import struct Gemstone.GemRecipientValidation
 import Components
 import Foundation
-import protocol Gemstone.GemAddressServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -19,7 +18,6 @@ public final class AddressInputViewModel {
     let placeholder: String
     public let nameRecordViewModel: NameRecordViewModel
     private let nameService: any GemNameServiceProtocol
-    private let addressService: any GemAddressServiceProtocol
 
     public var chain: Chain {
         didSet { onChangeChain() }
@@ -31,17 +29,14 @@ public final class AddressInputViewModel {
         chain: Chain,
         nameService: any GemNameServiceProtocol,
         placeholder: String,
-        addressService: any GemAddressServiceProtocol,
-        validators: [any TextValidator] = [],
     ) {
         self.chain = chain
         self.placeholder = placeholder
-        self.addressService = addressService
         nameRecordViewModel = NameRecordViewModel(nameService: nameService)
         self.nameService = nameService
         inputModel = InputValidationViewModel(
             mode: .manual,
-            validators: validators,
+            validators: Self.validators(chain: chain, placeholder: placeholder, nameService: nameService),
         )
     }
 
@@ -102,9 +97,6 @@ public final class AddressInputViewModel {
         }
     }
 
-    public func updateValidators(_ validators: [any TextValidator]) {
-        inputModel.update(validators: validators)
-    }
 }
 
 extension AddressInputViewModel {
@@ -137,10 +129,7 @@ extension AddressInputViewModel {
 
         inputModel = InputValidationViewModel(
             mode: .manual,
-            validators: [
-                .required(requireName: placeholder),
-                .address(Asset(chain), addressService: addressService),
-            ],
+            validators: Self.validators(chain: chain, placeholder: placeholder, nameService: nameService),
         )
         text = currentText
 
@@ -149,5 +138,9 @@ extension AddressInputViewModel {
         } else if currentText.isNotEmpty {
             inputModel.update()
         }
+    }
+
+    private static func validators(chain: Chain, placeholder: String, nameService: any GemNameServiceProtocol) -> [any TextValidator] {
+        [.required(requireName: placeholder), .address(Asset(chain), nameService: nameService)]
     }
 }

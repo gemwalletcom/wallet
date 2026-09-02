@@ -153,10 +153,6 @@ impl GemManageContactService {
         self.names.clone()
     }
 
-    pub fn addresses(&self) -> Arc<GemAddressService> {
-        self.addresses.clone()
-    }
-
     pub fn chains(&self) -> Arc<GemChainService> {
         self.chains.clone()
     }

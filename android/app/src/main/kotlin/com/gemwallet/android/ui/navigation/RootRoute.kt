@@ -30,6 +30,7 @@ import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.domains.confirm.pack
 import uniffi.gemstone.GemConfirmInput
 import com.gemwallet.android.model.ImportType
+import com.gemwallet.android.model.PaymentRecipient
 import com.gemwallet.android.toRoute
 import com.gemwallet.android.ui.navigation.routes.AboutusRoute
 import com.gemwallet.android.ui.navigation.routes.AddAssetRoute
@@ -88,7 +89,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.NFTAssetId
-import com.wallet.core.primitives.PaymentRequest
 import com.wallet.core.primitives.PortfolioType
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
@@ -254,8 +254,8 @@ class WalletNavigator(
     fun openReceive() = push(ReceiveSelectRoute)
     fun openReceive(assetId: AssetId) = push(ReceiveRoute(assetId))
     fun openReceiveNftChains() = push(ReceiveNftChainsRoute)
-    fun openRecipient(payment: PaymentRequest? = null, chains: List<Chain> = emptyList()) = push(SendSelectRoute(payment, chains))
-    fun openRecipient(assetId: AssetId, payment: PaymentRequest? = null) = push(RecipientInputRoute(assetId, nftAssetId = null, payment = payment))
+    fun openRecipient(payment: PaymentRecipient? = null, chains: List<Chain> = emptyList()) = push(SendSelectRoute(payment, chains))
+    fun openRecipient(assetId: AssetId, payment: PaymentRecipient? = null) = push(RecipientInputRoute(assetId, nftAssetId = null, payment = payment))
     fun openNftRecipient(assetId: AssetId, nftAssetId: NFTAssetId) = push(RecipientInputRoute(assetId, nftAssetId.toIdentifier()))
     fun openAmount(params: AmountParams) {
         val pack = params.pack() ?: return

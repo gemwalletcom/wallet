@@ -2,7 +2,6 @@
 
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import class Gemstone.GemRecentActivityService
-import protocol Gemstone.GemAddressServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import class Gemstone.GemChainService
 import class Gemstone.GemOnboardingService
@@ -90,7 +89,6 @@ extension AppResolver {
         let hyperliquidObserverService: any PerpetualObservable
         let recentAssetsService: any GemRecentActivityServiceProtocol
         let toastPresenter: ToastPresenter
-        let addressService: any GemAddressServiceProtocol
         let viewModelFactory: ViewModelFactory
         let rewardsService: any GemRewardsServiceProtocol
         let searchService: any GemSearchServiceProtocol

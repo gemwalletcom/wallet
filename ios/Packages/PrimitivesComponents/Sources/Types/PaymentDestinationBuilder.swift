@@ -1,9 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Foundation
 import Gemstone
-import protocol Gemstone.GemAddressServiceProtocol
 import class Gemstone.GemPaymentService
 import GemstonePrimitives
 import Localization
@@ -18,14 +16,13 @@ public enum PaymentDestinationBuilder {
     public static func transfer(
         payment: Primitives.PaymentRequest,
         asset: Primitives.Asset,
-        addressService: any GemAddressServiceProtocol,
         paymentService: GemPaymentService,
     ) throws -> TransferDestination {
         switch paymentService.transferDestination(request: payment.json(), asset: asset.paymentWalletAsset) {
         case let .confirm(transfer):
             return .confirm(paymentService.transferData(transfer: transfer, asset: asset.map()))
-        case .recipient:
-            return .recipient(recipientData(for: payment, chain: asset.chain, addressService: addressService))
+        case let .recipient(_, recipient, amount):
+            return .recipient(RecipientData(recipient: recipient, amount: amount))
         case .selectAsset, .unsupported:
             throw AnyError(Localized.Errors.notSupported)
         }
@@ -34,7 +31,6 @@ public enum PaymentDestinationBuilder {
     public static func build(
         payment: Primitives.PaymentRequest,
         assets: [AssetData],
-        addressService: any GemAddressServiceProtocol,
         paymentService: GemPaymentService,
     ) throws -> PaymentDestination {
         switch paymentService.destination(request: payment.json(), assets: assets.map { $0.asset.paymentWalletAsset }) {
@@ -43,7 +39,7 @@ public enum PaymentDestinationBuilder {
                 throw AnyError(Localized.Errors.notSupported)
             }
             return .confirm(paymentService.transferData(transfer: transfer, asset: assetData.asset.map()))
-        case let .recipient(assetId):
+        case let .recipient(assetId, recipient, amount):
             guard let assetData = assetData(for: assetId, in: assets) else {
                 throw AnyError(Localized.Errors.notSupported)
             }
@@ -51,11 +47,11 @@ public enum PaymentDestinationBuilder {
                 SelectedAssetInput(
                     type: .send(.asset(assetData.asset)),
                     assetData: assetData,
-                    recipient: recipientData(for: payment, chain: assetData.asset.chain, addressService: addressService),
+                    recipient: RecipientData(recipient: recipient, amount: amount),
                 ),
             )
-        case let .selectAsset(chains):
-            return .selectAsset(.send(recipientData(for: payment, addressService: addressService)), chains: chains.compactMap { Primitives.Chain(rawValue: $0) })
+        case let .selectAsset(recipient, amount, chains):
+            return .selectAsset(.send(RecipientData(recipient: recipient, amount: amount)), chains: chains.compactMap { Primitives.Chain(rawValue: $0) })
         case .unsupported:
             throw AnyError(Localized.Errors.notSupported)
         }
@@ -71,14 +67,6 @@ public enum PaymentDestinationBuilder {
 
     private static func assetData(for assetId: String, in assets: [AssetData]) -> AssetData? {
         assets.first { $0.asset.id.identifier == assetId }
-    }
-
-    private static func recipientData(for payment: Primitives.PaymentRequest, chain: Primitives.Chain? = nil, addressService: any GemAddressServiceProtocol) -> RecipientData {
-        let address = chain.map { $0.checksumAddress(payment.address, addressService: addressService) } ?? payment.address
-        return RecipientData(
-            recipient: GemRecipient(address: address, memo: payment.memo, references: payment.references ?? []),
-            amount: payment.exactAmount,
-        )
     }
 }
 

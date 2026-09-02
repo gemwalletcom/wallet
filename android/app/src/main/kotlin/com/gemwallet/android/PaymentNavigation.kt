@@ -41,9 +41,9 @@ class PaymentNavigation @Inject constructor(
             PaymentDestination.Unsupported -> emptyList()
             is PaymentDestination.Confirm -> listOfNotNull(transferService.pack(destination.input)?.let(::ConfirmRoute))
             is PaymentDestination.Recipient -> listOf(
-                RecipientInputRoute(destination.assetId, nftAssetId = null, payment = destination.request)
+                RecipientInputRoute(destination.assetId, nftAssetId = null, payment = destination.payment)
             )
-            is PaymentDestination.SelectAsset -> listOf(SendSelectRoute(destination.request, destination.chains))
+            is PaymentDestination.SelectAsset -> listOf(SendSelectRoute(destination.payment, destination.chains))
         }
 
     private suspend fun linkRoutes(link: PaymentLink): List<NavKey> {

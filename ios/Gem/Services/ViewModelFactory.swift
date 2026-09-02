@@ -6,7 +6,6 @@ import class Gemstone.GemDeviceService
 import class Gemstone.GemWalletPreferencesService
 import protocol Gemstone.GemSupportServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
-import class Gemstone.GemAddressService
 import class Gemstone.GemAmountService
 import class Gemstone.GemApiClient
 import class Gemstone.GemApplicationMetadataService
@@ -80,7 +79,6 @@ import class Gemstone.GemTransactionsService
 import struct Gemstone.GemTransferData
 
 public struct ViewModelFactory: Sendable {
-    let addressService: GemAddressService
     let apiClient: GemApiClient
     let applicationMetadataService: GemApplicationMetadataService
     let assetConfig: GemAssetConfigService
@@ -435,7 +433,6 @@ public struct ViewModelFactory: Sendable {
             recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
-            addressService: addressService,
             paymentService: paymentService,
         )
     }

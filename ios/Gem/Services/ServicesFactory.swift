@@ -290,7 +290,6 @@ struct ServicesFactory {
             pushNotificationService: pushNotificationService,
             transactionStore: storeManager.transactionStore,
             urlParser: URLParser(deeplinkService: Gemstone.GemDeeplinkService()),
-            addressService: addressService,
             paymentService: paymentService,
             transactionStateService: transactionStateService,
             walletConnectorPresenter: walletConnectorPresenter,
@@ -345,7 +344,6 @@ struct ServicesFactory {
             assets: assetsService,
         )
         let viewModelFactory = ViewModelFactory(
-            addressService: addressService,
             apiClient: apiClient,
             applicationMetadataService: Gemstone.GemApplicationMetadataService(),
             assetConfig: Gemstone.GemAssetConfigService(),
@@ -444,7 +442,6 @@ struct ServicesFactory {
             hyperliquidObserverService: hyperliquidObserverService,
             recentAssetsService: recentAssetsService,
             toastPresenter: toastPresenter,
-            addressService: addressService,
             viewModelFactory: viewModelFactory,
             rewardsService: rewardsService,
             searchService: searchService,

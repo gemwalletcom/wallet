@@ -2,8 +2,6 @@
 
 import struct Gemstone.GemRecipient
 import GemstonePrimitives
-import class Gemstone.GemAddressService
-import protocol Gemstone.GemAddressServiceProtocol
 import class Gemstone.GemPaymentService
 import GemstonePrimitivesTestKit
 import Components
@@ -164,7 +162,6 @@ extension RecipientSceneViewModel {
             recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,
             onTransferAction: onTransferAction,
-            addressService: GemAddressService(),
             paymentService: GemPaymentService(),
         )
     }

@@ -3,10 +3,12 @@ package com.gemwallet.android.payment
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.ext.decodePayment
 import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.ext.request
 import com.gemwallet.android.model.AssetInfo
 import uniffi.gemstone.GemTransactionInputType
 import com.gemwallet.android.model.PaymentDestination
+import com.gemwallet.android.model.PaymentRecipient
 import com.gemwallet.android.testkit.includeGemstoneLibs
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
@@ -66,8 +68,8 @@ class PaymentTransferTest {
         val recipient = destination(bitcoin, "bitcoin:$BITCOIN_ADDRESS")
 
         assertTrue("expected the recipient screen, got $recipient", recipient is PaymentDestination.Recipient)
-        assertEquals(BITCOIN_ADDRESS, (recipient as PaymentDestination.Recipient).request.address)
-        assertEquals(null, recipient.request.amount)
+        assertEquals(BITCOIN_ADDRESS, (recipient as PaymentDestination.Recipient).payment.recipient.address)
+        assertEquals(null, recipient.payment.amount)
     }
 
     @Test
@@ -107,7 +109,7 @@ class PaymentTransferTest {
         val assets = listOf(bitcoin, ethereum, smartChain)
 
         assertEquals(
-            PaymentDestination.SelectAsset(decode(EVM_ADDRESS), listOf(Chain.Ethereum, Chain.SmartChain)),
+            PaymentDestination.SelectAsset(PaymentRecipient(GemRecipient(EVM_ADDRESS)), listOf(Chain.Ethereum, Chain.SmartChain)),
             PaymentDestination.from(decode(EVM_ADDRESS), assets, paymentService),
         )
 

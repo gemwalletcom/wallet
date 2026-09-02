@@ -17,7 +17,6 @@ import WalletConnector
 
 struct SettingsNavigationView: View {
     @Environment(\.navigationState) private var navigationState
-    @Environment(\.addressService) private var addressService
     @Environment(\.applicationMetadataService) private var applicationMetadataService
     @Environment(\.deeplinkService) private var deeplinkService
     @Environment(\.navigationHandler) private var navigationHandler

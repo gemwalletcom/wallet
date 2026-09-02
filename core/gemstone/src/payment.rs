@@ -129,8 +129,8 @@ pub struct GemPaymentConfirmTransfer {
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemPaymentDestination {
     Confirm { transfer: GemPaymentConfirmTransfer },
-    Recipient { asset_id: AssetId },
-    SelectAsset { chains: Vec<Chain> },
+    Recipient { asset_id: AssetId, recipient: GemRecipient, amount: Option<String> },
+    SelectAsset { recipient: GemRecipient, amount: Option<String>, chains: Vec<Chain> },
     Unsupported,
 }
 
@@ -149,7 +149,11 @@ fn payment_destination(request: &GemPaymentRequest, assets: Vec<GemPaymentWallet
                     chains.push(asset.asset_id.chain);
                 }
             }
-            GemPaymentDestination::SelectAsset { chains }
+            GemPaymentDestination::SelectAsset {
+                recipient: payment_recipient(request, None),
+                amount: exact_amount(request),
+                chains,
+            }
         }
     }
 }
@@ -170,11 +174,35 @@ fn payment_decoded_transfer(request: &GemPaymentRequest, asset: GemPaymentWallet
 
 fn transfer_destination(asset: &GemPaymentWalletAsset, request: &GemPaymentRequest) -> GemPaymentDestination {
     if requires_memo(asset.asset_id.chain, request) {
-        return GemPaymentDestination::Recipient { asset_id: asset.asset_id.clone() };
+        return recipient_destination(asset, request);
     }
     match confirm_transfer(asset, request) {
         Some(transfer) => GemPaymentDestination::Confirm { transfer },
-        None => GemPaymentDestination::Recipient { asset_id: asset.asset_id.clone() },
+        None => recipient_destination(asset, request),
+    }
+}
+
+fn recipient_destination(asset: &GemPaymentWalletAsset, request: &GemPaymentRequest) -> GemPaymentDestination {
+    GemPaymentDestination::Recipient {
+        asset_id: asset.asset_id.clone(),
+        recipient: payment_recipient(request, Some(asset.asset_id.chain)),
+        amount: exact_amount(request),
+    }
+}
+
+fn payment_recipient(request: &GemPaymentRequest, chain: Option<Chain>) -> GemRecipient {
+    GemRecipient {
+        address: chain.map_or_else(|| request.address.clone(), |chain| checksum_address(&request.address, chain)),
+        name: None,
+        memo: request.memo.clone(),
+        references: request.references.clone().unwrap_or_default(),
+    }
+}
+
+fn exact_amount(request: &GemPaymentRequest) -> Option<String> {
+    match request.amount.as_ref()? {
+        GemPaymentAmount::ExactValue(amount) => Some(amount.clone()),
+        GemPaymentAmount::AtomicValue(_) => None,
     }
 }
 
@@ -286,19 +314,27 @@ mod tests {
 
         let address_only = request(BITCOIN_ADDRESS, None, None, None);
         match payment_destination(&address_only, vec![bitcoin.clone()]) {
-            GemPaymentDestination::Recipient { asset_id, .. } => assert_eq!(asset_id, bitcoin.asset_id),
+            GemPaymentDestination::Recipient { asset_id, recipient, amount } => {
+                assert_eq!(asset_id, bitcoin.asset_id);
+                assert_eq!(recipient.address, BITCOIN_ADDRESS);
+                assert_eq!(amount, None);
+            }
             destination => panic!("expected recipient, got {destination:?}"),
         }
 
         let too_precise = request(BITCOIN_ADDRESS, Some(GemPaymentAmount::ExactValue("0.000000001".to_string())), None, None);
         match payment_destination(&too_precise, vec![bitcoin.clone()]) {
-            GemPaymentDestination::Recipient { .. } => {}
+            GemPaymentDestination::Recipient { amount, .. } => assert_eq!(amount.as_deref(), Some("0.000000001")),
             destination => panic!("expected recipient for excess precision, got {destination:?}"),
         }
 
-        let multiple_chains = request(ETHEREUM_ADDRESS, None, None, None);
+        let multiple_chains = request(&ETHEREUM_ADDRESS.to_lowercase(), Some(GemPaymentAmount::ExactValue("2".to_string())), None, None);
         match payment_destination(&multiple_chains, vec![bitcoin.clone(), ethereum.clone(), smartchain.clone()]) {
-            GemPaymentDestination::SelectAsset { chains, .. } => assert_eq!(chains, vec![Chain::Ethereum, Chain::SmartChain]),
+            GemPaymentDestination::SelectAsset { recipient, amount, chains } => {
+                assert_eq!(recipient.address, ETHEREUM_ADDRESS.to_lowercase());
+                assert_eq!(amount.as_deref(), Some("2"));
+                assert_eq!(chains, vec![Chain::Ethereum, Chain::SmartChain]);
+            }
             destination => panic!("expected asset selection, got {destination:?}"),
         }
 
@@ -313,7 +349,10 @@ mod tests {
 
         let untagged_xrp = request(XRP_ADDRESS, Some(GemPaymentAmount::ExactValue("10".to_string())), None, Some(xrp.asset_id.clone()));
         match payment_destination(&untagged_xrp, vec![xrp]) {
-            GemPaymentDestination::Recipient { .. } => {}
+            GemPaymentDestination::Recipient { recipient, amount, .. } => {
+                assert_eq!(recipient.memo, None);
+                assert_eq!(amount.as_deref(), Some("10"));
+            }
             destination => panic!("expected recipient without a destination tag, got {destination:?}"),
         }
 
@@ -344,8 +383,25 @@ mod tests {
 
         let invalid_address = request("0x123", None, Some("order 7"), None);
         match payment_transfer_destination(&invalid_address, ethereum.clone()) {
-            GemPaymentDestination::Recipient { asset_id } => assert_eq!(asset_id, ethereum.asset_id),
+            GemPaymentDestination::Recipient { asset_id, recipient, amount } => {
+                assert_eq!(asset_id, ethereum.asset_id);
+                assert_eq!(recipient.address, "0x123");
+                assert_eq!(recipient.memo.as_deref(), Some("order 7"));
+                assert_eq!(amount, None);
+            }
             destination => panic!("expected recipient review for an invalid address, got {destination:?}"),
+        }
+
+        let lowercase = request(&ETHEREUM_ADDRESS.to_lowercase(), Some(GemPaymentAmount::AtomicValue(BigUint::from(1u32))), None, None);
+        match payment_transfer_destination(&lowercase, ethereum.clone()) {
+            GemPaymentDestination::Confirm { transfer } => assert_eq!(transfer.address, ETHEREUM_ADDRESS),
+            destination => panic!("expected confirm, got {destination:?}"),
+        }
+
+        let lowercase_without_amount = request(&ETHEREUM_ADDRESS.to_lowercase(), None, None, None);
+        match payment_transfer_destination(&lowercase_without_amount, ethereum.clone()) {
+            GemPaymentDestination::Recipient { recipient, .. } => assert_eq!(recipient.address, ETHEREUM_ADDRESS),
+            destination => panic!("expected recipient, got {destination:?}"),
         }
 
         let mismatched = request(ETHEREUM_ADDRESS, None, None, Some(AssetId::from_chain(Chain::Bitcoin)));

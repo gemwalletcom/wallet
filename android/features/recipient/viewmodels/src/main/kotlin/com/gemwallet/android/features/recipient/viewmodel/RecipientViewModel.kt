@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.recipient.viewmodel
 
-import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemRecipient
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -14,9 +13,7 @@ import com.gemwallet.android.application.recipient.cases.GetNameRecord
 import com.gemwallet.android.application.nft.cases.GetAssetNft
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.checksumAddress
 import com.gemwallet.android.ext.decodePayment
-import com.gemwallet.android.ext.exactAmount
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.request
@@ -26,6 +23,7 @@ import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.PaymentDestination
+import com.gemwallet.android.model.PaymentRecipient
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -34,7 +32,7 @@ import com.gemwallet.android.ui.models.name.AddressInputModel
 import com.gemwallet.android.ui.models.name.NameRecordState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.optionalNftAssetId
-import com.gemwallet.android.ui.models.navigation.optionalPaymentRequest
+import com.gemwallet.android.ui.models.navigation.optionalPaymentRecipient
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -49,7 +47,6 @@ import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.domains.confirm.confirmInput
 import com.gemwallet.android.domains.confirm.transferNft
 import java.math.BigInteger
-import com.wallet.core.primitives.PaymentRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
@@ -84,7 +81,6 @@ class RecipientViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val nameService: GemNameServiceInterface,
     private val paymentService: GemPaymentService,
-    private val addressService: GemAddressService,
 ) : ViewModel() {
 
     private val addressInput = AddressInputModel(
@@ -165,7 +161,7 @@ class RecipientViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
-        savedStateHandle.optionalPaymentRequest(RouteArgument.Payment)?.let(::updateFrom)
+        savedStateHandle.optionalPaymentRecipient(RouteArgument.Payment)?.let(::updateFrom)
     }
 
     fun onNext(
@@ -236,7 +232,7 @@ class RecipientViewModel @Inject constructor(
         when (val destination = scannedDestination(type, data)) {
             PaymentDestination.Unsupported -> addressInput.markInvalid()
             is PaymentDestination.Confirm -> confirmAction(destination.input)
-            is PaymentDestination.Recipient -> updateFrom(destination.request)
+            is PaymentDestination.Recipient -> updateFrom(destination.payment)
         }
     }
 
@@ -244,16 +240,16 @@ class RecipientViewModel @Inject constructor(
         val request = paymentService.decodePayment(data)?.request ?: return PaymentDestination.Unsupported
 
         return when (type) {
-            is RecipientType.Nft -> PaymentDestination.Recipient(type.assetInfo.asset.id, request.copy(amount = null))
+            is RecipientType.Nft -> PaymentDestination.transfer(request.copy(amount = null), type.assetInfo, paymentService)
             is RecipientType.Asset -> PaymentDestination.transfer(request, type.assetInfo, paymentService)
         }
     }
 
-    private fun updateFrom(request: PaymentRequest) {
-        addressInput.applyExternalAddress(assetId.chain.checksumAddress(request.address, addressService))
-        request.memo?.let { _memo.value = it }
-        references = request.references.orEmpty()
-        requestedAmount = request.exactAmount
+    private fun updateFrom(payment: PaymentRecipient) {
+        addressInput.applyExternalAddress(payment.recipient.address)
+        payment.recipient.memo?.let { _memo.value = it }
+        references = payment.recipient.references
+        requestedAmount = payment.amount
     }
 
     private fun onNftConfirm(nftAsset: NFTAsset, destination: GemRecipient, confirmAction: ConfirmTransactionAction) {

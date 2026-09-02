@@ -348,17 +348,11 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 ### 3. Rules still written once per platform
 
-- **Recipient input validates twice on iOS.** `AddressInputViewModel` runs `AddressTextValidator`
-  (`addressService.isValidAddress`, error text) and then Core's `validateRecipient` (validity,
-  resolved address, `shows_error`) on the same text; `ManageContactAddressViewModel` does the same.
-  Make Core's validation the only one — it already knows when to show the error — and the input
-  model, the recipient screen and the contact editor stop needing `GemAddressService`.
 - **`GemPaymentService` is a `new()` with no fields** (`decode_url`, `destination`,
   `transfer_destination`, `transfer_data`): the same shape `GemSwapQuoteService` and
-  `GemRecipientService` had. Its `Recipient` destination also returns only an asset id, so
-  `PaymentDestinationBuilder.recipientData` re-checksums the address with `GemAddressService` on
-  the app. Return the checksummed `GemRecipient` and amount from Core and move the rules onto the
-  payment value.
+  `GemRecipientService` had. Its destinations now carry the checksummed `GemRecipient` and the
+  requested amount, so neither app touches `GemAddressService` for a payment any more; what is left
+  is to move the rules onto the payment value and delete the object.
 
 Android's confirm screen still reads its assets through `GetWalletAssets`/`GetAssetInfo` and
 its fee assets through `GetFeeAssets` (store-backed `AssetInfo`), where Core's `GemConfirmPreload`
@@ -425,7 +419,7 @@ Each iOS scene view model should hold at most one private Core service per
 [ARCHITECTURE.md § 7](ARCHITECTURE.md#7-at-most-one-core-service-on-ios-narrow-cases-on-android).
 `ManageContactViewModel`, `ContactsViewModel` and `ManageContactAddressViewModel` meet the field-count
 ceiling, but `GemContactsService` is forwarding-only and `GemManageContactService.names()` /
-`addresses()` / `chains()` remain reach-through debt until the shared components receive narrow
+`chains()` remain reach-through debt until the shared components receive narrow
 dependencies directly. `ConfirmTransferSceneViewModel` is done: it holds `service` alone, with `signer`, the keystore
 password and the recent-activity store as outbound ports the app implements and
 `GemConfirmTransferService` owns, and reads the currency from `service.currency()`. It hands out no
@@ -443,7 +437,7 @@ having the parent vend the child view model.
 |---|---|---|
 | `Gem/ViewModels/RootSceneViewModel.swift` | 5 | 1 |
 | `Settings/Settings/ViewModels/DeveloperViewModel.swift` | 5 | 0 |
-| `Transfer/RecipientSceneViewModel.swift` | 4 | 0 |
+| `Transfer/RecipientSceneViewModel.swift` | 3 | 0 |
 | `Assets/SelectAssetViewModel.swift` | 3 | 0 |
 | `NFT/CollectibleViewModel.swift` | 3 | 1 |
 | `Settings/ChainSettings/ViewModels/ChainSettingsSceneViewModel.swift` | 3 | 2 |
@@ -458,7 +452,6 @@ having the parent vend the child view model.
 | `Settings/ChainSettings/ViewModels/AddNodeSceneViewModel.swift` | 2 | 0 |
 | `Settings/Settings/ViewModels/RewardsViewModel.swift` | 2 | 0 |
 | `Transfer/AmountEarnViewModel.swift` | 2 | 1 |
-| `PrimitivesComponents/AddressInputViewModel.swift` | 2 | 0 |
 
 Single-service view models that only need the property made `private`:
 
