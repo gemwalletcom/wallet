@@ -58,8 +58,8 @@ struct ServicesFactory {
                 InternetConnectionMonitor(connectionService: connectionService),
             ],
         )
-        let apiClient = Gemstone.GemApiClient(provider: nativeProvider, baseUrl: Constants.apiURL.absoluteString)
-        let staticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider, baseUrl: PublicUrl.assets.url())
+        let apiClient = Gemstone.GemApiClient(provider: nativeProvider)
+        let staticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider)
         let priceService = Gemstone.GemPriceService(
             api: apiClient,
             store: GemstonePriceStore(priceStore: storeManager.priceStore, fiatRateStore: storeManager.fiatRateStore),
@@ -88,7 +88,7 @@ struct ServicesFactory {
         scanConfiguration.timeoutIntervalForRequest = TimeInterval(Config().getScanConfig().timeoutSeconds)
         let scanService = Gemstone.GemScanService(
             api: Self.makeDeviceApiClient(
-                provider: NativeProvider(session: URLSession(configuration: scanConfiguration), url: Constants.apiURL),
+                provider: NativeProvider(session: URLSession(configuration: scanConfiguration)),
                 deviceKey: deviceKeyService,
             ),
         )
@@ -97,7 +97,7 @@ struct ServicesFactory {
         let serviceStatusConfiguration = URLSessionConfiguration.default
         serviceStatusConfiguration.timeoutIntervalForRequest = TimeInterval(serviceStatusTimeoutSeconds())
         let serviceStatusService = Gemstone.GemServiceStatus(
-            provider: NativeProvider(session: URLSession(configuration: serviceStatusConfiguration), url: Constants.apiURL),
+            provider: NativeProvider(session: URLSession(configuration: serviceStatusConfiguration)),
         )
         let walletSessionService = Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(store: preferencesStore), wallets: gemstoneWalletStore)
         let explorerService = Gemstone.GemExplorerService(preferences: preferencesService)
@@ -447,7 +447,6 @@ extension ServicesFactory {
     ) -> Gemstone.GemDeviceApiClient {
         return Gemstone.GemDeviceApiClient(
             provider: provider,
-            baseUrl: Constants.apiURL.absoluteString,
             deviceKey: deviceKey,
         )
     }

@@ -21,8 +21,7 @@ public extension GemAssetsService {
     ) -> GemAssetsService {
         GatewayService.mock().assetsService(
             api: GemApiClient(
-                provider: NativeProvider(url: Constants.apiURL),
-                baseUrl: Constants.apiURL.absoluteString,
+                provider: NativeProvider(),
             ),
             store: GemstoneAssetStore(assetStore: assetStore, balanceStore: balanceStore),
             price: priceService,

@@ -115,7 +115,7 @@ mod tests {
 
     fn service(provider: Arc<ConfigProvider>) -> GemConfigService {
         GemConfigService::new(
-            Arc::new(GemApiClient::new(provider, "https://example.com".to_string())),
+            Arc::new(GemApiClient::new(provider)),
             Arc::new(GemPreferencesService::new(Arc::new(MemoryStore::default()))),
         )
     }

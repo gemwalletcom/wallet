@@ -177,7 +177,7 @@ mod tests {
 
     fn service(connection: Arc<Connection>) -> GemStreamSubscriptionService {
         let price = GemPriceService::new(
-            Arc::new(GemApiClient::new(Arc::new(NoopProvider), "https://example.com".into())),
+            Arc::new(GemApiClient::new(Arc::new(NoopProvider))),
             Arc::new(EnabledStore(vec![AssetId::from_chain(Chain::Bitcoin)])),
         );
         GemStreamSubscriptionService::new(Arc::new(price), Arc::new(AlertStore(vec![AssetId::from_chain(Chain::Bitcoin)])), connection)

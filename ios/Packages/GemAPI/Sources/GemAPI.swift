@@ -8,7 +8,7 @@ public enum GemAPI: TargetType {
     case getAssets([AssetId], currency: String?)
 
     public var baseUrl: URL {
-        Constants.apiURL
+        URL(string: "https://api.gemwallet.com")!
     }
 
     public var method: HTTPMethod {

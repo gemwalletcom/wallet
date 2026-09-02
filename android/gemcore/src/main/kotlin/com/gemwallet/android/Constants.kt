@@ -1,8 +1,0 @@
-package com.gemwallet.android
-
-object Constants {
-    const val API_HOST = "api.gemwallet.com"
-    const val API_URL = "https://$API_HOST"
-    const val DEVICE_STREAM_PATH = "/v2/devices/stream"
-    const val DEVICE_STREAM_WEBSOCKET_URL = "wss://$API_HOST$DEVICE_STREAM_PATH"
-}

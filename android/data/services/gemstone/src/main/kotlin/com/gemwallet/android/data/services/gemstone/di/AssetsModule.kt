@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.services.gemstone.di
 
-import com.gemwallet.android.Constants
 import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.data.services.gemstone.assets.AssetsAvailabilityService
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
@@ -124,10 +123,8 @@ object AssetsModule {
     ): WebSocketConnectable = WebSocketConnection(
         client = okHttpClient,
         requestProvider = {
-            WebSocketRequest(
-                url = Constants.DEVICE_STREAM_WEBSOCKET_URL,
-                headers = mapOf("Authorization" to deviceRequestSigner.get().sign("GET", Constants.DEVICE_STREAM_PATH, "", ByteArray(0))),
-            )
+            val stream = deviceRequestSigner.get().deviceStreamRequest()
+            WebSocketRequest(url = stream.url, headers = mapOf("Authorization" to stream.authorization))
         },
         connectionService = connectionService,
     )

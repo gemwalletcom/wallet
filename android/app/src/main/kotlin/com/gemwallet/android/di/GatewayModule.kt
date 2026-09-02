@@ -1,7 +1,6 @@
 package com.gemwallet.android.di
 
 import android.content.Context
-import com.gemwallet.android.Constants
 import com.gemwallet.android.data.password.TinkGemPreferences
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePreferencesStore
 import com.gemwallet.android.math.fromHex
@@ -56,7 +55,6 @@ import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemApiClient as GemstoneApiClient
 import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemStaticApiClient
-import uniffi.gemstone.PublicUrl
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPreferencesStore
 import uniffi.gemstone.GemSecureStore
@@ -114,7 +112,7 @@ object GatewayModule {
     @Provides
     @Singleton
     fun provideGemstoneApiClient(alienProvider: AlienProvider): GemstoneApiClient =
-        GemstoneApiClient(alienProvider, Constants.API_URL)
+        GemstoneApiClient(alienProvider)
 
     @Provides
     @Singleton
@@ -122,11 +120,7 @@ object GatewayModule {
     fun provideDeviceRegistrationApiClient(
         alienProvider: AlienProvider,
         deviceKeyService: GemDeviceKeyService,
-    ): GemstoneDeviceApiClient = GemstoneDeviceApiClient(
-        alienProvider,
-        Constants.API_URL,
-        deviceKeyService,
-    )
+    ): GemstoneDeviceApiClient = GemstoneDeviceApiClient(alienProvider, deviceKeyService)
 
     @Provides
     @Singleton
@@ -134,11 +128,8 @@ object GatewayModule {
         alienProvider: AlienProvider,
         deviceKeyService: GemDeviceKeyService,
         deviceService: Lazy<GemDeviceService>,
-    ): GemstoneDeviceApiClient = GemstoneDeviceApiClient(
-        alienProvider,
-        Constants.API_URL,
-        deviceKeyService,
-    ).apply { setDeviceSyncPreflight(deviceService.get()) }
+    ): GemstoneDeviceApiClient = GemstoneDeviceApiClient(alienProvider, deviceKeyService)
+        .apply { setDeviceSyncPreflight(deviceService.get()) }
 
 
 
@@ -239,7 +230,7 @@ object GatewayModule {
     @Provides
     @Singleton
     fun provideGemStaticApiClient(alienProvider: AlienProvider): GemStaticApiClient =
-        GemStaticApiClient(alienProvider, PublicUrl.ASSETS.url())
+        GemStaticApiClient(alienProvider)
 
 
     @Provides
@@ -272,7 +263,6 @@ object GatewayModule {
                     .callTimeout(Config().getScanConfig().timeoutSeconds.toLong(), TimeUnit.SECONDS)
                     .build(),
             ),
-            Constants.API_URL,
             deviceKeyService,
         )
     )

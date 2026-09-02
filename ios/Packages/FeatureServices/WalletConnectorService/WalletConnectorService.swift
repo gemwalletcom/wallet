@@ -37,18 +37,19 @@ public final class WalletConnectorService {
 
 extension WalletConnectorService: WalletConnectorServiceable {
     public func configure() throws {
+        let config = WalletConnectConfig.config()
         Networking.configure(
-            groupIdentifier: Constants.WalletConnect.groupIdentifier,
-            projectId: Constants.WalletConnect.projectId,
+            groupIdentifier: Constants.appGroupIdentifier,
+            projectId: config.projectId,
             socketFactory: DefaultSocketFactory(),
         )
 
         try WalletKit.configure(
             metadata: AppMetadata(
-                name: Constants.App.name,
-                description: "Gem Web3 Wallet",
-                url: Constants.App.website,
-                icons: ["https://gemwallet.com/images/gem-logo-256x256.png"],
+                name: config.appName,
+                description: config.appDescription,
+                url: config.appUrl,
+                icons: config.appIcons,
                 redirect: AppMetadata.Redirect(
                     native: "gem://",
                     universal: .none,

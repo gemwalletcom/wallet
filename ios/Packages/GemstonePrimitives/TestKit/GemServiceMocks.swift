@@ -386,7 +386,6 @@ public extension GemNameService {
         GemNameService(
             api: GemDeviceApiClient(
                 provider: StubAlienProvider(),
-                baseUrl: "https://localhost",
                 deviceKey: GemDeviceKeyService(store: GemSecureStoreMock()),
             ),
             store: GemAddressStoreMock(),
