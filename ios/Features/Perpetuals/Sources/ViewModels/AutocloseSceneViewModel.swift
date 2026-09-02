@@ -3,6 +3,8 @@
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemAutocloseModify
+import struct Gemstone.GemAutocloseField
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -86,9 +88,7 @@ public final class AutocloseSceneViewModel {
     }
 
     public var confirmButtonType: ButtonType {
-        let builder = AutocloseModifyBuilder(direction: type.direction)
-        let isEnabled = builder.canBuild(takeProfit: takeProfitField, stopLoss: stopLossField)
-        return .primary(isEnabled ? .normal : .disabled)
+        .primary(modify.canBuild() ? .normal : .disabled)
     }
 }
 
@@ -107,19 +107,12 @@ public extension AutocloseSceneViewModel {
     func onSelectConfirm() {
         input.update()
 
-        let builder = AutocloseModifyBuilder(direction: type.direction)
-        guard builder.canBuild(takeProfit: takeProfitField, stopLoss: stopLossField) else { return }
+        let modify = modify
+        guard modify.canBuild() else { return }
 
         switch type {
         case let .modify(position, onTransferAction):
-            guard let assetIndex = Int32(position.perpetual.identifier) else { return }
-
-            let modifyTypes = builder.build(
-                assetIndex: assetIndex,
-                takeProfit: takeProfitField,
-                stopLoss: stopLossField,
-            )
-
+            let modifyTypes = modify.modifyTypes()
             let data = PerpetualModifyConfirmData(
                 baseAsset: Chain.hyperCore.defaultAsset(type: .perpetual),
                 assetIndex: assetIndex,
@@ -180,7 +173,23 @@ extension AutocloseSceneViewModel {
         }
     }
 
-    private var takeProfitField: AutocloseField {
+    private var modify: GemAutocloseModify {
+        GemAutocloseModify(
+            direction: type.direction.json(),
+            assetIndex: assetIndex,
+            takeProfit: takeProfitField,
+            stopLoss: stopLossField,
+        )
+    }
+
+    private var assetIndex: Int32 {
+        switch type {
+        case let .modify(position, _): Int32(position.perpetual.identifier) ?? 0
+        case .open: 0
+        }
+    }
+
+    private var takeProfitField: GemAutocloseField {
         let price: Double? = switch type {
         case let .modify(position, _): position.position.takeProfit?.price
         case let .open(data, _): data.takeProfit.flatMap { NumericFormatter().double(from: $0) }
@@ -194,7 +203,7 @@ extension AutocloseSceneViewModel {
         )
     }
 
-    private var stopLossField: AutocloseField {
+    private var stopLossField: GemAutocloseField {
         let price: Double? = switch type {
         case let .modify(position, _): position.position.stopLoss?.price
         case let .open(data, _): data.stopLoss.flatMap { NumericFormatter().double(from: $0) }

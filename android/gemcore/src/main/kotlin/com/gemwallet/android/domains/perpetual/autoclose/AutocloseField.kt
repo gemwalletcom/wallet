@@ -2,6 +2,7 @@ package com.gemwallet.android.domains.perpetual.autoclose
 
 import com.wallet.core.primitives.TpslType
 import uniffi.gemstone.AutocloseValidation
+import uniffi.gemstone.GemAutocloseField
 
 data class AutocloseField(
     val type: TpslType,
@@ -11,12 +12,11 @@ data class AutocloseField(
     val validation: AutocloseValidation,
     val orderId: ULong?,
 ) {
-    val isValid: Boolean get() = price != null && validation == AutocloseValidation.VALID
-    val hasChanged: Boolean get() = price != originalPrice
-    val isCleared: Boolean get() = price == null && originalPrice != null
-    val hasExisting: Boolean get() = originalPrice != null
-    val shouldSet: Boolean get() = isValid && hasChanged
-    val shouldUpdate: Boolean get() = shouldSet || isCleared
-    val shouldCancel: Boolean get() = isCleared || (shouldSet && hasExisting)
-    val hasPendingChange: Boolean get() = isCleared || (price != null && hasChanged)
+    fun toGem(): GemAutocloseField = GemAutocloseField(
+        price = price,
+        originalPrice = originalPrice,
+        formattedPrice = formattedPrice,
+        isValid = price != null && validation == AutocloseValidation.VALID,
+        orderId = orderId,
+    )
 }

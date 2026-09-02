@@ -8,7 +8,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByAsset
 import uniffi.gemstone.GemAutocloseEstimator
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseField
-import com.gemwallet.android.domains.perpetual.autoclose.AutocloseModifyBuilder
+import uniffi.gemstone.GemAutocloseModify
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseValidator
 import com.gemwallet.android.ext.PerpetualFormatter
 import uniffi.gemstone.GemConfirmInput
@@ -17,6 +17,7 @@ import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModelFactory
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.PerpetualModifyPositionType
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.TpslType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,6 +41,7 @@ import java.text.DecimalFormatSymbols
 import java.util.Locale
 import javax.inject.Inject
 import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.ext.toGem
 
@@ -120,9 +122,9 @@ class AutocloseViewModel @Inject constructor(
         val assetIndex = position.perpetual.identifier.toIntOrNull() ?: return
         val takeProfitField = autocloseField(position, TpslType.TakeProfit, takeProfitText.value)
         val stopLossField = autocloseField(position, TpslType.StopLoss, stopLossText.value)
-        val builder = AutocloseModifyBuilder(position.position.direction)
-        if (!builder.canBuild(takeProfitField, stopLossField)) return
-        val modifyTypes = builder.build(assetIndex, takeProfitField, stopLossField)
+        val modify = GemAutocloseModify(position.position.direction.toJson(), assetIndex, takeProfitField.toGem(), stopLossField.toGem())
+        if (!modify.canBuild()) return
+        val modifyTypes = modify.build().map { it.decodeJson<PerpetualModifyPositionType>() }
         viewModelScope.launch {
             buildPerpetualParams.modify(
                 perpetualId = perpetualId,
@@ -141,11 +143,10 @@ class AutocloseViewModel @Inject constructor(
     ): AutocloseUIModel {
         val takeProfit = autocloseField(position, TpslType.TakeProfit, takeProfitText)
         val stopLoss = autocloseField(position, TpslType.StopLoss, stopLossText)
-        val builder = AutocloseModifyBuilder(position.position.direction)
         val confirmEnabled = if (submitAttempted) {
-            builder.canBuild(takeProfit, stopLoss)
+            GemAutocloseModify(position.position.direction.toJson(), 0, takeProfit.toGem(), stopLoss.toGem()).canBuild()
         } else {
-            takeProfit.hasPendingChange || stopLoss.hasPendingChange
+            takeProfit.toGem().hasPendingChange() || stopLoss.toGem().hasPendingChange()
         }
         return AutocloseUIModelFactory.create(
             position = position,
