@@ -7,8 +7,10 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatQuote
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.WalletId
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemFiatService
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
@@ -23,8 +25,8 @@ class GetBuyQuotesImpl(
         type: FiatQuoteType,
         currency: Currency,
         amount: Double,
-    ): List<FiatQuote> {
-        return try {
+    ): List<FiatQuote> = withContext(Dispatchers.IO) {
+        try {
             fiatService.getQuotes(
                 walletId = walletId.id,
                 quoteType = type.toJson(),

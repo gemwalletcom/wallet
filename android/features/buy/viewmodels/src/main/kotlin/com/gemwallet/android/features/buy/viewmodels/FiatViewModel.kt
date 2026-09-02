@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.buy.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import uniffi.gemstone.GemFiatServiceInterface
@@ -29,6 +30,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatProvider
 import com.wallet.core.primitives.FiatQuoteType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -171,21 +173,27 @@ class FiatViewModel @Inject constructor(
                 operation.clearQuotes()
                 return@mapLatest
             }
-            try {
-                val quotes = getBuyQuotes(
+            val quotes = try {
+                getBuyQuotes(
                     walletId = data.walletId,
                     asset = data.asset,
                     type = currentType,
                     currency = currency,
                     amount = amountParsed,
                 )
-                if (quotes.isEmpty()) throw Exception()
-                operation.updateQuotes(quotes)
-                operation.updateState(FiatSceneState.Ready)
-            } catch (_: Exception) {
+            } catch (err: CancellationException) {
+                throw err
+            } catch (err: Throwable) {
+                Log.e(TAG, "fiat quotes request failed", err)
+                emptyList()
+            }
+            if (quotes.isEmpty()) {
                 operation.updateState(FiatSceneState.Error(BuyError.QuoteNotAvailable))
                 operation.clearQuotes()
+                return@mapLatest
             }
+            operation.updateQuotes(quotes)
+            operation.updateState(FiatSceneState.Ready)
         }
         .launchIn(viewModelScope)
     }
@@ -243,11 +251,12 @@ class FiatViewModel @Inject constructor(
         viewModelScope.launch {
             val data = assetData.value ?: return@launch callback(null)
             val quoteId = currentSelectedQuote.value?.id ?: return@launch callback(null)
-            val url = withContext(Dispatchers.IO) {
-                getBuyQuoteUrl(quoteId = quoteId, walletId = data.walletId)
-            }
-            callback(url)
+            callback(getBuyQuoteUrl(quoteId = quoteId, walletId = data.walletId))
         }
+    }
+
+    private companion object {
+        const val TAG = "FiatViewModel"
     }
 
     private data class QuoteFetchParams(
