@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.fiat
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.fiat.cases.GetBuyQuotes
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
@@ -32,7 +33,7 @@ class GetBuyQuotesImpl(
                 quoteType = type.toJson(),
                 assetId = asset.id.toIdentifier(),
                 amount = amount,
-                currency = currency.toJson(),
+                currency = currency.toGem(),
             ).map { it.decodeJson<FiatQuote>() }
         } catch (err: Exception) {
             currentCoroutineContext().ensureActive()

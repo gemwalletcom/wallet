@@ -73,7 +73,7 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
     }
 
     public func currency() -> Currency {
-        Primitives.Currency.usd.json()
+        Primitives.Currency.usd.rawValue
     }
 
     public func authentication() -> GemKeystoreAuthentication {

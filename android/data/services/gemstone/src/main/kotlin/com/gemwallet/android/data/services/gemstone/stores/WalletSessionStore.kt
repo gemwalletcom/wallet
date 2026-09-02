@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.data.service.store.database.SessionDao
 import com.gemwallet.android.data.service.store.database.entities.DbSession
 import com.gemwallet.android.serializer.decodeJson
@@ -18,7 +19,7 @@ class GemstoneWalletSessionStore(
     override fun setCurrentWalletId(walletId: String?) {
         val walletId = walletId ?: return sessionDao.clearNow()
         val session = sessionDao.getSession()?.copy(walletId = walletId)
-            ?: DbSession(walletId = walletId, currency = preferencesService.getCurrency().decodeJson<Currency>())
+            ?: DbSession(walletId = walletId, currency = preferencesService.getCurrency().toCurrency())
         sessionDao.updateNow(session)
     }
 

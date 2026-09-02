@@ -5,16 +5,16 @@ import protocol Gemstone.GemPreferencesServiceProtocol
 import Primitives
 
 public extension GemPreferencesServiceProtocol {
-    var currencyValue: Primitives.Currency {
-        (try? Primitives.Currency(getCurrency())) ?? .usd
+    var currency: Primitives.Currency {
+        Primitives.Currency(core: getCurrency())
     }
 
     var currencyCode: String {
-        currencyValue.rawValue
+        getCurrency()
     }
 
     func setCurrencyValue(_ currency: Primitives.Currency) throws {
-        try setCurrency(currency: currency.json())
+        try setCurrency(currency: currency.rawValue)
     }
 
     var chartPeriodValue: ChartPeriod {

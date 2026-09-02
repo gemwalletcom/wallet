@@ -148,7 +148,7 @@ public final class SelectAssetViewModel {
     }
 
     var currencyCode: String {
-        (try? Currency(service.currency()))?.rawValue ?? Currency.usd.rawValue
+        service.currency()
     }
 }
 

@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.tokens
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.model.Session
@@ -28,12 +29,12 @@ class WalletSearchTokensTest {
     fun search_delegatesWalletAndScopeToCore() = runTest {
         val wallet = mockWallet()
         every { getSession() } returns MutableStateFlow(Session(wallet = wallet, currency = Currency.USD))
-        coEvery { searchService.search(wallet.toJson(), "btc", GemSearchScope.List("stocks"), Currency.USD.toJson()) } returns true
+        coEvery { searchService.search(wallet.toJson(), "btc", GemSearchScope.List("stocks"), Currency.USD.toGem()) } returns true
 
         val result = subject.search("btc", Currency.USD, emptyList(), WalletSearchTag.List("stocks"))
 
         assertTrue(result)
-        coVerify(exactly = 1) { searchService.search(wallet.toJson(), "btc", GemSearchScope.List("stocks"), Currency.USD.toJson()) }
+        coVerify(exactly = 1) { searchService.search(wallet.toJson(), "btc", GemSearchScope.List("stocks"), Currency.USD.toGem()) }
     }
 
     @Test

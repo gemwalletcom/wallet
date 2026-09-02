@@ -92,7 +92,7 @@ extension OnstartService {
         guard ProcessInfo.processInfo.environment["SCREENSHOTS_PATH"] != nil else { return }
         let currency = Locale.current.currency.flatMap { Currency(rawValue: $0.identifier) } ?? .usd
         do {
-            try preferencesService.setCurrency(currency: currency.json())
+            try preferencesService.setCurrency(currency: currency.rawValue)
         } catch {
             debugLog("screenshots currency error: \(error)")
         }

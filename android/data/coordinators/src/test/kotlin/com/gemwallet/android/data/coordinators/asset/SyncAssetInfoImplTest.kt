@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.asset
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.assets.cases.SyncMissingAssets
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.ext.toIdentifier
@@ -55,12 +56,12 @@ class SyncAssetInfoImplTest {
 
     @Test
     fun syncAssetInfo_syncsBalanceMetadataAndPricesThroughCore() = runTest {
-        coEvery { assetsService.syncAsset("bitcoin", Currency.USD.toJson()) } returns assetFull.toJson()
+        coEvery { assetsService.syncAsset("bitcoin", Currency.USD.toGem()) } returns assetFull.toJson()
 
         subject.syncAssetInfo(asset.id, wallet)
 
         coVerify { balanceService.update("wallet-1", listOf(asset.id.toIdentifier())) }
-        coVerify { assetsService.syncAsset("bitcoin", Currency.USD.toJson()) }
+        coVerify { assetsService.syncAsset("bitcoin", Currency.USD.toGem()) }
         coVerify { streamSubscriptionService.addPrices(listOf(asset.id.toIdentifier())) }
     }
 
@@ -82,7 +83,7 @@ class SyncAssetInfoImplTest {
                 AssetAssociation(associatedAssetId, AssetAssociationType.Official),
             ),
         )
-        coEvery { assetsService.syncAsset("bitcoin", Currency.USD.toJson()) } returns assetFull.toJson()
+        coEvery { assetsService.syncAsset("bitcoin", Currency.USD.toGem()) } returns assetFull.toJson()
 
         subject.syncAssetInfo(asset.id, wallet)
 

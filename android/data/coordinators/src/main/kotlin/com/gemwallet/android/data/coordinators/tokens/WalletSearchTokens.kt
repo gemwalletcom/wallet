@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.tokens
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.application.tokens.cases.WalletSearchScope
 import com.gemwallet.android.application.session.cases.GetSession
@@ -28,7 +29,7 @@ class WalletSearchTokens(
     private suspend fun searchScope(query: String, currency: Currency, scope: WalletSearchTag): Boolean = withContext(Dispatchers.IO) {
         val wallet = getSession().value?.wallet ?: return@withContext false
         runCatchingCancellable {
-            searchService.search(wallet.toJson(), query, scope.toGem(), currency.toJson())
+            searchService.search(wallet.toJson(), query, scope.toGem(), currency.toGem())
         }.getOrElse { false }
     }
 }

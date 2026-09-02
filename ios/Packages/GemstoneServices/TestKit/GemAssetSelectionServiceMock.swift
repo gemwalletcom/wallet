@@ -26,7 +26,7 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
     }
 
     public func currency() -> Currency {
-        Primitives.Currency.usd.json()
+        Primitives.Currency.usd.rawValue
     }
 
     public func searchAssets(wallet: Wallet, query: String) async throws -> [AssetBasic] {

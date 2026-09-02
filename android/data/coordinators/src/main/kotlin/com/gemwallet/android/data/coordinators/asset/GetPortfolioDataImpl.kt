@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.asset
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.assets.cases.GetPortfolioData
 import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.ext.hyperliquidAccount
@@ -32,7 +33,7 @@ class GetPortfolioDataImpl(
     private suspend fun input(type: PortfolioType, period: ChartPeriod, currency: Currency): GemPortfolioDataInput = when (type) {
         PortfolioType.Wallet -> {
             val walletId = checkNotNull(getCurrentWallet.getCurrentWallet()?.id) { "Missing current wallet" }
-            GemPortfolioDataInput.Wallet(walletId.id, period.toJson(), currency.toJson())
+            GemPortfolioDataInput.Wallet(walletId.id, period.toJson(), currency.toGem())
         }
         PortfolioType.Perpetuals -> {
             val address = checkNotNull(getCurrentWallet.getCurrentWallet()?.hyperliquidAccount?.address) {

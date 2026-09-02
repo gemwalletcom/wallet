@@ -5,6 +5,7 @@ import com.gemwallet.android.application.assets.cases.SyncMissingAssets
 import com.gemwallet.android.application.assets.cases.SyncAssetInfo
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
@@ -52,7 +53,7 @@ class SyncAssetInfoImpl(
 
     private suspend fun syncAssetMetadata(assetId: AssetId): AssetFull? {
         return try {
-            assetsService.syncAsset(assetId.toIdentifier(), getCurrentCurrency.getCurrentCurrency().toJson()).decodeJson<AssetFull>()
+            assetsService.syncAsset(assetId.toIdentifier(), getCurrentCurrency.getCurrentCurrency().toGem()).decodeJson<AssetFull>()
         } catch (_: Exception) {
             currentCoroutineContext().ensureActive()
             null

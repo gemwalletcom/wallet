@@ -93,11 +93,11 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         lock.withLock { priceAlertsEnabled = enabled }
     }
 
-    public func getCurrency() -> Gemstone.Currency { (Primitives.Currency.usd.json()) ?? "\"USD\"" }
+    public func getCurrency() -> Gemstone.Currency { Primitives.Currency.usd.rawValue }
 
     public func setCurrency(currency _: Gemstone.Currency) throws {}
 
-    public func setupCurrency(localeCurrency _: String?) throws -> Gemstone.Currency { Primitives.Currency.usd.json() }
+    public func setupCurrency(localeCurrency _: String?) throws -> Gemstone.Currency { Primitives.Currency.usd.rawValue }
 
     public func getChartPeriod() -> Gemstone.ChartPeriod { (Primitives.ChartPeriod.day.json()) ?? "\"day\"" }
 

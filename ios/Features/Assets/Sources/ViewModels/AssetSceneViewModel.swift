@@ -548,11 +548,10 @@ extension AssetSceneViewModel {
     }
 
     private func refresh() async {
-        guard let currency = try? Currency(id: preferences.currency) else { return }
         let failures = await service.refresh(
             walletId: walletModel.wallet.id.id,
             assetId: assetModel.asset.id.identifier,
-            currency: currency.json(),
+            currency: preferences.currency,
         )
         for failure in failures {
             debugLog("asset scene: refresh \(failure.step) failed: \(failure.message)")

@@ -1,5 +1,7 @@
 package com.gemwallet.android.data.coordinators.session
 
+import com.gemwallet.android.ext.toCurrency
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.application.session.cases.GetSession
@@ -45,7 +47,7 @@ class SessionCoordinator(
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetSession, GetCurrentWallet, GetCurrentCurrency, SetCurrentCurrency, SetCurrentWallet {
 
-    private val currencyState = MutableStateFlow(preferencesService.getCurrency().decodeJson<Currency>())
+    private val currencyState = MutableStateFlow(preferencesService.getCurrency().toCurrency())
 
     private val currentWallet: Flow<Wallet?> = sessionStore.observeSession()
         .flatMapLatest { record ->
@@ -59,7 +61,7 @@ class SessionCoordinator(
 
     init {
         scope.launch {
-            setCurrency(preferencesService.setupCurrency(sessionStore.storedCurrency()?.string ?: localeCurrencyCode()).decodeJson())
+            setCurrency(preferencesService.setupCurrency(sessionStore.storedCurrency()?.string ?: localeCurrencyCode()).toCurrency())
         }
     }
 
@@ -81,7 +83,7 @@ class SessionCoordinator(
                 return@launch
             }
             setCurrency(currency)
-            priceService.changeCurrency(currency.toJson())
+            priceService.changeCurrency(currency.toGem())
             deviceService.synchronizeIfNeeded()
         }
     }
@@ -91,7 +93,7 @@ class SessionCoordinator(
     }
 
     private suspend fun setCurrency(currency: Currency) = withContext(Dispatchers.IO) {
-        preferencesService.setCurrency(currency.toJson())
+        preferencesService.setCurrency(currency.toGem())
         currencyState.value = currency
     }
 

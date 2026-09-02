@@ -8,11 +8,11 @@ import Primitives
 public extension GemSearchServiceProtocol {
     @discardableResult
     func search(wallet: Primitives.Wallet, query: String, scope: WalletSearchTag, currency: String) async throws -> Bool {
-        try await search(wallet: wallet.json(), query: query, scope: scope.gemScope, currency: Primitives.Currency(id: currency).json())
+        try await search(wallet: wallet.json(), query: query, scope: scope.gemScope, currency: currency)
     }
 
     func searchAssets(wallet: Primitives.Wallet, query: String, currency: String) async throws -> [Primitives.AssetBasic] {
-        try await searchAssets(wallet: wallet.json(), query: query, currency: Primitives.Currency(id: currency).json())
+        try await searchAssets(wallet: wallet.json(), query: query, currency: currency)
             .map { try Primitives.AssetBasic($0) }
     }
 }

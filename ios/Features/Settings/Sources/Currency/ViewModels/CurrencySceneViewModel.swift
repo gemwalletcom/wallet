@@ -71,7 +71,7 @@ public final class CurrencySceneViewModel {
 
     func setCurrency(_ currency: Currency) async throws {
         self.currency = currency
-        try await priceService.changeCurrency(currency: currency.json())
+        try await priceService.changeCurrency(currency: currency.rawValue)
     }
 
     func updateDevice() async {

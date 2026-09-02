@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.tokens
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.application.session.cases.GetSession
 import android.util.Log
@@ -25,13 +26,13 @@ class SearchTokensImpl(
             return@withContext false
         }
         val wallet = getSession().value?.wallet ?: return@withContext false
-        runCatchingCancellable { searchService.searchAssets(wallet.toJson(), query, currency.toJson()) }
+        runCatchingCancellable { searchService.searchAssets(wallet.toJson(), query, currency.toGem()) }
             .getOrElse { return@withContext false }
             .isNotEmpty()
     }
 
     override suspend fun search(assetIds: List<AssetId>, currency: Currency): Boolean =
-        runCatchingCancellable { assetsService.syncAssets(assetIds.map { it.toIdentifier() }, currency.toJson()) }
+        runCatchingCancellable { assetsService.syncAssets(assetIds.map { it.toIdentifier() }, currency.toGem()) }
             .onFailure { Log.e(TAG, "assets sync failed", it) }
             .isSuccess
 

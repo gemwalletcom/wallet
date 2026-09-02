@@ -153,7 +153,7 @@ public final class SetPriceAlertViewModel {
         }
         return Primitives.PriceAlert(
             assetId: asset.id,
-            currency: preferencesService.currencyValue,
+            currency: preferencesService.currency,
             price: price,
             pricePercentChange: pricePercentChange,
             priceDirection: alertDirection,

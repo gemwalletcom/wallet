@@ -39,7 +39,7 @@ struct CurrencySceneViewModelTests {
     @Test
     func setNewCurrency() async throws {
         let priceService = GemPriceService.mock()
-        try await priceService.updateRates(rates: [FiatRate(symbol: .ars, rate: 1200).json()], currency: Currency.ars.json())
+        try await priceService.updateRates(rates: [FiatRate(symbol: .ars, rate: 1200).json()], currency: Currency.ars.rawValue)
         let usdCurrencyStorage = MockCurrencyStorage()
         let deviceService = GemDeviceServiceMock()
         let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, priceService: priceService, deviceService: deviceService)

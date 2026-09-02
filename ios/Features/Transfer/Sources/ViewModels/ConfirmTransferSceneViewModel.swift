@@ -57,7 +57,7 @@ public final class ConfirmTransferSceneViewModel {
     private let onComplete: VoidAction
 
     private var currency: Currency {
-        (try? Currency(service.currency())) ?? .usd
+        Currency(core: service.currency())
     }
 
     private let service: any GemConfirmTransferServiceProtocol

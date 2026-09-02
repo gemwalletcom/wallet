@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.stream
 
+import com.gemwallet.android.ext.toGem
 import android.util.Log
 import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
@@ -67,7 +68,7 @@ class StreamObserverService(
 
     private fun handleMessage(text: String) {
         scope.launch {
-            runCatchingCancellable { streamService.handle(text, getCurrentCurrency.getCurrentCurrency().toJson()) }
+            runCatchingCancellable { streamService.handle(text, getCurrentCurrency.getCurrentCurrency().toGem()) }
                 .onFailure { Log.e(TAG, "Event handler error", it) }
         }
     }

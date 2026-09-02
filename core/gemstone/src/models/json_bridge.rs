@@ -5,7 +5,6 @@ use primitives::Wallet;
 use primitives::asset_balance::BalanceMetadata;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue};
 use primitives::contact::ContactAddress;
-use primitives::currency::Currency;
 use primitives::name::NameRecord;
 use primitives::node::Node;
 use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, TPSLOrderData};
@@ -88,7 +87,6 @@ json_bridge!(
     Contact,
     ContactAddress,
     ContractCallData,
-    Currency,
     Delegation,
     DelegationBase,
     DelegationState,

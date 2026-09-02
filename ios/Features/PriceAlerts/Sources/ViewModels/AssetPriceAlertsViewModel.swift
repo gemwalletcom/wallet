@@ -87,7 +87,7 @@ extension AssetPriceAlertsViewModel {
 
     func toggleAutoAlert(enabled: Bool) async {
         do {
-            let currency = preferencesService.currencyValue
+            let currency = preferencesService.currency
             if enabled {
                 try await priceAlertService.enable(priceAlert: .default(for: asset.id, currency: currency))
             } else {

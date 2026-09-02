@@ -3,13 +3,11 @@ package com.gemwallet.android.data.coordinators.di
 import com.gemwallet.android.application.assets.cases.EnableAsset
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetAssetById
-import com.gemwallet.android.application.assets.cases.GetAssetChartData
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.assets.cases.GetAssetLinks
 import com.gemwallet.android.application.assets.cases.GetAssetMarket
 import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
-import com.gemwallet.android.application.assets.cases.GetChartPeriod
 import com.gemwallet.android.application.assets.cases.GetHideBalancesState
 import com.gemwallet.android.application.assets.cases.GetImportInProgress
 import com.gemwallet.android.application.assets.cases.GetSearchLists
@@ -21,7 +19,6 @@ import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.assets.cases.HideAsset
 import com.gemwallet.android.application.assets.cases.HideWelcomeBanner
 import com.gemwallet.android.application.assets.cases.SyncMissingAssets
-import com.gemwallet.android.application.assets.cases.SetChartPeriod
 import com.gemwallet.android.application.assets.cases.SyncAssetInfo
 import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.application.assets.cases.SetAssetPinned
@@ -32,15 +29,12 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.data.coordinators.asset.EnableAssetImpl
 import com.gemwallet.android.data.coordinators.asset.GetActiveAssetsInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetByIdImpl
-import com.gemwallet.android.data.coordinators.asset.GetAssetChartDataImpl
 import uniffi.gemstone.BalanceCalculator
-import uniffi.gemstone.GemChartService
 import com.gemwallet.android.data.coordinators.asset.GetAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetLinksImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetMarketImpl
 import com.gemwallet.android.data.coordinators.asset.GetAssetTokenInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetChainAssetInfoImpl
-import com.gemwallet.android.data.coordinators.asset.GetChartPeriodImpl
 import com.gemwallet.android.data.coordinators.asset.GetHideBalancesStateImpl
 import com.gemwallet.android.data.coordinators.asset.GetImportInProgressImpl
 import com.gemwallet.android.data.coordinators.asset.GetSearchListsImpl
@@ -51,7 +45,6 @@ import com.gemwallet.android.data.coordinators.asset.DeviceAssetsSyncService
 import com.gemwallet.android.data.coordinators.asset.HideAssetImpl
 import com.gemwallet.android.data.coordinators.asset.HideWelcomeBannerImpl
 import com.gemwallet.android.data.coordinators.asset.SyncMissingAssetsImpl
-import com.gemwallet.android.data.coordinators.asset.SetChartPeriodImpl
 import com.gemwallet.android.data.coordinators.asset.SyncAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.SyncAssetsImpl
 import com.gemwallet.android.data.coordinators.asset.SetAssetPinnedImpl
@@ -146,13 +139,6 @@ object AssetModule {
         balanceCalculator = balanceCalculator,
     )
 
-    @Provides
-    @Singleton
-    fun provideGetAssetChartData(
-        chartService: GemChartService,
-    ): GetAssetChartData = GetAssetChartDataImpl(
-        chartService = chartService,
-    )
 
     @Provides
     @Singleton
@@ -282,17 +268,7 @@ object AssetModule {
         userConfig: UserConfig,
     ): ToggleHideBalances = ToggleHideBalancesImpl(userConfig)
 
-    @Provides
-    @Singleton
-    fun provideGetChartPeriod(
-        userConfig: UserConfig,
-    ): GetChartPeriod = GetChartPeriodImpl(userConfig)
 
-    @Provides
-    @Singleton
-    fun provideSetChartPeriod(
-        userConfig: UserConfig,
-    ): SetChartPeriod = SetChartPeriodImpl(userConfig)
 
     @Provides
     @Singleton

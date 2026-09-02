@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.tokens
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
@@ -37,8 +38,8 @@ class SearchTokensImplTest {
 
     @Test
     fun search_usesCoreSearchAssetsForTheSessionWallet() = runTest {
-        coEvery { searchService.searchAssets(wallet.toJson(), "btc", Currency.USD.toJson()) } returns listOf(mockAssetBasic().toJson())
-        coEvery { searchService.searchAssets(wallet.toJson(), "none", Currency.USD.toJson()) } returns emptyList()
+        coEvery { searchService.searchAssets(wallet.toJson(), "btc", Currency.USD.toGem()) } returns listOf(mockAssetBasic().toJson())
+        coEvery { searchService.searchAssets(wallet.toJson(), "none", Currency.USD.toGem()) } returns emptyList()
 
         assertTrue(subject.search(query = "btc", currency = Currency.USD))
         assertFalse(subject.search(query = "none", currency = Currency.USD))
@@ -52,6 +53,6 @@ class SearchTokensImplTest {
         val result = subject.search(assetIds = listOf(asset.id), currency = Currency.USD)
 
         assertTrue(result)
-        coVerify(exactly = 1) { assetsService.syncAssets(listOf(asset.id.toIdentifier()), Currency.USD.toJson()) }
+        coVerify(exactly = 1) { assetsService.syncAssets(listOf(asset.id.toIdentifier()), Currency.USD.toGem()) }
     }
 }

@@ -218,7 +218,7 @@ extension TransactionSceneViewModel {
     var feeDetailsViewModel: NetworkFeeSceneViewModel {
         NetworkFeeSceneViewModel(
             feeAsset: model.transaction.feeAsset,
-            currency: preferencesService.currencyValue,
+            currency: preferencesService.currency,
             selection: .preset(.normal),
             feeAssetPrice: model.transaction.feePrice,
             feeAmount: BigInt(model.transaction.transaction.fee),

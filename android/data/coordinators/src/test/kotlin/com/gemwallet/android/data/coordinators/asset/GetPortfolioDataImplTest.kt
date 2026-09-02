@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.asset
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.serializer.toJson
@@ -41,7 +42,7 @@ class GetPortfolioDataImplTest {
         )
         coEvery { getCurrentWallet.getCurrentWallet() } returns wallet
         coEvery {
-            portfolioService.portfolioData(GemPortfolioDataInput.Wallet(wallet.id.id, ChartPeriod.Day.toJson(), Currency.EUR.toJson()))
+            portfolioService.portfolioData(GemPortfolioDataInput.Wallet(wallet.id.id, ChartPeriod.Day.toJson(), Currency.EUR.toGem()))
         } returns data.toJson()
 
         val result = subject.getPortfolioData(PortfolioType.Wallet, period = ChartPeriod.Day, currency = Currency.EUR)
