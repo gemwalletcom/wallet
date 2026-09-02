@@ -14,11 +14,8 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.StakeType
-import com.wallet.core.primitives.TransactionType
-import com.wallet.core.primitives.swap.ApprovalData
 import com.wallet.core.primitives.swap.SwapData
 import uniffi.gemstone.GemTransactionInputType
-import uniffi.gemstone.GemTransferService
 
 val GemTransactionInputType.asset: Asset
     get() = when (this) {
@@ -55,11 +52,6 @@ val GemTransactionInputType.stakeType: StakeType?
 
 val GemTransactionInputType.perpetualType: PerpetualType?
     get() = (this as? GemTransactionInputType.Perpetual)?.perpetualType?.decodeJson<PerpetualType>()
-
-fun GemTransactionInputType.approvalData(
-    transactionType: TransactionType,
-    transferService: GemTransferService,
-): ApprovalData? = transferService.approval(this, transactionType.toJson())?.decodeJson<ApprovalData>()
 
 fun GemTransactionInputType.Companion.transfer(asset: Asset): GemTransactionInputType =
     GemTransactionInputType.Transfer(asset.toGem())

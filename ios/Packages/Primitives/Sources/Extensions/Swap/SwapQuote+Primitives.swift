@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import Foundation
 
 public extension SwapQuote {
     var toValueBigInt: BigInt {
@@ -10,9 +9,5 @@ public extension SwapQuote {
 
     var fromValueBigInt: BigInt {
         (try? BigInt.from(string: fromValue)) ?? .zero
-    }
-
-    var minFromValueBigInt: BigInt? {
-        minFromValue.flatMap { try? BigInt.from(string: $0) }
     }
 }

@@ -11,6 +11,7 @@ import struct Gemstone.GemTransferData
 struct ConfirmSimulationState {
     let result: SimulationResult?
     let warnings: [SimulationWarning]
+    let hasCriticalWarning: Bool
     let payload: SimulationPayloadModel
     let headerData: AssetValueHeaderData?
     let balanceChanges: [SimulationAssetChange]
@@ -18,12 +19,14 @@ struct ConfirmSimulationState {
     init(
         result: SimulationResult?,
         warnings: [SimulationWarning],
+        hasCriticalWarning: Bool,
         payload: SimulationPayloadModel,
         headerData: AssetValueHeaderData?,
         balanceChanges: [SimulationAssetChange],
     ) {
         self.result = result
         self.warnings = warnings
+        self.hasCriticalWarning = hasCriticalWarning
         self.payload = payload
         self.headerData = headerData
         self.balanceChanges = balanceChanges
@@ -45,6 +48,7 @@ struct ConfirmSimulationState {
         self.init(
             result: simulation,
             warnings: simulation?.warnings ?? [],
+            hasCriticalWarning: details?.hasCriticalWarning ?? false,
             payload: payload,
             headerData: details?.header.flatMap { header in
                 guard let value = try? header.value.map() else { return nil }

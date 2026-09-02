@@ -14,12 +14,6 @@ final class ChainTests {
     }
 
     @Test
-    func transactionTimeoutSeconds() {
-        #expect(Chain.ethereum.transactionTimeoutSeconds == 1440)
-        #expect(Chain.solana.transactionTimeoutSeconds == 75)
-    }
-
-    @Test
     func addressValidation() {
         let addressService = GemAddressService()
 

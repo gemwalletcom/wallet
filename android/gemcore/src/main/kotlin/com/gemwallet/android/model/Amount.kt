@@ -15,12 +15,6 @@ class Crypto(val atomicValue: BigInteger) {
 
     fun value(decimals: Int): BigDecimal =
         atomicValue.toBigDecimal().divide(BigDecimal.TEN.pow(decimals), MathContext.DECIMAL128)
-
-    companion object {
-        fun exact(value: String, decimals: Int): Crypto? = runCatching {
-            Crypto(value.toBigDecimal().multiply(BigDecimal.TEN.pow(decimals)).toBigIntegerExact())
-        }.getOrNull()
-    }
 }
 
 class Fiat(val atomicValue: BigDecimal)

@@ -142,7 +142,7 @@ public final class ConfirmTransferSceneViewModel {
     public var payloadModel: SimulationPayloadModel { state.simulation.payload }
 
     var isButtonDisabled: Bool {
-        simulationWarnings.hasCritical
+        state.simulation.hasCriticalWarning
     }
 
     var confirmButtonModel: ConfirmButtonViewModel {

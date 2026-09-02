@@ -4,8 +4,6 @@ import com.gemwallet.android.testkit.mockWallet
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
-import com.gemwallet.android.application.session.cases.GetCurrentCurrency
-import com.wallet.core.primitives.Currency
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
@@ -20,9 +18,6 @@ class ImportWalletServiceTest {
 
     private val discoveryService = mockk<GemAssetDiscoveryService> {
         coEvery { discover(any()) } returns emptyList()
-    }
-    private val getCurrentCurrency = mockk<GetCurrentCurrency> {
-        coEvery { getCurrentCurrency() } returns Currency.USD
     }
     private val deviceService = mockk<GemDeviceService>(relaxed = true)
 
@@ -53,7 +48,6 @@ class ImportWalletServiceTest {
 
     private fun TestScope.service() = ImportWalletService(
         discoveryService = discoveryService,
-        getCurrentCurrency = getCurrentCurrency,
         deviceService = deviceService,
         scope = this,
     )

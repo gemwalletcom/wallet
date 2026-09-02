@@ -169,18 +169,4 @@ extension BalanceRecord {
             metadata: metadata,
         )
     }
-
-    func mapToAssetBalance() -> AssetBalance {
-        AssetBalance(
-            assetId: assetId,
-            balance: mapToBalance(),
-        )
-    }
-
-    func mapToWalletAssetBalance() -> WalletAssetBalance {
-        WalletAssetBalance(
-            walletId: walletId,
-            balance: mapToAssetBalance(),
-        )
-    }
 }

@@ -205,26 +205,6 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
     }
 }
 
-public final class GemTransactionsServiceMock: GemTransactionsServiceProtocol, @unchecked Sendable {
-    public typealias Sync = @Sendable (String, Gemstone.AssetId?) async throws -> Void
-
-    private let lock = NSLock()
-    private var onSync: Sync
-
-    public init(onSync: @escaping Sync = { _, _ in }) {
-        self.onSync = onSync
-    }
-
-    public func setOnSync(_ onSync: @escaping Sync) {
-        lock.withLock { self.onSync = onSync }
-    }
-
-    public func sync(walletId: String, assetId: Gemstone.AssetId?) async throws {
-        try await lock.withLock { onSync }(walletId, assetId)
-    }
-
-}
-
 public final class StubAlienProvider: AlienProvider, @unchecked Sendable {
     public init() {}
 

@@ -122,10 +122,6 @@ public extension Primitives.Chain {
         ChainConfig.config(chain: self).blockTime
     }
 
-    var transactionTimeoutSeconds: UInt32 {
-        ChainConfig.config(chain: self).transactionTimeout / 1000
-    }
-
     var iconChain: Primitives.Chain {
         Primitives.Chain(rawValue: ChainConfig.config(chain: self).iconChain) ?? self
     }
@@ -136,10 +132,6 @@ public extension Primitives.Chain {
 
     var supportsNftTransfer: Bool {
         ChainConfig.config(chain: self).supportsNftTransfer
-    }
-
-    var feeAssetIds: [Primitives.AssetId] {
-        assetConfig.chainFeeAssetIds(chain: rawValue).compactMap { try? Primitives.AssetId(id: $0) }
     }
 
     var defaultAssets: [Primitives.Asset] {

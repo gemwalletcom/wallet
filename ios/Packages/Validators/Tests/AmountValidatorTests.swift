@@ -17,27 +17,23 @@ struct AmountValidatorTests {
     }
 
     @Test
-    func assetAmountSucceeds() throws {
+    func assetAmountConverts() throws {
         let validator = AmountValidator.assetAmount(
             formatter: formatter,
             decimals: decimals,
-            validators: [BalanceValueValidator(available: BigInt(1_000_000_000), asset: asset)],
+            validators: [],
         )
-        try validator.validate("123.456")
+        #expect(try validator.format("123.456") == BigInt(123_456_000))
     }
 
     @Test
-    func assetAmountFailsBalance() {
-        let available = BigInt(100)
+    func assetAmountPropagatesValidationFailure() {
         let validator = AmountValidator.assetAmount(
             formatter: formatter,
             decimals: decimals,
-            validators: [BalanceValueValidator(available: available, asset: asset)],
+            validators: [InvalidAmountValidator()],
         )
-        #expect(throws: TransferAmountCalculatorError.insufficientBalance(
-            asset,
-            requirement: BalanceRequirement(required: BigInt(500_000), available: available),
-        )) {
+        #expect(throws: TransferError.invalidAmount) {
             try validator.validate("0.5")
         }
     }
@@ -73,4 +69,12 @@ struct AmountValidatorTests {
             try validator.validate("1.0")
         }
     }
+}
+
+private struct InvalidAmountValidator: ValueValidator {
+    func validate(_: BigInt) throws {
+        throw TransferError.invalidAmount
+    }
+
+    var id: String { "invalidAmount" }
 }

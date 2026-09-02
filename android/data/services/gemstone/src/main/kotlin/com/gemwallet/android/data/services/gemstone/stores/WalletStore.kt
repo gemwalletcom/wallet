@@ -70,12 +70,6 @@ class GemstoneWalletStore(
 
     suspend fun setImageUrl(walletId: WalletId, imageUrl: String?) = walletsDao.setImageUrl(walletId.id, imageUrl)
 
-    suspend fun updateAccounts(wallet: Wallet) = withContext(Dispatchers.IO) {
-        transactionRunner.run {
-            insertAccountsWithNativeAssets(wallet)
-        }
-    }
-
     suspend fun removeWallet(walletId: WalletId): Boolean = withContext(Dispatchers.IO) {
         val wallet = walletsDao.getById(walletId.id).firstOrNull() ?: return@withContext false
         accountsDao.deleteByWalletId(walletId.id)

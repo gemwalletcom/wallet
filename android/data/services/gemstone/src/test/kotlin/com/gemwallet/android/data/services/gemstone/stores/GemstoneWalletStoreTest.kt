@@ -68,30 +68,6 @@ class GemstoneWalletStoreTest {
         assertEquals(1, transactionRunner.runCount)
     }
 
-    @Test
-    fun updateAccounts_insertsNativeAssetsBeforeAccounts() = runBlocking {
-        stubNativeAssets()
-        val wallet = mockWallet(
-            id = "wallet-1",
-            accounts = listOf(
-                mockAccount(chain = Chain.Ethereum),
-                mockAccount(chain = Chain.Solana),
-            )
-        )
-        coJustRun { assetsDao.insert(any<List<DbAsset>>()) }
-        coJustRun { accountsDao.insert(any<List<DbAccount>>()) }
-
-        subject.updateAccounts(wallet)
-
-        coVerifyOrder {
-            assetsDao.insert(match<List<DbAsset>> { records ->
-                records.map { it.id }.toSet() == setOf("ethereum", "solana")
-            })
-            accountsDao.insert(any<List<DbAccount>>())
-        }
-        assertEquals(1, transactionRunner.runCount)
-    }
-
     private fun stubNativeAssets() {
         mockkStatic("com.gemwallet.android.ext.ChainKt")
         mockkStatic("uniffi.gemstone.GemstoneKt")

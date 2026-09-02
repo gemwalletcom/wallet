@@ -6,7 +6,6 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAsset
 import com.wallet.core.primitives.ChainType
-import com.wallet.core.primitives.EVMChain
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
 import uniffi.gemstone.supportsPrivateKeyImport
@@ -28,10 +27,6 @@ private fun Chain.chainAsset(): ChainAsset {
 fun Chain.assetType(): AssetType? {
     val defaultAssetType = Config().getChainConfig(string).defaultAssetType ?: return null
     return AssetType.entries.firstOrNull { it.string == defaultAssetType }
-}
-
-fun Chain.toEVM(): EVMChain? {
-    return EVMChain.entries.firstOrNull { it.string == string }
 }
 
 fun Chain.getReserveBalanceUrl(): String? = Config().getChainConfig(this.string).accountActivationFeeUrl
@@ -85,4 +80,3 @@ fun uniffi.gemstone.Chain.toChain(): Chain? {
 }
 
 fun uniffi.gemstone.Chain.requireChain(): Chain = requireNotNull(toChain()) { "unknown chain: $this" }
-
