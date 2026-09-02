@@ -2,7 +2,6 @@ package com.gemwallet.android.data.coordinators.swap
 
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
-import com.gemwallet.android.application.swap.cases.RequestSwapQuotes.Companion.QUOTE_DEBOUNCE_MS
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
@@ -38,6 +37,7 @@ class RequestSwapQuotesImpl(
         refreshEnabled: Flow<Boolean>,
         onFetchStarted: (SwapQuoteRequestKey) -> Unit,
         refreshIntervalMillis: Long,
+        debounceMillis: Long,
     ): Flow<SwapQuotesResult?> {
         return requestParams.flatMapLatest { params ->
             if (params == null) {
@@ -52,7 +52,7 @@ class RequestSwapQuotesImpl(
                 merge(flowOf(Unit), refreshRequests)
                     .transformLatest {
                         while (currentCoroutineContext().isActive) {
-                            delay(QUOTE_DEBOUNCE_MS)
+                            delay(debounceMillis)
                             onFetchStarted(params.key)
                             val data = requestQuotes(params)
                             emit(data)

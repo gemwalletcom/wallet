@@ -121,7 +121,7 @@ class SwapViewModelTest {
         every { getSession() } returns MutableStateFlow(null)
         every { getAssetInfo(solAsset.id) } returns flowOf(solInfo)
         every { getAssetInfo(usdcAsset.id) } returns flowOf(usdcInfo)
-        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns emptyFlow()
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any(), any()) } returns emptyFlow()
         every { SwapDetailsUIModelFactory.create(any()) } returns mockk(relaxed = true)
     }
 
@@ -289,7 +289,7 @@ class SwapViewModelTest {
     @Test
     fun `quote refresh does not replace swapping state`() = runTest(testDispatcher) {
         val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
-        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { getSession() } returns MutableStateFlow(
@@ -326,7 +326,7 @@ class SwapViewModelTest {
     @Test
     fun `transfer data error keeps quote visible and routes retry through transfer state`() = runTest(testDispatcher) {
         val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
-        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { getSession() } returns MutableStateFlow(
@@ -352,7 +352,7 @@ class SwapViewModelTest {
     @Test
     fun `a transfer failure Core cannot retry leaves the button tappable and retries the transfer`() = runTest(testDispatcher) {
         val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
-        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { getSession() } returns MutableStateFlow(
@@ -389,7 +389,7 @@ class SwapViewModelTest {
     @Test
     fun `quote changing actions clear transfer error state`() = runTest(testDispatcher) {
         val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
-        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { getSession() } returns MutableStateFlow(
@@ -424,7 +424,7 @@ class SwapViewModelTest {
         val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
         val refreshEnabledFlow = slot<Flow<Boolean>>()
         every {
-            requestSwapQuotes.invoke(any(), any(), capture(refreshEnabledFlow), any(), any())
+            requestSwapQuotes.invoke(any(), any(), capture(refreshEnabledFlow), any(), any(), any())
         } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
@@ -473,7 +473,7 @@ class SwapViewModelTest {
         val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
         val onFetchStarted = slot<(SwapQuoteRequestKey) -> Unit>()
         every {
-            requestSwapQuotes.invoke(any(), any(), any(), capture(onFetchStarted), any())
+            requestSwapQuotes.invoke(any(), any(), any(), capture(onFetchStarted), any(), any())
         } returns quotesFlow
 
         val viewModel = createViewModel(
@@ -493,7 +493,7 @@ class SwapViewModelTest {
     @Test
     fun `confirm callback runs before transfer loading clears`() = runTest(testDispatcher) {
         val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
-        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { getSession() } returns MutableStateFlow(
@@ -524,7 +524,7 @@ class SwapViewModelTest {
     @Test
     fun `confirm params keep frozen from amount while transfer is in flight`() = runTest(testDispatcher) {
         val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
-        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { getSession() } returns MutableStateFlow(
@@ -556,7 +556,7 @@ class SwapViewModelTest {
     @Test
     fun `onPrimaryAction does not build swap params until authorize runs`() = runTest(testDispatcher) {
         val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
-        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { getSession() } returns MutableStateFlow(Session(wallet = wallet, currency = Currency.USD))
@@ -602,7 +602,7 @@ class SwapViewModelTest {
         )
 
         val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
-        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any(), any()) } returns quotesFlow
 
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { getSession() } returns MutableStateFlow(
@@ -653,7 +653,7 @@ class SwapViewModelTest {
     @Test
     fun `minimum amount is offered only when the balance covers it`() = runTest(testDispatcher) {
         val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
-        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any(), any()) } returns quotesFlow
 
         val viewModel = createViewModel(swapSavedState())
         advanceUntilIdle()
@@ -675,7 +675,7 @@ class SwapViewModelTest {
     @Test
     fun `only retryable quote failures offer a retry`() = runTest(testDispatcher) {
         val quotesFlow = MutableSharedFlow<SwapQuotesResult?>(replay = 1)
-        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns quotesFlow
+        every { requestSwapQuotes.invoke(any(), any(), any(), any(), any(), any()) } returns quotesFlow
 
         val viewModel = createViewModel(swapSavedState())
         advanceUntilIdle()

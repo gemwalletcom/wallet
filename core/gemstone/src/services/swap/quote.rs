@@ -57,6 +57,10 @@ impl GemSwapQuoteService {
         rules::quote_refresh_interval_milliseconds()
     }
 
+    pub fn quote_debounce_milliseconds(&self) -> u64 {
+        rules::quote_debounce_milliseconds()
+    }
+
     pub fn supported_assets(&self, asset_id: AssetId) -> AssetList {
         self.swap.supported_assets(asset_id)
     }

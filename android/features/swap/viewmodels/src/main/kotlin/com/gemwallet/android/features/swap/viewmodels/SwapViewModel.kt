@@ -166,6 +166,7 @@ class SwapViewModel @Inject constructor(
             refreshEnabled = quoteRefreshEnabled,
             onFetchStarted = ::onQuoteFetchStarted,
             refreshIntervalMillis = swapQuoteService.refreshIntervalMilliseconds().toLong(),
+            debounceMillis = swapQuoteService.quoteDebounceMilliseconds().toLong(),
         ),
     ) { params, results ->
         results?.takeIf { it.matches(params) }

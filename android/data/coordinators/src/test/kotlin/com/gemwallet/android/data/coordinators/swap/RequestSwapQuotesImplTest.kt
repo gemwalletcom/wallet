@@ -56,6 +56,7 @@ class RequestSwapQuotesImplTest {
                 refreshEnabled = refreshEnabled,
                 onFetchStarted = {},
                 refreshIntervalMillis = 30_000,
+                debounceMillis = 500,
             ).collect { results += it }
         }
 
@@ -81,6 +82,7 @@ class RequestSwapQuotesImplTest {
                 refreshEnabled = refreshEnabled,
                 onFetchStarted = {},
                 refreshIntervalMillis = 30_000,
+                debounceMillis = 500,
             ).collect { results += it }
         }
 
@@ -127,6 +129,7 @@ class RequestSwapQuotesImplTest {
                 refreshEnabled = refreshEnabled,
                 onFetchStarted = {},
                 refreshIntervalMillis = 100,
+                debounceMillis = 500,
             ).collect()
         }
 
@@ -152,6 +155,7 @@ class RequestSwapQuotesImplTest {
                 refreshEnabled = refreshEnabled,
                 onFetchStarted = {},
                 refreshIntervalMillis = 100,
+                debounceMillis = 500,
             ).collect { results += it }
         }
 
@@ -177,6 +181,7 @@ class RequestSwapQuotesImplTest {
                 refreshEnabled = refreshEnabled,
                 onFetchStarted = {},
                 refreshIntervalMillis = 100,
+                debounceMillis = 500,
             ).collect()
         }
 
@@ -206,6 +211,7 @@ class RequestSwapQuotesImplTest {
                 refreshEnabled = refreshEnabled,
                 onFetchStarted = {},
                 refreshIntervalMillis = 30_000,
+                debounceMillis = 500,
             ).collect { results += it }
         }
 
@@ -230,6 +236,7 @@ class RequestSwapQuotesImplTest {
                 refreshEnabled = refreshEnabled,
                 onFetchStarted = {},
                 refreshIntervalMillis = 30_000,
+                debounceMillis = 500,
             ).collect { results += it }
         }
 

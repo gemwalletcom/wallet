@@ -96,6 +96,10 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         30_000
     }
 
+    public func quoteDebounceMilliseconds() -> UInt64 {
+        250
+    }
+
     public func updateBalances(walletId _: WalletId, assetIds _: [AssetId]) async throws {}
 
     public func addPrices(assetIds _: [AssetId]) async throws {}

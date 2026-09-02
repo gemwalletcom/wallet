@@ -9,9 +9,6 @@ interface RequestSwapQuotes {
         refreshEnabled: Flow<Boolean>,
         onFetchStarted: (SwapQuoteRequestKey) -> Unit,
         refreshIntervalMillis: Long,
+        debounceMillis: Long,
     ): Flow<SwapQuotesResult?>
-
-    companion object {
-        const val QUOTE_DEBOUNCE_MS = 500L
-    }
 }

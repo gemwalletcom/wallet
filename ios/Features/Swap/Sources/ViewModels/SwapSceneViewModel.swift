@@ -50,6 +50,10 @@ public final class SwapSceneViewModel {
     var amountInputModel: InputValidationViewModel = .init(mode: .onDemand)
     var toValue: String = ""
     var loadTrigger: SwapLoadTrigger?
+
+    var quoteDebounce: Duration {
+        .milliseconds(service.quoteDebounceMilliseconds())
+    }
     var selectedSlippage: SwapSlippage = .auto
 
     private let onSwap: TransferDataAction
