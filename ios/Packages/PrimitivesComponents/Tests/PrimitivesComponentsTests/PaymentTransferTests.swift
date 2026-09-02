@@ -27,7 +27,7 @@ struct PaymentTransferTests {
             ),
         )
 
-        let destination = try PaymentDestinationBuilder.build(transaction: transaction, asset: asset, addressService: addressService, paymentService: paymentService)
+        let destination = PaymentDestinationBuilder.build(transaction: transaction, asset: asset, paymentService: paymentService)
         guard case let .confirm(data) = destination else {
             Issue.record("Expected confirmation")
             return
@@ -55,7 +55,7 @@ struct PaymentTransferTests {
             ),
         )
 
-        let destination = try PaymentDestinationBuilder.build(transaction: transaction, asset: asset, addressService: addressService, paymentService: paymentService)
+        let destination = PaymentDestinationBuilder.build(transaction: transaction, asset: asset, paymentService: paymentService)
         guard case let .confirm(data) = destination else {
             Issue.record("Expected confirmation for a decoded transfer without a memo")
             return
@@ -81,7 +81,7 @@ struct PaymentTransferTests {
             ),
         )
 
-        let destination = try PaymentDestinationBuilder.build(transaction: transaction, asset: asset, addressService: addressService, paymentService: paymentService)
+        let destination = PaymentDestinationBuilder.build(transaction: transaction, asset: asset, paymentService: paymentService)
         guard case let .confirm(data) = destination else {
             Issue.record("Expected confirmation via the encoded transaction fallback")
             return

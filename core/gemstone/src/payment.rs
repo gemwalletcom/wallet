@@ -5,10 +5,12 @@ use crate::address::{checksum_address, validate_address};
 use crate::alien::{AlienProvider, AlienProviderWrapper};
 use crate::models::custom_types::GemBigUint;
 use crate::models::payment::{GemPayment, GemPaymentAmount, GemPaymentLink, GemPaymentRequest, GemPaymentTransaction};
+use crate::models::transaction::{GemTransactionInputType, GemTransferDataExtra};
+use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use payment::PaymentService as CorePaymentService;
-use primitives::{AssetId, Chain, ChainAddress, ChainType, PaymentURLDecoder};
+use primitives::{Asset, AssetId, Chain, ChainAddress, ChainType, PaymentURLDecoder, TransferDataOutputAction, TransferDataOutputType, hex};
 
 pub type GemPaymentError = payment::PaymentError;
 
@@ -43,6 +45,73 @@ impl GemPaymentService {
 
     pub fn decoded_transfer(&self, request: GemPaymentRequest, asset: GemPaymentWalletAsset) -> Option<GemPaymentConfirmTransfer> {
         payment_decoded_transfer(&request, asset)
+    }
+
+    pub fn transfer_data(&self, transfer: GemPaymentConfirmTransfer, asset: Asset) -> GemTransferData {
+        transfer_data(&transfer, asset)
+    }
+
+    pub fn transaction_transfer_data(&self, transaction: GemPaymentTransaction, asset: Asset) -> GemTransferData {
+        let wallet_asset = GemPaymentWalletAsset {
+            asset_id: asset.id.clone(),
+            decimals: asset.decimals,
+        };
+        let transfer = transaction
+            .request
+            .as_ref()
+            .and_then(|request| payment_decoded_transfer(request, wallet_asset))
+            .map(|transfer| transfer_data(&transfer, asset.clone()));
+        let recipient = match &transfer {
+            Some(transfer) => transfer.recipient.clone(),
+            None => GemRecipient {
+                address: String::new(),
+                name: None,
+                memo: transaction.memo.clone(),
+                references: Vec::new(),
+            },
+        };
+        GemTransferData {
+            input_type: GemTransactionInputType::Generic {
+                asset,
+                metadata: transaction.merchant,
+                extra: GemTransferDataExtra {
+                    to: recipient.address.clone(),
+                    gas_limit: None,
+                    gas_price: None,
+                    data: Some(transaction_data(&transaction.transaction)),
+                    output_type: TransferDataOutputType::EncodedTransaction,
+                    output_action: TransferDataOutputAction::Send,
+                    transaction_type: transaction.transaction_type,
+                    approval: None,
+                },
+            },
+            recipient,
+            value: transfer.map(|transfer| transfer.value).unwrap_or_default(),
+            use_max_amount: false,
+            minimum_value: None,
+        }
+    }
+}
+
+fn transaction_data(transaction: &str) -> Vec<u8> {
+    match transaction.starts_with("0x") {
+        true => hex::decode_hex(transaction).unwrap_or_else(|_| transaction.as_bytes().to_vec()),
+        false => transaction.as_bytes().to_vec(),
+    }
+}
+
+fn transfer_data(transfer: &GemPaymentConfirmTransfer, asset: Asset) -> GemTransferData {
+    GemTransferData {
+        input_type: GemTransactionInputType::Transfer { asset },
+        recipient: GemRecipient {
+            address: transfer.address.clone(),
+            name: None,
+            memo: transfer.memo.clone(),
+            references: transfer.references.clone(),
+        },
+        value: transfer.value.clone().into(),
+        use_max_amount: false,
+        minimum_value: None,
     }
 }
 
@@ -179,7 +248,7 @@ impl GemPaymentLinkService {
 mod tests {
     use super::*;
     use crate::models::payment::{GemPaymentAmount, GemPaymentLink, GemPaymentRequest};
-    use primitives::{AssetId, Chain};
+    use primitives::{ApplicationMetadata, Asset, AssetId, AssetType, Chain, ChainAddress, TransactionType};
 
     const BITCOIN_ADDRESS: &str = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
     const ETHEREUM_ADDRESS: &str = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326";
@@ -318,6 +387,55 @@ mod tests {
 
         let missing_value = request(SOLANA_ADDRESS, None, None, Some(solana_usdc.asset_id.clone()));
         assert_eq!(payment_decoded_transfer(&missing_value, solana_usdc), None);
+    }
+
+    #[test]
+    fn test_transaction_transfer_data() {
+        let solana_usdc = AssetId::from_token(Chain::Solana, USDC_MINT);
+        let asset = Asset::new(solana_usdc.clone(), "USD Coin".to_string(), "USDC".to_string(), 6, AssetType::SPL);
+        let transaction = |request: Option<GemPaymentRequest>| GemPaymentTransaction {
+            merchant: ApplicationMetadata::mock(),
+            account: ChainAddress::new(Chain::Solana, SOLANA_ADDRESS.to_string()),
+            transaction: "encoded".to_string(),
+            transaction_type: TransactionType::Transfer,
+            memo: Some("order 7".to_string()),
+            request,
+        };
+        let service = GemPaymentService::new();
+
+        let decoded = service.transaction_transfer_data(
+            transaction(Some(request(
+                SOLANA_ADDRESS,
+                Some(GemPaymentAmount::AtomicValue(19_000_000u32.into())),
+                None,
+                Some(solana_usdc),
+            ))),
+            asset.clone(),
+        );
+        assert_eq!(decoded.recipient.address, SOLANA_ADDRESS);
+        assert_eq!(decoded.value, 19_000_000.into());
+        match &decoded.input_type {
+            GemTransactionInputType::Generic { extra, .. } => {
+                assert_eq!(extra.to, SOLANA_ADDRESS);
+                assert_eq!(extra.data.as_deref(), Some(b"encoded".as_slice()));
+                assert_eq!(extra.output_type, TransferDataOutputType::EncodedTransaction);
+            }
+            input_type => panic!("expected a generic input type, got {input_type:?}"),
+        }
+
+        let hex_encoded = GemPaymentTransaction {
+            transaction: "0x0a0b".to_string(),
+            ..transaction(None)
+        };
+        match &service.transaction_transfer_data(hex_encoded, asset.clone()).input_type {
+            GemTransactionInputType::Generic { extra, .. } => assert_eq!(extra.data.as_deref(), Some([0x0a, 0x0b].as_slice())),
+            input_type => panic!("expected a generic input type, got {input_type:?}"),
+        }
+
+        let undecodable = service.transaction_transfer_data(transaction(None), asset);
+        assert_eq!(undecodable.recipient.address, "");
+        assert_eq!(undecodable.recipient.memo.as_deref(), Some("order 7"));
+        assert_eq!(undecodable.value, 0.into());
     }
 
     #[test]

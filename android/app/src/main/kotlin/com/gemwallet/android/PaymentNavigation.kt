@@ -1,24 +1,14 @@
 package com.gemwallet.android
 
-import uniffi.gemstone.GemRecipient
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.confirmInput
 import com.gemwallet.android.domains.confirm.pack
-import com.gemwallet.android.domains.confirm.toTransactionData
-import com.gemwallet.android.domains.confirm.transfer
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toPrimitives
-import com.wallet.core.primitives.TransferDataOutputAction
-import com.wallet.core.primitives.TransferDataOutputType
-import uniffi.gemstone.GemTransactionInputType
-import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.GemTransferDataExtra
 import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.model.toPaymentWalletAsset
-import com.gemwallet.android.model.toConfirmInput
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
@@ -27,7 +17,6 @@ import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
 import com.wallet.core.primitives.Payment
 import com.wallet.core.primitives.PaymentLink
 import com.wallet.core.primitives.PaymentRequest
-import java.math.BigInteger
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import com.wallet.core.primitives.ChainAddress
@@ -68,34 +57,13 @@ class PaymentNavigation @Inject constructor(
         val account = accounts.firstOrNull {
             it.chain == paymentAccount.chain && it.address == paymentAccount.address
         } ?: return emptyList()
-        val decoded = payment.request?.let { request ->
-            val decodedRequest = request.decodeJson<PaymentRequest>()
-            assets.firstOrNull { it.asset.id == decodedRequest.assetId }
-                ?.let { paymentService.decodedTransfer(request, it.toPaymentWalletAsset())?.toConfirmInput(assets) }
-        }
-        val transfer = decoded?.transfer ?: GemTransferData(
-            inputType = GemTransactionInputType.transfer(account.chain.asset()),
-            recipient = GemRecipient(address = "", memo = payment.memo),
-            value = BigInteger.ZERO.toString(),
-        )
-        val input = GemTransferData(
-            inputType = GemTransactionInputType.Generic(
-                asset = transfer.inputType.asset.toGem(),
-                metadata = payment.merchant,
-                extra = GemTransferDataExtra(
-                    to = transfer.recipient.address,
-                    gasLimit = null,
-                    gasPrice = null,
-                    data = payment.transaction.toTransactionData(),
-                    outputType = TransferDataOutputType.EncodedTransaction.toJson(),
-                    outputAction = TransferDataOutputAction.Send.toJson(),
-                    transactionType = payment.transactionType,
-                    approval = null,
-                ),
-            ),
-            recipient = transfer.recipient,
-            value = transfer.value,
-        ).confirmInput(decoded?.from?.toPrimitives() ?: account)
+        val assetInfo = payment.request
+            ?.decodeJson<PaymentRequest>()
+            ?.let { request -> assets.firstOrNull { it.asset.id == request.assetId } }
+        val asset = assetInfo?.asset ?: account.chain.asset()
+        val input = paymentService
+            .transactionTransferData(payment, asset.toGem())
+            .confirmInput(assetInfo?.owner ?: account)
         return listOfNotNull(transferService.pack(input)?.let(::ConfirmRoute))
     }
 }

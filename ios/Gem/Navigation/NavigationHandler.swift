@@ -186,7 +186,7 @@ extension NavigationHandler {
             let assetId = try transaction.request?.map().assetId ?? chain.asset.id
             let asset = try await assetsService.ensureTokenAsset(for: assetId)
             toastPresenter.toastMessage = nil
-            presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(transaction: transaction, asset: asset, addressService: addressService, paymentService: paymentService)
+            presenter.isPresentingPayment.wrappedValue = PaymentDestinationBuilder.build(transaction: transaction, asset: asset, paymentService: paymentService)
         }
     }
 }
