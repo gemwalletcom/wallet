@@ -82,7 +82,7 @@ public struct DelegationViewModel: Sendable {
     }
 
     private var showsRewards: Bool {
-        service.showsRewards(state: delegation.base.state.json(), rewards: delegation.base.rewards)
+        service.showsRewards(delegation: delegation.base.json())
     }
 
     public var rewardsText: String? {
@@ -116,7 +116,7 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var completionDateText: String? {
-        guard service.showsCompletionDate(state: delegation.base.state.json()) else { return nil }
+        guard service.showsCompletionDate(delegation: delegation.base.json()) else { return nil }
         let now = Date.now
         if let completionDate = delegation.base.completionDate, completionDate > now {
             if now.distance(to: completionDate) < 86400 {

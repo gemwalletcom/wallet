@@ -104,12 +104,7 @@ public struct DelegationSceneViewModel {
     }
 
     public var availableActions: [DelegationActionType] {
-        return service.delegationActions(
-            walletType: wallet.type.map(),
-            chain: asset.chain.rawValue,
-            provider: providerType.json(),
-            state: model.state.json(),
-        )
+        service.delegationActions(walletType: wallet.type.map(), delegation: model.delegation.json())
             .map(DelegationActionType.init)
     }
 
@@ -118,12 +113,7 @@ public struct DelegationSceneViewModel {
     }
 
     public var canClaimRewards: Bool {
-        return service.canClaimDelegationRewards(
-            walletType: wallet.type.map(),
-            chain: asset.chain.rawValue,
-            state: model.state.json(),
-            rewards: model.delegation.base.rewards,
-        )
+        service.canClaimDelegationRewards(walletType: wallet.type.map(), delegation: model.delegation.json())
     }
 
     public func actionTitle(_ action: DelegationActionType) -> String {

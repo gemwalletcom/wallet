@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use num_bigint::BigUint;
 use primitives::AddressName;
-use primitives::{AddressType, Chain, DelegationBase, DelegationState, DelegationValidator, StakeChain, StakeProviderType, VerificationStatus, WalletType};
+use primitives::{AddressType, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, StakeChain, StakeProviderType, VerificationStatus, WalletType};
 use rand::seq::IndexedRandom;
 
 use super::model::{GemDelegationAction, GemStakeAction, GemStakeActionItem, GemStakeBalance};
@@ -16,13 +16,14 @@ const SYSTEM_VALIDATOR_IDS: [&str; 2] = [DelegationValidator::SYSTEM_ID, "unstak
 use crate::config::stake::get_stake_config;
 use crate::config::validators::get_validators;
 
-pub fn delegation_actions(wallet_type: WalletType, chain: Chain, provider: StakeProviderType, state: DelegationState) -> Vec<GemDelegationAction> {
+pub fn delegation_actions(wallet_type: WalletType, delegation: &Delegation) -> Vec<GemDelegationAction> {
     if wallet_type == WalletType::View {
         return vec![];
     }
-    match provider {
+    let state = delegation.base.state;
+    match delegation.validator.provider_type {
         StakeProviderType::Stake => {
-            let Some(config) = StakeChain::from_str(chain.as_ref()).ok().map(get_stake_config) else {
+            let Some(config) = StakeChain::from_str(delegation.base.asset_id.chain.as_ref()).ok().map(get_stake_config) else {
                 return vec![];
             };
             match state {
@@ -42,11 +43,11 @@ pub fn delegation_actions(wallet_type: WalletType, chain: Chain, provider: Stake
     }
 }
 
-pub fn can_claim_rewards(wallet_type: WalletType, chain: Chain, state: DelegationState, rewards: &str) -> bool {
-    let Some(config) = StakeChain::from_str(chain.as_ref()).ok().map(get_stake_config) else {
+pub fn can_claim_rewards(wallet_type: WalletType, delegation: &Delegation) -> bool {
+    let Some(config) = StakeChain::from_str(delegation.base.asset_id.chain.as_ref()).ok().map(get_stake_config) else {
         return false;
     };
-    wallet_type != WalletType::View && config.can_claim_rewards && state == DelegationState::Active && BigUint::from_str(rewards).is_ok_and(|rewards| rewards > BigUint::ZERO)
+    wallet_type != WalletType::View && config.can_claim_rewards && shows_rewards(&delegation.base)
 }
 
 pub fn validator_explorer_address(validator: &DelegationValidator) -> Option<String> {
@@ -56,15 +57,15 @@ pub fn validator_explorer_address(validator: &DelegationValidator) -> Option<Str
     }
 }
 
-pub fn shows_completion_date(state: DelegationState) -> bool {
-    match state {
+pub fn shows_completion_date(delegation: &DelegationBase) -> bool {
+    match delegation.state {
         DelegationState::Pending | DelegationState::Activating | DelegationState::Deactivating | DelegationState::AwaitingWithdrawal => true,
         DelegationState::Active | DelegationState::Inactive => false,
     }
 }
 
-pub fn shows_rewards(state: DelegationState, rewards: &str) -> bool {
-    state == DelegationState::Active && is_positive(rewards)
+pub fn shows_rewards(delegation: &DelegationBase) -> bool {
+    delegation.state == DelegationState::Active && delegation.rewards > BigUint::ZERO
 }
 
 pub fn requires_frozen_balance(chain: Chain, frozen_value: &str) -> bool {
@@ -278,6 +279,24 @@ mod tests {
         );
     }
 
+    fn delegation(chain: Chain, provider: StakeProviderType, state: DelegationState, rewards: u32) -> Delegation {
+        let validator = DelegationValidator::mock();
+        Delegation {
+            base: DelegationBase {
+                asset_id: AssetId::from_chain(chain),
+                state,
+                rewards: BigUint::from(rewards),
+                ..DelegationBase::mock()
+            },
+            validator: DelegationValidator {
+                chain,
+                provider_type: provider,
+                ..validator
+            },
+            price: None,
+        }
+    }
+
     #[test]
     fn test_delegation_rows_follow_state() {
         for state in [
@@ -286,47 +305,44 @@ mod tests {
             DelegationState::Deactivating,
             DelegationState::AwaitingWithdrawal,
         ] {
-            assert!(shows_completion_date(state));
-            assert!(!shows_rewards(state, "100"));
+            let base = delegation(Chain::Cosmos, StakeProviderType::Stake, state, 100).base;
+            assert!(shows_completion_date(&base));
+            assert!(!shows_rewards(&base));
         }
         for state in [DelegationState::Active, DelegationState::Inactive] {
-            assert!(!shows_completion_date(state));
+            assert!(!shows_completion_date(&delegation(Chain::Cosmos, StakeProviderType::Stake, state, 100).base));
         }
-        assert!(shows_rewards(DelegationState::Active, "100"));
-        assert!(!shows_rewards(DelegationState::Active, "0"));
-        assert!(!shows_rewards(DelegationState::Inactive, "100"));
+        assert!(shows_rewards(&delegation(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 100).base));
+        assert!(!shows_rewards(&delegation(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 0).base));
+        assert!(!shows_rewards(&delegation(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Inactive, 100).base));
     }
 
     #[test]
     fn test_delegation_actions_follow_state_and_chain_config() {
         use GemDelegationAction::*;
+        let stake = |chain, state| delegation(chain, StakeProviderType::Stake, state, 0);
+        let earn = |chain, state| delegation(chain, StakeProviderType::Earn, state, 0);
         assert_eq!(
-            delegation_actions(WalletType::Multicoin, Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active),
+            delegation_actions(WalletType::Multicoin, &stake(Chain::Cosmos, DelegationState::Active)),
             vec![Stake, Unstake, Redelegate]
         );
         assert_eq!(
-            delegation_actions(WalletType::Multicoin, Chain::Cosmos, StakeProviderType::Stake, DelegationState::Inactive),
+            delegation_actions(WalletType::Multicoin, &stake(Chain::Cosmos, DelegationState::Inactive)),
             vec![Unstake, Redelegate]
         );
+        assert_eq!(delegation_actions(WalletType::Multicoin, &stake(Chain::Solana, DelegationState::Active)), vec![Unstake]);
         assert_eq!(
-            delegation_actions(WalletType::Multicoin, Chain::Solana, StakeProviderType::Stake, DelegationState::Active),
-            vec![Unstake]
-        );
-        assert_eq!(
-            delegation_actions(WalletType::Multicoin, Chain::Solana, StakeProviderType::Stake, DelegationState::AwaitingWithdrawal),
+            delegation_actions(WalletType::Multicoin, &stake(Chain::Solana, DelegationState::AwaitingWithdrawal)),
             vec![Withdraw]
         );
-        assert!(delegation_actions(WalletType::Multicoin, Chain::Cosmos, StakeProviderType::Stake, DelegationState::Pending).is_empty());
-        assert!(delegation_actions(WalletType::View, Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active).is_empty());
-        assert!(delegation_actions(WalletType::Multicoin, Chain::Bitcoin, StakeProviderType::Stake, DelegationState::Active).is_empty());
+        assert!(delegation_actions(WalletType::Multicoin, &stake(Chain::Cosmos, DelegationState::Pending)).is_empty());
+        assert!(delegation_actions(WalletType::View, &stake(Chain::Cosmos, DelegationState::Active)).is_empty());
+        assert!(delegation_actions(WalletType::Multicoin, &stake(Chain::Bitcoin, DelegationState::Active)).is_empty());
         assert_eq!(
-            delegation_actions(WalletType::Multicoin, Chain::Ethereum, StakeProviderType::Earn, DelegationState::Active),
+            delegation_actions(WalletType::Multicoin, &earn(Chain::Ethereum, DelegationState::Active)),
             vec![Deposit, Withdraw]
         );
-        assert_eq!(
-            delegation_actions(WalletType::Multicoin, Chain::Ethereum, StakeProviderType::Earn, DelegationState::Inactive),
-            vec![Withdraw]
-        );
+        assert_eq!(delegation_actions(WalletType::Multicoin, &earn(Chain::Ethereum, DelegationState::Inactive)), vec![Withdraw]);
     }
 
     #[test]
@@ -368,11 +384,12 @@ mod tests {
 
     #[test]
     fn test_can_claim_rewards() {
-        assert!(can_claim_rewards(WalletType::Multicoin, Chain::Cosmos, DelegationState::Active, "10"));
-        assert!(!can_claim_rewards(WalletType::Multicoin, Chain::Cosmos, DelegationState::Active, "0"));
-        assert!(!can_claim_rewards(WalletType::Multicoin, Chain::Cosmos, DelegationState::Inactive, "10"));
-        assert!(!can_claim_rewards(WalletType::View, Chain::Cosmos, DelegationState::Active, "10"));
-        assert!(!can_claim_rewards(WalletType::Multicoin, Chain::Solana, DelegationState::Active, "10"));
+        let stake = |chain, state, rewards| delegation(chain, StakeProviderType::Stake, state, rewards);
+        assert!(can_claim_rewards(WalletType::Multicoin, &stake(Chain::Cosmos, DelegationState::Active, 10)));
+        assert!(!can_claim_rewards(WalletType::Multicoin, &stake(Chain::Cosmos, DelegationState::Active, 0)));
+        assert!(!can_claim_rewards(WalletType::Multicoin, &stake(Chain::Cosmos, DelegationState::Inactive, 10)));
+        assert!(!can_claim_rewards(WalletType::View, &stake(Chain::Cosmos, DelegationState::Active, 10)));
+        assert!(!can_claim_rewards(WalletType::Multicoin, &stake(Chain::Solana, DelegationState::Active, 10)));
     }
 
     #[test]

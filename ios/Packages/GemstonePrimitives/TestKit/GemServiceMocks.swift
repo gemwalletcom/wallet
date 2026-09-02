@@ -462,11 +462,11 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         GemTransferData(inputType: .stake(asset: asset, stakeType: stakeType), recipient: GemRecipient(address: ""), value: value, useMaxAmount: useMaxAmount)
     }
 
-    public func delegationActions(walletType _: Gemstone.WalletType, chain _: Gemstone.Chain, provider _: Gemstone.StakeProviderType, state _: Gemstone.DelegationState) -> [Gemstone.GemDelegationAction] {
+    public func delegationActions(walletType _: Gemstone.WalletType, delegation _: Gemstone.Delegation) -> [Gemstone.GemDelegationAction] {
         actions
     }
 
-    public func canClaimDelegationRewards(walletType _: Gemstone.WalletType, chain _: Gemstone.Chain, state _: Gemstone.DelegationState, rewards _: String) -> Bool {
+    public func canClaimDelegationRewards(walletType _: Gemstone.WalletType, delegation _: Gemstone.Delegation) -> Bool {
         claimable
     }
 
@@ -478,11 +478,11 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         explorerAddress.map { GemBlockExplorerLink(name: "MockExplorer", link: "https://explorer.mock/validator/\($0)") }
     }
 
-    public func showsCompletionDate(state _: Gemstone.DelegationState) -> Bool {
+    public func showsCompletionDate(delegation _: Gemstone.DelegationBase) -> Bool {
         completionDateShown
     }
 
-    public func showsRewards(state _: Gemstone.DelegationState, rewards _: String) -> Bool {
+    public func showsRewards(delegation _: Gemstone.DelegationBase) -> Bool {
         rewardsShown
     }
 

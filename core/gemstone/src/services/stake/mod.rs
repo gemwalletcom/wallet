@@ -6,7 +6,7 @@ use crate::services::error::GemServiceError;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, Chain, Currency, DelegationState, DelegationValidator, StakeProviderType, StakeType, WalletId, WalletType};
+use primitives::{Asset, AssetId, Chain, Currency, Delegation, DelegationBase, DelegationValidator, StakeProviderType, StakeType, WalletId, WalletType};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
@@ -81,20 +81,20 @@ impl GemStakeService {
         self.sync_earn_wallet(wallet_id, asset_id, address).await
     }
 
-    pub fn delegation_actions(&self, wallet_type: WalletType, chain: Chain, provider: StakeProviderType, state: DelegationState) -> Vec<GemDelegationAction> {
-        rules::delegation_actions(wallet_type, chain, provider, state)
+    pub fn delegation_actions(&self, wallet_type: WalletType, delegation: Delegation) -> Vec<GemDelegationAction> {
+        rules::delegation_actions(wallet_type, &delegation)
     }
 
-    pub fn can_claim_delegation_rewards(&self, wallet_type: WalletType, chain: Chain, state: DelegationState, rewards: String) -> bool {
-        rules::can_claim_rewards(wallet_type, chain, state, &rewards)
+    pub fn can_claim_delegation_rewards(&self, wallet_type: WalletType, delegation: Delegation) -> bool {
+        rules::can_claim_rewards(wallet_type, &delegation)
     }
 
-    pub fn shows_completion_date(&self, state: DelegationState) -> bool {
-        rules::shows_completion_date(state)
+    pub fn shows_completion_date(&self, delegation: DelegationBase) -> bool {
+        rules::shows_completion_date(&delegation)
     }
 
-    pub fn shows_rewards(&self, state: DelegationState, rewards: String) -> bool {
-        rules::shows_rewards(state, &rewards)
+    pub fn shows_rewards(&self, delegation: DelegationBase) -> bool {
+        rules::shows_rewards(&delegation)
     }
 
     pub fn stake_actions(&self, wallet_type: WalletType, chain: Chain, has_validators: bool, frozen_value: GemBigInt, rewards_value: GemBigInt) -> Vec<GemStakeActionItem> {

@@ -815,3 +815,13 @@ each decided on its own which stake types keep the max flag and which name the v
 also finds the account on the session wallet and asks the gateway itself, so the apps stopped
 calling `get_earn_data`. When a screen packs a `GemTransferData` by hand, the recipient and the
 flags it picks are a rule Core should own.
+
+**A rule about a value takes the value, not the fields the app tore off it.** The delegation
+screen asked Core four questions with the delegation dismantled at the call site —
+`delegation_actions(wallet_type, chain, provider, state)`, `can_claim_delegation_rewards(…,
+state, rewards)`, `shows_rewards(state, rewards)`, `shows_completion_date(state)` — and Android
+filled `provider` with a constant `Stake` that would have been wrong for an earn position. Each
+now takes the `Delegation` (or its `DelegationBase`) and reads the chain, provider, state and
+rewards itself; the rewards compare as the `BigUint` they already are instead of re-parsing a
+string. When a Core method's parameters are three fields of one typeshare value the app
+already holds, pass the value.

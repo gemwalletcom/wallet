@@ -38,7 +38,6 @@ fun DelegationScene(
     onCancel: () -> Unit,
     viewModel: DelegationViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val delegationInfo by viewModel.delegationInfo.collectAsStateWithLifecycle()
     val properties by viewModel.properties.collectAsStateWithLifecycle()
     val balances by viewModel.balances.collectAsStateWithLifecycle()
@@ -47,7 +46,7 @@ fun DelegationScene(
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
-    if (uiState == null) {
+    if (delegationInfo == null) {
         LoadingScene(title = stringResource(id = R.string.transfer_stake_title), onCancel = onCancel)
         return
     }
