@@ -1,7 +1,7 @@
 use gem_evm::ethereum_address_checksum;
 use gem_evm::rpc::model::Log;
 use gem_evm::rpc::parsers::staking::make_staking_transaction;
-use gem_evm::rpc::parsers::{EVENT_WORD_SIZE, ParseContext, ProtocolParser, ethereum_value_from_log_data};
+use gem_evm::rpc::parsers::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data};
 use primitives::{Chain, Transaction as PrimitivesTransaction, TransactionType};
 
 use crate::constants::{EVERSTAKE_ACCOUNTING_ADDRESS, EVERSTAKE_POOL_ADDRESS};
@@ -12,13 +12,13 @@ const EVENT_WITHDRAWN: &str = "0x262159451c4018521811107ecbe27e3de7d95a70a4a534f
 
 pub struct EverstakeParser;
 
-impl ProtocolParser for EverstakeParser {
+impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for EverstakeParser {
     fn matches(&self, context: &ParseContext<'_>) -> bool {
-        *context.chain == Chain::Ethereum && context.is_to_any(&[EVERSTAKE_POOL_ADDRESS, EVERSTAKE_ACCOUNTING_ADDRESS])
+        *context.metadata.chain == Chain::Ethereum && context.is_to_any(&[EVERSTAKE_POOL_ADDRESS, EVERSTAKE_ACCOUNTING_ADDRESS])
     }
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction> {
-        context.receipt.logs.iter().find_map(|log| Self::parse_log(context, log))
+        context.metadata.receipt.logs.iter().find_map(|log| Self::parse_log(context, log))
     }
 }
 

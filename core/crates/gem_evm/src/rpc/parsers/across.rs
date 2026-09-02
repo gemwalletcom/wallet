@@ -4,22 +4,23 @@ use alloy_primitives::Address;
 use crate::across::{deployment::AcrossDeployment, deposit::parse_deposit};
 use primitives::{Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata};
 
-use super::{ParseContext, ProtocolParser};
+use super::{ParseContext, ParseContextExt, TransactionParser};
 
 pub struct AcrossParser;
 
-impl ProtocolParser for AcrossParser {
+impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for AcrossParser {
     fn matches(&self, context: &ParseContext<'_>) -> bool {
-        let Some(deployment) = AcrossDeployment::deployment_by_chain(context.chain) else {
+        let Some(deployment) = AcrossDeployment::deployment_by_chain(context.metadata.chain) else {
             return false;
         };
 
-        context.receipt.logs.iter().any(|log| log.address.eq_ignore_ascii_case(deployment.spoke_pool))
+        context.metadata.receipt.logs.iter().any(|log| log.address.eq_ignore_ascii_case(deployment.spoke_pool))
     }
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction> {
-        let deployment = AcrossDeployment::deployment_by_chain(context.chain)?;
+        let deployment = AcrossDeployment::deployment_by_chain(context.metadata.chain)?;
         let logs = context
+            .metadata
             .receipt
             .logs
             .iter()
@@ -31,7 +32,7 @@ impl ProtocolParser for AcrossParser {
         let relay_data = &deposit.relay_data;
         let destination_chain = Chain::from_chain_id(deposit.destination_chain_id)?;
         let metadata = TransactionSwapMetadata {
-            from_asset: AcrossDeployment::supported_asset_for_token(*context.chain, Address::from_word(relay_data.input_token))?,
+            from_asset: AcrossDeployment::supported_asset_for_token(*context.metadata.chain, Address::from_word(relay_data.input_token))?,
             from_value: u256_to_biguint(&relay_data.input_amount),
             to_asset: AcrossDeployment::supported_asset_for_token(destination_chain, Address::from_word(relay_data.output_token))?,
             to_value: u256_to_biguint(&relay_data.output_amount),

@@ -11,3 +11,4 @@ primitives = { path = "../primitives" }
 async-trait = { workspace = true }
 futures = { workspace = true }
 num-bigint = { workspace = true }
+chrono = { workspace = true }

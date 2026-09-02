@@ -1,6 +1,6 @@
 use gem_evm::rpc::model::Log;
 use gem_evm::rpc::parsers::staking::make_staking_transaction;
-use gem_evm::rpc::parsers::{EVENT_WORD_SIZE, ParseContext, ProtocolParser, ethereum_value_from_log_data};
+use gem_evm::rpc::parsers::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data};
 use num_traits::ToPrimitive;
 use primitives::{Chain, Transaction as PrimitivesTransaction, TransactionType};
 
@@ -8,13 +8,13 @@ use crate::constants::{EVENT_CLAIM_REWARDS, EVENT_DELEGATE, EVENT_UNDELEGATE, EV
 
 pub struct MonadParser;
 
-impl ProtocolParser for MonadParser {
+impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for MonadParser {
     fn matches(&self, context: &ParseContext<'_>) -> bool {
-        *context.chain == Chain::Monad && context.is_to(STAKING_CONTRACT)
+        *context.metadata.chain == Chain::Monad && context.is_to(STAKING_CONTRACT)
     }
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction> {
-        context.receipt.logs.iter().find_map(|log| Self::parse_log(context, log))
+        context.metadata.receipt.logs.iter().find_map(|log| Self::parse_log(context, log))
     }
 }
 

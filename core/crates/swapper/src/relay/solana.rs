@@ -35,6 +35,7 @@ mod tests {
     use super::*;
     use crate::relay::model::RelayQuoteResponse;
     use gem_solana::decode_transaction;
+    use primitives::contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID;
 
     #[test]
     fn test_build_transaction() {
@@ -50,7 +51,10 @@ mod tests {
         assert!(quote_data.approval.is_none());
 
         let instructions = instructions_from_primitives::<HexInstructionData>(step.instructions.clone()).unwrap();
-        assert_eq!(instructions[0].program_id.to_base58(), "99vQwtBwYtrqqD9YSXbdum3KBdxPAVxYTaQ3cfnJSrN2");
-        assert_eq!(&instructions[0].data[8..12], 100_000_000u32.to_le_bytes().as_slice());
+        assert_eq!(instructions[0].program_id.to_base58(), SOLANA_RELAY_DEPOSITORY_PROGRAM_ID);
+        assert_eq!(
+            instructions[0].data,
+            hex::decode("0d9e0ddf5fd51c0600e1f50500000000d8f6831d9a771a5b031cc86256987f54a9759e6107db24b07ec66eef4e555055").unwrap()
+        );
     }
 }

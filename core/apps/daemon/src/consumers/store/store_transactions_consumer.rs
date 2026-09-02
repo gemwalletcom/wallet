@@ -277,7 +277,7 @@ fn should_publish_transaction(notification_type: &TransactionNotificationType, i
 mod tests {
     use super::*;
     use num_bigint::BigUint;
-    use primitives::{AssetId, Device, SwapProvider, TransactionSwapMetadata, WalletId};
+    use primitives::{AssetId, Device, SwapProvider, TransactionSwapMetadata, WalletId, contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID};
 
     #[test]
     fn test_supported_nft_asset_ids() {
@@ -298,7 +298,12 @@ mod tests {
     fn test_transactions_for_storage() {
         let thorchain_vault = "0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146".to_string();
         let near_vault = "TMoD2uJiUAvB2RhLGm1BmzCVVzi5VLFDVt".to_string();
-        let deposit_addresses = DepositAddressMap::from([(thorchain_vault.clone(), SwapProvider::Thorchain), (near_vault.clone(), SwapProvider::NearIntents)]);
+        let relay_depository = SOLANA_RELAY_DEPOSITORY_PROGRAM_ID.to_string();
+        let deposit_addresses = DepositAddressMap::from([
+            (thorchain_vault.clone(), SwapProvider::Thorchain),
+            (near_vault.clone(), SwapProvider::NearIntents),
+            (relay_depository.clone(), SwapProvider::Relay),
+        ]);
         let send_addresses = SendAddressMap::from([(thorchain_vault.clone(), SwapProvider::Thorchain), (near_vault.clone(), SwapProvider::NearIntents)]);
 
         let cross_chain = Transaction {
@@ -392,6 +397,16 @@ mod tests {
         };
         assert_eq!(
             StoreTransactionsConsumer::transactions_for_storage(vec![near_intents], &deposit_addresses, &SendAddressMap::new())[0].state,
+            TransactionState::InTransit
+        );
+
+        let relay = Transaction {
+            transaction_type: TransactionType::Swap,
+            to: relay_depository,
+            ..Transaction::mock()
+        };
+        assert_eq!(
+            StoreTransactionsConsumer::transactions_for_storage(vec![relay], &deposit_addresses, &SendAddressMap::new())[0].state,
             TransactionState::InTransit
         );
 

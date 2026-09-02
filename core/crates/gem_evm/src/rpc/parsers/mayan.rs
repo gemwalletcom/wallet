@@ -5,7 +5,7 @@ use alloy_sol_types::{SolEvent, SolInterface, sol};
 use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, contract_constants::MAYAN_SWIFT_CONTRACT, decode_hex};
 
 use self::{MayanFulfillHelper::MayanFulfillHelperCalls, MayanSwift::MayanSwiftCalls};
-use super::{ParseContext, ProtocolParser};
+use super::{ParseContext, ParseContextExt, TransactionParser};
 
 sol! {
     interface MayanFulfillHelper {
@@ -81,7 +81,7 @@ sol! {
 
 pub struct MayanParser;
 
-impl ProtocolParser for MayanParser {
+impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for MayanParser {
     fn matches(&self, context: &ParseContext<'_>) -> bool {
         decode_hex(&context.transaction.input).is_ok_and(|input| MayanFulfillHelperCalls::abi_decode(&input).is_ok())
     }
@@ -101,7 +101,7 @@ impl ProtocolParser for MayanParser {
             MayanSwiftCalls::fulfillSimple(call) => (Address::from_word(call.params.destAddr), Address::from_word(call.params.tokenOut), call.orderHash),
             MayanSwiftCalls::fulfillOrder(call) => Self::decode_fulfill_order(&call.encodedVm)?,
         };
-        let output_amount = context.receipt.logs.iter().find_map(|log| {
+        let output_amount = context.metadata.receipt.logs.iter().find_map(|log| {
             if !log.address.eq_ignore_ascii_case(MAYAN_SWIFT_CONTRACT)
                 || log.topics.len() != 1
                 || log.topics.first()?.parse::<B256>().ok()? != MayanSwift::OrderFulfilled::SIGNATURE_HASH
@@ -113,9 +113,9 @@ impl ProtocolParser for MayanParser {
         })?;
 
         let metadata = TransactionSwapMetadata {
-            from_asset: AssetId::from(*context.chain, (!input_token.is_zero()).then(|| input_token.to_checksum(None))),
+            from_asset: AssetId::from(*context.metadata.chain, (!input_token.is_zero()).then(|| input_token.to_checksum(None))),
             from_value: u256_to_biguint(&amount),
-            to_asset: AssetId::from(*context.chain, (!output_token.is_zero()).then(|| output_token.to_checksum(None))),
+            to_asset: AssetId::from(*context.metadata.chain, (!output_token.is_zero()).then(|| output_token.to_checksum(None))),
             to_value: u256_to_biguint(&output_amount),
             provider: Some(SwapProvider::Mayan.id().to_string()),
         };

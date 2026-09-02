@@ -2,18 +2,16 @@ use chrono::DateTime;
 use num_bigint::{BigUint, Sign};
 
 use crate::{
-    COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, RELAY_DEPOSITORY_PROGRAM_ID, SYSTEM_PROGRAM_ID,
-    SYSTEM_PROGRAMS, TOKEN_PROGRAM, TOKEN_PROGRAM_2022,
+    COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, OKX_DEX_V2_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS,
+    TOKEN_PROGRAM, TOKEN_PROGRAM_2022,
     models::{BlockTransaction, BlockTransactions, Instruction},
 };
 use primitives::{AssetId, Chain, NFTAssetId, SwapProvider, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType};
 
+use super::parsers::ProtocolParsers;
+
 const CHAIN: Chain = Chain::Solana;
-const SWAP_PROGRAMS: &[(SwapProvider, &str)] = &[
-    (SwapProvider::Jupiter, JUPITER_PROGRAM_ID),
-    (SwapProvider::Okx, OKX_DEX_V2_PROGRAM_ID),
-    (SwapProvider::Relay, RELAY_DEPOSITORY_PROGRAM_ID),
-];
+const SWAP_PROGRAMS: &[(SwapProvider, &str)] = &[(SwapProvider::Jupiter, JUPITER_PROGRAM_ID), (SwapProvider::Okx, OKX_DEX_V2_PROGRAM_ID)];
 const MPL_CORE_TRANSFER_V1: u8 = 14;
 const MPL_TOKEN_METADATA_TRANSFER_V1: u8 = 49;
 const MPL_TOKEN_METADATA_MINT_ACCOUNT_INDEX: usize = 4;
@@ -176,6 +174,10 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
     let fee_asset_id = chain.as_asset_id();
     let created_at = DateTime::from_timestamp(block_time, 0)?;
     let memo = map_memo(&transaction.transaction.message.instructions, account_keys);
+
+    if let Some(transaction) = ProtocolParsers::map_transaction(transaction, created_at, memo.as_deref()) {
+        return Some(transaction);
+    }
 
     if (account_keys.len() == 3 && account_keys.last()? == SYSTEM_PROGRAM_ID)
         || (account_keys.len() == 4 && account_keys.iter().any(|key| key == SYSTEM_PROGRAM_ID) && account_keys.iter().any(|key| key == COMPUTE_BUDGET_PROGRAM_ID))

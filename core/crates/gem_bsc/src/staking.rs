@@ -81,7 +81,7 @@ impl<C: Client + Clone> EvmStakingClient for BscStakingClient<C> {
         encode_stake(stake_type, value)
     }
 
-    fn protocol_parser(&self) -> Option<&'static dyn ProtocolParser> {
+    fn protocol_parser(&self) -> Option<&'static ProtocolParser> {
         Some(&BscParser)
     }
 }

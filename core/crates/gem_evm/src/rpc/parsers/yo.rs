@@ -4,14 +4,14 @@ use crate::{
 };
 use primitives::{AssetId, Transaction as PrimitivesTransaction, TransactionType, contract_constants::ETHEREUM_YO_PROTOCOL_CONTRACT};
 
-use super::{EVENT_WORD_SIZE, ParseContext, ProtocolParser, ethereum_value_from_log_data};
+use super::{EVENT_WORD_SIZE, ParseContext, TransactionParser, ethereum_value_from_log_data};
 
 pub(crate) const FUNCTION_YO_DEPOSIT: &str = "0x82b78ba7";
 pub(crate) const FUNCTION_YO_WITHDRAW: &str = "0x99519ab8";
 
 pub struct YoParser;
 
-impl ProtocolParser for YoParser {
+impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for YoParser {
     fn matches(&self, context: &ParseContext<'_>) -> bool {
         let Some(to) = context.transaction.to.as_ref().and_then(|to| ethereum_address_checksum(to).ok()) else {
             return false;
@@ -34,7 +34,7 @@ impl ProtocolParser for YoParser {
             return None;
         };
 
-        let log = context.receipt.logs.iter().find(|log| {
+        let log = context.metadata.receipt.logs.iter().find(|log| {
             log.topics.len() == 3
                 && log.topics.first().is_some_and(|topic| topic == TRANSFER_TOPIC)
                 && log
@@ -48,14 +48,14 @@ impl ProtocolParser for YoParser {
 
         Some(PrimitivesTransaction::new(
             context.transaction.hash.clone(),
-            AssetId::from_token(*context.chain, &token_id),
+            AssetId::from_token(*context.metadata.chain, &token_id),
             from,
             to,
             None,
             transaction_type,
-            context.receipt.get_state(),
-            context.receipt.get_fee(),
-            AssetId::from_chain(*context.chain),
+            context.metadata.receipt.get_state(),
+            context.metadata.receipt.get_fee(),
+            AssetId::from_chain(*context.metadata.chain),
             value.clone(),
             None,
             None,

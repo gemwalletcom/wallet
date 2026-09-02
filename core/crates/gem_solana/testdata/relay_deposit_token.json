@@ -1,0 +1,95 @@
+{
+  "result": {
+    "blockTime": 1788317091,
+    "meta": {
+      "err": null,
+      "fee": 5000,
+      "preBalances": [
+        50000000,
+        2108880,
+        2108880,
+        139151564,
+        197007039,
+        1628641,
+        211828504941,
+        70128638,
+        3388612899,
+        1
+      ],
+      "postBalances": [
+        49995000,
+        2108880,
+        2108880,
+        139151564,
+        197007039,
+        1628641,
+        211828504941,
+        70128638,
+        3388612899,
+        1
+      ],
+      "preTokenBalances": [
+        {
+          "accountIndex": 1,
+          "mint": "CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH",
+          "owner": "HGsJPZ2sb5e31hnyvzt8uAiNKWZm4zp8AmzJRmDfKAhy",
+          "uiTokenAmount": {
+            "amount": "9994335",
+            "decimals": 6
+          }
+        },
+        {
+          "accountIndex": 2,
+          "mint": "CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH",
+          "owner": "7uTT8Xi5RWXzy7h9XL244GRgEycDYDhLjr3ZyNdXi8pZ",
+          "uiTokenAmount": {
+            "amount": "304161488",
+            "decimals": 6
+          }
+        }
+      ],
+      "postTokenBalances": [
+        {
+          "accountIndex": 1,
+          "mint": "CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH",
+          "owner": "HGsJPZ2sb5e31hnyvzt8uAiNKWZm4zp8AmzJRmDfKAhy",
+          "uiTokenAmount": {
+            "amount": "501199",
+            "decimals": 6
+          }
+        },
+        {
+          "accountIndex": 2,
+          "mint": "CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH",
+          "owner": "7uTT8Xi5RWXzy7h9XL244GRgEycDYDhLjr3ZyNdXi8pZ",
+          "uiTokenAmount": {
+            "amount": "313654624",
+            "decimals": 6
+          }
+        }
+      ]
+    },
+    "slot": 0,
+    "transaction": {
+      "message": {
+        "accountKeys": [
+          "HGsJPZ2sb5e31hnyvzt8uAiNKWZm4zp8AmzJRmDfKAhy",
+          "3kYgQQiUGLqptFGwXWE8bfWhoe4zZdHsAXa26S2wKDgL",
+          "59G9Yf37fUDdfUtyEktgdMbi5WCcVrKvAuxAD8GHuju5",
+          "99vQwtBwYtrqqD9YSXbdum3KBdxPAVxYTaQ3cfnJSrN2",
+          "CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH"
+        ],
+        "instructions": [
+          {
+            "accounts": [5, 0, 0, 6, 4, 1, 2, 7, 8, 9],
+            "data": "Rhn86pnvWwDu7uxVhqNMi4dadtnWZ2TMihPEZZJruYiJJ5FknGcpgqVPNLcVTFQgr",
+            "programIdIndex": 3
+          }
+        ]
+      },
+      "signatures": [
+        "2mnJ6N9X6vXnsrr5TQX1nX1xeq2fcsQUQGHACp4gNSMET5ggryt41b7zpEKUSARwzx8zcFfoj2V7u4Q75C9g6QbU"
+      ]
+    }
+  }
+}
