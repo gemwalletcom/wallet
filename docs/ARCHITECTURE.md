@@ -337,10 +337,13 @@ model or copy policy to avoid that bridge.
 An iOS view model holds **at most one** Core service, named `service`, and it is **`private`**;
 a model that does not need Core holds none. Reuse the owning domain service when it already answers
 the screen. Add a screen-level service only when it genuinely composes collaborators or returns a
-cohesive screen result — never to satisfy a field-count rule. Android view models depend on one or
-more narrow application cases, never directly on a Core service or repository. Cases may compose
-other cases. A non-private service on iOS usually means the view is reaching through the model for
-a dependency.
+cohesive screen result — never to satisfy a field-count rule. An Android view model holds the
+same Core service through its generated `GemFooServiceInterface` (`private val service`), plus the
+observed reads the screen watches as narrow application cases (a Room `Flow` behind
+`GetPriceAlerts`, `GetRecentAssets`, `SelectSearch`) and `GetSession`. A case that only forwards a
+Core call (`SetPriceAlertsEnabled` over `set_enabled`, `SearchCustomToken` over
+`ensure_token_asset`) is migration debt: delete it and call the service. A non-private service on
+iOS usually means the view is reaching through the model for a dependency.
 
 This limit does not count explicit platform ports such as a signer, keystore, observation source
 or navigation builder. Those remain narrow injected dependencies; they do not decide shared
@@ -423,12 +426,12 @@ The same applies to state: a view switching on the model's `mode` forces `mode` 
 
 On iOS, UniFFI generates a protocol for every exported object. `GemAddressServiceProtocol` exists;
 importing `class Gemstone.GemAddressService` at a consumer means that consumer cannot be
-substituted without relying on UniFFI's fragile no-handle test path. Android view models use app
-case interfaces; lower layers that directly integrate Core use the generated
-`GemFooServiceInterface`.
+substituted without relying on UniFFI's fragile no-handle test path. On Android the same holds
+for the generated `GemFooServiceInterface`: bind it in the Hilt module
+(`): GemReceiveServiceInterface = GemReceiveService(...)`) and inject the interface.
 
 - **iOS consumers** (view models, components, validators) take `any GemFooServiceProtocol`.
-- **Android consumers** take the case or generated interface used by their layer.
+- **Android consumers** take the generated interface, or the observed-read case, used by their layer.
 - **The composition root** (`ServicesFactory`, `ViewModelFactory`) holds the concrete type — a UniFFI constructor needs it, and the root is the one place allowed to construct. Its fields are grouped by what they are: Core services, platform services, stores.
 
 ## 8. Services are injected, never constructed at a call site
