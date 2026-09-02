@@ -5,7 +5,7 @@ use std::future::Future;
 use std::sync::Arc;
 
 use chrono::Utc;
-use primitives::{AssetId, WalletId};
+use primitives::WalletId;
 
 pub use crate::services::wallet_preferences::GemDiscoveryStep;
 
@@ -47,22 +47,18 @@ impl GemAssetDiscoveryService {
         }
     }
 
-    pub async fn discover(&self, wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
-        let (asset_ids, _, _) = futures::try_join!(
-            self.discover_assets(wallet_id.clone()),
-            self.complete(wallet_id.clone(), GemDiscoveryStep::Transactions, self.transactions.sync_wallet(wallet_id.clone(), None)),
-            self.complete(wallet_id.clone(), GemDiscoveryStep::Nfts, async {
-                self.nft.sync_wallet(wallet_id.clone()).await.map(|_| ())
-            }),
-        )?;
-        Ok(asset_ids)
+    pub async fn discover(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        let (assets, transactions, nfts) = futures::join!(self.sync_assets(wallet_id.clone()), self.sync_transactions(wallet_id.clone()), self.sync_nfts(wallet_id),);
+        assets?;
+        transactions?;
+        nfts
     }
 }
 
 impl GemAssetDiscoveryService {
-    async fn discover_assets(&self, wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
+    async fn sync_assets(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
         let Some(wallet) = self.wallet_store.get_wallet(wallet_id.clone())? else {
-            return Ok(vec![]);
+            return Ok(());
         };
         let from_timestamp = self.preferences.get_assets_timestamp(wallet_id.clone());
         let timestamp = Utc::now().timestamp() as u64;
@@ -73,12 +69,21 @@ impl GemAssetDiscoveryService {
         }
         self.preferences.set_assets_timestamp(wallet_id.clone(), timestamp)?;
         self.preferences.set_initial_load_completed(wallet_id, GemDiscoveryStep::Assets)?;
-        Ok(asset_ids)
+        Ok(())
     }
 
-    async fn complete<F>(&self, wallet_id: WalletId, step: GemDiscoveryStep, sync: F) -> Result<(), GemServiceError>
+    async fn sync_transactions(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        self.run_initial_load(wallet_id.clone(), GemDiscoveryStep::Transactions, self.transactions.sync_wallet(wallet_id, None))
+            .await
+    }
+
+    async fn sync_nfts(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        self.run_initial_load(wallet_id.clone(), GemDiscoveryStep::Nfts, self.nft.sync_wallet(wallet_id)).await
+    }
+
+    async fn run_initial_load<F, T>(&self, wallet_id: WalletId, step: GemDiscoveryStep, sync: F) -> Result<(), GemServiceError>
     where
-        F: Future<Output = Result<(), GemServiceError>>,
+        F: Future<Output = Result<T, GemServiceError>>,
     {
         if self.preferences.is_initial_load_completed(wallet_id.clone(), step)? {
             return Ok(());

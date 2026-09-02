@@ -69,7 +69,7 @@ impl GemWalletHomeService {
         let wallet_id = self.session.current_wallet_id()?;
         let (balances, discovery) = futures::join!(self.balances.update(wallet_id.clone(), asset_ids), self.discovery.discover(wallet_id));
         balances?;
-        discovery.map(|_| ())
+        discovery
     }
 
     pub async fn set_asset_pinned(&self, asset_id: AssetId, pinned: bool) -> Result<(), GemServiceError> {
