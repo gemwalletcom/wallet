@@ -1,8 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstonePrimitives
-import protocol Gemstone.GemPerpetualServiceProtocol
-import protocol Gemstone.GemPreferencesServiceProtocol
+import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import Components
 import Foundation
 import enum Gemstone.GemPerpetualSubscription
@@ -16,31 +15,25 @@ import SwiftUI
 @Observable
 @MainActor
 public final class PerpetualChartModel {
-    private let perpetualService: any GemPerpetualServiceProtocol
+    private let service: any GemPerpetualDetailsServiceProtocol
     private let observerService: any PerpetualObservable
-    private let preferencesService: any GemPreferencesServiceProtocol
 
     private var observeTask: Task<Void, Never>?
 
     public var state: StateViewType<[ChartCandleStick]> = .loading
     public var currentPeriod: ChartPeriod {
-        didSet { preferencesService.setPerpetualChartPeriodValue(currentPeriod) }
+        didSet { service.setChartPeriodValue(currentPeriod) }
     }
 
-    public init(
-        perpetualService: any GemPerpetualServiceProtocol,
-        observerService: any PerpetualObservable,
-        preferencesService: any GemPreferencesServiceProtocol,
-    ) {
-        self.perpetualService = perpetualService
+    public init(service: any GemPerpetualDetailsServiceProtocol, observerService: any PerpetualObservable) {
+        self.service = service
         self.observerService = observerService
-        self.preferencesService = preferencesService
-        currentPeriod = preferencesService.perpetualChartPeriodValue
+        currentPeriod = service.chartPeriodValue
     }
 
     public var emptyTitle: String { Localized.Common.notAvailable }
     public var emptyImage: Image { Images.EmptyContent.activity }
-    private var currentInterval: String { perpetualService.candleInterval(for: currentPeriod) }
+    private var currentInterval: String { service.candleInterval(period: currentPeriod.json()) }
 }
 
 // MARK: - Actions
@@ -75,16 +68,13 @@ public extension PerpetualChartModel {
 
 private extension PerpetualChartModel {
     func candleSubscription(symbol: String, period: ChartPeriod) -> GemPerpetualSubscription {
-        .candle(symbol: symbol, interval: perpetualService.candleInterval(for: period))
+        service.candleSubscription(symbol: symbol, period: period)
     }
 
     func updateCandlesticks(symbol: String) async {
         state = .loading
         do {
-            let candlesticks = try await perpetualService.candlesticks(
-                symbol: symbol,
-                period: currentPeriod,
-            )
+            let candlesticks = try await service.candlesticks(symbol: symbol, period: currentPeriod)
             state = .data(candlesticks)
         } catch {
             state.setError(error)
@@ -126,6 +116,6 @@ private extension PerpetualChartModel {
             return
         }
 
-        state = try .data(perpetualService.merge(candlesticks: candlesticks, candle: update.candle))
+        state = try .data(service.merge(candlesticks: candlesticks, candle: update.candle))
     }
 }

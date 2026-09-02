@@ -435,7 +435,6 @@ having the parent vend the child view model.
 | `FiatConnect/FiatSceneViewModel.swift` | 2 | 1 |
 | `ManageWallets/WalletIDetailViewModel.swift` | 2 | 0 |
 | `ManageWallets/WalletsSceneViewModel.swift` | 2 | 0 |
-| `Perpetuals/PerpetualSceneViewModel.swift` | 2 | 0 |
 | `Perpetuals/PerpetualsSceneViewModel.swift` | 2 | 2 |
 | `Settings/Settings/ViewModels/RewardsViewModel.swift` | 2 | 0 |
 | `Transfer/AmountEarnViewModel.swift` | 2 | 1 |

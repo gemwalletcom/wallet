@@ -1,8 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemPerpetualServiceProtocol
-import protocol Gemstone.GemPreferencesServiceProtocol
-import protocol Gemstone.GemTransactionsServiceProtocol
+import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import BigInt
 import Formatters
 import Foundation
@@ -20,8 +18,8 @@ import struct Gemstone.GemTransferData
 @Observable
 @MainActor
 public final class PerpetualSceneViewModel {
+    private let service: any GemPerpetualDetailsServiceProtocol
     private let observerService: any PerpetualObservable
-    private let transactionsService: any GemTransactionsServiceProtocol
     private let onTransferData: TransferDataAction
     private let onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)?
     private let balanceCalculator = BalanceCalculator()
@@ -58,28 +56,19 @@ public final class PerpetualSceneViewModel {
     public var isPresentingModifyAlert: Bool?
     public var isPresentingAutoclose: Bool = false
 
-    private let preferencesService: any GemPreferencesServiceProtocol
-
     public init(
         wallet: Wallet,
         asset: Asset,
-        perpetualService: any GemPerpetualServiceProtocol,
-        transactionsService: any GemTransactionsServiceProtocol,
+        service: any GemPerpetualDetailsServiceProtocol,
         observerService: any PerpetualObservable,
-        preferencesService: any GemPreferencesServiceProtocol,
         onTransferData: TransferDataAction = nil,
         onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)? = nil,
     ) {
         self.wallet = wallet
         self.asset = asset
-        self.transactionsService = transactionsService
+        self.service = service
         self.observerService = observerService
-        self.preferencesService = preferencesService
-        chart = PerpetualChartModel(
-            perpetualService: perpetualService,
-            observerService: observerService,
-            preferencesService: preferencesService,
-        )
+        chart = PerpetualChartModel(service: service, observerService: observerService)
         self.onTransferData = onTransferData
         self.onPerpetualRecipientData = onPerpetualRecipientData
 
@@ -108,7 +97,7 @@ public final class PerpetualSceneViewModel {
     }
 
     public var currency: String {
-        preferencesService.currencyCode
+        service.currency()
     }
 
     public var hasOpenPosition: Bool {
@@ -381,7 +370,7 @@ private extension PerpetualSceneViewModel {
 
     func updateTransactions() async {
         do {
-            try await transactionsService.sync(walletId: wallet.id.id, assetId: asset.id.identifier)
+            try await service.syncTransactions(walletId: wallet.id.id, assetId: asset.id.identifier)
         } catch {
             debugLog("perpetual scene: loadTransactions error \(error)")
         }

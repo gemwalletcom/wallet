@@ -28,9 +28,7 @@ struct WalletNavigationView: View {
     @Environment(\.priceService) private var priceService
     @Environment(\.portfolioService) private var portfolioService
     @Environment(\.priceAlertService) private var priceAlertService
-    @Environment(\.preferencesService) private var preferencesService
     @Environment(\.assetsService) private var assetsService
-    @Environment(\.transactionsService) private var transactionsService
     @Environment(\.bannerService) private var bannerService
     @Environment(\.swapService) private var swapService
     @Environment(\.stakeService) private var stakeService
@@ -190,12 +188,12 @@ struct WalletNavigationView: View {
         }
         .navigationDestination(for: Scenes.Perpetual.self) {
             PerpetualNavigationView(
-                asset: $0.asset,
-                wallet: model.wallet,
-                perpetualService: perpetualService,
-                transactionsService: transactionsService,
-                observerService: hyperliquidObserverService,
-                preferencesService: preferencesService,
+                model: viewModelFactory.perpetualScene(
+                    asset: $0.asset,
+                    wallet: model.wallet,
+                    onTransferData: { model.isPresentingSheet = .transferData($0) },
+                    onPerpetualRecipientData: { model.isPresentingSheet = .perpetualRecipientData($0) },
+                ),
                 isPresentingSheet: $model.isPresentingSheet,
             )
         }

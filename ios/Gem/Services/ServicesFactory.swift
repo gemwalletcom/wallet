@@ -361,6 +361,7 @@ struct ServicesFactory {
             explorerService: explorerService,
             fiatService: fiatService,
             gatewayService: gatewayService,
+            hyperliquidObserverService: hyperliquidObserverService,
             nameService: nameService,
             nftService: nftService,
             nodeService: nodeService,

@@ -5,23 +5,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.perpetual.cases.BuildPerpetualParams
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
-import com.gemwallet.android.application.perpetual.cases.GetPerpetualChartData
-import com.gemwallet.android.application.perpetual.cases.GetPerpetualChartPeriod
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPosition
-import com.gemwallet.android.application.perpetual.cases.PerpetualCandles
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 
-import com.gemwallet.android.application.perpetual.cases.SetPerpetualChartPeriod
 import com.gemwallet.android.application.perpetual.cases.SyncPerpetualPositions
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.application.transactions.cases.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.ChartCandleStick
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TransactionType
@@ -40,6 +39,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
 import javax.inject.Inject
 
@@ -57,16 +58,12 @@ import javax.inject.Inject
 class PerpetualDetailsViewModel @Inject constructor(
     private val getPerpetual: GetPerpetual,
     private val getPerpetualPosition: GetPerpetualPosition,
-    private val getPerpetualChartData: GetPerpetualChartData,
     private val getTransactions: GetTransactions,
-    private val syncAssetTransactions: SyncAssetTransactions,
     private val syncPerpetualPositions: SyncPerpetualPositions,
     private val buildPerpetualParams: BuildPerpetualParams,
     private val perpetualObserver: PerpetualObserver,
-    private val perpetualCandles: PerpetualCandles,
+    private val service: GemPerpetualDetailsServiceInterface,
     getSession: GetSession,
-    getPerpetualChartPeriod: GetPerpetualChartPeriod,
-    private val setPerpetualChartPeriod: SetPerpetualChartPeriod,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -87,7 +84,9 @@ class PerpetualDetailsViewModel @Inject constructor(
     )
 
     private val transactionSync = flow {
-        syncAssetTransactions.syncAssetTransactions(assetId)
+        getSession().filterNotNull().first().wallet.id.id.let { walletId ->
+            runCatchingCancellable { service.syncTransactions(walletId, assetId.toIdentifier()) }
+        }
         emit(Unit)
     }
         .onStart { emit(Unit) }
@@ -114,7 +113,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val period = MutableStateFlow(getPerpetualChartPeriod())
+    val period = MutableStateFlow(service.chartPeriod().decodeJson<ChartPeriod>())
 
     private val refreshTrigger = MutableStateFlow(0L)
     private val refreshState = MutableStateFlow(false)
@@ -125,14 +124,14 @@ class PerpetualDetailsViewModel @Inject constructor(
             flow {
                 emit(StateViewType.Loading)
                 try {
-                    val interval = perpetualCandles.candleInterval(period)
-                    var candles = getPerpetualChartData.getPerpetualChartData(assetId, period)
+                    val interval = service.candleInterval(period.toJson())
+                    var candles = perpetual.value?.coin?.let { coin -> service.candlesticks(coin, period.toJson()).map { it.decodeJson<ChartCandleStick>() } }.orEmpty()
                     refreshState.value = false
                     emit(candles.toChartState())
                     perpetualObserver.chartUpdates
                         .filter { it.coin == perpetual.value?.coin && it.interval == interval }
                         .collect { update ->
-                            candles = perpetualCandles.mergeCandle(candles, update.candle)
+                            candles = service.mergeCandle(candles.map { it.toJson() }, update.candle.toJson()).map { it.decodeJson() }
                             emit(candles.toChartState())
                         }
                 } catch (e: Exception) {
@@ -160,7 +159,7 @@ class PerpetualDetailsViewModel @Inject constructor(
                 .collectLatest { subscriptionKey ->
                     val (coin, period) = subscriptionKey ?: return@collectLatest
                     val subscriptions = listOf(
-                        GemPerpetualSubscription.Candle(symbol = coin, interval = perpetualCandles.candleInterval(period)),
+                        service.candleSubscription(coin, period.toJson()),
                         GemPerpetualSubscription.MarketData(symbol = coin),
                     )
                     subscriptions.forEach(perpetualObserver::subscribe)
@@ -182,7 +181,7 @@ class PerpetualDetailsViewModel @Inject constructor(
     }
 
     fun period(period: ChartPeriod) {
-        viewModelScope.launch(Dispatchers.IO) { setPerpetualChartPeriod(period) }
+        viewModelScope.launch(Dispatchers.IO) { service.setChartPeriod(period.toJson()) }
         this.period.update { period }
     }
 

@@ -31,6 +31,7 @@ import class Gemstone.GemNftService
 import class Gemstone.GemNodeService
 import class Gemstone.GemOnboardingService
 import class Gemstone.GemPaymentService
+import class Gemstone.GemPerpetualDetailsService
 import class Gemstone.GemReceiveService
 import class Gemstone.GemPerpetualService
 import class Gemstone.GemPreferencesService
@@ -63,6 +64,7 @@ import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Recents
+import Perpetuals
 import Settings
 import Stake
 import Store
@@ -95,6 +97,7 @@ public struct ViewModelFactory: Sendable {
     let explorerService: GemExplorerService
     let fiatService: GemFiatService
     let gatewayService: GatewayService
+    let hyperliquidObserverService: any PerpetualObservable
     let nameService: GemNameService
     let nftService: GemNftService
     let nodeService: GemNodeService
@@ -413,6 +416,23 @@ public struct ViewModelFactory: Sendable {
             password: GemstoneKeystorePassword(keystore: keystore),
             recentActivity: recentAssetsService,
             preferences: preferencesService,
+        )
+    }
+
+    @MainActor
+    public func perpetualScene(
+        asset: Asset,
+        wallet: Wallet,
+        onTransferData: TransferDataAction,
+        onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)?,
+    ) -> PerpetualSceneViewModel {
+        PerpetualSceneViewModel(
+            wallet: wallet,
+            asset: asset,
+            service: GemPerpetualDetailsService(perpetuals: perpetualService, transactions: transactionsService, preferences: preferencesService),
+            observerService: hyperliquidObserverService,
+            onTransferData: onTransferData,
+            onPerpetualRecipientData: onPerpetualRecipientData,
         )
     }
 

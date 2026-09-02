@@ -57,10 +57,6 @@ class UserConfig(
 
     fun setChartPeriod(period: ChartPeriod) = preferencesService.setChartPeriod(period.toJson())
 
-    fun perpetualChartPeriod(): ChartPeriod = preferencesService.getPerpetualChartPeriod().decodeJson()
-
-    fun setPerpetualChartPeriod(period: ChartPeriod) = preferencesService.setPerpetualChartPeriod(period.toJson())
-
     private val hideBalancesState = MutableStateFlow(preferencesService.isHideBalanceEnabled())
     private val perpetualEnabledState = MutableStateFlow(preferencesService.isPerpetualEnabled())
     private val appearanceState = MutableStateFlow(preferencesService.getAppearance().decodeJson<Appearance>())

@@ -19,10 +19,13 @@ import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemAssetStore
+import uniffi.gemstone.GemPerpetualDetailsService
+import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualStreamService
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemTransactionsService
 import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemPriceService
 import dagger.Module
@@ -63,6 +66,13 @@ object PerpetualModule {
     @Provides
     @Singleton
     fun provideGemPerpetualServiceInterface(service: GemPerpetualService): GemPerpetualServiceInterface = service
+
+    @Provides
+    fun provideGemPerpetualDetailsService(
+        perpetualService: GemPerpetualService,
+        transactionsService: GemTransactionsService,
+        preferencesService: GemPreferencesService,
+    ): GemPerpetualDetailsServiceInterface = GemPerpetualDetailsService(perpetualService, transactionsService, preferencesService)
 
     @Provides
     @Singleton
