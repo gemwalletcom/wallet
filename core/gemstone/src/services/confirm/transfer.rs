@@ -168,27 +168,27 @@ impl GemConfirmTransferService {
         let simulation = simulation.or_else(|| preload.confirm_data.simulation.clone());
         Ok(GemConfirmLoad {
             fee_assets,
-            simulation: self.simulation_state(input_type, simulation).await,
+            simulation: self.simulation_state(input_type, simulation).await?,
             preload,
         })
     }
 
-    async fn simulation_state(&self, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> GemConfirmSimulationState {
+    async fn simulation_state(&self, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> Result<GemConfirmSimulationState, GemConfirmError> {
         if let Some(simulation) = &simulation {
-            let _ = self.confirm.sync_missing_assets(simulation.asset_ids()).await;
+            self.confirm.ensure_simulation_assets(simulation.asset_ids()).await?;
         }
         let Ok(details) = self.confirm.simulation(input_type.clone(), simulation) else {
-            return GemConfirmSimulationState {
+            return Ok(GemConfirmSimulationState {
                 simulation: None,
                 address_names: Vec::new(),
-            };
+            });
         };
         let requests = details.address_requests(input_type.transaction_asset().chain());
         let address_names = self.names.get_address_names(requests).await.unwrap_or_default();
-        GemConfirmSimulationState {
+        Ok(GemConfirmSimulationState {
             simulation: Some(details),
             address_names,
-        }
+        })
     }
 
     fn missing_network_fee(&self, wallet_id: WalletId, input_type: GemTransactionInputType) -> Option<GemConfirmError> {

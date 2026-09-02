@@ -123,6 +123,22 @@ impl GemAssetsService {
 }
 
 impl GemAssetsService {
+    pub(crate) async fn ensure_simulation_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+        let existing = self.store.get_asset_ids(asset_ids.clone()).await?;
+        let missing = rules::missing_asset_ids(asset_ids, existing);
+        if missing.is_empty() {
+            return Ok(());
+        }
+        // Simulation assets may not exist in the backend; fall back to the node.
+        if let Ok(assets) = self.get_assets(missing.clone(), None).await {
+            self.store.save_assets(assets).await?;
+        }
+        for asset_id in missing {
+            self.ensure_token_asset(asset_id).await?;
+        }
+        Ok(())
+    }
+
     pub async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
         let stored = self.store.get_asset_ids(asset_ids).await?;
         if stored.is_empty() {

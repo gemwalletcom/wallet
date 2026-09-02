@@ -187,6 +187,10 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
+    async fn ensure_simulation_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), crate::services::error::GemServiceError> {
+        self.assets.ensure_simulation_assets(asset_ids).await
+    }
+
     pub fn fee_assets(&self, wallet_id: WalletId, chain: Chain) -> Result<Vec<GemFeeAsset>, GemConfirmError> {
         let fee_asset_ids = chain_fee_asset_ids(chain);
         if fee_asset_ids.is_empty() {
