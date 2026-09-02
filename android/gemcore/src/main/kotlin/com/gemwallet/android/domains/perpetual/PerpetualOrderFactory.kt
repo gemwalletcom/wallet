@@ -9,7 +9,7 @@ import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualConfirmData
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualType
-import com.gemwallet.android.ext.PerpetualFormatter.toGemProvider
+import com.gemwallet.android.ext.toGem
 import uniffi.gemstone.GemPerpetualCloseInput
 import uniffi.gemstone.GemPerpetualOrderAction
 import uniffi.gemstone.GemPerpetualOrderInput
@@ -41,7 +41,7 @@ object PerpetualOrderFactory {
             takeProfit = takeProfit,
             stopLoss = stopLoss,
         )
-        return GemPerpetual(data.provider.toGemProvider()).use { it.order(input) }.decodeJson()
+        return GemPerpetual(data.provider.toGem()).use { it.order(input) }.decodeJson()
     }
 
     fun makeCloseOrder(
@@ -65,7 +65,7 @@ object PerpetualOrderFactory {
             marginAmount = position.marginAmount,
             slippage = null,
         )
-        return GemPerpetual(perpetual.provider.toGemProvider()).use { it.closeOrder(input) }.decodeJson()
+        return GemPerpetual(perpetual.provider.toGem()).use { it.closeOrder(input) }.decodeJson()
     }
 
     private fun PerpetualPositionAction.orderAction(): GemPerpetualOrderAction = when (this) {

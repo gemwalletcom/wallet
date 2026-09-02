@@ -7,7 +7,7 @@ use primitives::nft::NFTAsset;
 use primitives::solana_nft::SolanaNftStandard;
 use primitives::solana_token_program::SolanaTokenProgramId;
 use primitives::{
-    AccountDataType, AssetId, EarnType, FeeOption, GasPriceType, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, PerpetualProvider, PerpetualType, SignerInput,
+    AccountDataType, AssetId, EarnType, FeeOption, GasPriceType, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, PerpetualType, SignerInput,
     StakeType, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransactionType, TransferDataExtra, TransferDataOutputAction,
     TransferDataOutputType, TronStakeData, perpetual::PerpetualReduceData,
 };
@@ -16,17 +16,11 @@ use std::collections::HashMap;
 use swap::{GemApprovalData, GemSwapData};
 
 pub type GemPerpetualDirection = PerpetualDirection;
-pub type GemPerpetualProvider = PerpetualProvider;
 pub type GemPerpetualConfirmData = PerpetualConfirmData;
 pub type GemPerpetualReduceData = PerpetualReduceData;
 pub type GemFeeOption = FeeOption;
 pub type GemTransferDataOutputType = TransferDataOutputType;
 pub type GemTransferDataOutputAction = TransferDataOutputAction;
-#[uniffi::remote(Enum)]
-pub enum PerpetualProvider {
-    Hypercore,
-}
-
 pub type GemTronStakeData = TronStakeData;
 
 #[uniffi::remote(Enum)]

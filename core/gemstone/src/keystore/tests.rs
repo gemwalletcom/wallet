@@ -1,4 +1,4 @@
-use primitives::Chain;
+use primitives::{Chain, WalletType};
 use primitives::testkit::ABANDON_PHRASE;
 use tempfile::TempDir;
 use zeroize::Zeroizing;
@@ -39,7 +39,7 @@ fn test_gem_keystore_private_key_create_export_delete() {
     let keystore = GemKeystore::new(dir.path().to_string_lossy().to_string()).unwrap();
     let stored = keystore.create_store(mock_private_key_import(), b"password".to_vec()).unwrap();
 
-    assert_eq!(stored.wallet_type, GemWalletType::PrivateKey);
+    assert_eq!(stored.wallet_type, WalletType::PrivateKey);
     assert_eq!(stored.accounts[0].address, "0x4ce31c0b2114abe61Ac123E1E6254E961C18D10B");
     assert_eq!(
         keystore.export_private_key(stored.keystore_id.clone(), Chain::Ethereum, b"password".to_vec()).unwrap(),
@@ -95,7 +95,7 @@ fn test_gem_keystore_mnemonic_import_create_export_add_accounts() {
         .preview_import(mock_multicoin_phrase_import(vec![Chain::Ethereum, Chain::Solana, Chain::Bitcoin]))
         .unwrap();
     assert_eq!(import.wallet_id, "multicoin_0x9858EfFD232B4033E47d90003D41EC34EcaEda94");
-    assert_eq!(import.wallet_type, GemWalletType::Multicoin);
+    assert_eq!(import.wallet_type, WalletType::Multicoin);
     assert_eq!(import.accounts[0].address, "0x9858EfFD232B4033E47d90003D41EC34EcaEda94");
     assert_eq!(import.accounts[1].address, "HAgk14JpMQLgt6rVgv7cBQFJWFto5Dqxi472uT3DKpqk");
     assert_eq!(import.accounts[1].derivation_path, "m/44'/501'/0'/0'");
@@ -103,7 +103,7 @@ fn test_gem_keystore_mnemonic_import_create_export_add_accounts() {
 
     let stored = keystore.create_store(mock_multicoin_phrase_import(vec![Chain::Ethereum]), b"password".to_vec()).unwrap();
     assert_eq!(stored.wallet_id, "multicoin_0x9858EfFD232B4033E47d90003D41EC34EcaEda94");
-    assert_eq!(stored.wallet_type, GemWalletType::Multicoin);
+    assert_eq!(stored.wallet_type, WalletType::Multicoin);
     assert_eq!(stored.accounts.len(), 1);
     assert_eq!(
         keystore.export_recovery_phrase(stored.keystore_id.clone(), b"password".to_vec()).unwrap(),
@@ -158,14 +158,14 @@ fn test_gem_keystore_single_phrase_import_create() {
 
     let import = keystore.preview_import(mock_single_phrase_import()).unwrap();
     assert_eq!(import.wallet_id, "single_solana_HAgk14JpMQLgt6rVgv7cBQFJWFto5Dqxi472uT3DKpqk");
-    assert_eq!(import.wallet_type, GemWalletType::Single);
+    assert_eq!(import.wallet_type, WalletType::Single);
     assert_eq!(import.accounts.len(), 1);
     assert_eq!(import.accounts[0].chain, Chain::Solana);
     assert_eq!(import.accounts[0].derivation_path, "m/44'/501'/0'/0'");
 
     let stored = keystore.create_store(mock_single_phrase_import(), b"password".to_vec()).unwrap();
     assert_eq!(stored.wallet_id, "single_solana_HAgk14JpMQLgt6rVgv7cBQFJWFto5Dqxi472uT3DKpqk");
-    assert_eq!(stored.wallet_type, GemWalletType::Single);
+    assert_eq!(stored.wallet_type, WalletType::Single);
     assert_eq!(stored.accounts.len(), 1);
     assert_eq!(stored.accounts[0].chain, Chain::Solana);
     assert_eq!(stored.accounts[0].derivation_path, "m/44'/501'/0'/0'");

@@ -11,7 +11,7 @@ use gem_keystore::Mnemonic;
 use primitives::{Account, Chain, Wallet, WalletId, WalletSource, WalletType};
 
 use crate::keystore::decode_password;
-use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, GemWalletType, keystore_id_for_wallet};
+use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_for_wallet};
 use crate::services::error::GemServiceError;
 use crate::services::file::GemFileStore;
 use crate::services::preferences::GemPreferencesService;
@@ -208,7 +208,7 @@ impl GemWalletService {
                 let wallet = rules::view_wallet(String::new(), chain, address);
                 Ok(GemWalletImport {
                     wallet_id: wallet.id.id(),
-                    wallet_type: GemWalletType::View,
+                    wallet_type: WalletType::View,
                     accounts: wallet.accounts.into_iter().map(Into::into).collect(),
                 })
             }

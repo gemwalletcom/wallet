@@ -55,6 +55,40 @@ public extension Primitives.Currency {
     }
 }
 
+public extension Gemstone.FeePriority {
+    func map() -> Primitives.FeePriority {
+        switch self {
+        case .normal: .normal
+        case .fast: .fast
+        }
+    }
+}
+
+public extension Primitives.FeePriority {
+    func map() -> Gemstone.FeePriority {
+        switch self {
+        case .normal: .normal
+        case .fast: .fast
+        }
+    }
+}
+
+public extension Gemstone.PerpetualProvider {
+    func map() -> Primitives.PerpetualProvider {
+        switch self {
+        case .hypercore: .hypercore
+        }
+    }
+}
+
+public extension Primitives.PerpetualProvider {
+    func map() -> Gemstone.PerpetualProvider {
+        switch self {
+        case .hypercore: .hypercore
+        }
+    }
+}
+
 public extension Gemstone.RecentActivityType {
     func map() -> Primitives.RecentActivityType {
         switch self {
@@ -145,6 +179,28 @@ public extension Primitives.SimulationPayloadFieldType {
         case .text: .text
         case .address: .address
         case .timestamp: .timestamp
+        }
+    }
+}
+
+public extension Gemstone.WalletType {
+    func map() -> Primitives.WalletType {
+        switch self {
+        case .multicoin: .multicoin
+        case .single: .single
+        case .privateKey: .privateKey
+        case .view: .view
+        }
+    }
+}
+
+public extension Primitives.WalletType {
+    func map() -> Gemstone.WalletType {
+        switch self {
+        case .multicoin: .multicoin
+        case .single: .single
+        case .privateKey: .privateKey
+        case .view: .view
         }
     }
 }

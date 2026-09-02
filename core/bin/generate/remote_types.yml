@@ -1,6 +1,9 @@
 remote:
   - AssetType
   - Asset
+  - FeePriority
+  - PerpetualProvider
+  - WalletType
   - RecentActivityType
   - SimulationPayloadFieldType
   - SimulationPayloadFieldDisplay

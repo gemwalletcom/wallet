@@ -457,11 +457,11 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         self.validators = validators
     }
 
-    public func delegationActions(walletType _: Gemstone.GemWalletType, chain _: Gemstone.Chain, provider _: Gemstone.StakeProviderType, state _: Gemstone.DelegationState) -> [Gemstone.GemDelegationAction] {
+    public func delegationActions(walletType _: Gemstone.WalletType, chain _: Gemstone.Chain, provider _: Gemstone.StakeProviderType, state _: Gemstone.DelegationState) -> [Gemstone.GemDelegationAction] {
         actions
     }
 
-    public func canClaimDelegationRewards(walletType _: Gemstone.GemWalletType, chain _: Gemstone.Chain, state _: Gemstone.DelegationState, rewards _: String) -> Bool {
+    public func canClaimDelegationRewards(walletType _: Gemstone.WalletType, chain _: Gemstone.Chain, state _: Gemstone.DelegationState, rewards _: String) -> Bool {
         claimable
     }
 
