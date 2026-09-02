@@ -8,6 +8,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemAddressStore
 import uniffi.gemstone.GemStakeService
 import uniffi.gemstone.GemStakeServiceInterface
@@ -29,8 +31,14 @@ object StakeModule {
 
     @Singleton
     @Provides
-    fun provideGemStakeService(gateway: GemGateway, staticApiClient: GemStaticApiClient, store: GemStakeStore, addressStore: GemAddressStore): GemStakeService =
-        GemStakeService(gateway, staticApiClient, store, addressStore)
+    fun provideGemStakeService(
+        gateway: GemGateway,
+        staticApiClient: GemStaticApiClient,
+        store: GemStakeStore,
+        addressStore: GemAddressStore,
+        explorerService: GemExplorerService,
+        preferencesService: GemPreferencesService,
+    ): GemStakeService = GemStakeService(gateway, staticApiClient, store, addressStore, explorerService, preferencesService)
 
     @Provides
     @Singleton

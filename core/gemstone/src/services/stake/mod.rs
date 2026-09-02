@@ -6,7 +6,7 @@ use crate::services::error::GemServiceError;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use primitives::{AssetId, Chain, DelegationState, DelegationValidator, StakeProviderType, WalletId, WalletType};
+use primitives::{AssetId, Chain, Currency, DelegationState, DelegationValidator, StakeProviderType, WalletId, WalletType};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
@@ -15,7 +15,10 @@ use crate::models::{GemContractCallData, GemEarnType};
 pub use model::{GemDelegationAction, GemStakeBalance};
 pub use store::GemStakeStore;
 
+use crate::block_explorer::GemBlockExplorerLink;
+use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemAddressStore;
+use crate::services::preferences::GemPreferencesService;
 
 #[derive(uniffi::Object)]
 pub struct GemStakeService {
@@ -23,18 +26,38 @@ pub struct GemStakeService {
     static_api: Arc<GemStaticApiClient>,
     store: Arc<dyn GemStakeStore>,
     address_store: Arc<dyn GemAddressStore>,
+    explorer: Arc<GemExplorerService>,
+    preferences: Arc<GemPreferencesService>,
 }
 
 #[uniffi::export]
 impl GemStakeService {
     #[uniffi::constructor]
-    pub fn new(gateway: Arc<GemGateway>, static_api: Arc<GemStaticApiClient>, store: Arc<dyn GemStakeStore>, address_store: Arc<dyn GemAddressStore>) -> Self {
+    pub fn new(
+        gateway: Arc<GemGateway>,
+        static_api: Arc<GemStaticApiClient>,
+        store: Arc<dyn GemStakeStore>,
+        address_store: Arc<dyn GemAddressStore>,
+        explorer: Arc<GemExplorerService>,
+        preferences: Arc<GemPreferencesService>,
+    ) -> Self {
         Self {
             gateway,
             static_api,
             store,
             address_store,
+            explorer,
+            preferences,
         }
+    }
+
+    pub fn currency(&self) -> Currency {
+        self.preferences.get_currency()
+    }
+
+    pub fn validator_url(&self, validator: DelegationValidator) -> Option<GemBlockExplorerLink> {
+        let address = rules::validator_explorer_address(&validator)?;
+        self.explorer.get_validator_url(validator.chain, address)
     }
 
     pub async fn sync(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<(), GemServiceError> {
@@ -63,10 +86,6 @@ impl GemStakeService {
 
     pub fn can_claim_delegation_rewards(&self, wallet_type: WalletType, chain: Chain, state: DelegationState, rewards: String) -> bool {
         rules::can_claim_rewards(wallet_type, chain, state, &rewards)
-    }
-
-    pub fn validator_explorer_address(&self, validator: DelegationValidator) -> Option<String> {
-        rules::validator_explorer_address(&validator)
     }
 
     pub fn shows_completion_date(&self, state: DelegationState) -> bool {

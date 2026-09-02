@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import Formatters
@@ -16,7 +15,6 @@ public struct DelegationViewModel: Sendable {
     public let currencyCode: String
     private let asset: Asset
     private let formatter: ValueFormatter
-    private let explorerService: any GemExplorerServiceProtocol
     private let stakeService: any GemStakeServiceProtocol
     private let priceFormatter: CurrencyFormatter
 
@@ -37,7 +35,6 @@ public struct DelegationViewModel: Sendable {
     }()
 
     public init(
-        explorerService: any GemExplorerServiceProtocol,
         stakeService: any GemStakeServiceProtocol,
         delegation: Delegation,
         asset: Asset,
@@ -48,7 +45,6 @@ public struct DelegationViewModel: Sendable {
         self.currencyCode = currencyCode
         self.asset = asset
         self.formatter = formatter
-        self.explorerService = explorerService
         self.stakeService = stakeService
         priceFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
     }
@@ -116,8 +112,7 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var validatorUrl: URL? {
-        guard let address = stakeService.validatorExplorerAddress(validator: delegation.validator.json()) else { return nil }
-        return explorerService.getValidatorUrl(chain: delegation.validator.chain.rawValue, address: address).map { BlockExplorerLink($0) }?.url
+        stakeService.validatorUrl(validator: delegation.validator.json()).map { BlockExplorerLink($0) }?.url
     }
 
     public var completionDateText: String? {

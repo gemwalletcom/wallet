@@ -455,10 +455,6 @@ having the parent vend the child view model.
 | `Settings/ChainSettings/ViewModels/AddNodeSceneViewModel.swift` | 2 | 0 |
 | `Settings/Currency/ViewModels/CurrencySceneViewModel.swift` | 2 | 0 |
 | `Settings/Settings/ViewModels/RewardsViewModel.swift` | 2 | 0 |
-| `Stake/DelegationViewModel.swift` | 2 | 0 |
-| `Stake/EarnSceneViewModel.swift` | 2 | 0 |
-| `Stake/StakeSceneViewModel.swift` | 2 | 0 |
-| `Stake/ValidatorSelectSceneViewModel.swift` | 2 | 0 |
 | `Transfer/ConfirmDetailsViewModel.swift` | 2 | 0 |
 | `PrimitivesComponents/AddressInputViewModel.swift` | 2 | 0 |
 

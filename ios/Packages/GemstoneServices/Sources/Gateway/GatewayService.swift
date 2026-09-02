@@ -35,8 +35,14 @@ public actor GatewayService: Sendable {
         GemNodeStatusService(gateway: gateway)
     }
 
-    public nonisolated func stakeService(staticApi: GemStaticApiClient, store: any GemStakeStore, addressStore: any GemAddressStore) -> GemStakeService {
-        GemStakeService(gateway: gateway, staticApi: staticApi, store: store, addressStore: addressStore)
+    public nonisolated func stakeService(
+        staticApi: GemStaticApiClient,
+        store: any GemStakeStore,
+        addressStore: any GemAddressStore,
+        explorer: GemExplorerService,
+        preferences: GemPreferencesService,
+    ) -> GemStakeService {
+        GemStakeService(gateway: gateway, staticApi: staticApi, store: store, addressStore: addressStore, explorer: explorer, preferences: preferences)
     }
 
     public nonisolated func transactionStateService(

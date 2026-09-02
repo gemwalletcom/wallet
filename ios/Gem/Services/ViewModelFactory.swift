@@ -478,9 +478,7 @@ public struct ViewModelFactory: Sendable {
         StakeSceneViewModel(
             wallet: wallet,
             chain: StakeChain(rawValue: chain.rawValue)!, // Expected Only StakeChain accepted.
-            currencyCode: preferencesService.currencyCode,
             stakeService: stakeService,
-            explorerService: explorerService,
         )
     }
 
@@ -492,9 +490,7 @@ public struct ViewModelFactory: Sendable {
         EarnSceneViewModel(
             wallet: wallet,
             asset: asset,
-            currencyCode: preferencesService.currencyCode,
             stakeService: stakeService,
-            explorerService: explorerService,
         )
     }
 
@@ -509,7 +505,7 @@ public struct ViewModelFactory: Sendable {
     ) -> DelegationSceneViewModel {
         DelegationSceneViewModel(
             wallet: wallet,
-            model: DelegationViewModel(explorerService: explorerService, stakeService: stakeService, delegation: delegation, asset: asset, formatter: .auto, currencyCode: preferencesService.currencyCode),
+            model: DelegationViewModel(stakeService: stakeService, delegation: delegation, asset: asset, formatter: .auto, currencyCode: stakeService.currency()),
             asset: asset,
             stakeService: stakeService,
             validators: validators,

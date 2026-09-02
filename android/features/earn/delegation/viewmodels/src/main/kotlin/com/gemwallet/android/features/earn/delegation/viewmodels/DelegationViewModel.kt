@@ -4,7 +4,6 @@ import uniffi.gemstone.GemStakeServiceInterface
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.StakeProviderType
-import uniffi.gemstone.GemExplorerService
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -47,7 +46,6 @@ class DelegationViewModel @Inject constructor(
     private val getAssetInfo: GetAssetInfo,
     private val getDelegation: GetDelegation,
     private val stakeService: GemStakeServiceInterface,
-    private val explorerService: GemExplorerService,
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -77,9 +75,7 @@ class DelegationViewModel @Inject constructor(
             return@combine emptyList()
         }
         val availableIn = availableIn(delegation)
-        val chain = delegation.validator.chain
-        val validatorUrl = stakeService.validatorExplorerAddress(delegation.validator.toJson())
-            ?.let { explorerService.getValidatorUrl(chain.string, it)?.link }
+        val validatorUrl = stakeService.validatorUrl(delegation.validator.toJson())?.link
         listOfNotNull(
             DelegationProperty.Name(delegation.validator.name, validatorUrl),
             delegation.validator.takeIf { it.apr != 0.0 }?.let { DelegationProperty.Apr(it) },

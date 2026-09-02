@@ -127,10 +127,13 @@ struct ServicesFactory {
             stream: streamSubscriptionService,
             preferences: preferencesService,
         )
+        let explorerService = Gemstone.GemExplorerService(preferences: preferencesService)
         let stakeService = gatewayService.stakeService(
             staticApi: staticApiClient,
             store: GemstoneStakeStore(store: storeManager.stakeStore),
             addressStore: gemstoneAddressStore,
+            explorer: explorerService,
+            preferences: preferencesService,
         )
         let nftService = Gemstone.GemNftService(api: deviceApiClient, store: GemstoneNftStore(store: storeManager.nftStore))
         let transactionStateService = gatewayService.transactionStateService(
@@ -191,7 +194,6 @@ struct ServicesFactory {
             preferencesService: preferencesService,
             webSocket: webSocket,
         )
-        let explorerService = Gemstone.GemExplorerService(preferences: preferencesService)
         let swapper = GemSwapper(rpcProvider: NativeProvider(nodeProvider: nodeProvider))
         let swapService = Gemstone.GemSwapService(
             swapper: swapper,
