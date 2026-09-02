@@ -1,7 +1,9 @@
 package com.gemwallet.android.data.coordinators.asset
 
+import android.util.Log
 import com.gemwallet.android.application.assets.cases.SetAssetPinned
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemBalanceService
@@ -16,11 +18,17 @@ class SetAssetPinnedImpl(
     override suspend fun invoke(assetId: AssetId, pinned: Boolean) {
         val session = getSession().value ?: return
         withContext(Dispatchers.IO) {
-            balanceService.setAssetPinned(
-                walletId = session.wallet.id.id,
-                assetId = assetId.toIdentifier(),
-                pinned = pinned,
-            )
+            runCatchingCancellable {
+                balanceService.setAssetPinned(
+                    walletId = session.wallet.id.id,
+                    assetId = assetId.toIdentifier(),
+                    pinned = pinned,
+                )
+            }.onFailure { Log.e(TAG, "setting pinned=$pinned failed for ${assetId.toIdentifier()}", it) }
         }
+    }
+
+    private companion object {
+        const val TAG = "SetAssetPinned"
     }
 }
