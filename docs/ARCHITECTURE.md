@@ -105,9 +105,8 @@ impl GemConfirmService {
 }
 ```
 
-In this target shape, `GemConfirmError` implements `From<GemServiceError>` once in `error.rs`, so
-the three reads use `?` without repeating the same `Load` conversion. The pending migration is
-tracked in [`SERVICES.md`](SERVICES.md#4-core-surface).
+`GemConfirmError` implements `From<GemServiceError>` once in `error.rs`, so the three reads use
+`?` without repeating the same `Load` conversion.
 
 The method is thin: gather inputs, call the rule, return. Product or domain-decision branching
 belongs in `rules.rs`; I/O sequencing, error propagation and empty-work short circuits may remain
@@ -140,9 +139,13 @@ Two things this record gets right:
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemTransferAmountResult {
     Amount { amount: GemTransferAmount },
-    Error { error: GemTransferAmountError, asset: Asset },
+    Error { error: GemConfirmError },
 }
 ```
+
+The error is the same `GemConfirmError` every other confirm failure uses, carrying the `Asset`
+it names and the required/available values, so the app renders it the same way whether it came
+from the preload or the send.
 
 **State that travels together is one type.** An approval is either an exact amount or unlimited — never a string plus a boolean the caller has to reassemble:
 
