@@ -15,9 +15,11 @@ import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isTokenSupported
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.RecentActivityType
+import uniffi.gemstone.GemAssetAction
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
@@ -252,6 +254,10 @@ open class BaseAssetSelectViewModel(
         }
     }
 
+    fun updateRecent(assetId: AssetId, action: GemAssetAction) {
+        action.recentActivityType()?.let { updateRecent(assetId, it.toPrimitives()) }
+    }
+
     fun updateRecent(assetId: AssetId, type: RecentActivityType) = viewModelScope.launch(Dispatchers.IO) {
         val wallet = session.value?.wallet ?: return@launch
         runCatchingCancellable { service.addRecentAsset(type.toGem(), assetId.toIdentifier(), wallet.id.id) }
@@ -260,7 +266,10 @@ open class BaseAssetSelectViewModel(
 
     open val showRecents: Boolean get() = true
 
-    open val recentTypes: List<RecentActivityType> get() = RecentActivityType.entries
+    open val action: GemAssetAction? get() = null
+
+    val recentTypes: List<RecentActivityType>
+        get() = action?.recentActivityTypes()?.map { it.toPrimitives() } ?: RecentActivityType.entries
 
     open fun assetFilters(): Set<AssetFilter> = emptySet()
 

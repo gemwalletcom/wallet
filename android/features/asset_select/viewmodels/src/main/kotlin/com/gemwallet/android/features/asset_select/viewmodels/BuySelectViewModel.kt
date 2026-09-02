@@ -28,6 +28,8 @@ class BuySelectViewModel @Inject constructor(
     service,
     BuySelectSearch(searchSelectAssets),
 ) {
+    override val action: GemAssetAction get() = GemAssetAction.BUY
+
     override fun assetFilters() = GemAssetAction.BUY.recentFilters()
 }
 

@@ -6,20 +6,12 @@ import Testing
 
 struct SelectAssetTypeTests {
     @Test
-    func recentActivityTypes() {
-        #expect(SelectAssetType.swap(.pay).recentActivityTypes == [.swapSelect, .swap])
-        #expect(SelectAssetType.swap(.receive(chains: [], assetIds: [])).recentActivityTypes == [.swapSelect, .swap])
-        #expect(SelectAssetType.receive(.asset).recentActivityTypes == RecentActivityType.allCases)
-        #expect(SelectAssetType.buy.recentActivityTypes == RecentActivityType.allCases)
-    }
-
-    @Test
-    func recentActivityData() {
-        let assetId = AssetId(chain: .bitcoin)
-        #expect(SelectAssetType.swap(.pay).recentActivityData(assetId: assetId)?.type == .swapSelect)
-        #expect(SelectAssetType.swap(.receive(chains: [], assetIds: [])).recentActivityData(assetId: assetId)?.type == .swapSelect)
-        #expect(SelectAssetType.receive(.asset).recentActivityData(assetId: assetId)?.type == .receive)
-        #expect(SelectAssetType.buy.recentActivityData(assetId: assetId)?.type == .fiatBuy)
-        #expect(SelectAssetType.send(.none).recentActivityData(assetId: assetId) == nil)
+    func action() {
+        #expect(SelectAssetType.swap(.pay).action == .swapPay)
+        #expect(SelectAssetType.swap(.receive(chains: [], assetIds: [])).action == .swapReceive)
+        #expect(SelectAssetType.receive(.asset).action == .receive)
+        #expect(SelectAssetType.buy.action == .buy)
+        #expect(SelectAssetType.send(.none).action == .send)
+        #expect(SelectAssetType.manage.action == nil)
     }
 }

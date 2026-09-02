@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemAssetAction
 import Primitives
 
 public enum SelectAssetType: Identifiable, Hashable, Sendable {
@@ -28,19 +29,14 @@ public enum SelectAssetType: Identifiable, Hashable, Sendable {
 }
 
 public extension SelectAssetType {
-    func recentActivityData(assetId: AssetId) -> RecentActivityData? {
+    var action: GemAssetAction? {
         switch self {
-        case .receive: RecentActivityData(type: .receive, assetId: assetId, toAssetId: nil)
-        case .buy: RecentActivityData(type: .fiatBuy, assetId: assetId, toAssetId: nil)
-        case .swap: RecentActivityData(type: .swapSelect, assetId: assetId, toAssetId: nil)
-        case .send, .manage, .priceAlert, .deposit, .withdraw: .none
-        }
-    }
-
-    var recentActivityTypes: [RecentActivityType] {
-        switch self {
-        case .swap: [.swapSelect, .swap]
-        case .send, .receive, .buy, .manage, .priceAlert, .deposit, .withdraw: RecentActivityType.allCases
+        case .send: .send
+        case .receive: .receive
+        case .buy: .buy
+        case .swap(.pay): .swapPay
+        case .swap(.receive): .swapReceive
+        case .manage, .priceAlert, .deposit, .withdraw: .none
         }
     }
 }

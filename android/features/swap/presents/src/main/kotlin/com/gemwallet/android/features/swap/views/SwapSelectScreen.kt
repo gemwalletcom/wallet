@@ -11,8 +11,8 @@ import com.gemwallet.android.features.asset_select.presents.views.AssetSelectScr
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.gemwallet.android.features.swap.viewmodels.SwapSelectViewModel
 import com.gemwallet.android.domains.swap.SwapItemType
-import com.wallet.core.primitives.RecentActivityType
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemAssetAction
 
 @Composable
 fun SwapSelectScreen(
@@ -38,7 +38,7 @@ fun SwapSelectScreen(
             SwapItemType.Receive -> stringResource(id = R.string.swap_you_receive)
         },
         titleBadge = { null },
-        recentType = RecentActivityType.SwapSelect,
+        action = GemAssetAction.SWAP_PAY,
         onCancel = onCancel,
         onSelect = onSelectAsset,
         onSelectRecent = onSelectAsset,

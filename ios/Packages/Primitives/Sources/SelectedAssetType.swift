@@ -23,14 +23,3 @@ public enum SelectedAssetType: Sendable, Hashable, Identifiable {
         }
     }
 }
-
-public extension SelectedAssetType {
-    func recentActivityData(assetId: AssetId) -> RecentActivityData? {
-        switch self {
-        case .receive: RecentActivityData(type: .receive, assetId: assetId, toAssetId: nil)
-        case .buy: RecentActivityData(type: .fiatBuy, assetId: assetId, toAssetId: nil)
-        case .sell: RecentActivityData(type: .fiatSell, assetId: assetId, toAssetId: nil)
-        case .send, .stake, .earn, .swap: .none
-        }
-    }
-}

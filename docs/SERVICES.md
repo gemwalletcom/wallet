@@ -491,14 +491,15 @@ end to end, per [ARCHITECTURE.md](ARCHITECTURE.md) § 6 — iOS's `TransferDataT
 neither app spells the provider name or the address (iOS `GemRecipient.hyperliquidProvider`
 and Android `HyperliquidRecipient` are gone).
 
-Two recent-activity rules are still app-side, on `SelectAssetType` and `SelectedAssetType`.
-Both are Swift-only enums with no Core counterpart, so the enums move first.
+Which recent activity a selection records, and which types a select screen lists, are
+`GemAssetAction::recent_activity_type` / `recent_activity_types` on both apps (iOS maps
+`SelectAssetType` and `SelectedAssetType` to the action; Android's select screens pass it). A
+completed transfer is recorded by `GemConfirmTransferService` on both.
 
 Android hand-wrote `RecentType` with different case names from the generated
 `RecentActivityType` — `Send` against `Transfer`, `Buy` against `FiatBuy` — and those names
 are persisted through `@SerialName`, so the platforms store different strings for the same
-concept. Changing them needs a Room migration. Android also records nothing on a completed
-transfer, which iOS has always done.
+concept. Changing them needs a Room migration.
 
 ### Things that look like work and are not
 
