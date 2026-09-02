@@ -28,7 +28,7 @@ import protocol Gemstone.GemNotificationPermissions
 import class Gemstone.GemNotificationsService
 import class Gemstone.GemNftService
 import class Gemstone.GemNodeService
-import class Gemstone.GemOnboardingService
+import class Gemstone.GemWalletService
 import class Gemstone.GemCollectibleService
 import class Gemstone.GemFiatQuoteService
 import class Gemstone.GemPaymentService
@@ -105,7 +105,6 @@ public struct ViewModelFactory: Sendable {
     let nameService: GemNameService
     let nftService: GemNftService
     let nodeService: GemNodeService
-    let onboardingService: GemOnboardingService
     let paymentService: GemPaymentService
     let perpetualService: GemPerpetualService
     let preferencesService: GemPreferencesService
@@ -334,26 +333,22 @@ public struct ViewModelFactory: Sendable {
     }
 
     @MainActor
-    public func walletImageScene(wallet: Wallet, source: WalletImageViewModel.Source = .wallet) -> WalletImageViewModel {
-        WalletImageViewModel(wallet: wallet, source: source, avatarService: avatarService)
+    public func walletImageScene(wallet: Wallet) -> WalletImageViewModel {
+        WalletImageViewModel(wallet: wallet, avatarService: avatarService)
     }
 
     @MainActor
     public func createWalletScene(onComplete: VoidAction) -> CreateWalletModel {
-        CreateWalletModel(
-            service: onboardingService,
-            preferences: observablePreferences,
-            walletImage: { [self] in walletImageScene(wallet: $0, source: .onboarding) },
-            onComplete: onComplete,
-        )
+        CreateWalletModel(service: walletService, preferences: observablePreferences, avatarService: avatarService, onComplete: onComplete)
     }
 
     @MainActor
     public func importWalletScene(onComplete: VoidAction) -> ImportWalletViewModel {
         ImportWalletViewModel(
-            service: onboardingService,
+            service: walletService,
             preferences: observablePreferences,
-            walletImage: { [self] in walletImageScene(wallet: $0, source: .onboarding) },
+            nameService: nameService,
+            avatarService: avatarService,
             onComplete: onComplete,
         )
     }
@@ -365,7 +360,7 @@ public struct ViewModelFactory: Sendable {
 
     @MainActor
     public func manageContactScene(mode: ManageContactViewModel.Mode) -> ManageContactViewModel {
-        ManageContactViewModel(service: manageContactService, mode: mode)
+        ManageContactViewModel(service: manageContactService, nameService: nameService, mode: mode)
     }
 
     @MainActor
@@ -509,6 +504,7 @@ public struct ViewModelFactory: Sendable {
             wallet: wallet,
             asset: asset,
             service: GemRecipientService(names: nameService, payments: paymentService, session: walletSessionService),
+            nameService: nameService,
             type: type,
             recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,

@@ -7,16 +7,13 @@ use chrono::Utc;
 use std::sync::Arc;
 
 use primitives::contact::ContactAddress;
-use primitives::name::NameRecord;
 use primitives::{Chain, Contact};
 
 use crate::address_formatter::{GemAddressFormatStyle, GemAddressService};
-use crate::services::file::GemFileStore;
 use crate::models::payment::GemPayment;
 use crate::payment::GemPaymentService;
-use crate::services::name::{GemAddressStore, GemNameService};
-use crate::services::recipient::{GemRecipientError, GemRecipientValidation};
-use crate::services::transfer::model::GemRecipient;
+use crate::services::file::GemFileStore;
+use crate::services::name::GemAddressStore;
 
 pub use model::{GemContactAddressInput, GemContactAvatar, GemContactInput, GemContactScannedAddress};
 pub use store::GemContactStore;
@@ -104,25 +101,14 @@ impl GemContactService {
 pub struct GemManageContactService {
     contacts: Arc<GemContactService>,
     addresses: Arc<GemAddressService>,
-    names: Arc<GemNameService>,
     payments: Arc<GemPaymentService>,
 }
 
 #[uniffi::export]
 impl GemManageContactService {
     #[uniffi::constructor]
-    pub fn new(
-        contacts: Arc<GemContactService>,
-        addresses: Arc<GemAddressService>,
-        names: Arc<GemNameService>,
-        payments: Arc<GemPaymentService>,
-    ) -> Self {
-        Self {
-            contacts,
-            addresses,
-            names,
-            payments,
-        }
+    pub fn new(contacts: Arc<GemContactService>, addresses: Arc<GemAddressService>, payments: Arc<GemPaymentService>) -> Self {
+        Self { contacts, addresses, payments }
     }
 
     pub fn scanned_address(&self, input: String) -> GemContactScannedAddress {
@@ -143,32 +129,5 @@ impl GemManageContactService {
 
     pub fn format_address(&self, address: String, chain: Chain, style: GemAddressFormatStyle) -> String {
         self.addresses.format(address, Some(chain), style)
-    }
-
-    pub fn validate_recipient(&self, chain: Chain, input: String, name_record: Option<NameRecord>) -> GemRecipientValidation {
-        self.names.validate_recipient(chain, input, name_record)
-    }
-
-    pub fn recipient(
-        &self,
-        chain: Chain,
-        input: String,
-        name_record: Option<NameRecord>,
-        memo: Option<String>,
-        references: Vec<String>,
-    ) -> Result<GemRecipient, GemRecipientError> {
-        self.names.recipient(chain, input, name_record, memo, references)
-    }
-
-    pub fn is_name_supported(&self, name: String) -> bool {
-        self.names.is_name_supported(name)
-    }
-
-    pub fn name_record_debounce_milliseconds(&self) -> u64 {
-        self.names.name_record_debounce_milliseconds()
-    }
-
-    pub async fn get_name_record(&self, name: String, chain: Chain) -> Result<Option<NameRecord>, GemServiceError> {
-        self.names.get_name_record(name, chain).await
     }
 }

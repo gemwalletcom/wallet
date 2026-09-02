@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.util.Log
 import com.gemwallet.android.application.contacts.cases.GetContacts
-import com.gemwallet.android.ext.addressInput
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.isValidAddress
@@ -38,6 +37,7 @@ import uniffi.gemstone.GemContactAddressInput
 import uniffi.gemstone.GemContactAvatar
 import uniffi.gemstone.GemContactInput
 import uniffi.gemstone.GemManageContactServiceInterface
+import uniffi.gemstone.GemNameServiceInterface
 import java.util.UUID
 import javax.inject.Inject
 
@@ -46,6 +46,7 @@ class ManageContactViewModel @Inject constructor(
     private val getContacts: GetContacts,
     @param:ApplicationContext private val context: Context,
     private val service: GemManageContactServiceInterface,
+    nameService: GemNameServiceInterface,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -61,7 +62,7 @@ class ManageContactViewModel @Inject constructor(
     private val contactId: String = (mode as? Mode.Edit)?.contactId ?: UUID.randomUUID().toString()
     private var contact: Contact? = null
 
-    private val addressInput = AddressInputModel(service.addressInput(), viewModelScope)
+    private val addressInput = AddressInputModel(nameService, viewModelScope)
 
     private val state = MutableStateFlow(ManageContactState(isEdit = mode is Mode.Edit))
     val uiState: StateFlow<ManageContactUIState> = combine(

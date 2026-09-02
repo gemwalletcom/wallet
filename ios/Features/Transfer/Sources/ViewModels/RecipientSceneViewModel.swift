@@ -2,6 +2,7 @@
 
 import struct Gemstone.GemRecipient
 import BigInt
+import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemRecipientServiceProtocol
 import Components
 import Foundation
@@ -26,7 +27,7 @@ public final class RecipientSceneViewModel {
 
     public let onTransferAction: TransferDataAction
 
-    private let service: any GemRecipientServiceProtocol & AddressInputResolving
+    private let service: any GemRecipientServiceProtocol
     private let onRecipientDataAction: RecipientDataAction
     private let assetImageFormatter: AssetImageFormatter
 
@@ -43,7 +44,8 @@ public final class RecipientSceneViewModel {
     public init(
         wallet: Wallet,
         asset: Asset,
-        service: any GemRecipientServiceProtocol & AddressInputResolving,
+        service: any GemRecipientServiceProtocol,
+        nameService: any GemNameServiceProtocol,
         type: RecipientAssetType,
         assetImageFormatter: AssetImageFormatter = .shared,
         recipient: RecipientData? = .none,
@@ -58,7 +60,7 @@ public final class RecipientSceneViewModel {
         self.onRecipientDataAction = onRecipientDataAction
         self.onTransferAction = onTransferAction
 
-        addressInputModel = AddressInputViewModel(chain: asset.chain, nameService: service, placeholder: recipientField)
+        addressInputModel = AddressInputViewModel(chain: asset.chain, nameService: nameService, placeholder: recipientField)
 
         contactsQuery = ObservableQuery(ContactsRequest(chain: asset.chain), initialValue: [])
 

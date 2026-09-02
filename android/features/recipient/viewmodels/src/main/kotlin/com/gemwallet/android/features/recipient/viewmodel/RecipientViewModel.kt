@@ -10,7 +10,6 @@ import com.gemwallet.android.application.contacts.values.ContactRecipient
 import com.gemwallet.android.application.contacts.cases.GetContacts
 import com.gemwallet.android.application.nft.cases.GetAssetNft
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ext.addressInput
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isMemoSupport
@@ -41,6 +40,7 @@ import com.wallet.core.primitives.NameRecord
 import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemPaymentDestination
 import uniffi.gemstone.GemRecipientException
+import uniffi.gemstone.GemNameServiceInterface
 import uniffi.gemstone.GemRecipientServiceInterface
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemstoneException
@@ -79,9 +79,10 @@ class RecipientViewModel @Inject constructor(
     private val getAssetNft: GetAssetNft,
     savedStateHandle: SavedStateHandle,
     private val service: GemRecipientServiceInterface,
+    nameService: GemNameServiceInterface,
 ) : ViewModel() {
 
-    private val addressInput = AddressInputModel(service.addressInput(), viewModelScope)
+    private val addressInput = AddressInputModel(nameService, viewModelScope)
 
     val address: StateFlow<String> = addressInput.text
     val nameResolveState: StateFlow<NameRecordState> = addressInput.nameResolveState

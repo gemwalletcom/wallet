@@ -1,6 +1,5 @@
 pub mod error;
 pub mod model;
-pub mod onboarding;
 pub mod password;
 pub mod rules;
 pub mod store;
@@ -10,9 +9,9 @@ use std::sync::Arc;
 use gem_keystore::Mnemonic;
 use primitives::{Account, Chain, Wallet, WalletId, WalletSource, WalletType};
 
+use crate::block_explorer::GemBlockExplorerLink;
 use crate::keystore::decode_password;
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_for_wallet};
-use crate::block_explorer::GemBlockExplorerLink;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::file::GemFileStore;
@@ -216,6 +215,10 @@ impl GemWalletService {
     pub fn display_account(&self, wallet: Wallet) -> Option<Account> {
         rules::display_account(&wallet)
     }
+
+    pub fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
+        self.store.get_wallets()
+    }
 }
 
 impl GemWalletService {
@@ -231,10 +234,6 @@ impl GemWalletService {
             }
             import => Ok(self.keystore.preview_import(keystore_import(import))?),
         }
-    }
-
-    pub fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
-        self.store.get_wallets()
     }
 
     pub async fn setup_chains_outcome(&self, chains: Vec<Chain>) -> Result<SetupChainsOutcome, GemServiceError> {

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemManageContactServiceProtocol
+import protocol Gemstone.GemNameServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
@@ -41,7 +42,7 @@ public final class ManageContactAddressViewModel {
     }
 
     private let mode: Mode
-    private let service: any GemManageContactServiceProtocol & AddressInputResolving
+    private let service: any GemManageContactServiceProtocol
     private let onComplete: (Input) -> Void
 
     var addressInputModel: AddressInputViewModel
@@ -49,7 +50,8 @@ public final class ManageContactAddressViewModel {
     var isPresentingScanner = false
 
     public init(
-        service: any GemManageContactServiceProtocol & AddressInputResolving,
+        service: any GemManageContactServiceProtocol,
+        nameService: any GemNameServiceProtocol,
         mode: Mode,
         onComplete: @escaping (Input) -> Void,
     ) {
@@ -60,7 +62,7 @@ public final class ManageContactAddressViewModel {
 
         addressInputModel = AddressInputViewModel(
             chain: mode.contactAddress?.chain ?? service.defaultContactChain,
-            nameService: service,
+            nameService: nameService,
             placeholder: title,
         )
 

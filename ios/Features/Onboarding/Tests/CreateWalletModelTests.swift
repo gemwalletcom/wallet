@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemOnboardingService
+import class Gemstone.GemWalletService
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServices
@@ -19,9 +19,9 @@ struct CreateWalletModelTests {
     func createWalletSetsWalletConfiguration() async throws {
         let walletStore = WalletStore.mock(db: .mockWithChains(AssetConfiguration.allChains))
         let model = CreateWalletModel(
-            service: GemOnboardingService.mock(walletStore: walletStore),
+            service: GemWalletService.mock(walletStore: walletStore),
             preferences: .mock(),
-            walletImage: { _ in preconditionFailure("unused") },
+            avatarService: GemAvatarServiceMock(),
             onComplete: nil,
         )
 
@@ -32,9 +32,9 @@ struct CreateWalletModelTests {
     @Test
     func generateSecretPhraseReturnsGeneratedWords() {
         let model = CreateWalletModel(
-            service: GemOnboardingService.mock(),
+            service: GemWalletService.mock(),
             preferences: .mock(),
-            walletImage: { _ in preconditionFailure("unused") },
+            avatarService: GemAvatarServiceMock(),
             onComplete: nil,
         )
 

@@ -1,16 +1,18 @@
 package com.gemwallet.android.ui.models.name
 
-import com.gemwallet.android.domains.name.AddressInputResolving
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameProvider
 import com.wallet.core.primitives.NameRecord
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemRecipientValidation
+import uniffi.gemstone.GemNameServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class NameRecordControllerTest {
@@ -24,29 +26,23 @@ class NameRecordControllerTest {
         provider = NameProvider.Ens,
     )
 
-    private class FakeGetNameRecord(private val result: NameRecord?) : AddressInputResolving {
+    private class FakeGetNameRecord(private val result: NameRecord?) {
         val requests = mutableListOf<Pair<String, Chain>>()
 
-        override suspend fun getNameRecord(name: String, chain: Chain): NameRecord? {
-            requests.add(name to chain)
-            return result
+        fun service(): GemNameServiceInterface = mockk(relaxed = true) {
+            every { isNameSupported(any()) } answers { firstArg<String>().split(".").size >= 2 }
+            every { nameRecordDebounceMilliseconds() } returns 500u
+            coEvery { getNameRecord(any(), any()) } answers {
+                requests.add(firstArg<String>() to Chain.entries.first { it.string == secondArg<String>() })
+                result?.toJson()
+            }
         }
-
-        override fun isNameSupported(name: String): Boolean = name.split(".").size >= 2
-
-        override fun nameRecordDebounceMilliseconds(): Long = 500
-
-        override fun validateRecipient(chain: Chain, input: String, nameRecord: NameRecord?): GemRecipientValidation =
-            GemRecipientValidation(isValid = true, address = nameRecord?.address ?: input, showsError = false)
-
-        override fun recipient(chain: Chain, input: String, nameRecord: NameRecord?, memo: String?, references: List<String>): GemRecipient =
-            GemRecipient(address = nameRecord?.address ?: input, name = nameRecord?.name)
     }
 
     @Test
     fun plainAddressNeverReachesTheResolver() = runTest {
         val getNameRecord = FakeGetNameRecord(record())
-        val controller = NameRecordController(getNameRecord, this)
+        val controller = NameRecordController(getNameRecord.service(), this)
 
         controller.getNameRecord("0xd8dA6B", chain)
         advanceUntilIdle()
@@ -58,7 +54,7 @@ class NameRecordControllerTest {
     @Test
     fun rapidTypingResolvesOnlyTheLastValue() = runTest {
         val getNameRecord = FakeGetNameRecord(record())
-        val controller = NameRecordController(getNameRecord, this)
+        val controller = NameRecordController(getNameRecord.service(), this)
 
         controller.getNameRecord("vit.eth", chain)
         controller.getNameRecord("vita.eth", chain)
@@ -72,7 +68,7 @@ class NameRecordControllerTest {
     @Test
     fun missingAddressIsReportedAsError() = runTest {
         val getNameRecord = FakeGetNameRecord(record(address = ""))
-        val controller = NameRecordController(getNameRecord, this)
+        val controller = NameRecordController(getNameRecord.service(), this)
 
         controller.getNameRecord("vitalik.eth", chain)
         advanceUntilIdle()
@@ -83,7 +79,7 @@ class NameRecordControllerTest {
     @Test
     fun resetCancelsPendingResolve() = runTest {
         val getNameRecord = FakeGetNameRecord(record())
-        val controller = NameRecordController(getNameRecord, this)
+        val controller = NameRecordController(getNameRecord.service(), this)
 
         controller.getNameRecord("vitalik.eth", chain)
         controller.reset()
@@ -96,7 +92,7 @@ class NameRecordControllerTest {
     @Test
     fun onNameRecordDoesNotReResolveTheResolvedName() = runTest {
         val getNameRecord = FakeGetNameRecord(record())
-        val controller = NameRecordController(getNameRecord, this)
+        val controller = NameRecordController(getNameRecord.service(), this)
 
         controller.getNameRecord("vitalik.eth", chain)
         advanceUntilIdle()
@@ -110,7 +106,7 @@ class NameRecordControllerTest {
     @Test
     fun emptyInputResetsResolvedState() = runTest {
         val getNameRecord = FakeGetNameRecord(record())
-        val controller = NameRecordController(getNameRecord, this)
+        val controller = NameRecordController(getNameRecord.service(), this)
 
         controller.getNameRecord("vitalik.eth", chain)
         advanceUntilIdle()

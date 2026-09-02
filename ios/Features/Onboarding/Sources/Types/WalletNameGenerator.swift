@@ -3,14 +3,14 @@
 import Foundation
 import Localization
 import Primitives
-import protocol Gemstone.GemOnboardingServiceProtocol
+import protocol Gemstone.GemWalletServiceProtocol
 import GemstonePrimitives
 
 struct WalletNameGenerator {
     private let type: ImportWalletType
-    private let service: any GemOnboardingServiceProtocol
+    private let service: any GemWalletServiceProtocol
 
-    init(type: ImportWalletType, service: any GemOnboardingServiceProtocol) {
+    init(type: ImportWalletType, service: any GemWalletServiceProtocol) {
         self.type = type
         self.service = service
     }

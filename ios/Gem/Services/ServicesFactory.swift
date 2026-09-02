@@ -307,8 +307,6 @@ struct ServicesFactory {
             preferences: walletPreferencesService,
         )
 
-        let onboardingService = Gemstone.GemOnboardingService(wallets: walletService, session: walletSessionService, names: nameService)
-
         let contactService = Gemstone.GemContactService(
             store: GemstoneContactStore(store: storeManager.contactStore),
             addressStore: gemstoneAddressStore,
@@ -349,7 +347,6 @@ struct ServicesFactory {
             manageContactService: Gemstone.GemManageContactService(
                 contacts: contactService,
                 addresses: addressService,
-                names: nameService,
                 payments: paymentService,
             ),
             deeplinkService: Gemstone.GemDeeplinkService(),
@@ -360,7 +357,6 @@ struct ServicesFactory {
             nameService: nameService,
             nftService: nftService,
             nodeService: nodeService,
-            onboardingService: onboardingService,
             paymentService: paymentService,
             perpetualService: perpetualService,
             preferencesService: preferencesService,

@@ -54,4 +54,8 @@ public extension GemWalletServiceProtocol {
     func rename(walletId: WalletId, newName: String) async throws {
         try await rename(walletId: walletId.id, name: newName)
     }
+
+    func getWallets() throws -> [Wallet] {
+        try wallets().map { try Wallet($0) }
+    }
 }

@@ -1,6 +1,6 @@
 package com.gemwallet.android.ui.models.name
 
-import com.gemwallet.android.domains.name.AddressInputResolving
+import com.gemwallet.android.ext.getNameRecord
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -11,9 +11,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemNameServiceInterface
 
 class NameRecordController(
-    private val resolving: AddressInputResolving,
+    private val nameService: GemNameServiceInterface,
     private val scope: CoroutineScope,
 ) {
     private var job: Job? = null
@@ -34,14 +35,14 @@ class NameRecordController(
     private fun loadNameRecord(input: String, chain: Chain?) {
         job?.cancel()
         _state.value = NameRecordState.None
-        if (chain == null || !resolving.isNameSupported(input)) {
+        if (chain == null || !nameService.isNameSupported(input)) {
             return
         }
         _state.value = NameRecordState.Loading
         job = scope.launch {
-            delay(resolving.nameRecordDebounceMilliseconds())
+            delay(nameService.nameRecordDebounceMilliseconds().toLong())
             val record = try {
-                resolving.getNameRecord(input, chain)
+                nameService.getNameRecord(input, chain)
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Throwable) {

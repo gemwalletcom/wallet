@@ -17,10 +17,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemKeystore
-import uniffi.gemstone.GemNameService
-import uniffi.gemstone.GemOnboardingService
-import uniffi.gemstone.GemOnboardingServiceInterface
 import uniffi.gemstone.GemWalletService
+import uniffi.gemstone.GemWalletServiceInterface
 import uniffi.gemstone.GemWalletSessionService
 import javax.inject.Singleton
 import com.gemwallet.android.data.services.gemstone.GemstoneFileStore
@@ -64,11 +62,7 @@ object WalletsModule {
     )
 
     @Provides
-    fun provideGemOnboardingService(
-        walletService: GemWalletService,
-        walletSessionService: GemWalletSessionService,
-        nameService: GemNameService,
-    ): GemOnboardingServiceInterface = GemOnboardingService(walletService, walletSessionService, nameService)
+    fun provideGemWalletServiceInterface(service: GemWalletService): GemWalletServiceInterface = service
 
     @Provides
     @Singleton

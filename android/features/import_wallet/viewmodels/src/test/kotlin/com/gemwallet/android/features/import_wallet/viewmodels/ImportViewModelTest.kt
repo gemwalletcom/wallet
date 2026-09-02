@@ -4,7 +4,7 @@ import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
 import com.gemwallet.android.blockchain.operators.gemstone.GemValidatePhraseOperator
 import com.gemwallet.android.serializer.toJson
 import io.mockk.coEvery
-import uniffi.gemstone.GemOnboardingServiceInterface
+import uniffi.gemstone.GemNameServiceInterface
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.models.name.NameRecordState
@@ -42,7 +42,7 @@ class ImportViewModelTest {
     private class NameRequests(private val result: NameRecord?) {
         val requests = mutableListOf<Pair<String, Chain>>()
 
-        fun service(): GemOnboardingServiceInterface = mockk(relaxed = true) {
+        fun service(): GemNameServiceInterface = mockk(relaxed = true) {
             every { isNameSupported(any()) } answers { firstArg<String>().split(".").size >= 2 }
             every { nameRecordDebounceMilliseconds() } returns 500u
             coEvery { getNameRecord(any(), any()) } answers {
@@ -52,8 +52,9 @@ class ImportViewModelTest {
         }
     }
 
-    private fun viewModel(service: GemOnboardingServiceInterface) = ImportViewModel(
-        service = service,
+    private fun viewModel(nameService: GemNameServiceInterface) = ImportViewModel(
+        service = mockk(relaxed = true),
+        nameService = nameService,
         syncWalletImport = mockk(relaxed = true),
         validatePhrase = GemValidatePhraseOperator(),
         findPhraseWord = GemFindPhraseWord(),

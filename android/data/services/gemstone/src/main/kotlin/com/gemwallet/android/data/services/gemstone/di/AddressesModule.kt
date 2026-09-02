@@ -1,7 +1,5 @@
 package com.gemwallet.android.data.services.gemstone.di
 
-import com.gemwallet.android.domains.name.AddressInputResolving
-import com.gemwallet.android.ext.addressInput
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemRecipientService
 import uniffi.gemstone.GemRecipientServiceInterface
@@ -40,9 +38,6 @@ object AddressesModule {
     @Provides
     @Singleton
     fun provideGemNameServiceInterface(service: GemNameService): GemNameServiceInterface = service
-
-    @Provides
-    fun provideAddressInputResolving(service: GemNameServiceInterface): AddressInputResolving = service.addressInput()
 
     @Provides
     fun provideGemRecipientService(

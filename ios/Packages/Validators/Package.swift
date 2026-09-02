@@ -16,6 +16,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
+        .package(name: "Gemstone", path: "../Gemstone"),
         .package(name: "GemstonePrimitives", path: "../GemstonePrimitives"),
         .package(name: "Localization", path: "../Localization"),
         .package(name: "Formatters", path: "../Formatters"),
@@ -25,6 +26,7 @@ let package = Package(
             name: "Validators",
             dependencies: [
                 "Primitives",
+                "Gemstone",
                 "GemstonePrimitives",
                 "Localization",
                 "Formatters",

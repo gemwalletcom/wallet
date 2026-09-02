@@ -3,7 +3,7 @@ use std::sync::Arc;
 use primitives::name::NameRecord;
 use primitives::{Asset, Chain, Wallet, WalletId};
 
-use super::model::{GemRecipientError, GemRecipientValidation};
+use super::model::GemRecipientError;
 use crate::GemstoneError;
 use crate::models::payment::GemPayment;
 use crate::payment::{GemPaymentConfirmTransfer, GemPaymentDestination, GemPaymentService, GemPaymentWalletAsset};
@@ -26,10 +26,6 @@ impl GemRecipientService {
         Self { names, payments, session }
     }
 
-    pub fn validate_recipient(&self, chain: Chain, input: String, name_record: Option<NameRecord>) -> GemRecipientValidation {
-        self.names.validate_recipient(chain, input, name_record)
-    }
-
     pub fn recipient(
         &self,
         chain: Chain,
@@ -43,14 +39,6 @@ impl GemRecipientService {
 
     pub fn is_name_supported(&self, name: String) -> bool {
         self.names.is_name_supported(name)
-    }
-
-    pub fn name_record_debounce_milliseconds(&self) -> u64 {
-        self.names.name_record_debounce_milliseconds()
-    }
-
-    pub async fn get_name_record(&self, name: String, chain: Chain) -> Result<Option<NameRecord>, GemServiceError> {
-        self.names.get_name_record(name, chain).await
     }
 
     pub fn other_wallets(&self, wallet_id: WalletId) -> Result<Vec<Wallet>, GemServiceError> {

@@ -414,12 +414,13 @@ Each iOS scene view model should hold at most one private Core service per
 [ARCHITECTURE.md § 7](ARCHITECTURE.md#7-at-most-one-core-service-on-ios-narrow-cases-on-android).
 `ManageContactViewModel`, `ContactsViewModel` and `ManageContactAddressViewModel` meet the field-count
 ceiling; the forwarding-only `GemContactsService` is deleted and `ContactsViewModel` holds the
-owning `GemContactService`. The shared `AddressInputViewModel` takes the
-narrow `AddressInputResolving` protocol, which `GemNameService`, `GemRecipientService` and
-`GemManageContactService` and `GemOnboardingService` satisfy directly, so no service hands out
-`names()`; `GemOnboardingService`'s `avatars()`, `chains()` and `session()` are gone too — the
-factory passes a `walletImage` builder, `ImportWalletTypeViewModel` builds the dependency-free
-`GemChainService` itself, and `setCurrentWallet` is the onboarding service's own method. `ConfirmTransferSceneViewModel` is done: it holds `service` alone, with `signer`, the keystore
+owning `GemContactService`. The shared `AddressInputViewModel` takes `any GemNameServiceProtocol`,
+which the parent receives as a plain `nameService` dependency beside its `service`, so no service
+forwards name methods and no client declares a protocol intersection. The forwarding-only
+`GemOnboardingService` is deleted: create and import wallet screens hold `GemWalletService`, which
+already owns `createWallet`, `importWallet`, `nextWalletIndex`, `wallets` and `setCurrentWalletId`;
+`avatarService` is injected beside it where the wallet image is shown, and
+`ImportWalletTypeViewModel` builds the dependency-free `GemChainService` itself. `ConfirmTransferSceneViewModel` is done: it holds `service` alone, with `signer`, the keystore
 password and the recent-activity store as outbound ports the app implements and
 `GemConfirmTransferService` owns, and reads the currency from `service.currency()`. It hands out no
 other service: `GemFeeService` is deleted (the custom-fee estimate is a `GemCustomFee.estimate`

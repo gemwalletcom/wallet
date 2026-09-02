@@ -4,7 +4,6 @@ import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemContactServiceInterface
 import uniffi.gemstone.GemManageContactService
 import uniffi.gemstone.GemManageContactServiceInterface
-import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemPaymentService
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneContactStore
 import com.gemwallet.android.data.service.store.database.AddressesDao
@@ -44,7 +43,6 @@ object ContactsModule {
     fun provideGemManageContactService(
         contacts: GemContactService,
         addresses: GemAddressService,
-        names: GemNameService,
         payments: GemPaymentService,
-    ): GemManageContactServiceInterface = GemManageContactService(contacts, addresses, names, payments)
+    ): GemManageContactServiceInterface = GemManageContactService(contacts, addresses, payments)
 }

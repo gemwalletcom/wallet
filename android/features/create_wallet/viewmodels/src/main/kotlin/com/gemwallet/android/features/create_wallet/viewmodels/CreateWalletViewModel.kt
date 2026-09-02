@@ -11,7 +11,7 @@ import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import kotlinx.coroutines.CancellationException
-import uniffi.gemstone.GemOnboardingServiceInterface
+import uniffi.gemstone.GemWalletServiceInterface
 import uniffi.gemstone.GemWalletImportResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +24,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateWalletViewModel @Inject constructor(
-    private val service: GemOnboardingServiceInterface,
+    private val service: GemWalletServiceInterface,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(CreateWalletViewModelState())
@@ -80,7 +80,7 @@ class CreateWalletViewModel @Inject constructor(
             is GemWalletImportResult.Existing -> result.wallet.decodeJson<Wallet>()
             is GemWalletImportResult.New -> result.wallet.decodeJson<Wallet>()
         }
-        service.setCurrentWallet(wallet.id.id)
+        service.setCurrentWalletId(wallet.id.id)
         return wallet
     }
 }

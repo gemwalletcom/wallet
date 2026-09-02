@@ -9,6 +9,7 @@ import Primitives
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
+import class Gemstone.GemNameService
 import class Gemstone.GemRecipientService
 import GemstoneServices
 import GemstoneServicesTestKit
@@ -156,6 +157,7 @@ extension RecipientSceneViewModel {
             wallet: wallet,
             asset: asset,
             service: GemRecipientService.mock(),
+            nameService: GemNameService.mock(),
             type: type,
             recipient: recipient,
             onRecipientDataAction: onRecipientDataAction,

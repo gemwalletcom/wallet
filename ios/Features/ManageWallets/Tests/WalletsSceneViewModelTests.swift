@@ -9,7 +9,7 @@ import SwiftUI
 import Testing
 import GemstoneServices
 import GemstoneServicesTestKit
-import class Gemstone.GemOnboardingService
+import class Gemstone.GemWalletService
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
 import Preferences

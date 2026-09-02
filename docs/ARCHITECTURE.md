@@ -388,16 +388,14 @@ caller now depends on something it was not given. Every service is constructed i
 root and injected. Returning `Arc<GemFooService>` from an exported service is migration debt, not
 an exception to this rule.
 
-The reusable exception is a **shared component** — `AddressInputViewModel`,
-`NetworkSelectorViewModel` — which takes a narrow protocol. On iOS that protocol is
-`AddressInputResolving`: the five methods every screen service that owns a recipient input already
-exports (`GemNameService`, `GemRecipientService`, `GemManageContactService` conform through an
-empty extension), so the parent passes its own service and no Core service returns another
-service. Android's `AddressInputModel` takes the same five-method `AddressInputResolving`; Kotlin
-has no retroactive conformance, so `GemNameServiceInterface.addressInput()` and
-`GemRecipientServiceInterface.addressInput()` wrap the service's own methods, and the parent passes
-`service.addressInput()`. `NetworkSelectorViewModel` needs only the dependency-free
-`GemChainService` and builds it itself.
+A **shared component** — `AddressInputViewModel`, `NetworkSelectorViewModel` — takes the Core
+service it needs by its own protocol: `AddressInputViewModel` and `NameRecordViewModel` take
+`any GemNameServiceProtocol` (`GemNameServiceInterface` on Android), and the parent view model
+receives that `nameService` as a plain constructor dependency beside its `service` and passes it
+down. The screen service does not forward name methods and the client does not declare a
+protocol intersection (`any GemFooServiceProtocol & AddressInputResolving`) or a builder closure
+to reach the component's dependency — both hide a second dependency inside the first.
+`NetworkSelectorViewModel` needs only the dependency-free `GemChainService` and builds it itself.
 
 ### The parent vends the child model, the view never reaches in
 
@@ -664,14 +662,13 @@ matching the fiat quote debounce) sits beside `refresh_interval_milliseconds`, i
 `debouncedTask(interval:)` and Android's `RequestSwapQuotes` takes it as a parameter, so neither
 app keeps a number of its own. Android's stop-on-failed-quote break stays. The name-record
 debounce (250/500 ms) went the same way: `name_record_debounce_milliseconds` on `GemNameService`,
-forwarded by `GemRecipientService` and `GemManageContactService` so the `AddressInputResolving`
-port carries it to the shared input model on both apps.
+which the shared input model takes directly on both apps.
 
 **Post-import setup belongs to the wallet-change reaction, not the import call.** Android's
 `PhraseAddressImportWalletService` ran `setupWallet` and a device sync inline after every import
 while `AppViewModel` already runs `setupWallet` whenever the session's wallet changes — every
-import set the wallet up twice. Both apps now do what iOS did: `GemOnboardingService.importWallet`
-then `setCurrentWallet`, and the root's wallet-change handler does the rest. The Android
+import set the wallet up twice. Both apps now do what iOS did: `GemWalletService.importWallet`
+then `setCurrentWalletId`, and the root's wallet-change handler does the rest. The Android
 "importing" indicator (`SyncWalletImport`) stays; it is a platform progress port, not setup.
 
 **A launch-time entry is not the place for a screen's dependency.** `GemRewardsService`,

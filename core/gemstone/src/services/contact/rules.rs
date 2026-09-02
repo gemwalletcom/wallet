@@ -141,7 +141,13 @@ mod tests {
         );
         let blank = PaymentRequest { address: "  ".into(), ..payment };
         assert_eq!(scanned_address(" raw ", Some(&blank)).address, "raw");
-        assert_eq!(scanned_address(" raw ", None), GemContactScannedAddress { address: "raw".into(), memo: None });
+        assert_eq!(
+            scanned_address(" raw ", None),
+            GemContactScannedAddress {
+                address: "raw".into(),
+                memo: None
+            }
+        );
     }
 
     #[test]

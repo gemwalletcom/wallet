@@ -10,10 +10,10 @@ import com.gemwallet.android.application.wallet_import.values.ImportError
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
 import com.gemwallet.android.domains.wallet_import.toGemImport
 import com.gemwallet.android.domains.wallet_import.validatedOrImportError
-import com.gemwallet.android.ext.addressInput
 import com.gemwallet.android.serializer.decodeJson
 import kotlinx.coroutines.CancellationException
-import uniffi.gemstone.GemOnboardingServiceInterface
+import uniffi.gemstone.GemNameServiceInterface
+import uniffi.gemstone.GemWalletServiceInterface
 import uniffi.gemstone.GemWalletImportResult
 import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.WalletSource
@@ -36,7 +36,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ImportViewModel @Inject constructor(
-    private val service: GemOnboardingServiceInterface,
+    private val service: GemWalletServiceInterface,
+    nameService: GemNameServiceInterface,
     private val syncWalletImport: SyncWalletImport,
     private val validatePhrase: ValidatePhraseOperator,
     private val findPhraseWord: GemFindPhraseWord,
@@ -55,7 +56,7 @@ class ImportViewModel @Inject constructor(
     val uiState = state.map { it.toUIState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ImportUIState())
 
-    private val nameRecordController = NameRecordController(service.addressInput(), viewModelScope)
+    private val nameRecordController = NameRecordController(nameService, viewModelScope)
     val nameResolveState: StateFlow<NameRecordState> = nameRecordController.state
 
     fun chainType(walletType: WalletType) {
@@ -111,7 +112,7 @@ class ImportViewModel @Inject constructor(
                     is GemWalletImportResult.Existing -> WalletImportResult.Existing(imported.wallet.decodeJson())
                     is GemWalletImportResult.New -> WalletImportResult.New(imported.wallet.decodeJson())
                 }
-                service.setCurrentWallet(result.wallet.id.id)
+                service.setCurrentWalletId(result.wallet.id.id)
                 if (result is WalletImportResult.New) {
                     syncWalletImport.sync(result.wallet)
                 }

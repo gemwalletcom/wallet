@@ -4,7 +4,8 @@ import GemstonePrimitivesTestKit
 import GemstonePrimitives
 import GemstoneServices
 import GemstoneServicesTestKit
-import class Gemstone.GemOnboardingService
+import protocol Gemstone.GemNameServiceProtocol
+import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
 import Preferences
 import PreferencesTestKit
@@ -22,7 +23,7 @@ struct ImportWalletSceneViewModelTests {
         let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum]))
         let sessionStore = GemstoneWalletSessionStore.mock()
         let session = GemWalletSessionService(store: sessionStore, wallets: GemstoneWalletStore(store: walletStore))
-        let service = GemOnboardingService.mock(walletStore: walletStore, sessionStore: sessionStore)
+        let service = GemWalletService.mock(walletStore: walletStore, sessionStore: sessionStore)
 
         let walletA = try await service.importWallet(
             name: "Wallet A",
@@ -72,8 +73,8 @@ struct ImportWalletSceneViewModelTests {
 @MainActor
 private extension ImportWalletSceneViewModel {
     static func mock(
-        service: GemOnboardingService? = nil,
-        nameService: any AddressInputResolving = GemNameServiceMock(nameRecord: .mock()),
+        service: GemWalletService? = nil,
+        nameService: any GemNameServiceProtocol = GemNameServiceMock(nameRecord: .mock()),
     ) -> ImportWalletSceneViewModel {
         ImportWalletSceneViewModel(
             service: service ?? .mock(),

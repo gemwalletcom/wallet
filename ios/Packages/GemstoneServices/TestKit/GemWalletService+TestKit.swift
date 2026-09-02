@@ -1,11 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import class Gemstone.GemDeviceApiClient
-import class Gemstone.GemDeviceKeyService
 import class Gemstone.GemExplorerService
 import class Gemstone.GemNameService
-import class Gemstone.GemOnboardingService
 import class Gemstone.GemPaymentService
 import class Gemstone.GemPreferencesService
 import class Gemstone.GemRecipientService
@@ -18,25 +15,6 @@ import NativeProviderService
 import Primitives
 import Store
 import StoreTestKit
-
-public extension GemOnboardingService {
-    static func mock(
-        keystore: LocalKeystore = LocalKeystore.mock(),
-        walletStore: WalletStore = .mock(),
-        sessionStore: GemstoneWalletSessionStore = .mock(),
-        addressStore: AddressStore = .mock(),
-    ) -> GemOnboardingService {
-        let gemWalletStore = GemstoneWalletStore(store: walletStore)
-        let session = GemWalletSessionService(store: sessionStore, wallets: gemWalletStore)
-        let provider = NativeProvider(url: Constants.apiURL)
-        let api = GemDeviceApiClient(provider: provider, baseUrl: Constants.apiURL.absoluteString, deviceKey: GemDeviceKeyService(store: GemSecureStoreMock()))
-        return GemOnboardingService(
-            wallets: GemWalletService.mock(keystore: keystore, walletStore: walletStore, sessionStore: sessionStore),
-            session: session,
-            names: GemNameService(api: api, store: GemstoneAddressStore(store: addressStore)),
-        )
-    }
-}
 
 public extension GemWalletService {
     static func mock(

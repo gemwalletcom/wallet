@@ -1,18 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import protocol Gemstone.GemNameServiceProtocol
 import GemstonePrimitives
 import Primitives
 
 @Observable
 @MainActor
 public final class NameRecordViewModel {
-    private let nameService: any AddressInputResolving
+    private let nameService: any GemNameServiceProtocol
     private(set) var nameRecordTask: Task<Void, Never>?
 
     public var state: NameRecordState = .none
 
-    public init(nameService: any AddressInputResolving) {
+    public init(nameService: any GemNameServiceProtocol) {
         self.nameService = nameService
     }
 

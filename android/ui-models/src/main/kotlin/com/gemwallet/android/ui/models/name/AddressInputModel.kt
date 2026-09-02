@@ -1,6 +1,6 @@
 package com.gemwallet.android.ui.models.name
 
-import com.gemwallet.android.domains.name.AddressInputResolving
+import com.gemwallet.android.ext.validateRecipient
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameRecord
 import kotlinx.coroutines.CoroutineScope
@@ -10,14 +10,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import uniffi.gemstone.GemNameServiceInterface
 import uniffi.gemstone.GemRecipientValidation
 
 class AddressInputModel(
-    private val resolving: AddressInputResolving,
+    private val nameService: GemNameServiceInterface,
     scope: CoroutineScope,
     initialChain: Chain? = null,
 ) {
-    private val nameRecordController = NameRecordController(resolving, scope)
+    private val nameRecordController = NameRecordController(nameService, scope)
     private val _text = MutableStateFlow("")
     private val _showError = MutableStateFlow(false)
     private val _chain = MutableStateFlow(initialChain)
@@ -82,5 +83,5 @@ class AddressInputModel(
     }
 
     private fun validation(text: String, nameRecord: NameRecord?, chain: Chain): GemRecipientValidation =
-        resolving.validateRecipient(chain, text, nameRecord)
+        nameService.validateRecipient(chain, text, nameRecord)
 }
