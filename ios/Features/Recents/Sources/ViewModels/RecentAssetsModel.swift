@@ -4,6 +4,7 @@ import protocol Gemstone.GemRecentActivityServiceProtocol
 import class Gemstone.GemRecentActivityService
 import GemstoneServices
 import Foundation
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store
@@ -62,5 +63,15 @@ public extension RecentAssetsModel {
 
     func dismiss() {
         isPresenting = false
+    }
+
+    func add(activityType: RecentActivityType, assetId: AssetId) {
+        Task { [recentAssetsService, walletId] in
+            do {
+                try await recentAssetsService.addAsset(activityType: activityType.map(), assetId: assetId.identifier, walletId: walletId.id)
+            } catch {
+                debugLog("Failed to update recent activity: \(error)")
+            }
+        }
     }
 }

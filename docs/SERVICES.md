@@ -446,8 +446,11 @@ having the parent vend the child view model.
 |---|---|---|
 | `Gem/ViewModels/RootSceneViewModel.swift` | 5 | 1 |
 | `Settings/Settings/ViewModels/DeveloperViewModel.swift` | 5 | 0 |
-| `Assets/SelectAssetViewModel.swift` | 2 | 0 |
-| `Perpetuals/PerpetualsSceneViewModel.swift` | 3 | 0 |
+
+`SelectAssetViewModel` and `PerpetualsSceneViewModel` pass `GemRecentActivityService` straight
+into the `RecentAssetsModel` they own and keep nothing else; recording a recent perpetual is
+`recentModel.add(activityType:assetId:)`, so each holds one Core service (the perpetuals scene also
+keeps the app's `PerpetualObservable` stream port).
 
 `AddAssetSceneViewModel` holds `GemAddAssetService { assets, balances, explorer }` alone on both
 apps: the token-chain list, the default chain, the chain filter, the token lookup (checksummed and

@@ -19,7 +19,6 @@ import SwiftUI
 @MainActor
 public final class SelectAssetViewModel {
     private let service: any GemAssetSelectionServiceProtocol
-    private let recentAssetsService: any GemRecentActivityServiceProtocol
     let selectType: SelectAssetType
     let flow: SelectAssetFlow
 
@@ -54,7 +53,6 @@ public final class SelectAssetViewModel {
         self.service = service
         self.wallet = wallet
         self.selectType = selectType
-        self.recentAssetsService = recentAssetsService
         flow = selectType.flow()
         onSelectAssetAction = selectAssetAction
 

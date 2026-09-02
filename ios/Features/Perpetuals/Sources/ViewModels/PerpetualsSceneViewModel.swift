@@ -22,7 +22,6 @@ final class PerpetualsSceneViewModel {
 
     private let observerService: any PerpetualObservable
     private let perpetualService: any GemPerpetualServiceProtocol
-    private let recentAssetsService: any GemRecentActivityServiceProtocol
 
     let wallet: Wallet
 
@@ -63,7 +62,6 @@ final class PerpetualsSceneViewModel {
         self.wallet = wallet
         self.perpetualService = perpetualService
         self.observerService = observerService
-        self.recentAssetsService = recentAssetsService
         self.onSelectAssetType = onSelectAssetType
         self.onSelectAsset = onSelectAsset
         self.onSelectPortfolio = onSelectPortfolio
@@ -208,13 +206,7 @@ extension PerpetualsSceneViewModel {
 
     func onSelectPerpetual(asset: Asset) {
         onSelectAsset?(asset)
-        Task { [recentAssetsService, wallet] in
-            do {
-                try await recentAssetsService.addAsset(activityType: .perpetual, assetId: asset.id.identifier, walletId: wallet.id.id)
-            } catch {
-                debugLog("Failed to update recent activity: \(error)")
-            }
-        }
+        recentModel.add(activityType: .perpetual, assetId: asset.id)
     }
 
     func onSelectRecent(asset: Asset) {
