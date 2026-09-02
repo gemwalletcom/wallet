@@ -190,9 +190,7 @@ class RecipientViewModel @Inject constructor(
         val recipient = try {
             service.recipient(chain.string, input, nameRecord?.toJson(), memo.value, references)
         } catch (_: GemRecipientException) {
-            if (!service.isNameSupported(input)) {
-                addressInput.markInvalid()
-            }
+            addressInput.markInvalid()
             return
         }
         val destination = GemRecipient(address = recipient.address, name = recipient.name ?: selectedName)

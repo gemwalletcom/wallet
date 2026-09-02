@@ -37,10 +37,6 @@ impl GemRecipientService {
         self.names.recipient(chain, input, name_record, memo, references)
     }
 
-    pub fn is_name_supported(&self, name: String) -> bool {
-        self.names.is_name_supported(name)
-    }
-
     pub fn other_wallets(&self, wallet_id: WalletId) -> Result<Vec<Wallet>, GemServiceError> {
         Ok(self.session.get_wallets()?.into_iter().filter(|wallet| wallet.id != wallet_id).collect())
     }
