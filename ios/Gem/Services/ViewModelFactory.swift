@@ -27,6 +27,8 @@ import class Gemstone.GemDeeplinkService
 import class Gemstone.GemExplorerService
 import class Gemstone.GemFiatService
 import class Gemstone.GemNameService
+import protocol Gemstone.GemNotificationPermissions
+import class Gemstone.GemNotificationsService
 import class Gemstone.GemNftService
 import class Gemstone.GemOnboardingService
 import class Gemstone.GemPaymentService
@@ -122,6 +124,7 @@ public struct ViewModelFactory: Sendable {
     let walletPreferencesService: GemWalletPreferencesService
     let deviceKeyService: GemDeviceKeyService
     let deviceService: GemDeviceService
+    let notificationPermissions: any GemNotificationPermissions
     let storeManager: StoreManager
     let supportService: any GemSupportServiceProtocol
     let supportTyping: ObservableSupportTyping
@@ -165,6 +168,11 @@ public struct ViewModelFactory: Sendable {
             isPresentingSelectedAssetInput: isPresentingSelectedAssetInput,
             isPresentingWallets: isPresentingWallets,
         )
+    }
+
+    @MainActor
+    public func notificationsScene() -> NotificationsViewModel {
+        NotificationsViewModel(service: GemNotificationsService(device: deviceService, preferences: preferencesService, permissions: notificationPermissions))
     }
 
     @MainActor

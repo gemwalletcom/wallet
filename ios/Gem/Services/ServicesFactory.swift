@@ -145,6 +145,7 @@ struct ServicesFactory {
         )
 
         let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService)
+        let notificationPermissions = GemstoneNotificationPermissions(service: pushNotificationEnablerService)
         let bannerService = Gemstone.GemBannerService(store: gemstoneBannerStore)
         let navigationPresenter = NavigationPresenter()
         let gemstonePerpetualStore = GemstonePerpetualStore(store: storeManager.perpetualStore, balanceStore: storeManager.balanceStore)
@@ -167,7 +168,7 @@ struct ServicesFactory {
             preferences: preferencesService,
             store: gemstonePriceAlertStore,
             device: deviceService,
-            permissions: GemstoneNotificationPermissions(service: pushNotificationEnablerService),
+            permissions: notificationPermissions,
         )
         let fiatService = Gemstone.GemFiatService(
             api: deviceApiClient,
@@ -395,6 +396,7 @@ struct ServicesFactory {
             walletPreferencesService: walletPreferencesService,
             deviceKeyService: deviceKeyService,
             deviceService: deviceService,
+            notificationPermissions: notificationPermissions,
             storeManager: storeManager,
             supportService: supportService,
             supportTyping: gemstoneSupportStore.typing,

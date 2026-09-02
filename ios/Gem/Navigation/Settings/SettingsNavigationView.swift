@@ -24,7 +24,6 @@ struct SettingsNavigationView: View {
     @Environment(\.transactionsService) private var transactionsService
     @Environment(\.explorerService) private var explorerService
     @Environment(\.nodeStatusService) private var nodeStatusService
-    @Environment(\.bannerService) private var bannerService
     @Environment(\.walletConnector) private var walletConnector
     @Environment(\.balanceService) private var balanceService
     @Environment(\.walletSessionService) private var walletSessionService
@@ -80,11 +79,7 @@ struct SettingsNavigationView: View {
         }
         .navigationDestination(for: Scenes.Notifications.self) { _ in
             NotificationsScene(
-                model: NotificationsViewModel(
-                    deviceService: deviceService,
-                    bannerService: bannerService,
-                    preferencesService: preferencesService,
-                ),
+                model: viewModelFactory.notificationsScene(),
             )
         }
         .navigationDestination(for: Scenes.PriceAlerts.self) { _ in
