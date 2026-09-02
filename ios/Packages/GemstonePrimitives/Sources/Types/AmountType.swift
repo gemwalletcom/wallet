@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Primitives
 
 public enum AmountStakeType: Equatable, Hashable, Sendable {
     case stake(validators: [DelegationValidator], recommended: DelegationValidator?)

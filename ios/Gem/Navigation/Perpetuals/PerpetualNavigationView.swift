@@ -4,6 +4,7 @@ import protocol Gemstone.GemTransactionsServiceProtocol
 import Components
 import Perpetuals
 import GemstoneServices
+import GemstonePrimitives
 import Primitives
 import Store
 import Style

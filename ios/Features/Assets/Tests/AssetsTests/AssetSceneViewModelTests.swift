@@ -6,6 +6,7 @@ import protocol Gemstone.GemPriceAlertServiceProtocol
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import BigInt
+import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
 @testable import Store

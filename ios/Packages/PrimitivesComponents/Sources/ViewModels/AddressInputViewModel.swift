@@ -2,6 +2,7 @@
 
 import protocol Gemstone.GemNameServiceProtocol
 import class Gemstone.GemRecipientService
+import struct Gemstone.GemRecipient
 import struct Gemstone.GemRecipientValidation
 import Components
 import Foundation
@@ -66,14 +67,14 @@ public final class AddressInputViewModel {
         validation.address
     }
 
-    public func recipient(memo: String?, references: [String] = []) throws -> Recipient {
-        try Recipient(recipientService.recipient(
+    public func recipient(memo: String?, references: [String] = []) throws -> GemRecipient {
+        try recipientService.recipient(
             chain: chain.rawValue,
             input: text,
             nameRecord: nameResolveState.result?.json(),
             memo: memo,
             references: references,
-        ))
+        )
     }
 
     private var validation: GemRecipientValidation {

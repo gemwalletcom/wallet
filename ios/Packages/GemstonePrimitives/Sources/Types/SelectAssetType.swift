@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Primitives
 
 public enum SelectAssetType: Identifiable, Hashable, Sendable {
     case send(RecipientData?)
@@ -53,14 +54,5 @@ public enum SelectAssetSwapType: Identifiable, Hashable, Sendable {
         case .pay: "pay"
         case let .receive(chains, assetIds): "receive_\(chains)_\(assetIds)"
         }
-    }
-}
-
-public enum ReceiveAssetType: String, Hashable, Identifiable, Sendable {
-    case asset
-    case collection
-
-    public var id: String {
-        rawValue
     }
 }

@@ -45,12 +45,3 @@ public extension GemTransferData {
     }
 }
 
-public extension Recipient {
-    init(_ recipient: GemRecipient) {
-        self.init(name: recipient.name, address: recipient.address, memo: recipient.memo, references: recipient.references)
-    }
-
-    var gem: GemRecipient {
-        GemRecipient(address: address, name: name, memo: memo, references: references)
-    }
-}

@@ -6,6 +6,7 @@ import Components
 import GemstoneServices
 import Foundation
 import Localization
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store

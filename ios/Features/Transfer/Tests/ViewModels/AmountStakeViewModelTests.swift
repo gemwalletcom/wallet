@@ -2,6 +2,7 @@
 
 import class Gemstone.GemAmountService
 import BigInt
+import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
 import Testing

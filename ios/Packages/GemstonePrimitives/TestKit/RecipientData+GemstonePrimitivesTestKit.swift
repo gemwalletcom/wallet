@@ -1,11 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Primitives
+import struct Gemstone.GemRecipient
+import GemstonePrimitives
 
 public extension RecipientData {
     static func mock(
-        recipient: Recipient = .mock(),
+        recipient: GemRecipient = .mock(),
         amount: String? = nil,
     ) -> RecipientData {
         RecipientData(

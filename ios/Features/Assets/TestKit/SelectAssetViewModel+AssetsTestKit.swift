@@ -10,6 +10,7 @@ import GemstoneServices
 import Components
 import Foundation
 import GemstonePrimitivesTestKit
+import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
 @testable import Store

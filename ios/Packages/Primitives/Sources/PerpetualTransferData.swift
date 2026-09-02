@@ -3,22 +3,6 @@
 import BigInt
 import Foundation
 
-public struct PerpetualRecipientData: Codable, Equatable, Hashable, Sendable {
-    public let recipient: RecipientData
-    public let positionAction: PerpetualPositionAction
-
-    public init(recipient: RecipientData, positionAction: PerpetualPositionAction) {
-        self.recipient = recipient
-        self.positionAction = positionAction
-    }
-}
-
-extension PerpetualRecipientData: Identifiable {
-    public var id: String {
-        positionAction.id
-    }
-}
-
 public enum PerpetualPositionAction: Codable, Equatable, Hashable, Sendable, Identifiable {
     case open(PerpetualTransferData)
     case reduce(PerpetualTransferData, available: BigInt, positionDirection: PerpetualDirection)

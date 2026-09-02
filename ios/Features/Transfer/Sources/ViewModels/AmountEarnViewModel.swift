@@ -63,7 +63,7 @@ public final class AmountEarnViewModel: AmountDataProvidable {
 
     func recipientData() -> RecipientData {
         RecipientData(
-            recipient: Recipient(name: provider.name, address: provider.id, memo: nil),
+            recipient: GemRecipient(address: provider.id, name: provider.name),
             amount: nil,
         )
     }

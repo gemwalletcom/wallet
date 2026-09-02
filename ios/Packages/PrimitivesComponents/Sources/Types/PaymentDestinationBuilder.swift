@@ -76,7 +76,7 @@ public enum PaymentDestinationBuilder {
     private static func recipientData(for payment: Primitives.PaymentRequest, chain: Primitives.Chain? = nil, addressService: any GemAddressServiceProtocol) -> RecipientData {
         let address = chain.map { $0.checksumAddress(payment.address, addressService: addressService) } ?? payment.address
         return RecipientData(
-            recipient: Recipient(name: .none, address: address, memo: payment.memo, references: payment.references ?? []),
+            recipient: GemRecipient(address: address, memo: payment.memo, references: payment.references ?? []),
             amount: payment.exactAmount,
         )
     }

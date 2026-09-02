@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemRecipient
 import Components
 import Primitives
 import PrimitivesComponents
@@ -116,7 +117,7 @@ public struct RecipientScene: View {
 // MARK: - Actions
 
 extension RecipientScene {
-    private func onSelectRecipient(_ recipient: Recipient) {
+    private func onSelectRecipient(_ recipient: GemRecipient) {
         focusedField = nil
         model.onSelectRecipient(recipient)
     }

@@ -128,7 +128,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
 
         return GemTransferData(
             inputType: .perpetual(transferData.asset, perpetualType),
-            recipient: data.recipient.recipient.gem,
+            recipient: data.recipient.recipient,
             value: value,
             useMaxAmount: useMaxAmount,
         )

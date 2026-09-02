@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemRecipient
 import BigInt
 import protocol Gemstone.GemNameServiceProtocol
 import class Gemstone.GemRecipientService
@@ -127,7 +128,7 @@ public final class RecipientSceneViewModel {
         asset.chain
     }
 
-    var recipientSections: [ListItemValueSection<Recipient>] {
+    var recipientSections: [ListItemValueSection<GemRecipient>] {
         RecipientAddressType.allCases
             .map {
                 ListItemValueSection(
@@ -188,18 +189,18 @@ extension RecipientSceneViewModel {
         recipientData = .none
     }
 
-    func onSelectRecipient(_ recipient: Recipient) {
+    func onSelectRecipient(_ recipient: GemRecipient) {
         do {
-            let validated = try Recipient(recipientService.recipient(
+            let validated = try recipientService.recipient(
                 chain: asset.chain.rawValue,
                 input: recipient.address,
                 nameRecord: nil,
                 memo: recipient.memo,
                 references: [],
-            ))
+            )
             handle(
                 recipientData: RecipientData(
-                    recipient: Recipient(name: recipient.name, address: validated.address, memo: validated.memo),
+                    recipient: GemRecipient(address: validated.address, name: recipient.name, memo: validated.memo),
                     amount: .none,
                 ),
             )
@@ -212,7 +213,7 @@ extension RecipientSceneViewModel {
 // MARK: - Private
 
 extension RecipientSceneViewModel {
-    private func sectionRecipients(for section: RecipientAddressType) -> [ListItemValue<Recipient>] {
+    private func sectionRecipients(for section: RecipientAddressType) -> [ListItemValue<GemRecipient>] {
         switch section {
         case .contacts:
             ContactRecipientSectionViewModel(contacts: contacts).listItems
@@ -262,7 +263,7 @@ extension RecipientSceneViewModel {
         case .nft:
             update(
                 from: RecipientData(
-                    recipient: Recipient(name: .none, address: chain.checksumAddress(payment.address, addressService: addressService), memo: payment.memo),
+                    recipient: GemRecipient(address: chain.checksumAddress(payment.address, addressService: addressService), memo: payment.memo),
                     amount: .none,
                 ),
             )
@@ -283,7 +284,7 @@ extension RecipientSceneViewModel {
         case .asset:
             onRecipientDataAction?(recipientData)
         case let .nft(asset):
-            handle(transferData: GemTransferData(inputType: .transferNft(asset), recipient: recipientData.recipient.gem, value: BigInt.zero))
+            handle(transferData: GemTransferData(inputType: .transferNft(asset), recipient: recipientData.recipient, value: BigInt.zero))
         }
     }
 

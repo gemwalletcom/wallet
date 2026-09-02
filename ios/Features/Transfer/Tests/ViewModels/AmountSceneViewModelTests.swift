@@ -3,6 +3,7 @@
 import class Gemstone.GemAmountService
 import GemstoneServicesTestKit
 import GemstonePrimitivesTestKit
+import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
 @testable import Store

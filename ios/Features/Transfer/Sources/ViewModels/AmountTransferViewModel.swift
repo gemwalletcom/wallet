@@ -77,7 +77,7 @@ public final class AmountTransferViewModel: AmountDataProvidable {
         }
         return GemTransferData(
             inputType: transferType,
-            recipient: action.recipient.recipient.gem,
+            recipient: action.recipient.recipient,
             value: value,
             useMaxAmount: useMaxAmount,
         )

@@ -4,6 +4,7 @@ import Assets
 import Components
 import Localization
 import PriceAlerts
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI

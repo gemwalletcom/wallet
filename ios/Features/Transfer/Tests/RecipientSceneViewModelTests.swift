@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemRecipient
 import GemstonePrimitives
 import class Gemstone.GemAddressService
 import protocol Gemstone.GemAddressServiceProtocol
@@ -121,7 +122,7 @@ struct RecipientSceneViewModelTests {
             asset: asset,
             type: .mockAsset(asset),
             recipient: RecipientData(
-                recipient: Recipient(name: .none, address: address, memo: "12345"),
+                recipient: GemRecipient(address: address, memo: "12345"),
                 amount: "10",
             ),
         )

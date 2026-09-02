@@ -130,17 +130,13 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         switch selection {
         case let .validator(state):
             return RecipientData(
-                recipient: Recipient(
-                    name: state.selected.name,
-                    address: state.selected.id,
-                    memo: nil,
-                ),
+                recipient: GemRecipient(address: state.selected.id, name: state.selected.name),
                 amount: nil,
             )
         case let .resource(state):
             let title = ResourceViewModel(resource: state.selected).title
             return RecipientData(
-                recipient: Recipient(name: title, address: title, memo: nil),
+                recipient: GemRecipient(address: title, name: title),
                 amount: nil,
             )
         }
@@ -149,7 +145,7 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> GemTransferData {
         try GemTransferData(
             inputType: .stake(asset, getStakeType()),
-            recipient: recipientData().recipient.gem,
+            recipient: recipientData().recipient,
             value: value,
             useMaxAmount: useMaxAmount,
         )

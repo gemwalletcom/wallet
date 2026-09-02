@@ -7,6 +7,7 @@ import Formatters
 import Foundation
 @testable import NFT
 import GemstoneServicesTestKit
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit

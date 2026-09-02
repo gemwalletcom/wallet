@@ -2,6 +2,7 @@
 
 import Foundation
 import InfoSheet
+import GemstonePrimitives
 import Primitives
 import Stake
 import SwiftUI

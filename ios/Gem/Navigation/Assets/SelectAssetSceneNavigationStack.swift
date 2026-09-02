@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemRecipient
 import Assets
 import Components
 import FiatConnect
@@ -106,11 +107,7 @@ struct SelectAssetSceneNavigationStack: View {
                             ),
                         )
                     case .withdraw:
-                        let withdrawRecipient = Recipient(
-                            name: model.wallet.name,
-                            address: input.assetAddress.address,
-                            memo: nil,
-                        )
+                        let withdrawRecipient = GemRecipient(address: input.assetAddress.address, name: model.wallet.name)
                         AmountNavigationView(
                             model: viewModelFactory.amountScene(
                                 input: AmountInput(

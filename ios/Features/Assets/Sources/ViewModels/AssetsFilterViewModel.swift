@@ -3,6 +3,7 @@
 import protocol Gemstone.GemChainServiceProtocol
 import Components
 import Localization
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store

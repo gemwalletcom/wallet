@@ -6,6 +6,12 @@ import Primitives
 
 private let hyperliquidName = "Hyperliquid"
 
+extension GemRecipient: @retroactive Identifiable {
+    public var id: String {
+        [name ?? "", address, memo ?? ""].joined(separator: "_")
+    }
+}
+
 public extension GemRecipient {
     static var hyperliquidProvider: GemRecipient {
         GemRecipient(address: "", name: hyperliquidName)
@@ -13,16 +19,6 @@ public extension GemRecipient {
 
     static var hyperliquidDeposit: GemRecipient {
         GemRecipient(address: PerpetualConfig.depositAddress, name: hyperliquidName)
-    }
-}
-
-public extension Recipient {
-    static var hyperliquidProvider: Recipient {
-        Recipient(GemRecipient.hyperliquidProvider)
-    }
-
-    static var hyperliquidDeposit: Recipient {
-        Recipient(GemRecipient.hyperliquidDeposit)
     }
 }
 

@@ -308,7 +308,7 @@ intentional one-sided integration surfaces.
 
 - **iOS `Packages/GemAPI`** — one endpoint, one caller: `GemPriceWidget` reads asset prices with it. It stays. Routing the widget through Core would link the Rust library into an app extension that runs under a tight memory budget and makes a single GET, so the trade is wrong; nothing else in the app or the feature packages depends on the package. Android's equivalent is already down to the alien provider itself: `data/services/native-provider` is `NativeProvider` plus its cache, named after the trait it implements the way iOS's `NativeProviderService` package is.
 - **iOS `Packages/GemstonePrimitives` remains mostly load-bearing.** A prior sweep removed declarations with no reader outside the package. What remains is primarily JSON bridge conformances, chain and stake config accessors, and typed wrappers over Core's JSON-string APIs — it shrinks when primitives stop crossing as JSON strings, not by chasing a line-count target.
-- iOS `Primitives` keeps hand-written views of Core types (`GasPriceType`, `FeeRate`, `Fee`, `FeeSelection`, `CustomFeeEstimate`, `TransferAmount`, `BalanceRequirement`, and ids such as `WalletId`/`TransactionId`/`AssetId`). They stay: they are typed views bridged once at the seam, not a second source of truth.
+- iOS `Primitives` keeps hand-written views of Core types (`GasPriceType`, `FeeRate`, `Fee`, `FeeSelection`, `TransferAmount`, `BalanceRequirement`, and ids such as `WalletId`/`TransactionId`/`AssetId`). They stay: they are typed views bridged once at the seam, not a second source of truth. Navigation inputs that carry a Core record (`RecipientData`, `AmountInput`, `SelectAssetType`, `SelectedAssetInput`, `ChainRecipient`) live in `GemstonePrimitives`, because `Primitives` cannot import `Gemstone`.
 
 ## TODO — finish Core as the single owner of logic
 
@@ -480,10 +480,6 @@ Single-service view models that only need the property made `private`:
 Both apps carry Core's `GemTransferData`, `GemConfirmInput` and `GemTransactionInputType`
 end to end, per [ARCHITECTURE.md](ARCHITECTURE.md) § 6 — iOS's `TransferDataType` and
 `TransferData` and Android's `ConfirmParams` are all gone.
-
-`Recipient` is the twin that remains. It restates `GemRecipient` field for field on iOS,
-and every transfer boundary now converts through `.gem` / `init(_:)`. Android has no such
-twin. Removing it is the next consolidation.
 
 Two recent-activity rules are still app-side, on `SelectAssetType` and `SelectedAssetType`.
 Both are Swift-only enums with no Core counterpart, so the enums move first.

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Primitives
 
 public struct SelectedAssetInput: Sendable, Hashable, Identifiable {
     public let type: SelectedAssetType

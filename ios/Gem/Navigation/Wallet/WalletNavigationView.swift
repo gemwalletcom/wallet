@@ -9,6 +9,7 @@ import MarketInsight
 import NFT
 import Perpetuals
 import PriceAlerts
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import QRScanner

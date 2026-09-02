@@ -3,6 +3,7 @@ import class Gemstone.GemRecentActivityService
 import protocol Gemstone.GemPerpetualServiceProtocol
 import GemstoneServices
 import Components
+import GemstonePrimitives
 import Primitives
 import Store
 import Style

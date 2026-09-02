@@ -4,6 +4,7 @@ import GemstoneServices
 import Components
 import Localization
 import NFT
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store
