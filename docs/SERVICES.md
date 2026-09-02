@@ -418,8 +418,10 @@ Each iOS scene view model should hold at most one private Core service per
 ceiling; the forwarding-only `GemContactsService` is deleted and `ContactsViewModel` holds the
 owning `GemContactService`. The shared `AddressInputViewModel` takes the
 narrow `AddressInputResolving` protocol, which `GemNameService`, `GemRecipientService` and
-`GemManageContactService` satisfy directly, so `names()` is no longer handed out; `chains()` stays
-only for the onboarding chain picker. `ConfirmTransferSceneViewModel` is done: it holds `service` alone, with `signer`, the keystore
+`GemManageContactService` and `GemOnboardingService` satisfy directly, so no service hands out
+`names()`; `GemOnboardingService`'s `avatars()`, `chains()` and `session()` are gone too — the
+factory passes a `walletImage` builder, `ImportWalletTypeViewModel` builds the dependency-free
+`GemChainService` itself, and `setCurrentWallet` is the onboarding service's own method. `ConfirmTransferSceneViewModel` is done: it holds `service` alone, with `signer`, the keystore
 password and the recent-activity store as outbound ports the app implements and
 `GemConfirmTransferService` owns, and reads the currency from `service.currency()`. It hands out no
 other service: `GemFeeService` is deleted (the custom-fee estimate is a `GemCustomFee.estimate`

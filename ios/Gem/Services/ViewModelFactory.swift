@@ -334,18 +334,28 @@ public struct ViewModelFactory: Sendable {
     }
 
     @MainActor
-    public func walletImageScene(wallet: Wallet) -> WalletImageViewModel {
-        WalletImageViewModel(wallet: wallet, avatarService: avatarService)
+    public func walletImageScene(wallet: Wallet, source: WalletImageViewModel.Source = .wallet) -> WalletImageViewModel {
+        WalletImageViewModel(wallet: wallet, source: source, avatarService: avatarService)
     }
 
     @MainActor
     public func createWalletScene(onComplete: VoidAction) -> CreateWalletModel {
-        CreateWalletModel(service: onboardingService, preferences: observablePreferences, onComplete: onComplete)
+        CreateWalletModel(
+            service: onboardingService,
+            preferences: observablePreferences,
+            walletImage: { [self] in walletImageScene(wallet: $0, source: .onboarding) },
+            onComplete: onComplete,
+        )
     }
 
     @MainActor
     public func importWalletScene(onComplete: VoidAction) -> ImportWalletViewModel {
-        ImportWalletViewModel(service: onboardingService, preferences: observablePreferences, onComplete: onComplete)
+        ImportWalletViewModel(
+            service: onboardingService,
+            preferences: observablePreferences,
+            walletImage: { [self] in walletImageScene(wallet: $0, source: .onboarding) },
+            onComplete: onComplete,
+        )
     }
 
     @MainActor

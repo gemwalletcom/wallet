@@ -1,8 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import class Gemstone.GemAvatarService
-import class Gemstone.GemChainService
 import class Gemstone.GemDeviceApiClient
 import class Gemstone.GemDeviceKeyService
 import class Gemstone.GemExplorerService
@@ -35,9 +33,7 @@ public extension GemOnboardingService {
         return GemOnboardingService(
             wallets: GemWalletService.mock(keystore: keystore, walletStore: walletStore, sessionStore: sessionStore),
             session: session,
-            avatars: GemAvatarService(wallets: gemWalletStore, files: GemstoneFileStore(), provider: provider),
             names: GemNameService(api: api, store: GemstoneAddressStore(store: addressStore)),
-            chains: GemChainService(),
         )
     }
 }

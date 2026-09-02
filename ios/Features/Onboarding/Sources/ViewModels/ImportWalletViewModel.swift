@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemChainService
 import protocol Gemstone.GemOnboardingServiceProtocol
 import GemstonePrimitives
 import Preferences
@@ -11,19 +12,22 @@ import SwiftUI
 @Observable
 @MainActor
 public final class ImportWalletViewModel {
-    private let service: any GemOnboardingServiceProtocol
+    private let service: any GemOnboardingServiceProtocol & AddressInputResolving
     private let preferences: ObservablePreferences
+    private let walletImage: @MainActor (Wallet) -> WalletImageViewModel
     let onComplete: VoidAction
 
     var isPresentingSelectImageWallet: Wallet?
 
     public init(
-        service: any GemOnboardingServiceProtocol,
+        service: any GemOnboardingServiceProtocol & AddressInputResolving,
         preferences: ObservablePreferences,
+        walletImage: @escaping @MainActor (Wallet) -> WalletImageViewModel,
         onComplete: VoidAction,
     ) {
         self.service = service
         self.preferences = preferences
+        self.walletImage = walletImage
         self.onComplete = onComplete
     }
 
@@ -32,11 +36,11 @@ public final class ImportWalletViewModel {
     }
 
     func importWalletModel(type: ImportWalletType, onComplete: @escaping @MainActor @Sendable (ImportWalletSceneResult) -> Void) -> ImportWalletSceneViewModel {
-        ImportWalletSceneViewModel(service: service, preferences: preferences, nameService: service.names(), type: type, onComplete: onComplete)
+        ImportWalletSceneViewModel(service: service, preferences: preferences, nameService: service, type: type, onComplete: onComplete)
     }
 
     func importWalletTypeModel() -> ImportWalletTypeViewModel {
-        ImportWalletTypeViewModel(preferences: preferences, chainService: service.chains())
+        ImportWalletTypeViewModel(preferences: preferences, chainService: GemChainService())
     }
 
     func setupWalletModel(wallet: Wallet, onComplete: @escaping (Wallet) -> Void) -> SetupWalletViewModel {
@@ -49,7 +53,7 @@ public final class ImportWalletViewModel {
     }
 
     func walletImageModel(wallet: Wallet) -> WalletImageViewModel {
-        WalletImageViewModel(wallet: wallet, source: .onboarding, avatarService: service.avatars())
+        walletImage(wallet)
     }
 }
 

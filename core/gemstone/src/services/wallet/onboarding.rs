@@ -1,11 +1,12 @@
 use std::sync::Arc;
 
+use primitives::name::NameRecord;
 use primitives::{Chain, Wallet, WalletId, WalletSource};
 
-use crate::services::avatar::GemAvatarService;
-use crate::services::chain::GemChainService;
 use crate::services::error::GemServiceError;
 use crate::services::name::GemNameService;
+use crate::services::recipient::{GemRecipientError, GemRecipientValidation};
+use crate::services::transfer::model::GemRecipient;
 use crate::services::wallet::{GemWalletImportResult, GemWalletImportType, GemWalletService};
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -13,28 +14,14 @@ use crate::services::wallet_session::GemWalletSessionService;
 pub struct GemOnboardingService {
     wallets: Arc<GemWalletService>,
     session: Arc<GemWalletSessionService>,
-    avatars: Arc<GemAvatarService>,
     names: Arc<GemNameService>,
-    chains: Arc<GemChainService>,
 }
 
 #[uniffi::export]
 impl GemOnboardingService {
     #[uniffi::constructor]
-    pub fn new(
-        wallets: Arc<GemWalletService>,
-        session: Arc<GemWalletSessionService>,
-        avatars: Arc<GemAvatarService>,
-        names: Arc<GemNameService>,
-        chains: Arc<GemChainService>,
-    ) -> Self {
-        Self {
-            wallets,
-            session,
-            avatars,
-            names,
-            chains,
-        }
+    pub fn new(wallets: Arc<GemWalletService>, session: Arc<GemWalletSessionService>, names: Arc<GemNameService>) -> Self {
+        Self { wallets, session, names }
     }
 
     pub fn create_wallet(&self) -> Result<Vec<String>, GemServiceError> {
@@ -61,19 +48,34 @@ impl GemOnboardingService {
         self.wallets.wallets()
     }
 
-    pub fn avatars(&self) -> Arc<GemAvatarService> {
-        self.avatars.clone()
+    pub fn set_current_wallet(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        self.session.set_current_wallet_id(Some(wallet_id))
     }
 
-    pub fn names(&self) -> Arc<GemNameService> {
-        self.names.clone()
+    pub fn validate_recipient(&self, chain: Chain, input: String, name_record: Option<NameRecord>) -> GemRecipientValidation {
+        self.names.validate_recipient(chain, input, name_record)
     }
 
-    pub fn chains(&self) -> Arc<GemChainService> {
-        self.chains.clone()
+    pub fn recipient(
+        &self,
+        chain: Chain,
+        input: String,
+        name_record: Option<NameRecord>,
+        memo: Option<String>,
+        references: Vec<String>,
+    ) -> Result<GemRecipient, GemRecipientError> {
+        self.names.recipient(chain, input, name_record, memo, references)
     }
 
-    pub fn session(&self) -> Arc<GemWalletSessionService> {
-        self.session.clone()
+    pub fn is_name_supported(&self, name: String) -> bool {
+        self.names.is_name_supported(name)
+    }
+
+    pub fn name_record_debounce_milliseconds(&self) -> u64 {
+        self.names.name_record_debounce_milliseconds()
+    }
+
+    pub async fn get_name_record(&self, name: String, chain: Chain) -> Result<Option<NameRecord>, GemServiceError> {
+        self.names.get_name_record(name, chain).await
     }
 }

@@ -13,6 +13,7 @@ import SwiftUI
 public final class CreateWalletModel {
     private let service: any GemOnboardingServiceProtocol
     private let preferences: ObservablePreferences
+    private let walletImage: @MainActor (Wallet) -> WalletImageViewModel
     let hasExistingWallets: Bool
     let onComplete: VoidAction
 
@@ -21,10 +22,12 @@ public final class CreateWalletModel {
     public init(
         service: any GemOnboardingServiceProtocol,
         preferences: ObservablePreferences,
+        walletImage: @escaping @MainActor (Wallet) -> WalletImageViewModel,
         onComplete: VoidAction,
     ) {
         self.service = service
         self.preferences = preferences
+        self.walletImage = walletImage
         self.onComplete = onComplete
         hasExistingWallets = ((try? service.getWallets()) ?? []).isNotEmpty
     }
@@ -43,7 +46,7 @@ public final class CreateWalletModel {
     }
 
     func walletImageModel(wallet: Wallet) -> WalletImageViewModel {
-        WalletImageViewModel(wallet: wallet, source: .onboarding, avatarService: service.avatars())
+        walletImage(wallet)
     }
 
     func dismiss() {
@@ -79,7 +82,7 @@ extension CreateWalletModel {
     func setupWalletComplete(wallet: Wallet) async {
         dismiss()
         do {
-            try await service.session().setCurrent(wallet: wallet)
+            try service.setCurrentWallet(walletId: wallet.id.id)
         } catch {
             debugLog("set current wallet error: \(error)")
         }

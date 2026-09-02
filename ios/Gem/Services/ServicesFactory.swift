@@ -307,13 +307,7 @@ struct ServicesFactory {
             preferences: walletPreferencesService,
         )
 
-        let onboardingService = Gemstone.GemOnboardingService(
-            wallets: walletService,
-            session: walletSessionService,
-            avatars: avatarService,
-            names: nameService,
-            chains: chainService,
-        )
+        let onboardingService = Gemstone.GemOnboardingService(wallets: walletService, session: walletSessionService, names: nameService)
 
         let contactService = Gemstone.GemContactService(
             store: GemstoneContactStore(store: storeManager.contactStore),

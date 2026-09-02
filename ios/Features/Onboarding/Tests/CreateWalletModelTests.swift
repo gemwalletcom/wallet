@@ -21,6 +21,7 @@ struct CreateWalletModelTests {
         let model = CreateWalletModel(
             service: GemOnboardingService.mock(walletStore: walletStore),
             preferences: .mock(),
+            walletImage: { _ in preconditionFailure("unused") },
             onComplete: nil,
         )
 
@@ -33,6 +34,7 @@ struct CreateWalletModelTests {
         let model = CreateWalletModel(
             service: GemOnboardingService.mock(),
             preferences: .mock(),
+            walletImage: { _ in preconditionFailure("unused") },
             onComplete: nil,
         )
 

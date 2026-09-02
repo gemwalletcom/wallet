@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.GemManageContactService
+import class Gemstone.GemOnboardingService
 import class Gemstone.GemNameService
 import class Gemstone.GemRecipientService
 import struct Gemstone.GemRecipientValidation
@@ -24,3 +25,4 @@ public extension AddressInputResolving {
 extension GemNameService: AddressInputResolving {}
 extension GemRecipientService: AddressInputResolving {}
 extension GemManageContactService: AddressInputResolving {}
+extension GemOnboardingService: AddressInputResolving {}

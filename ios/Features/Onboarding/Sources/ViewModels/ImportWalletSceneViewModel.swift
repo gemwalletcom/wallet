@@ -228,7 +228,7 @@ extension ImportWalletSceneViewModel {
     private func activateWallet(_ wallet: Wallet) async {
         preferences.acceptTerms()
         do {
-            try await service.session().setCurrent(wallet: wallet)
+            try service.setCurrentWallet(walletId: wallet.id.id)
         } catch {
             isPresentingAlertMessage = AlertMessage(title: alertTitle, message: error.localizedDescription)
         }
