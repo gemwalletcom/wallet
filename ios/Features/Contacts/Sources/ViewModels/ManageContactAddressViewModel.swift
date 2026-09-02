@@ -126,7 +126,11 @@ extension ManageContactAddressViewModel {
     }
 
     func onHandleScan(_ result: String) {
-        addressInputModel.update(text: result)
+        let scan = service.scannedAddress(input: result)
+        addressInputModel.update(text: scan.address)
+        if let scannedMemo = scan.memo {
+            memo = scannedMemo
+        }
     }
 
     func complete() {

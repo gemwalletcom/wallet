@@ -7,11 +7,9 @@ import androidx.lifecycle.viewModelScope
 import android.util.Log
 import com.gemwallet.android.application.contacts.cases.GetContacts
 import com.gemwallet.android.ext.addressInput
-import com.gemwallet.android.ext.decodePayment
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.isValidAddress
-import com.gemwallet.android.ext.request
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressForm
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressInput
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAvatarState
@@ -40,7 +38,6 @@ import uniffi.gemstone.GemContactAddressInput
 import uniffi.gemstone.GemContactAvatar
 import uniffi.gemstone.GemContactInput
 import uniffi.gemstone.GemManageContactServiceInterface
-import uniffi.gemstone.GemPaymentService
 import java.util.UUID
 import javax.inject.Inject
 
@@ -48,7 +45,6 @@ import javax.inject.Inject
 class ManageContactViewModel @Inject constructor(
     private val getContacts: GetContacts,
     @param:ApplicationContext private val context: Context,
-    private val paymentService: GemPaymentService,
     private val service: GemManageContactServiceInterface,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -171,11 +167,9 @@ class ManageContactViewModel @Inject constructor(
     fun pasteAddress(data: String) = applyExternalAddress(data)
 
     private fun applyExternalAddress(data: String) {
-        val decoded = paymentService.decodePayment(data)?.request
-        val address = (decoded?.address?.ifBlank { null } ?: data).trim()
-        val memo = decoded?.memo
-        addressInput.applyExternalAddress(address)
-        updateInput { it.copy(memo = memo ?: it.memo) }
+        val scan = service.scannedAddress(data)
+        addressInput.applyExternalAddress(scan.address)
+        updateInput { it.copy(memo = scan.memo ?: it.memo) }
     }
 
     fun selectChain() = state.update { it.copy(page = ManageContactPage.SelectChain) }

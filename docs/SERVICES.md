@@ -399,9 +399,6 @@ setup rather than retrying it.
 - **Earn flow.** No Earn surface exists (no `StakeProviderType.Earn` reader, no `AmountParams.Earn`, no `ConfirmParams.Earn`; `GemDelegationAction.DEPOSIT` maps to nothing). Build the scene, amount provider and confirm params on `GemStakeService.sync_earn`/`get_earn_data`, `GemAmountType::Earn` and `GemTransactionInputType::Earn`; iOS `EarnSceneViewModel` + `AmountEarnViewModel` are the reference. A feature, not a consolidation — plan it as its own batch.
 - **Dead `NOT NULL` columns** with no iOS counterpart: `AssetStore.saveAsset` bumps `updatedAt`, `TransactionStateStore` writes swap amounts, `NftStore` fills two legacy image columns. minSdk 28 has no `ALTER TABLE DROP COLUMN`, so removing them means recreating tables (`asset` behind its foreign keys) and instrumented migration tests do not run in CI — batch them with a migration that has another reason to touch those tables.
 - `PriceStore` still stamps `prices.currency` (now only the label `AssetPriceInfo.currency` reads) and `mapNotNull`s unparsable ids where iOS maps straight through.
-- **Contact address scan**: `ManageContactViewModel` injects `GemPaymentService` to decode a scanned
-  payment URL into the address field; iOS pastes the raw scan. Either the decode moves onto
-  `GemManageContactService` or Android drops it.
 - **Node screens**: `AddNodeViewModel` and `NetworksViewModel` hold `GemChainSettingsService` alone; `cases/nodes/GetNodeUrlCase` over `GemNodeService` is the last of the legacy `cases/<area>/` tree (the native provider and the perpetual module read it).
 - `UserConfig`: delete the `ConfigStore` fallback for `auth` once enough installs have written the secure value.
 - Consistency: `toChain()` (nullable) and `requireChain()` (throws) are picked arbitrarily at call sites; `*Service` classes live inside the coordinators module.

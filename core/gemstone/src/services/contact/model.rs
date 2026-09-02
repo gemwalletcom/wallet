@@ -20,6 +20,12 @@ pub struct GemContactInput {
     pub addresses: Vec<ContactAddress>,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemContactScannedAddress {
+    pub address: String,
+    pub memo: Option<String>,
+}
+
 #[derive(uniffi::Record)]
 pub struct GemContactAddressInput {
     pub contact_id: String,

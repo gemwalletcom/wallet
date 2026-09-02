@@ -248,7 +248,12 @@ public final class GemManageContactServiceMock: GemManageContactServiceProtocol,
             addresses: GemAddressService(),
             names: GemNameService.mock(),
             chains: GemChainService(),
+            payments: GemPaymentService.mock(),
         )
+    }
+
+    public func scannedAddress(input: String) -> GemContactScannedAddress {
+        service.scannedAddress(input: input)
     }
 
     public func chains() -> GemChainService {

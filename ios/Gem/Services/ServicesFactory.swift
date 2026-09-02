@@ -357,6 +357,7 @@ struct ServicesFactory {
                 addresses: addressService,
                 names: nameService,
                 chains: chainService,
+                payments: paymentService,
             ),
             deeplinkService: Gemstone.GemDeeplinkService(),
             explorerService: explorerService,

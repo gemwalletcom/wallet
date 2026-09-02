@@ -13,11 +13,13 @@ use primitives::{Chain, Contact};
 use crate::address_formatter::{GemAddressFormatStyle, GemAddressService};
 use crate::services::chain::GemChainService;
 use crate::services::file::GemFileStore;
+use crate::models::payment::GemPayment;
+use crate::payment::GemPaymentService;
 use crate::services::name::{GemAddressStore, GemNameService};
 use crate::services::recipient::{GemRecipientError, GemRecipientValidation};
 use crate::services::transfer::model::GemRecipient;
 
-pub use model::{GemContactAddressInput, GemContactAvatar, GemContactInput};
+pub use model::{GemContactAddressInput, GemContactAvatar, GemContactInput, GemContactScannedAddress};
 pub use store::GemContactStore;
 
 const AVATAR_EXTENSION: &str = "png";
@@ -105,18 +107,34 @@ pub struct GemManageContactService {
     addresses: Arc<GemAddressService>,
     names: Arc<GemNameService>,
     chains: Arc<GemChainService>,
+    payments: Arc<GemPaymentService>,
 }
 
 #[uniffi::export]
 impl GemManageContactService {
     #[uniffi::constructor]
-    pub fn new(contacts: Arc<GemContactService>, addresses: Arc<GemAddressService>, names: Arc<GemNameService>, chains: Arc<GemChainService>) -> Self {
+    pub fn new(
+        contacts: Arc<GemContactService>,
+        addresses: Arc<GemAddressService>,
+        names: Arc<GemNameService>,
+        chains: Arc<GemChainService>,
+        payments: Arc<GemPaymentService>,
+    ) -> Self {
         Self {
             contacts,
             addresses,
             names,
             chains,
+            payments,
         }
+    }
+
+    pub fn scanned_address(&self, input: String) -> GemContactScannedAddress {
+        let request = match self.payments.decode_url(input.clone()) {
+            Ok(GemPayment::Request(request)) => Some(request),
+            Ok(GemPayment::Link(_)) | Err(_) => None,
+        };
+        rules::scanned_address(&input, request.as_ref())
     }
 
     pub fn default_chain(&self) -> Chain {
