@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
-use primitives::{Chain, Wallet, WalletId};
+use primitives::{Chain, Wallet, WalletId, WalletSource};
 
 use crate::services::avatar::GemAvatarService;
 use crate::services::chain::GemChainService;
 use crate::services::error::GemServiceError;
 use crate::services::name::GemNameService;
-use crate::services::wallet::{GemWalletImportResult, GemWalletImportType, GemWalletService, GemWalletSource};
+use crate::services::wallet::{GemWalletImportResult, GemWalletImportType, GemWalletService};
 use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
@@ -45,7 +45,7 @@ impl GemOnboardingService {
         self.wallets.next_wallet_index()
     }
 
-    pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: GemWalletSource) -> Result<GemWalletImportResult, GemServiceError> {
+    pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: WalletSource) -> Result<GemWalletImportResult, GemServiceError> {
         self.wallets.import_wallet(name, import, source).await
     }
 

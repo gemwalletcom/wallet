@@ -19,7 +19,7 @@ import uniffi.gemstone.GemWalletImportException
 import uniffi.gemstone.GemWalletImportResult
 import uniffi.gemstone.GemWalletImportType
 import uniffi.gemstone.GemWalletService
-import uniffi.gemstone.GemWalletSource
+import uniffi.gemstone.WalletSource as GemWalletSource
 import uniffi.gemstone.GemDeviceService
 
 class PhraseAddressImportWalletService(

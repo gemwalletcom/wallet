@@ -122,6 +122,40 @@ fun com.wallet.core.primitives.SimulationPayloadFieldType.toGem(): uniffi.gemsto
     com.wallet.core.primitives.SimulationPayloadFieldType.Timestamp -> uniffi.gemstone.SimulationPayloadFieldType.TIMESTAMP
 }
 
+fun uniffi.gemstone.TpslType.toPrimitives(): com.wallet.core.primitives.TpslType = when (this) {
+    uniffi.gemstone.TpslType.TAKE_PROFIT -> com.wallet.core.primitives.TpslType.TakeProfit
+    uniffi.gemstone.TpslType.STOP_LOSS -> com.wallet.core.primitives.TpslType.StopLoss
+}
+
+fun com.wallet.core.primitives.TpslType.toGem(): uniffi.gemstone.TpslType = when (this) {
+    com.wallet.core.primitives.TpslType.TakeProfit -> uniffi.gemstone.TpslType.TAKE_PROFIT
+    com.wallet.core.primitives.TpslType.StopLoss -> uniffi.gemstone.TpslType.STOP_LOSS
+}
+
+fun uniffi.gemstone.WalletConnectionVerificationStatus.toPrimitives(): com.wallet.core.primitives.WalletConnectionVerificationStatus = when (this) {
+    uniffi.gemstone.WalletConnectionVerificationStatus.VERIFIED -> com.wallet.core.primitives.WalletConnectionVerificationStatus.Verified
+    uniffi.gemstone.WalletConnectionVerificationStatus.UNKNOWN -> com.wallet.core.primitives.WalletConnectionVerificationStatus.Unknown
+    uniffi.gemstone.WalletConnectionVerificationStatus.INVALID -> com.wallet.core.primitives.WalletConnectionVerificationStatus.Invalid
+    uniffi.gemstone.WalletConnectionVerificationStatus.MALICIOUS -> com.wallet.core.primitives.WalletConnectionVerificationStatus.Malicious
+}
+
+fun com.wallet.core.primitives.WalletConnectionVerificationStatus.toGem(): uniffi.gemstone.WalletConnectionVerificationStatus = when (this) {
+    com.wallet.core.primitives.WalletConnectionVerificationStatus.Verified -> uniffi.gemstone.WalletConnectionVerificationStatus.VERIFIED
+    com.wallet.core.primitives.WalletConnectionVerificationStatus.Unknown -> uniffi.gemstone.WalletConnectionVerificationStatus.UNKNOWN
+    com.wallet.core.primitives.WalletConnectionVerificationStatus.Invalid -> uniffi.gemstone.WalletConnectionVerificationStatus.INVALID
+    com.wallet.core.primitives.WalletConnectionVerificationStatus.Malicious -> uniffi.gemstone.WalletConnectionVerificationStatus.MALICIOUS
+}
+
+fun uniffi.gemstone.WalletSource.toPrimitives(): com.wallet.core.primitives.WalletSource = when (this) {
+    uniffi.gemstone.WalletSource.CREATE -> com.wallet.core.primitives.WalletSource.Create
+    uniffi.gemstone.WalletSource.IMPORT -> com.wallet.core.primitives.WalletSource.Import
+}
+
+fun com.wallet.core.primitives.WalletSource.toGem(): uniffi.gemstone.WalletSource = when (this) {
+    com.wallet.core.primitives.WalletSource.Create -> uniffi.gemstone.WalletSource.CREATE
+    com.wallet.core.primitives.WalletSource.Import -> uniffi.gemstone.WalletSource.IMPORT
+}
+
 fun uniffi.gemstone.WalletType.toPrimitives(): com.wallet.core.primitives.WalletType = when (this) {
     uniffi.gemstone.WalletType.MULTICOIN -> com.wallet.core.primitives.WalletType.Multicoin
     uniffi.gemstone.WalletType.SINGLE -> com.wallet.core.primitives.WalletType.Single

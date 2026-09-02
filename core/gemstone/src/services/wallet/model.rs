@@ -1,12 +1,4 @@
-use primitives::{Chain, Wallet, WalletSource};
-
-pub type GemWalletSource = WalletSource;
-
-#[uniffi::remote(Enum)]
-pub enum GemWalletSource {
-    Create,
-    Import,
-}
+use primitives::{Chain, Wallet};
 
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemWalletImportType {

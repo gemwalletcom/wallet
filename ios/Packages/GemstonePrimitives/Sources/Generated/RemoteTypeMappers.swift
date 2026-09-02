@@ -183,6 +183,64 @@ public extension Primitives.SimulationPayloadFieldType {
     }
 }
 
+public extension Gemstone.TpslType {
+    func map() -> Primitives.TpslType {
+        switch self {
+        case .takeProfit: .takeProfit
+        case .stopLoss: .stopLoss
+        }
+    }
+}
+
+public extension Primitives.TpslType {
+    func map() -> Gemstone.TpslType {
+        switch self {
+        case .takeProfit: .takeProfit
+        case .stopLoss: .stopLoss
+        }
+    }
+}
+
+public extension Gemstone.WalletConnectionVerificationStatus {
+    func map() -> Primitives.WalletConnectionVerificationStatus {
+        switch self {
+        case .verified: .verified
+        case .unknown: .unknown
+        case .invalid: .invalid
+        case .malicious: .malicious
+        }
+    }
+}
+
+public extension Primitives.WalletConnectionVerificationStatus {
+    func map() -> Gemstone.WalletConnectionVerificationStatus {
+        switch self {
+        case .verified: .verified
+        case .unknown: .unknown
+        case .invalid: .invalid
+        case .malicious: .malicious
+        }
+    }
+}
+
+public extension Gemstone.WalletSource {
+    func map() -> Primitives.WalletSource {
+        switch self {
+        case .create: .create
+        case .import: .import
+        }
+    }
+}
+
+public extension Primitives.WalletSource {
+    func map() -> Gemstone.WalletSource {
+        switch self {
+        case .create: .create
+        case .import: .import
+        }
+    }
+}
+
 public extension Gemstone.WalletType {
     func map() -> Primitives.WalletType {
         switch self {

@@ -4,6 +4,9 @@ remote:
   - FeePriority
   - PerpetualProvider
   - WalletType
+  - WalletSource
+  - TpslType
+  - WalletConnectionVerificationStatus
   - RecentActivityType
   - SimulationPayloadFieldType
   - SimulationPayloadFieldDisplay

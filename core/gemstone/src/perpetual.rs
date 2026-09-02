@@ -59,12 +59,6 @@ impl GemPerpetual {
 }
 
 #[uniffi::remote(Enum)]
-pub enum TpslType {
-    TakeProfit,
-    StopLoss,
-}
-
-#[uniffi::remote(Enum)]
 pub enum AutocloseValidation {
     Valid,
     InvalidAmount,

@@ -15,7 +15,7 @@ public extension GemKeystoreAccount {
 }
 
 public extension GemStoredWallet {
-    func mapToWallet(name: String, source: WalletSource) throws -> Primitives.Wallet {
+    func mapToWallet(name: String, source: Primitives.WalletSource) throws -> Primitives.Wallet {
         // externalId stays nil for v4 wallets
         try Primitives.Wallet(
             id: Primitives.WalletId.from(id: walletId),

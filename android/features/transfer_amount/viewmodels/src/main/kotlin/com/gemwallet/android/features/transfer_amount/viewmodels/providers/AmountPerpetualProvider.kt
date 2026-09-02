@@ -40,6 +40,7 @@ import uniffi.gemstone.GemAmountPerpetualPosition
 import uniffi.gemstone.GemAmountType
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.domains.perpetual.toGem
+import com.gemwallet.android.ext.toGem
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountPerpetualProvider(

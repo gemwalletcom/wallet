@@ -9,7 +9,7 @@ public extension GemOnboardingServiceProtocol {
         Int(try nextWalletIndex() as Int32)
     }
 
-    func importWallet(name: String, type: KeystoreImportType, source: WalletSource) async throws -> WalletImportResult {
+    func importWallet(name: String, type: KeystoreImportType, source: Primitives.WalletSource) async throws -> WalletImportResult {
         let walletImport = try type.walletImport.validated()
         return switch try await importWallet(name: name, import: walletImport, source: source.map()) {
         case let .new(wallet): try .new(Wallet(wallet))

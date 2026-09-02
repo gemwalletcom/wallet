@@ -19,7 +19,7 @@ use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
 pub use error::GemWalletImportError;
-pub use model::{GemWalletDeletion, GemWalletImportResult, GemWalletImportType, GemWalletSource};
+pub use model::{GemWalletDeletion, GemWalletImportResult, GemWalletImportType};
 pub use password::{GemKeystoreAuthentication, GemKeystorePassword};
 pub use store::GemWalletStore;
 
@@ -73,7 +73,7 @@ impl GemWalletService {
         Ok(rules::next_wallet_index(&self.store.get_wallets()?))
     }
 
-    pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: GemWalletSource) -> Result<GemWalletImportResult, GemServiceError> {
+    pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: WalletSource) -> Result<GemWalletImportResult, GemServiceError> {
         let import = import.validated()?;
         let preview = self.preview_import(import.clone())?;
         let wallet_id = WalletId::from_id(&preview.wallet_id).ok_or_else(|| GemServiceError::Core {
