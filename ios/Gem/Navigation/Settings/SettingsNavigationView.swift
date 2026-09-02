@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemDeviceServiceProtocol
-import protocol Gemstone.GemPriceServiceProtocol
 import Contacts
 import GemstoneServices
 import InAppNotifications
@@ -32,7 +31,6 @@ struct SettingsNavigationView: View {
     @Environment(\.priceAlertService) private var priceAlertService
     @Environment(\.preferencesService) private var preferencesService
     @Environment(\.deviceKeyService) private var deviceKeyService
-    @Environment(\.priceService) private var priceService
     @Environment(\.nodeService) private var nodeService
     @Environment(\.chainService) private var chainService
     @Environment(\.gatewayService) private var gatewayService
@@ -56,21 +54,14 @@ struct SettingsNavigationView: View {
 
     init(
         walletId: WalletId,
-        preferences: ObservablePreferences = AppResolver.main.services.observablePreferences,
-        priceService: any GemPriceServiceProtocol,
+        viewModelFactory: ViewModelFactory = AppResolver.main.services.viewModelFactory,
         deviceService: any GemDeviceServiceProtocol,
         isPresentingSupport: Binding<Bool>,
     ) {
         self.walletId = walletId
         self.deviceService = deviceService
         _isPresentingSupport = isPresentingSupport
-        _currencyModel = State(
-            initialValue: CurrencySceneViewModel(
-                currencyStorage: preferences,
-                priceService: priceService,
-                deviceService: deviceService,
-            ),
-        )
+        _currencyModel = State(initialValue: viewModelFactory.currencyScene())
     }
 
     var body: some View {

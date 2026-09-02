@@ -394,6 +394,7 @@ struct ServicesFactory {
             toastPresenter: toastPresenter,
             walletPreferencesService: walletPreferencesService,
             deviceKeyService: deviceKeyService,
+            deviceService: deviceService,
             storeManager: storeManager,
             supportService: supportService,
             supportTyping: gemstoneSupportStore.typing,

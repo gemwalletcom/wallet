@@ -30,9 +30,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemCurrencyService
 import uniffi.gemstone.GemPreferencesService
-import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemWalletSessionService
 import java.util.Locale
 
@@ -42,8 +41,7 @@ class SessionCoordinator(
     private val walletStore: GemstoneWalletStore,
     private val walletSessionService: GemWalletSessionService,
     private val preferencesService: GemPreferencesService,
-    private val priceService: GemPriceService,
-    private val deviceService: GemDeviceService,
+    private val currencyService: GemCurrencyService,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetSession, GetCurrentWallet, GetCurrentCurrency, SetCurrentCurrency, SetCurrentWallet {
 
@@ -82,9 +80,8 @@ class SessionCoordinator(
             if (currencyState.value == currency) {
                 return@launch
             }
-            setCurrency(currency)
-            priceService.changeCurrency(currency.toGem())
-            deviceService.synchronizeIfNeeded()
+            currencyService.setCurrency(currency.toGem())
+            currencyState.value = currency
         }
     }
 

@@ -450,7 +450,6 @@ having the parent vend the child view model.
 | `Assets/AddAssetSceneViewModel.swift` | 2 | 0 |
 | `Assets/AssetsFilterViewModel.swift` | 2 | 0 |
 | `Settings/ChainSettings/ViewModels/AddNodeSceneViewModel.swift` | 2 | 0 |
-| `Settings/Currency/ViewModels/CurrencySceneViewModel.swift` | 2 | 0 |
 | `Settings/Settings/ViewModels/RewardsViewModel.swift` | 2 | 0 |
 | `Transfer/ConfirmDetailsViewModel.swift` | 2 | 0 |
 | `PrimitivesComponents/AddressInputViewModel.swift` | 2 | 0 |

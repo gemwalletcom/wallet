@@ -2,6 +2,7 @@
 
 import Support
 import class Gemstone.GemDeviceKeyService
+import class Gemstone.GemDeviceService
 import class Gemstone.GemWalletPreferencesService
 import protocol Gemstone.GemSupportServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
@@ -20,6 +21,7 @@ import class Gemstone.GemRecentActivityService
 import class Gemstone.GemConfirmTransferService
 import class Gemstone.GemConfirmService
 import class Gemstone.GemContactsService
+import class Gemstone.GemCurrencyService
 import class Gemstone.GemManageContactService
 import class Gemstone.GemDeeplinkService
 import class Gemstone.GemExplorerService
@@ -119,6 +121,7 @@ public struct ViewModelFactory: Sendable {
     let toastPresenter: ToastPresenter
     let walletPreferencesService: GemWalletPreferencesService
     let deviceKeyService: GemDeviceKeyService
+    let deviceService: GemDeviceService
     let storeManager: StoreManager
     let supportService: any GemSupportServiceProtocol
     let supportTyping: ObservableSupportTyping
@@ -161,6 +164,14 @@ public struct ViewModelFactory: Sendable {
             wallet: wallet,
             isPresentingSelectedAssetInput: isPresentingSelectedAssetInput,
             isPresentingWallets: isPresentingWallets,
+        )
+    }
+
+    @MainActor
+    public func currencyScene() -> CurrencySceneViewModel {
+        CurrencySceneViewModel(
+            currencyStorage: observablePreferences,
+            service: GemCurrencyService(preferences: preferencesService, prices: priceService, device: deviceService),
         )
     }
 

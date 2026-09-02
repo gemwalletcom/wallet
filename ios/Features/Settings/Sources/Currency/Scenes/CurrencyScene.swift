@@ -48,7 +48,6 @@ extension CurrencyScene {
             } catch {
                 return
             }
-            await model.updateDevice()
             dismiss()
         }
     }

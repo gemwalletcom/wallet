@@ -78,7 +78,6 @@ struct MainTabView: View {
             NavigationStack(path: navigationState.settings.binding) {
                 SettingsNavigationView(
                     walletId: wallet.id,
-                    priceService: priceService,
                     deviceService: deviceService,
                     isPresentingSupport: presenter.isPresentingSupport,
                 )

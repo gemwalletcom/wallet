@@ -768,6 +768,24 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
     }
 }
 
+public final class GemCurrencyServiceMock: GemCurrencyServiceProtocol, @unchecked Sendable {
+    public private(set) var setCurrencies: [Gemstone.Currency] = []
+    private let error: Error?
+
+    public init(error: Error? = nil) {
+        self.error = error
+    }
+
+    public func currency() -> Gemstone.Currency {
+        setCurrencies.last ?? Primitives.Currency.usd.rawValue
+    }
+
+    public func setCurrency(currency: Gemstone.Currency) async throws {
+        if let error { throw error }
+        setCurrencies.append(currency)
+    }
+}
+
 public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Sendable {
     public private(set) var closedKeys: [GemBannerKey] = []
     public private(set) var handledActions: [GemBannerAction] = []
