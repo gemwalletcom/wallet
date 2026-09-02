@@ -1,6 +1,8 @@
 pub mod collectible;
 pub mod rules;
 pub mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use std::future::Future;
@@ -77,29 +79,10 @@ where
 
 #[cfg(test)]
 mod tests {
+    use super::testkit::MemoryNftStore;
     use super::*;
     use primitives::{Chain, NFTAsset, NFTCollection, NFTCollectionId, NFTImages, NFTResource, NFTType, VerificationStatus};
     use std::sync::Mutex;
-
-    #[derive(Default)]
-    struct MemoryStore {
-        cached: Option<NFTAssetData>,
-        added: Mutex<Vec<NFTAssetData>>,
-    }
-
-    #[async_trait::async_trait]
-    impl GemNftStore for MemoryStore {
-        async fn save_nfts(&self, _wallet_id: WalletId, _data: Vec<primitives::NFTData>) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-        async fn get_asset_data(&self, _asset_id: NFTAssetId) -> Result<Option<NFTAssetData>, GemServiceError> {
-            Ok(self.cached.clone())
-        }
-        async fn save_asset(&self, data: NFTAssetData) -> Result<(), GemServiceError> {
-            self.added.lock().unwrap().push(data);
-            Ok(())
-        }
-    }
 
     fn asset_data(name: &str) -> NFTAssetData {
         let collection_id = NFTCollectionId::new(Chain::Ethereum, "0xcollection");
@@ -144,7 +127,7 @@ mod tests {
 
     #[test]
     fn test_cached_asset_skips_loading() {
-        let store = MemoryStore {
+        let store = MemoryNftStore {
             cached: Some(asset_data("cached")),
             ..Default::default()
         };
@@ -163,7 +146,7 @@ mod tests {
 
     #[test]
     fn test_missing_asset_is_loaded_and_added() {
-        let store = MemoryStore::default();
+        let store = MemoryNftStore::default();
 
         let data = futures::executor::block_on(cached_or_loaded(&store, asset_data("remote").asset.id, async { Ok(asset_data("remote")) })).unwrap();
 

@@ -45,33 +45,14 @@ impl GemRecentActivityService {
 
 #[cfg(test)]
 mod tests {
-    use async_trait::async_trait;
-    use std::sync::Mutex;
-
     use primitives::{Asset, Chain, StakeType};
 
     use super::*;
-
-    #[derive(Default)]
-    struct RecordingStore {
-        added: Mutex<Vec<GemRecentActivity>>,
-    }
-
-    #[async_trait]
-    impl GemRecentActivityStore for RecordingStore {
-        async fn add(&self, activity: GemRecentActivity, _wallet_id: WalletId) -> Result<(), GemServiceError> {
-            self.added.lock().unwrap().push(activity);
-            Ok(())
-        }
-        async fn clear(&self, _wallet_id: WalletId, _types: Vec<RecentActivityType>) -> Result<(), GemServiceError> {
-            self.added.lock().unwrap().clear();
-            Ok(())
-        }
-    }
+    use crate::services::transfer::testkit::MemoryRecentActivityStore;
 
     #[test]
     fn test_an_input_type_without_recent_activity_writes_nothing() {
-        let store = Arc::new(RecordingStore::default());
+        let store = Arc::new(MemoryRecentActivityStore::default());
         let service = GemRecentActivityService::new(store.clone());
         let asset = Asset::from_chain(Chain::Ethereum);
         let wallet_id = WalletId::Multicoin("address".to_string());

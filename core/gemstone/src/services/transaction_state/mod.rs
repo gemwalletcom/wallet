@@ -1,6 +1,8 @@
 pub mod model;
 pub mod rules;
 pub mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 pub mod tracker;
 
 use crate::services::error::GemServiceError;
@@ -207,67 +209,10 @@ impl GemTransactionUpdater for GemTransactionStateService {
 
 #[cfg(test)]
 mod tests {
+    use super::testkit::MemoryTransactionStateStore;
     use super::*;
     use num_bigint::BigUint;
     use primitives::{AssetId, Chain, TransactionChange, TransactionMetadata, TransactionSwapMetadata, TransactionType};
-    use std::sync::Mutex;
-
-    #[derive(Default)]
-    struct MemoryStore {
-        states: Mutex<Vec<(TransactionId, TransactionState)>>,
-        updates: Mutex<Vec<(TransactionId, GemTransactionStateUpdate)>>,
-        renamed: Mutex<Vec<(TransactionId, TransactionId)>>,
-        deleted: Mutex<Vec<TransactionId>>,
-    }
-
-    impl MemoryStore {
-        fn with(states: Vec<(TransactionId, TransactionState)>) -> Arc<Self> {
-            Arc::new(Self {
-                states: Mutex::new(states),
-                ..Default::default()
-            })
-        }
-    }
-
-    #[async_trait::async_trait]
-    impl GemTransactionStateStore for MemoryStore {
-        async fn get_pending_transactions(&self) -> Result<Vec<GemPendingTransaction>, GemServiceError> {
-            Ok(Vec::new())
-        }
-
-        async fn get_transaction(&self, _wallet_id: WalletId, _transaction_id: TransactionId) -> Result<Option<GemPendingTransaction>, GemServiceError> {
-            Ok(None)
-        }
-
-        async fn add_transactions(&self, _wallet_id: WalletId, _transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-
-        async fn get_state(&self, _wallet_id: WalletId, transaction_id: TransactionId) -> Result<Option<TransactionState>, GemServiceError> {
-            Ok(self.states.lock().unwrap().iter().find(|(id, _)| *id == transaction_id).map(|(_, state)| *state))
-        }
-        async fn rename_transaction(&self, _wallet_id: WalletId, transaction_id: TransactionId, new_transaction_id: TransactionId) -> Result<(), GemServiceError> {
-            for entry in self.states.lock().unwrap().iter_mut().filter(|(id, _)| *id == transaction_id) {
-                entry.0 = new_transaction_id.clone();
-            }
-            self.renamed.lock().unwrap().push((transaction_id, new_transaction_id));
-            Ok(())
-        }
-        async fn delete_transaction(&self, _wallet_id: WalletId, transaction_id: TransactionId) -> Result<(), GemServiceError> {
-            self.states.lock().unwrap().retain(|(id, _)| *id != transaction_id);
-            self.deleted.lock().unwrap().push(transaction_id);
-            Ok(())
-        }
-        async fn update_transaction(&self, _wallet_id: WalletId, transaction_id: TransactionId, update: GemTransactionStateUpdate) -> Result<bool, GemServiceError> {
-            let mut states = self.states.lock().unwrap();
-            let Some(entry) = states.iter_mut().find(|(id, _)| *id == transaction_id) else {
-                return Ok(false);
-            };
-            entry.1 = update.state;
-            self.updates.lock().unwrap().push((transaction_id, update));
-            Ok(true)
-        }
-    }
 
     fn swap_metadata(to_value: BigUint) -> TransactionSwapMetadata {
         TransactionSwapMetadata {
@@ -302,7 +247,7 @@ mod tests {
     }
 
     fn apply_update(
-        store: &MemoryStore,
+        store: &MemoryTransactionStateStore,
         transaction: Transaction,
         update: Result<TransactionUpdate, String>,
         now: DateTime<Utc>,
@@ -317,7 +262,7 @@ mod tests {
     #[test]
     fn test_in_transit_saves_metadata_and_keeps_polling() {
         let now = Utc::now();
-        let store = MemoryStore::with(vec![(id("hash"), TransactionState::Pending)]);
+        let store = MemoryTransactionStateStore::with(vec![(id("hash"), TransactionState::Pending)]);
 
         let result = apply_update(
             &store,
@@ -342,7 +287,7 @@ mod tests {
     #[test]
     fn test_hash_change_renames_when_no_existing_row() {
         let now = Utc::now();
-        let store = MemoryStore::with(vec![(id("hash"), TransactionState::Pending)]);
+        let store = MemoryTransactionStateStore::with(vec![(id("hash"), TransactionState::Pending)]);
 
         let result = apply_update(
             &store,
@@ -367,7 +312,7 @@ mod tests {
     #[test]
     fn test_hash_change_merges_into_existing_row_without_downgrade() {
         let now = Utc::now();
-        let store = MemoryStore::with(vec![(id("hash"), TransactionState::Pending), (id("new-hash"), TransactionState::Confirmed)]);
+        let store = MemoryTransactionStateStore::with(vec![(id("hash"), TransactionState::Pending), (id("new-hash"), TransactionState::Confirmed)]);
 
         let result = apply_update(
             &store,
@@ -400,7 +345,7 @@ mod tests {
     #[test]
     fn test_in_transit_is_not_downgraded_to_pending() {
         let now = Utc::now();
-        let store = MemoryStore::with(vec![(id("hash"), TransactionState::InTransit)]);
+        let store = MemoryTransactionStateStore::with(vec![(id("hash"), TransactionState::InTransit)]);
 
         let result = apply_update(
             &store,
@@ -418,7 +363,7 @@ mod tests {
     #[test]
     fn test_removed_row_stops_polling() {
         let now = Utc::now();
-        let store = MemoryStore::with(vec![]);
+        let store = MemoryTransactionStateStore::with(vec![]);
 
         let result = apply_update(
             &store,
@@ -434,7 +379,7 @@ mod tests {
     #[test]
     fn test_status_failure_fails_only_after_timeout() {
         let now = Utc::now();
-        let store = MemoryStore::with(vec![(id("hash"), TransactionState::Pending)]);
+        let store = MemoryTransactionStateStore::with(vec![(id("hash"), TransactionState::Pending)]);
 
         let fresh = apply_update(&store, transaction("hash", TransactionState::Pending, now), Err("offline".into()), now);
         assert!(matches!(fresh, Err(GemServiceError::Gateway { .. })));

@@ -519,6 +519,14 @@ A duplicate taxonomy costs a mapping function, re-derives data Core already carr
 
 Neither app tests a rule that lives in Core. If an app test would fail when a Core rule flips, the rule is in the wrong place or the test is asserting the mock.
 
+A Core test double for a store or a port lives in the owning folder's `testkit.rs`
+(`#[cfg(test)] pub(crate) mod testkit;`), named after the trait it implements —
+`MemoryPreferencesStore`, `MemoryWalletStore`, `MemoryConnectionStore`, `TestWalletConnectSigner`
+— so a service test composes the doubles of every folder it depends on instead of writing one
+struct that implements six traits. Cross-cutting doubles (`TestAlienProvider`) live in
+`gemstone/src/testkit.rs`. A double that exists to probe one behavior of one test (a store that
+counts writes or delays a read) stays inline with that test.
+
 ### Do not test the same rule twice through a thicker stack
 
 An app test that stands up a real Core service over a real store and then asserts *Core's decision* is a second copy of a Core test, paid for in database setup and simulator time. It fails for the same reasons the Core test does, and it goes stale in a different file.

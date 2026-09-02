@@ -1,5 +1,7 @@
 pub mod rules;
 pub mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use std::sync::Arc;
 

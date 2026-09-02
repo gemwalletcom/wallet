@@ -1,6 +1,8 @@
 use std::str::FromStr;
 pub mod rules;
 pub mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
@@ -359,39 +361,12 @@ impl GemPreferencesService {
 
 #[cfg(test)]
 mod tests {
+    use super::testkit::MemoryPreferencesStore;
     use super::*;
-    use std::collections::HashMap;
-    use std::sync::Mutex;
-
-    #[derive(Default)]
-    struct MemoryStore {
-        values: Mutex<HashMap<String, String>>,
-    }
-
-    impl GemPreferencesStore for MemoryStore {
-        fn get(&self, key: String) -> Option<String> {
-            self.values.lock().unwrap().get(&key).cloned()
-        }
-
-        fn set(&self, key: String, value: String) -> Result<(), GemServiceError> {
-            self.values.lock().unwrap().insert(key, value);
-            Ok(())
-        }
-
-        fn remove(&self, key: String) -> Result<(), GemServiceError> {
-            self.values.lock().unwrap().remove(&key);
-            Ok(())
-        }
-
-        fn clear(&self) -> Result<(), GemServiceError> {
-            self.values.lock().unwrap().clear();
-            Ok(())
-        }
-    }
 
     #[test]
     fn test_price_alerts_enabled_defaults_to_false_and_round_trips() {
-        let service = GemPreferencesService::new(Arc::new(MemoryStore::default()));
+        let service = GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()));
 
         assert!(!service.is_price_alerts_enabled());
 
@@ -404,7 +379,7 @@ mod tests {
 
     #[test]
     fn test_clear_removes_stored_preferences() {
-        let service = GemPreferencesService::new(Arc::new(MemoryStore::default()));
+        let service = GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()));
         service.set_developer_enabled(true).unwrap();
         service.set_accept_terms_completed().unwrap();
 

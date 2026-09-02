@@ -2,6 +2,8 @@ pub mod model;
 mod recent;
 pub mod rules;
 mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use crate::services::amount::model::GemAmountError;
 

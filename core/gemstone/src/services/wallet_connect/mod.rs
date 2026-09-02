@@ -4,6 +4,8 @@ mod rules;
 pub mod sign_message;
 pub mod signer;
 pub mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -296,96 +298,24 @@ impl GemWalletConnectService {
 
 #[cfg(test)]
 mod tests {
+    use super::testkit::{MemoryConnectionStore, TestWalletConnectSigner};
     use super::*;
-    use crate::services::wallet::GemWalletStore;
-    use crate::services::wallet_session::GemWalletSessionStore;
+    use crate::services::wallet::testkit::MemoryWalletStore;
+    use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
     use crate::testkit::TestAlienProvider;
-    use async_trait::async_trait;
-    use primitives::WalletId;
-    use std::sync::Mutex as StdMutex;
-
-    #[derive(Default)]
-    struct TestStore {
-        connections: StdMutex<Vec<WalletConnection>>,
-    }
-
-    #[async_trait]
-    impl GemConnectionStore for TestStore {
-        async fn get_connection(&self, session_id: String) -> Result<Option<WalletConnection>, GemServiceError> {
-            Ok(self.connections.lock().unwrap().iter().find(|connection| connection.session.id == session_id).cloned())
-        }
-        async fn get_sessions(&self) -> Result<Vec<WalletConnectionSession>, GemServiceError> {
-            Ok(vec![])
-        }
-        async fn add_connection(&self, connection: WalletConnection) -> Result<(), GemServiceError> {
-            self.connections.lock().unwrap().push(connection);
-            Ok(())
-        }
-        async fn update_session(&self, _session: WalletConnectionSession) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-        async fn delete_sessions(&self, _session_ids: Vec<String>) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-    }
-
-    #[async_trait]
-    impl GemWalletStore for TestStore {
-        fn get_wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
-            Ok(vec![])
-        }
-        fn get_wallet(&self, _wallet_id: WalletId) -> Result<Option<Wallet>, GemServiceError> {
-            Ok(None)
-        }
-        async fn add_wallet(&self, _wallet: Wallet) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-        async fn delete_wallet(&self, _wallet_id: WalletId) -> Result<bool, GemServiceError> {
-            Ok(false)
-        }
-        async fn set_pinned(&self, _wallet_id: WalletId, _pinned: bool) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-        async fn set_name(&self, _wallet_id: WalletId, _name: String) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-        async fn set_image_url(&self, _wallet_id: WalletId, _image_url: Option<String>) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-    }
-
-    impl GemWalletSessionStore for TestStore {
-        fn get_current_wallet_id(&self) -> Result<Option<WalletId>, GemServiceError> {
-            Ok(None)
-        }
-        fn set_current_wallet_id(&self, _wallet_id: Option<WalletId>) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-    }
-
-    struct TestSigner {
-        result: Result<String, GemServiceError>,
-    }
-
-    #[async_trait]
-    impl GemWalletConnectSigner for TestSigner {
-        async fn sign_message(&self, _request: GemWalletConnectMessageRequest) -> Result<String, GemServiceError> {
-            self.result.clone()
-        }
-        async fn sign_transaction(&self, _request: GemWalletConnectTransactionRequest) -> Result<String, GemServiceError> {
-            self.result.clone()
-        }
-    }
 
     async fn make_service(signer: Result<String, GemServiceError>) -> GemWalletConnectService {
-        let store = Arc::new(TestStore::default());
+        let store = Arc::new(MemoryConnectionStore::default());
         let session = rules::session("topic".to_string(), vec![Chain::Ethereum], Utc::now(), ApplicationMetadata::mock());
         store.add_connection(WalletConnection { session, wallet: Wallet::mock() }).await.unwrap();
         GemWalletConnectService::new(
             Arc::new(TransactionSimulationService::new(Arc::new(TestAlienProvider::with_status(200)))),
-            store.clone(),
-            Arc::new(TestSigner { result: signer }),
-            Arc::new(GemWalletSessionService::new(store.clone(), store)),
+            store,
+            Arc::new(TestWalletConnectSigner { result: signer }),
+            Arc::new(GemWalletSessionService::new(
+                Arc::new(MemoryWalletSessionStore::default()),
+                Arc::new(MemoryWalletStore::default()),
+            )),
         )
     }
 
