@@ -1,5 +1,11 @@
 package com.gemwallet.android.data.services.gemstone.di
 
+import com.gemwallet.android.domains.name.AddressInputResolving
+import com.gemwallet.android.ext.addressInput
+import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemRecipientService
+import uniffi.gemstone.GemRecipientServiceInterface
+import uniffi.gemstone.GemWalletSessionService
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAddressStore
 import com.gemwallet.android.data.service.store.database.AddressesDao
 import dagger.Module
@@ -34,6 +40,16 @@ object AddressesModule {
     @Provides
     @Singleton
     fun provideGemNameServiceInterface(service: GemNameService): GemNameServiceInterface = service
+
+    @Provides
+    fun provideAddressInputResolving(service: GemNameServiceInterface): AddressInputResolving = service.addressInput()
+
+    @Provides
+    fun provideGemRecipientService(
+        names: GemNameService,
+        payments: GemPaymentService,
+        session: GemWalletSessionService,
+    ): GemRecipientServiceInterface = GemRecipientService(names, payments, session)
 
     @Provides
     fun provideGemSignMessageService(names: GemNameService, explorer: GemExplorerService): GemSignMessageServiceInterface =

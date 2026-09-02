@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.contacts.cases.AddContactAddress
 import com.gemwallet.android.application.contacts.cases.GetContacts
 import com.gemwallet.android.application.contacts.cases.SaveContact
-import com.gemwallet.android.application.recipient.cases.GetNameRecord
+import com.gemwallet.android.domains.name.AddressInputResolving
 import com.gemwallet.android.ext.decodePayment
 import com.gemwallet.android.ext.isValidAddress
 import com.gemwallet.android.ext.request
@@ -35,7 +35,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemContactAvatar
 import uniffi.gemstone.GemPaymentService
-import uniffi.gemstone.GemNameServiceInterface
 import java.util.UUID
 import javax.inject.Inject
 
@@ -45,9 +44,8 @@ class ManageContactViewModel @Inject constructor(
     private val saveContactCase: SaveContact,
     private val addContactAddress: AddContactAddress,
     @param:ApplicationContext private val context: Context,
-    private val nameService: GemNameServiceInterface,
     private val paymentService: GemPaymentService,
-    getNameRecord: GetNameRecord,
+    addressResolving: AddressInputResolving,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -63,11 +61,7 @@ class ManageContactViewModel @Inject constructor(
     private val contactId: String = (mode as? Mode.Edit)?.contactId ?: UUID.randomUUID().toString()
     private var contact: Contact? = null
 
-    private val addressInput = AddressInputModel(
-        getNameRecord = getNameRecord,
-        nameService = nameService,
-        scope = viewModelScope,
-    )
+    private val addressInput = AddressInputModel(addressResolving, viewModelScope)
 
     private val state = MutableStateFlow(ManageContactState(isEdit = mode is Mode.Edit))
     val uiState: StateFlow<ManageContactUIState> = combine(

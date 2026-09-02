@@ -46,14 +46,6 @@ sealed interface PaymentDestination {
                 )
                 is GemPaymentDestination.Unsupported -> Unsupported
             }
-
-        fun transfer(request: PaymentRequest, assetInfo: AssetInfo, paymentService: GemPaymentService): Transfer =
-            when (val destination = paymentService.transferDestination(request.toJson(), assetInfo.toPaymentWalletAsset())) {
-                is GemPaymentDestination.Confirm -> destination.transfer.toConfirmInput(listOf(assetInfo), paymentService)?.let(::Confirm) ?: Unsupported
-                is GemPaymentDestination.Recipient -> Recipient(assetInfo.asset.id, PaymentRecipient(destination.recipient, destination.amount))
-                is GemPaymentDestination.SelectAsset -> Unsupported
-                is GemPaymentDestination.Unsupported -> Unsupported
-            }
     }
 }
 

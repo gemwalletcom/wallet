@@ -426,6 +426,13 @@ setup rather than retrying it.
   `setPinned`) and `GemRecentActivityService`, and position sync is `PerpetualObserver.update(wallet)`
   exactly as iOS's `PerpetualObservable.update(for:)`, so `SyncPerpetuals`, `SyncPerpetualPositions`,
   `SetPerpetualPinned` and `UpdateRecentAsset` are gone.
+- **Recipient**: `RecipientViewModel` holds `GemRecipientService` (`recipient`, `isNameSupported`,
+  `otherWallets`, `scanDestination`, `transferData`) and feeds `AddressInputModel` with
+  `service.addressInput()`; `ManageContactViewModel` and `ImportViewModel` take the Hilt-bound
+  `AddressInputResolving` over `GemNameService`. `GetNameRecord`, `GetWallets` on the recipient
+  screen and `PaymentDestination.transfer` are gone. `ManageContactViewModel` still carries
+  `GetContacts`/`SaveContact`/`AddContactAddress`/`GemPaymentService` — the next step is
+  `GemManageContactService` as on iOS.
 - **Price alerts**: `PriceAlertViewModel`, `PriceAlertTargetViewModel` and `AssetPriceAlertsViewModel`
   call `GemPriceAlertService` directly (`sync`, `setEnabled`/`isEnabled`, `setAutoAlert`,
   `enablePriceAlert`, `deletePriceAlerts`, `currency`) and the asset screen syncs through

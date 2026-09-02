@@ -392,8 +392,11 @@ The reusable exception is a **shared component** — `AddressInputViewModel`,
 `AddressInputResolving`: four methods every screen service that owns a recipient input already
 exports (`GemNameService`, `GemRecipientService`, `GemManageContactService` conform through an
 empty extension), so the parent passes its own service and no Core service returns another
-service. `NetworkSelectorViewModel` needs only the dependency-free `GemChainService` and builds it
-itself.
+service. Android's `AddressInputModel` takes the same four-method `AddressInputResolving`; Kotlin
+has no retroactive conformance, so `GemNameServiceInterface.addressInput()` and
+`GemRecipientServiceInterface.addressInput()` wrap the service's own methods, and the parent passes
+`service.addressInput()`. `NetworkSelectorViewModel` needs only the dependency-free
+`GemChainService` and builds it itself.
 
 ### The parent vends the child model, the view never reaches in
 

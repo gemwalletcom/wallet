@@ -9,7 +9,7 @@ import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
 import com.gemwallet.android.application.wallet_import.values.ImportError
 import com.gemwallet.android.application.wallet_import.cases.ImportWalletService
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
-import com.gemwallet.android.application.recipient.cases.GetNameRecord
+import com.gemwallet.android.domains.name.AddressInputResolving
 import uniffi.gemstone.GemWalletService
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ImportType
@@ -35,7 +35,7 @@ class ImportViewModel @Inject constructor(
     private val setCurrentWallet: SetCurrentWallet,
     private val validatePhrase: ValidatePhraseOperator,
     private val findPhraseWord: GemFindPhraseWord,
-    getNameRecord: GetNameRecord,
+    addressInput: AddressInputResolving,
 ) : ViewModel() {
 
     fun invalidPhraseWords(text: String): Set<String> =
@@ -51,7 +51,7 @@ class ImportViewModel @Inject constructor(
     val uiState = state.map { it.toUIState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ImportUIState())
 
-    private val nameRecordController = NameRecordController(getNameRecord, viewModelScope)
+    private val nameRecordController = NameRecordController(addressInput, viewModelScope)
     val nameResolveState: StateFlow<NameRecordState> = nameRecordController.state
 
     fun chainType(walletType: WalletType) {

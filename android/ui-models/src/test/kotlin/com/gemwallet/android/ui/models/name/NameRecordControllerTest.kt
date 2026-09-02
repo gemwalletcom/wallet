@@ -1,6 +1,6 @@
 package com.gemwallet.android.ui.models.name
 
-import com.gemwallet.android.application.recipient.cases.GetNameRecord
+import com.gemwallet.android.domains.name.AddressInputResolving
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameProvider
 import com.wallet.core.primitives.NameRecord
@@ -9,6 +9,8 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemRecipientValidation
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class NameRecordControllerTest {
@@ -22,7 +24,7 @@ class NameRecordControllerTest {
         provider = NameProvider.Ens,
     )
 
-    private class FakeGetNameRecord(private val result: NameRecord?) : GetNameRecord {
+    private class FakeGetNameRecord(private val result: NameRecord?) : AddressInputResolving {
         val requests = mutableListOf<Pair<String, Chain>>()
 
         override suspend fun getNameRecord(name: String, chain: Chain): NameRecord? {
@@ -31,6 +33,12 @@ class NameRecordControllerTest {
         }
 
         override fun isNameSupported(name: String): Boolean = name.split(".").size >= 2
+
+        override fun validateRecipient(chain: Chain, input: String, nameRecord: NameRecord?): GemRecipientValidation =
+            GemRecipientValidation(isValid = true, address = nameRecord?.address ?: input, showsError = false)
+
+        override fun recipient(chain: Chain, input: String, nameRecord: NameRecord?, memo: String?, references: List<String>): GemRecipient =
+            GemRecipient(address = nameRecord?.address ?: input, name = nameRecord?.name)
     }
 
     @Test

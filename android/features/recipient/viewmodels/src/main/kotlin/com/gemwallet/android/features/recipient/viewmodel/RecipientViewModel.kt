@@ -5,25 +5,23 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.contacts.values.ContactRecipient
 import com.gemwallet.android.application.contacts.cases.GetContacts
-import com.gemwallet.android.application.recipient.cases.GetNameRecord
 import com.gemwallet.android.application.nft.cases.GetAssetNft
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.ext.addressInput
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.decodePayment
 import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isMemoSupport
-import com.gemwallet.android.ext.request
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientType
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.model.PaymentRecipient
+import com.gemwallet.android.model.toPaymentWalletAsset
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -37,12 +35,15 @@ import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAsset
+import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.NameRecord
+import com.wallet.core.primitives.Wallet
+import uniffi.gemstone.GemPaymentDestination
 import uniffi.gemstone.GemRecipientException
-import uniffi.gemstone.GemPaymentService
-import uniffi.gemstone.GemNameServiceInterface
+import uniffi.gemstone.GemRecipientServiceInterface
 import uniffi.gemstone.GemTransactionInputType
+import uniffi.gemstone.GemstoneException
 import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.domains.confirm.confirmInput
 import com.gemwallet.android.domains.confirm.transferNft
@@ -73,21 +74,14 @@ import javax.inject.Inject
 @HiltViewModel
 class RecipientViewModel @Inject constructor(
     private val getSession: GetSession,
-    private val getWallets: GetWallets,
     private val getContacts: GetContacts,
     private val getAssetInfo: GetAssetInfo,
     private val getAssetNft: GetAssetNft,
-    private val getNameRecord: GetNameRecord,
     savedStateHandle: SavedStateHandle,
-    private val nameService: GemNameServiceInterface,
-    private val paymentService: GemPaymentService,
+    private val service: GemRecipientServiceInterface,
 ) : ViewModel() {
 
-    private val addressInput = AddressInputModel(
-        getNameRecord = getNameRecord,
-        nameService = nameService,
-        scope = viewModelScope,
-    )
+    private val addressInput = AddressInputModel(service.addressInput(), viewModelScope)
 
     val address: StateFlow<String> = addressInput.text
     val nameResolveState: StateFlow<NameRecordState> = addressInput.nameResolveState
@@ -124,9 +118,10 @@ class RecipientViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, RecipientState.Loading)
 
-    val wallets = session.combine(getWallets()) { session, wallets ->
-        wallets.filter { it.id != session?.wallet?.id }
+    val wallets = session.map { session ->
+        session?.wallet?.let { wallet -> service.otherWallets(wallet.id.id).map { it.decodeJson<Wallet>() } }.orEmpty()
     }
+    .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val contacts: StateFlow<List<ContactRecipient>> = state
@@ -192,9 +187,9 @@ class RecipientViewModel @Inject constructor(
     ) {
         val chain = type.assetInfo.asset.chain
         val recipient = try {
-            nameService.recipient(chain.string, input, nameRecord?.toJson(), memo.value, references)
+            service.recipient(chain.string, input, nameRecord?.toJson(), memo.value, references)
         } catch (_: GemRecipientException) {
-            if (!getNameRecord.isNameSupported(input)) {
+            if (!service.isNameSupported(input)) {
                 addressInput.markInvalid()
             }
             return
@@ -229,19 +224,23 @@ class RecipientViewModel @Inject constructor(
     }
 
     private fun onAddressScan(type: RecipientType, data: String, confirmAction: ConfirmTransactionAction) {
-        when (val destination = scannedDestination(type, data)) {
-            PaymentDestination.Unsupported -> addressInput.markInvalid()
-            is PaymentDestination.Confirm -> confirmAction(destination.input)
-            is PaymentDestination.Recipient -> updateFrom(destination.payment)
+        val asset = type.assetInfo.asset
+        val destination = try {
+            service.scanDestination(data, type.assetInfo.toPaymentWalletAsset())
+        } catch (_: GemstoneException) {
+            addressInput.markInvalid()
+            return
         }
-    }
-
-    private fun scannedDestination(type: RecipientType, data: String): PaymentDestination.Transfer {
-        val request = paymentService.decodePayment(data)?.request ?: return PaymentDestination.Unsupported
-
-        return when (type) {
-            is RecipientType.Nft -> PaymentDestination.transfer(request.copy(amount = null), type.assetInfo, paymentService)
-            is RecipientType.Asset -> PaymentDestination.transfer(request, type.assetInfo, paymentService)
+        when (destination) {
+            is GemPaymentDestination.Confirm -> {
+                val transfer = service.transferData(destination.transfer, asset.toGem())
+                when (type) {
+                    is RecipientType.Nft -> updateFrom(PaymentRecipient(transfer.recipient, null))
+                    is RecipientType.Asset -> session.value?.wallet?.getAccount(asset.chain)?.let { confirmAction(transfer.confirmInput(it)) }
+                }
+            }
+            is GemPaymentDestination.Recipient -> updateFrom(PaymentRecipient(destination.recipient, destination.amount))
+            is GemPaymentDestination.SelectAsset, is GemPaymentDestination.Unsupported -> addressInput.markInvalid()
         }
     }
 
