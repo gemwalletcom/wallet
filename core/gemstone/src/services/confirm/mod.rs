@@ -1,3 +1,5 @@
+#![allow(clippy::result_large_err)]
+
 mod error;
 mod model;
 pub(crate) mod rules;

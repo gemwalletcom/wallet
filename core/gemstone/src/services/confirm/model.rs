@@ -1,12 +1,13 @@
 use serde::{Deserialize, Serialize};
 
+use super::error::GemConfirmError;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
 use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::balance::GemAssetBalance;
 use crate::services::price::GemAssetPrice;
 use crate::services::transfer::GemTransferData;
-use crate::transfer_amount::{GemTransferAmount, GemTransferAmountError};
+use crate::transfer_amount::GemTransferAmount;
 use primitives::{
     Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, Transaction, Wallet,
 };
@@ -116,7 +117,7 @@ pub struct GemConfirmSimulationState {
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemTransferAmountResult {
     Amount { amount: GemTransferAmount },
-    Error { error: GemTransferAmountError, asset: Asset },
+    Error { error: GemConfirmError },
 }
 
 #[derive(Debug, Clone, uniffi::Record)]

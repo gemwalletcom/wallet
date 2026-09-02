@@ -29,7 +29,6 @@ import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetPriceValue
 import uniffi.gemstone.GemConfirmInput
-import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemExecuteResult
@@ -53,9 +52,7 @@ import com.gemwallet.android.domains.confirm.FeeAssetUIModel
 import com.gemwallet.android.domains.confirm.toFeeAssetUIModel
 import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
 import com.gemwallet.android.features.confirm.models.PerpetualModifyAutocloseFactory
-import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.domains.confirm.ConfirmState
-import com.gemwallet.android.domains.confirm.toConfirmError
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.wallet.core.primitives.AddressName
@@ -144,9 +141,7 @@ class ConfirmViewModel @Inject constructor(
         } catch (error: CancellationException) {
             throw error
         } catch (err: Throwable) {
-            state.update {
-                ConfirmState.Error(err.toPreloadConfirmError())
-            }
+            state.update { ConfirmState.Error(err) }
             return@combine null
         }
 
@@ -194,7 +189,7 @@ class ConfirmViewModel @Inject constructor(
         when (val amount = preload.amount) {
             is GemTransferAmountResult.Amount -> BigInteger(amount.amount.value)
             is GemTransferAmountResult.Error -> {
-                state.update { ConfirmState.Error(amount.error.toConfirmError(amount.asset.toPrimitives())) }
+                state.update { ConfirmState.Error(amount.error) }
                 null
             }
         }
@@ -320,11 +315,11 @@ class ConfirmViewModel @Inject constructor(
 
         try {
             if (signerParams == null || session == null) {
-                throw ConfirmError.TransactionIncorrect
+                error("confirm input is not loaded")
             }
             val amount = when (val calculated = preload.amount) {
                 is GemTransferAmountResult.Amount -> BigInteger(calculated.amount.value)
-                is GemTransferAmountResult.Error -> throw calculated.error.toConfirmError(calculated.asset.toPrimitives())
+                is GemTransferAmountResult.Error -> throw calculated.error
             }
             val transactionHash = execute(signerParams.copy(finalAmount = amount), session.wallet)
             state.update { ConfirmState.Result(transactionHash = transactionHash) }
@@ -334,7 +329,7 @@ class ConfirmViewModel @Inject constructor(
         } catch (error: CancellationException) {
             throw error
         } catch (err: Throwable) {
-            state.update { ConfirmState.BroadcastError(err.toBroadcastConfirmError()) }
+            state.update { ConfirmState.BroadcastError(err) }
         }
     }
 
@@ -346,12 +341,7 @@ class ConfirmViewModel @Inject constructor(
             networkFee = signerParams.fee.amount.toString(),
             simulation = simulationResult.value?.toJson(),
         )
-        val result = try {
-            confirmService.execute(input)
-        } catch (error: GemConfirmException.Sign) {
-            throw error.error.toConfirmError(signerParams.input.transfer.inputType.asset.id.chain)
-        }
-        return when (result) {
+        return when (val result = confirmService.execute(input)) {
             is GemExecuteResult.Signed -> result.data.first()
             is GemExecuteResult.Sent -> result.hashes.last()
         }

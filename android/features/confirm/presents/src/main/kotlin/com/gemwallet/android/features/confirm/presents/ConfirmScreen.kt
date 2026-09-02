@@ -33,7 +33,12 @@ import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.boldMarkdown
 import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
-import com.gemwallet.android.domains.confirm.ConfirmError
+import com.gemwallet.android.ext.toGemNetworkError
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.model.GemNetworkError
+import uniffi.gemstone.GemConfirmException
+import uniffi.gemstone.GemSignerError
+import java.math.BigInteger
 import com.gemwallet.android.domains.confirm.ConfirmProperty
 import com.gemwallet.android.domains.confirm.ConfirmState
 import com.gemwallet.android.domains.confirm.FeeUIModel
@@ -121,11 +126,11 @@ fun ConfirmScreen(
     var showSelectTxSpeed by remember { mutableStateOf(false) }
     var showSimulationDetails by remember { mutableStateOf(false) }
     var selectedDetailElement by remember(input) { mutableStateOf<ConfirmDetailElement?>(null) }
-    var isShowedBroadcastError by remember((state as? ConfirmState.BroadcastError)?.message) {
+    var isShowedBroadcastError by remember((state as? ConfirmState.BroadcastError)?.error) {
         mutableStateOf(state is ConfirmState.BroadcastError)
     }
     var isShowBottomSheetInfo by remember(state as? ConfirmState.Error) {
-        mutableStateOf((state as? ConfirmState.Error)?.message is ConfirmError.InsufficientFee)
+        mutableStateOf((state as? ConfirmState.Error)?.error is GemConfirmException.InsufficientNetworkFee)
     }
 
     LaunchedEffect(input, simulationResult) {
@@ -287,6 +292,7 @@ fun ConfirmScreen(
             item {
                 ConfirmErrorInfo(
                     state = state,
+                    chain = input?.transfer?.inputType?.asset?.id?.chain,
                     fee = feeModel as? FeeUIModel.FeeInfo,
                     isShowBottomSheetInfo = isShowBottomSheetInfo,
                     onAcquireAsset = onAcquireAsset,
@@ -338,7 +344,7 @@ fun ConfirmScreen(
                 Text(stringResource(R.string.errors_transfer_error))
             },
             text = {
-                Text((state as? ConfirmState.BroadcastError)?.message?.toLabel() ?: "Unknown error")
+                Text((state as? ConfirmState.BroadcastError)?.error?.toBroadcastLabel() ?: stringResource(R.string.errors_error_occurred))
             }
         )
     }
@@ -409,21 +415,34 @@ fun ConfirmState.buttonLabel(): String {
 }
 
 @Composable
-fun ConfirmError.toLabel() = when (this) {
-    is ConfirmError.Init,
-    is ConfirmError.TransactionIncorrect,
-    is ConfirmError.PreloadError -> "${stringResource(R.string.confirm_fee_error)}: ${stringResource(R.string.errors_unable_estimate_network_fee)}"
-    is ConfirmError.InsufficientBalance -> stringResource(R.string.transfer_insufficient_balance, "${asset.name} (${asset.symbol})".boldMarkdown())
-    is ConfirmError.InsufficientFee -> stringResource(R.string.transfer_insufficient_network_fee_balance, chain.asset().title.boldMarkdown())
-    is ConfirmError.BroadcastError -> "${stringResource(R.string.errors_transfer_error)}: ${this.details}"
-    is ConfirmError.NetworkError -> error.localizedDescription()
-    is ConfirmError.SignFail -> stringResource(R.string.errors_transfer_error)
-    is ConfirmError.RecipientEmpty -> "${stringResource(R.string.errors_transfer_error)}: recipient can't be empty"
-    is ConfirmError.DustThreshold -> stringResource(id = R.string.errors_dust_threshold_short)
-    is ConfirmError.None -> stringResource(id = R.string.transfer_confirm)
-    is ConfirmError.MinimumAccountBalanceTooLow -> stringResource(R.string.transfer_minimum_account_balance, asset.symbol)
-    is ConfirmError.ScanTransactionMalicious -> stringResource(R.string.errors_scan_transaction_malicious_description)
-    is ConfirmError.ScanTransactionMemoRequired -> stringResource(R.string.errors_scan_transaction_memo_required, symbol)
+fun Throwable.toPreloadLabel(): String = toConfirmLabel()
+    ?: toGemNetworkError()?.localizedDescription()
+    ?: "${stringResource(R.string.confirm_fee_error)}: ${stringResource(R.string.errors_unable_estimate_network_fee)}"
+
+@Composable
+fun Throwable.toBroadcastLabel(): String = toConfirmLabel()
+    ?: toGemNetworkError()?.localizedDescription()
+    ?: "${stringResource(R.string.errors_transfer_error)}: ${message ?: toString()}"
+
+@Composable
+private fun Throwable.toConfirmLabel(): String? = when (this) {
+    is GemConfirmException.ScanMalicious -> stringResource(R.string.errors_scan_transaction_malicious_description)
+    is GemConfirmException.ScanMemoRequired -> stringResource(R.string.errors_scan_transaction_memo_required, symbol)
+    is GemConfirmException.InsufficientBalance -> stringResource(R.string.transfer_insufficient_balance, asset.toPrimitives().title.boldMarkdown())
+    is GemConfirmException.InsufficientNetworkFee -> stringResource(R.string.transfer_insufficient_network_fee_balance, asset.toPrimitives().title.boldMarkdown())
+    is GemConfirmException.MinimumAccountBalanceTooLow -> stringResource(
+        R.string.transfer_minimum_account_balance,
+        ValueFormatter(style = ValueFormatter.Style.Full).string(BigInteger(required), asset.toPrimitives()).boldMarkdown(),
+    )
+    is GemConfirmException.Offline -> GemNetworkError.Offline.localizedDescription()
+    is GemConfirmException.Network -> msg
+    is GemConfirmException.Broadcast -> "${stringResource(R.string.errors_transfer_error)}: $msg"
+    is GemConfirmException.Sign -> when (error) {
+        GemSignerError.DustThreshold -> stringResource(R.string.errors_dust_threshold_short)
+        else -> stringResource(R.string.errors_transfer_error)
+    }
+    is GemConfirmException -> null
+    else -> null
 }
 
 @Composable

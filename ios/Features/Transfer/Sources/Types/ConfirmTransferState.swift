@@ -30,7 +30,7 @@ extension ConfirmTransferState {
 
     var transactionError: ConfirmTransferError? {
         if case let .error(error) = transaction { return ConfirmTransferError(error: error) }
-        if case let .failure(error)? = transaction.value?.transferAmount { return .amount(error) }
+        if case let .failure(error)? = transaction.value?.transferAmount { return ConfirmTransferError(error: error) }
         return nil
     }
 }

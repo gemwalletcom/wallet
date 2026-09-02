@@ -677,6 +677,17 @@ import set the wallet up twice. Both apps now do what iOS did: `GemWalletService
 then `setCurrentWalletId`, and the root's wallet-change handler does the rest. The Android
 "importing" indicator (`SyncWalletImport`) stays; it is a platform progress port, not setup.
 
+**One error type per flow, carrying what the screen renders.** The confirm screen failed with
+three Core error types — `GemConfirmError`, the preload's `GemTransferAmountError` (asset ids
+only) and `GemSignerError` — and each app kept a parallel enum to merge them (`ConfirmError` with
+fourteen cases on Android, `ConfirmTransferError.amount/.scan` on iOS) plus a mapper and its
+tests. `GemConfirmError` now carries the amount failures itself (`InsufficientBalance`,
+`InsufficientNetworkFee`, `MinimumAccountBalanceTooLow`, each with the `Asset` the screen names
+and the required/available values), so a preload amount failure is the same type as a scan or
+broadcast failure and the apps only map variants to strings and info sheets. Android's
+`ConfirmState` holds the `Throwable`; iOS's `ConfirmTransferError` keeps only the
+platform-classified `chain` and `other` cases beside `confirm`.
+
 **A screen's action list is a Core answer.** The stake screen's manage rows — stake (and whether
 it is enabled or first needs a frozen balance), freeze, unfreeze, claim rewards — were derived on
 both apps from five chain flags and two balance checks, with the view-only gate on one app only.

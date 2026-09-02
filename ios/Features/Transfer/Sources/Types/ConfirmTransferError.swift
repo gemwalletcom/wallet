@@ -5,22 +5,16 @@ import GemstonePrimitives
 import GemstoneServices
 import Foundation
 import Primitives
-import Validators
 
 enum ConfirmTransferError {
-    case amount(TransferAmountCalculatorError)
-    case scan(GemConfirmError)
+    case confirm(GemConfirmError)
     case chain(ChainCoreError)
     case other(Error)
 
     init(error: Error) {
         switch error {
-        case let error as TransferAmountCalculatorError:
-            self = .amount(error)
-        case let .InsufficientNetworkFee(assetId) as GemConfirmError:
-            self = .amount(.insufficientNetworkFee(AssetId(core: assetId).chain.asset, requirement: nil))
-        case let error as GemConfirmError where error.isScanRejection:
-            self = .scan(error)
+        case let error as GemConfirmError where error.hasInfoSheet:
+            self = .confirm(error)
         default:
             switch ChainCoreError.fromError(error) {
             case let .some(chainError): self = .chain(chainError)
@@ -31,8 +25,7 @@ enum ConfirmTransferError {
 
     var displayError: Error {
         switch self {
-        case let .amount(error): error
-        case let .scan(error): error
+        case let .confirm(error): error
         case let .chain(error): error
         case let .other(error): error
         }

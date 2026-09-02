@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Components
 import Foundation
 import GemstonePrimitives
@@ -7,7 +8,6 @@ import InfoSheet
 import enum Gemstone.GemConfirmError
 import Primitives
 import PrimitivesComponents
-import Validators
 
 enum ConfirmInfoSheetBuilder {
     static func build(
@@ -18,10 +18,8 @@ enum ConfirmInfoSheetBuilder {
         onGetAsset: @escaping @MainActor @Sendable (Asset, Int?) -> Void,
     ) -> InfoSheetType? {
         switch error {
-        case let .amount(error):
-            amountSheet(for: error, feePrice: feePrice, currency: currency, onGetAsset: onGetAsset)
-        case let .scan(error):
-            scanSheet(for: error)
+        case let .confirm(error):
+            confirmSheet(for: error, feePrice: feePrice, currency: currency, onGetAsset: onGetAsset)
         case .chain(.dustThreshold):
             .dustThreshold(asset.chain, image: image(for: asset))
         case .chain, .other:
@@ -29,29 +27,27 @@ enum ConfirmInfoSheetBuilder {
         }
     }
 
-    private static func amountSheet(
-        for error: TransferAmountCalculatorError,
+    private static func confirmSheet(
+        for error: GemConfirmError,
         feePrice: Price?,
         currency: String,
         onGetAsset: @escaping @MainActor @Sendable (Asset, Int?) -> Void,
-    ) -> InfoSheetType {
+    ) -> InfoSheetType? {
         switch error {
-        case let .insufficientBalance(asset, requirement):
-            .balanceRequired(asset, image: image(for: asset), requirement: requirement, action: { onGetAsset(asset, nil) })
-        case let .insufficientNetworkFee(asset, requirement):
-            .insufficientNetworkFee(asset, image: image(for: asset), requirement: requirement, price: feePrice, currency: currency, action: {
+        case let .InsufficientBalance(asset, required, available):
+            let asset = asset.map()
+            let requirement = BalanceRequirement(required: BigInt(core: required), available: BigInt(core: available))
+            return .balanceRequired(asset, image: image(for: asset), requirement: requirement, action: { onGetAsset(asset, nil) })
+        case let .InsufficientNetworkFee(asset, _, _):
+            let asset = asset.map()
+            return .insufficientNetworkFee(asset, image: image(for: asset), requirement: error.balanceRequirement, price: feePrice, currency: currency, action: {
                 onGetAsset(asset, FiatConfig.insufficientNetworkFeeBuyAmount)
             })
-        case let .minimumAccountBalanceTooLow(asset, requirement):
-            .accountMinimalBalance(asset, required: requirement.required)
-        }
-    }
-
-    private static func scanSheet(for error: GemConfirmError) -> InfoSheetType? {
-        switch error {
-        case .ScanMalicious: .maliciousTransaction
-        case let .ScanMemoRequired(symbol): .memoRequired(symbol: symbol)
-        default: nil
+        case let .MinimumAccountBalanceTooLow(asset, required, _):
+            return .accountMinimalBalance(asset.map(), required: BigInt(core: required))
+        case .ScanMalicious: return .maliciousTransaction
+        case let .ScanMemoRequired(symbol): return .memoRequired(symbol: symbol)
+        default: return nil
         }
     }
 

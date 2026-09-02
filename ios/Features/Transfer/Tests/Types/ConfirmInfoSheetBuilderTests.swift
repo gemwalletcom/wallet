@@ -6,9 +6,9 @@ import GemstonePrimitives
 import InfoSheet
 import Primitives
 import PrimitivesTestKit
+import enum Gemstone.GemConfirmError
 import Testing
 @testable import Transfer
-import Validators
 
 @MainActor
 struct ConfirmInfoSheetBuilderTests {
@@ -17,7 +17,7 @@ struct ConfirmInfoSheetBuilderTests {
         let asset = Asset.mock()
         let requirement = BalanceRequirement(required: 2, available: 1)
 
-        guard case let .balanceRequired(sheetAsset, _, sheetRequirement, _) = build(for: TransferAmountCalculatorError.insufficientBalance(asset, requirement: requirement)) else {
+        guard case let .balanceRequired(sheetAsset, _, sheetRequirement, _) = build(for: GemConfirmError.InsufficientBalance(asset: asset.map(), required: "2", available: "1")) else {
             Issue.record("Expected balanceRequired sheet")
             return
         }
@@ -27,9 +27,7 @@ struct ConfirmInfoSheetBuilderTests {
 
     @Test
     func minimumAccountBalanceSheet() {
-        let requirement = BalanceRequirement(required: BigInt(10), available: .zero)
-
-        guard case let .accountMinimalBalance(_, required) = build(for: TransferAmountCalculatorError.minimumAccountBalanceTooLow(.mock(), requirement: requirement)) else {
+        guard case let .accountMinimalBalance(_, required) = build(for: GemConfirmError.MinimumAccountBalanceTooLow(asset: Asset.mock().map(), required: "10", available: "0")) else {
             Issue.record("Expected accountMinimalBalance sheet")
             return
         }

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemAssetPrice
+import enum Gemstone.GemConfirmError
 import struct Gemstone.GemConfirmMetadata
 import GemstonePrimitivesTestKit
 import BigInt
@@ -10,7 +11,6 @@ import Primitives
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
-import Validators
 
 struct TransactionInputViewModelTests {
     @Test
@@ -33,10 +33,7 @@ struct TransactionInputViewModelTests {
             data: .mock(value: 100),
             fee: nil,
             metaData: nil,
-            transferAmount: .failure(TransferAmountCalculatorError.insufficientBalance(
-                .mock(),
-                requirement: BalanceRequirement(required: 1, available: 0),
-            )),
+            transferAmount: .failure(GemConfirmError.InsufficientBalance(asset: Asset.mock().map(), required: "1", available: "0")),
             feeAsset: .mock(),
             currency: Currency.usd.rawValue,
         )

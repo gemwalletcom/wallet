@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use primitives::currency::Currency;
-use primitives::{AddressName, Chain, PerpetualModifyConfirmData, SimulationResult, Transaction, WalletId};
+use primitives::{AddressName, Asset, Chain, PerpetualModifyConfirmData, SimulationResult, Transaction, WalletId};
 
 use crate::block_explorer::GemBlockExplorerLink;
 use crate::models::transaction::GemTransactionInputType;
@@ -193,7 +193,11 @@ impl GemConfirmTransferService {
 
     fn missing_network_fee(&self, wallet_id: WalletId, input_type: GemTransactionInputType) -> Option<GemConfirmError> {
         let balance = self.metadata(wallet_id, input_type).ok()?.fee_asset_balance;
-        is_insufficient_network_fee(balance.asset_id.clone(), &balance.available.to_string()).then_some(GemConfirmError::InsufficientNetworkFee { asset_id: balance.asset_id })
+        is_insufficient_network_fee(balance.asset_id.clone(), &balance.available.to_string()).then(|| GemConfirmError::InsufficientNetworkFee {
+            asset: Asset::from_chain(balance.asset_id.chain),
+            required: None,
+            available: None,
+        })
     }
 }
 

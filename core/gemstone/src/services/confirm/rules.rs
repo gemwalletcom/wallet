@@ -123,20 +123,31 @@ impl GemConfirmData {
         Ok(match input.calculate() {
             Ok(amount) => GemTransferAmountResult::Amount { amount },
             Err(error) => GemTransferAmountResult::Error {
-                asset: amount_error_asset(&error, transfer.input_type.asset(), fee_asset),
-                error,
+                error: amount_error(error, transfer.input_type.asset(), fee_asset),
             },
         })
     }
 }
 
-fn amount_error_asset(error: &GemTransferAmountError, asset: &Asset, fee_asset: &Asset) -> Asset {
-    let asset_id = match error {
-        GemTransferAmountError::InsufficientBalance { asset_id, .. }
-        | GemTransferAmountError::InsufficientNetworkFee { asset_id, .. }
-        | GemTransferAmountError::MinimumAccountBalanceTooLow { asset_id, .. } => asset_id,
-    };
-    if &asset.id == asset_id { asset.clone() } else { fee_asset.clone() }
+fn amount_error(error: GemTransferAmountError, asset: &Asset, fee_asset: &Asset) -> GemConfirmError {
+    let error_asset = |asset_id: &AssetId| if &asset.id == asset_id { asset.clone() } else { fee_asset.clone() };
+    match error {
+        GemTransferAmountError::InsufficientBalance { asset_id, required, available } => GemConfirmError::InsufficientBalance {
+            asset: error_asset(&asset_id),
+            required,
+            available,
+        },
+        GemTransferAmountError::InsufficientNetworkFee { asset_id, required, available } => GemConfirmError::InsufficientNetworkFee {
+            asset: error_asset(&asset_id),
+            required: Some(required),
+            available: Some(available),
+        },
+        GemTransferAmountError::MinimumAccountBalanceTooLow { asset_id, required, available } => GemConfirmError::MinimumAccountBalanceTooLow {
+            asset: error_asset(&asset_id),
+            required,
+            available,
+        },
+    }
 }
 
 pub fn selectable_fee_assets(assets: Vec<Asset>, balances: Vec<GemAssetBalance>, prices: Vec<GemAssetPrice>) -> Vec<GemFeeAsset> {
@@ -843,7 +854,20 @@ mod tests {
             prices: vec![],
         };
 
-        assert!(matches!(data.preload_amount(&short, &asset).unwrap(), GemTransferAmountResult::Error { .. }));
+        match data.preload_amount(&short, &asset).unwrap() {
+            GemTransferAmountResult::Error {
+                error: GemConfirmError::InsufficientBalance {
+                    asset: error_asset,
+                    required,
+                    available,
+                },
+            } => {
+                assert_eq!(error_asset, asset, "the error names the asset the screen shows, not just its id");
+                assert_eq!(required, BigInt::from(1_001));
+                assert_eq!(available, BigInt::from(10));
+            }
+            other => panic!("expected an insufficient balance error, got {other:?}"),
+        }
         assert!(matches!(data.preload_amount(&funded, &asset).unwrap(), GemTransferAmountResult::Amount { .. }));
     }
 

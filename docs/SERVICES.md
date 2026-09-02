@@ -374,13 +374,6 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
-- **Android confirm error collapse.**
-  [`ConfirmErrorMapper.kt`](../android/features/confirm/viewmodels/src/main/kotlin/com/gemwallet/android/features/confirm/viewmodels/ConfirmErrorMapper.kt)
-  translates `GemConfirmException` into parallel
-  [`ConfirmError`](../android/gemcore/src/main/kotlin/com/gemwallet/android/domains/confirm/ConfirmError.kt)
-  cases for scan, network, fee and broadcast failures. Render or classify the typed Core error
-  directly, delete those mirrored cases and their mapper tests, and retain only genuinely
-  app-owned validation or presentation state.
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**
 - **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `nft::report` (Android report screen), `wallet_preferences::is_initial_load_completed` (iOS wallet empty state), `reset_transactions_timestamp` (iOS developer action).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.

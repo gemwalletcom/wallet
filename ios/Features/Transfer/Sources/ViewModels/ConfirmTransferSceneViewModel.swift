@@ -320,7 +320,7 @@ extension ConfirmTransferSceneViewModel {
     private func onStateChange(state: ConfirmTransferState) {
         guard let error = state.transactionError else { return }
         switch error {
-        case .amount, .scan:
+        case .confirm:
             onSelectListError(error: error)
         case .chain, .other:
             break

@@ -2,14 +2,14 @@
 
 import BigInt
 import Foundation
-@testable import Primitives
+@testable import GemstonePrimitives
+import Primitives
 import PrimitivesComponents
 import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
 import TransferTestKit
-import Validators
 
 struct ConfirmNetworkFeeViewModelTests {
     @Test
@@ -99,10 +99,7 @@ struct ConfirmNetworkFeeViewModelTests {
 
     @Test
     func calculatorError() {
-        let input = ConfirmTransferInput.mock(transferAmount: .failure(.insufficientBalance(
-            .mock(),
-            requirement: BalanceRequirement(required: 1, available: 0),
-        )))
+        let input = ConfirmTransferInput.mock(transferAmount: .failure(.InsufficientBalance(asset: Asset.mock().map(), required: "1", available: "0")))
         let feeModel = feeModel(feeAssetPrice: Price(price: 2500, priceChangePercentage24h: 0, updatedAt: Date()))
         let model = ConfirmNetworkFeeViewModel(
             state: .data(input),
