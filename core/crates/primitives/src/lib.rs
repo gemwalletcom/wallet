@@ -140,7 +140,7 @@ pub use self::device_token::DeviceToken;
 pub mod defi;
 pub use self::defi::{DefiPosition, DefiPositionAsset, DefiPositionMetadata, DefiPositionType, DefiProtocol, DefiProvider};
 pub mod transaction;
-pub use self::transaction::{Transaction, TransactionsResponse};
+pub use self::transaction::{TRANSACTIONS_MAX_PAGES, TRANSACTIONS_PAGE_SIZE, Transaction, TransactionsResponse};
 pub mod transaction_type;
 pub use self::transaction_type::TransactionType;
 pub mod tag_visibility;

@@ -10,14 +10,11 @@ use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{
     AddressName, AuthNonce, AuthenticatedRequest, ChainAddress, ChartPeriod, Device, FiatQuoteType, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, NFTAssetData,
     NFTAssetId, NFTData, PortfolioAssets, PortfolioAssetsRequest, PriceAlert, ReferralCode, ReportNft, Rewards, ScanTransaction, ScanTransactionPayload, SupportMessage,
-    SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains,
+    SupportMessageInput, TRANSACTIONS_MAX_PAGES, TRANSACTIONS_PAGE_SIZE, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains,
 };
 use serde::de::DeserializeOwned;
 
 use crate::device_target::{GemDeviceApiBody, GemDeviceApiTarget};
-
-const TRANSACTIONS_PAGE_SIZE: usize = 100;
-const TRANSACTIONS_MAX_PAGES: usize = 100;
 
 /// Runs before any request scoped to a wallet, so the app can make sure the
 /// backend already knows that wallet before the call goes out.
