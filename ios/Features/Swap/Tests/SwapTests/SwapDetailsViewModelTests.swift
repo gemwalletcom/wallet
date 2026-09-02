@@ -45,13 +45,12 @@ struct SwapDetailsViewModelTests {
 extension SwapDetailsViewModel {
     static func mock(selectedQuote: SwapQuote = try! SwapperQuote.mock().map(swapQuoteService: GemSwapQuoteService())) -> SwapDetailsViewModel {
         SwapDetailsViewModel(
-            state: .data([SwapperQuote.mock()]),
             fromAssetPrice: AssetPriceValue(asset: .mockEthereum(), price: .mock()),
             toAssetPrice: AssetPriceValue(asset: .mockEthereumUSDT(), price: .mock()),
             selectedQuote: selectedQuote,
             slippage: .auto,
             currency: Currency.usd.rawValue,
-            swapQuoteService: GemSwapQuoteService(),
+            swapPriceImpact: nil,
             swapProviderSelectAction: nil,
         )
     }

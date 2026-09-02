@@ -1,5 +1,9 @@
 package com.gemwallet.android.features.swap.viewmodels
 
+import com.wallet.core.primitives.swap.SwapPriceImpact
+import com.gemwallet.android.serializer.decodeJson
+
+import com.gemwallet.android.domains.asset.swapValue
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
@@ -220,8 +224,11 @@ class SwapViewModel @Inject constructor(
                     selectedSlippage = selectedSlippageBps.value,
                     etaInSeconds = quote.quote.etaInSeconds,
                     isProviderSelectable = providers.size > 1,
+                    priceImpact = swapQuoteService.priceImpact(
+                        quote.pay.swapValue(quote.quote.fromValue),
+                        quote.receive.swapValue(quote.quote.toValue),
+                    )?.decodeJson(),
                 ),
-                swapQuoteService,
             )
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

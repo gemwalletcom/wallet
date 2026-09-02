@@ -5,7 +5,6 @@ import struct Gemstone.GemConfirmMetadata
 import protocol Gemstone.GemConfirmTransferServiceProtocol
 import enum Gemstone.GemTransactionInputType
 import Components
-import class Gemstone.GemSwapQuoteService
 import Primitives
 import PrimitivesComponents
 import Swap
@@ -37,14 +36,19 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
         case let .swap(fromAsset, toAsset, swapData):
             let toAsset = toAsset.map()
             let quote = Primitives.SwapData(core: swapData).quote
+            let fromAssetPrice = AssetPriceValue(asset: fromAsset.map(), price: metadata?.assetPrice)
+            let toAssetPrice = AssetPriceValue(asset: toAsset, price: metadata?.assetPrices[toAsset.id])
             return .swapDetails(
                 SwapDetailsViewModel(
-                    fromAssetPrice: AssetPriceValue(asset: fromAsset.map(), price: metadata?.assetPrice),
-                    toAssetPrice: AssetPriceValue(asset: toAsset, price: metadata?.assetPrices[toAsset.id]),
+                    fromAssetPrice: fromAssetPrice,
+                    toAssetPrice: toAssetPrice,
                     selectedQuote: quote,
                     slippage: .manual(bps: quote.slippageBps),
                     currency: currency,
-                    swapQuoteService: service.swapQuote(),
+                    swapPriceImpact: service.swapPriceImpact(
+                        pay: fromAssetPrice.swapValue(quote.fromValue),
+                        receive: toAssetPrice.swapValue(quote.toValue),
+                    ).flatMap { try? Primitives.SwapPriceImpact($0) },
                 ),
             )
         case let .perpetual(_, perpetualType):

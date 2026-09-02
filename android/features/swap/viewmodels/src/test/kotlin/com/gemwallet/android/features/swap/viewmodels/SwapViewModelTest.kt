@@ -132,7 +132,7 @@ class SwapViewModelTest {
         every { getAssetInfo(solAsset.id) } returns flowOf(solInfo)
         every { getAssetInfo(usdcAsset.id) } returns flowOf(usdcInfo)
         every { requestSwapQuotes.invoke(any(), any(), any(), any(), any()) } returns emptyFlow()
-        every { SwapDetailsUIModelFactory.create(any(), any()) } returns mockk(relaxed = true)
+        every { SwapDetailsUIModelFactory.create(any()) } returns mockk(relaxed = true)
     }
 
     @After
@@ -598,7 +598,7 @@ class SwapViewModelTest {
 
     @Test
     fun `onPrimaryAction shows price impact warning before swap`() = runTest(testDispatcher) {
-        every { SwapDetailsUIModelFactory.create(any(), any()) } returns SwapDetailsUIModel(
+        every { SwapDetailsUIModelFactory.create(any()) } returns SwapDetailsUIModel(
             provider = SwapProviderUIModel(
                 id = SwapperProvider.UNISWAP_V3,
                 title = "Uniswap v3",

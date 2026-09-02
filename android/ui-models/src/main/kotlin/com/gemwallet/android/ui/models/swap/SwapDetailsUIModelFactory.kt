@@ -15,7 +15,6 @@ import com.wallet.core.primitives.swap.SwapPriceImpact
 import java.math.BigInteger
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.SwapperProviderType
-import uniffi.gemstone.GemSwapQuoteService
 
 object SwapProviderUIModelFactory {
     fun create(
@@ -62,6 +61,7 @@ data class SwapDetailsUIModelInput(
     val selectedSlippage: UInt?,
     val etaInSeconds: UInt?,
     val isProviderSelectable: Boolean,
+    val priceImpact: SwapPriceImpact? = null,
 )
 
 object SwapDetailsUIModelFactory {
@@ -69,16 +69,7 @@ object SwapDetailsUIModelFactory {
 
     private val rateFormatter = AssetRateFormatter()
 
-    fun create(input: SwapDetailsUIModelInput, swapQuoteService: GemSwapQuoteService): SwapDetailsUIModel? {
-        return create(input) { payFiatValue, receiveFiatValue ->
-            swapQuoteService.priceImpact(payFiatValue, receiveFiatValue)?.decodeJson()
-        }
-    }
-
-    internal fun create(
-        input: SwapDetailsUIModelInput,
-        priceImpactCalculator: (Double, Double) -> SwapPriceImpact?,
-    ): SwapDetailsUIModel? {
+    fun create(input: SwapDetailsUIModelInput): SwapDetailsUIModel? {
         val rate = buildAssetRatePair(
             fromAsset = input.payAsset.asset,
             toAsset = input.receiveAsset.asset,
@@ -88,10 +79,7 @@ object SwapDetailsUIModelFactory {
         ) ?: return null
 
         val slippagePercent = input.slippageBps.toDouble() / 100.0
-        val priceImpact = priceImpactCalculator(
-            input.payAsset.calculateFiat(input.fromValue).toDouble(),
-            input.receiveAsset.calculateFiat(input.toValue).toDouble(),
-        )?.let {
+        val priceImpact = input.priceImpact?.let {
             SwapPriceImpactUIModel(
                 type = it.impactType,
                 displayText = it.percentage.formatAsPercentage(),

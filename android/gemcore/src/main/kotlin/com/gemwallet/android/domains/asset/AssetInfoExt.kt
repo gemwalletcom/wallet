@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.asset
 
+import uniffi.gemstone.GemSwapValue
 import android.text.format.DateUtils
 import com.gemwallet.android.ext.millisToSeconds
 import com.gemwallet.android.model.AssetInfo
@@ -67,3 +68,9 @@ fun AssetInfo.formatFiat(value: BigDecimal): String {
 }
 
 fun AssetInfo.isMemoSupport() = asset.isMemoSupport()
+
+fun AssetInfo.swapValue(value: String): GemSwapValue = GemSwapValue(
+    value = value.toBigIntegerOrNull()?.toString() ?: "0",
+    decimals = asset.decimals.toUInt(),
+    price = price?.price?.price,
+)

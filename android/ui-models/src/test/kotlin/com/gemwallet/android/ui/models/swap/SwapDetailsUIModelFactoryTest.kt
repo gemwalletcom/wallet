@@ -107,7 +107,6 @@ class SwapDetailsUIModelFactoryTest {
                 etaInSeconds = null,
                 isProviderSelectable = false,
             ),
-            priceImpactCalculator = { _, _ -> null },
         )
 
         assertEquals("1 ETH ≈ 2,000.00 USDC", result!!.rate.forward)
@@ -190,8 +189,8 @@ class SwapDetailsUIModelFactoryTest {
             selectedSlippage = slippageBps,
             etaInSeconds = etaInSeconds,
             isProviderSelectable = isProviderSelectable,
+            priceImpact = priceImpact,
         ),
-        priceImpactCalculator = { _, _ -> priceImpact },
     )
 
     private fun provider(

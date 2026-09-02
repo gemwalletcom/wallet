@@ -4,6 +4,7 @@ use primitives::currency::Currency;
 use primitives::{AddressName, Chain, PerpetualModifyConfirmData, SimulationResult, Transaction, WalletId};
 
 use crate::block_explorer::GemBlockExplorerLink;
+use crate::models::swap::GemSwapValue;
 use crate::models::transaction::GemTransactionInputType;
 use crate::services::assets::config::GemAssetConfigService;
 use crate::services::confirm::rules::is_insufficient_network_fee;
@@ -20,6 +21,7 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::swap::config::GemSwapQuoteService;
 use crate::services::transfer::GemRecentActivityService;
 use crate::services::wallet::{GemKeystoreAuthentication, GemKeystorePassword};
+use primitives::swap::SwapPriceImpact;
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmTransferService {
@@ -164,8 +166,8 @@ impl GemConfirmTransferService {
         self.asset_config.acquire_flow(chain)
     }
 
-    pub fn swap_quote(&self) -> Arc<GemSwapQuoteService> {
-        self.swap_quote.clone()
+    pub fn swap_price_impact(&self, pay: GemSwapValue, receive: GemSwapValue) -> Option<SwapPriceImpact> {
+        self.swap_quote.price_impact(pay, receive)
     }
 }
 

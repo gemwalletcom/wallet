@@ -110,19 +110,37 @@ public final class SwapSceneViewModel {
 
     public var swapDetailsViewModel: SwapDetailsViewModel? {
         guard let selectedSwapQuote, let fromAsset, let toAsset, let selectedQuote = try? selectedSwapQuote.map(swapQuoteService: swapQuoteService) else { return nil }
+        let fromAssetPrice = AssetPriceValue(asset: fromAsset.asset, price: fromAsset.price)
+        let toAssetPrice = AssetPriceValue(asset: toAsset.asset, price: toAsset.price)
         return SwapDetailsViewModel(
-            state: swapState.quotes,
-            fromAssetPrice: AssetPriceValue(asset: fromAsset.asset, price: fromAsset.price),
-            toAssetPrice: AssetPriceValue(asset: toAsset.asset, price: toAsset.price),
+            state: swapState.quotes.map { providerItems($0, selectedQuote: selectedQuote, toAssetPrice: toAssetPrice) },
+            fromAssetPrice: fromAssetPrice,
+            toAssetPrice: toAssetPrice,
             selectedQuote: selectedQuote,
             slippage: selectedSlippage,
             currency: preferencesService.currencyCode,
             isProviderSelectionEnabled: isQuoteInteractionEnabled,
-            swapQuoteService: swapQuoteService,
+            swapPriceImpact: swapQuoteService.priceImpact(
+                pay: fromAssetPrice.swapValue(selectedQuote.fromValue),
+                receive: toAssetPrice.swapValue(selectedQuote.toValue),
+            ).flatMap { try? Primitives.SwapPriceImpact($0) },
             swapProviderSelectAction: { [weak self] quote in
                 self?.onFinishSwapProviderSelection(quote)
             },
         )
+    }
+
+    private func providerItems(_ quotes: [SwapperQuote], selectedQuote: SwapQuote, toAssetPrice: AssetPriceValue) -> [SwapProviderItem] {
+        quotes.compactMap {
+            SwapProviderItem(
+                asset: toAssetPrice.asset,
+                swapperQuote: $0,
+                selectedProvider: selectedQuote.providerData.provider,
+                priceViewModel: PriceViewModel(price: toAssetPrice.price, currencyCode: preferencesService.currencyCode),
+                valueFormatter: ValueFormatter(style: .auto),
+                swapQuoteService: swapQuoteService,
+            )
+        }
     }
 
     var showsSlippageIndicator: Bool {

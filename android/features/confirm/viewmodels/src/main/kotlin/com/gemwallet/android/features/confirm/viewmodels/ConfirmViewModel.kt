@@ -1,5 +1,8 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
+import com.wallet.core.primitives.swap.SwapPriceImpact
+
+import com.gemwallet.android.domains.asset.swapValue
 import android.util.Log
 import com.gemwallet.android.ui.R
 import uniffi.gemstone.GemTransferAmountResult
@@ -82,7 +85,6 @@ import kotlinx.coroutines.launch
 import com.wallet.core.primitives.SimulationResult
 import java.math.BigInteger
 import javax.inject.Inject
-import uniffi.gemstone.GemSwapQuoteService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -97,7 +99,6 @@ class ConfirmViewModel @Inject constructor(
     private val confirmService: GemConfirmTransferService,
     private val savedStateHandle: SavedStateHandle,
     private val transferService: GemTransferService,
-    private val swapQuoteService: GemSwapQuoteService,
 ) : ViewModel() {
 
     private val restart = MutableStateFlow(false)
@@ -425,8 +426,11 @@ class ConfirmViewModel @Inject constructor(
                 selectedSlippage = swapData.quote.slippageBps,
                 etaInSeconds = swapData.quote.etaInSeconds,
                 isProviderSelectable = false,
+                priceImpact = confirmService.swapPriceImpact(
+                    fromAssetInfo.swapValue(transfer.value),
+                    toAssetInfo.swapValue(swapData.quote.toValue),
+                )?.decodeJson(),
             ),
-            swapQuoteService,
         ) ?: return null
 
         return ConfirmDetailElement.SwapDetails(model)

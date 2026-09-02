@@ -1,4 +1,6 @@
 use crate::config::swap_config::get_swap_config;
+use crate::models::custom_types::GemBigUint;
+use number_formatter::BigNumberFormatter;
 
 pub use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData};
 pub use swapper::SwapperProvider;
@@ -6,6 +8,25 @@ pub use swapper::SwapperProvider;
 pub type GemApprovalData = ApprovalData;
 pub type GemSwapData = SwapData;
 pub type GemSwapQuoteData = SwapQuoteData;
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSwapValue {
+    pub value: GemBigUint,
+    pub decimals: u32,
+    pub price: Option<f64>,
+}
+
+impl GemSwapValue {
+    fn fiat_value(&self) -> Option<f64> {
+        let price = self.price?;
+        let amount = BigNumberFormatter::value_as_f64(&self.value.to_string(), self.decimals).ok()?;
+        Some(amount * price)
+    }
+}
+
+pub fn swap_price_impact(pay: &GemSwapValue, receive: &GemSwapValue) -> Option<SwapPriceImpact> {
+    calculate_swap_price_impact(pay.fiat_value()?, receive.fiat_value()?)
+}
 
 pub fn calculate_swap_price_impact(pay_fiat_value: f64, receive_fiat_value: f64) -> Option<SwapPriceImpact> {
     if pay_fiat_value <= 0.0 || receive_fiat_value <= 0.0 || !pay_fiat_value.is_finite() || !receive_fiat_value.is_finite() {
@@ -35,7 +56,22 @@ fn round_to_places(value: f64, places: i32) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use super::{SwapPriceImpact, SwapPriceImpactType, calculate_swap_price_impact, round_to_places};
+    use super::{GemSwapValue, SwapPriceImpact, SwapPriceImpactType, calculate_swap_price_impact, round_to_places, swap_price_impact};
+
+    #[test]
+    fn test_swap_price_impact_needs_a_price_on_both_sides() {
+        let priced = |value: u32, price: Option<f64>| GemSwapValue {
+            value: value.into(),
+            decimals: 2,
+            price,
+        };
+
+        assert_eq!(swap_price_impact(&priced(100, None), &priced(100, Some(1.0))), None);
+        assert_eq!(swap_price_impact(&priced(100, Some(1.0)), &priced(100, None)), None);
+
+        let impact = swap_price_impact(&priced(200, Some(1.0)), &priced(100, Some(1.0))).expect("impact");
+        assert_eq!(impact.percentage, -50.0);
+    }
 
     #[test]
     fn test_calculate_swap_price_impact() {
