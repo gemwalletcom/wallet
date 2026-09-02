@@ -416,9 +416,12 @@ setup rather than retrying it.
   recent-activity write, matching iOS `SelectAssetViewModel`; only the observed reads
   (`GetRecentAssets`, the `SelectSearch` sources) stay as cases. `WalletSearchTokens`,
   `WalletSearchScope`, the `@WalletSearch` qualifier and `SearchTokens.search(query, …)` are gone;
-  `SearchTokens` keeps the widget's `syncAssets` call only. `UpdateRecentAsset`,
-  `SwitchAssetVisibility`, `SetAssetPinned` and `SetPerpetualPinned` remain for
-  `NetworkAssetsViewModel` and `AssetsViewModel`.
+  `SearchTokens` keeps the widget's `syncAssets` call only.
+- **Wallet home**: `AssetsViewModel` and `NetworkAssetsViewModel` hold `GemWalletHomeService`
+  (`refresh`, `setAssetPinned`, `setAssetsEnabled`, `applyBannerAction`) like iOS
+  `WalletSceneViewModel`; `SyncAssets` (the wallet-switch sync in `StreamObserverService`) is one
+  `refresh` call, and `HideAsset`, `SetAssetPinned`, `SwitchAssetVisibility`, `ToggleHideBalances`,
+  `HideWelcomeBanner` and `DeviceAssetsSyncService` are gone.
 - **Perpetual market**: `PerpetualMarketViewModel` holds `GemPerpetualService` (`syncMarketsIfNeeded`,
   `setPinned`) and `GemRecentActivityService`, and position sync is `PerpetualObserver.update(wallet)`
   exactly as iOS's `PerpetualObservable.update(for:)`, so `SyncPerpetuals`, `SyncPerpetualPositions`,

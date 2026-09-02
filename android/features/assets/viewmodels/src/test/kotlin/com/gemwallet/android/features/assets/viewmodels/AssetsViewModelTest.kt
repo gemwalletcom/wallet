@@ -5,12 +5,8 @@ import com.gemwallet.android.application.assets.cases.GetHideBalancesState
 import com.gemwallet.android.application.assets.cases.GetImportInProgress
 import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
-import com.gemwallet.android.application.assets.cases.HideAsset
-import com.gemwallet.android.application.assets.cases.HideWelcomeBanner
-import com.gemwallet.android.application.assets.cases.SyncAssets
-import com.gemwallet.android.application.assets.cases.SetAssetPinned
-import com.gemwallet.android.application.assets.cases.ToggleHideBalances
 import com.gemwallet.android.application.session.cases.GetSession
+import uniffi.gemstone.GemWalletHomeServiceInterface
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAsset
@@ -46,11 +42,7 @@ class AssetsViewModelTest {
         )
     )
 
-    private val syncAssets = mockk<SyncAssets>(relaxed = true)
-    private val hideAsset = mockk<HideAsset>(relaxed = true)
-    private val setAssetPinned = mockk<SetAssetPinned>(relaxed = true)
-    private val toggleHideBalances = mockk<ToggleHideBalances>(relaxed = true)
-    private val hideWelcomeBanner = mockk<HideWelcomeBanner>(relaxed = true)
+    private val service = mockk<GemWalletHomeServiceInterface>(relaxed = true)
     private val getImportInProgress = object : GetImportInProgress {
         override fun invoke(): Flow<Boolean> = flowOf(false)
     }
@@ -103,11 +95,7 @@ class AssetsViewModelTest {
     }
 
     private fun createViewModel() = AssetsViewModel(
-        syncAssets = syncAssets,
-        hideAsset = hideAsset,
-        setAssetPinned = setAssetPinned,
-        toggleHideBalances = toggleHideBalances,
-        hideWelcomeBanner = hideWelcomeBanner,
+        service = service,
         getImportInProgress = getImportInProgress,
         getActiveAssetsInfo = getActiveAssetsInfo,
         getWalletSummary = getWalletSummary,
