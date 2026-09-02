@@ -71,7 +71,6 @@ import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.data.coordinators.asset.GetWidgetAssetsImpl
 import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.application.assets.cases.GetWidgetAssets
-import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetCurrentWallet
 
 @InstallIn(SingletonComponent::class)
@@ -164,13 +163,11 @@ object AssetModule {
         balanceService: GemBalanceService,
         streamSubscriptionService: GemStreamSubscriptionService,
         syncMissingAssets: SyncMissingAssets,
-        getCurrentCurrency: GetCurrentCurrency,
     ): SyncAssetInfo = SyncAssetInfoImpl(
         assetsService = assetsService,
         balanceService = balanceService,
         streamSubscriptionService = streamSubscriptionService,
         syncMissingAssets = syncMissingAssets,
-        getCurrentCurrency = getCurrentCurrency,
     )
 
     @Provides

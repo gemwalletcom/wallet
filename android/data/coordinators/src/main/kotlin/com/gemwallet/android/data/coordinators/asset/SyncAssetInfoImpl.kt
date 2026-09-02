@@ -3,9 +3,7 @@ package com.gemwallet.android.data.coordinators.asset
 import android.util.Log
 import com.gemwallet.android.application.assets.cases.SyncMissingAssets
 import com.gemwallet.android.application.assets.cases.SyncAssetInfo
-import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
@@ -27,7 +25,6 @@ class SyncAssetInfoImpl(
     private val balanceService: GemBalanceService,
     private val streamSubscriptionService: GemStreamSubscriptionService,
     private val syncMissingAssets: SyncMissingAssets,
-    private val getCurrentCurrency: GetCurrentCurrency,
 ) : SyncAssetInfo {
 
     override suspend fun syncAssetInfo(assetId: AssetId, wallet: Wallet): Unit = withContext(Dispatchers.IO) {
@@ -53,7 +50,7 @@ class SyncAssetInfoImpl(
 
     private suspend fun syncAssetMetadata(assetId: AssetId): AssetFull? {
         return try {
-            assetsService.syncAsset(assetId.toIdentifier(), getCurrentCurrency.getCurrentCurrency().toGem()).decodeJson<AssetFull>()
+            assetsService.syncAsset(assetId.toIdentifier()).decodeJson<AssetFull>()
         } catch (_: Exception) {
             currentCoroutineContext().ensureActive()
             null

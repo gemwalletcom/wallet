@@ -1,7 +1,6 @@
 use futures::TryFutureExt;
 use std::sync::Arc;
 
-use primitives::currency::Currency;
 use primitives::{Asset, AssetFull, AssetId, BannerEvent, Chain, Deeplink, WalletId};
 
 use crate::block_explorer::GemBlockExplorerLink;
@@ -82,11 +81,11 @@ impl GemAssetDetailsService {
         }
     }
 
-    pub async fn refresh(&self, wallet_id: WalletId, asset_id: AssetId, currency: Currency) -> Vec<GemAssetRefreshFailure> {
+    pub async fn refresh(&self, wallet_id: WalletId, asset_id: AssetId) -> Vec<GemAssetRefreshFailure> {
         let mut failures = Vec::new();
         record(&mut failures, GemAssetRefreshStep::AddPrices, self.stream.add_prices(vec![asset_id.clone()])).await;
 
-        let associations = match self.assets.sync_asset(asset_id.clone(), currency).await {
+        let associations = match self.assets.sync_asset(asset_id.clone()).await {
             Ok(asset) => asset.associations.into_iter().map(|association| association.asset_id).collect(),
             Err(error) => {
                 failures.push(GemAssetRefreshFailure::new(GemAssetRefreshStep::SyncAsset, error.to_string()));
@@ -112,8 +111,8 @@ impl GemAssetDetailsService {
         failures
     }
 
-    pub async fn sync_asset(&self, asset_id: AssetId, currency: Currency) -> Result<AssetFull, GemServiceError> {
-        self.assets.sync_asset(asset_id, currency).await
+    pub async fn sync_asset(&self, asset_id: AssetId) -> Result<AssetFull, GemServiceError> {
+        self.assets.sync_asset(asset_id).await
     }
 
     pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {

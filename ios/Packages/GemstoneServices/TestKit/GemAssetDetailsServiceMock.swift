@@ -6,7 +6,6 @@ import typealias Gemstone.AssetId
 import typealias Gemstone.AssetFull
 import typealias Gemstone.BannerEvent
 import typealias Gemstone.Chain
-import typealias Gemstone.Currency
 import typealias Gemstone.Deeplink
 import protocol Gemstone.GemAssetDetailsServiceProtocol
 import struct Gemstone.GemBannerContent
@@ -30,9 +29,9 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         self.assetPair = assetPair
     }
 
-    public func refresh(walletId: WalletId, assetId: AssetId, currency: Currency) async -> [GemAssetRefreshFailure] { [] }
+    public func refresh(walletId: WalletId, assetId: AssetId) async -> [GemAssetRefreshFailure] { [] }
 
-    public func syncAsset(assetId: AssetId, currency: Currency) async throws -> AssetFull {
+    public func syncAsset(assetId: AssetId) async throws -> AssetFull {
         Primitives.AssetFull.mock().json()
     }
 

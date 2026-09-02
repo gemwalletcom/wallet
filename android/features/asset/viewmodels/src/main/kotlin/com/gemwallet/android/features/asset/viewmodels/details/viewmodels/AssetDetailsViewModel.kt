@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.asset.viewmodels.details.viewmodels
 
 import android.util.Log
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
@@ -10,7 +9,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
-import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
@@ -49,7 +47,6 @@ class AssetDetailsViewModel @Inject constructor(
     private val getChainAssetInfo: GetChainAssetInfo,
     private val getTransactions: GetTransactions,
     private val assetDetailsService: GemAssetDetailsService,
-    private val getCurrentCurrency: GetCurrentCurrency,
     private val hasMultiSign: HasMultiSign,
     private val assetInfoUIModelFactory: AssetInfoUIModelFactory,
 ) : ViewModel() {
@@ -143,7 +140,7 @@ class AssetDetailsViewModel @Inject constructor(
     private suspend fun syncAssetDetails(wallet: Wallet) {
         wallet.getAccount(assetId) ?: return
         assetDetailsService
-            .refresh(wallet.id.id, assetId.toIdentifier(), getCurrentCurrency.getCurrentCurrency().toGem())
+            .refresh(wallet.id.id, assetId.toIdentifier())
             .forEach { Log.e(TAG, "asset refresh ${it.step} failed: ${it.message}") }
     }
 

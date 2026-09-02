@@ -1,9 +1,7 @@
 package com.gemwallet.android.data.coordinators.tokens
 
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
-import com.wallet.core.primitives.Currency
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -20,9 +18,9 @@ class SearchTokensImplTest {
     fun searchByAssetIds_syncsThemThroughCore() = runTest {
         val asset = mockAsset()
 
-        val result = subject.search(assetIds = listOf(asset.id), currency = Currency.USD)
+        val result = subject.search(assetIds = listOf(asset.id))
 
         assertTrue(result)
-        coVerify(exactly = 1) { assetsService.syncAssets(listOf(asset.id.toIdentifier()), Currency.USD.toGem()) }
+        coVerify(exactly = 1) { assetsService.syncAssets(listOf(asset.id.toIdentifier())) }
     }
 }

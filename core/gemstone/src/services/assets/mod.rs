@@ -9,7 +9,6 @@ pub mod store;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use primitives::currency::Currency;
 use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, Chain, ConfigVersions, FiatAssets, FiatQuoteType, SearchResponse, Wallet, WalletId};
 
 pub use add::GemAddAssetService;
@@ -73,7 +72,8 @@ impl GemAssetsService {
         Ok(asset)
     }
 
-    pub async fn sync_asset(&self, asset_id: AssetId, currency: Currency) -> Result<AssetFull, GemServiceError> {
+    pub async fn sync_asset(&self, asset_id: AssetId) -> Result<AssetFull, GemServiceError> {
+        let currency = self.preferences.get_currency();
         let asset = self.get_asset(asset_id.clone()).await?;
         self.store.save_asset(asset.clone()).await?;
         let price = asset
@@ -87,11 +87,12 @@ impl GemAssetsService {
         Ok(asset)
     }
 
-    pub async fn sync_assets(&self, asset_ids: Vec<AssetId>, currency: Currency) -> Result<(), GemServiceError> {
+    pub async fn sync_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
         let asset_ids = crate::services::collections::unique(asset_ids);
         if asset_ids.is_empty() {
             return Ok(());
         }
+        let currency = self.preferences.get_currency();
         let assets = self.get_assets(asset_ids, Some(currency.to_string())).await?;
         if assets.is_empty() {
             return Ok(());
