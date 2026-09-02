@@ -217,10 +217,11 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             ConfirmNetworkViewModel(type: request.data.inputType)
         case .recipient:
             ConfirmRecipientViewModel(
-                model: dataModel,
+                destination: request.data.destination(),
+                chain: dataModel.chain,
+                memo: dataModel.recipient.memo,
                 addressName: recipientAddressNameQuery.value,
                 addressLink: explorerLink(chain: dataModel.chain, address: dataModel.recipient.address),
-                outputAction: request.data.inputType.outputAction,
                 onAddContact: onSelectAddRecipientToContacts,
             )
         case .memo:

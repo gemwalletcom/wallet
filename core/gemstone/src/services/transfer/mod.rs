@@ -14,7 +14,7 @@ use primitives::TransactionType;
 use primitives::swap::ApprovalData;
 
 pub(crate) use model::GemPendingTransactionInput;
-pub use model::{GemRecentActivity, GemRecipient, GemTransferBalance, GemTransferData, GemTransferOutput};
+pub use model::{GemConfirmDestination, GemRecentActivity, GemRecipient, GemTransferBalance, GemTransferData, GemTransferOutput};
 pub use recent::GemRecentActivityService;
 pub use store::GemRecentActivityStore;
 

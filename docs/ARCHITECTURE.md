@@ -658,6 +658,17 @@ re-run only the preload and keep the fee assets and simulation. `GemConfirmTrans
 constructed when the screen opens, so it holds the loaded scene itself: every call is `load`, and
 the second one reuses what did not change. The apps replace their state wholesale.
 
+**The confirm screen's destination row is the same rule.** iOS hid it for `.account`, `.swap`,
+`.perpetual` and generic-sign and titled it by input type; Android hid it for approvals, earn,
+freeze/unfreeze and multi-validator rewards, looked the validator back up from Room, and put
+the dApp name in the row for every generic request. `GemTransferData::destination()` returns
+`GemConfirmDestination { Recipient | Contract | Validator | Resource | Provider }` or nothing,
+built from the stake type and earn type Core already carries (so Android's `GetStakeValidator`
+lookup and its recipient-name gap are gone); both apps map a variant to a title and render.
+Android keeps its dApp-name row beside it, as iOS keeps `.app`. The tests that pinned the old
+tables on each app — `ConfirmRecipientViewModelTests` with its silently-passing `guard case`,
+`ConfirmDestinationTableTest` — became one Core test plus a mapping test on iOS.
+
 **A "which address, which role" decision is a rule.** The transaction participant — sender or
 recipient by direction, contract for approvals, validator for delegations, provider for earn,
 recipient-or-contract from WalletConnect metadata — lived in a 35-line Swift `switch` and a

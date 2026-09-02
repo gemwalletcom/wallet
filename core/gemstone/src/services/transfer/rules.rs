@@ -4,12 +4,12 @@ use primitives::SwapProvider;
 use primitives::known_assets::wallet_default_assets;
 use primitives::swap::ApprovalData;
 use primitives::{
-    ApplicationMetadataSource, Asset, AssetId, AssetType, Chain, EarnType, FeePriority, PerpetualType, RecentActivityType, StakeType, Transaction, TransactionDirection,
-    TransactionInputType, TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata,
-    TransactionType, TransactionWalletConnectMetadata, TransferDataOutputAction, TransferDataOutputType,
+    ApplicationMetadataSource, Asset, AssetId, AssetType, Chain, DelegationValidator, EarnType, FeePriority, PerpetualType, RecentActivityType, StakeType, Transaction,
+    TransactionDirection, TransactionInputType, TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState,
+    TransactionSwapMetadata, TransactionType, TransactionWalletConnectMetadata, TransferDataOutputAction, TransferDataOutputType,
 };
 
-use super::model::{GemPendingTransactionInput, GemRecentActivity, GemTransferBalance, GemTransferData, GemTransferOutput};
+use super::model::{GemConfirmDestination, GemPendingTransactionInput, GemRecentActivity, GemTransferBalance, GemTransferData, GemTransferOutput};
 use crate::config::chain::is_memo_supported;
 use crate::models::transaction::{GemTransactionInputType, transaction_metadata_block_number, transaction_metadata_sequence};
 use crate::services::amount::model::GemAmountError;
@@ -229,6 +229,56 @@ pub(crate) fn unfreeze_available(resource: &primitives::Resource, balance: &GemT
     match resource {
         primitives::Resource::Bandwidth => balance.frozen.clone(),
         primitives::Resource::Energy => balance.locked.clone(),
+    }
+}
+
+#[uniffi::export]
+impl GemTransferData {
+    pub fn destination(&self) -> Option<GemConfirmDestination> {
+        let recipient = || {
+            (!self.recipient.address.is_empty()).then(|| GemConfirmDestination::Recipient {
+                name: self.recipient.name.clone(),
+                address: self.recipient.address.clone(),
+            })
+        };
+        let validator = |validator: &DelegationValidator| GemConfirmDestination::Validator {
+            name: validator.name.clone(),
+            address: validator.id.clone(),
+        };
+        match &self.input_type {
+            GemTransactionInputType::Transfer { .. }
+            | GemTransactionInputType::TransferNft { .. }
+            | GemTransactionInputType::Deposit { .. }
+            | GemTransactionInputType::Withdrawal { .. } => recipient(),
+            GemTransactionInputType::TokenApprove { .. } => Some(GemConfirmDestination::Contract {
+                address: self.recipient.address.clone(),
+            }),
+            GemTransactionInputType::Generic { extra, .. } => match extra.output_action {
+                TransferDataOutputAction::Send => recipient(),
+                TransferDataOutputAction::Sign => None,
+            },
+            GemTransactionInputType::Stake { stake_type, .. } => match stake_type {
+                StakeType::Stake(target) => Some(validator(target)),
+                StakeType::Redelegate(data) => Some(validator(&data.to_validator)),
+                StakeType::Unstake(delegation) | StakeType::Withdraw(delegation) => Some(validator(&delegation.validator)),
+                StakeType::Rewards(validators) => match validators.as_slice() {
+                    [target] => Some(validator(target)),
+                    _ => None,
+                },
+                StakeType::Freeze(resource) | StakeType::Unfreeze(resource) => Some(GemConfirmDestination::Resource { resource: *resource }),
+            },
+            GemTransactionInputType::Earn { earn_type, .. } => {
+                let provider = match earn_type {
+                    EarnType::Deposit(provider) => provider,
+                    EarnType::Withdraw(delegation) => &delegation.validator,
+                };
+                Some(GemConfirmDestination::Provider {
+                    name: provider.name.clone(),
+                    address: provider.id.clone(),
+                })
+            }
+            GemTransactionInputType::Swap { .. } | GemTransactionInputType::Account { .. } | GemTransactionInputType::Perpetual { .. } => None,
+        }
     }
 }
 
@@ -545,6 +595,79 @@ mod tests {
         assert_eq!(nft.fee_asset().id, AssetId::from_chain(Chain::Ethereum));
         let spl = GemTransactionInputType::Transfer { asset: Asset::mock_spl_token() };
         assert_eq!(spl.fee_asset().id, AssetId::from_chain(Chain::Solana));
+    }
+
+    #[test]
+    fn test_destination_is_the_row_the_confirm_screen_shows() {
+        let eth = asset(Chain::Ethereum);
+        let sent = transfer(GemTransactionInputType::Transfer { asset: eth.clone() }, "1");
+        assert_eq!(
+            sent.destination(),
+            Some(GemConfirmDestination::Recipient {
+                name: None,
+                address: "recipient".into()
+            })
+        );
+        let mut unaddressed = sent.clone();
+        unaddressed.recipient.address = String::new();
+        assert_eq!(unaddressed.destination(), None);
+
+        let signature = transfer(
+            GemTransactionInputType::Generic {
+                asset: eth.clone(),
+                metadata: primitives::ApplicationMetadata::mock(),
+                extra: TransferDataExtra {
+                    output_action: TransferDataOutputAction::Sign,
+                    ..TransferDataExtra::mock()
+                }
+                .into(),
+            },
+            "0",
+        );
+        assert_eq!(signature.destination(), None);
+
+        let validator = DelegationValidator::mock();
+        let rewards = |validators: Vec<DelegationValidator>| {
+            transfer(
+                GemTransactionInputType::Stake {
+                    asset: eth.clone(),
+                    stake_type: StakeType::Rewards(validators),
+                },
+                "0",
+            )
+        };
+        assert_eq!(
+            rewards(vec![validator.clone()]).destination(),
+            Some(GemConfirmDestination::Validator {
+                name: validator.name.clone(),
+                address: validator.id.clone()
+            })
+        );
+        assert_eq!(rewards(vec![validator.clone(), validator.clone()]).destination(), None);
+        assert_eq!(
+            transfer(
+                GemTransactionInputType::Stake {
+                    asset: eth.clone(),
+                    stake_type: StakeType::Freeze(primitives::Resource::Energy),
+                },
+                "0",
+            )
+            .destination(),
+            Some(GemConfirmDestination::Resource {
+                resource: primitives::Resource::Energy
+            })
+        );
+        assert_eq!(
+            transfer(
+                GemTransactionInputType::TokenApprove {
+                    asset: eth.clone(),
+                    approval_data: primitives::swap::ApprovalData::mock(),
+                },
+                "0",
+            )
+            .destination(),
+            Some(GemConfirmDestination::Contract { address: "recipient".into() })
+        );
     }
 
     #[test]

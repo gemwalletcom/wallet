@@ -2,28 +2,33 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemConfirmDestination
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
 
 struct ConfirmRecipientViewModel {
-    private let model: TransferDataViewModel
+    private let destination: GemConfirmDestination?
+    private let chain: Chain
+    private let memo: String?
     private let addressName: AddressName?
     private let addressLink: BlockExplorerLink
     private let onAddContact: ((AddContactType) -> Void)?
-    private let outputAction: TransferDataOutputAction
 
     init(
-        model: TransferDataViewModel,
+        destination: GemConfirmDestination?,
+        chain: Chain,
+        memo: String?,
         addressName: AddressName?,
         addressLink: BlockExplorerLink,
-        outputAction: TransferDataOutputAction,
         onAddContact: ((AddContactType) -> Void)? = nil,
     ) {
-        self.model = model
+        self.destination = destination
+        self.chain = chain
+        self.memo = memo
         self.addressName = addressName
         self.addressLink = addressLink
-        self.outputAction = outputAction
         self.onAddContact = onAddContact
     }
 }
@@ -32,15 +37,22 @@ struct ConfirmRecipientViewModel {
 
 extension ConfirmRecipientViewModel: ItemModelProvidable {
     var itemModel: ConfirmTransferItemModel {
-        guard showRecipient else { return .empty }
+        guard let destination else { return .empty }
+        let (title, name, address): (String, String?, String) = switch destination {
+        case let .recipient(name, address): (Localized.Transfer.Recipient.title, addressName?.name ?? name, address)
+        case let .contract(address): (Localized.Asset.contract, addressName?.name, address)
+        case let .validator(name, address): (Localized.Stake.validator, name, address)
+        case let .resource(resource): (Localized.Stake.resource, ResourceViewModel(resource: Primitives.Resource(core: resource)).title, "")
+        case let .provider(name, address): (Localized.Common.provider, name, address)
+        }
         return .recipient(
             AddressListItemViewModel(
-                title: recipientTitle,
+                title: title,
                 account: SimpleAccount(
-                    name: addressName?.name ?? model.recipient.name,
-                    chain: model.chain,
-                    address: model.recipient.address,
-                    memo: model.recipient.memo,
+                    name: name,
+                    chain: chain,
+                    address: address,
+                    memo: memo,
                     assetImage: addressNameImage,
                     addressType: addressName?.type,
                 ),
@@ -65,50 +77,6 @@ extension ConfirmRecipientViewModel {
             )
         case .address, .contract, .validator, .internalWallet:
             return nil
-        }
-    }
-
-    private var recipientTitle: String {
-        switch model.type {
-        case .swap: Localized.Common.provider
-        case let .stake(_, stakeType):
-            switch Primitives.StakeType(core: stakeType) {
-            case .stake, .unstake, .redelegate, .rewards, .withdraw: Localized.Stake.validator
-            case .freeze, .unfreeze: Localized.Stake.resource
-            }
-        case .generic:
-            switch outputAction {
-            case .sign: Localized.Asset.contract
-            case .send: Localized.Transfer.Recipient.title
-            }
-        case .earn: Localized.Common.provider
-        case .transfer, .deposit, .withdrawal, .transferNft, .tokenApprove, .account, .perpetual: Localized.Transfer.Recipient.title
-        }
-    }
-
-    private var showRecipient: Bool {
-        guard !model.recipient.address.isEmpty else { return false }
-
-        return switch model.type {
-        case let .stake(_, stakeType):
-            switch Primitives.StakeType(core: stakeType) {
-            case .stake, .unstake, .redelegate, .withdraw, .rewards: true
-            case .freeze, .unfreeze: true
-            }
-        case .account,
-             .swap,
-             .perpetual: false
-        case .earn: true
-        case .generic:
-            switch outputAction {
-            case .sign: false
-            case .send: true
-            }
-        case .transfer,
-             .transferNft,
-             .deposit,
-             .withdrawal,
-             .tokenApprove: true
         }
     }
 }
