@@ -2,6 +2,7 @@
 
 import BigInt
 import Formatters
+import class Gemstone.GemCustomFee
 import GemstonePrimitives
 import Localization
 import Observation
@@ -65,19 +66,19 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public var errorText: String? {
-        if isBelowMinimum, let minimumRate {
-            let minText = FeeUnitViewModel(unit: FeeUnit(type: chain.feeUnitType, value: minimumRate), decimals: decimals, symbol: feeAsset.symbol).value
+        if estimate.isBelowMinimum(), let minimumRate = estimate.minimumRate() {
+            let minText = FeeUnitViewModel(unit: FeeUnit(type: chain.feeUnitType, value: BigInt(core: minimumRate)), decimals: decimals, symbol: feeAsset.symbol).value
             return Localized.Common.minimumValue(minText)
         }
-        if let estimate, estimate.isOverMax {
-            let maxText = FeeUnitViewModel(unit: FeeUnit(type: chain.feeUnitType, value: estimate.maxRate), decimals: decimals, symbol: feeAsset.symbol).value
+        if estimate.isOverMax() {
+            let maxText = FeeUnitViewModel(unit: FeeUnit(type: chain.feeUnitType, value: BigInt(core: estimate.maxRate())), decimals: decimals, symbol: feeAsset.symbol).value
             return Localized.Common.maximumValue(maxText)
         }
         return nil
     }
 
     public var isConfirmEnabled: Bool {
-        rate != nil && !isBelowMinimum && estimate?.isOverMax == false
+        estimate.isValid()
     }
 
     public func sanitize(_ text: String) -> String {
@@ -85,17 +86,8 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public func confirm() {
-        guard let rate, !isBelowMinimum, estimate?.isOverMax == false else { return }
+        guard let rate, estimate.isValid() else { return }
         onSelect(rate)
-    }
-
-    private var minimumRate: BigInt? {
-        chain.minimumCustomFeeRate
-    }
-
-    private var isBelowMinimum: Bool {
-        guard let rate, let minimumRate else { return false }
-        return rate < minimumRate
     }
 
     private var rate: BigInt? {
@@ -103,18 +95,18 @@ public final class NetworkFeeCustomViewModel {
         return value
     }
 
-    private var estimate: CustomFeeEstimate? {
-        try? CustomFeeEstimate(
-            rate: rate,
-            loadedFee: baseFee ?? .zero,
-            baseTotal: baseTotal ?? .zero,
-            normalTotal: normalTotal ?? .zero,
-            maxMultiplier: chain.maxCustomFeeRateMultiplier,
+    private var estimate: GemCustomFee {
+        GemCustomFee.estimate(
+            chain: chain.rawValue,
+            rate: rate?.description,
+            loadedFee: (baseFee ?? .zero).description,
+            baseTotal: (baseTotal ?? .zero).description,
+            normalTotal: (normalTotal ?? .zero).description,
         )
     }
 
     private var feeAmount: BigInt? {
-        baseFee.flatMap { _ in estimate?.feeAmount }
+        baseFee.map { _ in BigInt(core: estimate.feeValue()) }
     }
 
     private func display(for amount: BigInt) -> AmountDisplay {

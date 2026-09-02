@@ -14,8 +14,6 @@ import java.math.BigInteger
 class FeeDetailsModel(
     private val currentFee: FeeUIModel.FeeInfo,
     private val feeRates: List<GemFeeRate>,
-    private val maxMultiplier: Int,
-    private val minimumCustomFeeRate: BigInteger?,
     val feeUnitType: FeeUnitType?,
     val decimals: Int,
     val supportsCustomFee: Boolean,
@@ -27,8 +25,6 @@ class FeeDetailsModel(
         feeRates,
         selection,
         decimals,
-        maxMultiplier,
-        minimumCustomFeeRate,
     )
 
     companion object {
@@ -47,8 +43,6 @@ class FeeDetailsModel(
             return FeeDetailsModel(
                 currentFee = currentFee,
                 feeRates = feeRates,
-                maxMultiplier = feeConfig.maxMultiplier.toInt(),
-                minimumCustomFeeRate = feeConfig.minimumCustomFeeRate?.toLong()?.toBigInteger(),
                 feeUnitType = feeUnitType,
                 decimals = decimals,
                 supportsCustomFee = feeConfig.customFeeEnabled && feeRates.size > 1,

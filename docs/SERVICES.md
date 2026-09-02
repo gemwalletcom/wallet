@@ -350,7 +350,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 Each already sits on top of a Core call that exists; the app-side copy is pure duplication with no divergence found. One rule each, in Core, with a test that flips:
 
-collections availability · the custom-fee minimum check.
+collections availability.
 
 ### 4. Core surface
 

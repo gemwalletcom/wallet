@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.confirm
 
+import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.FeeSelection
@@ -26,30 +27,27 @@ data class CustomFee(
             feeRates: List<GemFeeRate>,
             selection: FeeSelection,
             decimals: Int,
-            maxMultiplier: Int,
-            minimumCustomFeeRate: BigInteger?,
         ): CustomFee {
             val baseTotal = baseTotal(selection, feeRates, currentFee.priority)
             val normalTotal = normalTotal(feeRates) ?: baseTotal
             val rate = input.parseInputNumberOrNull()?.movePointRight(decimals)?.toBigInteger()?.takeIf { it > BigInteger.ZERO }
-            val isBelowMinimum = rate != null && minimumCustomFeeRate != null && rate < minimumCustomFeeRate
 
             return GemCustomFee.estimate(
+                chain = currentFee.feeAsset.chain.string,
                 rate = rate?.toString(),
                 loadedFee = currentFee.amount.toString(),
                 baseTotal = baseTotal.toString(),
                 normalTotal = normalTotal.toString(),
-                maxMultiplier = maxMultiplier.toUInt(),
             ).use { estimate ->
                 CustomFee(
                     rate = rate,
                     placeholder = ValueFormatter(style = ValueFormatter.Style.Auto).string(baseTotal, decimals),
                     networkFee = FeeUIModel.FeeInfo(BigInteger(estimate.feeValue()), currentFee.feeAsset, currentFee.price, currentFee.currency, currentFee.priority),
                     maxRateText = format(BigInteger(estimate.maxRate()), decimals),
-                    minRateText = minimumCustomFeeRate?.let { format(it, decimals) } ?: "",
+                    minRateText = estimate.minimumRate()?.let { format(BigInteger(it), decimals) } ?: "",
                     isOverMax = estimate.isOverMax(),
-                    isBelowMinimum = isBelowMinimum,
-                    isConfirmEnabled = rate != null && !estimate.isOverMax() && !isBelowMinimum,
+                    isBelowMinimum = estimate.isBelowMinimum(),
+                    isConfirmEnabled = estimate.isValid(),
                 )
             }
         }

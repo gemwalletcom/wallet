@@ -2,7 +2,10 @@ package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.FeeSelection
+import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
+import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeePriority
 import org.junit.Assert.assertEquals
@@ -20,16 +23,20 @@ class CustomFeeTest {
         GemFeeRate(FeePriority.Fast.toGem(), GemGasPriceType.Regular(gasPrice = "3")),
     )
 
-    private val currentFee = FeeUIModel.FeeInfo(
+    private fun currentFee(feeAsset: Asset) = FeeUIModel.FeeInfo(
         amount = BigInteger("1000"),
-        feeAsset = mockAssetEthereum(),
+        feeAsset = feeAsset,
         price = null,
         currency = Currency.USD,
         priority = FeePriority.Normal,
     )
 
-    private fun custom(input: String, decimals: Int = 0, minimumCustomFeeRate: BigInteger? = null, selection: FeeSelection = FeeSelection.Preset(FeePriority.Normal)) =
-        CustomFee.from(input, currentFee, feeRates, selection, decimals, maxMultiplier = 10, minimumCustomFeeRate)
+    private fun custom(
+        input: String,
+        decimals: Int = 0,
+        feeAsset: Asset = mockAssetEthereum(),
+        selection: FeeSelection = FeeSelection.Preset(FeePriority.Normal),
+    ) = CustomFee.from(input, currentFee(feeAsset), feeRates, selection, decimals)
 
     @Test
     fun customFeeFrom() {
@@ -38,17 +45,14 @@ class CustomFeeTest {
         assertEquals(BigInteger("2000"), valid.networkFee.amount)
         assertTrue(valid.isConfirmEnabled)
 
-        val fractional = custom("0.1", decimals = 1, minimumCustomFeeRate = BigInteger.ONE)
+        val fractional = custom("0.1", decimals = 1)
         assertEquals(BigInteger("1"), fractional.rate)
         assertTrue(fractional.isConfirmEnabled)
 
-        val belowMinimum = custom("0.3", decimals = 1, minimumCustomFeeRate = BigInteger("5"))
+        val belowMinimum = custom("0.5", decimals = 1, feeAsset = mockAsset(chain = Chain.Litecoin))
         assertTrue(belowMinimum.isBelowMinimum)
+        assertEquals("5", belowMinimum.minRateText)
         assertFalse(belowMinimum.isConfirmEnabled)
-
-        val atMinimum = custom("0.5", decimals = 1, minimumCustomFeeRate = BigInteger("5"))
-        assertFalse(atMinimum.isBelowMinimum)
-        assertTrue(atMinimum.isConfirmEnabled)
 
         val overMax = custom("21")
         assertTrue(overMax.isOverMax)

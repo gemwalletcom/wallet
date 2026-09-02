@@ -106,13 +106,6 @@ public extension Primitives.Chain {
         }
     }
 
-    var maxCustomFeeRateMultiplier: Int {
-        Int(FeeConfig.config(chain: self).maxMultiplier)
-    }
-
-    var minimumCustomFeeRate: BigInt? {
-        FeeConfig.config(chain: self).minimumCustomFeeRate.map { BigInt($0) }
-    }
 
     var customFeeEnabled: Bool {
         FeeConfig.config(chain: self).customFeeEnabled
