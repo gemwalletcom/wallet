@@ -157,10 +157,6 @@ impl GemAutocloseEstimator {
         self.inner.pnl(price)
     }
 
-    pub fn price_change_percent(&self, price: f64) -> f64 {
-        self.inner.price_change_percent(price)
-    }
-
     pub fn roe(&self, price: f64) -> f64 {
         self.inner.roe(price)
     }

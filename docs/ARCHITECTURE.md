@@ -799,6 +799,11 @@ reads. Each moved to a plain `impl`. The iOS `GemConfirmTransferServiceMock` had
 thing keeping the confirm pieces exported — it recomposed Core's flow from them — so it now
 answers from premises and takes the concrete confirm mock. Re-run the sweep after removing a
 caller: `rg -l '#\[uniffi::export\]'`, list the `pub fn`s, camel-case each, search both apps.
+The second pass found twenty-three more outside `services/` — the gateway, swapper, keystore,
+simulation and signer methods Core's own services call — and four that nothing called at all
+(`GemMnemonic::is_valid_word`, two `GemSwapper` wrappers, `GemAutocloseEstimator::price_change_percent`)
+plus a `GemJobConfiguration` record the tracker had stopped using; the former moved to plain
+`impl`s, the latter were deleted.
 
 **A debug screen is a screen.** iOS's `DeveloperViewModel` held five Core services; Android's
 `DevelopViewModel` three cases and a `PlatformStore`. `GemDeveloperService` composes the device

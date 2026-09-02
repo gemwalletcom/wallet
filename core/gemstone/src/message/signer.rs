@@ -135,6 +135,13 @@ impl MessageSigner {
         }
     }
 
+    pub fn sign_with_keystore(&self, keystore: Arc<GemKeystore>, keystore_id: String, password: Vec<u8>) -> Result<String, GemstoneError> {
+        let private_key = keystore.signing_key(&keystore_id, self.message.chain, password)?;
+        self.sign(private_key)
+    }
+}
+
+impl MessageSigner {
     pub fn get_result(&self, data: &[u8]) -> String {
         match &self.message.sign_type {
             SignDigestType::Eip191 | SignDigestType::Eip712 | SignDigestType::Siwe | SignDigestType::TronPersonal => {
@@ -148,11 +155,6 @@ impl MessageSigner {
             SignDigestType::SuiPersonal | SignDigestType::TonPersonal => BASE64.encode(data),
             SignDigestType::Base58 => bs58::encode(data).into_string(),
         }
-    }
-
-    pub fn sign_with_keystore(&self, keystore: Arc<GemKeystore>, keystore_id: String, password: Vec<u8>) -> Result<String, GemstoneError> {
-        let private_key = keystore.signing_key(&keystore_id, self.message.chain, password)?;
-        self.sign(private_key)
     }
 }
 
