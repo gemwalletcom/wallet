@@ -3,6 +3,7 @@
 import protocol Gemstone.GemAssetsServiceProtocol
 import GemstonePrimitives
 import protocol Gemstone.GemNftServiceProtocol
+import protocol Gemstone.GemRecentActivityServiceProtocol
 import GemstoneServices
 import Components
 import NFT
@@ -18,8 +19,19 @@ final class NavigationPresenter: Sendable {
     @MainActor private var _isPresentingPriceAlert: SetPriceAlertInput?
     @MainActor private var _isPresentingSupport: Bool = false
     @MainActor private var _isPresentingWallets: Bool = false
+    private let assetsService: any GemAssetsServiceProtocol
+    private let nftService: any GemNftServiceProtocol
+    private let recentActivity: any GemRecentActivityServiceProtocol
 
-    init() {}
+    init(
+        assetsService: any GemAssetsServiceProtocol,
+        nftService: any GemNftServiceProtocol,
+        recentActivity: any GemRecentActivityServiceProtocol,
+    ) {
+        self.assetsService = assetsService
+        self.nftService = nftService
+        self.recentActivity = recentActivity
+    }
 }
 
 @MainActor
@@ -56,7 +68,6 @@ extension NavigationPresenter {
         from fromAssetId: AssetId,
         to toAssetId: AssetId?,
         wallet: Wallet,
-        assetsService: any GemAssetsServiceProtocol,
     ) async throws {
         let fromAsset = try await assetsService.ensureAsset(for: fromAssetId)
         let toAsset: Asset? = if let toAssetId {
@@ -71,8 +82,6 @@ extension NavigationPresenter {
         _ action: TransactionHeaderAction,
         wallet: Wallet,
         navigationState: NavigationStateManager,
-        assetsService: any GemAssetsServiceProtocol,
-        nftService: any GemNftServiceProtocol,
         nftDestination: NavigationPathState,
     ) async throws {
         switch action {
@@ -86,11 +95,29 @@ extension NavigationPresenter {
                 from: fromAssetId,
                 to: toAssetId,
                 wallet: wallet,
-                assetsService: assetsService,
             )
         case let .nft(assetId):
             let assetData = try NFTAssetData(await nftService.ensureAsset(assetId: assetId.identifier))
             nftDestination.append(Scenes.Collectible(assetData: assetData))
         }
+    }
+
+    func recordRecent(input: SelectedAssetInput) {
+        guard let action = input.type.action else { return }
+        Task { try? await recentActivity.addRecent(action: action, asset: input.asset.map()) }
+    }
+
+    func completeSwap(fromAsset: Asset, navigationState: NavigationStateManager) async throws {
+        let asset = try await assetsService.ensureAsset(for: fromAsset.id)
+        switch navigationState.selectedTab {
+        case .wallet:
+            navigationState.wallet.setPath([Scenes.Asset(asset: asset)])
+        case .activity:
+            navigationState.wallet.setPath([Scenes.Asset(asset: asset)])
+            navigationState.selectedTab = .wallet
+        case .settings:
+            break
+        }
+        isPresentingAssetInput.wrappedValue = nil
     }
 }

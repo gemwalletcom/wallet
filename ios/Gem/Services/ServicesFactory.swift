@@ -151,7 +151,7 @@ struct ServicesFactory {
         let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService)
         let notificationPermissions = GemstoneNotificationPermissions(service: pushNotificationEnablerService)
         let bannerService = Gemstone.GemBannerService(store: gemstoneBannerStore)
-        let navigationPresenter = NavigationPresenter()
+        let navigationPresenter = NavigationPresenter(assetsService: assetsService, nftService: nftService, recentActivity: recentAssetsService)
         let gemstonePerpetualStore = GemstonePerpetualStore(store: storeManager.perpetualStore, balanceStore: storeManager.balanceStore)
         let perpetualService = gatewayService.perpetualService(
             price: priceService,
@@ -424,15 +424,12 @@ struct ServicesFactory {
             transactionStateService: transactionStateService,
             observablePreferences: observablePreferences,
             walletSessionService: walletSessionService,
-            assetsService: assetsService,
-            nftService: nftService,
             appUpdateService: appUpdateService,
             rateService: rateService,
             onstartService: onStartService,
             appStartService: appStartService,
             pushNotificationEnablerService: pushNotificationEnablerService,
             walletConnectorPresenter: walletConnectorPresenter,
-            recentAssetsService: recentAssetsService,
             toastPresenter: toastPresenter,
             viewModelFactory: viewModelFactory,
             appLifecycleService: appLifecycleService,

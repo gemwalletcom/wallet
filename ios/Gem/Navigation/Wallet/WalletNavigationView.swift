@@ -23,9 +23,7 @@ struct WalletNavigationView: View {
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
-    @Environment(\.assetsService) private var assetsService
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.nftService) private var nftService
 
     @State private var model: WalletSceneViewModel
 
@@ -234,8 +232,6 @@ extension WalletNavigationView {
                     action,
                     wallet: model.wallet,
                     navigationState: navigationState,
-                    assetsService: assetsService,
-                    nftService: nftService,
                     nftDestination: navigationState.wallet,
                 )
             } catch {

@@ -325,7 +325,7 @@ extension NavigationHandler {
 
     private func presentSwap(from fromId: AssetId, to toId: AssetId?) async throws {
         guard let wallet = walletSessionService.currentWallet else { return }
-        try await presenter.presentSwap(from: fromId, to: toId, wallet: wallet, assetsService: assetsService)
+        try await presenter.presentSwap(from: fromId, to: toId, wallet: wallet)
     }
 
     private func presentFiat(type: FiatQuoteType, assetId: AssetId, amount: Int?) async throws {

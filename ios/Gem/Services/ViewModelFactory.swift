@@ -473,6 +473,11 @@ public struct ViewModelFactory: Sendable {
     }
 
     @MainActor
+    public func selectAssetScene(selectType: SelectAssetType, selectAssetAction: AssetAction = .none) -> SelectAssetViewModel? {
+        walletSessionService.currentWallet.map { selectAssetScene(wallet: $0, selectType: selectType, selectAssetAction: selectAssetAction) }
+    }
+
+    @MainActor
     public func selectAssetScene(
         wallet: Wallet,
         selectType: SelectAssetType,

@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemDeviceServiceProtocol
 import Contacts
 import GemstoneServices
 import InAppNotifications
@@ -26,17 +25,14 @@ struct SettingsNavigationView: View {
     @State private var currencyModel: CurrencySceneViewModel
 
     let walletId: WalletId
-    private let deviceService: any GemDeviceServiceProtocol
     @Binding var isPresentingSupport: Bool
 
     init(
         walletId: WalletId,
         viewModelFactory: ViewModelFactory = AppResolver.main.services.viewModelFactory,
-        deviceService: any GemDeviceServiceProtocol,
         isPresentingSupport: Binding<Bool>,
     ) {
         self.walletId = walletId
-        self.deviceService = deviceService
         _isPresentingSupport = isPresentingSupport
         _currencyModel = State(initialValue: viewModelFactory.currencyScene())
     }

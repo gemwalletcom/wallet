@@ -722,8 +722,14 @@ used to compose (`handle_request`, the connection lookup) stopped being exported
 `GemStakeService` and `GemChainService` were `@Entry` values on iOS only so a navigation view
 could assemble a view model. Every scene is now built in `ViewModelFactory.xxxScene(...)`; the
 environment (and `AppResolver.Services`) keeps only what the app needs at launch, and a scene
-that needs the current wallet gets it from the factory (`inAppNotificationsScene()`), not from a
-session read in the view.
+that needs the current wallet gets it from the factory (`inAppNotificationsScene()`,
+`selectAssetScene(selectType:)`), not from a session read in the view. The second pass moved
+`assetsService`, `nftService` and `recentAssetsService` off the environment into
+`NavigationPresenter`, which is the object that actually acts on them (transaction header
+actions, swap completion, recording a recent when an asset action opens), and deleted a
+`deviceService` entry that was threaded into a navigation view and never read. Eight entries
+remain: navigation state, the presenter, the handler, the factory, preferences, the connector,
+its presenter and connection status.
 
 **Two service calls with a condition between them are one Core call.** The notifications screen
 on both apps ran `sync`, then read the store for an unread row, then called `markRead` — the same

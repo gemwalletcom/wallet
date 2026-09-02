@@ -13,10 +13,8 @@ import GemstoneServices
 import WalletTab
 
 struct MainTabView: View {
-    @Environment(\.deviceService) private var deviceService
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
-    @Environment(\.assetsService) private var assetsService
     @Environment(\.viewModelFactory) private var viewModelFactory
 
     let wallet: Wallet
@@ -67,7 +65,6 @@ struct MainTabView: View {
             NavigationStack(path: navigationState.settings.binding) {
                 SettingsNavigationView(
                     walletId: wallet.id,
-                    deviceService: deviceService,
                     isPresentingSupport: presenter.isPresentingSupport,
                 )
                 .id(wallet.id)
@@ -150,18 +147,7 @@ extension MainTabView {
             presenter.isPresentingAssetInput.wrappedValue = nil
         case let .swap(fromAsset, _):
             Task {
-                let asset = try await assetsService.ensureAsset(for: fromAsset.id)
-
-                switch navigationState.selectedTab {
-                case .wallet:
-                    navigationState.wallet.setPath([Scenes.Asset(asset: asset)])
-                case .activity:
-                    navigationState.wallet.setPath([Scenes.Asset(asset: asset)])
-                    navigationState.selectedTab = .wallet
-                case .settings:
-                    break
-                }
-                presenter.isPresentingAssetInput.wrappedValue = nil
+                try await presenter.completeSwap(fromAsset: fromAsset, navigationState: navigationState)
             }
         }
     }

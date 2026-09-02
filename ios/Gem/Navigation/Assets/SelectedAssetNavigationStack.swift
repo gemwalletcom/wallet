@@ -11,7 +11,7 @@ import struct Gemstone.GemTransferData
 
 struct SelectedAssetNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.recentAssetsService) private var recentAssetsService
+    @Environment(\.navigationPresenter) private var presenter
 
     @State private var navigationPath = NavigationPath()
 
@@ -116,18 +116,8 @@ struct SelectedAssetNavigationStack: View {
                 )
             }
             .taskOnce {
-                updateRecent()
+                presenter.recordRecent(input: input)
             }
-        }
-    }
-}
-
-// MARK: - Private
-
-extension SelectedAssetNavigationStack {
-    private func updateRecent() {
-        if let action = input.type.action {
-            Task { try? await recentAssetsService.addRecent(action: action, asset: input.asset.map()) }
         }
     }
 }

@@ -14,10 +14,8 @@ import Transactions
 
 struct TransactionsNavigationView: View {
     @Environment(\.navigationState) private var navigationState
-    @Environment(\.assetsService) private var assetsService
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.navigationPresenter) private var presenter
-    @Environment(\.nftService) private var nftService
 
     @State private var model: TransactionsViewModel
 
@@ -85,8 +83,6 @@ extension TransactionsNavigationView {
                     action,
                     wallet: model.wallet,
                     navigationState: navigationState,
-                    assetsService: assetsService,
-                    nftService: nftService,
                     nftDestination: navigationState.activity,
                 )
             } catch {
