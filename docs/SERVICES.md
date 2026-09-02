@@ -348,6 +348,21 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 ### 3. Rules still written once per platform
 
+- **The amount screen composes its own service on the app.** iOS `AmountService` is a struct
+  holding `GemStakeService` + `GemAmountService`; `GemAmountService` is a `new()` with no fields
+  whose one method validates a value against an available and a minimum. The iOS providers
+  (`AmountTransferViewModel`, `AmountStakeViewModel`, `AmountPerpetualViewModel`,
+  `AmountEarnViewModel`, 1.1k lines) and Android's `providers/*` (1k lines) each derive the
+  available value, the minimum, the max button and the fiat conversion from `GemAmountRules`.
+  Build `GemAmountService { stake, preferences }` per screen with `currency()`, `limits(...)`,
+  `validate(...)`, `earn_data(...)`, and let both providers read one `GemAmountLimits` instead of
+  computing it; the iOS `AmountService` struct and the stateless object go with it.
+- **The WalletConnect sign-message and request screens.** iOS `SignMessageSceneViewModel` holds
+  explorer, name and application-metadata services; Android `WCRequestViewModel` holds ten
+  dependencies. `GemWalletConnectService::handle_request` already decodes and simulates the
+  message; a per-request service that also answers the payload address names and links would
+  leave the screens with one dependency each.
+
 Android's confirm screen still reads its assets through `GetWalletAssets`/`GetAssetInfo` and
 its fee assets through `GetFeeAssets` (store-backed `AssetInfo`), where Core's `GemConfirmPreload`
 metadata already carries the balances and prices the screen shows. Moving the fee-asset picker and
