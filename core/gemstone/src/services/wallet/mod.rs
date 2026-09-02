@@ -2,7 +2,7 @@ pub mod error;
 pub mod model;
 pub mod onboarding;
 pub mod password;
-mod rules;
+pub mod rules;
 pub mod store;
 
 use std::sync::Arc;

@@ -114,6 +114,7 @@ class AssetsViewModelTest {
         getHideBalancesState = getHideBalancesState,
         getShowWelcomeBanner = getShowWelcomeBanner,
         getSession = getSession,
+        userConfig = mockk(relaxed = true),
     )
 
     private fun assetAggregate(

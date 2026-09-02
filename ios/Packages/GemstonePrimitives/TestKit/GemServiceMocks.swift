@@ -125,6 +125,12 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         perpetualEnabled && ((try? Primitives.Wallet(wallet).hasPerpetualsSupport) ?? false)
     }
 
+    public var collectionsShown = true
+
+    public func showCollections(wallet _: Gemstone.Wallet) -> Bool {
+        collectionsShown
+    }
+
     public func isHideBalanceEnabled() -> Bool { hideBalanceEnabled }
 
     public func setHideBalanceEnabled(enabled: Bool) throws { hideBalanceEnabled = enabled }

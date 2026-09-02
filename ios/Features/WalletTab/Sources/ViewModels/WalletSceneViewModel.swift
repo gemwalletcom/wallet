@@ -141,11 +141,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     }
 
     var showCollections: Bool {
-        switch wallet.type {
-        case .multicoin: true
-        case .single, .privateKey, .view:
-            wallet.accounts.first?.chain.isNFTSupported ?? false
-        }
+        observablePreferences.showCollections(for: wallet)
     }
 
     var currencyCode: String {

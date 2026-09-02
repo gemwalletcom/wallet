@@ -348,9 +348,9 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 ### 3. Rules still written once per platform
 
-Each already sits on top of a Core call that exists; the app-side copy is pure duplication with no divergence found. One rule each, in Core, with a test that flips:
-
-collections availability.
+`hasPerpetualsSupport` (iOS `Wallet+Primitives`, Android `ext/Wallet.kt`) is the wallet half of
+Core's `show_perpetuals`, kept on the apps only to fill the banner input record. Let Core derive it
+from the wallet it is already handed and drop the field.
 
 ### 4. Core surface
 

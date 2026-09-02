@@ -13,14 +13,12 @@ import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.application.assets.cases.SetAssetPinned
 import com.gemwallet.android.application.assets.cases.ToggleHideBalances
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.AssetToastEmitter
 import com.gemwallet.android.ui.models.AssetToastEmitterImpl
-import com.gemwallet.android.ext.isNftSupported
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Wallet
-import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +42,7 @@ class AssetsViewModel @Inject constructor(
     getHideBalancesState: GetHideBalancesState,
     getShowWelcomeBanner: GetShowWelcomeBanner,
     getSession: GetSession,
+    private val userConfig: UserConfig,
 ) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
 
     val currentWalletId = getSession()
@@ -52,7 +51,7 @@ class AssetsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val collectionsAvailable = getSession()
-        .map { it?.wallet?.isCollectionsAvailable() ?: false }
+        .map { it?.wallet?.let(userConfig::showCollections) ?: false }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
@@ -116,11 +115,4 @@ class AssetsViewModel @Inject constructor(
     fun onHideWelcomeBanner() = viewModelScope.launch {
         hideWelcomeBanner()
     }
-}
-
-private fun Wallet.isCollectionsAvailable(): Boolean = when (type) {
-    WalletType.Multicoin -> true
-    WalletType.Single,
-    WalletType.PrivateKey,
-    WalletType.View -> accounts.firstOrNull()?.chain?.isNftSupported() ?: false
 }

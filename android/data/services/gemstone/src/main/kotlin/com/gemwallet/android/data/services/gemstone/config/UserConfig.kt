@@ -10,6 +10,7 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ChartPeriod
+import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemSecureStore
@@ -47,6 +48,10 @@ class UserConfig(
     fun shouldRequestReview(): Boolean = preferencesService.shouldRequestReview()
 
     fun setRateApplicationShown() = preferencesService.setRateApplicationShown()
+
+    fun showPerpetuals(wallet: Wallet): Boolean = preferencesService.showPerpetuals(wallet.toJson())
+
+    fun showCollections(wallet: Wallet): Boolean = preferencesService.showCollections(wallet.toJson())
 
     fun chartPeriod(): ChartPeriod = preferencesService.getChartPeriod().decodeJson()
 

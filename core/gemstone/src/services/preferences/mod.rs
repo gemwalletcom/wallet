@@ -115,6 +115,10 @@ impl GemPreferencesService {
         crate::services::perpetual::rules::show_perpetuals(self.is_perpetual_enabled(), &wallet)
     }
 
+    pub fn show_collections(&self, wallet: Wallet) -> bool {
+        crate::services::wallet::rules::show_collections(&wallet)
+    }
+
     pub fn is_hide_balance_enabled(&self) -> bool {
         rules::flag(self.store.get(IS_HIDE_BALANCE_ENABLED.to_string()))
     }
