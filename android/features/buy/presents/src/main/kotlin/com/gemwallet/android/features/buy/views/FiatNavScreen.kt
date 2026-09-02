@@ -114,7 +114,13 @@ private fun FiatTitle(
         }
     } else {
         Text(
-            text = stringResource(R.string.buy_title, asset.name),
+            text = stringResource(
+                when (type) {
+                    FiatQuoteType.Buy -> R.string.buy_title
+                    FiatQuoteType.Sell -> R.string.sell_title
+                },
+                asset.name,
+            ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )

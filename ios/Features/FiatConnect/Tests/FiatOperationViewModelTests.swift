@@ -20,7 +20,6 @@ final class FiatOperationViewModelTests {
             service: service,
             type: .buy,
             asset: asset,
-            walletId: .mock(),
             currencyFormatter: CurrencyFormatter(locale: .US, currencyCode: Currency.usd.rawValue),
         )
     }
@@ -45,6 +44,10 @@ final class FiatOperationViewModelTests {
     @Test
     func onChangeAmountTextClearsQuoteAndSetsLoading() {
         let model = FiatOperationViewModelTests.mock()
+        let loadTask = Task<Void, Never> {
+            try? await Task.sleep(for: .seconds(60))
+        }
+        model.loadTask = loadTask
         model.amount = "50"
         model.selectedQuote = .mock()
         model.quotesState = .data(FiatQuotes(amount: 50, quotes: [.mock()]))
@@ -54,6 +57,7 @@ final class FiatOperationViewModelTests {
         #expect(model.selectedQuote == nil)
         #expect(model.amount == "100")
         #expect(model.quotesState.isLoading == true)
+        #expect(loadTask.isCancelled)
     }
 
     @Test

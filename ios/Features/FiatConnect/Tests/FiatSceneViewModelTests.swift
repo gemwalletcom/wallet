@@ -8,6 +8,7 @@ import BigInt
 import GemstoneServices
 import Formatters
 import Foundation
+import Localization
 import Primitives
 import PrimitivesTestKit
 @testable import Store
@@ -116,6 +117,21 @@ final class FiatSceneViewModelTests {
         )
 
         #expect(model.showFiatTypePicker)
+    }
+
+    @Test
+    func unsupportedSellRouteStaysOnSellWithAmount() {
+        let model = FiatSceneViewModelTests.mock(type: .sell, amount: 40)
+        let previousAssetData = model.assetData
+        let unsupportedAssetData = AssetData.mock(metadata: .mock(isSellEnabled: false))
+        model.assetQuery.value = unsupportedAssetData
+        model.onAssetDataChange(previousAssetData, unsupportedAssetData)
+
+        #expect(!model.showFiatTypePicker)
+        #expect(model.type == .sell)
+        #expect(model.sellViewModel.amount == "40")
+        #expect(model.buyViewModel.amount == "50")
+        #expect(model.title == Localized.Sell.title(model.asset.name))
     }
 
     @Test

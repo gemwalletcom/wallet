@@ -18,7 +18,6 @@ final class FiatOperationViewModel {
     private let service: any GemFiatQuoteServiceProtocol
     private let type: FiatQuoteType
     private let asset: Asset
-    private let walletId: WalletId
     private let currencyFormatter: CurrencyFormatter
 
     var quotesState: StateViewType<FiatQuotes> = .loading
@@ -36,13 +35,11 @@ final class FiatOperationViewModel {
         service: any GemFiatQuoteServiceProtocol,
         type: FiatQuoteType,
         asset: Asset,
-        walletId: WalletId,
         currencyFormatter: CurrencyFormatter,
     ) {
         self.service = service
         self.type = type
         self.asset = asset
-        self.walletId = walletId
         self.currencyFormatter = currencyFormatter
         amount = String(service.defaultAmount(quoteType: type.json()))
         inputValidationModel = InputValidationViewModel(
@@ -140,6 +137,8 @@ final class FiatOperationViewModel {
 
     func setAmount(_ text: String) {
         if text != amount {
+            loadTask?.cancel()
+            loadingAmount = nil
             selectedQuote = nil
             setLoadingState()
         }

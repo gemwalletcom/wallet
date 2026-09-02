@@ -45,9 +45,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -107,11 +105,6 @@ class FiatViewModel @Inject constructor(
         .filterNotNull()
         .map { it.showFiatTypePicker() }
         .distinctUntilChanged()
-        .onEach { showFiatTypePicker ->
-            if (!showFiatTypePicker && type.value == FiatQuoteType.Sell) {
-                type.value = FiatQuoteType.Buy
-            }
-        }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val suggestedAmounts = type.mapLatest {
@@ -128,13 +121,19 @@ class FiatViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
     init {
-        combine(assetData.filterNotNull(), type, amount.debounce(service.quoteDebounceMilliseconds().toLong()), ticker) { data, currentType, amount, tick ->
-            QuoteFetchParams(
-                assetData = data,
-                type = currentType,
-                amount = amount,
-                ticker = tick,
-            )
+        type.flatMapLatest { currentType ->
+            combine(
+                assetData.filterNotNull(),
+                operationFor(currentType).amount.debounce(service.quoteDebounceMilliseconds().toLong()),
+                ticker,
+            ) { data, amount, tick ->
+                QuoteFetchParams(
+                    assetData = data,
+                    type = currentType,
+                    amount = amount,
+                    ticker = tick,
+                )
+            }
         }
         .distinctUntilChanged { old, new ->
             old.type == new.type && old.amount == new.amount && old.ticker == new.ticker
@@ -158,6 +157,7 @@ class FiatViewModel @Inject constructor(
                 Log.e(TAG, "fiat quotes request failed", err)
                 emptyList()
             }
+            if (operation.amount.value != amount) return@mapLatest
             if (quotes.isEmpty()) {
                 operation.updateState(FiatSceneState.Error(BuyError.QuoteNotAvailable))
                 operation.clearQuotes()
@@ -213,12 +213,7 @@ class FiatViewModel @Inject constructor(
     }
 
     fun setType(type: FiatQuoteType) {
-        this.type.update {
-            when (type) {
-                FiatQuoteType.Buy -> FiatQuoteType.Buy
-                FiatQuoteType.Sell -> FiatQuoteType.Sell.takeIf { showFiatTypePicker.value } ?: FiatQuoteType.Buy
-            }
-        }
+        this.type.value = type
     }
 
     private fun randomAmount(): Int = service.randomAmount().toInt()
@@ -237,7 +232,7 @@ class FiatViewModel @Inject constructor(
     fun getUrl(callback: (String?) -> Unit) {
         viewModelScope.launch {
             val data = assetData.value ?: return@launch callback(null)
-            val quoteId = currentSelectedQuote.value?.id ?: return@launch callback(null)
+            val quoteId = operationFor(type.value).selectedQuote.value?.id ?: return@launch callback(null)
             callback(runCatching { service.quoteUrl(data.asset.id.toIdentifier(), quoteId).decodeJson<FiatQuoteUrl>().redirectUrl }.getOrNull())
         }
     }

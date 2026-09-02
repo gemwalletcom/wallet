@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.features.buy.viewmodels.models.FiatSceneState
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetData
@@ -51,7 +52,6 @@ class FiatViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val asset = mockAsset()
     private val wallet = mockWallet(id = "wallet-id")
-    private val walletId = wallet.id
     private val assetDataFlow = MutableStateFlow<AssetData?>(assetData(price = 100.0))
 
     private val getBuyAssetInfo = object : GetBuyAssetInfo {
@@ -144,6 +144,51 @@ class FiatViewModelTest {
     }
 
     @Test
+    fun `type change requests target operation amount`() = runTest(testDispatcher) {
+        assetDataFlow.value = assetData(price = 100.0, isSellEnabled = true, available = OneBitcoin)
+        val viewModel = createViewModel()
+
+        try {
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+
+            viewModel.setType(FiatQuoteType.Sell)
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+
+            assertEquals("100", viewModel.amount.value)
+            coVerify(exactly = 0) {
+                service.quotes(FiatQuoteType.Sell.toJson(), asset.id.toIdentifier(), 50.0)
+            }
+            coVerify(exactly = 1) {
+                service.quotes(FiatQuoteType.Sell.toJson(), asset.id.toIdentifier(), 100.0)
+            }
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `amount change clears current quote immediately`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        try {
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+            assertTrue(viewModel.quotes.value.isNotEmpty())
+
+            viewModel.updateAmount("75")
+            runCurrent()
+
+            assertTrue(viewModel.quotes.value.isEmpty())
+            assertEquals(FiatSceneState.Loading, viewModel.state.value)
+            assertEquals(null, viewModel.selectedProvider.value)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
     fun `fiat type picker requires sell enabled metadata`() = runTest(testDispatcher) {
         assetDataFlow.value = assetData(price = 100.0, isSellEnabled = false, available = OneBitcoin)
         val viewModel = createViewModel()
@@ -178,32 +223,6 @@ class FiatViewModelTest {
     }
 
     @Test
-    fun `sell type is only selected when sell is available`() = runTest(testDispatcher) {
-        assetDataFlow.value = assetData(price = 100.0, isSellEnabled = false, available = "1")
-        val viewModel = createViewModel()
-
-        try {
-            advanceTimeBy(DebounceSettleMs)
-            runCurrent()
-            viewModel.setType(FiatQuoteType.Sell)
-            assertEquals(FiatQuoteType.Buy, viewModel.type.value)
-
-            assetDataFlow.value = assetData(price = 100.0, isSellEnabled = true, available = "0")
-            advanceTimeBy(DebounceSettleMs)
-            runCurrent()
-            viewModel.setType(FiatQuoteType.Sell)
-            assertEquals(FiatQuoteType.Sell, viewModel.type.value)
-
-            assetDataFlow.value = assetData(price = 100.0, isSellEnabled = false, available = OneBitcoin)
-            advanceTimeBy(DebounceSettleMs)
-            runCurrent()
-            assertEquals(FiatQuoteType.Buy, viewModel.type.value)
-        } finally {
-            viewModel.viewModelScope.cancel()
-        }
-    }
-
-    @Test
     fun `sell route arguments open sell with the requested amount`() = runTest(testDispatcher) {
         assetDataFlow.value = null
         val viewModel = createViewModel(initialAmount = 25, initialType = FiatQuoteType.Sell)
@@ -214,11 +233,15 @@ class FiatViewModelTest {
             assertEquals(FiatQuoteType.Sell, viewModel.type.value)
             assertEquals("25", viewModel.amount.value)
 
-            assetDataFlow.value = assetData(price = 100.0, isSellEnabled = true, available = OneBitcoin)
+            assetDataFlow.value = assetData(price = 100.0, isSellEnabled = false, available = OneBitcoin)
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
+            assertFalse(viewModel.showFiatTypePicker.value)
             assertEquals(FiatQuoteType.Sell, viewModel.type.value)
             assertEquals("25", viewModel.amount.value)
+            coVerify(exactly = 1) {
+                service.quotes(FiatQuoteType.Sell.toJson(), asset.id.toIdentifier(), 25.0)
+            }
 
             viewModel.setType(FiatQuoteType.Buy)
             advanceTimeBy(DebounceSettleMs)

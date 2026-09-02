@@ -63,8 +63,8 @@ public final class FiatSceneViewModel {
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))
         priceUsdQuery = ObservableQuery(PriceUsdRequest(assetId: assetAddress.asset.id), initialValue: nil)
 
-        buyViewModel = FiatOperationViewModel(service: service, type: .buy, asset: assetAddress.asset, walletId: wallet.id, currencyFormatter: currencyFormatter)
-        sellViewModel = FiatOperationViewModel(service: service, type: .sell, asset: assetAddress.asset, walletId: wallet.id, currencyFormatter: currencyFormatter)
+        buyViewModel = FiatOperationViewModel(service: service, type: .buy, asset: assetAddress.asset, currencyFormatter: currencyFormatter)
+        sellViewModel = FiatOperationViewModel(service: service, type: .sell, asset: assetAddress.asset, currencyFormatter: currencyFormatter)
 
         let defaultAmount = switch type {
         case .buy: buyViewModel.amount
