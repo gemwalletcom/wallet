@@ -3,9 +3,8 @@ use std::error::Error;
 use gem_client::Client as Transport;
 use gem_jsonrpc::client::JsonRpcClient;
 use num_bigint::BigUint;
-use serde_json::{Value, json};
 
-use super::jsonrpc::AlchemyRpc;
+use super::jsonrpc::{AlchemyRpc, TransferDirection};
 use super::model::{TokenBalances, Transfer, Transfers};
 
 pub struct Client<C: Transport + Clone> {
@@ -17,19 +16,17 @@ impl<C: Transport + Clone> Client<C> {
         Self { client }
     }
 
-    pub async fn get_asset_transfers(&self, address_field: &str, address: &str, limit: usize) -> Result<Vec<Transfer>, Box<dyn Error + Send + Sync>> {
-        let mut request = json!({
-            "category": ["external", "erc20", "erc721", "erc1155"],
-            "excludeZeroValue": false,
-            "maxCount": format!("0x{limit:x}"),
-            "order": "desc"
-        });
-        request[address_field] = Value::String(address.to_string());
-        Ok(self.client.request::<Transfers, _>(AlchemyRpc::GetAssetTransfers(request)).await?.transfers)
+    pub async fn get_asset_transfers(&self, direction: TransferDirection, address: &str, limit: usize) -> Result<Vec<Transfer>, Box<dyn Error + Send + Sync>> {
+        let request = AlchemyRpc::GetAssetTransfers {
+            direction,
+            address: address.to_string(),
+            limit,
+        };
+        Ok(self.client.request::<Transfers, _>(request).await?.transfers)
     }
 
     pub async fn get_token_balances(&self, address: &str) -> Result<Vec<(String, BigUint)>, Box<dyn Error + Send + Sync>> {
-        let balances: TokenBalances = self.client.request(AlchemyRpc::GetTokenBalances(address.to_string())).await?;
+        let balances: TokenBalances = self.client.request(AlchemyRpc::GetTokenBalances { address: address.to_string() }).await?;
         Ok(balances
             .token_balances
             .into_iter()
@@ -41,6 +38,7 @@ impl<C: Transport + Clone> Client<C> {
 #[cfg(test)]
 mod tests {
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
+    use serde_json::json;
 
     use super::*;
 
@@ -53,7 +51,7 @@ mod tests {
             Ok(json!({"transfers": [{"blockNum": "0x2", "hash": "0xout"}]}))
         }));
 
-        let transfers = client.get_asset_transfers("fromAddress", "0x123", 2).await.unwrap();
+        let transfers = client.get_asset_transfers(TransferDirection::From, "0x123", 2).await.unwrap();
 
         assert_eq!(
             transfers,

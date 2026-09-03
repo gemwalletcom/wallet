@@ -3,6 +3,8 @@ use std::error::Error;
 
 use gem_client::{Client as Transport, ClientExt};
 
+use super::model::OwnedNftsQuery;
+use super::target::AlchemyNftTarget;
 use super::{ContractMetadata, NftMetadata, OwnedNft, OwnedNftsResponse};
 
 pub struct Client<C: Transport> {
@@ -20,15 +22,13 @@ impl<C: Transport> Client<C> {
         let mut seen_page_keys = HashSet::new();
 
         loop {
-            let mut query = vec![
-                ("owner".to_string(), owner.to_string()),
-                ("pageSize".to_string(), page_size.to_string()),
-                ("withMetadata".to_string(), false.to_string()),
-            ];
-            if let Some(key) = page_key {
-                query.push(("pageKey".to_string(), key));
-            }
-            let response: OwnedNftsResponse = self.client.get("/getNFTsForOwner").query(&query).await?;
+            let query = OwnedNftsQuery {
+                owner: owner.to_string(),
+                page_size,
+                with_metadata: false,
+                page_key,
+            };
+            let response: OwnedNftsResponse = self.client.get(AlchemyNftTarget::OwnedNfts { query }).await?;
             assets.extend(response.owned_nfts);
 
             let Some(next_page_key) = response.page_key else {
@@ -46,16 +46,19 @@ impl<C: Transport> Client<C> {
     pub async fn get_contract_metadata(&self, contract_address: &str) -> Result<ContractMetadata, Box<dyn Error + Send + Sync>> {
         Ok(self
             .client
-            .get("/getContractMetadata")
-            .query(&[("contractAddress".to_string(), contract_address.to_string())])
+            .get(AlchemyNftTarget::ContractMetadata {
+                contract_address: contract_address.to_string(),
+            })
             .await?)
     }
 
     pub async fn get_nft_metadata(&self, contract_address: &str, token_id: &str) -> Result<NftMetadata, Box<dyn Error + Send + Sync>> {
         Ok(self
             .client
-            .get("/getNFTMetadata")
-            .query(&[("contractAddress".to_string(), contract_address.to_string()), ("tokenId".to_string(), token_id.to_string())])
+            .get(AlchemyNftTarget::NftMetadata {
+                contract_address: contract_address.to_string(),
+                token_id: token_id.to_string(),
+            })
             .await?)
     }
 }
