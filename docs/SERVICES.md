@@ -263,7 +263,7 @@ consolidation, and a second Core service in a view model is the one to remove.
 | `GemTransactionsService` | `TransactionsViewModel` | `TransactionsViewModel` |
 | `GemWalletConnectService` | `WalletConnectorService` | `WCRequestViewModel`, `ProposalSceneViewModel`, `WCAuthViewModel` |
 | `GemWalletHomeService` | `WalletSceneViewModel`, `NetworkAssetsSceneViewModel` | `AssetsViewModel`, `NetworkAssetsViewModel` |
-| `GemWalletService` | onboarding and manage-wallet view models (`WalletDetailViewModel` exports the secret through `export_secret`) | `CreateWalletViewModel`, `ImportViewModel`, `WalletSecretDataViewModel` (`export_secret`), wallet cases |
+| `GemWalletService` | onboarding and manage-wallet view models (`WalletsSceneViewModel` gates on `can_add_wallet`, `WalletDetailViewModel` exports the secret through `export_secret`) | `CreateWalletViewModel`, `ImportViewModel`, `WalletsViewModel` (`can_add_wallet`), `WalletViewModel` / `SetupWalletViewModel` (`rename`), `WalletSecretDataViewModel` (`export_secret`), wallet cases |
 
 Android holds an observed Room read beside the service where the screen lists rows (a `Get*` case);
 that is the platform's reactive read, not a second service.
