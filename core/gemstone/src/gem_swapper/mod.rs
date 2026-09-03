@@ -25,13 +25,13 @@ impl GemSwapper {
             inner: Swapper::new(Arc::new(AlienProviderWrapper::new(rpc_provider))),
         }
     }
-
-    pub async fn get_quote(&self, request: &SwapperQuoteRequest) -> Result<Vec<SwapperQuote>, SwapperError> {
-        self.inner.get_quote(request).await
-    }
 }
 
 impl GemSwapper {
+    pub async fn get_quote(&self, request: &SwapperQuoteRequest) -> Result<Vec<SwapperQuote>, SwapperError> {
+        self.inner.get_quote(request).await
+    }
+
     pub fn supported_chains_for_from_asset(&self, asset_id: &AssetId) -> SwapperAssetList {
         self.inner.supported_chains_for_from_asset(asset_id)
     }
