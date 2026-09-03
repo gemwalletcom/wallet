@@ -651,6 +651,14 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `Wallet.onboardingBannerKey`, the home's `showWelcomeBanner`/`onHideWelcomeBanner` and
   `GemBannerService::shows_onboarding` are gone, and the DAO no longer pre-filters banner
   states in SQL — Core's `is_visible` decides.
+- **NFT search results are Core's.** The wallet search matched collections and their assets the
+  same way on both apps — iOS inside the `WalletSearchRequest` GRDB fetch, Android in
+  `WalletSearchViewModel.searchNfts` with its own copy of the collection ordering — and
+  `nft::rules::search_collections(data, query)` (`GemAssetSelectionService::search_collections`,
+  returning `GemNftSearchItem::{Collection, Asset}`) now answers it, ordering collections with
+  `sorted_collections` and assets by name. The iOS request only returns the collections; the
+  view model asks Core and maps the items (`GemNftSearchItem.map()`), and the search
+  view-model tests stub the mock's answer instead of the request's.
 - **Which quote the swap screen shows is Core's pick.** Both apps kept "the preferred provider's
   quote, else the first" — iOS inline in `performFetch`, Android as `SwapQuotesResult.getQuote`.
   `GemSwapQuoteService::selected_quote(quotes, preferred)` (`rules::selected_quote`, tested)

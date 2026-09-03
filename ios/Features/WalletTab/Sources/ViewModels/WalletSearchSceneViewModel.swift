@@ -93,7 +93,12 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var sections: WalletSearchSections {
-        .from(searchResult)
+        .from(searchResult, nfts: nftSearchItems)
+    }
+
+    private var nftSearchItems: [NFTSearchItem] {
+        service.searchCollections(data: searchResult.collections.map { $0.json() }, query: searchQuery.request.searchBy)
+            .compactMap { try? $0.map() }
     }
 
     var currencyCode: String {
@@ -166,7 +171,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var hasMoreNFTs: Bool {
-        searchResult.nfts.count > searchModel.nftsLimit
+        sections.nfts.count > searchModel.nftsLimit
     }
 
     var assetsResultsDestination: Scenes.AssetsResults {

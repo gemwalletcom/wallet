@@ -15,7 +15,7 @@ struct WalletSearchSections: Equatable {
 
     let lists: [AssetList]
 
-    static func from(_ result: WalletSearchResult) -> WalletSearchSections {
+    static func from(_ result: WalletSearchResult, nfts: [NFTSearchItem]) -> WalletSearchSections {
         let (pinnedAssets, assets) = result.assets.reduce(into: ([AssetData](), [AssetData]())) {
             if $1.metadata.isPinned {
                 $0.0.append($1)
@@ -35,7 +35,7 @@ struct WalletSearchSections: Equatable {
             assets: assets,
             pinnedPerpetuals: pinnedPerpetuals,
             perpetuals: perpetuals,
-            nfts: result.nfts,
+            nfts: nfts,
             lists: result.lists,
         )
     }

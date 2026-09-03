@@ -50,7 +50,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     }
 
     var sections: WalletSearchSections {
-        .from(searchResult)
+        .from(searchResult, nfts: [])
     }
 
     var showPinned: Bool {

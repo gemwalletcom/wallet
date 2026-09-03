@@ -8,6 +8,8 @@ import typealias Gemstone.Chain
 import typealias Gemstone.Currency
 import enum Gemstone.GemAssetAction
 import protocol Gemstone.GemAssetSelectionServiceProtocol
+import enum Gemstone.GemNftSearchItem
+import typealias Gemstone.NftData
 import enum Gemstone.GemSearchScope
 import Primitives
 
@@ -31,6 +33,7 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
 
     public var perpetualsShown = true
     public var tokensSupported = true
+    public var nftSearchItems: [GemNftSearchItem] = []
     public var filterChainsResult: [Gemstone.Chain] = []
     public private(set) var pinnedPerpetuals: [(perpetualId: String, pinned: Bool)] = []
 
@@ -40,6 +43,10 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
 
     public func showPerpetuals() -> Bool {
         perpetualsShown
+    }
+
+    public func searchCollections(data _: [NftData], query _: String) -> [GemNftSearchItem] {
+        nftSearchItems
     }
 
     public func supportsTokens() -> Bool {
