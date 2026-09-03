@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use gem_client::Client;
 use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcResult};
 use gem_solana::{
-    DEFAULT_SWAP_GAS_LIMIT, JUPITER_PROGRAM_ID, SolanaAccountEncoding, SolanaRpc, TOKEN_PROGRAM, USDC_TOKEN_MINT, USDS_TOKEN_MINT, USDT_TOKEN_MINT, WSOL_TOKEN_ADDRESS,
+    JUPITER_PROGRAM_ID, MAX_COMPUTE_UNIT_LIMIT, SolanaAccountEncoding, SolanaRpc, TOKEN_PROGRAM, USDC_TOKEN_MINT, USDS_TOKEN_MINT, USDT_TOKEN_MINT, WSOL_TOKEN_ADDRESS,
     get_pubkey_by_str,
     models::{AccountData, ValueResult},
     token_account::get_token_account,
@@ -146,7 +146,7 @@ where
             BigUint::ZERO,
             route.route_data.clone(),
             None,
-            Some(DEFAULT_SWAP_GAS_LIMIT.to_string()),
+            Some(MAX_COMPUTE_UNIT_LIMIT.to_string()),
         ))
     }
 }
