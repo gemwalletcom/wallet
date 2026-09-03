@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use gem_client::{CONTENT_TYPE, ContentType};
+use gem_client::{CONTENT_TYPE, ContentType, Target};
 
 #[derive(Clone, Debug)]
 pub enum AlgorandTarget {
@@ -11,8 +11,8 @@ pub enum AlgorandTarget {
     SendTransaction,
 }
 
-impl AlgorandTarget {
-    pub fn path(&self) -> String {
+impl Target for AlgorandTarget {
+    fn path(&self) -> String {
         match self {
             Self::GetAccount { address } => format!("/v2/accounts/{address}"),
             Self::GetAsset { asset_id } => format!("/v2/assets/{asset_id}"),
@@ -22,7 +22,7 @@ impl AlgorandTarget {
         }
     }
 
-    pub fn headers(&self) -> HashMap<String, String> {
+    fn headers(&self) -> HashMap<String, String> {
         match self {
             Self::SendTransaction => HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationXBinary.as_str().to_string())]),
             _ => HashMap::new(),

@@ -610,8 +610,8 @@ pub enum TronGridTarget {
     GetAccount { address: String },
 }
 
-impl TronGridTarget {
-    pub fn path(&self) -> String {
+impl Target for TronGridTarget {
+    fn path(&self) -> String {
         match self {
             Self::GetTransactions { address, query } => build_path_with_query(&format!("/v1/accounts/{address}/transactions"), query),
             Self::GetAccount { address } => format!("/v1/accounts/{address}"),
@@ -626,7 +626,7 @@ impl<C: Client> TronGridClient<C> {
     }
 
     async fn send<R: DeserializeOwned + Send>(&self, target: TronGridTarget) -> Result<R, ClientError> {
-        self.client.get(&target.path()).headers(self.headers()).await
+        self.client.get(target).headers(self.headers()).await
     }
 
     pub async fn get_accounts(&self, address: &str) -> Result<Data<Vec<TronGridAccount>>, ClientError> {
@@ -635,10 +635,10 @@ impl<C: Client> TronGridClient<C> {
 }
 ```
 
-Variant fields are named: `GetAccount(String)` does not say what the string is. The target owns
-the path with its query and the request headers; the client owns the transport, the credentials,
-the clock, the signature, the envelope and the pagination loop. A method calls `get` or `post`
-with `target.path()` itself. A private helper exists only for shared work: credentials
+Variant fields are named: `GetAccount(String)` does not say what the string is. The target implements
+`gem_client::Target` (`path()`, and `headers()` when a request carries one); the client owns the
+transport, the credentials, the clock, the signature, the envelope and the pagination loop. A
+method is `self.client.get(target).await` or `self.client.post(target, &body).await`. A private helper exists only for shared work: credentials
 (`TronGridClient::send`), a 404 that is a value (`StellarClient::get_or_not_found`), an envelope
 (TON). A GET-only host needs only `path()`; `GemDeviceApiTarget` is the full shape with
 `method()`, `body()` and a signed header.
@@ -648,7 +648,7 @@ with `target.path()` itself. A private helper exists only for shared work: crede
 | Path parameter | `format!` in `path()`. A chain or network segment is a field the target reads; a chain-to-slug map is a pure `fn` with its own test | `TronGridTarget`, Blockscout `/{chain_id}/…`, `alchemy_url` |
 | Query string | Part of `path()`; a transport only ever sees a path. One or two fixed parameters are a `format!`; more, or any optional one, is a flat `Serialize` struct rendered by `build_path_with_query` (`None` omitted, values encoded, a slice of pairs for a repeated key). A client without a target yet calls `client.get(path).query(&query)`, which renders the same way | `GemApiTarget`, `CoinMarketsQuery`, `mayan::quote_path` |
 | Optional parameter | An `Option` field of the query struct, omitted when `None`, never a second variant | `TransactionsQuery { limit, fingerprint: Option<String> }`, `PaymentsQuery { cursor, .. }` |
-| Method and body | The method calls `post` with the body it has and `target.path()`; a POST variant carries nothing the path does not need. `Client` speaks GET and POST; the device client builds `gem_jsonrpc::Target` with a `method()` for PUT and DELETE. A host that multiplexes on the body (HyperCore `/info`, Cardano GraphQL) has a constant path and a variant per query | `AptosClient::submit_transaction`, `GemDeviceApiTarget` |
+| Method and body | The method calls `post(target, &body)` with the body it has; a POST variant carries nothing the path does not need. `Client` speaks GET and POST; the device client builds `gem_jsonrpc::Target` with a `method()` for PUT and DELETE. A host that multiplexes on the body (HyperCore `/info`, Cardano GraphQL) has a constant path and a variant per query | `AptosClient::submit_transaction`, `GemDeviceApiTarget` |
 | Raw body | `String` for `text/plain` and form-urlencoded, `Vec<u8>` for binary; the content type in the target's `headers()`, always from `ContentType` | Bitcoin `sendtx`, Stellar, Algorand, Aptos BCS, `SendSupportImage` |
 | Credentials | `fn headers(&self)` on the client, empty when the key is blank (`Option<String>` decided once at construction), passed as `.headers(self.headers())`; a key the host wants in the query is appended by `send` the same way. Transport default headers are backend-only: `RpcClient` has none | `JupiterClient`, `NearIntentsClient`, Blockscout `apikey` |
 | Request header | On the target: cache TTL (`X_CACHE_TTL`), API version, idempotency key | `HyperCoreClient`, TON emulate, Flashnet |

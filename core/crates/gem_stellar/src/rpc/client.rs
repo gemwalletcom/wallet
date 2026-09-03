@@ -33,7 +33,7 @@ impl<C: Client> StellarClient<C> {
     }
 
     async fn get_or_not_found<R: DeserializeOwned + Send>(&self, target: HorizonTarget) -> Result<AccountResult<R>, ClientError> {
-        match self.client.get(&target.path()).await {
+        match self.client.get(target).await {
             Ok(value) => Ok(AccountResult::Found(value)),
             Err(ClientError::Http { status: 404, .. }) => Ok(AccountResult::NotFound),
             Err(error) => Err(error),
@@ -41,28 +41,29 @@ impl<C: Client> StellarClient<C> {
     }
 
     pub async fn get_node_status(&self) -> Result<NodeStatus, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&HorizonTarget::GetNodeStatus.path()).await?)
+        Ok(self.client.get(HorizonTarget::GetNodeStatus).await?)
     }
 
     pub async fn get_transaction_status(&self, transaction_id: &str) -> Result<StellarTransactionStatus, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&HorizonTarget::GetTransaction { hash: transaction_id.to_string() }.path()).await?)
+        Ok(self.client.get(HorizonTarget::GetTransaction { hash: transaction_id.to_string() }).await?)
     }
 
     pub async fn get_fees(&self) -> Result<StellarFees, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&HorizonTarget::GetFees.path()).await?)
+        Ok(self.client.get(HorizonTarget::GetFees).await?)
     }
 
     pub async fn broadcast_transaction(&self, data: &str) -> Result<StellarTransactionBroadcast, Box<dyn Error + Send + Sync>> {
-        let target = HorizonTarget::SubmitTransaction;
-        Ok(self.client.post(&target.path(), &encode_transaction_data(data)).headers(target.headers()).await?)
+        Ok(self.client.post(HorizonTarget::SubmitTransaction, &encode_transaction_data(data)).await?)
     }
 
     pub async fn get_assets_by_issuer(&self, issuer: &str) -> Result<StellarEmbedded<StellarAsset>, Box<dyn Error + Send + Sync>> {
-        let target = HorizonTarget::GetAssets {
-            issuer: issuer.to_string(),
-            limit: PAGE_LIMIT,
-        };
-        Ok(self.client.get(&target.path()).await?)
+        Ok(self
+            .client
+            .get(HorizonTarget::GetAssets {
+                issuer: issuer.to_string(),
+                limit: PAGE_LIMIT,
+            })
+            .await?)
     }
 
     pub async fn get_account(&self, account_id: String) -> Result<AccountResult<Account>, Box<dyn Error + Send + Sync>> {
@@ -96,11 +97,15 @@ impl<C: Client> StellarClient<C> {
     }
 
     pub async fn get_block_payments(&self, block_number: u64, limit: usize, cursor: Option<String>) -> Result<Vec<Payment>, Box<dyn Error + Send + Sync>> {
-        let target = HorizonTarget::GetLedgerPayments {
-            ledger: block_number,
-            query: PaymentsQuery::page(limit, cursor),
-        };
-        Ok(self.client.get::<Embedded<Payment>>(&target.path()).await?._embedded.records)
+        Ok(self
+            .client
+            .get::<Embedded<Payment>>(HorizonTarget::GetLedgerPayments {
+                ledger: block_number,
+                query: PaymentsQuery::page(limit, cursor),
+            })
+            .await?
+            ._embedded
+            .records)
     }
 
     pub async fn get_block_payments_all(&self, block_number: u64) -> Result<Vec<Payment>, Box<dyn Error + Send + Sync>> {
@@ -115,6 +120,24 @@ impl<C: Client> StellarClient<C> {
                 return Ok(results);
             }
         }
+    }
+}
+
+impl<C: Client> ChainStaking for StellarClient<C> {}
+
+impl<C: Client> ChainPerpetual for StellarClient<C> {}
+
+impl<C: Client> ChainAddressStatus for StellarClient<C> {}
+
+impl<C: Client> chain_traits::ChainAccount for StellarClient<C> {}
+
+impl<C: Client> ChainSimulation for StellarClient<C> {}
+
+impl<C: Client> ChainTraits for StellarClient<C> {}
+
+impl<C: Client> ChainProvider for StellarClient<C> {
+    fn get_chain(&self) -> primitives::Chain {
+        self.chain
     }
 }
 
@@ -148,23 +171,5 @@ mod tests {
 
         assert!(client.account_exists("GFUNDED").await.unwrap());
         assert!(!client.account_exists("GEMPTY").await.unwrap());
-    }
-}
-
-impl<C: Client> ChainStaking for StellarClient<C> {}
-
-impl<C: Client> ChainPerpetual for StellarClient<C> {}
-
-impl<C: Client> ChainAddressStatus for StellarClient<C> {}
-
-impl<C: Client> chain_traits::ChainAccount for StellarClient<C> {}
-
-impl<C: Client> ChainSimulation for StellarClient<C> {}
-
-impl<C: Client> ChainTraits for StellarClient<C> {}
-
-impl<C: Client> ChainProvider for StellarClient<C> {
-    fn get_chain(&self) -> primitives::Chain {
-        self.chain
     }
 }

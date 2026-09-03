@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use gem_client::{CONTENT_TYPE, ContentType, build_path_with_query};
+use gem_client::{CONTENT_TYPE, ContentType, Target, build_path_with_query};
 
 use crate::models::transaction::PaymentsQuery;
 
@@ -17,8 +17,8 @@ pub enum HorizonTarget {
     SubmitTransaction,
 }
 
-impl HorizonTarget {
-    pub fn path(&self) -> String {
+impl Target for HorizonTarget {
+    fn path(&self) -> String {
         match self {
             Self::GetNodeStatus => "/".to_string(),
             Self::GetFees => "/fee_stats".to_string(),
@@ -32,7 +32,7 @@ impl HorizonTarget {
         }
     }
 
-    pub fn headers(&self) -> HashMap<String, String> {
+    fn headers(&self) -> HashMap<String, String> {
         match self {
             Self::SubmitTransaction => HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationFormUrlEncoded.as_str().to_string())]),
             _ => HashMap::new(),

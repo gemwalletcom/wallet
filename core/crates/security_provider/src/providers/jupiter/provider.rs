@@ -65,7 +65,7 @@ mod tests {
             chain: Chain::Solana,
         };
         let suspicious_client = MockClient::new().with_get(|path| {
-            assert_eq!(path, "/tokens/v2/search");
+            assert_eq!(path, "/tokens/v2/search?query=mint");
             Ok(br#"[{"id":"mint","audit":{"isSus":false}}]"#.to_vec())
         });
         let suspicious = JupiterProvider::new(suspicious_client, "").scan_token(&target).await.unwrap();

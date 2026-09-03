@@ -22,27 +22,28 @@ impl<C: Client> AlgorandClient<C> {
     }
 
     pub async fn get_account(&self, address: &str) -> Result<Account, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&AlgorandTarget::GetAccount { address: address.to_string() }.path()).await?)
+        Ok(self.client.get(AlgorandTarget::GetAccount { address: address.to_string() }).await?)
     }
 
     pub async fn get_asset(&self, asset_id: &str) -> Result<AssetDetails, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&AlgorandTarget::GetAsset { asset_id: asset_id.to_string() }.path()).await?)
+        Ok(self.client.get(AlgorandTarget::GetAsset { asset_id: asset_id.to_string() }).await?)
     }
 
     pub async fn get_transactions_params(&self) -> Result<TransactionsParams, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&AlgorandTarget::GetTransactionsParams.path()).await?)
+        Ok(self.client.get(AlgorandTarget::GetTransactionsParams).await?)
     }
 
     pub async fn broadcast_transaction(&self, data: &str) -> Result<TransactionBroadcast, Box<dyn Error + Send + Sync>> {
-        let target = AlgorandTarget::SendTransaction;
-        Ok(self.client.post(&target.path(), &data).headers(target.headers()).await?)
+        Ok(self.client.post(AlgorandTarget::SendTransaction, &data).await?)
     }
 
     pub async fn get_pending_transaction(&self, transaction_id: &str) -> Result<TransactionStatus, Box<dyn Error + Send + Sync>> {
-        let target = AlgorandTarget::GetPendingTransaction {
-            transaction_id: transaction_id.to_string(),
-        };
-        Ok(self.client.get(&target.path()).await?)
+        Ok(self
+            .client
+            .get(AlgorandTarget::GetPendingTransaction {
+                transaction_id: transaction_id.to_string(),
+            })
+            .await?)
     }
 }
 

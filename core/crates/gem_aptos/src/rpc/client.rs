@@ -36,44 +36,47 @@ impl<C: Client> AptosClient<C> {
     }
 
     pub async fn view<R: DeserializeOwned + Send>(&self, request: ViewRequest) -> Result<R, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.post(&AptosTarget::View.path(), &request).await?)
+        Ok(self.client.post(AptosTarget::View, &request).await?)
     }
 
     pub async fn get_ledger(&self) -> Result<Ledger, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&AptosTarget::GetLedger.path()).await?)
+        Ok(self.client.get(AptosTarget::GetLedger).await?)
     }
 
     pub async fn get_block_transactions(&self, block_number: u64) -> Result<Block, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&AptosTarget::GetBlock { height: block_number }.path()).await?)
+        Ok(self.client.get(AptosTarget::GetBlock { height: block_number }).await?)
     }
 
     pub async fn get_transactions_by_address(&self, address: String) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&AptosTarget::GetAccountTransactions { address }.path()).await?)
+        Ok(self.client.get(AptosTarget::GetAccountTransactions { address }).await?)
     }
 
     pub async fn get_account_resource<T: Serialize + DeserializeOwned + Send>(&self, address: String, resource: &str) -> Result<Resource<T>, Box<dyn Error + Send + Sync>> {
-        let target = AptosTarget::GetAccountResource {
-            address,
-            resource: resource.to_string(),
-        };
-        Ok(self.client.get(&target.path()).await?)
+        Ok(self
+            .client
+            .get(AptosTarget::GetAccountResource {
+                address,
+                resource: resource.to_string(),
+            })
+            .await?)
     }
 
     pub async fn get_account_balance(&self, address: &str, asset_type: &str) -> Result<u64, Box<dyn Error + Send + Sync>> {
-        let target = AptosTarget::GetAccountBalance {
-            address: address.to_string(),
-            asset_type: asset_type.to_string(),
-        };
-        Ok(self.client.get(&target.path()).await?)
+        Ok(self
+            .client
+            .get(AptosTarget::GetAccountBalance {
+                address: address.to_string(),
+                asset_type: asset_type.to_string(),
+            })
+            .await?)
     }
 
     pub async fn get_account(&self, address: &str) -> Result<Account, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&AptosTarget::GetAccount { address: address.to_string() }.path()).await?)
+        Ok(self.client.get(AptosTarget::GetAccount { address: address.to_string() }).await?)
     }
 
     pub async fn submit_transaction(&self, transaction: Vec<u8>) -> Result<TransactionResponse, Box<dyn Error + Send + Sync>> {
-        let target = AptosTarget::SubmitTransaction;
-        let response: TransactionResponse = self.client.post(&target.path(), &transaction).headers(target.headers()).await?;
+        let response: TransactionResponse = self.client.post(AptosTarget::SubmitTransaction, &transaction).await?;
         if let Some(message) = response.message {
             return Err(message.into());
         }
@@ -81,11 +84,11 @@ impl<C: Client> AptosClient<C> {
     }
 
     pub async fn get_transaction_by_hash(&self, hash: &str) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&AptosTarget::GetTransaction { hash: hash.to_string() }.path()).await?)
+        Ok(self.client.get(AptosTarget::GetTransaction { hash: hash.to_string() }).await?)
     }
 
     pub async fn get_gas_price(&self) -> Result<GasFee, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&AptosTarget::GetGasPrice.path()).await?)
+        Ok(self.client.get(AptosTarget::GetGasPrice).await?)
     }
 
     pub async fn calculate_gas_limit(&self, input: &TransactionLoadInput) -> Result<u64, Box<dyn Error + Send + Sync>> {
@@ -150,7 +153,7 @@ impl<C: Client> AptosClient<C> {
             signature: TransactionSignature::no_account(),
         };
 
-        let response: Vec<Transaction> = self.client.post(&AptosTarget::SimulateTransaction { query }.path(), &simulation).await?;
+        let response: Vec<Transaction> = self.client.post(AptosTarget::SimulateTransaction { query }, &simulation).await?;
         let transaction = response.into_iter().next().ok_or("No simulation result")?;
 
         transaction.gas_used.ok_or_else(|| "No gas used in simulation".into())

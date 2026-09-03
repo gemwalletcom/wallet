@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use gem_client::{CONTENT_TYPE, ContentType, build_path_with_query};
+use gem_client::{CONTENT_TYPE, ContentType, Target, build_path_with_query};
 
 use crate::models::SimulateTransactionQuery;
 
@@ -19,8 +19,8 @@ pub enum AptosTarget {
     View,
 }
 
-impl AptosTarget {
-    pub fn path(&self) -> String {
+impl Target for AptosTarget {
+    fn path(&self) -> String {
         match self {
             Self::GetLedger => "/v1/".to_string(),
             Self::GetBlock { height } => format!("/v1/blocks/by_height/{height}?with_transactions=true"),
@@ -36,7 +36,7 @@ impl AptosTarget {
         }
     }
 
-    pub fn headers(&self) -> HashMap<String, String> {
+    fn headers(&self) -> HashMap<String, String> {
         match self {
             Self::SubmitTransaction => HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationAptosBcs.as_str().to_string())]),
             _ => HashMap::new(),

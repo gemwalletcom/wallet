@@ -6,6 +6,7 @@ use serde::{Serialize, de::DeserializeOwned};
 mod content_type;
 mod provider_config;
 mod request;
+mod target;
 mod types;
 
 #[cfg(feature = "testkit")]
@@ -26,6 +27,7 @@ pub use content_type::{CONTENT_TYPE, ContentType};
 pub use provider_config::RemoteProviderConfig;
 pub use query::{build_path_with_query, build_request_url};
 pub use request::{GetRequest, PostRequest};
+pub use target::Target;
 pub use types::{ClientError, Response, decode_json_byte_array, deserialize_response};
 
 #[cfg(feature = "reqwest")]
@@ -58,15 +60,15 @@ pub trait Client: Send + Sync + Debug {
 
 #[async_trait]
 pub trait ClientExt: Client {
-    fn get<R>(&self, path: &str) -> GetRequest<'_, Self, R> {
-        GetRequest::new(self, path)
+    fn get<R>(&self, target: impl Target) -> GetRequest<'_, Self, R> {
+        GetRequest::new(self, target.path(), target.headers())
     }
 
-    fn post<'a, T, R>(&'a self, path: &str, body: &'a T) -> PostRequest<'a, Self, T, R>
+    fn post<'a, T, R>(&'a self, target: impl Target, body: &'a T) -> PostRequest<'a, Self, T, R>
     where
         T: Serialize + Send + Sync,
     {
-        PostRequest::new(self, path, body)
+        PostRequest::new(self, target.path(), target.headers(), body)
     }
 
     async fn get_or_error<R, E>(&self, path: &str) -> Result<R, ClientError<Option<E>>>

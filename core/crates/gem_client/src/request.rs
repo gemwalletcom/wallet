@@ -19,11 +19,11 @@ pub struct GetRequest<'a, C: ?Sized, R> {
 }
 
 impl<'a, C: Client + ?Sized, R> GetRequest<'a, C, R> {
-    pub(crate) fn new(client: &'a C, path: &str) -> Self {
+    pub(crate) fn new(client: &'a C, path: String, headers: HashMap<String, String>) -> Self {
         Self {
             client,
-            path: path.to_string(),
-            headers: HashMap::new(),
+            path,
+            headers,
             response: None,
         }
     }
@@ -63,12 +63,12 @@ pub struct PostRequest<'a, C: ?Sized, T, R> {
 }
 
 impl<'a, C: Client + ?Sized, T: Serialize + Send + Sync, R> PostRequest<'a, C, T, R> {
-    pub(crate) fn new(client: &'a C, path: &str, body: &'a T) -> Self {
+    pub(crate) fn new(client: &'a C, path: String, headers: HashMap<String, String>, body: &'a T) -> Self {
         Self {
             client,
-            path: path.to_string(),
+            path,
             body,
-            headers: HashMap::new(),
+            headers,
             response: None,
         }
     }

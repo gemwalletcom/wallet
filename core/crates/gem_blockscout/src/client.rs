@@ -66,8 +66,8 @@ mod tests {
         let client = Client::new(
             MockClient::new().with_get(|path| {
                 let response = match path {
-                    "/1/api/v2/addresses/0x123/transactions" => TRANSACTIONS,
-                    "/1/api/v2/addresses/0x123/token-transfers" => TOKEN_TRANSFERS,
+                    "/1/api/v2/addresses/0x123/transactions?sort=block_number&order=desc&items_count=3&apikey=key" => TRANSACTIONS,
+                    "/1/api/v2/addresses/0x123/token-transfers?sort=block_number&order=desc&items_count=3&apikey=key" => TOKEN_TRANSFERS,
                     _ => panic!("unexpected path: {path}"),
                 };
                 Ok(response.as_bytes().to_vec())
@@ -111,7 +111,7 @@ mod tests {
     async fn test_get_token_balances() {
         let client = Client::new(
             MockClient::new().with_get(|path| {
-                assert_eq!(path, "/1/api/v2/addresses/0x123/token-balances");
+                assert_eq!(path, "/1/api/v2/addresses/0x123/token-balances?apikey=key");
                 Ok(TOKEN_BALANCES.as_bytes().to_vec())
             }),
             1,

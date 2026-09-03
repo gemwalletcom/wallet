@@ -37,7 +37,7 @@ impl<C: Client> TronGridClient<C> {
     }
 
     async fn send<R: DeserializeOwned + Send>(&self, target: TronGridTarget) -> Result<R, ClientError> {
-        self.client.get(&target.path()).headers(self.headers()).await
+        self.client.get(target).headers(self.headers()).await
     }
 
     async fn get_transaction_pages(
