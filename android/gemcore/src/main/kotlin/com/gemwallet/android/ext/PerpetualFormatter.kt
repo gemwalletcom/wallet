@@ -21,7 +21,4 @@ object PerpetualFormatter {
         val separator = DecimalFormatSymbols.getInstance(locale).decimalSeparator
         return if (separator == '.') formatted else formatted.replace('.', separator)
     }
-
-    fun formatSize(provider: PerpetualProvider, size: Double, decimals: Int): String =
-        GemPerpetual(provider.toGem()).use { it.formatSize(size, decimals) }
 }

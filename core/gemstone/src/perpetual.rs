@@ -38,12 +38,6 @@ impl GemPerpetual {
         }
     }
 
-    pub fn format_size(&self, size: f64, decimals: i32) -> String {
-        match self.provider {
-            PerpetualProvider::Hypercore => PerpetualFormatter::format_size(size, decimals),
-        }
-    }
-
     pub fn funding_apr(&self, funding: f64) -> f64 {
         perpetual_rules::funding_apr(funding)
     }
@@ -66,6 +60,12 @@ impl GemPerpetual {
 }
 
 impl GemPerpetual {
+    pub fn format_size(&self, size: f64, decimals: i32) -> String {
+        match self.provider {
+            PerpetualProvider::Hypercore => PerpetualFormatter::format_size(size, decimals),
+        }
+    }
+
     pub fn order(&self, input: GemPerpetualOrderInput) -> PerpetualType {
         perpetual_rules::order(self.provider.clone(), input)
     }

@@ -705,7 +705,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `GemWalletConnectError::InvalidOrigin`; the view model now classifies that error into the
   malicious-session notice (iOS surfaces the same error through `handleRejectSession`).
   `WalletConnectOriginVerifier` stays only for the Android-only SIWE auth flow (S9).
-- **Small trims from the Android-only sweep**: `GemPerpetualService::sync_markets` is un-exported
+- **Small trims from the Android-only sweep**: `GemPerpetual::format_size` is un-exported (Core's perpetual rules format the size; Android's `PerpetualFormatter.formatSize` wrapper had no caller and iOS never had one) and `GemPerpetualService::sync_markets` is un-exported
   (both apps call `sync_markets_if_needed`; the sweep matched Android's private `syncMarkets`
   helper); iOS's add-node scene debounces with `GemChainSettingsService::node_check_debounce_milliseconds`
   like Android instead of the component default (both 250 ms today, one owner now).
