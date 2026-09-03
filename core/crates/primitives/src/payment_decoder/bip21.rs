@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use super::amount;
 use super::error::{PaymentDecoderError, Result};
 use super::query;
@@ -8,21 +6,14 @@ use crate::{
     payment::{Payment, PaymentAmount, PaymentRequest},
 };
 
-const DOGECOIN_SCHEME: &str = "dogecoin";
-const RIPPLE_SCHEME: &str = "ripple";
-const XRPL_SCHEME: &str = "xrpl";
-
 const REQUIRED_PARAMETER_PREFIX: &str = "req-";
 const AUTHORITY_PREFIX: &str = "//";
 const QUERY_AMOUNT: &str = "amount";
 const QUERY_MEMO: &str = "memo";
 const QUERY_DESTINATION_TAG: &str = "dt";
 
-pub fn decode(scheme: Option<&str>, path: &str) -> Result<Payment> {
-    let asset_id = match scheme {
-        Some(scheme) => Some(AssetId::from_chain(chain(scheme).ok_or(PaymentDecoderError::InvalidScheme)?)),
-        None => None,
-    };
+pub fn decode(chain: Option<Chain>, path: &str) -> Result<Payment> {
+    let asset_id = chain.map(AssetId::from_chain);
     let path = path.strip_prefix(AUTHORITY_PREFIX).unwrap_or(path);
 
     let Some((address, query)) = path.split_once('?') else {
@@ -59,14 +50,6 @@ pub fn decode(scheme: Option<&str>, path: &str) -> Result<Payment> {
     }))
 }
 
-fn chain(scheme: &str) -> Option<Chain> {
-    match scheme {
-        DOGECOIN_SCHEME => Some(Chain::Doge),
-        RIPPLE_SCHEME | XRPL_SCHEME => Some(Chain::Xrp),
-        _ => Chain::from_str(scheme).ok(),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -82,14 +65,14 @@ mod tests {
             ..PaymentRequest::mock()
         });
 
-        assert_eq!(decode(Some("bitcoin"), BITCOIN_ADDRESS).unwrap(), bitcoin);
-        assert_eq!(decode(Some("bitcoin"), &format!("//{BITCOIN_ADDRESS}")).unwrap(), bitcoin);
-        assert_eq!(decode(Some("bitcoin"), &format!("{BITCOIN_ADDRESS}?label=Luke-Jr")).unwrap(), bitcoin);
-        assert_eq!(decode(Some("bitcoin"), &format!("{BITCOIN_ADDRESS}?dontexist=")).unwrap(), bitcoin);
-        assert_eq!(decode(Some("bitcoin"), &format!("{BITCOIN_ADDRESS}?amount=&memo=")).unwrap(), bitcoin);
+        assert_eq!(decode(Some(Chain::Bitcoin), BITCOIN_ADDRESS).unwrap(), bitcoin);
+        assert_eq!(decode(Some(Chain::Bitcoin), &format!("//{BITCOIN_ADDRESS}")).unwrap(), bitcoin);
+        assert_eq!(decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?label=Luke-Jr")).unwrap(), bitcoin);
+        assert_eq!(decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?dontexist=")).unwrap(), bitcoin);
+        assert_eq!(decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?amount=&memo=")).unwrap(), bitcoin);
 
         assert_eq!(
-            decode(Some("bitcoin"), &format!("{BITCOIN_ADDRESS}?amount=50&label=Luke-Jr&message=Donation%20for%20xyz")).unwrap(),
+            decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?amount=50&label=Luke-Jr&message=Donation%20for%20xyz")).unwrap(),
             Payment::Request(PaymentRequest {
                 address: BITCOIN_ADDRESS.to_string(),
                 amount: Some(PaymentAmount::ExactValue("50".to_string())),
@@ -98,7 +81,7 @@ mod tests {
             })
         );
         assert_eq!(
-            decode(Some("bitcoin"), &format!("{BITCOIN_ADDRESS}?memo=see%20http%3A%2F%2Fx.com")).unwrap(),
+            decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?memo=see%20http%3A%2F%2Fx.com")).unwrap(),
             Payment::Request(PaymentRequest {
                 address: BITCOIN_ADDRESS.to_string(),
                 memo: Some("see http://x.com".to_string()),
@@ -107,7 +90,7 @@ mod tests {
             })
         );
         assert_eq!(
-            decode(Some("dogecoin"), "DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L?amount=42").unwrap(),
+            decode(Some(Chain::Doge), "DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L?amount=42").unwrap(),
             Payment::Request(PaymentRequest {
                 address: "DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L".to_string(),
                 amount: Some(PaymentAmount::ExactValue("42".to_string())),
@@ -135,11 +118,9 @@ mod tests {
             asset_id: Some(AssetId::from_chain(Chain::Xrp)),
         });
 
-        assert_eq!(decode(Some(RIPPLE_SCHEME), &format!("{XRP_ADDRESS}?dt=12345&amount=10")).unwrap(), payment);
-        assert_eq!(decode(Some(XRPL_SCHEME), &format!("{XRP_ADDRESS}?dt=12345&amount=10")).unwrap(), payment);
-        assert_eq!(decode(Some("xrp"), &format!("{XRP_ADDRESS}?dt=12345&amount=10")).unwrap(), payment);
+        assert_eq!(decode(Some(Chain::Xrp), &format!("{XRP_ADDRESS}?dt=12345&amount=10")).unwrap(), payment);
         assert_eq!(
-            decode(Some("bitcoin"), &format!("{BITCOIN_ADDRESS}?dt=12345")).unwrap(),
+            decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?dt=12345")).unwrap(),
             Payment::Request(PaymentRequest {
                 address: BITCOIN_ADDRESS.to_string(),
                 asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
@@ -151,22 +132,14 @@ mod tests {
     #[test]
     fn test_decode_refuses_what_it_cannot_sign() {
         assert_eq!(
-            decode(Some("bitcoin"), &format!("{BITCOIN_ADDRESS}?req-somethingyoudontunderstand=50")),
+            decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?req-somethingyoudontunderstand=50")),
             Err(PaymentDecoderError::InvalidFormat(
                 "Unsupported required parameter: req-somethingyoudontunderstand".to_string()
             ))
         );
         assert_eq!(
-            decode(Some("bitcoin"), &format!("{BITCOIN_ADDRESS}?req-dontexist=")),
+            decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?req-dontexist=")),
             Err(PaymentDecoderError::InvalidFormat("Unsupported required parameter: req-dontexist".to_string()))
-        );
-        assert!(decode(Some("lightning"), "lnbc1pvjluezpp5qqqsyq").is_err());
-        assert!(
-            decode(
-                Some("monero"),
-                "4AdUndXHHZ6cfufTMvppY6JwXNouMBzSkbLYfpAV5Usx3skxNgYeYTRj5UzqtReoS44qo9mtmXCqY45DJ852K5Jv2684Rge"
-            )
-            .is_err()
         );
     }
 }

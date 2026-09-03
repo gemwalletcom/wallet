@@ -6,7 +6,6 @@ use crate::{
     payment::{Payment, PaymentAmount, PaymentRequest},
 };
 
-pub const TON_PAY_SCHEME: &str = "ton";
 const TRANSFER_PATH: &str = "transfer";
 
 const QUERY_AMOUNT: &str = "amount";

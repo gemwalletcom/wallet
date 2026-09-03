@@ -1,7 +1,13 @@
+use std::str::FromStr;
+
 use super::error::{PaymentDecoderError, Result};
-use crate::payment::Payment;
+use crate::{Chain, payment::Payment};
 
 use super::{bip21, erc681, solana_pay, ton_pay};
+
+const DOGECOIN_SCHEME: &str = "dogecoin";
+const RIPPLE_SCHEME: &str = "ripple";
+const XRPL_SCHEME: &str = "xrpl";
 
 #[derive(Debug)]
 pub struct PaymentURLDecoder;
@@ -21,14 +27,21 @@ impl PaymentURLDecoder {
         let Some((scheme, path)) = uri.split_once(':') else {
             return bip21::decode(None, uri);
         };
-        let scheme = scheme.to_ascii_lowercase();
 
-        match scheme.as_str() {
-            erc681::ETHEREUM_SCHEME => erc681::decode(path),
-            solana_pay::SOLANA_PAY_SCHEME => solana_pay::decode(path),
-            ton_pay::TON_PAY_SCHEME => ton_pay::decode(path),
-            _ => bip21::decode(Some(&scheme), path),
+        match get_chain(&scheme.to_ascii_lowercase()).ok_or(PaymentDecoderError::InvalidScheme)? {
+            Chain::Ethereum => erc681::decode(path),
+            Chain::Solana => solana_pay::decode(path),
+            Chain::Ton => ton_pay::decode(path),
+            chain => bip21::decode(Some(chain), path),
         }
+    }
+}
+
+fn get_chain(scheme: &str) -> Option<Chain> {
+    match scheme {
+        DOGECOIN_SCHEME => Some(Chain::Doge),
+        RIPPLE_SCHEME | XRPL_SCHEME => Some(Chain::Xrp),
+        _ => Chain::from_str(scheme).ok(),
     }
 }
 
@@ -93,6 +106,14 @@ mod tests {
                 asset_id: Some(AssetId::from_chain(Chain::Algorand)),
                 ..PaymentRequest::mock()
             })
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode("dogecoin:DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L").unwrap(),
+            PaymentURLDecoder::decode("doge:DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L").unwrap()
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode("ripple:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh").unwrap(),
+            PaymentURLDecoder::decode("xrpl:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh").unwrap()
         );
 
         assert_eq!(

@@ -7,7 +7,6 @@ use crate::{
 };
 use url::{Url, form_urlencoded};
 
-pub const SOLANA_PAY_SCHEME: &str = "solana";
 const TRANSACTION_LINK_PREFIX: &str = "https";
 
 const QUERY_AMOUNT: &str = "amount";

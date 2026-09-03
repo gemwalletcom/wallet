@@ -6,7 +6,6 @@ use crate::{
     payment::{Payment, PaymentAmount, PaymentRequest},
 };
 
-pub const ETHEREUM_SCHEME: &str = "ethereum";
 const PAY_PREFIX: &str = "pay-";
 const HEXADECIMAL_PREFIX: &str = "0x";
 const TRANSFER_FUNCTION: &str = "transfer";
