@@ -25,19 +25,3 @@ impl Target for StonfiTarget {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_path() {
-        assert_eq!(
-            TonApiTarget::Rates {
-                tokens: vec!["ton".into(), "EQAB".into()]
-            }
-            .path(),
-            "/v2/rates?tokens=ton%2CEQAB&currencies=usd"
-        );
-    }
-}

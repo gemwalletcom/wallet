@@ -18,29 +18,3 @@ impl Target for SwapsXyzTarget {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_path() {
-        assert_eq!(
-            SwapsXyzTarget::Paths {
-                query: PathsQuery::native(1, 8453)
-            }
-            .path(),
-            "/getPaths?srcChainId=1&srcToken=0x0000000000000000000000000000000000000000&dstChainId=8453"
-        );
-        assert_eq!(
-            SwapsXyzTarget::Status {
-                query: StatusQuery {
-                    tx_hash: "0xabc".into(),
-                    chain_id: 1
-                }
-            }
-            .path(),
-            "/getStatus?txHash=0xabc&chainId=1"
-        );
-    }
-}

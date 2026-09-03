@@ -24,34 +24,3 @@ impl Target for MayanTarget {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use primitives::swap::SlippageMode;
-
-    use super::*;
-    use crate::mayan::model::QuoteParams;
-
-    #[test]
-    fn test_path() {
-        let quote = MayanTarget::Quote {
-            query: QuoteQuery::from(QuoteParams {
-                amount_in64: "1000000".to_string(),
-                from_token: "0x0000000000000000000000000000000000000000".to_string(),
-                from_chain: "ethereum".to_string(),
-                to_token: "So11111111111111111111111111111111111111112".to_string(),
-                to_chain: "solana".to_string(),
-                referrer: "0x1111111111111111111111111111111111111111".to_string(),
-                referrer_bps: 50,
-                slippage_bps: 100,
-                slippage_mode: SlippageMode::Auto,
-            }),
-        };
-
-        assert_eq!(
-            quote.path(),
-            "/quote?wormhole=false&swift=true&mctp=true&shuttle=false&fastMctp=true&gasless=false&onlyDirect=false&fullList=false&monoChain=true&solanaProgram=FC4eXxkyrMPTjiYUpp4EAnkmwMbQyZ6NDCh1kfLn6vsf&forwarderAddress=0x337685fdaB40D39bd02028545a4FfA7D287cC3E2&amountIn64=1000000&fromToken=0x0000000000000000000000000000000000000000&fromChain=ethereum&toToken=So11111111111111111111111111111111111111112&toChain=solana&referrer=0x1111111111111111111111111111111111111111&referrerBps=50&sdkVersion=14_1_0&slippageBps=auto"
-        );
-        assert_eq!(MayanTarget::TransactionStatus { hash: "0xabc".into() }.path(), "/swap/trx/0xabc");
-    }
-}

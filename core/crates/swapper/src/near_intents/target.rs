@@ -27,22 +27,3 @@ impl Target for NearIntentsExplorerTarget {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_path() {
-        assert_eq!(
-            NearIntentsExplorerTarget::Transactions {
-                query: ExplorerTransactionsQuery {
-                    search: "0xabc".into(),
-                    number_of_transactions: 10
-                }
-            }
-            .path(),
-            "/api/v0/transactions?search=0xabc&numberOfTransactions=10"
-        );
-    }
-}

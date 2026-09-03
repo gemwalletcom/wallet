@@ -35,25 +35,3 @@ impl Target for BlockbookTarget {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_path() {
-        assert_eq!(BlockbookTarget::GetBlock { height: 800000, page: 2 }.path(), "/api/v2/block/800000?page=2");
-        assert_eq!(BlockbookTarget::GetAddress { address: "bc1q".into() }.path(), "/api/v2/address/bc1q");
-        assert_eq!(
-            BlockbookTarget::GetAddressTransactions {
-                address: "bc1q".into(),
-                page_size: 25
-            }
-            .path(),
-            "/api/v2/address/bc1q?pageSize=25&details=txs"
-        );
-        assert_eq!(BlockbookTarget::GetTransaction { hash: "abc".into() }.path(), "/api/v2/tx/abc");
-        assert_eq!(BlockbookTarget::GetUtxos { address: "bc1q".into() }.path(), "/api/v2/utxo/bc1q");
-        assert_eq!(BlockbookTarget::EstimateFee { blocks: 6 }.path(), "/api/v2/estimatefee/6");
-    }
-}

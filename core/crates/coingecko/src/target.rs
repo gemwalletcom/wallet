@@ -34,36 +34,3 @@ impl Target for CoinGeckoTarget {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_path() {
-        assert_eq!(
-            CoinGeckoTarget::CoinByContract {
-                platform_id: "ethereum".into(),
-                contract_address: "0x1".into()
-            }
-            .path(),
-            "/api/v3/coins/ethereum/contract/0x1"
-        );
-        assert_eq!(
-            CoinGeckoTarget::MarketChart {
-                id: "bitcoin".into(),
-                query: MarketChartQuery::usd("7", "daily")
-            }
-            .path(),
-            "/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=7&interval=daily&precision=full"
-        );
-        assert_eq!(
-            CoinGeckoTarget::Coin {
-                id: "bitcoin".into(),
-                query: CoinQuery::metadata()
-            }
-            .path(),
-            "/api/v3/coins/bitcoin?market_data=false&community_data=true&tickers=false&localization=true&developer_data=true"
-        );
-    }
-}

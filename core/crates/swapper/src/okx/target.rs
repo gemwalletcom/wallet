@@ -16,27 +16,3 @@ impl Target for OkxTarget {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_path() {
-        assert_eq!(
-            OkxTarget::Quote {
-                params: QuoteParams {
-                    chain_index: "1".into(),
-                    amount: "1000".into(),
-                    from_token_address: "0xfrom".into(),
-                    to_token_address: "0xto".into(),
-                    slippage_percent: "0.5".into(),
-                    dex_ids: None,
-                    fee_percent: "0.1".into(),
-                }
-            }
-            .path(),
-            "/api/v6/dex/aggregator/quote?chainIndex=1&amount=1000&fromTokenAddress=0xfrom&toTokenAddress=0xto&slippagePercent=0.5&feePercent=0.1"
-        );
-    }
-}

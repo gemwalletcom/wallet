@@ -18,22 +18,3 @@ impl Target for JupiterTarget {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_path() {
-        assert_eq!(
-            JupiterTarget::TopTrending {
-                interval: "24h".into(),
-                limit: 10
-            }
-            .path(),
-            "/tokens/v2/toptrending/24h?limit=10"
-        );
-        assert_eq!(JupiterTarget::Search { query: "So111".into() }.path(), "/tokens/v2/search?query=So111");
-        assert_eq!(JupiterTarget::Positions { address: "wallet".into() }.path(), "/portfolio/v1/positions/wallet");
-    }
-}

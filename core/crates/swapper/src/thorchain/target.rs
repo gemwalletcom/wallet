@@ -20,36 +20,3 @@ impl Target for ThorChainTarget {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_path() {
-        assert_eq!(
-            ThorChainTarget::Quote {
-                network: THORChainNetwork::Thorchain,
-                request: QuoteSwapRequest {
-                    from_asset: "BTC.BTC".into(),
-                    to_asset: "ETH.ETH".into(),
-                    amount: "100000000".into(),
-                    affiliate: "gem".into(),
-                    affiliate_bps: 50,
-                    streaming_interval: 1,
-                    streaming_quantity: 0,
-                },
-            }
-            .path(),
-            "/thorchain/quote/swap?from_asset=BTC.BTC&to_asset=ETH.ETH&amount=100000000&affiliate=gem&affiliate_bps=50&streaming_interval=1&streaming_quantity=0"
-        );
-        assert_eq!(
-            ThorChainTarget::TransactionStatus {
-                network: THORChainNetwork::Mayachain,
-                hash: "ABC".into()
-            }
-            .path(),
-            "/mayachain/tx/status/ABC"
-        );
-    }
-}

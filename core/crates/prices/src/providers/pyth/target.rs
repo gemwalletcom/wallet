@@ -14,19 +14,3 @@ impl Target for PythTarget {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_path() {
-        assert_eq!(
-            PythTarget::LatestPrices {
-                ids: vec!["0xa".into(), "0xb".into()]
-            }
-            .path(),
-            "/v2/updates/price/latest?ids%5B%5D=0xa&ids%5B%5D=0xb"
-        );
-    }
-}

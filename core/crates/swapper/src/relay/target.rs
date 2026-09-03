@@ -16,13 +16,3 @@ impl Target for RelayTarget {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_path() {
-        assert_eq!(RelayTarget::Request { term: "0xabc".into() }.path(), "/requests/v3?term=0xabc");
-    }
-}

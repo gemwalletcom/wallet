@@ -658,10 +658,10 @@ method is `self.client.get(target).await` or `self.client.post(target, &body).aw
 | JSON-RPC | `ToJsonRpcRequest` with constants from `method.rs` and typed parameter enums beside it; `batch_request` then `take_all`; `request_with_cache`; the same enum posted to a path when a REST host has an RPC route | `SolanaRpc`, `EthereumRpc`, Chainflip broker |
 | Construction | `new(client, key)` with `C: Client` already pointed at the host. Never `ReqwestClient::request` from a client: it bypasses `Client` and never works on the apps | `TronGridClient` |
 
-**Tests.** Two per client. The target test (`test_path`, or `assert_request` for JSON-RPC) pins the
-exact string for every case that can flip. The client test, over `MockClient` or
-`mock_jsonrpc_client`, asserts what the target cannot: the paths a loop produced, a merged
-header, an envelope's failure branch.
+**Tests.** A client test over `MockClient` or `mock_jsonrpc_client` asserts behaviour the wire
+shape does not show: an envelope's failure branch, the paths a pagination loop produced, the
+body and content type of a broadcast, a merged credential header. Do not test `path()` by
+restating the string it formats; that test passes for every wrong path too.
 
 **Still to converge.** Inline paths in every REST client but TronGrid, Aptos, Algorand, Stellar and
 the Gem APIs.

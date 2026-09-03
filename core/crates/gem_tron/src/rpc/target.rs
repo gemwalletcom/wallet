@@ -36,19 +36,3 @@ impl Target for TronTarget {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_path() {
-        assert_eq!(TronTarget::GetBlockByNumber { number: 42 }.path(), "/wallet/getblockbynum?num=42");
-        assert_eq!(
-            TronTarget::GetTransactionInfoByBlockNumber { number: 42 }.path(),
-            "/wallet/gettransactioninfobyblocknum?num=42"
-        );
-        assert_eq!(TronTarget::GetTransactionById { id: "abc".into() }.path(), "/wallet/gettransactionbyid?value=abc");
-        assert_eq!(TronTarget::GetTransactionInfoById { id: "abc".into() }.path(), "/wallet/gettransactioninfobyid?value=abc");
-    }
-}

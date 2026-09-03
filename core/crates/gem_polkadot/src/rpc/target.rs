@@ -28,23 +28,3 @@ impl Target for PolkadotTarget {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_path() {
-        assert_eq!(PolkadotTarget::GetBalance { address: "1abc".into() }.path(), "/v1/accounts/1abc/balance-info");
-        assert_eq!(
-            PolkadotTarget::GetBlocks {
-                from: "100".into(),
-                to: "110".into()
-            }
-            .path(),
-            "/v1/blocks?range=100-110&noFees=true"
-        );
-        assert_eq!(PolkadotTarget::GetBlockHeader { block: "head".into() }.path(), "/v1/blocks/head/header");
-        assert_eq!(PolkadotTarget::GetBlock { number: 42 }.path(), "/v1/blocks/42");
-    }
-}

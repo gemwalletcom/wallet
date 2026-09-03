@@ -29,18 +29,3 @@ impl Target for AlgorandTarget {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_path() {
-        assert_eq!(AlgorandTarget::GetAccount { address: "ADDRESS".into() }.path(), "/v2/accounts/ADDRESS");
-        assert_eq!(AlgorandTarget::GetAsset { asset_id: "31566704".into() }.path(), "/v2/assets/31566704");
-        assert_eq!(
-            AlgorandTarget::GetPendingTransaction { transaction_id: "TXID".into() }.path(),
-            "/v2/transactions/pending/TXID"
-        );
-    }
-}

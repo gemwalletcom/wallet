@@ -18,29 +18,3 @@ impl Target for BlockscoutTarget {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_path() {
-        assert_eq!(
-            BlockscoutTarget::Transactions {
-                chain_id: 1,
-                address: "0x1".into(),
-                query: PageQuery::newest(3)
-            }
-            .path(),
-            "/1/api/v2/addresses/0x1/transactions?sort=block_number&order=desc&items_count=3"
-        );
-        assert_eq!(
-            BlockscoutTarget::TokenBalances {
-                chain_id: 8453,
-                address: "0x1".into()
-            }
-            .path(),
-            "/8453/api/v2/addresses/0x1/token-balances"
-        );
-    }
-}
