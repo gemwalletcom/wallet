@@ -641,6 +641,15 @@ Three gotchas if you repeat the sweep, all met on this pass:
   path and `shows_onboarding` accessor remain structure: its banner list is a one-shot load and
   the welcome banner is a distinct composable, so folding it into `visibleBanners` needs the
   banners to become reactive first.
+- **Dead per-app helpers found by a member sweep** (declare-then-grep over `ext/`, `domains/`
+  and the iOS `Extensions/`/`GemstonePrimitives` sources, excluding tests): Android `Chain.withdraw`,
+  `TransactionState.isCompleted`, `Payment.request` + `decodePayment` (the instrumented payment
+  test now decodes through `decodeUrl` itself) and `String.toTransactionData` — a copy of Core's
+  payment `transaction_data` rule that only an instrumented codec test used to build fixtures, so
+  it lives in that test now; iOS `Int.asBigInt`, `URL.toWebSocketURL`, `Locale.appstoreLanguageIdentifier`
+  (each kept alive only by its own unit test), `AssetId.subTokenId`, `PerpetualConfig.{defaultLeverage,
+  depositAddress, minDeposit, minWithdraw}`, `PerpetualFormatter.formatSize` and `Wallet.makeView`,
+  which only the keystore test kit's address-import branch used and which now builds there.
 - **Android's import screen asks `GemMnemonic` directly.** `GemValidatePhraseOperator`
   (`findInvalidWords` + `isValid` behind a `Result` with `InvalidWords`/`InvalidPhrase`
   exceptions) and `GemFindPhraseWord` were two wrappers around one Core object, and only the

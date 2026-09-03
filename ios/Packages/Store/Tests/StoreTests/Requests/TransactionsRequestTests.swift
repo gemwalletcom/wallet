@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Primitives
+import PrimitivesTestKit
 import Store
 import Testing
 
@@ -22,7 +23,7 @@ struct TransactionsRequestTests {
     @Test
     func perpetualScene() {
         let walletId = WalletId.multicoin(address: "wallet")
-        let assetId = AssetId(chain: .hyperCore, tokenId: AssetId.subTokenId(["perpetual", "SOL"]))
+        let assetId = Asset.mockHypercoreUSDC().id
 
         #expect(
             TransactionsRequest.perpetualScene(

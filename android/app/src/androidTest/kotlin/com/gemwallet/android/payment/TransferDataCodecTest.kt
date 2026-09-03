@@ -3,7 +3,8 @@ package com.gemwallet.android.payment
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.pack
-import com.gemwallet.android.domains.confirm.toTransactionData
+import com.gemwallet.android.math.fromHex
+import com.gemwallet.android.math.has0xPrefix
 import com.gemwallet.android.domains.confirm.transfer
 import com.gemwallet.android.domains.confirm.unpack
 import com.gemwallet.android.ext.toGem
@@ -182,3 +183,6 @@ class TransferDataCodecTest {
         assertEquals(false, transfer.useMaxAmount)
     }
 }
+
+private fun String.toTransactionData(): ByteArray =
+    if (has0xPrefix()) runCatching { fromHex() }.getOrElse { toByteArray() } else toByteArray()
