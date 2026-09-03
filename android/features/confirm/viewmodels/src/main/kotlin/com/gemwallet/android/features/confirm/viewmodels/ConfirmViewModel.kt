@@ -30,6 +30,7 @@ import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetPriceValue
 import uniffi.gemstone.GemConfirmSimulationState
+import uniffi.gemstone.GemAcquireAssetFlow
 import uniffi.gemstone.GemConfirmTransferServiceInterface
 import uniffi.gemstone.GemExecuteResult
 import uniffi.gemstone.GemSwapQuoteSummary
@@ -54,6 +55,7 @@ import com.gemwallet.android.domains.confirm.ConfirmState
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.wallet.core.primitives.AddressName
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualType
@@ -405,5 +407,7 @@ class ConfirmViewModel @Inject constructor(
 
         return ConfirmDetailElement.SwapDetails(model)
     }
+
+    fun acquireFlow(asset: Asset): GemAcquireAssetFlow = confirmService.acquireAssetFlow(asset.chain.string)
 }
 

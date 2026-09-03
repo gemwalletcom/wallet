@@ -578,6 +578,14 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `GemSwapServiceInterface` for `pair_for_asset`. The factory takes the pair the view model reads
   from the details service now, and `GemSwapService::pair_for_asset` is no longer exported.
 
+- **The acquire-asset flow is read from the confirm service on both apps.** iOS asked
+  `GemConfirmTransferService::acquire_asset_flow` to route the button but hard-coded `chain == .tron`
+  for the button's *title* in `InfoSheetModelFactory`; Android read `GemAssetConfigService::acquire_flow`
+  from a `CompositionLocal` inside the error composable. Both now take the flow from the confirm
+  view model (`InfoSheetType.balanceRequired / insufficientNetworkFee` carry the finished
+  `InfoSheetButton`; `ConfirmErrorInfo` takes an `acquireFlow` lambda). `GemAssetConfigService::acquire_flow`
+  stays exported only because the iOS confirm mock answers through it.
+
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**

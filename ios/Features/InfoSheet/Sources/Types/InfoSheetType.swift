@@ -12,8 +12,8 @@ import SwiftUI
 
 public enum InfoSheetType: Identifiable, Sendable, Equatable {
     case networkFee(Asset)
-    case balanceRequired(Asset, image: AssetImage, requirement: BalanceRequirement, action: InfoSheetAction)
-    case insufficientNetworkFee(Asset, image: AssetImage, requirement: BalanceRequirement?, price: Price?, currency: String, action: InfoSheetAction)
+    case balanceRequired(Asset, image: AssetImage, requirement: BalanceRequirement, button: InfoSheetButton)
+    case insufficientNetworkFee(Asset, image: AssetImage, requirement: BalanceRequirement?, price: Price?, currency: String, button: InfoSheetButton)
     case transactionState(imageURL: URL?, placeholder: Image?, state: TransactionState)
     case estimatedConfirmation(Chain)
     case watchWallet

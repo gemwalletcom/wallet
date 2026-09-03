@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.confirm.presents.components
 
-import com.gemwallet.android.ui.LocalAssetConfigService
 import uniffi.gemstone.GemAcquireAssetFlow
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -37,9 +36,9 @@ internal fun ConfirmErrorInfo(
     state: ConfirmState,
     fee: FeeUIModel.FeeInfo?,
     isShowBottomSheetInfo: Boolean,
+    acquireFlow: (Asset) -> GemAcquireAssetFlow,
     onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
 ) {
-    val assetConfig = LocalAssetConfigService.current
     var isShowInfoSheet by remember(isShowBottomSheetInfo) { mutableStateOf(isShowBottomSheetInfo) }
     var isShowGetAssetSheet by remember { mutableStateOf(false) }
     var buyAmount by remember { mutableStateOf<Int?>(null) }
@@ -55,14 +54,14 @@ internal fun ConfirmErrorInfo(
     }
     val onSelectAcquireAsset: (Asset, Int?) -> Unit = { asset, amount ->
         isShowInfoSheet = false
-        if (assetConfig.acquireFlow(asset.chain.string) == GemAcquireAssetFlow.OPTIONS) {
+        if (acquireFlow(asset) == GemAcquireAssetFlow.OPTIONS) {
             buyAmount = amount
             isShowGetAssetSheet = true
         } else {
             onAcquireAsset(AcquireAssetAction.Buy(amount), asset.id)
         }
     }
-    val infoSheetEntity = error.toInfoSheetEntity(fee, onSelectAcquireAsset)
+    val infoSheetEntity = error.toInfoSheetEntity(fee, acquireFlow, onSelectAcquireAsset)
 
     WarningItem(
         title = stringResource(R.string.errors_error_occurred),
@@ -92,6 +91,7 @@ internal fun ConfirmErrorInfo(
 @Composable
 private fun Throwable.toInfoSheetEntity(
     fee: FeeUIModel.FeeInfo?,
+    acquireFlow: (Asset) -> GemAcquireAssetFlow,
     onAcquireAsset: (Asset, Int?) -> Unit,
 ): InfoSheetEntity? {
     return when (this) {
@@ -103,7 +103,7 @@ private fun Throwable.toInfoSheetEntity(
                 required = formatted.required,
                 available = formatted.available,
                 shortfall = formatted.shortfall,
-                actionLabel = asset.acquireActionLabel(),
+                actionLabel = asset.acquireActionLabel(acquireFlow(asset)),
                 action = { onAcquireAsset(asset, null) },
             )
         }
@@ -113,7 +113,7 @@ private fun Throwable.toInfoSheetEntity(
             if (formatted == null) {
                 NetworkFeeRequiredInfo(
                     chain = asset.chain,
-                    actionLabel = asset.acquireActionLabel(),
+                    actionLabel = asset.acquireActionLabel(acquireFlow(asset)),
                     action = { onAcquireAsset(asset, FiatConfig.insufficientNetworkFeeBuyAmount) },
                 )
             } else {
@@ -122,7 +122,7 @@ private fun Throwable.toInfoSheetEntity(
                     required = fee?.cryptoAmountWithFiat ?: formatted.required,
                     available = formatted.available,
                     shortfall = formatted.shortfall,
-                    actionLabel = asset.acquireActionLabel(),
+                    actionLabel = asset.acquireActionLabel(acquireFlow(asset)),
                     action = { onAcquireAsset(asset, FiatConfig.insufficientNetworkFeeBuyAmount) },
                 )
             }
@@ -140,8 +140,8 @@ private fun Throwable.toInfoSheetEntity(
 }
 
 @Composable
-private fun Asset.acquireActionLabel(): String = stringResource(
-    if (LocalAssetConfigService.current.acquireFlow(chain.string) == GemAcquireAssetFlow.OPTIONS) R.string.asset_get_asset else R.string.asset_buy_asset,
+private fun Asset.acquireActionLabel(flow: GemAcquireAssetFlow): String = stringResource(
+    if (flow == GemAcquireAssetFlow.OPTIONS) R.string.asset_get_asset else R.string.asset_buy_asset,
     symbol,
 )
 

@@ -256,6 +256,7 @@ extension ConfirmTransferSceneViewModel {
             for: error,
             feePrice: state.metadata?.feePrice,
             currency: currency.rawValue,
+            acquireFlow: { service.acquireAssetFlow(chain: $0.chain.rawValue) },
             onGetAsset: { [weak self] asset, buyAmount in self?.onSelectGetAsset(asset, buyAmount: buyAmount) },
         ) else { return }
         isPresentingSheet = .info(sheet)

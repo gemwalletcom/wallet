@@ -293,6 +293,7 @@ fun ConfirmScreen(
                     state = state,
                     fee = feeModel as? FeeUIModel.FeeInfo,
                     isShowBottomSheetInfo = isShowBottomSheetInfo,
+                    acquireFlow = viewModel::acquireFlow,
                     onAcquireAsset = onAcquireAsset,
                 )
             }
