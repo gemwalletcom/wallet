@@ -20,9 +20,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import io.mockk.mockk
+import com.gemwallet.android.ext.toIdentifier
 import uniffi.gemstone.GemSwapPairSuggestion
-import uniffi.gemstone.GemSwapServiceInterface
 
 class AssetInfoUIModelFactoryTest {
 
@@ -91,9 +90,9 @@ class AssetInfoUIModelFactoryTest {
             reserved = reserved,
         )
         val assetInfo = mockAssetInfo(asset = asset, owner = null, balance = balance, metadata = metadata)
-        val swapService = mockk<GemSwapServiceInterface> { every { pairForAsset(any(), any()) } answers { GemSwapPairSuggestion(firstArg(), null) } }
-        return AssetInfoUIModelFactory(swapService).create(
+        return AssetInfoUIModelFactory().create(
             ChainAssetInfo(assetInfo = assetInfo, feeAssetInfo = assetInfo),
+            swapPair = GemSwapPairSuggestion(asset.id.toIdentifier(), null),
             explorerName = "Explorer",
             walletType = WalletType.Multicoin,
             explorerAddressUrl = null,

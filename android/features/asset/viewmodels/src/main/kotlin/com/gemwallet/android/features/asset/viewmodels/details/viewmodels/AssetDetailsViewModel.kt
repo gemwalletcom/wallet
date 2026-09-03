@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import java.math.BigInteger
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -90,6 +91,7 @@ class AssetDetailsViewModel @Inject constructor(
             val asset = it.chainAssetInfo.assetInfo.asset
             assetInfoUIModelFactory.create(
                 chainAssetInfo = it.chainAssetInfo,
+                swapPair = assetDetailsService.swapPair(asset.id.toIdentifier(), it.chainAssetInfo.assetInfo.balance.balance.available.toBigInteger() > BigInteger.ZERO),
                 explorerName = it.explorerName,
                 walletType = wallet.type,
                 explorerAddressUrl = it.chainAssetInfo.assetInfo.owner?.address?.let { address ->

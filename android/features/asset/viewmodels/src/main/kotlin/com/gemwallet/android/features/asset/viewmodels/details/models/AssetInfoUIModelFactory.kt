@@ -23,16 +23,15 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemAssetNetworkDestination
 import uniffi.gemstone.GemBalanceRow
-import uniffi.gemstone.GemSwapServiceInterface
+import uniffi.gemstone.GemSwapPairSuggestion
 import javax.inject.Inject
 import java.math.BigInteger
 
-class AssetInfoUIModelFactory @Inject constructor(
-    private val swapService: GemSwapServiceInterface,
-) {
+class AssetInfoUIModelFactory @Inject constructor() {
 
     fun create(
         chainAssetInfo: ChainAssetInfo,
+        swapPair: GemSwapPairSuggestion,
         explorerName: String,
         walletType: WalletType,
         explorerAddressUrl: String?,
@@ -49,11 +48,6 @@ class AssetInfoUIModelFactory @Inject constructor(
         val currencyFormatter = CurrencyFormatter(currency = currency)
         val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Auto)
         val fiatTotal = if (balances.fiatTotalAmount == 0.0) "" else currencyFormatter.string(balances.fiatTotalAmount)
-        val swapPair = swapService.pairForAsset(
-            assetId = asset.id.toIdentifier(),
-            hasBalance = (balances.balance.available.toBigIntegerOrNull() ?: BigInteger.ZERO) > BigInteger.ZERO,
-        )
-
         return AssetInfoUIModel(
             assetInfo = assetInfo,
             name = assetName(asset),
