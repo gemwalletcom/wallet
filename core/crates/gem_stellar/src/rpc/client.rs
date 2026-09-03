@@ -32,17 +32,8 @@ impl<C: Client> StellarClient<C> {
         self.chain
     }
 
-    async fn send<R: DeserializeOwned + Send>(&self, target: HorizonTarget) -> Result<R, ClientError> {
-        let path = target.path();
-        let headers = target.headers();
-        match target.body() {
-            Some(body) => self.client.post(&path, body).headers(headers).await,
-            None => self.client.get(&path).headers(headers).await,
-        }
-    }
-
-    async fn send_or_not_found<R: DeserializeOwned + Send>(&self, target: HorizonTarget) -> Result<AccountResult<R>, ClientError> {
-        match self.send(target).await {
+    async fn get_or_not_found<R: DeserializeOwned + Send>(&self, target: HorizonTarget) -> Result<AccountResult<R>, ClientError> {
+        match self.client.get(&target.path()).await {
             Ok(value) => Ok(AccountResult::Found(value)),
             Err(ClientError::Http { status: 404, .. }) => Ok(AccountResult::NotFound),
             Err(error) => Err(error),
@@ -50,40 +41,36 @@ impl<C: Client> StellarClient<C> {
     }
 
     pub async fn get_node_status(&self) -> Result<NodeStatus, Box<dyn Error + Send + Sync>> {
-        Ok(self.send(HorizonTarget::GetNodeStatus).await?)
+        Ok(self.client.get(&HorizonTarget::GetNodeStatus.path()).await?)
     }
 
     pub async fn get_transaction_status(&self, transaction_id: &str) -> Result<StellarTransactionStatus, Box<dyn Error + Send + Sync>> {
-        Ok(self.send(HorizonTarget::GetTransaction { hash: transaction_id.to_string() }).await?)
+        Ok(self.client.get(&HorizonTarget::GetTransaction { hash: transaction_id.to_string() }.path()).await?)
     }
 
     pub async fn get_fees(&self) -> Result<StellarFees, Box<dyn Error + Send + Sync>> {
-        Ok(self.send(HorizonTarget::GetFees).await?)
+        Ok(self.client.get(&HorizonTarget::GetFees.path()).await?)
     }
 
     pub async fn broadcast_transaction(&self, data: &str) -> Result<StellarTransactionBroadcast, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .send(HorizonTarget::SubmitTransaction {
-                transaction: encode_transaction_data(data),
-            })
-            .await?)
+        let target = HorizonTarget::SubmitTransaction;
+        Ok(self.client.post(&target.path(), &encode_transaction_data(data)).headers(target.headers()).await?)
     }
 
     pub async fn get_assets_by_issuer(&self, issuer: &str) -> Result<StellarEmbedded<StellarAsset>, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .send(HorizonTarget::GetAssets {
-                issuer: issuer.to_string(),
-                limit: PAGE_LIMIT,
-            })
-            .await?)
+        let target = HorizonTarget::GetAssets {
+            issuer: issuer.to_string(),
+            limit: PAGE_LIMIT,
+        };
+        Ok(self.client.get(&target.path()).await?)
     }
 
     pub async fn get_account(&self, account_id: String) -> Result<AccountResult<Account>, Box<dyn Error + Send + Sync>> {
-        Ok(self.send_or_not_found(HorizonTarget::GetAccount { address: account_id }).await?)
+        Ok(self.get_or_not_found(HorizonTarget::GetAccount { address: account_id }).await?)
     }
 
     pub async fn account_exists(&self, address: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        let account = self.send_or_not_found::<AccountEmpty>(HorizonTarget::GetAccount { address: address.to_string() }).await?;
+        let account = self.get_or_not_found::<AccountEmpty>(HorizonTarget::GetAccount { address: address.to_string() }).await?;
         Ok(match account {
             AccountResult::Found(account) => account.id.is_some(),
             AccountResult::NotFound => false,
@@ -92,7 +79,7 @@ impl<C: Client> StellarClient<C> {
 
     pub async fn get_account_payments(&self, account_id: String) -> Result<AccountResult<Embedded<Payment>>, Box<dyn Error + Send + Sync>> {
         Ok(self
-            .send_or_not_found(HorizonTarget::GetAccountPayments {
+            .get_or_not_found(HorizonTarget::GetAccountPayments {
                 address: account_id,
                 query: PaymentsQuery::latest(PAGE_LIMIT),
             })
@@ -101,7 +88,7 @@ impl<C: Client> StellarClient<C> {
 
     pub async fn get_transaction_payments(&self, transaction_id: &str) -> Result<AccountResult<Embedded<Payment>>, Box<dyn Error + Send + Sync>> {
         Ok(self
-            .send_or_not_found(HorizonTarget::GetTransactionPayments {
+            .get_or_not_found(HorizonTarget::GetTransactionPayments {
                 hash: transaction_id.to_string(),
                 query: PaymentsQuery::default(),
             })
@@ -109,14 +96,11 @@ impl<C: Client> StellarClient<C> {
     }
 
     pub async fn get_block_payments(&self, block_number: u64, limit: usize, cursor: Option<String>) -> Result<Vec<Payment>, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .send::<Embedded<Payment>>(HorizonTarget::GetLedgerPayments {
-                ledger: block_number,
-                query: PaymentsQuery::page(limit, cursor),
-            })
-            .await?
-            ._embedded
-            .records)
+        let target = HorizonTarget::GetLedgerPayments {
+            ledger: block_number,
+            query: PaymentsQuery::page(limit, cursor),
+        };
+        Ok(self.client.get::<Embedded<Payment>>(&target.path()).await?._embedded.records)
     }
 
     pub async fn get_block_payments_all(&self, block_number: u64) -> Result<Vec<Payment>, Box<dyn Error + Send + Sync>> {

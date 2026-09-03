@@ -8,7 +8,7 @@ pub enum AlgorandTarget {
     GetAsset { asset_id: String },
     GetTransactionsParams,
     GetPendingTransaction { transaction_id: String },
-    SendTransaction { transaction: String },
+    SendTransaction,
 }
 
 impl AlgorandTarget {
@@ -18,20 +18,13 @@ impl AlgorandTarget {
             Self::GetAsset { asset_id } => format!("/v2/assets/{asset_id}"),
             Self::GetTransactionsParams => "/v2/transactions/params".to_string(),
             Self::GetPendingTransaction { transaction_id } => format!("/v2/transactions/pending/{transaction_id}"),
-            Self::SendTransaction { .. } => "/v2/transactions".to_string(),
-        }
-    }
-
-    pub fn body(&self) -> Option<&String> {
-        match self {
-            Self::SendTransaction { transaction } => Some(transaction),
-            _ => None,
+            Self::SendTransaction => "/v2/transactions".to_string(),
         }
     }
 
     pub fn headers(&self) -> HashMap<String, String> {
         match self {
-            Self::SendTransaction { .. } => HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationXBinary.as_str().to_string())]),
+            Self::SendTransaction => HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationXBinary.as_str().to_string())]),
             _ => HashMap::new(),
         }
     }

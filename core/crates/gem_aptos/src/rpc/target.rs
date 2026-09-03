@@ -2,42 +2,21 @@ use std::collections::HashMap;
 
 use gem_client::{CONTENT_TYPE, ContentType, build_path_with_query};
 
-use crate::models::{SimulateTransactionQuery, TransactionSimulation, ViewRequest};
+use crate::models::SimulateTransactionQuery;
 
 #[derive(Clone, Debug)]
 pub enum AptosTarget {
     GetLedger,
-    GetBlock {
-        height: u64,
-    },
-    GetAccount {
-        address: String,
-    },
-    GetAccountTransactions {
-        address: String,
-    },
-    GetAccountResource {
-        address: String,
-        resource: String,
-    },
-    GetAccountBalance {
-        address: String,
-        asset_type: String,
-    },
-    GetTransaction {
-        hash: String,
-    },
+    GetBlock { height: u64 },
+    GetAccount { address: String },
+    GetAccountTransactions { address: String },
+    GetAccountResource { address: String, resource: String },
+    GetAccountBalance { address: String, asset_type: String },
+    GetTransaction { hash: String },
     GetGasPrice,
-    SimulateTransaction {
-        simulation: Box<TransactionSimulation>,
-        query: SimulateTransactionQuery,
-    },
-    SubmitTransaction {
-        transaction: Vec<u8>,
-    },
-    View {
-        request: ViewRequest,
-    },
+    SimulateTransaction { query: SimulateTransactionQuery },
+    SubmitTransaction,
+    View,
 }
 
 impl AptosTarget {
@@ -51,25 +30,16 @@ impl AptosTarget {
             Self::GetAccountBalance { address, asset_type } => format!("/v1/accounts/{address}/balance/{asset_type}"),
             Self::GetTransaction { hash } => format!("/v1/transactions/by_hash/{hash}"),
             Self::GetGasPrice => "/v1/estimate_gas_price".to_string(),
-            Self::SimulateTransaction { query, .. } => build_path_with_query("/v1/transactions/simulate", query),
-            Self::SubmitTransaction { .. } => "/v1/transactions".to_string(),
-            Self::View { .. } => "/v1/view".to_string(),
+            Self::SimulateTransaction { query } => build_path_with_query("/v1/transactions/simulate", query),
+            Self::SubmitTransaction => "/v1/transactions".to_string(),
+            Self::View => "/v1/view".to_string(),
         }
     }
 
     pub fn headers(&self) -> HashMap<String, String> {
         match self {
-            Self::SubmitTransaction { .. } => HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationAptosBcs.as_str().to_string())]),
-            Self::GetLedger
-            | Self::GetBlock { .. }
-            | Self::GetAccount { .. }
-            | Self::GetAccountTransactions { .. }
-            | Self::GetAccountResource { .. }
-            | Self::GetAccountBalance { .. }
-            | Self::GetTransaction { .. }
-            | Self::GetGasPrice
-            | Self::SimulateTransaction { .. }
-            | Self::View { .. } => HashMap::new(),
+            Self::SubmitTransaction => HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationAptosBcs.as_str().to_string())]),
+            _ => HashMap::new(),
         }
     }
 }
@@ -102,7 +72,6 @@ mod tests {
         assert_eq!(AptosTarget::GetTransaction { hash: "0xabc".into() }.path(), "/v1/transactions/by_hash/0xabc");
         assert_eq!(
             AptosTarget::SimulateTransaction {
-                simulation: Box::new(TransactionSimulation::mock()),
                 query: SimulateTransactionQuery {
                     estimate_max_gas_amount: true,
                     estimate_gas_unit_price: false,

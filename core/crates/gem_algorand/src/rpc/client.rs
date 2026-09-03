@@ -1,8 +1,7 @@
 use std::error::Error;
 
-use gem_client::{Client, ClientError, ClientExt};
+use gem_client::{Client, ClientExt};
 use primitives::Chain;
-use serde::de::DeserializeOwned;
 
 use crate::models::{Account, AssetDetails, TransactionBroadcast, TransactionStatus, TransactionsParams};
 use crate::rpc::target::AlgorandTarget;
@@ -22,37 +21,28 @@ impl<C: Client> AlgorandClient<C> {
         self.chain
     }
 
-    async fn send<R: DeserializeOwned + Send>(&self, target: AlgorandTarget) -> Result<R, ClientError> {
-        let path = target.path();
-        let headers = target.headers();
-        match target.body() {
-            Some(body) => self.client.post(&path, body).headers(headers).await,
-            None => self.client.get(&path).headers(headers).await,
-        }
-    }
-
     pub async fn get_account(&self, address: &str) -> Result<Account, Box<dyn Error + Send + Sync>> {
-        Ok(self.send(AlgorandTarget::GetAccount { address: address.to_string() }).await?)
+        Ok(self.client.get(&AlgorandTarget::GetAccount { address: address.to_string() }.path()).await?)
     }
 
     pub async fn get_asset(&self, asset_id: &str) -> Result<AssetDetails, Box<dyn Error + Send + Sync>> {
-        Ok(self.send(AlgorandTarget::GetAsset { asset_id: asset_id.to_string() }).await?)
+        Ok(self.client.get(&AlgorandTarget::GetAsset { asset_id: asset_id.to_string() }.path()).await?)
     }
 
     pub async fn get_transactions_params(&self) -> Result<TransactionsParams, Box<dyn Error + Send + Sync>> {
-        Ok(self.send(AlgorandTarget::GetTransactionsParams).await?)
+        Ok(self.client.get(&AlgorandTarget::GetTransactionsParams.path()).await?)
     }
 
     pub async fn broadcast_transaction(&self, data: &str) -> Result<TransactionBroadcast, Box<dyn Error + Send + Sync>> {
-        Ok(self.send(AlgorandTarget::SendTransaction { transaction: data.to_string() }).await?)
+        let target = AlgorandTarget::SendTransaction;
+        Ok(self.client.post(&target.path(), &data).headers(target.headers()).await?)
     }
 
     pub async fn get_pending_transaction(&self, transaction_id: &str) -> Result<TransactionStatus, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .send(AlgorandTarget::GetPendingTransaction {
-                transaction_id: transaction_id.to_string(),
-            })
-            .await?)
+        let target = AlgorandTarget::GetPendingTransaction {
+            transaction_id: transaction_id.to_string(),
+        };
+        Ok(self.client.get(&target.path()).await?)
     }
 }
 

@@ -2,7 +2,7 @@ use std::error::Error;
 use std::str::FromStr;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use gem_client::{Client, ClientError, ClientExt};
+use gem_client::{Client, ClientExt};
 use num_bigint::BigUint;
 use primitives::chain::Chain;
 use primitives::{StakeType, TransactionInputType, TransactionLoadInput};
@@ -35,64 +35,45 @@ impl<C: Client> AptosClient<C> {
         self.chain
     }
 
-    async fn send<R: DeserializeOwned + Send>(&self, target: AptosTarget) -> Result<R, ClientError> {
-        let path = target.path();
-        let headers = target.headers();
-        match target {
-            AptosTarget::SimulateTransaction { simulation, .. } => self.client.post(&path, &simulation).headers(headers).await,
-            AptosTarget::SubmitTransaction { transaction } => self.client.post(&path, &transaction).headers(headers).await,
-            AptosTarget::View { request } => self.client.post(&path, &request).headers(headers).await,
-            AptosTarget::GetLedger
-            | AptosTarget::GetBlock { .. }
-            | AptosTarget::GetAccount { .. }
-            | AptosTarget::GetAccountTransactions { .. }
-            | AptosTarget::GetAccountResource { .. }
-            | AptosTarget::GetAccountBalance { .. }
-            | AptosTarget::GetTransaction { .. }
-            | AptosTarget::GetGasPrice => self.client.get(&path).await,
-        }
-    }
-
     pub async fn view<R: DeserializeOwned + Send>(&self, request: ViewRequest) -> Result<R, Box<dyn Error + Send + Sync>> {
-        Ok(self.send(AptosTarget::View { request }).await?)
+        Ok(self.client.post(&AptosTarget::View.path(), &request).await?)
     }
 
     pub async fn get_ledger(&self) -> Result<Ledger, Box<dyn Error + Send + Sync>> {
-        Ok(self.send(AptosTarget::GetLedger).await?)
+        Ok(self.client.get(&AptosTarget::GetLedger.path()).await?)
     }
 
     pub async fn get_block_transactions(&self, block_number: u64) -> Result<Block, Box<dyn Error + Send + Sync>> {
-        Ok(self.send(AptosTarget::GetBlock { height: block_number }).await?)
+        Ok(self.client.get(&AptosTarget::GetBlock { height: block_number }.path()).await?)
     }
 
     pub async fn get_transactions_by_address(&self, address: String) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        Ok(self.send(AptosTarget::GetAccountTransactions { address }).await?)
+        Ok(self.client.get(&AptosTarget::GetAccountTransactions { address }.path()).await?)
     }
 
     pub async fn get_account_resource<T: Serialize + DeserializeOwned + Send>(&self, address: String, resource: &str) -> Result<Resource<T>, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .send(AptosTarget::GetAccountResource {
-                address,
-                resource: resource.to_string(),
-            })
-            .await?)
+        let target = AptosTarget::GetAccountResource {
+            address,
+            resource: resource.to_string(),
+        };
+        Ok(self.client.get(&target.path()).await?)
     }
 
     pub async fn get_account_balance(&self, address: &str, asset_type: &str) -> Result<u64, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .send(AptosTarget::GetAccountBalance {
-                address: address.to_string(),
-                asset_type: asset_type.to_string(),
-            })
-            .await?)
+        let target = AptosTarget::GetAccountBalance {
+            address: address.to_string(),
+            asset_type: asset_type.to_string(),
+        };
+        Ok(self.client.get(&target.path()).await?)
     }
 
     pub async fn get_account(&self, address: &str) -> Result<Account, Box<dyn Error + Send + Sync>> {
-        Ok(self.send(AptosTarget::GetAccount { address: address.to_string() }).await?)
+        Ok(self.client.get(&AptosTarget::GetAccount { address: address.to_string() }.path()).await?)
     }
 
     pub async fn submit_transaction(&self, transaction: Vec<u8>) -> Result<TransactionResponse, Box<dyn Error + Send + Sync>> {
-        let response: TransactionResponse = self.send(AptosTarget::SubmitTransaction { transaction }).await?;
+        let target = AptosTarget::SubmitTransaction;
+        let response: TransactionResponse = self.client.post(&target.path(), &transaction).headers(target.headers()).await?;
         if let Some(message) = response.message {
             return Err(message.into());
         }
@@ -100,11 +81,11 @@ impl<C: Client> AptosClient<C> {
     }
 
     pub async fn get_transaction_by_hash(&self, hash: &str) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
-        Ok(self.send(AptosTarget::GetTransaction { hash: hash.to_string() }).await?)
+        Ok(self.client.get(&AptosTarget::GetTransaction { hash: hash.to_string() }.path()).await?)
     }
 
     pub async fn get_gas_price(&self) -> Result<GasFee, Box<dyn Error + Send + Sync>> {
-        Ok(self.send(AptosTarget::GetGasPrice).await?)
+        Ok(self.client.get(&AptosTarget::GetGasPrice.path()).await?)
     }
 
     pub async fn calculate_gas_limit(&self, input: &TransactionLoadInput) -> Result<u64, Box<dyn Error + Send + Sync>> {
@@ -169,12 +150,7 @@ impl<C: Client> AptosClient<C> {
             signature: TransactionSignature::no_account(),
         };
 
-        let response: Vec<Transaction> = self
-            .send(AptosTarget::SimulateTransaction {
-                simulation: Box::new(simulation),
-                query,
-            })
-            .await?;
+        let response: Vec<Transaction> = self.client.post(&AptosTarget::SimulateTransaction { query }.path(), &simulation).await?;
         let transaction = response.into_iter().next().ok_or("No simulation result")?;
 
         transaction.gas_used.ok_or_else(|| "No gas used in simulation".into())

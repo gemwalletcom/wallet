@@ -14,7 +14,7 @@ pub enum HorizonTarget {
     GetAccountPayments { address: String, query: PaymentsQuery },
     GetTransactionPayments { hash: String, query: PaymentsQuery },
     GetLedgerPayments { ledger: u64, query: PaymentsQuery },
-    SubmitTransaction { transaction: String },
+    SubmitTransaction,
 }
 
 impl HorizonTarget {
@@ -28,20 +28,13 @@ impl HorizonTarget {
             Self::GetAccountPayments { address, query } => build_path_with_query(&format!("/accounts/{address}/payments"), query),
             Self::GetTransactionPayments { hash, query } => build_path_with_query(&format!("/transactions/{hash}/payments"), query),
             Self::GetLedgerPayments { ledger, query } => build_path_with_query(&format!("/ledgers/{ledger}/payments"), query),
-            Self::SubmitTransaction { .. } => "/transactions_async".to_string(),
-        }
-    }
-
-    pub fn body(&self) -> Option<&String> {
-        match self {
-            Self::SubmitTransaction { transaction } => Some(transaction),
-            _ => None,
+            Self::SubmitTransaction => "/transactions_async".to_string(),
         }
     }
 
     pub fn headers(&self) -> HashMap<String, String> {
         match self {
-            Self::SubmitTransaction { .. } => HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationFormUrlEncoded.as_str().to_string())]),
+            Self::SubmitTransaction => HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationFormUrlEncoded.as_str().to_string())]),
             _ => HashMap::new(),
         }
     }
