@@ -80,10 +80,6 @@ public extension Primitives.Chain {
         ChainConfig.config(chain: self).badgeChain.flatMap { Primitives.Chain(rawValue: $0) }
     }
 
-    var supportsNftTransfer: Bool {
-        ChainConfig.config(chain: self).supportsNftTransfer
-    }
-
     var defaultAssets: [Primitives.Asset] {
         assetConfig.walletDefaultAssets(chain: map()).map { $0.map() }
     }

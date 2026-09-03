@@ -10,6 +10,7 @@ data class NftAssetDetailsData(
     val collection: NFTCollection,
     val asset: NFTAsset,
     val account: Account,
+    val canSend: Boolean,
     val contractExplorerLink: BlockExplorerLink? = null,
     val tokenIdExplorerLink: BlockExplorerLink? = null,
 ) {

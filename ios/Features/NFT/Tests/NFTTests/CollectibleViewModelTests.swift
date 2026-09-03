@@ -1,12 +1,12 @@
-import class Gemstone.GemCollectibleService
-import class Gemstone.GemExplorerService
-import GemstoneServices
-import GemstonePrimitivesTestKit
 import Formatters
 import Foundation
-@testable import NFT
-import GemstoneServicesTestKit
+import class Gemstone.GemCollectibleService
+import class Gemstone.GemExplorerService
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
+@testable import NFT
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
@@ -93,33 +93,6 @@ struct CollectibleViewModelTests {
         #expect(CollectibleViewModel.mock(assetData: .mock(collection: .mock(links: [
             AssetLink(name: "Website", url: "https://example.com"),
         ]))).showLinks == true)
-    }
-
-    @Test
-    func isSendEnabled() {
-        let enabledModel = CollectibleViewModel.mock(
-            wallet: .mock(type: .multicoin),
-            assetData: .mock(asset: .mock(chain: .ethereum)),
-        )
-        #expect(enabledModel.isSendEnabled == true)
-
-        let tonModel = CollectibleViewModel.mock(
-            wallet: .mock(type: .multicoin),
-            assetData: .mock(asset: .mock(chain: .ton)),
-        )
-        #expect(tonModel.isSendEnabled == true)
-
-        let viewOnlyModel = CollectibleViewModel.mock(
-            wallet: .mock(type: .view),
-            assetData: .mock(asset: .mock(chain: .ethereum)),
-        )
-        #expect(viewOnlyModel.isSendEnabled == false)
-
-        let bitcoinModel = CollectibleViewModel.mock(
-            wallet: .mock(type: .multicoin),
-            assetData: .mock(asset: .mock(chain: .bitcoin)),
-        )
-        #expect(bitcoinModel.isSendEnabled == false)
     }
 }
 

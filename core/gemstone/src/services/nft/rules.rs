@@ -1,4 +1,6 @@
-use primitives::{NFTData, VerificationStatus};
+use primitives::{Chain, NFTData, VerificationStatus, WalletType};
+
+use crate::config::chain::supports_nft_transfer;
 
 pub fn verified_collections(data: Vec<NFTData>) -> Vec<NFTData> {
     collections(data, true)
@@ -20,6 +22,10 @@ pub fn sorted_collections(data: Vec<NFTData>) -> Vec<NFTData> {
     sorted
 }
 
+pub fn can_send(wallet_type: &WalletType, chain: Chain) -> bool {
+    *wallet_type != WalletType::View && supports_nft_transfer(chain)
+}
+
 fn collections(data: Vec<NFTData>, verified: bool) -> Vec<NFTData> {
     data.into_iter()
         .filter(|item| !item.assets.is_empty() && (item.collection.status == VerificationStatus::Verified) == verified)
@@ -30,6 +36,13 @@ fn collections(data: Vec<NFTData>, verified: bool) -> Vec<NFTData> {
 mod tests {
     use super::*;
     use primitives::NFTData;
+
+    #[test]
+    fn test_can_send_needs_a_signing_wallet_on_a_transfer_chain() {
+        assert!(can_send(&WalletType::Multicoin, Chain::Ethereum));
+        assert!(!can_send(&WalletType::View, Chain::Ethereum));
+        assert!(!can_send(&WalletType::Multicoin, Chain::Bitcoin));
+    }
 
     #[test]
     fn test_collections_split_by_verification_and_skip_empty_ones() {

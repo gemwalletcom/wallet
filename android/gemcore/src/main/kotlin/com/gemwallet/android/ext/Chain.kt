@@ -34,8 +34,6 @@ fun Chain.isTokenSupported(): Boolean = Config().getChainConfig(this.string).isT
 
 fun Chain.isNftSupported(): Boolean = Config().getChainConfig(this.string).isNftSupported
 
-fun Chain.supportsNftTransfer(): Boolean = Config().getChainConfig(this.string).supportsNftTransfer
-
 fun Chain.asset(): Asset {
     return chainAsset().asset
 }

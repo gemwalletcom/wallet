@@ -144,7 +144,7 @@ public final class CollectibleViewModel {
     }
 
     var isSendEnabled: Bool {
-        wallet.canSign && assetData.asset.chain.supportsNftTransfer
+        (try? service.canSend(chain: assetData.asset.chain.map())) ?? false
     }
 
     var headerButtons: [HeaderButton] {

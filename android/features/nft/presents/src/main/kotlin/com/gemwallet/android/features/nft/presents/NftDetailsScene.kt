@@ -28,7 +28,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.ext.supportsNftTransfer
 import com.gemwallet.android.ext.AddressFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.NftImage
@@ -83,7 +82,7 @@ fun NFTDetailsScene(
             )
         },
         actions = {
-            if (model.asset.chain.supportsNftTransfer()) {
+            if (model.canSend) {
                 IconButton(onClick = { onRecipient(AssetId(model.asset.chain), model.asset.id) }) {
                     Icon(AppIcons.ArrowUpward, contentDescription = "Send nft")
                 }

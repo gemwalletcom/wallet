@@ -36,6 +36,7 @@ class GetNftAssetDetailsImpl(
                             collection = nftData.collection,
                             asset = nftAsset,
                             account = account,
+                            canSend = collectibleService.canSend(chain.string),
                             contractExplorerLink = links?.contract?.let { BlockExplorerLink(it.name, it.link) },
                             tokenIdExplorerLink = links?.token?.let { BlockExplorerLink(it.name, it.link) },
                         )
