@@ -962,3 +962,21 @@ existed only for UniFFI. It is gone; the signing path takes the `[u8; 32]` hash 
 `ChainTransactionSigner`) lost the prefix so a `Gem` name means "crosses the FFI" again. After
 un-exporting anything, check whether the types it carried still need to exist.
 
+
+**A mock that re-derives a Core rule passes for the wrong reason.** iOS's `GemConfirmServiceMock`
+computed its `GemConfirmSimulation` from the raw `SimulationResult` through the formatter's
+exported `shows_header` / `payload_fields` and a `severity == .critical` scan, so
+`buttonDisabledWithCriticalWarnings` passed whatever Core's critical rule said — and three
+exports existed only for that mock. A mock returns the answer the test states
+(`GemConfirmServiceMock(simulation: GemConfirmSimulation(..., hasCriticalWarning: true))`); the
+view model test checks that the screen honours the answer, Core's tests check the answer. If a
+mock needs a Core export to produce its value, the export is test-only — un-export it and hand the
+value in.
+
+**An export the apps stopped calling is not neutral.** Each un-called `#[uniffi::export]` method
+keeps a Swift protocol requirement, a Kotlin interface method, a mock method and a
+`+GemstonePrimitives` wrapper alive, and the wrappers hide the fact that nothing reads them. Sweep
+by grepping every generated protocol method against both apps' non-generated sources (wrappers
+included — a wrapper with no caller counts as none), then move the Rust method to a plain `impl`
+block if Core calls it and delete it otherwise; the ports the apps implement are the exception,
+because Core is their caller.
