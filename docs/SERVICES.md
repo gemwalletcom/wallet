@@ -641,6 +641,12 @@ Three gotchas if you repeat the sweep, all met on this pass:
   path and `shows_onboarding` accessor remain structure: its banner list is a one-shot load and
   the welcome banner is a distinct composable, so folding it into `visibleBanners` needs the
   banners to become reactive first.
+- **Android refreshed the home twice on a wallet switch.** `StreamObserverService` called
+  `SyncAssets` (`GemWalletHomeService::refresh` over the wallet's assets) on every wallet change
+  in addition to `setupAssets`; once `AssetsViewModel.loadOnce` took over that refresh (above),
+  the observer's copy was a second full balance + discovery pass per switch. iOS's
+  `AppLifecycleService` only re-subscribes prices on a wallet change and leaves the refresh to
+  the home scene, so Android does the same; `SyncAssets` and its impl are deleted.
 - **Two more Android pass-through cases are gone.** `SyncFiatTransactions` read the session in
   Kotlin and called `GemFiatService::sync_transactions(wallet_id)` where iOS's
   `FiatTransactionsViewModel` calls the screen service's session-scoped

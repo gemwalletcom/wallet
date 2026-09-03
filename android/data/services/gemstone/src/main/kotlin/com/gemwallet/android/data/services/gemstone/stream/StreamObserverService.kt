@@ -2,7 +2,6 @@ package com.gemwallet.android.data.services.gemstone.stream
 
 import com.gemwallet.android.ext.toGem
 import android.util.Log
-import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.serializer.toJson
@@ -19,7 +18,6 @@ import uniffi.gemstone.GemDeviceService
 class StreamObserverService(
     private val getSession: GetSession,
     private val getCurrentCurrency: GetCurrentCurrency,
-    private val syncAssets: SyncAssets,
     private val subscriptionService: GemStreamSubscriptionService,
     private val streamService: GemStreamService,
     private val connection: WebSocketConnectable,
@@ -38,8 +36,6 @@ class StreamObserverService(
                 runCatchingCancellable { subscriptionService.setupAssets(wallet.id.id) }
                     .onFailure { Log.e(TAG, "Setup assets error", it) }
                 if (connectionJob == null) start()
-                runCatchingCancellable { syncAssets() }
-                    .onFailure { Log.e(TAG, "Assets synchronization error", it) }
             }
         }
     }

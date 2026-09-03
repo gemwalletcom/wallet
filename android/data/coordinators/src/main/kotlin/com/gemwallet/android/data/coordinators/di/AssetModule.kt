@@ -13,7 +13,6 @@ import com.gemwallet.android.application.assets.cases.GetSearchLists
 import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
 import uniffi.gemstone.GemBannerService
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
-import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.application.banner.cases.HasMultiSign
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.data.coordinators.asset.EnableAssetImpl
@@ -29,7 +28,6 @@ import com.gemwallet.android.data.coordinators.asset.GetHideBalancesStateImpl
 import com.gemwallet.android.data.coordinators.asset.GetSearchListsImpl
 import com.gemwallet.android.data.coordinators.asset.GetShowWelcomeBannerImpl
 import com.gemwallet.android.data.coordinators.asset.GetWalletSummaryImpl
-import com.gemwallet.android.data.coordinators.asset.SyncAssetsImpl
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
@@ -162,14 +160,6 @@ object AssetModule {
         preferencesService,
         walletSessionService,
     )
-
-    @Provides
-    @Singleton
-    fun provideSyncAssets(
-        getSession: GetSession,
-        getWalletAssets: GetWalletAssets,
-        homeService: GemWalletHomeServiceInterface,
-    ): SyncAssets = SyncAssetsImpl(getSession, getWalletAssets, homeService)
 
     @Provides
     @Singleton

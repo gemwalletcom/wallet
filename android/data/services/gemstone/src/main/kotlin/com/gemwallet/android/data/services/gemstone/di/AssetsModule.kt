@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.services.gemstone.di
 
-import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.stream.StreamObserverService
@@ -155,7 +154,6 @@ object AssetsModule {
     fun provideStreamObserverService(
         getSession: GetSession,
         getCurrentCurrency: GetCurrentCurrency,
-        syncAssets: SyncAssets,
         streamSubscriptionService: GemStreamSubscriptionService,
         streamService: GemStreamService,
         connection: WebSocketConnectable,
@@ -163,7 +161,6 @@ object AssetsModule {
     ): StreamObserverService = StreamObserverService(
         getSession = getSession,
         getCurrentCurrency = getCurrentCurrency,
-        syncAssets = syncAssets,
         subscriptionService = streamSubscriptionService,
         streamService = streamService,
         connection = connection,
