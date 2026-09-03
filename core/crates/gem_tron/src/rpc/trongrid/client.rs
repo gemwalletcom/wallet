@@ -104,6 +104,13 @@ impl<C: Client> ChainTransactions for TronGridClient<C> {
     }
 }
 
+#[async_trait]
+impl<C: Client> TronAccountProvider for TronGridClient<C> {
+    async fn get_accounts_by_address(&self, address: &str) -> Result<Vec<TronGridAccount>, Box<dyn Error + Send + Sync>> {
+        Ok(self.get_accounts(address).await?.data)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::sync::{Arc, Mutex};
@@ -142,12 +149,5 @@ mod tests {
                 "/v1/accounts/address/transactions?limit=2&fingerprint=2NgPQPX6mkxX1nyEcdNgHL1S2oc6C2YNniHptY2Nbq9Ja5fetDtG2WmdZHJ6LSz5JcuhU5ofSuCDwavxdAmdx4HY3kqMowHJwVn1V9kHL4MLPEgGQSNYpmjSu9z6tWbuTpaLashp8XLgJgxbyK1kTinb6THXLug265TJGCo9LU4VbEDG8kbG9AgpSsQqcSm3AxRhcu56RqnsdVDTTM4gTjJ1uRc",
             ]
         );
-    }
-}
-
-#[async_trait]
-impl<C: Client> TronAccountProvider for TronGridClient<C> {
-    async fn get_accounts_by_address(&self, address: &str) -> Result<Vec<TronGridAccount>, Box<dyn Error + Send + Sync>> {
-        Ok(self.get_accounts(address).await?.data)
     }
 }

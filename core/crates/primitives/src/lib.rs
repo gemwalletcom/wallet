@@ -219,8 +219,6 @@ pub mod image_type;
 pub use self::image_type::{ImageType, MIME_TYPE_PNG};
 pub mod wallet_id;
 pub use self::wallet_id::WalletId;
-pub mod wallet_import;
-pub use self::wallet_import::WalletImport;
 pub mod wallet_connector;
 pub use self::wallet_connector::{
     WCPairingProposal, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState,
