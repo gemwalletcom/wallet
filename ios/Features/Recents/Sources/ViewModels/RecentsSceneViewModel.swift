@@ -76,9 +76,9 @@ public final class RecentsSceneViewModel {
 
 extension RecentsSceneViewModel {
     func onSelectClear() {
-        Task { [service, walletId, types = query.request.types] in
+        Task { [service, types = query.request.types] in
             do {
-                try await service.clear(walletId: walletId.id, types: types.map { $0.map() })
+                try await service.clear(types: types.map { $0.map() })
             } catch {
                 debugLog("RecentsSceneViewModel clear error: \(error)")
             }

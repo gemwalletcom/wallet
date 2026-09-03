@@ -1,12 +1,10 @@
 package com.gemwallet.android.data.coordinators.di
 
-import com.gemwallet.android.application.asset_select.cases.ClearRecentAssets
 import com.gemwallet.android.application.asset_select.cases.GetChainAssets
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
 import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
 import com.gemwallet.android.application.asset_select.cases.SearchListAssets
 import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
-import com.gemwallet.android.data.coordinators.asset_select.ClearRecentAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.GetChainAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.GetRecentAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.GetSelectAssetsInfoImpl
@@ -14,7 +12,6 @@ import com.gemwallet.android.data.coordinators.asset_select.SearchListAssetsImpl
 import com.gemwallet.android.data.coordinators.asset_select.SearchSelectAssetsImpl
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
-import com.gemwallet.android.application.session.cases.GetSession
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -60,11 +57,4 @@ object AssetSelectModule {
     fun provideGetRecentAssets(
         recentAssetsService: RecentAssetsService,
     ): GetRecentAssets = GetRecentAssetsImpl(recentAssetsService)
-
-    @Provides
-    @Singleton
-    fun provideClearRecentAssets(
-        getSession: GetSession,
-        recentAssetsService: RecentAssetsService,
-    ): ClearRecentAssets = ClearRecentAssetsImpl(getSession, recentAssetsService)
 }

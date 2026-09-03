@@ -402,9 +402,11 @@ Three gotchas if you repeat the sweep, all met on this pass:
   post-processing), and `GemNftService::sync` (`sync_wallet` underneath), and
   `GemConfirmTransferService` (`confirm_input(transfer)` picks the signing account; `load` and
   `execute` read the wallet), so every screen hands the confirm flow a `GemTransferData` and no
-  Android call site looks an account up any more. The batch is done; what remains on Android is
-  the perpetual observer (socket-scoped), the welcome-banner key and `ClearRecentAssets`, each
-  reading the session for a wallet id Core could hand out. `GemBalanceService`,
+  Android call site looks an account up any more, and `GemRecentActivityService::clear(types)`
+  reads the wallet too (Android's `ClearRecentAssets` use case is gone; `RecentsSheetViewModel`
+  holds the Core service). The batch is done; what remains on Android is the perpetual observer
+  (socket-scoped) and the welcome-banner key, each reading the session for a wallet id Core could
+  hand out. `GemBalanceService`,
   `GemSwapService` and the socket-driven `GemPerpetualService::{connection, sync_positions,
   apply_socket_message}` stay explicit underneath: the app-start and observer flows call them
   for the wallet whose socket they hold. Keep an explicit

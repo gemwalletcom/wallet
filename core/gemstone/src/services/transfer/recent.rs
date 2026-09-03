@@ -38,8 +38,8 @@ impl GemRecentActivityService {
             .await
     }
 
-    pub async fn clear(&self, wallet_id: WalletId, types: Vec<RecentActivityType>) -> Result<(), GemServiceError> {
-        self.store.clear(wallet_id, types).await
+    pub async fn clear(&self, types: Vec<RecentActivityType>) -> Result<(), GemServiceError> {
+        self.store.clear(self.session.current_wallet_id()?, types).await
     }
 }
 
