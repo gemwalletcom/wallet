@@ -21,12 +21,19 @@ Before editing any of the following, confirm the task explicitly intends to chan
 - Keep transaction-critical values explicit: chain, asset, amount, recipient, fee, nonce, calldata, and signature context must not become ambiguous
 - Validate external input defensively and prefer existing parsers, mappers, and domain types over ad hoc string handling
 - Prefer fail-closed behavior when security state is missing, invalid, or unsupported
+- Treat provider-returned spenders, routers, transaction targets, calldata, and approval metadata as untrusted. Validate authority against an independent provider-and-chain policy before constructing an approval, and bind the final transaction target to the validated route.
+- Exact approval amount reduces exposure but does not make an attacker-selected spender safe. Permit2 and multi-call approval flows require separate validation of each authority boundary.
 
 ## Storage and Auth
 
 - Use the existing platform-secure storage layers instead of plain preferences or database storage for secrets
 - Preserve biometric and device-auth requirements unless the task explicitly changes them
 - Keep lock, unlock, and session flows aligned with current platform behavior
+- Before adding recovery behavior, classify the stored material as user-owned and irreplaceable or safely regenerable. Never reset seed phrases, imported private keys, wallet passwords, or other irreplaceable material as a generic recovery strategy.
+- Retry only errors known to be transient. Do not catch a broad exception class and retry persistent authentication-tag, integrity, decryption, or key-invalidated failures through the same broken storage path.
+- Scope reset/recovery to the smallest regenerable namespace after tracing every consumer. A device-auth identity failure must not clear wallet secrets, password storage, or unrelated preferences.
+- Describe a recovery fix by the observed paths it covers. Do not imply that one exception mapping or retry handles every platform keystore failure.
+- Do not run Keystore or Keychain operations eagerly during app startup (`App.onCreate`, app init) or on threads where an uncaught throw kills the process (OkHttp interceptors, coroutine roots without handlers). Defer them to first use, keep them off the main thread, and map failures to a typed error the caller can handle.
 
 ## Cross-Platform Rule
 
@@ -51,3 +58,4 @@ Before finishing a security-sensitive change, check:
 3. Existing auth and confirmation gates still execute on every required path
 4. New external-input handling is validated against malformed or hostile input
 5. Affected platforms were verified when mobile interfaces, generated outputs, platform build inputs, or app-side integration changed
+6. Approval spenders, routers, transaction targets, and multi-call destinations are independently authorized rather than cross-checked only against values from the same response

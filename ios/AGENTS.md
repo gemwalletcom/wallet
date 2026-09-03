@@ -4,14 +4,13 @@ Guidance for Coding Agents working in the iOS app.
 
 ## Skills
 
-Read this file first, then load the relevant skills before editing iOS code. `development-commands.md`, `testing.md`, and `code-style.md` are the default set for most tasks. Load `setup.md` for environment/bootstrap work and `troubleshooting.md` when dealing with build, test, package-resolution, or generated-code failures.
+Read this file first, then load the relevant skills before editing iOS code. `development-commands.md`, `testing.md`, and `code-style.md` are the default set for most tasks. Load `setup.md` for environment/bootstrap work and `troubleshooting.md` when dealing with build, test, package-resolution, or generated-code failures. Localization and security rules are shared: see `../skills/localization.md` and `../skills/security.md`.
 
 - [Project Overview](skills/project-overview.md) — Module layout, app structure, and navigation model
 - [Setup](skills/setup.md) — Prerequisites, bootstrap, and local tool installation
 - [Development Commands](skills/development-commands.md) — `just` build, test, generate, and fallback build guidance
 - [Testing](skills/testing.md) — Test organization, naming, mocks, and execution rules
 - [Code Style](skills/code-style.md) — SwiftUI, concurrency, organization, and clean-code expectations
-- [Platform Operations](skills/platform-operations.md) — Apple tooling notes, platform requirements, localization, and security
 - [Core Integration](skills/core-integration.md) — Rust core, generated bindings, and generated model rules
 - [Troubleshooting](skills/troubleshooting.md) — Common pitfalls, recovery commands, and submodule/build guidance
 

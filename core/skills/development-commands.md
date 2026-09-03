@@ -14,6 +14,8 @@ just gemstone prepare-ios-package # Prepare the core iOS GemTest package (run in
 just gemstone build-android     # Build Android AAR (run in gemstone/)
 ```
 
+First-time machine setup, including the kache build cache, is in [Setup](setup.md).
+
 ## Test
 
 ```sh
@@ -23,6 +25,8 @@ just test-integration           # Run integration tests only
 just gemstone test-ios          # Run iOS integration tests (run in gemstone/)
 cargo test --test integration_test --package <CRATE> --features <FEATURE>  # Manual integration test
 ```
+
+Cargo accepts one positional test filter. Run multiple filters as separate commands. Confirm the active worktree and run commands from the directory assumed by the path arguments. If parallel Cargo commands contend on workspace locks or do not return a clear final status, rerun the closing checks individually.
 
 ## Code Quality
 
@@ -38,6 +42,12 @@ just unused                     # Find unused dependencies with cargo-machete
 just format
 cargo clippy -p <crate> -- -D warnings
 ```
+
+Most chain crates declare `default = []` and gate whole modules behind features: `gem_bitcoin` keeps `signer/` behind `signer` (enabled by `unit_tests`), `gem_keystore` keeps v3 migration behind `v3`, `swapper` keeps live clients behind `reqwest_provider`. `just test <CRATE>` passes `--all-features`, but bare `cargo test -p <crate>` and `cargo clippy -p <crate>` compile only the default set and finish in seconds with nothing from the gated modules, which reads as a pass. Lint and test with the feature that compiles the changed path, for example `cargo clippy -p gem_bitcoin --features unit_tests --all-targets -- -D warnings`, or pass `--all-features`.
+
+## Cargo.lock Conflicts
+
+Resolve `Cargo.lock` merge or rebase conflicts by taking the union of the two committed versions, never by letting Cargo regenerate the file: a fresh resolve moves unrelated crates to whatever the local registry cache offers, and that can differ from crates.io and break CI. Validate the result with `cargo metadata --offline --locked`, and run the follow-up checks with `--locked` so Cargo cannot rewrite the lock silently.
 
 ## Database
 

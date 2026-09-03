@@ -1,6 +1,6 @@
 # Decision Records
 
-Non-obvious architectural choices. Do not "improve" these without understanding the rationale.
+Repo-wide architectural choices that are not obvious from the code, with the rationale. Do not "improve" these without understanding it. Decisions about the shape of Core-owned services (what was tried and reverted) live in [ARCHITECTURE.md § 12](ARCHITECTURE.md#12-shapes-that-were-tried-and-reverted). Code-style exceptions belong in the platform skills, not here.
 
 ## Gemstone is bundled locally
 
@@ -10,17 +10,15 @@ Gemstone (the Rust-to-mobile bridge) is built and bundled from source rather tha
 
 TypeShare generates shared model types; UniFFI generates FFI bindings. Both run from `just generate`. Two tools are used because TypeShare handles pure data models efficiently while UniFFI handles the full FFI bridge (functions, callbacks, async). Do not consolidate them.
 
-## CLAUDE.md symlinks to AGENTS.md
+## Android distribution channels come from one matrix
 
-Each directory has `CLAUDE.md -> AGENTS.md`. This is intentional — different AI agents look for different filenames. The symlink avoids content duplication. Do not replace symlinks with copies.
+`android/gradle/channels.gradle.kts` defines every channel (google, universal, huawei, solana, samsung, emerald, fdroid) and what each one links: the push module (FCM or stub), the review module (Google or stub), the WalletConnect implementation (Reown or no-op), ProGuard rules, update URL, and ABIs. Channels exist to satisfy different store and partnership constraints, so do not remove one or assume Google-only distribution.
 
-## Diesel inline `use` for DSL imports
+The active channel is resolved once per Gradle invocation by `selectChannel()`: `-Pchannel=<name>` first, then inference from an `assemble<Channel>`/`bundle<Channel>` task name, then `google`. `fdroid` is the only channel that drops Firebase, Google services, and real WalletConnect, and it is always built alone with `-Pchannel=fdroid` (`android/reproducible/fdroid/build.sh`). Add or change a channel by editing the matrix only. Do not reintroduce `System.getenv` feature reads or hand-written product flavors: the previous dual selector had to be hand-synced, and building the F-Droid flavor without the environment flag silently produced an APK with Firebase and WalletConnect linked, which the F-Droid scanner rejects.
 
-Diesel query functions import DSL names (`use crate::schema::*::dsl::*`) inside the function body. This is the one exception to the no-inline-imports rule — it prevents DSL name collisions at module scope and is idiomatic Diesel.
+## Rust build cache: kache locally, sccache in CI
 
-## Five Android build flavors
-
-Google, Huawei, Samsung, Solana, and Universal flavors exist to satisfy different app store requirements and partnership constraints. Do not remove flavors or assume Google-only distribution.
+Developer machines use kache as the `rustc` wrapper (see `core/skills/setup.md`); CI keeps sccache with the GitHub Actions cache backend (`RUSTC_WRAPPER: sccache` in the workflows, `mozilla-actions/sccache-action` in `.github/actions/setup-rust-ci`). kache dedups content-addressed artifacts across worktrees and clean rebuilds better than sccache does, but CI's cache is independent of any developer machine and kache has no shared remote configured for this repository. The migration was deliberately local-only so CI caching could not regress; switching CI needs a remote store (S3 bucket plus secrets) first. Do not change one side while touching the other.
 
 ## Core source lives in this repository
 

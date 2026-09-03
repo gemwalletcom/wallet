@@ -220,6 +220,7 @@ Rules:
 - Wrong password never overwrites an existing v4 file.
 - `GemWalletService.delete_wallet` removes every on-disk copy (the v4 file and any v3 file that never migrated) before deleting wallet metadata, so no secret is orphaned. Deleting one wallet must not delete the shared app-wide password.
 - Downgrading to a pre-v4 build after migration is not supported: the v3 file is gone once the wallet has migrated.
+- Legacy v3 files written by WalletCore can carry an empty scrypt salt. The v3 reader accepts salt lengths from zero up to the maximum and relies on the MAC for authentication. Do not reintroduce a minimum salt length; it strands real wallets with a blank phrase or a missing-password error (fixture `core/crates/gem_keystore/testdata/v3_empty_salt_mnemonic.json`, gemstone test `migrate_v3_empty_salt_mnemonic_round_trip`).
 
 ## Mobile Import/Create Flow
 
@@ -241,6 +242,8 @@ Rules:
 - All path construction must go through validated keystore ids.
 - Keep v3 parsing capped and typed-error based.
 - Keep WalletCore references out of production keystore flows except explicit legacy migration support during rollout.
+- A thrown Keychain or Keystore read error is not "absent". Only a confirmed not-found result may create a new password; errors propagate and never remove, overwrite, or regenerate existing password or keystore material.
+- Uninstall semantics differ by platform: iOS Keychain items survive app removal, so a broken password item persists across reinstall, while Android app removal wipes the password store, master key, and keystore files, so reinstalling without a backed-up phrase loses the wallet. Recovery guidance and support scripts must never recommend reinstall as a fix.
 
 ## Misc
 

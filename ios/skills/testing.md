@@ -1,5 +1,6 @@
 # Testing
 
+Use when adding, changing, or running iOS tests, or registering a new test target.
 ## Execution Rules
 
 - Always run tests through the iOS `justfile`
@@ -25,7 +26,6 @@ A test target only runs if it is registered in all three places:
 - Keep test names short and descriptive, for example `showManageToken`
 - Keep tests concise, usually one behavior with a small number of assertions
 - Skip trivial tests that only restate obvious behavior
-- Do not create unit tests that spin up ad hoc local HTTP/TCP test servers; use TestKit mocks, deterministic fixtures, or integration tests instead
 
 ## Mocks
 
