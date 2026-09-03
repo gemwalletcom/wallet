@@ -147,10 +147,11 @@ impl GemAssetsService {
         self.store.add_missing_balances(wallet_id, stored).await
     }
 
-    pub async fn setup_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {
+    pub async fn setup_wallet(&self, wallet: Wallet) -> Result<Vec<AssetId>, GemServiceError> {
         let (enabled, disabled) = rules::default_balances(&wallet);
-        self.store.add_balances(wallet.id.clone(), enabled, true).await?;
-        self.store.add_balances(wallet.id, disabled, false).await
+        self.store.add_balances(wallet.id.clone(), enabled.clone(), true).await?;
+        self.store.add_balances(wallet.id, disabled, false).await?;
+        Ok(enabled)
     }
 
     pub fn assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {

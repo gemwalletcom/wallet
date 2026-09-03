@@ -8,12 +8,13 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use futures::future::join_all;
-use primitives::{AssetBalance, AssetId, WalletId};
+use primitives::{AssetBalance, AssetId, Wallet, WalletId};
 
 pub use model::{GemAssetBalance, GemBalanceRow, GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
 pub use store::GemBalanceStore;
 
 use crate::gateway::GemGateway;
+use crate::services::assets::rules::default_balances;
 use crate::services::assets::{GemAssetStore, GemAssetsService};
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
@@ -116,6 +117,14 @@ impl GemBalanceService {
 }
 
 impl GemBalanceService {
+    pub async fn setup_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {
+        let (defaults, _) = default_balances(&wallet);
+        let stored = self.store.get_enabled_asset_ids(wallet.id.clone(), defaults).await?;
+        let enabled = self.assets.setup_wallet(wallet.clone()).await?;
+        self.refresh_enabled_assets(wallet.id, rules::newly_enabled_asset_ids(&enabled, &stored)).await;
+        Ok(())
+    }
+
     async fn refresh_enabled_assets(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) {
         if asset_ids.is_empty() {
             return;

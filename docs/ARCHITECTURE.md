@@ -768,6 +768,16 @@ push was reconciled away on the next sync. When the store adapter moved behind
 empty until the round trip finished and never filled on a failed push (#1022). The order a
 flow writes in is behavior, not an implementation detail: carry it across with the store.
 
+**Two app triggers on one event are a race Core cannot see.** A wallet import made the
+session emit once, and Android answered that emission twice: `AppViewModel` asked Core to set
+the wallet up (insert the default balance rows) while `StreamObserverService` read the wallet's
+assets from the database and asked Core to refresh them — an empty list when the read won, so a
+new wallet's native balance stayed blank until pull-to-refresh (#1017). The fix is not to order
+the two coroutines but to make the first call complete the job: `GemBalanceService::setup_wallet`
+inserts the default rows and refreshes the balances of the ones it newly enabled, the way
+`set_assets_enabled` already did for a newly enabled asset, so the second trigger has nothing
+left to race.
+
 **A launch-time entry is not the place for a screen's dependency.** `GemRewardsService`,
 `GemReceiveService`, `GemNodeStatusService`, `GemPerpetualDetailsService`, `GemPriceAlertService`,
 `GemServiceStatus`, `GemAppUpdateService`, `GemNotificationService`, `GemNftService`,

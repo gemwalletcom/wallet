@@ -243,6 +243,7 @@ struct ServicesFactory {
             config: configService,
             banners: bannerService,
             assets: assetsService,
+            balance: balanceService,
             walletConfiguration: Gemstone.GemWalletConfigurationService(
                 api: deviceApiClient,
                 banners: gemstoneBannerStore,
