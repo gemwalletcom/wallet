@@ -4,10 +4,12 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockWallet
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.GemWalletSessionServiceInterface
@@ -103,10 +105,15 @@ class SettingsViewModelTest {
         every { it.showsRewards() } returns true
     }
 
+    private val getCurrentCurrency = mockk<GetCurrentCurrency> {
+        every { getCurrency() } returns MutableStateFlow(Currency.USD)
+    }
+
     private fun createViewModel() = SettingsViewModel(
         userConfig = userConfig,
         getWallets = getWallets,
         getSession = getSession,
+        getCurrentCurrency = getCurrentCurrency,
         switchPushEnabled = switchPushEnabled,
         getPushEnabled = getPushEnabled,
         notificationsAvailable = true,

@@ -48,6 +48,21 @@ fn validated_words(words: Vec<String>) -> Result<Vec<String>, GemWalletImportErr
     Ok(words)
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum SecretExport {
+    Words,
+    PrivateKey(Chain),
+    None,
+}
+
+pub fn secret_export(wallet: &Wallet) -> SecretExport {
+    match wallet.wallet_type {
+        WalletType::Multicoin | WalletType::Single => SecretExport::Words,
+        WalletType::PrivateKey => wallet.accounts.first().map(|account| SecretExport::PrivateKey(account.chain)).unwrap_or(SecretExport::None),
+        WalletType::View => SecretExport::None,
+    }
+}
+
 pub fn view_wallet(name: String, chain: Chain, address: String) -> Wallet {
     Wallet {
         id: WalletId::View(chain, address.clone()),
@@ -80,7 +95,7 @@ pub fn next_wallet_index(wallets: &[Wallet]) -> i32 {
     wallets.iter().map(|wallet| wallet.index).max().map(|index| index + 1).unwrap_or(1)
 }
 
-pub fn missing_chains(wallet: &Wallet, chains: &[Chain]) -> Vec<Chain> {
+fn missing_chains(wallet: &Wallet, chains: &[Chain]) -> Vec<Chain> {
     chains.iter().copied().filter(|chain| wallet.account(*chain).is_none()).collect()
 }
 
@@ -99,6 +114,13 @@ pub fn sorted_wallets(wallets: Vec<Wallet>) -> Vec<Wallet> {
     let mut sorted = wallets;
     sorted.sort_by_key(|wallet| (wallet.wallet_type.rank(), wallet.index));
     sorted
+}
+
+pub fn show_collections(wallet: &Wallet) -> bool {
+    match wallet.wallet_type {
+        WalletType::Multicoin => true,
+        WalletType::Single | WalletType::PrivateKey | WalletType::View => wallet.accounts.first().is_some_and(|account| account.chain.is_nft_supported()),
+    }
 }
 
 pub fn display_account(wallet: &Wallet) -> Option<Account> {
@@ -240,6 +262,22 @@ mod tests {
 
         assert_eq!(next_current_wallet(&[view, second, first.clone()]), Some(first.id));
         assert_eq!(next_current_wallet(&[]), None);
+    }
+
+    #[test]
+    fn test_show_collections_follows_the_first_account_chain_outside_multicoin() {
+        assert!(show_collections(&wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Bitcoin])));
+        assert!(show_collections(&wallet(
+            WalletId::Single(Chain::Ethereum, "0x2".to_string()),
+            WalletType::Single,
+            &[Chain::Ethereum]
+        )));
+        assert!(!show_collections(&wallet(
+            WalletId::Single(Chain::Bitcoin, "0x3".to_string()),
+            WalletType::Single,
+            &[Chain::Bitcoin]
+        )));
+        assert!(!show_collections(&wallet(WalletId::View(Chain::Ethereum, "0x4".to_string()), WalletType::View, &[])));
     }
 
     #[test]

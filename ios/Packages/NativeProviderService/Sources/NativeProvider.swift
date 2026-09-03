@@ -25,20 +25,18 @@ public actor NativeProvider {
         self.requestInterceptor = requestInterceptor
     }
 
-    public init(session: URLSession = .shared, url: URL, requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor()) {
+    public init(session: URLSession = .shared, requestInterceptor: any RequestInterceptable = EmptyRequestInterceptor()) {
         self.init(
             session: session,
-            nodeProvider: StaticNode(url: url),
+            nodeProvider: ApiOnlyNodes(),
             requestInterceptor: requestInterceptor,
         )
     }
 }
 
-struct StaticNode: NodeURLProvidable {
-    let url: URL
-
-    func node(for _: Primitives.Chain) -> URL {
-        url
+struct ApiOnlyNodes: NodeURLProvidable {
+    func node(for chain: Primitives.Chain) -> URL {
+        preconditionFailure("API-only provider asked for a \(chain) node")
     }
 }
 

@@ -90,8 +90,7 @@ class TransactionsViewModel @Inject constructor(
         if (current == syncedWalletId) return null
         syncedWalletId = current
         return viewModelScope.launch(Dispatchers.IO) {
-            val wallet = session.firstOrNull()?.wallet
-            val synced = wallet != null && syncTransactions.syncTransactions(wallet)
+            val synced = syncTransactions.syncTransactions()
             if (!synced && syncedWalletId == current) {
                 syncedWalletId = null
             }
@@ -99,10 +98,9 @@ class TransactionsViewModel @Inject constructor(
     }
 
     fun refresh() = viewModelScope.launch(Dispatchers.IO) {
-        val wallet = session.firstOrNull()?.wallet ?: return@launch
         _isRefreshing.update { true }
         try {
-            syncTransactions.syncTransactions(wallet)
+            syncTransactions.syncTransactions()
         } finally {
             _isRefreshing.update { false }
         }

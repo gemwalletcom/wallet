@@ -41,40 +41,12 @@ impl GemConfigService {
 mod tests {
     use super::*;
     use crate::alien::{AlienError, AlienProvider, AlienResponse, AlienTarget};
-    use crate::services::preferences::GemPreferencesStore;
+    use crate::services::preferences::testkit::MemoryPreferencesStore;
     use async_trait::async_trait;
     use primitives::{Chain, ConfigVersions, SwapConfig};
-    use std::collections::HashMap;
     use std::future::Future;
-    use std::sync::Mutex;
     use std::sync::atomic::{AtomicUsize, Ordering};
     use std::task::{Context, Poll};
-
-    #[derive(Default)]
-    struct MemoryStore {
-        values: Mutex<HashMap<String, String>>,
-    }
-
-    impl GemPreferencesStore for MemoryStore {
-        fn get(&self, key: String) -> Option<String> {
-            self.values.lock().unwrap().get(&key).cloned()
-        }
-
-        fn set(&self, key: String, value: String) -> Result<(), GemServiceError> {
-            self.values.lock().unwrap().insert(key, value);
-            Ok(())
-        }
-
-        fn remove(&self, key: String) -> Result<(), GemServiceError> {
-            self.values.lock().unwrap().remove(&key);
-            Ok(())
-        }
-
-        fn clear(&self) -> Result<(), GemServiceError> {
-            self.values.lock().unwrap().clear();
-            Ok(())
-        }
-    }
 
     #[derive(Debug, Default)]
     struct ConfigProvider {
@@ -115,8 +87,8 @@ mod tests {
 
     fn service(provider: Arc<ConfigProvider>) -> GemConfigService {
         GemConfigService::new(
-            Arc::new(GemApiClient::new(provider, "https://example.com".to_string())),
-            Arc::new(GemPreferencesService::new(Arc::new(MemoryStore::default()))),
+            Arc::new(GemApiClient::new(provider)),
+            Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()))),
         )
     }
 

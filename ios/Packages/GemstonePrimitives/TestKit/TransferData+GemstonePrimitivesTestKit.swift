@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemRecipient
 import enum Gemstone.GemTransactionInputType
 import BigInt
 import Foundation
@@ -11,14 +12,14 @@ import struct Gemstone.GemTransferData
 public extension GemTransferData {
     static func mock(
         type: GemTransactionInputType = .transfer(.mock()),
-        recipient: Recipient = .mock(),
+        recipient: GemRecipient = .mock(),
         value: BigInt = .zero,
         useMaxAmount: Bool = false,
         minimumValue: BigInt? = nil,
     ) -> GemTransferData {
         GemTransferData(
             inputType: type,
-            recipient: recipient.gem,
+            recipient: recipient,
             value: value,
             useMaxAmount: useMaxAmount,
             minimumValue: minimumValue,
@@ -28,7 +29,7 @@ public extension GemTransferData {
     static func mockPayment(
         asset: Asset = .mockSolana(),
         transaction: String = "transaction",
-        recipient: Recipient = .mock(),
+        recipient: GemRecipient = .mock(),
         value: BigInt = .zero,
     ) -> GemTransferData {
         .mock(

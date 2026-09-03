@@ -69,7 +69,7 @@ class GetWalletSummaryImpl(
                 displayState = buildWalletSummaryDisplayState(
                     currency = session.currency,
                     balanceCalculator = balanceCalculator,
-                    total = balanceCalculator.walletTotalFiatValue(balances),
+                    total = balanceCalculator.totalFiatValue(balances),
                 ),
                 isBalanceHidden = hideBalances,
                 isOperationsAvailable = !hasMultiSign,

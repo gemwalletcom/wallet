@@ -6,12 +6,8 @@ import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.ApplicationMetadata
-import com.wallet.core.primitives.DelegationValidator
-import com.wallet.core.primitives.StakeType
 import com.wallet.core.primitives.WalletType
-import uniffi.gemstone.GemTransactionInputType
-import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.GemConfirmDestination
 
 sealed interface ConfirmProperty {
     class Source(val data: String, val walletType: WalletType, val walletChain: Chain?, val walletImageUrl: String?) : ConfirmProperty
@@ -31,42 +27,25 @@ sealed interface ConfirmProperty {
             val imageUrl: String? = null,
             val explorerLink: BlockExplorerLink? = null,
         ) : Destination(address)
+        class Contract(val address: String, val chain: Chain, val explorerLink: BlockExplorerLink? = null) : Destination(address)
+        class Resource(val resource: com.wallet.core.primitives.Resource) : Destination(resource.string)
         class Generic(val appName: String) : Destination(appName)
         class PerpetualOper(val providerName: String) : Destination(providerName)
 
         companion object {
-            fun map(
-                transfer: GemTransferData,
-                validator: DelegationValidator?,
-                addressName: AddressName? = null,
-            ): Destination? = when (val inputType = transfer.inputType) {
-                is GemTransactionInputType.Account,
-                is GemTransactionInputType.Perpetual,
-                is GemTransactionInputType.TokenApprove,
-                is GemTransactionInputType.Earn,
-                is GemTransactionInputType.Swap -> null
-                is GemTransactionInputType.Stake -> when (val stakeType = inputType.stakeType.decodeJson<StakeType>()) {
-                    is StakeType.Freeze,
-                    is StakeType.Unfreeze -> null
-                    is StakeType.Rewards -> validator
-                        ?.takeIf { stakeType.content.size == 1 }
-                        ?.let { Stake(data = it.name, address = it.id) }
-                    is StakeType.Stake,
-                    is StakeType.Redelegate,
-                    is StakeType.Unstake,
-                    is StakeType.Withdraw -> Stake(data = validator?.name ?: "", address = validator?.id)
-                }
-                is GemTransactionInputType.TransferNft,
-                is GemTransactionInputType.Deposit,
-                is GemTransactionInputType.Withdrawal,
-                is GemTransactionInputType.Transfer -> Transfer(
-                    domain = transfer.recipient.name ?: addressName?.name,
-                    address = transfer.recipient.address,
-                    chain = inputType.chain,
+            fun map(destination: GemConfirmDestination?, chain: Chain, addressName: AddressName? = null): Destination? = when (destination) {
+                null -> null
+                is GemConfirmDestination.Recipient -> Transfer(
+                    domain = destination.name ?: addressName?.name,
+                    address = destination.address,
+                    chain = chain,
                     addressType = addressName?.type,
                     imageUrl = addressName?.imageUrl,
                 )
-                is GemTransactionInputType.Generic -> Generic(inputType.metadata.decodeJson<ApplicationMetadata>().name)
+                is GemConfirmDestination.Contract -> Contract(address = destination.address, chain = chain)
+                is GemConfirmDestination.Validator -> Stake(data = destination.name, address = destination.address)
+                is GemConfirmDestination.Resource -> Resource(destination.resource.decodeJson())
+                is GemConfirmDestination.Provider -> Provider(destination.name)
             }
         }
     }

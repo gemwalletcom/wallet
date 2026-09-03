@@ -14,30 +14,8 @@ public extension GemKeystoreAccount {
     }
 }
 
-public extension GemWalletType {
-    func map() -> WalletType {
-        switch self {
-        case .multicoin: .multicoin
-        case .single: .single
-        case .privateKey: .privateKey
-        case .view: .view
-        }
-    }
-}
-
-public extension WalletType {
-    func map() -> GemWalletType {
-        switch self {
-        case .multicoin: .multicoin
-        case .single: .single
-        case .privateKey: .privateKey
-        case .view: .view
-        }
-    }
-}
-
 public extension GemStoredWallet {
-    func mapToWallet(name: String, source: WalletSource) throws -> Primitives.Wallet {
+    func mapToWallet(name: String, source: Primitives.WalletSource) throws -> Primitives.Wallet {
         // externalId stays nil for v4 wallets
         try Primitives.Wallet(
             id: Primitives.WalletId.from(id: walletId),

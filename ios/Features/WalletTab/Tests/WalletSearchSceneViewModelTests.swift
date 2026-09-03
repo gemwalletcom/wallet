@@ -14,22 +14,14 @@ import WalletTabTestKit
 @MainActor
 struct WalletSearchSceneViewModelTests {
     @Test
-    func recentActivityTypes() {
-        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true)).recentModel.query.request.types == RecentActivityType.allCases)
-        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: false)).recentModel.query.request.types == RecentActivityType.allCases)
-    }
-
-    @Test
     func searchRequestInitialization() {
-        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true)).searchQuery.request.limit == 13)
-        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: false)).searchQuery.request.limit == 13)
-        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true)).searchQuery.request.types == [.asset, .perpetual, .list, .nft])
-        #expect(WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: false)).searchQuery.request.types == [.asset, .perpetual, .list, .nft])
+        #expect(WalletSearchSceneViewModel.mock().searchQuery.request.limit == 13)
+        #expect(WalletSearchSceneViewModel.mock().searchQuery.request.types == [.asset, .perpetual, .list, .nft])
     }
 
     @Test
     func hasMoreAssets() {
-        let model = WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true))
+        let model = WalletSearchSceneViewModel.mock()
 
         model.searchQuery.value = .mock(assets: (0 ..< 12).map { _ in .mock() })
         #expect(model.hasMoreAssets == false)
@@ -40,7 +32,7 @@ struct WalletSearchSceneViewModelTests {
 
     @Test
     func hasMorePerpetuals() {
-        let model = WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true))
+        let model = WalletSearchSceneViewModel.mock()
 
         model.searchQuery.value = .mock(perpetuals: (0 ..< 3).map { _ in .mock() })
         #expect(model.hasMorePerpetuals == false)
@@ -49,16 +41,11 @@ struct WalletSearchSceneViewModelTests {
         #expect(model.hasMorePerpetuals == true)
     }
 
-    @Test(arguments: [
-        Wallet.mock(type: .single, accounts: [.mock(chain: .bitcoin, address: "bc1")]),
-        Wallet.mock(type: .view, accounts: [.mock(chain: .ethereum, address: "0x1")]),
-        Wallet.mock(type: .multicoin, accounts: [.mock(chain: .ethereum, address: "0x1")]),
-    ])
-    func hidesPerpetualsForUnsupportedWallet(wallet: Wallet) {
-        let model = WalletSearchSceneViewModel.mock(
-            wallet: wallet,
-            preferences: .mock(isPerpetualEnabled: true),
-        )
+    @Test
+    func hidesPerpetualsWhenTheServiceSaysSo() {
+        let service = GemAssetSelectionServiceMock()
+        service.perpetualsShown = false
+        let model = WalletSearchSceneViewModel.mock(service: service)
         model.searchQuery.value = .mock(
             perpetuals: [
                 .mock(metadata: .mock(isPinned: false)),
@@ -71,7 +58,7 @@ struct WalletSearchSceneViewModelTests {
 
     @Test
     func listsSection() {
-        let model = WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true))
+        let model = WalletSearchSceneViewModel.mock()
 
         #expect(model.showLists == false)
 
@@ -85,7 +72,7 @@ struct WalletSearchSceneViewModelTests {
 
     @Test
     func hasMoreNFTs() {
-        let model = WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true))
+        let model = WalletSearchSceneViewModel.mock()
 
         model.searchQuery.value = .mock(nfts: (0 ..< 3).map { _ in .asset(.mock()) })
         #expect(model.hasMoreNFTs == false)
@@ -96,7 +83,7 @@ struct WalletSearchSceneViewModelTests {
 
     @Test
     func nftsSection() {
-        let model = WalletSearchSceneViewModel.mock(preferences: .mock(isPerpetualEnabled: true))
+        let model = WalletSearchSceneViewModel.mock()
 
         #expect(model.showNFTs == false)
 
@@ -111,10 +98,10 @@ struct WalletSearchSceneViewModelTests {
     }
 
     @Test
-    func pinAssetPinsThroughBalanceService() async {
+    func pinAssetPinsThroughTheService() async {
         let pinned: (assetId: String, pinned: Bool) = await withCheckedContinuation { continuation in
             let model = WalletSearchSceneViewModel.mock(
-                balanceService: .mock(onSetAssetPinned: { _, assetId, pinned in continuation.resume(returning: (assetId, pinned)) }),
+                service: GemAssetSelectionServiceMock(onSetAssetPinned: { assetId, pinned in continuation.resume(returning: (assetId, pinned)) }),
             )
             model.onPinAsset(.mock(), value: true)
         }

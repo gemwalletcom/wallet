@@ -1,9 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemAssetAction
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import class Gemstone.GemRecentActivityService
 import GemstoneServices
 import Foundation
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store
@@ -14,7 +16,7 @@ public final class RecentAssetsModel {
     private static let sectionLimit: Int = 10
 
     private let walletId: WalletId
-    private let recentAssetsService: any GemRecentActivityServiceProtocol
+    private let service: any GemRecentActivityServiceProtocol
 
     public let query: ObservableQuery<RecentActivityRequest>
     public var isPresenting: Bool = false
@@ -23,10 +25,10 @@ public final class RecentAssetsModel {
         walletId: WalletId,
         types: [RecentActivityType],
         filters: [AssetsRequestFilter] = [],
-        recentAssetsService: any GemRecentActivityServiceProtocol,
+        service: any GemRecentActivityServiceProtocol,
     ) {
         self.walletId = walletId
-        self.recentAssetsService = recentAssetsService
+        self.service = service
         query = ObservableQuery(
             RecentActivityRequest(
                 walletId: walletId,
@@ -47,7 +49,7 @@ public final class RecentAssetsModel {
             walletId: walletId,
             types: query.request.types,
             filters: query.request.filters,
-            recentAssetsService: recentAssetsService,
+            service: service,
             onSelect: onSelect,
         )
     }
@@ -62,5 +64,15 @@ public extension RecentAssetsModel {
 
     func dismiss() {
         isPresenting = false
+    }
+
+    func add(action: GemAssetAction, asset: Asset) {
+        Task { [service] in
+            do {
+                try await service.addRecent(action: action, asset: asset.map())
+            } catch {
+                debugLog("Failed to update recent activity: \(error)")
+            }
+        }
     }
 }

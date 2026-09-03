@@ -4,7 +4,7 @@ pub mod store;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use primitives::{AssetId, PriceAlert};
+use primitives::{AssetId, Currency, PriceAlert};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::banner::GemNotificationPermissions;
@@ -59,9 +59,21 @@ impl GemPriceAlertService {
         self.device.synchronize().await.map(|_| ())
     }
 
+    pub fn currency(&self) -> Currency {
+        self.preferences.get_currency()
+    }
+
     pub async fn enable_price_alert(&self, alert: PriceAlert) -> Result<(), GemServiceError> {
         self.add_price_alerts(vec![alert]).await?;
         self.set_enabled(true).await
+    }
+
+    pub async fn set_auto_alert(&self, asset_id: AssetId, enabled: bool) -> Result<(), GemServiceError> {
+        let alert = PriceAlert::new_auto(asset_id, self.currency());
+        match enabled {
+            true => self.enable_price_alert(alert).await,
+            false => self.delete_price_alerts(vec![alert]).await,
+        }
     }
 
     pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
@@ -84,15 +96,17 @@ impl GemPriceAlertService {
     }
 
     pub async fn delete_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
-        self.api.client.delete_price_alerts(alerts.clone()).await.map_err(GemApiError::from)?;
-        self.store.update_price_alerts(Vec::new(), alerts.iter().map(|alert| alert.id()).collect()).await
+        self.store.update_price_alerts(Vec::new(), alerts.iter().map(|alert| alert.id()).collect()).await?;
+        self.api.client.delete_price_alerts(alerts).await.map_err(GemApiError::from)?;
+        Ok(())
     }
 }
 
 impl GemPriceAlertService {
     pub async fn add_price_alerts(&self, alerts: Vec<PriceAlert>) -> Result<(), GemServiceError> {
-        self.api.client.add_price_alerts(alerts.clone()).await.map_err(GemApiError::from)?;
-        self.store.update_price_alerts(alerts, Vec::new()).await
+        self.store.update_price_alerts(alerts.clone(), Vec::new()).await?;
+        self.api.client.add_price_alerts(alerts).await.map_err(GemApiError::from)?;
+        Ok(())
     }
 }
 

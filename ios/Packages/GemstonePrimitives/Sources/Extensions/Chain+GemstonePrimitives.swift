@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAssetConfigService
-import protocol Gemstone.GemAddressServiceProtocol
 import BigInt
 import Foundation
 import Gemstone
+import class Gemstone.GemAssetConfigService
 import Primitives
 
 private let assetConfig = GemAssetConfigService()
@@ -42,13 +41,6 @@ public extension Primitives.Chain {
         chainAsset.networkName
     }
 
-    var accountActivationFeeUrl: URL? {
-        guard let url = ChainConfig.config(chain: self).accountActivationFeeUrl else {
-            return .none
-        }
-        return URL(string: url)
-    }
-
     var minimumAccountBalance: BigInt {
         BigInt(ChainConfig.config(chain: self).minimumAccountBalance ?? .zero)
     }
@@ -73,53 +65,11 @@ public extension Primitives.Chain {
         ChainConfig.config(chain: self).isNftSupported
     }
 
-    var hasNativeAsset: Bool {
-        ChainConfig.config(chain: self).hasNativeAsset
-    }
-
-    var isDefiSupported: Bool {
-        ChainConfig.config(chain: self).isDefiSupported
-    }
-
     var type: ChainType {
         guard let type = ChainType(rawValue: ChainConfig.config(chain: self).chainType) else {
             preconditionFailure("Invalid chain type for \(self)")
         }
         return type
-    }
-
-    var feeUnitType: FeeUnitType {
-        guard let feeUnitType = FeeUnitType(rawValue: ChainConfig.config(chain: self).feeUnitType) else {
-            return .native
-        }
-        return feeUnitType
-    }
-
-    var feeUnitDecimals: Int {
-        Int(FeeConfig.config(chain: self).decimals)
-    }
-
-    func feeRateDecimals(assetDecimals: Int) -> Int {
-        switch feeUnitType {
-        case .satVb, .gwei: feeUnitDecimals
-        case .native: assetDecimals
-        }
-    }
-
-    var maxCustomFeeRateMultiplier: Int {
-        Int(FeeConfig.config(chain: self).maxMultiplier)
-    }
-
-    var minimumCustomFeeRate: BigInt? {
-        FeeConfig.config(chain: self).minimumCustomFeeRate.map { BigInt($0) }
-    }
-
-    var customFeeEnabled: Bool {
-        FeeConfig.config(chain: self).customFeeEnabled
-    }
-
-    var blockTime: UInt32 {
-        ChainConfig.config(chain: self).blockTime
     }
 
     var iconChain: Primitives.Chain {
@@ -143,14 +93,6 @@ public extension Primitives.Chain {
             preconditionFailure("Missing \(type) default asset for \(self)")
         }
         return asset
-    }
-
-    func isValidAddress(_ address: String, addressService: any GemAddressServiceProtocol) -> Bool {
-        addressService.validate(address: checksumAddress(address, addressService: addressService), chain: rawValue)
-    }
-
-    func checksumAddress(_ address: String, addressService: any GemAddressServiceProtocol) -> String {
-        addressService.checksum(address: address, chain: rawValue)
     }
 
     var isPrivateKeyImportSupported: Bool {

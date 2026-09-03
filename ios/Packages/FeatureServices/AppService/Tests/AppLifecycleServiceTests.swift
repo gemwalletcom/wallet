@@ -17,7 +17,7 @@ import Testing
 
 struct AppLifecycleServiceTests {
     @Test
-    func updateWalletConnectionsConnectsHyperliquidForMultiCoinWallet() async throws {
+    func updateWalletConnectionsConnectsWhenCoreSaysSo() async throws {
         let (service, observer, _, _) = try makeService(perpetualEnabled: true, wallets: [.hyperliquid], current: .hyperliquid)
 
         await service.updateWalletConnections()
@@ -26,8 +26,9 @@ struct AppLifecycleServiceTests {
     }
 
     @Test
-    func updateWalletConnectionsSkipsHyperliquidForSingleChainWallet() async throws {
-        let (service, observer, _, _) = try makeService(perpetualEnabled: true, wallets: [.single], current: .single)
+    func updateWalletConnectionsSkipsWhenCoreDeclines() async throws {
+        let (service, observer, _, perpetuals) = try makeService(perpetualEnabled: true, wallets: [.hyperliquid], current: .hyperliquid)
+        perpetuals.connects = false
 
         await service.updateWalletConnections()
 
@@ -35,11 +36,11 @@ struct AppLifecycleServiceTests {
     }
 
     @Test
-    func updateWalletConnectionsDisconnectsWhenSwitchingToSingleChainWallet() async throws {
-        let (service, observer, session, _) = try makeService(perpetualEnabled: true, wallets: [.hyperliquid, .single], current: .hyperliquid)
+    func updateWalletConnectionsDisconnectsWhenCoreStopsConnecting() async throws {
+        let (service, observer, _, perpetuals) = try makeService(perpetualEnabled: true, wallets: [.hyperliquid], current: .hyperliquid)
         await service.updateWalletConnections()
 
-        try session.setCurrent(walletId: Wallet.single.id)
+        perpetuals.connects = false
         await service.updateWalletConnections()
 
         #expect(await observer.isConnected == false)
@@ -57,30 +58,11 @@ struct AppLifecycleServiceTests {
     }
 
     @Test
-    func updateWalletConnectionsSkipsHyperliquidWhenDisabled() async throws {
-        let (service, observer, _, _) = try makeService(perpetualEnabled: false, wallets: [.hyperliquid], current: .hyperliquid)
-
-        await service.updateWalletConnections()
-
-        #expect(await observer.isConnected == false)
-    }
-
-    @Test
     func updatePerpetualConnectionDisconnectsWhenDisabled() async throws {
         let (service, observer, _, perpetuals) = try makeService(perpetualEnabled: true, wallets: [.hyperliquid], current: .hyperliquid)
         await service.updateWalletConnections()
 
         perpetuals.isPerpetualEnabled = false
-        await service.updatePerpetualConnection()
-
-        #expect(await observer.isConnected == false)
-    }
-
-    @Test
-    func updatePerpetualConnectionSkipsForSingleChainWallet() async throws {
-        let (service, observer, _, _) = try makeService(perpetualEnabled: true, wallets: [.single], current: .single)
-        await service.updateWalletConnections()
-
         await service.updatePerpetualConnection()
 
         #expect(await observer.isConnected == false)
@@ -145,5 +127,4 @@ extension AppLifecycleServiceTests {
 
 private extension Wallet {
     static let hyperliquid = Wallet.mock(type: .multicoin, accounts: [.mock(chain: .hyperliquid)])
-    static let single = Wallet.mock(id: .single(chain: .bitcoin, address: "bc1"), type: .single)
 }

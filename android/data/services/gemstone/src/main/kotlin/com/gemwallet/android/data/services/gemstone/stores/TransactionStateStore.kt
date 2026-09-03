@@ -80,7 +80,7 @@ class GemstoneTransactionStateStore(
                 id = id,
                 walletId = wallet,
                 state = update.state.decodeJson<TransactionState>(),
-                fee = update.fee,
+                fee = update.fee?.toString(),
                 blockNumber = update.blockNumber,
                 metadata = update.metadata,
                 confirmationEtaSeconds = update.confirmationEtaSeconds?.toLong(),

@@ -9,6 +9,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemTransactionDetailsService
 import uniffi.gemstone.GemPreferencesService
 import javax.inject.Singleton
 
@@ -28,6 +29,11 @@ object PreferencesModule {
     @Singleton
     @Provides
     fun provideGemExplorerService(preferencesService: GemPreferencesService): GemExplorerService = GemExplorerService(preferencesService)
+
+    @Singleton
+    @Provides
+    fun provideGemTransactionDetailsService(explorerService: GemExplorerService, preferencesService: GemPreferencesService): GemTransactionDetailsService =
+        GemTransactionDetailsService(explorerService, preferencesService)
 
     @Singleton
     @Provides

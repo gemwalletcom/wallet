@@ -2,11 +2,12 @@
 
 @testable import GemstonePrimitives
 import class Gemstone.GemPaymentService
+import GemstonePrimitivesTestKit
 import Primitives
 import Testing
 
 final class PaymentDecodeTests {
-    let paymentService = GemPaymentService()
+    let paymentService = GemPaymentService.mock()
 
     @Test
     func decodeRequest() throws {

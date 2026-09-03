@@ -23,5 +23,4 @@ struct FeeAssetsViewModel: SelectableListAdoptable {
 
 extension FeeAssetsViewModel: SelectableListNavigationAdoptable {
     var title: String { Localized.Assets.selectAsset }
-    var doneTitle: String { Localized.Common.done }
 }

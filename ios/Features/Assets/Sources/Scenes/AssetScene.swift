@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -40,9 +41,9 @@ public struct AssetScene: View {
                 .listRowInsets(.zero)
             }
 
-            if model.showStatus {
+            if let statusViewModel = model.statusViewModel {
                 Section {
-                    AssetStatusView(model: model.scoreViewModel, action: model.onSelectTokenStatus)
+                    AssetStatusView(model: statusViewModel, action: model.onSelectTokenStatus)
                 }
             }
 
@@ -87,12 +88,12 @@ public struct AssetScene: View {
                 switch model.networkDestination {
                 case let .asset(asset):
                     NavigationLink(
-                        value: Scenes.Asset(asset: asset),
+                        value: Scenes.Asset(asset: asset.map()),
                         label: { networkView },
                     )
                 case let .assets(chain):
                     NavigationLink(
-                        value: Scenes.NetworkAssets(chain: chain),
+                        value: Scenes.NetworkAssets(chain: Chain(core: chain)),
                         label: { networkView },
                     )
                 case nil:
@@ -100,61 +101,55 @@ public struct AssetScene: View {
                 }
             }
 
-            if model.showBalances {
+            if model.balanceRows.isNotEmpty {
                 Section(model.balancesTitle) {
-                    ListItemView(
-                        title: model.assetDataModel.availableBalanceTitle,
-                        subtitle: model.assetDataModel.availableBalanceTextWithSymbol,
-                    )
-
-                    if model.showProviderBalance(for: .stake) {
-                        NavigationCustomLink(
-                            with: ListItemView(
-                                title: model.balanceTitle(for: .stake),
-                                subtitle: model.balanceTextWithSymbol(for: .stake),
-                            ),
-                            action: { model.onSelectHeader(.stake) },
-                        )
-                        .accessibilityIdentifier("stake")
-                    }
-
-                    if model.showProviderBalance(for: .earn) {
-                        NavigationCustomLink(
-                            with: ListItemView(
-                                title: model.balanceTitle(for: .earn),
-                                subtitle: model.balanceTextWithSymbol(for: .earn),
-                            ),
-                            action: { model.onSelectEarn() },
-                        )
-                        .accessibilityIdentifier("earn")
-                    }
-
-                    if model.showPendingUnconfirmedBalance {
-                        ListItemView(
-                            title: model.assetDataModel.pendingUnconfirmedBalanceTitle,
-                            subtitle: model.assetDataModel.pendingUnconfirmedBalanceTextWithSymbol,
-                            infoAction: model.onSelectPendingUnconfirmedInfo,
-                        )
-                    }
-
-                    if model.showReservedBalance, let url = model.reservedBalanceUrl {
-                        SafariNavigationLink(url: url) {
+                    ForEach(model.balanceRows, id: \.self) { row in
+                        switch row {
+                        case let .available(value):
                             ListItemView(
-                                title: model.assetDataModel.reservedBalanceTitle,
-                                subtitle: model.assetDataModel.reservedBalanceTextWithSymbol,
+                                title: model.assetDataModel.availableBalanceTitle,
+                                subtitle: model.balanceText(value),
                             )
+                        case let .staked(value):
+                            NavigationCustomLink(
+                                with: ListItemView(
+                                    title: model.balanceTitle(for: .stake),
+                                    subtitle: model.stakeBalanceText(value),
+                                ),
+                                action: { model.onSelectHeader(.stake) },
+                            )
+                            .accessibilityIdentifier("stake")
+                        case let .earn(value):
+                            NavigationCustomLink(
+                                with: ListItemView(
+                                    title: model.balanceTitle(for: .earn),
+                                    subtitle: model.balanceText(value),
+                                ),
+                                action: { model.onSelectEarn() },
+                            )
+                            .accessibilityIdentifier("earn")
+                        case let .pendingUnconfirmed(value):
+                            ListItemView(
+                                title: model.assetDataModel.pendingUnconfirmedBalanceTitle,
+                                subtitle: model.balanceText(value),
+                                infoAction: model.onSelectPendingUnconfirmedInfo,
+                            )
+                        case let .reserved(value, url):
+                            if let url = url.flatMap(URL.init) {
+                                SafariNavigationLink(url: url) {
+                                    ListItemView(
+                                        title: model.assetDataModel.reservedBalanceTitle,
+                                        subtitle: model.balanceText(value),
+                                    )
+                                }
+                            } else {
+                                ListItemView(
+                                    title: model.assetDataModel.reservedBalanceTitle,
+                                    subtitle: model.balanceText(value),
+                                )
+                            }
                         }
                     }
-                }
-            } else if model.assetDataModel.isStakeEnabled {
-                Section(model.balancesTitle) {
-                    NavigationCustomLink(
-                        with: ListItemView(
-                            title: model.balanceTitle(for: .stake),
-                            subtitle: model.aprModel(for: .stake).text,
-                        ),
-                        action: { model.onSelectHeader(.stake) },
-                    )
                 }
             }
 
@@ -184,8 +179,6 @@ public struct AssetScene: View {
 
             if model.showTransactions {
                 TransactionsList(
-                    explorerService: model.explorerService,
-                    transactionFormatter: model.transactionFormatter,
                     model.transactions,
                     currency: model.assetDataModel.currencyCode,
                 )

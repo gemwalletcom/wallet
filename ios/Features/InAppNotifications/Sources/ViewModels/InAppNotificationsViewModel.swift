@@ -13,7 +13,7 @@ import UIKit
 @Observable
 @MainActor
 public final class InAppNotificationsViewModel {
-    private let notificationService: any GemNotificationServiceProtocol
+    private let service: any GemNotificationServiceProtocol
     private let wallet: Wallet
 
     public let query: ObservableQuery<InAppNotificationsRequest>
@@ -23,10 +23,10 @@ public final class InAppNotificationsViewModel {
 
     public init(
         wallet: Wallet,
-        notificationService: any GemNotificationServiceProtocol,
+        service: any GemNotificationServiceProtocol,
     ) {
         self.wallet = wallet
-        self.notificationService = notificationService
+        self.service = service
         query = ObservableQuery(InAppNotificationsRequest(walletId: wallet.id.id), initialValue: [])
     }
 
@@ -46,9 +46,6 @@ public final class InAppNotificationsViewModel {
         ).build()
     }
 
-    private var hasUnreadNotifications: Bool {
-        notifications.contains { !$0.isRead }
-    }
 }
 
 // MARK: - Actions
@@ -56,20 +53,9 @@ public final class InAppNotificationsViewModel {
 public extension InAppNotificationsViewModel {
     func load() async {
         do {
-            try await notificationService.sync(walletId: wallet.id.id)
-            if hasUnreadNotifications {
-                await markAsRead()
-            }
+            try await service.open()
         } catch {
             debugLog("load notifications error: \(error)")
-        }
-    }
-
-    private func markAsRead() async {
-        do {
-            try await notificationService.markRead()
-        } catch {
-            debugLog("markAsRead error: \(error)")
         }
     }
 

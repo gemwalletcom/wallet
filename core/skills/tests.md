@@ -39,6 +39,8 @@ let response: ApiResponse = serde_json::from_str(
 
 ## Mock Pattern with `testkit/` Modules
 
+In `gemstone`, a service folder's store and port doubles live in that folder's `testkit.rs` (`#[cfg(test)] pub(crate) mod testkit;`), named after the trait (`MemoryPreferencesStore`, `MemoryConnectionStore`); tests in other folders import them from there rather than re-implementing the trait.
+
 Add `mock()` constructors in `testkit` modules instead of building structs inline in tests or defining reusable mock helper functions inside individual test modules. If a domain model fixture is needed outside one single assertion, put it in the owning crate's `testkit` module first.
 
 If the mock lives in another crate behind a `testkit` feature, enable that crate with `features = ["testkit"]` under `[dev-dependencies]` and use the shared `mock()` instead of writing a local fixture.

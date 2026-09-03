@@ -22,7 +22,9 @@ import uniffi.gemstone.GemStakeService
 import uniffi.gemstone.GemTransactionStateService
 import uniffi.gemstone.GemTransactionsService
 import javax.inject.Singleton
+import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemWalletPreferencesService
+import uniffi.gemstone.GemWalletSessionService
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 
 @InstallIn(SingletonComponent::class)
@@ -37,12 +39,18 @@ object TransactionsModule {
         transactionStore: GemstoneTransactionStore,
         addressStore: GemstoneAddressStore,
         walletPreferencesService: GemWalletPreferencesService,
+        preferencesService: GemPreferencesService,
+        walletSessionService: GemWalletSessionService,
+        tracker: TransactionStateTracker,
     ): GemTransactionsService = GemTransactionsService(
         apiClient,
         assetsService,
         transactionStore,
         addressStore,
         walletPreferencesService,
+        preferencesService,
+        walletSessionService,
+        tracker,
     )
 
     @Singleton
@@ -54,23 +62,22 @@ object TransactionsModule {
 
     @Singleton
     @Provides
-    fun provideTransactionStateService(
+    fun provideTransactionStateStore(
         transactionsDao: TransactionsDao,
         walletStore: GemstoneWalletStore,
+        transactionRunner: StoreTransactionRunner,
+    ): GemstoneTransactionStateStore = GemstoneTransactionStateStore(transactionsDao, walletStore, transactionRunner)
+
+    @Singleton
+    @Provides
+    fun provideTransactionStateService(
+        store: GemstoneTransactionStateStore,
         gateway: GemGateway,
         assetsService: GemAssetsService,
         balanceService: GemBalanceService,
         stakeService: GemStakeService,
         nftService: GemNftService,
-        transactionRunner: StoreTransactionRunner,
-    ): GemTransactionStateService = GemTransactionStateService(
-        gateway,
-        GemstoneTransactionStateStore(transactionsDao, walletStore, transactionRunner),
-        assetsService,
-        balanceService,
-        stakeService,
-        nftService,
-    )
+    ): GemTransactionStateService = GemTransactionStateService(gateway, store, assetsService, balanceService, stakeService, nftService)
 
     @Singleton
     @Provides

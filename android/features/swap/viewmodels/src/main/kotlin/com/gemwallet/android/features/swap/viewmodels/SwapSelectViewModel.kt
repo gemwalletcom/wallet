@@ -1,15 +1,12 @@
 package com.gemwallet.android.features.swap.viewmodels
 
+import uniffi.gemstone.GemAssetSelectionServiceInterface
 import androidx.compose.foundation.text.input.clearText
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
-import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.cases.SetAssetPinned
-import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.swap.cases.SearchSwapAssets
-import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
@@ -19,7 +16,6 @@ import uniffi.gemstone.GemAssetAction
 import com.gemwallet.android.domains.asset.recentFilters
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.AssetInfo
-import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,29 +29,20 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
-import uniffi.gemstone.GemAssetConfigService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SwapSelectViewModel @Inject constructor(
     getSession: GetSession,
     getRecentAssets: GetRecentAssets,
-    updateRecentAsset: UpdateRecentAsset,
-    switchAssetVisibility: SwitchAssetVisibility,
-    setAssetPinned: SetAssetPinned,
-    searchTokensCase: SearchTokens,
-    assetConfig: GemAssetConfigService,
+    service: GemAssetSelectionServiceInterface,
     searchSwapAssets: SearchSwapAssets,
     savedStateHandle: SavedStateHandle,
 ) : BaseAssetSelectViewModel(
     getSession = getSession,
     getRecentAssets = getRecentAssets,
-    updateRecentAsset = updateRecentAsset,
-    switchAssetVisibility = switchAssetVisibility,
-    setAssetPinned = setAssetPinned,
-    searchTokensCase = searchTokensCase,
+    service = service,
     search = SwapSelectSearch(searchSwapAssets),
-    assetConfig,
     remoteSearch = savedStateHandle.requireSwapItemType() == SwapItemType.Receive,
 ) {
 
@@ -83,7 +70,7 @@ class SwapSelectViewModel @Inject constructor(
 
     override fun assetFilters() = GemAssetAction.SWAP_PAY.recentFilters()
 
-    override val recentTypes: List<RecentActivityType> get() = listOf(RecentActivityType.SwapSelect, RecentActivityType.Swap)
+    override val action: GemAssetAction get() = GemAssetAction.SWAP_PAY
 }
 
 private fun SavedStateHandle.requireSwapItemType(): SwapItemType =

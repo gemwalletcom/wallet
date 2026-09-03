@@ -4,13 +4,13 @@ use async_trait::async_trait;
 use futures::future;
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::{AssetId, asset_score::AssetRank};
-use security_provider::{ScanProviders, TokenTarget};
+use security_provider::{TokenScanProviders, TokenTarget};
 use storage::{AssetUpdate, AssetsRepository, Database};
 use streamer::consumer::MessageConsumer;
 
 pub struct FetchAssetStatusConsumer {
     pub database: Database,
-    pub providers: ScanProviders,
+    pub providers: TokenScanProviders,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -31,7 +31,7 @@ impl AssetStatusVerdict {
 #[async_trait]
 impl MessageConsumer<AssetId, bool> for FetchAssetStatusConsumer {
     async fn should_process(&self, asset_id: &AssetId) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        Ok(asset_id.is_token() && self.providers.iter().any(|provider| provider.supports_token_chain(asset_id.chain)))
+        Ok(asset_id.is_token() && self.providers.iter().any(|provider| provider.supports_chain(asset_id.chain)))
     }
 
     async fn process(&self, asset_id: AssetId) -> Result<bool, Box<dyn Error + Send + Sync>> {
@@ -40,7 +40,7 @@ impl MessageConsumer<AssetId, bool> for FetchAssetStatusConsumer {
         let results = future::join_all(
             self.providers
                 .iter()
-                .filter(|provider| provider.supports_token_chain(target.chain))
+                .filter(|provider| provider.supports_chain(target.chain))
                 .map(|provider| async { (provider.name(), provider.scan_token(&target).await) }),
         )
         .await;

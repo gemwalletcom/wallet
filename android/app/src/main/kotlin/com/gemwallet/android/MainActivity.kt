@@ -8,16 +8,16 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import com.gemwallet.android.ui.LocalAddressService
-import com.gemwallet.android.ui.LocalApplicationMetadataService
 import com.gemwallet.android.ui.LocalAssetConfigService
 import com.gemwallet.android.ui.LocalChainService
+import com.gemwallet.android.ui.LocalAssetsService
 import com.gemwallet.android.ui.LocalDeeplinkService
 import com.gemwallet.android.ui.LocalTransferService
 import uniffi.gemstone.GemAssetConfigService
+import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemTransferService
-import uniffi.gemstone.GemApplicationMetadataService
 import uniffi.gemstone.GemAddressService
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,9 +48,9 @@ class MainActivity : FragmentActivity(), AuthRequester {
     @Inject lateinit var connectionStatusObserver: ConnectionStatusObserver
     @Inject lateinit var activeWalletConnectRequest: ActiveWalletConnectRequest
     @Inject lateinit var addressService: GemAddressService
-    @Inject lateinit var applicationMetadataService: GemApplicationMetadataService
     @Inject lateinit var transferService: GemTransferService
     @Inject lateinit var deeplinkService: GemDeeplinkService
+    @Inject lateinit var assetsService: GemAssetsService
     @Inject lateinit var chainService: GemChainService
     @Inject lateinit var assetConfigService: GemAssetConfigService
 
@@ -88,9 +88,9 @@ class MainActivity : FragmentActivity(), AuthRequester {
             CompositionLocalProvider(
                 LocalConnectionBannerState provides connectionBannerState,
                 LocalAddressService provides addressService,
-                LocalApplicationMetadataService provides applicationMetadataService,
                 LocalTransferService provides transferService,
                 LocalDeeplinkService provides deeplinkService,
+                LocalAssetsService provides assetsService,
                 LocalChainService provides chainService,
                 LocalAssetConfigService provides assetConfigService,
             ) {

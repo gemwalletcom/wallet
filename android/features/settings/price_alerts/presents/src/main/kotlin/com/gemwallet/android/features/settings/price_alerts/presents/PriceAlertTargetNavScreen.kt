@@ -19,7 +19,7 @@ fun PriceAlertTargetNavScreen(
     viewModel: PriceAlertTargetViewModel = hiltViewModel(),
 ) {
     val resources = LocalResources.current
-    val currency by viewModel.currency.collectAsStateWithLifecycle()
+    val currency = viewModel.currency
     val currentPriceFormatted by viewModel.currentPrice.collectAsStateWithLifecycle()
     val type by viewModel.type.collectAsStateWithLifecycle()
     val direction by viewModel.direction.collectAsStateWithLifecycle()

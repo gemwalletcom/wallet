@@ -9,9 +9,9 @@ import Primitives
 import Store
 
 public final class GemstoneConnectionStore: GemConnectionStore, @unchecked Sendable {
-    private let store: ConnectionsStore
+    private let store: ConnectionStore
 
-    public init(store: ConnectionsStore) {
+    public init(store: ConnectionStore) {
         self.store = store
     }
 

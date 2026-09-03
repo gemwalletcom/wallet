@@ -2,7 +2,6 @@ package com.gemwallet.android.data.coordinators.transaction
 
 import com.gemwallet.android.application.transactions.cases.GetPendingTransactionsCount
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
-import com.gemwallet.android.application.transactions.cases.ClearPendingTransactions
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStore
 import com.wallet.core.primitives.TransactionState
@@ -27,13 +26,4 @@ class GetPendingTransactionsCountImpl(
                 TransactionsRequestFilter.activityDefaults(assetConfig) + TransactionsRequestFilter.States(pendingTransactionStates),
             )
         }
-}
-
-class ClearPendingTransactionsImpl(
-    private val transactionStore: GemstoneTransactionStore,
-) : ClearPendingTransactions {
-
-    override suspend fun clearPending() {
-        transactionStore.deletePending(TransactionState.Pending)
-    }
 }

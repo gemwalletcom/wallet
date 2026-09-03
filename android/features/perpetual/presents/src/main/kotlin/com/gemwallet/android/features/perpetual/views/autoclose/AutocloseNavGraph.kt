@@ -1,17 +1,17 @@
 package com.gemwallet.android.features.perpetual.views.autoclose
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.animation.ContentTransform
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.DEFAULT_ARGS_KEY
@@ -31,7 +31,7 @@ import androidx.savedstate.savedState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.confirm.presents.ConfirmScreen
 import com.gemwallet.android.features.perpetual.viewmodels.AutocloseViewModel
-import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.theme.SheetSizing
@@ -63,11 +63,11 @@ private fun AutocloseNavGraphContent(
     val stopLossText by viewModel.stopLossText.collectAsStateWithLifecycle()
 
     val backStack = remember { mutableStateListOf<NavKey>(AutocloseRoute) }
-    var confirmInput by remember { mutableStateOf<GemConfirmInput?>(null) }
+    var transfer by remember { mutableStateOf<GemTransferData?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.confirmRequests.collect { input ->
-            confirmInput = input
+            transfer = input
             if (backStack.lastOrNull() != AutocloseConfirmRoute) {
                 backStack.add(AutocloseConfirmRoute)
             }
@@ -97,7 +97,7 @@ private fun AutocloseNavGraphContent(
             )
         }
         entry<AutocloseConfirmRoute> {
-            confirmInput?.let { input ->
+            transfer?.let { input ->
                 ConfirmScreen(
                     input = input,
                     cancelAction = popInternal,

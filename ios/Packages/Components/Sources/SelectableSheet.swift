@@ -3,7 +3,7 @@
 import Style
 import SwiftUI
 
-public protocol SelectableSheetViewable: SelectableSearchable {
+public protocol SelectableSheetViewable: SelectableListAdoptable {
     var title: String { get }
     var cancelButtonTitle: String { get }
     var clearButtonTitle: String { get }
@@ -33,7 +33,7 @@ public struct SelectableSheet<ViewModel: SelectableSheetViewable, Content: View>
 
     public var body: some View {
         NavigationStack {
-            SearchableSelectableListView(
+            SelectableListView(
                 model: $model,
                 onFinishSelection: { onFinish(items: $0, isConfirmed: false) },
                 listContent: listContent,

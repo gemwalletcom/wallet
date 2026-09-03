@@ -13,6 +13,7 @@ import com.gemwallet.android.data.service.store.database.entities.toDto
 import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
@@ -82,9 +83,6 @@ class GemstonePerpetualStore(
         perpetualPositionDao.applyDiff(walletId.id, deleteIds, positions.map { it.toDB(walletId.id) })
     }
 
-    private fun GemPerpetualProvider.toPrimitives(): PerpetualProvider = when (this) {
-        GemPerpetualProvider.HYPERCORE -> PerpetualProvider.Hypercore
-    }
 
     fun observePerpetuals(query: String? = null): Flow<List<PerpetualData>> {
         val searchQuery = query?.trim().orEmpty()

@@ -20,10 +20,6 @@ impl GemMnemonic {
         Mnemonic::suggest_limited(&prefix, limit.map(|limit| limit as usize))
     }
 
-    pub fn is_valid_word(&self, word: String) -> bool {
-        Mnemonic::is_valid_word(&word)
-    }
-
     pub fn is_valid(&self, words: Vec<String>) -> bool {
         Mnemonic::is_valid(&words.join(" "))
     }
@@ -58,7 +54,6 @@ mod tests {
         let mnemonic = GemMnemonic::new();
         let words = primitives::testkit::ABANDON_PHRASE.split_whitespace().map(|word| word.to_string()).collect::<Vec<_>>();
 
-        assert!(mnemonic.is_valid_word("abandon".to_string()));
         assert!(mnemonic.is_valid(words.clone()));
         assert!(!mnemonic.is_valid(vec!["abandon".to_string(), "abandon".to_string()]));
         assert_eq!(mnemonic.find_invalid_words(vec!["abandon".to_string(), "test1".to_string()]), vec!["test1"]);

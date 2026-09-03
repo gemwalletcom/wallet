@@ -40,35 +40,6 @@ public extension DelegationBase {
     }
 }
 
-public extension DelegationValidator {
-    static let systemId = "system"
-    static let legacySystemId = "unstaking"
-
-    static func inactive(chain: Chain, id: String, name: String) -> DelegationValidator {
-        DelegationValidator(
-            chain: chain,
-            id: id,
-            name: name,
-            isActive: false,
-            commission: .zero,
-            apr: .zero,
-            providerType: .stake,
-        )
-    }
-
-    static func system(chain: Chain, name: String) -> DelegationValidator {
-        DelegationValidator(
-            chain: chain,
-            id: systemId,
-            name: name,
-            isActive: true,
-            commission: .zero,
-            apr: .zero,
-            providerType: .stake,
-        )
-    }
-}
-
 public extension DelegationState {
     init(id: String) throws {
         if let state = DelegationState(rawValue: id) {

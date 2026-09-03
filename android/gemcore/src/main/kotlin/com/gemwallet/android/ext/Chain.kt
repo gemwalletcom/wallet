@@ -6,7 +6,6 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAsset
 import com.wallet.core.primitives.ChainType
-import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
 import uniffi.gemstone.supportsPrivateKeyImport
 import uniffi.gemstone.GemAddressService
@@ -29,8 +28,6 @@ fun Chain.assetType(): AssetType? {
     return AssetType.entries.firstOrNull { it.string == defaultAssetType }
 }
 
-fun Chain.getReserveBalanceUrl(): String? = Config().getChainConfig(this.string).accountActivationFeeUrl
-
 fun Chain.isStakeSupported(): Boolean = Config().getChainConfig(this.string).isStakeSupported
 
 fun Chain.isTokenSupported(): Boolean = Config().getChainConfig(this.string).isTokenSupported
@@ -38,8 +35,6 @@ fun Chain.isTokenSupported(): Boolean = Config().getChainConfig(this.string).isT
 fun Chain.isNftSupported(): Boolean = Config().getChainConfig(this.string).isNftSupported
 
 fun Chain.supportsNftTransfer(): Boolean = Config().getChainConfig(this.string).supportsNftTransfer
-
-fun Chain.hasNativeAsset(): Boolean = Config().getChainConfig(this.string).hasNativeAsset
 
 fun Chain.asset(): Asset {
     return chainAsset().asset
@@ -60,10 +55,6 @@ fun Chain.toChainType(): ChainType {
 
 
 fun Chain.isSwapSupport(): Boolean = Config().getChainConfig(string).isSwapSupported
-
-fun Chain.feeUnitType() = FeeUnitType.entries.firstOrNull {
-    it.string == Config().getChainConfig(string).feeUnitType
-}
 
 fun Chain.isMemoSupport() = Config().getChainConfig(string).isMemoSupported
 

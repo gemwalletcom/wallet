@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.features.settings.networks.viewmodels.models.ServiceStatusRowUiModel
 import com.gemwallet.android.features.settings.networks.viewmodels.models.ServiceStatusUIState
+import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.ServiceStatusState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
@@ -61,7 +62,7 @@ class ServiceStatusViewModel @Inject constructor(
 
     private suspend fun status(endpoint: GemServiceEndpoint): ServiceStatusState {
         return try {
-            ServiceStatusState.Result(serviceStatus.getEndpointLatency(endpoint.url).toLong())
+            ServiceStatusState.Result(serviceStatus.getEndpointLatency(endpoint.url).toPrimitives())
         } catch (error: CancellationException) {
             throw error
         } catch (_: Throwable) {

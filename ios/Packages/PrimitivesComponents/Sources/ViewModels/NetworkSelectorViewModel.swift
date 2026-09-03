@@ -3,7 +3,6 @@
 import Components
 import Foundation
 import class Gemstone.GemChainService
-import protocol Gemstone.GemChainServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -16,19 +15,22 @@ public struct NetworkSelectorViewModel: SelectableSheetViewable {
     public let state: StateViewType<SelectableListType<Chain>>
 
     public var selectedItems: Set<Chain>
+    public private(set) var search: ListSearch<Chain>?
 
-    private let chainService: any GemChainServiceProtocol
+    private let chainService = GemChainService()
 
     public init(
         state: StateViewType<SelectableListType<Chain>>,
         selectedItems: [Chain] = [],
         selectionType: SelectionType = .navigationLink,
-        chainService: any GemChainServiceProtocol,
     ) {
-        self.chainService = chainService
         self.selectionType = selectionType
         self.state = state
         self.selectedItems = Set(selectedItems)
+        search = ListSearch(
+            filter: filter(chain:query:),
+            emptyContent: EmptyContentTypeViewModel(type: .search(type: EmptyContentType.SearchType.networks)),
+        )
     }
 
     public var title: String {
@@ -49,13 +51,6 @@ public struct NetworkSelectorViewModel: SelectableSheetViewable {
 
     public var confirmButtonTitle: String {
         Localized.Transfer.confirm
-    }
-
-    public var search: ListSearch<Chain>? {
-        ListSearch(
-            filter: filter(chain:query:),
-            emptyContent: EmptyContentTypeViewModel(type: .search(type: EmptyContentType.SearchType.networks)),
-        )
     }
 
     private func filter(chain: Chain, query: String) -> Bool {

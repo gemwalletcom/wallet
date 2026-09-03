@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemChainService
 import Components
 import Primitives
 import PrimitivesComponents
@@ -20,7 +19,7 @@ struct NetworkSelectorScene: View {
     }
 
     var body: some View {
-        SearchableSelectableListView(
+        SelectableListView(
             model: $model,
             onFinishSelection: { value in
                 onFinishSelection?(value)
@@ -36,6 +35,6 @@ struct NetworkSelectorScene: View {
 
 #Preview {
     NetworkSelectorScene(
-        model: .constant(NetworkSelectorViewModel(state: .data(.plain([.aptos, .arbitrum, .base])), chainService: GemChainService())),
+        model: .constant(NetworkSelectorViewModel(state: .data(.plain([.aptos, .arbitrum, .base])))),
     )
 }

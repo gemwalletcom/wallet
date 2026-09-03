@@ -4,11 +4,11 @@ import Foundation
 import struct Gemstone.GemContactAddressInput
 import enum Gemstone.GemContactAvatar
 import struct Gemstone.GemContactInput
-import protocol Gemstone.GemContactsServiceProtocol
+import protocol Gemstone.GemContactServiceProtocol
 import protocol Gemstone.GemManageContactServiceProtocol
 import Primitives
 
-public extension GemContactsServiceProtocol {
+public extension GemContactServiceProtocol {
     func updateContact(_ contact: Contact, addresses: [ContactAddress]) async throws {
         try await updateContact(contact: contact.json(), addresses: addresses.map { $0.json() })
     }

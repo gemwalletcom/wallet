@@ -24,12 +24,6 @@ struct StakeSceneViewModelTests {
     }
 
     @Test
-    func showManage() {
-        #expect(StakeSceneViewModel.mock(wallet: .mock(type: .multicoin)).showManage == true)
-        #expect(StakeSceneViewModel.mock(wallet: .mock(type: .view)).showManage == false)
-    }
-
-    @Test
     func stakeStillRequiresValidators() {
         let tron = StakeSceneViewModel.mock(chain: .tron)
         tron.assetQuery.value = .mock(asset: Chain.tron.asset, balance: .mock(frozen: 1))

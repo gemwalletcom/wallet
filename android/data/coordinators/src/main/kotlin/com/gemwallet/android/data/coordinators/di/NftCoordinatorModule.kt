@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
-import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemCollectibleServiceInterface
 import uniffi.gemstone.GemNftService
 import com.gemwallet.android.application.nft.cases.GetNftAssetDetails
 import com.gemwallet.android.application.nft.cases.GetNftCollections
@@ -28,9 +28,9 @@ object NftCoordinatorModule {
     fun provideGetNftAssetDetails(
         getSession: GetSession,
         getAssetNft: GetAssetNft,
-        explorerService: GemExplorerService,
+        collectibleService: GemCollectibleServiceInterface,
     ): GetNftAssetDetails {
-        return GetNftAssetDetailsImpl(getSession, getAssetNft, explorerService)
+        return GetNftAssetDetailsImpl(getSession, getAssetNft, collectibleService)
     }
 
     @Provides
@@ -54,8 +54,8 @@ object NftCoordinatorModule {
     @Singleton
     fun provideRefreshNftAsset(
         getSession: GetSession,
-        nftService: GemNftService,
+        collectibleService: GemCollectibleServiceInterface,
     ): RefreshNftAsset {
-        return RefreshNftAssetImpl(getSession, nftService)
+        return RefreshNftAssetImpl(getSession, collectibleService)
     }
 }

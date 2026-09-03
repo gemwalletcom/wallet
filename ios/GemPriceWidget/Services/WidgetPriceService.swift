@@ -75,8 +75,12 @@ extension WidgetPriceService {
     private static func image(for assetId: AssetId) async -> Image? {
         switch assetId.type {
         case .native: Images.name(assetId.chain.rawValue)
-        case .token: await fetchRemoteImage(url: AssetImageFormatter.shared.getURL(for: assetId))
+        case .token: await fetchRemoteImage(url: tokenImageURL(for: assetId))
         }
+    }
+
+    private static func tokenImageURL(for assetId: AssetId) -> URL {
+        URL(string: "https://assets.gemwallet.com/blockchains/\(assetId.chain.rawValue)/assets/\(assetId.tokenId ?? "")/logo.png")!
     }
 
     private static func fetchRemoteImage(url: URL) async -> Image? {

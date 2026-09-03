@@ -8,9 +8,9 @@ use gem_jsonrpc::{RpcClientError, RpcProvider, Target};
 use primitives::name::NameRecord;
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{
-    AddressName, AuthNonce, AuthenticatedRequest, ChainAddress, ChartPeriod, Device, FiatQuoteType, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, NFTAssetData,
-    NFTAssetId, NFTData, PortfolioAssets, PortfolioAssetsRequest, PriceAlert, ReferralCode, ReportNft, Rewards, ScanTransaction, ScanTransactionPayload, SupportMessage,
-    SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains,
+    AddressName, AuthNonce, AuthenticatedRequest, ChainAddress, ChartPeriod, Device, FiatQuoteType, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification,
+    MAX_QUERY_LIMIT, MAX_QUERY_PAGES, NFTAssetData, NFTAssetId, NFTData, PortfolioAssets, PortfolioAssetsRequest, PriceAlert, ReferralCode, ReportNft, Rewards, ScanTransaction,
+    ScanTransactionPayload, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription, WalletSubscriptionChains,
 };
 use serde::de::DeserializeOwned;
 
@@ -105,12 +105,35 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
     }
 
     pub async fn get_transactions(&self, wallet_id: String, asset_id: Option<String>, from_timestamp: u64) -> Result<TransactionsResponse, ClientError> {
-        self.send(GemDeviceApiTarget::GetTransactions {
-            wallet_id,
-            asset_id,
-            from_timestamp,
-        })
-        .await
+        let mut transactions = Vec::new();
+        let mut address_names = Vec::new();
+
+        for _ in 0..MAX_QUERY_PAGES {
+            let offset = transactions.len();
+            let response: TransactionsResponse = self
+                .send(GemDeviceApiTarget::GetTransactions {
+                    wallet_id: wallet_id.clone(),
+                    asset_id: asset_id.clone(),
+                    from_timestamp,
+                    limit: MAX_QUERY_LIMIT,
+                    offset,
+                })
+                .await?;
+            let page_size = response.transactions.len();
+
+            transactions.extend(response.transactions);
+            for address_name in response.address_names {
+                if !address_names.contains(&address_name) {
+                    address_names.push(address_name);
+                }
+            }
+
+            if page_size < MAX_QUERY_LIMIT {
+                break;
+            }
+        }
+
+        Ok(TransactionsResponse::new(transactions, address_names))
     }
 
     pub async fn get_assets_list(&self, wallet_id: String, from_timestamp: u64) -> Result<Vec<String>, ClientError> {

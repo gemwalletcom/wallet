@@ -37,6 +37,8 @@ struct MigrationsTests {
             try db.create(table: "nodes_selected_v1") {
                 $0.column("chain", .text)
             }
+            try db.execute(sql: "INSERT INTO assets (id, chain, name, symbol, decimals, type) VALUES ('ethereum', 'ethereum', 'Ethereum', 'ETH', 18, 'NATIVE')")
+            try db.execute(sql: "INSERT INTO price_alerts (id, assetId, currency, price, priceDirection) VALUES ('ethereum_USD_1e-05_up', 'ethereum', 'USD', 0.00001, 'up')")
         }
         try migrations.runChanges(dbQueue: dbQueue)
 
@@ -70,6 +72,7 @@ struct MigrationsTests {
             #expect(try! db.tableExists(AddressRecord.databaseTableName))
             #expect(!(try! db.tableExists("nodes_selected")))
             #expect(!(try! db.tableExists("nodes_selected_v1")))
+            #expect(try PriceAlertRecord.fetchCount(db) == 0, "alerts stored under the app's old identifier format are dropped and come back from the next sync")
         }
     }
 }

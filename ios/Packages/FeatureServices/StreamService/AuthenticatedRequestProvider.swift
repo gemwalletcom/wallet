@@ -17,10 +17,13 @@ public struct AuthenticatedRequestProvider: WebSocketRequestProvider {
     }
 
     public func makeRequest() throws -> URLRequest {
-        let signer = try GemDeviceRequestSigner(privateKey: deviceKeyService.keyPair().privateKey)
-        var request = URLRequest(url: Constants.deviceStreamWebSocketURL)
+        let stream = try GemDeviceRequestSigner(privateKey: deviceKeyService.keyPair().privateKey).deviceStreamRequest()
+        guard let url = URL(string: stream.url) else {
+            throw AnyError("invalid device stream url: \(stream.url)")
+        }
+        var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        try signer.sign(request: &request)
+        request.setValue(stream.authorization, forHTTPHeaderField: "Authorization")
         return request
     }
 }

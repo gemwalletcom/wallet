@@ -36,6 +36,8 @@ pub enum GemDeviceApiTarget {
         wallet_id: String,
         asset_id: Option<String>,
         from_timestamp: u64,
+        limit: usize,
+        offset: usize,
     },
     GetAssetsList {
         wallet_id: String,
@@ -165,9 +167,15 @@ impl GemDeviceApiTarget {
                 None => "/v2/devices/price_alerts".to_string(),
             },
             Self::AddPriceAlerts(_) | Self::DeletePriceAlerts(_) => "/v2/devices/price_alerts".to_string(),
-            Self::GetTransactions { asset_id, from_timestamp, .. } => match asset_id {
-                Some(asset_id) => format!("/v2/devices/transactions?from_timestamp={from_timestamp}&asset_id={asset_id}"),
-                None => format!("/v2/devices/transactions?from_timestamp={from_timestamp}"),
+            Self::GetTransactions {
+                asset_id,
+                from_timestamp,
+                limit,
+                offset,
+                ..
+            } => match asset_id {
+                Some(asset_id) => format!("/v2/devices/transactions?from_timestamp={from_timestamp}&asset_id={asset_id}&limit={limit}&offset={offset}"),
+                None => format!("/v2/devices/transactions?from_timestamp={from_timestamp}&limit={limit}&offset={offset}"),
             },
             Self::GetAssetsList { from_timestamp, .. } => format!("/v2/devices/assets?from_timestamp={from_timestamp}"),
             Self::GetWalletConfiguration { .. } => "/v2/devices/wallet_configuration".to_string(),

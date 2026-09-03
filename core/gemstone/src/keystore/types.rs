@@ -11,16 +11,6 @@ pub enum GemSecretKind {
     PrivateKey,
 }
 
-pub type GemWalletType = WalletType;
-
-#[uniffi::remote(Enum)]
-pub enum GemWalletType {
-    Multicoin,
-    Single,
-    PrivateKey,
-    View,
-}
-
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemKeystoreAccount {
     pub chain: Chain,
@@ -43,7 +33,7 @@ impl From<Account> for GemKeystoreAccount {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemWalletImport {
     pub wallet_id: String,
-    pub wallet_type: GemWalletType,
+    pub wallet_type: WalletType,
     pub accounts: Vec<GemKeystoreAccount>,
 }
 
@@ -60,7 +50,7 @@ impl GemWalletImport {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemStoredWallet {
     pub wallet_id: String,
-    pub wallet_type: GemWalletType,
+    pub wallet_type: WalletType,
     pub keystore_id: String,
     pub accounts: Vec<GemKeystoreAccount>,
 }

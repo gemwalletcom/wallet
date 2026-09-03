@@ -17,7 +17,6 @@ import uniffi.gemstone.GemBannerContent
 import uniffi.gemstone.GemBannerDescription
 import uniffi.gemstone.GemBannerIcon
 import uniffi.gemstone.GemBannerTitle
-import java.math.BigInteger
 
 internal data class BannerItemUIModel(
     val title: String?,
@@ -82,4 +81,4 @@ private fun bannerIcon(icon: GemBannerIcon): BannerIcon? = when (icon) {
 }
 
 private fun formatAmount(amount: GemBannerAmount): String = ValueFormatter(style = ValueFormatter.Style.Auto)
-    .string(BigInteger(amount.value), decimals = amount.decimals, currency = amount.symbol)
+    .string(amount.value, decimals = amount.decimals, currency = amount.symbol)

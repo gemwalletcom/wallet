@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.StateFlow
 
 class FiatOperationState(
     val defaultAmount: String,
-    val minFiatAmount: Double,
 ) {
     private val _amount = MutableStateFlow(defaultAmount)
     val amount: StateFlow<String> get() = _amount
@@ -22,7 +21,10 @@ class FiatOperationState(
     val selectedQuote: StateFlow<FiatQuote?> get() = _selectedQuote
 
     fun updateAmount(value: String) {
+        if (_amount.value == value) return
         _amount.value = value
+        clearQuotes()
+        updateState(FiatSceneState.Loading)
     }
 
     fun updateState(value: FiatSceneState) {

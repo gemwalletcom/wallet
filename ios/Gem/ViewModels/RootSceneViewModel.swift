@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemOnboardingServiceProtocol
 import protocol Gemstone.GemAppUpdateServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import GemstonePrimitives
@@ -34,8 +33,8 @@ final class RootSceneViewModel {
     private let deviceService: any GemDeviceServiceProtocol
 
     let observablePreferences: ObservablePreferences
-    private let onboardingService: any GemOnboardingServiceProtocol
-    let walletSessionService: any GemWalletSessionServiceProtocol
+    private let viewModelFactory: ViewModelFactory
+    private let walletSessionService: any GemWalletSessionServiceProtocol
     let walletConnectorPresenter: WalletConnectorPresenter
     let lockManager: any LockWindowManageable
 
@@ -80,7 +79,7 @@ final class RootSceneViewModel {
         appLifecycleService: AppLifecycleService,
         navigationHandler: NavigationHandler,
         lockWindowManager: any LockWindowManageable,
-        onboardingService: any GemOnboardingServiceProtocol,
+        viewModelFactory: ViewModelFactory,
         walletSessionService: any GemWalletSessionServiceProtocol,
         appUpdateService: any GemAppUpdateServiceProtocol,
         rateService: RateService,
@@ -95,7 +94,7 @@ final class RootSceneViewModel {
         self.appLifecycleService = appLifecycleService
         self.navigationHandler = navigationHandler
         lockManager = lockWindowManager
-        self.onboardingService = onboardingService
+        self.viewModelFactory = viewModelFactory
         self.walletSessionService = walletSessionService
         self.appUpdateService = appUpdateService
         self.rateService = rateService
@@ -144,19 +143,11 @@ extension RootSceneViewModel {
     }
 
     func createWalletModel() -> CreateWalletModel {
-        CreateWalletModel(
-            service: onboardingService,
-            preferences: observablePreferences,
-            onComplete: { [weak self] in self?.dismissCreateWallet() },
-        )
+        viewModelFactory.createWalletScene(onComplete: { [weak self] in self?.dismissCreateWallet() })
     }
 
     func importWalletModel() -> ImportWalletViewModel {
-        ImportWalletViewModel(
-            service: onboardingService,
-            preferences: observablePreferences,
-            onComplete: { [weak self] in self?.dismissImportWallet() },
-        )
+        viewModelFactory.importWalletScene(onComplete: { [weak self] in self?.dismissImportWallet() })
     }
 
     func dismissCreateWallet() {

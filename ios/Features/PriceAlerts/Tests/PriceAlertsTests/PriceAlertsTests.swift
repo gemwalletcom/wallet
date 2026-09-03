@@ -54,8 +54,7 @@ private extension SetPriceAlertViewModel {
         SetPriceAlertViewModel(
             walletId: WalletId.mock(),
             asset: .mock(),
-            priceAlertService: GemPriceAlertServiceMock(),
-            preferencesService: GemPreferencesServiceMock(),
+            service: GemPriceAlertServiceMock(),
             onComplete: { _ in },
         )
     }

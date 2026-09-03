@@ -24,13 +24,4 @@ public struct LeverageOption: WheelPickerDisplayable, Sendable {
     public var displayText: String {
         "\(value)x"
     }
-
-    public static func option(desiredValue: UInt8, from available: [LeverageOption]) -> LeverageOption {
-        LeverageOption(
-            value: PerpetualConfig.selectLeverage(
-                desired: desiredValue,
-                options: available.map(\.value),
-            ),
-        )
-    }
 }

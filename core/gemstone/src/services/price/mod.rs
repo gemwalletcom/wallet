@@ -1,6 +1,8 @@
 pub mod model;
 pub mod rules;
 pub mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
@@ -27,13 +29,15 @@ impl GemPriceService {
     pub fn new(api: Arc<GemApiClient>, store: Arc<dyn GemPriceStore>) -> Self {
         Self { api, store }
     }
+}
 
+impl GemPriceService {
     pub fn prices(&self, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetPrice>, GemServiceError> {
         self.store.get_prices(asset_ids)
     }
 
-    pub async fn get_prices(&self, currency: Option<Currency>, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPrice>, GemApiError> {
-        Ok(self.api.client.get_prices(currency, asset_ids).await?)
+    pub async fn get_prices(&self, currency: Currency, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPrice>, GemApiError> {
+        Ok(self.api.client.get_prices(Some(currency), asset_ids).await?)
     }
 
     pub async fn update_prices(&self, prices: Vec<AssetPrice>, currency: Currency) -> Result<(), GemServiceError> {
@@ -105,49 +109,14 @@ async fn update_rates(store: &dyn GemPriceStore, rates: Vec<FiatRate>, currency:
 
 #[cfg(test)]
 mod tests {
+    use super::testkit::MemoryPriceStore;
     use super::*;
     use chrono::Utc;
     use primitives::Chain;
     use std::sync::Mutex;
 
-    #[derive(Default)]
-    struct MemoryStore {
-        rates: Mutex<Vec<FiatRate>>,
-        saved: Mutex<Vec<(Currency, Vec<GemPriceUpdate>)>>,
-        converted: Mutex<Vec<(Currency, f64)>>,
-    }
-
-    #[async_trait::async_trait]
-    impl GemPriceStore for MemoryStore {
-        fn get_prices(&self, _asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetPrice>, GemServiceError> {
-            Ok(vec![])
-        }
-        async fn get_enabled_price_asset_ids(&self, _wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
-            Ok(vec![])
-        }
-
-        async fn get_rate(&self, currency: Currency) -> Result<Option<FiatRate>, GemServiceError> {
-            Ok(self.rates.lock().unwrap().iter().find(|rate| rate.symbol == currency).cloned())
-        }
-        async fn save_rates(&self, rates: Vec<FiatRate>) -> Result<(), GemServiceError> {
-            self.rates.lock().unwrap().extend(rates);
-            Ok(())
-        }
-        async fn save_prices(&self, currency: Currency, prices: Vec<GemPriceUpdate>) -> Result<(), GemServiceError> {
-            self.saved.lock().unwrap().push((currency, prices));
-            Ok(())
-        }
-        async fn convert_prices(&self, currency: Currency, rate: f64) -> Result<(), GemServiceError> {
-            self.converted.lock().unwrap().push((currency, rate));
-            Ok(())
-        }
-        async fn save_market(&self, _asset_id: AssetId, _market: AssetMarket) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-    }
-
-    fn store_with_rate(currency: Currency, rate: f64) -> MemoryStore {
-        MemoryStore {
+    fn store_with_rate(currency: Currency, rate: f64) -> MemoryPriceStore {
+        MemoryPriceStore {
             rates: Mutex::new(vec![FiatRate { symbol: currency, rate }]),
             ..Default::default()
         }
@@ -171,7 +140,7 @@ mod tests {
 
     #[test]
     fn test_prices_are_dropped_without_a_stored_rate_except_usd() {
-        let store = MemoryStore::default();
+        let store = MemoryPriceStore::default();
 
         futures::executor::block_on(update_prices(&store, vec![price(100.0)], Currency::EUR)).unwrap();
         assert!(store.saved.lock().unwrap().is_empty());
@@ -195,7 +164,7 @@ mod tests {
 
     #[test]
     fn test_new_rate_for_current_currency_reconverts_stored_prices() {
-        let store = MemoryStore::default();
+        let store = MemoryPriceStore::default();
         let rates = vec![FiatRate { symbol: Currency::EUR, rate: 0.9 }, FiatRate { symbol: Currency::GBP, rate: 0.8 }];
 
         futures::executor::block_on(update_rates(&store, rates.clone(), Currency::EUR)).unwrap();

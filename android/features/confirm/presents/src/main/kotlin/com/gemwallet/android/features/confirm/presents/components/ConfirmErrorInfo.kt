@@ -10,14 +10,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.confirm.BalanceRequirement
-import com.gemwallet.android.domains.confirm.ConfirmError
 import com.gemwallet.android.domains.confirm.ConfirmState
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.domains.fiat.FiatConfig
-import com.gemwallet.android.ext.asset
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
-import com.gemwallet.android.features.confirm.presents.toLabel
+import com.gemwallet.android.features.confirm.presents.toPreloadLabel
+import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.GemBalanceRequirement
+import uniffi.gemstone.GemConfirmException
+import uniffi.gemstone.GemSignerError
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
@@ -29,6 +30,7 @@ import com.gemwallet.android.ui.components.list_item.WarningItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
+import com.gemwallet.android.ext.requireChain
 
 @Composable
 internal fun ConfirmErrorInfo(
@@ -42,13 +44,13 @@ internal fun ConfirmErrorInfo(
     var isShowGetAssetSheet by remember { mutableStateOf(false) }
     var buyAmount by remember { mutableStateOf<Int?>(null) }
 
-    if (state !is ConfirmState.Error || state.message == ConfirmError.None) {
+    if (state !is ConfirmState.Error) {
         return
     }
-    val message = state.message
-    val requiredAsset = when (message) {
-        is ConfirmError.InsufficientBalance -> message.asset
-        is ConfirmError.InsufficientFee -> message.chain.asset()
+    val error = state.error
+    val requiredAsset = when (error) {
+        is GemConfirmException.InsufficientBalance -> error.asset.toPrimitives()
+        is GemConfirmException.InsufficientNetworkFee -> error.asset.toPrimitives()
         else -> null
     }
     val onSelectAcquireAsset: (Asset, Int?) -> Unit = { asset, amount ->
@@ -60,11 +62,11 @@ internal fun ConfirmErrorInfo(
             onAcquireAsset(AcquireAssetAction.Buy(amount), asset.id)
         }
     }
-    val infoSheetEntity = message.toInfoSheetEntity(fee, onSelectAcquireAsset)
+    val infoSheetEntity = error.toInfoSheetEntity(fee, onSelectAcquireAsset)
 
     WarningItem(
         title = stringResource(R.string.errors_error_occurred),
-        message = message.toLabel(),
+        message = error.toPreloadLabel(),
         color = MaterialTheme.colorScheme.error,
         position = ListPosition.Single,
         onClick = infoSheetEntity?.let { { isShowInfoSheet = true } },
@@ -88,12 +90,13 @@ internal fun ConfirmErrorInfo(
 }
 
 @Composable
-private fun ConfirmError.toInfoSheetEntity(
+private fun Throwable.toInfoSheetEntity(
     fee: FeeUIModel.FeeInfo?,
     onAcquireAsset: (Asset, Int?) -> Unit,
 ): InfoSheetEntity? {
     return when (this) {
-        is ConfirmError.InsufficientBalance -> {
+        is GemConfirmException.InsufficientBalance -> {
+            val asset = asset.toPrimitives()
             val formatted = requirement.formatted(asset)
             BalanceRequiredInfo(
                 asset = asset,
@@ -104,18 +107,18 @@ private fun ConfirmError.toInfoSheetEntity(
                 action = { onAcquireAsset(asset, null) },
             )
         }
-        is ConfirmError.InsufficientFee -> {
-            val asset = chain.asset()
+        is GemConfirmException.InsufficientNetworkFee -> {
+            val asset = asset.toPrimitives()
             val formatted = requirement?.formatted(asset)
             if (formatted == null) {
                 NetworkFeeRequiredInfo(
-                    chain = chain,
+                    chain = asset.chain,
                     actionLabel = asset.acquireActionLabel(),
                     action = { onAcquireAsset(asset, FiatConfig.insufficientNetworkFeeBuyAmount) },
                 )
             } else {
                 NetworkBalanceRequiredInfo(
-                    chain = chain,
+                    chain = asset.chain,
                     required = fee?.cryptoAmountWithFiat ?: formatted.required,
                     available = formatted.available,
                     shortfall = formatted.shortfall,
@@ -124,11 +127,14 @@ private fun ConfirmError.toInfoSheetEntity(
                 )
             }
         }
-        is ConfirmError.MinimumAccountBalanceTooLow -> InfoSheetEntity.MinimumAccountBalanceInfo(
-            asset = asset,
-            value = ValueFormatter(style = ValueFormatter.Style.Full).string(requirement.required, asset),
-        )
-        is ConfirmError.DustThreshold -> InfoSheetEntity.DustThresholdInfo(chain = chain)
+        is GemConfirmException.MinimumAccountBalanceTooLow -> {
+            val asset = asset.toPrimitives()
+            InfoSheetEntity.MinimumAccountBalanceInfo(
+                asset = asset,
+                value = ValueFormatter(style = ValueFormatter.Style.Full).string(requirement.required, asset),
+            )
+        }
+        is GemConfirmException.Sign -> InfoSheetEntity.DustThresholdInfo(chain = chain.requireChain()).takeIf { error == GemSignerError.DustThreshold }
         else -> null
     }
 }
@@ -139,7 +145,7 @@ private fun Asset.acquireActionLabel(): String = stringResource(
     symbol,
 )
 
-private fun BalanceRequirement.formatted(asset: Asset): FormattedBalanceRequirement {
+private fun GemBalanceRequirement.formatted(asset: Asset): FormattedBalanceRequirement {
     val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
     return FormattedBalanceRequirement(
         required = formatter.string(required, asset),

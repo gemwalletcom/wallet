@@ -3,6 +3,7 @@
 public import struct Gemstone.GemSignedTransaction
 public import struct Gemstone.GemSignerInput
 public import protocol Gemstone.GemTransactionSigner
+import enum Gemstone.GemstoneError
 import GemstonePrimitives
 import Primitives
 
@@ -14,6 +15,10 @@ public final class KeystoreTransactionSigner: GemTransactionSigner {
     }
 
     public func sign(wallet: String, input: GemSignerInput) async throws -> [GemSignedTransaction] {
-        try await keystore.sign(wallet: try Primitives.Wallet(wallet), input: input)
+        do {
+            return try await keystore.sign(wallet: try Primitives.Wallet(wallet), input: input)
+        } catch where error.isAuthenticationCancelled {
+            throw GemstoneError.Cancelled
+        }
     }
 }

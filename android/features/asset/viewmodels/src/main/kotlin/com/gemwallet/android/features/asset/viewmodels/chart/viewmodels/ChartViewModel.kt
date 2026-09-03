@@ -30,7 +30,6 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transformLatest
@@ -55,7 +54,7 @@ class ChartViewModel internal constructor(
 
     private val chartPrices = combine(
         selectedPeriod,
-        getCurrentCurrency.getCurrency().distinctUntilChanged(),
+        getCurrentCurrency.getCurrency(),
         refreshController.trigger,
     ) { period, currency, _ -> AssetChartState(period, currency) }
         .transformLatest { state ->

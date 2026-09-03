@@ -2,6 +2,7 @@ pub mod chain;
 pub mod docs;
 pub mod fee_config;
 pub mod fiat_config;
+pub mod image;
 pub mod node;
 pub mod perpetual_config;
 pub mod public;
@@ -21,7 +22,7 @@ use std::str::FromStr;
 use {
     fee_config::{FeeConfig, get_fee_config},
     fiat_config::{FiatConfig, get_fiat_config},
-    perpetual_config::{PerpetualConfig, get_perpetual_config, leverage_options, select_leverage},
+    perpetual_config::{PerpetualConfig, get_perpetual_config, leverage_options},
     scan_config::{ScanConfig, get_scan_config},
     search_config::{WalletSearchConfig, get_wallet_search_config},
     stake::{StakeChainConfig, get_stake_config},
@@ -66,10 +67,6 @@ impl Config {
 
     fn leverage_options(&self, max_leverage: u8) -> Vec<u8> {
         leverage_options(max_leverage)
-    }
-
-    fn select_leverage(&self, desired: u8, options: Vec<u8>) -> u8 {
-        select_leverage(desired, &options)
     }
 
     fn get_chain_config(&self, chain: Chain) -> ChainConfig {

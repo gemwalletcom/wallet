@@ -9,7 +9,6 @@ import enum Gemstone.GemConfirmError
 import enum Gemstone.GemExecuteResult
 import GemstoneServicesTestKit
 import GemstoneServices
-import BigInt
 import Foundation
 import GemstonePrimitivesTestKit
 import Primitives
@@ -30,7 +29,7 @@ struct ConfirmSubmissionTests {
         let gemConfirmService = GemConfirmServiceMock(execute: .success(.sent(hashes: ["hash-1", "hash-2"], transactions: [tracked.json()])))
         let reported = ReportedValues()
 
-        let request = ConfirmTransferRequest.mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) })
+        let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
         try await ConfirmTransferSceneViewModel.mock(request: request, gemConfirmService: gemConfirmService).submit(
             request: request,
             confirmData: .mock(),
@@ -47,7 +46,7 @@ struct ConfirmSubmissionTests {
         let gemConfirmService = GemConfirmServiceMock(execute: .success(.signed(data: ["signed"])))
         let reported = ReportedValues()
 
-        let request = ConfirmTransferRequest.mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) })
+        let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
         try await ConfirmTransferSceneViewModel.mock(request: request, gemConfirmService: gemConfirmService).submit(
             request: request,
             confirmData: .mock(),
@@ -64,7 +63,7 @@ struct ConfirmSubmissionTests {
         let reported = ReportedValues()
 
         await #expect(throws: GemConfirmError.self) {
-            let request = ConfirmTransferRequest.mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) })
+            let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
             try await ConfirmTransferSceneViewModel.mock(request: request, gemConfirmService: gemConfirmService).submit(
                 request: request,
                 confirmData: .mock(),
@@ -83,7 +82,7 @@ struct ConfirmSubmissionTests {
             simulation: GemConfirmSimulation(
                 primaryFields: [],
                 secondaryFields: [],
-                header: GemSimulationValue(asset: usdt.map(), value: .exact(value: "1000000")),
+                header: GemSimulationValue(asset: usdt.map(), value: .exact(value: 1000000)),
                 balanceChanges: [],
                 hasCriticalWarning: false,
             ),
@@ -116,7 +115,7 @@ struct ConfirmSubmissionTests {
     func simulationStateKeepsPrimaryAndSecondaryFieldsApart() {
         let primary = SimulationPayloadField.standard(kind: .contract, value: "0x1", fieldType: .text, display: .primary)
         let service = ConfirmTransferSceneViewModel.mock(gemConfirmService: GemConfirmServiceMock(
-            simulation: GemConfirmSimulation(primaryFields: [primary.json()], secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
+            simulation: GemConfirmSimulation(primaryFields: [primary.map()], secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
         ))
 
         let state = service.state.simulation
@@ -153,12 +152,12 @@ struct ConfirmSubmissionTests {
                     prices: [],
                 )),
                 preload: .success(.mock()),
-                simulation: GemConfirmSimulation(primaryFields: [field.json()], secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
+                simulation: GemConfirmSimulation(primaryFields: [field.map()], secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
             ),
             nameService: GemNameServiceMock(error: NSError(domain: "test", code: 404)),
         )
 
-        let request = ConfirmTransferRequest.mock(wallet: .mock(accounts: [.mock(chain: GemTransferData.mock().chain)]))
+        let request = ConfirmTransferRequest.mock()
         let state = try await service.load(request: request, selection: FeeSelection.preset(.normal), feeAssetSelection: FeeAssetSelection.automatic).simulation
 
         #expect(state.payload.primaryFields.count == 1)

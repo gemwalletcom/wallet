@@ -20,7 +20,8 @@ fun CurrenciesScene(
     viewModel: CurrenciesViewModel = hiltViewModel()
 ) {
     val currentCurrency by viewModel.currency.collectAsStateWithLifecycle()
-    val defaultCurrencies by viewModel.defaultCurrencies.collectAsStateWithLifecycle()
+    val recommendedCurrencies by viewModel.recommendedCurrencies.collectAsStateWithLifecycle()
+    val otherCurrencies by viewModel.otherCurrencies.collectAsStateWithLifecycle()
 
     Scene(
         title = stringResource(id = R.string.settings_currency),
@@ -31,12 +32,11 @@ fun CurrenciesScene(
                 SubheaderItem(R.string.common_recommended)
             }
 
-            val defaultCurrenciesSize = defaultCurrencies.size
-            itemsIndexed(defaultCurrencies) { index, item ->
+            itemsIndexed(recommendedCurrencies) { index, item ->
                 CurrencyItem(
                     currency = item,
                     selectedCurrency = currentCurrency,
-                    listPosition = ListPosition.getPosition(index, defaultCurrenciesSize),
+                    listPosition = ListPosition.getPosition(index, recommendedCurrencies.size),
                     onSelect = {
                         viewModel.setCurrency(it)
                         onCancel()
@@ -47,13 +47,11 @@ fun CurrenciesScene(
             item {
                 SubheaderItem(R.string.common_all)
             }
-            val currencies = viewModel.getCurrencies()
-            val currenciesSize = currencies.size
-            itemsIndexed(currencies) { index, item ->
+            itemsIndexed(otherCurrencies) { index, item ->
                 CurrencyItem(
                     currency = item,
                     selectedCurrency = currentCurrency,
-                    listPosition = ListPosition.getPosition(index, currenciesSize),
+                    listPosition = ListPosition.getPosition(index, otherCurrencies.size),
                     onSelect = {
                         viewModel.setCurrency(it)
                         onCancel()

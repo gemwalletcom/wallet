@@ -32,10 +32,6 @@ public extension GemTransactionInputType {
 }
 
 public extension GemTransactionInputType {
-    var outputAction: Primitives.TransferDataOutputAction {
-        Primitives.TransferDataOutputAction(core: output().outputAction)
-    }
-
     func metadata(transferService: GemTransferService) throws -> AnyCodableValue? {
         try transferService.metadata(inputType: self).map { try JSONDecoder().decode(AnyCodableValue.self, from: Data($0.utf8)) }
     }

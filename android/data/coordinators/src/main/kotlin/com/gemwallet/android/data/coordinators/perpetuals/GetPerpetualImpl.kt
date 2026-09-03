@@ -5,12 +5,13 @@ import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStor
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.model.CurrencyFormatter
-import com.gemwallet.android.ext.PerpetualFormatter.toGemProvider
+import com.gemwallet.android.ext.toGem
 import uniffi.gemstone.GemPerpetual
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualData
+import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
 import kotlinx.coroutines.flow.Flow
@@ -39,6 +40,8 @@ class PerpetualDetailsDataAggregateImpl(
 ) : PerpetualDetailsDataAggregate {
     private val abbreviatedFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Abbreviated, currency = Currency.USD)
 
+    override val perpetual: Perpetual = data.perpetual
+
     override val id: PerpetualId = data.perpetual.id
 
     override val provider: PerpetualProvider = data.perpetual.provider
@@ -51,7 +54,7 @@ class PerpetualDetailsDataAggregateImpl(
 
     override val openInterest: String = abbreviatedFormatter.string(data.perpetual.openInterest)
 
-    override val funding: String = GemPerpetual(data.perpetual.provider.toGemProvider()).use { it.fundingApr(data.perpetual.funding) }.formatAsPercentage()
+    override val funding: String = GemPerpetual(data.perpetual.provider.toGem()).use { it.fundingApr(data.perpetual.funding) }.formatAsPercentage()
 
     override val maxLeverage: Int = data.perpetual.maxLeverage.toInt()
 

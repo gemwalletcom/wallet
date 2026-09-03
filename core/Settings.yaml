@@ -318,6 +318,10 @@ security:
     key:
       public: ""
       secret: ""
+  jupiter:
+    url: "https://api.jup.ag"
+    key:
+      secret: ""
   ipapi:
     url: https://api.ipapi.is
     key:

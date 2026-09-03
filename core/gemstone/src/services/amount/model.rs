@@ -1,4 +1,4 @@
-use crate::models::custom_types::GemBigInt;
+use crate::models::custom_types::{GemBigInt, GemBigUint};
 use primitives::{Delegation, Resource};
 
 #[derive(Debug, Clone, uniffi::Enum)]
@@ -42,36 +42,34 @@ pub enum GemAmountEarnType {
 pub enum GemAmountPerpetualPosition {
     Open,
     Increase,
-    Reduce { available: GemBigInt },
+    Reduce { available: GemBigUint },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemAmountRules {
-    pub minimum_value: GemBigInt,
-    pub reserve_for_fee: GemBigInt,
+pub struct GemAmountInput {
+    pub available_value: GemBigInt,
+    pub max_value: GemBigInt,
+    pub reserved_fee: Option<GemBigInt>,
     pub can_change_value: bool,
     pub shows_asset_balance: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemAmountLimits {
-    pub available_value: GemBigInt,
-    pub max_value: GemBigInt,
-    pub reserves_fee: bool,
+pub struct GemPerpetualAutoclose {
+    pub take_profit: Option<f64>,
+    pub stop_loss: Option<f64>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Error)]
 pub enum GemAmountError {
-    InvalidValue { value: String },
     Zero,
-    BelowMinimum { minimum: String },
-    InsufficientBalance { available: String },
+    BelowMinimum { minimum: GemBigInt },
+    InsufficientBalance { available: GemBigInt },
 }
 
 impl std::fmt::Display for GemAmountError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::InvalidValue { value } => write!(f, "invalid amount {value}"),
             Self::Zero => write!(f, "amount must be positive"),
             Self::BelowMinimum { minimum } => write!(f, "amount is below the minimum {minimum}"),
             Self::InsufficientBalance { available } => write!(f, "amount exceeds the available balance {available}"),

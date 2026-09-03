@@ -33,14 +33,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.domains.confirm.CustomFee
+import com.gemwallet.android.domains.confirm.FeeAssetUIModel
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeRateUIModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
-import com.gemwallet.android.ext.feeRateDecimals
-import com.gemwallet.android.ext.feeUnitType
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SuffixTextField
@@ -70,7 +67,6 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
-import uniffi.gemstone.GemFeeRate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,21 +74,20 @@ fun FeeDetails(
     isVisible: Boolean,
     currentFee: FeeUIModel.FeeInfo?,
     selection: FeeSelection,
-    feeRates: List<GemFeeRate>,
-    feeDetailsModel: (FeeUIModel.FeeInfo, AssetInfo, List<GemFeeRate>, String) -> FeeDetailsModel,
-    feeAssetInfo: AssetInfo?,
-    feeAssets: List<AssetInfo>,
+    feeDetailsModel: (FeeUIModel.FeeInfo, FeeAssetUIModel, FeeSelection) -> FeeDetailsModel?,
+    feeAsset: FeeAssetUIModel?,
+    feeAssets: List<FeeAssetUIModel>,
     onSelect: (FeeSelection) -> Unit,
     onSelectFeeAsset: (AssetId) -> Unit,
     onCancel: () -> Unit,
 ) {
     currentFee ?: return
-    feeAssetInfo ?: return
-    val unitSuffix = feeUnitSuffix(feeAssetInfo.asset.chain.feeUnitType(), feeAssetInfo.asset.symbol)
+    feeAsset ?: return
+    val model = remember(currentFee, feeAsset, selection) {
+        feeDetailsModel(currentFee, feeAsset, selection)
+    } ?: return
+    val unitSuffix = feeUnitSuffix(model.feeUnitType, feeAsset.asset.symbol)
     val unitSymbol = unitSuffix.trim()
-    val model = remember(currentFee, feeAssetInfo, feeRates, unitSymbol) {
-        feeDetailsModel(currentFee, feeAssetInfo, feeRates, unitSymbol)
-    }
     val decimals = model.decimals
 
     val selectedCustomRate = (selection as? FeeSelection.Custom)?.gasPrice
@@ -142,8 +137,8 @@ fun FeeDetails(
             FeeDetailsPage.Details -> FeeRates(
                 currentFee = currentFee,
                 selection = selection,
-                feeRateModels = model.feeRateModels,
-                feeAssetInfo = feeAssetInfo,
+                feeRateModels = model.feeRateModels(unitSymbol),
+                feeAsset = feeAsset,
                 unitSymbol = unitSymbol,
                 supportsCustomFee = model.supportsCustomFee,
                 customRateText = selectedCustomRate?.let { CustomFee.formatRate(it, decimals, unitSymbol) },
@@ -175,7 +170,7 @@ private fun FeeRates(
     currentFee: FeeUIModel.FeeInfo,
     selection: FeeSelection,
     feeRateModels: List<FeeRateUIModel>,
-    feeAssetInfo: AssetInfo,
+    feeAsset: FeeAssetUIModel,
     unitSymbol: String,
     supportsCustomFee: Boolean,
     customRateText: String?,
@@ -190,7 +185,7 @@ private fun FeeRates(
             item { SubheaderItem(R.string.swap_you_pay) }
             item {
                 FeeAssetRow(
-                    assetInfo = feeAssetInfo,
+                    feeAsset = feeAsset,
                     isSelected = false,
                     showChevron = true,
                     listPosition = ListPosition.Single,
@@ -247,18 +242,18 @@ private fun FeeRates(
 
 @Composable
 private fun FeeAssets(
-    assets: List<AssetInfo>,
+    assets: List<FeeAssetUIModel>,
     selectedAssetId: AssetId,
     onSelect: (AssetId) -> Unit,
 ) {
     LazyColumn {
-        itemsIndexed(assets) { index, assetInfo ->
+        itemsIndexed(assets) { index, feeAsset ->
             FeeAssetRow(
-                assetInfo = assetInfo,
-                isSelected = assetInfo.asset.id == selectedAssetId,
+                feeAsset = feeAsset,
+                isSelected = feeAsset.asset.id == selectedAssetId,
                 showChevron = false,
                 listPosition = ListPosition.getPosition(index, assets.size),
-                onClick = { onSelect(assetInfo.asset.id) },
+                onClick = { onSelect(feeAsset.asset.id) },
             )
         }
     }
@@ -266,23 +261,20 @@ private fun FeeAssets(
 
 @Composable
 private fun FeeAssetRow(
-    assetInfo: AssetInfo,
+    feeAsset: FeeAssetUIModel,
     isSelected: Boolean,
     showChevron: Boolean,
     listPosition: ListPosition,
     onClick: () -> Unit,
 ) {
-    val model = remember(assetInfo) {
-        assetInfo.toAssetInfoDataAggregate(displayedAmount = assetInfo.balance.balanceAmount.available)
-    }
     AssetListItem(
-        asset = model,
+        asset = feeAsset.asset,
         modifier = Modifier.clickable(onClick = onClick),
         listPosition = listPosition,
-        badge = assetInfo.asset.symbol.takeUnless { it == model.title },
+        badge = feeAsset.asset.symbol.takeUnless { it == feeAsset.asset.name },
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                getBalanceInfo(model).invoke()
+                getBalanceInfo(feeAsset.balance, feeAsset.equivalent, feeAsset.isZeroBalance).invoke()
                 when {
                     isSelected -> SelectionCheckmark(modifier = Modifier.padding(start = paddingSmall))
                     showChevron -> DataBadgeChevron()

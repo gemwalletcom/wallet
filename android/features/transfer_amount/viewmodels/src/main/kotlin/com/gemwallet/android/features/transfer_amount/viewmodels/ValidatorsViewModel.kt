@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.stake.cases.GetDelegations
-import com.gemwallet.android.application.stake.cases.GetRecommendedValidatorIds
+import uniffi.gemstone.GemStakeServiceInterface
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.features.transfer_amount.models.ValidatorsSource
 import com.gemwallet.android.features.transfer_amount.models.ValidatorsUIState
@@ -26,7 +26,7 @@ import javax.inject.Inject
 class ValidatorsViewModel @Inject constructor(
     private val getValidators: GetValidators,
     private val getDelegations: GetDelegations,
-    private val getRecommendedValidatorIds: GetRecommendedValidatorIds,
+    private val service: GemStakeServiceInterface,
     val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -51,7 +51,7 @@ class ValidatorsViewModel @Inject constructor(
             source == null -> ValidatorsUIState.Loading
             validators.isNotEmpty() -> {
                 val recommended = when (source) {
-                    is ValidatorsSource.ChainValidators -> getRecommendedValidatorIds(source.assetId)
+                    is ValidatorsSource.ChainValidators -> service.recommendedValidatorIds(source.assetId.chain.string)
                     is ValidatorsSource.Rewards -> emptySet()
                 }
                 ValidatorsUIState.Loaded(

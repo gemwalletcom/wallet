@@ -37,7 +37,9 @@ impl TransactionSimulationService {
             provider: coalescing_provider(provider),
         }
     }
+}
 
+impl TransactionSimulationService {
     pub async fn simulate_sign_message(&self, chain: Chain, sign_type: SignDigestType, data: String, session_domain: String) -> Result<SimulationResult, GemstoneError> {
         let sign_type: WcSignDigestType = sign_type.into();
         let validation_warnings = simulation::sign_message_validation_warnings(chain, &sign_type, &data, &session_domain);
@@ -52,7 +54,6 @@ impl TransactionSimulationService {
 
         Ok(simulation.prepend_warnings(validation_warnings))
     }
-
     pub async fn simulate_send_transaction(&self, chain: Chain, transaction_type: WalletConnectTransactionType, data: String) -> Result<SimulationResult, GemstoneError> {
         let transaction_type: WcWalletConnectTransactionType = transaction_type.into();
         let validation_warnings = simulation::send_transaction_validation_warnings(&transaction_type, &data);
@@ -67,7 +68,6 @@ impl TransactionSimulationService {
 
         Ok(simulation.prepend_warnings(validation_warnings))
     }
-
     pub async fn simulate_transaction(&self, chain: Chain, encoded_transaction: String, signer_address: Option<String>) -> Result<SimulationResult, GemstoneError> {
         self.simulate_chain_transaction(
             chain,

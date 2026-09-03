@@ -399,9 +399,29 @@ mod tests {
     use crate::core::actions::Grouping;
     use num_bigint::BigUint;
     use primitives::{
-        Asset, AssetId, AssetType, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, HyperliquidOrder, SignerInput, StakeType, TransactionFee,
-        TransactionInputType, TransactionLoadInput, asset_constants::HYPERCORE_SPOT_USDC_TOKEN_ID,
+        Asset, AssetId, AssetType, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection,
+        SignerInput, StakeType, TransactionFee, TransactionInputType, TransactionLoadInput, asset_constants::HYPERCORE_SPOT_USDC_TOKEN_ID,
     };
+
+    #[test]
+    fn market_orders_keep_the_position_direction_and_trade_against_it_when_closing() {
+        let long = PerpetualConfirmData::mock(PerpetualDirection::Long, 3, None, None);
+        let short = PerpetualConfirmData::mock(PerpetualDirection::Short, 3, None, None);
+        let order = |data, is_open| HyperCoreSigner::market_order_from_confirm_data(data, is_open, None).orders.remove(0);
+
+        assert_eq!(
+            (order(&long, true).is_buy, order(&long, true).reduce_only),
+            (true, false),
+            "opening or increasing a long buys"
+        );
+        assert_eq!((order(&short, true).is_buy, order(&short, true).reduce_only), (false, false));
+        assert_eq!(
+            (order(&long, false).is_buy, order(&long, false).reduce_only),
+            (false, true),
+            "closing or reducing a long sells reduce-only"
+        );
+        assert_eq!((order(&short, false).is_buy, order(&short, false).reduce_only), (true, true));
+    }
 
     #[test]
     fn stake_actions_preserve_wei_and_nonces() {

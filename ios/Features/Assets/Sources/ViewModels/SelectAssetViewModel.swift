@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemChainServiceProtocol
 import Components
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
@@ -20,8 +19,6 @@ import SwiftUI
 @MainActor
 public final class SelectAssetViewModel {
     private let service: any GemAssetSelectionServiceProtocol
-    private let chainService: any GemChainServiceProtocol
-    private let recentAssetsService: any GemRecentActivityServiceProtocol
     let selectType: SelectAssetType
     let flow: SelectAssetFlow
 
@@ -49,7 +46,6 @@ public final class SelectAssetViewModel {
         wallet: Wallet,
         selectType: SelectAssetType,
         service: any GemAssetSelectionServiceProtocol,
-        chainService: any GemChainServiceProtocol,
         recentAssetsService: any GemRecentActivityServiceProtocol,
         selectAssetAction: AssetAction = .none,
         chains: [Chain] = [],
@@ -57,8 +53,6 @@ public final class SelectAssetViewModel {
         self.service = service
         self.wallet = wallet
         self.selectType = selectType
-        self.chainService = chainService
-        self.recentAssetsService = recentAssetsService
         flow = selectType.flow()
         onSelectAssetAction = selectAssetAction
 
@@ -68,16 +62,15 @@ public final class SelectAssetViewModel {
                 chains: wallet.chains,
                 selected: chains,
             ),
-            chainService: chainService,
         )
         filterModel = filter
 
         assetsQuery = ObservableQuery(AssetsRequest(walletId: wallet.id, filters: filter.filters), initialValue: [])
         recentModel = RecentAssetsModel(
             walletId: wallet.id,
-            types: selectType.recentActivityTypes,
+            types: selectType.action?.recentActivityTypes().map { $0.map() } ?? RecentActivityType.allCases,
             filters: filter.defaultFilters,
-            recentAssetsService: recentAssetsService,
+            service: recentAssetsService,
         )
     }
 
@@ -156,7 +149,7 @@ public final class SelectAssetViewModel {
 
 extension SelectAssetViewModel {
     func selectAsset(asset: Asset) {
-        applySelectionEffect(assetId: asset.id)
+        applySelectionEffect(asset: asset)
         onSelectAssetAction?(asset)
     }
 
@@ -172,7 +165,7 @@ extension SelectAssetViewModel {
         switch flow.rowSelection {
         case .toggle:
             do {
-                try await service.setAssetsEnabled(walletId: wallet.id.id, assetIds: [assetId.identifier], enabled: enabled)
+                try await service.setAssetsEnabled(assetIds: [assetId.identifier], enabled: enabled)
             } catch {
                 debugLog("SelectAssetViewModel handleAction error: \(error)")
             }
@@ -215,7 +208,7 @@ extension SelectAssetViewModel {
     }
 
     func onSelectAsset(_ assetData: AssetData) {
-        applySelectionEffect(assetId: assetData.asset.id)
+        applySelectionEffect(asset: assetData.asset)
         assetSelection = SelectAssetInput(type: selectType, assetData: assetData)
     }
 
@@ -252,26 +245,19 @@ extension SelectAssetViewModel {
 // MARK: - Private
 
 extension SelectAssetViewModel {
-    private func applySelectionEffect(assetId: AssetId) {
-        switch flow.selectionEffect {
-        case .enablePriceAlert:
+    private func applySelectionEffect(asset: Asset) {
+        if flow.enablesPriceAlert {
             Task {
-                await setPriceAlert(assetId: assetId, enabled: true)
+                await setPriceAlert(assetId: asset.id, enabled: true)
             }
-        case .recordRecent:
-            updateRecent(assetId: assetId)
-        case .none:
-            break
         }
-    }
-
-    private func updateRecent(assetId: AssetId) {
-        guard let data = selectType.recentActivityData(assetId: assetId) else { return }
-        Task { [service, wallet] in
-            do {
-                try await service.addRecentAsset(activityType: data.type.map(), assetId: data.assetId.identifier, walletId: wallet.id.id)
-            } catch {
-                debugLog("Failed to update recent activity: \(error)")
+        if let action = selectType.action {
+            Task { [service] in
+                do {
+                    try await service.addRecent(action: action, asset: asset.map())
+                } catch {
+                    debugLog("Failed to update recent activity: \(error)")
+                }
             }
         }
     }
@@ -288,7 +274,7 @@ extension SelectAssetViewModel {
 
     private func searchAssets(query: String) async {
         do {
-            let assets = try await service.searchAssets(wallet: wallet.json(), query: query).map { try AssetBasic($0) }
+            let assets = try await service.searchAssets(query: query).map { try AssetBasic($0) }
             state = .data(assets)
         } catch {
             handle(error: error)

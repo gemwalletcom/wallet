@@ -1,6 +1,8 @@
 package com.gemwallet.android.application.perpetual.cases
 
 import com.wallet.core.primitives.ChartCandleUpdate
+import com.wallet.core.primitives.PerpetualAccountMode
+import com.wallet.core.primitives.Wallet
 import kotlinx.coroutines.flow.Flow
 import uniffi.gemstone.GemPerpetualSubscription
 

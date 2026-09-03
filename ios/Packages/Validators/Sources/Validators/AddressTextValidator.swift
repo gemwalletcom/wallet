@@ -1,21 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import protocol Gemstone.GemAddressServiceProtocol
+import protocol Gemstone.GemNameServiceProtocol
 import GemstonePrimitives
 import Primitives
 
 public struct AddressTextValidator: TextValidator {
     private let asset: Asset
-    private let addressService: any GemAddressServiceProtocol
+    private let nameService: any GemNameServiceProtocol
 
-    public init(asset: Asset, addressService: any GemAddressServiceProtocol) {
+    public init(asset: Asset, nameService: any GemNameServiceProtocol) {
         self.asset = asset
-        self.addressService = addressService
+        self.nameService = nameService
     }
 
     public func validate(_ text: String) throws {
-        guard asset.chain.isValidAddress(text, addressService: addressService) else {
+        guard nameService.validateRecipient(chain: asset.chain.rawValue, input: text, nameRecord: nil).isValid else {
             throw TransferError.invalidAddress(asset: asset)
         }
     }
@@ -26,7 +26,7 @@ public struct AddressTextValidator: TextValidator {
 }
 
 public extension TextValidator where Self == AddressTextValidator {
-    static func address(_ asset: Asset, addressService: any GemAddressServiceProtocol) -> Self {
-        .init(asset: asset, addressService: addressService)
+    static func address(_ asset: Asset, nameService: any GemNameServiceProtocol) -> Self {
+        .init(asset: asset, nameService: nameService)
     }
 }

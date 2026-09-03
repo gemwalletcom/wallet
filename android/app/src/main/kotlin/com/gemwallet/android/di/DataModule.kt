@@ -1,21 +1,23 @@
 package com.gemwallet.android.di
 
-import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.services.SyncService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemAssetSelectionService
+import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemBalanceService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneRecentActivityStore
 import uniffi.gemstone.GemRecentActivityService
+import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemNameService
+import uniffi.gemstone.GemNodeService
 import uniffi.gemstone.GemPreferencesService
-import uniffi.gemstone.GemSwapQuoteService
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemTransactionSigner
 import com.gemwallet.android.application.PasswordStore
@@ -24,8 +26,12 @@ import uniffi.gemstone.GemConfirmService
 import uniffi.gemstone.GemConfirmServiceInterface
 import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemGateway
-import uniffi.gemstone.GemNodeStatusService
+import uniffi.gemstone.GemChainSettingsService
+import uniffi.gemstone.GemChainSettingsServiceInterface
+import uniffi.gemstone.GemPerpetualService
+import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemPriceService
+import uniffi.gemstone.GemSearchService
 import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemTransactionStateService
 import uniffi.gemstone.TransactionSimulationService
@@ -52,7 +58,27 @@ object DataModule {
     @Singleton
     fun provideGemRecentActivityService(
         recentAssetsService: RecentAssetsService,
-    ): GemRecentActivityService = GemRecentActivityService(GemstoneRecentActivityStore(recentAssetsService))
+        walletSessionService: GemWalletSessionService,
+    ): GemRecentActivityService = GemRecentActivityService(GemstoneRecentActivityStore(recentAssetsService), walletSessionService)
+
+    @Provides
+    fun provideGemAssetSelectionService(
+        searchService: GemSearchService,
+        balanceService: GemBalanceService,
+        priceAlertService: GemPriceAlertService,
+        recentActivity: GemRecentActivityService,
+        preferencesService: GemPreferencesService,
+        perpetualService: GemPerpetualService,
+        walletSessionService: GemWalletSessionService,
+    ): GemAssetSelectionServiceInterface = GemAssetSelectionService(
+        searchService,
+        balanceService,
+        priceAlertService,
+        recentActivity,
+        preferencesService,
+        perpetualService,
+        walletSessionService,
+    )
 
     @Provides
     @Singleton
@@ -60,36 +86,29 @@ object DataModule {
         confirmService: GemConfirmServiceInterface,
         explorerService: GemExplorerService,
         nameService: GemNameService,
-        swapQuoteService: GemSwapQuoteService,
         signer: GemTransactionSigner,
         passwordStore: PasswordStore,
         recentActivity: GemRecentActivityService,
         preferencesService: GemPreferencesService,
+        walletSessionService: GemWalletSessionService,
     ): GemConfirmTransferService = GemConfirmTransferService(
         confirmService as GemConfirmService,
         explorerService,
         nameService,
         GemAssetConfigService(),
-        swapQuoteService,
         signer,
         GemstoneKeystorePassword(passwordStore),
         recentActivity,
         preferencesService,
+        walletSessionService,
     )
 
     @Provides
-    @Singleton
-    fun provideSignerPreloader(
-        confirmService: GemConfirmTransferService,
-    ): SignerPreloaderProxy {
-        return SignerPreloaderProxy(confirmService)
-    }
-
-    @Singleton
-    @Provides
-    fun provideGemNodeStatusService(
+    fun provideGemChainSettingsService(
+        nodeService: GemNodeService,
+        explorerService: GemExplorerService,
         gateway: GemGateway,
-    ): GemNodeStatusService = GemNodeStatusService(gateway)
+    ): GemChainSettingsServiceInterface = GemChainSettingsService(nodeService, explorerService, gateway)
 
     @Singleton
     @Provides

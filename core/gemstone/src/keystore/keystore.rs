@@ -13,7 +13,7 @@ use zeroize::Zeroizing;
 use super::types::{GemImportType, GemKeystoreAccount, GemStoredSecretMigration, GemStoredWallet, GemWalletImport};
 use crate::GemstoneError;
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput};
-use crate::signer::GemChainSigner;
+use crate::signer::ChainTransactionSigner;
 
 #[derive(uniffi::Object)]
 pub struct GemKeystore {
@@ -77,30 +77,6 @@ impl GemKeystore {
         }
     }
 
-    pub fn add_accounts(&self, keystore_id: String, password: Vec<u8>, chains: Vec<Chain>) -> Result<Vec<GemKeystoreAccount>, GemstoneError> {
-        let password = Zeroizing::new(password);
-        let phrase = match self.inner.decrypt_mnemonic(&keystore_id, &password) {
-            Ok(phrase) => phrase,
-            Err(KeystoreError::CorruptFile(message)) if message == "stored secret is not a mnemonic" => {
-                return Err(GemstoneError::from("add_accounts does not support private-key wallets"));
-            }
-            Err(error) => return Err(error.into()),
-        };
-        Ok(derive_accounts_from_mnemonic(&phrase, chains)?.into_iter().map(GemKeystoreAccount::from).collect())
-    }
-
-    pub fn change_password(&self, keystore_id: String, old_password: Vec<u8>, new_password: Vec<u8>) -> Result<(), GemstoneError> {
-        let old_password = Zeroizing::new(old_password);
-        let new_password = Zeroizing::new(new_password);
-        self.inner.change_password(&keystore_id, &old_password, &new_password)?;
-        Ok(())
-    }
-
-    pub fn opens_with(&self, keystore_id: String, password: Vec<u8>) -> bool {
-        let password = Zeroizing::new(password);
-        self.inner.verify(&keystore_id, &password).is_ok()
-    }
-
     pub fn export_recovery_phrase(&self, keystore_id: String, password: Vec<u8>) -> Result<Vec<String>, GemstoneError> {
         let password = Zeroizing::new(password);
         Ok(self
@@ -156,10 +132,33 @@ impl GemKeystore {
     }
 
     pub fn sign(&self, keystore_id: String, chain: Chain, input: GemSignerInput, password: Vec<u8>) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
-        GemChainSigner::new(chain).sign_input(input, self.signing_key(&keystore_id, chain, password)?)
+        ChainTransactionSigner::new(chain).sign_input(input, self.signing_key(&keystore_id, chain, password)?)
     }
+}
 
-    pub fn sign_auth(&self, keystore_id: String, chain: Chain, hash: Vec<u8>, password: Vec<u8>) -> Result<String, GemstoneError> {
+impl GemKeystore {
+    pub fn add_accounts(&self, keystore_id: String, password: Vec<u8>, chains: Vec<Chain>) -> Result<Vec<GemKeystoreAccount>, GemstoneError> {
+        let password = Zeroizing::new(password);
+        let phrase = match self.inner.decrypt_mnemonic(&keystore_id, &password) {
+            Ok(phrase) => phrase,
+            Err(KeystoreError::CorruptFile(message)) if message == "stored secret is not a mnemonic" => {
+                return Err(GemstoneError::from("add_accounts does not support private-key wallets"));
+            }
+            Err(error) => return Err(error.into()),
+        };
+        Ok(derive_accounts_from_mnemonic(&phrase, chains)?.into_iter().map(GemKeystoreAccount::from).collect())
+    }
+    pub fn change_password(&self, keystore_id: String, old_password: Vec<u8>, new_password: Vec<u8>) -> Result<(), GemstoneError> {
+        let old_password = Zeroizing::new(old_password);
+        let new_password = Zeroizing::new(new_password);
+        self.inner.change_password(&keystore_id, &old_password, &new_password)?;
+        Ok(())
+    }
+    pub fn opens_with(&self, keystore_id: String, password: Vec<u8>) -> bool {
+        let password = Zeroizing::new(password);
+        self.inner.verify(&keystore_id, &password).is_ok()
+    }
+    pub fn sign_auth(&self, keystore_id: String, chain: Chain, hash: [u8; 32], password: Vec<u8>) -> Result<String, GemstoneError> {
         crate::auth::sign_auth_message_hash(hash, self.signing_key(&keystore_id, chain, password)?)
     }
 }

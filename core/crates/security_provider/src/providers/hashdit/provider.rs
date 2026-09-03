@@ -1,5 +1,5 @@
 use crate::providers::hashdit::{mapper, models::DetectResponse};
-use crate::{AddressTarget, ScanProvider, ScanResult, TokenTarget};
+use crate::{AddressScanProvider, AddressTarget, ScanResult, TokenScanProvider, TokenTarget};
 use async_trait::async_trait;
 use gem_client::{ClientError, ClientExt, ReqwestClient};
 use hmac::{Hmac, KeyInit, Mac};
@@ -104,16 +104,12 @@ impl HashDitProvider {
 }
 
 #[async_trait]
-impl ScanProvider for HashDitProvider {
+impl AddressScanProvider for HashDitProvider {
     fn name(&self) -> &'static str {
         PROVIDER_NAME
     }
 
-    fn supports_address_chain(&self, chain: Chain) -> bool {
-        mapper::map_chain(chain).is_ok()
-    }
-
-    fn supports_token_chain(&self, chain: Chain) -> bool {
+    fn supports_chain(&self, chain: Chain) -> bool {
         mapper::map_chain(chain).is_ok()
     }
 
@@ -123,6 +119,17 @@ impl ScanProvider for HashDitProvider {
             "address": target.address,
         });
         self._scan(target, "gem_wallet_address_detection", &body).await
+    }
+}
+
+#[async_trait]
+impl TokenScanProvider for HashDitProvider {
+    fn name(&self) -> &'static str {
+        PROVIDER_NAME
+    }
+
+    fn supports_chain(&self, chain: Chain) -> bool {
+        mapper::map_chain(chain).is_ok()
     }
 
     async fn scan_token(&self, target: &TokenTarget) -> Result<ScanResult<TokenTarget>, Box<dyn std::error::Error + Send + Sync>> {

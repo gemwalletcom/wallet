@@ -1,10 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
 import Formatters
 import Foundation
-import protocol Gemstone.GemExplorerServiceProtocol
+import enum Gemstone.GemStakeAction
+import struct Gemstone.GemStakeActionItem
+import struct Gemstone.GemClaimRewards
+import struct Gemstone.GemAssetBalance
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import InfoSheet
@@ -14,20 +16,17 @@ import PrimitivesComponents
 import GemstoneServices
 import Store
 import SwiftUI
-import struct Gemstone.GemRecipient
 import struct Gemstone.GemTransferData
 
 @MainActor
 @Observable
 public final class StakeSceneViewModel {
-    private let stakeService: any GemStakeServiceProtocol
-    private let explorerService: any GemExplorerServiceProtocol
+    private let service: any GemStakeServiceProtocol
 
     private var delegationsState: StateViewType<Bool> = .loading
     private let chain: StakeChain
 
     private let formatter = ValueFormatter(style: .auto)
-    private let currencyCode: String
 
     public let wallet: Wallet
     public let delegationsQuery: ObservableQuery<DelegationsRequest>
@@ -51,15 +50,11 @@ public final class StakeSceneViewModel {
     public init(
         wallet: Wallet,
         chain: StakeChain,
-        currencyCode: String,
-        stakeService: any GemStakeServiceProtocol,
-        explorerService: any GemExplorerServiceProtocol,
+        service: any GemStakeServiceProtocol,
     ) {
         self.wallet = wallet
         self.chain = chain
-        self.currencyCode = currencyCode
-        self.stakeService = stakeService
-        self.explorerService = explorerService
+        self.service = service
         delegationsQuery = ObservableQuery(DelegationsRequest(walletId: wallet.id, assetId: chain.chain.assetId, providerType: .stake), initialValue: [])
         validatorsQuery = ObservableQuery(ValidatorsRequest(chain: chain.chain, providerType: .stake), initialValue: [])
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: chain.chain.assetId), initialValue: .with(asset: chain.chain.asset))
@@ -74,7 +69,7 @@ public final class StakeSceneViewModel {
     }
 
     private func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
-        (try? stakeService.selectableValidators(validators: validators.map { $0.json() }).map { try DelegationValidator($0) }) ?? []
+        (try? service.selectableValidators(validators: validators.map { $0.json() }).map { try DelegationValidator($0) }) ?? []
     }
 
     var stakeTitle: String {
@@ -135,11 +130,11 @@ public final class StakeSceneViewModel {
     }
 
     var showManage: Bool {
-        wallet.canSign
+        stakeActions.isNotEmpty
     }
 
     var recommendedCurrentValidator: DelegationValidator? {
-        (try? stakeService.recommendedValidator(chain: chain.chain.rawValue, validators: validators.map { $0.json() }).map { try DelegationValidator($0) }) ?? .none
+        (try? service.recommendedValidator(chain: chain.chain.rawValue, validators: validators.map { $0.json() }).map { try DelegationValidator($0) }) ?? .none
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {
@@ -149,10 +144,11 @@ public final class StakeSceneViewModel {
     func navigationDestination(for delegation: DelegationViewModel) -> any Hashable {
         switch delegation.state {
         case .awaitingWithdrawal:
-            GemTransferData(
-                inputType: .stake(asset, .withdraw(delegation.delegation)),
-                recipient: GemRecipient(address: delegation.delegation.validator.id, name: delegation.validatorText, memo: ""),
+            service.stakeTransferData(
+                asset: asset.map(),
+                stakeType: StakeType.withdraw(delegation.delegation).json(),
                 value: delegation.delegation.base.balanceValue,
+                useMaxAmount: false,
             )
         case .active, .pending, .inactive, .activating, .deactivating:
             delegation.delegation
@@ -167,7 +163,7 @@ public final class StakeSceneViewModel {
     }
 
     var delegationsViewState: StateViewType<[DelegationViewModel]> {
-        let delegationModels = delegations.map { DelegationViewModel(explorerService: explorerService, stakeService: stakeService, delegation: $0, asset: asset, currencyCode: currencyCode) }
+        let delegationModels = delegations.map { DelegationViewModel(service: service, delegation: $0, asset: asset, currencyCode: service.currency()) }
 
         switch delegationsState {
         case .noData: return .noData
@@ -178,36 +174,18 @@ public final class StakeSceneViewModel {
     }
 
     var claimRewardsText: String {
-        formatter.string(rewardsValue, decimals: asset.decimals.asInt, currency: asset.symbol)
+        formatter.string(claimRewards.value, decimals: asset.decimals.asInt, currency: asset.symbol)
     }
 
     var showRewards: Bool {
-        stakeService.canClaimStakeRewards(chain: chain.chain.rawValue, rewardsValue: rewardsValue.description)
-    }
-
-    var canClaimAllRewards: Bool {
-        guard showRewards else { return false }
-        return chain.supportClaimAllRewards || delegationsWithRewards.count == 1
+        stakeAction(.claimRewards) != nil
     }
 
     var claimRewardsDestination: any Hashable {
-        if canClaimAllRewards {
-            let validators = delegationsWithRewards.map(\.validator)
-            let recipient = if validators.count == 1, let validator = validators.first {
-                GemRecipient(address: validator.id, name: validator.name)
-            } else {
-                GemRecipient(address: "")
-            }
-            return GemTransferData(
-                inputType: .stake(chain.chain.asset, .rewards(validators)),
-                recipient: recipient,
-                value: rewardsValue,
-            )
+        switch claimRewards.destination {
+        case let .transfer(transfer): transfer
+        case let .amount(delegations): AmountInput(type: .stake(.claimRewards(delegations: delegations.map { Delegation(core: $0) })), asset: asset)
         }
-        return AmountInput(
-            type: .stake(.claimRewards(delegations: delegationsWithRewards)),
-            asset: asset,
-        )
     }
 
     var stakeDestination: any Hashable {
@@ -228,19 +206,19 @@ public final class StakeSceneViewModel {
     }
 
     var showFreeze: Bool {
-        StakeChain(rawValue: chain.rawValue)?.usesFreeze ?? false
+        stakeAction(.freeze) != nil
     }
 
     var showUnfreeze: Bool {
-        balanceModel.hasStakingResources
+        stakeAction(.unfreeze) != nil
     }
 
     var isStakeEnabled: Bool {
-        validators.isNotEmpty && !stakeFrozenRequired
+        stakeAction(.stake)?.isEnabled ?? false
     }
 
     var stakeInfoAction: InfoSheetAction? {
-        guard stakeFrozenRequired else { return nil }
+        guard stakeAction(.stake)?.requiresFrozenBalance == true else { return nil }
         return onStakeFrozenInfo
     }
 
@@ -255,8 +233,7 @@ extension StakeSceneViewModel {
     func load() async {
         delegationsState = .loading
         do {
-            let account = try wallet.account(for: chain.chain)
-            try await stakeService.sync(walletId: wallet.id.id, chain: chain.chain.rawValue, address: account.address)
+            try await service.sync(chain: chain.chain.rawValue)
             delegationsState = .data(true)
         } catch {
             debugLog("Stake scene load error: \(error)")
@@ -295,20 +272,26 @@ extension StakeSceneViewModel {
         chain.chain.asset
     }
 
-    private var stakeFrozenRequired: Bool {
-        stakeService.requiresFrozenBalance(chain: chain.chain.rawValue, frozenValue: balanceModel.frozenResources.description)
+    private var stakeActions: [GemStakeActionItem] {
+        service.stakeActions(
+            walletType: wallet.type.map(),
+            chain: chain.chain.rawValue,
+            hasValidators: validators.isNotEmpty,
+            balance: GemAssetBalance(assetData.balance, assetId: asset.id),
+            delegations: delegations.map { $0.json() },
+        )
+    }
+
+    private var claimRewards: GemClaimRewards {
+        service.claimRewards(chain: chain.chain.rawValue, delegations: delegations.map { $0.json() })
+    }
+
+    private func stakeAction(_ action: GemStakeAction) -> GemStakeActionItem? {
+        stakeActions.first { $0.action == action }
     }
 
     private var balanceModel: BalanceViewModel {
         BalanceViewModel(asset: asset, balance: assetData.balance, formatter: formatter)
-    }
-
-    private var rewardsValue: BigInt {
-        delegations.map(\.base.rewardsValue).reduce(0, +)
-    }
-
-    private var delegationsWithRewards: [Delegation] {
-        delegations.filter { $0.base.rewardsValue > 0 }
     }
 
     private func destination(type: AmountType) -> any Hashable {

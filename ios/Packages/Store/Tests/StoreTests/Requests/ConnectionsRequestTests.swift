@@ -11,7 +11,7 @@ struct ConnectionsRequestTests {
     func returnsConnectionsWithWalletAccounts() throws {
         let db = DB.mockWithChains([.ethereum])
         let walletStore = WalletStore(db: db)
-        let connectionsStore = ConnectionsStore(db: db)
+        let connectionsStore = ConnectionStore(db: db)
 
         let wallet = Wallet.mock(id: .multicoin(address: "0xa"), accounts: [.mock(chain: .ethereum)])
         try walletStore.addWallet(wallet)

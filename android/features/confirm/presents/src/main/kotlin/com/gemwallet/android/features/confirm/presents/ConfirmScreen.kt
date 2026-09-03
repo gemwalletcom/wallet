@@ -33,7 +33,11 @@ import com.gemwallet.android.domains.perpetual.PerpetualConfig
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.boldMarkdown
 import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
-import com.gemwallet.android.domains.confirm.ConfirmError
+import com.gemwallet.android.ext.toGemNetworkError
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.model.GemNetworkError
+import uniffi.gemstone.GemConfirmException
+import uniffi.gemstone.GemSignerError
 import com.gemwallet.android.domains.confirm.ConfirmProperty
 import com.gemwallet.android.domains.confirm.ConfirmState
 import com.gemwallet.android.domains.confirm.FeeUIModel
@@ -46,7 +50,8 @@ import com.gemwallet.android.features.confirm.viewmodels.reorderRequestPropertie
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.domains.confirm.applicationMetadata
 import com.gemwallet.android.domains.confirm.asset
-import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.GemTransactionHeaderKind
 import uniffi.gemstone.GemTransactionInputType
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
@@ -91,7 +96,7 @@ import com.wallet.core.primitives.TransactionType
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfirmScreen(
-    input: GemConfirmInput? = null,
+    input: GemTransferData? = null,
     simulationResult: SimulationResult? = null,
     finishAction: FinishConfirmAction,
     cancelAction: CancelAction,
@@ -105,15 +110,14 @@ fun ConfirmScreen(
     val feeModel by viewModel.feeUIModel.collectAsStateWithLifecycle()
     val feeValue by viewModel.feeValue.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val feeRates by viewModel.feeRates.collectAsStateWithLifecycle()
     val feeAssets by viewModel.feeAssets.collectAsStateWithLifecycle()
-    val feeAssetInfo by viewModel.feeAssetInfo.collectAsStateWithLifecycle()
+    val feeAsset by viewModel.feeAsset.collectAsStateWithLifecycle()
     val feeSelection by viewModel.feeSelection.collectAsStateWithLifecycle()
     val simulation by viewModel.simulation.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val payloadAddressNames by viewModel.payloadAddressNames.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
-    val applicationMetadata = input?.transfer?.inputType?.applicationMetadata
+    val applicationMetadata = input?.inputType?.applicationMetadata
     val isExternalRequest = applicationMetadata != null
     val isPayment = applicationMetadata?.source == ApplicationMetadataSource.Payment
     val displayTransactionProperties = if (isExternalRequest) transactionProperties.reorderRequestProperties() else transactionProperties
@@ -121,11 +125,11 @@ fun ConfirmScreen(
     var showSelectTxSpeed by remember { mutableStateOf(false) }
     var showSimulationDetails by remember { mutableStateOf(false) }
     var selectedDetailElement by remember(input) { mutableStateOf<ConfirmDetailElement?>(null) }
-    var isShowedBroadcastError by remember((state as? ConfirmState.BroadcastError)?.message) {
+    var isShowedBroadcastError by remember((state as? ConfirmState.BroadcastError)?.error) {
         mutableStateOf(state is ConfirmState.BroadcastError)
     }
     var isShowBottomSheetInfo by remember(state as? ConfirmState.Error) {
-        mutableStateOf((state as? ConfirmState.Error)?.message is ConfirmError.InsufficientFee)
+        mutableStateOf((state as? ConfirmState.Error)?.error is GemConfirmException.InsufficientNetworkFee)
     }
 
     LaunchedEffect(input, simulationResult) {
@@ -169,19 +173,19 @@ fun ConfirmScreen(
                             .alpha(0f)
                             .clearAndSetSemantics { },
                     ) {
-                        AmountListHead(amount = "", icon = input.transfer.inputType.asset)
+                        AmountListHead(amount = "", icon = input.inputType.asset)
                     }
                     simulation.headerAsset != null -> {
                         val asset = requireNotNull(simulation.headerAsset)
                         val title = if (simulation.headerIsUnlimited) {
                             stringResource(R.string.simulation_header_unlimited_asset, asset.symbol)
                         } else {
-                            simulation.headerValue?.toBigIntegerOrNull()
+                            simulation.headerValue
                                 ?.let { ValueFormatter(style = ValueFormatter.Style.Full).string(it, asset) } ?: asset.symbol
                         }
                         AmountListHead(amount = title, icon = asset)
                     }
-                    amountModel?.transactionType == TransactionType.Swap -> {
+                    amountModel?.headerKind is GemTransactionHeaderKind.Swap -> {
                         val model = requireNotNull(amountModel)
                         SwapListHead(
                             fromAsset = model.fromAsset,
@@ -192,10 +196,10 @@ fun ConfirmScreen(
                         )
                     }
 
-                    amountModel?.transactionType == TransactionType.TransferNFT -> amountModel?.nftAsset?.let { NftHead(it) }
+                    amountModel?.headerKind is GemTransactionHeaderKind.Nft -> amountModel?.nftAsset?.let { NftHead(it) }
 
-                    perpetualType != null -> {
-                        val asset = amountModel?.asset?.asset
+                    amountModel?.headerKind is GemTransactionHeaderKind.Symbol || amountModel?.headerKind is GemTransactionHeaderKind.AssetImage -> {
+                        val asset = amountModel?.asset
                         AmountListHead(
                             amount = asset?.symbol.orEmpty(),
                             icon = asset,
@@ -204,11 +208,11 @@ fun ConfirmScreen(
 
                     else -> AmountListHead(
                         amount = amountModel?.cryptoAmount ?: "",
-                        equivalent = amountModel?.amountEquivalent,
-                        icon = if (input?.transfer?.inputType is GemTransactionInputType.Withdrawal) {
+                        equivalent = amountModel?.amountEquivalent?.takeIf { (amountModel?.headerKind as? GemTransactionHeaderKind.Amount)?.showsFiat != false },
+                        icon = if (input?.inputType is GemTransactionInputType.Withdrawal) {
                             PerpetualConfig.depositAsset
                         } else {
-                            amountModel?.asset?.asset
+                            amountModel?.asset
                         },
                     )
                 }
@@ -256,10 +260,9 @@ fun ConfirmScreen(
             confirmBalanceChangesContent(simulation.balanceChanges)
             item {
                 feeModel?.let {
-                    val feeAsset = feeAssetInfo?.asset
                     val feeInfo = InfoSheetEntity.NetworkFeeInfo(
-                        feeAsset?.name.orEmpty(),
-                        feeAsset?.symbol.orEmpty(),
+                        feeAsset?.asset?.name.orEmpty(),
+                        feeAsset?.asset?.symbol.orEmpty(),
                     )
                     when (it) {
                         FeeUIModel.Calculating -> PropertyItem(
@@ -299,9 +302,8 @@ fun ConfirmScreen(
             isVisible = showSelectTxSpeed,
             currentFee = feeModel as? FeeUIModel.FeeInfo,
             selection = feeSelection,
-            feeRates = feeRates,
             feeDetailsModel = viewModel::feeDetailsModel,
-            feeAssetInfo = feeAssetInfo,
+            feeAsset = feeAsset,
             feeAssets = feeAssets,
             onSelect = viewModel::changeFeeSelection,
             onSelectFeeAsset = viewModel::changeFeeAsset,
@@ -339,7 +341,7 @@ fun ConfirmScreen(
                 Text(stringResource(R.string.errors_transfer_error))
             },
             text = {
-                Text((state as? ConfirmState.BroadcastError)?.message?.toLabel() ?: "Unknown error")
+                Text((state as? ConfirmState.BroadcastError)?.error?.toBroadcastLabel() ?: stringResource(R.string.errors_error_occurred))
             }
         )
     }
@@ -410,21 +412,34 @@ fun ConfirmState.buttonLabel(): String {
 }
 
 @Composable
-fun ConfirmError.toLabel() = when (this) {
-    is ConfirmError.Init,
-    is ConfirmError.TransactionIncorrect,
-    is ConfirmError.PreloadError -> "${stringResource(R.string.confirm_fee_error)}: ${stringResource(R.string.errors_unable_estimate_network_fee)}"
-    is ConfirmError.InsufficientBalance -> stringResource(R.string.transfer_insufficient_balance, "${asset.name} (${asset.symbol})".boldMarkdown())
-    is ConfirmError.InsufficientFee -> stringResource(R.string.transfer_insufficient_network_fee_balance, chain.asset().title.boldMarkdown())
-    is ConfirmError.BroadcastError -> "${stringResource(R.string.errors_transfer_error)}: ${this.details}"
-    is ConfirmError.NetworkError -> error.localizedDescription()
-    is ConfirmError.SignFail -> stringResource(R.string.errors_transfer_error)
-    is ConfirmError.RecipientEmpty -> "${stringResource(R.string.errors_transfer_error)}: recipient can't be empty"
-    is ConfirmError.DustThreshold -> stringResource(id = R.string.errors_dust_threshold_short)
-    is ConfirmError.None -> stringResource(id = R.string.transfer_confirm)
-    is ConfirmError.MinimumAccountBalanceTooLow -> stringResource(R.string.transfer_minimum_account_balance, asset.symbol)
-    is ConfirmError.ScanTransactionMalicious -> stringResource(R.string.errors_scan_transaction_malicious_description)
-    is ConfirmError.ScanTransactionMemoRequired -> stringResource(R.string.errors_scan_transaction_memo_required, symbol)
+fun Throwable.toPreloadLabel(): String = toConfirmLabel()
+    ?: toGemNetworkError()?.localizedDescription()
+    ?: "${stringResource(R.string.confirm_fee_error)}: ${stringResource(R.string.errors_unable_estimate_network_fee)}"
+
+@Composable
+fun Throwable.toBroadcastLabel(): String = toConfirmLabel()
+    ?: toGemNetworkError()?.localizedDescription()
+    ?: "${stringResource(R.string.errors_transfer_error)}: ${message ?: toString()}"
+
+@Composable
+private fun Throwable.toConfirmLabel(): String? = when (this) {
+    is GemConfirmException.ScanMalicious -> stringResource(R.string.errors_scan_transaction_malicious_description)
+    is GemConfirmException.ScanMemoRequired -> stringResource(R.string.errors_scan_transaction_memo_required, symbol)
+    is GemConfirmException.InsufficientBalance -> stringResource(R.string.transfer_insufficient_balance, asset.toPrimitives().title.boldMarkdown())
+    is GemConfirmException.InsufficientNetworkFee -> stringResource(R.string.transfer_insufficient_network_fee_balance, asset.toPrimitives().title.boldMarkdown())
+    is GemConfirmException.MinimumAccountBalanceTooLow -> stringResource(
+        R.string.transfer_minimum_account_balance,
+        ValueFormatter(style = ValueFormatter.Style.Full).string(requirement.required, asset.toPrimitives()).boldMarkdown(),
+    )
+    is GemConfirmException.Offline -> GemNetworkError.Offline.localizedDescription()
+    is GemConfirmException.Network -> msg
+    is GemConfirmException.Broadcast -> "${stringResource(R.string.errors_transfer_error)}: $msg"
+    is GemConfirmException.Sign -> when (error) {
+        GemSignerError.DustThreshold -> stringResource(R.string.errors_dust_threshold_short)
+        else -> stringResource(R.string.errors_transfer_error)
+    }
+    is GemConfirmException -> null
+    else -> null
 }
 
 @Composable

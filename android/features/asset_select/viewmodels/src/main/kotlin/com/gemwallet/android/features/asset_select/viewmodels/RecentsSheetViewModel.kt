@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.application.asset_select.cases.ClearRecentAssets
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
@@ -20,6 +19,7 @@ import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import dagger.hilt.android.lifecycle.HiltViewModel
 import uniffi.gemstone.GemAssetConfigService
+import uniffi.gemstone.GemRecentActivityService
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -39,7 +39,7 @@ import javax.inject.Inject
 @HiltViewModel
 class RecentsSheetViewModel @Inject constructor(
     private val getRecentAssets: GetRecentAssets,
-    private val clearRecentAssets: ClearRecentAssets,
+    private val recentActivityService: GemRecentActivityService,
     private val assetConfig: GemAssetConfigService,
 ) : ViewModel() {
 
@@ -74,7 +74,7 @@ class RecentsSheetViewModel @Inject constructor(
 
     fun onClear() {
         val types = config.value?.types ?: RecentActivityType.entries
-        viewModelScope.launch(Dispatchers.IO) { clearRecentAssets(types) }
+        viewModelScope.launch(Dispatchers.IO) { recentActivityService.clear(types.map { it.toGem() }) }
     }
 
     private fun buildUIModel(items: List<RecentAsset>, searchText: String): RecentsSheetUIModel {

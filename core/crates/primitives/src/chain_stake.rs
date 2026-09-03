@@ -7,7 +7,7 @@ use typeshare::typeshare;
 use crate::Chain;
 use crate::chain_config::StakeChainConfig;
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize, EnumIter, AsRefStr, EnumString)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, EnumIter, AsRefStr, EnumString)]
 #[typeshare(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]

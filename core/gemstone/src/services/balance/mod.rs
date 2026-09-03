@@ -1,17 +1,20 @@
 pub mod model;
 pub mod rules;
 pub mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use futures::future::join_all;
-use primitives::{AssetBalance, AssetId, WalletId};
+use primitives::{AssetBalance, AssetId, Wallet, WalletId};
 
-pub use model::{GemAssetBalance, GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
+pub use model::{GemAssetBalance, GemBalanceRow, GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
 pub use store::GemBalanceStore;
 
 use crate::gateway::GemGateway;
+use crate::services::assets::rules::default_balances;
 use crate::services::assets::{GemAssetStore, GemAssetsService};
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
@@ -71,18 +74,10 @@ impl GemBalanceService {
         let enabled_ids = self.store.get_enabled_asset_ids(wallet_id.clone(), asset_ids.clone()).await?;
         self.assets.add_missing_balances(wallet_id.clone(), asset_ids.clone()).await?;
         self.store.set_assets_enabled(wallet_id.clone(), asset_ids.clone(), enabled).await?;
-        if !enabled {
-            return Ok(());
+        if enabled {
+            self.refresh_enabled_assets(wallet_id, rules::newly_enabled_asset_ids(&asset_ids, &enabled_ids)).await;
         }
-        let new_asset_ids = rules::newly_enabled_asset_ids(&asset_ids, &enabled_ids);
-        if new_asset_ids.is_empty() {
-            return Ok(());
-        }
-        let currency = self.preferences.get_currency();
-        let prices = self.price.get_prices(Some(currency.clone()), new_asset_ids.clone()).await?;
-        self.price.update_prices(prices, currency).await?;
-        self.stream.add_prices(new_asset_ids.clone()).await?;
-        self.update(wallet_id, new_asset_ids).await
+        Ok(())
     }
 
     pub async fn set_asset_pinned(&self, wallet_id: WalletId, asset_id: AssetId, pinned: bool) -> Result<(), GemServiceError> {
@@ -122,6 +117,26 @@ impl GemBalanceService {
 }
 
 impl GemBalanceService {
+    pub async fn setup_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {
+        let (defaults, _) = default_balances(&wallet);
+        let stored = self.store.get_enabled_asset_ids(wallet.id.clone(), defaults).await?;
+        let enabled = self.assets.setup_wallet(wallet.clone()).await?;
+        self.refresh_enabled_assets(wallet.id, rules::newly_enabled_asset_ids(&enabled, &stored)).await;
+        Ok(())
+    }
+
+    async fn refresh_enabled_assets(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) {
+        if asset_ids.is_empty() {
+            return;
+        }
+        let currency = self.preferences.get_currency();
+        if let Ok(prices) = self.price.get_prices(currency.clone(), asset_ids.clone()).await {
+            let _ = self.price.update_prices(prices, currency).await;
+        }
+        let _ = self.stream.add_prices(asset_ids.clone()).await;
+        let _ = self.update(wallet_id, asset_ids).await;
+    }
+
     pub async fn update_balances(&self, wallet_id: WalletId, updates: Vec<GemBalanceUpdate>) -> Result<(), GemServiceError> {
         let asset_ids = updates.iter().map(|update| update.asset_id.clone()).collect();
         self.assets.add_missing_balances(wallet_id.clone(), asset_ids).await?;

@@ -1,12 +1,12 @@
-import class Gemstone.GemNftService
+import class Gemstone.GemCollectibleService
 import class Gemstone.GemExplorerService
 import GemstoneServices
-import protocol Gemstone.GemExplorerServiceProtocol
 import GemstonePrimitivesTestKit
 import Formatters
 import Foundation
 @testable import NFT
 import GemstoneServicesTestKit
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
@@ -129,14 +129,12 @@ extension CollectibleViewModel {
     static func mock(
         wallet: Wallet = .mock(),
         assetData: NFTAssetData = .mock(),
-        explorerService: any GemExplorerServiceProtocol = GemExplorerService.mock(),
+        explorerService: GemExplorerService = .mock(),
     ) -> CollectibleViewModel {
         CollectibleViewModel(
             wallet: wallet,
             assetData: assetData,
-            avatarService: GemAvatarServiceMock(),
-            nftService: GemNftService.mock(),
-            explorerService: explorerService,
+            service: GemCollectibleService.mock(explorer: explorerService),
             isPresentingSelectedAssetInput: .constant(.none),
         )
     }

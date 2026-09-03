@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
-use crate::UInt64;
+use crate::Latency;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
-#[serde(tag = "state", content = "latencyMilliseconds", rename_all = "camelCase")]
+#[serde(tag = "state", content = "latency", rename_all = "camelCase")]
 pub enum ServiceStatusState {
     Loading,
-    Result(UInt64),
+    Result(Latency),
     Error,
 }

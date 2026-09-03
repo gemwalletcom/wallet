@@ -5,12 +5,18 @@ import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
+import com.gemwallet.android.application.wallet_import.cases.SyncWalletImport
 import com.gemwallet.android.application.wallet_import.values.ImportError
-import com.gemwallet.android.application.wallet_import.cases.ImportWalletService
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
-import com.gemwallet.android.application.recipient.cases.GetNameRecord
-import uniffi.gemstone.GemWalletService
+import com.gemwallet.android.domains.wallet_import.toGemImport
+import com.gemwallet.android.domains.wallet_import.validatedOrImportError
+import com.gemwallet.android.serializer.decodeJson
+import kotlinx.coroutines.CancellationException
+import uniffi.gemstone.GemNameServiceInterface
+import uniffi.gemstone.GemWalletServiceInterface
+import uniffi.gemstone.GemWalletImportResult
+import com.gemwallet.android.ext.toGem
+import com.wallet.core.primitives.WalletSource
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.models.name.NameRecordState
@@ -30,12 +36,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ImportViewModel @Inject constructor(
-    private val walletService: GemWalletService,
-    private val importWalletService: ImportWalletService,
-    private val setCurrentWallet: SetCurrentWallet,
+    private val service: GemWalletServiceInterface,
+    nameService: GemNameServiceInterface,
+    private val syncWalletImport: SyncWalletImport,
     private val validatePhrase: ValidatePhraseOperator,
     private val findPhraseWord: GemFindPhraseWord,
-    getNameRecord: GetNameRecord,
 ) : ViewModel() {
 
     fun invalidPhraseWords(text: String): Set<String> =
@@ -51,7 +56,7 @@ class ImportViewModel @Inject constructor(
     val uiState = state.map { it.toUIState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ImportUIState())
 
-    private val nameRecordController = NameRecordController(getNameRecord, viewModelScope)
+    private val nameRecordController = NameRecordController(nameService, viewModelScope)
     val nameResolveState: StateFlow<NameRecordState> = nameRecordController.state
 
     fun chainType(walletType: WalletType) {
@@ -74,7 +79,7 @@ class ImportViewModel @Inject constructor(
 
     fun importSelect(importType: ImportType) = viewModelScope.launch {
         val generatedNameIndex = withContext(Dispatchers.IO) {
-            walletService.nextWalletIndex()
+            service.nextWalletIndex()
         }
         val chainName = if (importType.walletType == WalletType.Multicoin) "" else importType.chain?.networkName().orEmpty()
         state.update {
@@ -99,23 +104,27 @@ class ImportViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val result = importWalletService.importWallet(
-                    importType = state.value.importType,
-                    walletName = nameRecord?.name?.takeIf { it.isNotBlank() } ?: generatedName,
+                val import = state.value.importType.toGemImport(
                     data = if (nameRecord?.address.isNullOrEmpty()) data.trim() else nameRecord.address,
-                )
+                ).validatedOrImportError()
+                val walletName = nameRecord?.name?.takeIf { it.isNotBlank() } ?: generatedName
+                val result = when (val imported = service.importWallet(walletName, import, WalletSource.Import.toGem())) {
+                    is GemWalletImportResult.Existing -> WalletImportResult.Existing(imported.wallet.decodeJson())
+                    is GemWalletImportResult.New -> WalletImportResult.New(imported.wallet.decodeJson())
+                }
+                service.setCurrentWalletId(result.wallet.id.id)
+                if (result is WalletImportResult.New) {
+                    syncWalletImport.sync(result.wallet)
+                }
                 state.update { it.copy(dataError = null, loading = false) }
                 withContext(Dispatchers.Main) {
                     when (result) {
                         is WalletImportResult.New -> onImported(result)
-                        is WalletImportResult.Existing -> {
-                            setCurrentWallet.setCurrentWallet(result.wallet.id)
-                            state.update {
-                                it.copy(existingWalletResult = result, loading = false)
-                            }
-                        }
+                        is WalletImportResult.Existing -> state.update { it.copy(existingWalletResult = result, loading = false) }
                     }
                 }
+            } catch (err: CancellationException) {
+                throw err
             } catch (err: Throwable) {
                 state.update { it.copy(dataError = (err as? ImportError) ?: ImportError.CreateError(err.message.orEmpty()), loading = false) }
             }

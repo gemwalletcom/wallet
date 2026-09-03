@@ -5,7 +5,7 @@ import Components
 import GemstoneServices
 import Formatters
 import Foundation
-import protocol Gemstone.GemPreferencesServiceProtocol
+import protocol Gemstone.GemAmountServiceProtocol
 import GemstoneFormatters
 import InfoSheet
 import Localization
@@ -16,11 +16,13 @@ import PrimitivesComponents
 import Store
 import Style
 import Validators
+import struct Gemstone.GemAmountInput
 import struct Gemstone.GemTransferData
 
 @MainActor
 @Observable
 public final class AmountSceneViewModel {
+    private let service: any GemAmountServiceProtocol
     private let wallet: Wallet
     private let onTransferAction: TransferDataAction
 
@@ -47,14 +49,14 @@ public final class AmountSceneViewModel {
     public init(
         input: AmountInput,
         wallet: Wallet,
-        service: AmountService,
-        preferencesService: any GemPreferencesServiceProtocol,
+        service: any GemAmountServiceProtocol,
         onTransferAction: TransferDataAction,
     ) {
         self.wallet = wallet
+        self.service = service
         self.onTransferAction = onTransferAction
-        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: preferencesService.currencyCode)
-        provider = .make(from: input, wallet: wallet, service: service, preferencesService: preferencesService)
+        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: service.currency())
+        provider = .make(from: input, service: service)
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
         amountInputModel = InputValidationViewModel(mode: .onDemand, validators: [])
         amountInputModel.update(validators: inputValidators)
@@ -73,7 +75,7 @@ public final class AmountSceneViewModel {
     }
 
     var canChangeValue: Bool {
-        provider.canChangeValue
+        input.canChangeValue
     }
 
     var isInputDisabled: Bool {
@@ -81,7 +83,7 @@ public final class AmountSceneViewModel {
     }
 
     var isBalanceViewEnabled: Bool {
-        provider.showsAssetBalance
+        input.showsAssetBalance
     }
 
     var assetImage: AssetImage {
@@ -97,7 +99,7 @@ public final class AmountSceneViewModel {
 
     var balanceText: String {
         let value = ValueFormatter(style: .auto).string(
-            provider.availableValue(from: assetData),
+            input.availableValue,
             decimals: asset.decimals.asInt,
             currency: asset.symbol,
         )
@@ -110,8 +112,8 @@ public final class AmountSceneViewModel {
     }
 
     var infoText: String? {
-        guard provider.shouldReserveFee(from: assetData), amountInputModel.text == maxBalance else { return nil }
-        return Localized.Transfer.reservedFees(formatter.string(provider.reserveForFee, asset: asset))
+        guard let reservedFee = input.reservedFee, amountInputModel.text == maxBalance else { return nil }
+        return Localized.Transfer.reservedFees(formatter.string(reservedFee, asset: asset))
     }
 
     var maxTitle: String {
@@ -234,8 +236,12 @@ private extension AmountSceneViewModel {
         amountInputModel.update(text: maxBalance)
     }
 
+    var input: GemAmountInput {
+        provider.input(from: assetData)
+    }
+
     var maxBalance: String {
-        formatter.string(provider.maxValue(from: assetData), decimals: asset.decimals.asInt)
+        formatter.string(input.maxValue, decimals: asset.decimals.asInt)
     }
 
     func cleanInput() {
@@ -247,7 +253,7 @@ private extension AmountSceneViewModel {
         do {
             transferState = .loading
             let value = try amountTransferValue
-            let transfer = try await provider.makeTransferData(value: value, useMaxAmount: value == provider.maxValue(from: assetData))
+            let transfer = try await provider.makeTransferData(value: value, useMaxAmount: value == input.maxValue)
             transferState = .noData
             onTransferAction?(transfer)
         } catch {
@@ -272,7 +278,7 @@ private extension AmountSceneViewModel {
                 source: source,
                 decimals: asset.decimals.asInt,
                 validators: [
-                    AmountValueValidator(asset: asset, available: provider.availableValue(from: assetData), minimum: provider.minimumValue, amountService: provider.amountService),
+                    AmountValueValidator(type: provider.gemAmountType, asset: asset, balance: assetData.balance),
                 ],
             ),
         ]

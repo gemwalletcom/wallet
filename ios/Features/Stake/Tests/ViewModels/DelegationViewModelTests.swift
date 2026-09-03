@@ -50,8 +50,7 @@ extension DelegationViewModel {
         completionDateShown: Bool = false,
     ) -> DelegationViewModel {
         DelegationViewModel(
-            explorerService: GemExplorerServiceMock(),
-            stakeService: GemStakeServiceMock(rewardsShown: rewardsShown, completionDateShown: completionDateShown),
+            service: GemStakeServiceMock(rewardsShown: rewardsShown, completionDateShown: completionDateShown),
             delegation: .mock(
                 state: state,
                 price: Price.mock(price: 2.0),

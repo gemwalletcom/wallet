@@ -6,7 +6,7 @@ import Foundation
 
 public enum ServiceStatusState: Codable, Equatable, Hashable, Sendable {
 	case loading
-	case result(UInt64)
+	case result(Latency)
 	case error
 
 	enum CodingKeys: String, CodingKey, Codable {
@@ -16,7 +16,7 @@ public enum ServiceStatusState: Codable, Equatable, Hashable, Sendable {
 	}
 
 	private enum ContainerCodingKeys: String, CodingKey {
-		case state, latencyMilliseconds
+		case state, latency
 	}
 
 	public init(from decoder: Decoder) throws {
@@ -27,7 +27,7 @@ public enum ServiceStatusState: Codable, Equatable, Hashable, Sendable {
 				self = .loading
 				return
 			case .result:
-				if let content = try? container.decode(UInt64.self, forKey: .latencyMilliseconds) {
+				if let content = try? container.decode(Latency.self, forKey: .latency) {
 					self = .result(content)
 					return
 				}
@@ -46,7 +46,7 @@ public enum ServiceStatusState: Codable, Equatable, Hashable, Sendable {
 			try container.encode(CodingKeys.loading, forKey: .state)
 		case .result(let content):
 			try container.encode(CodingKeys.result, forKey: .state)
-			try container.encode(content, forKey: .latencyMilliseconds)
+			try container.encode(content, forKey: .latency)
 		case .error:
 			try container.encode(CodingKeys.error, forKey: .state)
 		}

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemAutocloseField
 import Primitives
 import PrimitivesComponents
 import Validators
@@ -54,9 +55,9 @@ struct AutocloseInput {
         originalPrice: Double?,
         formattedPrice: String?,
         orderId: UInt64?,
-    ) -> AutocloseField {
+    ) -> GemAutocloseField {
         let input = type == .takeProfit ? takeProfit : stopLoss
-        return AutocloseField(
+        return GemAutocloseField(
             price: price,
             originalPrice: originalPrice,
             formattedPrice: formattedPrice,

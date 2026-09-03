@@ -27,10 +27,6 @@ impl GemAssetConfigService {
         wallet_default_assets(chain)
     }
 
-    pub fn chain_fee_asset_ids(&self, chain: Chain) -> Vec<AssetId> {
-        chain_fee_asset_ids(chain)
-    }
-
     pub fn chain_asset(&self, chain: Chain) -> ChainAsset {
         chain_asset_wrapper(chain)
     }
@@ -47,11 +43,16 @@ impl GemAssetConfigService {
         popular_asset_ids()
     }
 
-    pub fn default_token_chain(&self, chains: Vec<Chain>) -> Option<Chain> {
-        default_token_chain(&chains)
-    }
-
     pub fn matching_assets(&self, assets: Vec<Asset>, query: String) -> Vec<Asset> {
         matching_assets(assets, &query)
+    }
+}
+
+impl GemAssetConfigService {
+    pub fn chain_fee_asset_ids(&self, chain: Chain) -> Vec<AssetId> {
+        chain_fee_asset_ids(chain)
+    }
+    pub fn default_token_chain(&self, chains: Vec<Chain>) -> Option<Chain> {
+        default_token_chain(&chains)
     }
 }

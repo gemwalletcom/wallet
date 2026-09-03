@@ -3,13 +3,13 @@ package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
-import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
+import uniffi.gemstone.GemPerpetualPositionAction
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.mockAssetCosmos
-import com.gemwallet.android.testkit.mockPerpetualTransferData
+import com.gemwallet.android.testkit.mockGemPerpetualTransferData
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
@@ -27,6 +27,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemAmountServiceInterface
+import uniffi.gemstone.GemPerpetualAutoclose
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -36,8 +38,8 @@ class AmountPerpetualProviderTest {
     fun `title carries the direction`() {
         val provider = makeProvider(direction = PerpetualDirection.Short)
         val title = provider.title as AmountTitle.Perpetual
-        val open = title.action as PerpetualPositionAction.Open
-        assertEquals(PerpetualDirection.Short, open.data.direction)
+        val open = title.action as GemPerpetualPositionAction.Open
+        assertEquals(PerpetualDirection.Short.toJson(), open.data.direction)
     }
 
     @Test
@@ -55,29 +57,22 @@ class AmountPerpetualProviderTest {
     @Test
     fun `showsAutoclose is true for Open and false for Reduce`() {
         assertTrue(makeProvider().showsAutoclose)
-        val reduce = makeProvider(positionAction = PerpetualPositionAction.Reduce(
-            data = mockPerpetualTransferData(direction = PerpetualDirection.Long),
-            available = BigInteger.TEN,
-            positionDirection = PerpetualDirection.Long,
-        ))
+        val reduce = makeProvider(positionAction = GemPerpetualPositionAction.Reduce(mockGemPerpetualTransferData(direction = PerpetualDirection.Long), BigInteger.TEN))
         assertFalse(reduce.showsAutoclose)
     }
 
     private fun makeProvider(
         direction: PerpetualDirection = PerpetualDirection.Long,
-        positionAction: PerpetualPositionAction = PerpetualPositionAction.Open(
-            mockPerpetualTransferData(direction = direction),
-        ),
+        positionAction: GemPerpetualPositionAction = GemPerpetualPositionAction.Open(mockGemPerpetualTransferData(direction = direction)),
         scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob()),
     ): AmountPerpetualProvider {
         val asset = mockAssetCosmos()
         val getAssetInfo = mockk<GetAssetInfo>(relaxed = true) {
             every { this@mockk.invoke(any()) } returns flowOf(null)
         }
-        val userConfig = mockk<UserConfig>(relaxed = true) {
-            every { perpetualLeverage() } returns flowOf(5)
-            every { perpetualTakeProfit() } returns flowOf(0)
-            every { perpetualStopLoss() } returns flowOf(0)
+        val service = mockk<GemAmountServiceInterface> {
+            every { perpetualLeverage(any()) } returns 5u
+            every { perpetualAutoclose(any(), any(), any()) } returns GemPerpetualAutoclose(takeProfit = null, stopLoss = null)
         }
         val perpetualAggregate = mockk<PerpetualDetailsDataAggregate>(relaxed = true)
         val getPerpetual = mockk<GetPerpetual>(relaxed = true) {
@@ -88,7 +83,7 @@ class AmountPerpetualProviderTest {
         }
         return AmountPerpetualProvider(
             params = AmountParams.Perpetual(asset.id, PerpetualId(PerpetualProvider.Hypercore, "BTC-PERP"), positionAction),
-            userConfig = userConfig,
+            service = service,
             getAssetInfo = getAssetInfo,
             getPerpetual = getPerpetual,
             getPerpetualBalance = getPerpetualBalance,

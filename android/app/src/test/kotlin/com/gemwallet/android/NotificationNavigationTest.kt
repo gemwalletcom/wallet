@@ -204,24 +204,24 @@ class NotificationNavigationTest {
     }
 
     @Test
-    fun assetNotification_prefetchesAssetAndReturnsAssetRoute() = runBlocking {
-        val assetId = mockAssetId(Chain.Solana)
+    fun assetNotification_opensAssetThroughCore() = runBlocking {
+        val asset = mockAsset(chain = Chain.Solana)
+        coEvery { assetsService.openAsset(asset.id.toIdentifier()) } returns asset.toGem()
 
-        val route = subject.prepareNavigation(GemPushNotification.Asset(assetId.toIdentifier()))
+        val route = subject.prepareNavigation(GemPushNotification.Asset(asset.id.toIdentifier()))
 
-        assertEquals(listOf(AssetRoute(assetId)), route)
-        coVerify { syncMissingAssets.syncMissingAssets(listOf(assetId)) }
+        assertEquals(listOf(AssetRoute(asset.id)), route)
         coVerify(exactly = 0) { setCurrentWallet.setCurrentWallet(any()) }
     }
 
     @Test
-    fun priceAlertNotification_opensAssetRoute() = runBlocking {
+    fun priceAlertNotification_isRejectedWhenCoreDoesNotOpenTheAsset() = runBlocking {
         val assetId = mockAssetId(Chain.Bitcoin)
+        coEvery { assetsService.openAsset(assetId.toIdentifier()) } returns null
 
         val route = subject.prepareNavigation(GemPushNotification.PriceAlert(assetId.toIdentifier()))
 
-        assertEquals(listOf(AssetRoute(assetId)), route)
-        coVerify { syncMissingAssets.syncMissingAssets(listOf(assetId)) }
+        assertEquals(emptyList<Any>(), route)
     }
 
     @Test

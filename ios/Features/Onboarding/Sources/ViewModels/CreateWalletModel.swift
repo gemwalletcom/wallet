@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemOnboardingServiceProtocol
+import protocol Gemstone.GemAvatarServiceProtocol
+import protocol Gemstone.GemWalletServiceProtocol
 import GemstoneServices
 import Foundation
 import GemstonePrimitives
@@ -11,20 +12,23 @@ import SwiftUI
 @Observable
 @MainActor
 public final class CreateWalletModel {
-    private let service: any GemOnboardingServiceProtocol
+    private let service: any GemWalletServiceProtocol
     private let preferences: ObservablePreferences
+    private let avatarService: any GemAvatarServiceProtocol
     let hasExistingWallets: Bool
     let onComplete: VoidAction
 
     var isPresentingSelectImageWallet: Wallet?
 
     public init(
-        service: any GemOnboardingServiceProtocol,
+        service: any GemWalletServiceProtocol,
         preferences: ObservablePreferences,
+        avatarService: any GemAvatarServiceProtocol,
         onComplete: VoidAction,
     ) {
         self.service = service
         self.preferences = preferences
+        self.avatarService = avatarService
         self.onComplete = onComplete
         hasExistingWallets = ((try? service.getWallets()) ?? []).isNotEmpty
     }
@@ -43,7 +47,7 @@ public final class CreateWalletModel {
     }
 
     func walletImageModel(wallet: Wallet) -> WalletImageViewModel {
-        WalletImageViewModel(wallet: wallet, source: .onboarding, avatarService: service.avatars())
+        WalletImageViewModel(wallet: wallet, source: .onboarding, avatarService: avatarService)
     }
 
     func dismiss() {
@@ -79,7 +83,7 @@ extension CreateWalletModel {
     func setupWalletComplete(wallet: Wallet) async {
         dismiss()
         do {
-            try await service.session().setCurrent(wallet: wallet)
+            try service.setCurrentWalletId(walletId: wallet.id.id)
         } catch {
             debugLog("set current wallet error: \(error)")
         }

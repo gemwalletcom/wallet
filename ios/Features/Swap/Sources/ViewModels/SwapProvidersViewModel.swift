@@ -35,8 +35,4 @@ extension SwapProvidersViewModel: SelectableListNavigationAdoptable {
     var title: String {
         Localized.Buy.Providers.title
     }
-
-    var doneTitle: String {
-        Localized.Common.done
-    }
 }

@@ -9,24 +9,24 @@ import Style
 import SwiftUI
 
 struct TransactionPnlViewModel {
-    private let metadata: TransactionPerpetualMetadata?
+    private let pnl: Double?
     private let currencyFormatter: CurrencyFormatter
 
-    init(metadata: TransactionPerpetualMetadata?, currencyFormatter: CurrencyFormatter = .usd) {
-        self.metadata = metadata
+    init(pnl: Double?, currencyFormatter: CurrencyFormatter = .usd) {
+        self.pnl = pnl
         self.currencyFormatter = currencyFormatter
     }
 }
 
 extension TransactionPnlViewModel: ItemModelProvidable {
     var itemModel: TransactionItemModel {
-        guard let metadata, metadata.pnl != 0 else {
+        guard let pnl else {
             return .empty
         }
 
-        let sign = metadata.pnl >= 0 ? "+" : ""
-        let pnlFormatted = currencyFormatter.string(metadata.pnl)
-        let color = metadata.pnl >= 0 ? Colors.green : Colors.red
+        let sign = pnl >= 0 ? "+" : ""
+        let pnlFormatted = currencyFormatter.string(pnl)
+        let color = pnl >= 0 ? Colors.green : Colors.red
 
         return .pnl(
             title: Localized.Perpetual.pnl,

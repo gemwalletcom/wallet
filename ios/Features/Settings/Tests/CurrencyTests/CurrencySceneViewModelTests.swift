@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstonePrimitives
-import class Gemstone.GemPriceService
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import Foundation
@@ -24,7 +23,7 @@ struct CurrencySceneViewModelTests {
     @Test
     func uSDCurrencyValue() {
         let usdCurrencyStorage = MockCurrencyStorage()
-        let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, priceService: GemPriceService.mock(), deviceService: GemDeviceServiceMock())
+        let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, service: GemCurrencyServiceMock())
 
         #expect(viewModel.selectedCurrencyValue == "🇺🇸 USD")
     }
@@ -32,23 +31,29 @@ struct CurrencySceneViewModelTests {
     @Test
     func gBPCurrencyValue() {
         let gbpCurrencyStorage = MockCurrencyStorage(currency: "GBP")
-        let viewModel = CurrencySceneViewModel(currencyStorage: gbpCurrencyStorage, priceService: GemPriceService.mock(), deviceService: GemDeviceServiceMock())
+        let viewModel = CurrencySceneViewModel(currencyStorage: gbpCurrencyStorage, service: GemCurrencyServiceMock())
         #expect(viewModel.selectedCurrencyValue == "🇬🇧 GBP")
     }
 
     @Test
     func setNewCurrency() async throws {
-        let priceService = GemPriceService.mock()
-        try await priceService.updateRates(rates: [FiatRate(symbol: .ars, rate: 1200).json()], currency: Currency.ars.rawValue)
         let usdCurrencyStorage = MockCurrencyStorage()
-        let deviceService = GemDeviceServiceMock()
-        let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, priceService: priceService, deviceService: deviceService)
+        let service = GemCurrencyServiceMock()
+        let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, service: service)
 
         try await viewModel.setCurrency(.ars)
-        await viewModel.updateDevice()
 
+        #expect(service.setCurrencies == [Currency.ars.rawValue])
         #expect(usdCurrencyStorage.currency == Currency.ars.id)
         #expect(usdCurrencyStorage.currency == viewModel.currency.id)
-        #expect(await deviceService.synchronizeIfNeededCalls == 1)
+    }
+
+    @Test
+    func aFailedChangeLeavesTheStoredCurrency() async {
+        let usdCurrencyStorage = MockCurrencyStorage()
+        let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, service: GemCurrencyServiceMock(error: AnyError("offline")))
+
+        await #expect(throws: (any Error).self) { try await viewModel.setCurrency(.ars) }
+        #expect(usdCurrencyStorage.currency == Currency.usd.id)
     }
 }

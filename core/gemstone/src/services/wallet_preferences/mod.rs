@@ -1,5 +1,7 @@
 pub mod model;
 pub mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use std::sync::Arc;
 
@@ -43,13 +45,6 @@ impl GemWalletPreferencesService {
         self.get_timestamp(wallet_id, WalletPreferenceKey::AssetsTimestamp)
     }
 
-    pub fn reset_transactions_timestamp(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        self.store
-            .set(wallet_id.clone(), WalletPreferenceKey::TransactionsTimestamp.as_ref().to_string(), 0.to_string())?;
-        self.store
-            .set(wallet_id, WalletPreferenceKey::CompleteInitialLoadTransactions.as_ref().to_string(), "false".to_string())
-    }
-
     pub fn is_initial_load_completed(&self, wallet_id: WalletId, step: GemDiscoveryStep) -> Result<bool, GemServiceError> {
         self.get_flag(wallet_id, initial_load_key(step))
     }
@@ -65,13 +60,20 @@ impl GemWalletPreferencesService {
             _ => PerpetualAccountMode::Standard,
         })
     }
+}
+
+impl GemWalletPreferencesService {
+    pub fn reset_transactions_timestamp(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        self.store
+            .set(wallet_id.clone(), WalletPreferenceKey::TransactionsTimestamp.as_ref().to_string(), 0.to_string())?;
+        self.store
+            .set(wallet_id, WalletPreferenceKey::CompleteInitialLoadTransactions.as_ref().to_string(), "false".to_string())
+    }
 
     pub fn delete_preferences(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
         self.store.delete_preferences(wallet_id)
     }
-}
 
-impl GemWalletPreferencesService {
     pub fn set_assets_timestamp(&self, wallet_id: WalletId, timestamp: u64) -> Result<(), GemServiceError> {
         self.set_value(wallet_id, WalletPreferenceKey::AssetsTimestamp.as_ref().to_string(), timestamp.to_string())
     }
@@ -162,35 +164,13 @@ fn initial_load_key(step: GemDiscoveryStep) -> WalletPreferenceKey {
 
 #[cfg(test)]
 mod tests {
+    use super::testkit::MemoryWalletPreferencesStore;
     use super::*;
     use primitives::Chain;
-    use std::collections::HashMap;
-    use std::sync::Mutex;
-
-    #[derive(Default)]
-    struct MemoryStore {
-        values: Mutex<HashMap<(String, String), String>>,
-        writes: Mutex<u32>,
-    }
-
-    impl GemWalletPreferencesStore for MemoryStore {
-        fn get(&self, wallet_id: WalletId, key: String) -> Option<String> {
-            self.values.lock().unwrap().get(&(wallet_id.id(), key)).cloned()
-        }
-        fn set(&self, wallet_id: WalletId, key: String, value: String) -> Result<(), GemServiceError> {
-            *self.writes.lock().unwrap() += 1;
-            self.values.lock().unwrap().insert((wallet_id.id(), key), value);
-            Ok(())
-        }
-        fn delete_preferences(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-            self.values.lock().unwrap().retain(|(id, _), _| *id != wallet_id.id());
-            Ok(())
-        }
-    }
 
     #[test]
     fn test_wallet_preferences_keys_and_clear() {
-        let store = Arc::new(MemoryStore::default());
+        let store = Arc::new(MemoryWalletPreferencesStore::default());
         let service = GemWalletPreferencesService::new(store.clone());
         let wallet = WalletId::Multicoin("0x1".into());
         let other = WalletId::Multicoin("0x2".into());

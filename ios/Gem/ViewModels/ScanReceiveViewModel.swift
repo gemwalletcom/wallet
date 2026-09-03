@@ -2,6 +2,7 @@
 
 import Assets
 import Foundation
+import GemstonePrimitives
 import Primitives
 
 @Observable

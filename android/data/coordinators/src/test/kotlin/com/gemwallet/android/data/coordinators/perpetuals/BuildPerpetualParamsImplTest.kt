@@ -2,7 +2,14 @@ package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.testkit.mockGemPerpetualTransferData
+import com.wallet.core.primitives.PerpetualPosition
+import uniffi.gemstone.GemPerpetualDetailsServiceInterface
+import uniffi.gemstone.GemPerpetualPositionAction
+import uniffi.gemstone.GemPerpetualPositionKind
+import java.math.BigInteger
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockPerpetualData
 import com.gemwallet.android.testkit.mockPerpetualPosition
@@ -61,20 +68,29 @@ class BuildPerpetualParamsImplTest {
         val own = reduceFor(ownWalletId)
         val other = reduceFor(otherWalletId)
 
-        assertEquals(PerpetualDirection.Long, own.positionDirection)
-        assertEquals(PerpetualDirection.Short, other.positionDirection)
+        assertEquals(PerpetualDirection.Long.toJson(), own.data.direction)
+        assertEquals(PerpetualDirection.Short.toJson(), other.data.direction)
         assertEquals(true, own.available < other.available)
     }
 
-    private suspend fun reduceFor(walletId: WalletId): PerpetualPositionAction.Reduce {
+    private suspend fun reduceFor(walletId: WalletId): GemPerpetualPositionAction.Reduce {
         val getSession = mockk<GetSession> {
             every { this@mockk() } returns MutableStateFlow(mockSession(wallet = mockWallet(id = walletId.id)))
         }
         val subject = BuildPerpetualParamsImpl(
             perpetualStore = perpetualStore,
             getSession = getSession,
+            service = mockk<GemPerpetualDetailsServiceInterface> {
+                every { positionAction(any(), any(), any(), any()) } answers {
+                    val position = thirdArg<String?>()?.decodeJson<PerpetualPosition>()
+                    GemPerpetualPositionAction.Reduce(
+                        mockGemPerpetualTransferData(direction = requireNotNull(position).direction),
+                        BigInteger.valueOf((position.marginAmount * 1_000_000).toLong()),
+                    )
+                }
+            },
         )
-        val params = requireNotNull(subject.reduce(perpetualData.perpetual.id))
-        return params.positionAction as PerpetualPositionAction.Reduce
+        val params = requireNotNull(subject.position(perpetualData.perpetual.id, GemPerpetualPositionKind.Reduce))
+        return params.positionAction as GemPerpetualPositionAction.Reduce
     }
 }

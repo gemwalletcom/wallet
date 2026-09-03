@@ -22,12 +22,4 @@ public extension PerpetualDirection {
     }
 }
 
-public extension Perpetual {
-    var coin: String {
-        assetId.tokenId?.components(separatedBy: AssetId.subTokenSeparator).last ?? name
-    }
 
-    var marginType: PerpetualMarginType {
-        isIsolatedOnly ? .isolated : .cross
-    }
-}

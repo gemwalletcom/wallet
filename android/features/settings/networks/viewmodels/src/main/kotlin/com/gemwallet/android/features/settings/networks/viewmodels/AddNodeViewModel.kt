@@ -1,20 +1,15 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
-import com.gemwallet.android.domains.node.toNodeStatus
-import uniffi.gemstone.GemNodeStatusService
+import uniffi.gemstone.GemAddNodeException
+import uniffi.gemstone.GemChainSettingsServiceInterface
+import uniffi.gemstone.GemNodeCheck
 import kotlinx.coroutines.CancellationException
-import uniffi.gemstone.GatewayException
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.cases.nodes.AddNodeCase
-import com.gemwallet.android.cases.nodes.SetCurrentNodeCase
-import com.gemwallet.android.model.NodeStatus
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.features.settings.networks.viewmodels.models.AddNodeUIModel
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.Node
-import com.wallet.core.primitives.NodeState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -28,9 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddNodeViewModel @Inject constructor(
-    private val nodeStatusService: GemNodeStatusService,
-    private val addNodeCase: AddNodeCase,
-    private val setCurrentNodeCase: SetCurrentNodeCase,
+    private val service: GemChainSettingsServiceInterface,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(State())
@@ -49,9 +42,11 @@ class AddNodeViewModel @Inject constructor(
         state.update { it.copy(checking = true, nodeState = null, errorResId = null) }
         val chain = state.value.chain ?: return
         try {
-            val status = nodeStatusService.checkNode(chain.string, url).toNodeStatus(url)
+            val status = service.checkNode(chain.string, url)
             state.update { it.copy(nodeState = status, checking = false, errorResId = null) }
-        } catch (error: GatewayException.NetworkIdMismatch) {
+        } catch (error: GemAddNodeException.InvalidUrl) {
+            state.update { it.copy(checking = false, errorResId = R.string.errors_invalid_url) }
+        } catch (error: GemAddNodeException.InvalidNetworkId) {
             state.update { it.copy(checking = false, errorResId = R.string.errors_invalid_network_id) }
         } catch (error: CancellationException) {
             throw error
@@ -64,13 +59,10 @@ class AddNodeViewModel @Inject constructor(
         val chain = state.value.chain ?: return
         val status = state.value.nodeState ?: return
         viewModelScope.launch {
-            val addResult = runCatching { addNodeCase.addNode(chain = chain, status.url) }
-            if (addResult.isFailure) {
+            if (runCatching { service.addNode(chain.string, status.url) }.isFailure) {
                 state.update { it.copy(errorResId = R.string.errors_error_occurred) }
                 return@launch
             }
-
-            setCurrentNodeCase.setCurrentNode(chain = chain, Node(status.url, status = NodeState.Active, 0))
             url.value = ""
             checkUrlJob?.cancel()
             state.update { State(chain = chain) }
@@ -82,20 +74,18 @@ class AddNodeViewModel @Inject constructor(
         val input = url.value.trim()
         state.update { it.copy(nodeState = null, checking = false, errorResId = null) }
 
-        val nodeUrl = NodeUrlParser.parse(input)
-        if (nodeUrl != null) {
-            checkUrlJob = viewModelScope.launch {
-                delay(500)
-                if (nodeUrl == NodeUrlParser.parse(url.value.trim())) {
-                    checkUrl(nodeUrl)
-                }
-            }
+        if (input.isEmpty()) {
+            return
+        }
+        checkUrlJob = viewModelScope.launch {
+            delay(service.nodeCheckDebounceMilliseconds().toLong())
+            checkUrl(input)
         }
     }
 
     private data class State(
         val chain: Chain? = null,
-        val nodeState: NodeStatus? = null,
+        val nodeState: GemNodeCheck? = null,
         val checking: Boolean = false,
         val errorResId: Int? = null,
     ) {

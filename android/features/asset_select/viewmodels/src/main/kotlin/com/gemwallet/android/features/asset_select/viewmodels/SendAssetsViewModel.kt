@@ -1,17 +1,14 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
+import uniffi.gemstone.GemAssetSelectionServiceInterface
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
 import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
 import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
-import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.cases.SetAssetPinned
-import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
 import uniffi.gemstone.GemAssetAction
 import com.gemwallet.android.domains.asset.eligible
 import com.gemwallet.android.domains.asset.queryFilters
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
@@ -21,7 +18,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
-import uniffi.gemstone.GemAssetConfigService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -30,20 +26,12 @@ open class SendSelectViewModel @Inject constructor(
     searchSelectAssets: SearchSelectAssets,
     getSelectAssetsInfo: GetSelectAssetsInfo,
     getRecentAssets: GetRecentAssets,
-    updateRecentAsset: UpdateRecentAsset,
-    switchAssetVisibility: SwitchAssetVisibility,
-    setAssetPinned: SetAssetPinned,
-    searchTokensCase: SearchTokens,
-    assetConfig: GemAssetConfigService,
+    service: GemAssetSelectionServiceInterface,
 ) : BaseAssetSelectViewModel(
     getSession,
     getRecentAssets,
-    updateRecentAsset,
-    switchAssetVisibility,
-    setAssetPinned,
-    searchTokensCase,
+    service,
     SendSelectSearch(searchSelectAssets, getSelectAssetsInfo),
-    assetConfig,
     remoteSearch = false,
 ) {
     override fun assetFilters() = setOf(AssetFilter.HasBalance)

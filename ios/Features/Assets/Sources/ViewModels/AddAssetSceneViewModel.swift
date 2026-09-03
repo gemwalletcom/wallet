@@ -1,8 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAssetConfigService
-import GemstoneServices
-import protocol Gemstone.GemExplorerServiceProtocol
+import protocol Gemstone.GemAddAssetServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
@@ -15,8 +13,8 @@ import SwiftUI
 @Observable
 @MainActor
 public final class AddAssetSceneViewModel {
-    private let gatewayService: GatewayService
-    private let explorerService: any GemExplorerServiceProtocol
+    private let service: any GemAddAssetServiceProtocol
+    private let wallet: Wallet
 
     var state: StateViewType<AddAssetViewModel> = .noData
     var input: AddAssetInput
@@ -24,10 +22,11 @@ public final class AddAssetSceneViewModel {
     var isPresentingScanner = false
     var loadTrigger: AddAssetLoadTrigger?
 
-    public init(wallet: Wallet, gatewayService: GatewayService, explorerService: any GemExplorerServiceProtocol, assetConfig: GemAssetConfigService) {
-        self.gatewayService = gatewayService
-        self.explorerService = explorerService
-        input = AddAssetInput(chains: wallet.chainsWithTokens, assetConfig: assetConfig)
+    public init(wallet: Wallet, service: any GemAddAssetServiceProtocol) {
+        self.service = service
+        self.wallet = wallet
+        let chains = service.chains(wallet: wallet)
+        input = AddAssetInput(chains: chains, chain: service.defaultChain(chains: chains))
     }
 
     var title: String {
@@ -118,10 +117,20 @@ extension AddAssetSceneViewModel {
         state = .loading
 
         do {
-            let asset = try await gatewayService.tokenData(chain: trigger.chain, tokenId: trigger.address)
-            state = .data(AddAssetViewModel(asset: asset, explorerService: explorerService))
+            let asset = try await service.token(chain: trigger.chain, address: trigger.address)
+            state = .data(AddAssetViewModel(asset: asset, link: service.tokenUrl(chain: asset.chain, tokenId: asset.tokenId ?? "")))
         } catch {
             state.setError(error)
+        }
+    }
+
+    func add(_ asset: Asset) {
+        Task {
+            do {
+                try await service.add(wallet: wallet, assetId: asset.id)
+            } catch {
+                debugLog("AddAssetSceneViewModel add asset error: \(error)")
+            }
         }
     }
 

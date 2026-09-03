@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import protocol Gemstone.GemChainServiceProtocol
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -19,12 +18,12 @@ public struct AddAssetScene: View {
         case address
     }
 
-    var action: ((Asset) -> Void)?
+    private let onComplete: VoidAction
 
-    public init(model: AddAssetSceneViewModel, chainService: any GemChainServiceProtocol, action: ((Asset) -> Void)? = nil) {
+    public init(model: AddAssetSceneViewModel, onComplete: VoidAction) {
         _model = State(initialValue: model)
-        _networksModel = State(initialValue: NetworkSelectorViewModel(state: .data(.plain(model.chains)), chainService: chainService))
-        self.action = action
+        _networksModel = State(initialValue: NetworkSelectorViewModel(state: .data(.plain(model.chains))))
+        self.onComplete = onComplete
     }
 
     public var body: some View {
@@ -143,7 +142,8 @@ extension AddAssetScene {
 
     private func onSelectImportToken() {
         guard case let .data(asset) = model.state else { return }
-        action?(asset.asset)
+        model.add(asset.asset)
+        onComplete?()
     }
 
     private func onSelectScan() {

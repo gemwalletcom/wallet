@@ -522,6 +522,11 @@ struct Migrations {
             try? db.drop(table: "nodes_selected_v1")
         }
 
+        migrator.registerMigration("Recreate \(PriceAlertRecord.databaseTableName) with Core identifiers") { db in
+            try? db.drop(table: PriceAlertRecord.databaseTableName)
+            try PriceAlertRecord.create(db: db)
+        }
+
         try migrator.migrate(dbQueue)
     }
 }

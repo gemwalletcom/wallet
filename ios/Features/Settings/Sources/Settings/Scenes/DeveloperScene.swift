@@ -115,5 +115,6 @@ public struct DeveloperScene: View {
         .listStyle(.insetGrouped)
         .navigationTitle(model.title)
         .toast(message: $model.isPresentingToastMessage)
+        .task { await model.load() }
     }
 }

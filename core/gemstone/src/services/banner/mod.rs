@@ -8,7 +8,9 @@ use std::sync::Arc;
 
 use primitives::{Asset, BannerEvent, BannerState, Wallet};
 
-pub use model::{GemBannerAction, GemBannerAmount, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerTitle};
+pub use model::{
+    GemBannerAction, GemBannerAmount, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerLink, GemBannerTitle,
+};
 pub use permissions::GemNotificationPermissions;
 pub use store::GemBannerStore;
 

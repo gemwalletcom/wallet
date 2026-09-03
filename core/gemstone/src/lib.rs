@@ -49,12 +49,14 @@ pub fn lib_version() -> String {
 pub enum GemstoneError {
     AnyError { msg: String },
     SignerError { error: signer::GemSignerError, msg: String },
+    Cancelled,
 }
 
 impl std::fmt::Display for GemstoneError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::AnyError { msg } | Self::SignerError { msg, .. } => write!(f, "{}", msg),
+            Self::Cancelled => write!(f, "cancelled"),
         }
     }
 }

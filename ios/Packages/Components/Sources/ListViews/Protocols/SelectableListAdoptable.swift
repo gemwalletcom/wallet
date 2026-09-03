@@ -11,6 +11,7 @@ public protocol SelectableListAdoptable {
 
     var emptyStateTitle: String? { get }
     var errorTitle: String? { get }
+    var search: ListSearch<Item>? { get }
 
     mutating func reset()
     mutating func toggle(item: Item)
@@ -34,6 +35,15 @@ public extension SelectableListAdoptable {
 
     var errorTitle: String? {
         nil
+    }
+
+    var search: ListSearch<Item>? {
+        nil
+    }
+
+    var filteredState: StateViewType<SelectableListType<Item>> {
+        guard let search else { return state }
+        return state.map(search.filtered)
     }
 
     mutating func toggle(item: Item) {

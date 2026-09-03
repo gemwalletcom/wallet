@@ -2,6 +2,7 @@
 
 import Foundation
 import InfoSheet
+import GemstonePrimitives
 import Primitives
 
 public enum SwapSheetType: Identifiable, Equatable, Sendable {

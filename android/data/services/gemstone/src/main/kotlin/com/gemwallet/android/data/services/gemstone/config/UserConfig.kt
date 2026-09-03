@@ -10,6 +10,7 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ChartPeriod
+import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemSecureStore
@@ -48,13 +49,13 @@ class UserConfig(
 
     fun setRateApplicationShown() = preferencesService.setRateApplicationShown()
 
+    fun showPerpetuals(wallet: Wallet): Boolean = preferencesService.showPerpetuals(wallet.toJson())
+
+    fun showCollections(wallet: Wallet): Boolean = preferencesService.showCollections(wallet.toJson())
+
     fun chartPeriod(): ChartPeriod = preferencesService.getChartPeriod().decodeJson()
 
     fun setChartPeriod(period: ChartPeriod) = preferencesService.setChartPeriod(period.toJson())
-
-    fun perpetualChartPeriod(): ChartPeriod = preferencesService.getPerpetualChartPeriod().decodeJson()
-
-    fun setPerpetualChartPeriod(period: ChartPeriod) = preferencesService.setPerpetualChartPeriod(period.toJson())
 
     private val hideBalancesState = MutableStateFlow(preferencesService.isHideBalanceEnabled())
     private val perpetualEnabledState = MutableStateFlow(preferencesService.isPerpetualEnabled())

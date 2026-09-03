@@ -1,11 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemContactsServiceProtocol
+import protocol Gemstone.GemContactServiceProtocol
 import struct Gemstone.GemContactAddressInput
 import Components
 import GemstoneServices
 import Foundation
 import Localization
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store
@@ -24,7 +25,7 @@ public final class ContactsViewModel {
         case select
     }
 
-    private let service: any GemContactsServiceProtocol
+    private let service: any GemContactServiceProtocol
     private let manageContact: @MainActor (ManageContactViewModel.Mode) -> ManageContactViewModel
     private let mode: Mode
 
@@ -36,7 +37,7 @@ public final class ContactsViewModel {
     var isPresentingAddContact = false
 
     public init(
-        service: any GemContactsServiceProtocol,
+        service: any GemContactServiceProtocol,
         manageContact: @escaping @MainActor (ManageContactViewModel.Mode) -> ManageContactViewModel,
         mode: Mode = .list,
     ) {

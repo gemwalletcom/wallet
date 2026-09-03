@@ -3,7 +3,7 @@ use serde_serializers::deserialize_option_u64_from_str_or_int;
 use url::Url;
 
 use crate::url_query::query_value;
-use crate::{GEM_URL_SCHEME, UInt64, WALLET_CONNECT_URL_SCHEME};
+use crate::{GEM_URL_SCHEME, HTTPS_URL_SCHEME, UInt64, WALLET_CONNECT_URL_SCHEME};
 
 const WALLET_CONNECT_HOST: &str = "wc";
 
@@ -50,12 +50,14 @@ impl WalletConnectLink {
         let parsed = Url::parse(url).ok()?;
         match parsed.scheme() {
             WALLET_CONNECT_URL_SCHEME => Some(Self::session_or_request(&parsed).unwrap_or_else(|| WalletConnectLink::Connect { uri: url.to_string() })),
-            GEM_URL_SCHEME if parsed.host_str() == Some(WALLET_CONNECT_HOST) => match query_value(&parsed, QUERY_URI).filter(|uri| !uri.is_empty()) {
-                Some(uri) => Some(WalletConnectLink::Connect { uri }),
-                None => Self::session_or_request(&parsed),
-            },
+            GEM_URL_SCHEME if parsed.host_str() == Some(WALLET_CONNECT_HOST) => Self::connect(&parsed).or_else(|| Self::session_or_request(&parsed)),
+            HTTPS_URL_SCHEME if parsed.host_str() == Some("gemwallet.com") && matches!(parsed.path(), "/wc" | "/wc/") => Self::connect(&parsed),
             _ => None,
         }
+    }
+
+    fn connect(url: &Url) -> Option<Self> {
+        query_value(url, QUERY_URI).filter(|uri| !uri.is_empty()).map(|uri| WalletConnectLink::Connect { uri })
     }
 
     fn session_or_request(url: &Url) -> Option<Self> {
@@ -100,6 +102,25 @@ mod tests {
         );
         assert_eq!(WalletConnectLink::from_url("gem://wc?sessionTopic="), None);
         assert_eq!(WalletConnectLink::from_url("gem://asset/solana"), None);
+        for url in [
+            "https://gemwallet.com/wc?uri=wc%3Atopic%402%3Frelay-protocol%3Dirn%26symKey%3Dabc",
+            "https://gemwallet.com/wc/?uri=wc%3Atopic%402%3Frelay-protocol%3Dirn%26symKey%3Dabc",
+        ] {
+            assert_eq!(
+                WalletConnectLink::from_url(url),
+                Some(WalletConnectLink::Connect {
+                    uri: "wc:topic@2?relay-protocol=irn&symKey=abc".to_string(),
+                })
+            );
+        }
+        for url in [
+            "http://gemwallet.com/wc?uri=wc:topic@2",
+            "https://gemwallet.com.evil.example/wc?uri=wc:topic@2",
+            "https://gemwallet.com/wc/other?uri=wc:topic@2",
+            "https://gemwallet.com/wc",
+        ] {
+            assert_eq!(WalletConnectLink::from_url(url), None, "{url}");
+        }
         assert_eq!(WalletConnectLink::from_url("https://gemwallet.com/tokens/bitcoin"), None);
     }
 }

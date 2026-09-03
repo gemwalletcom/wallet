@@ -1,38 +1,30 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemRecentActivityServiceProtocol
+import protocol Gemstone.GemAssetSelectionServiceProtocol
 import class Gemstone.GemRecentActivityService
-import protocol Gemstone.GemBalanceServiceProtocol
-import protocol Gemstone.GemPerpetualServiceProtocol
-import Store
-import StoreTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
-import protocol Gemstone.GemSearchServiceProtocol
-import GemstonePrimitivesTestKit
-import Preferences
-import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
+import Recents
+import Store
+import StoreTestKit
 import WalletTab
 
 public extension WalletSearchSceneViewModel {
     @MainActor
     static func mock(
         wallet: Wallet = .mock(),
-        searchService: any GemSearchServiceProtocol = GemSearchServiceMock(),
-        recentAssetsService: any GemRecentActivityServiceProtocol = GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock())),
-        balanceService: any GemBalanceServiceProtocol = .mock(),
-        perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
-        preferences: ObservablePreferences = .mock(),
+        service: any GemAssetSelectionServiceProtocol = GemAssetSelectionServiceMock(),
     ) -> WalletSearchSceneViewModel {
         WalletSearchSceneViewModel(
             wallet: wallet,
-            searchService: searchService,
-            recentAssetsService: recentAssetsService,
-            balanceService: balanceService,
-            perpetualService: perpetualService,
-            preferences: preferences,
+            service: service,
+            recentModel: RecentAssetsModel(
+                walletId: wallet.id,
+                types: RecentActivityType.allCases,
+                service: GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock()), session: .mock()),
+            ),
             onDismissSearch: {},
             onSelectAssetAction: { _ in },
             onAddToken: {},

@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAssetConfigService
 import Primitives
 
 struct AddAssetInput {
@@ -13,8 +12,8 @@ struct AddAssetInput {
         chains.count > 1
     }
 
-    init(chains: [Chain], assetConfig: GemAssetConfigService) {
+    init(chains: [Chain], chain: Chain?) {
         self.chains = chains
-        chain = assetConfig.defaultTokenChain(chains: chains.map(\.rawValue)).flatMap { Chain(rawValue: $0) }
+        self.chain = chain
     }
 }

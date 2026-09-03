@@ -10,7 +10,7 @@
 
 ```
 User1 (Verified/Trusted/Attribution): shares code
-  ─> User2 redeems (POST /devices/rewards/referrals/use)
+  ─> User2 redeems (POST /v2/devices/rewards/referrals/use)
      ─> delay = compute_verification_delay(base, multiplier, referrer_status)
         Trusted referrer: no delay (immediate verification)
         Verified/Attribution referrer: base_delay / verified_multiplier

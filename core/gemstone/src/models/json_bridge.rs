@@ -16,9 +16,9 @@ use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImpactT
 use primitives::{
     AccountDataType, ApplicationMetadata, ApplicationMetadataSource, AssetList, ChainAsset, ConnectionComponent, ConnectionStatus, ContractCallData, DelegationBase,
     DelegationState, DelegationValidator, NFTAsset, NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, NFTImages, NFTResource, NFTType, Payment, PaymentAmount, PaymentLink,
-    PaymentRequest, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualOrderType, PerpetualPosition, PerpetualTriggerOrder, ReportNft, ScanAddressTarget,
-    ScanTransaction, ScanTransactionPayload, SimulationHeader, SimulationPayloadField, SimulationResult, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType,
-    StakeValidator, TransactionPerpetualMetadata, TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO,
+    PaymentRequest, Perpetual, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualOrderType, PerpetualPosition, PerpetualTriggerOrder, ReportNft,
+    ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationHeader, SimulationResult, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, StakeValidator,
+    TransactionPerpetualMetadata, TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
 use primitives::{
     AddressName, AuthNonce, AuthPayload, ChainAddress, ChartValuePercentage, Device, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification,
@@ -31,7 +31,7 @@ use primitives::{
     SearchResponse, StreamEvent, StreamMessage, SupportTyping,
 };
 use primitives::{ChartPeriod, Charts};
-use primitives::{Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction, VerificationStatus};
+use primitives::{Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction, TransactionExtended};
 use primitives::{DeviceLocale, Platform};
 
 macro_rules! json_bridge {
@@ -122,6 +122,7 @@ json_bridge!(
     PerpetualAccountSummary,
     PerpetualBalance,
     PerpetualConfirmData,
+    Perpetual,
     PerpetualData,
     PerpetualDirection,
     PerpetualMarginType,
@@ -146,7 +147,6 @@ json_bridge!(
     PortfolioData,
     Price,
     PriceAlert,
-    VerificationStatus,
     PriceAlertDirection,
     PriceAlertNotificationType,
     RedemptionRequest,
@@ -162,7 +162,6 @@ json_bridge!(
     StreamEvent,
     StreamMessage,
     SimulationHeader,
-    SimulationPayloadField,
     SimulationResult,
     SolanaNftStandard,
     SolanaTokenProgramId,
@@ -181,6 +180,7 @@ json_bridge!(
     SwapQuoteDataType,
     TPSLOrderData,
     Transaction,
+    TransactionExtended,
     TransactionPerpetualMetadata,
     TransactionId,
     TransactionState,

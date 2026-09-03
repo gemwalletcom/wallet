@@ -3,6 +3,9 @@
 import Foundation
 import class Gemstone.GemDeviceApiClient
 import class Gemstone.GemDeviceKeyService
+import class Gemstone.GemAvatarService
+import class Gemstone.GemCollectibleService
+import class Gemstone.GemExplorerService
 import class Gemstone.GemNftService
 import protocol Gemstone.GemNftServiceProtocol
 import NativeProviderService
@@ -13,15 +16,25 @@ import PrimitivesTestKit
 import Store
 import StoreTestKit
 
+public extension GemCollectibleService {
+    static func mock(nftStore: NftStore = .mock(), explorer: GemExplorerService = .mock()) -> GemCollectibleService {
+        GemCollectibleService(
+            nfts: GemNftService.mock(nftStore: nftStore),
+            avatars: GemAvatarService(wallets: GemstoneWalletStore(store: .mock()), files: GemstoneFileStore(), provider: NativeProvider()),
+            explorer: explorer,
+        )
+    }
+}
+
 public extension GemNftService {
-    static func mock(nftStore: NFTStore = .mock()) -> GemNftService {
+    static func mock(nftStore: NftStore = .mock()) -> GemNftService {
         GemNftService(
             api: GemDeviceApiClient(
-                provider: NativeProvider(url: Constants.apiURL),
-                baseUrl: Constants.apiURL.absoluteString,
+                provider: NativeProvider(),
                 deviceKey: GemDeviceKeyService(store: GemSecureStoreMock()),
             ),
             store: GemstoneNftStore(store: nftStore),
+            session: .mock(),
         )
     }
 }

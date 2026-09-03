@@ -1,16 +1,17 @@
 package com.gemwallet.android.features.perpetual.viewmodels
 
 import androidx.lifecycle.ViewModel
+import uniffi.gemstone.GemAssetAction
 import androidx.lifecycle.viewModelScope
+import android.util.Log
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
-import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
-import com.gemwallet.android.application.perpetual.cases.SyncPerpetualPositions
-import com.gemwallet.android.application.perpetual.cases.SyncPerpetuals
-import com.gemwallet.android.application.perpetual.cases.SetPerpetualPinned
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
 import com.gemwallet.android.model.CurrencyFormatter
@@ -18,12 +19,15 @@ import com.gemwallet.android.model.RecentAssetsRequest
 import com.wallet.core.primitives.RecentActivityType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import uniffi.gemstone.GemMarketsRefreshTrigger
+import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
+import uniffi.gemstone.GemRecentActivityService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -33,7 +37,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,11 +44,9 @@ class PerpetualMarketViewModel @Inject constructor(
     private val getPerpetuals: GetPerpetuals,
     private val getPositions: GetPerpetualPositions,
     private val getBalance: GetPerpetualBalance,
-    private val syncPerpetuals: SyncPerpetuals,
-    private val syncPerpetualPositions: SyncPerpetualPositions,
-    private val setPerpetualPinned: SetPerpetualPinned,
     private val getRecentAssets: GetRecentAssets,
-    private val updateRecentAsset: UpdateRecentAsset,
+    private val service: GemPerpetualServiceInterface,
+    private val recentActivity: GemRecentActivityService,
     private val perpetualObserver: PerpetualObserver,
 ) : ViewModel() {
 
@@ -77,24 +78,16 @@ class PerpetualMarketViewModel @Inject constructor(
 
     fun onRefresh() {
         sceneState.update { PerpetualMarketSceneState.Refreshing }
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                syncPerpetuals.syncPerpetuals(GemMarketsRefreshTrigger.USER_REQUESTED)
-            }
-            withContext(Dispatchers.IO) {
-                syncPerpetualPositions.syncPerpetualPositions()
-            }
-            withContext(Dispatchers.IO) {
-                delay(500)
-                sceneState.update { PerpetualMarketSceneState.Idle }
-            }
+        viewModelScope.launch(Dispatchers.IO) {
+            syncMarkets(GemMarketsRefreshTrigger.USER_REQUESTED)
+            syncPositions()
+            delay(500)
+            sceneState.update { PerpetualMarketSceneState.Idle }
         }
     }
 
     fun fetch() {
-        viewModelScope.launch(Dispatchers.IO) {
-            syncPerpetualPositions.syncPerpetualPositions()
-        }
+        viewModelScope.launch(Dispatchers.IO) { syncPositions() }
     }
 
     fun subscribeMarketPrices() {
@@ -105,15 +98,31 @@ class PerpetualMarketViewModel @Inject constructor(
         perpetualObserver.unsubscribe(GemPerpetualSubscription.MarketPrices)
     }
 
-    fun onTogglePin(perpetualId: PerpetualId) = viewModelScope.launch {
+    fun onTogglePin(perpetualId: PerpetualId) = viewModelScope.launch(Dispatchers.IO) {
         val item = (pinnedPerpetuals.value + unpinnedPerpetuals.value).firstOrNull { it.id == perpetualId } ?: return@launch
-        setPerpetualPinned(perpetualId, !item.isPinned)
+        runCatchingCancellable { service.setPinned(perpetualId.toIdentifier(), !item.isPinned) }
+            .onFailure { Log.e(TAG, "pinning perpetual ${perpetualId.toIdentifier()} failed", it) }
     }
 
-    fun onOpenPerpetual(assetId: AssetId) {
+    fun onOpenPerpetual(asset: Asset) {
         viewModelScope.launch(Dispatchers.IO) {
-            updateRecentAsset(assetId, RecentActivityType.Perpetual)
+            runCatchingCancellable { recentActivity.addRecent(GemAssetAction.OPEN, asset.toGem()) }
+                .onFailure { Log.e(TAG, "recording recent perpetual ${asset.id.toIdentifier()} failed", it) }
         }
+    }
+
+    private suspend fun syncMarkets(trigger: GemMarketsRefreshTrigger) {
+        runCatchingCancellable { service.syncMarketsIfNeeded(Chain.HyperCore.string, trigger) }
+            .onFailure { Log.e(TAG, "perpetual markets sync failed", it) }
+    }
+
+    private suspend fun syncPositions() {
+        runCatchingCancellable { service.syncCurrentPositions() }
+            .onFailure { Log.e(TAG, "perpetual positions sync failed", it) }
+    }
+
+    private companion object {
+        const val TAG = "PerpetualMarket"
     }
 }
 

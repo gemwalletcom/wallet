@@ -11,4 +11,4 @@ reqwest = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true }
-gem_client = { path = "../gem_client", features = ["testkit"] }
+async-trait = { workspace = true }

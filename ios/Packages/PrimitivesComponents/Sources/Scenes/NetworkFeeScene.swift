@@ -42,7 +42,7 @@ public struct NetworkFeeScene: View {
                                 model: model.rowItem(for: feeRate),
                             ),
                         ) {
-                            model.select(.preset(feeRate.feeRate.priority))
+                            model.select(.preset(feeRate.priority))
                             dismiss()
                         }
                     }

@@ -15,7 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.ValueFormatter
@@ -29,13 +29,14 @@ import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
+import java.math.BigInteger
 
 @Composable
 fun SwapListHead(
-    fromAsset: AssetInfo?,
-    fromValue: String,
-    toAsset: AssetInfo?,
-    toValue: String,
+    fromAsset: AssetPriceValue?,
+    fromValue: BigInteger,
+    toAsset: AssetPriceValue?,
+    toValue: BigInteger,
     currency: Currency? = null,
     onSwapClick: (() -> Unit)? = null,
     onAssetClick: ((AssetId) -> Unit)? = null,
@@ -81,8 +82,8 @@ fun SwapListHead(
 
 @Composable
 private fun SwapItem(
-    assetInfo: AssetInfo,
-    value: String,
+    assetInfo: AssetPriceValue,
+    value: BigInteger,
     currency: Currency?,
     onSwapClick: (() -> Unit)?,
     onAssetClick: ((AssetId) -> Unit)?,
@@ -105,7 +106,7 @@ private fun SwapItem(
                 ),
         ) {
             Text(
-                text = ValueFormatter(style = ValueFormatter.Style.Auto).string(value.toBigInteger(), asset),
+                text = ValueFormatter(style = ValueFormatter.Style.Auto).string(value, asset),
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontSize = 24.sp,
                     lineHeight = 32.sp,

@@ -23,10 +23,6 @@ public struct TransactionTypesSelectorViewModel: SelectableSheetViewable {
         self.selectedItems = Set(selectedItems)
     }
 
-    public var search: ListSearch<TransactionFilterType>? {
-        .none
-    }
-
     public var title: String {
         Localized.Filter.types
     }

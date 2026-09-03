@@ -5,26 +5,39 @@ import uniffi.gemstone.GemTransferAmountResult
 import uniffi.gemstone.GemTransferService
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.blockchain.services.SignerPreloaderProxy
 import com.gemwallet.android.domains.confirm.ConfirmState
-import com.gemwallet.android.domains.confirm.confirmInput
 import com.gemwallet.android.domains.confirm.pack
-import com.gemwallet.android.domains.confirm.perpetual
+import com.gemwallet.android.domains.perpetual.toGem
+import com.gemwallet.android.ext.toGem
 import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemConfirmData
+import uniffi.gemstone.GemConfirmPreload
+import uniffi.gemstone.GemConfirmLoad
+import uniffi.gemstone.GemFeeOptions
+import uniffi.gemstone.GemGasPriceType
+import uniffi.gemstone.GemTransactionLoadFee
+import uniffi.gemstone.GemTransactionLoadMetadata
+import uniffi.gemstone.GemConfirmTransferService
+import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemTransferData
-import com.gemwallet.android.model.SignerParams
+import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemTransactionInputType
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetHyperCoreUBTC
+import com.gemwallet.android.testkit.mockGemConfirmMetadata
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualType
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -36,6 +49,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -49,7 +63,7 @@ class ConfirmViewModelRetryTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private val asset = mockAssetHyperCoreUBTC()
     private val account = mockAccount(chain = Chain.HyperCore)
-    private val preloader = mockk<SignerPreloaderProxy>()
+    private val confirmService = mockk<GemConfirmTransferService>(relaxed = true)
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
@@ -59,52 +73,69 @@ class ConfirmViewModelRetryTest {
 
     @Test
     fun retryAfterPreloadFailureRunsThePreloaderAgain() = runTest(testDispatcher) {
-        val input = GemTransferData.perpetual(
-            asset = asset,
-            perpetualType = PerpetualType.Open(mockPerpetualConfirmData(direction = PerpetualDirection.Long)),
+        val transfer = GemTransferData(
+            inputType = GemTransactionInputType.Perpetual(asset.toGem(), PerpetualType.Open(mockPerpetualConfirmData(direction = PerpetualDirection.Long)).toGem()),
+            recipient = GemRecipient(address = ""),
             value = BigInteger.TEN,
-        ).confirmInput(account)
-        val viewModel = viewModel(input)
+        )
+        val viewModel = viewModel(transfer)
         runCurrent()
-        coVerify(timeout = 5_000, exactly = 1) { preloader.preload(any(), any(), any(), any()) }
+        coVerify(timeout = 5_000, exactly = 1) { confirmService.load(any(), any(), any()) }
 
         assertTrue(viewModel.state.first { it is ConfirmState.Error } is ConfirmState.Error)
 
         viewModel.send(FinishConfirmAction { _ -> })
         runCurrent()
 
-        coVerify(timeout = 5_000, exactly = 2) { preloader.preload(any(), any(), any(), any()) }
+        coVerify(timeout = 5_000, exactly = 2) { confirmService.load(any(), any(), any()) }
+        assertTrue(viewModel.state.first { it is ConfirmState.Ready } is ConfirmState.Ready)
+        assertEquals(asset, viewModel.feeAsset.first { it != null }?.asset)
     }
 
-    private fun viewModel(input: GemConfirmInput): ConfirmViewModel {
+    private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
+        val input = GemConfirmInput(from = account.toGem(), transfer = transfer)
+        every { confirmService.currency() } returns Currency.USD.toGem()
+        every { confirmService.confirmInput(transfer) } returns input
         var calls = 0
-        coEvery { preloader.preload(any(), any(), any(), any()) } answers {
+        coEvery { confirmService.load(any(), any(), any()) } answers {
             calls += 1
             if (calls == 1) {
                 throw IllegalStateException("preload failed")
             } else {
-                SignerPreloaderProxy.Preload(
-                    signerParams = mockk(relaxed = true),
-                    simulation = null,
-                    amount = GemTransferAmountResult.Amount(GemTransferAmount(value = "1", networkFee = "1", isMaxAmount = false)),
-                    feeAsset = asset,
+                GemConfirmLoad(
+                    feeAssets = emptyList(),
+                    simulation = GemConfirmSimulationState(simulation = null, addressNames = emptyList()),
+                    preload = GemConfirmPreload(
+                    confirmData = GemConfirmData(
+                        fee = GemTransactionLoadFee(
+                            fee = BigInteger.ONE,
+                            gasPriceType = GemGasPriceType.Regular(gasPrice = BigInteger.ONE),
+                            gasLimit = BigInteger.ONE,
+                            options = GemFeeOptions(emptyMap()),
+                            feeAsset = asset.id.chain.string,
+                        ),
+                        selectedPriority = FeePriority.Normal.toGem(),
+                        feeRates = emptyList(),
+                        metadata = GemTransactionLoadMetadata.None,
+                        simulation = null,
+                        input = input,
+                    ),
+                    metadata = mockGemConfirmMetadata(asset),
+                    feeAsset = asset.toGem(),
+                    amount = GemTransferAmountResult.Amount(GemTransferAmount(value = BigInteger.ONE, networkFee = BigInteger.ONE, isMaxAmount = false)),
+                    ),
                 )
             }
         }
         return ConfirmViewModel(
             getSession = mockk<GetSession> {
-                io.mockk.every { this@mockk() } returns MutableStateFlow(
+                every { this@mockk() } returns MutableStateFlow(
                     mockSession(wallet = mockWallet(accounts = listOf(account))),
                 )
             },
-            getWalletAssets = mockk(relaxed = true),
-            getAssetInfo = mockk(relaxed = true),
-            signerPreloader = preloader,
-            getFeeAssets = mockk(relaxed = true),
-            confirmTransaction = mockk(relaxed = true),
             buildConfirmProperties = mockk(relaxed = true),
-            confirmService = mockk(relaxed = true),
-            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transferService.pack(input)))),
+            confirmService = confirmService,
+            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transferService.pack(transfer)))),
             transferService = uniffi.gemstone.GemTransferService(),
         )
     }

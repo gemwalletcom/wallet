@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemRecipient
 import Components
 import Foundation
 import GemstonePrimitives
@@ -12,13 +13,13 @@ struct ContactRecipientSectionViewModel {
         self.contacts = contacts
     }
 
-    var listItems: [ListItemValue<Recipient>] {
+    var listItems: [ListItemValue<GemRecipient>] {
         contacts.flatMap { contactData in
             contactData.addresses.map { address in
                 ListItemValue(
                     title: contactData.contact.name,
                     subtitle: AddressFormatter(address: address.address, chain: address.chain).value(),
-                    value: Recipient(name: contactData.contact.name, address: address.address, memo: address.memo),
+                    value: GemRecipient(address: address.address, name: contactData.contact.name, memo: address.memo),
                 )
             }
         }

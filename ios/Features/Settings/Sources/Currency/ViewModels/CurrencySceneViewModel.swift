@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstonePrimitives
-import protocol Gemstone.GemPriceServiceProtocol
+import protocol Gemstone.GemCurrencyServiceProtocol
 import Components
 import GemstoneServices
 import Foundation
-import protocol Gemstone.GemDeviceServiceProtocol
 import Localization
 import Primitives
 
@@ -13,9 +12,7 @@ import Primitives
 @MainActor
 public final class CurrencySceneViewModel {
     private var currencyStorage: CurrencyStorable
-    private let priceService: any GemPriceServiceProtocol
-    private let deviceService: any GemDeviceServiceProtocol
-    private let defaultCurrencies: [Currency] = [.usd, .eur, .gbp, .cny, .jpy, .inr, .rub]
+    private let service: any GemCurrencyServiceProtocol
 
     private(set) var currency: Currency {
         get {
@@ -31,12 +28,10 @@ public final class CurrencySceneViewModel {
 
     public init(
         currencyStorage: CurrencyStorable,
-        priceService: any GemPriceServiceProtocol,
-        deviceService: any GemDeviceServiceProtocol,
+        service: any GemCurrencyServiceProtocol,
     ) {
         self.currencyStorage = currencyStorage
-        self.priceService = priceService
-        self.deviceService = deviceService
+        self.service = service
     }
 
     public var selectedCurrencyValue: String {
@@ -70,32 +65,23 @@ public final class CurrencySceneViewModel {
     }
 
     func setCurrency(_ currency: Currency) async throws {
+        try await service.setCurrency(currency: currency.rawValue)
         self.currency = currency
-        try await priceService.changeCurrency(currency: currency.rawValue)
-    }
-
-    func updateDevice() async {
-        do {
-            try await deviceService.synchronizeIfNeeded()
-        } catch {
-            debugLog("currency scene: device synchronize error \(error)")
-        }
     }
 }
 
 // MARK: - Private
 
 extension CurrencySceneViewModel {
+    private var localeCurrency: Currency? {
+        Locale.current.currency.flatMap { Currency(rawValue: $0.identifier) }
+    }
+
     private var recommendedCurrencies: [Currency] {
-        guard let current = Locale.current.currency,
-              let currency = Currency(rawValue: current.identifier)
-        else {
-            return defaultCurrencies
-        }
-        return ([self.currency, currency] + defaultCurrencies).unique()
+        service.recommendedCurrencies(locale: localeCurrency?.rawValue).compactMap { Currency(rawValue: $0) }
     }
 
     private var allCurrencies: [Currency] {
-        Currency.nativeCurrencies.compactMap { Currency(rawValue: $0.identifier) }
+        service.otherCurrencies(locale: localeCurrency?.rawValue).compactMap { Currency(rawValue: $0) }
     }
 }

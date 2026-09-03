@@ -1,14 +1,12 @@
 package com.gemwallet.android.ui.models.swap
 
-import com.gemwallet.android.domains.asset.calculateFiat
-import com.gemwallet.android.domains.asset.formatFiat
 import com.gemwallet.android.domains.asset.getSwapProviderIcon
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.domains.swap.buildAssetRatePair
 import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.swap.SwapPriceImpact
@@ -19,8 +17,8 @@ import uniffi.gemstone.SwapperProviderType
 object SwapProviderUIModelFactory {
     fun create(
         provider: SwapperProviderType,
-        receiveAsset: AssetInfo,
-        toValue: String,
+        receiveAsset: AssetPriceValue,
+        toValue: BigInteger,
     ): SwapProviderUIModel {
         return create(
             providerId = provider.id,
@@ -33,10 +31,9 @@ object SwapProviderUIModelFactory {
     fun create(
         providerId: SwapperProvider,
         title: String,
-        receiveAsset: AssetInfo,
-        toValue: String,
+        receiveAsset: AssetPriceValue,
+        toValue: BigInteger,
     ): SwapProviderUIModel {
-        val toAmount = Crypto(toValue)
         val fiatValue = receiveAsset.calculateFiat(toValue)
 
         return SwapProviderUIModel(
@@ -44,17 +41,17 @@ object SwapProviderUIModelFactory {
             title = title,
             icon = providerId.getSwapProviderIcon(),
             amount = ValueFormatter(style = ValueFormatter.Style.Auto)
-                .string(toAmount.atomicValue, receiveAsset.asset),
+                .string(toValue, receiveAsset.asset),
             fiat = receiveAsset.formatFiat(fiatValue),
         )
     }
 }
 
 data class SwapDetailsUIModelInput(
-    val payAsset: AssetInfo,
-    val receiveAsset: AssetInfo,
-    val fromValue: String,
-    val toValue: String,
+    val payAsset: AssetPriceValue,
+    val receiveAsset: AssetPriceValue,
+    val fromValue: BigInteger,
+    val toValue: BigInteger,
     val provider: SwapProviderUIModel,
     val providers: List<SwapProviderUIModel> = emptyList(),
     val slippageBps: UInt,

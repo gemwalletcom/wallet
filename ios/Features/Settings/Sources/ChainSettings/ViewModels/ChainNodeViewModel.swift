@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import Foundation
+import enum Gemstone.GemNodeStatusState
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -11,23 +12,26 @@ import Style
 struct ChainNodeViewModel {
     let chainNode: ChainNode
 
-    private let statusState: NodeStatusState
+    private let gemNodeFlag: String?
+    private let statusState: GemNodeStatusState
     private let formatter: ValueFormatter
 
     init(
         chainNode: ChainNode,
-        statusState: NodeStatusState,
+        gemNodeFlag: String?,
+        statusState: GemNodeStatusState,
         formatter: ValueFormatter,
     ) {
         self.chainNode = chainNode
+        self.gemNodeFlag = gemNodeFlag
         self.statusState = statusState
         self.formatter = formatter
     }
 
     var title: String {
         guard let host = chainNode.host else { return "" }
-        guard let region = NodeURL.region(url: chainNode.node.url) else { return host }
-        return Localized.Nodes.gemWalletNode + " " + NodeURL.flag(region: region)
+        guard let gemNodeFlag else { return host }
+        return Localized.Nodes.gemWalletNode + " " + gemNodeFlag
     }
 
     var titleExtra: String? {
@@ -68,9 +72,5 @@ extension ChainNodeViewModel: Identifiable {
 extension ChainNode {
     var host: String? {
         URL(string: node.url)?.host
-    }
-
-    var isGemNode: Bool {
-        NodeURL.region(url: node.url) != nil
     }
 }

@@ -21,9 +21,9 @@ public extension DelegationSceneViewModel {
         let delegation = Delegation.mock(state: state, validator: validator, base: base)
         return DelegationSceneViewModel(
             wallet: wallet,
-            model: DelegationViewModel(explorerService: GemExplorerServiceMock(), stakeService: stakeService, delegation: delegation, asset: chain.asset, currencyCode: "USD"),
+            model: DelegationViewModel(service: stakeService, delegation: delegation, asset: chain.asset, currencyCode: "USD"),
             asset: chain.asset,
-            stakeService: stakeService,
+            service: stakeService,
             validators: validators,
             onAmountInputAction: nil,
             onTransferAction: nil,

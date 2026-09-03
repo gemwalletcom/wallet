@@ -1,6 +1,5 @@
 use chrono::{DateTime, Utc};
 use num_bigint::{BigInt, BigUint};
-use primitives::currency::Currency;
 use primitives::{AssetId, Chain, NFTAssetId, NFTCollectionId, PerpetualId, StakeChain, WalletId};
 use std::str::FromStr;
 
@@ -8,12 +7,6 @@ uniffi::custom_type!(Chain, String, {
     remote,
     lower: |s| s.to_string(),
     try_lift: |s| Chain::from_str(&s).map_err(|_| uniffi::deps::anyhow::Error::msg("Invalid Chain")),
-});
-
-uniffi::custom_type!(Currency, String, {
-    remote,
-    lower: |value| value.as_ref().to_string(),
-    try_lift: |value| Currency::from_str(&value).map_err(|_| uniffi::deps::anyhow::Error::msg("Invalid Currency")),
 });
 
 uniffi::custom_type!(StakeChain, String, {
@@ -92,6 +85,21 @@ pub mod decimal_string {
     pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<GemBigInt, D::Error> {
         let text = String::deserialize(deserializer)?;
         GemBigInt::from_str(&text).map_err(serde::de::Error::custom)
+    }
+
+    pub mod unsigned {
+        use super::super::GemBigUint;
+        use serde::{Deserialize, Deserializer, Serializer};
+        use std::str::FromStr;
+
+        pub fn serialize<S: Serializer>(value: &GemBigUint, serializer: S) -> Result<S::Ok, S::Error> {
+            serializer.serialize_str(&value.to_string())
+        }
+
+        pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<GemBigUint, D::Error> {
+            let text = String::deserialize(deserializer)?;
+            GemBigUint::from_str(&text).map_err(serde::de::Error::custom)
+        }
     }
 
     pub mod optional {

@@ -13,5 +13,7 @@ interface WalletConnectReviewModel {
     val secondaryPayloadFields: List<PayloadField>
     val message: String
     val warnings: List<SimulationWarning> get() = emptyList()
+    val hasCriticalWarning: Boolean get() = false
+    val addressNames: Map<String, String> get() = emptyMap()
     val hasPayload: Boolean get() = primaryPayloadFields.isNotEmpty() || secondaryPayloadFields.isNotEmpty()
 }

@@ -25,7 +25,7 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
     case slippage
     case noQuote
     // asset
-    case assetStatus(AssetScoreType)
+    case assetStatus(VerificationStatus)
     case accountMinimalBalance(Asset, required: BigInt)
     /// stake / perpetual / earn
     case minimumAmount(Asset, required: BigInt, action: InfoSheetAction)

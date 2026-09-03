@@ -34,18 +34,9 @@ impl BalanceCalculator {
         Calculator::total_fiat_value(&balances)
     }
 
-    pub fn wallet_total_fiat_value(&self, balances: Vec<AssetFiatValue>) -> TotalFiatValue {
-        wallet_total_fiat_value(balances)
-    }
-
     pub fn shows_pnl(&self, total: TotalFiatValue) -> bool {
         wallet_shows_pnl(total)
     }
-}
-
-fn wallet_total_fiat_value(balances: Vec<AssetFiatValue>) -> TotalFiatValue {
-    let priced: Vec<AssetFiatValue> = balances.into_iter().filter(|balance| balance.price > 0.0).collect();
-    Calculator::total_fiat_value(&priced)
 }
 
 fn wallet_shows_pnl(total: TotalFiatValue) -> bool {
@@ -55,21 +46,6 @@ fn wallet_shows_pnl(total: TotalFiatValue) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn value(amount: f64, price: f64, change: f64) -> AssetFiatValue {
-        AssetFiatValue {
-            amount,
-            price,
-            price_change_percentage_24h: change,
-        }
-    }
-
-    #[test]
-    fn test_wallet_total_skips_assets_without_a_price() {
-        let total = wallet_total_fiat_value(vec![value(2.0, 10.0, 0.0), value(100.0, 0.0, 5.0)]);
-
-        assert_eq!(total.value, 20.0);
-    }
 
     #[test]
     fn test_pnl_shows_only_for_a_funded_wallet_that_moved() {

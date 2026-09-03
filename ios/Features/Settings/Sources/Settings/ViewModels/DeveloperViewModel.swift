@@ -1,10 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemDeeplinkService
-import class Gemstone.GemDeviceKeyService
-import protocol Gemstone.GemPerpetualServiceProtocol
-import protocol Gemstone.GemPreferencesServiceProtocol
-import protocol Gemstone.GemWalletPreferencesServiceProtocol
+import class Gemstone.GemDeveloperService
 import GemstoneServices
 import BigInt
 import Components
@@ -21,61 +17,48 @@ import SwiftUI
 @MainActor
 public final class DeveloperViewModel {
     private let walletId: WalletId
-    private let walletPreferencesService: any GemWalletPreferencesServiceProtocol
+    private let service: GemDeveloperService
     private let transactionStore: TransactionStore
     private let assetStore: AssetStore
     private let stakeStore: StakeStore
     private let bannerStore: BannerStore
     private let priceStore: PriceStore
-    private let perpetualService: any GemPerpetualServiceProtocol
-    private let deeplinkService: GemDeeplinkService
-    private let preferencesService: any GemPreferencesServiceProtocol
-    private let deviceKeyService: GemDeviceKeyService
 
     public var isPresentingToastMessage: ToastMessage?
+    public private(set) var deviceId: String = .empty
+    public private(set) var deviceToken: String = .empty
 
     public init(
         walletId: WalletId,
+        service: GemDeveloperService,
         transactionStore: TransactionStore,
         assetStore: AssetStore,
         stakeStore: StakeStore,
         bannerStore: BannerStore,
         priceStore: PriceStore,
-        perpetualService: any GemPerpetualServiceProtocol,
-        walletPreferencesService: any GemWalletPreferencesServiceProtocol,
-        preferencesService: any GemPreferencesServiceProtocol,
-        deviceKeyService: GemDeviceKeyService,
-        deeplinkService: GemDeeplinkService,
     ) {
         self.walletId = walletId
-        self.deeplinkService = deeplinkService
-        self.walletPreferencesService = walletPreferencesService
+        self.service = service
         self.transactionStore = transactionStore
         self.assetStore = assetStore
         self.stakeStore = stakeStore
         self.bannerStore = bannerStore
         self.priceStore = priceStore
-        self.perpetualService = perpetualService
-        self.preferencesService = preferencesService
-        self.deviceKeyService = deviceKeyService
     }
 
     var title: String {
         Localized.Settings.developer
     }
 
-    var deviceId: String {
-        (try? deviceKeyService.deviceId()) ?? .empty
-    }
-
-    var deviceToken: String {
-        (try? SecurePreferences.standard.get(key: .deviceToken)) ?? .empty
+    func load() async {
+        deviceId = (try? await service.deviceId()) ?? .empty
+        deviceToken = (try? await service.pushToken()) ?? .empty
     }
 
     func reset() {
         do {
             try clearDocuments()
-            try preferencesService.clear()
+            try service.clearPreferences()
             try SecurePreferences.standard.clear()
             fatalError()
         } catch {
@@ -96,22 +79,22 @@ public final class DeveloperViewModel {
     }
 
     func clearPendingTransactions() {
-        performAction {
-            let states = [TransactionState.pending, TransactionState.inTransit]
-            let transactionIds = try transactionStore.getTransactions(states: states).map(\.id.identifier)
-            _ = try transactionStore.deleteTransactionId(ids: transactionIds)
+        Task {
+            await performAction {
+                try await service.clearPendingTransactions()
+            }
         }
     }
 
     func clearTransactionsTimestamp() {
         performAction {
-            try walletPreferencesService.resetTransactionsTimestamp(walletId: walletId)
+            try service.resetTransactionsTimestamp(walletId: walletId.id)
         }
     }
 
     func clearWalletPreferences() {
         performAction {
-            try walletPreferencesService.deletePreferences(walletId: walletId)
+            try service.deleteWalletPreferences(walletId: walletId.id)
         }
     }
 
@@ -153,11 +136,8 @@ public final class DeveloperViewModel {
 
     func clearPerpetuals() {
         Task {
-            do {
-                try await perpetualService.clearMarkets()
-                showSuccess()
-            } catch {
-                debugLog("Developer action error: \(error)")
+            await performAction {
+                try await service.clearPerpetualMarkets()
             }
         }
     }
@@ -301,7 +281,7 @@ public final class DeveloperViewModel {
 
     func deeplink(deeplink: DeepLink) {
         Task { @MainActor in
-            await UIApplication.shared.open(deeplink.gemUrl(deeplinkService: deeplinkService), options: [:])
+            await UIApplication.shared.open(service.deeplinkUrl(deeplink: deeplink.map()).asURL!, options: [:])
         }
     }
 }
@@ -316,6 +296,15 @@ extension DeveloperViewModel {
     private func performAction(_ action: () throws -> Void) {
         do {
             try action()
+            showSuccess()
+        } catch {
+            debugLog("Developer action error: \(error)")
+        }
+    }
+
+    private func performAction(_ action: () async throws -> Void) async {
+        do {
+            try await action()
             showSuccess()
         } catch {
             debugLog("Developer action error: \(error)")

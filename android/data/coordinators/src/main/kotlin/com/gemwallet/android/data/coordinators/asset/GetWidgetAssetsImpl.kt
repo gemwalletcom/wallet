@@ -7,7 +7,6 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.Currency
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
@@ -17,8 +16,8 @@ class GetWidgetAssetsImpl(
     private val getWalletAssets: GetWalletAssets,
 ) : GetWidgetAssets {
 
-    override suspend fun invoke(currency: Currency): List<AssetInfo> = withContext(Dispatchers.IO) {
-        runCatchingCancellable { searchTokensCase.search(WIDGET_ASSET_IDS, currency) }
+    override suspend fun invoke(): List<AssetInfo> = withContext(Dispatchers.IO) {
+        runCatchingCancellable { searchTokensCase.search(WIDGET_ASSET_IDS) }
         getWalletAssets(WIDGET_ASSET_IDS).firstOrNull().orEmpty()
     }
 

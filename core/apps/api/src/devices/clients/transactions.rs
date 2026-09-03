@@ -24,6 +24,7 @@ impl TransactionsClient {
         asset_id: Option<AssetId>,
         from_timestamp: Option<u64>,
         limit: usize,
+        offset: usize,
     ) -> Result<TransactionsResponse, Box<dyn Error + Send + Sync>> {
         let subscriptions = self.database.wallets()?.get_subscriptions_by_wallet_id(device_row_id, wallet_id)?;
         let addresses = subscriptions.iter().map(|(_, addr)| addr.address.clone()).collect::<Vec<_>>();
@@ -32,7 +33,7 @@ impl TransactionsClient {
         let rows = self
             .database
             .transactions()?
-            .get_transactions_by_device_id(device_id, addresses.clone(), chains, asset_id, from_datetime, limit)?;
+            .get_transactions_by_device_id(device_id, addresses.clone(), chains, asset_id, from_datetime, limit, offset)?;
 
         self.transactions_response(rows, addresses)
     }
@@ -50,7 +51,7 @@ impl TransactionsClient {
         let rows = self
             .database
             .transactions()?
-            .get_transactions_by_device_id(device_id, addresses.clone(), chains, None, None, MAX_QUERY_LIMIT)?;
+            .get_transactions_by_device_id(device_id, addresses.clone(), chains, None, None, MAX_QUERY_LIMIT, 0)?;
 
         self.transactions_response(rows, addresses)
     }

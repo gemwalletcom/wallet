@@ -1,14 +1,18 @@
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{AssetBasic, AssetId, PriceAlert, RecentActivityType, Wallet, WalletId};
+use primitives::{Asset, AssetBasic, AssetId};
+
+use super::model::GemAssetAction;
 
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
+use crate::services::perpetual::GemPerpetualService;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price_alert::GemPriceAlertService;
-use crate::services::search::GemSearchService;
+use crate::services::search::{GemSearchScope, GemSearchService};
 use crate::services::transfer::GemRecentActivityService;
+use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemAssetSelectionService {
@@ -17,6 +21,8 @@ pub struct GemAssetSelectionService {
     price_alerts: Arc<GemPriceAlertService>,
     recent_activity: Arc<GemRecentActivityService>,
     preferences: Arc<GemPreferencesService>,
+    perpetuals: Arc<GemPerpetualService>,
+    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
@@ -28,6 +34,8 @@ impl GemAssetSelectionService {
         price_alerts: Arc<GemPriceAlertService>,
         recent_activity: Arc<GemRecentActivityService>,
         preferences: Arc<GemPreferencesService>,
+        perpetuals: Arc<GemPerpetualService>,
+        session: Arc<GemWalletSessionService>,
     ) -> Self {
         Self {
             search,
@@ -35,6 +43,8 @@ impl GemAssetSelectionService {
             price_alerts,
             recent_activity,
             preferences,
+            perpetuals,
+            session,
         }
     }
 
@@ -42,23 +52,39 @@ impl GemAssetSelectionService {
         self.preferences.get_currency()
     }
 
-    pub async fn search_assets(&self, wallet: Wallet, query: String) -> Result<Vec<AssetBasic>, GemServiceError> {
-        self.search.search_assets(wallet, query, self.currency()).await
+    pub fn show_perpetuals(&self) -> bool {
+        self.session
+            .get_current_wallet()
+            .ok()
+            .flatten()
+            .is_some_and(|wallet| self.preferences.show_perpetuals(wallet))
     }
 
-    pub async fn set_assets_enabled(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
-        self.balances.set_assets_enabled(wallet_id, asset_ids, enabled).await
+    pub async fn search_assets(&self, query: String) -> Result<Vec<AssetBasic>, GemServiceError> {
+        self.search.search_assets(self.session.current_wallet()?, query, self.currency()).await
     }
 
-    pub async fn add_recent_asset(&self, activity_type: RecentActivityType, asset_id: AssetId, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        self.recent_activity.add_asset(activity_type, asset_id, wallet_id).await
+    pub async fn search(&self, query: String, scope: GemSearchScope) -> Result<bool, GemServiceError> {
+        self.search.search(self.session.current_wallet()?, query, scope, self.currency()).await
+    }
+
+    pub async fn set_assets_enabled(&self, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
+        self.balances.set_assets_enabled(self.session.current_wallet_id()?, asset_ids, enabled).await
+    }
+
+    pub async fn set_asset_pinned(&self, asset_id: AssetId, pinned: bool) -> Result<(), GemServiceError> {
+        self.balances.set_asset_pinned(self.session.current_wallet_id()?, asset_id, pinned).await
+    }
+
+    pub async fn set_perpetual_pinned(&self, perpetual_id: String, pinned: bool) -> Result<(), GemServiceError> {
+        self.perpetuals.set_pinned(perpetual_id, pinned).await
+    }
+
+    pub async fn add_recent(&self, action: GemAssetAction, asset: Asset) -> Result<(), GemServiceError> {
+        self.recent_activity.add_recent(action, asset).await
     }
 
     pub async fn set_price_alert(&self, asset_id: AssetId, enabled: bool) -> Result<(), GemServiceError> {
-        let alert = PriceAlert::new_auto(asset_id, self.currency());
-        match enabled {
-            true => self.price_alerts.enable_price_alert(alert).await,
-            false => self.price_alerts.delete_price_alerts(vec![alert]).await,
-        }
+        self.price_alerts.set_auto_alert(asset_id, enabled).await
     }
 }

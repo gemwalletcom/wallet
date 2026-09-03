@@ -12,12 +12,4 @@ public struct RecentActivityData: Sendable {
         self.assetId = assetId
         self.toAssetId = toAssetId
     }
-
-    public static func search(_ asset: Asset) -> RecentActivityData {
-        RecentActivityData(
-            type: asset.type == .perpetual ? .perpetual : .search,
-            assetId: asset.id,
-            toAssetId: nil,
-        )
-    }
 }

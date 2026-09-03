@@ -2,7 +2,7 @@
 
 ## Overview
 
-Real-time price, balance, and transaction updates via authenticated WebSocket connection using device authentication.
+Authenticated device WebSocket carrying price, balance, transaction, price-alert, NFT, perpetual, in-app-notification, fiat-transaction, and support updates.
 
 ## Endpoint
 
@@ -19,6 +19,8 @@ Uses the same device authentication as all `/v2/devices/*` endpoints.
 ## Protocol
 
 ### Client → Server Messages
+
+The active price controls are `getPrices`, `subscribePrices`, `addPrices`, and `unsubscribePrices`.
 
 **Subscribe to Prices:**
 ```json
@@ -60,6 +62,8 @@ Uses the same device authentication as all `/v2/devices/*` endpoints.
 }
 ```
 
+`subscribeRealtimePrices` and `unsubscribeRealtimePrices` remain accepted wire variants for compatibility, but the server currently treats them as no-ops.
+
 ### Server → Client Messages
 
 **Price Update:**
@@ -98,6 +102,18 @@ Uses the same device authentication as all `/v2/devices/*` endpoints.
 ```
 
 Transaction updates include affected assets so clients can refresh the corresponding balances.
+
+All server event variants are defined by `StreamEvent`:
+
+| `event` | Payload |
+|---|---|
+| `prices` | prices and optional fiat rates |
+| `balances` | wallet and affected asset IDs |
+| `transactions` | wallet, transaction IDs, and affected asset IDs |
+| `priceAlerts` | affected asset IDs |
+| `nft`, `perpetual`, `fiatTransaction` | affected wallet ID |
+| `inAppNotification` | wallet ID and notification |
+| `support` | support-stream event |
 
 ## Notes
 

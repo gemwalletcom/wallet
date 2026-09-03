@@ -1,40 +1,28 @@
 package com.gemwallet.android.data.coordinators.asset
 
 import android.util.Log
-import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
-import com.gemwallet.android.application.assets.cases.SyncBalances
+import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.runCatchingCancellable
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import com.gemwallet.android.ext.toIdentifier
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemWalletHomeServiceInterface
 
 class SyncAssetsImpl(
     private val getSession: GetSession,
-    private val deviceAssetsSyncService: DeviceAssetsSyncService,
     private val getWalletAssets: GetWalletAssets,
-    private val syncBalances: SyncBalances,
+    private val homeService: GemWalletHomeServiceInterface,
 ) : SyncAssets {
-    override suspend fun invoke() = syncAssets()
 
-    private suspend fun syncAssets() {
-        coroutineScope {
-            val walletId = getSession().value?.wallet?.id?.id
-            val balances = async {
-                runCatchingCancellable { syncBalances(getWalletAssets().firstOrNull().orEmpty()) }
-                    .onFailure { Log.e(TAG, "assets sync failed", it) }
-            }
-            val deviceAssets = walletId?.let { id ->
-                async {
-                    runCatchingCancellable { deviceAssetsSyncService.sync(id) }
-                        .onFailure { Log.e(TAG, "device assets sync failed for $id", it) }
-                }
-            }
-
-            balances.await()
-            deviceAssets?.await()
-        }
+    override suspend fun invoke() = withContext(Dispatchers.IO) {
+        val wallet = getSession().value?.wallet ?: return@withContext
+        val assetIds = getWalletAssets(wallet.id).firstOrNull().orEmpty().map { it.asset.id.toIdentifier() }
+        runCatchingCancellable { homeService.refresh(assetIds) }
+            .onFailure { Log.e(TAG, "assets refresh failed for ${wallet.id.id}", it) }
+        Unit
     }
 
     private companion object {

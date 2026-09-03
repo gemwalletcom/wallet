@@ -12,13 +12,6 @@ pub struct GemTransferAmount {
     pub is_max_amount: bool,
 }
 
-#[uniffi::remote(Error)]
-pub enum GemTransferAmountError {
-    InsufficientBalance { asset_id: AssetId, required: GemBigInt, available: GemBigInt },
-    InsufficientNetworkFee { asset_id: AssetId, required: GemBigInt, available: GemBigInt },
-    MinimumAccountBalanceTooLow { asset_id: AssetId, required: GemBigInt, available: GemBigInt },
-}
-
 pub(crate) struct GemTransferAmountInput {
     pub(crate) input_type: GemTransactionInputType,
     pub(crate) value: GemBigInt,

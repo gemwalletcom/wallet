@@ -37,7 +37,7 @@ public struct TransactionInputViewModel: Sendable {
     var value: BigInt {
         switch transferAmount {
         case let .success(amount): amount.value
-        case .failure, .none: BigInt(core: data.value)
+        case .failure, .none: data.value
         }
     }
 

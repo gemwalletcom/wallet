@@ -4,8 +4,8 @@ sealed interface ConfirmState {
     data object Prepare : ConfirmState
     data object Ready : ConfirmState
     data object Sending : ConfirmState
-    class Result(val transactionHash: String, val error: ConfirmError? = null) : ConfirmState
-    class Error(val message: ConfirmError) : ConfirmState
-    class BroadcastError(val message: ConfirmError) : ConfirmState
+    class Result(val transactionHash: String) : ConfirmState
+    class Error(val error: Throwable) : ConfirmState
+    class BroadcastError(val error: Throwable) : ConfirmState
     class FatalError(val messageRes: Int) : ConfirmState
 }

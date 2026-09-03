@@ -23,16 +23,6 @@ public extension Wallet {
         }
         return account
     }
-
-    var hyperliquidAccount: Account? {
-        accounts.first {
-            $0.chain == .arbitrum || $0.chain == .hyperCore || $0.chain == .hyperliquid
-        }
-    }
-
-    var hasPerpetualsSupport: Bool {
-        isMultiCoins && hyperliquidAccount != nil
-    }
 }
 
 /// factory

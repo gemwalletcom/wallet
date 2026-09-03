@@ -1,16 +1,16 @@
+use crate::config::docs::DocsUrl;
 use crate::models::custom_types::GemBigInt;
-use primitives::{AssetId, BannerEvent, BannerState, Chain, WalletId};
+use primitives::{AssetId, BannerEvent, BannerState, Chain, Wallet, WalletId};
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemBannerContext {
-    pub has_wallet: bool,
+    pub wallet: Option<Wallet>,
     pub has_asset: bool,
     pub is_stakeable: bool,
     pub has_stake_balance: bool,
     pub has_available_balance: bool,
     pub is_asset_activated: bool,
     pub asset_rank_score: Option<i32>,
-    pub has_perpetuals_support: bool,
     pub is_wallet_empty: bool,
 }
 
@@ -88,11 +88,18 @@ pub enum GemBannerDescription {
     TradePerpetuals,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemBannerLink {
+    Docs { item: DocsUrl },
+    External { url: String },
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemBannerContent {
     pub icon: Option<GemBannerIcon>,
     pub title: Option<GemBannerTitle>,
     pub description: Option<GemBannerDescription>,
+    pub link: Option<GemBannerLink>,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]

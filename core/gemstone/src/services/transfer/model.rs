@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::custom_types::GemBigInt;
 use crate::models::transaction::{GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadMetadata};
-use primitives::{AssetId, RecentActivityType, SimulationResult, TransactionType, TransferDataOutputAction, TransferDataOutputType};
+use primitives::{AssetId, RecentActivityType, Resource, SimulationResult, TransactionType, TransferDataOutputAction, TransferDataOutputType};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemRecentActivity {
@@ -22,6 +22,24 @@ pub struct GemRecipient {
     pub references: Vec<String>,
 }
 
+impl GemRecipient {
+    pub fn address(address: String) -> Self {
+        Self {
+            address,
+            name: None,
+            memo: None,
+            references: Vec::new(),
+        }
+    }
+
+    pub fn named(address: String, name: String) -> Self {
+        Self {
+            name: Some(name),
+            ..Self::address(address)
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, uniffi::Record)]
 pub struct GemTransferData {
     pub input_type: GemTransactionInputType,
@@ -33,15 +51,6 @@ pub struct GemTransferData {
     #[serde(with = "crate::models::custom_types::decimal_string::optional")]
     #[uniffi(default = None)]
     pub minimum_value: Option<GemBigInt>,
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemTransferBalance {
-    pub available: GemBigInt,
-    pub frozen: GemBigInt,
-    pub locked: GemBigInt,
-    pub withdrawable: GemBigInt,
-    pub votes: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -81,4 +90,13 @@ mod wire_format_tests {
             r#"{"input_type":{},"recipient":{"address":"r","name":null,"memo":null,"references":[]},"value":"not-a-number","use_max_amount":false,"minimum_value":null}"#;
         assert!(serde_json::from_str::<GemTransferData>(malformed).is_err());
     }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemConfirmDestination {
+    Recipient { name: Option<String>, address: String },
+    Contract { address: String },
+    Validator { name: String, address: String },
+    Resource { resource: Resource },
+    Provider { name: String, address: String },
 }

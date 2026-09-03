@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
 import Primitives
 import Stake
 import SwiftUI

@@ -1,6 +1,9 @@
+pub mod model;
 pub mod rules;
-pub mod status;
+pub mod settings;
 pub mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesStore;
@@ -10,7 +13,8 @@ use primitives::Chain;
 use primitives::node::{Node, NodeState};
 use primitives::node_config::NodeRegion;
 
-pub use status::GemNodeStatusService;
+pub use model::{GemAddNodeError, GemNodeCheck, GemNodeStatusState};
+pub use settings::GemChainSettingsService;
 pub use store::GemNodeStore;
 
 const NODE: &str = "node";
@@ -28,10 +32,6 @@ impl GemNodeService {
         Self { store, preferences }
     }
 
-    pub fn get_default_nodes(&self, chain: Chain) -> Vec<Node> {
-        rules::default_nodes(chain)
-    }
-
     pub async fn get_nodes(&self, chain: Chain) -> Result<Vec<Node>, GemServiceError> {
         let stored = self.store.get_nodes(chain).await?;
         let nodes = rules::merge_nodes(rules::default_nodes(chain), stored);
@@ -45,10 +45,6 @@ impl GemNodeService {
 
     pub fn can_delete_node(&self, chain: Chain, url: String) -> bool {
         rules::can_delete_node(chain, &url)
-    }
-
-    pub fn sorted_nodes(&self, chain: Chain, nodes: Vec<Node>) -> Vec<Node> {
-        rules::sorted_nodes(chain, nodes)
     }
 
     pub fn node_url(&self, chain: Chain) -> String {
@@ -97,6 +93,15 @@ impl GemNodeService {
 }
 
 impl GemNodeService {
+    pub fn get_default_nodes(&self, chain: Chain) -> Vec<Node> {
+        rules::default_nodes(chain)
+    }
+    pub fn sorted_nodes(&self, chain: Chain, nodes: Vec<Node>) -> Vec<Node> {
+        rules::sorted_nodes(chain, nodes)
+    }
+}
+
+impl GemNodeService {
     fn selected_url(&self, chain: Chain) -> Option<String> {
         self.preferences.get(node_key(chain))
     }
@@ -113,55 +118,9 @@ fn node_key(chain: Chain) -> String {
 #[cfg(test)]
 mod tests {
     use super::rules::*;
+    use super::testkit::MemoryNodeStore;
     use super::*;
-    use std::collections::HashMap;
-    use std::sync::Mutex;
-
-    #[derive(Default)]
-    struct MemoryStore {
-        nodes: Mutex<Vec<Node>>,
-    }
-
-    #[async_trait::async_trait]
-    impl GemNodeStore for MemoryStore {
-        async fn get_nodes(&self, _chain: Chain) -> Result<Vec<Node>, GemServiceError> {
-            Ok(self.nodes.lock().unwrap().clone())
-        }
-        async fn add_node(&self, _chain: Chain, node: Node) -> Result<(), GemServiceError> {
-            self.nodes.lock().unwrap().push(node);
-            Ok(())
-        }
-        async fn delete_node(&self, _chain: Chain, url: String) -> Result<(), GemServiceError> {
-            self.nodes.lock().unwrap().retain(|node| node.url != url);
-            Ok(())
-        }
-    }
-
-    #[derive(Default)]
-    struct MemoryPreferences {
-        values: Mutex<HashMap<String, String>>,
-    }
-
-    impl GemPreferencesStore for MemoryPreferences {
-        fn get(&self, key: String) -> Option<String> {
-            self.values.lock().unwrap().get(&key).cloned()
-        }
-
-        fn set(&self, key: String, value: String) -> Result<(), GemServiceError> {
-            self.values.lock().unwrap().insert(key, value);
-            Ok(())
-        }
-
-        fn remove(&self, key: String) -> Result<(), GemServiceError> {
-            self.values.lock().unwrap().remove(&key);
-            Ok(())
-        }
-
-        fn clear(&self) -> Result<(), GemServiceError> {
-            self.values.lock().unwrap().clear();
-            Ok(())
-        }
-    }
+    use crate::services::preferences::testkit::MemoryPreferencesStore;
 
     fn node(url: &str) -> Node {
         Node {
@@ -182,8 +141,8 @@ mod tests {
     #[test]
     fn test_selected_node_falls_back_to_us_region() {
         futures::executor::block_on(async {
-            let store = Arc::new(MemoryStore::default());
-            let preferences = Arc::new(MemoryPreferences::default());
+            let store = Arc::new(MemoryNodeStore::default());
+            let preferences = Arc::new(MemoryPreferencesStore::default());
             let service = GemNodeService::new(store, preferences.clone());
 
             assert_eq!(service.node_url(Chain::Ethereum), NodeRegion::Us.url(Chain::Ethereum));
@@ -199,8 +158,8 @@ mod tests {
     #[test]
     fn test_delete_node_keeps_defaults_and_selects_fallback() {
         futures::executor::block_on(async {
-            let store = Arc::new(MemoryStore::default());
-            let preferences = Arc::new(MemoryPreferences::default());
+            let store = Arc::new(MemoryNodeStore::default());
+            let preferences = Arc::new(MemoryPreferencesStore::default());
             let service = GemNodeService::new(store.clone(), preferences.clone());
             let default_url = NodeRegion::Eu.url(Chain::Ethereum);
 
@@ -218,8 +177,8 @@ mod tests {
 
     #[test]
     fn test_node_url_uses_persisted_selection_and_falls_back_when_unset() {
-        let preferences = Arc::new(MemoryPreferences::default());
-        let service = GemNodeService::new(Arc::new(MemoryStore::default()), preferences.clone());
+        let preferences = Arc::new(MemoryPreferencesStore::default());
+        let service = GemNodeService::new(Arc::new(MemoryNodeStore::default()), preferences.clone());
         let us_url = NodeRegion::Us.url(Chain::Ethereum);
 
         assert_eq!(service.node_url(Chain::Ethereum), us_url);

@@ -1,27 +1,26 @@
 package com.gemwallet.android.features.perpetual.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.perpetual.cases.BuildPerpetualParams
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
-import com.gemwallet.android.application.perpetual.cases.GetPerpetualChartData
-import com.gemwallet.android.application.perpetual.cases.GetPerpetualChartPeriod
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPosition
-import com.gemwallet.android.application.perpetual.cases.PerpetualCandles
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 
-import com.gemwallet.android.application.perpetual.cases.SetPerpetualChartPeriod
-import com.gemwallet.android.application.perpetual.cases.SyncPerpetualPositions
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.application.transactions.cases.SyncAssetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.ChartCandleStick
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TransactionType
@@ -38,8 +37,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -49,7 +48,8 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemPerpetualSubscription
+import uniffi.gemstone.GemPerpetualDetailsServiceInterface
+import uniffi.gemstone.GemPerpetualPositionKind
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -57,21 +57,17 @@ import javax.inject.Inject
 class PerpetualDetailsViewModel @Inject constructor(
     private val getPerpetual: GetPerpetual,
     private val getPerpetualPosition: GetPerpetualPosition,
-    private val getPerpetualChartData: GetPerpetualChartData,
     private val getTransactions: GetTransactions,
-    private val syncAssetTransactions: SyncAssetTransactions,
-    private val syncPerpetualPositions: SyncPerpetualPositions,
     private val buildPerpetualParams: BuildPerpetualParams,
     private val perpetualObserver: PerpetualObserver,
-    private val perpetualCandles: PerpetualCandles,
-    getSession: GetSession,
-    getPerpetualChartPeriod: GetPerpetualChartPeriod,
-    private val setPerpetualChartPeriod: SetPerpetualChartPeriod,
+    private val service: GemPerpetualDetailsServiceInterface,
+    private val getSession: GetSession,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private companion object {
         const val SubscriptionGraceMillis = 5_000L
+        const val TAG = "PerpetualDetails"
     }
 
     val assetId = savedStateHandle.requireAssetId()
@@ -87,7 +83,7 @@ class PerpetualDetailsViewModel @Inject constructor(
     )
 
     private val transactionSync = flow {
-        syncAssetTransactions.syncAssetTransactions(assetId)
+        runCatchingCancellable { service.syncTransactions(assetId.toIdentifier()) }
         emit(Unit)
     }
         .onStart { emit(Unit) }
@@ -114,7 +110,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val period = MutableStateFlow(getPerpetualChartPeriod())
+    val period = MutableStateFlow(service.chartPeriod().decodeJson<ChartPeriod>())
 
     private val refreshTrigger = MutableStateFlow(0L)
     private val refreshState = MutableStateFlow(false)
@@ -125,14 +121,15 @@ class PerpetualDetailsViewModel @Inject constructor(
             flow {
                 emit(StateViewType.Loading)
                 try {
-                    val interval = perpetualCandles.candleInterval(period)
-                    var candles = getPerpetualChartData.getPerpetualChartData(assetId, period)
+                    val market = perpetual.value?.perpetual
+                    var candles = market?.let { service.candlesticks(it.toJson(), period.toJson()).map { candle -> candle.decodeJson<ChartCandleStick>() } }.orEmpty()
                     refreshState.value = false
                     emit(candles.toChartState())
+                    if (market == null) return@flow
                     perpetualObserver.chartUpdates
-                        .filter { it.coin == perpetual.value?.coin && it.interval == interval }
                         .collect { update ->
-                            candles = perpetualCandles.mergeCandle(candles, update.candle)
+                            candles = service.applyCandleUpdate(candles.map { it.toJson() }, update.toJson(), market.toJson(), period.toJson())
+                                ?.map { it.decodeJson<ChartCandleStick>() } ?: return@collect
                             emit(candles.toChartState())
                         }
                 } catch (e: Exception) {
@@ -151,17 +148,17 @@ class PerpetualDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 screenVisible,
-                perpetual.map { it?.coin }.distinctUntilChanged(),
+                perpetual.map { it?.perpetual }.distinctUntilChanged(),
                 period,
-            ) { isVisible, coin, period ->
-                if (isVisible && coin != null) coin to period else null
+            ) { isVisible, market, period ->
+                if (isVisible && market != null) market to period else null
             }
                 .distinctUntilChanged()
                 .collectLatest { subscriptionKey ->
-                    val (coin, period) = subscriptionKey ?: return@collectLatest
+                    val (market, period) = subscriptionKey ?: return@collectLatest
                     val subscriptions = listOf(
-                        GemPerpetualSubscription.Candle(symbol = coin, interval = perpetualCandles.candleInterval(period)),
-                        GemPerpetualSubscription.MarketData(symbol = coin),
+                        service.candleSubscription(market.toJson(), period.toJson()),
+                        service.marketSubscription(market.toJson()),
                     )
                     subscriptions.forEach(perpetualObserver::subscribe)
                     try {
@@ -182,14 +179,15 @@ class PerpetualDetailsViewModel @Inject constructor(
     }
 
     fun period(period: ChartPeriod) {
-        viewModelScope.launch(Dispatchers.IO) { setPerpetualChartPeriod(period) }
+        viewModelScope.launch(Dispatchers.IO) { service.setChartPeriod(period.toJson()) }
         this.period.update { period }
     }
 
     fun fetch() {
         refreshTrigger.update { it + 1 }
         viewModelScope.launch(Dispatchers.IO) {
-            syncPerpetualPositions.syncPerpetualPositions()
+            runCatchingCancellable { service.syncPositions() }
+                .onFailure { Log.e(TAG, "perpetual positions sync failed", it) }
         }
     }
 
@@ -198,31 +196,28 @@ class PerpetualDetailsViewModel @Inject constructor(
         fetch()
     }
 
-    fun openPosition(direction: PerpetualDirection, amountAction: AmountTransactionAction) {
-        val perpetualId = perpetual.value?.id ?: return
-        viewModelScope.launch {
-            buildPerpetualParams.open(perpetualId, direction)?.let(amountAction::invoke)
-        }
-    }
+    fun openPosition(direction: PerpetualDirection, amountAction: AmountTransactionAction) =
+        position(GemPerpetualPositionKind.Open(direction.toJson()), amountAction)
 
-    fun increasePosition(amountAction: AmountTransactionAction) {
-        val perpetualId = perpetual.value?.id ?: return
-        viewModelScope.launch {
-            buildPerpetualParams.increase(perpetualId)?.let(amountAction::invoke)
-        }
-    }
+    fun increasePosition(amountAction: AmountTransactionAction) = position(GemPerpetualPositionKind.Increase, amountAction)
 
-    fun reducePosition(amountAction: AmountTransactionAction) {
+    fun reducePosition(amountAction: AmountTransactionAction) = position(GemPerpetualPositionKind.Reduce, amountAction)
+
+    private fun position(kind: GemPerpetualPositionKind, amountAction: AmountTransactionAction) {
         val perpetualId = perpetual.value?.id ?: return
         viewModelScope.launch {
-            buildPerpetualParams.reduce(perpetualId)?.let(amountAction::invoke)
+            runCatchingCancellable { buildPerpetualParams.position(perpetualId, kind) }
+                .onSuccess { params -> params?.let(amountAction::invoke) }
+                .onFailure { Log.e(TAG, "perpetual position action failed", it) }
         }
     }
 
     fun closePosition(confirmAction: ConfirmTransactionAction) {
         val perpetualId = perpetual.value?.id ?: return
         viewModelScope.launch {
-            buildPerpetualParams.close(perpetualId)?.let(confirmAction::invoke)
+            runCatchingCancellable { buildPerpetualParams.close(perpetualId) }
+                .onSuccess { input -> input?.let(confirmAction::invoke) }
+                .onFailure { Log.e(TAG, "perpetual close failed", it) }
         }
     }
 }

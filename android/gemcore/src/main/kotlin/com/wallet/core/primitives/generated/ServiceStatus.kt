@@ -14,7 +14,7 @@ sealed class ServiceStatusState {
 	object Loading: ServiceStatusState()
 	@Serializable
 	@SerialName("result")
-	data class Result(val latencyMilliseconds: Long): ServiceStatusState()
+	data class Result(val latency: Latency): ServiceStatusState()
 	@Serializable
 	@SerialName("error")
 	object Error: ServiceStatusState()

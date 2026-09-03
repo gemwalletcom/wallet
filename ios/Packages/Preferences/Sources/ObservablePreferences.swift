@@ -105,6 +105,10 @@ public final class ObservablePreferences: Sendable {
         return preferencesService.showPerpetuals(wallet: wallet.json())
     }
 
+    public func showCollections(for wallet: Wallet) -> Bool {
+        preferencesService.showCollections(wallet: wallet.json())
+    }
+
     private func write(_ operation: () throws -> Void) {
         do {
             try operation()

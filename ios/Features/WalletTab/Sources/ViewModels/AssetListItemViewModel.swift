@@ -1,15 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemImage
+import GemstonePrimitives
 import Primitives
 
 struct AssetListItemViewModel: Identifiable {
     private let list: AssetList
-    private let assetImageFormatter: AssetImageFormatter
-
-    init(list: AssetList, assetImageFormatter: AssetImageFormatter = .shared) {
+    init(list: AssetList) {
         self.list = list
-        self.assetImageFormatter = assetImageFormatter
     }
 
     var id: String {
@@ -25,6 +24,6 @@ struct AssetListItemViewModel: Identifiable {
     }
 
     var image: AssetImage {
-        AssetImage(type: .text(list.name), imageURL: assetImageFormatter.getListUrl(for: list.id))
+        AssetImage(type: .text(list.name), imageURL: GemImage.assetList(listId: list.id).imageURL)
     }
 }

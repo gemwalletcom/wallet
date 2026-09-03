@@ -1,10 +1,8 @@
 package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.application.swap.cases.BuildSwapConfirmInput
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
 import com.gemwallet.android.application.swap.cases.SearchSwapAssets
-import com.gemwallet.android.data.coordinators.swap.BuildSwapConfirmInputImpl
 import com.gemwallet.android.data.coordinators.swap.RequestSwapQuotesImpl
 import com.gemwallet.android.data.coordinators.swap.SearchSwapAssetsImpl
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
@@ -20,8 +18,14 @@ import uniffi.gemstone.GemKeystore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneSwapStore
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.TransactionsDao
+import uniffi.gemstone.GemBalanceService
+import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemStreamSubscriptionService
+import uniffi.gemstone.GemSwapQuoteService
+import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemSwapService
 import uniffi.gemstone.GemSwapServiceInterface
+import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemSwapper
 
 @InstallIn(SingletonComponent::class)
@@ -52,23 +56,25 @@ object SwapModule {
 
     @Singleton
     @Provides
-    fun provideRequestSwapQuotes(
-        getSession: GetSession,
+    fun provideGemSwapQuoteService(
         swapService: GemSwapServiceInterface,
-    ): RequestSwapQuotes = RequestSwapQuotesImpl(
-        getSession = getSession,
-        swapService = swapService,
+        preferencesService: GemPreferencesService,
+        balanceService: GemBalanceService,
+        streamSubscriptionService: GemStreamSubscriptionService,
+        walletSessionService: GemWalletSessionService,
+    ): GemSwapQuoteServiceInterface = GemSwapQuoteService(
+        swap = swapService as GemSwapService,
+        preferences = preferencesService,
+        balances = balanceService,
+        stream = streamSubscriptionService,
+        session = walletSessionService,
     )
 
     @Singleton
     @Provides
-    fun provideBuildSwapConfirmInput(
-        getSession: GetSession,
-        swapService: GemSwapServiceInterface,
-    ): BuildSwapConfirmInput = BuildSwapConfirmInputImpl(
-        getSession = getSession,
-        swapService = swapService,
-    )
+    fun provideRequestSwapQuotes(
+        swapService: GemSwapQuoteServiceInterface,
+    ): RequestSwapQuotes = RequestSwapQuotesImpl(swapService)
 
     @Singleton
     @Provides

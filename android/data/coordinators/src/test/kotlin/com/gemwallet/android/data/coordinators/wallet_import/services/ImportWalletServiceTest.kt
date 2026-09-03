@@ -17,7 +17,7 @@ import uniffi.gemstone.GemDeviceService
 class ImportWalletServiceTest {
 
     private val discoveryService = mockk<GemAssetDiscoveryService> {
-        coEvery { discover(any()) } returns emptyList()
+        coEvery { discover(any()) } returns Unit
     }
     private val deviceService = mockk<GemDeviceService>(relaxed = true)
 

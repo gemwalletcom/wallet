@@ -137,11 +137,6 @@ fn swapper_provider_to_str(provider: SwapperProvider) -> String {
     provider.as_ref().to_string()
 }
 
-#[uniffi::export]
-fn swapper_provider_config(provider: SwapperProvider) -> SwapperProviderType {
-    SwapperProviderType::new(provider)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

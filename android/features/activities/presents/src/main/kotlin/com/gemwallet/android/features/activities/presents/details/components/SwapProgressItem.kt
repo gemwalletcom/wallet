@@ -47,15 +47,16 @@ import com.gemwallet.android.ui.theme.space4
 import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space8
 import com.gemwallet.android.ui.theme.space24
-import com.wallet.core.primitives.TransactionState
+import uniffi.gemstone.GemSwapProgressStep
 
 @Composable
 internal fun SwapProgressItem(progress: TransactionDetailsValue.SwapProgress) {
     val chainName = progress.fromAsset.chain.networkName()
     val transferValue = ValueFormatter(style = ValueFormatter.Style.Auto)
-        .string(progress.fromValue.toBigInteger(), progress.fromAsset)
+        .string(progress.fromValue, progress.fromAsset)
 
-    val statuses = progress.state.swapProgressStatuses()
+    val transferStatus = progress.transfer.status()
+    val swapStatus = progress.swap.status()
     val estimatedTime = progress.etaInSeconds?.let(::formatEstimatedConfirmation)
 
     Row(
@@ -67,8 +68,8 @@ internal fun SwapProgressItem(progress: TransactionDetailsValue.SwapProgress) {
         verticalAlignment = Alignment.Top,
     ) {
         Timeline(
-            transferStatus = statuses.transfer,
-            swapStatus = statuses.swap,
+            transferStatus = transferStatus,
+            swapStatus = swapStatus,
         )
         Column(
             modifier = Modifier.weight(1f),
@@ -77,13 +78,13 @@ internal fun SwapProgressItem(progress: TransactionDetailsValue.SwapProgress) {
             ProgressStep(
                 title = stringResource(R.string.transfer_title),
                 subtitle = "$transferValue ($chainName)",
-                status = statuses.transfer,
+                status = transferStatus,
                 estimatedTime = estimatedTime,
             )
             ProgressStep(
                 title = stringResource(R.string.wallet_swap),
                 subtitle = progress.providerName,
-                status = statuses.swap,
+                status = swapStatus,
                 estimatedTime = estimatedTime,
             )
         }
@@ -245,34 +246,12 @@ private fun StatusTag(status: SwapProgressStatus) {
     )
 }
 
-internal data class SwapProgressStatuses(
-    val transfer: SwapProgressStatus,
-    val swap: SwapProgressStatus,
-)
-
-internal fun TransactionState.swapProgressStatuses(): SwapProgressStatuses {
-    return when (this) {
-        TransactionState.Pending -> SwapProgressStatuses(
-            transfer = SwapProgressStatus.Pending,
-            swap = SwapProgressStatus.Waiting,
-        )
-        TransactionState.InTransit -> SwapProgressStatuses(
-            transfer = SwapProgressStatus.Completed,
-            swap = SwapProgressStatus.Pending,
-        )
-        TransactionState.Confirmed -> SwapProgressStatuses(
-            transfer = SwapProgressStatus.Completed,
-            swap = SwapProgressStatus.Completed,
-        )
-        TransactionState.Failed -> SwapProgressStatuses(
-            transfer = SwapProgressStatus.Completed,
-            swap = SwapProgressStatus.Failed,
-        )
-        TransactionState.Reverted -> SwapProgressStatuses(
-            transfer = SwapProgressStatus.Reverted,
-            swap = SwapProgressStatus.Waiting,
-        )
-    }
+internal fun GemSwapProgressStep.status(): SwapProgressStatus = when (this) {
+    GemSwapProgressStep.PENDING -> SwapProgressStatus.Pending
+    GemSwapProgressStep.WAITING -> SwapProgressStatus.Waiting
+    GemSwapProgressStep.COMPLETED -> SwapProgressStatus.Completed
+    GemSwapProgressStep.FAILED -> SwapProgressStatus.Failed
+    GemSwapProgressStep.REVERTED -> SwapProgressStatus.Reverted
 }
 
 internal enum class SwapProgressStatus {

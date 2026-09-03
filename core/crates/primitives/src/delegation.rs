@@ -98,6 +98,10 @@ impl DelegationValidator {
     pub fn system(chain: Chain) -> Self {
         Self::stake(chain, Self::SYSTEM_ID.to_string(), Self::SYSTEM_NAME.to_string(), true, 0.0, 0.0)
     }
+
+    pub fn is_system_id(id: &str) -> bool {
+        id == Self::SYSTEM_ID || id == "unstaking"
+    }
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, Display, AsRefStr, EnumString, PartialEq)]

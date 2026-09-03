@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAmountService
 import BigInt
 import Formatters
 import Foundation
 import enum Gemstone.GemAmountType
 import enum Gemstone.GemAmountStakeType
+import protocol Gemstone.GemAmountServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -23,12 +23,12 @@ public enum AmountStakeSelection {
 public final class AmountStakeViewModel: AmountDataProvidable {
     let asset: Asset
     let action: AmountStakeType
-    let amountService: GemAmountService
     public let selection: AmountStakeSelection
+    private let service: any GemAmountServiceProtocol
 
-    init(asset: Asset, type: AmountStakeType, amountService: GemAmountService) {
-        self.amountService = amountService
+    init(asset: Asset, type: AmountStakeType, service: any GemAmountServiceProtocol) {
         self.asset = asset
+        self.service = service
         action = type
         selection = Self.makeSelection(type: type)
     }
@@ -130,29 +130,20 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         switch selection {
         case let .validator(state):
             return RecipientData(
-                recipient: Recipient(
-                    name: state.selected.name,
-                    address: state.selected.id,
-                    memo: nil,
-                ),
+                recipient: GemRecipient(address: state.selected.id, name: state.selected.name),
                 amount: nil,
             )
         case let .resource(state):
             let title = ResourceViewModel(resource: state.selected).title
             return RecipientData(
-                recipient: Recipient(name: title, address: title, memo: nil),
+                recipient: GemRecipient(address: title, name: title),
                 amount: nil,
             )
         }
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> GemTransferData {
-        try GemTransferData(
-            inputType: .stake(asset, getStakeType()),
-            recipient: recipientData().recipient.gem,
-            value: value,
-            useMaxAmount: useMaxAmount,
-        )
+        try service.stakeTransferData(asset: asset.map(), stakeType: getStakeType().json(), value: value, useMaxAmount: useMaxAmount)
     }
 
     private func getStakeType() throws -> StakeType {

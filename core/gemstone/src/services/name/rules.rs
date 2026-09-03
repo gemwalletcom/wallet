@@ -2,6 +2,12 @@ use primitives::ChainAddress;
 
 use crate::services::collections::unique_by;
 
+const NAME_RECORD_DEBOUNCE_MILLISECONDS: u64 = 250;
+
+pub fn name_record_debounce_milliseconds() -> u64 {
+    NAME_RECORD_DEBOUNCE_MILLISECONDS
+}
+
 pub fn is_name_supported(name: &str) -> bool {
     let parts: Vec<&str> = name.split('.').collect();
     parts.len() >= 2 && parts.last().is_some_and(|suffix| !suffix.is_empty())

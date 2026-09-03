@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemRecipient
 import Assets
 import Components
 import FiatConnect
@@ -14,9 +15,6 @@ import struct Gemstone.GemTransferData
 
 struct SelectAssetSceneNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.balanceService) private var balanceService
-    @Environment(\.assetsService) private var assetsService
-    @Environment(\.receiveService) private var receiveService
     @Environment(\.dismiss) private var dismiss
 
     @State private var isPresentingFilteringView: Bool = false
@@ -76,15 +74,7 @@ struct SelectAssetSceneNavigationStack: View {
                             ),
                         )
                     case .receive:
-                        ReceiveScene(
-                            model: ReceiveViewModel(
-                                assetData: input.assetData,
-                                wallet: model.wallet,
-                                balanceService: balanceService,
-                                assetsService: assetsService,
-                                receiveService: receiveService,
-                            ),
-                        )
+                        ReceiveScene(model: viewModelFactory.receiveScene(assetData: input.assetData, wallet: model.wallet))
                     case .buy:
                         FiatConnectNavigationView(
                             model: viewModelFactory.fiatScene(
@@ -96,7 +86,7 @@ struct SelectAssetSceneNavigationStack: View {
                         AmountNavigationView(
                             model: viewModelFactory.amountScene(
                                 input: AmountInput(
-                                    type: .deposit(recipient: .hyperliquidDeposit),
+                                    type: .deposit(recipient: RecipientData(recipient: PerpetualFormatter(provider: .hypercore).depositRecipient, amount: .none)),
                                     asset: input.asset,
                                 ),
                                 wallet: model.wallet,
@@ -106,11 +96,7 @@ struct SelectAssetSceneNavigationStack: View {
                             ),
                         )
                     case .withdraw:
-                        let withdrawRecipient = Recipient(
-                            name: model.wallet.name,
-                            address: input.assetAddress.address,
-                            memo: nil,
-                        )
+                        let withdrawRecipient = GemRecipient(address: input.assetAddress.address, name: model.wallet.name)
                         AmountNavigationView(
                             model: viewModelFactory.amountScene(
                                 input: AmountInput(

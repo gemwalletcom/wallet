@@ -1,8 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemBalanceServiceProtocol
-import protocol Gemstone.GemAssetsServiceProtocol
-import class Gemstone.GemReceiveService
 import GemstoneServices
 import Components
 import FiatConnect
@@ -19,9 +16,6 @@ import struct Gemstone.GemTransferData
 
 struct ConfirmTransferNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.balanceService) private var balanceService
-    @Environment(\.assetsService) private var assetsService
-    @Environment(\.receiveService) private var receiveService
 
     @State var model: ConfirmTransferSceneViewModel
 
@@ -60,9 +54,6 @@ struct ConfirmTransferNavigationView: View {
                         buyAmount: buyAmount,
                         model: model,
                         viewModelFactory: viewModelFactory,
-                        balanceService: balanceService,
-                        assetsService: assetsService,
-                        receiveService: receiveService,
                     )
                 case let .selectedAsset(input, wallet):
                     SelectedAssetNavigationStack(
@@ -98,9 +89,6 @@ private struct GetAssetNavigationStack: View {
     let buyAmount: Int?
     let model: ConfirmTransferSceneViewModel
     let viewModelFactory: ViewModelFactory
-    let balanceService: any GemBalanceServiceProtocol
-    let assetsService: any GemAssetsServiceProtocol
-    let receiveService: GemReceiveService
 
     @State private var selectedAction: GetAssetAction?
     @State private var actionNavigationPath = NavigationPath()
@@ -163,15 +151,7 @@ private struct GetAssetNavigationStack: View {
                 ),
             )
         case .receive:
-            ReceiveScene(
-                model: ReceiveViewModel(
-                    assetAddress: model.assetAddress(asset),
-                    wallet: model.assetAcquisitionWallet,
-                    balanceService: balanceService,
-                    assetsService: assetsService,
-                    receiveService: receiveService,
-                ),
-            )
+            ReceiveScene(model: viewModelFactory.receiveScene(assetAddress: model.assetAddress(asset), wallet: model.assetAcquisitionWallet))
         }
     }
 }

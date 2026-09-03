@@ -1,21 +1,24 @@
 use primitives::{
-    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, Transaction, TransactionPreloadInput,
-    Wallet,
+    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, FeeUnitType, GasPriceType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, Transaction,
+    TransactionPreloadInput, Wallet,
 };
 
-use super::error::GemConfirmError;
+use super::error::{GemBalanceRequirement, GemConfirmError};
 use super::model::{
-    GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemFeeAsset, GemSendInput, GemTransferAmountResult,
+    GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemFeeAsset, GemFeeRateRow, GemFeeRateRows,
+    GemTransferAmountResult, SendInput,
 };
+use crate::config::chain::custom_fee_enabled;
 use crate::models::custom_types::GemBigUint;
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput};
 use crate::services::balance::GemAssetBalance;
 use crate::services::price::GemAssetPrice;
-use crate::services::transfer::{GemPendingTransactionInput, GemTransferBalance};
+use crate::services::transfer::GemPendingTransactionInput;
 use crate::transfer_amount::{GemTransferAmountError, GemTransferAmountInput};
+use num_bigint::BigInt;
 
-impl GemSendInput {
+impl SendInput {
     pub(super) fn signer_input(&self) -> Result<GemSignerInput, GemConfirmError> {
         let GemConfirmInput { from, transfer } = &self.confirm.input;
         let chain = transfer.input_type.asset().chain();
@@ -62,16 +65,6 @@ pub fn metadata_asset_ids(asset_id: &AssetId, fee_asset_id: &AssetId, extra_asse
     asset_ids
 }
 
-fn transfer_balance(balance: &GemAssetBalance) -> GemTransferBalance {
-    GemTransferBalance {
-        available: balance.available.clone().into(),
-        frozen: balance.frozen.clone().into(),
-        locked: balance.locked.clone().into(),
-        withdrawable: balance.withdrawable.clone().into(),
-        votes: balance.metadata.as_ref().map(|metadata| metadata.votes).unwrap_or_default(),
-    }
-}
-
 impl GemTransactionInputType {
     pub(super) fn approval_value(&self) -> Option<(AssetId, GemApprovalValue)> {
         match self {
@@ -97,7 +90,7 @@ pub fn approval_value_from(value: &Option<GemBigUint>, is_unlimited: bool) -> Ge
     }
 }
 
-pub fn gem_approval_value(value: &GemBigUint, is_unlimited: bool) -> GemApprovalValue {
+fn gem_approval_value(value: &GemBigUint, is_unlimited: bool) -> GemApprovalValue {
     if is_unlimited {
         GemApprovalValue::Unlimited
     } else {
@@ -105,11 +98,19 @@ pub fn gem_approval_value(value: &GemBigUint, is_unlimited: bool) -> GemApproval
     }
 }
 
+#[uniffi::export]
+impl GemConfirmData {
+    pub fn fee_rate_rows(&self, selection: GemConfirmFeeSelection, fee_asset: Asset) -> GemFeeRateRows {
+        fee_rate_rows(self.input.transfer.input_type.asset().chain(), &fee_asset, &self.fee_rates, &selection, &self.fee.fee)
+    }
+}
+
 impl GemConfirmData {
     pub(super) fn preload_amount(&self, metadata: &GemConfirmMetadata, fee_asset: &Asset) -> Result<GemTransferAmountResult, GemConfirmError> {
         let transfer = &self.input.transfer;
-        let balance = transfer_balance(&metadata.asset_balance);
-        let available_value = transfer.available_value(&balance).map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
+        let available_value = transfer
+            .available_value(&metadata.asset_balance)
+            .map_err(|error| GemConfirmError::Load { msg: error.to_string() })?;
         let input = GemTransferAmountInput {
             input_type: transfer.input_type.clone(),
             value: transfer.value.clone(),
@@ -123,20 +124,28 @@ impl GemConfirmData {
         Ok(match input.calculate() {
             Ok(amount) => GemTransferAmountResult::Amount { amount },
             Err(error) => GemTransferAmountResult::Error {
-                asset: amount_error_asset(&error, transfer.input_type.asset(), fee_asset),
-                error,
+                error: amount_error(error, transfer.input_type.asset(), fee_asset),
             },
         })
     }
 }
 
-fn amount_error_asset(error: &GemTransferAmountError, asset: &Asset, fee_asset: &Asset) -> Asset {
-    let asset_id = match error {
-        GemTransferAmountError::InsufficientBalance { asset_id, .. }
-        | GemTransferAmountError::InsufficientNetworkFee { asset_id, .. }
-        | GemTransferAmountError::MinimumAccountBalanceTooLow { asset_id, .. } => asset_id,
-    };
-    if &asset.id == asset_id { asset.clone() } else { fee_asset.clone() }
+fn amount_error(error: GemTransferAmountError, asset: &Asset, fee_asset: &Asset) -> GemConfirmError {
+    let error_asset = |asset_id: &AssetId| if &asset.id == asset_id { asset.clone() } else { fee_asset.clone() };
+    match error {
+        GemTransferAmountError::InsufficientBalance { asset_id, required, available } => GemConfirmError::InsufficientBalance {
+            asset: error_asset(&asset_id),
+            requirement: GemBalanceRequirement::new(required, available),
+        },
+        GemTransferAmountError::InsufficientNetworkFee { asset_id, required, available } => GemConfirmError::InsufficientNetworkFee {
+            asset: error_asset(&asset_id),
+            requirement: Some(GemBalanceRequirement::new(required, available)),
+        },
+        GemTransferAmountError::MinimumAccountBalanceTooLow { asset_id, required, available } => GemConfirmError::MinimumAccountBalanceTooLow {
+            asset: error_asset(&asset_id),
+            requirement: GemBalanceRequirement::new(required, available),
+        },
+    }
 }
 
 pub fn selectable_fee_assets(assets: Vec<Asset>, balances: Vec<GemAssetBalance>, prices: Vec<GemAssetPrice>) -> Vec<GemFeeAsset> {
@@ -191,7 +200,7 @@ pub fn is_insufficient_network_fee(fee_asset_id: AssetId, fee_available: &str) -
     fee_available.trim().is_empty() || fee_available.trim().chars().all(|character| character == '0')
 }
 
-impl GemSendInput {
+impl SendInput {
     pub(super) fn pending_transactions(&self, hashes: &[String], transactions: &[GemSignedTransaction]) -> Result<Vec<Transaction>, GemConfirmError> {
         let chain = self.confirm.input.transfer.input_type.asset().chain();
         let sender = self.wallet.account(chain).map(|account| account.address.clone()).ok_or_else(|| GemConfirmError::Record {
@@ -293,6 +302,47 @@ pub(super) fn scan_payload(input: GemTransactionPreloadInput) -> ScanTransaction
     }
 }
 
+pub fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selection: &GemConfirmFeeSelection, loaded_fee: &BigInt) -> GemFeeRateRows {
+    let unit_value = |rate: &GemFeeRate| GasPriceType::from(rate.gas_price_type.clone()).total_fee();
+    let rate_total = |priority: FeePriority| rates.iter().find(|rate| rate.priority == priority).map(unit_value);
+    let selected_total = match selection {
+        GemConfirmFeeSelection::Priority { priority } => rate_total(*priority),
+        GemConfirmFeeSelection::Custom { gas_price } => Some(gas_price.clone()),
+    };
+    let base = selected_total.clone().filter(|total| total > &BigInt::ZERO);
+    let unit_type = chain.fee_unit_type();
+    GemFeeRateRows {
+        rows: rates
+            .iter()
+            .map(|rate| {
+                let unit_value = unit_value(rate);
+                GemFeeRateRow {
+                    priority: rate.priority,
+                    fee: base.as_ref().map(|base| loaded_fee * &unit_value / base),
+                    unit_value,
+                }
+            })
+            .collect(),
+        unit_type,
+        unit_decimals: match unit_type {
+            FeeUnitType::Native => fee_asset.decimals as u32,
+            FeeUnitType::SatVb | FeeUnitType::Gwei => unit_type.decimals(),
+        },
+        supports_custom_fee: custom_fee_enabled(chain) && rates.len() > 1,
+        selected_total,
+        normal_total: rate_total(FeePriority::Normal).or_else(|| rates.first().map(unit_value)),
+    }
+}
+
+pub(super) fn displayed_fee_rates(rates: Vec<GemFeeRate>) -> Vec<GemFeeRate> {
+    let mut rates = rates;
+    rates.sort_by_key(|rate| match rate.priority {
+        FeePriority::Normal => 0,
+        FeePriority::Fast => 1,
+    });
+    rates
+}
+
 impl GemConfirmFeeSelection {
     pub(super) fn select_fee_rate(&self, rates: &[GemFeeRate]) -> Result<GemFeeRate, GemConfirmError> {
         match self {
@@ -341,12 +391,12 @@ mod tests {
         }
     }
 
-    fn send_input(chain: Chain, input_type: GemTransactionInputType) -> GemSendInput {
+    fn send_input(chain: Chain, input_type: GemTransactionInputType) -> SendInput {
         send_input_from(chain, input_type, "sender")
     }
 
-    fn send_input_from(chain: Chain, input_type: GemTransactionInputType, from: &str) -> GemSendInput {
-        GemSendInput {
+    fn send_input_from(chain: Chain, input_type: GemTransactionInputType, from: &str) -> SendInput {
+        SendInput {
             wallet: wallet(chain),
             confirm: GemConfirmData {
                 input: GemConfirmInput {
@@ -468,6 +518,57 @@ mod tests {
                 gas_price: gas_price.parse().unwrap(),
             },
         }
+    }
+
+    #[test]
+    fn test_fee_rate_rows_scale_the_loaded_fee_by_each_rate() {
+        let rates = vec![rate(FeePriority::Normal, "10"), rate(FeePriority::Fast, "25")];
+        let ethereum = Asset::from_chain(Chain::Ethereum);
+        let normal = GemConfirmFeeSelection::Priority { priority: FeePriority::Normal };
+
+        let rows = fee_rate_rows(Chain::Ethereum, &ethereum, &rates, &normal, &BigInt::from(1_000));
+        assert_eq!(rows.rows[0].fee, Some(BigInt::from(1_000)), "the selected rate shows the fee that was loaded");
+        assert_eq!(rows.rows[1].fee, Some(BigInt::from(2_500)), "another rate scales the loaded fee by its unit value");
+        assert_eq!((rows.unit_type, rows.unit_decimals), (FeeUnitType::Gwei, 9));
+        assert!(!rows.supports_custom_fee, "only bitcoin chains take a custom rate");
+        assert_eq!(rows.selected_total, Some(BigInt::from(10)));
+        assert_eq!(rows.normal_total, Some(BigInt::from(10)));
+
+        let custom = fee_rate_rows(
+            Chain::Ethereum,
+            &ethereum,
+            &rates,
+            &GemConfirmFeeSelection::Custom { gas_price: BigInt::from(50) },
+            &BigInt::from(5_000),
+        );
+        assert_eq!(custom.rows[0].fee, Some(BigInt::from(1_000)), "a custom rate is the base the loaded fee was computed for");
+        assert_eq!(custom.selected_total, Some(BigInt::from(50)));
+
+        let zero = fee_rate_rows(
+            Chain::Ethereum,
+            &ethereum,
+            &rates,
+            &GemConfirmFeeSelection::Custom { gas_price: BigInt::ZERO },
+            &BigInt::from(5_000),
+        );
+        assert!(zero.rows.iter().all(|row| row.fee.is_none()), "nothing scales against a zero base");
+
+        let bitcoin = Asset::from_chain(Chain::Bitcoin);
+        assert!(fee_rate_rows(Chain::Bitcoin, &bitcoin, &rates, &normal, &BigInt::from(5_000)).supports_custom_fee);
+        assert!(
+            !fee_rate_rows(Chain::Bitcoin, &bitcoin, &rates[..1], &normal, &BigInt::from(5_000)).supports_custom_fee,
+            "one rate is nothing to pick a custom value against"
+        );
+
+        let solana = Asset::from_chain(Chain::Solana);
+        let native = fee_rate_rows(Chain::Solana, &solana, &rates[..1], &normal, &BigInt::from(5_000));
+        assert_eq!((native.unit_type, native.unit_decimals), (FeeUnitType::Native, solana.decimals as u32));
+    }
+
+    #[test]
+    fn test_displayed_fee_rates_list_normal_before_fast() {
+        let rates = displayed_fee_rates(vec![rate(FeePriority::Fast, "20"), rate(FeePriority::Normal, "10")]);
+        assert_eq!(rates.iter().map(|rate| rate.priority).collect::<Vec<_>>(), vec![FeePriority::Normal, FeePriority::Fast]);
     }
 
     #[test]
@@ -683,7 +784,7 @@ mod tests {
             image_url: None,
             source: primitives::WalletSource::Import,
         };
-        let input = GemSendInput {
+        let input = SendInput {
             wallet: wallet.clone(),
             confirm: GemConfirmData {
                 input: GemConfirmInput {
@@ -843,7 +944,17 @@ mod tests {
             prices: vec![],
         };
 
-        assert!(matches!(data.preload_amount(&short, &asset).unwrap(), GemTransferAmountResult::Error { .. }));
+        match data.preload_amount(&short, &asset).unwrap() {
+            GemTransferAmountResult::Error {
+                error: GemConfirmError::InsufficientBalance { asset: error_asset, requirement },
+            } => {
+                assert_eq!(error_asset, asset, "the error names the asset the screen shows, not just its id");
+                assert_eq!(requirement.required, BigInt::from(1_001));
+                assert_eq!(requirement.available, BigInt::from(10));
+                assert_eq!(requirement.shortfall, BigInt::from(991));
+            }
+            other => panic!("expected an insufficient balance error, got {other:?}"),
+        }
         assert!(matches!(data.preload_amount(&funded, &asset).unwrap(), GemTransferAmountResult::Amount { .. }));
     }
 
@@ -864,22 +975,6 @@ mod tests {
         assert!((GemTransactionInputType::Transfer { asset }).approval_value().is_none());
         assert!(matches!(gem_approval_value(&GemBigUint::from(42u32), false), GemApprovalValue::Exact { value } if value == GemBigUint::from(42u32)));
         assert!(matches!(gem_approval_value(&GemBigUint::from(42u32), true), GemApprovalValue::Unlimited));
-    }
-
-    #[test]
-    fn test_transfer_balance_carries_the_vote_count_a_tron_staker_already_used() {
-        let asset_id = AssetId::from_chain(Chain::Tron);
-        let mut staked = balance(&asset_id, 0);
-        staked.metadata = Some(primitives::asset_balance::BalanceMetadata {
-            votes: 7,
-            energy_available: 0,
-            energy_total: 0,
-            bandwidth_available: 0,
-            bandwidth_total: 0,
-        });
-
-        assert_eq!(transfer_balance(&balance(&asset_id, 0)).votes, 0);
-        assert_eq!(transfer_balance(&staked).votes, 7);
     }
 
     fn balance(asset_id: &AssetId, available: u32) -> GemAssetBalance {

@@ -1,14 +1,14 @@
 use crate::models::custom_types::GemBigInt;
-use primitives::{Asset, AssetId, BannerEvent, BannerState, Chain, ChainAsset, Wallet, WalletSource};
+use primitives::{Asset, AssetId, BannerEvent, BannerState, Chain, ChainAsset, VerificationStatus, Wallet, WalletSource};
 
-use super::model::{GemBannerAmount, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerTitle};
+use super::model::{GemBannerAmount, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerLink, GemBannerTitle};
+use crate::config::chain::account_activation_fee_url;
+use crate::config::docs::DocsUrl;
 
 const ACCOUNT_ACTIVATION_CHAINS: [Chain; 3] = [Chain::Xrp, Chain::Stellar, Chain::Algorand];
 const TRADE_PERPETUALS_CHAINS: [Chain; 2] = [Chain::HyperCore, Chain::Hyperliquid];
 
-const SUSPICIOUS_RANK_SCORE: i32 = 5;
-
-pub fn is_visible(state: BannerState) -> bool {
+fn is_visible(state: BannerState) -> bool {
     match state {
         BannerState::Active | BannerState::AlwaysActive => true,
         BannerState::Cancelled => false,
@@ -55,14 +55,14 @@ pub fn wallet_setup_keys(wallet: &Wallet) -> Vec<GemBannerKey> {
         .collect()
 }
 
-pub fn is_visible_event(event: BannerEvent, context: &GemBannerContext) -> bool {
+fn is_visible_event(event: BannerEvent, context: &GemBannerContext) -> bool {
     match event {
         BannerEvent::AccountBlockedMultiSignature => true,
         BannerEvent::AccountActivation => !context.has_asset || !context.has_available_balance,
         BannerEvent::Stake => context.has_asset && !context.has_stake_balance,
         BannerEvent::ActivateAsset => context.has_asset && !context.is_asset_activated,
         BannerEvent::SuspiciousAsset => context.has_asset && is_suspicious(context),
-        BannerEvent::TradePerpetuals => context.has_asset && context.has_perpetuals_support,
+        BannerEvent::TradePerpetuals => context.has_asset && context.wallet.as_ref().is_some_and(crate::services::perpetual::rules::supports_perpetuals),
         BannerEvent::Onboarding => !context.has_asset && context.is_wallet_empty,
     }
 }
@@ -72,6 +72,18 @@ pub fn banner_content(event: BannerEvent, asset: Option<&Asset>) -> GemBannerCon
         icon: banner_icon(event, asset.map(|asset| asset.id.chain)),
         title: banner_title(event, asset),
         description: banner_description(event, asset),
+        link: banner_link(event, asset.map(|asset| asset.id.chain)),
+    }
+}
+
+fn banner_link(event: BannerEvent, chain: Option<Chain>) -> Option<GemBannerLink> {
+    match event {
+        BannerEvent::Stake | BannerEvent::ActivateAsset | BannerEvent::Onboarding | BannerEvent::TradePerpetuals => None,
+        BannerEvent::AccountActivation => account_activation_fee_url(chain?).map(|url| GemBannerLink::External { url }),
+        BannerEvent::AccountBlockedMultiSignature => Some(GemBannerLink::Docs {
+            item: DocsUrl::TronMultiSignature,
+        }),
+        BannerEvent::SuspiciousAsset => Some(GemBannerLink::Docs { item: DocsUrl::TokenVerification }),
     }
 }
 
@@ -163,7 +175,9 @@ fn extra_banners() -> Vec<GemBannerItem> {
 }
 
 fn is_suspicious(context: &GemBannerContext) -> bool {
-    context.asset_rank_score.is_some_and(|score| score <= SUSPICIOUS_RANK_SCORE)
+    context
+        .asset_rank_score
+        .is_some_and(|score| VerificationStatus::from_rank(score) == VerificationStatus::Suspicious)
 }
 
 fn state_priority(state: BannerState) -> u8 {
@@ -189,7 +203,7 @@ fn event_priority(event: BannerEvent) -> u8 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{WalletId, WalletType};
+    use primitives::{Account, WalletId, WalletType};
 
     #[test]
     fn test_setup_keys() {
@@ -235,14 +249,13 @@ mod tests {
 
     fn context(has_asset: bool) -> GemBannerContext {
         GemBannerContext {
-            has_wallet: true,
+            wallet: Some(Wallet::mock_with_accounts(Account::mock_chains(&[Chain::Ethereum, Chain::HyperCore], "address"))),
             has_asset,
             is_stakeable: true,
             has_stake_balance: false,
             has_available_balance: false,
             is_asset_activated: true,
             asset_rank_score: Some(50),
-            has_perpetuals_support: true,
             is_wallet_empty: false,
         }
     }
@@ -289,10 +302,12 @@ mod tests {
         let perpetuals = vec![item(BannerEvent::TradePerpetuals, BannerState::Active)];
         assert_eq!(events(&visible_banners(perpetuals.clone(), &context(true))), vec![BannerEvent::TradePerpetuals]);
         let unsupported = GemBannerContext {
-            has_perpetuals_support: false,
+            wallet: Some(Wallet::mock_with_accounts(Account::mock_chains(&[Chain::Ethereum], "address"))),
             ..context(true)
         };
-        assert!(visible_banners(perpetuals, &unsupported).is_empty());
+        assert!(visible_banners(perpetuals.clone(), &unsupported).is_empty());
+        let no_wallet = GemBannerContext { wallet: None, ..context(true) };
+        assert!(visible_banners(perpetuals, &no_wallet).is_empty());
     }
 
     #[test]
@@ -382,6 +397,17 @@ mod tests {
         assert_eq!(ethereum.id.chain.account_activation_fee(), None);
         let without_fee = banner_content(BannerEvent::AccountActivation, Some(&ethereum));
         assert_eq!(without_fee.description, None);
+        assert_eq!(without_fee.link, None);
+        assert_eq!(
+            banner_content(BannerEvent::AccountActivation, Some(&xrp)).link,
+            Some(GemBannerLink::External {
+                url: account_activation_fee_url(Chain::Xrp).unwrap()
+            })
+        );
+        assert_eq!(
+            banner_content(BannerEvent::SuspiciousAsset, Some(&ethereum)).link,
+            Some(GemBannerLink::Docs { item: DocsUrl::TokenVerification })
+        );
         assert_eq!(without_fee.title, Some(GemBannerTitle::AccountActivation));
     }
 

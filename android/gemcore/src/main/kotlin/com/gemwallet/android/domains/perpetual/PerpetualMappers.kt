@@ -15,7 +15,6 @@ import com.wallet.core.primitives.PerpetualReduceData
 import com.wallet.core.primitives.PerpetualTriggerOrder
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.TPSLOrderData
-import com.wallet.core.primitives.TpslType
 import uniffi.gemstone.PerpetualAccountMode as GemPerpetualAccountMode
 import uniffi.gemstone.PerpetualMarginType as GemPerpetualMarginType
 import uniffi.gemstone.PerpetualOrderType as GemPerpetualOrderType
@@ -29,7 +28,6 @@ import uniffi.gemstone.PerpetualModifyPositionType as GemPerpetualModifyPosition
 import uniffi.gemstone.PerpetualReduceData as GemPerpetualReduceData
 import uniffi.gemstone.PerpetualType as GemPerpetualType
 import uniffi.gemstone.TpslOrderData as GemTpslOrderData
-import uniffi.gemstone.TpslType as GemTpslType
 
 fun PerpetualConfirmData.toGem(): GemPerpetualConfirmData = toJson()
 
@@ -53,10 +51,6 @@ fun PerpetualOrderType.toGem(): GemPerpetualOrderType = toJson()
 
 fun PerpetualDirection.toGem(): GemPerpetualDirection = toJson()
 
-fun TpslType.toGem(): GemTpslType = when (this) {
-    TpslType.TakeProfit -> GemTpslType.TAKE_PROFIT
-    TpslType.StopLoss -> GemTpslType.STOP_LOSS
-}
 
 fun PerpetualMarginType.toGem(): GemPerpetualMarginType = toJson()
 

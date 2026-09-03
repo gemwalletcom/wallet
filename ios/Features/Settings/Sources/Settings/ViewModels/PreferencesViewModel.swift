@@ -15,7 +15,7 @@ import SwiftUI
 @MainActor
 public final class PreferencesViewModel {
     private let preferences: ObservablePreferences
-    private let preferencesService: any GemPreferencesServiceProtocol
+    private let service: any GemPreferencesServiceProtocol
     private let currencyModel: CurrencySceneViewModel
 
     var isPresentingLeveragePicker = false
@@ -24,15 +24,15 @@ public final class PreferencesViewModel {
 
     public init(
         currencyModel: CurrencySceneViewModel,
-        preferencesService: any GemPreferencesServiceProtocol,
+        service: any GemPreferencesServiceProtocol,
         preferences: ObservablePreferences,
     ) {
         self.currencyModel = currencyModel
-        self.preferencesService = preferencesService
+        self.service = service
         self.preferences = preferences
-        perpetualLeverage = LeverageOption(value: preferencesService.getPerpetualLeverage())
-        perpetualTakeProfit = AutocloseOption(value: preferencesService.getPerpetualTakeProfitPercent())
-        perpetualStopLoss = AutocloseOption(value: preferencesService.getPerpetualStopLossPercent())
+        perpetualLeverage = LeverageOption(value: service.getPerpetualLeverage())
+        perpetualTakeProfit = AutocloseOption(value: service.getPerpetualTakeProfitPercent())
+        perpetualStopLoss = AutocloseOption(value: service.getPerpetualStopLossPercent())
     }
 
     var title: String {
@@ -108,7 +108,7 @@ public final class PreferencesViewModel {
     }
 
     var perpetualLeverage: LeverageOption {
-        didSet { persist { try preferencesService.setPerpetualLeverage(leverage: perpetualLeverage.value) } }
+        didSet { persist { try service.setPerpetualLeverage(leverage: perpetualLeverage.value) } }
     }
 
     var defaultLeverageTitle: String {
@@ -124,11 +124,11 @@ public final class PreferencesViewModel {
     }
 
     var perpetualTakeProfit: AutocloseOption {
-        didSet { persist { try preferencesService.setPerpetualTakeProfitPercent(percent: perpetualTakeProfit.value) } }
+        didSet { persist { try service.setPerpetualTakeProfitPercent(percent: perpetualTakeProfit.value) } }
     }
 
     var perpetualStopLoss: AutocloseOption {
-        didSet { persist { try preferencesService.setPerpetualStopLossPercent(percent: perpetualStopLoss.value) } }
+        didSet { persist { try service.setPerpetualStopLossPercent(percent: perpetualStopLoss.value) } }
     }
 
     private func persist(_ write: () throws -> Void) {

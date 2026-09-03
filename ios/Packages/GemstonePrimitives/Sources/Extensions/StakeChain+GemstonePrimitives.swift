@@ -25,8 +25,4 @@ public extension Primitives.StakeChain {
     var usesWholeAmounts: Bool {
         Config.shared.getStakeConfig(chain: rawValue).usesWholeAmounts
     }
-
-    var supportClaimAllRewards: Bool {
-        Config.shared.getStakeConfig(chain: rawValue).canClaimAllRewards
-    }
 }

@@ -2,8 +2,8 @@
 
 import Components
 import Formatters
-import class Gemstone.GemSwapQuoteService
 import struct Gemstone.SwapperQuote
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Style
@@ -38,9 +38,8 @@ public struct SwapProviderItem: Sendable {
         selectedProvider: SwapProvider?,
         priceViewModel: PriceViewModel,
         valueFormatter: ValueFormatter,
-        swapQuoteService: GemSwapQuoteService,
     ) {
-        guard let swapperQuote, let swapQuote = try? swapperQuote.map(swapQuoteService: swapQuoteService) else { return nil }
+        guard let swapperQuote, let swapQuote = try? swapperQuote.map() else { return nil }
         self.asset = asset
         self.swapQuote = swapQuote
         self.swapperQuote = swapperQuote

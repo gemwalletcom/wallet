@@ -63,8 +63,9 @@ fun DevelopScene(
                         clipboardManager.setPlainText(context, pushToken)
                     }
                 }
-                PropertyItem("Store", data = viewModel.platformStore.string) {
-                    clipboardManager.setPlainText(context, viewModel.platformStore.string)
+                val platformStore by viewModel.platformStore.collectAsState()
+                PropertyItem("Store", data = platformStore?.string ?: "-") {
+                    clipboardManager.setPlainText(context, platformStore?.string ?: "")
                 }
             }
         }

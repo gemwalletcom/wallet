@@ -15,7 +15,6 @@ struct ConfirmTransferStateTests {
             preload: ConfirmTransferPreload(
                 metadata: .mock(),
                 input: .mock(),
-                feeRates: [FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 1))],
             ),
             simulation: .mock(warnings: [warning]),
             feeAssets: [.mock(asset: .mockTempoUSDC())],
@@ -25,7 +24,6 @@ struct ConfirmTransferStateTests {
 
         #expect(loaded.transaction.value != nil)
         #expect(loaded.metadata != nil)
-        #expect(loaded.feeRates.count == 1)
         #expect(loaded.feeAssets.count == 1)
         #expect(loaded.simulation.warnings.count == 1)
     }

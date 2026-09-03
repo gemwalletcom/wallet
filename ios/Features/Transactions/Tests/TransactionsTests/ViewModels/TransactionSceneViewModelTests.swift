@@ -1,11 +1,10 @@
-import class Gemstone.GemExplorerService
+import class Gemstone.GemTransactionDetailsService
 import GemstonePrimitivesTestKit
 import Components
 import Foundation
 import Localization
 import Preferences
 import PreferencesTestKit
-import class Gemstone.GemTransactionFormatter
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
@@ -51,9 +50,7 @@ struct TransactionSceneViewModelTests {
                 ),
             ),
             walletId: .mock(),
-            preferencesService: GemPreferencesServiceMock(),
-            explorerService: GemExplorerService.mock(),
-            transactionFormatter: GemTransactionFormatter(),
+            service: GemTransactionDetailsService.mock(),
             onHeaderAction: { selectedAction = $0 },
         )
 
@@ -74,9 +71,7 @@ struct TransactionSceneViewModelTests {
                 ),
             ),
             walletId: .mock(),
-            preferencesService: GemPreferencesServiceMock(),
-            explorerService: GemExplorerService.mock(),
-            transactionFormatter: GemTransactionFormatter(),
+            service: GemTransactionDetailsService.mock(),
         )
 
         #expect(model.onTransactionHeaderTap == nil)
@@ -150,36 +145,8 @@ struct TransactionSceneViewModelTests {
     }
 
     @Test
-    func swapProgressItemModel_pendingCrossChain() {
-        let fromAsset = Asset.mockEthereum()
-        let toAsset = Asset.mockNear()
-        let model = TransactionSceneViewModel.swapProgressMock(
-            state: .pending,
-            fromAsset: fromAsset,
-            toAsset: toAsset,
-        )
-
-        if case let .swapProgress(progress) = model.item(for: TransactionItem.swapProgress) {
-            #expect(progress.transfer.status == .pending)
-            #expect(progress.swap.status == .waiting)
-            #expect(progress.estimatedTime == "≈ 12 min")
-        } else {
-            Issue.record("Expected swap progress for pending cross-chain swap")
-        }
-        if case .empty = model.item(for: .estimatedConfirmation) {} else {
-            Issue.record("Expected cross-chain estimate to be hidden from transaction details")
-        }
-    }
-
-    @Test
-    func swapProgressItemModel_inTransitCrossChain() {
-        let fromAsset = Asset.mockEthereum()
-        let toAsset = Asset.mockNear()
-        let model = TransactionSceneViewModel.swapProgressMock(
-            state: .inTransit,
-            fromAsset: fromAsset,
-            toAsset: toAsset,
-        )
+    func swapProgressItemModel() {
+        let model = TransactionSceneViewModel.swapProgressMock(state: .inTransit, fromAsset: .mockEthereum(), toAsset: .mockNear())
 
         if case let .swapProgress(progress) = model.item(for: TransactionItem.swapProgress) {
             #expect(progress.transfer.title == Localized.Transfer.title)
@@ -195,114 +162,8 @@ struct TransactionSceneViewModelTests {
         if case .empty = model.item(for: .estimatedConfirmation) {} else {
             Issue.record("Expected cross-chain estimate to be hidden from transaction details")
         }
-    }
-
-    @Test
-    func swapProgressItemModel_hidesMissingAndZeroEstimates() {
-        let fromAsset = Asset.mockEthereum()
-        let toAsset = Asset.mockNear()
-        let models = [
-            TransactionSceneViewModel.swapProgressMock(
-                state: .inTransit,
-                fromAsset: fromAsset,
-                toAsset: toAsset,
-                confirmationEtaSeconds: nil,
-            ),
-            TransactionSceneViewModel.swapProgressMock(
-                state: .inTransit,
-                fromAsset: fromAsset,
-                toAsset: toAsset,
-                confirmationEtaSeconds: 0,
-            ),
-        ]
-
-        for model in models {
-            guard case let .swapProgress(progress) = model.item(for: .swapProgress) else {
-                Issue.record("Expected swap progress")
-                return
-            }
-            #expect(progress.estimatedTime == nil)
-        }
-    }
-
-    @Test
-    func swapProgressItemModel_hiddenForConfirmedCrossChain() {
-        let fromAsset = Asset.mockEthereum()
-        let toAsset = Asset.mockNear()
-        let model = TransactionSceneViewModel.swapProgressMock(
-            state: .confirmed,
-            fromAsset: fromAsset,
-            toAsset: toAsset,
-        )
-
-        if case .empty = model.item(for: TransactionItem.swapProgress) {
-        } else {
-            Issue.record("Expected hidden swap progress for confirmed cross-chain swap")
-        }
-    }
-
-    @Test
-    func swapProgressItemModel_failedCrossChain() {
-        let fromAsset = Asset.mockEthereum()
-        let toAsset = Asset.mockNear()
-        let model = TransactionSceneViewModel.swapProgressMock(
-            state: .failed,
-            fromAsset: fromAsset,
-            toAsset: toAsset,
-        )
-
-        if case let .swapProgress(progress) = model.item(for: TransactionItem.swapProgress) {
-            #expect(progress.transfer.status == .completed)
-            #expect(progress.swap.title == Localized.Wallet.swap)
-            #expect(progress.swap.subtitle == "NEAR Intents")
-            #expect(progress.swap.status == .failed)
-            #expect(progress.estimatedTime == nil)
-        } else {
-            Issue.record("Expected swap progress for failed cross-chain swap")
-        }
-    }
-
-    @Test
-    func swapProgressItemModel_revertedCrossChainShowsSourceReverted() {
-        let fromAsset = Asset.mockEthereum()
-        let toAsset = Asset.mockNear()
-        let model = TransactionSceneViewModel.swapProgressMock(
-            state: .reverted,
-            fromAsset: fromAsset,
-            toAsset: toAsset,
-        )
-
-        if case let .swapProgress(progress) = model.item(for: TransactionItem.swapProgress) {
-            #expect(progress.transfer.status == .reverted)
-            #expect(progress.transfer.status.tagTitle == Localized.Transaction.Status.reverted)
-            #expect(progress.swap.title == Localized.Wallet.swap)
-            #expect(progress.swap.subtitle == "NEAR Intents")
-            #expect(progress.swap.status == .waiting)
-            #expect(progress.estimatedTime == nil)
-            #expect(progress.swap.status.tagTitle == nil)
-        } else {
-            Issue.record("Expected swap progress for reverted cross-chain swap")
-        }
-    }
-
-    @Test
-    func swapProgressItemModel_hiddenForUnsupportedCases() {
-        let fromAsset = Asset.mockEthereum()
-        let toAsset = Asset.mockNear()
-
-        let hiddenCases: [TransactionSceneViewModel] = [
-            .swapProgressMock(state: .inTransit, fromAsset: fromAsset, toAsset: toAsset, provider: .uniswapV3),
-            .swapProgressMock(state: .inTransit, fromAsset: fromAsset, toAsset: toAsset, provider: nil),
-            .swapProgressMock(state: .inTransit, fromAsset: fromAsset, toAsset: toAsset, providerId: "unknown_provider"),
-            .swapProgressMock(state: .inTransit, fromAsset: fromAsset, toAsset: toAsset, includeMetadata: false),
-            .mock(type: .transfer, state: .pending),
-        ]
-
-        for model in hiddenCases {
-            if case .empty = model.item(for: TransactionItem.swapProgress) {
-            } else {
-                Issue.record("Expected hidden swap progress for unsupported transaction")
-            }
+        if case .empty = TransactionSceneViewModel.mock(type: .transfer, state: .pending).item(for: TransactionItem.swapProgress) {} else {
+            Issue.record("Expected no swap progress for a transfer")
         }
     }
 
@@ -319,9 +180,7 @@ struct TransactionSceneViewModelTests {
         let modelWithAddresses = TransactionSceneViewModel(
             transaction: transaction,
             walletId: .mock(),
-            preferencesService: GemPreferencesServiceMock(),
-            explorerService: GemExplorerService.mock(),
-            transactionFormatter: GemTransactionFormatter(),
+            service: GemTransactionDetailsService.mock(),
         )
 
         if case let .participant(item) = modelWithAddresses.item(for: TransactionItem.participant) {
@@ -439,44 +298,16 @@ struct TransactionSceneViewModelTests {
     }
 
     @Test
-    func estimatedConfirmationOnlyAppearsForRegularPendingTransaction() {
-        let pending = TransactionSceneViewModel.mock(
-            state: .pending,
-            confirmationEtaSeconds: 720,
-        )
-        let inTransitTransfer = TransactionSceneViewModel.mock(
-            state: .inTransit,
-            confirmationEtaSeconds: 720,
-        )
-        let confirmed = TransactionSceneViewModel.mock(
-            state: .confirmed,
-            confirmationEtaSeconds: 720,
-        )
-        let missing = TransactionSceneViewModel.mock(
-            state: .pending,
-            confirmationEtaSeconds: nil,
-        )
-        let zero = TransactionSceneViewModel.mock(
-            state: .pending,
-            confirmationEtaSeconds: 0,
-        )
+    func estimatedConfirmationItemModel() {
+        let pending = TransactionSceneViewModel.mock(state: .pending, confirmationEtaSeconds: 720)
 
         guard case let .listItem(item) = pending.item(for: .estimatedConfirmation) else {
             Issue.record("Expected estimated confirmation item")
             return
         }
         #expect(item.subtitle == "≈ 12 min")
-        if case .empty = inTransitTransfer.item(for: .estimatedConfirmation) {} else {
-            Issue.record("Expected in-transit transfer estimate to be hidden")
-        }
-        if case .empty = confirmed.item(for: .estimatedConfirmation) {} else {
+        if case .empty = TransactionSceneViewModel.mock(state: .confirmed, confirmationEtaSeconds: 720).item(for: .estimatedConfirmation) {} else {
             Issue.record("Expected confirmed transaction estimate to be hidden")
-        }
-        if case .empty = missing.item(for: .estimatedConfirmation) {} else {
-            Issue.record("Expected missing estimate to be hidden")
-        }
-        if case .empty = zero.item(for: .estimatedConfirmation) {} else {
-            Issue.record("Expected zero estimate to be hidden")
         }
     }
 
@@ -517,9 +348,7 @@ extension TransactionSceneViewModel {
                 confirmationEtaSeconds: confirmationEtaSeconds,
             ),
             walletId: .mock(),
-            preferencesService: GemPreferencesServiceMock(),
-            explorerService: GemExplorerService.mock(),
-            transactionFormatter: GemTransactionFormatter(),
+            service: GemTransactionDetailsService.mock(),
         )
     }
 
@@ -528,29 +357,23 @@ extension TransactionSceneViewModel {
         fromAsset: Asset,
         toAsset: Asset,
         provider: SwapProvider? = .nearIntents,
-        providerId: String? = nil,
-        includeMetadata: Bool = true,
         confirmationEtaSeconds: UInt32? = 720,
     ) -> TransactionSceneViewModel {
-        let metadata = includeMetadata
-            ? AnyCodableValue.encode(
-                TransactionSwapMetadata.mock(
-                    fromAsset: fromAsset.id,
-                    fromValue: "1000000000000000000",
-                    toAsset: toAsset.id,
-                    toValue: "200",
-                    provider: providerId ?? provider?.rawValue,
-                ),
-            )
-            : nil
-
-        return mock(
+        mock(
             type: .swap,
             state: state,
             assetId: fromAsset.id,
             asset: fromAsset,
             assets: [fromAsset, toAsset],
-            metadata: metadata,
+            metadata: AnyCodableValue.encode(
+                TransactionSwapMetadata.mock(
+                    fromAsset: fromAsset.id,
+                    fromValue: "1000000000000000000",
+                    toAsset: toAsset.id,
+                    toValue: "200",
+                    provider: provider?.rawValue,
+                ),
+            ),
             confirmationEtaSeconds: confirmationEtaSeconds,
         )
     }

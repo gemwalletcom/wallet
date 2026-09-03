@@ -63,10 +63,10 @@ fun PerpetualMarketNavScreen(
                 PerpetualMarketAction.OpenPortfolio -> onOpenPortfolio()
                 is PerpetualMarketAction.TogglePin -> viewModel.onTogglePin(action.perpetualId)
                 is PerpetualMarketAction.OpenPerpetual -> {
-                    onOpenPerpetualDetails(action.assetId)
-                    viewModel.onOpenPerpetual(action.assetId)
+                    onOpenPerpetualDetails(action.asset.id)
+                    viewModel.onOpenPerpetual(action.asset)
                 }
-                is PerpetualMarketAction.OpenRecent -> onOpenPerpetualDetails(action.assetId)
+                is PerpetualMarketAction.OpenRecent -> onOpenPerpetualDetails(action.asset.id)
                 PerpetualMarketAction.OpenRecentsSheet -> recentsViewModel.show(types = listOf(RecentActivityType.Perpetual))
             }
         },
@@ -74,6 +74,6 @@ fun PerpetualMarketNavScreen(
 
     RecentsSheetHost(
         viewModel = recentsViewModel,
-        onSelect = { onOpenPerpetualDetails(it) },
+        onSelect = { onOpenPerpetualDetails(it.id) },
     )
 }

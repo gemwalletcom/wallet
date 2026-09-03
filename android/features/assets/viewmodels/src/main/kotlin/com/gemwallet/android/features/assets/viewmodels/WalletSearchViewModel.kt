@@ -1,20 +1,16 @@
 package com.gemwallet.android.features.assets.viewmodels
 
+import com.wallet.core.primitives.Wallet
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemSearchScope
+import uniffi.gemstone.GemAssetSelectionServiceInterface
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
 import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
-import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.cases.SetAssetPinned
-import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
 import com.gemwallet.android.application.assets.cases.GetSearchLists
 import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
-import com.gemwallet.android.application.perpetual.cases.SetPerpetualPinned
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.tokens.cases.SearchTokens
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
-import com.gemwallet.android.data.services.gemstone.config.showPerpetuals
-import com.gemwallet.android.data.services.gemstone.tokens.WalletSearch
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.search.WalletSearchConfig
@@ -23,9 +19,10 @@ import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectVie
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.gemwallet.android.model.RecentAssetsRequest
-import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.NftItemUIModel
+import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.RecentActivityType
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetList
 import com.wallet.core.primitives.NFTData
@@ -43,7 +40,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
-import uniffi.gemstone.GemAssetConfigService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -51,28 +47,22 @@ class WalletSearchViewModel @Inject constructor(
     getSession: GetSession,
     searchSelectAssets: SearchSelectAssets,
     getRecentAssets: GetRecentAssets,
-    updateRecentAsset: UpdateRecentAsset,
-    switchAssetVisibility: SwitchAssetVisibility,
-    setAssetPinned: SetAssetPinned,
-    @WalletSearch searchTokensCase: SearchTokens,
-    assetConfig: GemAssetConfigService,
+    service: GemAssetSelectionServiceInterface,
     getPerpetuals: GetPerpetuals,
     getNftCollections: GetNftCollections,
     getSearchLists: GetSearchLists,
-    userConfig: UserConfig,
-    private val setPerpetualPinned: SetPerpetualPinned,
 ) : BaseAssetSelectViewModel(
     getSession,
     getRecentAssets,
-    updateRecentAsset,
-    switchAssetVisibility,
-    setAssetPinned,
-    searchTokensCase,
+    service,
     BaseSelectSearch(searchSelectAssets),
-    assetConfig,
 ) {
 
-    private val showPerpetuals = userConfig.showPerpetuals(getSession())
+    override suspend fun searchRemote(query: String) {
+        service.search(query, GemSearchScope.All)
+    }
+
+    private val showPerpetuals = getSession().map { service.showPerpetuals() }
 
     private val visiblePerpetuals = combine(
         getPerpetuals.getPerpetuals(currentQuery.map { it.takeIf(String::isNotEmpty) }),
@@ -98,12 +88,6 @@ class WalletSearchViewModel @Inject constructor(
     val hasMorePerpetuals: StateFlow<Boolean> = visiblePerpetuals
         .map { items -> items.size > WalletSearchConfig.perpetualsPreviewLimit }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    val perpetualRecentIds: StateFlow<Set<String>> =
-        getRecentAssets(RecentAssetsRequest(types = listOf(RecentActivityType.Perpetual)))
-            .map { items -> items.mapTo(HashSet()) { it.asset.id.toIdentifier() } }
-            .flowOn(Dispatchers.IO)
-            .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
     private val nftData: Flow<List<NFTData>> = getNftCollections(null)
         .map { data -> data.filter { it.assets.isNotEmpty() } }
@@ -187,7 +171,4 @@ class WalletSearchViewModel @Inject constructor(
         emitToast(AssetToast.Pin(item.name, !item.isPinned))
     }
 
-    fun onOpenPerpetual(assetId: AssetId) {
-        updateRecent(assetId, RecentActivityType.Perpetual)
-    }
 }

@@ -4173,8 +4173,10 @@ dependencies = [
 name = "generate"
 version = "2.114.11"
 dependencies = [
+ "config",
  "fluent-syntax",
  "primitives",
+ "serde",
  "serde_json",
 ]
 
@@ -5257,6 +5259,7 @@ dependencies = [
 name = "jupiter"
 version = "2.114.11"
 dependencies = [
+ "async-trait",
  "gem_client",
  "reqwest 0.13.4",
  "serde",
@@ -7739,6 +7742,7 @@ dependencies = [
  "gem_client",
  "hex",
  "hmac 0.13.0",
+ "jupiter",
  "primitives",
  "serde",
  "serde_json",

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemChainServiceProtocol
 import Components
 import Localization
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store
@@ -11,12 +11,10 @@ import SwiftUI
 
 public struct AssetsFilterViewModel: Sendable, Equatable {
     private let type: SelectAssetType
-    private let chainService: any GemChainServiceProtocol
     var chainsFilter: ChainsFilterViewModel
     var hasBalance: Bool = false
 
-    public init(type: SelectAssetType, model: ChainsFilterViewModel, chainService: any GemChainServiceProtocol) {
-        self.chainService = chainService
+    public init(type: SelectAssetType, model: ChainsFilterViewModel) {
         self.type = type
         chainsFilter = model
     }
@@ -74,7 +72,6 @@ public struct AssetsFilterViewModel: Sendable, Equatable {
             state: .data(.plain(chainsFilter.allChains)),
             selectedItems: chainsFilter.selectedChains,
             selectionType: .multiSelection,
-            chainService: chainService,
         )
     }
 }

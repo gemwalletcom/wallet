@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAmountService
 import BigInt
 import Foundation
 import enum Gemstone.GemAmountType
-import protocol Gemstone.GemStakeServiceProtocol
+import protocol Gemstone.GemAmountServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -14,22 +13,12 @@ import struct Gemstone.GemTransferData
 public final class AmountEarnViewModel: AmountDataProvidable {
     let asset: Asset
     let action: EarnType
-    private let stakeService: any GemStakeServiceProtocol
-    private let wallet: Wallet
-    let amountService: GemAmountService
+    private let service: any GemAmountServiceProtocol
 
-    init(
-        asset: Asset,
-        action: EarnType,
-        stakeService: any GemStakeServiceProtocol,
-        wallet: Wallet,
-        amountService: GemAmountService,
-    ) {
+    init(asset: Asset, action: EarnType, service: any GemAmountServiceProtocol) {
         self.asset = asset
         self.action = action
-        self.stakeService = stakeService
-        self.wallet = wallet
-        self.amountService = amountService
+        self.service = service
     }
 
     var provider: DelegationValidator {
@@ -63,24 +52,12 @@ public final class AmountEarnViewModel: AmountDataProvidable {
 
     func recipientData() -> RecipientData {
         RecipientData(
-            recipient: Recipient(name: provider.name, address: provider.id, memo: nil),
+            recipient: GemRecipient(address: provider.id, name: provider.name),
             amount: nil,
         )
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData {
-        let address = try wallet.account(for: asset.chain).address
-        let earnData = try await ContractCallData(stakeService.getEarnData(
-            assetId: asset.id.identifier,
-            address: address,
-            value: String(value),
-            earnType: action.json(),
-        ))
-        return GemTransferData(
-            inputType: .earn(asset, action, earnData),
-            recipient: GemRecipient(address: earnData.contractAddress, name: provider.name, memo: nil),
-            value: value,
-            useMaxAmount: useMaxAmount,
-        )
+        try await service.earnTransferData(asset: asset.map(), earnType: action.json(), value: value, useMaxAmount: useMaxAmount)
     }
 }

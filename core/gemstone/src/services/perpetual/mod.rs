@@ -1,3 +1,5 @@
+pub mod autoclose;
+pub mod details;
 pub mod model;
 pub mod rules;
 pub mod store;
@@ -18,7 +20,9 @@ use std::collections::HashMap;
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
 use crate::services::preferences::GemPreferencesService;
 
-pub use model::{GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualSocketUpdate};
+pub use autoclose::{GemAutocloseField, GemAutocloseModify};
+pub use details::GemPerpetualDetailsService;
+pub use model::{GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualSocketUpdate, GemPerpetualTransferData};
 pub use store::GemPerpetualStore;
 
 use crate::gateway::GemGateway;
@@ -26,7 +30,9 @@ use crate::models::perpetual::GemChartCandleStick;
 use crate::services::assets::GemAssetStore;
 use crate::services::balance::GemBalanceService;
 use crate::services::price::GemPriceService;
+use crate::services::stream::rules::hyperliquid_account;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
+use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemPerpetualService {
@@ -37,6 +43,7 @@ pub struct GemPerpetualService {
     preferences: Arc<GemPreferencesService>,
     balance: Arc<GemBalanceService>,
     wallet_preferences: Arc<GemWalletPreferencesService>,
+    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
@@ -50,6 +57,7 @@ impl GemPerpetualService {
         preferences: Arc<GemPreferencesService>,
         balance: Arc<GemBalanceService>,
         wallet_preferences: Arc<GemWalletPreferencesService>,
+        session: Arc<GemWalletSessionService>,
     ) -> Self {
         Self {
             gateway,
@@ -59,25 +67,12 @@ impl GemPerpetualService {
             preferences,
             balance,
             wallet_preferences,
-        }
-    }
-
-    pub async fn account_mode(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
-        match self.gateway.get_perpetual_account_mode(chain, address).await {
-            Ok(mode) => {
-                self.wallet_preferences.set_perpetual_account_mode(wallet_id, mode)?;
-                Ok(mode)
-            }
-            Err(_) => self.wallet_preferences.get_perpetual_account_mode(wallet_id),
+            session,
         }
     }
 
     pub fn autoclose_summary(&self, data: PerpetualModifyConfirmData) -> Option<GemAutocloseSummary> {
         rules::autoclose_summary(&data)
-    }
-
-    pub fn markets_updated_at(&self) -> Result<Option<i64>, GemServiceError> {
-        self.preferences.get_perpetual_markets_updated_at()
     }
 
     pub async fn sync_markets(&self, chain: Chain) -> Result<(), GemServiceError> {
@@ -99,40 +94,25 @@ impl GemPerpetualService {
         Ok(true)
     }
 
-    pub async fn sync_enablement(&self, wallet: Option<Wallet>, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
+    pub async fn sync_enablement(&self, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
         if !self.preferences.is_perpetual_enabled() {
             self.clear_markets().await?;
             return Ok(false);
         }
         self.sync_markets_if_needed(Chain::HyperCore, trigger).await?;
-        Ok(self.should_connect_perpetuals(wallet))
+        Ok(self.should_connect_perpetuals())
     }
 
-    pub fn should_connect_perpetuals(&self, wallet: Option<Wallet>) -> bool {
-        wallet
-            .as_ref()
-            .is_some_and(|wallet| rules::show_perpetuals(self.preferences.is_perpetual_enabled(), wallet))
-    }
-
-    pub async fn get_candlesticks(&self, chain: Chain, symbol: String, period: ChartPeriod) -> Result<Vec<GemChartCandleStick>, GemServiceError> {
-        Ok(self.gateway.get_perpetual_candlesticks(chain, symbol, period.as_ref().to_string()).await?)
-    }
-
-    pub fn candle_interval(&self, period: ChartPeriod) -> String {
-        rules::candle_interval(&period).to_string()
-    }
-
-    pub fn merge_candle(&self, candles: Vec<GemChartCandleStick>, candle: GemChartCandleStick) -> Vec<GemChartCandleStick> {
-        rules::merge_candle(candles, candle)
+    pub fn should_connect_perpetuals(&self) -> bool {
+        self.session
+            .get_current_wallet()
+            .ok()
+            .flatten()
+            .is_some_and(|wallet| rules::show_perpetuals(self.preferences.is_perpetual_enabled(), &wallet))
     }
 
     pub async fn get_portfolio(&self, chain: Chain, address: String) -> Result<PerpetualPortfolio, GemServiceError> {
         Ok(self.gateway.get_perpetual_portfolio(chain, address).await?)
-    }
-
-    pub async fn clear_markets(&self) -> Result<(), GemServiceError> {
-        self.store.delete_perpetuals().await?;
-        self.preferences.set_perpetual_markets_updated_at(None)
     }
 
     pub async fn set_pinned(&self, perpetual_id: String, pinned: bool) -> Result<(), GemServiceError> {
@@ -176,18 +156,16 @@ impl GemPerpetualService {
         }
     }
 
-    pub async fn sync_positions(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
-        let mode = self.account_mode(wallet_id.clone(), chain, address.clone()).await?;
-        let summary = self.gateway.get_positions(chain, address).await?;
-        let existing_ids = self.store.get_position_ids(wallet_id.clone(), provider(chain)?).await?;
-        let delete_ids = rules::stale_position_ids(existing_ids, &summary.positions);
-        self.store.update_positions(wallet_id.clone(), summary.positions, delete_ids).await?;
-        self.update_balance(wallet_id, summary.balance).await?;
-        Ok(mode)
+    pub async fn sync_current_positions(&self) -> Result<(), GemServiceError> {
+        let wallet = self.session.current_wallet()?;
+        let Some(account) = hyperliquid_account(&wallet.accounts) else {
+            return Ok(());
+        };
+        self.sync_positions(wallet.id, account.chain, account.address.clone()).await.map(|_| ())
     }
 
     pub async fn connection(&self, wallet: Wallet) -> Result<Option<GemPerpetualConnection>, GemServiceError> {
-        let Some(account) = crate::services::stream::rules::hyperliquid_account(&wallet.accounts) else {
+        let Some(account) = hyperliquid_account(&wallet.accounts) else {
             return Ok(None);
         };
         let chain = account.chain;
@@ -198,7 +176,40 @@ impl GemPerpetualService {
         };
         Ok(Some(GemPerpetualConnection { address, mode }))
     }
+}
 
+impl GemPerpetualService {
+    pub async fn sync_positions(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
+        let mode = self.account_mode(wallet_id.clone(), chain, address.clone()).await?;
+        let summary = self.gateway.get_positions(chain, address).await?;
+        let existing_ids = self.store.get_position_ids(wallet_id.clone(), provider(chain)?).await?;
+        let delete_ids = rules::stale_position_ids(existing_ids, &summary.positions);
+        self.store.update_positions(wallet_id.clone(), summary.positions, delete_ids).await?;
+        self.update_balance(wallet_id, summary.balance).await?;
+        Ok(mode)
+    }
+    pub async fn account_mode(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
+        match self.gateway.get_perpetual_account_mode(chain, address).await {
+            Ok(mode) => {
+                self.wallet_preferences.set_perpetual_account_mode(wallet_id, mode)?;
+                Ok(mode)
+            }
+            Err(_) => self.wallet_preferences.get_perpetual_account_mode(wallet_id),
+        }
+    }
+}
+
+impl GemPerpetualService {
+    pub fn markets_updated_at(&self) -> Result<Option<i64>, GemServiceError> {
+        self.preferences.get_perpetual_markets_updated_at()
+    }
+    pub async fn get_candlesticks(&self, chain: Chain, symbol: String, period: ChartPeriod) -> Result<Vec<GemChartCandleStick>, GemServiceError> {
+        Ok(self.gateway.get_perpetual_candlesticks(chain, symbol, period.as_ref().to_string()).await?)
+    }
+    pub async fn clear_markets(&self) -> Result<(), GemServiceError> {
+        self.store.delete_perpetuals().await?;
+        self.preferences.set_perpetual_markets_updated_at(None)
+    }
     pub fn collateral_asset_id(&self, chain: Chain) -> Option<AssetId> {
         rules::collateral_asset_id(chain)
     }

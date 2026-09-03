@@ -17,13 +17,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemTransactionStateService
+import uniffi.gemstone.GemTransactionTracking
 
 private const val TAG = "TransactionStateTracker"
 
 class TransactionStateTracker(
     private val stateService: GemTransactionStateService,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
-) : CreateTransaction {
+) : CreateTransaction, GemTransactionTracking {
 
     fun start() {
         trackPendingTransactions()
@@ -51,10 +52,14 @@ class TransactionStateTracker(
         return asset
     }
 
-    private fun track(walletId: WalletId, transactions: List<Transaction>) {
+    override fun track(walletId: String, transactions: List<String>) {
         scope.launch {
-            runCatchingCancellable { stateService.track(walletId.id, transactions.map { it.toJson() }) }
-                .onFailure { Log.e(TAG, "tracking failed for ${transactions.map { it.id.hash }}", it) }
+            runCatchingCancellable { stateService.track(walletId, transactions) }
+                .onFailure { Log.e(TAG, "tracking failed for $walletId", it) }
         }
+    }
+
+    private fun track(walletId: WalletId, transactions: List<Transaction>) {
+        track(walletId.id, transactions.map { it.toJson() })
     }
 }

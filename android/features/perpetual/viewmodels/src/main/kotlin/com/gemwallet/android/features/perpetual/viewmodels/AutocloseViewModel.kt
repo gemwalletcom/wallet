@@ -3,15 +3,14 @@ package com.gemwallet.android.features.perpetual.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.perpetual.cases.BuildPerpetualParams
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByAsset
 import uniffi.gemstone.GemAutocloseEstimator
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseField
-import com.gemwallet.android.domains.perpetual.autoclose.AutocloseModifyBuilder
+import uniffi.gemstone.GemAutocloseModify
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseValidator
 import com.gemwallet.android.ext.PerpetualFormatter
-import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.NumericFormatter
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
@@ -28,26 +27,22 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 import javax.inject.Inject
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.domains.perpetual.toGem
+import com.gemwallet.android.ext.toGem
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AutocloseViewModel @Inject constructor(
     private val getPositionByAsset: GetPerpetualPositionByAsset,
-    private val buildPerpetualParams: BuildPerpetualParams,
-    getSession: GetSession,
+    private val getSession: GetSession,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -61,8 +56,8 @@ class AutocloseViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val _confirmRequests = MutableSharedFlow<GemConfirmInput>(extraBufferCapacity = 1)
-    val confirmRequests: SharedFlow<GemConfirmInput> = _confirmRequests
+    private val _confirmRequests = MutableSharedFlow<GemTransferData>(extraBufferCapacity = 1)
+    val confirmRequests: SharedFlow<GemTransferData> = _confirmRequests
 
     private val userTakeProfitText = MutableStateFlow<String?>(null)
     private val userStopLossText = MutableStateFlow<String?>(null)
@@ -115,21 +110,12 @@ class AutocloseViewModel @Inject constructor(
     fun onConfirm() {
         submitAttempted.value = true
         val position = position.value ?: return
-        val perpetualId = position.perpetual.id
         val assetIndex = position.perpetual.identifier.toIntOrNull() ?: return
         val takeProfitField = autocloseField(position, TpslType.TakeProfit, takeProfitText.value)
         val stopLossField = autocloseField(position, TpslType.StopLoss, stopLossText.value)
-        val builder = AutocloseModifyBuilder(position.position.direction)
-        if (!builder.canBuild(takeProfitField, stopLossField)) return
-        val modifyTypes = builder.build(assetIndex, takeProfitField, stopLossField)
-        viewModelScope.launch {
-            buildPerpetualParams.modify(
-                perpetualId = perpetualId,
-                modifyTypes = modifyTypes,
-                takeProfitOrderId = takeProfitField.orderId,
-                stopLossOrderId = stopLossField.orderId,
-            )?.let { _confirmRequests.tryEmit(it) }
-        }
+        val modify = GemAutocloseModify(position.position.direction.toJson(), assetIndex, takeProfitField.toGem(), stopLossField.toGem())
+        if (!modify.canBuild()) return
+        _confirmRequests.tryEmit(modify.transfer(position.perpetual.provider.toGem(), position.asset.toGem()))
     }
 
     private fun buildUiModel(
@@ -140,11 +126,10 @@ class AutocloseViewModel @Inject constructor(
     ): AutocloseUIModel {
         val takeProfit = autocloseField(position, TpslType.TakeProfit, takeProfitText)
         val stopLoss = autocloseField(position, TpslType.StopLoss, stopLossText)
-        val builder = AutocloseModifyBuilder(position.position.direction)
         val confirmEnabled = if (submitAttempted) {
-            builder.canBuild(takeProfit, stopLoss)
+            GemAutocloseModify(position.position.direction.toJson(), 0, takeProfit.toGem(), stopLoss.toGem()).canBuild()
         } else {
-            takeProfit.hasPendingChange || stopLoss.hasPendingChange
+            takeProfit.toGem().hasPendingChange() || stopLoss.toGem().hasPendingChange()
         }
         return AutocloseUIModelFactory.create(
             position = position,

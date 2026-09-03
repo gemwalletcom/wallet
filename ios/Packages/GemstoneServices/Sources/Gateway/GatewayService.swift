@@ -3,10 +3,9 @@
 import BigInt
 import Foundation
 import Gemstone
+import GemstonePrimitives
 import NativeProviderService
 import Primitives
-
-import GemstonePrimitives
 
 public actor GatewayService: Sendable {
     let gateway: GemGateway
@@ -31,12 +30,19 @@ public actor GatewayService: Sendable {
         GatewayService(provider: provider, preferences: preferences, securePreferences: securePreferences)
     }
 
-    public nonisolated func nodeStatusService() -> GemNodeStatusService {
-        GemNodeStatusService(gateway: gateway)
+    public nonisolated func chainSettingsService(nodes: GemNodeService, explorer: GemExplorerService) -> GemChainSettingsService {
+        GemChainSettingsService(nodes: nodes, explorer: explorer, gateway: gateway)
     }
 
-    public nonisolated func stakeService(staticApi: GemStaticApiClient, store: any GemStakeStore, addressStore: any GemAddressStore) -> GemStakeService {
-        GemStakeService(gateway: gateway, staticApi: staticApi, store: store, addressStore: addressStore)
+    public nonisolated func stakeService(
+        staticApi: GemStaticApiClient,
+        store: any GemStakeStore,
+        addressStore: any GemAddressStore,
+        explorer: GemExplorerService,
+        preferences: GemPreferencesService,
+        session: GemWalletSessionService,
+    ) -> GemStakeService {
+        GemStakeService(gateway: gateway, staticApi: staticApi, store: store, addressStore: addressStore, explorer: explorer, preferences: preferences, session: session)
     }
 
     public nonisolated func transactionStateService(
@@ -66,8 +72,9 @@ public actor GatewayService: Sendable {
         store: any GemAssetStore,
         price: GemPriceService,
         preferences: GemPreferencesService,
+        session: GemWalletSessionService,
     ) -> GemAssetsService {
-        GemAssetsService(api: api, gateway: gateway, store: store, price: price, preferences: preferences)
+        GemAssetsService(api: api, gateway: gateway, store: store, price: price, preferences: preferences, session: session)
     }
 
     public nonisolated func perpetualService(
@@ -77,6 +84,7 @@ public actor GatewayService: Sendable {
         preferences: GemPreferencesService,
         balance: GemBalanceService,
         walletPreferences: GemWalletPreferencesService,
+        session: GemWalletSessionService,
     ) -> GemPerpetualService {
         GemPerpetualService(
             gateway: gateway,
@@ -86,6 +94,7 @@ public actor GatewayService: Sendable {
             preferences: preferences,
             balance: balance,
             walletPreferences: walletPreferences,
+            session: session,
         )
     }
 
@@ -123,19 +132,6 @@ public extension GatewayService {
     func latestBlock(chain: Primitives.Chain) async throws -> BigInt {
         try await gateway.getBlockNumber(chain: chain.rawValue).asBigInt
     }
-
-}
-
-// MARK: - Token
-
-public extension GatewayService {
-    func tokenData(chain: Primitives.Chain, tokenId: String) async throws -> Primitives.Asset {
-        try await gateway.getTokenData(chain: chain.rawValue, tokenId: tokenId).map()
-    }
-
-    func isTokenAddress(chain: Primitives.Chain, tokenId: String) async throws -> Bool {
-        try await gateway.getIsTokenAddress(chain: chain.rawValue, tokenId: tokenId)
-    }
 }
 
 // MARK: - Staking
@@ -157,25 +153,9 @@ public extension GatewayService {
     }
 }
 
-// MARK: - Earn
-
-public extension GatewayService {
-    func getEarnData(
-        assetId: Primitives.AssetId,
-        address: String,
-        value: String,
-        earnType: Primitives.EarnType,
-    ) async throws -> Primitives.ContractCallData {
-        try await Primitives.ContractCallData(
-            gateway.getEarnData(assetId: assetId.identifier, address: address, value: value, earnType: earnType.json()),
-        )
-    }
-}
-
 // MARK: - Perpetual
 
 public extension GatewayService {
-
     func getPerpetualAccountMode(chain: Primitives.Chain, address: String) async throws -> Primitives.PerpetualAccountMode {
         try await Primitives.PerpetualAccountMode(gateway.getPerpetualAccountMode(chain: chain.rawValue, address: address))
     }

@@ -8,19 +8,29 @@ use crate::config::rewards::get_referral_url;
 use crate::services::auth::GemAuthService;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
+use crate::services::wallet_session::{GemWalletSessionService, rules as session_rules};
 
 #[derive(uniffi::Object)]
 pub struct GemRewardsService {
     api: Arc<GemDeviceApiClient>,
     auth: Arc<GemAuthService>,
     balance: Arc<GemBalanceService>,
+    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
 impl GemRewardsService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, auth: Arc<GemAuthService>, balance: Arc<GemBalanceService>) -> Self {
-        Self { api, auth, balance }
+    pub fn new(api: Arc<GemDeviceApiClient>, auth: Arc<GemAuthService>, balance: Arc<GemBalanceService>, session: Arc<GemWalletSessionService>) -> Self {
+        Self { api, auth, balance, session }
+    }
+
+    pub fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
+        Ok(session_rules::rewards_wallets(self.session.get_wallets()?))
+    }
+
+    pub fn selected_wallet(&self) -> Result<Option<Wallet>, GemServiceError> {
+        Ok(session_rules::rewards_wallet(self.session.get_current_wallet()?, &self.wallets()?))
     }
 
     pub fn referral_link(&self, code: String) -> String {

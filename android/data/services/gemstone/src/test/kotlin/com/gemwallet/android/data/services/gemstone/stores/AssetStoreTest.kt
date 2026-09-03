@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.data.services.gemstone.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.entities.DbAsset
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
@@ -18,7 +17,7 @@ import org.junit.Test
 class GemstoneAssetStoreTest {
 
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
-    private val subject = GemstoneAssetStore(assetsDao, AssetsAvailabilityService(assetsDao))
+    private val subject = GemstoneAssetStore(assetsDao)
 
     @Test
     fun addMissingBalances_insertsHiddenBalancesInOneStatement() = runBlocking {

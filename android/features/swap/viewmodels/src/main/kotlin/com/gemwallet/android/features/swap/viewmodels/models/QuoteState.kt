@@ -14,7 +14,7 @@ data class QuoteState(
 
 internal val QuoteState.formattedToAmount: String
     get() = ValueFormatter(style = ValueFormatter.Style.Auto)
-        .string(quote.toValue.toBigInteger(), receive.asset.decimals)
+        .string(quote.toValue, receive.asset.decimals)
 
 internal val QuoteState.receiveEquivalent: BigDecimal
     get() = receive.calculateFiat(quote.toValue)

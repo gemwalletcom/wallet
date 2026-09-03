@@ -1,3 +1,6 @@
+pub mod model;
+pub mod quote;
+pub mod rules;
 pub mod store;
 
 use crate::services::error::GemServiceError;
@@ -9,6 +12,8 @@ use primitives::{AssetId, FiatQuote, FiatQuoteType, FiatQuoteUrl, WalletId};
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::assets::GemAssetsService;
 
+pub use model::GemFiatAmountCheck;
+pub use quote::GemFiatQuoteService;
 pub use store::GemFiatStore;
 
 const QUOTE_DEBOUNCE_MILLISECONDS: u64 = 250;
@@ -52,7 +57,9 @@ impl GemFiatService {
             .map_err(GemApiError::from)?
             .quotes)
     }
+}
 
+impl GemFiatService {
     pub async fn get_quote_url(&self, wallet_id: WalletId, quote_id: String) -> Result<FiatQuoteUrl, GemServiceError> {
         Ok(self.api.client.get_fiat_quote_url(wallet_id.id(), quote_id).await.map_err(GemApiError::from)?)
     }

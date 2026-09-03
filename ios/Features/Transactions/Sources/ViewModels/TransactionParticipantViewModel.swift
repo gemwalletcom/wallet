@@ -2,19 +2,25 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemTransactionParticipant
+import enum Gemstone.GemTransactionParticipantRole
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
 
 struct TransactionParticipantViewModel {
     private let transactionViewModel: TransactionViewModel
+    private let participant: GemTransactionParticipant?
     private let onAddContact: ((AddContactType) -> Void)?
 
     init(
         transactionViewModel: TransactionViewModel,
+        participant: GemTransactionParticipant?,
         onAddContact: ((AddContactType) -> Void)? = nil,
     ) {
         self.transactionViewModel = transactionViewModel
+        self.participant = participant
         self.onAddContact = onAddContact
     }
 }
@@ -25,8 +31,9 @@ extension TransactionParticipantViewModel: ItemModelProvidable {
     var itemModel: TransactionItemModel {
         switch transactionViewModel.transaction.transaction.type {
         case .stakeFreeze, .stakeUnfreeze: resourceItemModel
-        case .earnDeposit, .earnWithdraw, .transfer, .transferNFT, .tokenApproval, .smartContractCall, .stakeDelegate: participantItemModel
-        case .swap, .stakeUndelegate, .stakeRedelegate, .stakeRewards, .stakeWithdraw, .assetActivation, .perpetualOpenPosition, .perpetualClosePosition, .perpetualModifyPosition: .empty
+        case .transfer, .transferNFT, .tokenApproval, .smartContractCall, .stakeDelegate, .earnDeposit, .earnWithdraw,
+             .swap, .stakeUndelegate, .stakeRedelegate, .stakeRewards, .stakeWithdraw, .assetActivation,
+             .perpetualOpenPosition, .perpetualClosePosition, .perpetualModifyPosition: participantItemModel
         }
     }
 }
@@ -35,19 +42,13 @@ extension TransactionParticipantViewModel: ItemModelProvidable {
 
 extension TransactionParticipantViewModel {
     private var participantItemModel: TransactionItemModel {
-        guard transactionViewModel.participant.isNotEmpty,
-              let participantTitle
-        else {
-            return .empty
-        }
+        guard let participant else { return .empty }
 
-        let address = transactionViewModel.participant
-        let chain = transactionViewModel.transaction.transaction.assetId.chain
-        let addressName = transactionViewModel.getAddressName(address: address)
+        let addressName = transactionViewModel.getAddressName(address: participant.address)
         let account = SimpleAccount(
             name: addressName?.name,
-            chain: chain,
-            address: address,
+            chain: transactionViewModel.transaction.transaction.assetId.chain,
+            address: participant.address,
             memo: transactionViewModel.transaction.transaction.memo,
             assetImage: nil,
             addressType: addressName?.type,
@@ -55,9 +56,9 @@ extension TransactionParticipantViewModel {
 
         return .participant(
             TransactionParticipantItemModel(
-                title: participantTitle,
+                title: title(for: participant.role),
                 account: account,
-                addressLink: transactionViewModel.addressLink(account: account),
+                addressLink: BlockExplorerLink(participant.link),
                 onAddContact: canAddContact(addressName: addressName) ? onAddContact : nil,
             ),
         )
@@ -77,28 +78,13 @@ extension TransactionParticipantViewModel {
         return .listItem(ListItemModel(title: Localized.Stake.resource, subtitle: resourceTitle))
     }
 
-    private var participantTitle: String? {
-        switch transactionViewModel.transaction.transaction.type {
-        case .transfer, .transferNFT:
-            switch transactionViewModel.transaction.transaction.direction {
-            case .incoming: Localized.Transaction.sender
-            case .outgoing, .selfTransfer: Localized.Transaction.recipient
-            }
-        case .tokenApproval:
-            Localized.Asset.contract
-        case .smartContractCall:
-            switch transactionViewModel.transaction.transaction.metadata?.decode(TransactionWalletConnectMetadata.self)?.outputAction {
-            case .send: Localized.Transaction.recipient
-            case .sign, .none: Localized.Asset.contract
-            }
-        case .stakeDelegate:
-            Localized.Stake.validator
-        case .stakeFreeze, .stakeUnfreeze:
-            Localized.Stake.resource
-        case .earnDeposit, .earnWithdraw:
-            Localized.Common.provider
-        case .swap, .stakeUndelegate, .stakeRedelegate, .stakeRewards, .stakeWithdraw,
-             .assetActivation, .perpetualOpenPosition, .perpetualClosePosition, .perpetualModifyPosition: nil
+    private func title(for role: GemTransactionParticipantRole) -> String {
+        switch role {
+        case .sender: Localized.Transaction.sender
+        case .recipient: Localized.Transaction.recipient
+        case .contract: Localized.Asset.contract
+        case .validator: Localized.Stake.validator
+        case .provider: Localized.Common.provider
         }
     }
 }

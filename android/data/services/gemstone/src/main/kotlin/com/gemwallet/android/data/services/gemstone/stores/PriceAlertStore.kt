@@ -33,5 +33,4 @@ class GemstonePriceAlertStore(
     fun observeAssetPriceAlert(assetId: AssetId): Flow<PriceAlertInfo?> =
         priceAlertsDao.getAssetPriceAlert(assetId.toIdentifier()).map { it?.toDTO() }
 
-    suspend fun hasAssetPriceAlerts(assetId: AssetId): Boolean = priceAlertsDao.hasAssetPriceAlerts(assetId.toIdentifier())
 }

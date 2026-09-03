@@ -69,7 +69,7 @@ public struct SwapScene: View {
         }
         .onChangeBindQuery(model.fromAssetQuery, action: model.onChangeFromAsset)
         .onChangeBindQuery(model.toAssetQuery, action: model.onChangeToAsset)
-        .debouncedTask(id: model.loadTrigger) {
+        .debouncedTask(id: model.loadTrigger, interval: model.quoteDebounce) {
             await model.load()
         }
         .debounce(

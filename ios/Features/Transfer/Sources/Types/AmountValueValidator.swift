@@ -3,33 +3,31 @@
 import BigInt
 import Foundation
 import enum Gemstone.GemAmountError
-import class Gemstone.GemAmountService
+import enum Gemstone.GemAmountType
+import struct Gemstone.GemAssetBalance
+import GemstonePrimitives
 import Primitives
 import Validators
 
 struct AmountValueValidator: ValueValidator {
+    private let type: GemAmountType
     private let asset: Asset
-    private let available: BigInt
-    private let minimum: BigInt
-    private let amountService: GemAmountService
+    private let balance: Balance
 
-    init(asset: Asset, available: BigInt, minimum: BigInt, amountService: GemAmountService) {
+    init(type: GemAmountType, asset: Asset, balance: Balance) {
+        self.type = type
         self.asset = asset
-        self.available = available
-        self.minimum = minimum
-        self.amountService = amountService
+        self.balance = balance
     }
 
     func validate(_ value: BigInt) throws {
         do {
-            try amountService.validate(value: value.description, availableValue: available.description, minimumValue: minimum.description)
+            try type.validate(asset: asset.map(), balance: GemAssetBalance(balance, assetId: asset.id), value: value)
         } catch GemAmountError.Zero {
             throw SilentValidationError()
-        } catch GemAmountError.InvalidValue {
-            throw TransferError.invalidAmount
-        } catch GemAmountError.BelowMinimum {
+        } catch let GemAmountError.BelowMinimum(minimum) {
             throw TransferError.minimumAmount(asset: asset, required: minimum)
-        } catch GemAmountError.InsufficientBalance {
+        } catch let GemAmountError.InsufficientBalance(available) {
             throw TransferAmountCalculatorError.insufficientBalance(
                 asset,
                 requirement: BalanceRequirement(required: value, available: available),

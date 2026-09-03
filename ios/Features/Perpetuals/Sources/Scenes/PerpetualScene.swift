@@ -135,9 +135,7 @@ public struct PerpetualScene: View {
 
             if !model.transactions.isEmpty {
                 TransactionsList(
-                    explorerService: model.explorerService,
-                    transactionFormatter: model.transactionFormatter,
-                    model.transactions,
+                                        model.transactions,
                     currency: model.currency,
                 )
                 .listRowInsets(.assetListRowInsets)

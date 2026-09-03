@@ -4,14 +4,10 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
-import com.gemwallet.android.application.perpetual.cases.SetPerpetualPinned
-import com.gemwallet.android.application.perpetual.cases.SyncPerpetualPositions
-import com.gemwallet.android.application.perpetual.cases.SyncPerpetuals
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
-import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
+import com.wallet.core.primitives.Chain
 import androidx.lifecycle.viewModelScope
 import io.mockk.coEvery
-import io.mockk.coJustRun
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
@@ -30,6 +26,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemMarketsRefreshTrigger
+import uniffi.gemstone.GemPerpetualServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PerpetualMarketViewModelTest {
@@ -50,15 +47,16 @@ class PerpetualMarketViewModelTest {
     @Test
     fun `pull to refresh asks core for a user requested markets sync`() = runTest(dispatcher) {
         val trigger = CompletableDeferred<GemMarketsRefreshTrigger>()
-        val syncPerpetuals = mockk<SyncPerpetuals>()
-        coEvery { syncPerpetuals.syncPerpetuals(any()) } answers { trigger.complete(firstArg()); Unit }
+        val service = mockk<GemPerpetualServiceInterface>()
+        coEvery { service.syncMarketsIfNeeded(Chain.HyperCore.string, any()) } answers { trigger.complete(secondArg()); true }
+        coEvery { service.syncCurrentPositions() } returns Unit
 
-        viewModel(syncPerpetuals).onRefresh()
+        viewModel(service).onRefresh()
 
         assertEquals(GemMarketsRefreshTrigger.USER_REQUESTED, trigger.await())
     }
 
-    private fun viewModel(syncPerpetuals: SyncPerpetuals): PerpetualMarketViewModel {
+    private fun viewModel(service: GemPerpetualServiceInterface): PerpetualMarketViewModel {
         val getPerpetuals = mockk<GetPerpetuals>()
         every { getPerpetuals.getPerpetuals(any<Flow<String?>>()) } returns flowOf(emptyList())
         val getPositions = mockk<GetPerpetualPositions>()
@@ -67,19 +65,16 @@ class PerpetualMarketViewModelTest {
         every { getBalance.getDisplayBalance() } returns emptyFlow()
         val getRecentAssets = mockk<GetRecentAssets>()
         every { getRecentAssets(any()) } returns flowOf(emptyList())
-        val syncPositions = mockk<SyncPerpetualPositions>()
-        coJustRun { syncPositions.syncPerpetualPositions() }
+        val perpetualObserver = mockk<PerpetualObserver>()
 
         return PerpetualMarketViewModel(
             getPerpetuals = getPerpetuals,
             getPositions = getPositions,
             getBalance = getBalance,
-            syncPerpetuals = syncPerpetuals,
-            syncPerpetualPositions = syncPositions,
-            setPerpetualPinned = mockk(),
             getRecentAssets = getRecentAssets,
-            updateRecentAsset = mockk<UpdateRecentAsset>(),
-            perpetualObserver = mockk<PerpetualObserver>(),
+            service = service,
+            recentActivity = mockk(),
+            perpetualObserver = perpetualObserver,
         ).also { model = it }
     }
 }
