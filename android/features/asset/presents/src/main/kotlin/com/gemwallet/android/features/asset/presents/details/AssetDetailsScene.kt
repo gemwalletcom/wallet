@@ -17,7 +17,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.getReserveBalanceUrl
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.ui.components.list_item.energyItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
@@ -157,11 +156,8 @@ internal fun AssetDetailsScene(
                                 { onAction(AssetDetailsAction.Stake(uiState.asset.id)) }
                             }
 
-                            AssetInfoUIModel.BalanceViewType.Reserved -> {
-                                {
-                                    uiState.asset.id.chain.getReserveBalanceUrl()
-                                        ?.let { uriHandler.open(context, it) }
-                                }
+                            AssetInfoUIModel.BalanceViewType.Reserved -> item.url?.let { url ->
+                                { uriHandler.open(context, url) }
                             }
                         }
                     )

@@ -28,8 +28,6 @@ fun Chain.assetType(): AssetType? {
     return AssetType.entries.firstOrNull { it.string == defaultAssetType }
 }
 
-fun Chain.getReserveBalanceUrl(): String? = Config().getChainConfig(this.string).accountActivationFeeUrl
-
 fun Chain.isStakeSupported(): Boolean = Config().getChainConfig(this.string).isStakeSupported
 
 fun Chain.isTokenSupported(): Boolean = Config().getChainConfig(this.string).isTokenSupported
@@ -37,8 +35,6 @@ fun Chain.isTokenSupported(): Boolean = Config().getChainConfig(this.string).isT
 fun Chain.isNftSupported(): Boolean = Config().getChainConfig(this.string).isNftSupported
 
 fun Chain.supportsNftTransfer(): Boolean = Config().getChainConfig(this.string).supportsNftTransfer
-
-fun Chain.hasNativeAsset(): Boolean = Config().getChainConfig(this.string).hasNativeAsset
 
 fun Chain.asset(): Asset {
     return chainAsset().asset

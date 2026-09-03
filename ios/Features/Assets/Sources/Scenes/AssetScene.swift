@@ -134,14 +134,19 @@ public struct AssetScene: View {
                                 subtitle: model.balanceText(value),
                                 infoAction: model.onSelectPendingUnconfirmedInfo,
                             )
-                        case let .reserved(value):
-                            if let url = model.reservedBalanceUrl {
+                        case let .reserved(value, url):
+                            if let url = url.flatMap(URL.init) {
                                 SafariNavigationLink(url: url) {
                                     ListItemView(
                                         title: model.assetDataModel.reservedBalanceTitle,
                                         subtitle: model.balanceText(value),
                                     )
                                 }
+                            } else {
+                                ListItemView(
+                                    title: model.assetDataModel.reservedBalanceTitle,
+                                    subtitle: model.balanceText(value),
+                                )
                             }
                         }
                     }

@@ -16,6 +16,7 @@ use crate::models::custom_types::GemBigUint;
 use crate::services::balance::{GemAssetBalance, GemBalanceRow};
 use crate::services::transfer::rules as transfer_rules;
 
+use crate::config::chain::account_activation_fee_url;
 use crate::config::stake::get_stake_config;
 use crate::config::validators::get_validators;
 
@@ -150,7 +151,10 @@ impl GemAssetBalance {
                 .then(|| GemBalanceRow::Staked { value: self.staked_value(chain) }),
             positive(&self.earn).map(|value| GemBalanceRow::Earn { value }),
             positive(&self.pending_unconfirmed).map(|value| GemBalanceRow::PendingUnconfirmed { value }),
-            positive(&self.reserved).map(|value| GemBalanceRow::Reserved { value }),
+            positive(&self.reserved).map(|value| GemBalanceRow::Reserved {
+                value,
+                url: account_activation_fee_url(chain),
+            }),
         ]
         .into_iter()
         .flatten()
@@ -635,8 +639,22 @@ mod tests {
                 Available { value: BigUint::from(5u32) },
                 Staked { value: BigUint::from(101u32) },
                 PendingUnconfirmed { value: BigUint::from(3u32) },
-                Reserved { value: BigUint::from(2u32) },
+                Reserved {
+                    value: BigUint::from(2u32),
+                    url: None
+                },
             ]
+        );
+        let reserved = GemAssetBalance {
+            reserved: BigUint::from(2u32),
+            ..GemAssetBalance::mock()
+        };
+        assert_eq!(
+            reserved.detail_rows(Chain::Xrp, false).last(),
+            Some(&Reserved {
+                value: BigUint::from(2u32),
+                url: account_activation_fee_url(Chain::Xrp)
+            })
         );
         let earn = GemAssetBalance {
             earn: BigUint::from(7u32),

@@ -161,10 +161,6 @@ public final class AssetSceneViewModel: Sendable {
         assetData.metadata.isBalanceEnabled ? SystemImage.minusCircle : SystemImage.plusCircle
     }
 
-    var reservedBalanceUrl: URL? {
-        assetModel.asset.chain.accountActivationFeeUrl
-    }
-
     var showEarnButton: Bool {
         #if DEBUG
             assetData.metadata.isEarnEnabled && !wallet.isViewOnly && !balanceRows.contains { if case .earn = $0 { true } else { false } }

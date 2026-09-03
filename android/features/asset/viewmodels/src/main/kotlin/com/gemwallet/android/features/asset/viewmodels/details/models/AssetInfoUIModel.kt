@@ -52,6 +52,7 @@ class AssetInfoUIModel(
     data class BalanceUIModel(
         val type: BalanceViewType,
         val value: String = "0",
+        val url: String? = null,
     )
 
     enum class BalanceViewType(@param:StringRes val label: Int) {

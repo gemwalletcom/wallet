@@ -71,5 +71,5 @@ pub enum GemBalanceRow {
     Staked { value: GemBigUint },
     Earn { value: GemBigUint },
     PendingUnconfirmed { value: GemBigUint },
-    Reserved { value: GemBigUint },
+    Reserved { value: GemBigUint, url: Option<String> },
 }
