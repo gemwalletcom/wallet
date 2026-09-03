@@ -170,7 +170,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
             hasAvailableBalance: false,
             isAssetActivated: true,
             assetRankScore: .none,
-            isWalletEmpty: totalFiatValue.value.isZero,
+            isWalletEmpty: assets.allSatisfy { $0.balance.total.isZero },
         )
     }
 }

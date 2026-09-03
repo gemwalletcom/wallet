@@ -327,7 +327,6 @@ Each is one question. Nothing below is blocked on investigation.
 | S8 privacy lock | iOS has an app-lock setting with a `shouldCoverScreen` rule and an overlay window; Android has none. | Product call. The cover predicate is Core's; the overlay is platform. |
 | S9 WalletConnect one-click auth (SIWE) | Android only, and its rules — including *what the user is asked to sign* — live in `WCAuthViewModel.kt` UI code. | Product call. Whoever takes it moves the rules to Core first. |
 | Polling on top of a live socket | T5/T7: screens still poll while a socket is open, and each screen asks for its own price subscription rather than Core deciding when prices are subscribed (deleting `PriceUpdater.swift`). | Design change, not a missing call. |
-| Onboarding banner "wallet empty" premise | Both apps ask Core (`is_visible_event(Onboarding)` on iOS's `visibleBanners`, `shows_onboarding` on Android's `GetShowWelcomeBanner`) but feed it different facts: iOS passes `totalFiatValue == 0`, Android passes "every enabled balance is zero". A funded wallet holding only unpriced tokens gets the banner on iOS and not on Android. | Pick the balance rule (a wallet with coins is not empty), have iOS derive `isWalletEmpty` from its observed asset rows, then fold Android's welcome banner into the `visibleBanners` list so `shows_onboarding` can go. |
 | Frozen `assetConfig` table | `Chain.asset()` builds an immutable lookup once at first access. Threading a service through ~21 Android sites so a pure function can read a constant costs every caller a parameter for nothing at runtime, and a frozen table cannot drift into an app-side variant. | Decide whether the no-service-at-a-call-site rule carves this out before spending the change. |
 
 ### 2. Unused generated models to remove
@@ -632,6 +631,16 @@ Three gotchas if you repeat the sweep, all met on this pass:
   are gone. `SettingsViewModelTest`'s rewards tests waited on a `withContext(IO)` hop with
   `advanceUntilIdle()` alone and flaked; one test now waits for Core's answer with `first {}`
   and covers both directions.
+- **The onboarding banner's "wallet empty" premise is the same fact on both apps.** Core
+  decides visibility (`is_visible_event(Onboarding)` / `shows_onboarding`) from an
+  `is_wallet_empty` flag the caller supplies; iOS supplied `totalFiatValue == 0` and Android
+  "every enabled balance is zero", so a wallet holding only unpriced tokens welcomed the user on
+  iOS. iOS now derives the flag from its observed asset rows (`assets.allSatisfy { balance.total.isZero }`),
+  covered by `WalletSceneViewModelTests.onboardingBannerShowsOnlyWhileEveryBalanceIsZero`
+  (funded-but-unpriced hides it, all-zero shows it). Android's separate `GetShowWelcomeBanner`
+  path and `shows_onboarding` accessor remain structure: its banner list is a one-shot load and
+  the welcome banner is a distinct composable, so folding it into `visibleBanners` needs the
+  banners to become reactive first.
 - **Android's import screen asks `GemMnemonic` directly.** `GemValidatePhraseOperator`
   (`findInvalidWords` + `isValid` behind a `Result` with `InvalidWords`/`InvalidPhrase`
   exceptions) and `GemFindPhraseWord` were two wrappers around one Core object, and only the
@@ -743,7 +752,7 @@ on is shared preferences state, so another test's bumps can leak in under parall
 
 ### 6. Android
 
-- **Earn flow.** No Earn surface exists (no `StakeProviderType.Earn` reader, no `AmountParams.Earn`, no `ConfirmParams.Earn`; `GemDelegationAction.DEPOSIT` maps to nothing). Build the scene, amount provider and confirm params on `GemStakeService.sync_earn`, `GemAmountService::earn_transfer_data`, `GemAmountType::Earn` and `GemTransactionInputType::Earn`; iOS `EarnSceneViewModel` + `AmountEarnViewModel` are the reference. A feature, not a consolidation — plan it as its own batch.
+- **Earn flow.** No Earn surface exists (no `StakeProviderType.Earn` reader, no `AmountParams.Earn`, no `ConfirmParams.Earn`; `GemDelegationAction.DEPOSIT` maps to nothing). Build the scene, amount provider and confirm params on `GemStakeService.sync_earn`, `GemAmountService::earn_transfer_data`, `GemAmountType::Earn` and `GemTransactionInputType::Earn`; iOS `EarnSceneViewModel` + `AmountEarnViewModel` are the reference. A feature, not a consolidation — plan it as its own batch, and not before iOS ungates it: `AssetSceneViewModel.showEarnButton` and the earn balance row are `#if DEBUG` only, so release iOS has no Earn entry either.
 - **Dead `NOT NULL` columns** with no iOS counterpart: `AssetStore.saveAsset` bumps `updatedAt`, `TransactionStateStore` writes swap amounts, `NftStore` fills two legacy image columns. minSdk 28 has no `ALTER TABLE DROP COLUMN`, so removing them means recreating tables (`asset` behind its foreign keys) and instrumented migration tests do not run in CI — batch them with a migration that has another reason to touch those tables.
 - `PriceStore` still stamps `prices.currency` (now only the label `AssetPriceInfo.currency` reads; the column goes with the dead-column migration). The `USD` fallbacks are gone: `AssetInfoDataAggregate` only formats fiat inside the price it has, `HeadDelegationInfo` takes `GemStakeService::currency`, and `GetCurrentCurrency::getCurrency()` is a `StateFlow` so `SettingsViewModel` and `CurrenciesViewModel` start from the real value. The perpetual screens' `Currency.USD` is deliberate (Hyperliquid is USD-denominated). (`AddAssetViewModel` now keeps the chain optional until the wallet's chains load, like iOS.)
 - **Store adapters diff in SQL, not in Kotlin.** `GemAssetStore::set_buyable_assets` / `set_sellable_assets` ("exactly these ids") are two guarded `UPDATE`s in `AssetsDao` (enable the listed ids that are off, disable the unlisted ids that are on), the way iOS's `AssetStore.updateColumn` always was; the `AssetsAvailabilityService` + `calculateAvailabilityChanges` pair that computed the diff in Kotlin is gone.
