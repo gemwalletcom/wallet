@@ -65,9 +65,6 @@ pub enum CacheKey<'a> {
     // Transaction keys
     FetchTransaction(&'a str, &'a str),
     PendingTransactions(&'a str),
-    PendingTransactionAttempts(&'a str),
-    PendingTransactionAttemptsInitialized(&'a str),
-    PendingTransactionRetry(&'a str, &'a str, u64),
     TransactionFeeEstimates(&'a str),
     TransactionFeeEstimatesFresh(&'a str),
 }
@@ -107,9 +104,6 @@ impl CacheKey<'_> {
             Self::PerpetualPriorityAddresses(chain) => format!("perpetual:priority_addresses:{}", chain),
             Self::PerpetualObserverCheckpoint(chain, address) => format!("perpetual:last_seen:{}:{}", chain, address),
             Self::PendingTransactions(chain) => format!("transactions:pending:{}", chain),
-            Self::PendingTransactionAttempts(chain) => format!("transactions:pending_attempts:{}", chain),
-            Self::PendingTransactionAttemptsInitialized(chain) => format!("transactions:pending_attempts_initialized:{}", chain),
-            Self::PendingTransactionRetry(chain, hash, _) => format!("transactions:pending_retry:{}:{}", chain, hash),
             Self::TransactionFeeEstimates(chain) => format!("transactions:fee_estimates:{}", chain),
             Self::TransactionFeeEstimatesFresh(chain) => format!("transactions:fee_estimates:fresh:{}", chain),
         }
@@ -149,9 +143,6 @@ impl CacheKey<'_> {
             Self::PerpetualPriorityAddresses(_) => 30 * SECONDS_PER_MINUTE,
             Self::PerpetualObserverCheckpoint(_, _) => 30 * SECONDS_PER_DAY,
             Self::PendingTransactions(_) => 30 * SECONDS_PER_DAY,
-            Self::PendingTransactionAttempts(_) => 30 * SECONDS_PER_DAY,
-            Self::PendingTransactionAttemptsInitialized(_) => 30 * SECONDS_PER_DAY,
-            Self::PendingTransactionRetry(_, _, ttl) => *ttl,
             Self::TransactionFeeEstimates(_) => 5 * SECONDS_PER_YEAR,
             Self::TransactionFeeEstimatesFresh(_) => SECONDS_PER_HOUR,
         }

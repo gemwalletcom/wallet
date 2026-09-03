@@ -203,24 +203,6 @@ impl CacherClient {
         Ok(count)
     }
 
-    pub async fn add_to_sorted_set_cached_if_missing(&self, key: CacheKey<'_>, members: &[(String, f64)]) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        if members.is_empty() {
-            return Ok(0);
-        }
-
-        let key_str = key.key();
-        let ttl = key.ttl() as i64;
-        let mut pipe = redis::pipe();
-        pipe.atomic();
-        for (member, score) in members {
-            pipe.cmd("ZADD").arg(&key_str).arg("NX").arg(score).arg(member).ignore();
-        }
-        pipe.cmd("EXPIRE").arg(&key_str).arg(ttl).ignore();
-        pipe.cmd("ZCARD").arg(&key_str);
-        let (count,): (usize,) = pipe.query_async(&mut self.connection.clone()).await?;
-        Ok(count)
-    }
-
     pub async fn remove_from_sorted_set_cached(&self, key: CacheKey<'_>, members: &[String]) -> Result<usize, Box<dyn Error + Send + Sync>> {
         if members.is_empty() {
             return Ok(0);
@@ -278,16 +260,8 @@ impl CacherClient {
             .await?)
     }
 
-    pub async fn sorted_set_range_by_score_all(&self, key: &str, min: f64, max: f64) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
-        Ok(redis::cmd("ZRANGEBYSCORE").arg(key).arg(min).arg(max).query_async(&mut self.connection.clone()).await?)
-    }
-
     pub async fn sorted_set_card(&self, key: &str) -> Result<u64, Box<dyn Error + Send + Sync>> {
         Ok(redis::cmd("ZCARD").arg(key).query_async(&mut self.connection.clone()).await?)
-    }
-
-    pub async fn sorted_set_score(&self, key: &str, member: &str) -> Result<Option<f64>, Box<dyn Error + Send + Sync>> {
-        Ok(redis::cmd("ZSCORE").arg(key).arg(member).query_async(&mut self.connection.clone()).await?)
     }
 
     pub async fn sorted_set_range_with_scores(&self, key: &str, start: isize, stop: isize) -> Result<Vec<(String, f64)>, Box<dyn Error + Send + Sync>> {
