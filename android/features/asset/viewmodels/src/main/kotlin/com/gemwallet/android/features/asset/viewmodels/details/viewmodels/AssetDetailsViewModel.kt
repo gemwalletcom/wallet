@@ -6,6 +6,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.Deeplink
 import uniffi.gemstone.GemAssetDetailsServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -102,6 +103,7 @@ class AssetDetailsViewModel @Inject constructor(
                 },
                 verificationStatus = assetDetailsService.verificationStatus(asset.toGem(), it.chainAssetInfo.assetInfo.metadata.rankScore)?.toPrimitives(),
                 networkDestination = assetDetailsService.networkDestination(asset.id.toIdentifier()),
+                shareUrl = assetDetailsService.deeplinkUrl(Deeplink.Asset(assetId = asset.id.toIdentifier())),
             )
         }
     }

@@ -38,6 +38,7 @@ class AssetInfoUIModelFactory @Inject constructor() {
         explorerTokenUrl: String?,
         verificationStatus: VerificationStatus?,
         networkDestination: GemAssetNetworkDestination?,
+        shareUrl: String,
     ): AssetInfoUIModel {
         val assetInfo = chainAssetInfo.assetInfo
         val feeAssetInfo = chainAssetInfo.feeAssetInfo
@@ -65,6 +66,7 @@ class AssetInfoUIModelFactory @Inject constructor() {
             explorerTokenUrl = explorerTokenUrl,
             verificationStatus = verificationStatus,
             networkDestination = networkDestination?.let(::networkDestination),
+            shareUrl = shareUrl,
             accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
                 walletType = walletType,
                 totalBalance = valueFormatter.string(balances.balance.getTotalAmount(), balances.asset),
