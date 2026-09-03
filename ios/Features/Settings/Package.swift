@@ -55,5 +55,13 @@ let package = Package(
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
             ],
         ),
+        .testTarget(
+            name: "ChainSettingsTests",
+            dependencies: [
+                "Settings",
+                "Primitives",
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+            ],
+        ),
     ],
 )
