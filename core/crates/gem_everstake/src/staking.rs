@@ -9,39 +9,27 @@ use num_bigint::{BigInt, BigUint};
 use num_traits::Zero;
 use primitives::{AssetBalance, AssetId, Chain, DelegationBase, DelegationState, DelegationValidator, StakeType};
 
-use crate::client::account_state;
+use crate::client::{EverstakeClient, account_state};
 use crate::constants::EVERSTAKE_POOL_ADDRESS;
 use crate::encode::encode_stake;
 use crate::mapper::{map_balance_to_delegation, map_staking_balance, map_withdraw_request_to_delegations};
 use crate::parser::EverstakeParser;
 
-#[cfg(feature = "reqwest")]
-use crate::client::staking_apy;
-
 pub struct EverstakeStakingClient<C: Client + Clone> {
     client: EthereumClient<C>,
-    #[cfg_attr(not(feature = "reqwest"), allow(dead_code))]
-    stats_url: String,
+    stats: EverstakeClient<C>,
 }
 
 impl<C: Client + Clone> EverstakeStakingClient<C> {
-    pub fn new(client: EthereumClient<C>, stats_url: String) -> Self {
-        Self { client, stats_url }
+    pub fn new(client: EthereumClient<C>, stats: EverstakeClient<C>) -> Self {
+        Self { client, stats }
     }
 }
 
 #[async_trait]
 impl<C: Client + Clone> EvmStakingClient for EverstakeStakingClient<C> {
     async fn get_staking_apy(&self) -> Result<Option<f64>, Box<dyn Error + Sync + Send>> {
-        #[cfg(feature = "reqwest")]
-        {
-            staking_apy(&self.stats_url).await
-        }
-
-        #[cfg(not(feature = "reqwest"))]
-        {
-            Ok(None)
-        }
+        Ok(Some(self.stats.get_staking_apy().await?))
     }
 
     async fn get_staking_validators(&self, apy: Option<f64>) -> Result<Vec<DelegationValidator>, Box<dyn Error + Sync + Send>> {

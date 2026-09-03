@@ -1,12 +1,12 @@
 use num_bigint::BigUint;
-#[cfg(feature = "reqwest")]
+#[cfg(feature = "rpc")]
 use serde::Deserialize;
-#[cfg(feature = "reqwest")]
+#[cfg(feature = "rpc")]
 use serde_serializers::deserialize_f64_from_str;
 
 use super::contracts::WithdrawRequest;
 
-#[cfg(feature = "reqwest")]
+#[cfg(feature = "rpc")]
 #[derive(Debug, Deserialize)]
 pub struct StatsResponse {
     #[serde(deserialize_with = "deserialize_f64_from_str")]

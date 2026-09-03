@@ -13,7 +13,7 @@ use gem_bsc::BscStakingClient;
 use gem_cardano::rpc::CardanoClient;
 use gem_client::{ReqwestClient, retry_policy};
 use gem_cosmos::rpc::client::CosmosClient;
-use gem_everstake::EverstakeStakingClient;
+use gem_everstake::{EverstakeClient, EverstakeStakingClient};
 use gem_evm::rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider};
 use gem_hypercore::rpc::client::HyperCoreClient;
 use gem_jsonrpc::client::JsonRpcClient;
@@ -74,6 +74,7 @@ impl ProviderFactory {
                 let rpc_client = JsonRpcClient::new(gem_client.clone());
                 let client = EthereumClient::new(rpc_client, evm_chain);
                 TempoProvider::new_or_else(client, |client| {
+                    let everstake = EverstakeClient::new(gem_client.clone().with_base_url(config.everstake_url.clone()));
                     let indexer = EVMIndexer::for_chain(
                         gem_client
                             .clone()
@@ -88,21 +89,16 @@ impl ProviderFactory {
                         let transactions = Box::new(EVMTransactionsByAddressProvider::new(indexer.clone()));
                         let asset_balances = Box::new(EVMAssetBalanceProvider::new(indexer));
                         Box::new(match evm_chain {
-                            EVMChain::Ethereum => EthereumProvider::new_with_provider(
-                                client.clone(),
-                                transactions,
-                                asset_balances,
-                                Box::new(EverstakeStakingClient::new(client, config.everstake_url.clone())),
-                            ),
+                            EVMChain::Ethereum => {
+                                EthereumProvider::new_with_provider(client.clone(), transactions, asset_balances, Box::new(EverstakeStakingClient::new(client, everstake)))
+                            }
                             EVMChain::Monad => EthereumProvider::new_with_provider(client.clone(), transactions, asset_balances, Box::new(MonadStakingClient::new(client))),
                             EVMChain::SmartChain => EthereumProvider::new_with_provider(client.clone(), transactions, asset_balances, Box::new(BscStakingClient::new(client))),
                             _ => EthereumProvider::new(client, transactions, asset_balances),
                         })
                     } else {
                         Box::new(match evm_chain {
-                            EVMChain::Ethereum => {
-                                EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(EverstakeStakingClient::new(client, config.everstake_url.clone())))
-                            }
+                            EVMChain::Ethereum => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(EverstakeStakingClient::new(client, everstake))),
                             EVMChain::Monad => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(MonadStakingClient::new(client))),
                             EVMChain::SmartChain => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(BscStakingClient::new(client))),
                             _ => EthereumProvider::new_rpc_only(client),

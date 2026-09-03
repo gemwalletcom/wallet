@@ -9,6 +9,8 @@ use primitives::EVMChain;
 #[cfg(all(feature = "rpc", feature = "reqwest"))]
 use settings::testkit::get_test_settings;
 
+#[cfg(all(feature = "rpc", feature = "reqwest"))]
+use crate::client::EverstakeClient;
 use crate::constants::EVERSTAKE_POOL_ADDRESS;
 #[cfg(all(feature = "rpc", feature = "reqwest"))]
 use crate::staking::EverstakeStakingClient;
@@ -35,5 +37,8 @@ pub fn mock_delegation(state: DelegationState) -> Delegation {
 #[cfg(all(feature = "rpc", feature = "reqwest"))]
 pub fn create_everstake_staking_client() -> EverstakeStakingClient<ReqwestClient> {
     let settings = get_test_settings();
-    EverstakeStakingClient::new(EthereumClient::mock_with_url(EVMChain::Ethereum, &settings.chains.ethereum.url), settings.everstake.url)
+    EverstakeStakingClient::new(
+        EthereumClient::mock_with_url(EVMChain::Ethereum, &settings.chains.ethereum.url),
+        EverstakeClient::new(ReqwestClient::new(settings.everstake.url, gem_client::reqwest_client())),
+    )
 }
