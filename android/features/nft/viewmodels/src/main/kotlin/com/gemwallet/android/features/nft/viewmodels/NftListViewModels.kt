@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.nft.viewmodels
 
-import uniffi.gemstone.GemNftService
+import uniffi.gemstone.GemNftServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,7 +27,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NftListViewModels @Inject constructor(
-    private val nftService: GemNftService,
+    private val nftService: GemNftServiceInterface,
     getNftCollections: GetNftCollections,
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,

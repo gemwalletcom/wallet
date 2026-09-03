@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
 import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemExplorerServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,7 +28,7 @@ class AssetChartViewModel internal constructor(
     getAssetById: GetAssetById,
     getAssetLinks: GetAssetLinks,
     getAssetMarket: GetAssetMarket,
-    private val explorerService: GemExplorerService,
+    private val explorerService: GemExplorerServiceInterface,
     getPriceAlerts: GetPriceAlerts,
     getCurrentCurrency: GetCurrentCurrency,
     val assetId: AssetId,

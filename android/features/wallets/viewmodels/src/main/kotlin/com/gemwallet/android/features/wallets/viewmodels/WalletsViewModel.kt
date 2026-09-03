@@ -11,14 +11,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemWalletService
+import uniffi.gemstone.GemWalletServiceInterface
 import javax.inject.Inject
 
 @HiltViewModel
 class WalletsViewModel @Inject constructor(
     private val getAllWallets: GetAllWallets,
     private val setCurrentWallet: SetCurrentWallet,
-    private val service: GemWalletService,
+    private val service: GemWalletServiceInterface,
     private val deleteWallet: DeleteWallet,
 ) : ViewModel() {
 

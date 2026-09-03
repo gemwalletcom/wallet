@@ -12,6 +12,7 @@ import uniffi.gemstone.GemCollectibleServiceInterface
 import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemNftService
+import uniffi.gemstone.GemNftServiceInterface
 import uniffi.gemstone.GemWalletSessionService
 import javax.inject.Singleton
 
@@ -31,4 +32,7 @@ class NftModule {
     @Provides
     fun provideGemCollectibleService(nfts: GemNftService, avatars: GemAvatarService, explorer: GemExplorerService): GemCollectibleServiceInterface =
         GemCollectibleService(nfts, avatars, explorer)
+
+    @Provides
+    fun provideGemNftServiceInterface(service: GemNftService): GemNftServiceInterface = service
 }

@@ -5,7 +5,7 @@ import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualModifyConfirmData
 import uniffi.gemstone.GemAutocloseSummary
-import uniffi.gemstone.GemConfirmTransferService
+import uniffi.gemstone.GemConfirmTransferServiceInterface
 
 object PerpetualModifyAutocloseFactory {
 
@@ -13,7 +13,7 @@ object PerpetualModifyAutocloseFactory {
 
     fun create(
         data: PerpetualModifyConfirmData,
-        confirmService: GemConfirmTransferService,
+        confirmService: GemConfirmTransferServiceInterface,
     ): ConfirmDetailElement.PerpetualModifyAutoclose? =
         confirmService.autocloseSummary(data.toJson())?.let(::element)
 

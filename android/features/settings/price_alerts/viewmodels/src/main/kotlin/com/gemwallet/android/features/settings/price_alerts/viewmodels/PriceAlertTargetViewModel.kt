@@ -38,7 +38,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import android.util.Log
-import uniffi.gemstone.GemPriceAlertService
+import uniffi.gemstone.GemPriceAlertServiceInterface
 import uniffi.gemstone.PriceAlertFormatter
 import java.math.BigDecimal
 import javax.inject.Inject
@@ -46,7 +46,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PriceAlertTargetViewModel @Inject constructor(
     private val getAssetInfo: GetAssetInfo,
-    private val service: GemPriceAlertService,
+    private val service: GemPriceAlertServiceInterface,
     private val enableDevicePush: EnableDevicePush,
     private val priceAlertFormatter: PriceAlertFormatter,
     savedStateHandle: SavedStateHandle,

@@ -21,6 +21,7 @@ import uniffi.gemstone.GemNftService
 import uniffi.gemstone.GemStakeService
 import uniffi.gemstone.GemTransactionStateService
 import uniffi.gemstone.GemTransactionsService
+import uniffi.gemstone.GemTransactionsServiceInterface
 import javax.inject.Singleton
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemWalletPreferencesService
@@ -89,4 +90,6 @@ object TransactionsModule {
     @Provides
     fun provideCreateTransactionsCase(tracker: TransactionStateTracker): CreateTransaction = tracker
 
+    @Provides
+    fun provideGemTransactionsServiceInterface(service: GemTransactionsService): GemTransactionsServiceInterface = service
 }

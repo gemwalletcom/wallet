@@ -8,7 +8,7 @@ import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
-import uniffi.gemstone.GemNftService
+import uniffi.gemstone.GemNftServiceInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flowOn
@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ReceiveNftChainsViewModel @Inject constructor(
-    private val service: GemNftService,
+    private val service: GemNftServiceInterface,
 ) : ViewModel() {
 
     val chainFilter = TextFieldState()

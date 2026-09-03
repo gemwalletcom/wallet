@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemPriceAlertService
+import uniffi.gemstone.GemPriceAlertServiceInterface
 import javax.inject.Inject
 import android.util.Log
 
@@ -30,7 +30,7 @@ class AssetPriceAlertsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     getAssetPriceAlertState: GetAssetPriceAlertState,
     getPriceAlerts: GetPriceAlerts,
-    private val service: GemPriceAlertService,
+    private val service: GemPriceAlertServiceInterface,
     private val enableDevicePush: EnableDevicePush,
 ) : ViewModel() {
 

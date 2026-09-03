@@ -7,8 +7,8 @@ import com.gemwallet.android.application.transactions.cases.TransactionsRequestF
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ui.models.TransactionTypeFilter
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemAssetConfigService
-import uniffi.gemstone.GemTransactionsService
+import uniffi.gemstone.GemAssetConfigServiceInterface
+import uniffi.gemstone.GemTransactionsServiceInterface
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toChain
 import android.util.Log
@@ -37,8 +37,8 @@ import javax.inject.Inject
 class TransactionsViewModel @Inject constructor(
     getSession: GetSession,
     getTransactions: GetTransactions,
-    private val service: GemTransactionsService,
-    private val assetConfig: GemAssetConfigService,
+    private val service: GemTransactionsServiceInterface,
+    private val assetConfig: GemAssetConfigServiceInterface,
 ) : ViewModel() {
 
     private val _isRefreshing = MutableStateFlow(false)

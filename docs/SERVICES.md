@@ -259,13 +259,25 @@ consolidation, and a second Core service in a view model is the one to remove.
 | `GemSupportService` | `SupportChatSceneViewModel` | `SupportChatSceneViewModel` |
 | `GemSwapQuoteService` | `SwapSceneViewModel` | `SwapViewModel` |
 | `GemTransactionDetailsService` | `TransactionSceneViewModel` | `GetTransactionDetailsImpl` (observed read + links) |
-| `GemTransactionsService` | `TransactionsViewModel` | `SyncTransactionsImpl` |
+| `GemTransactionsService` | `TransactionsViewModel` | `TransactionsViewModel` |
 | `GemWalletConnectService` | `WalletConnectorService` | `WCRequestViewModel`, `ProposalSceneViewModel`, `WCAuthViewModel` |
 | `GemWalletHomeService` | `WalletSceneViewModel`, `NetworkAssetsSceneViewModel` | `AssetsViewModel`, `NetworkAssetsViewModel` |
 | `GemWalletService` | onboarding and manage-wallet view models (`WalletDetailViewModel` exports the secret through `export_secret`) | `CreateWalletViewModel`, `ImportViewModel`, wallet cases (secret export still prompts in the UI, § 1 S3) |
 
 Android holds an observed Room read beside the service where the screen lists rows (a `Get*` case);
 that is the platform's reactive read, not a second service.
+
+Audit of September 2026 (re-run the two sweeps below before touching a screen): every iOS screen
+view model holds one `any Gem*ServiceProtocol` — the only multi-service holders are the three
+in section 8 — and no view model on either app names a concrete Core class any more (iOS
+`DeveloperViewModel` did; eighteen Android view models and their `pack`/`unpack`,
+`toSupportedNamespaces`, `activityDefaults` helpers took `Gem*Service` where the Hilt module only
+bound the class, so each such module now also binds the `*Interface`).
+
+```
+rg -o "(let|var) \w+: (any )?Gem\w+Service(Protocol)?" ios/Features --glob '*ViewModel.swift'   # >1 per file, or no Protocol
+rg -o "val \w+: Gem\w+Service\b" android/features --glob '*ViewModel*.kt'                       # concrete class
+```
 
 ## App services
 

@@ -6,7 +6,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.toJson
-import uniffi.gemstone.GemAssetDetailsService
+import uniffi.gemstone.GemAssetDetailsServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -47,7 +47,7 @@ class AssetDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getChainAssetInfo: GetChainAssetInfo,
     private val getTransactions: GetTransactions,
-    private val assetDetailsService: GemAssetDetailsService,
+    private val assetDetailsService: GemAssetDetailsServiceInterface,
     private val hasMultiSign: HasMultiSign,
     private val assetInfoUIModelFactory: AssetInfoUIModelFactory,
 ) : ViewModel() {

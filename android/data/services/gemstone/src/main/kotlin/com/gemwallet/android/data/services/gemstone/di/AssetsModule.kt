@@ -17,6 +17,7 @@ import uniffi.gemstone.GemApiClient
 import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemAssetStore
 import uniffi.gemstone.GemAssetDetailsService
+import uniffi.gemstone.GemAssetDetailsServiceInterface
 import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemSwapServiceInterface
@@ -239,4 +240,7 @@ object AssetsModule {
     @Provides
     @Singleton
     fun provideGemPriceService(apiClient: GemApiClient, priceStore: GemstonePriceStore): GemPriceService = GemPriceService(apiClient, priceStore)
+
+    @Provides
+    fun provideGemAssetDetailsServiceInterface(service: GemAssetDetailsService): GemAssetDetailsServiceInterface = service
 }

@@ -12,8 +12,10 @@ import uniffi.gemstone.GemBalanceService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneRecentActivityStore
 import uniffi.gemstone.GemRecentActivityService
+import uniffi.gemstone.GemRecentActivityServiceInterface
 import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemConfirmTransferService
+import uniffi.gemstone.GemConfirmTransferServiceInterface
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemNodeService
@@ -115,4 +117,10 @@ object DataModule {
     fun provideSyncService(
         appStartService: GemAppStartService,
     ): SyncService = SyncService(appStartService = appStartService)
+
+    @Provides
+    fun provideGemRecentActivityServiceInterface(service: GemRecentActivityService): GemRecentActivityServiceInterface = service
+
+    @Provides
+    fun provideGemConfirmTransferServiceInterface(service: GemConfirmTransferService): GemConfirmTransferServiceInterface = service
 }

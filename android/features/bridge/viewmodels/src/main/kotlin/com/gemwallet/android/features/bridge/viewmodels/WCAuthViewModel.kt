@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
-import uniffi.gemstone.GemChainService
-import uniffi.gemstone.GemWalletConnectService
+import uniffi.gemstone.GemChainServiceInterface
+import uniffi.gemstone.GemWalletConnectServiceInterface
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.getKeystorePassword
@@ -51,8 +51,8 @@ class WCAuthViewModel @Inject constructor(
     private val prepareSessionProposal: PrepareSessionProposal,
     private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
-    private val walletConnectService: GemWalletConnectService,
-    private val chainService: GemChainService,
+    private val walletConnectService: GemWalletConnectServiceInterface,
+    private val chainService: GemChainServiceInterface,
     private val signMessageService: GemSignMessageServiceInterface,
 ) : ViewModel() {
 

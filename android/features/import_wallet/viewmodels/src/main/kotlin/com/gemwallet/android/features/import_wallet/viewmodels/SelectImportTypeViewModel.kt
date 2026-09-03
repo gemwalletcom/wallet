@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
 import com.gemwallet.android.ext.toChain
-import uniffi.gemstone.GemChainService
+import uniffi.gemstone.GemChainServiceInterface
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SelectImportTypeViewModel @Inject constructor(
-    private val chainService: GemChainService,
+    private val chainService: GemChainServiceInterface,
 ) : ViewModel() {
     private val state = MutableStateFlow(SelectChainViewModelState())
     val uiState = state.map { it.toUIState() }

@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit
 import uniffi.gemstone.Config
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemChartService
+import uniffi.gemstone.GemChartServiceInterface
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemConfigService
@@ -47,6 +48,7 @@ import uniffi.gemstone.GemRewardsService
 import uniffi.gemstone.GemRewardsServiceInterface
 import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemSupportService
+import uniffi.gemstone.GemSupportServiceInterface
 import uniffi.gemstone.GemSupportStore
 import uniffi.gemstone.GemWalletConfigurationService
 import uniffi.gemstone.GemBannerStore
@@ -305,4 +307,10 @@ object GatewayModule {
     fun provideTransactionSimulationServiceInterface(
         service: TransactionSimulationService,
     ): TransactionSimulationServiceInterface = service
+
+    @Provides
+    fun provideGemSupportServiceInterface(service: GemSupportService): GemSupportServiceInterface = service
+
+    @Provides
+    fun provideGemChartServiceInterface(service: GemChartService): GemChartServiceInterface = service
 }

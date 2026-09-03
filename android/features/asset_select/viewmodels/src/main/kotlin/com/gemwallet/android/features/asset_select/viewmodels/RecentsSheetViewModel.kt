@@ -18,8 +18,8 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import dagger.hilt.android.lifecycle.HiltViewModel
-import uniffi.gemstone.GemAssetConfigService
-import uniffi.gemstone.GemRecentActivityService
+import uniffi.gemstone.GemAssetConfigServiceInterface
+import uniffi.gemstone.GemRecentActivityServiceInterface
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -39,8 +39,8 @@ import javax.inject.Inject
 @HiltViewModel
 class RecentsSheetViewModel @Inject constructor(
     private val getRecentAssets: GetRecentAssets,
-    private val recentActivityService: GemRecentActivityService,
-    private val assetConfig: GemAssetConfigService,
+    private val recentActivityService: GemRecentActivityServiceInterface,
+    private val assetConfig: GemAssetConfigServiceInterface,
 ) : ViewModel() {
 
     val query = TextFieldState()

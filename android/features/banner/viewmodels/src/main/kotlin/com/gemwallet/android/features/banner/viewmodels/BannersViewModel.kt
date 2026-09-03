@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemBannerAction
 import uniffi.gemstone.GemBannerContent
-import uniffi.gemstone.GemBannerService
+import uniffi.gemstone.GemBannerServiceInterface
 import javax.inject.Inject
 
 data class BannerUIModel(
@@ -26,7 +26,7 @@ data class BannerUIModel(
 @HiltViewModel
 class BannersViewModel @Inject constructor(
     private val getActiveBanners: GetActiveBanners,
-    private val service: GemBannerService,
+    private val service: GemBannerServiceInterface,
 ) : ViewModel() {
 
     val banners = MutableStateFlow<List<BannerUIModel>>(emptyList())
