@@ -138,9 +138,16 @@ public final class ManageContactViewModel {
 
     var avatarImage: AssetImage {
         switch avatar {
-        case .empty: AssetImage(type: .text(initials))
+        case .empty: initials.isEmpty ? .image(Images.System.personCircleFill) : AssetImage(type: .text(initials))
         case let .image(imageUrl): AssetImage(type: .text(initials), imageURL: ImageSource(imageUrl).url)
         case let .emoji(value): AssetImage(type: .emoji(value.emoji))
+        }
+    }
+
+    var avatarStyle: AssetImageView.Style? {
+        switch avatar {
+        case .empty: initials.isEmpty ? AssetImageView.Style(foregroundColor: Colors.grayLightFaded) : nil
+        case .image, .emoji: nil
         }
     }
 
