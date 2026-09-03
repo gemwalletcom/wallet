@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemPriceAlertServiceInterface
+import uniffi.gemstone.GemAssetDetailsServiceInterface
 import javax.inject.Inject
 import android.util.Log
 
@@ -30,7 +30,7 @@ class AssetPriceAlertsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     getAssetPriceAlertState: GetAssetPriceAlertState,
     getPriceAlerts: GetPriceAlerts,
-    private val service: GemPriceAlertServiceInterface,
+    private val service: GemAssetDetailsServiceInterface,
     private val enableDevicePush: EnableDevicePush,
 ) : ViewModel() {
 
@@ -51,7 +51,7 @@ class AssetPriceAlertsViewModel @Inject constructor(
 
     fun toggle(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
         val enabled = isEnabled.value ?: return@launch
-        runCatchingCancellable { service.setAutoAlert(assetId.toIdentifier(), !enabled) }
+        runCatchingCancellable { service.setPriceAlert(assetId.toIdentifier(), !enabled) }
             .onFailure { Log.e(TAG, "setting the auto price alert for ${assetId.toIdentifier()} failed", it) }
     }
 

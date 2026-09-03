@@ -1,5 +1,4 @@
 import Foundation
-import class Gemstone.GemMnemonic
 @testable import GemstoneServices
 import GemstoneServicesTestKit
 import Primitives
@@ -10,10 +9,9 @@ struct LocalKeystoreTests {
     func testImportWallet() async {
         await #expect(throws: Never.self) {
             let keystore = LocalKeystore.mock()
-            let words = try GemMnemonic().generate(wordCount: 12)
             let wallet = try keystore.importWallet(
                 name: "test",
-                type: .phrase(words: words, chains: [.ethereum]),
+                type: .phrase(words: LocalKeystore.words, chains: [.ethereum]),
             )
 
             #expect(wallet.accounts.count == 1)

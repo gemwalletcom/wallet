@@ -262,7 +262,7 @@ consolidation, and a second Core service in a view model is the one to remove.
 | `GemTransactionsService` | `TransactionsViewModel` | `TransactionsViewModel` |
 | `GemWalletConnectService` | `WalletConnectorService` | `WCRequestViewModel`, `ProposalSceneViewModel`, `WCAuthViewModel` |
 | `GemWalletHomeService` | `WalletSceneViewModel`, `NetworkAssetsSceneViewModel` | `AssetsViewModel`, `NetworkAssetsViewModel` |
-| `GemWalletService` | onboarding and manage-wallet view models (`WalletDetailViewModel` exports the secret through `export_secret`) | `CreateWalletViewModel`, `ImportViewModel`, wallet cases (secret export still prompts in the UI, § 1 S3) |
+| `GemWalletService` | onboarding and manage-wallet view models (`WalletDetailViewModel` exports the secret through `export_secret`) | `CreateWalletViewModel`, `ImportViewModel`, `WalletSecretDataViewModel` (`export_secret`), wallet cases |
 
 Android holds an observed Room read beside the service where the screen lists rows (a `Get*` case);
 that is the platform's reactive read, not a second service.
@@ -619,6 +619,33 @@ Three gotchas if you repeat the sweep, all met on this pass:
   developer screen; `GemPreferencesService::{set_notifications_asked, should_ask_notifications,
   set_price_alerts_enabled, *_swap_slippage_bps}` are Android's push/N1 adapters and
   `UserConfig`. Anything else that shows up as one-sided is a candidate.
+- **Android's secret export is `GemWalletService::export_secret`.** `GetWalletSecretDataImpl`
+  re-derived Core's `rules::secret_export` (private key for `WalletType::PrivateKey`, words
+  otherwise) through its own `LoadPrivateDataOperator` + `PasswordStore` read, and wrapped it
+  in a `WalletSecretDataValue` with `isError`. `WalletSecretDataViewModel` now holds
+  `GemWalletServiceInterface` and exposes `Result<GemWalletSecret>?`; the screen renders the
+  `Words` / `PrivateKey` cases. `GetWalletSecretData`, `WalletSecretDataValue`,
+  `LoadPrivateDataOperator`, `GemLoadPrivateDataOperator` and their providers are deleted.
+  Core's password port (`get_password(false)`) is the same keystore password the operator read,
+  so the S3 note about a UI prompt was stale — neither path prompted.
+- **Payment links ask Core for the token asset.** Android's `PaymentNavigation.linkRoutes`
+  picked the request's asset from the *enabled* list and fell back to the chain's native coin
+  when it was missing — a Solana Pay link for a token the wallet had not enabled would have
+  built the transfer against SOL. It now calls `GemAssetsService::ensure_token_asset`, as iOS's
+  `NavigationHandler` always did, and drops the account re-check Core's `PaymentService::load`
+  already performs. `PaymentNavigationTest` covers a request for an asset outside the enabled
+  list. `GemAssetsServiceInterface` is bound for it.
+- **Asset screen price alerts go through the screen service on Android.** `AssetPriceAlertsViewModel`
+  called `GemPriceAlertService::set_auto_alert` directly; it now calls
+  `GemAssetDetailsService::set_price_alert` like iOS's `AssetSceneViewModel`, so the composition
+  service is no longer reached from the asset feature.
+- **Un-exported after the sweep**: `GemDeviceService::synchronize` (both apps call
+  `synchronize_if_needed`; Core's app-start and price-alert flows call it), `GemAssetDiscoveryService::discover`
+  (only `GemWalletHomeService::refresh` calls it; the apps only construct the service),
+  `GemMnemonic::generate` (deleted — wallets are created by `GemWalletService`, neither app
+  generated a phrase). Sweep gotcha: an iOS `+GemstonePrimitives.swift` wrapper calls the export
+  with implicit `self` (`newest(` not `.newest(`), so verify by the bare name — `GemAppUpdateService::newest`
+  looked dead and is not.
 - **The home "importing" row is Core's answer on both apps.** Android's `AssetsViewModel` took
   `GetImportInProgress`, which read an `ImportWalletState` that `SyncWalletImport` /
   `ImportWalletService` wrote around the import call — an app-side copy of what
@@ -628,7 +655,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `refresh(assetIds)`, hide it in `finally`; the import screen no longer calls anything after
   `importWallet` + `setCurrentWalletId`. The five import-state files and their DI providers are
   deleted; `AssetsViewModelTest` covers the first-load and already-loaded answers.
-- **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `nft::report` (Android report screen), `GemDeveloperService::{reset_transactions_timestamp, delete_wallet_preferences, clear_preferences, clear_perpetual_markets, deeplink_url}` (iOS developer actions Android's develop screen does not offer), `GemWalletService::export_secret` (Android's wallet detail still takes the password from its own biometric prompt — S3).
+- **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `nft::report` (Android report screen), `GemDeveloperService::{reset_transactions_timestamp, delete_wallet_preferences, clear_preferences, clear_perpetual_markets, deeplink_url}` (iOS developer actions Android's develop screen does not offer), `GemAppUpdateService::newest` (iOS's About screen shows the newest release; Android's shows the installed version and updates through Play), `GemAssetDetailsService::deeplink_gem_url` (iOS opens perpetuals through its deep-link router; Android navigates in-app), `GemCollectibleService::set_wallet_avatar` (iOS sets the avatar from the collectible screen; Android from the wallet-image screen through `GemAvatarService`), `GemPerpetualService::should_connect_perpetuals` (iOS lifecycle polls the session variant; Android's `ObservePerpetualWallet` passes the wallet to `GemPreferencesService::show_perpetuals` — same rule, one accessor each).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
 - **`AddressFormatter` (iOS)**, 23 uses / ~60 construction sites. Attempted and reverted: threading the service reaches `WalletViewModel`, then spreads into `extension Wallet: SimpleListItemViewable`, which builds a `WalletViewModel` only to read `avatarImage` and never touches the formatter. The fix is smaller than the threading — split the display-only parts (`avatarImage`, `name`) from the address-formatting parts so only the latter needs the service. Design change, wants a decision.
 - **`GemSecurityService` (iOS)** is a *defaulted* parameter on `BiometryAuthenticationService`. Making it required pushes the default into `SecurityViewModel` and `LockSceneViewModel`, which also default-construct the whole service — a lock-manager pass, not a one-liner.

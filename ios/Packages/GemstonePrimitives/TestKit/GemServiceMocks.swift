@@ -9,20 +9,11 @@ import PrimitivesTestKit
 
 public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
     private let syncError: Error?
-    public private(set) var synchronizeCalls = 0
     public private(set) var synchronizeIfNeededCalls = 0
     public private(set) var pushEnabledValues: [Bool] = []
 
     public init(syncError: Error? = nil) {
         self.syncError = syncError
-    }
-
-    public func synchronize() async throws -> Gemstone.Device {
-        synchronizeCalls += 1
-        if let syncError {
-            throw syncError
-        }
-        return try Primitives.Device.mock().json()
     }
 
     public func setPushEnabled(enabled: Bool) async throws {
@@ -721,12 +712,6 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     }
 
     public func setPinned(perpetualId _: String, pinned _: Bool) async throws {}
-}
-
-public final class GemAssetDiscoveryServiceMock: GemAssetDiscoveryServiceProtocol, @unchecked Sendable {
-    public init() {}
-
-    public func discover(walletId _: String) async throws {}
 }
 
 public extension GemExplorerService {

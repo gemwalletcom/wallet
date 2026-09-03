@@ -20,6 +20,7 @@ import uniffi.gemstone.GemAssetDetailsService
 import uniffi.gemstone.GemAssetDetailsServiceInterface
 import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.GemSwapService
 import uniffi.gemstone.GemExplorerService
@@ -243,4 +244,7 @@ object AssetsModule {
 
     @Provides
     fun provideGemAssetDetailsServiceInterface(service: GemAssetDetailsService): GemAssetDetailsServiceInterface = service
+
+    @Provides
+    fun provideGemAssetsServiceInterface(service: GemAssetsService): GemAssetsServiceInterface = service
 }

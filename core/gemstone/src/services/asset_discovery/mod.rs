@@ -46,16 +46,16 @@ impl GemAssetDiscoveryService {
             preferences,
         }
     }
+}
 
+impl GemAssetDiscoveryService {
     pub async fn discover(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
         let (assets, transactions, nfts) = futures::join!(self.sync_assets(wallet_id.clone()), self.sync_transactions(wallet_id.clone()), self.sync_nfts(wallet_id),);
         assets?;
         transactions?;
         nfts
     }
-}
 
-impl GemAssetDiscoveryService {
     async fn sync_assets(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
         let Some(wallet) = self.wallet_store.get_wallet(wallet_id.clone())? else {
             return Ok(());

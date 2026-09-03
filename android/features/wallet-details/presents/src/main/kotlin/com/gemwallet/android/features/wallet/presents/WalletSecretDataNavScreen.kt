@@ -38,6 +38,7 @@ import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import com.gemwallet.android.ui.theme.space8
 import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.DocsUrl
+import uniffi.gemstone.GemWalletSecret
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 internal data class WalletSecretDataContent(
@@ -71,21 +72,19 @@ fun WalletSecretDataNavScreen(
     DisableScreenShooting()
     DetectScreenshot(AppUrl.docs(DocsUrl.HowToSecureSecretPhrase))
 
-    val value by viewModel.data.collectAsStateWithLifecycle()
-    val walletType by viewModel.walletType.collectAsStateWithLifecycle()
-    val content = walletSecretDataContent(walletType)
+    val result by viewModel.secret.collectAsStateWithLifecycle()
+    val content = walletSecretDataContent(viewModel.walletType)
 
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
 
-
-    if (value == null) {
-        LoadingScene(title = stringResource(id = content.titleRes), onCancel)
-        return
-    }
-
-    if (value?.isError == true) {
-        WalletSecretDataErrorScene(title = stringResource(id = content.titleRes), onCancel = onCancel)
+    val secret = result?.getOrNull()
+    if (secret == null) {
+        if (result == null) {
+            LoadingScene(title = stringResource(id = content.titleRes), onCancel)
+        } else {
+            WalletSecretDataErrorScene(title = stringResource(id = content.titleRes), onCancel = onCancel)
+        }
         return
     }
 
@@ -132,17 +131,23 @@ fun WalletSecretDataNavScreen(
                 )
             }
 
-            value?.privateKey()?.let {
-                Text(
-                    text = it,
+            when (secret) {
+                is GemWalletSecret.PrivateKey -> Text(
+                    text = secret.key,
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                 )
-            } ?: PhraseLayout(words = value?.phrase() ?: emptyList())
+                is GemWalletSecret.Words -> PhraseLayout(words = secret.words)
+            }
 
-            CopyButton(onClick = { clipboardManager.setPlainText(context, value.toString(), true) })
+            CopyButton(onClick = { clipboardManager.setPlainText(context, secret.text(), true) })
         }
     }
+}
+
+private fun GemWalletSecret.text(): String = when (this) {
+    is GemWalletSecret.PrivateKey -> key
+    is GemWalletSecret.Words -> words.joinToString(" ")
 }
 
 @Composable

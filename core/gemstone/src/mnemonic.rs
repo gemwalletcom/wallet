@@ -1,7 +1,5 @@
 use gem_keystore::Mnemonic;
 
-use crate::GemstoneError;
-
 #[derive(Debug, Default, uniffi::Object)]
 pub struct GemMnemonic;
 
@@ -10,10 +8,6 @@ impl GemMnemonic {
     #[uniffi::constructor]
     pub fn new() -> Self {
         Self
-    }
-
-    pub fn generate(&self, word_count: u8) -> Result<Vec<String>, GemstoneError> {
-        Ok(Mnemonic::generate(usize::from(word_count))?)
     }
 
     pub fn suggest_words(&self, prefix: String, limit: Option<u32>) -> Vec<String> {
@@ -40,13 +34,6 @@ mod tests {
         assert_eq!(mnemonic.suggest_words("woo".to_string(), None), vec!["wood", "wool"]);
         assert_eq!(mnemonic.suggest_words("woo".to_string(), Some(1)), vec!["wood"]);
         assert_eq!(mnemonic.suggest_words("woof".to_string(), None), Vec::<String>::new());
-    }
-
-    #[test]
-    fn test_generate() {
-        let mnemonic = GemMnemonic::new();
-
-        assert_eq!(mnemonic.generate(12).unwrap().len(), 12);
     }
 
     #[test]

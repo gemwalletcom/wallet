@@ -3,21 +3,28 @@ package com.gemwallet.android.features.wallet.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.wallet.cases.GetWalletSecretData
+import com.gemwallet.android.ext.runCatchingCancellable
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import uniffi.gemstone.GemWalletSecret
+import uniffi.gemstone.GemWalletServiceInterface
 import javax.inject.Inject
 
 @HiltViewModel
 class WalletSecretDataViewModel @Inject constructor(
-    private val getWalletSecretData: GetWalletSecretData,
+    private val service: GemWalletServiceInterface,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    private val walletId = savedStateHandle.requireWalletId()
-    val walletType = MutableStateFlow(savedStateHandle.requireWalletType())
+    val walletType = savedStateHandle.requireWalletType()
 
-    val data = getWalletSecretData.getSecretData(walletId)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val secret = MutableStateFlow<Result<GemWalletSecret>?>(null)
+
+    init {
+        val walletId = savedStateHandle.requireWalletId()
+        viewModelScope.launch(Dispatchers.IO) {
+            secret.value = runCatchingCancellable { service.exportSecret(walletId.id) }
+        }
+    }
 }
