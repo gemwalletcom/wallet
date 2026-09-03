@@ -83,8 +83,7 @@ impl<C: Client + Clone> XrpClient<C> {
     }
 
     pub async fn get_block_transactions(&self, block_number: u64) -> Result<Ledger, Box<dyn Error + Send + Sync>> {
-        let result: LedgerData = self.request(XrpRpc::GetLedger(block_number)).await?;
-        Ok(result.ledger)
+        Ok(self.request::<LedgerData>(XrpRpc::GetLedger(block_number)).await?.ledger)
     }
 
     pub async fn get_account_transactions(&self, address: String, limit: usize) -> Result<AccountLedger, Box<dyn Error + Send + Sync>> {

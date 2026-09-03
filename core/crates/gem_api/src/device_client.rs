@@ -149,8 +149,7 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
     }
 
     pub async fn get_nft_assets(&self, wallet_id: String) -> Result<Vec<NFTData>, ClientError> {
-        let assets: Option<Vec<NFTData>> = self.send(GemDeviceApiTarget::GetNftAssets { wallet_id }).await?;
-        Ok(assets.unwrap_or_default())
+        Ok(self.send::<Option<Vec<NFTData>>>(GemDeviceApiTarget::GetNftAssets { wallet_id }).await?.unwrap_or_default())
     }
 
     pub async fn get_nft_asset(&self, asset_id: NFTAssetId) -> Result<NFTAssetData, ClientError> {

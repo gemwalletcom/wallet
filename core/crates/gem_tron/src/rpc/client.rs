@@ -116,8 +116,7 @@ impl<C: Client> TronClient<C> {
     }
 
     pub async fn get_chain_parameters(&self) -> Result<Vec<ChainParameter>, Box<dyn Error + Send + Sync>> {
-        let response: ChainParametersResponse = self.client.get("/wallet/getchainparameters").await?;
-        Ok(response.chain_parameter)
+        Ok(self.client.get::<ChainParametersResponse>("/wallet/getchainparameters").await?.chain_parameter)
     }
 
     pub async fn get_token_data(&self, token_id: String) -> Result<Asset, Box<dyn Error + Send + Sync>> {

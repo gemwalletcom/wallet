@@ -54,8 +54,7 @@ impl<C: Client> BitcoinClient<C> {
     }
 
     pub async fn get_fee_priority(&self, blocks: i32) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let result: BitcoinFeeResult = self.client.get(&format!("/api/v2/estimatefee/{blocks}")).await?;
-        Ok(result.result)
+        Ok(self.client.get::<BitcoinFeeResult>(&format!("/api/v2/estimatefee/{blocks}")).await?.result)
     }
 }
 

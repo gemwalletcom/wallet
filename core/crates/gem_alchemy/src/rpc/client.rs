@@ -25,8 +25,7 @@ impl<C: Transport + Clone> Client<C> {
             "order": "desc"
         });
         request[address_field] = Value::String(address.to_string());
-        let response: Transfers = self.client.request(AlchemyRpc::GetAssetTransfers(request)).await?;
-        Ok(response.transfers)
+        Ok(self.client.request::<Transfers, _>(AlchemyRpc::GetAssetTransfers(request)).await?.transfers)
     }
 
     pub async fn get_token_balances(&self, address: &str) -> Result<Vec<(String, BigUint)>, Box<dyn Error + Send + Sync>> {

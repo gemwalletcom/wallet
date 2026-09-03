@@ -122,14 +122,8 @@ impl<C: Client> CosmosClient<C> {
     pub async fn get_account_info(&self, address: &str) -> Result<Account, Box<dyn Error + Send + Sync>> {
         let url = format!("/cosmos/auth/v1beta1/accounts/{}", address);
         match self.chain {
-            CosmosChain::Injective => {
-                let response: AccountResponse<InjectiveAccount> = self.client.get(&url).await?;
-                Ok(response.account.base_account)
-            }
-            _ => {
-                let response: AccountResponse<Account> = self.client.get(&url).await?;
-                Ok(response.account)
-            }
+            CosmosChain::Injective => Ok(self.client.get::<AccountResponse<InjectiveAccount>>(&url).await?.account.base_account),
+            _ => Ok(self.client.get::<AccountResponse<Account>>(&url).await?.account),
         }
     }
 
