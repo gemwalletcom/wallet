@@ -55,7 +55,6 @@ class ImportViewModelTest {
     private fun viewModel(nameService: GemNameServiceInterface) = ImportViewModel(
         service = mockk(relaxed = true),
         nameService = nameService,
-        syncWalletImport = mockk(relaxed = true),
         validatePhrase = GemValidatePhraseOperator(),
         findPhraseWord = GemFindPhraseWord(),
     )

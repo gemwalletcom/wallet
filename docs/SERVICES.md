@@ -619,6 +619,15 @@ Three gotchas if you repeat the sweep, all met on this pass:
   developer screen; `GemPreferencesService::{set_notifications_asked, should_ask_notifications,
   set_price_alerts_enabled, *_swap_slippage_bps}` are Android's push/N1 adapters and
   `UserConfig`. Anything else that shows up as one-sided is a candidate.
+- **The home "importing" row is Core's answer on both apps.** Android's `AssetsViewModel` took
+  `GetImportInProgress`, which read an `ImportWalletState` that `SyncWalletImport` /
+  `ImportWalletService` wrote around the import call — an app-side copy of what
+  `GemWalletHomeService::shows_initial_loading` already decides from the wallet's discovery
+  step and assets timestamp. Android now does what iOS `WalletSceneViewModel.loadOnce` does:
+  on every wallet change ask `showsInitialLoading()`, show the row around that wallet's
+  `refresh(assetIds)`, hide it in `finally`; the import screen no longer calls anything after
+  `importWallet` + `setCurrentWalletId`. The five import-state files and their DI providers are
+  deleted; `AssetsViewModelTest` covers the first-load and already-loaded answers.
 - **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `nft::report` (Android report screen), `GemDeveloperService::{reset_transactions_timestamp, delete_wallet_preferences, clear_preferences, clear_perpetual_markets, deeplink_url}` (iOS developer actions Android's develop screen does not offer), `GemWalletService::export_secret` (Android's wallet detail still takes the password from its own biometric prompt — S3).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
 - **`AddressFormatter` (iOS)**, 23 uses / ~60 construction sites. Attempted and reverted: threading the service reaches `WalletViewModel`, then spreads into `extension Wallet: SimpleListItemViewable`, which builds a `WalletViewModel` only to read `avatarImage` and never touches the formatter. The fix is smaller than the threading — split the display-only parts (`avatarImage`, `name`) from the address-formatting parts so only the latter needs the service. Design change, wants a decision.

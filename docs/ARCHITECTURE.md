@@ -726,8 +726,11 @@ which the shared input model takes directly on both apps.
 `PhraseAddressImportWalletService` ran `setupWallet` and a device sync inline after every import
 while `AppViewModel` already runs `setupWallet` whenever the session's wallet changes — every
 import set the wallet up twice. Both apps now do what iOS did: `GemWalletService.importWallet`
-then `setCurrentWalletId`, and the root's wallet-change handler does the rest. The Android
-"importing" indicator (`SyncWalletImport`) stays; it is a platform progress port, not setup.
+then `setCurrentWalletId`, and the root's wallet-change handler does the rest. The home
+screen's "importing" row is Core's answer too: both apps ask `GemWalletHomeService::shows_initial_loading`
+when the wallet changes and show the row around that wallet's first `refresh` (iOS `loadOnce`,
+Android `AssetsViewModel.loadOnce`) — Android's own `ImportWalletService` / `SyncWalletImport` /
+`GetImportInProgress` progress state, which tracked the import call instead, is gone.
 
 **One error type per flow, carrying what the screen renders.** The confirm screen failed with
 three Core error types — `GemConfirmError`, the preload's `GemTransferAmountError` (asset ids

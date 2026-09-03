@@ -5,7 +5,6 @@ import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
 import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.wallet_import.cases.SyncWalletImport
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
 import com.gemwallet.android.domains.wallet_import.toGemImport
 import com.gemwallet.android.serializer.decodeJson
@@ -36,7 +35,6 @@ import javax.inject.Inject
 class ImportViewModel @Inject constructor(
     private val service: GemWalletServiceInterface,
     nameService: GemNameServiceInterface,
-    private val syncWalletImport: SyncWalletImport,
     private val validatePhrase: ValidatePhraseOperator,
     private val findPhraseWord: GemFindPhraseWord,
 ) : ViewModel() {
@@ -111,9 +109,6 @@ class ImportViewModel @Inject constructor(
                     is GemWalletImportResult.New -> WalletImportResult.New(imported.wallet.decodeJson())
                 }
                 service.setCurrentWalletId(result.wallet.id.id)
-                if (result is WalletImportResult.New) {
-                    syncWalletImport.sync(result.wallet)
-                }
                 state.update { it.copy(dataError = null, loading = false) }
                 withContext(Dispatchers.Main) {
                     when (result) {

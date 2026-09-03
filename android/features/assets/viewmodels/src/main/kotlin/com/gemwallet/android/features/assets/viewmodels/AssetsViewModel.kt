@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetHideBalancesState
-import com.gemwallet.android.application.assets.cases.GetImportInProgress
 import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
 import com.gemwallet.android.ext.onboardingBannerKey
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
@@ -25,6 +24,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -35,7 +36,6 @@ import javax.inject.Inject
 @HiltViewModel
 class AssetsViewModel @Inject constructor(
     private val service: GemWalletHomeServiceInterface,
-    getImportInProgress: GetImportInProgress,
     getActiveAssetsInfo: GetActiveAssetsInfo,
     getWalletSummary: GetWalletSummary,
     getHideBalancesState: GetHideBalancesState,
@@ -59,8 +59,7 @@ class AssetsViewModel @Inject constructor(
         val unpinned: List<AssetInfoDataAggregate> = emptyList(),
     )
 
-    val importInProgress = getImportInProgress()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val isLoadingAssets = MutableStateFlow(false)
 
     val isRefreshing = MutableStateFlow(false)
 
@@ -88,15 +87,35 @@ class AssetsViewModel @Inject constructor(
     val showWelcomeBanner = getShowWelcomeBanner()
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            currentWalletId.filterNotNull().collectLatest { loadOnce() }
+        }
+    }
+
     fun onRefresh() = viewModelScope.launch(Dispatchers.IO) {
         isRefreshing.value = true
         try {
-            val assetIds = assetGroups.value.let { it.pinned + it.unpinned }.map { it.id.toIdentifier() }
-            runCatchingCancellable { service.refresh(assetIds) }
-                .onFailure { Log.e(TAG, "assets refresh failed", it) }
+            refresh()
         } finally {
             isRefreshing.value = false
         }
+    }
+
+    private suspend fun loadOnce() {
+        val showsLoading = runCatchingCancellable { service.showsInitialLoading() }.getOrDefault(false)
+        if (showsLoading) isLoadingAssets.value = true
+        try {
+            refresh()
+        } finally {
+            if (showsLoading) isLoadingAssets.value = false
+        }
+    }
+
+    private suspend fun refresh() {
+        val assetIds = assetGroups.value.let { it.pinned + it.unpinned }.map { it.id.toIdentifier() }
+        runCatchingCancellable { service.refresh(assetIds) }
+            .onFailure { Log.e(TAG, "assets refresh failed", it) }
     }
 
     fun hideAsset(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
