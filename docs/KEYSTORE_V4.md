@@ -121,7 +121,7 @@ Android:
 
 - Legacy wallet-id entries in the `wallet_password` secure-store namespace are migration inputs only.
 - New wallets and routine signing use the single app-wide value stored under `password`; it is not mirrored under wallet ids.
-- Startup first migrates any WalletCore v3 file with its legacy wallet password, then `GemWalletService.migrate_to_shared_password` re-encrypts v4 files as needed and deletes the legacy wallet-id entries.
+- Startup first migrates any WalletCore v3 file with its legacy wallet password, then `GemWalletService.migrate_to_shared_password` re-encrypts v4 files as needed and deletes the legacy wallet-id entries. A wallet whose file does not accept its legacy password keeps that entry and is reported in the returned error; the other wallets migrate regardless, so one broken keystore never blocks signing for the rest.
 - The shared password may be created only while importing the first stored wallet.
 - WalletCore v3 migration and v4 APIs pass decoded raw bytes.
 

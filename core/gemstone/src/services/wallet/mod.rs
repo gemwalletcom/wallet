@@ -3,6 +3,27 @@ pub mod model;
 pub mod password;
 pub mod rules;
 pub mod store;
+impl GemWalletService {
+    fn migrate_wallet_password(&self, wallet: &Wallet, password: &str, shared: &str) -> Result<bool, GemServiceError> {
+        let keystore_id = keystore_id_for_wallet(wallet.id.id());
+        if !self.keystore.exists(keystore_id.clone()) {
+            return Ok(false);
+        }
+        let shared_bytes = decode_password(shared);
+        let rekeyed = password != shared && !self.keystore.opens_with(keystore_id.clone(), shared_bytes.clone());
+        if rekeyed {
+            self.keystore.change_password(keystore_id.clone(), decode_password(password), shared_bytes.clone())?;
+            if !self.keystore.opens_with(keystore_id, shared_bytes) {
+                return Err(GemServiceError::Core {
+                    msg: "did not accept the shared password".to_string(),
+                });
+            }
+        }
+        self.password.delete_wallet_password(wallet.id.clone())?;
+        Ok(rekeyed)
+    }
+}
+
 #[cfg(test)]
 pub(crate) mod testkit;
 
@@ -197,25 +218,19 @@ impl GemWalletService {
             return Ok(0);
         }
         let shared = self.password.get_password(true)?;
-        let shared_bytes = decode_password(&shared);
         let mut migrated = 0;
+        let mut failures = Vec::new();
         for (wallet, password) in legacy {
-            let keystore_id = keystore_id_for_wallet(wallet.id.id());
-            if !self.keystore.exists(keystore_id.clone()) {
-                continue;
+            match self.migrate_wallet_password(&wallet, &password, &shared) {
+                Ok(true) => migrated += 1,
+                Ok(false) => {}
+                Err(error) => failures.push(format!("keystore {}: {error}", wallet.id.id())),
             }
-            if password != shared && !self.keystore.opens_with(keystore_id.clone(), shared_bytes.clone()) {
-                self.keystore.change_password(keystore_id.clone(), decode_password(&password), shared_bytes.clone())?;
-                if !self.keystore.opens_with(keystore_id.clone(), shared_bytes.clone()) {
-                    return Err(GemServiceError::Core {
-                        msg: format!("keystore {} did not accept the shared password", wallet.id.id()),
-                    });
-                }
-                migrated += 1;
-            }
-            self.password.delete_wallet_password(wallet.id.clone())?;
         }
-        Ok(migrated)
+        if failures.is_empty() {
+            return Ok(migrated);
+        }
+        Err(GemServiceError::Core { msg: failures.join("; ") })
     }
 
     pub async fn set_pinned(&self, wallet_id: WalletId, pinned: bool) -> Result<(), GemServiceError> {
@@ -550,10 +565,23 @@ mod tests {
                 .change_password(keystore_id.clone(), decode_password(TEST_PASSWORD), decode_password(actual))
                 .unwrap();
             context.passwords.wallet_passwords.lock().unwrap().insert(wallet.id.id(), wrong.to_string());
+            let other = context.import("Migratable", OTHER_PHRASE).await;
+            let other_keystore_id = keystore_id_for_wallet(other.id.id());
+            context
+                .service
+                .keystore
+                .change_password(other_keystore_id.clone(), decode_password(TEST_PASSWORD), decode_password(actual))
+                .unwrap();
+            context.passwords.wallet_passwords.lock().unwrap().insert(other.id.id(), actual.to_string());
 
             assert!(context.service.migrate_to_shared_password().is_err());
             assert_eq!(context.passwords.wallet_passwords.lock().unwrap().get(&wallet.id.id()).map(String::as_str), Some(wrong));
             assert!(context.service.keystore.opens_with(keystore_id, decode_password(actual)));
+            assert!(
+                context.service.keystore.opens_with(other_keystore_id, decode_password(TEST_PASSWORD)),
+                "one wallet that cannot be re-keyed does not stop the others from migrating"
+            );
+            assert_eq!(context.passwords.wallet_passwords.lock().unwrap().get(&other.id.id()), None);
         });
     }
 
