@@ -6,13 +6,6 @@ extension FeePriority: Identifiable {
     public var id: String {
         rawValue
     }
-
-    public var rank: Int {
-        switch self {
-        case .normal: 2
-        case .fast: 1
-        }
-    }
 }
 
 public extension FeePriority {

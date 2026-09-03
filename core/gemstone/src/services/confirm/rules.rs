@@ -292,6 +292,15 @@ pub(super) fn scan_payload(input: GemTransactionPreloadInput) -> ScanTransaction
     }
 }
 
+pub(super) fn displayed_fee_rates(rates: Vec<GemFeeRate>) -> Vec<GemFeeRate> {
+    let mut rates = rates;
+    rates.sort_by_key(|rate| match rate.priority {
+        FeePriority::Normal => 0,
+        FeePriority::Fast => 1,
+    });
+    rates
+}
+
 impl GemConfirmFeeSelection {
     pub(super) fn select_fee_rate(&self, rates: &[GemFeeRate]) -> Result<GemFeeRate, GemConfirmError> {
         match self {
@@ -467,6 +476,12 @@ mod tests {
                 gas_price: gas_price.parse().unwrap(),
             },
         }
+    }
+
+    #[test]
+    fn test_displayed_fee_rates_list_normal_before_fast() {
+        let rates = displayed_fee_rates(vec![rate(FeePriority::Fast, "20"), rate(FeePriority::Normal, "10")]);
+        assert_eq!(rates.iter().map(|rate| rate.priority).collect::<Vec<_>>(), vec![FeePriority::Normal, FeePriority::Fast]);
     }
 
     #[test]

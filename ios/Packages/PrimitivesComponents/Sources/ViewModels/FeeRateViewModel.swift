@@ -62,8 +62,3 @@ public struct FeeRateViewModel: Identifiable {
     }
 }
 
-extension FeeRateViewModel: Comparable {
-    public static func < (lhs: FeeRateViewModel, rhs: FeeRateViewModel) -> Bool {
-        lhs.feeRate.priority.rank > rhs.feeRate.priority.rank
-    }
-}

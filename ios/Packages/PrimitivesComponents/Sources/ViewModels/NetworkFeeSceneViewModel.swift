@@ -76,7 +76,7 @@ public struct NetworkFeeSceneViewModel {
                 symbol: feeAsset.symbol,
                 totalFee: totalFee(for: $0.gasPriceType),
             )
-        }.sorted()
+        }
     }
 
     public var selectedFeeRateViewModel: FeeRateViewModel? {

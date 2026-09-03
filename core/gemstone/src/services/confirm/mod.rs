@@ -106,7 +106,7 @@ impl GemConfirmService {
             self.simulate(chain, &input),
         );
         let metadata = metadata.map_err(error::load_error)?;
-        let fee_rates = fee_rates.map_err(error::load_error)?;
+        let fee_rates = rules::displayed_fee_rates(fee_rates.map_err(error::load_error)?);
         let simulation = simulation?;
 
         rules::validate_scan(scan.as_ref(), transfer.recipient.memo.as_deref(), &symbol)?;
