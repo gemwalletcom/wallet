@@ -33,48 +33,47 @@ public final class PerpetualChartModel {
 
     public var emptyTitle: String { Localized.Common.notAvailable }
     public var emptyImage: Image { Images.EmptyContent.activity }
-    private var currentInterval: String { service.candleInterval(period: currentPeriod.json()) }
 }
 
 // MARK: - Actions
 
 public extension PerpetualChartModel {
-    func onAppear(symbol: String) async {
-        await subscribeCandles(candleSubscription(symbol: symbol, period: currentPeriod))
+    func onAppear(perpetual: Perpetual) async {
+        await subscribeCandles(candleSubscription(perpetual: perpetual, period: currentPeriod))
         observeTask?.cancel()
         observeTask = Task {
-            await observeCandles(symbol: symbol)
+            await observeCandles(perpetual: perpetual)
         }
     }
 
-    func onDisappear(symbol: String) async {
+    func onDisappear(perpetual: Perpetual) async {
         observeTask?.cancel()
         observeTask = nil
-        await unsubscribeCandles(candleSubscription(symbol: symbol, period: currentPeriod))
+        await unsubscribeCandles(candleSubscription(perpetual: perpetual, period: currentPeriod))
     }
 
-    func onPeriodChange(symbol: String, from oldPeriod: ChartPeriod, to newPeriod: ChartPeriod) async {
-        await unsubscribeCandles(candleSubscription(symbol: symbol, period: oldPeriod))
-        await updateCandlesticks(symbol: symbol)
-        await subscribeCandles(candleSubscription(symbol: symbol, period: newPeriod))
+    func onPeriodChange(perpetual: Perpetual, from oldPeriod: ChartPeriod, to newPeriod: ChartPeriod) async {
+        await unsubscribeCandles(candleSubscription(perpetual: perpetual, period: oldPeriod))
+        await updateCandlesticks(perpetual: perpetual)
+        await subscribeCandles(candleSubscription(perpetual: perpetual, period: newPeriod))
     }
 
-    func refresh(symbol: String) async {
-        await updateCandlesticks(symbol: symbol)
+    func refresh(perpetual: Perpetual) async {
+        await updateCandlesticks(perpetual: perpetual)
     }
 }
 
 // MARK: - Private
 
 private extension PerpetualChartModel {
-    func candleSubscription(symbol: String, period: ChartPeriod) -> GemPerpetualSubscription {
-        service.candleSubscription(symbol: symbol, period: period)
+    func candleSubscription(perpetual: Perpetual, period: ChartPeriod) -> GemPerpetualSubscription {
+        service.candleSubscription(perpetual: perpetual, period: period)
     }
 
-    func updateCandlesticks(symbol: String) async {
+    func updateCandlesticks(perpetual: Perpetual) async {
         state = .loading
         do {
-            let candlesticks = try await service.candlesticks(symbol: symbol, period: currentPeriod)
+            let candlesticks = try await service.candlesticks(perpetual: perpetual, period: currentPeriod)
             state = .data(candlesticks)
         } catch {
             state.setError(error)
@@ -97,25 +96,23 @@ private extension PerpetualChartModel {
         }
     }
 
-    func observeCandles(symbol: String) async {
+    func observeCandles(perpetual: Perpetual) async {
         for await update in await observerService.chartService.makeStream() {
             if Task.isCancelled { break }
             do {
-                try handleChartUpdate(update, symbol: symbol)
+                try handleChartUpdate(update, perpetual: perpetual)
             } catch {
                 debugLog("Chart update failed: \(error)")
             }
         }
     }
 
-    func handleChartUpdate(_ update: ChartCandleUpdate, symbol: String) throws {
-        guard update.coin == symbol,
-              update.interval == currentInterval,
-              case let .data(candlesticks) = state
+    func handleChartUpdate(_ update: ChartCandleUpdate, perpetual: Perpetual) throws {
+        guard case let .data(candlesticks) = state,
+              let merged = try service.apply(update: update, to: candlesticks, perpetual: perpetual, period: currentPeriod)
         else {
             return
         }
-
-        state = try .data(service.merge(candlesticks: candlesticks, candle: update.candle))
+        state = .data(merged)
     }
 }

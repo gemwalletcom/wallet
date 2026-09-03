@@ -37,7 +37,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -51,7 +50,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
-import uniffi.gemstone.GemPerpetualSubscription
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -123,14 +121,15 @@ class PerpetualDetailsViewModel @Inject constructor(
             flow {
                 emit(StateViewType.Loading)
                 try {
-                    val interval = service.candleInterval(period.toJson())
-                    var candles = perpetual.value?.coin?.let { coin -> service.candlesticks(coin, period.toJson()).map { it.decodeJson<ChartCandleStick>() } }.orEmpty()
+                    val market = perpetual.value?.perpetual
+                    var candles = market?.let { service.candlesticks(it.toJson(), period.toJson()).map { candle -> candle.decodeJson<ChartCandleStick>() } }.orEmpty()
                     refreshState.value = false
                     emit(candles.toChartState())
+                    if (market == null) return@flow
                     perpetualObserver.chartUpdates
-                        .filter { it.coin == perpetual.value?.coin && it.interval == interval }
                         .collect { update ->
-                            candles = service.mergeCandle(candles.map { it.toJson() }, update.candle.toJson()).map { it.decodeJson() }
+                            candles = service.applyCandleUpdate(candles.map { it.toJson() }, update.toJson(), market.toJson(), period.toJson())
+                                ?.map { it.decodeJson<ChartCandleStick>() } ?: return@collect
                             emit(candles.toChartState())
                         }
                 } catch (e: Exception) {
@@ -149,17 +148,17 @@ class PerpetualDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 screenVisible,
-                perpetual.map { it?.coin }.distinctUntilChanged(),
+                perpetual.map { it?.perpetual }.distinctUntilChanged(),
                 period,
-            ) { isVisible, coin, period ->
-                if (isVisible && coin != null) coin to period else null
+            ) { isVisible, market, period ->
+                if (isVisible && market != null) market to period else null
             }
                 .distinctUntilChanged()
                 .collectLatest { subscriptionKey ->
-                    val (coin, period) = subscriptionKey ?: return@collectLatest
+                    val (market, period) = subscriptionKey ?: return@collectLatest
                     val subscriptions = listOf(
-                        service.candleSubscription(coin, period.toJson()),
-                        GemPerpetualSubscription.MarketData(symbol = coin),
+                        service.candleSubscription(market.toJson(), period.toJson()),
+                        service.marketSubscription(market.toJson()),
                     )
                     subscriptions.forEach(perpetualObserver::subscribe)
                     try {

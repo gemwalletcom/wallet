@@ -111,14 +111,6 @@ impl GemPerpetualService {
             .is_some_and(|wallet| rules::show_perpetuals(self.preferences.is_perpetual_enabled(), &wallet))
     }
 
-    pub fn candle_interval(&self, period: ChartPeriod) -> String {
-        rules::candle_interval(&period).to_string()
-    }
-
-    pub fn merge_candle(&self, candles: Vec<GemChartCandleStick>, candle: GemChartCandleStick) -> Vec<GemChartCandleStick> {
-        rules::merge_candle(candles, candle)
-    }
-
     pub async fn get_portfolio(&self, chain: Chain, address: String) -> Result<PerpetualPortfolio, GemServiceError> {
         Ok(self.gateway.get_perpetual_portfolio(chain, address).await?)
     }

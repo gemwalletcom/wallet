@@ -178,27 +178,27 @@ public extension PerpetualSceneViewModel {
     func load() async {
         async let positions: () = syncPositions()
         async let refreshTransactions: () = updateTransactions()
-        async let refreshCandlesticks: () = chart.refresh(symbol: perpetual.coin)
+        async let refreshCandlesticks: () = chart.refresh(perpetual: perpetual)
         _ = await (positions, refreshTransactions, refreshCandlesticks)
     }
 
     func onAppear() async {
         async let refresh: () = load()
-        await chart.onAppear(symbol: perpetual.coin)
-        await subscribeMarket(perpetual.coin)
+        await chart.onAppear(perpetual: perpetual)
+        await subscribeMarket()
         _ = await refresh
     }
 
     func onDisappear() async {
-        await chart.onDisappear(symbol: perpetual.coin)
-        await unsubscribeMarket(perpetual.coin)
+        await chart.onDisappear(perpetual: perpetual)
+        await unsubscribeMarket()
     }
 
     func onScenePhaseChange(_: ScenePhase, _ newPhase: ScenePhase) {
         switch newPhase {
         case .active:
             Task { await updateTransactions() }
-            Task { await chart.refresh(symbol: perpetual.coin) }
+            Task { await chart.refresh(perpetual: perpetual) }
         case .inactive, .background: break
         @unknown default: break
         }
@@ -206,7 +206,7 @@ public extension PerpetualSceneViewModel {
 
     func onPeriodChange(_ oldPeriod: ChartPeriod, _ newPeriod: ChartPeriod) {
         Task {
-            await chart.onPeriodChange(symbol: perpetual.coin, from: oldPeriod, to: newPeriod)
+            await chart.onPeriodChange(perpetual: perpetual, from: oldPeriod, to: newPeriod)
         }
     }
 
@@ -272,17 +272,17 @@ public extension PerpetualSceneViewModel {
 // MARK: - Private
 
 private extension PerpetualSceneViewModel {
-    func subscribeMarket(_ coin: String) async {
+    func subscribeMarket() async {
         do {
-            try await observerService.subscribe(.marketData(symbol: coin))
+            try await observerService.subscribe(service.marketSubscription(perpetual: perpetual.json()))
         } catch {
             debugLog("Market data subscription failed: \(error)")
         }
     }
 
-    func unsubscribeMarket(_ coin: String) async {
+    func unsubscribeMarket() async {
         do {
-            try await observerService.unsubscribe(.marketData(symbol: coin))
+            try await observerService.unsubscribe(service.marketSubscription(perpetual: perpetual.json()))
         } catch {
             debugLog("Market data unsubscribe failed: \(error)")
         }

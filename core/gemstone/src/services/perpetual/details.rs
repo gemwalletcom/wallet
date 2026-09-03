@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use primitives::chart::ChartCandleUpdate;
 use primitives::{Asset, AssetId, Chain, ChartPeriod, Currency, Perpetual, PerpetualPosition};
 
 use super::model::{GemPerpetualPositionAction, GemPerpetualPositionKind};
@@ -62,23 +63,25 @@ impl GemPerpetualDetailsService {
         self.preferences.set_perpetual_chart_period(period)
     }
 
-    pub fn candle_interval(&self, period: ChartPeriod) -> String {
-        self.perpetuals.candle_interval(period)
-    }
-
-    pub fn candle_subscription(&self, symbol: String, period: ChartPeriod) -> GemPerpetualSubscription {
+    pub fn candle_subscription(&self, perpetual: Perpetual, period: ChartPeriod) -> GemPerpetualSubscription {
         GemPerpetualSubscription::Candle {
-            symbol,
-            interval: self.perpetuals.candle_interval(period),
+            symbol: rules::symbol(&perpetual),
+            interval: rules::candle_interval(&period).to_string(),
         }
     }
 
-    pub async fn candlesticks(&self, symbol: String, period: ChartPeriod) -> Result<Vec<GemChartCandleStick>, GemServiceError> {
-        self.perpetuals.get_candlesticks(Chain::HyperCore, symbol, period).await
+    pub fn market_subscription(&self, perpetual: Perpetual) -> GemPerpetualSubscription {
+        GemPerpetualSubscription::MarketData {
+            symbol: rules::symbol(&perpetual),
+        }
     }
 
-    pub fn merge_candle(&self, candles: Vec<GemChartCandleStick>, candle: GemChartCandleStick) -> Vec<GemChartCandleStick> {
-        self.perpetuals.merge_candle(candles, candle)
+    pub async fn candlesticks(&self, perpetual: Perpetual, period: ChartPeriod) -> Result<Vec<GemChartCandleStick>, GemServiceError> {
+        self.perpetuals.get_candlesticks(Chain::HyperCore, rules::symbol(&perpetual), period).await
+    }
+
+    pub fn apply_candle_update(&self, candles: Vec<GemChartCandleStick>, update: ChartCandleUpdate, perpetual: Perpetual, period: ChartPeriod) -> Option<Vec<GemChartCandleStick>> {
+        rules::apply_candle_update(candles, update, &perpetual, &period)
     }
 
     pub async fn sync_positions(&self) -> Result<(), GemServiceError> {

@@ -1,10 +1,10 @@
 use chrono::Utc;
 use number_formatter::{BigNumberFormatter, NumberFormatterError};
-use primitives::chart::ChartCandleStick;
+use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::{PerpetualBalance, PerpetualData};
 use primitives::{
-    Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType,
+    Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, ChartPeriod, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType,
     PerpetualPosition, PerpetualProvider, Wallet, WalletType,
 };
 
@@ -371,6 +371,14 @@ pub fn close_order(provider: PerpetualProvider, input: GemPerpetualCloseInput) -
     }
 }
 
+pub fn symbol(perpetual: &Perpetual) -> String {
+    perpetual.name.clone()
+}
+
+pub fn apply_candle_update(candles: Vec<ChartCandleStick>, update: ChartCandleUpdate, perpetual: &Perpetual, period: &ChartPeriod) -> Option<Vec<ChartCandleStick>> {
+    (update.coin == symbol(perpetual) && update.interval == candle_interval(period)).then(|| merge_candle(candles, update.candle))
+}
+
 pub fn merge_candle(candles: Vec<ChartCandleStick>, candle: ChartCandleStick) -> Vec<ChartCandleStick> {
     let Some(last_date) = candles.last().map(|last| last.date) else {
         return candles;
@@ -396,7 +404,7 @@ mod tests {
     use chrono::DateTime;
     use num_bigint::BigInt;
     use num_bigint::BigUint;
-    use primitives::{ChartPeriod, PerpetualId};
+    use primitives::PerpetualId;
 
     fn modify_data(modify_types: Vec<PerpetualModifyPositionType>, take_profit_order_id: Option<u64>, stop_loss_order_id: Option<u64>) -> PerpetualModifyConfirmData {
         PerpetualModifyConfirmData {
@@ -799,6 +807,21 @@ mod tests {
 
         assert_eq!(merge_candle(candles.clone(), candle(500, 90.0)), candles);
         assert_eq!(merge_candle(Vec::new(), candle(500, 90.0)), Vec::new());
+
+        let perpetual = market("0");
+        let update = |coin: &str, interval: &str| ChartCandleUpdate {
+            coin: coin.to_string(),
+            interval: interval.to_string(),
+            candle: candle(3000, 110.0),
+        };
+        let symbol = symbol(&perpetual);
+        assert_eq!(apply_candle_update(candles.clone(), update(&symbol, "30m"), &perpetual, &ChartPeriod::Day), Some(appended));
+        assert_eq!(
+            apply_candle_update(candles.clone(), update(&symbol, "1m"), &perpetual, &ChartPeriod::Day),
+            None,
+            "a candle for another interval is not this chart's"
+        );
+        assert_eq!(apply_candle_update(candles, update("OTHER", "30m"), &perpetual, &ChartPeriod::Day), None);
     }
 
     #[test]

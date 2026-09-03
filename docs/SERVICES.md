@@ -357,7 +357,11 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `GemPerpetualDetailsService::position_action` builds the action the position screen hands over
   and `GemAmountService::perpetual_transfer_data` turns it into the transfer, so the per-app
   `PerpetualTransferData`, `PerpetualPositionAction`, `PerpetualOrderFactory` and
-  `PerpetualOrder+GemstonePrimitives` are gone (`limits` is infallible — the available value exists for
+  `PerpetualOrder+GemstonePrimitives` are gone; the chart takes the `Perpetual` itself —
+  `GemPerpetualDetailsService::{candlesticks, candle_subscription, market_subscription}` derive
+  the Hyperliquid symbol and `apply_candle_update(candles, update, perpetual, period)` answers
+  whether a socket candle belongs to this chart and merges it, so the per-app `coin` derivation
+  and the interval/coin filters are gone (`limits` is infallible — the available value exists for
   every type — so neither app carries a catch that handed back zero limits; the balance they hand
   in is the one `GemAssetBalance` record, bridged once per app). What is left per app is the
   input text ↔ value conversion (both through Core converters) and the type-specific

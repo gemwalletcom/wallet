@@ -11,6 +11,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualData
+import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
 import kotlinx.coroutines.flow.Flow
@@ -38,6 +39,8 @@ class PerpetualDetailsDataAggregateImpl(
     private val data: PerpetualData,
 ) : PerpetualDetailsDataAggregate {
     private val abbreviatedFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Abbreviated, currency = Currency.USD)
+
+    override val perpetual: Perpetual = data.perpetual
 
     override val id: PerpetualId = data.perpetual.id
 

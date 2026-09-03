@@ -651,12 +651,6 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 
     public func setPinned(perpetualId _: String, pinned _: Bool) async throws {}
 
-    public func candleInterval(period _: Gemstone.ChartPeriod) -> String { "" }
-
-    public func mergeCandle(candles: [Gemstone.ChartCandleStick], candle: Gemstone.ChartCandleStick) -> [Gemstone.ChartCandleStick] {
-        candles + [candle]
-    }
-
     public func getPortfolio(chain _: Gemstone.Chain, address _: String) async throws -> Gemstone.PerpetualPortfolio {
         try Primitives.PerpetualPortfolio(day: nil, week: nil, month: nil, allTime: nil, accountSummary: nil).json()
     }
