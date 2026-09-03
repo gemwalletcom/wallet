@@ -3,7 +3,7 @@ package com.gemwallet.android.features.bridge.views
 import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -34,7 +34,7 @@ fun RequestScene(
     val unknownErrorMessage = stringResource(id = R.string.errors_unknown_try_again)
     val reportError: (String) -> Unit = { message -> onError(message.ifBlank { unknownErrorMessage }) }
 
-    DisposableEffect(request.topic, request.request.id) {
+    LaunchedEffect(request.topic, request.request.id) {
         viewModel.onRequest(
             sessionRequest = request,
             verifyContext = verifyContext,
@@ -49,8 +49,6 @@ fun RequestScene(
             },
             onError = reportError,
         )
-
-        onDispose { viewModel.reset() }
     }
 
     val sceneState by viewModel.sceneState.collectAsStateWithLifecycle()

@@ -36,18 +36,22 @@ pub enum GemWalletConnectFailure {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemWalletConnectOutcome {
-    pub response: GemWalletConnectResponse,
+    pub response: Option<GemWalletConnectResponse>,
     pub failure: Option<GemWalletConnectFailure>,
 }
 
 impl GemWalletConnectOutcome {
     pub fn rejected(failure: Option<GemWalletConnectFailure>) -> Self {
         Self {
-            response: GemWalletConnectResponse::Error {
+            response: Some(GemWalletConnectResponse::Error {
                 error: crate::services::wallet_connect::rules::user_rejected_error(),
-            },
+            }),
             failure,
         }
+    }
+
+    pub fn ignored() -> Self {
+        Self { response: None, failure: None }
     }
 }
 

@@ -736,6 +736,11 @@ notifying on a malicious origin and the other not. `GemWalletConnectService::pro
 takes the raw event and returns the reply and what (if anything) to tell the user, so each app is
 "build the request from the SDK event, send the response, show the failure". The pieces the apps
 used to compose (`handle_request`, the connection lookup) stopped being exported.
+The first version answered a redelivered request id with "user rejected", which turned an
+Android activity recreation (the scene re-enters and forwards the same event) into a rejection
+of the request the user was still looking at (#1044). A duplicate is not a decision: the outcome's
+`response` is optional and `None` for one, the app sends nothing, and Android's `WCRequestViewModel`
+keeps the in-flight request across the re-entry instead of resetting on dispose.
 
 **A launch-time entry is not the place for a screen's dependency.** `GemRewardsService`,
 `GemReceiveService`, `GemNodeStatusService`, `GemPerpetualDetailsService`, `GemPriceAlertService`,

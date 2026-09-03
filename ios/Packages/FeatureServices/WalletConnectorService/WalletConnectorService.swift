@@ -157,10 +157,12 @@ extension WalletConnectorService {
                 origin: verifyContext?.origin,
                 validation: verifyContext?.validation.map() ?? .unknown,
             ))
-            do {
-                try await WalletKit.instance.respond(topic: request.topic, requestId: request.id, response: outcome.response.map())
-            } catch {
-                debugLog("Error responding to request: \(error)")
+            if let response = outcome.response {
+                do {
+                    try await WalletKit.instance.respond(topic: request.topic, requestId: request.id, response: response.map())
+                } catch {
+                    debugLog("Error responding to request: \(error)")
+                }
             }
             if let failure = outcome.failure {
                 await walletConnectorInteractor.sessionReject(error: failure.error)

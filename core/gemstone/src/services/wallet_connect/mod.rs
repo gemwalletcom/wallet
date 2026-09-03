@@ -156,7 +156,7 @@ impl GemWalletConnectService {
 
     pub async fn process_request(&self, request: GemWalletConnectSessionRequest) -> GemWalletConnectOutcome {
         if !self.should_process_message(rules::request_message_id(&request.topic, &request.request_id)) {
-            return GemWalletConnectOutcome::rejected(None);
+            return GemWalletConnectOutcome::ignored();
         }
         let Ok(connection) = self.connection(&request.topic).await else {
             return GemWalletConnectOutcome::rejected(None);
@@ -169,7 +169,10 @@ impl GemWalletConnectService {
             return GemWalletConnectOutcome::rejected(None);
         };
         match self.handle_request(request.topic, request.method, request.params, chain_id, domain).await {
-            Ok(response) => GemWalletConnectOutcome { response, failure: None },
+            Ok(response) => GemWalletConnectOutcome {
+                response: Some(response),
+                failure: None,
+            },
             Err(GemServiceError::Cancelled) => GemWalletConnectOutcome::rejected(None),
             Err(error) => GemWalletConnectOutcome::rejected(Some(GemWalletConnectFailure::Failed { message: error.to_string() })),
         }
@@ -333,10 +336,10 @@ mod tests {
         }
     }
 
-    fn rejected() -> GemWalletConnectResponse {
-        GemWalletConnectResponse::Error {
+    fn rejected() -> Option<GemWalletConnectResponse> {
+        Some(GemWalletConnectResponse::Error {
             error: rules::user_rejected_error(),
-        }
+        })
     }
 
     #[test]
@@ -350,18 +353,15 @@ mod tests {
         let signed = service.process_request(request("1")).await;
         assert_eq!(signed.failure, None);
         assert!(
-            matches!(signed.response, GemWalletConnectResponse::Response { .. }),
+            matches!(signed.response, Some(GemWalletConnectResponse::Response { .. })),
             "a signed request answers with the signature"
         );
 
         let duplicate = service.process_request(request("1")).await;
         assert_eq!(
             duplicate,
-            GemWalletConnectOutcome {
-                response: rejected(),
-                failure: None
-            },
-            "a relay retry is rejected without bothering the user"
+            GemWalletConnectOutcome { response: None, failure: None },
+            "a redelivered request gets no second answer: the first one is still being decided or was already sent"
         );
 
         let malicious = service
@@ -404,9 +404,9 @@ mod tests {
             .await;
         assert_eq!(
             unsupported.response,
-            GemWalletConnectResponse::Error {
+            Some(GemWalletConnectResponse::Error {
                 error: rules::method_not_found_error()
-            }
+            })
         );
         assert_eq!(unsupported.failure, None);
 

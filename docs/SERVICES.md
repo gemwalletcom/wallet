@@ -366,11 +366,12 @@ Three gotchas if you repeat the sweep, all met on this pass:
 - **The WalletConnect request lifecycle is one Core call.**
   `GemWalletConnectService::process_request` takes the SDK's session request as it arrives
   (topic, request id, method, params, chain id, origin, verification) and returns
-  `GemWalletConnectOutcome { response, failure }`: it dedupes the relay retry, looks the
-  connection up in its own store, rejects an unverified or malicious origin, runs the request
-  through the signer port and maps a cancel to a silent user-rejected reply and any other error
-  to `Failed { message }`. Both apps send `response` back to the SDK and show `failure` if there
-  is one; iOS's `handleRequest`/`rejectRequest` and Android's `WalletConnectRequestHandler`, the
+  `GemWalletConnectOutcome { response, failure }`: it ignores a redelivered request id
+  (`response: None`, nothing is sent — the first delivery is still being decided or was already
+  answered), looks the connection up in its own store, rejects an unverified or malicious origin,
+  runs the request through the signer port and maps a cancel to a silent user-rejected reply and
+  any other error to `Failed { message }`. Both apps send `response` back to the SDK when there is
+  one and show `failure` if there is one; iOS's `handleRequest`/`rejectRequest` and Android's `WalletConnectRequestHandler`, the
   connection lookup and the per-request origin check are gone, and `WCRequestViewModel` holds
   the Core service plus the SDK responder, the pending-request port, `GemSignMessageService` and the
   active-request tracker. `GemSignMessageService { names, explorer }` answers the preview, the

@@ -79,6 +79,9 @@ class WCRequestViewModel @Inject constructor(
         onNotify: (BridgeRequestError) -> Unit,
         onError: (String) -> Unit,
     ) {
+        if (requestJob != null && state.value.sessionRequest == sessionRequest) {
+            return
+        }
         requestJob?.cancel()
         pendingRequests.current.value?.takeIf { it.sessionId == sessionRequest.topic }?.reject()
         state.update { RequestViewModelState(sessionRequest = sessionRequest) }
@@ -100,7 +103,10 @@ class WCRequestViewModel @Inject constructor(
                 GemWalletConnectFailure.MaliciousOrigin -> onNotify(BridgeRequestError.MaliciousSession)
                 is GemWalletConnectFailure.Failed -> onError(failure.message)
             }
-            respond(sessionRequest, outcome.response.toJsonRpcResponse(), onError)
+            when (val response = outcome.response) {
+                null -> activeRequest.finish(sessionRequest)
+                else -> respond(sessionRequest, response.toJsonRpcResponse(), onError)
+            }
         }
         requestJob = job
         job.invokeOnCompletion {
@@ -153,12 +159,6 @@ class WCRequestViewModel @Inject constructor(
         requestJob?.cancel()
         val sessionRequest = state.value.sessionRequest ?: return
         respond(sessionRequest, service.userRejectedError().toJsonRpcResponse(), onError = { Log.e(TAG, "Request rejection failed id=${sessionRequest.request.id}: $it") })
-    }
-
-    fun reset() {
-        requestJob?.cancel()
-        requestJob = null
-        state.update { RequestViewModelState() }
     }
 
     private fun toRequest(pending: WalletConnectPendingRequest): WCRequest = when (pending) {
