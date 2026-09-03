@@ -12,7 +12,6 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyConte
 import com.wallet.core.primitives.WalletConnectionSessionProposal
 import com.gemwallet.android.features.bridge.viewmodels.model.map
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
-import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
 import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
@@ -26,6 +25,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import javax.inject.Inject
@@ -34,7 +34,6 @@ import javax.inject.Inject
 class ProposalSceneViewModel @Inject constructor(
     private val approveWalletConnection: ApproveWalletConnection,
     private val prepareSessionProposal: PrepareSessionProposal,
-    private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectServiceInterface,
 ) : ViewModel() {
@@ -70,11 +69,6 @@ class ProposalSceneViewModel @Inject constructor(
             Log.d(TAG, "Ignoring duplicate proposal")
             return
         }
-        if (originVerifier.isRejected(proposal.url, verifyContext)) {
-            onNotify(BridgeRequestError.MaliciousSession)
-            reject(proposal)
-            return
-        }
         viewModelScope.launch(Dispatchers.IO) {
             val prepared = runCatchingCancellable {
                 prepareSessionProposal(
@@ -89,6 +83,7 @@ class ProposalSceneViewModel @Inject constructor(
                 )
             }.getOrElse { error ->
                 Log.e(TAG, "session proposal rejected: ${error.message}")
+                if (error is GemWalletConnectException.InvalidOrigin) onNotify(BridgeRequestError.MaliciousSession)
                 reject(proposal)
                 return@launch
             }

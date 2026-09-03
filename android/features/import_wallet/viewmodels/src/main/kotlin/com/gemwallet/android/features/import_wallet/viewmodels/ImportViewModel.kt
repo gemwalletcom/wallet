@@ -1,8 +1,5 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
-import com.gemwallet.android.blockchain.operators.InvalidWords
-import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
-import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
@@ -10,6 +7,8 @@ import com.gemwallet.android.domains.wallet_import.toGemImport
 import com.gemwallet.android.serializer.decodeJson
 import kotlinx.coroutines.CancellationException
 import uniffi.gemstone.GemNameServiceInterface
+import com.gemwallet.android.ext.words
+import uniffi.gemstone.GemMnemonicInterface
 import uniffi.gemstone.GemWalletServiceInterface
 import uniffi.gemstone.GemWalletImportResult
 import com.gemwallet.android.ext.toGem
@@ -35,18 +34,12 @@ import javax.inject.Inject
 class ImportViewModel @Inject constructor(
     private val service: GemWalletServiceInterface,
     nameService: GemNameServiceInterface,
-    private val validatePhrase: ValidatePhraseOperator,
-    private val findPhraseWord: GemFindPhraseWord,
+    private val mnemonic: GemMnemonicInterface,
 ) : ViewModel() {
 
-    fun invalidPhraseWords(text: String): Set<String> =
-        (validatePhrase(text).exceptionOrNull() as? InvalidWords)
-            ?.words
-            .orEmpty()
-            .filter { it.isNotBlank() }
-            .toSet()
+    fun invalidPhraseWords(text: String): Set<String> = mnemonic.findInvalidWords(text.words()).toSet()
 
-    fun phraseSuggestions(word: String): List<String> = findPhraseWord(word)
+    fun phraseSuggestions(word: String): List<String> = mnemonic.suggestWords(word, null)
 
     private val state = MutableStateFlow(ImportViewModelState())
     val uiState = state.map { it.toUIState() }

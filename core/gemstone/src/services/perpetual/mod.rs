@@ -75,17 +75,6 @@ impl GemPerpetualService {
         rules::autoclose_summary(&data)
     }
 
-    pub async fn sync_markets(&self, chain: Chain) -> Result<(), GemServiceError> {
-        let currency = self.preferences.get_currency();
-        let data = self.gateway.get_perpetuals_data(chain).await?;
-        self.asset_store.save_assets(rules::perpetual_asset_basics(&data)).await?;
-        self.store.save_perpetuals(data).await?;
-        if let Some(price) = rules::collateral_price(chain) {
-            self.price.update_prices(vec![price], currency).await?;
-        }
-        self.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp()))
-    }
-
     pub async fn sync_markets_if_needed(&self, chain: Chain, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
         if !trigger.should_sync_markets(self.markets_updated_at()?, Utc::now().timestamp()) {
             return Ok(false);
@@ -138,6 +127,17 @@ impl GemPerpetualService {
 }
 
 impl GemPerpetualService {
+    pub async fn sync_markets(&self, chain: Chain) -> Result<(), GemServiceError> {
+        let currency = self.preferences.get_currency();
+        let data = self.gateway.get_perpetuals_data(chain).await?;
+        self.asset_store.save_assets(rules::perpetual_asset_basics(&data)).await?;
+        self.store.save_perpetuals(data).await?;
+        if let Some(price) = rules::collateral_price(chain) {
+            self.price.update_prices(vec![price], currency).await?;
+        }
+        self.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp()))
+    }
+
     pub async fn get_portfolio(&self, chain: Chain, address: String) -> Result<PerpetualPortfolio, GemServiceError> {
         Ok(self.gateway.get_perpetual_portfolio(chain, address).await?)
     }

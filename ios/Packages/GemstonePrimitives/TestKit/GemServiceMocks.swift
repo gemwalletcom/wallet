@@ -687,7 +687,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         return true
     }
 
-    public func syncMarkets(chain _: Gemstone.Chain) async throws {
+    private func syncMarkets(chain _: Gemstone.Chain) async throws {
         syncMarketsCount += 1
         updatedAt = Int64(Date().timeIntervalSince1970)
     }

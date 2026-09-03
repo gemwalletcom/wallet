@@ -123,13 +123,6 @@ pub fn show_collections(wallet: &Wallet) -> bool {
     }
 }
 
-pub fn display_account(wallet: &Wallet) -> Option<Account> {
-    match wallet.wallet_type {
-        WalletType::Multicoin => wallet.account(Chain::Ethereum).cloned().or_else(|| wallet.accounts.first().cloned()),
-        _ => wallet.accounts.first().cloned(),
-    }
-}
-
 pub fn next_current_wallet(wallets: &[Wallet]) -> Option<WalletId> {
     wallets
         .iter()
@@ -311,14 +304,5 @@ mod tests {
         let sorted = sorted_wallets(vec![watch.clone(), second.clone(), first.clone()]);
 
         assert_eq!(sorted.iter().map(|wallet| wallet.id.clone()).collect::<Vec<_>>(), vec![first.id, second.id, watch.id]);
-    }
-
-    #[test]
-    fn test_multicoin_wallets_display_their_ethereum_account() {
-        let multicoin = wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Bitcoin, Chain::Ethereum]);
-        let single = wallet(WalletId::Multicoin("0x2".to_string()), WalletType::Single, &[Chain::Bitcoin]);
-
-        assert_eq!(display_account(&multicoin).map(|account| account.chain), Some(Chain::Ethereum));
-        assert_eq!(display_account(&single).map(|account| account.chain), Some(Chain::Bitcoin));
     }
 }

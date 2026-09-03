@@ -5,7 +5,6 @@ import com.gemwallet.android.application.wallet.cases.GetAllWallets
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Account
@@ -38,7 +37,7 @@ class GetAllWalletsImpl(
                     WalletDataAggregateImpl(
                         wallet = it,
                         isCurrent = it.id == currentWalletId,
-                        walletAccount = walletService.displayAccount(it.toJson())?.toPrimitives(),
+                        walletAccount = it.accounts.firstOrNull(),
                     )
                 }
             }

@@ -32,7 +32,7 @@ struct AddNodeScene: View {
         .onChange(of: model.urlInputModel.text) {
             model.onChangeInput()
         }
-        .debouncedTask(id: model.loadTrigger) {
+        .debouncedTask(id: model.loadTrigger, interval: model.nodeCheckDebounce) {
             await model.load()
         }
         .safeAreaButton {

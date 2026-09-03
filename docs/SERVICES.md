@@ -632,6 +632,26 @@ Three gotchas if you repeat the sweep, all met on this pass:
   are gone. `SettingsViewModelTest`'s rewards tests waited on a `withContext(IO)` hop with
   `advanceUntilIdle()` alone and flaked; one test now waits for Core's answer with `first {}`
   and covers both directions.
+- **Android's import screen asks `GemMnemonic` directly.** `GemValidatePhraseOperator`
+  (`findInvalidWords` + `isValid` behind a `Result` with `InvalidWords`/`InvalidPhrase`
+  exceptions) and `GemFindPhraseWord` were two wrappers around one Core object, and only the
+  invalid-word half was read (import itself validates in `GemWalletService::import_wallet`).
+  `ImportViewModel` holds `GemMnemonicInterface`; the wrappers, their exceptions and
+  `GemMnemonic::is_valid` (no app caller left) are gone.
+- **`display_account` was unobservable.** Core preferred a multicoin wallet's Ethereum account,
+  but both apps label a multicoin row "Multicoin" and only show an address for single-chain
+  wallets, where it is always the first account; iOS's `WalletViewModel` and Android's
+  `WalletItem(wallet:)` already read `accounts.first`. `GetAllWalletsImpl` now does the same and
+  the Core rule, test and export are deleted.
+- **A rejected WalletConnect origin is Core's error, not a pre-check.** `ProposalSceneViewModel`
+  asked `is_origin_rejected` before `prepare_session_proposal`, which already refuses with
+  `GemWalletConnectError::InvalidOrigin`; the view model now classifies that error into the
+  malicious-session notice (iOS surfaces the same error through `handleRejectSession`).
+  `WalletConnectOriginVerifier` stays only for the Android-only SIWE auth flow (S9).
+- **Small trims from the Android-only sweep**: `GemPerpetualService::sync_markets` is un-exported
+  (both apps call `sync_markets_if_needed`; the sweep matched Android's private `syncMarkets`
+  helper); iOS's add-node scene debounces with `GemChainSettingsService::node_check_debounce_milliseconds`
+  like Android instead of the component default (both 250 ms today, one owner now).
 - **`GemAddressService` keeps only `format`.** `validate` and `checksum` had no iOS caller and
   Android's only callers were `Chain.isValidAddress` (unused) and `Chain.checksumAddress`, which
   `ContactAddressInput.resolvedAddress` used to re-derive the recipient address rule Core

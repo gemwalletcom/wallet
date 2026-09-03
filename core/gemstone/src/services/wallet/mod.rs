@@ -30,7 +30,7 @@ pub(crate) mod testkit;
 use std::sync::Arc;
 
 use gem_keystore::Mnemonic;
-use primitives::{Account, Chain, Wallet, WalletId, WalletSource, WalletType};
+use primitives::{Chain, Wallet, WalletId, WalletSource, WalletType};
 
 use crate::block_explorer::GemBlockExplorerLink;
 use crate::keystore::decode_password;
@@ -243,10 +243,6 @@ impl GemWalletService {
 
     pub fn sorted_wallets(&self, wallets: Vec<Wallet>) -> Vec<Wallet> {
         rules::sorted_wallets(wallets)
-    }
-
-    pub fn display_account(&self, wallet: Wallet) -> Option<Account> {
-        rules::display_account(&wallet)
     }
 
     pub fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
