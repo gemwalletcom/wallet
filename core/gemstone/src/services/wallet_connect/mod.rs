@@ -265,8 +265,9 @@ impl GemWalletConnectService {
         action: GemWalletConnectTransactionAction,
     ) -> Result<String, GemServiceError> {
         let (connection, account) = self.connection_account(&session_id, chain).await?;
-        let simulation = self.simulation.simulate_send_transaction(chain, transaction_type.clone(), data.clone()).await?;
-        let transaction = self.wallet_connect.decode_send_transaction(transaction_type, data)?;
+        let transaction = self.wallet_connect.decode_send_transaction(transaction_type.clone(), data.clone())?;
+        rules::validate_transaction_sender(&transaction, &account)?;
+        let simulation = self.simulation.simulate_send_transaction(chain, transaction_type, data).await?;
         let transfer = rules::transfer_data(chain, connection.session.metadata.clone(), transaction, action)?;
         self.signer
             .sign_transaction(GemWalletConnectTransactionRequest {

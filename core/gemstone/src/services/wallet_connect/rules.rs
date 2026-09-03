@@ -210,6 +210,15 @@ fn supports(wallet: &Wallet, required: &[Chain], optional: &[Chain]) -> bool {
     optional.is_empty() || optional.iter().any(|chain| chains.contains(chain))
 }
 
+pub fn validate_transaction_sender(transaction: &WalletConnectTransaction, account: &Account) -> Result<(), GemServiceError> {
+    match transaction {
+        WalletConnectTransaction::Ethereum { data, .. } if !data.from.eq_ignore_ascii_case(&account.address) => Err(GemServiceError::InvalidInput {
+            msg: format!("transaction sender {} is not the session account {}", data.from, account.address),
+        }),
+        _ => Ok(()),
+    }
+}
+
 pub fn transfer_data(
     chain: Chain,
     metadata: ApplicationMetadata,
@@ -437,6 +446,33 @@ mod tests {
         assert_eq!(metadata.icon, "https://x/icon.PNG");
         assert!(session_methods().contains(&"personal_sign".to_string()));
         assert!(session_events().contains(&"accountsChanged".to_string()));
+    }
+
+    #[test]
+    fn test_validate_transaction_sender_binds_an_evm_request_to_the_session_account() {
+        let account = Account::mock(Chain::Ethereum, "0xAbC");
+        let evm = |from: &str| WalletConnectTransaction::Ethereum {
+            data: crate::wallet_connect::WCEthereumTransactionData {
+                chain_id: Some(1),
+                from: from.to_string(),
+                to: "0xto".to_string(),
+                value: None,
+                gas: None,
+                gas_limit: None,
+                gas_price: None,
+                max_fee_per_gas: None,
+                max_priority_fee_per_gas: None,
+                nonce: None,
+                data: None,
+            },
+            kind: EvmTransactionKind::Transfer,
+        };
+
+        assert!(validate_transaction_sender(&evm("0xabc"), &account).is_ok(), "EVM addresses compare without case");
+        assert!(
+            validate_transaction_sender(&evm("0xother"), &account).is_err(),
+            "a dapp cannot simulate for one account and sign with another"
+        );
     }
 
     #[test]
