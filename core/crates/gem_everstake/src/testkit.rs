@@ -39,6 +39,6 @@ pub fn create_everstake_staking_client() -> EverstakeStakingClient<ReqwestClient
     let settings = get_test_settings();
     EverstakeStakingClient::new(
         EthereumClient::mock_with_url(EVMChain::Ethereum, &settings.chains.ethereum.url),
-        EverstakeClient::new(ReqwestClient::new(settings.everstake.url, gem_client::reqwest_client())),
+        Some(EverstakeClient::new(ReqwestClient::new(settings.everstake.url, gem_client::reqwest_client()))),
     )
 }

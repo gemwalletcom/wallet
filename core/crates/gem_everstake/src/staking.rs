@@ -17,11 +17,11 @@ use crate::parser::EverstakeParser;
 
 pub struct EverstakeStakingClient<C: Client + Clone> {
     client: EthereumClient<C>,
-    stats: EverstakeClient<C>,
+    stats: Option<EverstakeClient<C>>,
 }
 
 impl<C: Client + Clone> EverstakeStakingClient<C> {
-    pub fn new(client: EthereumClient<C>, stats: EverstakeClient<C>) -> Self {
+    pub fn new(client: EthereumClient<C>, stats: Option<EverstakeClient<C>>) -> Self {
         Self { client, stats }
     }
 }
@@ -29,7 +29,10 @@ impl<C: Client + Clone> EverstakeStakingClient<C> {
 #[async_trait]
 impl<C: Client + Clone> EvmStakingClient for EverstakeStakingClient<C> {
     async fn get_staking_apy(&self) -> Result<Option<f64>, Box<dyn Error + Sync + Send>> {
-        Ok(Some(self.stats.get_staking_apy().await?))
+        match &self.stats {
+            Some(stats) => Ok(Some(stats.get_staking_apy().await?)),
+            None => Ok(None),
+        }
     }
 
     async fn get_staking_validators(&self, apy: Option<f64>) -> Result<Vec<DelegationValidator>, Box<dyn Error + Sync + Send>> {
