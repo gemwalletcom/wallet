@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-use primitives::{Wallet, WalletId};
+use primitives::{AddressName, Chain, Wallet, WalletId};
 
 use super::GemWalletStore;
 use super::password::{GemKeystoreAuthentication, GemKeystorePassword};
 use crate::services::error::GemServiceError;
+use crate::services::name::GemAddressStore;
 
 pub const TEST_PASSWORD: &str = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
 
@@ -65,5 +66,31 @@ impl GemKeystorePassword for MemoryKeystorePassword {
     }
     fn authentication(&self) -> Result<GemKeystoreAuthentication, GemServiceError> {
         Ok(GemKeystoreAuthentication::None)
+    }
+}
+
+#[derive(Default)]
+pub struct MemoryAddressStore {
+    pub names: Mutex<HashMap<(Chain, String), AddressName>>,
+}
+
+#[async_trait::async_trait]
+impl GemAddressStore for MemoryAddressStore {
+    fn get_address_name(&self, chain: Chain, address: String) -> Result<Option<AddressName>, GemServiceError> {
+        Ok(self.names.lock().unwrap().get(&(chain, address)).cloned())
+    }
+    async fn save_address_names(&self, names: Vec<AddressName>) -> Result<(), GemServiceError> {
+        let mut stored = self.names.lock().unwrap();
+        for name in names {
+            stored.insert((name.chain, name.address.clone()), name);
+        }
+        Ok(())
+    }
+    async fn delete_address_names(&self, names: Vec<AddressName>) -> Result<(), GemServiceError> {
+        let mut stored = self.names.lock().unwrap();
+        for name in names {
+            stored.remove(&(name.chain, name.address));
+        }
+        Ok(())
     }
 }

@@ -102,6 +102,7 @@ struct ServicesFactory {
             files: gemstoneFileStore,
             preferences: walletPreferencesService,
             explorer: explorerService,
+            addresses: gemstoneAddressStore,
         )
         let avatarService = Gemstone.GemAvatarService(wallets: gemstoneWalletStore, files: gemstoneFileStore, provider: nativeProvider)
         let webSocket = Self.makeWebSocket(deviceKeyService: deviceKeyService, reconnection: connectionService)

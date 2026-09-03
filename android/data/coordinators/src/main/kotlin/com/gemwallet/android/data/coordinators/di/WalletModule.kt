@@ -5,14 +5,11 @@ import com.gemwallet.android.application.wallet.cases.GetWallet
 import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.application.wallet.cases.GetAllWallets
 import com.gemwallet.android.application.wallet.cases.GetWalletDetails
-import com.gemwallet.android.application.wallet.cases.SetWalletName
-import com.gemwallet.android.application.addresses.cases.RenameWalletAddresses
 import com.gemwallet.android.data.coordinators.wallet.DeleteWalletImpl
 import com.gemwallet.android.data.coordinators.wallet.GetWalletImpl
 import com.gemwallet.android.data.coordinators.wallet.GetWalletsImpl
 import com.gemwallet.android.data.coordinators.wallet.GetAllWalletsImpl
 import com.gemwallet.android.data.coordinators.wallet.GetWalletDetailsImpl
-import com.gemwallet.android.data.coordinators.wallet.SetWalletNameImpl
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.application.session.cases.GetSession
@@ -51,15 +48,6 @@ object WalletModule {
         walletService: GemWalletService,
     ): GetAllWallets {
         return GetAllWalletsImpl(getSession, walletStore, walletService)
-    }
-
-    @Provides
-    @Singleton
-    fun provideSetWalletName(
-        walletService: GemWalletService,
-        renameWalletAddresses: RenameWalletAddresses,
-    ): SetWalletName {
-        return SetWalletNameImpl(walletService, renameWalletAddresses)
     }
 
     @Provides

@@ -25,7 +25,6 @@ class GemstoneWalletStore(
     private val walletsDao: WalletsDao,
     private val accountsDao: AccountsDao,
     private val assetsDao: AssetsDao,
-    private val addressStore: GemstoneAddressStore,
     private val transactionRunner: StoreTransactionRunner,
 ) : GemWalletStore {
 
@@ -59,7 +58,6 @@ class GemstoneWalletStore(
         transactionRunner.run {
             walletsDao.insert(wallet.toRecord())
             insertAccountsWithNativeAssets(wallet)
-            addressStore.saveWalletAddresses(wallet)
             wallet
         }
     }

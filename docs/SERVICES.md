@@ -641,6 +641,20 @@ Three gotchas if you repeat the sweep, all met on this pass:
   path and `shows_onboarding` accessor remain structure: its banner list is a one-shot load and
   the welcome banner is a distinct composable, so folding it into `visibleBanners` needs the
   banners to become reactive first.
+- **A wallet's own accounts are named after the wallet on both apps, by Core.** Android saved
+  its accounts as `InternalWallet` address names when a wallet was added (`WalletStore.addWallet`
+  → `saveWalletAddresses`), renamed them through `SetWalletName` → `RenameWalletAddresses`, and
+  never deleted them; iOS never wrote them, so a transfer to your own other wallet showed a bare
+  address on iOS and the wallet name on Android. `GemWalletService` now takes the
+  `GemAddressStore` port and owns the lifecycle: `rules::wallet_address_names(wallet)` is saved
+  when a wallet is stored (import, and `setup_chains` adding accounts), re-saved by `rename`,
+  and deleted by `delete_wallet` (`test_wallet_accounts_are_named_after_the_wallet_until_it_is_deleted`).
+  Android's `SetWalletName`, `RenameWalletAddresses`, `SaveWalletAddresses`, their impls and
+  module, `Wallet.toAddressRecords`, `AddressesDao.updateName` and the address-store hooks in
+  `GemstoneWalletStore` are gone; `WalletViewModel` and `SetupWalletViewModel` call
+  `GemWalletServiceInterface.rename`. Both stores already keep a local name from being
+  overwritten by another local type (`reservedTypes` / `isLocal`), so contacts win over wallet
+  names on both apps.
 - **Dead per-app helpers found by a member sweep** (declare-then-grep over `ext/`, `domains/`
   and the iOS `Extensions/`/`GemstonePrimitives` sources, excluding tests): Android `Chain.withdraw`,
   `TransactionState.isCompleted`, `Payment.request` + `decodePayment` (the instrumented payment

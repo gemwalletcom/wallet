@@ -31,7 +31,6 @@ class GemstoneWalletStoreTest {
 
     private val walletsDao = mockk<WalletsDao>(relaxed = true)
     private val accountsDao = mockk<AccountsDao>(relaxed = true)
-    private val addressStore = mockk<GemstoneAddressStore>(relaxed = true)
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
     private val transactionRunner = RecordingStoreTransactionRunner()
 
@@ -39,7 +38,6 @@ class GemstoneWalletStoreTest {
         walletsDao = walletsDao,
         accountsDao = accountsDao,
         assetsDao = assetsDao,
-        addressStore = addressStore,
         transactionRunner = transactionRunner,
     )
 

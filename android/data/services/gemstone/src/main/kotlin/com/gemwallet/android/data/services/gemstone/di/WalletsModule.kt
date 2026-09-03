@@ -4,7 +4,6 @@ import android.content.Context
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
-import com.gemwallet.android.application.addresses.cases.SaveWalletAddresses
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAddressStore
 import com.gemwallet.android.data.service.store.database.AccountsDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
@@ -50,6 +49,7 @@ object WalletsModule {
         fileStore: GemFileStore,
         walletPreferencesService: GemWalletPreferencesService,
         explorerService: GemExplorerService,
+        addressStore: GemstoneAddressStore,
     ): GemWalletService = GemWalletService(
         keystore,
         GemstoneKeystorePassword(passwordStore),
@@ -59,6 +59,7 @@ object WalletsModule {
         fileStore,
         walletPreferencesService,
         explorerService,
+        addressStore,
     )
 
     @Provides
@@ -79,9 +80,8 @@ object WalletsModule {
         walletsDao: WalletsDao,
         accountsDao: AccountsDao,
         assetsDao: AssetsDao,
-        addressStore: GemstoneAddressStore,
         transactionRunner: StoreTransactionRunner,
-    ): GemstoneWalletStore = GemstoneWalletStore(walletsDao, accountsDao, assetsDao, addressStore, transactionRunner)
+    ): GemstoneWalletStore = GemstoneWalletStore(walletsDao, accountsDao, assetsDao, transactionRunner)
 
     @Provides
     @Singleton

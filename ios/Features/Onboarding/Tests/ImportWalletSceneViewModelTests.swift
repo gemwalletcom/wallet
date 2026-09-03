@@ -20,10 +20,10 @@ import Testing
 struct ImportWalletSceneViewModelTests {
     @Test
     func existingImportSetsCurrentWallet() async throws {
-        let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum]))
+        let db = DB.mockWithChains([.ethereum])
         let sessionStore = GemstoneWalletSessionStore.mock()
-        let session = GemWalletSessionService(store: sessionStore, wallets: GemstoneWalletStore(store: walletStore))
-        let service = GemWalletService.mock(walletStore: walletStore, sessionStore: sessionStore)
+        let session = GemWalletSessionService(store: sessionStore, wallets: GemstoneWalletStore(store: WalletStore.mock(db: db)))
+        let service = GemWalletService.mock(db: db, sessionStore: sessionStore)
 
         let walletA = try await service.importWallet(
             name: "Wallet A",

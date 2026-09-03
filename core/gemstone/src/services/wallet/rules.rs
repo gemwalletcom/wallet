@@ -1,5 +1,5 @@
 use gem_keystore::Mnemonic;
-use primitives::{Account, Chain, Wallet, WalletId, WalletSource, WalletType};
+use primitives::{Account, AddressName, AddressType, Chain, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
 use super::model::GemWalletImportType;
@@ -121,6 +121,21 @@ pub fn show_collections(wallet: &Wallet) -> bool {
         WalletType::Multicoin => true,
         WalletType::Single | WalletType::PrivateKey | WalletType::View => wallet.accounts.first().is_some_and(|account| account.chain.is_nft_supported()),
     }
+}
+
+pub fn wallet_address_names(wallet: &Wallet) -> Vec<AddressName> {
+    wallet
+        .accounts
+        .iter()
+        .map(|account| AddressName {
+            chain: account.chain,
+            address: account.address.clone(),
+            name: wallet.name.clone(),
+            address_type: AddressType::InternalWallet,
+            status: VerificationStatus::Verified,
+            image_url: None,
+        })
+        .collect()
 }
 
 pub fn next_current_wallet(wallets: &[Wallet]) -> Option<WalletId> {
