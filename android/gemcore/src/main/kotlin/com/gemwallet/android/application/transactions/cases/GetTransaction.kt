@@ -1,6 +1,6 @@
 package com.gemwallet.android.application.transactions.cases
 
-import com.gemwallet.android.model.TransactionExtended
+import com.wallet.core.primitives.TransactionExtended
 import com.wallet.core.primitives.TransactionId
 import kotlinx.coroutines.flow.Flow
 

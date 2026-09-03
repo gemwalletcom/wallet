@@ -1,10 +1,16 @@
+use std::str::FromStr;
+
 use primitives::{
-    AssetId, PerpetualDirection, Transaction, TransactionDirection, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionType,
-    TransactionWalletConnectMetadata, TransferDataOutputAction,
+    AssetId, PerpetualDirection, Transaction, TransactionDirection, TransactionExtended, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState,
+    TransactionSwapMetadata, TransactionType, TransactionWalletConnectMetadata, TransferDataOutputAction,
 };
 
-use super::model::{GemAmountSign, GemTransactionHeaderKind, GemTransactionParticipantRole, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue};
+use super::model::{
+    GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemTransactionDetails, GemTransactionHeaderKind, GemTransactionParticipantRole, GemTransactionSubtitle,
+    GemTransactionTitle, GemTransactionValue,
+};
 use crate::services::collections::unique;
+use swapper::{ProviderType as SwapperProviderType, SwapperProvider, SwapperProviderMode};
 
 pub fn transaction_asset_ids(transactions: &[Transaction]) -> Vec<AssetId> {
     unique(transactions.iter().flat_map(|transaction| transaction.associated_asset_ids()))
@@ -173,6 +179,59 @@ pub fn header_kind(transaction: &Transaction) -> GemTransactionHeaderKind {
             GemTransactionHeaderKind::Symbol
         }
     }
+}
+
+pub fn details(extended: &TransactionExtended) -> GemTransactionDetails {
+    let transaction = &extended.transaction;
+    let swap_metadata = (transaction.transaction_type == TransactionType::Swap).then(|| transaction.swap_metadata()).flatten();
+    let provider = swap_metadata
+        .as_ref()
+        .and_then(|metadata| metadata.provider.as_deref())
+        .and_then(|id| SwapperProvider::from_str(id).ok())
+        .map(SwapperProviderType::new);
+    let swap_progress = swap_progress(extended, swap_metadata.as_ref(), provider.as_ref());
+    let perpetual = perpetual_metadata(transaction);
+    GemTransactionDetails {
+        estimated_confirmation_seconds: extended
+            .confirmation_eta_seconds
+            .filter(|seconds| *seconds > 0 && transaction.state == TransactionState::Pending && swap_progress.is_none()),
+        swap_again: swap_metadata
+            .as_ref()
+            .filter(|_| transaction.state == TransactionState::Confirmed)
+            .map(|metadata| GemSwapAgain {
+                from_asset_id: metadata.from_asset.clone(),
+                to_asset_id: metadata.to_asset.clone(),
+            }),
+        swap_progress,
+        provider_name: provider
+            .map(|provider| provider.name)
+            .or_else(|| swap_metadata.as_ref().and_then(|metadata| metadata.provider.clone())),
+        pnl: perpetual.as_ref().map(|metadata| metadata.pnl).filter(|pnl| *pnl != 0.0),
+        price: perpetual.as_ref().map(|metadata| metadata.price).filter(|price| *price > 0.0),
+    }
+}
+
+fn swap_progress(extended: &TransactionExtended, metadata: Option<&TransactionSwapMetadata>, provider: Option<&SwapperProviderType>) -> Option<GemSwapProgress> {
+    let metadata = metadata?;
+    let provider = provider.filter(|provider| provider.mode != SwapperProviderMode::OnChain)?;
+    let from_asset = extended.assets.iter().chain([&extended.asset]).find(|asset| asset.id == metadata.from_asset)?;
+    let (transfer, swap) = match extended.transaction.state {
+        TransactionState::Pending => (GemSwapProgressStep::Pending, GemSwapProgressStep::Waiting),
+        TransactionState::InTransit => (GemSwapProgressStep::Completed, GemSwapProgressStep::Pending),
+        TransactionState::Failed => (GemSwapProgressStep::Completed, GemSwapProgressStep::Failed),
+        TransactionState::Reverted => (GemSwapProgressStep::Reverted, GemSwapProgressStep::Waiting),
+        TransactionState::Confirmed => return None,
+    };
+    Some(GemSwapProgress {
+        from_asset: from_asset.clone(),
+        from_value: metadata.from_value.clone(),
+        provider_name: provider.name.clone(),
+        transfer,
+        swap,
+        eta_seconds: extended
+            .confirmation_eta_seconds
+            .filter(|seconds| *seconds > 0 && !extended.transaction.state.is_completed()),
+    })
 }
 
 fn wallet_connect_metadata(transaction: &Transaction) -> Option<TransactionWalletConnectMetadata> {
@@ -468,5 +527,95 @@ mod tests {
         expected.sort_by_key(|asset_id| asset_id.to_string());
 
         assert_eq!(asset_ids, expected);
+    }
+
+    fn swap(state: TransactionState, provider: Option<&str>, eta: Option<u32>) -> TransactionExtended {
+        let mut transaction = Transaction::mock();
+        transaction.transaction_type = TransactionType::Swap;
+        transaction.state = state;
+        transaction.metadata = Some(
+            serde_json::to_value(primitives::TransactionSwapMetadata {
+                from_asset: AssetId::from_chain(Chain::Ethereum),
+                from_value: 5u32.into(),
+                to_asset: AssetId::from_chain(Chain::Bitcoin),
+                to_value: 1u32.into(),
+                provider: provider.map(str::to_string),
+            })
+            .unwrap(),
+        );
+        let mut extended = TransactionExtended::mock_transaction(transaction);
+        extended.confirmation_eta_seconds = eta;
+        extended
+    }
+
+    #[test]
+    fn test_details_show_swap_progress_only_for_an_unfinished_cross_chain_swap() {
+        let pending = details(&swap(TransactionState::Pending, Some("thorchain"), Some(90)));
+        let progress = pending.swap_progress.unwrap();
+        assert_eq!(
+            (progress.transfer, progress.swap, progress.eta_seconds),
+            (GemSwapProgressStep::Pending, GemSwapProgressStep::Waiting, Some(90))
+        );
+        assert_eq!(progress.from_value, 5u32.into());
+        assert_eq!(pending.provider_name.as_deref(), Some(progress.provider_name.as_str()));
+        assert_eq!(pending.estimated_confirmation_seconds, None, "the progress steps carry the eta");
+        assert!(pending.swap_again.is_none());
+
+        let in_transit = details(&swap(TransactionState::InTransit, Some("thorchain"), None)).swap_progress.unwrap();
+        assert_eq!((in_transit.transfer, in_transit.swap), (GemSwapProgressStep::Completed, GemSwapProgressStep::Pending));
+        let failed = details(&swap(TransactionState::Failed, Some("thorchain"), Some(90))).swap_progress.unwrap();
+        assert_eq!(
+            (failed.transfer, failed.swap, failed.eta_seconds),
+            (GemSwapProgressStep::Completed, GemSwapProgressStep::Failed, None)
+        );
+        let reverted = details(&swap(TransactionState::Reverted, Some("thorchain"), None)).swap_progress.unwrap();
+        assert_eq!((reverted.transfer, reverted.swap), (GemSwapProgressStep::Reverted, GemSwapProgressStep::Waiting));
+
+        let confirmed = details(&swap(TransactionState::Confirmed, Some("thorchain"), None));
+        assert!(confirmed.swap_progress.is_none());
+        assert_eq!(
+            confirmed.swap_again,
+            Some(GemSwapAgain {
+                from_asset_id: AssetId::from_chain(Chain::Ethereum),
+                to_asset_id: AssetId::from_chain(Chain::Bitcoin),
+            })
+        );
+
+        let on_chain = details(&swap(TransactionState::Pending, Some("uniswap_v3"), Some(90)));
+        assert!(on_chain.swap_progress.is_none());
+        assert_eq!(on_chain.estimated_confirmation_seconds, Some(90));
+        assert_eq!(
+            details(&swap(TransactionState::Pending, Some("unknown"), None)).provider_name.as_deref(),
+            Some("unknown"),
+            "an unknown provider still shows its id"
+        );
+        assert!(details(&swap(TransactionState::Pending, None, None)).swap_progress.is_none());
+    }
+
+    #[test]
+    fn test_details_show_a_pending_eta_and_nonzero_perpetual_figures() {
+        let mut transfer = TransactionExtended::mock();
+        transfer.transaction.state = TransactionState::Pending;
+        transfer.confirmation_eta_seconds = Some(30);
+        assert_eq!(details(&transfer).estimated_confirmation_seconds, Some(30));
+        transfer.transaction.state = TransactionState::Confirmed;
+        assert_eq!(details(&transfer).estimated_confirmation_seconds, None);
+        transfer.transaction.state = TransactionState::Pending;
+        transfer.confirmation_eta_seconds = Some(0);
+        assert_eq!(details(&transfer).estimated_confirmation_seconds, None);
+
+        let mut close = TransactionExtended::mock();
+        close.transaction.transaction_type = TransactionType::PerpetualClosePosition;
+        let metadata = |pnl, price| TransactionPerpetualMetadata {
+            pnl,
+            price,
+            direction: PerpetualDirection::Long,
+            is_liquidation: None,
+            provider: None,
+        };
+        close.transaction.metadata = Some(serde_json::to_value(metadata(0.0, 0.0)).unwrap());
+        assert_eq!((details(&close).pnl, details(&close).price), (None, None));
+        close.transaction.metadata = Some(serde_json::to_value(metadata(-4.5, 12.0)).unwrap());
+        assert_eq!((details(&close).pnl, details(&close).price), (Some(-4.5), Some(12.0)));
     }
 }

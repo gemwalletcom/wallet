@@ -852,3 +852,16 @@ delegations; iOS's `frozenResources`/`rewardsValue`/`delegationsWithRewards` and
 `getFrozenResourceAmount`/`sumRewardsBalance` are gone, and `can_claim_all_rewards` is no longer
 exported.
 
+**The transaction detail screen's rows are one Core answer.** Both apps decided on their own
+whether a swap shows a two-step progress (cross-chain provider, not yet confirmed), what each
+step's status is per transaction state, when "swap again" appears, when the confirmation ETA
+row shows (pending, positive, and not already inside the progress), and whether a perpetual's
+pnl and price rows show — and Android's Compose item mapped the state to step statuses a
+third time. `GemTransactionDetailsService::details(TransactionExtended)` returns
+`GemTransactionDetails { swap_progress, swap_again, provider_name, estimated_confirmation_seconds,
+pnl, price }`; the view models only format what is there. `TransactionExtended` crosses as JSON
+like `Transaction` does (the primitives struct existed for typeshare but was never declared as a
+module, and Android carried a stale hand-copied version without `prices` — both fixed). When
+several rows of one screen each re-derive a fact from the same record, ask Core for the screen's
+facts in one call.
+

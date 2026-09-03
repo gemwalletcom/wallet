@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use primitives::{Chain, Currency, Transaction};
+use primitives::{Chain, Currency, Transaction, TransactionExtended};
 
-use super::model::{GemTransactionHeaderKind, GemTransactionParticipant};
+use super::model::{GemTransactionDetails, GemTransactionHeaderKind, GemTransactionParticipant};
 use super::rules;
 use crate::block_explorer::GemBlockExplorerLink;
 use crate::services::explorer::GemExplorerService;
@@ -23,6 +23,10 @@ impl GemTransactionDetailsService {
 
     pub fn currency(&self) -> Currency {
         self.preferences.get_currency()
+    }
+
+    pub fn details(&self, transaction: TransactionExtended) -> GemTransactionDetails {
+        rules::details(&transaction)
     }
 
     pub fn header_kind(&self, transaction: Transaction) -> GemTransactionHeaderKind {

@@ -1,6 +1,7 @@
 package com.gemwallet.android.domains.transaction.values
 
 import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemSwapProgressStep
 import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.AddressType
@@ -95,7 +96,8 @@ sealed interface TransactionDetailsValue {
         val fromAsset: Asset,
         val fromValue: String,
         val providerName: String,
-        val state: TransactionState,
+        val transfer: GemSwapProgressStep,
+        val swap: GemSwapProgressStep,
         val etaInSeconds: UInt?,
     ) : TransactionDetailsValue
 

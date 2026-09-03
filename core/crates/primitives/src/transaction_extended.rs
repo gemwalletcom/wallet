@@ -1,4 +1,4 @@
-use crate::{Transaction, Asset, Price, AssetPrice, AddressName};
+use crate::{AddressName, Asset, AssetPrice, Price, Transaction};
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
@@ -8,7 +8,7 @@ pub struct TransactionExtended {
     pub transaction: Transaction,
     pub asset: Asset,
     #[serde(rename = "feeAsset")]
-    pub feeAsset: Asset,
+    pub fee_asset: Asset,
     pub price: Option<Price>,
     #[serde(rename = "feePrice")]
     pub fee_price: Option<Price>,

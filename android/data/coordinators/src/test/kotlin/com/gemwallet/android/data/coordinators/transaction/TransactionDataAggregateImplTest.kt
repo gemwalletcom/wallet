@@ -2,7 +2,7 @@ package com.gemwallet.android.data.coordinators.transaction
 
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.wallet.core.primitives.Transaction
-import com.gemwallet.android.model.TransactionExtended
+import com.wallet.core.primitives.TransactionExtended
 import com.gemwallet.android.serializer.jsonEncoder
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -129,6 +129,7 @@ class TransactionDataAggregateImplTest {
         price = null,
         feePrice = null,
         assets = assets,
+        prices = emptyList(),
     )
 
     private fun createAggregate(transaction: TransactionExtended): TransactionDataAggregate =
@@ -388,7 +389,7 @@ class TransactionDataAggregateImplTest {
             transaction = transaction,
             asset = bnbAsset,
             assets = listOf(bnbAsset, tonAsset),
-        )
+                    )
         val aggregate = createAggregate(extended)
 
         assertEquals(aggregate.value,"+19 TON")
@@ -427,7 +428,7 @@ class TransactionDataAggregateImplTest {
             createTransactionExtended(
                 transaction = transaction,
                 assets = listOf(btcAsset, ethAsset),
-            ),
+                            ),
         )
 
         assertEquals("", aggregate.value)

@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import com.gemwallet.android.testkit.mockGemTransactionDetails
 import org.junit.Test
 
 class GetTransactionDetailsImplTest {
@@ -72,7 +73,7 @@ class GetTransactionDetailsImplTest {
             asset = asset,
             feeAsset = asset,
             assets = listOf(asset),
-        )
+                    )
         val wallet = mockWallet(
             accounts = listOf(mockAccount(chain = Chain.Near, address = transaction.from)),
         )
@@ -88,6 +89,7 @@ class GetTransactionDetailsImplTest {
         )
         every { transactionDetailsService.participant(any()) } returns null
         every { transactionDetailsService.headerKind(any()) } returns GemTransactionHeaderKind.Swap
+        every { transactionDetailsService.details(any()) } returns mockGemTransactionDetails()
 
         val result = subject.getTransactionDetails(transaction.id).first()
 

@@ -1,4 +1,5 @@
-use primitives::{PerpetualDirection, Resource, Transaction};
+use crate::models::custom_types::GemBigUint;
+use primitives::{Asset, AssetId, PerpetualDirection, Resource, Transaction};
 
 use super::rules;
 use crate::block_explorer::GemBlockExplorerLink;
@@ -113,4 +114,39 @@ pub enum GemTransactionHeaderKind {
     Nft,
     Symbol,
     AssetImage,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemTransactionDetails {
+    pub swap_progress: Option<GemSwapProgress>,
+    pub swap_again: Option<GemSwapAgain>,
+    pub provider_name: Option<String>,
+    pub estimated_confirmation_seconds: Option<u32>,
+    pub pnl: Option<f64>,
+    pub price: Option<f64>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSwapProgress {
+    pub from_asset: Asset,
+    pub from_value: GemBigUint,
+    pub provider_name: String,
+    pub transfer: GemSwapProgressStep,
+    pub swap: GemSwapProgressStep,
+    pub eta_seconds: Option<u32>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSwapProgressStep {
+    Pending,
+    Waiting,
+    Completed,
+    Failed,
+    Reverted,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSwapAgain {
+    pub from_asset_id: AssetId,
+    pub to_asset_id: AssetId,
 }

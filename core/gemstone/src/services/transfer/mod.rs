@@ -5,7 +5,6 @@ mod store;
 #[cfg(test)]
 pub(crate) mod testkit;
 
-
 use crate::GemstoneError;
 use crate::models::transaction::GemTransactionInputType;
 use crate::services::confirm::GemConfirmInput;

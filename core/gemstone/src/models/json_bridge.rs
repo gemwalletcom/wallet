@@ -31,7 +31,7 @@ use primitives::{
     SearchResponse, StreamEvent, StreamMessage, SupportTyping,
 };
 use primitives::{ChartPeriod, Charts};
-use primitives::{Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction, VerificationStatus};
+use primitives::{Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction, TransactionExtended, VerificationStatus};
 use primitives::{DeviceLocale, Platform};
 
 macro_rules! json_bridge {
@@ -180,6 +180,7 @@ json_bridge!(
     SwapQuoteDataType,
     TPSLOrderData,
     Transaction,
+    TransactionExtended,
     TransactionPerpetualMetadata,
     TransactionId,
     TransactionState,

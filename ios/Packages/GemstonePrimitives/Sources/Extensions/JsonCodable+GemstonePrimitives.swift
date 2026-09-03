@@ -161,6 +161,7 @@ extension Primitives.SwapQuoteData: JsonCodable {}
 extension Primitives.SwapQuoteDataType: JsonCodable {}
 extension Primitives.TPSLOrderData: JsonCodable {}
 extension Primitives.Transaction: JsonCodable {}
+extension Primitives.TransactionExtended: JsonCodable {}
 extension Primitives.TransactionPerpetualMetadata: JsonCodable {}
 extension Primitives.TransactionState: JsonCodable {}
 extension Primitives.TransactionType: JsonCodable {}

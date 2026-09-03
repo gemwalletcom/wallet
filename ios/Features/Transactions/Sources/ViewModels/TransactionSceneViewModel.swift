@@ -3,6 +3,8 @@
 import BigInt
 import Components
 import protocol Gemstone.GemTransactionDetailsServiceProtocol
+import struct Gemstone.GemTransactionDetails
+import GemstonePrimitives
 import Formatters
 import Foundation
 import InfoSheet
@@ -70,22 +72,18 @@ extension TransactionSceneViewModel: ListSectionProvideable {
     public func itemModel(for item: TransactionItem) -> any ItemModelProvidable<TransactionItemModel> {
         switch item {
         case .header: headerViewModel
-        case .swapProgress: swapProgressViewModel
-        case .swapButton: TransactionSwapButtonViewModel(metadata: model.transaction.transaction.metadata?.decode(TransactionSwapMetadata.self), state: model.transaction.transaction.state)
+        case .swapProgress: TransactionSwapProgressViewModel(progress: details.swapProgress)
+        case .swapButton: TransactionSwapButtonViewModel(swapAgain: details.swapAgain)
         case .date: TransactionDateViewModel(date: model.transaction.transaction.createdAt)
         case .status: TransactionStatusViewModel(state: model.transaction.transaction.state, onInfoAction: onSelectStatusInfo)
-        case .estimatedConfirmation:
-            TransactionEstimatedConfirmationViewModel(
-                seconds: transactionExtended.transaction.state == .pending && swapProgressViewModel.progress == nil ? transactionExtended.confirmationEtaSeconds : nil,
-                onInfoAction: onSelectEstimatedConfirmationInfo,
-            )
+        case .estimatedConfirmation: TransactionEstimatedConfirmationViewModel(seconds: details.estimatedConfirmationSeconds, onInfoAction: onSelectEstimatedConfirmationInfo)
         case .participant: TransactionParticipantViewModel(transactionViewModel: model, participant: service.participant(transaction: transactionExtended.transaction.json()), onAddContact: onAddContact)
         case .memo: TransactionMemoViewModel(transaction: model.transaction.transaction)
         case .rate: TransactionRateViewModel(transaction: model.transaction, direction: rateDirection)
         case .network: TransactionNetworkViewModel(chain: model.transaction.asset.chain)
-        case .pnl: TransactionPnlViewModel(metadata: model.transaction.transaction.metadata?.decode(TransactionPerpetualMetadata.self))
-        case .price: TransactionPriceViewModel(metadata: model.transaction.transaction.metadata?.decode(TransactionPerpetualMetadata.self))
-        case .provider: TransactionProviderViewModel(metadata: model.transaction.transaction.metadata?.decode(TransactionSwapMetadata.self))
+        case .pnl: TransactionPnlViewModel(pnl: details.pnl)
+        case .price: TransactionPriceViewModel(price: details.price)
+        case .provider: TransactionProviderViewModel(name: details.providerName)
         case .fee: TransactionNetworkFeeViewModel(feeDisplay: model.infoModel.feeDisplay, onInfoAction: onSelectFee)
         case .explorerLink: explorerViewModel
         }
@@ -171,8 +169,8 @@ extension TransactionSceneViewModel {
         )
     }
 
-    private var swapProgressViewModel: TransactionSwapProgressViewModel {
-        TransactionSwapProgressViewModel(transaction: transactionExtended)
+    private var details: GemTransactionDetails {
+        service.details(transaction: transactionExtended.json())
     }
 
     private var explorerViewModel: TransactionExplorerViewModel {

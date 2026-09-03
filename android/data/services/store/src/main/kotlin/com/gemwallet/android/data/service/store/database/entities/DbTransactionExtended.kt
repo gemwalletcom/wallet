@@ -2,7 +2,7 @@ package com.gemwallet.android.data.service.store.database.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Embedded
-import com.gemwallet.android.model.TransactionExtended
+import com.wallet.core.primitives.TransactionExtended
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Chain
@@ -41,6 +41,7 @@ fun DbTransactionExtended.toDTO(): TransactionExtended? {
             fromAsset?.toDTO(),
             toAsset?.toDTO(),
         ),
+        prices = emptyList(),
         fromAddress = fromAddress?.toAddressName(transaction.owner),
         toAddress = toAddress?.toAddressName(transaction.recipient),
         confirmationEtaSeconds = transaction.confirmationEtaSeconds?.toUInt(),

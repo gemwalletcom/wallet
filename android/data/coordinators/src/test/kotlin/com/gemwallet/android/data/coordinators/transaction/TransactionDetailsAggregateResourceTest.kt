@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.transaction
 
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
-import com.gemwallet.android.model.TransactionExtended
+import com.wallet.core.primitives.TransactionExtended
 import com.gemwallet.android.serializer.jsonEncoder
 import com.gemwallet.android.testkit.mockAssetTron
 import com.wallet.core.primitives.AssetId
@@ -17,6 +17,7 @@ import com.wallet.core.primitives.TransactionType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import com.gemwallet.android.testkit.mockGemTransactionDetails
 import org.junit.Test
 
 class TransactionDetailsAggregateResourceTest {
@@ -84,11 +85,13 @@ class TransactionDetailsAggregateResourceTest {
             price = null,
             feePrice = null,
             assets = emptyList(),
+            prices = emptyList(),
         ),
         associatedAssets = emptyList(),
         explorer = TransactionDetailsValue.Explorer("https://example.com", "Explorer"),
         currency = Currency.USD,
-        )
+        details = mockGemTransactionDetails(),
+    )
 
     private fun createTransaction(
         type: TransactionType,

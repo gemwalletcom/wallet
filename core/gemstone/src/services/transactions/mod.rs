@@ -11,8 +11,8 @@ use primitives::{AssetId, Currency, WalletId};
 
 pub use details::GemTransactionDetailsService;
 pub use model::{
-    GemAmountSign, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole, GemTransactionSubtitle, GemTransactionSummary, GemTransactionTitle,
-    GemTransactionValue,
+    GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemTransactionDetails, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole,
+    GemTransactionSubtitle, GemTransactionSummary, GemTransactionTitle, GemTransactionValue,
 };
 pub use store::GemTransactionStore;
 
