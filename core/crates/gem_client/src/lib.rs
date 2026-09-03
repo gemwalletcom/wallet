@@ -71,21 +71,21 @@ pub trait ClientExt: Client {
         PostRequest::new(self, target.path(), target.headers(), body)
     }
 
-    async fn get_or_error<R, E>(&self, path: &str) -> Result<R, ClientError<Option<E>>>
+    async fn get_or_error<R, E>(&self, target: impl Target + Send) -> Result<R, ClientError<Option<E>>>
     where
         R: DeserializeOwned + Send,
         E: DeserializeOwned + Send,
     {
-        self.get(path).await.map_err(ClientError::decode_body)
+        self.get(target).await.map_err(ClientError::decode_body)
     }
 
-    async fn post_or_error<T, R, E>(&self, path: &str, body: &T) -> Result<R, ClientError<Option<E>>>
+    async fn post_or_error<T, R, E>(&self, target: impl Target + Send, body: &T) -> Result<R, ClientError<Option<E>>>
     where
         T: Serialize + Send + Sync,
         R: DeserializeOwned + Send,
         E: DeserializeOwned + Send,
     {
-        self.post(path, body).await.map_err(ClientError::decode_body)
+        self.post(target, body).await.map_err(ClientError::decode_body)
     }
 }
 
