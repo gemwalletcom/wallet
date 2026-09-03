@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.confirm
 
-import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemConfirmTransferServiceInterface
 import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.confirm.ConfirmProperty
@@ -18,7 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class BuildConfirmPropertiesImpl(
-    private val explorerService: GemExplorerService,
+    private val confirmService: GemConfirmTransferServiceInterface,
 ) : BuildConfirmProperties {
 
     override suspend fun invoke(
@@ -63,5 +63,5 @@ class BuildConfirmPropertiesImpl(
     }
 
     private fun explorerLink(chain: Chain, address: String): BlockExplorerLink =
-        explorerService.getAddressUrl(chain.string, address).let { BlockExplorerLink(it.name, it.link) }
+        confirmService.addressUrl(chain.string, address).let { BlockExplorerLink(it.name, it.link) }
 }

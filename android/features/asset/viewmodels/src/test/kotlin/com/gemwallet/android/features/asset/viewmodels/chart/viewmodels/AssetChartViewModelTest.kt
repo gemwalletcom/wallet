@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
-import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemChartServiceInterface
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetAssetById
@@ -47,9 +47,7 @@ class AssetChartViewModelTest {
     private val getAssetById = mockk<GetAssetById>(relaxed = true)
     private val getAssetLinks = mockk<GetAssetLinks>(relaxed = true)
     private val getAssetMarket = mockk<GetAssetMarket>(relaxed = true)
-    private val explorerService = mockk<GemExplorerService>(relaxed = true) {
-        every { getExplorerName(asset.id.chain.string) } returns "Solscan"
-    }
+    private val chartService = mockk<GemChartServiceInterface>(relaxed = true)
     private val getPriceAlerts = mockk<GetPriceAlerts>(relaxed = true)
     private val getCurrentCurrency = mockk<GetCurrentCurrency>(relaxed = true) {
         every { getCurrency() } returns currencyFlow
@@ -81,7 +79,6 @@ class AssetChartViewModelTest {
         assertEquals(0, uiModel.assetLinks.size)
         assertEquals(Currency.USD, uiModel.currency)
         assertNull(uiModel.marketInfo)
-        assertEquals("Solscan", uiModel.explorerName)
     }
 
     @Test
@@ -118,7 +115,7 @@ class AssetChartViewModelTest {
         getAssetById = getAssetById,
         getAssetLinks = getAssetLinks,
         getAssetMarket = getAssetMarket,
-        explorerService = explorerService,
+        chartService = chartService,
         getPriceAlerts = getPriceAlerts,
         getCurrentCurrency = getCurrentCurrency,
         assetId = asset.id,

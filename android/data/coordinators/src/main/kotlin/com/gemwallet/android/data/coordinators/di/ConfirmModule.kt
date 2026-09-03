@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
-import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemConfirmTransferServiceInterface
 import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
 import com.gemwallet.android.data.coordinators.confirm.BuildConfirmPropertiesImpl
 import dagger.Module
@@ -15,5 +15,5 @@ object ConfirmModule {
 
     @Provides
     @Singleton
-    fun provideBuildConfirmProperties(explorerService: GemExplorerService): BuildConfirmProperties = BuildConfirmPropertiesImpl(explorerService)
+    fun provideBuildConfirmProperties(confirmService: GemConfirmTransferServiceInterface): BuildConfirmProperties = BuildConfirmPropertiesImpl(confirmService)
 }

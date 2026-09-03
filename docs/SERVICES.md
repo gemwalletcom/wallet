@@ -597,6 +597,15 @@ Three gotchas if you repeat the sweep, all met on this pass:
   pulled `GemDeeplinkService` out of a `CompositionLocal` to build it; the view model asks
   `GemAssetDetailsService::deeplink_url` now, as iOS does, and the UI model carries `shareUrl`.
 
+- **Explorer links come from the screen's own service on Android too.** The chart screen's
+  `AssetChartViewModel` held `GemExplorerService` for the token link (plus an `explorerName` no
+  view read) and the confirm properties builder held it for the sender link; both use
+  `GemChartService::token_url` and `GemConfirmTransferService::address_url` now, which is what the
+  iOS chart and confirm view models call. With no app caller left, `GemExplorerService::{get_explorer_name,
+  set_explorer_name, get_address_url, get_token_url}` are no longer exported — the explorer
+  service is composition (the screen services hold it), not a screen service. The unused iOS
+  `GemExplorerServiceMock` went with it.
+
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**

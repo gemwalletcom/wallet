@@ -729,37 +729,6 @@ public final class GemAssetDiscoveryServiceMock: GemAssetDiscoveryServiceProtoco
     public func discover(walletId _: String) async throws {}
 }
 
-public final class GemExplorerServiceMock: GemExplorerServiceProtocol, @unchecked Sendable {
-    private let lock = NSLock()
-    private var names: [Gemstone.Chain: String] = [:]
-
-    public init() {}
-
-    public func getExplorerName(chain: Gemstone.Chain) -> String {
-        lock.withLock { names[chain] ?? "MockExplorer" }
-    }
-
-    public func setExplorerName(chain: Gemstone.Chain, name: String) throws {
-        lock.withLock { names[chain] = name }
-    }
-
-    public func getTransactionUrl(chain: Gemstone.Chain, hash: String) -> GemBlockExplorerLink {
-        link("https://mock.explorer/\(chain)/tx/\(hash)")
-    }
-
-    public func getAddressUrl(chain: Gemstone.Chain, address: String) -> GemBlockExplorerLink {
-        link("https://mock.explorer/\(chain)/address/\(address)")
-    }
-
-    public func getTokenUrl(chain: Gemstone.Chain, address: String) -> GemBlockExplorerLink? {
-        link("https://mock.explorer/\(chain)/token/\(address)")
-    }
-
-    private func link(_ url: String) -> GemBlockExplorerLink {
-        GemBlockExplorerLink(name: "MockExplorer", link: url)
-    }
-}
-
 public extension GemExplorerService {
     static func mock() -> GemExplorerService {
         GemExplorerService(preferences: GemPreferencesService(store: GemPreferencesStoreMock()))
