@@ -14,7 +14,13 @@ pub fn build_request_url(base_url: &str, path: &str) -> String {
 
 pub fn build_path_with_query<T: Serialize + ?Sized>(path: &str, query: &T) -> String {
     let query = serde_urlencoded::to_string(query).unwrap_or_default();
-    if query.is_empty() { path.to_string() } else { format!("{path}?{query}") }
+    if query.is_empty() {
+        path.to_string()
+    } else if path.contains('?') {
+        format!("{path}&{query}")
+    } else {
+        format!("{path}?{query}")
+    }
 }
 
 #[cfg(test)]
@@ -54,5 +60,7 @@ mod tests {
 
         let expected = "/api/v3/coins/bitcoin?market_data=false&community_data=true&tickers=false&localization=true&developer_data=true";
         assert_eq!(result, expected);
+        assert_eq!(build_path_with_query(&result, &[("apikey", "key")]), format!("{expected}&apikey=key"));
+        assert_eq!(build_path_with_query("/path", &[] as &[(&str, &str)]), "/path");
     }
 }

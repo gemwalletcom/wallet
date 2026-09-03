@@ -1,6 +1,7 @@
 use gem_client::{Client as Transport, ClientError, ClientExt};
 
-use crate::model::Items;
+use crate::model::{Items, PageQuery};
+use crate::target::BlockscoutTarget;
 use crate::{TokenBalance, TokenTransfer, Transaction};
 
 pub struct Client<C: Transport> {
@@ -15,41 +16,33 @@ impl<C: Transport> Client<C> {
     }
 
     pub async fn get_transactions(&self, address: &str, limit: usize) -> Result<Vec<Transaction>, ClientError> {
-        Ok(self
-            .client
-            .get::<Items<Transaction>>(&self.address_path(address, "transactions"))
-            .query(&self.page_query(limit))
-            .await?
-            .items)
+        let target = BlockscoutTarget::Transactions {
+            chain_id: self.chain_id,
+            address: address.to_string(),
+            query: PageQuery::newest(limit),
+        };
+        Ok(self.client.get::<Items<Transaction>>(target).query(&self.api_key_query()).await?.items)
     }
 
     pub async fn get_token_transfers(&self, address: &str, limit: usize) -> Result<Vec<TokenTransfer>, ClientError> {
-        Ok(self
-            .client
-            .get::<Items<TokenTransfer>>(&self.address_path(address, "token-transfers"))
-            .query(&self.page_query(limit))
-            .await?
-            .items)
+        let target = BlockscoutTarget::TokenTransfers {
+            chain_id: self.chain_id,
+            address: address.to_string(),
+            query: PageQuery::newest(limit),
+        };
+        Ok(self.client.get::<Items<TokenTransfer>>(target).query(&self.api_key_query()).await?.items)
     }
 
     pub async fn get_token_balances(&self, address: &str) -> Result<Vec<TokenBalance>, ClientError> {
-        self.client
-            .get(&self.address_path(address, "token-balances"))
-            .query(&[("apikey".to_string(), self.api_key.clone())])
-            .await
+        let target = BlockscoutTarget::TokenBalances {
+            chain_id: self.chain_id,
+            address: address.to_string(),
+        };
+        self.client.get(target).query(&self.api_key_query()).await
     }
 
-    fn address_path(&self, address: &str, endpoint: &str) -> String {
-        format!("/{}/api/v2/addresses/{address}/{endpoint}", self.chain_id)
-    }
-
-    fn page_query(&self, limit: usize) -> [(String, String); 4] {
-        [
-            ("sort".to_string(), "block_number".to_string()),
-            ("order".to_string(), "desc".to_string()),
-            ("items_count".to_string(), limit.to_string()),
-            ("apikey".to_string(), self.api_key.clone()),
-        ]
+    fn api_key_query(&self) -> [(&'static str, &str); 1] {
+        [("apikey", self.api_key.as_str())]
     }
 }
 

@@ -1,4 +1,5 @@
 use crate::model::{PositionsResponse, Token, TokenSearchResult};
+use crate::target::JupiterTarget;
 use gem_client::{Client, ClientExt, ReqwestClient};
 use std::{collections::HashMap, error::Error};
 
@@ -34,32 +35,24 @@ impl<C: Client> JupiterClient<C> {
     }
 
     pub async fn get_verified_tokens(&self) -> Result<Vec<Token>, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .client
-            .get("/tokens/v2/tag")
-            .query(&[("query".to_string(), "verified".to_string())])
-            .headers(self.headers())
-            .await?)
+        Ok(self.client.get(JupiterTarget::VerifiedTokens).headers(self.headers()).await?)
     }
 
     pub async fn get_top_trending_tokens(&self, interval: &str, limit: usize) -> Result<Vec<Token>, Box<dyn Error + Send + Sync>> {
-        let path = format!("/tokens/v2/toptrending/{interval}");
-        Ok(self.client.get(&path).query(&[("limit".to_string(), limit.to_string())]).headers(self.headers()).await?)
+        let target = JupiterTarget::TopTrending {
+            interval: interval.to_string(),
+            limit,
+        };
+        Ok(self.client.get(target).headers(self.headers()).await?)
     }
 
     pub async fn get_token(&self, mint: &str) -> Result<Option<TokenSearchResult>, Box<dyn Error + Send + Sync>> {
-        let tokens: Vec<TokenSearchResult> = self
-            .client
-            .get("/tokens/v2/search")
-            .query(&[("query".to_string(), mint.to_string())])
-            .headers(self.headers())
-            .await?;
+        let tokens: Vec<TokenSearchResult> = self.client.get(JupiterTarget::Search { query: mint.to_string() }).headers(self.headers()).await?;
         Ok(tokens.into_iter().find(|token| token.id == mint))
     }
 
     pub async fn get_wallet_positions(&self, address: &str) -> Result<PositionsResponse, Box<dyn Error + Send + Sync>> {
-        let path = format!("/portfolio/v1/positions/{address}");
-        Ok(self.client.get(&path).headers(self.headers()).await?)
+        Ok(self.client.get(JupiterTarget::Positions { address: address.to_string() }).headers(self.headers()).await?)
     }
 
     fn headers(&self) -> HashMap<String, String> {

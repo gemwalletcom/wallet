@@ -1,5 +1,6 @@
 mod client;
 mod model;
+mod target;
 #[cfg(any(test, feature = "testkit"))]
 pub mod testkit;
 
