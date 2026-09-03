@@ -65,27 +65,6 @@ impl SuiClient {
             .collect())
     }
 
-    pub async fn get_validators(&self) -> Result<SuiValidators, Box<dyn Error + Send + Sync>> {
-        let epoch = self.get_epoch(None, Some(FieldMask::from_paths(["system_state.validators"]))).await?;
-        let apys = epoch
-            .system_state
-            .and_then(|state| state.validators)
-            .map(|validators| {
-                validators
-                    .active_validators
-                    .into_iter()
-                    .filter_map(|validator| {
-                        Some(SuiValidator {
-                            address: validator.address?,
-                            apy: 0.0,
-                        })
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
-        Ok(SuiValidators { apys })
-    }
-
     pub(crate) async fn get_validator_apys(&self) -> Result<SuiValidators, Box<dyn Error + Send + Sync>> {
         let read_mask = FieldMask::from_paths(STAKING_APY_READ_MASK);
         let latest_epoch = self.get_epoch(None, Some(read_mask.clone())).await?;
