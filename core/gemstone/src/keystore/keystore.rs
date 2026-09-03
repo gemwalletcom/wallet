@@ -123,10 +123,6 @@ impl GemKeystore {
         matches!(self.inner.get_meta(&keystore_id), Ok(Some(_)))
     }
 
-    pub fn has_stored_wallets(&self) -> Result<bool, GemstoneError> {
-        Ok(!self.inner.list()?.is_empty())
-    }
-
     pub fn decode_password(&self, password: String) -> Vec<u8> {
         decode_password(&password)
     }
@@ -137,6 +133,10 @@ impl GemKeystore {
 }
 
 impl GemKeystore {
+    pub fn has_stored_wallets(&self) -> Result<bool, GemstoneError> {
+        Ok(!self.inner.list()?.is_empty())
+    }
+
     pub fn add_accounts(&self, keystore_id: String, password: Vec<u8>, chains: Vec<Chain>) -> Result<Vec<GemKeystoreAccount>, GemstoneError> {
         let password = Zeroizing::new(password);
         let phrase = match self.inner.decrypt_mnemonic(&keystore_id, &password) {

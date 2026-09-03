@@ -37,7 +37,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         if password.isNotEmpty {
             return password
         }
-        guard createIfMissing, try !gemKeystore.hasStoredWallets() else {
+        guard createIfMissing else {
             throw KeystoreError.missingPassword
         }
         let newPassword = try SecureRandom.generateKey(length: 32).hex

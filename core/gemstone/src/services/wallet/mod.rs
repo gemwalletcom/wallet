@@ -417,6 +417,17 @@ mod tests {
     }
 
     #[test]
+    fn test_import_creates_the_keystore_password_only_while_the_keystore_is_empty() {
+        block_on(async {
+            let context = TestContext::new();
+            context.import("First", PHRASE).await;
+            context.import("Second", OTHER_PHRASE).await;
+
+            assert_eq!(*context.passwords.create_requests.lock().unwrap(), vec![true, false]);
+        });
+    }
+
+    #[test]
     fn test_export_secret_follows_the_wallet_type() {
         block_on(async {
             let context = TestContext::new();

@@ -48,10 +48,12 @@ impl GemWalletStore for MemoryWalletStore {
 #[derive(Default)]
 pub struct MemoryKeystorePassword {
     pub wallet_passwords: Mutex<HashMap<String, String>>,
+    pub create_requests: Mutex<Vec<bool>>,
 }
 
 impl GemKeystorePassword for MemoryKeystorePassword {
-    fn get_password(&self, _create_if_missing: bool) -> Result<String, GemServiceError> {
+    fn get_password(&self, create_if_missing: bool) -> Result<String, GemServiceError> {
+        self.create_requests.lock().unwrap().push(create_if_missing);
         Ok(TEST_PASSWORD.to_string())
     }
     fn get_wallet_password(&self, wallet_id: WalletId) -> Result<Option<String>, GemServiceError> {

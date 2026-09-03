@@ -25,12 +25,14 @@ impl MessageConsumer<TransactionId, usize> for StorePendingTransactionsConsumer 
 
     async fn process(&self, payload: TransactionId) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let transaction_id = payload.to_string();
-        let expires_at = SystemTime::now()
-            .duration_since(UNIX_EPOCH)?
-            .as_secs()
-            .saturating_add(u64::from(chain_transaction_timeout(payload.chain)) / 1000) as f64;
+        let now = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+        let expires_at = now.saturating_add(u64::from(chain_transaction_timeout(payload.chain)) / 1000) as f64;
+        let identifier = payload.hash;
         let key = CacheKey::PendingTransactions(payload.chain.as_ref());
-        self.cacher.add_to_sorted_set_cached(key, &[(payload.hash, expires_at)]).await?;
+        self.cacher.add_to_sorted_set_cached(key, &[(identifier.clone(), expires_at)]).await?;
+        self.cacher
+            .add_to_sorted_set_cached(CacheKey::PendingTransactionAttempts(payload.chain.as_ref()), &[(identifier, now as f64)])
+            .await?;
         info_with_fields!("stored pending transaction", transaction_id = transaction_id.as_str());
         Ok(1)
     }

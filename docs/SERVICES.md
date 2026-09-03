@@ -615,10 +615,27 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `GemTransferService::{encode, decode}_*`; iOS builds the confirm screen's first state with
   `initial_state` while Android reads `metadata` + `preload`; iOS's `MessageSigner.hash /
   sign_with_keystore` and Android's `payload_preview` are the two halves of the WalletConnect
-  sign-message path each platform drives from its SDK; `GemGateway::get_*` feed iOS's
-  developer screen; `GemPreferencesService::{set_notifications_asked, should_ask_notifications,
+  sign-message path each platform drives from its SDK; `GemPreferencesService::{set_notifications_asked, should_ask_notifications,
   set_price_alerts_enabled, *_swap_slippage_bps}` are Android's push/N1 adapters and
   `UserConfig`. Anything else that shows up as one-sided is a candidate.
+- **`GemGateway` exports only its constructor.** Neither app called a gateway method: the nine
+  iOS `GatewayService` wrappers (`utxos`, `chainId`, `latestBlock`, `validators`,
+  `delegationValidators`, `delegations`, `getPerpetual{AccountMode, Candlesticks, Portfolio}`)
+  had no caller — the developer screen note here was stale — and Android only injects the
+  gateway into Core services. The six Core uses are plain `impl` methods now;
+  `get_chain_id`, `get_block_number` and `get_utxos` had no Core caller either and are deleted
+  (`check_node` reads them from the provider's node status). `GemWalletPreferencesService::get_perpetual_account_mode`
+  lost its dead iOS wrapper the same way; `includes_perpetual_collateral(wallet_id)` stays
+  exported because Android's `PerpetualBalanceCoordinator` reads it (iOS reads the session
+  variant on `GemWalletHomeService`).
+- **The keystore password is created only while the keystore is empty — decided in Core.**
+  `GemWalletService::import_wallet` already passed `create_if_missing = !has_stored_wallets()`
+  to the password port, and `migrate_to_shared_password` deliberately passes `true`; iOS's
+  `LocalKeystore.keystorePassword(createIfMissing:)` re-checked `hasStoredWallets()` itself,
+  a second copy of the import rule that would have broken the migration path had iOS used it.
+  The adapter now creates when asked; Core's test records the port's `create_if_missing`
+  flags across two imports (`[true, false]`), `GemKeystore::has_stored_wallets` is un-exported,
+  and the iOS test only keeps the adapter's own boundary (no creation unless asked).
 - **Android's secret export is `GemWalletService::export_secret`.** `GetWalletSecretDataImpl`
   re-derived Core's `rules::secret_export` (private key for `WalletType::PrivateKey`, words
   otherwise) through its own `LoadPrivateDataOperator` + `PasswordStore` read, and wrapped it

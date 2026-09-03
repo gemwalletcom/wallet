@@ -140,7 +140,9 @@ impl GemGateway {
             status_provider,
         }
     }
+}
 
+impl GemGateway {
     pub async fn get_staking_validators(&self, chain: Chain, apy: Option<f64>) -> Result<Vec<GemDelegationValidator>, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.get_staking_validators(apy).await }).await
     }
@@ -152,18 +154,6 @@ impl GemGateway {
 
     pub async fn get_staking_delegations(&self, chain: Chain, address: String) -> Result<Vec<GemDelegationBase>, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.get_staking_delegations(address).await }).await
-    }
-
-    pub async fn get_chain_id(&self, chain: Chain) -> Result<String, GatewayError> {
-        self.with_provider(chain, |provider| async move { provider.get_chain_id().await }).await
-    }
-
-    pub async fn get_block_number(&self, chain: Chain) -> Result<u64, GatewayError> {
-        self.with_provider(chain, |provider| async move { provider.get_block_latest_number().await }).await
-    }
-
-    pub async fn get_utxos(&self, chain: Chain, address: String) -> Result<Vec<GemUTXO>, GatewayError> {
-        self.with_provider(chain, |provider| async move { provider.get_utxos(address).await }).await
     }
 
     pub async fn get_perpetual_account_mode(&self, chain: Chain, address: String) -> Result<GemPerpetualAccountMode, GatewayError> {
