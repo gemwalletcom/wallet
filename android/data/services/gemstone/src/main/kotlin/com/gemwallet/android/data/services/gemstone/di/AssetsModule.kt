@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import com.gemwallet.android.application.assets.cases.SyncAssets
-import com.gemwallet.android.data.services.gemstone.assets.AssetsAvailabilityService
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.stream.StreamObserverService
@@ -173,8 +172,7 @@ object AssetsModule {
     @Singleton
     fun provideGemstoneAssetStore(
         assetsDao: AssetsDao,
-        availabilityService: AssetsAvailabilityService,
-    ): GemstoneAssetStore = GemstoneAssetStore(assetsDao, availabilityService)
+    ): GemstoneAssetStore = GemstoneAssetStore(assetsDao)
 
     @Provides
     @Singleton
