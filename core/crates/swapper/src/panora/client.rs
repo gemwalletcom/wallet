@@ -20,7 +20,7 @@ where
     }
 
     pub async fn get_quote(&self, request: &QuoteRequest) -> Result<QuoteResponse, SwapperError> {
-        let path = build_path_with_query("/swap", request)?;
+        let path = build_path_with_query("/swap", request);
         self.client.post(&path, &serde_json::json!({})).await.map_err(SwapperError::from)
     }
 }

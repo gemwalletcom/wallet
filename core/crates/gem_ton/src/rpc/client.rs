@@ -134,7 +134,7 @@ impl<C: Client> TonClient<C> {
     }
 
     async fn get_traces<T: Serialize>(&self, query: T) -> Result<TraceResponse, Box<dyn Error + Send + Sync>> {
-        let path = build_path_with_query("/api/v3/traces", &query)?;
+        let path = build_path_with_query("/api/v3/traces", &query);
         Ok(self.client.get(&path).await?)
     }
 

@@ -13,7 +13,7 @@ where
         T: Serialize,
         U: DeserializeOwned + Send,
     {
-        let path = build_path_with_query(path, &params)?;
+        let path = build_path_with_query(path, &params);
         self.client.get(&path).await.map_err(SwapperError::from)
     }
 

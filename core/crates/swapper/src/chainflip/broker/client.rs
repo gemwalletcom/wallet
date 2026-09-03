@@ -30,7 +30,7 @@ where
     }
 
     pub async fn get_quotes(&self, request: &QuoteRequest) -> Result<Vec<QuoteResponse>, SwapperError> {
-        let path = build_path_with_query("/quotes-native", request)?;
+        let path = build_path_with_query("/quotes-native", request);
         self.client.get(&path).await.map_err(SwapperError::from)
     }
 

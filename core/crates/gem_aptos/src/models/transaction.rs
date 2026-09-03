@@ -111,7 +111,7 @@ pub struct TransactionSimulation {
     pub signature: TransactionSignature,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TransactionResponse {
     pub hash: Option<String>,
     pub message: Option<String>,

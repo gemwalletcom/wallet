@@ -19,7 +19,7 @@ where
     }
 
     pub(super) async fn get_build(&self, request: &BuildRequest) -> Result<BuildResponse, SwapperError> {
-        let path = build_path_with_query("/swap/v2/build", request)?;
+        let path = build_path_with_query("/swap/v2/build", request);
         self.client.get(&path).await.map_err(SwapperError::from)
     }
 }

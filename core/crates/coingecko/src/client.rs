@@ -68,7 +68,7 @@ impl<C: Client> CoinGeckoClient<C> {
 
     pub async fn get_coin_list(&self) -> Result<Vec<Coin>, Box<dyn Error + Send + Sync>> {
         let query = CointListQuery { include_platform: true };
-        let path = build_path_with_query("/api/v3/coins/list", &query)?;
+        let path = build_path_with_query("/api/v3/coins/list", &query);
         self.get_json(&path).await
     }
 
@@ -113,7 +113,7 @@ impl<C: Client> CoinGeckoClient<C> {
                 category,
                 include_rehypothecated: true,
             },
-        )?;
+        );
         self.get_json(&path).await
     }
 
@@ -126,7 +126,7 @@ impl<C: Client> CoinGeckoClient<C> {
             developer_data: true,
         };
         let base_path = format!("/api/v3/coins/{}", id);
-        let path = build_path_with_query(&base_path, &query)?;
+        let path = build_path_with_query(&base_path, &query);
         self.get_json(&path).await
     }
 

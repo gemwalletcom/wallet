@@ -1,9 +1,8 @@
-use std::collections::HashMap;
 use std::error::Error;
 use std::str::FromStr;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use gem_client::{CONTENT_TYPE, Client, ClientExt, ContentType, build_path_with_query};
+use gem_client::{Client, ClientError, ClientExt};
 use num_bigint::BigUint;
 use primitives::chain::Chain;
 use primitives::{StakeType, TransactionInputType, TransactionLoadInput};
@@ -12,12 +11,13 @@ use serde::de::DeserializeOwned;
 
 use crate::models::{
     Account, Block, DelegationPoolStake, GasFee, Ledger, Resource, SimulateTransactionQuery, StakingConfig, Transaction, TransactionPayload, TransactionResponse,
-    TransactionSignature, TransactionSimulation, ValidatorSet,
+    TransactionSignature, TransactionSimulation, ValidatorSet, ViewRequest,
 };
 use crate::provider::payload_builder::{
     build_stake_transaction_payload, build_swap_transaction_payload, build_token_transfer_transaction_payload, build_transfer_transaction_payload,
     build_unstake_transaction_payload, build_withdraw_transaction_payload,
 };
+use crate::rpc::target::AptosTarget;
 use crate::{DEFAULT_MAX_GAS_AMOUNT, DEFAULT_SWAP_MAX_GAS_AMOUNT};
 
 #[derive(Debug)]
@@ -35,56 +35,76 @@ impl<C: Client> AptosClient<C> {
         self.chain
     }
 
-    pub async fn view<T: Serialize + Send + Sync, R: DeserializeOwned + Send>(&self, request: &T) -> Result<R, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.post("/v1/view", request).await?)
+    async fn send<R: DeserializeOwned + Send>(&self, target: AptosTarget) -> Result<R, ClientError> {
+        let path = target.path();
+        let headers = target.headers();
+        match target {
+            AptosTarget::SimulateTransaction { simulation, .. } => self.client.post_with(&path, &simulation, headers).await,
+            AptosTarget::SubmitTransaction { transaction } => self.client.post_with(&path, &transaction, headers).await,
+            AptosTarget::View { request } => self.client.post_with(&path, &request, headers).await,
+            AptosTarget::GetLedger
+            | AptosTarget::GetBlock { .. }
+            | AptosTarget::GetAccount { .. }
+            | AptosTarget::GetAccountTransactions { .. }
+            | AptosTarget::GetAccountResource { .. }
+            | AptosTarget::GetAccountBalance { .. }
+            | AptosTarget::GetTransaction { .. }
+            | AptosTarget::GetGasPrice => self.client.get(&path).await,
+        }
+    }
+
+    pub async fn view<R: DeserializeOwned + Send>(&self, request: ViewRequest) -> Result<R, Box<dyn Error + Send + Sync>> {
+        Ok(self.send(AptosTarget::View { request }).await?)
     }
 
     pub async fn get_ledger(&self) -> Result<Ledger, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get("/v1/").await?)
+        Ok(self.send(AptosTarget::GetLedger).await?)
     }
 
     pub async fn get_block_transactions(&self, block_number: u64) -> Result<Block, Box<dyn Error + Send + Sync>> {
-        let url = format!("/v1/blocks/by_height/{}?with_transactions=true", block_number);
-        Ok(self.client.get(&url).await?)
+        Ok(self.send(AptosTarget::GetBlock { height: block_number }).await?)
     }
 
     pub async fn get_transactions_by_address(&self, address: String) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        let url = format!("/v1/accounts/{}/transactions", address);
-        Ok(self.client.get(&url).await?)
+        Ok(self.send(AptosTarget::GetAccountTransactions { address }).await?)
     }
 
     pub async fn get_account_resource<T: Serialize + DeserializeOwned + Send>(&self, address: String, resource: &str) -> Result<Resource<T>, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/v1/accounts/{}/resource/{}", address, resource)).await?)
+        Ok(self
+            .send(AptosTarget::GetAccountResource {
+                address,
+                resource: resource.to_string(),
+            })
+            .await?)
     }
 
     pub async fn get_account_balance(&self, address: &str, asset_type: &str) -> Result<u64, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/v1/accounts/{}/balance/{}", address, asset_type)).await?)
+        Ok(self
+            .send(AptosTarget::GetAccountBalance {
+                address: address.to_string(),
+                asset_type: asset_type.to_string(),
+            })
+            .await?)
     }
 
     pub async fn get_account(&self, address: &str) -> Result<Account, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/v1/accounts/{}", address)).await?)
+        Ok(self.send(AptosTarget::GetAccount { address: address.to_string() }).await?)
     }
 
-    pub async fn submit_transaction(&self, bcs_bytes: Vec<u8>) -> Result<TransactionResponse, Box<dyn Error + Send + Sync>> {
-        let headers = HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationAptosBcs.as_str().to_string())]);
-        let response = self
-            .client
-            .post_with_headers::<Vec<u8>, TransactionResponse>("/v1/transactions", &bcs_bytes, headers)
-            .await?;
-
-        if let Some(message) = &response.message {
-            return Err(Box::new(std::io::Error::other(message.clone())));
+    pub async fn submit_transaction(&self, transaction: Vec<u8>) -> Result<TransactionResponse, Box<dyn Error + Send + Sync>> {
+        let response: TransactionResponse = self.send(AptosTarget::SubmitTransaction { transaction }).await?;
+        if let Some(message) = response.message {
+            return Err(message.into());
         }
-
         Ok(response)
     }
 
     pub async fn get_transaction_by_hash(&self, hash: &str) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/v1/transactions/by_hash/{}", hash)).await?)
+        Ok(self.send(AptosTarget::GetTransaction { hash: hash.to_string() }).await?)
     }
 
     pub async fn get_gas_price(&self) -> Result<GasFee, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get("/v1/estimate_gas_price").await?)
+        Ok(self.send(AptosTarget::GetGasPrice).await?)
     }
 
     pub async fn calculate_gas_limit(&self, input: &TransactionLoadInput) -> Result<u64, Box<dyn Error + Send + Sync>> {
@@ -134,14 +154,11 @@ impl<C: Client> AptosClient<C> {
 
     pub async fn simulate_transaction(&self, sender: &str, sequence: u64, payload: TransactionPayload, gas_price: &str) -> Result<u64, Box<dyn Error + Send + Sync>> {
         let expiration = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() + 1_000_000;
-
         let query = SimulateTransactionQuery {
             estimate_max_gas_amount: true,
             estimate_gas_unit_price: false,
             estimate_prioritized_gas_unit_price: false,
         };
-        let path = build_path_with_query("/v1/transactions/simulate", &query)?;
-
         let simulation = TransactionSimulation {
             expiration_timestamp_secs: expiration.to_string(),
             gas_unit_price: gas_price.to_string(),
@@ -152,7 +169,12 @@ impl<C: Client> AptosClient<C> {
             signature: TransactionSignature::no_account(),
         };
 
-        let response: Vec<Transaction> = self.client.post(&path, &simulation).await?;
+        let response: Vec<Transaction> = self
+            .send(AptosTarget::SimulateTransaction {
+                simulation: Box::new(simulation),
+                query,
+            })
+            .await?;
         let transaction = response.into_iter().next().ok_or("No simulation result")?;
 
         transaction.gas_used.ok_or_else(|| "No gas used in simulation".into())
@@ -170,13 +192,7 @@ impl<C: Client> AptosClient<C> {
     }
 
     pub async fn get_delegation_pool_stake(&self, pool_address: &str, delegator_address: &str) -> Result<DelegationPoolStake, Box<dyn Error + Send + Sync>> {
-        let view_request = serde_json::json!({
-            "function": "0x1::delegation_pool::get_stake",
-            "type_arguments": [],
-            "arguments": [pool_address, delegator_address]
-        });
-
-        let (active, inactive, pending_inactive): (String, String, String) = self.view(&view_request).await?;
+        let (active, inactive, pending_inactive): (String, String, String) = self.view(ViewRequest::delegation_pool_stake(pool_address, delegator_address)).await?;
 
         Ok(DelegationPoolStake {
             active: BigUint::from_str(&active).unwrap_or_else(|_| BigUint::from(0u32)),
@@ -191,26 +207,14 @@ impl<C: Client> AptosClient<C> {
     }
 
     pub async fn get_operator_commission_percentage(&self, pool_address: &str) -> Result<f64, Box<dyn Error + Send + Sync>> {
-        let view_request = serde_json::json!({
-            "function": "0x1::delegation_pool::operator_commission_percentage",
-            "type_arguments": [],
-            "arguments": [pool_address]
-        });
-
-        let result: Vec<String> = self.view(&view_request).await?;
+        let result: Vec<String> = self.view(ViewRequest::operator_commission_percentage(pool_address)).await?;
         let commission_bps = result.first().and_then(|s| s.parse::<u64>().ok()).unwrap_or(0);
 
         Ok(commission_bps as f64 / 100.0)
     }
 
     pub async fn get_stake_lockup_secs(&self, pool_address: &str) -> Result<u64, Box<dyn Error + Send + Sync>> {
-        let view_request = serde_json::json!({
-            "function": "0x1::stake::get_lockup_secs",
-            "type_arguments": [],
-            "arguments": [pool_address]
-        });
-
-        let result: Vec<String> = self.view(&view_request).await?;
+        let result: Vec<String> = self.view(ViewRequest::stake_lockup_secs(pool_address)).await?;
         let lockup_secs = result.first().and_then(|s| s.parse::<u64>().ok()).ok_or("Failed to parse lockup_secs")?;
 
         Ok(lockup_secs)
@@ -231,4 +235,58 @@ mod chain_trait_impls {
 
     #[async_trait]
     impl<C: Client> ChainAddressStatus for AptosClient<C> {}
+}
+
+#[cfg(test)]
+mod tests {
+    use gem_client::testkit::MockClient;
+    use gem_client::{CONTENT_TYPE, ContentType};
+    use serde_json::{Value, json};
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_submit_transaction() {
+        let client = AptosClient::new(MockClient::new().with_post_with_headers(|path, body, headers| {
+            assert_eq!(path, "/v1/transactions");
+            assert_eq!(body, b"[1,2,3]");
+            assert_eq!(headers.get(CONTENT_TYPE).map(String::as_str), Some(ContentType::ApplicationAptosBcs.as_str()));
+            Ok(br#"{"hash":"0xhash"}"#.to_vec())
+        }));
+        let response = client.submit_transaction(vec![1, 2, 3]).await.unwrap();
+        assert_eq!(
+            response,
+            TransactionResponse {
+                hash: Some("0xhash".to_string()),
+                message: None,
+                error_code: None,
+                vm_error_code: None,
+            }
+        );
+
+        let client = AptosClient::new(MockClient::new().with_post(|_, _| Ok(br#"{"message":"Transaction already in mempool","error_code":"mempool"}"#.to_vec())));
+        let error = client.submit_transaction(vec![1, 2, 3]).await.unwrap_err();
+        assert_eq!(error.to_string(), "Transaction already in mempool");
+    }
+
+    #[tokio::test]
+    async fn test_get_delegation_pool_stake() {
+        let client = AptosClient::new(MockClient::new().with_post(|path, body| {
+            assert_eq!(path, "/v1/view");
+            assert_eq!(
+                serde_json::from_slice::<Value>(body).unwrap(),
+                json!({"function": "0x1::delegation_pool::get_stake", "type_arguments": [], "arguments": ["0xpool", "0xdelegator"]})
+            );
+            Ok(br#"["1000","200","30"]"#.to_vec())
+        }));
+        let stake = client.get_delegation_pool_stake("0xpool", "0xdelegator").await.unwrap();
+        assert_eq!(
+            stake,
+            DelegationPoolStake {
+                active: BigUint::from(1000u32),
+                inactive: BigUint::from(200u32),
+                pending_inactive: BigUint::from(30u32),
+            }
+        );
+    }
 }

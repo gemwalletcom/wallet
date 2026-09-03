@@ -79,7 +79,7 @@ impl<C: Client> AddressScanProvider for GoPlusProvider<C> {
     async fn scan_address(&self, target: &AddressTarget) -> Result<ScanResult<AddressTarget>, Box<dyn std::error::Error + Send + Sync>> {
         let path = format!("/api/v1/address_security/{}", target.address);
         let query = vec![("chain_id", mapper::map_address_chain(target.chain)?)];
-        let url = build_path_with_query(&path, &query)?;
+        let url = build_path_with_query(&path, &query);
         let response = self.client.get_with_headers::<Response<Option<SecurityAddress>>>(&url, self.headers().await?).await?;
         if response.code != 1 && response.code != 2 {
             return Err(format!("GoPlus error code={}: {}", response.code, response.message).into());
@@ -122,7 +122,7 @@ impl<C: Client> TokenScanProvider for GoPlusProvider<C> {
             target.token_id.to_lowercase()
         };
         let query = vec![("contract_addresses", token_id.as_str())];
-        let url = build_path_with_query(&path, &query)?;
+        let url = build_path_with_query(&path, &query);
         let response = self
             .client
             .get_with_headers::<Response<Option<HashMap<String, SecurityToken>>>>(&url, self.headers().await?)
