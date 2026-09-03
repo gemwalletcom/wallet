@@ -606,14 +606,14 @@ requests inline and converges on this.
 ```rust
 // rpc/trongrid/target.rs
 pub enum TronGridTarget {
-    GetTransactions { address: String, limit: usize, fingerprint: Option<String> },
+    GetTransactions { address: String, query: TransactionsQuery },
     GetAccount { address: String },
 }
 
 impl TronGridTarget {
     pub fn path(&self) -> String {
         match self {
-            Self::GetTransactions { address, limit, fingerprint } => with_fingerprint(format!("/v1/accounts/{address}/transactions?limit={limit}"), fingerprint.as_deref()),
+            Self::GetTransactions { address, query } => build_path_with_query(&format!("/v1/accounts/{address}/transactions"), query),
             Self::GetAccount { address } => format!("/v1/accounts/{address}"),
         }
     }
@@ -645,7 +645,7 @@ loop. A GET-only host needs only `path()`; `GemDeviceApiTarget` is the full shap
 |---|---|---|
 | Path parameter | `format!` in `path()`. A chain or network segment is a field the target reads; a chain-to-slug map is a pure `fn` with its own test | `TronGridTarget`, Blockscout `/{chain_id}/…`, `alchemy_url` |
 | Query string | Part of `path()`; a transport only ever sees a path. One or two fixed parameters are a `format!`; more, or any optional one, is a flat `Serialize` struct rendered by `build_path_with_query` (`None` omitted, values encoded, a slice of pairs for a repeated key). A client without a target yet calls `client.get(path).query(&query)`, which renders the same way | `GemApiTarget`, `CoinMarketsQuery`, `mayan::quote_path` |
-| Optional parameter | An `Option` field on one variant, never a second variant | `GetTransactions { fingerprint: Option<String>, .. }`, `GetPriceAlerts { asset_id }` |
+| Optional parameter | An `Option` field of the query struct, omitted when `None`, never a second variant | `TransactionsQuery { limit, fingerprint: Option<String> }`, `PaymentsQuery { cursor, .. }` |
 | Method and body | `send` matches the target: a variant that carries a payload is posted, the rest are GETs. `Client` speaks GET and POST; the device client builds `gem_jsonrpc::Target` with a `method()` for PUT and DELETE. A host that multiplexes on the body (HyperCore `/info`, Cardano GraphQL) has a constant path and a variant per query | `AptosClient::send`, `GemDeviceApiTarget` |
 | Raw body | `String` for `text/plain` and form-urlencoded, `Vec<u8>` for binary; the content type in the target's `headers()`, always from `ContentType` | Bitcoin `sendtx`, Stellar, Algorand, Aptos BCS, `SendSupportImage` |
 | Credentials | `fn headers(&self)` on the client, empty when the key is blank (`Option<String>` decided once at construction), passed as `.headers(self.headers())`; a key the host wants in the query is appended by `send` the same way. Transport default headers are backend-only: `RpcClient` has none | `JupiterClient`, `NearIntentsClient`, Blockscout `apikey` |
@@ -661,7 +661,8 @@ exact string for every case that can flip. The client test, over `MockClient` or
 `mock_jsonrpc_client`, asserts what the target cannot: the paths a loop produced, a merged
 header, an envelope's failure branch.
 
-**Still to converge.** Inline paths in every REST client but TronGrid, Aptos and the Gem APIs.
+**Still to converge.** Inline paths in every REST client but TronGrid, Aptos, Algorand, Stellar and
+the Gem APIs.
 The fiat providers' direct `ReqwestClient::request`. Raw `Value` params in Alchemy and the
 Chainflip broker. Two cache headers: `request_with_cache` sends `Cache-Control`, everything else
 and both apps use `x-gem-cache-ttl`.
