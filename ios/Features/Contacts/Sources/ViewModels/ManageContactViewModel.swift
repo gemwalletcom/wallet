@@ -146,7 +146,7 @@ public final class ManageContactViewModel {
 
     var avatarStyle: AssetImageView.Style? {
         switch avatar {
-        case .empty: initials.isEmpty ? AssetImageView.Style(foregroundColor: Colors.grayLight) : nil
+        case .empty: initials.isEmpty ? AssetImageView.Style(foregroundColor: Colors.grayLightFaded) : nil
         case .image, .emoji: nil
         }
     }
