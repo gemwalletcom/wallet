@@ -87,29 +87,6 @@ public extension Primitives.Chain {
         return type
     }
 
-    var feeUnitType: FeeUnitType {
-        guard let feeUnitType = FeeUnitType(rawValue: ChainConfig.config(chain: self).feeUnitType) else {
-            return .native
-        }
-        return feeUnitType
-    }
-
-    var feeUnitDecimals: Int {
-        Int(FeeConfig.config(chain: self).decimals)
-    }
-
-    func feeRateDecimals(assetDecimals: Int) -> Int {
-        switch feeUnitType {
-        case .satVb, .gwei: feeUnitDecimals
-        case .native: assetDecimals
-        }
-    }
-
-
-    var customFeeEnabled: Bool {
-        FeeConfig.config(chain: self).customFeeEnabled
-    }
-
     var blockTime: UInt32 {
         ChainConfig.config(chain: self).blockTime
     }

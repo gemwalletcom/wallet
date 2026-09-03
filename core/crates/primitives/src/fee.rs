@@ -16,7 +16,7 @@ pub enum FeePriority {
     Fast,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, AsRefStr, EnumString, EnumIter)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, AsRefStr, EnumString, EnumIter, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 #[typeshare(swift = "Equatable, Sendable")]

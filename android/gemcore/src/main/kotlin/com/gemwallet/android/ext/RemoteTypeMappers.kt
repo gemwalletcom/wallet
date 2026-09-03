@@ -52,6 +52,18 @@ fun com.wallet.core.primitives.FeePriority.toGem(): uniffi.gemstone.FeePriority 
     com.wallet.core.primitives.FeePriority.Fast -> uniffi.gemstone.FeePriority.FAST
 }
 
+fun uniffi.gemstone.FeeUnitType.toPrimitives(): com.wallet.core.primitives.FeeUnitType = when (this) {
+    uniffi.gemstone.FeeUnitType.SAT_VB -> com.wallet.core.primitives.FeeUnitType.SatVb
+    uniffi.gemstone.FeeUnitType.GWEI -> com.wallet.core.primitives.FeeUnitType.Gwei
+    uniffi.gemstone.FeeUnitType.NATIVE -> com.wallet.core.primitives.FeeUnitType.Native
+}
+
+fun com.wallet.core.primitives.FeeUnitType.toGem(): uniffi.gemstone.FeeUnitType = when (this) {
+    com.wallet.core.primitives.FeeUnitType.SatVb -> uniffi.gemstone.FeeUnitType.SAT_VB
+    com.wallet.core.primitives.FeeUnitType.Gwei -> uniffi.gemstone.FeeUnitType.GWEI
+    com.wallet.core.primitives.FeeUnitType.Native -> uniffi.gemstone.FeeUnitType.NATIVE
+}
+
 fun uniffi.gemstone.LatencyType.toPrimitives(): com.wallet.core.primitives.LatencyType = when (this) {
     uniffi.gemstone.LatencyType.FAST -> com.wallet.core.primitives.LatencyType.Fast
     uniffi.gemstone.LatencyType.NORMAL -> com.wallet.core.primitives.LatencyType.Normal

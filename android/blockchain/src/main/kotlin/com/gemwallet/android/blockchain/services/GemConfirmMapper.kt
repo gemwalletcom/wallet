@@ -12,11 +12,13 @@ import uniffi.gemstone.GemConfirmFeeSelection
 import uniffi.gemstone.GemConfirmLoadOptions
 import uniffi.gemstone.GemConfirmPreload
 
+fun FeeSelection.toGem(): GemConfirmFeeSelection = when (this) {
+    is FeeSelection.Preset -> GemConfirmFeeSelection.Priority(priority.toGem())
+    is FeeSelection.Custom -> GemConfirmFeeSelection.Custom(gasPrice)
+}
+
 fun confirmLoadOptions(selection: FeeSelection, feeAssetSelection: FeeAssetSelection) = GemConfirmLoadOptions(
-    feeSelection = when (selection) {
-        is FeeSelection.Preset -> GemConfirmFeeSelection.Priority(selection.priority.toGem())
-        is FeeSelection.Custom -> GemConfirmFeeSelection.Custom(selection.gasPrice)
-    },
+    feeSelection = selection.toGem(),
     feeAssetId = when (feeAssetSelection) {
         FeeAssetSelection.Automatic -> null
         is FeeAssetSelection.Selected -> feeAssetSelection.assetId.toIdentifier()
@@ -28,6 +30,5 @@ fun GemConfirmPreload.toSignerParams(): SignerParams {
     return SignerParams(
         confirmData = confirmData,
         fee = confirmData.fee.toFee(selectedPriority, AssetId(confirmData.fee.feeAsset)),
-        feeRates = confirmData.feeRates,
     )
 }

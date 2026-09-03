@@ -9,6 +9,7 @@ import BigInt
 import Components
 import Foundation
 import struct Gemstone.GemFeeRate
+import enum Gemstone.FeePriority
 import struct Gemstone.GemBalanceRequirement
 import enum Gemstone.GemConfirmError
 import GemstonePrimitives
@@ -238,13 +239,12 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func networkFeeStaysSelectableWhileReloading() {
-        let rates = [
-            FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 20)),
-            FeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 30)),
-        ]
         let model = ConfirmTransferSceneViewModel.mock()
 
-        model.state = .mock(transaction: .loading, feeRates: rates)
+        model.state = .mock(transaction: .loading, confirmData: .mock(feeRates: [
+            GemFeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 20)),
+            GemFeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 30)),
+        ]))
         let reloadingFeeItem = model.itemModel(for: .networkFee) as? ConfirmNetworkFeeViewModel
 
         if case let .networkFee(listItem, selectable) = reloadingFeeItem?.itemModel {
@@ -258,10 +258,7 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func fetchAfterFeeChangeReplacesTheSceneWithTheServiceAnswer() async {
-        let rates = [
-            FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 20)),
-            FeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 30)),
-        ]
+        let priorities: [Gemstone.FeePriority] = [.normal, .fast]
         let model = ConfirmTransferSceneViewModel.mock(
             gemConfirmService: GemConfirmServiceMock(preload: .success(.mock(confirmData: .mock(feeRates: [
                 GemFeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 20)),
@@ -270,15 +267,14 @@ struct ConfirmTransferSceneViewModelTests {
         )
 
         await model.load()
-        #expect(model.state.feeRates == rates)
+        #expect(model.state.transaction.value?.confirmData.feeRates.map(\.priority) == priorities)
 
         model.state.simulation = .mock(warnings: [SimulationWarning(severity: .warning, warning: .externallyOwnedSpender, message: nil)])
         model.feeSelection = .preset(.fast)
         await model.load()
 
         #expect(model.state.simulation.warnings.isEmpty)
-        #expect(model.state.transaction.value != nil)
-        #expect(model.state.feeRates == rates)
+        #expect(model.state.transaction.value?.confirmData.feeRates.map(\.priority) == priorities)
     }
 
     @Test

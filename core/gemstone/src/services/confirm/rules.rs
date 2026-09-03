@@ -1,12 +1,14 @@
 use primitives::{
-    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, Transaction, TransactionPreloadInput,
-    Wallet,
+    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, FeeUnitType, GasPriceType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, Transaction,
+    TransactionPreloadInput, Wallet,
 };
 
 use super::error::{GemBalanceRequirement, GemConfirmError};
 use super::model::{
-    GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemFeeAsset, GemTransferAmountResult, SendInput,
+    GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemFeeAsset, GemFeeRateRow, GemFeeRateRows,
+    GemTransferAmountResult, SendInput,
 };
+use crate::config::chain::custom_fee_enabled;
 use crate::models::custom_types::GemBigUint;
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput};
@@ -14,6 +16,7 @@ use crate::services::balance::GemAssetBalance;
 use crate::services::price::GemAssetPrice;
 use crate::services::transfer::GemPendingTransactionInput;
 use crate::transfer_amount::{GemTransferAmountError, GemTransferAmountInput};
+use num_bigint::BigInt;
 
 impl SendInput {
     pub(super) fn signer_input(&self) -> Result<GemSignerInput, GemConfirmError> {
@@ -92,6 +95,13 @@ fn gem_approval_value(value: &GemBigUint, is_unlimited: bool) -> GemApprovalValu
         GemApprovalValue::Unlimited
     } else {
         GemApprovalValue::Exact { value: value.clone() }
+    }
+}
+
+#[uniffi::export]
+impl GemConfirmData {
+    pub fn fee_rate_rows(&self, selection: GemConfirmFeeSelection, fee_asset: Asset) -> GemFeeRateRows {
+        fee_rate_rows(self.input.transfer.input_type.asset().chain(), &fee_asset, &self.fee_rates, &selection, &self.fee.fee)
     }
 }
 
@@ -292,6 +302,38 @@ pub(super) fn scan_payload(input: GemTransactionPreloadInput) -> ScanTransaction
     }
 }
 
+pub fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selection: &GemConfirmFeeSelection, loaded_fee: &BigInt) -> GemFeeRateRows {
+    let unit_value = |rate: &GemFeeRate| GasPriceType::from(rate.gas_price_type.clone()).total_fee();
+    let rate_total = |priority: FeePriority| rates.iter().find(|rate| rate.priority == priority).map(unit_value);
+    let selected_total = match selection {
+        GemConfirmFeeSelection::Priority { priority } => rate_total(*priority),
+        GemConfirmFeeSelection::Custom { gas_price } => Some(gas_price.clone()),
+    };
+    let base = selected_total.clone().filter(|total| total > &BigInt::ZERO);
+    let unit_type = chain.fee_unit_type();
+    GemFeeRateRows {
+        rows: rates
+            .iter()
+            .map(|rate| {
+                let unit_value = unit_value(rate);
+                GemFeeRateRow {
+                    priority: rate.priority,
+                    fee: base.as_ref().map(|base| loaded_fee * &unit_value / base),
+                    unit_value,
+                }
+            })
+            .collect(),
+        unit_type,
+        unit_decimals: match unit_type {
+            FeeUnitType::Native => fee_asset.decimals as u32,
+            FeeUnitType::SatVb | FeeUnitType::Gwei => unit_type.decimals(),
+        },
+        supports_custom_fee: custom_fee_enabled(chain) && rates.len() > 1,
+        selected_total,
+        normal_total: rate_total(FeePriority::Normal).or_else(|| rates.first().map(unit_value)),
+    }
+}
+
 pub(super) fn displayed_fee_rates(rates: Vec<GemFeeRate>) -> Vec<GemFeeRate> {
     let mut rates = rates;
     rates.sort_by_key(|rate| match rate.priority {
@@ -476,6 +518,51 @@ mod tests {
                 gas_price: gas_price.parse().unwrap(),
             },
         }
+    }
+
+    #[test]
+    fn test_fee_rate_rows_scale_the_loaded_fee_by_each_rate() {
+        let rates = vec![rate(FeePriority::Normal, "10"), rate(FeePriority::Fast, "25")];
+        let ethereum = Asset::from_chain(Chain::Ethereum);
+        let normal = GemConfirmFeeSelection::Priority { priority: FeePriority::Normal };
+
+        let rows = fee_rate_rows(Chain::Ethereum, &ethereum, &rates, &normal, &BigInt::from(1_000));
+        assert_eq!(rows.rows[0].fee, Some(BigInt::from(1_000)), "the selected rate shows the fee that was loaded");
+        assert_eq!(rows.rows[1].fee, Some(BigInt::from(2_500)), "another rate scales the loaded fee by its unit value");
+        assert_eq!((rows.unit_type, rows.unit_decimals), (FeeUnitType::Gwei, 9));
+        assert!(!rows.supports_custom_fee, "only bitcoin chains take a custom rate");
+        assert_eq!(rows.selected_total, Some(BigInt::from(10)));
+        assert_eq!(rows.normal_total, Some(BigInt::from(10)));
+
+        let custom = fee_rate_rows(
+            Chain::Ethereum,
+            &ethereum,
+            &rates,
+            &GemConfirmFeeSelection::Custom { gas_price: BigInt::from(50) },
+            &BigInt::from(5_000),
+        );
+        assert_eq!(custom.rows[0].fee, Some(BigInt::from(1_000)), "a custom rate is the base the loaded fee was computed for");
+        assert_eq!(custom.selected_total, Some(BigInt::from(50)));
+
+        let zero = fee_rate_rows(
+            Chain::Ethereum,
+            &ethereum,
+            &rates,
+            &GemConfirmFeeSelection::Custom { gas_price: BigInt::ZERO },
+            &BigInt::from(5_000),
+        );
+        assert!(zero.rows.iter().all(|row| row.fee.is_none()), "nothing scales against a zero base");
+
+        let bitcoin = Asset::from_chain(Chain::Bitcoin);
+        assert!(fee_rate_rows(Chain::Bitcoin, &bitcoin, &rates, &normal, &BigInt::from(5_000)).supports_custom_fee);
+        assert!(
+            !fee_rate_rows(Chain::Bitcoin, &bitcoin, &rates[..1], &normal, &BigInt::from(5_000)).supports_custom_fee,
+            "one rate is nothing to pick a custom value against"
+        );
+
+        let solana = Asset::from_chain(Chain::Solana);
+        let native = fee_rate_rows(Chain::Solana, &solana, &rates[..1], &normal, &BigInt::from(5_000));
+        assert_eq!((native.unit_type, native.unit_decimals), (FeeUnitType::Native, solana.decimals as u32));
     }
 
     #[test]

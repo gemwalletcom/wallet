@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import struct Gemstone.GemFeeRateRows
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit
@@ -10,7 +11,7 @@ public extension NetworkFeeSceneViewModel {
         feeAsset: Asset = .mockEthereum(),
         currency: Currency = .usd,
         selection: FeeSelection = .preset(.normal),
-        rates: [FeeRate] = [],
+        feeRates: GemFeeRateRows? = nil,
         feeAssetPrice: Price? = nil,
         feeAmount: BigInt? = nil,
         feeAssets: [FeeAssetItem] = [],
@@ -21,7 +22,7 @@ public extension NetworkFeeSceneViewModel {
             feeAsset: feeAsset,
             currency: currency,
             selection: selection,
-            rates: rates,
+            feeRates: feeRates,
             feeAssetPrice: feeAssetPrice,
             feeAmount: feeAmount,
             feeAssets: feeAssets,

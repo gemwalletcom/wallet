@@ -6,7 +6,6 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAsset
 import com.wallet.core.primitives.ChainType
-import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
 import uniffi.gemstone.supportsPrivateKeyImport
 import uniffi.gemstone.GemAddressService
@@ -60,10 +59,6 @@ fun Chain.toChainType(): ChainType {
 
 
 fun Chain.isSwapSupport(): Boolean = Config().getChainConfig(string).isSwapSupported
-
-fun Chain.feeUnitType() = FeeUnitType.entries.firstOrNull {
-    it.string == Config().getChainConfig(string).feeUnitType
-}
 
 fun Chain.isMemoSupport() = Config().getChainConfig(string).isMemoSupported
 

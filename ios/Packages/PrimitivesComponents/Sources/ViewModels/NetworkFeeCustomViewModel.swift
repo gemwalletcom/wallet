@@ -15,6 +15,7 @@ public final class NetworkFeeCustomViewModel {
     private let feeAsset: Asset
     private let feeAssetPrice: Price?
     private let currency: Currency
+    private let unitType: FeeUnitType
     private let baseFee: BigInt?
     private let baseTotal: BigInt?
     private let normalTotal: BigInt?
@@ -28,6 +29,8 @@ public final class NetworkFeeCustomViewModel {
         feeAsset: Asset,
         feeAssetPrice: Price?,
         currency: Currency,
+        unitType: FeeUnitType,
+        decimals: Int,
         baseFee: BigInt?,
         baseTotal: BigInt?,
         normalTotal: BigInt?,
@@ -38,11 +41,12 @@ public final class NetworkFeeCustomViewModel {
         self.feeAsset = feeAsset
         self.feeAssetPrice = feeAssetPrice
         self.currency = currency
+        self.unitType = unitType
+        self.decimals = decimals
         self.baseFee = baseFee
         self.baseTotal = baseTotal
         self.normalTotal = normalTotal
         self.onSelect = onSelect
-        decimals = chain.feeRateDecimals(assetDecimals: feeAsset.decimals.asInt)
         input = initialRate.map { ValueFormatter.full.string($0, decimals: decimals) } ?? ""
     }
 
@@ -50,7 +54,7 @@ public final class NetworkFeeCustomViewModel {
     public var networkFeeTitle: String { Localized.Transfer.networkFee }
 
     public var suffix: String {
-        FeeUnitViewModel(unit: FeeUnit(type: chain.feeUnitType, value: .zero), decimals: decimals, symbol: feeAsset.symbol).suffix
+        FeeUnitViewModel(unit: FeeUnit(type: unitType, value: .zero), decimals: decimals, symbol: feeAsset.symbol).suffix
     }
 
     public var placeholder: String {
@@ -67,11 +71,11 @@ public final class NetworkFeeCustomViewModel {
 
     public var errorText: String? {
         if estimate.isBelowMinimum(), let minimumRate = estimate.minimumRate() {
-            let minText = FeeUnitViewModel(unit: FeeUnit(type: chain.feeUnitType, value: minimumRate), decimals: decimals, symbol: feeAsset.symbol).value
+            let minText = FeeUnitViewModel(unit: FeeUnit(type: unitType, value: minimumRate), decimals: decimals, symbol: feeAsset.symbol).value
             return Localized.Common.minimumValue(minText)
         }
         if estimate.isOverMax() {
-            let maxText = FeeUnitViewModel(unit: FeeUnit(type: chain.feeUnitType, value: estimate.maxRate()), decimals: decimals, symbol: feeAsset.symbol).value
+            let maxText = FeeUnitViewModel(unit: FeeUnit(type: unitType, value: estimate.maxRate()), decimals: decimals, symbol: feeAsset.symbol).value
             return Localized.Common.maximumValue(maxText)
         }
         return nil

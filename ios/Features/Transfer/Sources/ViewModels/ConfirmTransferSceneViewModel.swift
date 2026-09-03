@@ -172,7 +172,7 @@ public final class ConfirmTransferSceneViewModel {
             feeAsset: state.feeAsset,
             currency: currency,
             selection: feeSelection,
-            rates: state.feeRates,
+            feeRates: state.confirmData?.feeRateRows(selection: feeSelection.map(), feeAsset: state.feeAsset.map()),
             feeAssetPrice: state.metadata?.feePrice,
             feeAmount: state.transaction.value?.fee.fee,
             feeAssets: state.feeAssets.compactMap { try? $0.feeAssetItem(currency: currency) },

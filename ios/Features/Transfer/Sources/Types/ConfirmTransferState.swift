@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemConfirmData
 import struct Gemstone.GemConfirmMetadata
 import struct Gemstone.GemFeeAsset
 import Components
@@ -9,7 +10,7 @@ import Primitives
 struct ConfirmTransferState {
     var simulation: ConfirmSimulationState
     var metadata: GemConfirmMetadata?
-    var feeRates: [FeeRate] = []
+    var confirmData: GemConfirmData?
     var feeAsset: Asset
     var feeAssets: [GemFeeAsset] = []
     var transaction: StateViewType<ConfirmTransferInput>
@@ -21,7 +22,7 @@ extension ConfirmTransferState {
         ConfirmTransferState(
             simulation: data.simulation,
             metadata: data.preload.metadata,
-            feeRates: data.preload.feeRates,
+            confirmData: data.preload.input.confirmData,
             feeAsset: data.preload.input.feeAsset,
             feeAssets: data.feeAssets,
             transaction: .data(data.preload.input),

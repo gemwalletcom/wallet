@@ -2,8 +2,8 @@
 // Declared in core/bin/generate/remote_types.yml.
 
 use primitives::{
-    Asset, AssetType, Currency, FeePriority, Latency, LatencyType, PerpetualProvider, PortfolioType, RecentActivityType, SimulationPayloadField, SimulationPayloadFieldDisplay,
-    SimulationPayloadFieldKind, SimulationPayloadFieldType, TpslType, WalletConnectionVerificationStatus, WalletSource, WalletType,
+    Asset, AssetType, Currency, FeePriority, FeeUnitType, Latency, LatencyType, PerpetualProvider, PortfolioType, RecentActivityType, SimulationPayloadField,
+    SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, TpslType, WalletConnectionVerificationStatus, WalletSource, WalletType,
 };
 use std::str::FromStr;
 
@@ -35,6 +35,13 @@ uniffi::custom_type!(Currency, String, {
 pub enum FeePriority {
     Normal,
     Fast,
+}
+
+#[uniffi::remote(Enum)]
+pub enum FeeUnitType {
+    SatVb,
+    Gwei,
+    Native,
 }
 
 #[uniffi::remote(Enum)]

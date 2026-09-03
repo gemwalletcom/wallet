@@ -2,6 +2,7 @@ remote:
   - AssetType
   - Asset
   - FeePriority
+  - FeeUnitType
   - PerpetualProvider
   - WalletType
   - WalletSource

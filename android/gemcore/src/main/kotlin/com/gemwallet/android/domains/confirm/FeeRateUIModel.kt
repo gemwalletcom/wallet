@@ -8,63 +8,36 @@ import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.FeeUnitType
-import uniffi.gemstone.GemFeeRate
-import java.math.BigInteger
+import uniffi.gemstone.GemFeeRateRow
 
 data class FeeRateUIModel(
-    val feeRate: GemFeeRate,
+    val row: GemFeeRateRow,
     val feeAsset: AssetPriceValue,
-    val feeUnitType: FeeUnitType?,
+    val feeUnitType: FeeUnitType,
     val feeRateDecimals: Int,
-    val totalFee: BigInteger,
-    val selectedTotalFee: BigInteger? = null,
-    val selectedFeeAmount: BigInteger? = null,
-    val unitSymbol: String? = null,
+    val unitSymbol: String,
 ) {
-    val priority: FeePriority = feeRate.priority.toPrimitives()
+    val priority: FeePriority = row.priority.toPrimitives()
 
     val price: String
-        get() = if (feeUnitType == FeeUnitType.Native) {
-            nativeAmountText()
-        } else {
-            gasPriceText()
+        get() = when (feeUnitType) {
+            FeeUnitType.Native -> ValueFormatter(style = ValueFormatter.Style.Auto)
+                .string(row.fee ?: row.unitValue, feeAsset.asset.decimals, feeAsset.asset.symbol)
+            FeeUnitType.SatVb, FeeUnitType.Gwei -> ValueFormatter(style = ValueFormatter.Style.Auto)
+                .string(row.unitValue, feeRateDecimals, unitSymbol)
         }
 
     val fiatValue: String
-        get() = fiatText() ?: ""
+        get() {
+            val priceInfo = feeAsset.price ?: return ""
+            val fee = row.fee ?: return ""
+            val fiat = CryptoFiatConverter.toFiat(Crypto(fee), feeAsset.asset.decimals, priceInfo.price.price)
+            return CurrencyFormatter(currency = priceInfo.currency).string(fiat.atomicValue)
+        }
 
     val emoji: String
         get() = when (priority) {
             FeePriority.Normal -> "\uD83D\uDC8E"
             FeePriority.Fast -> "\u26A1\uFE0F"
         }
-
-    private val feeAmount: BigInteger?
-        get() {
-            if (selectedFeeAmount != null && selectedTotalFee != null) {
-                if (selectedTotalFee == BigInteger.ZERO) return null
-                return selectedFeeAmount.multiply(totalFee).divide(selectedTotalFee)
-            }
-            return null
-        }
-
-    private fun fiatText(): String? {
-        val priceInfo = feeAsset.price ?: return null
-        val amount = feeAmount ?: return null
-        val fiat = CryptoFiatConverter.toFiat(Crypto(amount), feeAsset.asset.decimals, priceInfo.price.price)
-        return CurrencyFormatter(currency = priceInfo.currency).string(fiat.atomicValue)
-    }
-
-    private fun gasPriceText(): String {
-        feeUnitType ?: return ""
-        val symbol = unitSymbol ?: return ""
-        return ValueFormatter(style = ValueFormatter.Style.Auto)
-            .string(totalFee, feeRateDecimals, symbol)
-    }
-
-    private fun nativeAmountText(): String {
-        val amount = feeAmount ?: totalFee
-        return ValueFormatter(style = ValueFormatter.Style.Auto)
-            .string(amount, feeAsset.asset.decimals, feeAsset.asset.symbol)
-    }
 }

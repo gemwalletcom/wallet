@@ -17,11 +17,12 @@ import com.gemwallet.android.domains.confirm.unpack
 import com.gemwallet.android.domains.swap.providerId
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import uniffi.gemstone.GemFeeRate
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.blockchain.services.confirmLoadOptions
+import com.gemwallet.android.blockchain.services.toGem
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.blockchain.services.toSignerParams
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toAssetPriceValue
@@ -261,8 +262,6 @@ class ConfirmViewModel @Inject constructor(
     val feeValue = feeUIModel.map { (it as? FeeUIModel.FeeInfo)?.cryptoAmountWithFiat.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    val feeRates = preloadData.map { it?.signerParams?.feeRates.orEmpty() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun init(transfer: GemTransferData, simulationResult: SimulationResult? = null) {
         this.simulationResult.value = simulationResult
@@ -277,12 +276,10 @@ class ConfirmViewModel @Inject constructor(
         }
     }
 
-    fun feeDetailsModel(
-        currentFee: FeeUIModel.FeeInfo,
-        feeAsset: FeeAssetUIModel,
-        feeRates: List<GemFeeRate>,
-        unitSymbol: String,
-    ): FeeDetailsModel = FeeDetailsModel.from(currentFee, feeAsset, feeRates, unitSymbol)
+    fun feeDetailsModel(currentFee: FeeUIModel.FeeInfo, feeAsset: FeeAssetUIModel, selection: FeeSelection): FeeDetailsModel? {
+        val confirmData = preloadData.value?.signerParams?.confirmData ?: return null
+        return FeeDetailsModel(currentFee, feeAsset, confirmData.feeRateRows(selection.toGem(), feeAsset.asset.toGem()))
+    }
 
     fun changeFeeSelection(selection: FeeSelection) {
         if (selection == feeSelection.value) return

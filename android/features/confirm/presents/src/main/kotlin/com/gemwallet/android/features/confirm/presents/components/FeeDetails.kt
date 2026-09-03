@@ -38,8 +38,6 @@ import com.gemwallet.android.domains.confirm.FeeAssetUIModel
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeRateUIModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
-import com.gemwallet.android.ext.feeRateDecimals
-import com.gemwallet.android.ext.feeUnitType
 import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SuffixTextField
@@ -69,7 +67,6 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
-import uniffi.gemstone.GemFeeRate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,8 +74,7 @@ fun FeeDetails(
     isVisible: Boolean,
     currentFee: FeeUIModel.FeeInfo?,
     selection: FeeSelection,
-    feeRates: List<GemFeeRate>,
-    feeDetailsModel: (FeeUIModel.FeeInfo, FeeAssetUIModel, List<GemFeeRate>, String) -> FeeDetailsModel,
+    feeDetailsModel: (FeeUIModel.FeeInfo, FeeAssetUIModel, FeeSelection) -> FeeDetailsModel?,
     feeAsset: FeeAssetUIModel?,
     feeAssets: List<FeeAssetUIModel>,
     onSelect: (FeeSelection) -> Unit,
@@ -87,11 +83,11 @@ fun FeeDetails(
 ) {
     currentFee ?: return
     feeAsset ?: return
-    val unitSuffix = feeUnitSuffix(feeAsset.asset.chain.feeUnitType(), feeAsset.asset.symbol)
+    val model = remember(currentFee, feeAsset, selection) {
+        feeDetailsModel(currentFee, feeAsset, selection)
+    } ?: return
+    val unitSuffix = feeUnitSuffix(model.feeUnitType, feeAsset.asset.symbol)
     val unitSymbol = unitSuffix.trim()
-    val model = remember(currentFee, feeAsset, feeRates, unitSymbol) {
-        feeDetailsModel(currentFee, feeAsset, feeRates, unitSymbol)
-    }
     val decimals = model.decimals
 
     val selectedCustomRate = (selection as? FeeSelection.Custom)?.gasPrice
@@ -141,7 +137,7 @@ fun FeeDetails(
             FeeDetailsPage.Details -> FeeRates(
                 currentFee = currentFee,
                 selection = selection,
-                feeRateModels = model.feeRateModels,
+                feeRateModels = model.feeRateModels(unitSymbol),
                 feeAsset = feeAsset,
                 unitSymbol = unitSymbol,
                 supportsCustomFee = model.supportsCustomFee,

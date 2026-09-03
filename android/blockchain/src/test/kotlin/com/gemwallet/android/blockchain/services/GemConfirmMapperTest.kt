@@ -78,7 +78,6 @@ class GemConfirmMapperTest {
 
         assertEquals(FeePriority.Normal, result.fee.priority)
         assertEquals(BigInteger("21000"), result.fee.amount)
-        assertEquals(feeRates, result.feeRates)
         assertEquals(GemTransactionLoadMetadata.None, result.confirmData.metadata)
     }
 }

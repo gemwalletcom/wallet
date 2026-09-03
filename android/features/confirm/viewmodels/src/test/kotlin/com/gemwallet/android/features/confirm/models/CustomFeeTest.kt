@@ -1,7 +1,6 @@
 package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.wallet.core.primitives.Asset
@@ -12,15 +11,19 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uniffi.gemstone.GemFeeRate
-import uniffi.gemstone.GemGasPriceType
+import uniffi.gemstone.FeeUnitType
+import uniffi.gemstone.GemFeeRateRows
 import java.math.BigInteger
 
 class CustomFeeTest {
 
-    private val feeRates = listOf(
-        GemFeeRate(FeePriority.Normal.toGem(), GemGasPriceType.Regular(gasPrice = BigInteger("2"))),
-        GemFeeRate(FeePriority.Fast.toGem(), GemGasPriceType.Regular(gasPrice = BigInteger("3"))),
+    private fun rows(selectedTotal: BigInteger) = GemFeeRateRows(
+        rows = emptyList(),
+        unitType = FeeUnitType.GWEI,
+        unitDecimals = 0u,
+        supportsCustomFee = true,
+        selectedTotal = selectedTotal,
+        normalTotal = BigInteger("2"),
     )
 
     private fun currentFee(feeAsset: Asset) = FeeUIModel.FeeInfo(
@@ -35,8 +38,8 @@ class CustomFeeTest {
         input: String,
         decimals: Int = 0,
         feeAsset: Asset = mockAssetEthereum(),
-        selection: FeeSelection = FeeSelection.Preset(FeePriority.Normal),
-    ) = CustomFee.from(input, currentFee(feeAsset), feeRates, selection, decimals)
+        selectedTotal: BigInteger = BigInteger("2"),
+    ) = CustomFee.from(input, currentFee(feeAsset), rows(selectedTotal), decimals)
 
     @Test
     fun customFeeFrom() {
@@ -58,7 +61,7 @@ class CustomFeeTest {
         assertTrue(overMax.isOverMax)
         assertFalse(overMax.isConfirmEnabled)
 
-        val anchoredToNormal = custom("21", selection = FeeSelection.Custom(BigInteger("20")))
+        val anchoredToNormal = custom("21", selectedTotal = BigInteger("20"))
         assertTrue(anchoredToNormal.isOverMax)
     }
 }

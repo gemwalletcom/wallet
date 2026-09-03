@@ -2,6 +2,10 @@
 
 import BigInt
 import Foundation
+import enum Gemstone.FeeUnitType
+import enum Gemstone.FeePriority
+import struct Gemstone.GemFeeRateRow
+import struct Gemstone.GemFeeRateRows
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesComponentsTestKit
@@ -12,8 +16,8 @@ import Testing
 struct NetworkFeeSceneViewModelTests {
     @Test
     func showFeeRatesSelector() {
-        #expect(NetworkFeeSceneViewModel.mock(rates: [.defaultRate()]).showFeeRates == false)
-        #expect(NetworkFeeSceneViewModel.mock(rates: [.defaultRate(), .defaultRate()]).showFeeRates)
+        #expect(NetworkFeeSceneViewModel.mock(feeRates: rows([(.normal, 1, nil)])).showFeeRates == false)
+        #expect(NetworkFeeSceneViewModel.mock(feeRates: rows([(.normal, 1, nil), (.fast, 2, nil)])).showFeeRates)
     }
 
     @Test
@@ -72,7 +76,7 @@ struct NetworkFeeSceneViewModelTests {
     @Test
     func showFeeDetailsForLoadedSingleRate() {
         let model = NetworkFeeSceneViewModel.mock(
-            rates: [.defaultRate()],
+            feeRates: rows([(.normal, 1, nil)]),
             feeAmount: BigInt(1_000_000_000_000_000),
         )
 
@@ -82,7 +86,7 @@ struct NetworkFeeSceneViewModelTests {
 
     @Test
     func showFeeDetailsForMultipleRates() {
-        let model = NetworkFeeSceneViewModel.mock(rates: [.defaultRate(), .defaultRate()])
+        let model = NetworkFeeSceneViewModel.mock(feeRates: rows([(.normal, 1, nil), (.fast, 2, nil)]))
 
         #expect(model.showFeeRates)
         #expect(model.showFeeDetails)
@@ -90,7 +94,7 @@ struct NetworkFeeSceneViewModelTests {
 
     @Test
     func hideFeeDetailsWithoutLoadedSingleRate() {
-        let model = NetworkFeeSceneViewModel.mock(rates: [.defaultRate()])
+        let model = NetworkFeeSceneViewModel.mock(feeRates: rows([(.normal, 1, nil)]))
 
         #expect(model.showFeeRates == false)
         #expect(model.showFeeDetails == false)
@@ -98,7 +102,7 @@ struct NetworkFeeSceneViewModelTests {
 
     @Test
     func valueMatchesSelectedFeeRateEthereumValueText() {
-        let model = NetworkFeeSceneViewModel.mock(rates: [.defaultRate()])
+        let model = NetworkFeeSceneViewModel.mock(feeRates: rows([(.normal, 1, nil)]))
 
         #expect(model.selectedFeeRateViewModel?.valueText == "0.000000001 gwei")
     }
@@ -107,7 +111,7 @@ struct NetworkFeeSceneViewModelTests {
     func valueMatchesSelectedFeeRateSolanaValueText() {
         let model = NetworkFeeSceneViewModel.mock(
             feeAsset: .mockSolana(),
-            rates: [FeeRate(priority: .normal, gasPriceType: .eip1559(gasPrice: 5000, priorityFee: 100_000))],
+            feeRates: rows([(.normal, 105_000, nil)], unitType: .native, decimals: 9),
         )
 
         #expect(model.selectedFeeRateViewModel?.valueText == "0.000105 SOL")
@@ -115,7 +119,7 @@ struct NetworkFeeSceneViewModelTests {
 
     @Test
     func valueMatchesSelectedFeeRateBitcoinValueText() {
-        let model = NetworkFeeSceneViewModel.mock(feeAsset: .mock(), rates: [.defaultRate()])
+        let model = NetworkFeeSceneViewModel.mock(feeAsset: .mock(), feeRates: rows([(.normal, 1, nil)], unitType: .satVb, decimals: 1))
 
         #expect(model.selectedFeeRateViewModel?.valueText == "0.1 sat/vB")
     }
@@ -124,7 +128,7 @@ struct NetworkFeeSceneViewModelTests {
     func fiatValueForNativeFeeType() throws {
         let model = NetworkFeeSceneViewModel.mock(
             feeAsset: .mockSolana(),
-            rates: [FeeRate(priority: .normal, gasPriceType: .solana(gasPrice: 5000, priorityFee: 0, unitPrice: 0))],
+            feeRates: rows([(.normal, 5000, 5000)], unitType: .native, decimals: 9),
             feeAssetPrice: Price(price: 150.0, priceChangePercentage24h: 0, updatedAt: Date()),
             feeAmount: BigInt(5000),
         )
@@ -136,7 +140,7 @@ struct NetworkFeeSceneViewModelTests {
     @Test
     func fiatValueForNonNativeFeeType() throws {
         let model = NetworkFeeSceneViewModel.mock(
-            rates: [.defaultRate()],
+            feeRates: rows([(.normal, 1, 21_000_000_000_000)]),
             feeAssetPrice: Price(price: 3000.0, priceChangePercentage24h: 0, updatedAt: Date()),
             feeAmount: BigInt(21_000_000_000_000),
         )
@@ -149,7 +153,7 @@ struct NetworkFeeSceneViewModelTests {
     func fiatValueNilWithoutPriceData() throws {
         let model = NetworkFeeSceneViewModel.mock(
             feeAsset: .mockSolana(),
-            rates: [FeeRate(priority: .normal, gasPriceType: .solana(gasPrice: 5000, priorityFee: 0, unitPrice: 0))],
+            feeRates: rows([(.normal, 5000, 5000)], unitType: .native, decimals: 9),
             feeAmount: BigInt(5000),
         )
         let feeRateVM = try #require(model.feeRatesViewModels.first)
@@ -158,31 +162,16 @@ struct NetworkFeeSceneViewModelTests {
     }
 
     @Test
-    func feeAmountScalesProportionallyToSelectedRate() {
-        let rates = [
-            FeeRate(priority: .normal, gasPriceType: .eip1559(gasPrice: 2, priorityFee: 0)),
-            FeeRate(priority: .fast, gasPriceType: .eip1559(gasPrice: 4, priorityFee: 0)),
-        ]
-        let model = NetworkFeeSceneViewModel.mock(rates: rates, feeAmount: BigInt(1000))
-
-        #expect(model.estimatedFee(for: rates[0]) == BigInt(1000))
-        #expect(model.estimatedFee(for: rates[1]) == BigInt(2000))
-    }
-
-    @Test
     func valueForRateUsesScaledLoadedFeeForNativeChain() throws {
         let feeAsset = Asset.mockSUI()
         let model = NetworkFeeSceneViewModel.mock(
             feeAsset: feeAsset,
-            rates: [
-                FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 110)),
-                FeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 200)),
-            ],
+            feeRates: rows([(.normal, 110, 110_000), (.fast, 200, 200_000)], unitType: .native, decimals: UInt32(feeAsset.decimals)),
             feeAmount: BigInt(110_000),
         )
 
-        let normalRate = try #require(model.feeRatesViewModels.first { $0.feeRate.priority == .normal })
-        let fastRate = try #require(model.feeRatesViewModels.first { $0.feeRate.priority == .fast })
+        let normalRate = try #require(model.feeRatesViewModels.first { $0.priority == .normal })
+        let fastRate = try #require(model.feeRatesViewModels.first { $0.priority == .fast })
 
         #expect(model.valueForRate(normalRate) == feeAsset.feeText(110_000))
         #expect(model.valueForRate(fastRate) == feeAsset.feeText(200_000))
@@ -193,7 +182,7 @@ struct NetworkFeeSceneViewModelTests {
     @Test
     func valueForRateUsesGasPriceRateForNonNativeChains() throws {
         let ethModel = NetworkFeeSceneViewModel.mock(
-            rates: [FeeRate(priority: .normal, gasPriceType: .eip1559(gasPrice: 1_000_000_000, priorityFee: 0))],
+            feeRates: rows([(.normal, 1_000_000_000, 21_000_000_000_000)]),
             feeAmount: BigInt(21_000_000_000_000),
         )
         let ethVM = try #require(ethModel.feeRatesViewModels.first)
@@ -201,7 +190,7 @@ struct NetworkFeeSceneViewModelTests {
         #expect(ethModel.valueForRate(ethVM) == ethVM.valueText)
         #expect(ethModel.valueForRate(ethVM) != ethModel.value)
 
-        let bitcoinModel = NetworkFeeSceneViewModel.mock(feeAsset: .mock(), rates: [.defaultRate()], feeAmount: BigInt(10000))
+        let bitcoinModel = NetworkFeeSceneViewModel.mock(feeAsset: .mock(), feeRates: rows([(.normal, 1, 10000)], unitType: .satVb, decimals: 1), feeAmount: BigInt(10000))
         let bitcoinVM = try #require(bitcoinModel.feeRatesViewModels.first)
 
         #expect(bitcoinModel.valueForRate(bitcoinVM) == bitcoinVM.valueText)
@@ -209,23 +198,12 @@ struct NetworkFeeSceneViewModelTests {
     }
 
     @Test
-    func feeAmountReturnsNilWithoutLoadedFee() {
-        let model = NetworkFeeSceneViewModel.mock()
-        let rate = FeeRate(priority: .normal, gasPriceType: .eip1559(gasPrice: 1, priorityFee: 0))
-
-        #expect(model.estimatedFee(for: rate) == nil)
-    }
-
-    @Test
     func selectedRateFollowsSelection() {
-        let rates = [
-            FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 2)),
-            FeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 3)),
-        ]
+        let rates = rows([(.normal, 2, nil), (.fast, 3, nil)], unitType: .native, decimals: 9)
 
-        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), rates: rates).selectedFeeRateViewModel?.feeRate.priority == .normal)
-        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), selection: .preset(.fast), rates: rates).selectedFeeRateViewModel?.feeRate.priority == .fast)
-        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), selection: .custom(5), rates: rates).selectedFeeRateViewModel == nil)
+        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), feeRates: rates).selectedFeeRateViewModel?.priority == .normal)
+        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), selection: .preset(.fast), feeRates: rates).selectedFeeRateViewModel?.priority == .fast)
+        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), selection: .custom(5), feeRates: rates).selectedFeeRateViewModel == nil)
     }
 
     @Test
@@ -240,17 +218,12 @@ struct NetworkFeeSceneViewModelTests {
     }
 
     @Test
-    func supportsCustomFeeWhenSelectableWithMultipleRates() {
-        let rates = [
-            FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 1)),
-            FeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 2)),
-        ]
+    func supportsCustomFeeOnlyWhenSelectable() {
+        let rates = rows([(.normal, 1, nil), (.fast, 2, nil)], unitType: .satVb, decimals: 1, supportsCustomFee: true)
         let onSelect: @MainActor (FeeSelection) -> Void = { _ in }
 
-        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mock(), rates: rates, onSelect: onSelect).supportsCustomFee)
-        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), rates: rates, onSelect: onSelect).supportsCustomFee == false)
-        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mock(), rates: rates).supportsCustomFee == false)
-        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mock(), rates: [rates[0]], onSelect: onSelect).supportsCustomFee == false)
+        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mock(), feeRates: rates, onSelect: onSelect).supportsCustomFee)
+        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mock(), feeRates: rates).supportsCustomFee == false)
     }
 
     @Test
@@ -327,7 +300,7 @@ struct NetworkFeeSceneViewModelTests {
         .mock(
             feeAsset: .mock(),
             selection: selection,
-            rates: [FeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 20))],
+            feeRates: rows([(.normal, 20, 1000)], unitType: .satVb, decimals: 1, supportsCustomFee: true, selectedTotal: selection.customRate ?? 20),
             feeAmount: BigInt(1000),
             onSelect: onSelect,
         )
@@ -347,7 +320,24 @@ struct NetworkFeeSceneViewModelTests {
     }
 }
 
-private extension Asset {
+private func rows(
+    _ rows: [(Gemstone.FeePriority, BigInt, BigInt?)],
+    unitType: Gemstone.FeeUnitType = .gwei,
+    decimals: UInt32 = 9,
+    supportsCustomFee: Bool = false,
+    selectedTotal: BigInt? = nil,
+) -> GemFeeRateRows {
+    GemFeeRateRows(
+        rows: rows.map { GemFeeRateRow(priority: $0.0, unitValue: $0.1, fee: $0.2) },
+        unitType: unitType,
+        unitDecimals: decimals,
+        supportsCustomFee: supportsCustomFee,
+        selectedTotal: selectedTotal ?? rows.first?.1,
+        normalTotal: rows.first?.1,
+    )
+}
+
+extension Asset {
     func feeText(_ value: BigInt) -> String {
         AmountDisplay.numeric(asset: self, price: nil, value: value, currency: Currency.usd.rawValue, formatter: .auto).amount.text
     }

@@ -73,6 +73,26 @@ public extension Primitives.FeePriority {
     }
 }
 
+public extension Gemstone.FeeUnitType {
+    func map() -> Primitives.FeeUnitType {
+        switch self {
+        case .satVb: .satVb
+        case .gwei: .gwei
+        case .native: .native
+        }
+    }
+}
+
+public extension Primitives.FeeUnitType {
+    func map() -> Gemstone.FeeUnitType {
+        switch self {
+        case .satVb: .satVb
+        case .gwei: .gwei
+        case .native: .native
+        }
+    }
+}
+
 public extension Gemstone.LatencyType {
     func map() -> Primitives.LatencyType {
         switch self {
