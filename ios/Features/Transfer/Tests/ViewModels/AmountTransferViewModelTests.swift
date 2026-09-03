@@ -31,9 +31,9 @@ struct AmountTransferViewModelTests {
     func availableValue() {
         let assetData = AssetData.mock(balance: .mock(available: 1000, withdrawable: 500))
 
-        #expect(AmountTransferViewModel(asset: .mock(), action: .send(.mock())).availableValue(from: assetData) == 1000)
-        #expect(AmountTransferViewModel(asset: .mock(), action: .deposit(.mock())).availableValue(from: assetData) == 1000)
-        #expect(AmountTransferViewModel(asset: .mock(), action: .withdraw(.mock())).availableValue(from: assetData) == 500)
+        #expect(AmountTransferViewModel(asset: .mock(), action: .send(.mock())).input(from: assetData).availableValue == 1000)
+        #expect(AmountTransferViewModel(asset: .mock(), action: .deposit(.mock())).input(from: assetData).availableValue == 1000)
+        #expect(AmountTransferViewModel(asset: .mock(), action: .withdraw(.mock())).input(from: assetData).availableValue == 500)
     }
 
     @Test

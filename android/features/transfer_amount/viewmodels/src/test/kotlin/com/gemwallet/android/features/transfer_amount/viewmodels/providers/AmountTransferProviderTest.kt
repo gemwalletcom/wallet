@@ -49,17 +49,8 @@ class AmountTransferProviderTest {
     }
 
     @Test
-    fun `canChangeValue and canSwitchInputType are both true`() {
-        val provider = makeProvider()
-        assertTrue(provider.canChangeValue.value)
-        assertTrue(provider.canSwitchInputType)
-    }
-
-    @Test
-    fun `minimumValue and reserveForFee are zero`() {
-        val provider = makeProvider()
-        assertEquals(BigInteger.ZERO, provider.minimumValue.value)
-        assertEquals(BigInteger.ZERO, provider.reserveForFee.value)
+    fun `canSwitchInputType is true`() {
+        assertTrue(makeProvider().canSwitchInputType)
     }
 
     @Test
@@ -107,7 +98,7 @@ class AmountTransferProviderTest {
             getAssetInfo = getInfo,
             scope = scope,
         )
-        assertEquals(BigInteger("5000000"), provider.availableBalance.first { it != BigInteger.ZERO })
+        assertEquals(BigInteger("5000000"), provider.input.filterNotNull().first().availableValue)
     }
 
     @Test

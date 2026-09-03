@@ -55,15 +55,8 @@ struct AmountPerpetualViewModelTests {
         let open = AmountPerpetualViewModel(asset: .mock(), data: .mock(positionAction: .open(data: .mock())), service: GemAmountServiceMock(builder: GemAmountService.mock()))
         let reduce = AmountPerpetualViewModel(asset: .mock(), data: .mock(positionAction: .reduce(data: .mock(), available: 1000)), service: GemAmountServiceMock(builder: GemAmountService.mock()))
 
-        #expect(open.availableValue(from: assetData) == 5000)
-        #expect(reduce.availableValue(from: assetData) == 1000)
-    }
-
-    @Test
-    func reserveForFee() {
-        let model = AmountPerpetualViewModel(asset: .mock(), data: .mock(), service: GemAmountServiceMock(builder: GemAmountService.mock()))
-        #expect(model.reserveForFee == .zero)
-        #expect(model.shouldReserveFee(from: .mock()) == false)
+        #expect(open.input(from: assetData).availableValue == 5000)
+        #expect(reduce.input(from: assetData).availableValue == 1000)
     }
 
     @Test

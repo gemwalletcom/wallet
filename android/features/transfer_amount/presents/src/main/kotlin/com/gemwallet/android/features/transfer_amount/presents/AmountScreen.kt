@@ -40,8 +40,9 @@ fun AmountScreen(
     val available by viewModel.availableBalanceFormatted.collectAsStateWithLifecycle()
     val reserve by viewModel.reserveForFeeFormatted.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
-    val canChangeValue by provider.canChangeValue.collectAsStateWithLifecycle()
-    val showsAssetBalance by provider.showsAssetBalance.collectAsStateWithLifecycle()
+    val input by provider.input.collectAsStateWithLifecycle()
+    val canChangeValue = input?.canChangeValue ?: true
+    val showsAssetBalance = input?.showsAssetBalance ?: true
 
     AnimatedContent(
         isSelectValidator && canPickValidator,

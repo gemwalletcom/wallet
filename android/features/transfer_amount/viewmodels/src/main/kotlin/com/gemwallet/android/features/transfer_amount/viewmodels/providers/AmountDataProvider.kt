@@ -13,10 +13,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemAssetBalance
-import uniffi.gemstone.GemAmountLimits
-import uniffi.gemstone.GemAmountRules
+import uniffi.gemstone.GemAmountInput
 import uniffi.gemstone.GemAmountType
-import java.math.BigInteger
 
 abstract class AmountDataProvider(
     private val scope: CoroutineScope,
@@ -30,25 +28,11 @@ abstract class AmountDataProvider(
         assetInfo.map { it?.balance?.toGem() }.stateIn(scope, SharingStarted.Eagerly, null)
     }
 
-    val rules: StateFlow<GemAmountRules?> by lazy {
-        combine(amountType, assetInfo) { type, current ->
-            if (type == null || current == null) null else type.rules(current.asset.toGem())
-        }.stateIn(scope, SharingStarted.Eagerly, null)
-    }
-
-    val limits: StateFlow<GemAmountLimits?> by lazy {
+    val input: StateFlow<GemAmountInput?> by lazy {
         combine(amountType, assetInfo, balance) { type, current, currentBalance ->
-            if (type == null || current == null || currentBalance == null) null else type.limits(current.asset.toGem(), currentBalance)
+            if (type == null || current == null || currentBalance == null) null else type.input(current.asset.toGem(), currentBalance)
         }.stateIn(scope, SharingStarted.Eagerly, null)
     }
-
-    val canChangeValue: StateFlow<Boolean> by lazy { rules.map { it?.canChangeValue ?: true }.stateIn(scope, SharingStarted.Eagerly, true) }
-    val showsAssetBalance: StateFlow<Boolean> by lazy { rules.map { it?.showsAssetBalance ?: true }.stateIn(scope, SharingStarted.Eagerly, true) }
-    val minimumValue: StateFlow<BigInteger> by lazy { rules.map { it?.minimumValue ?: BigInteger.ZERO }.stateIn(scope, SharingStarted.Eagerly, BigInteger.ZERO) }
-    val reserveForFee: StateFlow<BigInteger> by lazy { rules.map { it?.reserveForFee ?: BigInteger.ZERO }.stateIn(scope, SharingStarted.Eagerly, BigInteger.ZERO) }
-    val availableBalance: StateFlow<BigInteger> by lazy { limits.map { it?.availableValue ?: BigInteger.ZERO }.stateIn(scope, SharingStarted.Eagerly, BigInteger.ZERO) }
-
-    fun maxValue(): BigInteger = limits.value?.maxValue ?: availableBalance.value
 
     abstract suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData
 }

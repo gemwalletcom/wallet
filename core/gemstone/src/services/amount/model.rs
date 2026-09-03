@@ -46,9 +46,10 @@ pub enum GemAmountPerpetualPosition {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemAmountRules {
-    pub minimum_value: GemBigInt,
-    pub reserve_for_fee: GemBigInt,
+pub struct GemAmountInput {
+    pub available_value: GemBigInt,
+    pub max_value: GemBigInt,
+    pub reserved_fee: Option<GemBigInt>,
     pub can_change_value: bool,
     pub shows_asset_balance: bool,
 }
@@ -57,13 +58,6 @@ pub struct GemAmountRules {
 pub struct GemPerpetualAutoclose {
     pub take_profit: Option<f64>,
     pub stop_loss: Option<f64>,
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemAmountLimits {
-    pub available_value: GemBigInt,
-    pub max_value: GemBigInt,
-    pub reserves_fee: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Error)]

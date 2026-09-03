@@ -347,16 +347,21 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `GemTransferData.stake` (with its `StakeType.validatorId` switch) and iOS's inline
   `TransferData(...)` builders are gone. What is left is the provider layer itself: the iOS providers (`AmountTransferViewModel`,
   `AmountStakeViewModel`, `AmountPerpetualViewModel`, `AmountEarnViewModel`) and Android's
-  `providers/*` each derive the max button, the equivalent value and the confirm input from
-  `GemAmountRules` / `GemAmountLimits`, and the perpetual order is Core's too:
+  `providers/*` each build the type-specific confirm input; the screen state is one Core answer,
+  `GemAmountType::input(asset, balance) -> GemAmountInput { available_value, max_value,
+  reserved_fee: Option, can_change_value, shows_asset_balance }` (the former `rules` + `limits`
+  pair — `reserved_fee` is `Some` exactly when the max keeps a fee back, which is the note both
+  screens show at max; the minimum is Core's to validate, not the app's to read), so iOS's
+  `AmountDataProvidable` extension and Android's five derived provider flows are one `input`
+  each, and the perpetual order is Core's too:
   `GemPerpetualDetailsService::position_action` builds the action the position screen hands over
   and `GemAmountService::perpetual_transfer_data` turns it into the transfer, so the per-app
   `PerpetualTransferData`, `PerpetualPositionAction`, `PerpetualOrderFactory` and
   `PerpetualOrder+GemstonePrimitives` are gone (`limits` is infallible — the available value exists for
   every type — so neither app carries a catch that handed back zero limits; the balance they hand
-  in is the one `GemAssetBalance` record, bridged once per app); a Core
-  `GemAmountInput` value that carries all of it per type would let both collapse to a view-state
-  mapping.
+  in is the one `GemAssetBalance` record, bridged once per app). What is left per app is the
+  input text ↔ value conversion (both through Core converters) and the type-specific
+  `makeTransferData` / `buildTransfer` dispatch.
 - **Screens read their rows from one Core answer.** `GemTransactionDetailsService::details`
   (swap progress steps, swap-again, provider name, confirmation ETA, pnl, price) and
   `GemAssetBalance::detail_rows` (available, staked, earn, pending, reserved) replaced the

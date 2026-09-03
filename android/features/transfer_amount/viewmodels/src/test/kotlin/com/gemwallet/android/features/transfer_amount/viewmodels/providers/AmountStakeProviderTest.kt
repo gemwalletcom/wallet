@@ -139,7 +139,7 @@ class AmountStakeProviderTest {
         provider.assetInfo.filterNotNull().first()
         provider.validatorState.filterNotNull().first()
 
-        assertEquals(BigInteger("77"), provider.availableBalance.first { it != BigInteger.ZERO })
+        assertEquals(BigInteger("77"), provider.input.filterNotNull().first().availableValue)
         val confirm = provider.stakeType() as StakeType.Unstake
         assertEquals("77", confirm.content.base.balance)
     }
@@ -171,7 +171,7 @@ class AmountStakeProviderTest {
 
     @Test
     fun `canChangeValue is false for Withdraw and Rewards`() = runBlocking {
-        suspend fun canChangeValue(params: AmountParams.Stake) = makeProvider(params).rules.filterNotNull().first().canChangeValue
+        suspend fun canChangeValue(params: AmountParams.Stake) = makeProvider(params).input.filterNotNull().first().canChangeValue
         assertEquals(true, canChangeValue(AmountParams.Stake.Delegate(asset.id)))
         assertEquals(true, canChangeValue(AmountParams.Stake.Redelegate(asset.id, "v", "d")))
         assertEquals(false, canChangeValue(AmountParams.Stake.Withdraw(asset.id, "v", "d")))
@@ -229,23 +229,16 @@ class AmountStakeProviderTest {
     }
 
     @Test
-    fun `unfreeze has zero minimum and zero reserve`() {
-        val provider = makeProvider(AmountParams.Stake.Unfreeze(asset.id, Resource.Bandwidth))
-        assertEquals(BigInteger.ZERO, provider.minimumValue.value)
-        assertEquals(BigInteger.ZERO, provider.reserveForFee.value)
-    }
-
-    @Test
     fun `unfreeze availableBalance reflects live resource selection`() = runBlocking {
         every { getAssetInfo(asset.id) } returns flowOf(
             mockAssetInfo(asset = asset, balance = AssetBalance.create(asset = asset, frozen = "2000", locked = "3000")),
         )
 
         val provider = makeProvider(AmountParams.Stake.Unfreeze(asset.id, Resource.Bandwidth))
-        assertEquals(BigInteger("2000"), provider.availableBalance.filterNotNull().first { it != BigInteger.ZERO })
+        assertEquals(BigInteger("2000"), provider.input.filterNotNull().first().availableValue)
 
         provider.setResource(Resource.Energy)
-        assertEquals(BigInteger("3000"), provider.availableBalance.filterNotNull().first { it == BigInteger("3000") })
+        assertEquals(BigInteger("3000"), provider.input.filterNotNull().first { it.availableValue == BigInteger("3000") }.availableValue)
     }
 
     private suspend fun AmountStakeProvider.stakeType(): StakeType? =
