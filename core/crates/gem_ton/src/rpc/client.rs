@@ -1,21 +1,20 @@
 use std::{collections::HashMap, error::Error};
 
 use primitives::{Asset, AssetId, AssetType, chain::Chain};
-use serde::Serialize;
 
 use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainStaking, ChainTraits};
 use gem_client::{Client, ClientExt};
 
 use crate::models::{
     ApiResult, BroadcastTransaction, Chainhead, DnsRecordsResponse, JettonMastersResponse, JettonWalletsResponse, NftCollectionsResponse, NftItemsResponse, RunGetMethodRequest,
-    RunGetMethodResult, StackArg, TraceByAddressQuery, TraceByBlockQuery, TraceByMessageQuery, TraceByTransactionQuery, TraceResponse, WalletInfo,
+    RunGetMethodResult, SendBocRequest, StackArg, TraceByAddressQuery, TraceByBlockQuery, TraceByMessageQuery, TraceByTransactionQuery, TraceResponse, WalletInfo,
     simulation::{TonEmulationRequest, TonEmulationResponse},
 };
+use crate::rpc::target::TonCenterTarget;
 
 const TONCENTER_V3_BLOCK_LIMIT: usize = 100;
 const TONCENTER_SORT_DESC: &str = "desc";
 const TONCENTER_SORT_ASC: &str = "asc";
-const TONCENTER_ACTIONS_VERSION: &str = "5";
 
 #[derive(Debug)]
 pub struct TonClient<C: Client> {
@@ -28,35 +27,33 @@ impl<C: Client> TonClient<C> {
     }
 
     pub async fn get_master_head(&self) -> Result<Chainhead, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get("/api/v3/masterchainInfo").await?)
+        Ok(self.client.get(TonCenterTarget::GetMasterchainInfo).await?)
     }
 
     pub async fn get_dns_records(&self, domain: &str) -> Result<DnsRecordsResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/api/v3/dns/records?domain={domain}&limit=1")).await?)
+        Ok(self.client.get(TonCenterTarget::GetDnsRecords { domain: domain.to_string() }).await?)
     }
 
     pub async fn get_token_info(&self, token_id: &str) -> Result<JettonMastersResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/api/v3/jetton/masters?address={}", token_id)).await?)
+        Ok(self.client.get(TonCenterTarget::GetJettonMasters { address: token_id.to_string() }).await?)
     }
 
     pub async fn get_balance(&self, address: String) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let response: ApiResult<String> = self.client.get(&format!("/api/v2/getAddressBalance?address={}", address)).await?;
+        let response: ApiResult<String> = self.client.get(TonCenterTarget::GetAddressBalance { address }).await?;
         Ok(response.result)
     }
 
     pub async fn get_wallet_information(&self, address: String) -> Result<WalletInfo, Box<dyn Error + Send + Sync>> {
-        let response: ApiResult<WalletInfo> = self.client.get(&format!("/api/v2/getWalletInformation?address={}", address)).await?;
+        let response: ApiResult<WalletInfo> = self.client.get(TonCenterTarget::GetWalletInformation { address }).await?;
         Ok(response.result)
     }
 
     pub async fn broadcast_transaction(&self, data: String) -> Result<ApiResult<BroadcastTransaction>, Box<dyn Error + Send + Sync>> {
-        let body = serde_json::json!({ "boc": data });
-        Ok(self.client.post("/api/v2/sendBocReturnHash", &body).await?)
+        Ok(self.client.post(TonCenterTarget::SendBoc, &SendBocRequest { boc: data }).await?)
     }
 
     pub(crate) async fn emulate_ton_connect(&self, request: &TonEmulationRequest<'_>) -> Result<TonEmulationResponse, Box<dyn Error + Send + Sync>> {
-        let headers = HashMap::from([("X-Actions-Version".to_string(), TONCENTER_ACTIONS_VERSION.to_string())]);
-        Ok(self.client.post("/api/emulate/v1/emulateTonConnect", request).headers(headers).await?)
+        Ok(self.client.post(TonCenterTarget::EmulateTonConnect, request).await?)
     }
 
     pub async fn run_get_method(&self, address: &str, method: &str, stack: Vec<StackArg>) -> Result<RunGetMethodResult, Box<dyn Error + Send + Sync>> {
@@ -75,7 +72,7 @@ impl<C: Client> TonClient<C> {
             method: method.to_string(),
             stack,
         };
-        let response: ApiResult<serde_json::Value> = self.client.post("/api/v2/runGetMethod", &request).headers(headers).await?;
+        let response: ApiResult<serde_json::Value> = self.client.post(TonCenterTarget::RunGetMethod, &request).headers(headers).await?;
         if !response.ok {
             let message = match response.result.as_str() {
                 Some(message) => message.to_string(),
@@ -91,7 +88,7 @@ impl<C: Client> TonClient<C> {
             msg_hash: hash,
             include_actions: true,
         };
-        self.get_traces(query).await
+        Ok(self.client.get(TonCenterTarget::GetTracesByMessage { query }).await?)
     }
 
     pub async fn get_traces_by_transaction(&self, hash: String) -> Result<TraceResponse, Box<dyn Error + Send + Sync>> {
@@ -99,7 +96,7 @@ impl<C: Client> TonClient<C> {
             tx_hash: hash,
             include_actions: true,
         };
-        self.get_traces(query).await
+        Ok(self.client.get(TonCenterTarget::GetTracesByTransaction { query }).await?)
     }
 
     pub async fn get_traces_by_hash(&self, hash: String) -> Result<TraceResponse, Box<dyn Error + Send + Sync>> {
@@ -119,7 +116,7 @@ impl<C: Client> TonClient<C> {
             offset: 0,
             sort: TONCENTER_SORT_ASC,
         };
-        self.get_traces(query).await
+        Ok(self.client.get(TonCenterTarget::GetTracesByBlock { query }).await?)
     }
 
     pub async fn get_traces_by_address(&self, address: String, limit: usize) -> Result<TraceResponse, Box<dyn Error + Send + Sync>> {
@@ -130,27 +127,28 @@ impl<C: Client> TonClient<C> {
             offset: 0,
             sort: TONCENTER_SORT_DESC,
         };
-        self.get_traces(query).await
-    }
-
-    async fn get_traces<T: Serialize>(&self, query: T) -> Result<TraceResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get("/api/v3/traces").query(&query).await?)
+        Ok(self.client.get(TonCenterTarget::GetTracesByAddress { query }).await?)
     }
 
     pub async fn get_jetton_wallets(&self, address: String) -> Result<JettonWalletsResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/api/v3/jetton/wallets?owner_address={}&limit=100&offset=0", address)).await?)
+        Ok(self.client.get(TonCenterTarget::GetJettonWallets { owner: address }).await?)
     }
 
     pub async fn get_nft_items_by_owner(&self, owner_address: &str) -> Result<NftItemsResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/api/v3/nft/items?owner_address={}&limit=1000&offset=0", owner_address)).await?)
+        Ok(self.client.get(TonCenterTarget::GetNftItemsByOwner { owner: owner_address.to_string() }).await?)
     }
 
     pub async fn get_nft_item(&self, address: &str) -> Result<NftItemsResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/api/v3/nft/items?address={}", address)).await?)
+        Ok(self.client.get(TonCenterTarget::GetNftItem { address: address.to_string() }).await?)
     }
 
     pub async fn get_nft_collection(&self, collection_address: &str) -> Result<NftCollectionsResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/api/v3/nft/collections?collection_address={}", collection_address)).await?)
+        Ok(self
+            .client
+            .get(TonCenterTarget::GetNftCollection {
+                address: collection_address.to_string(),
+            })
+            .await?)
     }
 
     pub async fn get_token_data(&self, token_id: String) -> Result<Asset, Box<dyn Error + Send + Sync>> {
