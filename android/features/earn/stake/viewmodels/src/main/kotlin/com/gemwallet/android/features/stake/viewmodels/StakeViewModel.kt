@@ -13,13 +13,11 @@ import com.gemwallet.android.application.stake.cases.SyncStakeDelegations
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.stakeChain
 import com.gemwallet.android.AppUrl
-import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.domains.confirm.confirmInput
 import com.wallet.core.primitives.StakeType
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
@@ -80,10 +78,6 @@ class StakeViewModel @Inject constructor(
 
     val walletType = session.mapLatest { it?.wallet?.type }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    private val account = session.combine(assetId) { session, assetId ->
-        session?.wallet?.getAccount(assetId.chain)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val delegations = session.filterNotNull().combine(assetId) { session, assetId ->
         session.wallet.id to assetId
@@ -152,16 +146,14 @@ class StakeViewModel @Inject constructor(
             return
         }
         val assetInfo = assetInfo.value ?: return
-        val from = assetInfo.owner ?: return
         val balance = Crypto(delegation.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO)
-        onConfirm(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toJson(), balance.atomicValue.toString(), false).confirmInput(from))
+        onConfirm(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toJson(), balance.atomicValue.toString(), false))
     }
 
     fun onRewards(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
         val assetInfo = assetInfo.value ?: return
-        val account = account.value ?: return
         when (val destination = claimRewards.value?.destination ?: return) {
-            is GemClaimRewardsDestination.Transfer -> onConfirm(destination.transfer.confirmInput(account))
+            is GemClaimRewardsDestination.Transfer -> onConfirm(destination.transfer)
             is GemClaimRewardsDestination.Amount -> onAmount(AmountParams.Stake.Rewards(assetInfo.asset.id))
         }
     }

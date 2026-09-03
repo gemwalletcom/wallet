@@ -5,14 +5,13 @@ import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.toGem
-import com.gemwallet.android.serializer.toJson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.GemAmountLimits
 import uniffi.gemstone.GemAmountRules
@@ -51,5 +50,5 @@ abstract class AmountDataProvider(
 
     fun maxValue(): BigInteger = limits.value?.maxValue?.toBigIntegerOrNull() ?: availableBalance.value
 
-    abstract suspend fun buildConfirmInput(amount: Crypto, isMax: Boolean): GemConfirmInput
+    abstract suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData
 }

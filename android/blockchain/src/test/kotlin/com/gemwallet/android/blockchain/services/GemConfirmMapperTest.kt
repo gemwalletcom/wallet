@@ -2,7 +2,6 @@ package com.gemwallet.android.blockchain.services
 
 import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.domains.confirm.confirmInput
 import com.gemwallet.android.domains.confirm.transfer
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransferData
@@ -17,6 +16,7 @@ import com.wallet.core.primitives.FeePriority
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.GemConfirmData
+import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemConfirmFeeSelection
 import uniffi.gemstone.GemFeeOptions
 import uniffi.gemstone.GemFeeRate
@@ -42,11 +42,14 @@ class GemConfirmMapperTest {
     @Test
     fun toSignerParams_assemblesTheFeeFromTheSelectedPriority() {
         val asset = mockAssetEthereum()
-        val input = GemTransferData(
-            inputType = GemTransactionInputType.transfer(asset),
-            recipient = GemRecipient("0xrecipient"),
-            value = "1000000000000000",
-        ).confirmInput(mockAccount(chain = Chain.Ethereum))
+        val input = GemConfirmInput(
+            from = mockAccount(chain = Chain.Ethereum).toGem(),
+            transfer = GemTransferData(
+                inputType = GemTransactionInputType.transfer(asset),
+                recipient = GemRecipient("0xrecipient"),
+                value = "1000000000000000",
+            ),
+        )
         val feeRates = listOf(
             GemFeeRate(FeePriority.Normal.toGem(), GemGasPriceType.Eip1559(gasPrice = "2", priorityFee = "3")),
             GemFeeRate(FeePriority.Fast.toGem(), GemGasPriceType.Eip1559(gasPrice = "1", priorityFee = "1")),
@@ -71,7 +74,7 @@ class GemConfirmMapperTest {
             amount = GemTransferAmountResult.Amount(GemTransferAmount(value = "1", networkFee = "1", isMaxAmount = false)),
         )
 
-        val result = preload.toSignerParams(input)
+        val result = preload.toSignerParams()
 
         assertEquals(FeePriority.Normal, result.fee.priority)
         assertEquals(BigInteger("21000"), result.fee.amount)

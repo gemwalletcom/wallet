@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-public import struct Gemstone.GemConfirmData
 public import struct Gemstone.GemConfirmInput
 public import struct Gemstone.GemConfirmLoadOptions
 public import struct Gemstone.GemConfirmMetadata
@@ -17,7 +16,7 @@ public import typealias Gemstone.Chain
 public import typealias Gemstone.WalletId
 public import protocol Gemstone.GemConfirmServiceProtocol
 public import enum Gemstone.GemExecuteResult
-public import struct Gemstone.GemSendInput
+public import struct Gemstone.GemConfirmData
 public import typealias Gemstone.Transaction
 public import protocol Gemstone.GemTransactionSigner
 import Foundation
@@ -32,9 +31,9 @@ public final class GemConfirmServiceMock: GemConfirmServiceProtocol, @unchecked 
     private let simulationResult: GemConfirmSimulation?
     private let simulationFormatter = GemSimulationFormatter()
     private let lock = NSLock()
-    private var inputs: [GemSendInput] = []
+    private var inputs: [GemConfirmData] = []
 
-    public var executedInputs: [GemSendInput] { lock.withLock { inputs } }
+    public var executedInputs: [GemConfirmData] { lock.withLock { inputs } }
 
     public init(
         execute: Result<GemExecuteResult, any Error> = .success(.sent(hashes: [], transactions: [])),
@@ -95,8 +94,8 @@ public final class GemConfirmServiceMock: GemConfirmServiceProtocol, @unchecked 
 
     public func track(walletId _: WalletId, transactions _: [Transaction]) async throws {}
 
-    public func execute(input: GemSendInput, signer _: any GemTransactionSigner) async throws -> GemExecuteResult {
-        lock.withLock { inputs.append(input) }
+    public func execute(confirm: GemConfirmData, signer _: any GemTransactionSigner) async throws -> GemExecuteResult {
+        lock.withLock { inputs.append(confirm) }
         return try executeResult.get()
     }
 }

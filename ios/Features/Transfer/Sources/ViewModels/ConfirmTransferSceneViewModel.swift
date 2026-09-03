@@ -4,7 +4,6 @@ import struct Gemstone.GemConfirmData
 import struct Gemstone.GemConfirmPreload
 import struct Gemstone.GemConfirmSimulationState
 import struct Gemstone.GemConfirmLoadOptions
-import struct Gemstone.GemSendInput
 import enum Gemstone.GemConfirmError
 import enum Gemstone.GemTransferAmountResult
 import enum Gemstone.GemExecuteResult
@@ -54,6 +53,7 @@ public final class ConfirmTransferSceneViewModel {
     public let recipientAddressNameQuery: ObservableQuery<AddressNameRequest>
 
     private let request: ConfirmTransferRequest
+    private let wallet: Wallet
     private let onComplete: VoidAction
 
     private var currency: Currency {
@@ -64,15 +64,16 @@ public final class ConfirmTransferSceneViewModel {
 
     public init(
         request: ConfirmTransferRequest,
+        wallet: Wallet,
         service: any GemConfirmTransferServiceProtocol,
         onComplete: VoidAction,
     ) {
         self.request = request
+        self.wallet = wallet
         self.service = service
         self.onComplete = onComplete
 
         let initialState = service.initialState(
-            walletId: request.wallet.id.id,
             inputType: request.data.inputType,
             simulation: request.simulation?.json(),
         )
@@ -212,7 +213,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         case .app:
             ConfirmAppViewModel(type: request.data.inputType, shortName: request.data.inputType.applicationShortName())
         case .sender:
-            ConfirmSenderViewModel(wallet: request.wallet)
+            ConfirmSenderViewModel(wallet: wallet)
         case .network:
             ConfirmNetworkViewModel(type: request.data.inputType)
         case .recipient:
@@ -343,7 +344,7 @@ extension ConfirmTransferSceneViewModel {
         case .fiat:
             isPresentingSheet = .fiatConnect(
                 assetAddress: AssetAddress(asset: asset, address: senderAddress),
-                wallet: request.wallet,
+                wallet: wallet,
                 amount: buyAmount,
             )
         }
@@ -374,7 +375,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     private var senderAddress: String {
-        (try? request.wallet.account(for: dataModel.chain).address) ?? ""
+        (try? service.confirmInput(transfer: request.data).from.address) ?? ""
     }
 
     public func assetAddress(_ asset: Asset) -> AssetAddress {
@@ -386,7 +387,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     public var assetAcquisitionWallet: Wallet {
-        request.wallet
+        wallet
     }
 
     private var dataModel: TransferDataViewModel {
@@ -403,8 +404,7 @@ extension ConfirmTransferSceneViewModel {
 
     func load(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferData {
         let scene = try await service.load(
-            walletId: request.wallet.id.id,
-            input: try request.confirmInput(),
+            input: try service.confirmInput(transfer: request.data),
             options: options(selection: selection, feeAssetSelection: feeAssetSelection),
             simulation: request.simulation?.json(),
         )
@@ -428,16 +428,14 @@ extension ConfirmTransferSceneViewModel {
     }
 
     func submit(request: ConfirmTransferRequest, confirmData: GemConfirmData, amount: TransferAmount, simulation: Primitives.SimulationResult?) async throws {
-        let input = GemSendInput(
-            wallet: request.wallet.json(),
-            confirm: confirmData,
-            value: amount.value.description,
-            networkFee: amount.networkFee.description,
-            simulation: simulation?.json(),
-        )
         let result: GemExecuteResult
         do {
-            result = try await service.execute(input: input)
+            result = try await service.execute(
+                confirm: confirmData,
+                value: amount.value.description,
+                networkFee: amount.networkFee.description,
+                simulation: simulation?.json(),
+            )
         } catch let GemConfirmError.Broadcast(hashes, msg) {
             hashes.forEach { request.delegate?(.success($0)) }
             throw GemConfirmError.Broadcast(hashes: hashes, msg: msg)

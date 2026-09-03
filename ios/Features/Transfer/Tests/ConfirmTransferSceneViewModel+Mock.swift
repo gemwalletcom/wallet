@@ -28,13 +28,12 @@ extension ConfirmTransferSceneViewModel {
         transactionStateService: any GemTransactionStateServiceProtocol = GemTransactionStateServiceMock(),
         onComplete: VoidAction = nil,
     ) -> ConfirmTransferSceneViewModel {
-        ConfirmTransferSceneViewModel(
-            request: request ?? ConfirmTransferRequest(
-                wallet: wallet ?? .mock(accounts: [.mock(chain: data.chain)]),
-                data: data,
-                simulation: simulation,
-            ),
+        let wallet = wallet ?? .mock(accounts: [.mock(chain: data.chain)])
+        return ConfirmTransferSceneViewModel(
+            request: request ?? ConfirmTransferRequest(data: data, simulation: simulation),
+            wallet: wallet,
             service: GemConfirmTransferServiceMock(
+                wallet: wallet,
                 confirm: gemConfirmService,
                 names: nameService,
                 transactionState: transactionStateService,

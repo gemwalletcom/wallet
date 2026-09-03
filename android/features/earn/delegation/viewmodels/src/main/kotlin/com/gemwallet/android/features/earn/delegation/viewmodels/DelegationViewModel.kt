@@ -14,7 +14,6 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.stake.rewardsBalance
 import com.gemwallet.android.ext.changeAmountOnUnstake
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.domains.confirm.confirmInput
 import com.wallet.core.primitives.StakeType
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.ui.components.list_item.availableIn
@@ -128,9 +127,8 @@ class DelegationViewModel @Inject constructor(
             buildUndelegate()?.let { amountCall(it) }
             return
         }
-        val from = assetInfo.owner ?: return
         val balance = Crypto(delegation.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO)
-        confirmCall(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Unstake(delegation).toJson(), balance.atomicValue.toString(), false).confirmInput(from))
+        confirmCall(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Unstake(delegation).toJson(), balance.atomicValue.toString(), false))
     }
 
     fun onRedelegate(call: AmountTransactionAction) {
@@ -139,15 +137,13 @@ class DelegationViewModel @Inject constructor(
 
     fun onWithdraw(call: ConfirmTransactionAction) {
         val assetInfo = assetInfo.value ?: return
-        val from = assetInfo.owner ?: return
         val delegation = delegation.value ?: return
         val balance = Crypto(delegation.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO)
-        call(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toJson(), balance.atomicValue.toString(), false).confirmInput(from))
+        call(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toJson(), balance.atomicValue.toString(), false))
     }
 
     fun onClaimRewards(call: ConfirmTransactionAction) {
         val assetInfo = assetInfo.value ?: return
-        val from = assetInfo.owner ?: return
         val delegation = delegation.value ?: return
         call(
             stakeService.stakeTransferData(
@@ -155,7 +151,7 @@ class DelegationViewModel @Inject constructor(
                 StakeType.Rewards(listOf(delegation.validator)).toJson(),
                 delegation.rewardsBalance().toString(),
                 false,
-            ).confirmInput(from)
+            )
         )
     }
 

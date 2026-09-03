@@ -1,10 +1,7 @@
 package com.gemwallet.android.features.swap.viewmodels
 
-import com.gemwallet.android.domains.confirm.confirmInput
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.serializer.toJson
 import kotlinx.coroutines.CancellationException
-import com.wallet.core.primitives.swap.SwapPriceImpact
 import com.gemwallet.android.serializer.decodeJson
 
 import com.gemwallet.android.domains.asset.swapValue
@@ -41,7 +38,6 @@ import com.gemwallet.android.features.swap.viewmodels.models.onQuoteInvalidated
 import com.gemwallet.android.features.swap.viewmodels.models.onQuoteResults
 import com.gemwallet.android.features.swap.viewmodels.models.onRefreshRequested
 import com.gemwallet.android.features.swap.viewmodels.models.onRequestParamsChanged
-import com.gemwallet.android.features.swap.viewmodels.models.onTransferAbandoned
 import com.gemwallet.android.features.swap.viewmodels.models.onTransferFailed
 import com.gemwallet.android.features.swap.viewmodels.models.onTransferHandedOff
 import com.gemwallet.android.features.swap.viewmodels.models.receiveEquivalent
@@ -50,9 +46,8 @@ import com.gemwallet.android.math.multiplyByPercent
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.toAssetPriceValue
-import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
@@ -318,7 +313,7 @@ class SwapViewModel @Inject constructor(
     }
 
     fun onPrimaryAction(
-        onConfirm: (GemConfirmInput) -> Unit,
+        onConfirm: (GemTransferData) -> Unit,
         onShowPriceImpactWarning: () -> Unit,
         authorize: (() -> Unit) -> Unit,
     ) {
@@ -350,21 +345,15 @@ class SwapViewModel @Inject constructor(
         refreshEnabled.value = isEnabled
     }
 
-    fun swap(onConfirm: (GemConfirmInput) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
+    fun swap(onConfirm: (GemTransferData) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
         val started = session.value.startTransfer()
         val transfer = started.second ?: return@launch
         val pending = started.first.quote ?: return@launch
         session.value = started.first
 
         try {
-            val from = pending.pay.owner
-            if (from == null) {
-                session.update { it.onTransferAbandoned(transfer) }
-                return@launch
-            }
             val params = swapQuoteService.getTransfer(pending.quote)
                 .transferData(pending.pay.asset.toGem(), pending.receive.asset.toGem())
-                .confirmInput(from)
             if (session.value.transferPhase != transfer) {
                 return@launch
             }

@@ -3,8 +3,6 @@ package com.gemwallet.android.data.coordinators.perpetuals
 import com.gemwallet.android.application.perpetual.cases.BuildPerpetualParams
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
-import com.gemwallet.android.domains.confirm.confirmInput
-import com.gemwallet.android.ext.hyperliquidAccount
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.serializer.toJson
@@ -12,7 +10,7 @@ import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualPosition
 import kotlinx.coroutines.flow.firstOrNull
-import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
 
@@ -28,10 +26,9 @@ class BuildPerpetualParamsImpl(
         return AmountParams.Perpetual(assetId = data.asset.id, perpetualId = data.perpetual.id, positionAction = action)
     }
 
-    override suspend fun close(perpetualId: PerpetualId): GemConfirmInput? {
+    override suspend fun close(perpetualId: PerpetualId): GemTransferData? {
         val data = getPerpetual(perpetualId) ?: return null
-        val account = getSession().value?.wallet?.hyperliquidAccount ?: return null
-        return service.closeTransfer(data.perpetual.toJson(), data.asset.toGem(), getPosition(perpetualId)?.toJson()).confirmInput(account)
+        return service.closeTransfer(data.perpetual.toJson(), data.asset.toGem(), getPosition(perpetualId)?.toJson())
     }
 
     private suspend fun getPerpetual(perpetualId: PerpetualId): PerpetualData? =

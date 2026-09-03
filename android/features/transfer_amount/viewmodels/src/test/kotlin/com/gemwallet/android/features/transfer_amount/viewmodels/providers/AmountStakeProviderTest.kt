@@ -249,5 +249,5 @@ class AmountStakeProviderTest {
     }
 
     private suspend fun AmountStakeProvider.stakeType(): StakeType? =
-        buildConfirmInput(Crypto(BigInteger.ONE), isMax = false).transfer.inputType.stakeType
+        buildTransfer(Crypto(BigInteger.ONE), isMax = false).inputType.stakeType
 }

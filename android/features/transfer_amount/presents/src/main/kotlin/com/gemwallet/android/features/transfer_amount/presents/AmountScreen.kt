@@ -1,25 +1,25 @@
 package com.gemwallet.android.features.transfer_amount.presents
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountViewModel
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountStakeProvider
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountTransferProvider
-import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.screen.LoadingScene
 
 @Composable
 fun AmountScreen(
     onCancel: () -> Unit,
-    onConfirm: (GemConfirmInput) -> Unit,
+    onConfirm: (GemTransferData) -> Unit,
     viewModel: AmountViewModel = hiltViewModel(),
 ) {
     val provider = viewModel.provider

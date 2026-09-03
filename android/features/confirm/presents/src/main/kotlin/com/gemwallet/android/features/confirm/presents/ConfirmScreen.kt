@@ -51,7 +51,7 @@ import com.gemwallet.android.features.confirm.viewmodels.reorderRequestPropertie
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.domains.confirm.applicationMetadata
 import com.gemwallet.android.domains.confirm.asset
-import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemTransactionHeaderKind
 import uniffi.gemstone.GemTransactionInputType
 import com.gemwallet.android.model.ValueFormatter
@@ -97,7 +97,7 @@ import com.wallet.core.primitives.TransactionType
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfirmScreen(
-    input: GemConfirmInput? = null,
+    input: GemTransferData? = null,
     simulationResult: SimulationResult? = null,
     finishAction: FinishConfirmAction,
     cancelAction: CancelAction,
@@ -119,7 +119,7 @@ fun ConfirmScreen(
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val payloadAddressNames by viewModel.payloadAddressNames.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
-    val applicationMetadata = input?.transfer?.inputType?.applicationMetadata
+    val applicationMetadata = input?.inputType?.applicationMetadata
     val isExternalRequest = applicationMetadata != null
     val isPayment = applicationMetadata?.source == ApplicationMetadataSource.Payment
     val displayTransactionProperties = if (isExternalRequest) transactionProperties.reorderRequestProperties() else transactionProperties
@@ -175,7 +175,7 @@ fun ConfirmScreen(
                             .alpha(0f)
                             .clearAndSetSemantics { },
                     ) {
-                        AmountListHead(amount = "", icon = input.transfer.inputType.asset)
+                        AmountListHead(amount = "", icon = input.inputType.asset)
                     }
                     simulation.headerAsset != null -> {
                         val asset = requireNotNull(simulation.headerAsset)
@@ -211,7 +211,7 @@ fun ConfirmScreen(
                     else -> AmountListHead(
                         amount = amountModel?.cryptoAmount ?: "",
                         equivalent = amountModel?.amountEquivalent?.takeIf { (amountModel?.headerKind as? GemTransactionHeaderKind.Amount)?.showsFiat != false },
-                        icon = if (input?.transfer?.inputType is GemTransactionInputType.Withdrawal) {
+                        icon = if (input?.inputType is GemTransactionInputType.Withdrawal) {
                             PerpetualConfig.depositAsset
                         } else {
                             amountModel?.asset

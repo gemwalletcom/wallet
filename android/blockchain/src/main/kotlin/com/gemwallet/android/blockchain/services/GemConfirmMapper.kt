@@ -9,7 +9,6 @@ import com.gemwallet.android.model.FeeSelection
 import com.gemwallet.android.model.SignerParams
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemConfirmFeeSelection
-import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemConfirmLoadOptions
 import uniffi.gemstone.GemConfirmPreload
 
@@ -24,10 +23,9 @@ fun confirmLoadOptions(selection: FeeSelection, feeAssetSelection: FeeAssetSelec
     },
 )
 
-fun GemConfirmPreload.toSignerParams(input: GemConfirmInput): SignerParams {
+fun GemConfirmPreload.toSignerParams(): SignerParams {
     val selectedPriority = confirmData.selectedPriority.toPrimitives()
     return SignerParams(
-        input = input,
         confirmData = confirmData,
         fee = confirmData.fee.toFee(selectedPriority, AssetId(confirmData.fee.feeAsset)),
         feeRates = confirmData.feeRates,

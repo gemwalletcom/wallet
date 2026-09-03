@@ -520,11 +520,11 @@ public struct ViewModelFactory: Sendable {
     ) -> ConfirmTransferSceneViewModel {
         ConfirmTransferSceneViewModel(
             request: ConfirmTransferRequest(
-                wallet: wallet,
                 data: data,
                 simulation: simulation,
                 delegate: confirmTransferDelegate,
             ),
+            wallet: wallet,
             service: confirmTransferService(),
             onComplete: { [toastPresenter] in
                 Task { await toastPresenter.present(.transfer(for: data.inputType)) }
@@ -543,6 +543,7 @@ public struct ViewModelFactory: Sendable {
             password: GemstoneKeystorePassword(keystore: keystore),
             recentActivity: recentAssetsService,
             preferences: preferencesService,
+            session: walletSessionService,
         )
     }
 

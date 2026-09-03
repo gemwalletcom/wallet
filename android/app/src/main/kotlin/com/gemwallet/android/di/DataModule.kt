@@ -90,6 +90,7 @@ object DataModule {
         passwordStore: PasswordStore,
         recentActivity: GemRecentActivityService,
         preferencesService: GemPreferencesService,
+        walletSessionService: GemWalletSessionService,
     ): GemConfirmTransferService = GemConfirmTransferService(
         confirmService as GemConfirmService,
         explorerService,
@@ -99,6 +100,7 @@ object DataModule {
         GemstoneKeystorePassword(passwordStore),
         recentActivity,
         preferencesService,
+        walletSessionService,
     )
 
     @Provides

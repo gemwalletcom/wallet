@@ -84,44 +84,6 @@ impl GemConfirmService {
         self.transaction_state.track(wallet_id, transactions).await
     }
 
-    pub async fn execute(&self, input: GemSendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {
-        let signer_input = input.signer_input()?;
-        let chain = input.confirm.input.transfer.input_type.asset().chain();
-        let transactions = signer.sign(input.wallet.clone(), signer_input).await.map_err(|error| error::sign_error(chain, error))?;
-        if transactions.is_empty() {
-            return Err(GemConfirmError::Sign {
-                error: GemSignerError::SigningError("no signed transactions".to_string()),
-                chain,
-                msg: "no signed transactions".to_string(),
-            });
-        }
-        input.confirm.input.transfer.input_type.validate_approvals(&transactions)?;
-        match input.confirm.input.transfer.input_type.output().output_action {
-            TransferDataOutputAction::Sign => Ok(GemExecuteResult::Signed {
-                data: transactions.into_iter().map(|transaction| transaction.data).collect(),
-            }),
-            TransferDataOutputAction::Send => {
-                let wallet_id = input.wallet.id.clone();
-                let result = match self.send(input, transactions).await {
-                    Ok(result) => result,
-                    Err(error) => {
-                        if matches!(error, GemConfirmError::Broadcast { .. }) {
-                            let _ = self.track_pending().await;
-                        }
-                        return Err(error);
-                    }
-                };
-                if self.track(wallet_id, result.transactions.clone()).await.is_err() {
-                    let _ = self.track_pending().await;
-                }
-                Ok(GemExecuteResult::Sent {
-                    hashes: result.hashes,
-                    transactions: result.transactions,
-                })
-            }
-        }
-    }
-
     pub async fn load(&self, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmData, GemConfirmError> {
         let transfer = &input.transfer;
         let asset = transfer.input_type.asset();
@@ -183,6 +145,46 @@ impl GemConfirmService {
             metadata: load.metadata,
             simulation,
         })
+    }
+}
+
+impl GemConfirmService {
+    pub async fn execute(&self, input: GemSendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {
+        let signer_input = input.signer_input()?;
+        let chain = input.confirm.input.transfer.input_type.asset().chain();
+        let transactions = signer.sign(input.wallet.clone(), signer_input).await.map_err(|error| error::sign_error(chain, error))?;
+        if transactions.is_empty() {
+            return Err(GemConfirmError::Sign {
+                error: GemSignerError::SigningError("no signed transactions".to_string()),
+                chain,
+                msg: "no signed transactions".to_string(),
+            });
+        }
+        input.confirm.input.transfer.input_type.validate_approvals(&transactions)?;
+        match input.confirm.input.transfer.input_type.output().output_action {
+            TransferDataOutputAction::Sign => Ok(GemExecuteResult::Signed {
+                data: transactions.into_iter().map(|transaction| transaction.data).collect(),
+            }),
+            TransferDataOutputAction::Send => {
+                let wallet_id = input.wallet.id.clone();
+                let result = match self.send(input, transactions).await {
+                    Ok(result) => result,
+                    Err(error) => {
+                        if matches!(error, GemConfirmError::Broadcast { .. }) {
+                            let _ = self.track_pending().await;
+                        }
+                        return Err(error);
+                    }
+                };
+                if self.track(wallet_id, result.transactions.clone()).await.is_err() {
+                    let _ = self.track_pending().await;
+                }
+                Ok(GemExecuteResult::Sent {
+                    hashes: result.hashes,
+                    transactions: result.transactions,
+                })
+            }
+        }
     }
 }
 

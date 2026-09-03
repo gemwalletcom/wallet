@@ -11,7 +11,6 @@ import com.gemwallet.android.application.contacts.cases.GetContacts
 import com.gemwallet.android.application.nft.cases.GetAssetNft
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
@@ -32,7 +31,6 @@ import com.gemwallet.android.ui.models.navigation.optionalNftAssetId
 import com.gemwallet.android.ui.models.navigation.optionalPaymentRecipient
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAsset
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
@@ -45,7 +43,6 @@ import uniffi.gemstone.GemRecipientServiceInterface
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemstoneException
 import uniffi.gemstone.GemTransferData
-import com.gemwallet.android.domains.confirm.confirmInput
 import com.gemwallet.android.domains.confirm.transferNft
 import java.math.BigInteger
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -58,7 +55,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -235,7 +231,7 @@ class RecipientViewModel @Inject constructor(
                 val transfer = service.transferData(destination.transfer, asset.toGem())
                 when (type) {
                     is RecipientType.Nft -> updateFrom(PaymentRecipient(transfer.recipient, null))
-                    is RecipientType.Asset -> session.value?.wallet?.getAccount(asset.chain)?.let { confirmAction(transfer.confirmInput(it)) }
+                    is RecipientType.Asset -> confirmAction(transfer)
                 }
             }
             is GemPaymentDestination.Recipient -> updateFrom(PaymentRecipient(destination.recipient, destination.amount))
@@ -251,12 +247,12 @@ class RecipientViewModel @Inject constructor(
     }
 
     private fun onNftConfirm(nftAsset: NFTAsset, destination: GemRecipient, confirmAction: ConfirmTransactionAction) {
-        val from = session.value?.wallet?.getAccount(nftAsset.chain) ?: return
-        val transfer = GemTransferData(
-            inputType = GemTransactionInputType.transferNft(nftAsset.chain.asset(), nftAsset),
-            recipient = destination,
-            value = BigInteger.ZERO.toString(),
+        confirmAction(
+            GemTransferData(
+                inputType = GemTransactionInputType.transferNft(nftAsset.chain.asset(), nftAsset),
+                recipient = destination,
+                value = BigInteger.ZERO.toString(),
+            )
         )
-        confirmAction(transfer.confirmInput(from))
     }
 }

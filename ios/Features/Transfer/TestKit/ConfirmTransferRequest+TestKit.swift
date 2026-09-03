@@ -11,11 +11,10 @@ import struct Gemstone.GemTransferData
 
 public extension ConfirmTransferRequest {
     static func mock(
-        wallet: Wallet = .mock(),
         data: GemTransferData = .mock(),
         simulation: SimulationResult? = nil,
         delegate: TransferDataCallback.ConfirmTransferDelegate? = nil,
     ) -> ConfirmTransferRequest {
-        ConfirmTransferRequest(wallet: wallet, data: data, simulation: simulation, delegate: delegate)
+        ConfirmTransferRequest(data: data, simulation: simulation, delegate: delegate)
     }
 }

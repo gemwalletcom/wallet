@@ -10,7 +10,7 @@ import com.gemwallet.android.domains.perpetual.autoclose.AutocloseField
 import uniffi.gemstone.GemAutocloseModify
 import com.gemwallet.android.domains.perpetual.autoclose.AutocloseValidator
 import com.gemwallet.android.ext.PerpetualFormatter
-import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.NumericFormatter
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
@@ -36,8 +36,6 @@ import java.util.Locale
 import javax.inject.Inject
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.domains.perpetual.toGem
-import com.gemwallet.android.ext.hyperliquidAccount
-import com.gemwallet.android.domains.confirm.confirmInput
 import com.gemwallet.android.ext.toGem
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -58,8 +56,8 @@ class AutocloseViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val _confirmRequests = MutableSharedFlow<GemConfirmInput>(extraBufferCapacity = 1)
-    val confirmRequests: SharedFlow<GemConfirmInput> = _confirmRequests
+    private val _confirmRequests = MutableSharedFlow<GemTransferData>(extraBufferCapacity = 1)
+    val confirmRequests: SharedFlow<GemTransferData> = _confirmRequests
 
     private val userTakeProfitText = MutableStateFlow<String?>(null)
     private val userStopLossText = MutableStateFlow<String?>(null)
@@ -113,12 +111,11 @@ class AutocloseViewModel @Inject constructor(
         submitAttempted.value = true
         val position = position.value ?: return
         val assetIndex = position.perpetual.identifier.toIntOrNull() ?: return
-        val account = getSession().value?.wallet?.hyperliquidAccount ?: return
         val takeProfitField = autocloseField(position, TpslType.TakeProfit, takeProfitText.value)
         val stopLossField = autocloseField(position, TpslType.StopLoss, stopLossText.value)
         val modify = GemAutocloseModify(position.position.direction.toJson(), assetIndex, takeProfitField.toGem(), stopLossField.toGem())
         if (!modify.canBuild()) return
-        _confirmRequests.tryEmit(modify.transfer(position.perpetual.provider.toGem(), position.asset.toGem()).confirmInput(account))
+        _confirmRequests.tryEmit(modify.transfer(position.perpetual.provider.toGem(), position.asset.toGem()))
     }
 
     private fun buildUiModel(

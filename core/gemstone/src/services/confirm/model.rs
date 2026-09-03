@@ -61,7 +61,7 @@ pub(super) struct GemSendResult {
     pub(super) transactions: Vec<Transaction>,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct GemSendInput {
     pub wallet: Wallet,
     pub confirm: GemConfirmData,

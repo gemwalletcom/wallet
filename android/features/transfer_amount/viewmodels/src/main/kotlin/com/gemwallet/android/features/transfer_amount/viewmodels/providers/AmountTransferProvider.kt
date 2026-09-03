@@ -11,11 +11,9 @@ import com.wallet.core.primitives.Asset
 import kotlinx.coroutines.CoroutineScope
 import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.PerpetualProvider
-import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemPerpetual
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransferData
-import com.gemwallet.android.domains.confirm.confirmInput
 import com.gemwallet.android.domains.confirm.deposit
 import com.gemwallet.android.domains.confirm.transfer
 import com.gemwallet.android.domains.confirm.withdrawal
@@ -25,9 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import uniffi.gemstone.GemAmountType
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -64,7 +60,7 @@ class AmountTransferProvider(
         }
     }
 
-    override suspend fun buildConfirmInput(amount: Crypto, isMax: Boolean): GemConfirmInput {
+    override suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData {
         val current = assetInfo.value ?: error("assetInfo not loaded")
         val owner = current.owner ?: error("owner missing")
         val (inputType, recipient) = when (params) {
@@ -79,6 +75,6 @@ class AmountTransferProvider(
             recipient = recipient,
             value = amount.atomicValue.toString(),
             useMaxAmount = isMax,
-        ).confirmInput(owner)
+        )
     }
 }

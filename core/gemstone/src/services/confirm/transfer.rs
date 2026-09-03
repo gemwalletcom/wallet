@@ -1,15 +1,16 @@
 use std::sync::{Arc, Mutex};
 
 use primitives::currency::Currency;
-use primitives::{AddressName, Asset, Chain, PerpetualModifyConfirmData, SimulationResult, Transaction, WalletId};
+use primitives::{AddressName, Asset, Chain, PerpetualModifyConfirmData, SimulationResult, Wallet, WalletId};
 
 use crate::block_explorer::GemBlockExplorerLink;
+use crate::models::custom_types::GemBigInt;
 use crate::models::transaction::GemTransactionInputType;
 use crate::services::assets::config::GemAssetConfigService;
 use crate::services::confirm::rules::is_insufficient_network_fee;
 use crate::services::confirm::{
-    GemAcquireAssetFlow, GemConfirmError, GemConfirmInitialState, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmMetadata, GemConfirmPreload, GemConfirmService,
-    GemConfirmSimulationState, GemExecuteResult, GemFeeAsset, GemSendInput, GemTransactionSigner,
+    GemAcquireAssetFlow, GemConfirmData, GemConfirmError, GemConfirmInitialState, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmMetadata, GemConfirmPreload,
+    GemConfirmService, GemConfirmSimulationState, GemExecuteResult, GemFeeAsset, GemSendInput, GemTransactionSigner,
 };
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
@@ -17,8 +18,9 @@ use crate::services::name::GemNameService;
 use crate::services::perpetual::model::GemAutocloseSummary;
 use crate::services::perpetual::rules::autoclose_summary;
 use crate::services::preferences::GemPreferencesService;
-use crate::services::transfer::GemRecentActivityService;
+use crate::services::transfer::{GemRecentActivityService, GemTransferData};
 use crate::services::wallet::{GemKeystoreAuthentication, GemKeystorePassword};
+use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmTransferService {
@@ -30,6 +32,7 @@ pub struct GemConfirmTransferService {
     password: Arc<dyn GemKeystorePassword>,
     recent_activity: Arc<GemRecentActivityService>,
     preferences: Arc<GemPreferencesService>,
+    session: Arc<GemWalletSessionService>,
     loaded: Mutex<Option<GemConfirmLoad>>,
 }
 
@@ -45,6 +48,7 @@ impl GemConfirmTransferService {
         password: Arc<dyn GemKeystorePassword>,
         recent_activity: Arc<GemRecentActivityService>,
         preferences: Arc<GemPreferencesService>,
+        session: Arc<GemWalletSessionService>,
     ) -> Self {
         Self {
             confirm,
@@ -55,6 +59,7 @@ impl GemConfirmTransferService {
             password,
             recent_activity,
             preferences,
+            session,
             loaded: Mutex::new(None),
         }
     }
@@ -67,22 +72,38 @@ impl GemConfirmTransferService {
         self.password.authentication().unwrap_or(GemKeystoreAuthentication::None)
     }
 
-    pub fn metadata(&self, wallet_id: WalletId, input_type: GemTransactionInputType) -> Result<GemConfirmMetadata, GemConfirmError> {
-        self.confirm.input_metadata(wallet_id, &input_type, input_type.fee_asset().id)
+    pub fn confirm_input(&self, transfer: GemTransferData) -> Result<GemConfirmInput, GemConfirmError> {
+        let chain = transfer.input_type.asset().chain();
+        let from = self.wallet()?.account(chain).cloned().ok_or(GemConfirmError::AccountMissing { chain })?;
+        Ok(GemConfirmInput { from, transfer })
     }
 
-    pub fn initial_state(&self, wallet_id: WalletId, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> GemConfirmInitialState {
+    pub fn initial_state(&self, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> GemConfirmInitialState {
         GemConfirmInitialState {
             fee_priority: input_type.default_fee_priority(),
             fee_asset: input_type.fee_asset(),
-            metadata: self.metadata(wallet_id, input_type.clone()).ok(),
+            metadata: self.metadata(input_type.clone()).ok(),
             simulation: self.confirm.simulation(input_type, simulation).ok(),
         }
     }
 
-    pub async fn execute(&self, input: GemSendInput) -> Result<GemExecuteResult, GemConfirmError> {
-        let wallet_id = input.wallet.id.clone();
-        let input_type = input.confirm.input.transfer.input_type.clone();
+    pub async fn execute(
+        &self,
+        confirm: GemConfirmData,
+        value: GemBigInt,
+        network_fee: GemBigInt,
+        simulation: Option<SimulationResult>,
+    ) -> Result<GemExecuteResult, GemConfirmError> {
+        let wallet = self.wallet()?;
+        let wallet_id = wallet.id.clone();
+        let input_type = confirm.input.transfer.input_type.clone();
+        let input = GemSendInput {
+            wallet,
+            confirm,
+            value,
+            network_fee,
+            simulation,
+        };
         let result = self.confirm.execute(input, self.signer.clone()).await?;
         if is_broadcast(&result) {
             let _ = self.recent_activity.add(input_type, wallet_id).await;
@@ -90,13 +111,8 @@ impl GemConfirmTransferService {
         Ok(result)
     }
 
-    pub async fn load(
-        &self,
-        wallet_id: WalletId,
-        input: GemConfirmInput,
-        options: GemConfirmLoadOptions,
-        simulation: Option<SimulationResult>,
-    ) -> Result<GemConfirmLoad, GemConfirmError> {
+    pub async fn load(&self, input: GemConfirmInput, options: GemConfirmLoadOptions, simulation: Option<SimulationResult>) -> Result<GemConfirmLoad, GemConfirmError> {
+        let wallet_id = self.wallet_id()?;
         let previous = self.loaded.lock().expect("confirm load lock").clone();
         let load = match previous {
             Some(previous) => GemConfirmLoad {
@@ -112,10 +128,6 @@ impl GemConfirmTransferService {
 
     pub async fn track_pending(&self) -> Result<(), GemServiceError> {
         self.confirm.track_pending().await
-    }
-
-    pub async fn track(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
-        self.confirm.track(wallet_id, transactions).await
     }
 
     pub fn address_url(&self, chain: Chain, address: String) -> GemBlockExplorerLink {
@@ -135,6 +147,12 @@ impl GemConfirmTransferService {
     }
 }
 
+impl GemConfirmTransferService {
+    pub fn metadata(&self, input_type: GemTransactionInputType) -> Result<GemConfirmMetadata, GemConfirmError> {
+        self.confirm.input_metadata(self.wallet_id()?, &input_type, input_type.fee_asset().id)
+    }
+}
+
 fn is_broadcast(result: &GemExecuteResult) -> bool {
     match result {
         GemExecuteResult::Sent { .. } => true,
@@ -143,6 +161,14 @@ fn is_broadcast(result: &GemExecuteResult) -> bool {
 }
 
 impl GemConfirmTransferService {
+    fn wallet(&self) -> Result<Wallet, GemConfirmError> {
+        Ok(self.session.current_wallet()?)
+    }
+
+    fn wallet_id(&self) -> Result<WalletId, GemConfirmError> {
+        Ok(self.session.current_wallet_id()?)
+    }
+
     fn fee_assets(&self, wallet_id: WalletId, chain: Chain) -> Result<Vec<GemFeeAsset>, GemConfirmError> {
         self.confirm.fee_assets(wallet_id, chain)
     }
@@ -192,7 +218,7 @@ impl GemConfirmTransferService {
     }
 
     fn missing_network_fee(&self, wallet_id: WalletId, input_type: GemTransactionInputType) -> Option<GemConfirmError> {
-        let balance = self.metadata(wallet_id, input_type).ok()?.fee_asset_balance;
+        let balance = self.confirm.input_metadata(wallet_id, &input_type, input_type.fee_asset().id).ok()?.fee_asset_balance;
         is_insufficient_network_fee(balance.asset_id.clone(), &balance.available.to_string()).then(|| GemConfirmError::InsufficientNetworkFee {
             asset: Asset::from_chain(balance.asset_id.chain),
             requirement: None,

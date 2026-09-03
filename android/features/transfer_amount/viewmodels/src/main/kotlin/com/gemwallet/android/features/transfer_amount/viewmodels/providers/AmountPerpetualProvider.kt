@@ -22,8 +22,7 @@ import com.gemwallet.android.model.toGem
 import com.gemwallet.android.model.NumericFormatter
 import com.wallet.core.primitives.PerpetualDirection
 import kotlinx.coroutines.CoroutineScope
-import uniffi.gemstone.GemConfirmInput
-import com.gemwallet.android.domains.confirm.confirmInput
+import uniffi.gemstone.GemTransferData
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -159,9 +158,7 @@ class AmountPerpetualProvider(
         }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
-    override suspend fun buildConfirmInput(amount: Crypto, isMax: Boolean): GemConfirmInput {
-        val current = assetInfo.value ?: error("assetInfo not loaded")
-        val owner = current.owner ?: error("owner missing")
+    override suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData {
         return service.perpetualTransferData(
             action = params.positionAction,
             value = amount.atomicValue.toString(),
@@ -169,7 +166,7 @@ class AmountPerpetualProvider(
             leverage = leverageState.value?.current?.toUByte() ?: params.positionAction.data.leverage,
             takeProfit = trigger(takeProfit.value),
             stopLoss = trigger(stopLoss.value),
-        ).confirmInput(owner)
+        )
     }
 
     private fun trigger(text: String?): Double? = if (showsAutoclose) text?.let { numericFormatter.double(it) } else null

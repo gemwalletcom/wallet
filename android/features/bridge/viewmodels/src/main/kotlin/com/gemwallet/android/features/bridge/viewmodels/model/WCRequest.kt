@@ -6,11 +6,9 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.shortName
-import com.gemwallet.android.domains.confirm.confirmInput
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
 import uniffi.gemstone.GemSignMessagePreview
-import uniffi.gemstone.SignMessage as GemSignMessage
 import uniffi.gemstone.GemSignMessageServiceInterface
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.AddressName
@@ -20,7 +18,8 @@ import com.wallet.core.primitives.SimulationResult
 import com.wallet.core.primitives.SimulationWarning
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.TransferDataOutputAction
-import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.SignMessage as GemSignMessage
 
 sealed class WCRequest(
     internal val pending: WalletConnectPendingRequest,
@@ -78,7 +77,7 @@ sealed class WCRequest(
         val outputAction: TransferDataOutputAction
             get() = if (isSendable) TransferDataOutputAction.Send else TransferDataOutputAction.Sign
 
-        val confirmInput: GemConfirmInput
-            get() = request.transfer.confirmInput(account)
+        val transfer: GemTransferData
+            get() = request.transfer
     }
 }

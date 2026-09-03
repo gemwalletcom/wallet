@@ -9,7 +9,6 @@ import uniffi.gemstone.GemTransactionInputType
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -64,10 +63,10 @@ class AmountTransferProviderTest {
     }
 
     @Test
-    fun `buildConfirmInput produces a transfer with destination and memo`() = runBlocking {
+    fun `buildTransfer produces a transfer with destination and memo`() = runBlocking {
         val provider = makeProvider()
         provider.assetInfo.filterNotNull().first()
-        val transfer = provider.buildConfirmInput(amount = Crypto(BigInteger.ONE), isMax = false).transfer
+        val transfer = provider.buildTransfer(amount = Crypto(BigInteger.ONE), isMax = false)
         assertTrue(transfer.inputType is GemTransactionInputType.Transfer)
         assertEquals(BigInteger.ONE.toString(), transfer.value)
         assertEquals("to", transfer.recipient.address)
@@ -119,7 +118,7 @@ class AmountTransferProviderTest {
             scope = scope,
         )
         val owner = provider.assetInfo.filterNotNull().first().owner
-        val transfer = provider.buildConfirmInput(amount = Crypto(BigInteger.ONE), isMax = false).transfer
+        val transfer = provider.buildTransfer(amount = Crypto(BigInteger.ONE), isMax = false)
         assertTrue(transfer.inputType is GemTransactionInputType.Withdrawal)
         assertEquals(owner?.address, transfer.recipient.address)
     }

@@ -7,7 +7,6 @@ pub(crate) mod testkit;
 
 use crate::GemstoneError;
 use crate::models::transaction::GemTransactionInputType;
-use crate::services::confirm::GemConfirmInput;
 use crate::services::perpetual::GemPerpetualPositionAction;
 use primitives::TransactionType;
 use primitives::swap::ApprovalData;
@@ -27,12 +26,12 @@ impl GemTransferService {
         Self
     }
 
-    pub fn encode_confirm_input(&self, input: &GemConfirmInput) -> Result<String, GemstoneError> {
-        serde_json::to_string(input).map_err(GemstoneError::from)
+    pub fn encode_transfer_data(&self, transfer: &GemTransferData) -> Result<String, GemstoneError> {
+        serde_json::to_string(transfer).map_err(GemstoneError::from)
     }
 
-    pub fn decode_confirm_input(&self, input: String) -> Result<GemConfirmInput, GemstoneError> {
-        serde_json::from_str(&input).map_err(GemstoneError::from)
+    pub fn decode_transfer_data(&self, transfer: String) -> Result<GemTransferData, GemstoneError> {
+        serde_json::from_str(&transfer).map_err(GemstoneError::from)
     }
 
     pub fn encode_position_action(&self, action: &GemPerpetualPositionAction) -> Result<String, GemstoneError> {

@@ -899,3 +899,17 @@ decode}_position_action`, the same way it already carried the confirm input.
 `GemPerpetual::{order, close_order, transfer_data}` stopped being exported. When an app-side type
 exists only to be handed to Core later, make it a Core record and let Core build it.
 
+**The confirm screen reads the current wallet from Core.** Every Android screen that could end
+in a confirm built `GemConfirmInput` itself — seventeen `session.wallet.getAccount(chain) ?:
+return` / `assetInfo.owner ?: return` lookups — and the confirm view model read the session again
+for `load`'s wallet id and `execute`'s wallet; iOS threaded `wallet` through
+`ConfirmTransferRequest` and looked the account up in Swift. `GemConfirmTransferService` now
+takes the session: `confirm_input(transfer)` picks the signing account for the transfer's chain
+(`AccountMissing` if the wallet has none), and `initial_state`, `load` and
+`execute(confirm, value, network_fee, simulation)` read the wallet themselves, so `GemSendInput`
+stopped crossing the FFI. Both apps hand the confirm screen a `GemTransferData`: iOS's request lost
+its wallet (the view model keeps one only to navigate to buy / receive from the fee sheet), and
+Android's `ConfirmTransactionAction`, routes and `PaymentDestination` carry the transfer through
+`GemTransferService::{encode, decode}_transfer_data`. A screen that always acts on the current
+wallet must not be told which wallet that is.
+

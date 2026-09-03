@@ -30,7 +30,7 @@ struct ConfirmSubmissionTests {
         let gemConfirmService = GemConfirmServiceMock(execute: .success(.sent(hashes: ["hash-1", "hash-2"], transactions: [tracked.json()])))
         let reported = ReportedValues()
 
-        let request = ConfirmTransferRequest.mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) })
+        let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
         try await ConfirmTransferSceneViewModel.mock(request: request, gemConfirmService: gemConfirmService).submit(
             request: request,
             confirmData: .mock(),
@@ -47,7 +47,7 @@ struct ConfirmSubmissionTests {
         let gemConfirmService = GemConfirmServiceMock(execute: .success(.signed(data: ["signed"])))
         let reported = ReportedValues()
 
-        let request = ConfirmTransferRequest.mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) })
+        let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
         try await ConfirmTransferSceneViewModel.mock(request: request, gemConfirmService: gemConfirmService).submit(
             request: request,
             confirmData: .mock(),
@@ -64,7 +64,7 @@ struct ConfirmSubmissionTests {
         let reported = ReportedValues()
 
         await #expect(throws: GemConfirmError.self) {
-            let request = ConfirmTransferRequest.mock(wallet: .mock(accounts: [Account.mock(chain: .ethereum)]), delegate: { reported.append(try? $0.get()) })
+            let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
             try await ConfirmTransferSceneViewModel.mock(request: request, gemConfirmService: gemConfirmService).submit(
                 request: request,
                 confirmData: .mock(),
@@ -158,7 +158,7 @@ struct ConfirmSubmissionTests {
             nameService: GemNameServiceMock(error: NSError(domain: "test", code: 404)),
         )
 
-        let request = ConfirmTransferRequest.mock(wallet: .mock(accounts: [.mock(chain: GemTransferData.mock().chain)]))
+        let request = ConfirmTransferRequest.mock()
         let state = try await service.load(request: request, selection: FeeSelection.preset(.normal), feeAssetSelection: FeeAssetSelection.automatic).simulation
 
         #expect(state.payload.primaryFields.count == 1)

@@ -9,7 +9,7 @@ import com.gemwallet.android.features.transfer_amount.viewmodels.providers.Amoun
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountProviderFactory
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
-import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockGemAssetBalance
@@ -61,7 +61,7 @@ class AmountViewModelTest {
 
     private val builtAmounts = mutableListOf<Crypto>()
     private val builtIsMax = mutableListOf<Boolean>()
-    private val confirmInput = mockk<GemConfirmInput>(relaxed = true)
+    private val confirmInput = mockk<GemTransferData>(relaxed = true)
 
     private val balanceFlow = MutableStateFlow<GemAssetBalance?>(transferBalance(HundredAtom))
 
@@ -76,7 +76,7 @@ class AmountViewModelTest {
         every { reserveForFee } returns reserveForFeeFlow
         every { limits } returns limitsFlow
         every { maxValue() } answers { availableBalanceFlow.value }
-        coEvery { buildConfirmInput(capture(builtAmounts), capture(builtIsMax)) } returns confirmInput
+        coEvery { buildTransfer(capture(builtAmounts), capture(builtIsMax)) } returns confirmInput
     }
     private val factory = mockk<AmountProviderFactory> { every { create(any(), any()) } returns provider }
     private val service = mockk<GemAmountServiceInterface> { every { currency() } returns Currency.USD.string }
@@ -221,8 +221,8 @@ class AmountViewModelTest {
         }
     }
 
-    private fun AmountViewModel.confirm(): GemConfirmInput? {
-        var confirmed: GemConfirmInput? = null
+    private fun AmountViewModel.confirm(): GemTransferData? {
+        var confirmed: GemTransferData? = null
         onNext { confirmed = it }
         testDispatcher.scheduler.runCurrent()
         return confirmed

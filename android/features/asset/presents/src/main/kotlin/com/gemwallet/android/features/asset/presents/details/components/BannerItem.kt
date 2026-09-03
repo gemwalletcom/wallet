@@ -7,9 +7,7 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.getReserveBalanceUrl
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.domains.confirm.account
-import com.gemwallet.android.domains.confirm.confirmInput
 import com.wallet.core.primitives.AccountDataType
-import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransferData
@@ -25,7 +23,7 @@ import uniffi.gemstone.DocsUrl
 internal fun BannerItem(
     assetInfo: AssetInfo,
     onStake: (AssetId) -> Unit,
-    onConfirm: (GemConfirmInput) -> Unit,
+    onConfirm: (GemTransferData) -> Unit,
     onOpenPerpetuals: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -45,7 +43,7 @@ internal fun BannerItem(
                             inputType = GemTransactionInputType.account(assetInfo.asset, AccountDataType.Activate),
                             recipient = GemRecipient(owner.address),
                             value = BigInteger.ZERO.toString(),
-                        ).confirmInput(owner)
+                        )
                     )
                 }
 

@@ -17,8 +17,7 @@ import com.gemwallet.android.features.swap.viewmodels.models.SwapActionState
 import com.gemwallet.android.features.swap.viewmodels.models.SwapError
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.model.AssetBalance
-import com.gemwallet.android.model.AssetInfo
-import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.testkit.mockGemSwapTransfer
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAccount
@@ -375,7 +374,7 @@ class SwapViewModelTest {
 
         coEvery { swapQuoteService.getTransfer(any()) } returns mockGemSwapTransfer(from = solInfo.owner!!, toAddress = "0xconfirm")
 
-        var confirmed: GemConfirmInput? = null
+        var confirmed: GemTransferData? = null
         viewModel.onPrimaryAction(
             onConfirm = { confirmed = it },
             onShowPriceImpactWarning = {},
@@ -383,7 +382,7 @@ class SwapViewModelTest {
         )
         awaitCondition { confirmed != null }
 
-        assertEquals(solInfo.owner!!.address, confirmed?.transfer?.recipient?.address)
+        assertEquals(solInfo.owner!!.address, confirmed?.recipient?.address)
     }
 
     @Test
@@ -540,7 +539,7 @@ class SwapViewModelTest {
 
         seedReadyQuote(viewModel, quotesFlow)
 
-        var confirmInput: GemConfirmInput? = null
+        var confirmInput: GemTransferData? = null
         viewModel.swap { input ->
             confirmInput = input
         }
@@ -550,7 +549,7 @@ class SwapViewModelTest {
         confirmInputGate.complete(Unit)
         awaitCondition { confirmInput != null }
 
-        assertEquals("1000000000", confirmInput?.transfer?.value)
+        assertEquals("1000000000", confirmInput?.value)
     }
 
     @Test

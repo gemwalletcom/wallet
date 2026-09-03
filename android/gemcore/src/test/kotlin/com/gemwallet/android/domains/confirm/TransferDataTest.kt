@@ -1,6 +1,5 @@
 package com.gemwallet.android.domains.confirm
 
-import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -17,18 +16,18 @@ class TransferDataTest {
 
     @Test
     fun theRoutePayloadKeepsTheMemoAndReferences() {
-        val input = GemTransferData(
+        val transfer = GemTransferData(
             inputType = GemTransactionInputType.transfer(mockAsset()),
             recipient = GemRecipient(address = "destination", memo = "memo", references = listOf("reference")),
             value = BigInteger.ONE.toString(),
-        ).confirmInput(mockAccount())
+        )
 
-        val decoded = requireNotNull(transferService.unpack(requireNotNull(transferService.pack(input))))
+        val decoded = requireNotNull(transferService.unpack(requireNotNull(transferService.pack(transfer))))
 
-        assertEquals("destination", decoded.transfer.recipient.address)
-        assertEquals("memo", decoded.transfer.recipient.memo)
-        assertEquals(listOf("reference"), decoded.transfer.recipient.references)
-        assertEquals(BigInteger.ONE.toString(), decoded.transfer.value)
+        assertEquals("destination", decoded.recipient.address)
+        assertEquals("memo", decoded.recipient.memo)
+        assertEquals(listOf("reference"), decoded.recipient.references)
+        assertEquals(BigInteger.ONE.toString(), decoded.value)
     }
 
     @Test

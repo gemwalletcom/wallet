@@ -1,8 +1,6 @@
 package com.gemwallet.android.testkit
 
-import com.gemwallet.android.domains.confirm.confirmInput
 import com.gemwallet.android.domains.confirm.swap
-import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransferData
@@ -41,7 +39,7 @@ fun mockSwapQuote(
     useMaxAmount = useMaxAmount,
 )
 
-fun mockSwapParams(
+fun mockSwapTransferData(
     from: Account = mockAccount(),
     fromAsset: Asset = mockAssetSolana(),
     fromAmount: BigInteger = BigInteger.ZERO,
@@ -53,7 +51,7 @@ fun mockSwapParams(
     toAddress: String = from.address,
     provider: SwapProvider = SwapProvider.Hyperliquid,
     dataType: SwapQuoteDataType = SwapQuoteDataType.Transfer,
-) : GemConfirmInput {
+) : GemTransferData {
     val swapData = SwapData(
         quote = mockSwapQuote(
             from = from,
@@ -80,7 +78,7 @@ fun mockSwapParams(
         value = fromAmount.toString(),
         useMaxAmount = useMaxAmount,
         minimumValue = minFromAmount?.toString(),
-    ).confirmInput(from)
+    )
 }
 
 fun mockGemSwapTransfer(

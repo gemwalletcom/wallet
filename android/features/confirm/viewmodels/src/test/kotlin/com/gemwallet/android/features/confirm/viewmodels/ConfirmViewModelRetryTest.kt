@@ -6,7 +6,6 @@ import uniffi.gemstone.GemTransferService
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.ConfirmState
-import com.gemwallet.android.domains.confirm.confirmInput
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.ext.toGem
@@ -74,29 +73,31 @@ class ConfirmViewModelRetryTest {
 
     @Test
     fun retryAfterPreloadFailureRunsThePreloaderAgain() = runTest(testDispatcher) {
-        val input = GemTransferData(
+        val transfer = GemTransferData(
             inputType = GemTransactionInputType.Perpetual(asset.toGem(), PerpetualType.Open(mockPerpetualConfirmData(direction = PerpetualDirection.Long)).toGem()),
             recipient = GemRecipient(address = ""),
             value = BigInteger.TEN.toString(),
-        ).confirmInput(account)
-        val viewModel = viewModel(input)
+        )
+        val viewModel = viewModel(transfer)
         runCurrent()
-        coVerify(timeout = 5_000, exactly = 1) { confirmService.load(any(), any(), any(), any()) }
+        coVerify(timeout = 5_000, exactly = 1) { confirmService.load(any(), any(), any()) }
 
         assertTrue(viewModel.state.first { it is ConfirmState.Error } is ConfirmState.Error)
 
         viewModel.send(FinishConfirmAction { _ -> })
         runCurrent()
 
-        coVerify(timeout = 5_000, exactly = 2) { confirmService.load(any(), any(), any(), any()) }
+        coVerify(timeout = 5_000, exactly = 2) { confirmService.load(any(), any(), any()) }
         assertTrue(viewModel.state.first { it is ConfirmState.Ready } is ConfirmState.Ready)
         assertEquals(asset, viewModel.feeAsset.first { it != null }?.asset)
     }
 
-    private fun viewModel(input: GemConfirmInput): ConfirmViewModel {
+    private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
+        val input = GemConfirmInput(from = account.toGem(), transfer = transfer)
         every { confirmService.currency() } returns Currency.USD.toGem()
+        every { confirmService.confirmInput(transfer) } returns input
         var calls = 0
-        coEvery { confirmService.load(any(), any(), any(), any()) } answers {
+        coEvery { confirmService.load(any(), any(), any()) } answers {
             calls += 1
             if (calls == 1) {
                 throw IllegalStateException("preload failed")
@@ -134,7 +135,7 @@ class ConfirmViewModelRetryTest {
             },
             buildConfirmProperties = mockk(relaxed = true),
             confirmService = confirmService,
-            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transferService.pack(input)))),
+            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transferService.pack(transfer)))),
             transferService = uniffi.gemstone.GemTransferService(),
         )
     }

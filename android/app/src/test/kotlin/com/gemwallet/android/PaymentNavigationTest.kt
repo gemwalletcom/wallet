@@ -84,7 +84,7 @@ class PaymentNavigationTest {
         )
 
         val route = routes.single() as ConfirmRoute
-        val transfer = requireNotNull(transferService.unpack(route.params)).transfer
+        val transfer = requireNotNull(transferService.unpack(route.params))
         val assetId = transfer.inputType.asset.id
         val metadataSource = transfer.inputType.applicationMetadata?.source
         val generic = transfer.inputType as GemTransactionInputType.Generic
@@ -125,7 +125,7 @@ class PaymentNavigationTest {
         )
 
         val route = routes.single() as ConfirmRoute
-        val transfer = requireNotNull(transferService.unpack(route.params)).transfer
+        val transfer = requireNotNull(transferService.unpack(route.params))
         val assetId = transfer.inputType.asset.id
         val generic = transfer.inputType as GemTransactionInputType.Generic
         assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
@@ -165,7 +165,7 @@ class PaymentNavigationTest {
         )
 
         val route = routes.single() as ConfirmRoute
-        val transfer = requireNotNull(transferService.unpack(route.params)).transfer
+        val transfer = requireNotNull(transferService.unpack(route.params))
         val assetId = transfer.inputType.asset.id
         val generic = transfer.inputType as GemTransactionInputType.Generic
         assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))

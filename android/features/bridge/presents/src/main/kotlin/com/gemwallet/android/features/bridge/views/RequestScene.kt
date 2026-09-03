@@ -1,9 +1,9 @@
 package com.gemwallet.android.features.bridge.views
 
 import android.widget.Toast
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -73,7 +73,7 @@ fun RequestScene(
                     onReject = viewModel::onReject,
                 )
                 is WCRequest.Transaction -> ConfirmScreen(
-                    input = request.confirmInput,
+                    input = request.transfer,
                     simulationResult = request.simulation,
                     finishAction = { hash -> viewModel.onTransactionResult(hash) },
                     onAcquireAsset = onAcquireAsset,
