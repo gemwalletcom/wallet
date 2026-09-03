@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemChainService
 import Foundation
-import enum Gemstone.GemWalletConnectFailure
-import struct Gemstone.GemWalletConnectSessionRequest
+import class Gemstone.GemChainService
 import enum Gemstone.GemWalletConnectError
+import enum Gemstone.GemWalletConnectFailure
 import protocol Gemstone.GemWalletConnectServiceProtocol
-import GemstonePrimitives
+import struct Gemstone.GemWalletConnectSessionRequest
 import protocol Gemstone.GemWalletSessionServiceProtocol
+import GemstonePrimitives
 import Primitives
 @preconcurrency import ReownWalletKit
 @preconcurrency import WalletConnectPairing
@@ -60,25 +60,31 @@ extension WalletConnectorService: WalletConnectorServiceable {
     }
 
     public func setup() async {
-        guard await setupState.start() else {
-            return
-        }
-        Events.instance.setTelemetryEnabled(false)
-        await withTaskGroup(of: Void.self) { group in
-            group.addTask {
-                await self.handleSessions()
-            }
+        await setupState.start {
+            Events.instance.setTelemetryEnabled(false)
+            let sessionsStream = UncheckedSendable(value: self.interactor.sessionsStream)
+            let sessionProposalStream = UncheckedSendable(value: self.interactor.sessionProposalStream)
+            let sessionRequestStream = UncheckedSendable(value: self.interactor.sessionRequestStream)
+            let sessionDeleteStream = UncheckedSendable(value: self.interactor.sessionDeleteStream)
 
-            group.addTask {
-                await self.handleSessionProposals()
-            }
+            return Task {
+                await withTaskGroup(of: Void.self) { group in
+                    group.addTask {
+                        await self.handleSessions(sessionsStream.value)
+                    }
 
-            group.addTask {
-                await self.handleSessionRequests()
-            }
+                    group.addTask {
+                        await self.handleSessionProposals(sessionProposalStream.value)
+                    }
 
-            group.addTask {
-                await self.handleSessionDeletes()
+                    group.addTask {
+                        await self.handleSessionRequests(sessionRequestStream.value)
+                    }
+
+                    group.addTask {
+                        await self.handleSessionDeletes(sessionDeleteStream.value)
+                    }
+                }
             }
         }
     }
@@ -108,14 +114,14 @@ extension WalletConnectorService: WalletConnectorServiceable {
 // MARK: - Private
 
 extension WalletConnectorService {
-    private func handleSessions() async {
-        for await sessions in interactor.sessionsStream {
+    private func handleSessions(_ stream: AsyncStream<[Session]>) async {
+        for await sessions in stream {
             await updateSessions(sessions)
         }
     }
 
-    private func handleSessionProposals() async {
-        for await (proposal, verifyContext) in interactor.sessionProposalStream {
+    private func handleSessionProposals(_ stream: AsyncStream<(proposal: Session.Proposal, context: VerifyContext?)>) async {
+        for await (proposal, verifyContext) in stream {
             debugLog("Session proposal received: \(proposal)")
             debugLog("Verify context: \(String(describing: verifyContext))")
 
@@ -143,8 +149,8 @@ extension WalletConnectorService {
         await walletConnectorInteractor.sessionReject(error: error)
     }
 
-    private func handleSessionRequests() async {
-        for await (request, verifyContext) in interactor.sessionRequestStream {
+    private func handleSessionRequests(_ stream: AsyncStream<(request: Request, context: VerifyContext?)>) async {
+        for await (request, verifyContext) in stream {
             debugLog("Session request received: \(request.method)")
             debugLog("Verify context: \(String(describing: verifyContext))")
 
@@ -170,8 +176,8 @@ extension WalletConnectorService {
         }
     }
 
-    private func handleSessionDeletes() async {
-        for await deletion in interactor.sessionDeleteStream {
+    private func handleSessionDeletes(_ stream: AsyncStream<(topic: String, code: Int, message: String)>) async {
+        for await deletion in stream {
             debugLog("Session deleted by peer: topic: \(deletion.topic), reason: \(deletion.message) (code: \(deletion.code))")
         }
     }
