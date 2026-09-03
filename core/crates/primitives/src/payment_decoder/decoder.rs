@@ -3,7 +3,7 @@ use std::str::FromStr;
 use super::error::{PaymentDecoderError, Result};
 use crate::{Chain, ChainType, payment::Payment};
 
-use super::{bip21, erc681, solana_pay, ton_pay, xrp};
+use super::{bip21, bip321, erc681, solana_pay, ton_pay, xrp};
 
 const DOGECOIN_SCHEME: &str = "dogecoin";
 const RIPPLE_SCHEME: &str = "ripple";
@@ -22,6 +22,7 @@ impl PaymentURLDecoder {
         let path = path.strip_prefix("//").unwrap_or(path);
 
         match get_chain(&scheme.to_ascii_lowercase()).ok_or(PaymentDecoderError::InvalidScheme)? {
+            Chain::Bitcoin => bip321::decode(path),
             Chain::Ethereum => erc681::decode(path),
             Chain::Solana => solana_pay::decode(path),
             Chain::Ton => ton_pay::decode(path),
@@ -95,6 +96,7 @@ mod tests {
         assert_eq!(PaymentURLDecoder::decode(&format!("BITCOIN:{BITCOIN_ADDRESS}?amount=0.1")).unwrap(), bitcoin);
 
         assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{BITCOIN_ADDRESS}?AMOUNT=0.1")).unwrap(), bitcoin);
+        assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:?bc={BITCOIN_ADDRESS}&amount=0.1")).unwrap(), bitcoin);
         assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{BITCOIN_ADDRESS}?amount=&memo=")).unwrap(), address_only);
         assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{BITCOIN_ADDRESS}")).unwrap(), address_only);
         assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin://{BITCOIN_ADDRESS}")).unwrap(), address_only);
@@ -144,6 +146,8 @@ mod tests {
 
         assert!(PaymentURLDecoder::decode("bitcoin:").is_err());
         assert!(PaymentURLDecoder::decode("bitcoin:?amount=0.1").is_err());
+        assert!(PaymentURLDecoder::decode("bitcoin:?lightning=lnbc420bogusinvoice").is_err());
+        assert!(PaymentURLDecoder::decode(&format!("litecoin:?bc={BITCOIN_ADDRESS}")).is_err());
         assert!(PaymentURLDecoder::decode("ripple:?dt=12345").is_err());
         assert!(PaymentURLDecoder::decode("ethereum:").is_err());
         assert!(PaymentURLDecoder::decode("ethereum:?value=1").is_err());

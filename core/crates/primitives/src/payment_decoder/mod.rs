@@ -1,5 +1,6 @@
 mod amount;
 mod bip21;
+mod bip321;
 mod decoder;
 mod erc681;
 mod error;
