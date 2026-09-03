@@ -108,3 +108,14 @@ impl FlashnetOrder {
 pub struct FlashnetDestination {
     pub tx_hash: Option<String>,
 }
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EstimateQuery {
+    pub source_chain: &'static str,
+    pub source_asset: &'static str,
+    pub destination_chain: String,
+    pub destination_asset: String,
+    pub amount: String,
+    pub affiliate_id: String,
+}

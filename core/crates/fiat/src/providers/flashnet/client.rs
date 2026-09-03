@@ -1,10 +1,13 @@
 use std::{collections::HashMap, error::Error};
 
-use gem_client::{CONTENT_TYPE, ClientError, ClientExt, ContentType, ReqwestClient, json_response};
+use gem_client::{ClientError, ClientExt, ReqwestClient};
 use primitives::FiatProviderName;
-use reqwest::Method;
 
-use super::model::{FlashnetEstimateResponse, FlashnetOnrampRequest, FlashnetOnrampResponse, FlashnetRoutesResponse};
+use super::model::{EstimateQuery, FlashnetEstimateResponse, FlashnetOnrampRequest, FlashnetOnrampResponse, FlashnetRoutesResponse};
+use super::target::FlashnetTarget;
+
+const SOURCE_CHAIN: &str = "spark";
+const SOURCE_ASSET: &str = "USDB";
 
 pub struct FlashnetClient {
     client: ReqwestClient,
@@ -25,37 +28,31 @@ impl FlashnetClient {
         }
     }
 
+    fn headers(&self) -> HashMap<String, String> {
+        HashMap::from([("authorization".to_string(), format!("Bearer {}", self.api_key))])
+    }
+
     pub async fn get_routes(&self) -> Result<FlashnetRoutesResponse, Box<dyn Error + Send + Sync>> {
-        let response = self.client.request(Method::GET, "/v1/orchestration/routes").send().await?;
-        Ok(json_response(response).await?)
+        Ok(self.client.get(FlashnetTarget::Routes).await?)
     }
 
     pub async fn create_onramp(&self, request: FlashnetOnrampRequest, idempotency_key: &str) -> Result<FlashnetOnrampResponse, ClientError> {
-        self.client
-            .post("/v1/orchestration/onramp", &request)
-            .headers(HashMap::from([
-                ("authorization".to_string(), format!("Bearer {}", self.api_key)),
-                ("x-idempotency-key".to_string(), idempotency_key.to_string()),
-                (CONTENT_TYPE.to_string(), ContentType::ApplicationJson.as_str().to_string()),
-            ]))
-            .await
+        let mut headers = self.headers();
+        headers.insert("x-idempotency-key".to_string(), idempotency_key.to_string());
+        self.client.post(FlashnetTarget::Onramp, &request).headers(headers).await
     }
 
     pub async fn get_estimate(&self, destination_chain: &str, destination_asset: &str, amount: &str) -> Result<FlashnetEstimateResponse, Box<dyn Error + Send + Sync>> {
-        let response = self
-            .client
-            .request(Method::GET, "/v1/orchestration/estimate")
-            .bearer_auth(&self.api_key)
-            .query(&[
-                ("sourceChain", "spark"),
-                ("sourceAsset", "USDB"),
-                ("destinationChain", destination_chain),
-                ("destinationAsset", destination_asset),
-                ("amount", amount),
-                ("affiliateId", self.affiliate_id.as_str()),
-            ])
-            .send()
-            .await?;
-        Ok(json_response(response).await?)
+        let target = FlashnetTarget::Estimate {
+            query: EstimateQuery {
+                source_chain: SOURCE_CHAIN,
+                source_asset: SOURCE_ASSET,
+                destination_chain: destination_chain.to_string(),
+                destination_asset: destination_asset.to_string(),
+                amount: amount.to_string(),
+                affiliate_id: self.affiliate_id.clone(),
+            },
+        };
+        Ok(self.client.get(target).headers(self.headers()).await?)
     }
 }
