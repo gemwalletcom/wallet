@@ -32,7 +32,9 @@ impl GemFiatService {
     pub fn new(api: Arc<GemDeviceApiClient>, assets: Arc<GemAssetsService>, store: Arc<dyn GemFiatStore>) -> Self {
         Self { api, assets, store }
     }
+}
 
+impl GemFiatService {
     pub fn quote_debounce_milliseconds(&self) -> u64 {
         QUOTE_DEBOUNCE_MILLISECONDS
     }
@@ -57,9 +59,7 @@ impl GemFiatService {
             .map_err(GemApiError::from)?
             .quotes)
     }
-}
 
-impl GemFiatService {
     pub async fn get_quote_url(&self, wallet_id: WalletId, quote_id: String) -> Result<FiatQuoteUrl, GemServiceError> {
         Ok(self.api.client.get_fiat_quote_url(wallet_id.id(), quote_id).await.map_err(GemApiError::from)?)
     }

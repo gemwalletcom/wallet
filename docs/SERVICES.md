@@ -641,6 +641,14 @@ Three gotchas if you repeat the sweep, all met on this pass:
   path and `shows_onboarding` accessor remain structure: its banner list is a one-shot load and
   the welcome banner is a distinct composable, so folding it into `visibleBanners` needs the
   banners to become reactive first.
+- **Two more Android pass-through cases are gone.** `SyncFiatTransactions` read the session in
+  Kotlin and called `GemFiatService::sync_transactions(wallet_id)` where iOS's
+  `FiatTransactionsViewModel` calls the screen service's session-scoped
+  `GemFiatQuoteService::sync_transactions()`; Android's view model does the same now, and with
+  no app calling `GemFiatService` directly its four methods are plain `impl` (the constructor
+  stays exported for the quote service). `SetupWallet` wrapped `GemAppStartService::setup_wallet`
+  for `AppViewModel`, which now holds `GemAppStartServiceInterface` and logs the step failures
+  itself (`WalletImportModule` had nothing else left and is deleted).
 - **A wallet's own accounts are named after the wallet on both apps, by Core.** Android saved
   its accounts as `InternalWallet` address names when a wallet was added (`WalletStore.addWallet`
   → `saveWalletAddresses`), renamed them through `SetWalletName` → `RenameWalletAddresses`, and

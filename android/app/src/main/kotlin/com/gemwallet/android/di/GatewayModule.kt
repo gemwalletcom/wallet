@@ -40,6 +40,7 @@ import uniffi.gemstone.GemSearchStore
 import uniffi.gemstone.GemSearchService
 import uniffi.gemstone.GemBannerService
 import uniffi.gemstone.GemAppStartService
+import uniffi.gemstone.GemAppStartServiceInterface
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPortfolioService
 import uniffi.gemstone.GemPortfolioServiceInterface
@@ -179,6 +180,9 @@ object GatewayModule {
         walletService: GemWalletService,
         deviceService: GemDeviceService,
     ): GemAppStartService = GemAppStartService(configService, bannerService, assetsService, balanceService, walletConfigurationService, walletService, deviceService)
+
+    @Provides
+    fun provideGemAppStartServiceInterface(service: GemAppStartService): GemAppStartServiceInterface = service
 
 
     @Provides
