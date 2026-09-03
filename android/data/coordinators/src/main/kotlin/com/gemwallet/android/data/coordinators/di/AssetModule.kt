@@ -10,7 +10,6 @@ import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
 import com.gemwallet.android.application.assets.cases.GetHideBalancesState
 import com.gemwallet.android.application.assets.cases.GetSearchLists
-import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
 import uniffi.gemstone.GemBannerService
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.banner.cases.HasMultiSign
@@ -26,11 +25,9 @@ import com.gemwallet.android.data.coordinators.asset.GetAssetTokenInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetChainAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.GetHideBalancesStateImpl
 import com.gemwallet.android.data.coordinators.asset.GetSearchListsImpl
-import com.gemwallet.android.data.coordinators.asset.GetShowWelcomeBannerImpl
 import com.gemwallet.android.data.coordinators.asset.GetWalletSummaryImpl
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import uniffi.gemstone.GemAssetDiscoveryService
@@ -174,15 +171,6 @@ object AssetModule {
     @Singleton
     fun provideGetWalletAssets(assetStore: GemstoneAssetStore, getCurrentWalletId: GetCurrentWalletId): GetWalletAssets =
         WalletAssetsCoordinator(assetStore, getCurrentWalletId)
-
-    @Provides
-    @Singleton
-    fun provideGetShowWelcomeBanner(
-        getSession: GetSession,
-        bannerStore: GemstoneBannerStore,
-        bannerService: GemBannerService,
-        getActiveAssetsInfo: GetActiveAssetsInfo,
-    ): GetShowWelcomeBanner = GetShowWelcomeBannerImpl(getSession, bannerStore, bannerService, getActiveAssetsInfo)
 
     @Provides
     @Singleton

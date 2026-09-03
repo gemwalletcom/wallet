@@ -24,25 +24,16 @@ interface BannersDao {
         WHERE
             (wallet_id IS NULL OR wallet_id = :walletId)
             AND asset_id = :assetId
-            AND state IN (:states)
     """)
-    suspend fun getAssetBanners(
-        walletId: String?,
-        assetId: String,
-        states: List<BannerState> = listOf(BannerState.Active, BannerState.AlwaysActive),
-    ): List<DbBanner>
+    fun observeAssetBanners(walletId: String?, assetId: String): Flow<List<DbBanner>>
 
     @Query("""
         SELECT * FROM
             banners
         WHERE
-            wallet_id = :walletId AND event IN (:events) AND state IN (:states)
+            wallet_id = :walletId AND event IN (:events)
     """)
-    suspend fun getWalletBanners(
-        walletId: String,
-        events: List<BannerEvent>,
-        states: List<BannerState> = listOf(BannerState.Active, BannerState.AlwaysActive),
-    ): List<DbBanner>
+    fun observeWalletBanners(walletId: String, events: List<BannerEvent>): Flow<List<DbBanner>>
 
     @Query("""
         SELECT state FROM

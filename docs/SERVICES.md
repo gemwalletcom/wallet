@@ -642,10 +642,14 @@ Three gotchas if you repeat the sweep, all met on this pass:
   "every enabled balance is zero", so a wallet holding only unpriced tokens welcomed the user on
   iOS. iOS now derives the flag from its observed asset rows (`assets.allSatisfy { balance.total.isZero }`),
   covered by `WalletSceneViewModelTests.onboardingBannerShowsOnlyWhileEveryBalanceIsZero`
-  (funded-but-unpriced hides it, all-zero shows it). Android's separate `GetShowWelcomeBanner`
-  path and `shows_onboarding` accessor remain structure: its banner list is a one-shot load and
-  the welcome banner is a distinct composable, so folding it into `visibleBanners` needs the
-  banners to become reactive first.
+  (funded-but-unpriced hides it, all-zero shows it). Android's banner list is reactive now
+  (`GetActiveBanners` is a `Flow` over the observed banner rows, the asset info and the
+  all-zero-balances fact; `BannersViewModel` no longer reloads after an action), so the
+  onboarding banner comes out of the same `visibleBanners` call as every other banner and
+  `BannersScene` renders that event with the `WelcomeBanner` composable. `GetShowWelcomeBanner`,
+  `Wallet.onboardingBannerKey`, the home's `showWelcomeBanner`/`onHideWelcomeBanner` and
+  `GemBannerService::shows_onboarding` are gone, and the DAO no longer pre-filters banner
+  states in SQL — Core's `is_visible` decides.
 - **The wallets limit is Core's rule on both apps.** iOS's `WalletsSceneViewModel` kept
   `walletsLimit = 100` and refused to open the create/import sheets past it (gem-ios #1067);
   Android had no limit at all. `rules::can_add_wallet` / `WALLETS_LIMIT` back

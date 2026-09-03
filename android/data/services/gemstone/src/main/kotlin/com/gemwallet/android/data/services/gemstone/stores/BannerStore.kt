@@ -30,11 +30,9 @@ class GemstoneBannerStore(
         bannersDao.addBanners(keys.map { it.toRecord(state) })
     }
 
-    suspend fun getAssetBanners(walletId: String?, assetId: String): List<DbBanner> = bannersDao.getAssetBanners(walletId, assetId)
+    fun observeAssetBanners(walletId: String?, assetId: String): Flow<List<DbBanner>> = bannersDao.observeAssetBanners(walletId, assetId)
 
-    suspend fun getWalletBanners(walletId: String, events: List<BannerEvent>): List<DbBanner> = bannersDao.getWalletBanners(walletId, events)
-
-    fun observeBanner(key: GemBannerKey): Flow<DbBanner?> = bannersDao.observeBanner(key.identifier())
+    fun observeWalletBanners(walletId: String, events: List<BannerEvent>): Flow<List<DbBanner>> = bannersDao.observeWalletBanners(walletId, events)
 
     fun observeMultiSign(walletId: String): Flow<Boolean> = bannersDao.getMultisign(walletId).map { it.isNotEmpty() }
 

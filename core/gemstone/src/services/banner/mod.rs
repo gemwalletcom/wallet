@@ -45,10 +45,6 @@ impl GemBannerService {
         self.store.set_state(key, BannerState::Cancelled).await
     }
 
-    pub fn shows_onboarding(&self, state: BannerState, is_wallet_empty: bool) -> bool {
-        rules::shows_onboarding(state, is_wallet_empty)
-    }
-
     pub fn banner_content(&self, event: BannerEvent, asset: Option<Asset>) -> GemBannerContent {
         rules::banner_content(event, asset.as_ref())
     }

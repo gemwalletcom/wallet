@@ -5,8 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetHideBalancesState
-import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
-import com.gemwallet.android.ext.onboardingBannerKey
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
@@ -29,7 +27,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemBannerAction
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import javax.inject.Inject
 
@@ -39,7 +36,6 @@ class AssetsViewModel @Inject constructor(
     getActiveAssetsInfo: GetActiveAssetsInfo,
     getWalletSummary: GetWalletSummary,
     getHideBalancesState: GetHideBalancesState,
-    getShowWelcomeBanner: GetShowWelcomeBanner,
     private val getSession: GetSession,
     private val userConfig: UserConfig,
 ) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
@@ -83,9 +79,6 @@ class AssetsViewModel @Inject constructor(
 
     val walletSummary = getWalletSummary.getWalletSummary()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val showWelcomeBanner = getShowWelcomeBanner()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -132,12 +125,6 @@ class AssetsViewModel @Inject constructor(
 
     fun hideBalances() {
         userConfig.hideBalances()
-    }
-
-    fun onHideWelcomeBanner() = viewModelScope.launch(Dispatchers.IO) {
-        val wallet = getSession().value?.wallet ?: return@launch
-        runCatchingCancellable { service.applyBannerAction(wallet.onboardingBannerKey(), GemBannerAction.Close) }
-            .onFailure { Log.e(TAG, "closing the welcome banner failed", it) }
     }
 
     private companion object {

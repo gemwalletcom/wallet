@@ -2,7 +2,6 @@ package com.gemwallet.android.features.assets.viewmodels
 
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetHideBalancesState
-import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.session.cases.GetSession
 import uniffi.gemstone.GemWalletHomeServiceInterface
@@ -18,7 +17,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -58,11 +56,6 @@ class AssetsViewModelTest {
     private val getHideBalancesState = object : GetHideBalancesState {
         override fun invoke(): Flow<Boolean> = flowOf(false)
     }
-    private val getShowWelcomeBanner = object : GetShowWelcomeBanner {
-        override fun invoke(): Flow<Boolean> {
-            return activeAssetsFlow.map { items -> items.all { it.isZeroBalance } }
-        }
-    }
     private val session = MutableStateFlow<Session?>(null)
     private val getSession = object : GetSession {
         override fun invoke(): StateFlow<Session?> = session
@@ -86,16 +79,6 @@ class AssetsViewModelTest {
 
         assertEquals(listOf(activeAssetsFlow.value[0]), viewModel.pinnedAssets.value)
         assertEquals(listOf(activeAssetsFlow.value[1]), viewModel.unpinnedAssets.value)
-    }
-
-    @Test
-    fun `show welcome banner stays true for created wallet with no assets`() = runTest(testDispatcher) {
-        activeAssetsFlow.value = emptyList()
-
-        val viewModel = createViewModel()
-        advanceUntilIdle()
-
-        assertTrue(viewModel.showWelcomeBanner.value)
     }
 
     @Test
@@ -143,7 +126,6 @@ class AssetsViewModelTest {
         getActiveAssetsInfo = getActiveAssetsInfo,
         getWalletSummary = getWalletSummary,
         getHideBalancesState = getHideBalancesState,
-        getShowWelcomeBanner = getShowWelcomeBanner,
         getSession = getSession,
         userConfig = mockk(relaxed = true),
     )
