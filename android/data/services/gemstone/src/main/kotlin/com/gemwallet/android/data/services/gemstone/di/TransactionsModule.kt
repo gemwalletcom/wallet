@@ -41,6 +41,7 @@ object TransactionsModule {
         walletPreferencesService: GemWalletPreferencesService,
         preferencesService: GemPreferencesService,
         walletSessionService: GemWalletSessionService,
+        tracker: TransactionStateTracker,
     ): GemTransactionsService = GemTransactionsService(
         apiClient,
         assetsService,
@@ -49,6 +50,7 @@ object TransactionsModule {
         walletPreferencesService,
         preferencesService,
         walletSessionService,
+        tracker,
     )
 
     @Singleton

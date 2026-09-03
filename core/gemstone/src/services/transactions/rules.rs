@@ -12,6 +12,10 @@ use super::model::{
 use crate::services::collections::unique;
 use swapper::{ProviderType as SwapperProviderType, SwapperProvider, SwapperProviderMode};
 
+pub fn pending_transactions(transactions: &[Transaction]) -> Vec<Transaction> {
+    transactions.iter().filter(|transaction| !transaction.state.is_completed()).cloned().collect()
+}
+
 pub fn transaction_asset_ids(transactions: &[Transaction]) -> Vec<AssetId> {
     unique(transactions.iter().flat_map(|transaction| transaction.associated_asset_ids()))
 }
@@ -279,6 +283,20 @@ mod tests {
         transaction.state = state;
         transaction.direction = direction;
         transaction
+    }
+
+    #[test]
+    fn test_pending_transactions_keeps_what_a_synced_wallet_still_has_to_watch() {
+        use TransactionState::{Confirmed, Failed, InTransit, Pending, Reverted};
+
+        let transactions: Vec<Transaction> = [Pending, Confirmed, InTransit, Failed, Reverted]
+            .into_iter()
+            .map(|state| typed(TransactionType::Transfer, state, TransactionDirection::Outgoing))
+            .collect();
+
+        let pending: Vec<TransactionState> = pending_transactions(&transactions).into_iter().map(|transaction| transaction.state).collect();
+
+        assert_eq!(pending, vec![Pending, InTransit], "a swap in transit is not settled yet, so the tracker keeps polling it");
     }
 
     #[test]

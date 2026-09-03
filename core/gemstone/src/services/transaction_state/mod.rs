@@ -4,6 +4,7 @@ pub mod store;
 #[cfg(test)]
 pub(crate) mod testkit;
 pub mod tracker;
+pub mod tracking_port;
 
 use crate::services::error::GemServiceError;
 use crate::services::failures::record;
@@ -16,6 +17,7 @@ use primitives::{Asset, AssetId, JobConfiguration, Transaction, TransactionId, T
 pub use model::{GemPendingTransaction, GemPostProcessingFailure, GemPostProcessingStep, GemTransactionStateResult, GemTransactionStateUpdate};
 pub use store::GemTransactionStateStore;
 use tracker::{GemTransactionUpdater, Tracking, poll};
+pub use tracking_port::GemTransactionTracking;
 
 use crate::gateway::GemGateway;
 use crate::services::assets::GemAssetsService;

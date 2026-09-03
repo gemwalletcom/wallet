@@ -95,7 +95,7 @@ pub use subscription::GemSubscriptionService;
 pub use support::{GemSupportService, GemSupportStore};
 pub use swap::quote::GemSwapQuoteService;
 pub use swap::{GemSwapPair, GemSwapPairSuggestion, GemSwapService, GemSwapStore};
-pub use transaction_state::{GemPendingTransaction, GemTransactionStateService, GemTransactionStateStore};
+pub use transaction_state::{GemPendingTransaction, GemTransactionStateService, GemTransactionStateStore, GemTransactionTracking};
 pub use transactions::{GemTransactionStore, GemTransactionsService};
 pub use wallet::{GemKeystoreAuthentication, GemKeystorePassword, GemWalletImportResult, GemWalletImportType, GemWalletService, GemWalletStore};
 pub use wallet_configuration::GemWalletConfigurationService;

@@ -77,15 +77,6 @@ struct ServicesFactory {
         )
         let assetsService = gatewayService.assetsService(api: apiClient, store: gemstoneAssetStore, price: priceService, preferences: preferencesService)
         let walletSessionService = Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(store: preferencesStore), wallets: gemstoneWalletStore)
-        let transactionsService = Gemstone.GemTransactionsService(
-            api: deviceApiClient,
-            assets: assetsService,
-            store: GemstoneTransactionStore(store: storeManager.transactionStore),
-            addressStore: gemstoneAddressStore,
-            walletPreferences: walletPreferencesService,
-            preferences: preferencesService,
-            session: walletSessionService,
-        )
         let scanConfiguration = URLSessionConfiguration.default
         scanConfiguration.timeoutIntervalForRequest = TimeInterval(Config().getScanConfig().timeoutSeconds)
         let scanService = Gemstone.GemScanService(
@@ -146,6 +137,16 @@ struct ServicesFactory {
             balance: balanceService,
             stake: stakeService,
             nft: nftService,
+        )
+        let transactionsService = Gemstone.GemTransactionsService(
+            api: deviceApiClient,
+            assets: assetsService,
+            store: GemstoneTransactionStore(store: storeManager.transactionStore),
+            addressStore: gemstoneAddressStore,
+            walletPreferences: walletPreferencesService,
+            preferences: preferencesService,
+            session: walletSessionService,
+            tracking: GemstoneTransactionTracking(service: transactionStateService),
         )
 
         let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService)

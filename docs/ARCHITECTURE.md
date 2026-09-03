@@ -742,6 +742,15 @@ of the request the user was still looking at (#1044). A duplicate is not a decis
 `response` is optional and `None` for one, the app sends nothing, and Android's `WCRequestViewModel`
 keeps the in-flight request across the re-entry instead of resetting on dispose.
 
+**Core cannot spawn; the app lends it an executor through a port.** Pending transaction polling
+moved into `GemTransactionStateService` (`track_pending` at foreground, `track` when the app
+creates one), which left the transactions a backend sync delivered as pending untracked until the
+next foreground cycle (#1031). Core futures run only while the app awaits them, so a sync cannot
+start a poll that outlives its own call. `GemTransactionsService::sync_wallet` hands the not-yet-
+completed transactions it saved to a `GemTransactionTracking` port; each app's adapter starts the
+Core `track` call on its own scope and returns. The rule of what to track stays in Core
+(`rules::pending_transactions`); the app contributes the thread, nothing else.
+
 **A launch-time entry is not the place for a screen's dependency.** `GemRewardsService`,
 `GemReceiveService`, `GemNodeStatusService`, `GemPerpetualDetailsService`, `GemPriceAlertService`,
 `GemServiceStatus`, `GemAppUpdateService`, `GemNotificationService`, `GemNftService`,
