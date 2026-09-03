@@ -10,7 +10,6 @@ import SwiftUI
 
 public struct AddAssetScene: View {
     @State private var model: AddAssetSceneViewModel
-    @State private var networksModel: NetworkSelectorViewModel
     @State private var isPresentingUrl: URL?
 
     @FocusState private var focusedField: Field?
@@ -22,7 +21,6 @@ public struct AddAssetScene: View {
 
     public init(model: AddAssetSceneViewModel, onComplete: VoidAction) {
         _model = State(initialValue: model)
-        _networksModel = State(initialValue: NetworkSelectorViewModel(state: .data(.plain(model.chains))))
         self.onComplete = onComplete
     }
 
@@ -49,7 +47,7 @@ public struct AddAssetScene: View {
             .navigationTitle(model.title)
             .navigationDestination(for: Scenes.NetworksSelector.self) { _ in
                 NetworkSelectorScene(
-                    model: $networksModel,
+                    model: model.networksModel,
                     onFinishSelection: onFinishChainSelection(chains:),
                 )
             }

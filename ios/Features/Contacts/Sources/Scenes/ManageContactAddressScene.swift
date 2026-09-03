@@ -48,9 +48,9 @@ public struct ManageContactAddressScene: View {
             ScanQRCodeNavigationStack(scanType: .address, action: onScan)
         }
         .navigationDestination(for: Scenes.NetworksSelector.self) { _ in
-            ChainSelectorView(
+            NetworkSelectorScene(
                 model: model.networkSelectorModel,
-                onSelectChain: model.onSelectChain,
+                onFinishSelection: onFinishChainSelection(chains:),
             )
         }
     }
@@ -94,6 +94,11 @@ extension ManageContactAddressScene {
 // MARK: - Actions
 
 extension ManageContactAddressScene {
+    private func onFinishChainSelection(chains: [Chain]) {
+        guard let chain = chains.first else { return }
+        model.onSelectChain(chain)
+    }
+
     private func onScan(_ result: String) {
         model.onHandleScan(result)
         focusedField = nil
