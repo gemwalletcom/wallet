@@ -1,10 +1,11 @@
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{Asset, AssetBasic, AssetId};
+use primitives::{Asset, AssetBasic, AssetId, Chain};
 
 use super::model::GemAssetAction;
 use super::rules;
+use crate::services::chain::rules as chain_rules;
 
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
@@ -51,6 +52,10 @@ impl GemAssetSelectionService {
 
     pub fn currency(&self) -> Currency {
         self.preferences.get_currency()
+    }
+
+    pub fn filter_chains(&self) -> Result<Vec<Chain>, GemServiceError> {
+        Ok(chain_rules::wallet_chains_by_rank(&self.session.current_wallet()?))
     }
 
     pub fn supports_tokens(&self) -> bool {

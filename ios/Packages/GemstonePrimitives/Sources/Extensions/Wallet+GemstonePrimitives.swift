@@ -8,9 +8,4 @@ public extension Primitives.Wallet {
     var legacyV3Id: String {
         externalId ?? id.id
     }
-
-    var chains: [Chain] {
-        let walletChains = accounts.map(\.chain).asSet()
-        return walletChains.intersection(AssetConfiguration.allChains).asArray().sortByRank()
-    }
 }

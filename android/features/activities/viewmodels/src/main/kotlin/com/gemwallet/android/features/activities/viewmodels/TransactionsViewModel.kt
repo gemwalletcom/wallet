@@ -3,12 +3,15 @@ package com.gemwallet.android.features.activities.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.application.transactions.cases.SyncTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ui.models.TransactionTypeFilter
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAssetConfigService
+import uniffi.gemstone.GemTransactionsService
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toChain
+import android.util.Log
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +37,7 @@ import javax.inject.Inject
 class TransactionsViewModel @Inject constructor(
     getSession: GetSession,
     getTransactions: GetTransactions,
-    private val syncTransactions: SyncTransactions,
+    private val service: GemTransactionsService,
     private val assetConfig: GemAssetConfigService,
 ) : ViewModel() {
 
@@ -51,6 +54,10 @@ class TransactionsViewModel @Inject constructor(
     val walletId: StateFlow<WalletId?> = session
         .map { it?.wallet?.id }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val availableChains: StateFlow<List<Chain>> = session
+        .map { runCatchingCancellable { service.filterChains() }.getOrDefault(emptyList()).mapNotNull { it.toChain() } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private var syncedWalletId: WalletId? = null
 
@@ -90,17 +97,21 @@ class TransactionsViewModel @Inject constructor(
         if (current == syncedWalletId) return null
         syncedWalletId = current
         return viewModelScope.launch(Dispatchers.IO) {
-            val synced = syncTransactions.syncTransactions()
+            val synced = sync()
             if (!synced && syncedWalletId == current) {
                 syncedWalletId = null
             }
         }
     }
 
+    private suspend fun sync(): Boolean = runCatchingCancellable { service.sync(null) }
+        .onFailure { Log.e(TAG, "transactions sync failed", it) }
+        .isSuccess
+
     fun refresh() = viewModelScope.launch(Dispatchers.IO) {
         _isRefreshing.update { true }
         try {
-            syncTransactions.syncTransactions()
+            sync()
         } finally {
             _isRefreshing.update { false }
         }
@@ -124,5 +135,9 @@ class TransactionsViewModel @Inject constructor(
         typeFilter.update {
             emptyList()
         }
+    }
+
+    private companion object {
+        const val TAG = "TransactionsViewModel"
     }
 }

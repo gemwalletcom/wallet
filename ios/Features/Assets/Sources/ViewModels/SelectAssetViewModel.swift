@@ -59,7 +59,7 @@ public final class SelectAssetViewModel {
         let filter = AssetsFilterViewModel(
             type: selectType,
             model: ChainsFilterViewModel(
-                chains: wallet.chains,
+                chains: ((try? service.filterChains()) ?? []).map { Chain(core: $0) },
                 selected: chains,
             ),
         )

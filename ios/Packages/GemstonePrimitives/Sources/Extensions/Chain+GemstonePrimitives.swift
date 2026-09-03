@@ -93,12 +93,6 @@ private extension Primitives.Chain {
     }
 }
 
-public extension [Primitives.Chain] {
-    func sortByRank() -> [Primitives.Chain] {
-        sorted { AssetScore.defaultRank(chain: $0) > AssetScore.defaultRank(chain: $1) }
-    }
-}
-
 public extension [Primitives.Asset] {
     func matching(query: String) -> [Primitives.Asset] {
         let assets = map { $0.map() }

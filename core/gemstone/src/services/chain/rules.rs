@@ -1,9 +1,17 @@
 use std::cmp::Reverse;
 
-use primitives::{AssetId, Chain, ChainAsset, NodeCheckProfile, NodeCheckRequest, node_check_request};
+use primitives::{AssetId, Chain, ChainAsset, NodeCheckProfile, NodeCheckRequest, Wallet, node_check_request};
+
+use crate::services::collections::unique;
 
 pub fn chains_by_rank() -> Vec<Chain> {
     let mut chains = Chain::all();
+    chains.sort_by_key(|chain| Reverse(AssetId::from_chain(*chain).default_rank()));
+    chains
+}
+
+pub fn wallet_chains_by_rank(wallet: &Wallet) -> Vec<Chain> {
+    let mut chains = unique(wallet.accounts.iter().map(|account| account.chain));
     chains.sort_by_key(|chain| Reverse(AssetId::from_chain(*chain).default_rank()));
     chains
 }
@@ -45,6 +53,13 @@ pub fn node_verification_address(chain: Chain) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::Account;
+
+    #[test]
+    fn test_wallet_chains_by_rank_orders_the_wallet_accounts() {
+        let wallet = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::Doge, Chain::Ethereum, Chain::Doge, Chain::Bitcoin], "address"));
+        assert_eq!(wallet_chains_by_rank(&wallet), vec![Chain::Bitcoin, Chain::Ethereum, Chain::Doge]);
+    }
 
     #[test]
     fn test_chains_by_rank_orders_and_filters() {
