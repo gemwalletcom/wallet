@@ -4,6 +4,7 @@ import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetBalance
+import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetHyperCoreHype
 import com.gemwallet.android.testkit.mockAssetHyperCoreUBTC
@@ -14,6 +15,7 @@ import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -72,5 +74,31 @@ class SearchSwapAssetsImplTest {
         ).first()
 
         assertEquals(listOf(fundedAsset), result)
+    }
+
+    @Test
+    fun `pay search without a receive asset uses the core swap filters instead of the swapper lists`() = runTest {
+        val fundedAsset = mockAssetInfo(
+            asset = usdcAsset,
+            balance = AssetBalance.create(usdcAsset, available = "100000000"),
+            walletId = wallet.id,
+            metadata = swapableMetaData,
+        )
+        val searchService = mockk<AssetsSearchService> {
+            every {
+                search(query = "", byAllWallets = false, filters = setOf(AssetFilter.Swappable, AssetFilter.HasAvailableBalance))
+            } returns flowOf(listOf(fundedAsset))
+        }
+        val swapService = mockk<GemSwapServiceInterface>()
+
+        val result = SearchSwapAssetsImpl(searchService, swapService).invoke(
+            wallet = wallet,
+            query = "",
+            swapItemType = SwapItemType.Pay,
+            oppositeAssetId = null,
+        ).first()
+
+        assertEquals(listOf(fundedAsset), result)
+        verify(exactly = 0) { swapService.supportedAssets(any()) }
     }
 }

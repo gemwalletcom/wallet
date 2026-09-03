@@ -497,6 +497,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
   each scanned every chain for that symbol, and their `twoSubTokenIds` / `twoSubtokenIds`
   helpers are gone.
 
+- **The swap pay/receive lists start from Core's filters on both apps.** With no opposite asset
+  chosen, Android's `SearchSwapAssetsImpl` rebuilt the swappable universe itself — every wallet
+  chain with `isSwapSupport()`, one `supported_assets` call per chain, unioned — while iOS used
+  `GemAssetAction::SwapPay/SwapReceive` filters on the store (`enabled`, `swappable`, `has
+  available balance`). Android now searches with the same `query_filters()` and only asks the
+  swapper for the supported list once an opposite asset constrains it, which is what iOS does.
+
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**
