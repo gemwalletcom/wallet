@@ -542,8 +542,9 @@ Three gotchas if you repeat the sweep, all met on this pass:
   had no reader), `GemGasPriceType::total_fee` plus the unread iOS `Date.isOutdated`,
   `TransactionState.isCompleted`, `GemFeeAsset.feeBalance` and `getCurrentWallet()` helpers and
   Android's `getWalletConnectOutputAction`. Still exported for the test kits alone:
-  `GemWalletService::setup_chains` (three iOS store-adapter tests) and
-  `GemKeystore::preview_import` (Android instrumented fixtures).
+  `GemWalletService::setup_chains` (three iOS store-adapter tests), `GemKeystore::preview_import`
+  and `GemKeystore::create_store` (Android instrumented fixtures and the keystore concurrency /
+  benchmark tests) and `GemDeeplinkService::build_url` (the iOS asset-details mock builds deep links with it).
 
 - **The chain filter lists are Core's.** `GemAssetSelectionService::filter_chains()` and
   `GemTransactionsService::filter_chains()` return the session wallet's chains by rank
