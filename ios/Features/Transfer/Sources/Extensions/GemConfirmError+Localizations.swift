@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Formatters
+import Foundation
 import struct Gemstone.Asset
 import enum Gemstone.GemConfirmError
-import Foundation
 import GemstonePrimitives
 import Localization
 
@@ -20,6 +20,8 @@ extension GemConfirmError: @retroactive LocalizedError {
         case let .InsufficientNetworkFee(asset, _): Localized.Transfer.insufficientNetworkFeeBalance(Self.title(asset: asset))
         case let .MinimumAccountBalanceTooLow(asset, requirement):
             Localized.Transfer.minimumAccountBalance(ValueFormatter(style: .full).string(requirement.required, asset: asset.map()).boldMarkdown())
+        case .Sign(.dustThreshold, _, _): Localized.Errors.dustThresholdShort
+        case .Sign(.insufficientFunds, _, _): Localized.Info.InsufficientBalance.title
         case let .Network(msg), let .Load(msg), let .Broadcast(_, msg), let .Record(msg), let .Sign(_, _, msg), let .ApprovalInvalid(msg): msg
         }
     }

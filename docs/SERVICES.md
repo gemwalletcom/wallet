@@ -549,7 +549,11 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `GemWalletImportException` now, exactly as iOS's `GemWalletImportError: LocalizedError` does,
   and any other failure keeps its message. The swap screen went the same way: `SwapError` with
   its `toError(SwapperException)` mapping and `SwapErrorTest` are gone, and the error item
-  classifies `SwapperException` the way iOS's `SwapperError.message(asset:)` does.
+  classifies `SwapperException` the way iOS's `SwapperError.message(asset:)` does. iOS's
+  `ChainCoreError` was the same shape in the other direction: two cases mirrored
+  `GemSignerError` and three matched strings Core stopped producing; `GemConfirmError.Sign` now
+  localizes the dust-threshold and insufficient-funds signer errors itself (which is what
+  Android's confirm screen does) and `ConfirmTransferError` is `confirm | other`.
 
 - **Android's amount errors match iOS on zero.** `AmountError` carried four cases nothing raised
   (`Unavailable`, `InsufficientFeeBalance`, `IncorrectAddress`, `ZeroAmount`), two of them with

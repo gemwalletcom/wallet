@@ -2,9 +2,9 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemConfirmError
 import GemstonePrimitives
 import InfoSheet
-import enum Gemstone.GemConfirmError
 import Primitives
 import PrimitivesComponents
 
@@ -18,7 +18,7 @@ enum ConfirmInfoSheetBuilder {
         switch error {
         case let .confirm(error):
             confirmSheet(for: error, feePrice: feePrice, currency: currency, onGetAsset: onGetAsset)
-        case .chain, .other:
+        case .other:
             nil
         }
     }
