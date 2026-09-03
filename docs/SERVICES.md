@@ -352,6 +352,12 @@ Three gotchas if you repeat the sweep, all met on this pass:
   in is the one `GemAssetBalance` record, bridged once per app); a Core
   `GemAmountInput` value that carries all of it per type would let both collapse to a view-state
   mapping.
+- **Screens read their rows from one Core answer.** `GemTransactionDetailsService::details`
+  (swap progress steps, swap-again, provider name, confirmation ETA, pnl, price) and
+  `GemAssetBalance::detail_rows` (available, staked, earn, pending, reserved) replaced the
+  per-row predicates both apps kept — Android had mapped the transaction state to swap-progress
+  step statuses a third time inside a Compose item. Left on the apps: formatting, titles, and the
+  DEBUG gate iOS keeps on the earn row.
 - **The WalletConnect request lifecycle is one Core call.**
   `GemWalletConnectService::process_request` takes the SDK's session request as it arrives
   (topic, request id, method, params, chain id, origin, verification) and returns
