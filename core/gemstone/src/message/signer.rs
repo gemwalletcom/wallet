@@ -222,7 +222,7 @@ mod tests {
         eip712::{GemEIP712Section, GemEIP712Value, GemEIP712ValueType},
         sign_type::SignDigestType,
     };
-    use crate::signer::GemChainSigner;
+    use crate::signer::ChainTransactionSigner;
     use gem_evm::EIP712Domain;
     use primitives::Address;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
@@ -230,7 +230,7 @@ mod tests {
     #[test]
     fn test_eip712_chain_signer_matches_message_signer() {
         let json = include_str!("./test/eip712_seaport.json");
-        let via_chain_signer = GemChainSigner::new(Chain::Ethereum)
+        let via_chain_signer = ChainTransactionSigner::new(Chain::Ethereum)
             .sign_message(json.as_bytes().to_vec(), TEST_PRIVATE_KEY.to_vec())
             .unwrap();
         let via_message_signer = MessageSigner::new(SignMessage {

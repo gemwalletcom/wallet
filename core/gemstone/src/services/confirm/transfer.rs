@@ -10,7 +10,7 @@ use crate::services::assets::config::GemAssetConfigService;
 use crate::services::confirm::rules::is_insufficient_network_fee;
 use crate::services::confirm::{
     GemAcquireAssetFlow, GemConfirmData, GemConfirmError, GemConfirmInitialState, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmMetadata, GemConfirmPreload,
-    GemConfirmService, GemConfirmSimulationState, GemExecuteResult, GemFeeAsset, GemSendInput, GemTransactionSigner,
+    GemConfirmService, GemConfirmSimulationState, GemExecuteResult, GemFeeAsset, GemTransactionSigner, SendInput,
 };
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
@@ -97,7 +97,7 @@ impl GemConfirmTransferService {
         let wallet = self.wallet()?;
         let wallet_id = wallet.id.clone();
         let input_type = confirm.input.transfer.input_type.clone();
-        let input = GemSendInput {
+        let input = SendInput {
             wallet,
             confirm,
             value,

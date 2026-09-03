@@ -80,8 +80,8 @@ fn test_gem_keystore_sign_auth_matches_raw_key() {
     let raw_key = keystore.private_key(stored.keystore_id.clone(), Chain::Ethereum, b"password".to_vec()).unwrap();
 
     // Auth signing through the keystore must match signing the hash with the exported raw key.
-    let hash = vec![7u8; 32];
-    let expected = sign_auth_message_hash(hash.clone(), Zeroizing::new(raw_key)).unwrap();
+    let hash = [7u8; 32];
+    let expected = sign_auth_message_hash(hash, Zeroizing::new(raw_key)).unwrap();
     let actual = keystore.sign_auth(stored.keystore_id, Chain::Ethereum, hash, b"password".to_vec()).unwrap();
     assert_eq!(actual, expected);
 }

@@ -22,12 +22,12 @@ use primitives::swap::{SwapData, SwapQuoteDataType};
 use primitives::{Asset, BitcoinChain, Chain, ChainSigner, ChainType, SignerError, SignerInput, TransactionInputType, TransactionType};
 use zeroize::Zeroizing;
 
-pub struct GemChainSigner {
+pub struct ChainTransactionSigner {
     chain: Chain,
     signer: Box<dyn ChainSigner>,
 }
 
-impl GemChainSigner {
+impl ChainTransactionSigner {
     pub fn new(chain: Chain) -> Self {
         let signer: Box<dyn ChainSigner> = match chain.chain_type() {
             ChainType::Ethereum => match chain {
@@ -109,7 +109,7 @@ impl GemChainSigner {
     }
 }
 
-impl GemChainSigner {
+impl ChainTransactionSigner {
     pub fn sign_input(&self, input: GemSignerInput, private_key: Zeroizing<Vec<u8>>) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
         // Withdrawal is gemstone-only and lowers to a plain Transfer, so capture it before conversion.
         let is_withdrawal = matches!(&input.input.input_type, GemTransactionInputType::Withdrawal { .. });
@@ -301,14 +301,14 @@ mod tests {
         };
         let input = SignerInput::new(input, TransactionFee::mock());
 
-        let signed = GemChainSigner::new(Chain::Ton).sign_input(input.into(), Zeroizing::new(private_key)).unwrap();
+        let signed = ChainTransactionSigner::new(Chain::Ton).sign_input(input.into(), Zeroizing::new(private_key)).unwrap();
 
         assert_eq!(signed.len(), 1);
     }
 
     #[test]
     fn test_sign_input_routing() {
-        let signer = GemChainSigner::new(Chain::Ethereum);
+        let signer = ChainTransactionSigner::new(Chain::Ethereum);
         let key = TEST_PRIVATE_KEY.to_vec();
         let sign_one = |gem: GemSignerInput| signer.sign_input(gem, Zeroizing::new(key.clone())).unwrap();
 
@@ -458,12 +458,12 @@ mod tests {
         );
 
         assert_eq!(
-            GemChainSigner::new(Chain::Ethereum).transaction_types(&input, 2).unwrap(),
+            ChainTransactionSigner::new(Chain::Ethereum).transaction_types(&input, 2).unwrap(),
             vec![TransactionType::TokenApproval, TransactionType::Swap]
         );
-        assert!(GemChainSigner::new(Chain::Ethereum).transaction_types(&input, 1).is_err());
-        assert_eq!(GemChainSigner::new(Chain::Tempo).transaction_types(&input, 1).unwrap(), vec![TransactionType::Swap]);
-        assert!(GemChainSigner::new(Chain::Tempo).transaction_types(&input, 2).is_err());
+        assert!(ChainTransactionSigner::new(Chain::Ethereum).transaction_types(&input, 1).is_err());
+        assert_eq!(ChainTransactionSigner::new(Chain::Tempo).transaction_types(&input, 1).unwrap(), vec![TransactionType::Swap]);
+        assert!(ChainTransactionSigner::new(Chain::Tempo).transaction_types(&input, 2).is_err());
     }
 
     #[test]

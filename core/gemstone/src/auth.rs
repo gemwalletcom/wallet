@@ -1,33 +1,22 @@
 use crate::GemstoneError;
-use gem_auth::create_auth_hash;
+use gem_auth::{AuthMessageData, create_auth_hash};
 use primitives::{AuthMessage, AuthNonce, Chain, hex::encode_with_0x};
 use signer::Signer;
 use zeroize::Zeroizing;
 
-const AUTH_SIGNING_BYTES_LENGTH: usize = 32;
+const AUTH_SIGNING_KEY_LENGTH: usize = 32;
 
-#[derive(Debug, Clone)]
-pub struct GemAuthMessage {
-    pub message: String,
-    pub hash: Vec<u8>,
-}
-
-pub fn create_auth_message(address: &str, auth_nonce: AuthNonce) -> GemAuthMessage {
-    let auth_message = AuthMessage {
+pub fn create_auth_message(address: &str, auth_nonce: AuthNonce) -> AuthMessageData {
+    create_auth_hash(&AuthMessage {
         chain: Chain::Ethereum,
         address: address.to_string(),
         auth_nonce,
-    };
-    let data = create_auth_hash(&auth_message);
-    GemAuthMessage {
-        message: data.message,
-        hash: data.hash.to_vec(),
-    }
+    })
 }
 
-pub fn sign_auth_message_hash(hash: Vec<u8>, private_key: Zeroizing<Vec<u8>>) -> Result<String, GemstoneError> {
-    if hash.len() != AUTH_SIGNING_BYTES_LENGTH || private_key.len() != AUTH_SIGNING_BYTES_LENGTH {
-        return Err(GemstoneError::from("Invalid auth message signing input"));
+pub fn sign_auth_message_hash(hash: [u8; 32], private_key: Zeroizing<Vec<u8>>) -> Result<String, GemstoneError> {
+    if private_key.len() != AUTH_SIGNING_KEY_LENGTH {
+        return Err(GemstoneError::from("Invalid auth message signing key"));
     }
     let signature = Signer::sign_ethereum_digest(&hash, private_key.as_slice())?;
     Ok(encode_with_0x(&signature))
@@ -61,9 +50,8 @@ mod tests {
     }
 
     #[test]
-    fn test_sign_auth_message_hash_rejects_invalid_input_length() {
-        assert!(sign_auth_message_hash(vec![0; 31], Zeroizing::new(TEST_PRIVATE_KEY.to_vec())).is_err());
-        assert!(sign_auth_message_hash(vec![0; 32], Zeroizing::new(vec![0; 31])).is_err());
+    fn test_sign_auth_message_hash_rejects_a_short_key() {
+        assert!(sign_auth_message_hash([0; 32], Zeroizing::new(vec![0; 31])).is_err());
     }
 
     fn address_from_private_key(private_key: &[u8]) -> String {

@@ -906,10 +906,18 @@ for `load`'s wallet id and `execute`'s wallet; iOS threaded `wallet` through
 `ConfirmTransferRequest` and looked the account up in Swift. `GemConfirmTransferService` now
 takes the session: `confirm_input(transfer)` picks the signing account for the transfer's chain
 (`AccountMissing` if the wallet has none), and `initial_state`, `load` and
-`execute(confirm, value, network_fee, simulation)` read the wallet themselves, so `GemSendInput`
+`execute(confirm, value, network_fee, simulation)` read the wallet themselves, so the send input
 stopped crossing the FFI. Both apps hand the confirm screen a `GemTransferData`: iOS's request lost
 its wallet (the view model keeps one only to navigate to buy / receive from the fee sheet), and
 Android's `ConfirmTransactionAction`, routes and `PaymentDestination` carry the transfer through
 `GemTransferService::{encode, decode}_transfer_data`. A screen that always acts on the current
 wallet must not be told which wallet that is.
+
+**`Gem` is the FFI prefix; a type that stops crossing drops it or disappears.** When
+`create_auth_message` stopped being exported, `GemAuthMessage` was left behind as a plain struct
+copying `gem_auth::AuthMessageData` (with the 32-byte hash widened to a `Vec`) — the mirror
+existed only for UniFFI. It is gone; the signing path takes the `[u8; 32]` hash straight from
+`gem_auth`. The other Core-internal `Gem*` types (`SendInput`, `TransactionPostProcessing`,
+`ChainTransactionSigner`) lost the prefix so a `Gem` name means "crosses the FFI" again. After
+un-exporting anything, check whether the types it carried still need to exist.
 

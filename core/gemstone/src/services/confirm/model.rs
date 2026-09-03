@@ -62,7 +62,7 @@ pub(super) struct GemSendResult {
 }
 
 #[derive(Debug, Clone)]
-pub struct GemSendInput {
+pub struct SendInput {
     pub wallet: Wallet,
     pub confirm: GemConfirmData,
     pub value: GemBigInt,

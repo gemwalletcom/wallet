@@ -420,6 +420,11 @@ on an immediate rerun with an `IllegalStateException` from `TestMainDispatcher`.
 wallet-settings suite is a false signal every contributor has to re-run past; fix the dispatcher
 setup rather than retrying it.
 
+`services::wallet::tests::test_every_wallet_change_bumps_the_subscriptions_version` (Core) failed
+once in a full `cargo test -p gemstone --lib` run with the subscriptions version at 9 instead of 1
+after the last wallet was deleted, and passed on rerun and in isolation — the counter it asserts
+on is shared preferences state, so another test's bumps can leak in under parallel execution.
+
 `Migration_88_89Test.kt:35` seeds a multi-sig banner with `asset_id NULL` — the pre-`46889318bc` contract — and only calls `runMigrationsAndValidate`, which checks the schema and never asserts the row survived, so it cannot fail on data loss. It is an `androidTest`, so fixing it means running it on a device.
 
 ### 6. Android

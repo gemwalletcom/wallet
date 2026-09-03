@@ -149,7 +149,7 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
-    pub async fn execute(&self, input: GemSendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {
+    pub async fn execute(&self, input: SendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {
         let signer_input = input.signer_input()?;
         let chain = input.confirm.input.transfer.input_type.asset().chain();
         let transactions = signer.sign(input.wallet.clone(), signer_input).await.map_err(|error| error::sign_error(chain, error))?;
@@ -270,7 +270,7 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
-    async fn send(&self, input: GemSendInput, transactions: Vec<GemSignedTransaction>) -> Result<GemSendResult, GemConfirmError> {
+    async fn send(&self, input: SendInput, transactions: Vec<GemSignedTransaction>) -> Result<GemSendResult, GemConfirmError> {
         let hashes = match self.broadcast(input.confirm.input.transfer.input_type.clone(), transactions.clone()).await {
             Ok(hashes) => hashes,
             Err(GemConfirmError::Broadcast { hashes, msg }) => {
@@ -304,7 +304,7 @@ impl GemConfirmService {
         Ok(hashes)
     }
 
-    async fn record(&self, input: &GemSendInput, hashes: &[String], transactions: &[GemSignedTransaction]) -> Result<Vec<Transaction>, GemConfirmError> {
+    async fn record(&self, input: &SendInput, hashes: &[String], transactions: &[GemSignedTransaction]) -> Result<Vec<Transaction>, GemConfirmError> {
         let pending = input.pending_transactions(hashes, transactions)?;
         if pending.is_empty() {
             return Ok(pending);

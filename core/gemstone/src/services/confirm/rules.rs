@@ -5,7 +5,7 @@ use primitives::{
 
 use super::error::{GemBalanceRequirement, GemConfirmError};
 use super::model::{
-    GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemFeeAsset, GemSendInput, GemTransferAmountResult,
+    GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemFeeAsset, GemTransferAmountResult, SendInput,
 };
 use crate::models::custom_types::GemBigUint;
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
@@ -15,7 +15,7 @@ use crate::services::price::GemAssetPrice;
 use crate::services::transfer::GemPendingTransactionInput;
 use crate::transfer_amount::{GemTransferAmountError, GemTransferAmountInput};
 
-impl GemSendInput {
+impl SendInput {
     pub(super) fn signer_input(&self) -> Result<GemSignerInput, GemConfirmError> {
         let GemConfirmInput { from, transfer } = &self.confirm.input;
         let chain = transfer.input_type.asset().chain();
@@ -190,7 +190,7 @@ pub fn is_insufficient_network_fee(fee_asset_id: AssetId, fee_available: &str) -
     fee_available.trim().is_empty() || fee_available.trim().chars().all(|character| character == '0')
 }
 
-impl GemSendInput {
+impl SendInput {
     pub(super) fn pending_transactions(&self, hashes: &[String], transactions: &[GemSignedTransaction]) -> Result<Vec<Transaction>, GemConfirmError> {
         let chain = self.confirm.input.transfer.input_type.asset().chain();
         let sender = self.wallet.account(chain).map(|account| account.address.clone()).ok_or_else(|| GemConfirmError::Record {
@@ -340,12 +340,12 @@ mod tests {
         }
     }
 
-    fn send_input(chain: Chain, input_type: GemTransactionInputType) -> GemSendInput {
+    fn send_input(chain: Chain, input_type: GemTransactionInputType) -> SendInput {
         send_input_from(chain, input_type, "sender")
     }
 
-    fn send_input_from(chain: Chain, input_type: GemTransactionInputType, from: &str) -> GemSendInput {
-        GemSendInput {
+    fn send_input_from(chain: Chain, input_type: GemTransactionInputType, from: &str) -> SendInput {
+        SendInput {
             wallet: wallet(chain),
             confirm: GemConfirmData {
                 input: GemConfirmInput {
@@ -682,7 +682,7 @@ mod tests {
             image_url: None,
             source: primitives::WalletSource::Import,
         };
-        let input = GemSendInput {
+        let input = SendInput {
             wallet: wallet.clone(),
             confirm: GemConfirmData {
                 input: GemConfirmInput {
