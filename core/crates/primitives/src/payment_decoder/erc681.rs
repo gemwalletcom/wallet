@@ -41,6 +41,7 @@ pub fn decode(path: &str) -> Result<Payment> {
             asset_id: Some(AssetId::from(chain, Some(target.to_string()))),
         })),
         Some(function) => Err(PaymentDecoderError::InvalidFormat(format!("Unsupported function: {function}"))),
+        None if target.is_empty() => Err(PaymentDecoderError::MissingField(QUERY_ADDRESS.to_string())),
         None => Ok(Payment::Request(PaymentRequest {
             address: target.to_string(),
             amount: query::value(&parameters, QUERY_VALUE)

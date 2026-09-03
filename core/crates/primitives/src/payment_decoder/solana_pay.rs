@@ -20,6 +20,9 @@ pub fn decode(path: &str) -> Result<Payment> {
     }
 
     let (recipient, query) = path.split_once('?').unwrap_or((path, ""));
+    if recipient.is_empty() {
+        return Err(PaymentDecoderError::MissingField("recipient".to_string()));
+    }
     let parameters = query::parameters(query);
 
     let token = query::value(&parameters, QUERY_SPL_TOKEN);

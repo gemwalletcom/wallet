@@ -15,15 +15,7 @@ pub struct PaymentURLDecoder;
 impl PaymentURLDecoder {
     pub fn decode(string: &str) -> Result<Payment> {
         let uri = string.trim();
-        let payment = Self::decode_uri(uri.split_once('#').map_or(uri, |(uri, _)| uri))?;
-
-        match payment {
-            Payment::Request(request) if request.address.is_empty() => Err(PaymentDecoderError::MissingField("address".to_string())),
-            payment @ (Payment::Request(_) | Payment::Link(_)) => Ok(payment),
-        }
-    }
-
-    fn decode_uri(uri: &str) -> Result<Payment> {
+        let uri = uri.split_once('#').map_or(uri, |(uri, _)| uri);
         let Some((scheme, path)) = uri.split_once(':') else {
             return bip21::decode(None, uri);
         };
@@ -152,7 +144,13 @@ mod tests {
 
         assert!(PaymentURLDecoder::decode("bitcoin:").is_err());
         assert!(PaymentURLDecoder::decode("bitcoin:?amount=0.1").is_err());
+        assert!(PaymentURLDecoder::decode("ripple:?dt=12345").is_err());
         assert!(PaymentURLDecoder::decode("ethereum:").is_err());
+        assert!(PaymentURLDecoder::decode("ethereum:?value=1").is_err());
+        assert!(PaymentURLDecoder::decode("solana:").is_err());
+        assert!(PaymentURLDecoder::decode("solana:?amount=1").is_err());
+        assert!(PaymentURLDecoder::decode("ton:").is_err());
+        assert!(PaymentURLDecoder::decode("ton://transfer/").is_err());
         assert!(PaymentURLDecoder::decode("").is_err());
     }
 }

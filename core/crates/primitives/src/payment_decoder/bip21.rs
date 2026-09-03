@@ -21,6 +21,10 @@ pub fn get_request(chain: Option<Chain>, path: &str) -> Result<PaymentRequest> {
         return Err(PaymentDecoderError::InvalidFormat(format!("Unsupported required parameter: {required}")));
     }
 
+    if address.is_empty() {
+        return Err(PaymentDecoderError::MissingField("address".to_string()));
+    }
+
     Ok(PaymentRequest {
         address: address.to_string(),
         amount: query::value(&parameters, QUERY_AMOUNT)

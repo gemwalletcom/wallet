@@ -36,8 +36,9 @@ fn address(path: &str) -> Result<String> {
     let path = path.trim_matches('/');
 
     match path.split_once('/') {
+        None if path.is_empty() || path == TRANSFER_PATH => Err(PaymentDecoderError::MissingField("address".to_string())),
         None => Ok(path.to_string()),
-        Some((TRANSFER_PATH, address)) if !address.contains('/') => Ok(address.to_string()),
+        Some((TRANSFER_PATH, address)) if !address.is_empty() && !address.contains('/') => Ok(address.to_string()),
         Some(_) => Err(PaymentDecoderError::InvalidFormat(format!("Not a transfer path: {path}"))),
     }
 }
