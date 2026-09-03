@@ -17,7 +17,7 @@ pub fn decode(path: &str) -> Result<Payment> {
     let (path, query) = path.split_once('?').unwrap_or((path, ""));
     let parameters = query::parameters(query);
 
-    if parameters.contains_key(QUERY_BODY) || parameters.contains_key(QUERY_STATE_INIT) {
+    if query::contains(&parameters, QUERY_BODY) || query::contains(&parameters, QUERY_STATE_INIT) {
         return Err(PaymentDecoderError::InvalidFormat("Unsupported transfer payload".to_string()));
     }
 
@@ -78,6 +78,10 @@ mod tests {
         );
         assert_eq!(
             decode(&format!("//transfer/{ADDRESS}?amount=1&init=te6cc")),
+            Err(PaymentDecoderError::InvalidFormat("Unsupported transfer payload".to_string()))
+        );
+        assert_eq!(
+            decode(&format!("//transfer/{ADDRESS}?amount=1&BIN=te6cc")),
             Err(PaymentDecoderError::InvalidFormat("Unsupported transfer payload".to_string()))
         );
         assert!(decode("//invalid/format").is_err());

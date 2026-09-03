@@ -17,7 +17,7 @@ pub fn decode(chain: Option<Chain>, path: &str) -> Result<Payment> {
 pub fn get_request(chain: Option<Chain>, path: &str) -> Result<PaymentRequest> {
     let (address, query) = path.split_once('?').unwrap_or((path, ""));
     let parameters = query::parameters(query);
-    if let Some(required) = parameters.keys().find(|key| key.starts_with(REQUIRED_PARAMETER_PREFIX)) {
+    if let Some((required, _)) = parameters.iter().find(|(key, _)| key.starts_with(REQUIRED_PARAMETER_PREFIX)) {
         return Err(PaymentDecoderError::InvalidFormat(format!("Unsupported required parameter: {required}")));
     }
 
@@ -102,6 +102,10 @@ mod tests {
         assert_eq!(
             decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?req-dontexist=")),
             Err(PaymentDecoderError::InvalidFormat("Unsupported required parameter: req-dontexist".to_string()))
+        );
+        assert_eq!(
+            decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?REQ-Pop=initiatingapp%3A")),
+            Err(PaymentDecoderError::InvalidFormat("Unsupported required parameter: req-pop".to_string()))
         );
     }
 }

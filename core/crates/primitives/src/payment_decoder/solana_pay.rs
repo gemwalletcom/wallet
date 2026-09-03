@@ -34,7 +34,7 @@ pub fn decode(path: &str) -> Result<Payment> {
         address: recipient.to_string(),
         amount,
         memo: query::value(&parameters, QUERY_MEMO),
-        references: match query::values(query, QUERY_REFERENCE) {
+        references: match query::values(&parameters, QUERY_REFERENCE) {
             references if references.is_empty() => None,
             references => Some(references),
         },

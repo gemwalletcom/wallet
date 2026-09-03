@@ -102,7 +102,7 @@ mod tests {
         assert_eq!(PaymentURLDecoder::decode(&format!("{uri}#note")).unwrap(), bitcoin);
         assert_eq!(PaymentURLDecoder::decode(&format!("BITCOIN:{BITCOIN_ADDRESS}?amount=0.1")).unwrap(), bitcoin);
 
-        assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{BITCOIN_ADDRESS}?AMOUNT=0.1")).unwrap(), address_only);
+        assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{BITCOIN_ADDRESS}?AMOUNT=0.1")).unwrap(), bitcoin);
         assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{BITCOIN_ADDRESS}?amount=&memo=")).unwrap(), address_only);
         assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin:{BITCOIN_ADDRESS}")).unwrap(), address_only);
         assert_eq!(PaymentURLDecoder::decode(&format!("bitcoin://{BITCOIN_ADDRESS}")).unwrap(), address_only);
