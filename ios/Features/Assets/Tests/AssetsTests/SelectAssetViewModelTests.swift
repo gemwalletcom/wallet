@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import Assets
-import GemstonePrimitivesTestKit
 import AssetsTestKit
+import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
@@ -34,12 +34,13 @@ struct SelectAssetViewModelTests {
     @Test
     func filterAndAddTokenRequireFlowAndWalletSupport() {
         let walletWithTokens = Wallet.mock(accounts: [.mock(chain: .ethereum)])
-        let walletWithoutTokens = Wallet.mock(accounts: [.mock(chain: .bitcoin)])
         let singleChainWallet = Wallet.mock(type: .single, accounts: [.mock(chain: .ethereum)])
+        let withoutTokens = GemAssetSelectionServiceMock()
+        withoutTokens.tokensSupported = false
 
         #expect(SelectAssetViewModel.mock(wallet: walletWithTokens, selectType: .manage).showAddToken == true)
         #expect(SelectAssetViewModel.mock(wallet: walletWithTokens, selectType: .send(.none)).showAddToken == false)
-        #expect(SelectAssetViewModel.mock(wallet: walletWithoutTokens, selectType: .manage).showAddToken == false)
+        #expect(SelectAssetViewModel.mock(wallet: walletWithTokens, selectType: .manage, service: withoutTokens).showAddToken == false)
 
         #expect(SelectAssetViewModel.mock(wallet: walletWithTokens, selectType: .manage).showFilter == true)
         #expect(SelectAssetViewModel.mock(wallet: walletWithTokens, selectType: .deposit).showFilter == false)

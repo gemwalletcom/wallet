@@ -4,6 +4,7 @@ use primitives::currency::Currency;
 use primitives::{Asset, AssetBasic, AssetId};
 
 use super::model::GemAssetAction;
+use super::rules;
 
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
@@ -50,6 +51,14 @@ impl GemAssetSelectionService {
 
     pub fn currency(&self) -> Currency {
         self.preferences.get_currency()
+    }
+
+    pub fn supports_tokens(&self) -> bool {
+        self.session
+            .get_current_wallet()
+            .ok()
+            .flatten()
+            .is_some_and(|wallet| !rules::token_chains(&wallet).is_empty())
     }
 
     pub fn show_perpetuals(&self) -> bool {

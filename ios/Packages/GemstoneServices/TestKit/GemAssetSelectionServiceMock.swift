@@ -5,9 +5,9 @@ import typealias Gemstone.Asset
 import typealias Gemstone.AssetBasic
 import typealias Gemstone.AssetId
 import typealias Gemstone.Currency
+import enum Gemstone.GemAssetAction
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import enum Gemstone.GemSearchScope
-import enum Gemstone.GemAssetAction
 import Primitives
 
 public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtocol, @unchecked Sendable {
@@ -29,6 +29,7 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
     }
 
     public var perpetualsShown = true
+    public var tokensSupported = true
     public private(set) var pinnedPerpetuals: [(perpetualId: String, pinned: Bool)] = []
 
     public func currency() -> Currency {
@@ -37,6 +38,10 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
 
     public func showPerpetuals() -> Bool {
         perpetualsShown
+    }
+
+    public func supportsTokens() -> Bool {
+        tokensSupported
     }
 
     public func search(query _: String, scope _: GemSearchScope) async throws -> Bool {
@@ -52,7 +57,7 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         pinnedPerpetuals.append((perpetualId, pinned))
     }
 
-    public func searchAssets(query: String) async throws -> [AssetBasic] {
+    public func searchAssets(query _: String) async throws -> [AssetBasic] {
         if let error { throw error }
         return assets
     }
@@ -61,7 +66,7 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         onSetAssetsEnabled?(assetIds, enabled)
     }
 
-    public func addRecent(action: GemAssetAction, asset: Asset) async throws {}
+    public func addRecent(action _: GemAssetAction, asset _: Asset) async throws {}
 
-    public func setPriceAlert(assetId: AssetId, enabled: Bool) async throws {}
+    public func setPriceAlert(assetId _: AssetId, enabled _: Bool) async throws {}
 }

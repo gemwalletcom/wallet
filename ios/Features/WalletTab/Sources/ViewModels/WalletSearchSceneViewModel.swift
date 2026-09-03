@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Foundation
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
-import Foundation
 import Localization
 import NFT
 import Primitives
@@ -142,7 +142,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var showAddToken: Bool {
-        wallet.hasTokenSupport
+        service.supportsTokens()
     }
 
     var previewAssets: [AssetData] {

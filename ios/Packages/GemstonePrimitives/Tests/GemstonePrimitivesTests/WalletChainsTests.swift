@@ -21,12 +21,6 @@ final class WalletChainsTests {
     }
 
     @Test
-    func hasTokenSupport() {
-        #expect(Wallet.mock(accounts: [.mock(chain: .bitcoin), .mock(chain: .doge)]).hasTokenSupport == false)
-        #expect(Wallet.mock(accounts: [.mock(chain: .bitcoin), .mock(chain: .stellar)]).hasTokenSupport == true)
-    }
-
-    @Test
     func chainSorting() {
         let wallet = Wallet.mock(accounts: [
             .mock(chain: .doge),

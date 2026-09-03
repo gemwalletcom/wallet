@@ -30,8 +30,6 @@ fun Chain.assetType(): AssetType? {
 
 fun Chain.isStakeSupported(): Boolean = Config().getChainConfig(this.string).isStakeSupported
 
-fun Chain.isTokenSupported(): Boolean = Config().getChainConfig(this.string).isTokenSupported
-
 fun Chain.isNftSupported(): Boolean = Config().getChainConfig(this.string).isNftSupported
 
 fun Chain.asset(): Asset {

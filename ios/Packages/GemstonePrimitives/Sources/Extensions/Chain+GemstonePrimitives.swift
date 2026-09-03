@@ -49,14 +49,6 @@ public extension Primitives.Chain {
         ChainConfig.config(chain: self).isMemoSupported
     }
 
-    var isSwapSupported: Bool {
-        ChainConfig.config(chain: self).isSwapSupported
-    }
-
-    var isTokenSupported: Bool {
-        ChainConfig.config(chain: self).isTokenSupported
-    }
-
     var isStakeSupported: Bool {
         ChainConfig.config(chain: self).isStakeSupported
     }

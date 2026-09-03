@@ -1,12 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import protocol Gemstone.GemAssetSelectionServiceProtocol
-import protocol Gemstone.GemRecentActivityServiceProtocol
-import GemstoneServices
 import Foundation
 import class Gemstone.GemAssetConfigService
+import protocol Gemstone.GemAssetSelectionServiceProtocol
+import protocol Gemstone.GemRecentActivityServiceProtocol
 import GemstonePrimitives
+import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -117,7 +117,7 @@ public final class SelectAssetViewModel {
     }
 
     public var showAddToken: Bool {
-        flow.capabilities.contains(.addCustomToken) && wallet.hasTokenSupport && filterModel.chainsFilter.hasChains
+        flow.capabilities.contains(.addCustomToken) && service.supportsTokens() && filterModel.chainsFilter.hasChains
     }
 
     public var showFilter: Bool {

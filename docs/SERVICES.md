@@ -479,6 +479,11 @@ Three gotchas if you repeat the sweep, all met on this pass:
   Android's `NftDetailsScene` only checked the chain, so a view-only wallet got a send button.
   `Chain.supportsNftTransfer` is gone from both apps.
 
+- **Whether the wallet can add a token is Core's answer.** `GemAssetSelectionService::supports_tokens()`
+  reads the session wallet and asks `rules::token_chains` for a chain with a token type. iOS
+  `Wallet.hasTokenSupport` and Android `accounts.any { chain.isTokenSupported() }` are gone, with
+  the iOS `Chain.isTokenSupported` / `isSwapSupported` (test-only) config readers.
+
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**
