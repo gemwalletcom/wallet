@@ -3,7 +3,7 @@ use gem_encoding::encode_base64;
 use num_traits::ToPrimitive;
 use primitives::{SignerError, SignerInput, TransactionFee};
 use solana_primitives::{
-    CompiledInstruction, Instruction, LegacyMessage, MessageHeader, Pubkey, SignatureBytes, VersionedTransaction,
+    CompiledInstruction, Instruction, Message, MessageHeader, Pubkey, SignatureBytes, Transaction, VersionedTransaction,
     instructions::{
         compute_budget::{set_compute_unit_limit, set_compute_unit_price},
         program_ids::system_program,
@@ -18,7 +18,7 @@ struct AccountFlags {
     is_writable: bool,
 }
 
-pub(crate) fn compute_budget_instructions(fee: &TransactionFee) -> Result<Vec<Instruction>, SignerError> {
+pub(super) fn compute_budget_instructions(fee: &TransactionFee) -> Result<Vec<Instruction>, SignerError> {
     let (unit_price, compute_unit_limit) = compute_budget_values(fee)?;
     let mut instructions = Vec::with_capacity(2);
     if unit_price > 0 {
@@ -30,12 +30,16 @@ pub(crate) fn compute_budget_instructions(fee: &TransactionFee) -> Result<Vec<In
     Ok(instructions)
 }
 
-pub(crate) fn sign_single_signer_instructions(input: &SignerInput, private_key: &[u8], fee_payer: Pubkey, instructions: Vec<Instruction>) -> Result<String, SignerError> {
-    let transaction = build_legacy_transaction(fee_payer, block_hash(input)?, instructions)?;
+pub(super) fn sign_single_signer_instructions(input: &SignerInput, private_key: &[u8], fee_payer: Pubkey, instructions: Vec<Instruction>) -> Result<String, SignerError> {
+    let mut transaction = build_legacy_transaction(fee_payer, block_hash(input)?, instructions)?;
     if transaction.num_required_signatures() != 1 {
         return Err(SignerError::invalid_input("Solana transaction requires more than one signer"));
     }
-    sign_and_encode_transaction(transaction, private_key)
+    transaction.sign(&[private_key]).map_err(|error| SignerError::signing_error(format!("sign: {error}")))?;
+    let bytes = transaction
+        .serialize_legacy()
+        .map_err(|error| SignerError::signing_error(format!("serialize transaction: {error}")))?;
+    Ok(encode_base64(&bytes))
 }
 
 pub(super) fn sign_transaction(transaction: &VersionedTransaction, private_key: &[u8]) -> Result<SignatureBytes, SignerError> {
@@ -59,7 +63,7 @@ pub(super) fn sign_and_encode_transaction(mut transaction: VersionedTransaction,
     encode_transaction(&transaction)
 }
 
-pub(crate) fn prepare_with_fee(transaction_base64: &str, fee: &TransactionFee) -> Result<VersionedTransaction, SignerError> {
+pub(super) fn prepare_with_fee(transaction_base64: &str, fee: &TransactionFee) -> Result<VersionedTransaction, SignerError> {
     let mut transaction = decode_transaction(transaction_base64).map_err(SignerError::invalid_input)?;
 
     if transaction.signatures().len() > 1 {
@@ -100,11 +104,11 @@ fn insert_compiled_instruction(
     if !instruction.accounts.is_empty() {
         return SignerError::invalid_input_err("compute budget instruction must not have accounts");
     }
-    let insert_position = instructions
-        .first()
-        .filter(|compiled| account_keys.get(compiled.program_id_index as usize) == Some(&system_program()) && compiled.data.get(0..4) == Some(&4u32.to_le_bytes()))
-        .map(|_| 1)
-        .unwrap_or(0);
+    let insert_position = usize::from(
+        instructions
+            .first()
+            .is_some_and(|compiled| account_keys.get(compiled.program_id_index as usize) == Some(&system_program()) && compiled.data.get(0..4) == Some(&4u32.to_le_bytes())),
+    );
     let program_id_index = match account_keys.iter().position(|pubkey| *pubkey == instruction.program_id) {
         Some(index) => u8::try_from(index).map_err(|_| SignerError::invalid_input("Solana transaction has too many account keys"))?,
         None => {
@@ -145,7 +149,7 @@ fn shift_loaded_index(index: &mut u8, static_account_count: u8) -> Result<(), Si
     Ok(())
 }
 
-pub(super) fn build_legacy_transaction(fee_payer: Pubkey, recent_blockhash: [u8; 32], instructions: Vec<Instruction>) -> Result<VersionedTransaction, SignerError> {
+fn build_legacy_transaction(fee_payer: Pubkey, recent_blockhash: [u8; 32], instructions: Vec<Instruction>) -> Result<Transaction, SignerError> {
     let mut flags = HashMap::new();
     let mut account_order = Vec::new();
     let mut program_order = Vec::new();
@@ -158,29 +162,20 @@ pub(super) fn build_legacy_transaction(fee_payer: Pubkey, recent_blockhash: [u8;
         merge_account(&mut flags, &mut program_order, instruction.program_id, false, false);
     }
 
-    let mut writable_signers = Vec::new();
-    let mut readonly_signers = Vec::new();
-    let mut writable_non_signers = Vec::new();
-    let mut readonly_non_signers = Vec::new();
+    let mut buckets: [Vec<Pubkey>; 4] = Default::default();
     for pubkey in account_order.iter().chain(program_order.iter()) {
         let flags = flags.get(pubkey).ok_or_else(|| SignerError::invalid_input("missing Solana account flags"))?;
-        match (flags.is_signer, flags.is_writable) {
-            (true, true) => writable_signers.push(*pubkey),
-            (true, false) => readonly_signers.push(*pubkey),
-            (false, true) => writable_non_signers.push(*pubkey),
-            (false, false) => readonly_non_signers.push(*pubkey),
-        }
+        let bucket = match (flags.is_signer, flags.is_writable) {
+            (true, true) => 0,
+            (true, false) => 1,
+            (false, true) => 2,
+            (false, false) => 3,
+        };
+        buckets[bucket].push(*pubkey);
     }
 
-    let num_required_signatures = writable_signers.len() + readonly_signers.len();
-    let num_readonly_signed_accounts = readonly_signers.len();
-    let num_readonly_unsigned_accounts = readonly_non_signers.len();
-    let mut account_keys = Vec::with_capacity(account_order.len() + program_order.len());
-    account_keys.push(fee_payer);
-    account_keys.extend(writable_signers.into_iter().filter(|pubkey| *pubkey != fee_payer));
-    account_keys.extend(readonly_signers);
-    account_keys.extend(writable_non_signers);
-    account_keys.extend(readonly_non_signers);
+    let num_required_signatures = buckets[0].len() + buckets[1].len();
+    let account_keys = account_keys(fee_payer, &buckets);
     if account_keys.len() > u8::MAX as usize || num_required_signatures > u8::MAX as usize {
         return Err(SignerError::invalid_input("Solana transaction has too many account keys"));
     }
@@ -205,17 +200,12 @@ pub(super) fn build_legacy_transaction(fee_payer: Pubkey, recent_blockhash: [u8;
 
     let header = MessageHeader {
         num_required_signatures: num_required_signatures as u8,
-        num_readonly_signed_accounts: num_readonly_signed_accounts as u8,
-        num_readonly_unsigned_accounts: num_readonly_unsigned_accounts as u8,
+        num_readonly_signed_accounts: buckets[1].len() as u8,
+        num_readonly_unsigned_accounts: buckets[3].len() as u8,
     };
-    Ok(VersionedTransaction::Legacy {
+    Ok(Transaction {
         signatures: vec![SignatureBytes::new([0u8; 64]); num_required_signatures],
-        message: LegacyMessage {
-            header,
-            account_keys,
-            recent_blockhash,
-            instructions: compiled_instructions,
-        },
+        message: Message::new(header, account_keys, recent_blockhash, compiled_instructions),
     })
 }
 
@@ -230,6 +220,16 @@ fn merge_account(flags: &mut HashMap<Pubkey, AccountFlags>, order: &mut Vec<Pubk
             order.push(pubkey);
             AccountFlags { is_signer, is_writable }
         });
+}
+
+fn account_keys(fee_payer: Pubkey, buckets: &[Vec<Pubkey>; 4]) -> Vec<Pubkey> {
+    let mut account_keys = Vec::with_capacity(buckets.iter().map(Vec::len).sum());
+    account_keys.push(fee_payer);
+    account_keys.extend(buckets[0].iter().copied().filter(|pubkey| *pubkey != fee_payer));
+    for bucket in &buckets[1..] {
+        account_keys.extend(bucket.iter().copied());
+    }
+    account_keys
 }
 
 fn account_index(key_to_index: &HashMap<Pubkey, u8>, pubkey: Pubkey) -> Result<u8, SignerError> {

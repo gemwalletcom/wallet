@@ -4,6 +4,7 @@ use gem_client::Client;
 use gem_evm::contracts::IERC20;
 use gem_evm::u256::biguint_to_u256;
 use gem_evm::u256::u256_to_biguint;
+use gem_solana::DEFAULT_SWAP_COMPUTE_UNIT_LIMIT;
 use num_bigint::BigUint;
 use num_traits::ToPrimitive;
 use std::{fmt::Debug, sync::Arc, time::Duration};
@@ -368,7 +369,13 @@ where
             (ChainType::Solana, VaultSwapResponse::Solana(response)) => {
                 let blockhash = solana_blockhash.ok_or(SwapperError::InvalidRoute)?;
                 let data = tx_builder::build_solana_transaction(&quote.request.wallet_address, &response, blockhash)?;
-                Ok(SwapperQuoteData::new_contract(response.program_id, BigUint::ZERO, data, None, None))
+                Ok(SwapperQuoteData::new_contract(
+                    response.program_id,
+                    BigUint::ZERO,
+                    data,
+                    None,
+                    Some(DEFAULT_SWAP_COMPUTE_UNIT_LIMIT.to_string()),
+                ))
             }
             _ => Err(SwapperError::InvalidRoute),
         }

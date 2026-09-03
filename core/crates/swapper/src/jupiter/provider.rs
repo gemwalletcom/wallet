@@ -7,7 +7,8 @@ use async_trait::async_trait;
 use gem_client::Client;
 use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcResult};
 use gem_solana::{
-    JUPITER_PROGRAM_ID, SolanaAccountEncoding, SolanaRpc, TOKEN_PROGRAM, USDC_TOKEN_MINT, USDS_TOKEN_MINT, USDT_TOKEN_MINT, WSOL_TOKEN_ADDRESS, get_pubkey_by_str,
+    JUPITER_PROGRAM_ID, MAX_COMPUTE_UNIT_LIMIT, SolanaAccountEncoding, SolanaRpc, TOKEN_PROGRAM, USDC_TOKEN_MINT, USDS_TOKEN_MINT, USDT_TOKEN_MINT, WSOL_TOKEN_ADDRESS,
+    get_pubkey_by_str,
     models::{AccountData, ValueResult},
     token_account::get_token_account,
 };
@@ -145,7 +146,7 @@ where
             BigUint::ZERO,
             route.route_data.clone(),
             None,
-            None,
+            Some(MAX_COMPUTE_UNIT_LIMIT.to_string()),
         ))
     }
 }
@@ -188,7 +189,7 @@ mod swap_integration_tests {
         let transaction = decode_transaction(&quote_data.data).map_err(SwapperError::transaction_error)?;
 
         assert_eq!(quote_data.to, JUPITER_PROGRAM_ID);
-        assert!(quote_data.gas_limit.is_none());
+        assert_eq!(quote_data.gas_limit, Some(MAX_COMPUTE_UNIT_LIMIT.to_string()));
         assert_eq!(quote_data.data, route.route_data);
         assert!(transaction.serialize().map_err(SwapperError::transaction_error)?.len() <= MAX_TRANSACTION_SIZE);
 

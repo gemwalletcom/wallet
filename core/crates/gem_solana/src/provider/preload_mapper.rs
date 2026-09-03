@@ -1,9 +1,14 @@
 use num_bigint::BigInt;
-use primitives::{AssetId, AssetSubtype, Chain, FeeOption, FeePriority, FeeRate, GasPriceType, SOLANA_PRIORITY_FEE_SCALE, StakeType, TransactionFee, TransactionInputType};
+use num_traits::ToPrimitive;
+use primitives::{
+    AssetId, AssetSubtype, Chain, FeeOption, FeePriority, FeeRate, GasPriceType, SOLANA_PRIORITY_FEE_SCALE, SignerError, StakeType, TransactionFee, TransactionInputType,
+    swap::SwapQuoteDataType,
+};
 use std::collections::HashMap;
 
 use crate::{
-    constants::{DEFAULT_COMPUTE_UNIT_ESTIMATE, MAX_COMPUTE_UNIT_LIMIT, STATIC_BASE_FEE},
+    constants::{DEFAULT_COMPUTE_UNIT_LIMIT, DEFAULT_SWAP_COMPUTE_UNIT_LIMIT, MAX_COMPUTE_UNIT_LIMIT, STATIC_BASE_FEE},
+    decode_transaction,
     models::prioritization_fee::SolanaPrioritizationFee,
 };
 
@@ -48,19 +53,41 @@ fn calculate_unit_price(input_type: &TransactionInputType, prioritization_fees: 
     }
 }
 
-fn get_compute_unit_estimate(input_type: &TransactionInputType) -> BigInt {
-    match input_type {
+pub(crate) fn get_compute_unit_limit(input_type: &TransactionInputType) -> Result<Option<BigInt>, SignerError> {
+    let encoded_transaction = match input_type {
+        TransactionInputType::Swap(_, _, swap_data) => {
+            if swap_data.data.gas_limit.as_deref().is_some_and(|compute_unit_limit| !compute_unit_limit.is_empty()) {
+                let compute_unit_limit = swap_data.data.gas_limit_as_u32().map_err(SignerError::invalid_input)?;
+                if compute_unit_limit > 0 {
+                    return Ok(Some(BigInt::from(compute_unit_limit)));
+                }
+            }
+            match swap_data.data.data_type {
+                SwapQuoteDataType::Contract => swap_data.data.data.as_str(),
+                SwapQuoteDataType::Transfer => return Ok(Some(BigInt::from(DEFAULT_SWAP_COMPUTE_UNIT_LIMIT))),
+            }
+        }
+        TransactionInputType::Generic(_, _, extra) => {
+            if let Some(compute_unit_limit) = &extra.gas_limit {
+                let compute_unit_limit = compute_unit_limit.to_u32().ok_or_else(|| SignerError::invalid_input("invalid compute unit limit"))?;
+                if compute_unit_limit > 0 {
+                    return Ok(Some(BigInt::from(compute_unit_limit)));
+                }
+            }
+            extra.data_as_str().map_err(SignerError::invalid_input)?
+        }
         TransactionInputType::Transfer(_)
         | TransactionInputType::Deposit(_)
         | TransactionInputType::TransferNft(_, _)
         | TransactionInputType::Account(_, _)
         | TransactionInputType::TokenApprove(_, _)
-        | TransactionInputType::Generic(_, _, _)
         | TransactionInputType::Perpetual(_, _)
         | TransactionInputType::Earn(_, _, _)
-        | TransactionInputType::Stake(_, _) => BigInt::from(DEFAULT_COMPUTE_UNIT_ESTIMATE),
-        TransactionInputType::Swap(_, _, _) => BigInt::from(MAX_COMPUTE_UNIT_LIMIT),
-    }
+        | TransactionInputType::Stake(_, _) => return Ok(Some(BigInt::from(DEFAULT_COMPUTE_UNIT_LIMIT))),
+    };
+
+    let transaction = decode_transaction(encoded_transaction).map_err(SignerError::invalid_input)?;
+    Ok(transaction.get_compute_unit_limit().filter(|compute_unit_limit| *compute_unit_limit > 0).map(BigInt::from))
 }
 
 fn calculate_priority_fee(unit_price: &BigInt, compute_unit_limit: &BigInt) -> BigInt {
@@ -94,10 +121,13 @@ fn round_to_nearest(value: i64, multiple: i64, round_up: bool) -> i64 {
     }
 }
 
-pub fn calculate_fee_rates(input_type: &TransactionInputType, prioritization_fees: &[SolanaPrioritizationFee]) -> Vec<FeeRate> {
+pub(crate) fn calculate_fee_rates(input_type: &TransactionInputType, prioritization_fees: &[SolanaPrioritizationFee]) -> Vec<FeeRate> {
     let static_base_fee = BigInt::from(STATIC_BASE_FEE);
     let normal_unit_price = calculate_unit_price(input_type, prioritization_fees);
-    let compute_unit_limit = get_compute_unit_estimate(input_type);
+    let compute_unit_limit = match input_type {
+        TransactionInputType::Swap(_, _, _) => BigInt::from(MAX_COMPUTE_UNIT_LIMIT),
+        _ => BigInt::from(DEFAULT_COMPUTE_UNIT_LIMIT),
+    };
 
     [FeePriority::Normal, FeePriority::Fast]
         .iter()
@@ -309,7 +339,7 @@ mod tests {
         let fee = calculate_transaction_fee(
             &input_type,
             &gas_price_type,
-            BigInt::from(DEFAULT_COMPUTE_UNIT_ESTIMATE),
+            BigInt::from(DEFAULT_COMPUTE_UNIT_LIMIT),
             Some("recipient_token_address".to_string()),
         );
 
@@ -329,7 +359,7 @@ mod tests {
         };
         let input_type = TransactionInputType::Transfer(asset);
 
-        let fee = calculate_transaction_fee(&input_type, &gas_price_type, BigInt::from(DEFAULT_COMPUTE_UNIT_ESTIMATE), None);
+        let fee = calculate_transaction_fee(&input_type, &gas_price_type, BigInt::from(DEFAULT_COMPUTE_UNIT_LIMIT), None);
 
         assert_eq!(fee.fee, BigInt::from(2_059_280u64)); // 20_000 gas + 2_039_280 token account creation
         assert_eq!(fee.options.len(), 1);
@@ -343,7 +373,7 @@ mod tests {
         let validator = DelegationValidator::stake(Chain::Solana, "validator".to_string(), "validator".to_string(), true, 0.0, 0.0);
         let input_type = TransactionInputType::Stake(Asset::mock_sol(), StakeType::Stake(validator));
 
-        let fee = calculate_transaction_fee(&input_type, &gas_price_type, BigInt::from(DEFAULT_COMPUTE_UNIT_ESTIMATE), None);
+        let fee = calculate_transaction_fee(&input_type, &gas_price_type, BigInt::from(DEFAULT_COMPUTE_UNIT_LIMIT), None);
 
         assert_eq!(fee.fee, BigInt::from(2_290_380u64));
         assert_eq!(fee.options[&FeeOption::TokenAccountCreation], BigInt::from(STAKE_ACCOUNT_CREATION_FEE));

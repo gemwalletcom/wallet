@@ -22,6 +22,7 @@ mod testkit;
 pub mod signer;
 
 pub use address::{SolanaAddress, validate_address};
+pub use constants::{DEFAULT_SWAP_COMPUTE_UNIT_LIMIT, MAX_COMPUTE_UNIT_LIMIT};
 pub use jsonrpc::{SolanaAccountEncoding, SolanaProgramAccountsFilter, SolanaRpc, SolanaRpcConfig, SolanaTokenAccountsFilter};
 pub use solana_primitives::{Pubkey, SolanaError, find_program_address};
 pub use transaction::{
