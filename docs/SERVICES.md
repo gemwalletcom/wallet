@@ -547,7 +547,9 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `GemWalletImportException` case for case (plus a `DuplicatedWallet` nothing threw), with a
   `validatedOrImportError` re-wrap between the two; the import screen switches on
   `GemWalletImportException` now, exactly as iOS's `GemWalletImportError: LocalizedError` does,
-  and any other failure keeps its message.
+  and any other failure keeps its message. The swap screen went the same way: `SwapError` with
+  its `toError(SwapperException)` mapping and `SwapErrorTest` are gone, and the error item
+  classifies `SwapperException` the way iOS's `SwapperError.message(asset:)` does.
 
 - **Android's amount errors match iOS on zero.** `AmountError` carried four cases nothing raised
   (`Unavailable`, `InsufficientFeeBalance`, `IncorrectAddress`, `ZeroAmount`), two of them with
