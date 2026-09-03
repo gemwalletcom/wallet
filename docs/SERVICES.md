@@ -433,6 +433,16 @@ Three gotchas if you repeat the sweep, all met on this pass:
 
 - **The network fee sheet is one Core answer.** `GemConfirmData::fee_rate_rows(selection, fee_asset) -> GemFeeRateRows { rows: [{ priority, unit_value, fee }], unit_type, unit_decimals, supports_custom_fee, selected_total, normal_total }` scales the loaded fee to each rate against the selected base, picks the unit (`FeeUnitType` is a remote enum now) and its decimals, and says whether a custom rate can be entered (bitcoin chains with more than one rate). Both apps' copies of that — iOS `estimatedFee`/`feeRateDecimals`/`Chain.customFeeEnabled`/`FeePriority.rank` and Android `FeeDetailsModel.from`/`FeeRateUIModel.feeAmount`/`CustomFee.baseTotal`/`feeRateDecimals`/`Chain.feeUnitType()` — are gone; the app formats a row and drives the custom-fee input from `selected_total`/`normal_total`. `fee_rates` themselves arrive sorted (normal, then fast). `Primitives.FeeRate` and the `GemFeeRate` mapping on iOS, and `SignerParams.feeRates` on Android, had no reader left and are deleted.
 
+- **The asset status row is one Core answer.** `VerificationStatus::from_rank(rank)` holds the
+  score thresholds (suspicious up to 5, unverified up to 15) that the banner rule and the asset
+  scene both read; `GemAssetDetailsService::verification_status(asset, rank)` says which status
+  the asset scene shows as a row (an unverified token; a suspicious one is already the banner,
+  and a native asset never shows one). iOS `AssetScoreTypeViewModel(score:)` and Android
+  `StatusItem.assetVerification` carried those thresholds, and Android also rowed suspicious
+  tokens next to the banner — that is aligned to the iOS behaviour. The typeshare-only
+  `AssetScoreType` enum (a copy of `VerificationStatus`) and the iOS bridge between the two are
+  deleted; `VerificationStatus` is a remote enum now instead of a dead JSON bridge.
+
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**

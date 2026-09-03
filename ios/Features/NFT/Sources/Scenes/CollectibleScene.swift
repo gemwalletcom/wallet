@@ -81,7 +81,7 @@ extension CollectibleScene {
 
     private var statusSectionView: some View {
         Section {
-            AssetStatusView(model: model.scoreViewModel, action: model.onSelectStatus)
+            AssetStatusView(model: model.statusViewModel, action: model.onSelectStatus)
         }
     }
 

@@ -1,7 +1,7 @@
 use futures::TryFutureExt;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetFull, AssetId, BannerEvent, Chain, Deeplink};
+use primitives::{Asset, AssetFull, AssetId, BannerEvent, Chain, Deeplink, VerificationStatus};
 
 use crate::block_explorer::GemBlockExplorerLink;
 use crate::deeplink::GemDeeplinkService;
@@ -17,7 +17,7 @@ use crate::services::wallet_session::GemWalletSessionService;
 
 use crate::services::failures::{StepFailure, record};
 
-use super::GemAssetsService;
+use super::{GemAssetsService, rules};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemAssetRefreshStep {
@@ -158,6 +158,10 @@ impl GemAssetDetailsService {
 
     pub async fn apply_banner_action(&self, key: GemBannerKey, action: GemBannerAction) -> Result<(), GemServiceError> {
         self.banners.apply_action(key, action).await
+    }
+
+    pub fn verification_status(&self, asset: Asset, rank: i32) -> Option<VerificationStatus> {
+        rules::verification_status(&asset, rank)
     }
 
     pub fn swap_pair(&self, asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {

@@ -15,6 +15,7 @@ import com.gemwallet.android.model.toGem
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.VerificationStatus
 import com.wallet.core.primitives.WalletType
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
@@ -33,6 +34,7 @@ class AssetInfoUIModelFactory @Inject constructor(
         walletType: WalletType,
         explorerAddressUrl: String?,
         explorerTokenUrl: String?,
+        verificationStatus: VerificationStatus?,
     ): AssetInfoUIModel {
         val assetInfo = chainAssetInfo.assetInfo
         val feeAssetInfo = chainAssetInfo.feeAssetInfo
@@ -63,6 +65,7 @@ class AssetInfoUIModelFactory @Inject constructor(
             explorerName = explorerName,
             explorerAddressUrl = explorerAddressUrl,
             explorerTokenUrl = explorerTokenUrl,
+            verificationStatus = verificationStatus,
             accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
                 walletType = walletType,
                 totalBalance = valueFormatter.string(balances.balance.getTotalAmount(), balances.asset),

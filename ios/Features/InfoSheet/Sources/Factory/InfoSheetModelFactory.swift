@@ -105,10 +105,10 @@ public enum InfoSheetModelFactory {
                 image: .image(Images.Logo.logo),
                 button: .url(AppUrl.docs(.noQuotes)),
             )
-        case let .assetStatus(scoreType):
-            let model = AssetScoreTypeViewModel(scoreType: scoreType)
+        case let .assetStatus(status):
+            let model = VerificationStatusViewModel(status: status)
             return InfoSheetModel(
-                title: model.status,
+                title: model.title,
                 description: model.description,
                 image: .assetImage(model.assetImage),
                 button: .url(model.docsUrl),

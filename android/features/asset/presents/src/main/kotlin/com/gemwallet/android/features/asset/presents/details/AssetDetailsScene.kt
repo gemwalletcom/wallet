@@ -21,6 +21,7 @@ import com.gemwallet.android.ext.getReserveBalanceUrl
 import com.gemwallet.android.ext.type
 import com.gemwallet.android.ui.components.list_item.energyItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.list_item.property.verificationStatusItem
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
@@ -37,7 +38,6 @@ import com.gemwallet.android.features.asset.presents.details.components.balances
 import com.gemwallet.android.features.asset.presents.details.components.manageAssetItem
 import com.gemwallet.android.features.asset.presents.details.components.network
 import com.gemwallet.android.features.asset.presents.details.components.price
-import com.gemwallet.android.features.asset.presents.details.components.status
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.wallet.core.primitives.WalletType
 
@@ -141,7 +141,7 @@ internal fun AssetDetailsScene(
                         scope.launch { snackBar.showSnackbar(addToastMessage, R.drawable.ic_add_circle_outlined) }
                     },
                 )
-                status(uiState.asset, uiState.assetInfo.metadata.rankScore)
+                uiState.verificationStatus?.let { verificationStatusItem(it) }
                 price(uiState, priceAlertsCount, onChart = { onAction(AssetDetailsAction.OpenChart(it)) }, onPriceAlerts = { onAction(AssetDetailsAction.OpenPriceAlerts(it)) })
                 network(uiState, onAction)
                 balancesHeader(uiState.accountInfoUIModel)

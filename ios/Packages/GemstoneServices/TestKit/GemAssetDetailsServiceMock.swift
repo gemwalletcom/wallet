@@ -2,20 +2,21 @@
 
 import Foundation
 import typealias Gemstone.Asset
-import typealias Gemstone.AssetId
 import typealias Gemstone.AssetFull
+import typealias Gemstone.AssetId
 import typealias Gemstone.BannerEvent
 import typealias Gemstone.Chain
 import typealias Gemstone.Deeplink
 import protocol Gemstone.GemAssetDetailsServiceProtocol
-import struct Gemstone.GemBannerContent
-import enum Gemstone.GemBannerAction
-import struct Gemstone.GemBannerKey
 import struct Gemstone.GemAssetRefreshFailure
+import enum Gemstone.GemBannerAction
+import struct Gemstone.GemBannerContent
+import struct Gemstone.GemBannerKey
 import struct Gemstone.GemBlockExplorerLink
 import class Gemstone.GemDeeplinkService
 import class Gemstone.GemSimulationFormatter
 import struct Gemstone.GemSwapPairSuggestion
+import enum Gemstone.VerificationStatus
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
@@ -28,45 +29,57 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
         self.assetPair = assetPair
     }
 
-    public func refresh(assetId: AssetId) async -> [GemAssetRefreshFailure] { [] }
+    public func refresh(assetId _: AssetId) async -> [GemAssetRefreshFailure] {
+        []
+    }
 
-    public func syncAsset(assetId: AssetId) async throws -> AssetFull {
+    public func syncAsset(assetId _: AssetId) async throws -> AssetFull {
         Primitives.AssetFull.mock().json()
     }
 
-    public func syncMissingAssets(assetIds: [AssetId]) async throws -> [AssetId] { [] }
+    public func syncMissingAssets(assetIds _: [AssetId]) async throws -> [AssetId] {
+        []
+    }
 
-    public func syncTransactions(assetId: AssetId?) async throws {}
+    public func syncTransactions(assetId _: AssetId?) async throws {}
 
-    public func updateBalances(assetIds: [AssetId]) async throws {}
+    public func updateBalances(assetIds _: [AssetId]) async throws {}
 
-    public func setAssetPinned(assetId: AssetId, pinned: Bool) async throws {}
+    public func setAssetPinned(assetId _: AssetId, pinned _: Bool) async throws {}
 
-    public func setAssetsEnabled(assetIds: [AssetId], enabled: Bool) async throws {}
+    public func setAssetsEnabled(assetIds _: [AssetId], enabled _: Bool) async throws {}
 
-    public func addPrices(assetIds: [AssetId]) async throws {}
+    public func addPrices(assetIds _: [AssetId]) async throws {}
 
-    public func bannerContent(event: BannerEvent, asset: Asset?) -> GemBannerContent {
+    public func bannerContent(event _: BannerEvent, asset _: Asset?) -> GemBannerContent {
         GemBannerContent(icon: .none, title: .none, description: .none)
     }
 
-    public func applyBannerAction(key: GemBannerKey, action: GemBannerAction) async throws {}
+    public func applyBannerAction(key _: GemBannerKey, action _: GemBannerAction) async throws {}
 
-    public func swapPair(assetId: AssetId, hasBalance: Bool) -> GemSwapPairSuggestion {
+    public func verificationStatus(asset _: Asset, rank _: Int32) -> Gemstone.VerificationStatus? {
+        .none
+    }
+
+    public func swapPair(assetId: AssetId, hasBalance _: Bool) -> GemSwapPairSuggestion {
         assetPair ?? GemSwapPairSuggestion(payAssetId: assetId, receiveAssetId: nil)
     }
 
-    public func explorerName(chain: Chain) -> String { "Explorer" }
+    public func explorerName(chain _: Chain) -> String {
+        "Explorer"
+    }
 
-    public func addressUrl(chain: Chain, address: String) -> GemBlockExplorerLink {
+    public func addressUrl(chain _: Chain, address: String) -> GemBlockExplorerLink {
         GemBlockExplorerLink(name: "Explorer", link: "https://gemwallet.com/\(address)")
     }
 
-    public func tokenUrl(chain: Chain, address: String) -> GemBlockExplorerLink? { .none }
+    public func tokenUrl(chain _: Chain, address _: String) -> GemBlockExplorerLink? {
+        .none
+    }
 
     public func setPriceAlert(assetId _: AssetId, enabled _: Bool) async throws {}
 
-    public func syncPriceAlerts(assetId: AssetId?) async throws {}
+    public func syncPriceAlerts(assetId _: AssetId?) async throws {}
 
     public func deeplinkUrl(deeplink: Deeplink) -> String {
         deeplinks.buildUrl(deeplink: deeplink)

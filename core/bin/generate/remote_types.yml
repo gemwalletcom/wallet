@@ -8,6 +8,7 @@ remote:
   - WalletSource
   - TpslType
   - WalletConnectionVerificationStatus
+  - VerificationStatus
   - RecentActivityType
   - SimulationPayloadFieldType
   - SimulationPayloadFieldDisplay

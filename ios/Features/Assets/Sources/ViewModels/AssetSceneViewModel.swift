@@ -2,14 +2,16 @@
 
 import BigInt
 import Components
+import struct Gemstone.GemAssetBalance
 import protocol Gemstone.GemAssetDetailsServiceProtocol
+import enum Gemstone.GemBalanceRow
 import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerContext
-import GemstoneServices
-import struct Gemstone.GemAssetBalance
-import enum Gemstone.GemBalanceRow
 import typealias Gemstone.GemBigUint
+import struct Gemstone.GemRecipient
+import struct Gemstone.GemTransferData
 import GemstonePrimitives
+import GemstoneServices
 import Localization
 import Preferences
 import Primitives
@@ -18,8 +20,6 @@ import Store
 import Style
 import SwiftUI
 import UIKit
-import struct Gemstone.GemRecipient
-import struct Gemstone.GemTransferData
 
 @Observable
 @MainActor
@@ -278,12 +278,8 @@ public final class AssetSceneViewModel: Sendable {
          .button(title: Localized.Common.share, systemImage: SystemImage.share, action: onSelectShareAsset)].compactMap(\.self)
     }
 
-    var scoreViewModel: AssetScoreTypeViewModel {
-        AssetScoreTypeViewModel(score: assetData.metadata.rankScore)
-    }
-
-    var showStatus: Bool {
-        scoreViewModel.hasWarning
+    var statusViewModel: VerificationStatusViewModel? {
+        service.verificationStatus(asset: assetData.asset.map(), rank: assetData.metadata.rankScore).map { VerificationStatusViewModel(status: $0.map()) }
     }
 
     var priceAlertsViewModel: PriceAlertsViewModel {
@@ -429,7 +425,8 @@ public extension AssetSceneViewModel {
     }
 
     func onSelectTokenStatus() {
-        isPresentingAssetSheet = .info(.assetStatus(scoreViewModel.scoreType))
+        guard let status = statusViewModel?.status else { return }
+        isPresentingAssetSheet = .info(.assetStatus(status))
     }
 
     func onSelectPendingUnconfirmedInfo() {

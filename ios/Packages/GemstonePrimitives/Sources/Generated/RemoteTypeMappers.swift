@@ -259,6 +259,26 @@ public extension Primitives.TpslType {
     }
 }
 
+public extension Gemstone.VerificationStatus {
+    func map() -> Primitives.VerificationStatus {
+        switch self {
+        case .verified: .verified
+        case .unverified: .unverified
+        case .suspicious: .suspicious
+        }
+    }
+}
+
+public extension Primitives.VerificationStatus {
+    func map() -> Gemstone.VerificationStatus {
+        switch self {
+        case .verified: .verified
+        case .unverified: .unverified
+        case .suspicious: .suspicious
+        }
+    }
+}
+
 public extension Gemstone.WalletConnectionVerificationStatus {
     func map() -> Primitives.WalletConnectionVerificationStatus {
         switch self {

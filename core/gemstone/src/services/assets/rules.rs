@@ -1,4 +1,4 @@
-use primitives::{Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, Chain, ConfigVersions, Wallet};
+use primitives::{Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, Chain, ConfigVersions, VerificationStatus, Wallet};
 
 use super::model::AssetList;
 
@@ -94,9 +94,29 @@ pub fn default_balances(wallet: &Wallet) -> (Vec<AssetId>, Vec<AssetId>) {
     .partition(|asset_id| wallet_asset_is_enabled(asset_id.clone(), wallet.wallet_type.clone()))
 }
 
+pub fn verification_status(asset: &Asset, rank: i32) -> Option<VerificationStatus> {
+    if asset.id.is_native() {
+        return None;
+    }
+    match VerificationStatus::from_rank(rank) {
+        VerificationStatus::Unverified => Some(VerificationStatus::Unverified),
+        VerificationStatus::Verified | VerificationStatus::Suspicious => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_verification_status_rows_unverified_tokens_only() {
+        let token = Asset::mock_ethereum_usdc();
+        assert_eq!(verification_status(&token, 10), Some(VerificationStatus::Unverified));
+        assert_eq!(verification_status(&token, 3), None);
+        assert_eq!(verification_status(&token, 20), None);
+        assert_eq!(verification_status(&Asset::mock(), 10), None);
+    }
+
     #[test]
     fn test_default_token_chain_prefers_ethereum_then_first() {
         assert_eq!(default_token_chain(&[Chain::Solana, Chain::Ethereum]), Some(Chain::Ethereum));

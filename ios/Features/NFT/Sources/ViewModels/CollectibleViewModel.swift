@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemCollectibleLinks
-import protocol Gemstone.GemCollectibleServiceProtocol
-import GemstoneServices
 import Components
 import Foundation
+import struct Gemstone.GemCollectibleLinks
+import protocol Gemstone.GemCollectibleServiceProtocol
 import GemstonePrimitives
+import GemstoneServices
 import ImageGalleryService
 import InfoSheet
 import Localization
@@ -177,8 +177,8 @@ public final class CollectibleViewModel {
         assetData.collection.links.isNotEmpty
     }
 
-    var scoreViewModel: AssetScoreTypeViewModel {
-        AssetScoreTypeViewModel(scoreType: AssetScoreType(verificationStatus: assetData.collection.status))
+    var statusViewModel: VerificationStatusViewModel {
+        VerificationStatusViewModel(status: assetData.collection.status)
     }
 
     var showStatus: Bool {
@@ -291,7 +291,7 @@ extension CollectibleViewModel {
     }
 
     func onSelectStatus() {
-        isPresentingInfoSheet = .assetStatus(scoreViewModel.scoreType)
+        isPresentingInfoSheet = .assetStatus(assetData.collection.status)
     }
 }
 

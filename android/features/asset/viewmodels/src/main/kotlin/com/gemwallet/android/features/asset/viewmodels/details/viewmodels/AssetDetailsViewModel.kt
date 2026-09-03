@@ -3,6 +3,8 @@ package com.gemwallet.android.features.asset.viewmodels.details.viewmodels
 import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemAssetDetailsService
 import androidx.lifecycle.SavedStateHandle
@@ -96,6 +98,7 @@ class AssetDetailsViewModel @Inject constructor(
                 explorerTokenUrl = asset.id.tokenId?.let { tokenId ->
                     assetDetailsService.tokenUrl(asset.chain.string, tokenId)?.link
                 },
+                verificationStatus = assetDetailsService.verificationStatus(asset.toGem(), it.chainAssetInfo.assetInfo.metadata.rankScore)?.toPrimitives(),
             )
         }
     }

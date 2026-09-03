@@ -98,6 +98,7 @@ class AssetInfoUIModelFactoryTest {
             walletType = WalletType.Multicoin,
             explorerAddressUrl = null,
             explorerTokenUrl = null,
+            verificationStatus = null,
         )
     }
 }

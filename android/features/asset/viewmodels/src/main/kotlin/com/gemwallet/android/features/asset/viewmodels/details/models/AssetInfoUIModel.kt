@@ -8,6 +8,7 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.BalanceMetadata
+import com.wallet.core.primitives.VerificationStatus
 import com.wallet.core.primitives.WalletType
 
 class AssetInfoUIModel(
@@ -26,6 +27,7 @@ class AssetInfoUIModel(
     val explorerName: String = "",
     val explorerAddressUrl: String? = null,
     val explorerTokenUrl: String? = null,
+    val verificationStatus: VerificationStatus? = null,
     val updated: Long = System.currentTimeMillis(),
 ) {
 

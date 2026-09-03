@@ -3,7 +3,8 @@
 
 use primitives::{
     Asset, AssetType, Currency, FeePriority, FeeUnitType, Latency, LatencyType, PerpetualProvider, PortfolioType, RecentActivityType, SimulationPayloadField,
-    SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, TpslType, WalletConnectionVerificationStatus, WalletSource, WalletType,
+    SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, TpslType, VerificationStatus, WalletConnectionVerificationStatus, WalletSource,
+    WalletType,
 };
 use std::str::FromStr;
 
@@ -101,6 +102,13 @@ pub enum SimulationPayloadFieldType {
 pub enum TpslType {
     TakeProfit,
     StopLoss,
+}
+
+#[uniffi::remote(Enum)]
+pub enum VerificationStatus {
+    Verified,
+    Unverified,
+    Suspicious,
 }
 
 #[uniffi::remote(Enum)]

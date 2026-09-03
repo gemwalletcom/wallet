@@ -40,9 +40,9 @@ public struct AssetScene: View {
                 .listRowInsets(.zero)
             }
 
-            if model.showStatus {
+            if let statusViewModel = model.statusViewModel {
                 Section {
-                    AssetStatusView(model: model.scoreViewModel, action: model.onSelectTokenStatus)
+                    AssetStatusView(model: statusViewModel, action: model.onSelectTokenStatus)
                 }
             }
 
@@ -173,7 +173,7 @@ public struct AssetScene: View {
 
             if model.showTransactions {
                 TransactionsList(
-                                        model.transactions,
+                    model.transactions,
                     currency: model.assetDataModel.currencyCode,
                 )
                 .listRowInsets(.assetListRowInsets)

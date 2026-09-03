@@ -1,12 +1,10 @@
 use crate::models::custom_types::GemBigInt;
-use primitives::{Asset, AssetId, BannerEvent, BannerState, Chain, ChainAsset, Wallet, WalletSource};
+use primitives::{Asset, AssetId, BannerEvent, BannerState, Chain, ChainAsset, VerificationStatus, Wallet, WalletSource};
 
 use super::model::{GemBannerAmount, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerTitle};
 
 const ACCOUNT_ACTIVATION_CHAINS: [Chain; 3] = [Chain::Xrp, Chain::Stellar, Chain::Algorand];
 const TRADE_PERPETUALS_CHAINS: [Chain; 2] = [Chain::HyperCore, Chain::Hyperliquid];
-
-const SUSPICIOUS_RANK_SCORE: i32 = 5;
 
 fn is_visible(state: BannerState) -> bool {
     match state {
@@ -163,7 +161,9 @@ fn extra_banners() -> Vec<GemBannerItem> {
 }
 
 fn is_suspicious(context: &GemBannerContext) -> bool {
-    context.asset_rank_score.is_some_and(|score| score <= SUSPICIOUS_RANK_SCORE)
+    context
+        .asset_rank_score
+        .is_some_and(|score| VerificationStatus::from_rank(score) == VerificationStatus::Suspicious)
 }
 
 fn state_priority(state: BannerState) -> u8 {

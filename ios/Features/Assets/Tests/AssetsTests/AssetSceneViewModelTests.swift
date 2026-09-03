@@ -1,20 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import Assets
+import BigInt
+import protocol Gemstone.GemAssetDetailsServiceProtocol
 import class Gemstone.GemDeeplinkService
 import protocol Gemstone.GemPriceAlertServiceProtocol
+import struct Gemstone.GemSwapPairSuggestion
+import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
-import BigInt
-import GemstonePrimitives
+import PreferencesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
 import SwiftUI
-import PreferencesTestKit
 import Testing
-import protocol Gemstone.GemAssetDetailsServiceProtocol
-import struct Gemstone.GemSwapPairSuggestion
 
 @MainActor
 struct AssetSceneViewModelTests {
@@ -22,13 +22,6 @@ struct AssetSceneViewModelTests {
     func showManageToken() {
         #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(isBalanceEnabled: true))).showManageToken == false)
         #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(isBalanceEnabled: false))).showManageToken == true)
-    }
-
-    @Test
-    func showStatus() {
-        #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(rankScore: 42))).showStatus == false)
-        #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(rankScore: 10))).showStatus == true)
-        #expect(AssetSceneViewModel.mock(.mock(metadata: .mock(rankScore: 3))).showStatus == false)
     }
 
     @Test
@@ -77,7 +70,7 @@ struct AssetSceneViewModelTests {
             .mock(
                 asset: .mockEthereum(),
                 balance: .mock(staked: BigInt(6_000_000_000_000_000_000), earn: BigInt(4_000_000_000_000_000_000)),
-            )
+            ),
         )
         let rows = ethereum.balanceRows
         #expect(rows.count == 3)

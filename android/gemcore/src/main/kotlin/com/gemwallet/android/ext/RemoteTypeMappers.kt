@@ -166,6 +166,18 @@ fun com.wallet.core.primitives.TpslType.toGem(): uniffi.gemstone.TpslType = when
     com.wallet.core.primitives.TpslType.StopLoss -> uniffi.gemstone.TpslType.STOP_LOSS
 }
 
+fun uniffi.gemstone.VerificationStatus.toPrimitives(): com.wallet.core.primitives.VerificationStatus = when (this) {
+    uniffi.gemstone.VerificationStatus.VERIFIED -> com.wallet.core.primitives.VerificationStatus.Verified
+    uniffi.gemstone.VerificationStatus.UNVERIFIED -> com.wallet.core.primitives.VerificationStatus.Unverified
+    uniffi.gemstone.VerificationStatus.SUSPICIOUS -> com.wallet.core.primitives.VerificationStatus.Suspicious
+}
+
+fun com.wallet.core.primitives.VerificationStatus.toGem(): uniffi.gemstone.VerificationStatus = when (this) {
+    com.wallet.core.primitives.VerificationStatus.Verified -> uniffi.gemstone.VerificationStatus.VERIFIED
+    com.wallet.core.primitives.VerificationStatus.Unverified -> uniffi.gemstone.VerificationStatus.UNVERIFIED
+    com.wallet.core.primitives.VerificationStatus.Suspicious -> uniffi.gemstone.VerificationStatus.SUSPICIOUS
+}
+
 fun uniffi.gemstone.WalletConnectionVerificationStatus.toPrimitives(): com.wallet.core.primitives.WalletConnectionVerificationStatus = when (this) {
     uniffi.gemstone.WalletConnectionVerificationStatus.VERIFIED -> com.wallet.core.primitives.WalletConnectionVerificationStatus.Verified
     uniffi.gemstone.WalletConnectionVerificationStatus.UNKNOWN -> com.wallet.core.primitives.WalletConnectionVerificationStatus.Unknown
