@@ -23,6 +23,7 @@ pub enum GemConfirmError {
     SenderMismatch { from: String, signer: String },
     Sign { error: GemSignerError, chain: Chain, msg: String },
     ApprovalInvalid { msg: String },
+    Cancelled,
 }
 
 impl std::fmt::Display for GemConfirmError {
@@ -38,6 +39,7 @@ impl std::fmt::Display for GemConfirmError {
             Self::InsufficientNetworkFee { asset, .. } => write!(f, "not enough {} to pay the network fee", asset.symbol),
             Self::MinimumAccountBalanceTooLow { asset, requirement } => write!(f, "{} balance must stay above {}", asset.symbol, requirement.required),
             Self::SenderMismatch { from, signer } => write!(f, "transaction was built for {from} but would be signed by {signer}"),
+            Self::Cancelled => write!(f, "cancelled"),
             Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg, .. } | Self::Record { msg } | Self::Sign { msg, .. } | Self::ApprovalInvalid { msg } => {
                 write!(f, "{msg}")
             }
@@ -63,6 +65,7 @@ impl GemBalanceRequirement {
 
 pub(super) fn sign_error(chain: Chain, error: GemstoneError) -> GemConfirmError {
     match error {
+        GemstoneError::Cancelled => GemConfirmError::Cancelled,
         GemstoneError::SignerError { error, msg } => GemConfirmError::Sign { error, chain, msg },
         GemstoneError::AnyError { msg } => GemConfirmError::Sign {
             error: GemSignerError::SigningError(msg.clone()),
@@ -97,6 +100,15 @@ pub(super) fn broadcast_error(hashes: Vec<String>, error: GatewayError) -> GemCo
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_a_cancelled_signer_is_a_cancel_not_a_failure() {
+        assert!(matches!(sign_error(Chain::Ethereum, GemstoneError::Cancelled), GemConfirmError::Cancelled));
+        assert!(matches!(
+            sign_error(Chain::Ethereum, GemstoneError::AnyError { msg: "boom".into() }),
+            GemConfirmError::Sign { error: GemSignerError::SigningError(msg), chain: Chain::Ethereum, .. } if msg == "boom"
+        ));
+    }
 
     #[test]
     fn test_gateway_errors_keep_their_kind() {

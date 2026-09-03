@@ -363,13 +363,11 @@ extension ConfirmTransferSceneViewModel {
                 )
                 state.confirmation = .idle
                 onComplete?()
+            } catch GemConfirmError.Cancelled {
+                state.confirmation = .idle
             } catch {
-                if error.isAuthenticationCancelled {
-                    state.confirmation = .idle
-                } else {
-                    state.confirmation = .failed(error)
-                    debugLog("confirm transaction error: \(error)")
-                }
+                state.confirmation = .failed(error)
+                debugLog("confirm transaction error: \(error)")
             }
         }
     }

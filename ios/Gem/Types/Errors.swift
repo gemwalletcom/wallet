@@ -55,6 +55,7 @@ extension Gemstone.GemstoneError: @retroactive LocalizedError {
         switch self {
         case let .AnyError(string): string
         case let .SignerError(_, msg): msg
+        case .Cancelled: Localized.Errors.cancelled
         }
     }
 }

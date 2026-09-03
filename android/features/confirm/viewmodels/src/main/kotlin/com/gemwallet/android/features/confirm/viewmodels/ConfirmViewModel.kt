@@ -324,6 +324,8 @@ class ConfirmViewModel @Inject constructor(
             }
         } catch (error: CancellationException) {
             throw error
+        } catch (_: GemConfirmException.Cancelled) {
+            state.update { ConfirmState.Ready }
         } catch (err: Throwable) {
             state.update { ConfirmState.BroadcastError(err) }
         }
