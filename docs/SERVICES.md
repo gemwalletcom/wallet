@@ -596,6 +596,16 @@ Three gotchas if you repeat the sweep, all met on this pass:
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**
+- **One-sided calls that are structure, not drift** (from the September 2026 sweep of every
+  generated protocol method against both apps — re-run it with the two `rg` lines in Screen
+  services): Android carries transfers and position actions through routes, so only it calls
+  `GemTransferService::{encode, decode}_*`; iOS builds the confirm screen's first state with
+  `initial_state` while Android reads `metadata` + `preload`; iOS's `MessageSigner.hash /
+  sign_with_keystore` and Android's `payload_preview` are the two halves of the WalletConnect
+  sign-message path each platform drives from its SDK; `GemGateway::get_*` feed iOS's
+  developer screen; `GemPreferencesService::{set_notifications_asked, should_ask_notifications,
+  set_price_alerts_enabled, *_swap_slippage_bps}` are Android's push/N1 adapters and
+  `UserConfig`. Anything else that shows up as one-sided is a candidate.
 - **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `nft::report` (Android report screen), `GemDeveloperService::{reset_transactions_timestamp, delete_wallet_preferences, clear_preferences, clear_perpetual_markets, deeplink_url}` (iOS developer actions Android's develop screen does not offer), `GemWalletService::export_secret` (Android's wallet detail still takes the password from its own biometric prompt — S3).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
 - **`AddressFormatter` (iOS)**, 23 uses / ~60 construction sites. Attempted and reverted: threading the service reaches `WalletViewModel`, then spreads into `extension Wallet: SimpleListItemViewable`, which builds a `WalletViewModel` only to read `avatarImage` and never touches the formatter. The fix is smaller than the threading — split the display-only parts (`avatarImage`, `name`) from the address-formatting parts so only the latter needs the service. Design change, wants a decision.
