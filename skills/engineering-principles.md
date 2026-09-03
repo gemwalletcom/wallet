@@ -4,14 +4,10 @@ These rules govern the monorepo unless a platform guide gives a stricter local r
 
 ## Fix Causes, Not Symptoms
 
-This is the first rule: when something is broken, find why it broke and fix that.
-
-- Trace a failure to the layer that owns the invariant, and fix it there. A guard in the caller that hides a bad value produced upstream leaves the bug in place for the next caller
-- Do not patch a crash with a `nil`/`null`/`Option` check, a `try?`, a `catch` that swallows, a retry, a `sleep`, or a defensive default unless the absence, failure, or delay is a real expected state you can name. If it is, say so in the code's structure; if it is not, fix the producer
-- Do not reach for a wider fix than the cause justifies either — a real one-line cause gets a one-line fix
-- When a test fails, change the code until the assertion holds. Loosening the assertion, deleting the case, or special-casing test input hides the defect instead of removing it
-- If the true fix is out of scope, say so explicitly: apply the smallest containment, state what the actual cause is, and flag it for follow-up. Never present a symptom patch as a fix
-- Duplicated bugs mean a duplicated cause. Two similar fixes in two places usually point at one shared root that should be fixed once
+- Trace a failure to the layer that owns the invariant and fix it there, not in the caller that noticed it
+- A null check, swallowed error, retry, or sleep is a fix only when the state it handles is real and you can name it
+- When a test fails, change the code, not the assertion
+- If the real fix is out of scope, say what the cause is and flag it. Never present a symptom patch as a fix
 
 ## Clean Code Principles
 
