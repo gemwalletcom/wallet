@@ -663,11 +663,8 @@ shape does not show: an envelope's failure branch, the paths a pagination loop p
 body and content type of a broadcast, a merged credential header. Do not test `path()` by
 restating the string it formats; that test passes for every wrong path too.
 
-**Still to converge.** Inline paths in every REST client but TronGrid, Aptos, Algorand, Stellar and
-the Gem APIs.
-The fiat providers' direct `ReqwestClient::request`. Raw `Value` params in Alchemy and the
-Chainflip broker. Two cache headers: `request_with_cache` sends `Cache-Control`, everything else
-and both apps use `x-gem-cache-ttl`.
+**Still to converge.** The `name_resolver` REST providers (aptos, did, eths, lens, sns,
+spaceid, ton, ud), deferred until that crate's provider restructure settles.
 
 ## 13. Shapes that were tried and reverted
 
