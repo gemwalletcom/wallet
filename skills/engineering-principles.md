@@ -41,7 +41,7 @@ The most important rule in this file. Before changing anything, ask why the fail
 ## Tests
 
 - Tests verify intent, not just behavior. If the test still passes after the business rule flips, it is a tautology: break the rule, watch the test fail, then fix the assertion or the function under test. A test that mocks the layer where the defect lives proves nothing about that defect
-- For a high-impact bug, add the smallest test that materially reduces regression risk; skip trivial, framework, formatting-only, and purely visual coverage unless asked or already cheap
+- For a high-impact bug with a deterministic seam, add the smallest test that materially reduces regression risk and write it before the fix; skip trivial, framework, formatting-only, and purely visual coverage unless asked or already cheap
 - "Tests pass" is not a green light if any were skipped, marked expected-failure, or gated behind features you did not run. Report what you executed
 - Unit tests never spin up ad hoc HTTP/TCP servers. Use the platform testkit fixtures, pure mappers and parsers, or injected clients; when network behavior matters, use the gated integration tests
 
