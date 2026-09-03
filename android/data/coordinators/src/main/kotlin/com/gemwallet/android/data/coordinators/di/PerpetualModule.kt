@@ -3,13 +3,11 @@ package com.gemwallet.android.data.coordinators.di
 import com.gemwallet.android.application.perpetual.cases.BuildPerpetualParams
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
-import com.gemwallet.android.application.perpetual.cases.GetPerpetualAccountMode
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPosition
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.data.coordinators.perpetuals.BuildPerpetualParamsImpl
-import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualAccountModeImpl
 import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.coordinators.perpetuals.PerpetualBalanceCoordinator
 import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualImpl
@@ -19,7 +17,6 @@ import com.gemwallet.android.data.coordinators.perpetuals.GetPerpetualsImpl
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.application.session.cases.GetSession
-import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemWalletPreferencesService
 import dagger.Module
 import dagger.Provides
@@ -32,14 +29,6 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByA
 @InstallIn(SingletonComponent::class)
 @Module
 object PerpetualModule {
-    @Provides
-    @Singleton
-    fun provideGetPerpetualAccountMode(
-        perpetualService: GemPerpetualService,
-    ): GetPerpetualAccountMode {
-        return GetPerpetualAccountModeImpl(perpetualService)
-    }
-
     @Provides
     @Singleton
     fun provideGetPerpetualPositions(

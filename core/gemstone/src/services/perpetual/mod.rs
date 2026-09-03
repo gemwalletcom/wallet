@@ -30,6 +30,7 @@ use crate::models::perpetual::GemChartCandleStick;
 use crate::services::assets::GemAssetStore;
 use crate::services::balance::GemBalanceService;
 use crate::services::price::GemPriceService;
+use crate::services::stream::rules::hyperliquid_account;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -67,16 +68,6 @@ impl GemPerpetualService {
             balance,
             wallet_preferences,
             session,
-        }
-    }
-
-    pub async fn account_mode(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
-        match self.gateway.get_perpetual_account_mode(chain, address).await {
-            Ok(mode) => {
-                self.wallet_preferences.set_perpetual_account_mode(wallet_id, mode)?;
-                Ok(mode)
-            }
-            Err(_) => self.wallet_preferences.get_perpetual_account_mode(wallet_id),
         }
     }
 
@@ -173,18 +164,16 @@ impl GemPerpetualService {
         }
     }
 
-    pub async fn sync_positions(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
-        let mode = self.account_mode(wallet_id.clone(), chain, address.clone()).await?;
-        let summary = self.gateway.get_positions(chain, address).await?;
-        let existing_ids = self.store.get_position_ids(wallet_id.clone(), provider(chain)?).await?;
-        let delete_ids = rules::stale_position_ids(existing_ids, &summary.positions);
-        self.store.update_positions(wallet_id.clone(), summary.positions, delete_ids).await?;
-        self.update_balance(wallet_id, summary.balance).await?;
-        Ok(mode)
+    pub async fn sync_current_positions(&self) -> Result<(), GemServiceError> {
+        let wallet = self.session.current_wallet()?;
+        let Some(account) = hyperliquid_account(&wallet.accounts) else {
+            return Ok(());
+        };
+        self.sync_positions(wallet.id, account.chain, account.address.clone()).await.map(|_| ())
     }
 
     pub async fn connection(&self, wallet: Wallet) -> Result<Option<GemPerpetualConnection>, GemServiceError> {
-        let Some(account) = crate::services::stream::rules::hyperliquid_account(&wallet.accounts) else {
+        let Some(account) = hyperliquid_account(&wallet.accounts) else {
             return Ok(None);
         };
         let chain = account.chain;
@@ -194,6 +183,27 @@ impl GemPerpetualService {
             Err(_) => self.account_mode(wallet.id, chain, address.clone()).await?,
         };
         Ok(Some(GemPerpetualConnection { address, mode }))
+    }
+}
+
+impl GemPerpetualService {
+    pub async fn sync_positions(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
+        let mode = self.account_mode(wallet_id.clone(), chain, address.clone()).await?;
+        let summary = self.gateway.get_positions(chain, address).await?;
+        let existing_ids = self.store.get_position_ids(wallet_id.clone(), provider(chain)?).await?;
+        let delete_ids = rules::stale_position_ids(existing_ids, &summary.positions);
+        self.store.update_positions(wallet_id.clone(), summary.positions, delete_ids).await?;
+        self.update_balance(wallet_id, summary.balance).await?;
+        Ok(mode)
+    }
+    pub async fn account_mode(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
+        match self.gateway.get_perpetual_account_mode(chain, address).await {
+            Ok(mode) => {
+                self.wallet_preferences.set_perpetual_account_mode(wallet_id, mode)?;
+                Ok(mode)
+            }
+            Err(_) => self.wallet_preferences.get_perpetual_account_mode(wallet_id),
+        }
     }
 }
 

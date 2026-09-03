@@ -5,9 +5,7 @@ import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnectable
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketEvent
 import com.gemwallet.android.domains.perpetual.toGem
-import com.gemwallet.android.ext.hyperliquidAccount
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChartCandleUpdate
 import com.wallet.core.primitives.PerpetualAccountMode
 import com.wallet.core.primitives.Wallet
@@ -78,13 +76,6 @@ class HyperliquidObserverService(
 
     fun stop() {
         foreground.value = false
-    }
-
-    override suspend fun update(wallet: Wallet): PerpetualAccountMode? {
-        val address = wallet.hyperliquidAccount?.address ?: return null
-        return runCatchingCancellable { perpetualService.syncPositions(wallet.id.id, Chain.HyperCore.string, address).decodeJson<PerpetualAccountMode>() }
-            .onFailure { Log.e(TAG, "perpetual positions sync failed for ${wallet.id.id}", it) }
-            .getOrNull()
     }
 
     override fun subscribe(subscription: GemPerpetualSubscription) {

@@ -635,9 +635,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         updatedAt = nil
     }
 
-    public func syncPositions(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws -> Gemstone.PerpetualAccountMode {
-        Primitives.PerpetualAccountMode.standard.json()
-    }
+    public func syncCurrentPositions() async throws {}
 
     public func connection(wallet: Gemstone.Wallet) async throws -> Gemstone.GemPerpetualConnection? {
         if connectionFailures > 0 {
@@ -665,10 +663,6 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 
     public func applySocketMessage(walletId _: String, mode _: Gemstone.PerpetualAccountMode, data _: Data) async throws -> Gemstone.GemPerpetualSocketUpdate {
         .applied
-    }
-
-    public func accountMode(walletId _: String, chain _: Gemstone.Chain, address _: String) async throws -> Gemstone.PerpetualAccountMode {
-        Primitives.PerpetualAccountMode.standard.json()
     }
 }
 

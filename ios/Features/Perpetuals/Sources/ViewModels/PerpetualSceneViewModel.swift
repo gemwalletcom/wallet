@@ -176,10 +176,10 @@ public final class PerpetualSceneViewModel {
 
 public extension PerpetualSceneViewModel {
     func load() async {
-        async let updateObserver: PerpetualAccountMode? = observerService.update(for: wallet)
+        async let positions: () = syncPositions()
         async let refreshTransactions: () = updateTransactions()
         async let refreshCandlesticks: () = chart.refresh(symbol: perpetual.coin)
-        _ = await (updateObserver, refreshTransactions, refreshCandlesticks)
+        _ = await (positions, refreshTransactions, refreshCandlesticks)
     }
 
     func onAppear() async {
@@ -298,6 +298,14 @@ private extension PerpetualSceneViewModel {
             onPerpetualRecipientData?(recipientData)
         } catch {
             debugLog("perpetual scene: position action error \(error)")
+        }
+    }
+
+    func syncPositions() async {
+        do {
+            try await service.syncPositions()
+        } catch {
+            debugLog("perpetual scene: sync positions error \(error)")
         }
     }
 

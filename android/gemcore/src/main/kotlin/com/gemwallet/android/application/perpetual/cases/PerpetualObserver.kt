@@ -9,8 +9,6 @@ import uniffi.gemstone.GemPerpetualSubscription
 interface PerpetualObserver {
     val chartUpdates: Flow<ChartCandleUpdate>
 
-    suspend fun update(wallet: Wallet): PerpetualAccountMode?
-
     fun subscribe(subscription: GemPerpetualSubscription)
 
     fun unsubscribe(subscription: GemPerpetualSubscription)

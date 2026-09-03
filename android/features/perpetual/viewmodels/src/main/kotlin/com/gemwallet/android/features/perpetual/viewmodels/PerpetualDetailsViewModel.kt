@@ -187,7 +187,8 @@ class PerpetualDetailsViewModel @Inject constructor(
     fun fetch() {
         refreshTrigger.update { it + 1 }
         viewModelScope.launch(Dispatchers.IO) {
-            getSession().value?.wallet?.let { perpetualObserver.update(it) }
+            runCatchingCancellable { service.syncPositions() }
+                .onFailure { Log.e(TAG, "perpetual positions sync failed", it) }
         }
     }
 

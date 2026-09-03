@@ -61,17 +61,6 @@ public actor HyperliquidObserverService: PerpetualObservable {
         try await streamService.unsubscribe(subscription: subscription)
     }
 
-    @discardableResult
-    public func update(for wallet: Wallet) async -> PerpetualAccountMode? {
-        guard let address = wallet.hyperliquidAccount?.address else { return nil }
-        do {
-            return try await perpetualService.syncPositions(walletId: wallet.id, address: address)
-        } catch {
-            debugLog("HyperliquidObserver: update failed: \(error)")
-            return nil
-        }
-    }
-
     // MARK: - Private
 
     private func connect(for wallet: Wallet) async {

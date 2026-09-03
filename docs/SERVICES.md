@@ -404,9 +404,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `execute` read the wallet), so every screen hands the confirm flow a `GemTransferData` and no
   Android call site looks an account up any more, and `GemRecentActivityService::clear(types)`
   reads the wallet too (Android's `ClearRecentAssets` use case is gone; `RecentsSheetViewModel`
-  holds the Core service). The batch is done; what remains on Android is the perpetual observer
-  (socket-scoped) and the welcome-banner key, each reading the session for a wallet id Core could
-  hand out. `GemBalanceService`,
+  holds the Core service), and the perpetual screens refresh positions through
+  `GemPerpetualService::sync_current_positions` / `GemPerpetualDetailsService::sync_positions`,
+  which find the Hyperliquid account on the session wallet (the app-side `hyperliquidAccount`
+  rule and the observer's `update(wallet)` are gone from both apps; `sync_positions(wallet_id,
+  chain, address)` and `account_mode` are Core-internal, used by the socket connection). The
+  batch is done; what remains on Android is the welcome-banner key, reading the session for a
+  wallet id Core could hand out. `GemBalanceService`,
   `GemSwapService` and the socket-driven `GemPerpetualService::{connection, sync_positions,
   apply_socket_message}` stay explicit underneath: the app-start and observer flows call them
   for the wallet whose socket they hold. Keep an explicit

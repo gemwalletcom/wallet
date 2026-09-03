@@ -19,15 +19,6 @@ public extension GemPerpetualServiceProtocol {
         try await setPinned(perpetualId: perpetualId.identifier, pinned: isPinned)
     }
 
-    @discardableResult
-    func syncPositions(walletId: WalletId, address: String) async throws -> PerpetualAccountMode {
-        try await PerpetualAccountMode(syncPositions(walletId: walletId.id, chain: Chain.hyperCore.rawValue, address: address))
-    }
-
-    func accountMode(walletId: WalletId, address: String) async throws -> PerpetualAccountMode {
-        try await PerpetualAccountMode(accountMode(walletId: walletId.id, chain: Chain.hyperCore.rawValue, address: address))
-    }
-
     func applySocketMessage(walletId: WalletId, mode: PerpetualAccountMode, data: Data) async throws -> GemPerpetualSocketUpdate {
         try await applySocketMessage(walletId: walletId.id, mode: mode.json(), data: data)
     }

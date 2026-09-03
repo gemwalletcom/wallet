@@ -81,6 +81,10 @@ impl GemPerpetualDetailsService {
         self.perpetuals.merge_candle(candles, candle)
     }
 
+    pub async fn sync_positions(&self) -> Result<(), GemServiceError> {
+        self.perpetuals.sync_current_positions().await
+    }
+
     pub async fn sync_transactions(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
         self.transactions.sync_wallet(self.session.current_wallet_id()?, Some(asset_id)).await
     }

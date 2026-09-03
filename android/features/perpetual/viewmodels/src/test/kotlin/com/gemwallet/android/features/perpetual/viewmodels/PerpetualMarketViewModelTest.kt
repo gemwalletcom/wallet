@@ -5,8 +5,6 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
-import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.testkit.mockSession
 import com.wallet.core.primitives.Chain
 import androidx.lifecycle.viewModelScope
 import io.mockk.coEvery
@@ -17,7 +15,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -52,6 +49,7 @@ class PerpetualMarketViewModelTest {
         val trigger = CompletableDeferred<GemMarketsRefreshTrigger>()
         val service = mockk<GemPerpetualServiceInterface>()
         coEvery { service.syncMarketsIfNeeded(Chain.HyperCore.string, any()) } answers { trigger.complete(secondArg()); true }
+        coEvery { service.syncCurrentPositions() } returns Unit
 
         viewModel(service).onRefresh()
 
@@ -68,14 +66,12 @@ class PerpetualMarketViewModelTest {
         val getRecentAssets = mockk<GetRecentAssets>()
         every { getRecentAssets(any()) } returns flowOf(emptyList())
         val perpetualObserver = mockk<PerpetualObserver>()
-        coEvery { perpetualObserver.update(any()) } returns null
 
         return PerpetualMarketViewModel(
             getPerpetuals = getPerpetuals,
             getPositions = getPositions,
             getBalance = getBalance,
             getRecentAssets = getRecentAssets,
-            getSession = mockk<GetSession> { every { this@mockk() } returns MutableStateFlow(mockSession()) },
             service = service,
             recentActivity = mockk(),
             perpetualObserver = perpetualObserver,

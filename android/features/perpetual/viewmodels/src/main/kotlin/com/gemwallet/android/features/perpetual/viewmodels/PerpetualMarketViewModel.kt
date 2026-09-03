@@ -9,7 +9,6 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
-import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
@@ -46,7 +45,6 @@ class PerpetualMarketViewModel @Inject constructor(
     private val getPositions: GetPerpetualPositions,
     private val getBalance: GetPerpetualBalance,
     private val getRecentAssets: GetRecentAssets,
-    private val getSession: GetSession,
     private val service: GemPerpetualServiceInterface,
     private val recentActivity: GemRecentActivityService,
     private val perpetualObserver: PerpetualObserver,
@@ -119,8 +117,8 @@ class PerpetualMarketViewModel @Inject constructor(
     }
 
     private suspend fun syncPositions() {
-        val wallet = getSession().value?.wallet ?: return
-        perpetualObserver.update(wallet)
+        runCatchingCancellable { service.syncCurrentPositions() }
+            .onFailure { Log.e(TAG, "perpetual positions sync failed", it) }
     }
 
     private companion object {
