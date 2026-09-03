@@ -49,8 +49,6 @@ import javax.inject.Singleton
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.coordinators.asset.WalletAssetsCoordinator
-import com.gemwallet.android.data.coordinators.asset.SyncBalancesImpl
-import com.gemwallet.android.application.assets.cases.SyncBalances
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.data.coordinators.asset.GetWidgetAssetsImpl
 import com.gemwallet.android.application.tokens.cases.SearchTokens
@@ -157,10 +155,6 @@ object AssetModule {
         preferencesService,
         walletSessionService,
     )
-
-    @Provides
-    @Singleton
-    fun provideSyncBalances(balanceService: GemBalanceService): SyncBalances = SyncBalancesImpl(balanceService)
 
     @Provides
     @Singleton

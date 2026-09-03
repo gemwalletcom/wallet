@@ -651,6 +651,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `Wallet.onboardingBannerKey`, the home's `showWelcomeBanner`/`onHideWelcomeBanner` and
   `GemBannerService::shows_onboarding` are gone, and the DAO no longer pre-filters banner
   states in SQL — Core's `is_visible` decides.
+- **The network-assets screen refreshes balances through its screen service on Android.**
+  `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
+  chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per
+  wallet id read in Kotlin) — including the native coin the screen never lists. It now does what
+  iOS's `NetworkAssetsSceneViewModel.updateBalances` does: hand the ids of the listed active and
+  hidden tokens to `GemWalletHomeService::update_balances`, the session-scoped screen call.
+  `SyncBalances`, its impl and provider, and `GetChainAssets.updateBalances` are deleted.
 - **NFT search results are Core's.** The wallet search matched collections and their assets the
   same way on both apps — iOS inside the `WalletSearchRequest` GRDB fetch, Android in
   `WalletSearchViewModel.searchNfts` with its own copy of the collection ordering — and
