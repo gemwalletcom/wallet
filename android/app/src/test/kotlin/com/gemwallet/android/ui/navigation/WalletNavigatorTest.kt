@@ -5,6 +5,7 @@ import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemTransferService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.runTest
 import androidx.compose.runtime.mutableStateOf
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
@@ -63,19 +64,31 @@ import org.junit.Test
 class WalletNavigatorTest {
 
     @Test
-    fun openAsset_pushesOnlyAssetsCoreOpens() {
+    fun openAsset_pushesOnlyAssetsCoreOpens() = runTest {
         val blocked = mockAssetId(Chain.Tempo)
         val opened = mockAssetId(Chain.Tron)
+        val callingThreads = mutableListOf<String>()
         val assetsService = mockk<GemAssetsServiceInterface> {
-            coEvery { openAsset(blocked.toIdentifier()) } returns null
-            coEvery { openAsset(opened.toIdentifier()) } returns mockAsset(chain = Chain.Tron).toGem()
+            coEvery { openAsset(blocked.toIdentifier()) } answers {
+                callingThreads += Thread.currentThread().name
+                null
+            }
+            coEvery { openAsset(opened.toIdentifier()) } answers {
+                callingThreads += Thread.currentThread().name
+                mockAsset(chain = Chain.Tron).toGem()
+            }
         }
-        val navigator = navigatorWith(WalletRootRoute, assetsService = assetsService)
+        val navigator = navigatorWith(WalletRootRoute, assetsService = assetsService, scope = this)
 
-        navigator.openAsset(blocked)
-        navigator.openAsset(opened)
+        navigator.openAsset(blocked).join()
+        navigator.openAsset(opened).join()
 
         assertEquals(listOf(WalletRootRoute, AssetRoute(opened)), navigator.backStack.toList())
+        assertTrue(
+            "openAsset reads the current wallet through a synchronous store callback that blocks on Room; " +
+                "calling it on the navigator scope lands on main. Got $callingThreads",
+            callingThreads.size == 2 && callingThreads.all { it.startsWith("DefaultDispatcher-worker") },
+        )
     }
 
     @Test
@@ -531,6 +544,7 @@ class WalletNavigatorTest {
     private fun navigatorWith(
         vararg routes: NavKey,
         assetsService: GemAssetsServiceInterface = mockk(),
+        scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined),
     ): WalletNavigator {
         return WalletNavigator(
             backStack = NavBackStack(*routes),
@@ -538,7 +552,7 @@ class WalletNavigatorTest {
             transferService = GemTransferService(),
             deeplinkService = GemDeeplinkService(),
             assetsService = assetsService,
-            scope = CoroutineScope(Dispatchers.Unconfined),
+            scope = scope,
         )
     }
 }
