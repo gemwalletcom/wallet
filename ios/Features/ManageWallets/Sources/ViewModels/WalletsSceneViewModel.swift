@@ -11,9 +11,6 @@ import protocol Gemstone.GemWalletServiceProtocol
 @Observable
 @MainActor
 public final class WalletsSceneViewModel {
-
-    public static let walletsLimit = 100
-
     private let service: any GemWalletServiceProtocol
     private let preferences: ObservablePreferences
     private let isPresentingCreateWalletSheet: Binding<Bool>
@@ -144,14 +141,11 @@ extension WalletsSceneViewModel {
 
 extension WalletsSceneViewModel {
     private func validate() -> Bool {
-        // fix: https://github.com/gemwalletcom/gem-ios/issues/1067
-        if wallets.count > WalletsSceneViewModel.walletsLimit {
-            isPresentingAlertMessage = AlertMessage(
-                title: Localized.Errors.Wallets.Limit.title,
-                message: Localized.Errors.Wallets.Limit.description(WalletsSceneViewModel.walletsLimit),
-            )
-            return false
-        }
-        return true
+        guard (try? service.canAddWallet()) == false else { return true }
+        isPresentingAlertMessage = AlertMessage(
+            title: Localized.Errors.Wallets.Limit.title,
+            message: Localized.Errors.Wallets.Limit.description(Int(service.walletsLimit())),
+        )
+        return false
     }
 }

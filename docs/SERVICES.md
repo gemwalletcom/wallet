@@ -646,6 +646,12 @@ Three gotchas if you repeat the sweep, all met on this pass:
   path and `shows_onboarding` accessor remain structure: its banner list is a one-shot load and
   the welcome banner is a distinct composable, so folding it into `visibleBanners` needs the
   banners to become reactive first.
+- **The wallets limit is Core's rule on both apps.** iOS's `WalletsSceneViewModel` kept
+  `walletsLimit = 100` and refused to open the create/import sheets past it (gem-ios #1067);
+  Android had no limit at all. `rules::can_add_wallet` / `WALLETS_LIMIT` back
+  `GemWalletService::{can_add_wallet, wallets_limit}`; iOS's `validate()` reads them and
+  Android's `WalletsViewModel.onAddWallet` gates Create/Import the same way, showing the shared
+  `errors_wallets_limit_*` strings in a dialog (`WalletsViewModelTest`).
 - **Android refreshed the home twice on a wallet switch.** `StreamObserverService` called
   `SyncAssets` (`GemWalletHomeService::refresh` over the wallet's assets) on every wallet change
   in addition to `setupAssets`; once `AssetsViewModel.loadOnce` took over that refresh (above),

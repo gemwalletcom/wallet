@@ -116,6 +116,14 @@ impl GemWalletService {
         Ok(rules::next_wallet_index(&self.store.get_wallets()?))
     }
 
+    pub fn wallets_limit(&self) -> u32 {
+        rules::WALLETS_LIMIT
+    }
+
+    pub fn can_add_wallet(&self) -> Result<bool, GemServiceError> {
+        Ok(rules::can_add_wallet(self.store.get_wallets()?.len()))
+    }
+
     pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: WalletSource) -> Result<GemWalletImportResult, GemServiceError> {
         let import = import.validated()?;
         let preview = self.preview_import(import.clone())?;
