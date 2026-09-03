@@ -34,6 +34,6 @@ impl<C: Client> ZerionClient<C> {
             ("currency".to_string(), "usd".to_string()),
             ("sort".to_string(), "-value".to_string()),
         ];
-        Ok(self.client.get_with_query(&format!("/v1/wallets/{address}/positions/"), &query).await?)
+        Ok(self.client.get(&format!("/v1/wallets/{address}/positions/")).query(&query).await?)
     }
 }

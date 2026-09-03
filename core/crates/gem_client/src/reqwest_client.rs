@@ -92,12 +92,12 @@ impl ReqwestClient {
 
 #[async_trait]
 impl Client for ReqwestClient {
-    async fn get_with<R>(&self, path: &str, query: &[(String, String)], headers: HashMap<String, String>) -> Result<R, ClientError>
+    async fn get_with<R>(&self, path: &str, headers: HashMap<String, String>) -> Result<R, ClientError>
     where
         R: DeserializeOwned,
     {
         let url = build_request_url(&self.base_url, path);
-        let request = self.build_request(self.client.get(&url).query(query), headers);
+        let request = self.build_request(self.client.get(&url), headers);
 
         let response = request.send().await.map_err(Self::map_reqwest_error)?;
         json_response(response).await

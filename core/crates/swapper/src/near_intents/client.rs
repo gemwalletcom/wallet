@@ -37,7 +37,7 @@ where
     }
 
     pub async fn get_quote(&self, request: &QuoteRequest) -> Result<QuoteResponseResult, SwapperError> {
-        self.client.post_with_headers("/v0/quote", request, self.build_headers()).await.map_err(SwapperError::from)
+        self.client.post("/v0/quote", request).headers(self.build_headers()).await.map_err(SwapperError::from)
     }
 }
 

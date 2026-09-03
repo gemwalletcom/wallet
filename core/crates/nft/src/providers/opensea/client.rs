@@ -24,7 +24,7 @@ impl<C: Client> OpenSeaClient<C> {
 
     pub async fn get_nfts_by_account(&self, chain: Chain, account_address: &str) -> Result<NftsResponse, Box<dyn Error + Send + Sync>> {
         let path = format!("/api/v2/chain/{}/account/{}/nfts", Self::chain_id(chain)?, account_address);
-        Ok(self.client.get_with_query(&path, &[("limit".to_string(), "100".to_string())]).await?)
+        Ok(self.client.get(&path).query(&[("limit".to_string(), "100".to_string())]).await?)
     }
 
     pub async fn get_collection_by_contract(&self, chain: Chain, contract_address: &str) -> Result<Collection, Box<dyn Error + Send + Sync>> {

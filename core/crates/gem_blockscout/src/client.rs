@@ -15,18 +15,27 @@ impl<C: Transport> Client<C> {
     }
 
     pub async fn get_transactions(&self, address: &str, limit: usize) -> Result<Vec<Transaction>, ClientError> {
-        let response: Items<Transaction> = self.client.get_with_query(&self.address_path(address, "transactions"), &self.page_query(limit)).await?;
-        Ok(response.items)
+        Ok(self
+            .client
+            .get::<Items<Transaction>>(&self.address_path(address, "transactions"))
+            .query(&self.page_query(limit))
+            .await?
+            .items)
     }
 
     pub async fn get_token_transfers(&self, address: &str, limit: usize) -> Result<Vec<TokenTransfer>, ClientError> {
-        let response: Items<TokenTransfer> = self.client.get_with_query(&self.address_path(address, "token-transfers"), &self.page_query(limit)).await?;
-        Ok(response.items)
+        Ok(self
+            .client
+            .get::<Items<TokenTransfer>>(&self.address_path(address, "token-transfers"))
+            .query(&self.page_query(limit))
+            .await?
+            .items)
     }
 
     pub async fn get_token_balances(&self, address: &str) -> Result<Vec<TokenBalance>, ClientError> {
         self.client
-            .get_with_query(&self.address_path(address, "token-balances"), &[("apikey".to_string(), self.api_key.clone())])
+            .get(&self.address_path(address, "token-balances"))
+            .query(&[("apikey".to_string(), self.api_key.clone())])
             .await
     }
 

@@ -46,7 +46,7 @@ impl<C: Client> BitcoinClient<C> {
 
     pub async fn broadcast_transaction(&self, data: String) -> Result<BitcoinTransactionBroadcastResult, Box<dyn Error + Send + Sync>> {
         let headers = HashMap::from([(CONTENT_TYPE.to_string(), ContentType::TextPlain.as_str().to_string())]);
-        Ok(self.client.post_with_headers("/api/v2/sendtx/", &data, headers).await?)
+        Ok(self.client.post("/api/v2/sendtx/", &data).headers(headers).await?)
     }
 
     pub async fn get_utxos(&self, address: &str) -> Result<Vec<BitcoinUTXO>, Box<dyn Error + Send + Sync>> {

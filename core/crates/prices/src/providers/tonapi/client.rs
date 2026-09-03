@@ -18,6 +18,6 @@ impl TonApiClient {
 
     pub async fn get_rates(&self, tokens: &[String]) -> Result<RatesResponse, Box<dyn Error + Send + Sync>> {
         let query = vec![("tokens".to_string(), tokens.join(",")), ("currencies".to_string(), "usd".to_string())];
-        Ok(self.client.get_with_query("/v2/rates", &query).await?)
+        Ok(self.client.get("/v2/rates").query(&query).await?)
     }
 }

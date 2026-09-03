@@ -39,9 +39,9 @@ impl<C: Client> AptosClient<C> {
         let path = target.path();
         let headers = target.headers();
         match target {
-            AptosTarget::SimulateTransaction { simulation, .. } => self.client.post_with(&path, &simulation, headers).await,
-            AptosTarget::SubmitTransaction { transaction } => self.client.post_with(&path, &transaction, headers).await,
-            AptosTarget::View { request } => self.client.post_with(&path, &request, headers).await,
+            AptosTarget::SimulateTransaction { simulation, .. } => self.client.post(&path, &simulation).headers(headers).await,
+            AptosTarget::SubmitTransaction { transaction } => self.client.post(&path, &transaction).headers(headers).await,
+            AptosTarget::View { request } => self.client.post(&path, &request).headers(headers).await,
             AptosTarget::GetLedger
             | AptosTarget::GetBlock { .. }
             | AptosTarget::GetAccount { .. }

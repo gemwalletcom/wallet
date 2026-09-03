@@ -89,7 +89,7 @@ impl<C: Client> HyperCoreClient<C> {
     where
         T: DeserializeOwned + Send,
     {
-        Ok(self.client.post_with_headers("/info", &payload, info_cache_headers(ttl_secs)).await?)
+        Ok(self.client.post("/info", &payload).headers(info_cache_headers(ttl_secs)).await?)
     }
 
     pub async fn exchange(&self, payload: serde_json::Value) -> Result<serde_json::Value, Box<dyn Error + Send + Sync>> {

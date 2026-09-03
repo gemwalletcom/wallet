@@ -64,7 +64,7 @@ impl HashDitProvider {
         headers.insert("X-Signature-nonce".to_string(), nonce);
 
         let url = format!("{}?{}", path, query_str);
-        self.client.post_with_headers(&url, body, headers).await
+        self.client.post(&url, body).headers(headers).await
     }
 
     fn parse_response(response: DetectResponse) -> Result<(bool, Option<String>), Box<dyn std::error::Error + Send + Sync>> {

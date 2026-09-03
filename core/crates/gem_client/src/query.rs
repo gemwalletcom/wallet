@@ -12,7 +12,7 @@ pub fn build_request_url(base_url: &str, path: &str) -> String {
     }
 }
 
-pub fn build_path_with_query<T: Serialize>(path: &str, query: &T) -> String {
+pub fn build_path_with_query<T: Serialize + ?Sized>(path: &str, query: &T) -> String {
     let query = serde_urlencoded::to_string(query).unwrap_or_default();
     if query.is_empty() { path.to_string() } else { format!("{path}?{query}") }
 }

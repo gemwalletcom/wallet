@@ -32,15 +32,12 @@ impl FlashnetClient {
 
     pub async fn create_onramp(&self, request: FlashnetOnrampRequest, idempotency_key: &str) -> Result<FlashnetOnrampResponse, ClientError> {
         self.client
-            .post_with_headers(
-                "/v1/orchestration/onramp",
-                &request,
-                HashMap::from([
-                    ("authorization".to_string(), format!("Bearer {}", self.api_key)),
-                    ("x-idempotency-key".to_string(), idempotency_key.to_string()),
-                    (CONTENT_TYPE.to_string(), ContentType::ApplicationJson.as_str().to_string()),
-                ]),
-            )
+            .post("/v1/orchestration/onramp", &request)
+            .headers(HashMap::from([
+                ("authorization".to_string(), format!("Bearer {}", self.api_key)),
+                ("x-idempotency-key".to_string(), idempotency_key.to_string()),
+                (CONTENT_TYPE.to_string(), ContentType::ApplicationJson.as_str().to_string()),
+            ]))
             .await
     }
 

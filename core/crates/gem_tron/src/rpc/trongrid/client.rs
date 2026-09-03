@@ -36,7 +36,7 @@ impl<C: Client> TronGridClient<C> {
     }
 
     async fn get_transaction_page(&self, target: TronGridTarget) -> Result<Data<Vec<TronGridTransaction>>, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get_with_headers(&target.path(), self.headers()).await?)
+        Ok(self.client.get(&target.path()).headers(self.headers()).await?)
     }
 
     async fn get_transaction_pages(
@@ -84,10 +84,7 @@ impl<C: Client> TronGridClient<C> {
     }
 
     pub async fn get_accounts(&self, address: &str) -> Result<Data<Vec<TronGridAccount>>, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .client
-            .get_with_headers(&TronGridTarget::GetAccount(address.to_string()).path(), self.headers())
-            .await?)
+        Ok(self.client.get(&TronGridTarget::GetAccount(address.to_string()).path()).headers(self.headers()).await?)
     }
 }
 

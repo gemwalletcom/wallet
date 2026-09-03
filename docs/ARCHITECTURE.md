@@ -626,7 +626,7 @@ impl<C: Client> TronGridClient<C> {
     }
 
     async fn send<R: DeserializeOwned + Send>(&self, target: TronGridTarget) -> Result<R, ClientError> {
-        self.client.get_with_headers(&target.path(), self.headers()).await
+        self.client.get(&target.path()).headers(self.headers()).await
     }
 
     pub async fn get_accounts(&self, address: &str) -> Result<Data<Vec<TronGridAccount>>, ClientError> {
@@ -644,11 +644,11 @@ loop. A GET-only host needs only `path()`; `GemDeviceApiTarget` is the full shap
 | Case | Shape | Reference |
 |---|---|---|
 | Path parameter | `format!` in `path()`. A chain or network segment is a field the target reads; a chain-to-slug map is a pure `fn` with its own test | `TronGridTarget`, Blockscout `/{chain_id}/…`, `alchemy_url` |
-| Query string | Part of `path()`: `RpcClient` (the apps' transport) and `MockClient` drop the `query` argument of `get_with`. One or two fixed parameters are a `format!`; more, or any optional one, is a flat `Serialize` struct through `build_path_with_query` (`None` omitted, values encoded, a slice of pairs for a repeated key) | `GemApiTarget`, `CoinMarketsQuery`, `mayan::quote_path` |
+| Query string | Part of `path()`; a transport only ever sees a path. One or two fixed parameters are a `format!`; more, or any optional one, is a flat `Serialize` struct rendered by `build_path_with_query` (`None` omitted, values encoded, a slice of pairs for a repeated key). A client without a target yet calls `client.get(path).query(&query)`, which renders the same way | `GemApiTarget`, `CoinMarketsQuery`, `mayan::quote_path` |
 | Optional parameter | An `Option` field on one variant, never a second variant | `GetTransactions { fingerprint: Option<String>, .. }`, `GetPriceAlerts { asset_id }` |
 | Method and body | `send` matches the target: a variant that carries a payload is posted, the rest are GETs. `Client` speaks GET and POST; the device client builds `gem_jsonrpc::Target` with a `method()` for PUT and DELETE. A host that multiplexes on the body (HyperCore `/info`, Cardano GraphQL) has a constant path and a variant per query | `AptosClient::send`, `GemDeviceApiTarget` |
 | Raw body | `String` for `text/plain` and form-urlencoded, `Vec<u8>` for binary; the content type in the target's `headers()`, always from `ContentType` | Bitcoin `sendtx`, Stellar, Algorand, Aptos BCS, `SendSupportImage` |
-| Credentials | `fn headers(&self)` on the client, empty when the key is blank (`Option<String>` decided once at construction); a key the host wants in the query is appended by `send` the same way. Transport default headers are backend-only: `RpcClient` has none | `JupiterClient`, `NearIntentsClient`, Blockscout `apikey` |
+| Credentials | `fn headers(&self)` on the client, empty when the key is blank (`Option<String>` decided once at construction), passed as `.headers(self.headers())`; a key the host wants in the query is appended by `send` the same way. Transport default headers are backend-only: `RpcClient` has none | `JupiterClient`, `NearIntentsClient`, Blockscout `apikey` |
 | Request header | On the target: cache TTL (`X_CACHE_TTL`), API version, idempotency key | `HyperCoreClient`, TON emulate, Flashnet |
 | Signature | A pure `fn` in `auth.rs` over method, path, body, timestamp and nonce; the client reads the clock and merges the result last. A refreshed token sits behind an injected port | `okx::auth::sign`, `GoPlusProvider::sign`, `build_device_auth_header` |
 | Envelope | Unwrapped once in `send`; a typed error body through `get_or_error::<_, ErrorResponse>`; a 404 that means "none" is a value (§ 3) | TON `ApiResult`, GoPlus `Response`, THORChain, Stellar `AccountResult` |
@@ -662,11 +662,9 @@ exact string for every case that can flip. The client test, over `MockClient` or
 header, an envelope's failure branch.
 
 **Still to converge.** Inline paths in every REST client but TronGrid, Aptos and the Gem APIs.
-`get_with_query` in the backend-only clients (Alchemy NFT, Blockscout, Pyth, Zerion, OpenSea,
-TonAPI, Jupiter, CoinMarketCap), which would lose their query on the apps. The fiat providers'
-direct `ReqwestClient::request`. Raw `Value` params in Alchemy and the Chainflip broker.
-`build_path_with_query` returning a `Result` a flat struct cannot produce. Two cache headers:
-`request_with_cache` sends `Cache-Control`, everything else and both apps use `x-gem-cache-ttl`.
+The fiat providers' direct `ReqwestClient::request`. Raw `Value` params in Alchemy and the
+Chainflip broker. Two cache headers: `request_with_cache` sends `Cache-Control`, everything else
+and both apps use `x-gem-cache-ttl`.
 
 ## 13. Shapes that were tried and reverted
 

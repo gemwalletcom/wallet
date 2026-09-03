@@ -36,26 +36,30 @@ impl<C: Client> JupiterClient<C> {
     pub async fn get_verified_tokens(&self) -> Result<Vec<Token>, Box<dyn Error + Send + Sync>> {
         Ok(self
             .client
-            .get_with("/tokens/v2/tag", &[("query".to_string(), "verified".to_string())], self.headers())
+            .get("/tokens/v2/tag")
+            .query(&[("query".to_string(), "verified".to_string())])
+            .headers(self.headers())
             .await?)
     }
 
     pub async fn get_top_trending_tokens(&self, interval: &str, limit: usize) -> Result<Vec<Token>, Box<dyn Error + Send + Sync>> {
         let path = format!("/tokens/v2/toptrending/{interval}");
-        Ok(self.client.get_with(&path, &[("limit".to_string(), limit.to_string())], self.headers()).await?)
+        Ok(self.client.get(&path).query(&[("limit".to_string(), limit.to_string())]).headers(self.headers()).await?)
     }
 
     pub async fn get_token(&self, mint: &str) -> Result<Option<TokenSearchResult>, Box<dyn Error + Send + Sync>> {
         let tokens: Vec<TokenSearchResult> = self
             .client
-            .get_with("/tokens/v2/search", &[("query".to_string(), mint.to_string())], self.headers())
+            .get("/tokens/v2/search")
+            .query(&[("query".to_string(), mint.to_string())])
+            .headers(self.headers())
             .await?;
         Ok(tokens.into_iter().find(|token| token.id == mint))
     }
 
     pub async fn get_wallet_positions(&self, address: &str) -> Result<PositionsResponse, Box<dyn Error + Send + Sync>> {
         let path = format!("/portfolio/v1/positions/{address}");
-        Ok(self.client.get_with_headers(&path, self.headers()).await?)
+        Ok(self.client.get(&path).headers(self.headers()).await?)
     }
 
     fn headers(&self) -> HashMap<String, String> {
@@ -69,95 +73,41 @@ impl<C: Client> JupiterClient<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use async_trait::async_trait;
-    use gem_client::{ClientError, Response, deserialize_response};
-    use serde::{Serialize, de::DeserializeOwned};
-    use std::{
-        fmt::{Debug, Formatter},
-        sync::{Arc, Mutex},
-    };
+    use gem_client::testkit::MockClient;
+    use std::sync::{Arc, Mutex};
 
-    #[derive(Clone, Debug, PartialEq, Eq)]
-    struct GetRequest {
-        path: String,
-        query: Vec<(String, String)>,
-        headers: HashMap<String, String>,
+    type Requests = Arc<Mutex<Vec<(String, HashMap<String, String>)>>>;
+
+    fn recording_client(response: &'static str) -> (MockClient, Requests) {
+        let requests: Requests = Arc::new(Mutex::new(Vec::new()));
+        let recorded = requests.clone();
+        let client = MockClient::new().with_get_with_headers(move |path, headers| {
+            recorded.lock().unwrap().push((path.to_string(), headers.clone()));
+            Ok(response.as_bytes().to_vec())
+        });
+        (client, requests)
     }
 
-    #[derive(Clone)]
-    struct MockClient {
-        response: Arc<Vec<u8>>,
-        requests: Arc<Mutex<Vec<GetRequest>>>,
-    }
-
-    impl MockClient {
-        fn new(response: &str) -> Self {
-            Self {
-                response: Arc::new(response.as_bytes().to_vec()),
-                requests: Arc::new(Mutex::new(Vec::new())),
-            }
-        }
-
-        fn requests(&self) -> Vec<GetRequest> {
-            self.requests.lock().unwrap().clone()
-        }
-    }
-
-    impl Debug for MockClient {
-        fn fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
-            formatter.debug_struct("MockClient").finish()
-        }
-    }
-
-    #[async_trait]
-    impl Client for MockClient {
-        async fn get_with<R>(&self, path: &str, query: &[(String, String)], headers: HashMap<String, String>) -> Result<R, ClientError>
-        where
-            R: DeserializeOwned,
-        {
-            self.requests.lock().unwrap().push(GetRequest {
-                path: path.to_string(),
-                query: query.to_vec(),
-                headers,
-            });
-            deserialize_response(&Response {
-                status: Some(200),
-                data: self.response.as_ref().clone(),
-            })
-        }
-
-        async fn get_url<R>(&self, url: &str) -> Result<R, ClientError>
-        where
-            R: DeserializeOwned,
-        {
-            self.get_with(url, &[], HashMap::new()).await
-        }
-
-        async fn post_with<T, R>(&self, _path: &str, _body: &T, _headers: HashMap<String, String>) -> Result<R, ClientError>
-        where
-            T: Serialize + Send + Sync,
-            R: DeserializeOwned,
-        {
-            Err(ClientError::Http { status: 405, body: Vec::new() })
-        }
+    fn static_client(response: &'static str) -> JupiterClient<MockClient> {
+        JupiterClient::new_with_client(MockClient::new().with_get(move |_| Ok(response.as_bytes().to_vec())))
     }
 
     #[tokio::test]
     async fn test_get_token_returns_only_exact_match() {
         let mint = "MintCaseSensitive";
-        let client = JupiterClient::new_with_client(MockClient::new(
+        let client = static_client(
             r#"[
                 {"id":"mintcasesensitive","isVerified":true,"audit":null},
                 {"id":"MintCaseSensitive","isVerified":false,"audit":null}
             ]"#,
-        ));
+        );
         let token = client.get_token(mint).await.unwrap().unwrap();
 
         assert_eq!(token.id, mint);
         assert_eq!(token.is_verified, Some(false));
 
-        let wrong_id_client = JupiterClient::new_with_client(MockClient::new(r#"[{"id":"mintcasesensitive","isVerified":true,"audit":null}]"#));
-        let empty_client = JupiterClient::new_with_client(MockClient::new("[]"));
+        let wrong_id_client = static_client(r#"[{"id":"mintcasesensitive","isVerified":true,"audit":null}]"#);
+        let empty_client = static_client("[]");
 
         assert!(wrong_id_client.get_token(mint).await.unwrap().is_none());
         assert!(empty_client.get_token(mint).await.unwrap().is_none());
@@ -165,9 +115,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_token_requests_include_api_key_and_query() {
-        let response = r#"[{"id":"MintCaseSensitive","icon":null,"isVerified":true,"audit":null}]"#;
-        let mock = MockClient::new(response);
-        let client = JupiterClient::new_with_client_and_api_key(mock.clone(), "api-key".to_string());
+        let (mock, requests) = recording_client(r#"[{"id":"MintCaseSensitive","icon":null,"isVerified":true,"audit":null}]"#);
+        let client = JupiterClient::new_with_client_and_api_key(mock, "api-key".to_string());
 
         client.get_token("MintCaseSensitive").await.unwrap();
         client.get_verified_tokens().await.unwrap();
@@ -175,34 +124,22 @@ mod tests {
 
         let headers = HashMap::from([(JUPITER_API_HEADER_KEY.to_string(), "api-key".to_string())]);
         assert_eq!(
-            mock.requests(),
+            *requests.lock().unwrap(),
             vec![
-                GetRequest {
-                    path: "/tokens/v2/search".to_string(),
-                    query: vec![("query".to_string(), "MintCaseSensitive".to_string())],
-                    headers: headers.clone(),
-                },
-                GetRequest {
-                    path: "/tokens/v2/tag".to_string(),
-                    query: vec![("query".to_string(), "verified".to_string())],
-                    headers: headers.clone(),
-                },
-                GetRequest {
-                    path: "/tokens/v2/toptrending/24h".to_string(),
-                    query: vec![("limit".to_string(), "10".to_string())],
-                    headers,
-                },
+                ("/tokens/v2/search?query=MintCaseSensitive".to_string(), headers.clone()),
+                ("/tokens/v2/tag?query=verified".to_string(), headers.clone()),
+                ("/tokens/v2/toptrending/24h?limit=10".to_string(), headers),
             ]
         );
     }
 
     #[tokio::test]
     async fn test_blank_api_key_is_omitted() {
-        let mock = MockClient::new("[]");
-        let client = JupiterClient::new_with_client_and_api_key(mock.clone(), String::new());
+        let (mock, requests) = recording_client("[]");
+        let client = JupiterClient::new_with_client_and_api_key(mock, String::new());
 
         client.get_token("MintCaseSensitive").await.unwrap();
 
-        assert_eq!(mock.requests()[0].headers, HashMap::new());
+        assert_eq!(requests.lock().unwrap()[0].1, HashMap::new());
     }
 }

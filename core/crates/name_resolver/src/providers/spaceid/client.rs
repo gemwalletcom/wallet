@@ -15,6 +15,6 @@ impl SpaceIdClient {
 
     pub async fn get_address(&self, tld: &str, domain: &str) -> Result<ResolveRecord, Box<dyn Error + Send + Sync>> {
         let query = [("tld".to_string(), tld.to_string()), ("domain".to_string(), domain.to_string())];
-        Ok(self.client.get_with_query("/v1/getAddress", &query).await?)
+        Ok(self.client.get("/v1/getAddress").query(&query).await?)
     }
 }

@@ -28,7 +28,7 @@ impl<C: Transport> Client<C> {
             if let Some(key) = page_key {
                 query.push(("pageKey".to_string(), key));
             }
-            let response: OwnedNftsResponse = self.client.get_with_query("/getNFTsForOwner", &query).await?;
+            let response: OwnedNftsResponse = self.client.get("/getNFTsForOwner").query(&query).await?;
             assets.extend(response.owned_nfts);
 
             let Some(next_page_key) = response.page_key else {
@@ -46,17 +46,16 @@ impl<C: Transport> Client<C> {
     pub async fn get_contract_metadata(&self, contract_address: &str) -> Result<ContractMetadata, Box<dyn Error + Send + Sync>> {
         Ok(self
             .client
-            .get_with_query("/getContractMetadata", &[("contractAddress".to_string(), contract_address.to_string())])
+            .get("/getContractMetadata")
+            .query(&[("contractAddress".to_string(), contract_address.to_string())])
             .await?)
     }
 
     pub async fn get_nft_metadata(&self, contract_address: &str, token_id: &str) -> Result<NftMetadata, Box<dyn Error + Send + Sync>> {
         Ok(self
             .client
-            .get_with_query(
-                "/getNFTMetadata",
-                &[("contractAddress".to_string(), contract_address.to_string()), ("tokenId".to_string(), token_id.to_string())],
-            )
+            .get("/getNFTMetadata")
+            .query(&[("contractAddress".to_string(), contract_address.to_string()), ("tokenId".to_string(), token_id.to_string())])
             .await?)
     }
 }

@@ -23,7 +23,7 @@ impl PythClient {
         for chunk in price_ids.chunks(CHUNK_SIZE) {
             let query: Vec<(String, String)> = chunk.iter().map(|id| ("ids[]".to_string(), id.clone())).collect();
 
-            let response = self.client.get_with_query::<HermesResponse>("/v2/updates/price/latest", &query).await?;
+            let response = self.client.get::<HermesResponse>("/v2/updates/price/latest").query(&query).await?;
 
             let prices: Vec<Price> = response
                 .parsed

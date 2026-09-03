@@ -1,5 +1,5 @@
 use crate::model::{Info, Listing, ListingsResponse};
-use gem_client::{Client, RemoteProviderConfig, ReqwestClient};
+use gem_client::{Client, ClientExt, RemoteProviderConfig, ReqwestClient};
 use serde_json::Value;
 use std::{collections::HashMap, error::Error};
 
@@ -48,12 +48,17 @@ impl<C: Client> CoinMarketCapClient<C> {
     }
 
     async fn get_listings(&self, path: &str, limit: usize) -> Result<Vec<Listing>, Box<dyn Error + Send + Sync>> {
-        let response: ListingsResponse = self.client.get_with(path, &[("limit".to_string(), limit.to_string())], self.headers()).await?;
-        Ok(response.data)
+        Ok(self
+            .client
+            .get::<ListingsResponse>(path)
+            .query(&[("limit".to_string(), limit.to_string())])
+            .headers(self.headers())
+            .await?
+            .data)
     }
 
     async fn get_info(&self, query: &[(String, String)]) -> Result<Vec<Info>, Box<dyn Error + Send + Sync>> {
-        let response: Value = self.client.get_with("/v2/cryptocurrency/info", query, self.headers()).await?;
+        let response: Value = self.client.get("/v2/cryptocurrency/info").query(&query).headers(self.headers()).await?;
         let Some(data) = response.get("data").and_then(Value::as_object) else {
             return Ok(vec![]);
         };
@@ -86,7 +91,7 @@ mod tests {
     async fn test_get_listings_paths() {
         let client = MockClient::new().with_get(|path| {
             let body = match path {
-                "/v1/cryptocurrency/listings/latest" | "/v1/cryptocurrency/trending/latest" => include_str!("../testdata/listings_latest.json"),
+                "/v1/cryptocurrency/listings/latest?limit=2" | "/v1/cryptocurrency/trending/latest?limit=2" => include_str!("../testdata/listings_latest.json"),
                 _ => {
                     return Err(gem_client::ClientError::Http {
                         status: 404,
@@ -109,7 +114,7 @@ mod tests {
     async fn test_get_info_parses_id_and_symbol_shapes() {
         let client = MockClient::new().with_get(|path| {
             let body = match path {
-                "/v2/cryptocurrency/info" => include_str!("../testdata/cryptocurrency_info.json"),
+                "/v2/cryptocurrency/info?symbol=ETH" => include_str!("../testdata/cryptocurrency_info.json"),
                 _ => {
                     return Err(gem_client::ClientError::Http {
                         status: 404,

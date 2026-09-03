@@ -44,6 +44,6 @@ where
         let full_path = format!("{path}{query}");
         let timestamp = Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true);
         let headers = build_headers(&self.config, &timestamp, &full_path);
-        self.client.get_with_headers(&full_path, headers).await.map_err(SwapperError::from)
+        self.client.get(&full_path).headers(headers).await.map_err(SwapperError::from)
     }
 }

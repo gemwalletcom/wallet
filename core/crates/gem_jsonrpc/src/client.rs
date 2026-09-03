@@ -59,7 +59,7 @@ impl<C: Client + Clone> JsonRpcClient<C> {
             headers.insert("Cache-Control".to_string(), format!("max-age={}", ttl_seconds));
         }
 
-        let result: JsonRpcResult<T> = self.client.post_with_headers("", &request, headers).await?;
+        let result: JsonRpcResult<T> = self.client.post("", &request).headers(headers).await?;
         Ok(result)
     }
 }

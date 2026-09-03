@@ -4,7 +4,7 @@ use primitives::{Asset, AssetId, AssetType, chain::Chain};
 use serde::Serialize;
 
 use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainStaking, ChainTraits};
-use gem_client::{Client, ClientExt, build_path_with_query};
+use gem_client::{Client, ClientExt};
 
 use crate::models::{
     ApiResult, BroadcastTransaction, Chainhead, DnsRecordsResponse, JettonMastersResponse, JettonWalletsResponse, NftCollectionsResponse, NftItemsResponse, RunGetMethodRequest,
@@ -56,7 +56,7 @@ impl<C: Client> TonClient<C> {
 
     pub(crate) async fn emulate_ton_connect(&self, request: &TonEmulationRequest<'_>) -> Result<TonEmulationResponse, Box<dyn Error + Send + Sync>> {
         let headers = HashMap::from([("X-Actions-Version".to_string(), TONCENTER_ACTIONS_VERSION.to_string())]);
-        Ok(self.client.post_with_headers("/api/emulate/v1/emulateTonConnect", request, headers).await?)
+        Ok(self.client.post("/api/emulate/v1/emulateTonConnect", request).headers(headers).await?)
     }
 
     pub async fn run_get_method(&self, address: &str, method: &str, stack: Vec<StackArg>) -> Result<RunGetMethodResult, Box<dyn Error + Send + Sync>> {
@@ -75,7 +75,7 @@ impl<C: Client> TonClient<C> {
             method: method.to_string(),
             stack,
         };
-        let response: ApiResult<serde_json::Value> = self.client.post_with_headers("/api/v2/runGetMethod", &request, headers).await?;
+        let response: ApiResult<serde_json::Value> = self.client.post("/api/v2/runGetMethod", &request).headers(headers).await?;
         if !response.ok {
             let message = match response.result.as_str() {
                 Some(message) => message.to_string(),
@@ -134,8 +134,7 @@ impl<C: Client> TonClient<C> {
     }
 
     async fn get_traces<T: Serialize>(&self, query: T) -> Result<TraceResponse, Box<dyn Error + Send + Sync>> {
-        let path = build_path_with_query("/api/v3/traces", &query);
-        Ok(self.client.get(&path).await?)
+        Ok(self.client.get("/api/v3/traces").query(&query).await?)
     }
 
     pub async fn get_jetton_wallets(&self, address: String) -> Result<JettonWalletsResponse, Box<dyn Error + Send + Sync>> {
