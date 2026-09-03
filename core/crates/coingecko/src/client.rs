@@ -1,8 +1,9 @@
 use crate::model::{
-    Coin, CoinCategory, CoinGeckoResponse, CoinIds, CoinInfo, CoinMarket, CoinMarketsQuery, CoinQuery, CointListQuery, Data, ExchangeRates, Global, MarketChart, SearchTrending,
-    TopGainersLosers,
+    Coin, CoinCategory, CoinGeckoResponse, CoinIds, CoinInfo, CoinMarket, CoinMarketsQuery, CoinQuery, CointListQuery, Data, ExchangeRates, Global, MarketChart, MarketChartQuery,
+    SearchTrending, TopGainersLosers,
 };
-use gem_client::{Client, ClientExt, RemoteProviderConfig, ReqwestClient, build_path_with_query, retry};
+use crate::target::CoinGeckoTarget;
+use gem_client::{Client, ClientExt, RemoteProviderConfig, ReqwestClient, retry};
 use primitives::{FiatRate, currency::Currency};
 use reqwest::header::{HeaderMap, HeaderValue};
 use std::error::Error;
@@ -35,13 +36,13 @@ impl<C: Client> CoinGeckoClient<C> {
         Self { client }
     }
 
-    async fn get_json<T>(&self, path: &str) -> Result<T, Box<dyn Error + Send + Sync>>
+    async fn get_json<T>(&self, target: CoinGeckoTarget) -> Result<T, Box<dyn Error + Send + Sync>>
     where
         T: serde::de::DeserializeOwned + Send,
     {
         retry(
             || async {
-                let response: CoinGeckoResponse<T> = self.client.get(path).await.map_err(|e| -> Box<dyn Error + Send + Sync> { Box::new(e) })?;
+                let response: CoinGeckoResponse<T> = self.client.get(target.clone()).await.map_err(|e| -> Box<dyn Error + Send + Sync> { Box::new(e) })?;
                 match response {
                     CoinGeckoResponse::Success(data) => Ok(data),
                     CoinGeckoResponse::Error(error) => Err(error.into()),
@@ -53,33 +54,30 @@ impl<C: Client> CoinGeckoClient<C> {
     }
 
     pub async fn get_global(&self) -> Result<Global, Box<dyn Error + Send + Sync>> {
-        Ok(self.get_json::<Data<Global>>("/api/v3/global").await?.data)
+        Ok(self.get_json::<Data<Global>>(CoinGeckoTarget::Global).await?.data)
     }
 
     pub async fn get_search_trending(&self) -> Result<SearchTrending, Box<dyn Error + Send + Sync>> {
-        let path = "/api/v3/search/trending";
-        self.get_json(path).await
+        self.get_json(CoinGeckoTarget::SearchTrending).await
     }
 
     pub async fn get_top_gainers_losers(&self) -> Result<TopGainersLosers, Box<dyn Error + Send + Sync>> {
-        let path = "/api/v3/coins/top_gainers_losers?vs_currency=usd";
-        self.get_json(path).await
+        self.get_json(CoinGeckoTarget::TopGainersLosers).await
     }
 
     pub async fn get_coin_list(&self) -> Result<Vec<Coin>, Box<dyn Error + Send + Sync>> {
-        let query = CointListQuery { include_platform: true };
-        let path = build_path_with_query("/api/v3/coins/list", &query);
-        self.get_json(&path).await
+        self.get_json(CoinGeckoTarget::CoinList {
+            query: CointListQuery { include_platform: true },
+        })
+        .await
     }
 
     pub async fn get_coin_categories_list(&self) -> Result<Vec<CoinCategory>, Box<dyn Error + Send + Sync>> {
-        let path = "/api/v3/coins/categories/list";
-        self.get_json(path).await
+        self.get_json(CoinGeckoTarget::CoinCategories).await
     }
 
     pub async fn get_coin_list_new(&self) -> Result<CoinIds, Box<dyn Error + Send + Sync>> {
-        let path = "/api/v3/coins/list/new";
-        self.get_json(path).await
+        self.get_json(CoinGeckoTarget::NewCoins).await
     }
 
     pub async fn get_coin_markets(&self, page: usize, per_page: usize) -> Result<Vec<CoinMarket>, Box<dyn Error + Send + Sync>> {
@@ -100,9 +98,8 @@ impl<C: Client> CoinGeckoClient<C> {
         ids: Option<String>,
         category: Option<String>,
     ) -> Result<Vec<CoinMarket>, Box<dyn Error + Send + Sync>> {
-        let path = build_path_with_query(
-            "/api/v3/coins/markets",
-            &CoinMarketsQuery {
+        self.get_json(CoinGeckoTarget::CoinMarkets {
+            query: CoinMarketsQuery {
                 vs_currency: "usd",
                 order: "market_cap_desc",
                 per_page,
@@ -113,31 +110,28 @@ impl<C: Client> CoinGeckoClient<C> {
                 category,
                 include_rehypothecated: true,
             },
-        );
-        self.get_json(&path).await
+        })
+        .await
     }
 
     pub async fn get_coin(&self, id: &str) -> Result<CoinInfo, Box<dyn Error + Send + Sync>> {
-        let query = CoinQuery {
-            market_data: false,
-            community_data: true,
-            tickers: false,
-            localization: true,
-            developer_data: true,
-        };
-        let base_path = format!("/api/v3/coins/{}", id);
-        let path = build_path_with_query(&base_path, &query);
-        self.get_json(&path).await
+        self.get_json(CoinGeckoTarget::Coin {
+            id: id.to_string(),
+            query: CoinQuery::metadata(),
+        })
+        .await
     }
 
     pub async fn get_coin_by_contract(&self, platform_id: &str, contract_address: &str) -> Result<CoinInfo, Box<dyn Error + Send + Sync>> {
-        let path = format!("/api/v3/coins/{platform_id}/contract/{contract_address}");
-        self.get_json(&path).await
+        self.get_json(CoinGeckoTarget::CoinByContract {
+            platform_id: platform_id.to_string(),
+            contract_address: contract_address.to_string(),
+        })
+        .await
     }
 
     pub async fn get_fiat_rates(&self) -> Result<Vec<FiatRate>, Box<dyn Error + Send + Sync>> {
-        let path = "/api/v3/exchange_rates";
-        let rates: ExchangeRates = self.get_json(path).await?;
+        let rates: ExchangeRates = self.get_json(CoinGeckoTarget::ExchangeRates).await?;
         let usd_symbol = Currency::USD.as_ref().to_lowercase();
         let usd_rate = rates.rates.get(&usd_symbol).ok_or("Default fiat currency rate not found")?.value;
 
@@ -193,8 +187,11 @@ impl<C: Client> CoinGeckoClient<C> {
     }
 
     pub async fn get_market_chart(&self, coin_id: &str, interval: &str, days: &str) -> Result<MarketChart, Box<dyn Error + Send + Sync>> {
-        let path = format!("/api/v3/coins/{}/market_chart?vs_currency=usd&days={}&interval={}&precision=full", coin_id, days, interval);
-        self.get_json(&path).await
+        self.get_json(CoinGeckoTarget::MarketChart {
+            id: coin_id.to_string(),
+            query: MarketChartQuery::usd(days, interval),
+        })
+        .await
     }
 }
 
