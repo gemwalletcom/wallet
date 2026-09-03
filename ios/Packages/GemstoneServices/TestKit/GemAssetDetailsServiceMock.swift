@@ -15,7 +15,6 @@ import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerKey
 import struct Gemstone.GemBlockExplorerLink
 import class Gemstone.GemDeeplinkService
-import class Gemstone.GemSimulationFormatter
 import struct Gemstone.GemSwapPairSuggestion
 import enum Gemstone.VerificationStatus
 import GemstonePrimitives

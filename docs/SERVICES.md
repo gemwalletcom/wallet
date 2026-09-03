@@ -513,13 +513,14 @@ Three gotchas if you repeat the sweep, all met on this pass:
   portfolio and stream services call them in Rust), `GemDeeplinkService::build_gem_url`,
   `GemSimulationFormatter::balance_changes`, `MessageSigner::plain_preview`,
   `GemWalletPreferencesService::{get_assets_timestamp, is_initial_load_completed}` and
-  `GemNodeService::get_nodes`, and deleted `GemAddressService::short` (with `short_address`) and
-  `Config::get_fee_config`; the iOS wrappers and mock methods that only existed for them went
-  too. Still exported for the test kits alone: `GemWalletService::setup_chains` (three iOS
-  store-adapter tests), `GemKeystore::preview_import` (Android instrumented fixtures) and
-  `GemConfirmService::simulation` with `GemSimulationFormatter::{payload_fields, shows_header}`
-  (the iOS confirm mock recomputes a simulation from a `SimulationResult`; handing tests a
-  `GemConfirmSimulation` directly would free all three).
+  `GemNodeService::get_nodes`, `GemConfirmService::simulation` and
+  `GemSimulationFormatter::{payload_fields, shows_header}`, and deleted `GemAddressService::short`
+  (with `short_address`) and `Config::get_fee_config`; the iOS wrappers and mock methods that only
+  existed for them went too. The iOS confirm mock used to recompute a `GemConfirmSimulation` from
+  a `SimulationResult` through those formatter exports — a mocked Core rule (the critical-warning
+  test passed because the mock re-derived the flag); tests hand it a `GemConfirmSimulation` now.
+  Still exported for the test kits alone: `GemWalletService::setup_chains` (three iOS
+  store-adapter tests) and `GemKeystore::preview_import` (Android instrumented fixtures).
 
 - **The chain filter lists are Core's.** `GemAssetSelectionService::filter_chains()` and
   `GemTransactionsService::filter_chains()` return the session wallet's chains by rank

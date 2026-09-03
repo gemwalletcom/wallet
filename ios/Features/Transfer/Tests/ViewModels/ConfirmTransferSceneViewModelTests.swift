@@ -1,18 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemTransferService
-import protocol Gemstone.GemNameServiceProtocol
-import GemstonePrimitivesTestKit
-import GemstoneServicesTestKit
-import GemstoneServices
 import BigInt
 import Components
 import Foundation
-import struct Gemstone.GemFeeRate
 import enum Gemstone.FeePriority
+import class Gemstone.GemAssetConfigService
 import struct Gemstone.GemBalanceRequirement
 import enum Gemstone.GemConfirmError
+import struct Gemstone.GemConfirmSimulation
+import struct Gemstone.GemFeeRate
+import protocol Gemstone.GemNameServiceProtocol
+import struct Gemstone.GemTransferData
+import class Gemstone.GemTransferService
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import InfoSheet
 import Localization
 import Primitives
@@ -22,9 +25,6 @@ import Store
 import Testing
 @testable import Transfer
 import TransferTestKit
-import class Gemstone.GemSimulationFormatter
-import class Gemstone.GemAssetConfigService
-import struct Gemstone.GemTransferData
 
 @MainActor
 struct ConfirmTransferSceneViewModelTests {
@@ -149,7 +149,7 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func recipientNameItemModelUsesStoredAddress() throws {
+    func recipientNameItemModelUsesStoredAddress() {
         let db = DB.mockAssets()
         let checksummedAddress = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4"
         let nameService = GemNameServiceMock(addressNames: [
@@ -379,6 +379,10 @@ struct ConfirmTransferSceneViewModelTests {
 
     @Test
     func walletConnectSectionsStructure() {
+        let payload = [
+            SimulationPayloadField.standard(kind: .contract, value: "0x1111111111111111111111111111111111111111", fieldType: .address, display: .primary),
+            SimulationPayloadField.standard(kind: .method, value: "Approve", fieldType: .text, display: .primary),
+        ]
         let model = ConfirmTransferSceneViewModel.mock(
             data: .mock(type: .generic(asset: .mockEthereum(), metadata: .mock(), extra: .mock(to: "0x1111111111111111111111111111111111111111"))),
             simulation: .mock(
@@ -387,10 +391,10 @@ struct ConfirmTransferSceneViewModelTests {
                     warning: .tokenApproval(SimulationWarningApproval(assetId: AssetId(chain: .ethereum, tokenId: "0x1111111111111111111111111111111111111111"), value: "1000")),
                     message: nil,
                 )],
-                payload: [
-                    SimulationPayloadField.standard(kind: .contract, value: "0x1111111111111111111111111111111111111111", fieldType: .address, display: .primary),
-                    SimulationPayloadField.standard(kind: .method, value: "Approve", fieldType: .text, display: .primary),
-                ],
+                payload: payload,
+            ),
+            gemConfirmService: GemConfirmServiceMock(
+                simulation: GemConfirmSimulation(primaryFields: payload.map { $0.map() }, secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
             ),
         )
         let sections = model.sections
@@ -412,6 +416,9 @@ struct ConfirmTransferSceneViewModelTests {
     func buttonDisabledWithCriticalWarnings() {
         let model = ConfirmTransferSceneViewModel.mock(
             simulation: .mock(warnings: [SimulationWarning(severity: .critical, warning: .suspiciousSpender, message: nil)]),
+            gemConfirmService: GemConfirmServiceMock(
+                simulation: GemConfirmSimulation(primaryFields: [], secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: true),
+            ),
         )
         #expect(model.isButtonDisabled)
     }
@@ -532,7 +539,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func tronInsufficientBalanceActionShowsGetOptions() {
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())))
-        model.onSelectListError(error: .confirm(.InsufficientBalance(asset: Asset.mockTron().map(), requirement: GemBalanceRequirement(required: 36798300, available: 36070000, shortfall: 728300))))
+        model.onSelectListError(error: .confirm(.InsufficientBalance(asset: Asset.mockTron().map(), requirement: GemBalanceRequirement(required: 36_798_300, available: 36_070_000, shortfall: 728_300))))
 
         guard case let .info(sheet) = model.isPresentingSheet,
               case let .balanceRequired(_, _, requirement, action) = sheet

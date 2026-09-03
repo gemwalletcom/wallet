@@ -1,9 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitives
+import struct Gemstone.GemConfirmData
 import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
-import struct Gemstone.GemConfirmData
+import struct Gemstone.GemTransferData
+import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
@@ -13,8 +14,6 @@ import Store
 import StoreTestKit
 @testable import Transfer
 import TransferTestKit
-import class Gemstone.GemSimulationFormatter
-import struct Gemstone.GemTransferData
 
 @MainActor
 extension ConfirmTransferSceneViewModel {

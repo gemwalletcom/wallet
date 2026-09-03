@@ -202,7 +202,9 @@ impl GemSimulationFormatter {
     pub fn header(&self, simulation: Option<SimulationResult>) -> Option<SimulationHeader> {
         simulation.and_then(|simulation| simulation.valid_header().cloned())
     }
+}
 
+impl GemSimulationFormatter {
     pub fn payload_fields(&self, payload: Vec<SimulationPayloadField>, shows_header: bool) -> Vec<SimulationPayloadField> {
         if !shows_header {
             return payload;
@@ -213,9 +215,7 @@ impl GemSimulationFormatter {
     pub fn shows_header(&self, simulation: Option<SimulationResult>, is_approval: bool) -> bool {
         is_approval || simulation.as_ref().and_then(SimulationResult::valid_header).is_some()
     }
-}
 
-impl GemSimulationFormatter {
     pub fn balance_changes(&self, simulation: Option<SimulationResult>, known_asset_ids: Vec<AssetId>) -> Vec<GemSimulationChange> {
         let known: HashSet<String> = known_asset_ids.into_iter().map(|asset_id| asset_id.to_string()).collect();
         simulation
