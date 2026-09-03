@@ -88,7 +88,10 @@ impl Across {
     fn multicall_request(chain: Chain, calls: Vec<IMulticall3::Call3>) -> Result<EthereumRpc, SwapperError> {
         let chain = EVMChain::from_chain(chain).ok_or(SwapperError::NotSupportedChain)?;
         let data = IMulticall3::aggregate3Call { calls }.abi_encode();
-        Ok(EthereumRpc::Call(TransactionObject::new_call(deployment_by_chain(&chain), data), BlockParameter::Latest))
+        Ok(EthereumRpc::Call {
+            transaction: TransactionObject::new_call(deployment_by_chain(&chain), data),
+            block: BlockParameter::Latest,
+        })
     }
 
     fn decode_multicall(result: String) -> Result<Vec<IMulticall3::Result>, SwapperError> {
@@ -226,7 +229,13 @@ impl Across {
         }
         .abi_encode();
         let tx = TransactionObject::new_call_to_value(deployment.spoke_pool, &value, data);
-        Ok((EthereumRpc::EstimateGas(serde_json::to_value(tx)?, BlockParameter::Latest), v3_relay_data))
+        Ok((
+            EthereumRpc::EstimateGas {
+                transaction: serde_json::to_value(tx)?,
+                block: BlockParameter::Latest,
+            },
+            v3_relay_data,
+        ))
     }
 
     async fn get_destination_gas(&self, chain: Chain, limit_request: EthereumRpc, include_gas_token_price: bool) -> Result<DestinationGas, SwapperError> {

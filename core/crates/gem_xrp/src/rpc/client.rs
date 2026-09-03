@@ -44,7 +44,7 @@ impl<C: Client + Clone> XrpClient<C> {
     }
 
     pub async fn get_account_info_full(&self, address: &str) -> Result<AccountInfoResult, Box<dyn Error + Send + Sync>> {
-        self.request(XrpRpc::GetAccountInfo(address.to_string())).await
+        self.request(XrpRpc::GetAccountInfo { address: address.to_string() }).await
     }
 
     pub async fn get_latest_validated_ledger(&self) -> Result<LedgerInfo, Box<dyn Error + Send + Sync>> {
@@ -64,7 +64,7 @@ impl<C: Client + Clone> XrpClient<C> {
     }
 
     pub async fn broadcast_transaction(&self, data: &str) -> Result<TransactionBroadcast, Box<dyn Error + Send + Sync>> {
-        self.request(XrpRpc::SubmitTransaction(data.to_string())).await
+        self.request(XrpRpc::SubmitTransaction { data: data.to_string() }).await
     }
 
     pub async fn get_transaction_status(&self, transaction_id: &str) -> Result<TransactionStatus, Box<dyn Error + Send + Sync>> {
@@ -75,15 +75,15 @@ impl<C: Client + Clone> XrpClient<C> {
     where
         T: DeserializeOwned + Send,
     {
-        self.request(XrpRpc::GetTransaction(transaction_id.to_string())).await
+        self.request(XrpRpc::GetTransaction { hash: transaction_id.to_string() }).await
     }
 
     pub async fn get_account_objects(&self, address: &str) -> Result<AccountObjects, Box<dyn Error + Send + Sync>> {
-        self.request(XrpRpc::GetAccountObjects(address.to_string())).await
+        self.request(XrpRpc::GetAccountObjects { address: address.to_string() }).await
     }
 
     pub async fn get_block_transactions(&self, block_number: u64) -> Result<Ledger, Box<dyn Error + Send + Sync>> {
-        Ok(self.request::<LedgerData>(XrpRpc::GetLedger(block_number)).await?.ledger)
+        Ok(self.request::<LedgerData>(XrpRpc::GetLedger { index: block_number }).await?.ledger)
     }
 
     pub async fn get_account_transactions(&self, address: String, limit: usize) -> Result<AccountLedger, Box<dyn Error + Send + Sync>> {

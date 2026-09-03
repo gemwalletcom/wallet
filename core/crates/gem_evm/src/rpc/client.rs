@@ -43,20 +43,38 @@ impl<C: Client + Clone> EthereumClient<C> {
     pub async fn eth_call(&self, contract_address: &str, call_data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error + Send + Sync>> {
         let to_address = Address::from_str(contract_address)?;
         let transaction = TransactionObject::new_call(&to_address.to_string(), call_data.to_vec());
-        let result: String = self.client.request(EthereumRpc::Call(transaction, BlockParameter::Latest)).await?;
+        let result: String = self
+            .client
+            .request(EthereumRpc::Call {
+                transaction,
+                block: BlockParameter::Latest,
+            })
+            .await?;
         Ok(hex::decode(result)?)
     }
 
     pub async fn get_block(&self, block_number: u64) -> Result<Option<Block>, JsonRpcError> {
-        self.client.request(EthereumRpc::GetBlockByNumber(block_number, true)).await
+        self.client
+            .request(EthereumRpc::GetBlockByNumber {
+                number: block_number,
+                include_transactions: true,
+            })
+            .await
     }
 
     pub async fn get_block_timestamp(&self, block_number: u64) -> Result<BigUint, JsonRpcError> {
-        Ok(self.client.request::<BlockHeader, _>(EthereumRpc::GetBlockByNumber(block_number, false)).await?.timestamp)
+        Ok(self
+            .client
+            .request::<BlockHeader, _>(EthereumRpc::GetBlockByNumber {
+                number: block_number,
+                include_transactions: false,
+            })
+            .await?
+            .timestamp)
     }
 
     pub async fn get_block_receipts(&self, block_number: u64) -> Result<Vec<TransactionReceipt>, JsonRpcError> {
-        self.client.request(EthereumRpc::GetBlockReceipts(block_number)).await
+        self.client.request(EthereumRpc::GetBlockReceipts { number: block_number }).await
     }
 
     pub async fn get_latest_block(&self) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
@@ -64,19 +82,34 @@ impl<C: Client + Clone> EthereumClient<C> {
     }
 
     pub async fn get_transaction_receipt(&self, hash: &str) -> Result<Option<TransactionReceipt>, JsonRpcError> {
-        self.client.request(EthereumRpc::GetTransactionReceipt(hash.to_string())).await
+        self.client.request(EthereumRpc::GetTransactionReceipt { hash: hash.to_string() }).await
     }
 
     pub async fn trace_call(&self, transaction: &TransactionObject) -> Result<TraceCallResult, JsonRpcError> {
-        self.client.request(EthereumRpc::TraceCall(transaction.clone(), BlockParameter::Latest)).await
+        self.client
+            .request(EthereumRpc::TraceCall {
+                transaction: transaction.clone(),
+                block: BlockParameter::Latest,
+            })
+            .await
     }
 
     pub async fn get_balance(&self, address: &str) -> Result<String, JsonRpcError> {
-        self.client.request(EthereumRpc::GetBalance(address.to_string(), BlockParameter::Latest)).await
+        self.client
+            .request(EthereumRpc::GetBalance {
+                address: address.to_string(),
+                block: BlockParameter::Latest,
+            })
+            .await
     }
 
     pub async fn get_code(&self, address: &str) -> Result<String, JsonRpcError> {
-        self.client.request(EthereumRpc::GetCode(address.to_string(), BlockParameter::Latest)).await
+        self.client
+            .request(EthereumRpc::GetCode {
+                address: address.to_string(),
+                block: BlockParameter::Latest,
+            })
+            .await
     }
 
     pub async fn get_gas_price(&self) -> Result<BigInt, JsonRpcError> {
@@ -94,17 +127,27 @@ impl<C: Client + Clone> EthereumClient<C> {
     }
 
     pub async fn get_transaction_count(&self, address: &str) -> Result<String, JsonRpcError> {
-        self.client.request(EthereumRpc::GetTransactionCount(address.to_string(), BlockParameter::Latest)).await
+        self.client
+            .request(EthereumRpc::GetTransactionCount {
+                address: address.to_string(),
+                block: BlockParameter::Latest,
+            })
+            .await
     }
 
     pub async fn broadcast_transaction(&self, data: &str) -> Result<String, JsonRpcError> {
-        self.client.request(EthereumRpc::SendRawTransaction(data.to_string())).await
+        self.client.request(EthereumRpc::SendRawTransaction { data: data.to_string() }).await
     }
 
     pub async fn batch_eth_call<const N: usize>(&self, contract_address: &str, function_selectors: [&str; N]) -> Result<[String; N], Box<dyn std::error::Error + Sync + Send>> {
         let requests: Vec<EthereumRpc> = function_selectors
             .iter()
-            .map(|selector| hex::decode(selector).map(|data| EthereumRpc::Call(TransactionObject::new_call(contract_address, data), BlockParameter::Latest)))
+            .map(|selector| {
+                hex::decode(selector).map(|data| EthereumRpc::Call {
+                    transaction: TransactionObject::new_call(contract_address, data),
+                    block: BlockParameter::Latest,
+                })
+            })
             .collect::<Result<_, _>>()?;
         let results = self.client.batch_request::<String, _>(requests).await?.take_all()?;
         results.try_into().map_err(|_| "Array conversion failed".into())
@@ -118,7 +161,10 @@ impl<C: Client + Clone> EthereumClient<C> {
         let data = hex::decode(format!("0x70a08231000000000000000000000000{:0>40}", address.strip_prefix("0x").unwrap_or(address)))?;
         let requests: Vec<EthereumRpc> = contracts
             .iter()
-            .map(|contract| EthereumRpc::Call(TransactionObject::new_call(contract, data.clone()), BlockParameter::Latest))
+            .map(|contract| EthereumRpc::Call {
+                transaction: TransactionObject::new_call(contract, data.clone()),
+                block: BlockParameter::Latest,
+            })
             .collect();
         Ok(self.client.batch_request(requests).await?.take_all()?)
     }
@@ -139,7 +185,12 @@ impl<C: Client + Clone> EthereumClient<C> {
             params_obj["data"] = json!(data);
         }
 
-        self.client.request(EthereumRpc::EstimateGas(params_obj, BlockParameter::Latest)).await
+        self.client
+            .request(EthereumRpc::EstimateGas {
+                transaction: params_obj,
+                block: BlockParameter::Latest,
+            })
+            .await
     }
 
     #[cfg(feature = "rpc")]

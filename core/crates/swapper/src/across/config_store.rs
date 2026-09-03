@@ -31,7 +31,10 @@ pub(super) struct TokenConfig {
 impl TokenConfig {
     pub(super) fn request(l1_token: &Address) -> EthereumRpc {
         let data = AcrossConfigStore::l1TokenConfigCall { l1Token: *l1_token }.abi_encode();
-        EthereumRpc::Call(TransactionObject::new_call(ETHEREUM_ACROSS_CONFIG_STORE_CONTRACT, data), BlockParameter::Latest)
+        EthereumRpc::Call {
+            transaction: TransactionObject::new_call(ETHEREUM_ACROSS_CONFIG_STORE_CONTRACT, data),
+            block: BlockParameter::Latest,
+        }
     }
 
     pub(super) fn decode(result: String) -> Result<Self, SwapperError> {
