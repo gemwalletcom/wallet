@@ -651,6 +651,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `Wallet.onboardingBannerKey`, the home's `showWelcomeBanner`/`onHideWelcomeBanner` and
   `GemBannerService::shows_onboarding` are gone, and the DAO no longer pre-filters banner
   states in SQL — Core's `is_visible` decides.
+- **Which quote the swap screen shows is Core's pick.** Both apps kept "the preferred provider's
+  quote, else the first" — iOS inline in `performFetch`, Android as `SwapQuotesResult.getQuote`.
+  `GemSwapQuoteService::selected_quote(quotes, preferred)` (`rules::selected_quote`, tested)
+  answers it; iOS calls it when quotes arrive and Android's `SwapQuoteSession` stores
+  `selectedQuote` from it on `onQuoteResults` / `onProviderSelected`, the two transitions that
+  can change it. The mocks state the same premise so the provider-selection view-model tests
+  keep their meaning.
 - **The recommended validators section is one Core answer.** Both validator-select screens
   asked `GemStakeService::recommended_validator_ids(chain)` and then ran the same
   `validators.filter { ids.contains(id) }` themselves; `recommended_validators(chain, validators)`

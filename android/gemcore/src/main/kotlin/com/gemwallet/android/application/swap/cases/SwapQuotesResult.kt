@@ -1,7 +1,6 @@
 package com.gemwallet.android.application.swap.cases
 
 import com.gemwallet.android.model.AssetInfo
-import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.SwapperQuote
 
 data class SwapQuotesResult(
@@ -11,9 +10,6 @@ data class SwapQuotesResult(
     val receive: AssetInfo,
     val err: Throwable? = null,
 )
-
-fun SwapQuotesResult.getQuote(provider: SwapperProvider?): SwapperQuote? =
-    items.firstOrNull { it.data.provider.id == provider } ?: items.firstOrNull()
 
 fun SwapQuotesResult.matches(params: SwapQuoteRequestParams?): Boolean =
     params?.key == requestKey

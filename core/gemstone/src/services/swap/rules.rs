@@ -3,7 +3,7 @@ use num_bigint::BigUint;
 use primitives::swap::{SwapProviderData, SwapQuote, SwapQuoteData};
 use primitives::{Asset, AssetId, Chain, Wallet};
 use swapper::permit2_data::{Permit2Detail, PermitSingle};
-use swapper::{Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode};
+use swapper::{Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode};
 
 use crate::config::swap_config::{SwapConfig, get_default_slippage};
 use crate::models::swap::GemSlippageCheck;
@@ -28,6 +28,10 @@ pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, valu
 
 const BASIS_POINTS: u32 = 10_000;
 const ETA_MINIMUM_SECONDS: u32 = 60;
+
+pub fn selected_quote(quotes: &[Quote], preferred: Option<SwapperProvider>) -> Option<Quote> {
+    quotes.iter().find(|quote| Some(quote.data.provider.id) == preferred).or_else(|| quotes.first()).cloned()
+}
 
 pub fn min_receive_value(value: &BigUint, slippage_bps: u32) -> BigUint {
     let kept = BASIS_POINTS.saturating_sub(slippage_bps);
@@ -230,6 +234,32 @@ pub fn pair_for_asset(asset_id: AssetId, has_balance: bool) -> GemSwapPairSugges
 
 #[cfg(test)]
 mod tests {
+    fn provider_quote(provider: SwapperProvider) -> Quote {
+        let wallet = wallet(&[Chain::Ethereum, Chain::Solana]);
+        Quote {
+            from_value: BigUint::from(100u64),
+            min_from_value: None,
+            to_value: BigUint::from(1u64),
+            data: swapper::ProviderData {
+                provider: swapper::ProviderType::new(provider),
+                slippage_bps: 50,
+                routes: vec![],
+            },
+            request: quote_request(&wallet, &asset(Chain::Ethereum), &asset(Chain::Solana), BigUint::from(100u32), false, None).unwrap(),
+            eta_in_seconds: None,
+        }
+    }
+
+    #[test]
+    fn test_selected_quote_prefers_the_chosen_provider_then_the_best() {
+        let quotes = vec![provider_quote(SwapperProvider::Okx), provider_quote(SwapperProvider::Jupiter)];
+
+        assert_eq!(selected_quote(&quotes, Some(SwapperProvider::Jupiter)).unwrap().data.provider.id, SwapperProvider::Jupiter);
+        assert_eq!(selected_quote(&quotes, Some(SwapperProvider::Thorchain)).unwrap().data.provider.id, SwapperProvider::Okx);
+        assert_eq!(selected_quote(&quotes, None).unwrap().data.provider.id, SwapperProvider::Okx);
+        assert!(selected_quote(&[], Some(SwapperProvider::Jupiter)).is_none());
+    }
+
     #[test]
     fn test_min_receive_value_and_eta() {
         let value = BigUint::from(1_000_000u32);

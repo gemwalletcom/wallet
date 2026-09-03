@@ -106,6 +106,7 @@ class SwapViewModelTest {
     private val swapQuoteService = mockk<GemSwapQuoteServiceInterface>(relaxed = true) {
         every { slippageBps() } returns null
         coEvery { suggestPair(any()) } returns null
+        every { selectedQuote(any(), any()) } answers { firstArg<List<SwapperQuote>>().firstOrNull() }
     }
 
     private val createdViewModels = mutableListOf<SwapViewModel>()

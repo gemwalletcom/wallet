@@ -12,6 +12,7 @@ import protocol Gemstone.GemSwapQuoteServiceProtocol
 import struct Gemstone.GemSwapPairSuggestion
 import struct Gemstone.GemSwapTransfer
 import struct Gemstone.SwapperAssetList
+import enum Gemstone.SwapperProvider
 import struct Gemstone.SwapperQuote
 import struct Gemstone.SwapperSlippage
 import GemstonePrimitives
@@ -101,6 +102,10 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
     public func updateBalances(assetIds _: [AssetId]) async throws {}
 
     public func addPrices(assetIds _: [AssetId]) async throws {}
+
+    public func selectedQuote(quotes: [SwapperQuote], preferred: SwapperProvider?) -> SwapperQuote? {
+        quotes.first(where: { $0.data.provider.id == preferred }) ?? quotes.first
+    }
 
     public func getQuotes(fromAsset _: Asset, toAsset _: Asset, value: BigUInt, useMaxAmount _: Bool, slippageBps _: UInt32?) async throws -> [SwapperQuote] {
         if let quotesDelay {
