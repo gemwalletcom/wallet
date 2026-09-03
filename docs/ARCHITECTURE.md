@@ -384,6 +384,26 @@ service's dependencies.
 
 A sheet belongs to the screen that presents it and shares that screen's service. A screen you navigate *to* is a different screen with its own.
 
+### Composition services are reached through the screen service
+
+`GemExplorerService`, `GemDeeplinkService`, `GemSwapService`, `GemAssetConfigService`,
+`GemPriceService` are *composition* services: screen services hold them, and a screen reads their
+answers through its own service — the chart's token link is `GemChartService::token_url`, the
+confirm screen's sender link is `GemConfirmTransferService::address_url`, the asset scene's share
+link is `GemAssetDetailsService::deeplink_url`, its swap pair `swap_pair`, the confirm sheet's
+acquire flow `acquire_asset_flow`. A composition service's method is exported only while an app
+still calls it; once every screen reads it through its screen service, move the method to a plain
+`impl` block (the constructor stays exported because the composition root builds the object).
+The September 2026 sweep found the same answer reached three ways — iOS through the screen
+service, Android through the composition service from a Hilt-injected coordinator, and Android's
+Compose layer through a `CompositionLocal` — and each pair disagreed somewhere (the slippage
+default, the acquire-flow title). One route per answer, and it is the screen service's.
+
+On Android the Hilt module binds both the concrete class and the generated interface
+(`fun provideGemFooServiceInterface(service: GemFooService): GemFooServiceInterface = service`):
+Core constructors need the concrete type to compose, view models and coordinators take the
+interface.
+
 ### A service never hands out another service
 
 `service.manageContact()` is the same reach-through as `model.nameService`, one level down: the
@@ -451,7 +471,7 @@ A `GemFooService()` in a field initialiser or at file scope is a second instance
   its view model, from the owners the factory already holds. It is never a field of
   `AppResolver.Services` and never an `@Entry`: that constructs it on every launch of an app that
   may never open the screen, and hands views a composition detail.
-- **Android** — provided in a Hilt module, injected. A Compose scene reads one instance from a `CompositionLocal` provided at `MainActivity` (`LocalChainService`, `LocalAssetConfigService`). A non-`@Composable` helper takes an explicit parameter — a `CompositionLocal` cannot be read outside a composable. A screen service is a `@Provides` like any other — Hilt builds it when its view model first asks, so nothing is built at launch — and is never read from a `CompositionLocal`.
+- **Android** — provided in a Hilt module, injected. A Compose scene reads one instance from a `CompositionLocal` provided at `MainActivity` (`LocalChainService`, `LocalAssetConfigService`) only for the dependency-free config services; a screen's Core answers come from its view model's service, never from a `CompositionLocal` inside a feature composable (`LocalDeeplinkService` building the share link and `LocalAssetConfigService.acquireFlow` deciding the confirm button were reach-throughs and are gone). A non-`@Composable` helper takes an explicit parameter — a `CompositionLocal` cannot be read outside a composable. A screen service is a `@Provides` like any other — Hilt builds it when its view model first asks, so nothing is built at launch — and is never read from a `CompositionLocal`.
 - **A value type or a namespace of statics** takes the service as a method parameter only when the
   answer genuinely requires that service's dependencies. A pure receiver-owned answer stays on
   the receiver according to § 6.
