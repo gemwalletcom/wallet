@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use primitives::{Chain, NFTAssetId, ReportNft, WalletId};
+use primitives::{Chain, NFTAssetId, ReportNft};
 
 use super::{GemNftService, rules};
 use crate::block_explorer::GemBlockExplorerLink;
@@ -39,15 +39,15 @@ impl GemCollectibleService {
         }
     }
 
-    pub async fn refresh_asset(&self, wallet_id: WalletId, asset_id: NFTAssetId) -> Result<(), GemServiceError> {
-        self.nfts.refresh_asset(wallet_id, asset_id).await
+    pub async fn refresh_asset(&self, asset_id: NFTAssetId) -> Result<(), GemServiceError> {
+        self.nfts.refresh_asset(self.nfts.session.current_wallet_id()?, asset_id).await
     }
 
     pub async fn report(&self, report: ReportNft) -> Result<(), GemServiceError> {
         self.nfts.report(report).await
     }
 
-    pub async fn set_wallet_avatar(&self, wallet_id: WalletId, url: String) -> Result<(), GemServiceError> {
-        self.avatars.set_image_url(wallet_id, url).await
+    pub async fn set_wallet_avatar(&self, url: String) -> Result<(), GemServiceError> {
+        self.avatars.set_image_url(self.nfts.session.current_wallet_id()?, url).await
     }
 }

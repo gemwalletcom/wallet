@@ -239,6 +239,7 @@ consolidation, and a second Core service in a view model is the one to remove.
 | `GemAssetSelectionService` | `SelectAssetViewModel`, `WalletSearchSceneViewModel`, `AssetsResultsSceneViewModel` | `BaseAssetSelectViewModel` and its subclasses |
 | `GemChainSettingsService` | `ChainSettingsSceneViewModel`, `AddNodeSceneViewModel` | `NetworksViewModel`, `AddNodeViewModel` |
 | `GemChartService` | `ChartSceneViewModel` | `ChartViewModel` |
+| `GemCollectibleService` | `CollectibleViewModel`, `ReportNftViewModel` | `NftDetailsViewModel` (+ `GetNftAssetDetails` observed read) |
 | `GemConfirmTransferService` | `ConfirmTransferSceneViewModel` | `ConfirmViewModel` |
 | `GemContactService` | `ContactsViewModel` | `ContactsViewModel` |
 | `GemCurrencyService` | `CurrencySceneViewModel` | `CurrenciesViewModel` (+ session currency cases) |
@@ -618,6 +619,14 @@ Three gotchas if you repeat the sweep, all met on this pass:
   sign-message path each platform drives from its SDK; `GemPreferencesService::{set_notifications_asked, should_ask_notifications,
   set_price_alerts_enabled, *_swap_slippage_bps}` are Android's push/N1 adapters and
   `UserConfig`. Anything else that shows up as one-sided is a candidate.
+- **Android reports collectibles through `GemCollectibleService::report`.** The export was
+  iOS-only because Android had no report action. `NftDetailsViewModel` now holds
+  `GemCollectibleServiceInterface` (the `RefreshNftAsset` case that wrapped `refresh_asset` is
+  gone) and `report(reason)` sends `ReportNft { collection, asset, reason }`; the details menu
+  gets a destructive Report item opening a reason sheet over `ReportReason.entries`, the same
+  five reasons iOS's `ReportSelectReasonScene` lists. `refresh_asset` and `set_wallet_avatar`
+  read the current wallet from the session the service already holds, so neither app passes a
+  wallet id any more.
 - **`GemGateway` exports only its constructor.** Neither app called a gateway method: the nine
   iOS `GatewayService` wrappers (`utxos`, `chainId`, `latestBlock`, `validators`,
   `delegationValidators`, `delegations`, `getPerpetual{AccountMode, Candlesticks, Portfolio}`)
@@ -672,7 +681,7 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `refresh(assetIds)`, hide it in `finally`; the import screen no longer calls anything after
   `importWallet` + `setCurrentWalletId`. The five import-state files and their DI providers are
   deleted; `AssetsViewModelTest` covers the first-load and already-loaded answers.
-- **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `nft::report` (Android report screen), `GemDeveloperService::{reset_transactions_timestamp, delete_wallet_preferences, clear_preferences, clear_perpetual_markets, deeplink_url}` (iOS developer actions Android's develop screen does not offer), `GemAppUpdateService::newest` (iOS's About screen shows the newest release; Android's shows the installed version and updates through Play), `GemAssetDetailsService::deeplink_gem_url` (iOS opens perpetuals through its deep-link router; Android navigates in-app), `GemCollectibleService::set_wallet_avatar` (iOS sets the avatar from the collectible screen; Android from the wallet-image screen through `GemAvatarService`), `GemPerpetualService::should_connect_perpetuals` (iOS lifecycle polls the session variant; Android's `ObservePerpetualWallet` passes the wallet to `GemPreferencesService::show_perpetuals` — same rule, one accessor each).
+- **One-sided exports**, each waiting on the other platform: `wallet_connect::authentication_chain_ids` (iOS WalletConnect auth), `GemDeveloperService::{reset_transactions_timestamp, delete_wallet_preferences, clear_preferences, clear_perpetual_markets, deeplink_url}` (iOS developer actions Android's develop screen does not offer), `GemAppUpdateService::newest` (iOS's About screen shows the newest release; Android's shows the installed version and updates through Play), `GemAssetDetailsService::deeplink_gem_url` (iOS opens perpetuals through its deep-link router; Android navigates in-app), `GemCollectibleService::set_wallet_avatar` (iOS sets the avatar from the collectible screen; Android from the wallet-image screen through `GemAvatarService`), `GemPerpetualService::should_connect_perpetuals` (iOS lifecycle polls the session variant; Android's `ObservePerpetualWallet` passes the wallet to `GemPreferencesService::show_perpetuals` — same rule, one accessor each).
 - **`GemAssetConfigService` holders**: iOS `Chain+`, `AssetScore+`, `AssetProperties+`, `AssetBasic+`; Android `ext/Chain.kt`, `AssetDefaults.kt`. Blocked on the frozen-table decision above; Android is additionally blocked by `Migration_71_72`, a Room migration `object` that calls `chain.asset()` at database open where there is no graph to inject from.
 - **`AddressFormatter` (iOS)**, 23 uses / ~60 construction sites. Attempted and reverted: threading the service reaches `WalletViewModel`, then spreads into `extension Wallet: SimpleListItemViewable`, which builds a `WalletViewModel` only to read `avatarImage` and never touches the formatter. The fix is smaller than the threading — split the display-only parts (`avatarImage`, `name`) from the address-formatting parts so only the latter needs the service. Design change, wants a decision.
 - **`GemSecurityService` (iOS)** is a *defaulted* parameter on `BiometryAuthenticationService`. Making it required pushes the default into `SecurityViewModel` and `LockSceneViewModel`, which also default-construct the whole service — a lock-manager pass, not a one-liner.

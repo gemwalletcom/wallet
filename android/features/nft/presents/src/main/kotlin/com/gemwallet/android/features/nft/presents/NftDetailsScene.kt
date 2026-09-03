@@ -55,6 +55,13 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.NFTAttribute
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.MaterialTheme
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemDefaults
+import com.gemwallet.android.ui.components.list_item.ListItemTitleText
+import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.wallet.core.primitives.ReportReason
 import kotlinx.coroutines.launch
 
 @Composable
@@ -73,6 +80,8 @@ fun NFTDetailsScene(
 
     val model = assetData ?: return
     var isMenuExpanded by remember { mutableStateOf(false) }
+    var isReportVisible by remember { mutableStateOf(false) }
+    val reported = stringResource(R.string.transaction_status_confirmed)
     Scene(
         titleContent = {
             NftTitle(
@@ -108,6 +117,14 @@ fun NFTDetailsScene(
                         }
                     },
                 )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.nft_report_report_button_title), color = MaterialTheme.colorScheme.error) },
+                    leadingIcon = { Icon(AppIcons.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                    onClick = {
+                        isMenuExpanded = false
+                        isReportVisible = true
+                    },
+                )
             }
         },
         onClose = { cancelAction() },
@@ -131,7 +148,56 @@ fun NFTDetailsScene(
             nftLinks(model.collection.links) { uriHandler.openUri(it) }
         }
     }
+    ReportReasonSheet(
+        isVisible = isReportVisible,
+        onDismiss = { isReportVisible = false },
+        onSelect = { reason ->
+            scope.launch {
+                if (viewModel.report(reason)) {
+                    snackbar.showSnackbar(reported, R.drawable.ic_check_circle)
+                } else {
+                    snackbar.showSnackbar(refreshFailed, R.drawable.ic_error)
+                }
+            }
+        },
+    )
 }
+
+@Composable
+private fun ReportReasonSheet(
+    isVisible: Boolean,
+    onDismiss: () -> Unit,
+    onSelect: (ReportReason) -> Unit,
+) {
+    ModalBottomSheet(
+        isVisible = isVisible,
+        onDismissRequest = onDismiss,
+        title = stringResource(R.string.nft_report_report_button_title),
+    ) {
+        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            itemsPositioned(ReportReason.entries) { position, reason ->
+                ListItem(
+                    modifier = Modifier.clickable {
+                        onSelect(reason)
+                        onDismiss()
+                    },
+                    minHeight = ListItemDefaults.plainMinHeight,
+                    title = { ListItemTitleText(stringResource(reason.titleRes)) },
+                    listPosition = position,
+                )
+            }
+        }
+    }
+}
+
+private val ReportReason.titleRes: Int
+    get() = when (this) {
+        ReportReason.Spam -> R.string.nft_report_reason_spam
+        ReportReason.Malicious -> R.string.nft_report_reason_malicious
+        ReportReason.Inappropriate -> R.string.nft_report_reason_inappropriate
+        ReportReason.Copyright -> R.string.nft_report_reason_copyright
+        ReportReason.Other -> R.string.transfer_other_title
+    }
 
 private fun LazyListScope.generalInfo(model: NftAssetDetailsData) {
     item {
