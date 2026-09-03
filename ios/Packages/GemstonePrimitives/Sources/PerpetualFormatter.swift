@@ -15,10 +15,6 @@ public struct PerpetualFormatter {
         perpetual.formatPrice(price: price, decimals: decimals)
     }
 
-    public func formatSize(_ size: Double, decimals: Int32) -> String {
-        perpetual.formatSize(size: size, decimals: decimals)
-    }
-
     public var recipient: GemRecipient {
         perpetual.recipient()
     }

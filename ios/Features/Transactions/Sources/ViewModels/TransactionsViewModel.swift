@@ -1,13 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemTransactionsServiceProtocol
 import Components
 import Foundation
+import protocol Gemstone.GemTransactionsServiceProtocol
+import GemstonePrimitives
+import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
 import Store
-import GemstoneServices
 
 @Observable
 @MainActor
@@ -34,7 +35,11 @@ public final class TransactionsViewModel {
         self.service = service
         self.type = type
         self.wallet = wallet
-        filterModel = TransactionsFilterViewModel(wallet: wallet, type: type)
+        filterModel = TransactionsFilterViewModel(wallet: wallet, chains: Self.filterChains(service), type: type)
+    }
+
+    private static func filterChains(_ service: any GemTransactionsServiceProtocol) -> [Chain] {
+        ((try? service.filterChains()) ?? []).map { Chain(core: $0) }
     }
 
     public var title: String {
@@ -78,7 +83,7 @@ public extension TransactionsViewModel {
 
 extension TransactionsViewModel {
     private func onSelectCleanFilters() {
-        filterModel = TransactionsFilterViewModel(wallet: wallet, type: type)
+        filterModel = TransactionsFilterViewModel(wallet: wallet, chains: Self.filterChains(service), type: type)
     }
 
     private func onSelectReceive() {

@@ -1,5 +1,5 @@
 use gem_keystore::Mnemonic;
-use primitives::{Account, Chain, Wallet, WalletId, WalletSource, WalletType};
+use primitives::{Account, AddressName, AddressType, Chain, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
 use super::model::GemWalletImportType;
@@ -91,6 +91,12 @@ pub fn account(account: GemKeystoreAccount) -> Account {
     }
 }
 
+pub const WALLETS_LIMIT: u32 = 100;
+
+pub fn can_add_wallet(wallets_count: usize) -> bool {
+    wallets_count < WALLETS_LIMIT as usize
+}
+
 pub fn next_wallet_index(wallets: &[Wallet]) -> i32 {
     wallets.iter().map(|wallet| wallet.index).max().map(|index| index + 1).unwrap_or(1)
 }
@@ -123,11 +129,19 @@ pub fn show_collections(wallet: &Wallet) -> bool {
     }
 }
 
-pub fn display_account(wallet: &Wallet) -> Option<Account> {
-    match wallet.wallet_type {
-        WalletType::Multicoin => wallet.account(Chain::Ethereum).cloned().or_else(|| wallet.accounts.first().cloned()),
-        _ => wallet.accounts.first().cloned(),
-    }
+pub fn wallet_address_names(wallet: &Wallet) -> Vec<AddressName> {
+    wallet
+        .accounts
+        .iter()
+        .map(|account| AddressName {
+            chain: account.chain,
+            address: account.address.clone(),
+            name: wallet.name.clone(),
+            address_type: AddressType::InternalWallet,
+            status: VerificationStatus::Verified,
+            image_url: None,
+        })
+        .collect()
 }
 
 pub fn next_current_wallet(wallets: &[Wallet]) -> Option<WalletId> {
@@ -290,6 +304,14 @@ mod tests {
     }
 
     #[test]
+    fn test_wallets_limit_blocks_the_next_wallet_only_when_reached() {
+        assert!(can_add_wallet(0));
+        assert!(can_add_wallet(WALLETS_LIMIT as usize - 1));
+        assert!(!can_add_wallet(WALLETS_LIMIT as usize));
+        assert!(!can_add_wallet(WALLETS_LIMIT as usize + 1));
+    }
+
+    #[test]
     fn test_next_wallet_index_uses_highest_index() {
         assert_eq!(next_wallet_index(&[]), 1);
         let mut first = wallet(WalletId::Multicoin("1".into()), WalletType::Multicoin, &[]);
@@ -311,14 +333,5 @@ mod tests {
         let sorted = sorted_wallets(vec![watch.clone(), second.clone(), first.clone()]);
 
         assert_eq!(sorted.iter().map(|wallet| wallet.id.clone()).collect::<Vec<_>>(), vec![first.id, second.id, watch.id]);
-    }
-
-    #[test]
-    fn test_multicoin_wallets_display_their_ethereum_account() {
-        let multicoin = wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Bitcoin, Chain::Ethereum]);
-        let single = wallet(WalletId::Multicoin("0x2".to_string()), WalletType::Single, &[Chain::Bitcoin]);
-
-        assert_eq!(display_account(&multicoin).map(|account| account.chain), Some(Chain::Ethereum));
-        assert_eq!(display_account(&single).map(|account| account.chain), Some(Chain::Bitcoin));
     }
 }

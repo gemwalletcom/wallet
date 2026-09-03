@@ -9,6 +9,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemExplorerServiceInterface
 import uniffi.gemstone.GemTransactionDetailsService
 import uniffi.gemstone.GemPreferencesService
 import javax.inject.Singleton
@@ -41,4 +42,7 @@ object PreferencesModule {
         @ApplicationContext context: Context,
         preferencesService: GemPreferencesService,
     ): MigratePriceAlertsPreference = MigratePriceAlertsPreference(context, preferencesService)
+
+    @Provides
+    fun provideGemExplorerServiceInterface(service: GemExplorerService): GemExplorerServiceInterface = service
 }

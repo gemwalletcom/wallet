@@ -3,11 +3,11 @@ package com.gemwallet.android.data.coordinators.swap
 import com.gemwallet.android.application.swap.cases.SearchSwapAssets
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.domains.swap.SwapItemType
-import com.gemwallet.android.ext.isSwapSupport
 import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.domains.asset.eligible
+import com.gemwallet.android.domains.asset.queryFilters
 import uniffi.gemstone.GemAssetAction
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.AssetId
@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import uniffi.gemstone.GemSwapServiceInterface
-import uniffi.gemstone.SwapperAssetList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 
@@ -39,32 +38,26 @@ class SearchSwapAssetsImpl(
         if (wallet == null) {
             return emptyFlow()
         }
-        return flow {
-            if (oppositeAssetId == null) {
-                val chains = wallet.accounts.map { it.chain }.filter { it.isSwapSupport() }
-                val chainNames = chains.map { it.string }
-                emit(SwapperAssetList(chainNames, emptyList()))
-                val assetIds = chains.flatMap { swapService.supportedAssets(AssetId(it).toIdentifier()).assetIds }
-                emit(SwapperAssetList(chainNames, assetIds))
-            } else {
-                emit(swapService.supportedAssets(oppositeAssetId.toIdentifier()))
-            }
+        val action = when (swapItemType) {
+            SwapItemType.Pay -> GemAssetAction.SWAP_PAY
+            SwapItemType.Receive -> GemAssetAction.SWAP_RECEIVE
         }
-        .flatMapLatest { supported ->
-            searchService.swapSearch(
-                wallet,
-                query,
-                supported.chains.mapNotNull { it.toChain() },
-                supported.assetIds.mapNotNull { it.toAssetId() },
-            )
+        val items = if (oppositeAssetId == null) {
+            searchService.search(query, byAllWallets = false, filters = action.queryFilters())
+        } else {
+            flow { emit(swapService.supportedAssets(oppositeAssetId.toIdentifier())) }
+                .flatMapLatest { supported ->
+                    searchService.swapSearch(
+                        wallet,
+                        query,
+                        supported.chains.map { it.requireChain() },
+                        supported.assetIds.mapNotNull { it.toAssetId() },
+                    )
+                }
         }
-        .catch { emit(emptyList()) }
-        .map { items ->
-            when (swapItemType) {
-                SwapItemType.Pay -> GemAssetAction.SWAP_PAY.eligible(items)
-                SwapItemType.Receive -> GemAssetAction.SWAP_RECEIVE.eligible(items)
-            }
-        }
-        .flowOn(Dispatchers.IO)
+        return items
+            .catch { emit(emptyList()) }
+            .map { action.eligible(it) }
+            .flowOn(Dispatchers.IO)
     }
 }

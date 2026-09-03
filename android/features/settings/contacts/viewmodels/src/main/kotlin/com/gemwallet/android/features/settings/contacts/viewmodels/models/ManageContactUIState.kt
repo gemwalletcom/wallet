@@ -1,7 +1,5 @@
 package com.gemwallet.android.features.settings.contacts.viewmodels.models
 
-import uniffi.gemstone.GemAddressService
-import com.gemwallet.android.ext.checksumAddress
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ui.models.name.NameRecordState
 import com.wallet.core.primitives.Chain
@@ -56,9 +54,6 @@ data class ContactAddressInput(
     val isAddressValid: Boolean = false,
     val showAddressError: Boolean = false,
 ) {
-    fun resolvedAddress(addressService: GemAddressService): String =
-        chain.checksumAddress(nameResolveState.nameRecord?.address?.takeIf { it.isNotEmpty() } ?: address, addressService)
-
     val showMemo: Boolean
         get() = chain.isMemoSupport()
 

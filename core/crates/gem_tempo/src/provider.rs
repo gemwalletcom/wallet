@@ -142,7 +142,7 @@ impl<C: Client + Clone> ChainToken for TempoProvider<C> {
 
 #[async_trait]
 impl<C: Client + Clone> ChainState for TempoProvider<C> {
-    async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
+    async fn get_chain_id(&self) -> Result<Option<String>, Box<dyn Error + Sync + Send>> {
         ChainState::get_chain_id(&self.provider).await
     }
 

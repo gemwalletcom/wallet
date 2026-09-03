@@ -1,6 +1,7 @@
-use super::model::{QuoteRequest, QuoteResponse};
+use super::model::{QuoteRequest, QuoteResponse, SwapBody};
+use super::target::PanoraTarget;
 use crate::SwapperError;
-use gem_client::{Client, ClientExt, build_path_with_query};
+use gem_client::{Client, ClientExt};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug)]
@@ -20,7 +21,6 @@ where
     }
 
     pub async fn get_quote(&self, request: &QuoteRequest) -> Result<QuoteResponse, SwapperError> {
-        let path = build_path_with_query("/swap", request)?;
-        self.client.post(&path, &serde_json::json!({})).await.map_err(SwapperError::from)
+        self.client.post(PanoraTarget::Swap, &SwapBody {}).query(request).await.map_err(SwapperError::from)
     }
 }

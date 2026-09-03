@@ -1,6 +1,7 @@
 pub mod action;
 pub mod balance;
 pub mod candlestick;
+pub mod info;
 pub mod metadata;
 pub mod order;
 pub mod perp_dex;

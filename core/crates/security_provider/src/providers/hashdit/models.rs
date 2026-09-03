@@ -141,3 +141,9 @@ mod tests {
         assert_eq!(data.risk_level, Some(0));
     }
 }
+
+#[derive(Debug, Clone, Serialize)]
+pub struct DetectRequest {
+    pub chain_id: &'static str,
+    pub address: String,
+}

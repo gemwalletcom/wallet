@@ -1,6 +1,7 @@
 mod client;
 mod model;
 mod provider;
+mod target;
 
 use std::sync::LazyLock;
 

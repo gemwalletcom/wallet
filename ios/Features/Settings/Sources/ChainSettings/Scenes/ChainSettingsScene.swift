@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
@@ -26,18 +25,17 @@ public struct ChainSettingsScene: View {
                         titleTagStyle: nodeModel.titleTagStyle,
                         subtitle: .none,
                         subtitleExtra: .none,
-                        value: nodeModel.chainNode.host,
-                        selection: model.selectedNode.host,
-                    ) { _ in
-                        model.onSelectNode(nodeModel.chainNode)
-                    }
-                    .contextMenu(
-                        .copy(value: nodeModel.chainNode.node.url),
+                        value: nodeModel.url,
+                        selection: nodeModel.selection,
+                        action: model.onSelectNode,
                     )
-                    .if(model.canDelete(node: nodeModel.chainNode)) {
+                    .contextMenu(
+                        .copy(value: nodeModel.url),
+                    )
+                    .if(model.canDelete(url: nodeModel.url)) {
                         $0.swipeActions(edge: .trailing) {
                             Button(model.deleteButtonTitle, role: .destructive) {
-                                model.onSelectNodeForDeletion(nodeModel.chainNode)
+                                model.onSelectNodeForDeletion(nodeModel.node)
                             }
                             .tint(Colors.red)
                         }

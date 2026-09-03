@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import javax.inject.Inject
@@ -54,9 +55,12 @@ class NetworkAssetsViewModel @Inject constructor(
         .map { assets -> assets.filter { !it.metadata.isPinned }.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val hidden: StateFlow<List<AssetInfoDataAggregate>> = getChainAssets.hidden(chain)
-        .map { assets -> assets.filter { it.asset.type != AssetType.NATIVE }.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
+    private val hiddenAssets = getChainAssets.hidden(chain)
+        .map { assets -> assets.filter { it.asset.type != AssetType.NATIVE } }
         .flowOn(Dispatchers.IO)
+
+    val hidden: StateFlow<List<AssetInfoDataAggregate>> = hiddenAssets
+        .map { assets -> assets.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val isEmpty: StateFlow<Boolean> = combine(pinned, unpinned, hidden) { pinned, unpinned, hidden ->
@@ -66,7 +70,9 @@ class NetworkAssetsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            getChainAssets.updateBalances(chain)
+            val assetIds = (activeAssets.first() + hiddenAssets.first()).map { it.asset.id.toIdentifier() }
+            runCatchingCancellable { service.updateBalances(assetIds) }
+                .onFailure { Log.e(TAG, "balances update failed for ${chain.string}", it) }
         }
     }
 

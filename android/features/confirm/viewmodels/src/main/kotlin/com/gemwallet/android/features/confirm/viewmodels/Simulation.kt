@@ -7,7 +7,7 @@ import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
 import uniffi.gemstone.GemApprovalValue
 import uniffi.gemstone.GemConfirmSimulationState
-import uniffi.gemstone.GemConfirmTransferService
+import uniffi.gemstone.GemConfirmTransferServiceInterface
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
@@ -33,7 +33,7 @@ data class SimulationAssetChange(
 fun GemConfirmSimulationState.toSimulation(
     warnings: List<SimulationWarning>,
     chain: Chain?,
-    confirmService: GemConfirmTransferService,
+    confirmService: GemConfirmTransferServiceInterface,
 ): Simulation {
     val details = simulation ?: return Simulation(warnings = warnings)
     val header = details.header

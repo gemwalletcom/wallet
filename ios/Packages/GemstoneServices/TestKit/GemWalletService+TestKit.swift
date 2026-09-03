@@ -20,10 +20,10 @@ import StoreTestKit
 public extension GemWalletService {
     static func mock(
         keystore: LocalKeystore = LocalKeystore.mock(),
-        walletStore: WalletStore = .mock(),
+        db: DB = .mock(),
         sessionStore: GemstoneWalletSessionStore = .mock(),
     ) -> GemWalletService {
-        let gemWalletStore = GemstoneWalletStore(store: walletStore)
+        let gemWalletStore = GemstoneWalletStore(store: WalletStore(db: db))
         let appPreferences = GemPreferencesService(store: GemPreferencesStoreMock())
         return GemWalletService(
             keystore: keystore.gemKeystore,
@@ -34,6 +34,7 @@ public extension GemWalletService {
             files: GemstoneFileStore(),
             preferences: GemWalletPreferencesService.mock(),
             explorer: GemExplorerService(preferences: appPreferences),
+            addresses: GemstoneAddressStore(store: AddressStore(db: db)),
         )
     }
 }

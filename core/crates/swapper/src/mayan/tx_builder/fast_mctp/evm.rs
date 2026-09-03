@@ -155,15 +155,12 @@ where
     let fast_mctp_input_contract = fast_mctp_input_contract(route)?;
     let min_middle_amount = fractional_amount::<U256>(route.min_middle_amount.as_ref().ok_or(SwapperError::InvalidRoute)?, CCTP_TOKEN_DECIMALS)?;
     let swap: GetSwapEvmResponse = client
-        .get_swap(
-            "/get-swap/evm",
-            GetSwapEvmParams::fast_mctp(
-                route,
-                route.effective_amount_in64.clone(),
-                fast_mctp_input_contract.to_string(),
-                destination_referrer_address(route)?,
-            ),
-        )
+        .get_swap_evm(GetSwapEvmParams::fast_mctp(
+            route,
+            route.effective_amount_in64.clone(),
+            fast_mctp_input_contract.to_string(),
+            destination_referrer_address(route)?,
+        ))
         .await?;
     let swap = EvmSwapForwardData::new(&swap.swap_router_address, &swap.swap_router_calldata, fast_mctp_input_contract, min_middle_amount)?;
 

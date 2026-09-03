@@ -26,7 +26,7 @@ impl<C: Client + Clone> NearClient<C> {
     }
 
     pub async fn get_account(&self, address: &str) -> Result<Account, JsonRpcError> {
-        self.client.request(NearRpc::GetAccount(address.to_string())).await
+        self.client.request(NearRpc::GetAccount { account_id: address.to_string() }).await
     }
 
     pub async fn call_function<T: Serialize, R: DeserializeOwned>(&self, contract_id: &str, method_name: &str, args: &T) -> Result<R, Box<dyn Error + Sync + Send>> {
@@ -68,7 +68,11 @@ impl<C: Client + Clone> NearClient<C> {
     }
 
     pub async fn broadcast_transaction(&self, signed_transaction: &str) -> Result<BroadcastResult, JsonRpcError> {
-        self.client.request(NearRpc::SendTransaction(signed_transaction.to_string())).await
+        self.client
+            .request(NearRpc::SendTransaction {
+                signed_transaction: signed_transaction.to_string(),
+            })
+            .await
     }
 
     pub async fn get_transaction(&self, transaction_hash: &str, sender_account_id: &str) -> Result<BroadcastResult, JsonRpcError> {

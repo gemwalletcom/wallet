@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
 import GemstoneServicesTestKit
 import NFT
 import PreferencesTestKit
@@ -72,25 +73,27 @@ struct WalletSearchSceneViewModelTests {
 
     @Test
     func hasMoreNFTs() {
-        let model = WalletSearchSceneViewModel.mock()
+        let service = GemAssetSelectionServiceMock()
+        let model = WalletSearchSceneViewModel.mock(service: service)
 
-        model.searchQuery.value = .mock(nfts: (0 ..< 3).map { _ in .asset(.mock()) })
+        service.nftSearchItems = (0 ..< 3).map { _ in .asset(data: NFTAssetData.mock().json()) }
         #expect(model.hasMoreNFTs == false)
 
-        model.searchQuery.value = .mock(nfts: (0 ..< 4).map { _ in .asset(.mock()) })
+        service.nftSearchItems = (0 ..< 4).map { _ in .asset(data: NFTAssetData.mock().json()) }
         #expect(model.hasMoreNFTs == true)
     }
 
     @Test
     func nftsSection() {
-        let model = WalletSearchSceneViewModel.mock()
+        let service = GemAssetSelectionServiceMock()
+        let model = WalletSearchSceneViewModel.mock(service: service)
 
         #expect(model.showNFTs == false)
 
-        model.searchQuery.value = .mock(nfts: [
-            .collection(NFTData(collection: .mock(), assets: [.mock(), .mock()])),
-            .asset(.mock()),
-        ])
+        service.nftSearchItems = [
+            .collection(data: NFTData(collection: .mock(), assets: [.mock(), .mock()]).json()),
+            .asset(data: NFTAssetData.mock().json()),
+        ]
 
         #expect(model.showNFTs == true)
         #expect(model.showEmpty == false)

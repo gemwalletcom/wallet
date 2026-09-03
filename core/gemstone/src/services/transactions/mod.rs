@@ -7,7 +7,7 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use chrono::Utc;
-use primitives::{AssetId, Currency, WalletId};
+use primitives::{AssetId, Chain, Currency, WalletId};
 
 pub use details::GemTransactionDetailsService;
 pub use model::{
@@ -18,6 +18,7 @@ pub use store::GemTransactionStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::assets::GemAssetsService;
+use crate::services::chain::rules as chain_rules;
 use crate::services::name::GemAddressStore;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::transaction_state::GemTransactionTracking;
@@ -59,6 +60,10 @@ impl GemTransactionsService {
             session,
             tracking,
         }
+    }
+
+    pub fn filter_chains(&self) -> Result<Vec<Chain>, GemServiceError> {
+        Ok(chain_rules::wallet_chains_by_rank(&self.session.current_wallet()?))
     }
 
     pub fn currency(&self) -> Currency {

@@ -1,5 +1,6 @@
 # Project Overview
 
+Use when you need the iOS module layout, navigation model, or where a new feature package belongs.
 Gem Wallet iOS is a modular SwiftUI application backed by the shared Rust core.
 
 ## Structure

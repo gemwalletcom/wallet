@@ -19,14 +19,15 @@ import PreferencesTestKit
 struct WalletsSceneViewModelTests {
     @Test
     func onDeleteConfirmed() async throws {
-        let walletStore = WalletStore.mock(db: .mock())
+        let db = DB.mock()
+        let walletStore = WalletStore.mock(db: db)
         for address in ["0x1", "0x2", "0x3"] {
             try walletStore.addWallet(.mock(id: .multicoin(address: address)))
         }
 
         let sessionStore = GemstoneWalletSessionStore.mock()
         let session = GemWalletSessionService(store: sessionStore, wallets: GemstoneWalletStore(store: walletStore))
-        let service = GemWalletService.mock(walletStore: walletStore, sessionStore: sessionStore)
+        let service = GemWalletService.mock(db: db, sessionStore: sessionStore)
         try session.setCurrent(walletId: .multicoin(address: "0x1"))
 
         let model = WalletsSceneViewModel.mock(walletService: service)

@@ -306,7 +306,7 @@ mod swap_integration_tests {
 
     #[async_trait]
     impl Client for ProxyPassthroughClient {
-        async fn get_with<R: DeserializeOwned>(&self, _path: &str, _query: &[(String, String)], _headers: HashMap<String, String>) -> Result<R, ClientError> {
+        async fn get_with<R: DeserializeOwned>(&self, _path: &str, _headers: HashMap<String, String>) -> Result<R, ClientError> {
             Err(ClientError::Network("not supported".into()))
         }
 

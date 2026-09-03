@@ -384,6 +384,26 @@ service's dependencies.
 
 A sheet belongs to the screen that presents it and shares that screen's service. A screen you navigate *to* is a different screen with its own.
 
+### Composition services are reached through the screen service
+
+`GemExplorerService`, `GemDeeplinkService`, `GemSwapService`, `GemAssetConfigService`,
+`GemPriceService` are *composition* services: screen services hold them, and a screen reads their
+answers through its own service — the chart's token link is `GemChartService::token_url`, the
+confirm screen's sender link is `GemConfirmTransferService::address_url`, the asset scene's share
+link is `GemAssetDetailsService::deeplink_url`, its swap pair `swap_pair`, the confirm sheet's
+acquire flow `acquire_asset_flow`. A composition service's method is exported only while an app
+still calls it; once every screen reads it through its screen service, move the method to a plain
+`impl` block (the constructor stays exported because the composition root builds the object).
+The September 2026 sweep found the same answer reached three ways — iOS through the screen
+service, Android through the composition service from a Hilt-injected coordinator, and Android's
+Compose layer through a `CompositionLocal` — and each pair disagreed somewhere (the slippage
+default, the acquire-flow title). One route per answer, and it is the screen service's.
+
+On Android the Hilt module binds both the concrete class and the generated interface
+(`fun provideGemFooServiceInterface(service: GemFooService): GemFooServiceInterface = service`):
+Core constructors need the concrete type to compose, view models and coordinators take the
+interface.
+
 ### A service never hands out another service
 
 `service.manageContact()` is the same reach-through as `model.nameService`, one level down: the
@@ -451,7 +471,7 @@ A `GemFooService()` in a field initialiser or at file scope is a second instance
   its view model, from the owners the factory already holds. It is never a field of
   `AppResolver.Services` and never an `@Entry`: that constructs it on every launch of an app that
   may never open the screen, and hands views a composition detail.
-- **Android** — provided in a Hilt module, injected. A Compose scene reads one instance from a `CompositionLocal` provided at `MainActivity` (`LocalChainService`, `LocalAssetConfigService`). A non-`@Composable` helper takes an explicit parameter — a `CompositionLocal` cannot be read outside a composable. A screen service is a `@Provides` like any other — Hilt builds it when its view model first asks, so nothing is built at launch — and is never read from a `CompositionLocal`.
+- **Android** — provided in a Hilt module, injected. A Compose scene reads one instance from a `CompositionLocal` provided at `MainActivity` (`LocalChainService`, `LocalAssetConfigService`) only for the dependency-free config services; a screen's Core answers come from its view model's service, never from a `CompositionLocal` inside a feature composable (`LocalDeeplinkService` building the share link and `LocalAssetConfigService.acquireFlow` deciding the confirm button were reach-throughs and are gone). A non-`@Composable` helper takes an explicit parameter — a `CompositionLocal` cannot be read outside a composable. A screen service is a `@Provides` like any other — Hilt builds it when its view model first asks, so nothing is built at launch — and is never read from a `CompositionLocal`.
 - **A value type or a namespace of statics** takes the service as a method parameter only when the
   answer genuinely requires that service's dependencies. A pure receiver-owned answer stays on
   the receiver according to § 6.
@@ -571,9 +591,84 @@ A mock's defaults should be the *usual* case. A mock that fails by default becom
 
 Check for a test pinning the difference before picking a side — a divergence is sometimes a deliberate decision no one wrote down. If a test pins it, adopt that reading into Core; if nothing does, take the better one and say which in the commit message.
 
-## 12. Shapes that were tried and reverted
+## 12. A client's requests are one enum; the client only sends
 
-Each of these looked right once and cost a revert. Read them before reaching for the same shape.
+**Every HTTP client owns a request enum. A client method builds one variant and sends it. Nothing
+else in the client spells a path, a query key, a header name or a JSON-RPC method.**
+
+The enum is a § 1 rule for a request: inputs in, wire format out, no transport, no secret, no
+clock. The two references are
+[`TronGridTarget`](../core/crates/gem_tron/src/rpc/trongrid/target.rs) for REST (`FooTarget` in
+`rpc/target.rs`) and [`SolanaRpc`](../core/crates/gem_solana/src/jsonrpc.rs) for JSON-RPC
+(`FooRpc` in `jsonrpc.rs`, method constants in `method.rs`); every other client builds its
+requests inline and converges on this.
+
+```rust
+// rpc/trongrid/target.rs
+pub enum TronGridTarget {
+    GetTransactions { address: String, query: TransactionsQuery },
+    GetAccount { address: String },
+}
+
+impl Target for TronGridTarget {
+    fn path(&self) -> String {
+        match self {
+            Self::GetTransactions { address, query } => build_path_with_query(&format!("/v1/accounts/{address}/transactions"), query),
+            Self::GetAccount { address } => format!("/v1/accounts/{address}"),
+        }
+    }
+}
+
+// rpc/trongrid/client.rs
+impl<C: Client> TronGridClient<C> {
+    fn headers(&self) -> HashMap<String, String> {
+        self.api_key.as_ref().map(|key| HashMap::from([(API_KEY_HEADER.to_string(), key.clone())])).unwrap_or_default()
+    }
+
+    async fn send<R: DeserializeOwned + Send>(&self, target: TronGridTarget) -> Result<R, ClientError> {
+        self.client.get(target).headers(self.headers()).await
+    }
+
+    pub async fn get_accounts(&self, address: &str) -> Result<Data<Vec<TronGridAccount>>, ClientError> {
+        self.send(TronGridTarget::GetAccount { address: address.to_string() }).await
+    }
+}
+```
+
+Variant fields are named: `GetAccount(String)` does not say what the string is. The target implements
+`gem_client::Target` (`path()`, and `headers()` when a request carries one); the client owns the
+transport, the credentials, the clock, the signature, the envelope and the pagination loop. A
+method is `self.client.get(target).await` or `self.client.post(target, &body).await`. A private helper exists only for shared work: credentials
+(`TronGridClient::send`), a 404 that is a value (`StellarClient::get_or_not_found`), an envelope
+(TON). A GET-only host needs only `path()`; `GemDeviceApiTarget` is the full shape with
+`method()`, `body()` and a signed header.
+
+| Case | Shape | Reference |
+|---|---|---|
+| Path parameter | `format!` in `path()`. A chain or network segment is a field the target reads; a chain-to-slug map is a pure `fn` with its own test | `TronGridTarget`, Blockscout `/{chain_id}/…`, `alchemy_url` |
+| Query string | Part of `path()`; a transport only ever sees a path. One or two fixed parameters are a `format!`; more, or any optional one, is a flat `Serialize` struct rendered by `build_path_with_query` (`None` omitted, values encoded, a slice of pairs for a repeated key). A client without a target yet calls `client.get(path).query(&query)`, which renders the same way | `GemApiTarget`, `CoinMarketsQuery`, `mayan::quote_path` |
+| Optional parameter | An `Option` field of the query struct, omitted when `None`, never a second variant | `TransactionsQuery { limit, fingerprint: Option<String> }`, `PaymentsQuery { cursor, .. }` |
+| Method and body | The method calls `post(target, &body)` with the body it has; a POST variant carries nothing the path does not need. `Client` speaks GET and POST; the device client builds `gem_jsonrpc::Target` with a `method()` for PUT and DELETE. A host that multiplexes on the body (HyperCore `/info`, Cardano GraphQL) has a constant path and a variant per query | `AptosClient::submit_transaction`, `GemDeviceApiTarget` |
+| Raw body | `String` for `text/plain` and form-urlencoded, `Vec<u8>` for binary; the content type in the target's `headers()`, always from `ContentType` | Bitcoin `sendtx`, Stellar, Algorand, Aptos BCS, `SendSupportImage` |
+| Credentials | `fn headers(&self)` on the client, empty when the key is blank (`Option<String>` decided once at construction), passed as `.headers(self.headers())`; a key the host wants in the query is appended by `send` the same way. Transport default headers are backend-only: `RpcClient` has none | `JupiterClient`, `NearIntentsClient`, Blockscout `apikey` |
+| Request header | On the target: cache TTL (`X_CACHE_TTL`), API version, idempotency key | `HyperCoreClient`, TON emulate, Flashnet |
+| Signature | A pure `fn` in `auth.rs` over method, path, body, timestamp and nonce; the client reads the clock and merges the result last. A refreshed token sits behind an injected port | `okx::auth::sign`, `GoPlusProvider::sign`, `build_device_auth_header` |
+| Envelope | Unwrapped once in `send`; a typed error body through `get_or_error::<_, ErrorResponse>`; a 404 that means "none" is a value (§ 3) | TON `ApiResult`, GoPlus `Response`, THORChain, Stellar `AccountResult` |
+| Pagination | The cursor on the variant, the page size a `const`, the loop in the client with a page cap and a repeated-cursor guard; the loop takes a closure that builds the page's variant | `get_transaction_pages`, `AlchemyClient::get_nfts_by_owner` |
+| JSON-RPC | `ToJsonRpcRequest` with constants from `method.rs` and typed parameter enums beside it; `batch_request` then `take_all`; `request_with_cache`; the same enum posted to a path when a REST host has an RPC route | `SolanaRpc`, `EthereumRpc`, Chainflip broker |
+| Construction | `new(client, key)` with `C: Client` already pointed at the host. Never `ReqwestClient::request` from a client: it bypasses `Client` and never works on the apps | `TronGridClient` |
+
+**Tests.** A client test over `MockClient` or `mock_jsonrpc_client` asserts behaviour the wire
+shape does not show: an envelope's failure branch, the paths a pagination loop produced, the
+body and content type of a broadcast, a merged credential header. Do not test `path()` by
+restating the string it formats; that test passes for every wrong path too.
+
+**Still to converge.** The `name_resolver` REST providers (aptos, did, eths, lens, sns,
+spaceid, ton, ud), deferred until that crate's provider restructure settles.
+
+## 13. Shapes that were tried and reverted
+
+Each of these looked right once and cost a revert. Read them before reaching for the same shape. Repo-wide decisions outside the service architecture live in [DECISIONS.md](DECISIONS.md).
 
 **A shared child renders a value; it does not hold a service.** `NetworkFeeSceneViewModel`,
 `SwapDetailsViewModel` and `PriceImpactViewModel` are built by more than one screen, each with a
@@ -635,6 +730,15 @@ Android factory test that asserted it was repointed through the real `GemSwapQuo
 still guards parity end to end; it was not deleted and not left asserting a copy that no longer
 exists. Mutation-check the moved rule with inputs that can tell the mutants apart — a
 single-element list makes `any` and `all` indistinguishable.
+
+**A family member does not get its own `ChainType`.** `ChainType::Tempo` was added for an EVM
+chain with a different fee model and reverted. It forced `Ethereum | Tempo` dual arms through
+Core and both apps, and every family-wide gate had to be taught about it. The shape that holds:
+the chain keeps `ChainType::Ethereum`, divergence rides in `ChainConfig` fields and a dedicated
+`gem_tempo` crate behind the `EvmSigner` and `EvmFeeCalculator` seams, and the factories select
+it once (`TempoProvider::new_or_else`, `Chain::Tempo => EvmChainSigner::new(TempoSigner)`). A
+`Chain::Tempo` comparison survives only where behavior is truly per-chain, such as one swap
+provider's gas limit. See `core/skills/new-chain-checklist.md`.
 
 **Stage explicit paths in a shared checkout.** A `git add -A` sweep committed another session's
 half-applied view-model edit with no Core counterpart and broke `main` for everyone until the
@@ -706,8 +810,11 @@ which the shared input model takes directly on both apps.
 `PhraseAddressImportWalletService` ran `setupWallet` and a device sync inline after every import
 while `AppViewModel` already runs `setupWallet` whenever the session's wallet changes — every
 import set the wallet up twice. Both apps now do what iOS did: `GemWalletService.importWallet`
-then `setCurrentWalletId`, and the root's wallet-change handler does the rest. The Android
-"importing" indicator (`SyncWalletImport`) stays; it is a platform progress port, not setup.
+then `setCurrentWalletId`, and the root's wallet-change handler does the rest. The home
+screen's "importing" row is Core's answer too: both apps ask `GemWalletHomeService::shows_initial_loading`
+when the wallet changes and show the row around that wallet's first `refresh` (iOS `loadOnce`,
+Android `AssetsViewModel.loadOnce`) — Android's own `ImportWalletService` / `SyncWalletImport` /
+`GetImportInProgress` progress state, which tracked the import call instead, is gone.
 
 **One error type per flow, carrying what the screen renders.** The confirm screen failed with
 three Core error types — `GemConfirmError`, the preload's `GemTransferAmountError` (asset ids
@@ -962,3 +1069,34 @@ existed only for UniFFI. It is gone; the signing path takes the `[u8; 32]` hash 
 `ChainTransactionSigner`) lost the prefix so a `Gem` name means "crosses the FFI" again. After
 un-exporting anything, check whether the types it carried still need to exist.
 
+
+**A mock that re-derives a Core rule passes for the wrong reason.** iOS's `GemConfirmServiceMock`
+computed its `GemConfirmSimulation` from the raw `SimulationResult` through the formatter's
+exported `shows_header` / `payload_fields` and a `severity == .critical` scan, so
+`buttonDisabledWithCriticalWarnings` passed whatever Core's critical rule said — and three
+exports existed only for that mock. A mock returns the answer the test states
+(`GemConfirmServiceMock(simulation: GemConfirmSimulation(..., hasCriticalWarning: true))`); the
+view model test checks that the screen honours the answer, Core's tests check the answer. If a
+mock needs a Core export to produce its value, the export is test-only — un-export it and hand the
+value in.
+
+**An export the apps stopped calling is not neutral.** Each un-called `#[uniffi::export]` method
+keeps a Swift protocol requirement, a Kotlin interface method, a mock method and a
+`+GemstonePrimitives` wrapper alive, and the wrappers hide the fact that nothing reads them. Sweep
+by grepping every generated protocol method against both apps' non-generated sources (wrappers
+included — a wrapper with no caller counts as none), then move the Rust method to a plain `impl`
+block if Core calls it and delete it otherwise; the ports the apps implement are the exception,
+because Core is their caller. Two traps in that sweep: a wrapper calls the export with implicit
+`self` (`newest(`, not `.newest(`), so a hand check must grep the bare name; and a name shared by
+two protocols (`includesPerpetualCollateral` on the home and wallet-preferences services) looks
+called on both apps when each app calls a different receiver — check the receiver before
+un-exporting. The nine `GemGateway` methods, every one un-called by both apps, survived earlier
+sweeps for exactly these reasons.
+
+**A side effect that belongs to an entity's lifecycle belongs to the Core service that owns
+the entity.** Android named a wallet's own accounts when its store added the wallet, renamed them
+through a case beside the wallet rename, and never deleted them; iOS did none of it. The rule was
+on the wrong layer on one app and missing on the other because it had been attached to a store
+write instead of to `GemWalletService`. Once import, rename and delete in Core save, re-save and
+delete the names through the address port, both apps get the behaviour and neither carries a case
+for it.

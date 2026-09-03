@@ -96,11 +96,11 @@ impl GemGateway {
 
     pub async fn check_node(&self, chain: Chain, url: &str) -> Result<GemNodeCheck, GatewayError> {
         let provider = self.chain_factory.create_with_url(chain, url.to_string()).await?;
-        let status = provider.get_nodes_status().await.map_err(map_network_error)?;
-        if !chain_rules::is_valid_network_id(chain, &status.chain_id) {
+        let (chain_id, status) = futures::try_join!(provider.get_chain_id(), provider.get_nodes_status()).map_err(map_network_error)?;
+        if let Some(network_id) = chain_rules::mismatched_network_id(chain, chain_id.as_deref()) {
             return Err(GatewayError::NetworkIdMismatch {
                 chain: chain.to_string(),
-                network_id: status.chain_id,
+                network_id,
             });
         }
         if let Some(address) = chain_rules::node_verification_address(chain) {
@@ -109,7 +109,7 @@ impl GemGateway {
         let sync = provider.get_node_status().await.map_err(map_network_error)?;
         Ok(GemNodeCheck {
             url: url.to_string(),
-            chain_id: status.chain_id,
+            chain_id,
             latest_block_number: status.latest_block_number,
             is_in_sync: sync.in_sync,
             latency: Latency::from_milliseconds(status.latency_ms),
@@ -140,7 +140,9 @@ impl GemGateway {
             status_provider,
         }
     }
+}
 
+impl GemGateway {
     pub async fn get_staking_validators(&self, chain: Chain, apy: Option<f64>) -> Result<Vec<GemDelegationValidator>, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.get_staking_validators(apy).await }).await
     }
@@ -152,18 +154,6 @@ impl GemGateway {
 
     pub async fn get_staking_delegations(&self, chain: Chain, address: String) -> Result<Vec<GemDelegationBase>, GatewayError> {
         self.with_provider(chain, |provider| async move { provider.get_staking_delegations(address).await }).await
-    }
-
-    pub async fn get_chain_id(&self, chain: Chain) -> Result<String, GatewayError> {
-        self.with_provider(chain, |provider| async move { provider.get_chain_id().await }).await
-    }
-
-    pub async fn get_block_number(&self, chain: Chain) -> Result<u64, GatewayError> {
-        self.with_provider(chain, |provider| async move { provider.get_block_latest_number().await }).await
-    }
-
-    pub async fn get_utxos(&self, chain: Chain, address: String) -> Result<Vec<GemUTXO>, GatewayError> {
-        self.with_provider(chain, |provider| async move { provider.get_utxos(address).await }).await
     }
 
     pub async fn get_perpetual_account_mode(&self, chain: Chain, address: String) -> Result<GemPerpetualAccountMode, GatewayError> {

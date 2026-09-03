@@ -30,6 +30,7 @@ class AssetInfoUIModel(
     val explorerTokenUrl: String? = null,
     val verificationStatus: VerificationStatus? = null,
     val networkDestination: NetworkDestination? = null,
+    val shareUrl: String = "",
     val updated: Long = System.currentTimeMillis(),
 ) {
 

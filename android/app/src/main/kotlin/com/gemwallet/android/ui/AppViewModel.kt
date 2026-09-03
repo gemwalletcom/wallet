@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
-import com.gemwallet.android.application.wallet_import.cases.SetupWallet
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
@@ -21,6 +20,9 @@ import com.gemwallet.android.model.Session
 import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.PendingNavigationCoordinator
 import com.gemwallet.android.ui.navigation.WalletRootRoute
+import android.util.Log
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemAppStartServiceInterface
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,7 +53,7 @@ class AppViewModel @Inject constructor(
     private val skipAppUpdate: SkipAppUpdate,
     private val notificationsAvailable: NotificationsAvailable,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
-    private val setupWallet: SetupWallet,
+    private val appStartService: GemAppStartServiceInterface,
     getWalletSummary: GetWalletSummary,
 ) : ViewModel() {
 
@@ -103,7 +105,11 @@ class AppViewModel @Inject constructor(
             getSession()
                 .filterNotNull()
                 .distinctUntilChangedBy { it.wallet.id }
-                .collectLatest { setupWallet.setup(it.wallet) }
+                .collectLatest { session ->
+                    appStartService.setupWallet(session.wallet.toJson()).forEach { failure ->
+                        Log.e(TAG, "${failure.step} failed: ${failure.message}")
+                    }
+                }
         }
     }
 
@@ -184,6 +190,10 @@ class AppViewModel @Inject constructor(
 
     fun onReviewOpen() {
         state.update { it.copy(intent = AppIntent.None) }
+    }
+
+    private companion object {
+        const val TAG = "App"
     }
 }
 

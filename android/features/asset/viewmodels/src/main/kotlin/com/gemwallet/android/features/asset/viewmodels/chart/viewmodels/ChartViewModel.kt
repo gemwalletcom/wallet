@@ -19,6 +19,7 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemChartService
+import uniffi.gemstone.GemChartServiceInterface
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,7 +42,7 @@ import javax.inject.Inject
 class ChartViewModel internal constructor(
     getAssetTokenInfo: GetAssetTokenInfo,
     getCurrentCurrency: GetCurrentCurrency,
-    private val chartService: GemChartService,
+    private val chartService: GemChartServiceInterface,
     private val assetId: AssetId,
 ) : ViewModel() {
     private val assetPriceInfo = getAssetTokenInfo(assetId)

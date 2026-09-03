@@ -29,11 +29,11 @@ public final class TransactionsFilterViewModel {
     var isPresentingChains: Bool = false
     var isPresentingTypes: Bool = false
 
-    public init(wallet: Wallet, type: TransactionsRequestType) {
+    public init(wallet: Wallet, chains: [Chain], type: TransactionsRequestType) {
         self.wallet = wallet
         self.type = type
 
-        chainsFilter = ChainsFilterViewModel(chains: wallet.chains)
+        chainsFilter = ChainsFilterViewModel(chains: chains)
         transactionTypesFilter = TransactionTypesFilterViewModel(types: TransactionType.allCases)
 
         let request = TransactionsRequest(

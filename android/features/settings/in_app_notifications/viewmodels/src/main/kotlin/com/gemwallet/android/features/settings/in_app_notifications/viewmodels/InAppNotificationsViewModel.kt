@@ -16,14 +16,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import uniffi.gemstone.GemNotificationService
+import uniffi.gemstone.GemNotificationServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class InAppNotificationsViewModel @Inject constructor(
     private val getCurrentWallet: GetCurrentWallet,
     private val getInAppNotifications: GetInAppNotifications,
-    private val notificationService: GemNotificationService,
+    private val notificationService: GemNotificationServiceInterface,
 ) : ViewModel() {
 
     val notifications: StateFlow<List<InAppNotification>> = getCurrentWallet.observe()

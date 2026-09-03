@@ -13,7 +13,7 @@ use primitives::Chain;
 use primitives::node::{Node, NodeState};
 use primitives::node_config::NodeRegion;
 
-pub use model::{GemAddNodeError, GemNodeCheck, GemNodeStatusState};
+pub use model::{GemAddNodeError, GemNodeCheck, GemNodeSelection, GemNodeStatusState};
 pub use settings::GemChainSettingsService;
 pub use store::GemNodeStore;
 
@@ -30,17 +30,6 @@ impl GemNodeService {
     #[uniffi::constructor]
     pub fn new(store: Arc<dyn GemNodeStore>, preferences: Arc<dyn GemPreferencesStore>) -> Self {
         Self { store, preferences }
-    }
-
-    pub async fn get_nodes(&self, chain: Chain) -> Result<Vec<Node>, GemServiceError> {
-        let stored = self.store.get_nodes(chain).await?;
-        let nodes = rules::merge_nodes(rules::default_nodes(chain), stored);
-        let selected_url = self.selected_url(chain);
-        let selected = rules::selected_node(selected_url.clone(), nodes.clone(), rules::region_node(chain, NodeRegion::Us));
-        if selected_url.as_deref() != Some(selected.url.as_str()) {
-            self.set_selected_url(chain, selected.url)?;
-        }
-        Ok(nodes)
     }
 
     pub fn can_delete_node(&self, chain: Chain, url: String) -> bool {
@@ -93,9 +82,23 @@ impl GemNodeService {
 }
 
 impl GemNodeService {
+    pub async fn get_nodes(&self, chain: Chain) -> Result<Vec<Node>, GemServiceError> {
+        let stored = self.store.get_nodes(chain).await?;
+        let nodes = rules::merge_nodes(rules::default_nodes(chain), stored);
+        let selected_url = self.selected_url(chain);
+        let selected = rules::selected_node(selected_url.clone(), nodes.clone(), rules::region_node(chain, NodeRegion::Us));
+        if selected_url.as_deref() != Some(selected.url.as_str()) {
+            self.set_selected_url(chain, selected.url)?;
+        }
+        Ok(nodes)
+    }
+}
+
+impl GemNodeService {
     pub fn get_default_nodes(&self, chain: Chain) -> Vec<Node> {
         rules::default_nodes(chain)
     }
+
     pub fn sorted_nodes(&self, chain: Chain, nodes: Vec<Node>) -> Vec<Node> {
         rules::sorted_nodes(chain, nodes)
     }

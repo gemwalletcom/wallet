@@ -7,7 +7,6 @@ import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.VerificationStatus
-import com.wallet.core.primitives.Wallet
 
 @Entity(
     tableName = "addresses",
@@ -66,14 +65,3 @@ fun DbAddress.toDTO(): AddressName = AddressName(
 )
 
 fun List<AddressName>.toRecord(): List<DbAddress> = map { it.toRecord() }
-
-fun Wallet.toAddressRecords(): List<DbAddress> = accounts.map { account ->
-    DbAddress(
-        chain = account.chain,
-        address = account.address,
-        walletId = id.id,
-        name = name,
-        type = AddressType.InternalWallet,
-        status = VerificationStatus.Verified,
-    )
-}

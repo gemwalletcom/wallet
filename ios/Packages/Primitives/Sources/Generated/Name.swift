@@ -9,9 +9,7 @@ public enum NameProvider: String, Codable, Sendable {
 	case ens
 	case sns
 	case ton
-	case tree
 	case spaceid
-	case eths
 	case did
 	case suins
 	case aptos

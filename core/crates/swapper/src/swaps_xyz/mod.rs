@@ -2,6 +2,7 @@ mod chain;
 mod client;
 mod model;
 mod provider;
+mod target;
 
 pub use model::{ActionRequest, ActionResponse};
 pub use provider::SwapsXyz;

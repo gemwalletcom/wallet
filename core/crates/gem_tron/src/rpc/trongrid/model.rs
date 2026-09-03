@@ -26,3 +26,9 @@ pub struct TronGridTransaction {
     pub transaction_id: String,
     pub block_timestamp: u64,
 }
+
+#[derive(Debug, Clone, Serialize)]
+pub struct TransactionsQuery {
+    pub limit: usize,
+    pub fingerprint: Option<String>,
+}

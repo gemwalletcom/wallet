@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemDeveloperService
+import protocol Gemstone.GemDeveloperServiceProtocol
 import GemstoneServices
 import BigInt
 import Components
@@ -17,7 +17,7 @@ import SwiftUI
 @MainActor
 public final class DeveloperViewModel {
     private let walletId: WalletId
-    private let service: GemDeveloperService
+    private let service: any GemDeveloperServiceProtocol
     private let transactionStore: TransactionStore
     private let assetStore: AssetStore
     private let stakeStore: StakeStore
@@ -30,7 +30,7 @@ public final class DeveloperViewModel {
 
     public init(
         walletId: WalletId,
-        service: GemDeveloperService,
+        service: any GemDeveloperServiceProtocol,
         transactionStore: TransactionStore,
         assetStore: AssetStore,
         stakeStore: StakeStore,

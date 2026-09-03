@@ -10,8 +10,8 @@ use crate::rpc::SolanaProvider;
 
 #[async_trait]
 impl<C: Client + Clone> ChainState for SolanaProvider<C> {
-    async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
-        Ok(self.get_genesis_hash().await?)
+    async fn get_chain_id(&self) -> Result<Option<String>, Box<dyn Error + Sync + Send>> {
+        Ok(Some(self.get_genesis_hash().await?))
     }
 
     async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>> {
@@ -26,6 +26,8 @@ impl<C: Client + Clone> ChainState for SolanaProvider<C> {
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
+    use primitives::Chain;
+
     use super::*;
     use crate::provider::testkit::create_solana_test_client;
 
@@ -34,9 +36,7 @@ mod chain_integration_tests {
         let client = create_solana_test_client();
         let chain_id = client.get_chain_id().await?;
 
-        println!("Solana chain ID: {}", chain_id);
-
-        assert!(chain_id == "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d");
+        assert_eq!(chain_id.as_deref(), Some(Chain::Solana.network_id()));
         Ok(())
     }
 

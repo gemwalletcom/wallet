@@ -1,18 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemConfirmData
-import struct Gemstone.GemConfirmPreload
-import struct Gemstone.GemConfirmSimulationState
-import struct Gemstone.GemConfirmLoadOptions
-import enum Gemstone.GemConfirmError
-import enum Gemstone.GemTransferAmountResult
-import enum Gemstone.GemExecuteResult
-import protocol Gemstone.GemConfirmTransferServiceProtocol
-import protocol Gemstone.GemPreferencesServiceProtocol
-import GemstoneServices
 import Components
 import Foundation
+import struct Gemstone.GemConfirmData
+import enum Gemstone.GemConfirmError
+import struct Gemstone.GemConfirmLoadOptions
+import struct Gemstone.GemConfirmPreload
+import struct Gemstone.GemConfirmSimulationState
+import protocol Gemstone.GemConfirmTransferServiceProtocol
+import enum Gemstone.GemExecuteResult
+import protocol Gemstone.GemPreferencesServiceProtocol
+import enum Gemstone.GemTransferAmountResult
+import struct Gemstone.GemTransferData
 import GemstonePrimitives
+import GemstoneServices
 import InfoSheet
 import Localization
 import Primitives
@@ -22,7 +23,6 @@ import Swap
 import SwiftUI
 import Validators
 import WalletConnector
-import struct Gemstone.GemTransferData
 
 @Observable
 @MainActor
@@ -181,6 +181,7 @@ public final class ConfirmTransferSceneViewModel {
         )
     }
 }
+
 // MARK: - ListSectionProvideable
 
 extension ConfirmTransferSceneViewModel: ListSectionProvideable {
@@ -255,6 +256,7 @@ extension ConfirmTransferSceneViewModel {
             for: error,
             feePrice: state.metadata?.feePrice,
             currency: currency.rawValue,
+            acquireFlow: { service.acquireAssetFlow(chain: $0.chain.rawValue) },
             onGetAsset: { [weak self] asset, buyAmount in self?.onSelectGetAsset(asset, buyAmount: buyAmount) },
         ) else { return }
         isPresentingSheet = .info(sheet)
@@ -309,7 +311,7 @@ extension ConfirmTransferSceneViewModel {
     func load() async {
         state.transaction = .loading
         do {
-            state = .loaded(try await load(request: request, selection: feeSelection, feeAssetSelection: feeAssetSelection))
+            state = try await .loaded(load(request: request, selection: feeSelection, feeAssetSelection: feeAssetSelection))
         } catch {
             guard !Task.isCancelled else { return }
             state.transaction.setError(error)
@@ -322,7 +324,7 @@ extension ConfirmTransferSceneViewModel {
         switch error {
         case .confirm:
             onSelectListError(error: error)
-        case .chain, .other:
+        case .other:
             break
         }
     }
@@ -401,7 +403,7 @@ extension ConfirmTransferSceneViewModel {
 
     func load(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferData {
         let scene = try await service.load(
-            input: try service.confirmInput(transfer: request.data),
+            input: service.confirmInput(transfer: request.data),
             options: options(selection: selection, feeAssetSelection: feeAssetSelection),
             simulation: request.simulation?.json(),
         )

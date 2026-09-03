@@ -88,7 +88,7 @@ impl ChainClientFactory {
                         Box::new(EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(OptimismGasOracle::new(client))))
                     } else {
                         Box::new(match evm_chain {
-                            EVMChain::Ethereum => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(EverstakeStakingClient::new(client, String::new()))),
+                            EVMChain::Ethereum => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(EverstakeStakingClient::new(client, None))),
                             EVMChain::Monad => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(MonadStakingClient::new(client))),
                             EVMChain::SmartChain => EthereumProvider::new_rpc_only_with_provider(client.clone(), Box::new(BscStakingClient::new(client))),
                             _ => EthereumProvider::new_rpc_only(client),

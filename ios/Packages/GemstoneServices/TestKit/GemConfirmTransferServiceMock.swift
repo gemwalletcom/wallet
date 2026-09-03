@@ -1,35 +1,35 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-public import typealias Gemstone.Currency
-public import enum Gemstone.GemKeystoreAuthentication
-public import protocol Gemstone.GemConfirmTransferServiceProtocol
-public import protocol Gemstone.GemNameServiceProtocol
-public import protocol Gemstone.GemTransactionStateServiceProtocol
-public import protocol Gemstone.GemTransactionSigner
-public import struct Gemstone.GemBlockExplorerLink
-public import struct Gemstone.GemConfirmInput
-public import struct Gemstone.GemConfirmLoadOptions
-public import struct Gemstone.GemConfirmMetadata
-public import struct Gemstone.GemConfirmLoad
-public import struct Gemstone.GemConfirmInitialState
-public import struct Gemstone.GemConfirmSimulationState
-public import struct Gemstone.GemConfirmData
-public import struct Gemstone.GemTransferData
-public import struct Gemstone.GemAutocloseSummary
-public import enum Gemstone.GemExecuteResult
-public import enum Gemstone.GemTransactionInputType
-public import enum Gemstone.GemAcquireAssetFlow
-public import class Gemstone.GemAssetConfigService
 public import typealias Gemstone.AddressName
 public import typealias Gemstone.Chain
+public import typealias Gemstone.Currency
+public import enum Gemstone.GemAcquireAssetFlow
+public import class Gemstone.GemAssetConfigService
+public import struct Gemstone.GemAutocloseSummary
+public import typealias Gemstone.GemBigInt
+public import struct Gemstone.GemBlockExplorerLink
+public import struct Gemstone.GemConfirmData
+public import struct Gemstone.GemConfirmInitialState
+public import struct Gemstone.GemConfirmInput
+public import struct Gemstone.GemConfirmLoad
+public import struct Gemstone.GemConfirmLoadOptions
+public import struct Gemstone.GemConfirmMetadata
+public import struct Gemstone.GemConfirmSimulationState
+public import protocol Gemstone.GemConfirmTransferServiceProtocol
+public import enum Gemstone.GemExecuteResult
+public import enum Gemstone.GemKeystoreAuthentication
+public import protocol Gemstone.GemNameServiceProtocol
+public import enum Gemstone.GemTransactionInputType
+public import protocol Gemstone.GemTransactionSigner
+public import protocol Gemstone.GemTransactionStateServiceProtocol
+public import struct Gemstone.GemTransferData
 public import typealias Gemstone.PerpetualModifyConfirmData
 public import typealias Gemstone.SimulationResult
 public import typealias Gemstone.Transaction
-public import typealias Gemstone.GemBigInt
 import Foundation
 import GemstonePrimitives
-import Primitives
 import GemstonePrimitivesTestKit
+import Primitives
 import PrimitivesTestKit
 
 public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProtocol, @unchecked Sendable {
@@ -66,25 +66,25 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
     }
 
     public func confirmInput(transfer: GemTransferData) throws -> GemConfirmInput {
-        GemConfirmInput(from: try wallet.account(for: transfer.chain).map(), transfer: transfer)
+        try GemConfirmInput(from: wallet.account(for: transfer.chain).map(), transfer: transfer)
     }
 
-    public func initialState(inputType: GemTransactionInputType, simulation result: SimulationResult?) -> GemConfirmInitialState {
+    public func initialState(inputType: GemTransactionInputType, simulation _: SimulationResult?) -> GemConfirmInitialState {
         GemConfirmInitialState(
             feePriority: inputType.defaultFeePriority(),
             feeAsset: inputType.transactionAsset(),
             metadata: try? confirm.metadata(walletId: wallet.id.id, assetId: inputType.transactionAsset().id, feeAssetId: inputType.transactionAsset().id, extraAssetIds: []),
-            simulation: try? confirm.simulation(inputType: inputType, simulation: result),
+            simulation: confirm.simulation,
         )
     }
 
-    public func load(input: GemConfirmInput, options: GemConfirmLoadOptions, simulation: SimulationResult?) async throws -> GemConfirmLoad {
+    public func load(input: GemConfirmInput, options: GemConfirmLoadOptions, simulation _: SimulationResult?) async throws -> GemConfirmLoad {
         let preload = try await confirm.preload(walletId: wallet.id.id, input: input, options: options)
-        return GemConfirmLoad(
-            feeAssets: try confirm.feeAssets(walletId: wallet.id.id, chain: input.transfer.inputType.chain.rawValue),
+        return try GemConfirmLoad(
+            feeAssets: confirm.feeAssets(walletId: wallet.id.id, chain: input.transfer.inputType.chain.rawValue),
             preload: preload,
             simulation: GemConfirmSimulationState(
-                simulation: try? confirm.simulation(inputType: input.transfer.inputType, simulation: simulation ?? preload.confirmData.simulation),
+                simulation: confirm.simulation,
                 addressNames: [],
             ),
         )
@@ -98,7 +98,6 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
         try await transactionState.trackPending()
     }
 
-
     public func addressUrl(chain: Chain, address: String) -> GemBlockExplorerLink {
         GemBlockExplorerLink(name: "Explorer", link: "https://explorer.test/\(chain)/\(address)")
     }
@@ -107,12 +106,11 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
         try names.addressName(chain: chain, address: address)
     }
 
-    public func autocloseSummary(data: PerpetualModifyConfirmData) -> GemAutocloseSummary? {
+    public func autocloseSummary(data _: PerpetualModifyConfirmData) -> GemAutocloseSummary? {
         nil
     }
 
     public func acquireAssetFlow(chain: Chain) -> GemAcquireAssetFlow {
         assetConfig.acquireFlow(chain: chain)
     }
-
 }

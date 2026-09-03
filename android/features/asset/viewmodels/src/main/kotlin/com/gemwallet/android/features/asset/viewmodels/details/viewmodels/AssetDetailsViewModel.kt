@@ -6,7 +6,8 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.toJson
-import uniffi.gemstone.GemAssetDetailsService
+import uniffi.gemstone.Deeplink
+import uniffi.gemstone.GemAssetDetailsServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -38,6 +39,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import java.math.BigInteger
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -47,7 +49,7 @@ class AssetDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getChainAssetInfo: GetChainAssetInfo,
     private val getTransactions: GetTransactions,
-    private val assetDetailsService: GemAssetDetailsService,
+    private val assetDetailsService: GemAssetDetailsServiceInterface,
     private val hasMultiSign: HasMultiSign,
     private val assetInfoUIModelFactory: AssetInfoUIModelFactory,
 ) : ViewModel() {
@@ -90,6 +92,7 @@ class AssetDetailsViewModel @Inject constructor(
             val asset = it.chainAssetInfo.assetInfo.asset
             assetInfoUIModelFactory.create(
                 chainAssetInfo = it.chainAssetInfo,
+                swapPair = assetDetailsService.swapPair(asset.id.toIdentifier(), it.chainAssetInfo.assetInfo.balance.balance.available.toBigInteger() > BigInteger.ZERO),
                 explorerName = it.explorerName,
                 walletType = wallet.type,
                 explorerAddressUrl = it.chainAssetInfo.assetInfo.owner?.address?.let { address ->
@@ -100,6 +103,7 @@ class AssetDetailsViewModel @Inject constructor(
                 },
                 verificationStatus = assetDetailsService.verificationStatus(asset.toGem(), it.chainAssetInfo.assetInfo.metadata.rankScore)?.toPrimitives(),
                 networkDestination = assetDetailsService.networkDestination(asset.id.toIdentifier()),
+                shareUrl = assetDetailsService.deeplinkUrl(Deeplink.Asset(assetId = asset.id.toIdentifier())),
             )
         }
     }

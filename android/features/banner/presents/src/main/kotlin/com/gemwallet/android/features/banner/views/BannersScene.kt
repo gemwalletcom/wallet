@@ -47,6 +47,7 @@ import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.features.banner.viewmodels.BannersViewModel
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Banner
+import com.wallet.core.primitives.BannerEvent
 import uniffi.gemstone.GemBannerLink
 
 private val bannerEmojiFontSize = 32.sp
@@ -56,6 +57,8 @@ fun BannersScene(
     asset: Asset?,
     onClick: (Banner) -> Unit,
     isGlobal: Boolean = false,
+    onBuy: () -> Unit = {},
+    onReceive: () -> Unit = {},
     viewModel: BannersViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(asset?.id?.toIdentifier(), isGlobal) {
@@ -73,6 +76,10 @@ fun BannersScene(
     HorizontalPager(pageState, pageSpacing = paddingDefault) { page ->
         val banner = banners[page].banner
         val content = banners[page].content
+        if (banner.event == BannerEvent.Onboarding) {
+            WelcomeBanner(onBuy = onBuy, onReceive = onReceive, onClose = { viewModel.onCancel(banner) })
+            return@HorizontalPager
+        }
         val model = bannerItemUIModel(banner, content)
         Box(
             modifier = Modifier.listItem(ListPosition.Single).clickable {

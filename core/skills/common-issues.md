@@ -1,26 +1,11 @@
 # Common Issues
 
+Use when a review or build failure points at one of these known anti-patterns, or before adding a constant, hex helper, or debt marker.
 Known anti-patterns found in the codebase and their fixes.
 
 ## `alloy_primitives::hex` — Use `primitives::hex`
 
-Several files import `alloy_primitives::hex` directly. Always use `primitives::hex` for consistency.
-
-```rust
-// bad — direct alloy import
-use alloy_primitives::hex;
-let bytes = hex::decode(input)?;
-
-// good — use the project's re-export
-use primitives::hex;
-let bytes = hex::decode(input)?;
-```
-
-Known occurrences:
-- `crates/gem_hypercore/src/signer/core_signer.rs`
-- `crates/gem_hypercore/src/core/hasher.rs`
-- `crates/signer/src/eip712/hash_impl.rs`
-- `crates/gem_rewards/src/transfer_provider/evm/provider.rs`
+Always import `primitives::hex` for hex encoding and decoding. Existing direct `alloy_primitives::hex` imports remain in a handful of crates; fix them when you touch the file, and do not add new ones.
 
 ## Duplicate Constants
 
@@ -28,26 +13,16 @@ Before defining a new constant, check `crates/primitives/src/asset_constants.rs`
 
 ## Inline `use` in Diesel Query Functions
 
-Diesel DSL imports (e.g., `use crate::schema::assets::dsl::*`) inside query functions are the **one exception** to the no-inline-imports rule. This is idiomatic Diesel usage and prevents DSL name collisions at module scope.
-
-```rust
-// acceptable — Diesel DSL exception
-fn get_asset(conn: &mut PgConnection, id: &str) -> QueryResult<AssetRow> {
-    use crate::schema::assets::dsl::*;
-    assets.filter(asset_id.eq(id)).first(conn)
-}
-```
+Diesel DSL imports (`use crate::schema::assets::dsl::*`) inside a query function are the one exception to the no-inline-imports rule: they are idiomatic Diesel and keep DSL names from colliding at module scope.
 
 ## `println!` in Service Code
 
-Found in `apps/api/` and `apps/daemon/`. Replace with `tracing::info!`/`tracing::error!` — see [Defensive Programming](defensive-programming.md#no-println-in-production-code).
+Replace any `println!` in `apps/` with `tracing::info!` / `tracing::error!` and structured fields; see [Defensive Programming](defensive-programming.md).
+
+## Tron Energy Estimation
+
+`triggerconstantcontract` simulates the call against live state with the real recipient and value, so its `energy_used` already includes the first-time-recipient storage cost and the energy penalty. Estimate through `TriggerConstantContractResponse::get_energy()` in `gem_tron`, whose only addition is surfacing a failed simulation as an error. Never add `energy_penalty` or a static per-recipient activation fee on top; both double-count and roughly double USDT fee estimates.
 
 ## Technical Debt Markers
 
-The codebase has ~20 `TODO`/`FIXME` comments marking deferred work. Key areas:
-- **Deprecated API endpoints** (`apps/api/src`): Old `/notifications`, `/wallets`, `/price_alerts` routes pending removal after client migration
-- **Hardcoded fees**: Stellar transaction fee is hardcoded as `"1000"` string
-- **Gas estimation**: Thorchain memo byte-length gas limits marked FIXME
-- **Swap status**: Thorchain refunded transactions default to `Failed` status
-
-When working near these areas, consider resolving the TODO if scope permits.
+`TODO`/`FIXME` comments mark deferred work. When working near one, resolve it if the task's scope permits; otherwise leave it untouched rather than rewording it. Do not add new markers for work you could finish in the same change.

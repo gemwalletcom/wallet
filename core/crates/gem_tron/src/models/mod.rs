@@ -24,6 +24,12 @@ pub struct Block {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+pub struct BlockId {
+    #[serde(rename = "blockID")]
+    pub block_id: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
 pub struct BlockTransactions {
     pub block_header: BlockHeader,
     #[serde(default)]
@@ -39,6 +45,21 @@ pub struct BlockHeader {
 pub struct BlockHeaderData {
     pub number: i64,
 }
+
+#[derive(Serialize, Debug)]
+pub struct TriggerSmartContractRequest {
+    pub owner_address: String,
+    pub contract_address: String,
+    pub data: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fee_limit: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub call_value: Option<u64>,
+    pub visible: bool,
+}
+
+#[derive(Serialize, Debug)]
+pub struct NowBlockRequest {}
 
 #[derive(Serialize, Debug)]
 pub struct TriggerConstantContractRequest {

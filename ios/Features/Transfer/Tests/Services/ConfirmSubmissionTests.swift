@@ -1,24 +1,23 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitives
-import struct Gemstone.GemConfirmSimulation
-import struct Gemstone.GemConfirmMetadata
-import struct Gemstone.GemSimulationValue
-import struct Gemstone.GemSimulationBalanceChange
-import enum Gemstone.GemConfirmError
-import enum Gemstone.GemExecuteResult
-import GemstoneServicesTestKit
-import GemstoneServices
 import Foundation
+import enum Gemstone.GemConfirmError
+import struct Gemstone.GemConfirmMetadata
+import struct Gemstone.GemConfirmSimulation
+import enum Gemstone.GemExecuteResult
+import struct Gemstone.GemSimulationBalanceChange
+import struct Gemstone.GemSimulationValue
+import struct Gemstone.GemTransferData
+import GemstonePrimitives
 import GemstonePrimitivesTestKit
+import GemstoneServices
+import GemstoneServicesTestKit
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
 import Store
 import StoreTestKit
 import Testing
-import class Gemstone.GemSimulationFormatter
-import struct Gemstone.GemTransferData
 @testable import Transfer
 
 @MainActor
@@ -82,7 +81,7 @@ struct ConfirmSubmissionTests {
             simulation: GemConfirmSimulation(
                 primaryFields: [],
                 secondaryFields: [],
-                header: GemSimulationValue(asset: usdt.map(), value: .exact(value: 1000000)),
+                header: GemSimulationValue(asset: usdt.map(), value: .exact(value: 1_000_000)),
                 balanceChanges: [],
                 hasCriticalWarning: false,
             ),

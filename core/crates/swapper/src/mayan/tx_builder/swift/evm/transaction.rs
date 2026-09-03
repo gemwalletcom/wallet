@@ -85,10 +85,7 @@ where
         route.swift_input_decimals.ok_or(SwapperError::InvalidRoute)?,
     )?;
     let swap: GetSwapEvmResponse = client
-        .get_swap(
-            "/get-swap/evm",
-            GetSwapEvmParams::swift(route, route.effective_amount_in64.clone(), context.swift_input_contract.clone()),
-        )
+        .get_swap_evm(GetSwapEvmParams::swift(route, route.effective_amount_in64.clone(), context.swift_input_contract.clone()))
         .await?;
     let swap = EvmSwapForwardData::new(&swap.swap_router_address, &swap.swap_router_calldata, &context.swift_input_contract, min_middle_amount)?;
 

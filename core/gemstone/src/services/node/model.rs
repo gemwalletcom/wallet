@@ -12,10 +12,17 @@ pub enum GemNodeStatusState {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemNodeCheck {
     pub url: String,
-    pub chain_id: String,
+    pub chain_id: Option<String>,
     pub latest_block_number: u64,
     pub is_in_sync: bool,
     pub latency: Latency,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemNodeSelection {
+    pub url: String,
+    pub host: String,
+    pub is_selected: bool,
 }
 
 #[derive(Debug, Clone, uniffi::Error)]

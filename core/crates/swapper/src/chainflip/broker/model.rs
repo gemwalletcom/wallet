@@ -23,7 +23,8 @@ pub struct DcaParameters {
     pub chunk_interval: u32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize)]
+#[serde(untagged)]
 pub enum VaultSwapExtras {
     Evm(VaultSwapChainExtras),
     Tron(VaultSwapChainExtras),

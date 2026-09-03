@@ -1,18 +1,14 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
-import com.gemwallet.android.blockchain.operators.InvalidWords
-import com.gemwallet.android.blockchain.operators.ValidatePhraseOperator
-import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.wallet_import.cases.SyncWalletImport
-import com.gemwallet.android.application.wallet_import.values.ImportError
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
 import com.gemwallet.android.domains.wallet_import.toGemImport
-import com.gemwallet.android.domains.wallet_import.validatedOrImportError
 import com.gemwallet.android.serializer.decodeJson
 import kotlinx.coroutines.CancellationException
 import uniffi.gemstone.GemNameServiceInterface
+import com.gemwallet.android.ext.words
+import uniffi.gemstone.GemMnemonicInterface
 import uniffi.gemstone.GemWalletServiceInterface
 import uniffi.gemstone.GemWalletImportResult
 import com.gemwallet.android.ext.toGem
@@ -38,19 +34,12 @@ import javax.inject.Inject
 class ImportViewModel @Inject constructor(
     private val service: GemWalletServiceInterface,
     nameService: GemNameServiceInterface,
-    private val syncWalletImport: SyncWalletImport,
-    private val validatePhrase: ValidatePhraseOperator,
-    private val findPhraseWord: GemFindPhraseWord,
+    private val mnemonic: GemMnemonicInterface,
 ) : ViewModel() {
 
-    fun invalidPhraseWords(text: String): Set<String> =
-        (validatePhrase(text).exceptionOrNull() as? InvalidWords)
-            ?.words
-            .orEmpty()
-            .filter { it.isNotBlank() }
-            .toSet()
+    fun invalidPhraseWords(text: String): Set<String> = mnemonic.findInvalidWords(text.words()).toSet()
 
-    fun phraseSuggestions(word: String): List<String> = findPhraseWord(word)
+    fun phraseSuggestions(word: String): List<String> = mnemonic.suggestWords(word, null)
 
     private val state = MutableStateFlow(ImportViewModelState())
     val uiState = state.map { it.toUIState() }
@@ -106,16 +95,13 @@ class ImportViewModel @Inject constructor(
             try {
                 val import = state.value.importType.toGemImport(
                     data = if (nameRecord?.address.isNullOrEmpty()) data.trim() else nameRecord.address,
-                ).validatedOrImportError()
+                ).validated()
                 val walletName = nameRecord?.name?.takeIf { it.isNotBlank() } ?: generatedName
                 val result = when (val imported = service.importWallet(walletName, import, WalletSource.Import.toGem())) {
                     is GemWalletImportResult.Existing -> WalletImportResult.Existing(imported.wallet.decodeJson())
                     is GemWalletImportResult.New -> WalletImportResult.New(imported.wallet.decodeJson())
                 }
                 service.setCurrentWalletId(result.wallet.id.id)
-                if (result is WalletImportResult.New) {
-                    syncWalletImport.sync(result.wallet)
-                }
                 state.update { it.copy(dataError = null, loading = false) }
                 withContext(Dispatchers.Main) {
                     when (result) {
@@ -126,7 +112,7 @@ class ImportViewModel @Inject constructor(
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {
-                state.update { it.copy(dataError = (err as? ImportError) ?: ImportError.CreateError(err.message.orEmpty()), loading = false) }
+                state.update { it.copy(dataError = err, loading = false) }
             }
         }
     }
@@ -143,7 +129,7 @@ data class ImportViewModelState(
     val generatedNameIndex: Int = 0,
     val chainName: String = "",
     val data: String = "",
-    val dataError: ImportError? = null,
+    val dataError: Throwable? = null,
     val existingWalletResult: WalletImportResult.Existing? = null,
 ) {
     fun toUIState(): ImportUIState {
@@ -165,6 +151,6 @@ data class ImportUIState(
     val importType: ImportType = ImportType(WalletType.Multicoin),
     val generatedNameIndex: Int = 0,
     val chainName: String = "",
-    val dataError: ImportError? = null,
+    val dataError: Throwable? = null,
     val existingWalletResult: WalletImportResult.Existing? = null,
 )

@@ -10,7 +10,10 @@ use gem_jsonrpc::types::{ERROR_CLIENT_ERROR, JsonRpcError};
 use primitives::Chain;
 
 use crate::jsonrpc::XrpRpc;
-use crate::models::rpc::{AccountInfo, AccountInfoResult, AccountLedger, AccountObjects, FeesResult, Ledger, LedgerData, LedgerInfo, TransactionBroadcast, TransactionStatus};
+use crate::models::rpc::{
+    AccountInfo, AccountInfoResult, AccountLedger, AccountObjects, FeesResult, Ledger, LedgerData, LedgerInfo, ServerInfo, ServerInfoResult, TransactionBroadcast,
+    TransactionStatus,
+};
 
 #[derive(Clone, Debug)]
 pub struct XrpClient<C: Client + Clone> {
@@ -41,7 +44,7 @@ impl<C: Client + Clone> XrpClient<C> {
     }
 
     pub async fn get_account_info_full(&self, address: &str) -> Result<AccountInfoResult, Box<dyn Error + Send + Sync>> {
-        self.request(XrpRpc::GetAccountInfo(address.to_string())).await
+        self.request(XrpRpc::GetAccountInfo { address: address.to_string() }).await
     }
 
     pub async fn get_latest_validated_ledger(&self) -> Result<LedgerInfo, Box<dyn Error + Send + Sync>> {
@@ -52,12 +55,16 @@ impl<C: Client + Clone> XrpClient<C> {
         Ok(ledger)
     }
 
+    pub async fn get_server_info(&self) -> Result<ServerInfo, Box<dyn Error + Send + Sync>> {
+        Ok(self.request::<ServerInfoResult>(XrpRpc::GetServerInfo).await?.info)
+    }
+
     pub async fn get_fees(&self) -> Result<FeesResult, Box<dyn Error + Send + Sync>> {
         self.request(XrpRpc::GetFees).await
     }
 
     pub async fn broadcast_transaction(&self, data: &str) -> Result<TransactionBroadcast, Box<dyn Error + Send + Sync>> {
-        self.request(XrpRpc::SubmitTransaction(data.to_string())).await
+        self.request(XrpRpc::SubmitTransaction { data: data.to_string() }).await
     }
 
     pub async fn get_transaction_status(&self, transaction_id: &str) -> Result<TransactionStatus, Box<dyn Error + Send + Sync>> {
@@ -68,16 +75,15 @@ impl<C: Client + Clone> XrpClient<C> {
     where
         T: DeserializeOwned + Send,
     {
-        self.request(XrpRpc::GetTransaction(transaction_id.to_string())).await
+        self.request(XrpRpc::GetTransaction { hash: transaction_id.to_string() }).await
     }
 
     pub async fn get_account_objects(&self, address: &str) -> Result<AccountObjects, Box<dyn Error + Send + Sync>> {
-        self.request(XrpRpc::GetAccountObjects(address.to_string())).await
+        self.request(XrpRpc::GetAccountObjects { address: address.to_string() }).await
     }
 
     pub async fn get_block_transactions(&self, block_number: u64) -> Result<Ledger, Box<dyn Error + Send + Sync>> {
-        let result: LedgerData = self.request(XrpRpc::GetLedger(block_number)).await?;
-        Ok(result.ledger)
+        Ok(self.request::<LedgerData>(XrpRpc::GetLedger { index: block_number }).await?.ledger)
     }
 
     pub async fn get_account_transactions(&self, address: String, limit: usize) -> Result<AccountLedger, Box<dyn Error + Send + Sync>> {

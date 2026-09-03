@@ -1,23 +1,20 @@
+use gem_client::{Target, build_path_with_query};
+
+use crate::rpc::trongrid::model::TransactionsQuery;
+
 #[derive(Clone, Debug)]
 pub enum TronGridTarget {
-    GetTransactions(String, usize, Option<String>),
-    GetTrc20Transactions(String, usize, Option<String>),
-    GetAccount(String),
+    GetTransactions { address: String, query: TransactionsQuery },
+    GetTrc20Transactions { address: String, query: TransactionsQuery },
+    GetAccount { address: String },
 }
 
-impl TronGridTarget {
-    pub fn path(&self) -> String {
+impl Target for TronGridTarget {
+    fn path(&self) -> String {
         match self {
-            Self::GetTransactions(address, limit, fingerprint) => with_fingerprint(format!("/v1/accounts/{address}/transactions?limit={limit}"), fingerprint.as_deref()),
-            Self::GetTrc20Transactions(address, limit, fingerprint) => with_fingerprint(format!("/v1/accounts/{address}/transactions/trc20?limit={limit}"), fingerprint.as_deref()),
-            Self::GetAccount(address) => format!("/v1/accounts/{address}"),
+            Self::GetTransactions { address, query } => build_path_with_query(&format!("/v1/accounts/{address}/transactions"), query),
+            Self::GetTrc20Transactions { address, query } => build_path_with_query(&format!("/v1/accounts/{address}/transactions/trc20"), query),
+            Self::GetAccount { address } => format!("/v1/accounts/{address}"),
         }
-    }
-}
-
-fn with_fingerprint(path: String, fingerprint: Option<&str>) -> String {
-    match fingerprint {
-        Some(fingerprint) => format!("{path}&fingerprint={fingerprint}"),
-        None => path,
     }
 }

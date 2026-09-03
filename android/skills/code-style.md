@@ -1,130 +1,28 @@
 # Code Style
 
+Use for any Kotlin or Compose change.
 ## Core Rules
 
-- Follow Kotlin coding conventions and existing project patterns
-- Use Jetpack Compose for UI work
-- Use Hilt for dependency injection
-- Implement repository-based data access
-- Write unit tests for business logic changes
-- Prefer the concrete patterns below over inventing new local conventions
-
-## Repository Expectations
-
-- Use only Gradle for Android builds and tests
-- Always run tests for the affected scope
-- Do not add unnecessary code comments
-- Clean imports after every modification
+- Kotlin conventions and existing project patterns; Jetpack Compose for UI; Hilt for dependency injection; repository-based data access
+- Do not add unnecessary comments; clean imports after every modification
+- In suspend or flow code, a `catch (e: Throwable)` must rethrow `CancellationException` before mapping to an error state; otherwise a cancelled collection surfaces as a failure (see `InAppUpdateServiceImpl.kt`)
+- Prefer the smallest change that satisfies the requirement
 
 ## Security and Hygiene
 
-- Never commit secrets or API keys
-- Keep sensitive local configuration in `local.properties`
-- Follow Android security best practices
-- Prefer the smallest change that satisfies the requirement
+- Never commit secrets or API keys; keep sensitive local configuration in `local.properties`
 
-Shared clean-code and code-review principles live in `../../skills/engineering-principles.md`.
+## Patterns
 
-## Concrete Patterns
+- **Entry points**: `@AndroidEntryPoint` activities obtain view models with `by viewModels()` and set content once (`app/src/main/kotlin/com/gemwallet/android/MainActivity.kt`)
+- **State collection**: `collectAsStateWithLifecycle()` in composables. Scenes stay stateless and take prepared state plus callbacks instead of fetching dependencies (`features/perpetual/presents/src/main/kotlin/com/gemwallet/android/features/perpetual/views/position/PerpetualPositionScene.kt`)
+- **Dependency injection**: shared services and persistence come from Hilt modules installed in `SingletonComponent` (`data/services/store/src/main/kotlin/com/gemwallet/android/data/service/store/database/di/DatabaseModule.kt`)
+- **ViewModel tests**: JUnit 4, direct construction, deterministic inputs, one behavior per test; fixtures from the `:gemcore` testFixtures (see [testing.md](testing.md))
 
-Use current Android code as the baseline for Compose, Hilt, and module structure.
+## Room Schema
 
-### Activity + Hilt Entry
+- Table names are plural `snake_case` (`nft_collections`, `nft_assets`, `nft_assets_associations`)
+- Entity fields are Kotlin `camelCase` stored as SQLite `snake_case` columns via `@ColumnInfo(name = "asset_id")`
+- When an equivalent iOS store model exists, mirror its schema naming instead of inventing Android-only variants; keep one naming scheme within a table
 
-Inject screen state through `viewModels()` inside an `@AndroidEntryPoint` activity:
-
-```kotlin
-@AndroidEntryPoint
-class MainActivity : FragmentActivity(), AuthRequester {
-    private val viewModel: MainViewModel by viewModels()
-    private val walletConnectViewModel: WalletConnectViewModel by viewModels()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            MainContent()
-            RootWarning()
-        }
-    }
-}
-```
-
-Reference: `android/app/src/main/kotlin/com/gemwallet/android/MainActivity.kt`
-
-### Compose State Collection
-
-Collect view-model state with lifecycle-aware APIs and keep scenes mostly stateless:
-
-```kotlin
-@Composable
-fun MainContent() {
-    val navController = rememberNavController()
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val intent by viewModel.intent.collectAsStateWithLifecycle()
-    WalletApp(navController)
-}
-```
-
-Reference: `android/app/src/main/kotlin/com/gemwallet/android/MainActivity.kt`
-
-### DI Modules
-
-Wire shared services and persistence through Hilt modules:
-
-```kotlin
-@InstallIn(SingletonComponent::class)
-@Module
-object DatabaseModule {
-    @Singleton
-    @Provides
-    fun provideRoom(
-        @ApplicationContext context: Context,
-        passwordStore: PasswordStore
-    ): GemDatabase = Room.databaseBuilder(
-        context = context,
-        klass = GemDatabase::class.java,
-        name = "gem.db",
-    ).build()
-}
-```
-
-Reference: `android/data/services/store/src/main/kotlin/com/gemwallet/android/data/service/store/database/di/DatabaseModule.kt`
-
-### Stateless Feature Scenes
-
-Feature composables should take prepared state and callbacks rather than fetching dependencies internally:
-
-```kotlin
-@Composable
-fun PerpetualPositionScene(
-    perpetual: PerpetualDetailsDataAggregate,
-    position: PerpetualPositionDetailsDataAggregate?,
-    chartData: List<ChartCandleStick>,
-    period: ChartPeriod,
-    onChartPeriodSelect: (ChartPeriod) -> Unit,
-    onOpenPosition: (PerpetualDirection) -> Unit,
-    onClose: () -> Unit,
-)
-```
-
-Reference: `android/features/perpetual/presents/src/main/kotlin/com/gemwallet/features/perpetual/views/position/PerpetualPositionScene.kt`
-
-### ViewModel Unit Test
-
-Test ViewModels by verifying state emissions. Use JUnit 4, direct construction, and deterministic inputs:
-
-```kotlin
-class CalculatePriceImpactTest {
-    @Test
-    fun highSlippage_returnsExpectedImpact() {
-        val result = calculatePriceImpact(
-            inputAmount = BigDecimal("100"),
-            outputAmount = BigDecimal("95"),
-        )
-        assertEquals(BigDecimal("5.00"), result)
-    }
-}
-```
-
-Keep tests focused on one behavior. Use helper functions (e.g., `createAssetInfo()`) for reusable test data. See [testing.md](testing.md) for full conventions.
+Shared clean-code principles live in `../../skills/engineering-principles.md`.

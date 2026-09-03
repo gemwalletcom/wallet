@@ -4,9 +4,10 @@ Guidance for AI assistants (Claude Code, Gemini, Codex, etc.) collaborating on t
 
 ## Skills
 
-Read this file first, then load the relevant skills for your current task. `project-structure.md`, `development-commands.md`, `code-style.md`, `tests.md`, and `defensive-programming.md` are the default set for most Core work. Load `error-handling.md` when touching error surfaces or JSON access, `architecture.md` when changing provider/repository/UniFFI patterns, `common-issues.md` when debugging tricky failures, and `swapper-checklist.md` only for swapper integrations.
+Read this file first, then load the relevant skills for your current task. `project-structure.md`, `development-commands.md`, `code-style.md`, `tests.md`, and `defensive-programming.md` are the default set for most Core work. Load `setup.md` for environment or bootstrap work, `error-handling.md` when touching error surfaces or JSON access, `architecture.md` when changing provider/repository/UniFFI patterns, `common-issues.md` when debugging tricky failures, `swapper-checklist.md` only for swapper integrations, `new-chain-checklist.md` when adding or restructuring a chain, and `localization.md` when adding Core user-facing strings.
 
 - [Project Structure](skills/project-structure.md) — Repo layout, crates, and tech stack
+- [Setup](skills/setup.md) — Toolchain, backend prerequisites, and the kache build cache
 - [Development Commands](skills/development-commands.md) — Build, test, lint, format, mobile
 - [Code Style](skills/code-style.md) — Formatting, naming, imports, code organization
 - [Error Handling](skills/error-handling.md) — Error types, propagation, JSON access
@@ -15,6 +16,8 @@ Read this file first, then load the relevant skills for your current task. `proj
 - [Defensive Programming](skills/defensive-programming.md) — Safety rules and exhaustive patterns
 - [Common Issues](skills/common-issues.md) — Known anti-patterns and their fixes
 - [Swapper Checklist](skills/swapper-checklist.md) — Integration checklist for swapper providers
+- [New Chain Checklist](skills/new-chain-checklist.md) — Boundary rule, factory dispatch, and steps for adding a chain
+- [Localization](skills/localization.md) — Fluent strings in the `localizer` crate and typed accessors
 
 ## Design Docs
 
@@ -29,10 +32,11 @@ Subsystem references live in [docs/](../docs). Read the relevant one before chan
 
 ## Before Coding
 
-- Keep every Rust `use` declaration at the top of the file. Import types before using them; never place imports inside functions or write fully qualified type paths inline, including in impl targets, bounds, fields, parameters, and return types
+- Every Rust `use` declaration at the top of the file; never import inside a function or write a fully qualified path inline (see `skills/code-style.md` § Imports)
 - State assumptions explicitly. UniFFI bounds, lifetimes, provider trait contracts, and JSON shape assumptions are invisible — call them out so a reviewer can spot the wrong one
 - Read before you write. Open the file's existing exports, the immediate caller, the related provider/mapper/repository, and any obvious testkit fixture before adding code. "Looks orthogonal to me" is the most expensive sentence in this crate
 - If two patterns in the codebase contradict (e.g., two providers handling decimals or error mapping differently), do not average them. Pick one — typically the more recent or better tested — explain why, and flag the other for cleanup
+- Use single-word names for Core settings keys; `_` is reserved for separating the settings hierarchy in environment variables
 - Keep `docs/FEATURES.md` (repo root) current in the same change when chain capabilities, simulations, WalletConnect coverage, transaction-indexing routes, active swap, fiat, or NFT providers, provider modes, amount/slippage behavior, deployments, or supported assets change. Recheck dynamic provider coverage weekly; update the reviewed date only after rechecking the linked provider sources
 
 ## Task Completion
@@ -40,49 +44,12 @@ Subsystem references live in [docs/](../docs). Read the relevant one before chan
 During active implementation, rebase conflict resolution, or compile-fix loops, prefer targeted build/test commands and defer broad clippy/format runs until the change is ready to commit. Do not skip the required clippy/format checks silently before final handoff; run them then, or report the exact reason they are still pending.
 
 Before finishing a task:
-1. **Review for simplification** — reduce duplication, extract helpers, consolidate modules, remove dead code
+1. **Run the two cleanup rounds** from `skills/task-workflow.md` — reduce duplication, extract helpers only when they earn their keep, consolidate modules, remove dead code, and match the crate's conventions; then re-read the final diff as a reviewer
 2. **Keep changes minimal** — code must be concise and focused; reviewers cannot realistically review thousands of lines per PR, so only include what is necessary for the task
 3. **Run tests**: `just test` or `just test <CRATE>`
-4. **Run clippy**: `cargo clippy -p <crate> -- -D warnings`
+4. **Run clippy**: `cargo clippy -p <crate> --all-features -- -D warnings` (most crates gate modules behind features; without them clippy compiles nothing from those modules, see `skills/development-commands.md`)
 5. **Format**: `just format`
 
 Regenerate bindings and build iOS or Android only when the change affects UniFFI/TypeShare interfaces, generated models, platform build inputs, or app-side integration. Do not run mobile generation or builds for internal Core implementation changes that preserve those contracts.
 
-## Localization
-
-Strings live in the `localizer` crate (Fluent `.ftl` + `i18n_embed`), one file per language at `crates/localizer/i18n/<lang>/localizer.ftl`. `en` is the canonical key set and fallback. Maintain translations directly — there is no download step.
-
-To add a string:
-1. Add the key to [en/localizer.ftl](crates/localizer/i18n/en/localizer.ftl), using `{$var}` for placeholders.
-2. Add the same key, translated, to every other `<lang>/localizer.ftl` — identical key, placeholders, and emoji; only the prose changes. A key missing in a language silently falls back to `en`.
-3. Expose it as a typed method on `LanguageLocalizer` in [lib.rs](crates/localizer/src/lib.rs) via the `fl!` macro, then call that method from consumers (`pricer`, `gem_rewards`, `in_app_notifications`, `support`). Never inline user-facing strings or reference raw keys outside `localizer`.
-
-Fluent wraps interpolated args in isolation marks (`\u{2068}…\u{2069}`) — account for them in test assertions (see [tests/localizer.rs](crates/localizer/tests/localizer.rs)).
-
-## Test Rules
-
-- Tests must protect an independent domain rule, invariant, or failure boundary—not mirror implementation details or serialized output. If the test still passes when the rule flips or the function returns a hardcoded constant, remove or fix it.
-- Do not unit-test static lookup tables, fixture catalogs, enum-to-variant wiring, or literal configuration by copying their values into assertions. Test behavior that consumes the data, a meaningful invariant shared across entries, or a validation/failure boundary; when there is no independent behavior, do not add a test.
-- Do not write tolerance-based assertions against live network values or values recomputed from separate RPC/API calls in integration tests. These tests are flaky and low-signal.
-- For integration tests, assert stable invariants only. For exact numeric behavior, cover the pure calculation in unit tests with deterministic inputs.
-- Write one test function with many assertions instead of many separate single-assertion test functions. Group related cases into a single `test_<function_name>` test.
-- Put full JSON payloads in `testdata/` and load them with `include_str!`; do not embed request, response, or transaction JSON with `serde_json::json!` in Rust test files.
-
-## Testkit Mocks
-
-- Put reusable mocks in a crate `testkit` file and attach them to the type with `impl Type { pub fn mock() -> Self }`.
-- Use `mock()` for the default case; use `mock_with_*` or a clearly named variant only when needed.
-- Keep mocks small, valid, and fixed. If a fixture is only used once, an inline literal is fine.
-
-Mock example:
-```rust
-impl Asset {
-    pub fn mock() -> Self {
-        Asset::from_chain(Chain::Ethereum)
-    }
-}
-```
-
-Examples:
-- [crates/primitives/src/testkit/asset_mock.rs](crates/primitives/src/testkit/asset_mock.rs)
-- [crates/storage/src/testkit/scan_address_mock.rs](crates/storage/src/testkit/scan_address_mock.rs)
+Test rules and testkit conventions live in [Tests](skills/tests.md); read it before writing or changing any test.

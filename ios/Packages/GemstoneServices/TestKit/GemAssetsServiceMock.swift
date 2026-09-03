@@ -7,7 +7,6 @@ import Primitives
 
 public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Sendable {
     private let assetsResult: [Primitives.AssetBasic]
-    private let assetResult: Primitives.AssetFull?
     private let buyableFiatAssets: Primitives.FiatAssets?
     private let sellableFiatAssets: Primitives.FiatAssets?
     private let swapAssets: Primitives.FiatAssets?
@@ -15,14 +14,12 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
 
     public init(
         assetsResult: [Primitives.AssetBasic] = [],
-        assetResult: Primitives.AssetFull? = nil,
         buyableFiatAssets: Primitives.FiatAssets? = nil,
         sellableFiatAssets: Primitives.FiatAssets? = nil,
         swapAssets: Primitives.FiatAssets? = nil,
         store: (any GemAssetStore)? = nil,
     ) {
         self.assetsResult = assetsResult
-        self.assetResult = assetResult
         self.buyableFiatAssets = buyableFiatAssets
         self.sellableFiatAssets = sellableFiatAssets
         self.swapAssets = swapAssets
@@ -55,9 +52,4 @@ public final class GemAssetsServiceMock: GemAssetsServiceProtocol, @unchecked Se
     }
 
     public func syncAssets(assetIds _: [Gemstone.AssetId]) async throws {}
-
-    public func syncAsset(assetId _: Gemstone.AssetId) async throws -> Gemstone.AssetFull {
-        guard let assetResult else { throw AnyError("not stubbed") }
-        return assetResult.json()
-    }
 }

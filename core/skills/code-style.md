@@ -1,91 +1,24 @@
 # Code Style
 
+Use for any Rust change; it is the crate-level style contract.
 Follow the existing code style patterns unless explicitly asked to change.
 
 ## Formatting
 
-- Line length: 180 characters maximum (configured in `rustfmt.toml`)
-- Indentation: 4 spaces (Rust standard)
-- Imports: Automatically reordered with rustfmt
-- Format with `just format`
-
-## Commit Messages
-
-Write descriptive messages following conventional commit format.
+Line length 180 (`rustfmt.toml`), 4-space indentation, imports reordered by rustfmt. Format with `just format`.
 
 ## Naming
 
-- Files/modules: `snake_case` (e.g., `asset_id.rs`, `chain_address.rs`)
-- Crates: Prefixed naming (`gem_*` for blockchains, `security_*` for security)
-- Functions/variables: `snake_case`
-- Structs/enums: `PascalCase`
-- Constants: `SCREAMING_SNAKE_CASE`
-
-### Scope-appropriate names
-
-Inside a module, use concise names that rely on scope rather than repeating the crate/module prefix.
-
-```rust
-// bad — redundant prefix inside gem_hypercore::core_signer module
-fn is_hypercore_spot_swap(order: &Order) -> bool { ... }
-
-// good — scope already provides context
-fn is_spot_swap(order: &Order) -> bool { ... }
-```
-
-### Intent-specific names
-
-Name functions and modules after the domain action and result they own. Prefer codebase language such as `parse_destination_tag`, `build_transfer_message`, `sign_trust_set`, `map_balance_assets`, or `encode_memo` over vague names. Avoid `util`, `utils`, `normalize`, `resolve`, `process`, `handle`, `manage`, `perform`, `execute`, and similar names unless a framework or protocol owns the signature.
-
-### No type suffixes
-
-Avoid type suffixes like `_str`, `_int`, `_vec` in variable names; Rust's type system makes them redundant.
-
-```rust
-// bad
-let address_str = "0x1234";
-let balances_vec = vec![100, 200];
-
-// good
-let address = "0x1234";
-let balances = vec![100, 200];
-```
-
-### No unsolicited documentation
-
-Don't add docstrings, comments, type annotations, or inline code comments unless explicitly asked to (including in `mod.rs` files).
+- Files and modules `snake_case`; crates prefixed (`gem_*` for blockchains, `security_*` for security); functions and variables `snake_case`; types `PascalCase`; constants `SCREAMING_SNAKE_CASE`.
+- Rely on scope instead of repeating the module or crate prefix inside it: `is_spot_swap` inside `gem_hypercore::core_signer`, not `is_hypercore_spot_swap`.
+- Name functions after the domain action and result they own: `parse_destination_tag`, `build_transfer_message`, `sign_trust_set`, `map_balance_assets`. Avoid `util`, `utils`, `normalize`, `resolve`, `process`, `handle`, `manage`, `perform`, `execute` unless a framework or protocol owns the signature.
+- No type suffixes (`_str`, `_int`, `_vec`); the type system already says it.
+- No docstrings, comments, or inline type annotations unless asked, including in `mod.rs` files.
 
 ## Imports
 
-Order:
-1. Standard library imports
-2. External crate imports
-3. Local crate imports
-4. Module re-exports with `pub use`
-
-**IMPORTANT**: Keep every `use` declaration at the top of the file. Never use inline imports inside functions. Never use fully qualified type paths inline—including in impl targets, bounds, fields, parameters, and return types—always import types first.
-
-```rust
-// bad — inline import inside function body
-fn process_data() {
-    use crate::models::SomeType;
-    let item = SomeType::new();
-}
-
-// bad — full path inline
-fn process_data() {
-    let client = storage::DatabaseClient::new(url);
-}
-
-// good — all imports at file header
-use crate::models::SomeType;
-use storage::DatabaseClient;
-
-fn process_data() {
-    let item = SomeType::new();
-    let client = DatabaseClient::new(url);
-}
-```
+- Every `use` declaration at the top of the file, ordered standard library, external crates, local crate, then `pub use` re-exports.
+- Never import inside a function and never write a fully qualified path inline, including in impl targets, bounds, fields, parameters, and return types. Import the type first. The one exception is Diesel DSL imports inside query functions (see [Common Issues](common-issues.md)).
 
 ## Code Organization
 

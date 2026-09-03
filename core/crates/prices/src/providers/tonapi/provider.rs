@@ -18,8 +18,8 @@ const REQUEST_INTERVAL: Duration = Duration::from_secs(1);
 const MAX_RETRIES: u32 = 3;
 
 pub struct TonApiProvider {
-    client: TonApiClient,
-    stonfi_client: StonfiClient,
+    client: TonApiClient<ReqwestClient>,
+    stonfi_client: StonfiClient<ReqwestClient>,
 }
 
 impl TonApiProvider {

@@ -14,7 +14,7 @@ pub struct ValidatorInfo {
     pub voting_power: BigUint,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DelegationPoolStake {
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     pub active: BigUint,

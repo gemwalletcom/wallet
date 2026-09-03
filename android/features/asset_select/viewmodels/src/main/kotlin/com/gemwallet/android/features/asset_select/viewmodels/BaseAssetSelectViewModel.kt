@@ -28,12 +28,12 @@ import com.gemwallet.android.ui.models.AssetToastEmitterImpl
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
-import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualId
 import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.requireChain
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import com.wallet.core.primitives.Wallet
@@ -84,7 +84,7 @@ open class BaseAssetSelectViewModel(
     private val isSearching = MutableStateFlow(false)
 
     val availableChains = session
-        .map { session -> session?.wallet?.accounts?.map { it.chain } ?: emptyList() }
+        .map { runCatchingCancellable { service.filterChains() }.getOrDefault(emptyList()).map { it.requireChain() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     protected val currentQuery = snapshotFlow { queryState.text.toString() }
@@ -210,10 +210,6 @@ open class BaseAssetSelectViewModel(
     fun onClearFilters() {
         chainFilter.update { emptyList() }
         balanceFilter.update { false }
-    }
-
-    fun getAccount(assetId: AssetId): Account? {
-        return session.value?.wallet?.getAccount(assetId)
     }
 
     init {

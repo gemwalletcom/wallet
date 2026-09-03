@@ -89,13 +89,11 @@ pub trait ChainTraits:
 
     async fn get_nodes_status(&self) -> Result<NodeStatus, Box<dyn Error + Send + Sync>> {
         let started_at = Instant::now();
-        let (chain_id, latest_block_number) = futures::try_join!(self.get_chain_id(), self.get_block_latest_number())?;
-        let latency_ms = started_at.elapsed().as_millis() as u64;
+        let latest_block_number = self.get_block_latest_number().await?;
 
         Ok(NodeStatus {
-            chain_id,
             latest_block_number,
-            latency_ms,
+            latency_ms: started_at.elapsed().as_millis() as u64,
         })
     }
 }
@@ -211,7 +209,7 @@ pub trait ChainTransactionState: Send + Sync {
 
 #[async_trait]
 pub trait ChainState: Send + Sync {
-    async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>>;
+    async fn get_chain_id(&self) -> Result<Option<String>, Box<dyn Error + Sync + Send>>;
     async fn get_node_status(&self) -> Result<NodeSyncStatus, Box<dyn Error + Sync + Send>> {
         Ok(NodeSyncStatus::in_sync())
     }

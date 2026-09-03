@@ -3,21 +3,16 @@ use std::collections::HashMap;
 use gem_hypercore::models::order::OpenOrder;
 use gem_hypercore::models::websocket::{HyperliquidSocketMessage, PositionsDiff};
 use primitives::{
-    PerpetualMarginType, PerpetualMarketData, PerpetualOrderType, PerpetualPosition, PerpetualTriggerOrder,
+    PerpetualMarketData, PerpetualPosition,
     chart::{ChartCandleStick, ChartCandleUpdate},
     perpetual::{PerpetualAccountMode, PerpetualBalance},
 };
 
 pub type GemHyperliquidOpenOrder = OpenOrder;
 pub type GemPositionsDiff = PositionsDiff;
-pub type GemPerpetualMarginType = PerpetualMarginType;
-pub type GemPerpetualOrderType = PerpetualOrderType;
 pub type GemPerpetualAccountMode = PerpetualAccountMode;
-pub type GemPerpetualPosition = PerpetualPosition;
 pub type GemChartCandleStick = ChartCandleStick;
 pub type GemPerpetualMarketData = PerpetualMarketData;
-
-pub type GemPerpetualTriggerOrder = PerpetualTriggerOrder;
 
 #[uniffi::remote(Record)]
 pub struct GemPositionsDiff {

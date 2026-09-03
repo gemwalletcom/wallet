@@ -13,9 +13,8 @@ use primitives::NodeSyncStatus;
 #[cfg(feature = "rpc")]
 #[async_trait]
 impl<C: Client + Clone> ChainState for EthereumProvider<C> {
-    async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
-        let chain_id = EthereumClient::get_chain_id(self).await?;
-        Ok(u64::from_str_radix(chain_id.trim_start_matches("0x"), 16)?.to_string())
+    async fn get_chain_id(&self) -> Result<Option<String>, Box<dyn Error + Sync + Send>> {
+        Ok(Some(EthereumClient::get_chain_id(self).await?.to_string()))
     }
 
     async fn get_node_status(&self) -> Result<NodeSyncStatus, Box<dyn Error + Sync + Send>> {
@@ -30,17 +29,17 @@ impl<C: Client + Clone> ChainState for EthereumProvider<C> {
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
-    use crate::provider::testkit::{create_ethereum_test_client, create_smartchain_test_client};
     use chain_traits::ChainState;
+    use primitives::Chain;
+
+    use crate::provider::testkit::{create_ethereum_test_client, create_smartchain_test_client};
 
     #[tokio::test]
     async fn test_ethereum_get_chain_id() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_ethereum_test_client();
         let chain_id = ChainState::get_chain_id(&client).await?;
 
-        println!("Ethereum Chain ID: {}", chain_id);
-
-        assert_eq!(chain_id, "1");
+        assert_eq!(chain_id.as_deref(), Some(Chain::Ethereum.network_id()));
 
         Ok(())
     }
@@ -62,9 +61,7 @@ mod chain_integration_tests {
         let client = create_smartchain_test_client();
         let chain_id = ChainState::get_chain_id(&client).await?;
 
-        println!("SmartChain Chain ID: {}", chain_id);
-
-        assert_eq!(chain_id, "56");
+        assert_eq!(chain_id.as_deref(), Some(Chain::SmartChain.network_id()));
 
         Ok(())
     }

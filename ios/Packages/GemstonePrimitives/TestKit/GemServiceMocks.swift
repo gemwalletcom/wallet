@@ -9,20 +9,11 @@ import PrimitivesTestKit
 
 public actor GemDeviceServiceMock: GemDeviceServiceProtocol {
     private let syncError: Error?
-    public private(set) var synchronizeCalls = 0
     public private(set) var synchronizeIfNeededCalls = 0
     public private(set) var pushEnabledValues: [Bool] = []
 
     public init(syncError: Error? = nil) {
         self.syncError = syncError
-    }
-
-    public func synchronize() async throws -> Gemstone.Device {
-        synchronizeCalls += 1
-        if let syncError {
-            throw syncError
-        }
-        return try Primitives.Device.mock().json()
     }
 
     public func setPushEnabled(enabled: Bool) async throws {
@@ -570,8 +561,8 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         GemClaimRewards(value: 0, destination: .amount(delegations: delegations))
     }
 
-    public func recommendedValidatorIds(chain _: Gemstone.Chain) -> [String] {
-        validators.map(\.self)
+    public func recommendedValidators(chain _: Gemstone.Chain, validators: [Gemstone.DelegationValidator]) -> [Gemstone.DelegationValidator] {
+        validators.filter { self.validators.contains($0) }
     }
 
     public func recommendedValidator(chain _: Gemstone.Chain, validators _: [Gemstone.DelegationValidator]) -> Gemstone.DelegationValidator? {
@@ -696,7 +687,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         return true
     }
 
-    public func syncMarkets(chain _: Gemstone.Chain) async throws {
+    private func syncMarkets(chain _: Gemstone.Chain) async throws {
         syncMarketsCount += 1
         updatedAt = Int64(Date().timeIntervalSince1970)
     }
@@ -721,51 +712,6 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     }
 
     public func setPinned(perpetualId _: String, pinned _: Bool) async throws {}
-
-    public func getPortfolio(chain _: Gemstone.Chain, address _: String) async throws -> Gemstone.PerpetualPortfolio {
-        try Primitives.PerpetualPortfolio(day: nil, week: nil, month: nil, allTime: nil, accountSummary: nil).json()
-    }
-
-    public func applySocketMessage(walletId _: String, mode _: Gemstone.PerpetualAccountMode, data _: Data) async throws -> Gemstone.GemPerpetualSocketUpdate {
-        .applied
-    }
-}
-
-public final class GemAssetDiscoveryServiceMock: GemAssetDiscoveryServiceProtocol, @unchecked Sendable {
-    public init() {}
-
-    public func discover(walletId _: String) async throws {}
-}
-
-public final class GemExplorerServiceMock: GemExplorerServiceProtocol, @unchecked Sendable {
-    private let lock = NSLock()
-    private var names: [Gemstone.Chain: String] = [:]
-
-    public init() {}
-
-    public func getExplorerName(chain: Gemstone.Chain) -> String {
-        lock.withLock { names[chain] ?? "MockExplorer" }
-    }
-
-    public func setExplorerName(chain: Gemstone.Chain, name: String) throws {
-        lock.withLock { names[chain] = name }
-    }
-
-    public func getTransactionUrl(chain: Gemstone.Chain, hash: String) -> GemBlockExplorerLink {
-        link("https://mock.explorer/\(chain)/tx/\(hash)")
-    }
-
-    public func getAddressUrl(chain: Gemstone.Chain, address: String) -> GemBlockExplorerLink {
-        link("https://mock.explorer/\(chain)/address/\(address)")
-    }
-
-    public func getTokenUrl(chain: Gemstone.Chain, address: String) -> GemBlockExplorerLink? {
-        link("https://mock.explorer/\(chain)/token/\(address)")
-    }
-
-    private func link(_ url: String) -> GemBlockExplorerLink {
-        GemBlockExplorerLink(name: "MockExplorer", link: url)
-    }
 }
 
 public extension GemExplorerService {
@@ -853,10 +799,6 @@ public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Se
     public private(set) var handledActions: [GemBannerAction] = []
 
     public init() {}
-
-    public func showsOnboarding(state _: Gemstone.BannerState, isWalletEmpty: Bool) -> Bool {
-        isWalletEmpty
-    }
 
     public func close(key: GemBannerKey) async throws {
         closedKeys.append(key)

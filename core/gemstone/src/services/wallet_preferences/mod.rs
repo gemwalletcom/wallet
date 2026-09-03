@@ -41,24 +41,26 @@ impl GemWalletPreferencesService {
         Self { store }
     }
 
+    pub fn includes_perpetual_collateral(&self, wallet_id: WalletId) -> bool {
+        let mode = self.get_perpetual_account_mode(wallet_id).unwrap_or(PerpetualAccountMode::Standard);
+        crate::services::perpetual::rules::includes_perpetual_collateral(mode)
+    }
+}
+
+impl GemWalletPreferencesService {
+    pub fn get_perpetual_account_mode(&self, wallet_id: WalletId) -> Result<PerpetualAccountMode, GemServiceError> {
+        Ok(match self.store.get(wallet_id, WalletPreferenceKey::PerpetualAccountMode.as_ref().to_string()).as_deref() {
+            Some("unified") => PerpetualAccountMode::Unified,
+            _ => PerpetualAccountMode::Standard,
+        })
+    }
+
     pub fn get_assets_timestamp(&self, wallet_id: WalletId) -> u64 {
         self.get_timestamp(wallet_id, WalletPreferenceKey::AssetsTimestamp)
     }
 
     pub fn is_initial_load_completed(&self, wallet_id: WalletId, step: GemDiscoveryStep) -> Result<bool, GemServiceError> {
         self.get_flag(wallet_id, initial_load_key(step))
-    }
-
-    pub fn includes_perpetual_collateral(&self, wallet_id: WalletId) -> bool {
-        let mode = self.get_perpetual_account_mode(wallet_id).unwrap_or(PerpetualAccountMode::Standard);
-        crate::services::perpetual::rules::includes_perpetual_collateral(mode)
-    }
-
-    pub fn get_perpetual_account_mode(&self, wallet_id: WalletId) -> Result<PerpetualAccountMode, GemServiceError> {
-        Ok(match self.store.get(wallet_id, WalletPreferenceKey::PerpetualAccountMode.as_ref().to_string()).as_deref() {
-            Some("unified") => PerpetualAccountMode::Unified,
-            _ => PerpetualAccountMode::Standard,
-        })
     }
 }
 

@@ -98,6 +98,7 @@ public final class ManageContactAddressViewModel {
             state: .data(.plain(Chain.allCases)),
             selectedItems: [chain],
             selectionType: .checkmark,
+            title: networkTitle,
         )
     }
 

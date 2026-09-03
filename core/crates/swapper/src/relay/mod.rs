@@ -4,6 +4,7 @@ mod client;
 mod mapper;
 mod model;
 mod provider;
+mod target;
 #[cfg(test)]
 mod testkit;
 

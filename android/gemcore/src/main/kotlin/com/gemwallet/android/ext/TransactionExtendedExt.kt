@@ -6,10 +6,8 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.TransactionPerpetualMetadata
 import com.wallet.core.primitives.TransactionResourceTypeMetadata
-import com.wallet.core.primitives.TransferDataOutputAction
 import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
-import kotlinx.serialization.Serializable
 
 fun Transaction.getAssociatedAssetIds(): List<AssetId> {
     val swapAssets = getSwapMetadata()?.let { setOf(it.fromAsset, it.toAsset) } ?: emptySet()
@@ -41,9 +39,6 @@ fun Transaction.getResourceMetadata(): TransactionResourceTypeMetadata? {
     return decodeMetadata(isResourceTransaction, metadata)
 }
 
-fun Transaction.getWalletConnectOutputAction(): TransferDataOutputAction? =
-    decodeMetadata<TransactionWalletConnectMetadata>(type == TransactionType.SmartContractCall, metadata)?.outputAction
-
 private inline fun <reified T> decodeMetadata(matches: Boolean, metadata: String?): T? {
     if (!matches || metadata.isNullOrEmpty()) {
         return null
@@ -54,8 +49,3 @@ private inline fun <reified T> decodeMetadata(matches: Boolean, metadata: String
         null
     }
 }
-
-@Serializable
-private data class TransactionWalletConnectMetadata(
-    val outputAction: TransferDataOutputAction,
-)

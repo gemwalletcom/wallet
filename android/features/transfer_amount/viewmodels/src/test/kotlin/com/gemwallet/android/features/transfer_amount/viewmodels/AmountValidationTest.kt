@@ -32,8 +32,8 @@ class AmountValidationTest {
     }
 
     @Test
-    fun `validate throws ZeroAmount for zero`() {
-        assertThrows(AmountError.ZeroAmount::class.java) {
+    fun `validate rejects zero silently`() {
+        assertThrows(AmountError.None::class.java) {
             AmountValidation.validate(GemAmountType.Transfer, asset, Crypto(BigInteger.ZERO), balance("100000000"))
         }
     }

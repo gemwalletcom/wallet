@@ -146,10 +146,6 @@ fn network_name(chain: Chain) -> String {
     ChainAsset::from_chain(chain).network_name
 }
 
-pub fn shows_onboarding(state: BannerState, is_wallet_empty: bool) -> bool {
-    is_visible(state) && is_wallet_empty
-}
-
 pub(super) fn visible_banners(stored: Vec<GemBannerItem>, context: &GemBannerContext) -> Vec<GemBannerItem> {
     let mut banners: Vec<GemBannerItem> = Vec::new();
     for item in stored.into_iter().chain(extra_banners()) {
@@ -423,12 +419,5 @@ mod tests {
         assert_eq!(icon(BannerEvent::Onboarding), Some(GemBannerIcon::Bitcoin));
         assert_eq!(icon(BannerEvent::TradePerpetuals), Some(GemBannerIcon::Perpetuals));
         assert_eq!(banner_content(BannerEvent::AccountActivation, None).icon, None);
-    }
-
-    #[test]
-    fn test_onboarding_shows_while_the_wallet_is_empty_and_the_banner_stands() {
-        assert!(shows_onboarding(BannerState::Active, true));
-        assert!(!shows_onboarding(BannerState::Active, false));
-        assert!(!shows_onboarding(BannerState::Cancelled, true));
     }
 }

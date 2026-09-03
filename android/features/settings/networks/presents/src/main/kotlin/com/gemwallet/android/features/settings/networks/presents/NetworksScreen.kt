@@ -62,8 +62,8 @@ fun NetworksScreen(
                     when (action) {
                         NetworkAction.Refresh -> viewModel.refresh()
                         NetworkAction.Cancel -> viewModel.onSelectChain()
-                        is NetworkAction.SelectNode -> viewModel.onSelectNode(action.node)
-                        is NetworkAction.DeleteNode -> viewModel.onDeleteNode(action.node)
+                        is NetworkAction.SelectNode -> viewModel.onSelectNode(action.url)
+                        is NetworkAction.DeleteNode -> viewModel.onDeleteNode(action.url)
                         is NetworkAction.SelectBlockExplorer -> viewModel.onSelectBlockExplorer(action.name)
                     }
                 },

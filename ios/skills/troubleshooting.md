@@ -1,5 +1,6 @@
 # Troubleshooting
 
+Use when an iOS build, test, package resolution, or generated-code step fails.
 ## Common Pitfalls
 
 ### Never Edit Generated Files

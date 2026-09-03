@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.services.gemstone.di
 
-import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.stream.StreamObserverService
@@ -17,8 +16,10 @@ import uniffi.gemstone.GemApiClient
 import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemAssetStore
 import uniffi.gemstone.GemAssetDetailsService
+import uniffi.gemstone.GemAssetDetailsServiceInterface
 import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.GemSwapService
 import uniffi.gemstone.GemExplorerService
@@ -153,7 +154,6 @@ object AssetsModule {
     fun provideStreamObserverService(
         getSession: GetSession,
         getCurrentCurrency: GetCurrentCurrency,
-        syncAssets: SyncAssets,
         streamSubscriptionService: GemStreamSubscriptionService,
         streamService: GemStreamService,
         connection: WebSocketConnectable,
@@ -161,7 +161,6 @@ object AssetsModule {
     ): StreamObserverService = StreamObserverService(
         getSession = getSession,
         getCurrentCurrency = getCurrentCurrency,
-        syncAssets = syncAssets,
         subscriptionService = streamSubscriptionService,
         streamService = streamService,
         connection = connection,
@@ -239,4 +238,10 @@ object AssetsModule {
     @Provides
     @Singleton
     fun provideGemPriceService(apiClient: GemApiClient, priceStore: GemstonePriceStore): GemPriceService = GemPriceService(apiClient, priceStore)
+
+    @Provides
+    fun provideGemAssetDetailsServiceInterface(service: GemAssetDetailsService): GemAssetDetailsServiceInterface = service
+
+    @Provides
+    fun provideGemAssetsServiceInterface(service: GemAssetsService): GemAssetsServiceInterface = service
 }

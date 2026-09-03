@@ -5,8 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetHideBalancesState
-import com.gemwallet.android.application.assets.cases.GetImportInProgress
-import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
@@ -19,28 +17,25 @@ import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.AssetToastEmitter
 import com.gemwallet.android.ui.models.AssetToastEmitterImpl
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.BannerEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemBannerAction
-import uniffi.gemstone.GemBannerKey
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import javax.inject.Inject
 
 @HiltViewModel
 class AssetsViewModel @Inject constructor(
     private val service: GemWalletHomeServiceInterface,
-    getImportInProgress: GetImportInProgress,
     getActiveAssetsInfo: GetActiveAssetsInfo,
     getWalletSummary: GetWalletSummary,
     getHideBalancesState: GetHideBalancesState,
-    getShowWelcomeBanner: GetShowWelcomeBanner,
     private val getSession: GetSession,
     private val userConfig: UserConfig,
 ) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
@@ -60,8 +55,7 @@ class AssetsViewModel @Inject constructor(
         val unpinned: List<AssetInfoDataAggregate> = emptyList(),
     )
 
-    val importInProgress = getImportInProgress()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    val isLoadingAssets = MutableStateFlow(false)
 
     val isRefreshing = MutableStateFlow(false)
 
@@ -86,18 +80,35 @@ class AssetsViewModel @Inject constructor(
     val walletSummary = getWalletSummary.getWalletSummary()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val showWelcomeBanner = getShowWelcomeBanner()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            currentWalletId.filterNotNull().collectLatest { loadOnce() }
+        }
+    }
 
     fun onRefresh() = viewModelScope.launch(Dispatchers.IO) {
         isRefreshing.value = true
         try {
-            val assetIds = assetGroups.value.let { it.pinned + it.unpinned }.map { it.id.toIdentifier() }
-            runCatchingCancellable { service.refresh(assetIds) }
-                .onFailure { Log.e(TAG, "assets refresh failed", it) }
+            refresh()
         } finally {
             isRefreshing.value = false
         }
+    }
+
+    private suspend fun loadOnce() {
+        val showsLoading = runCatchingCancellable { service.showsInitialLoading() }.getOrDefault(false)
+        if (showsLoading) isLoadingAssets.value = true
+        try {
+            refresh()
+        } finally {
+            if (showsLoading) isLoadingAssets.value = false
+        }
+    }
+
+    private suspend fun refresh() {
+        val assetIds = assetGroups.value.let { it.pinned + it.unpinned }.map { it.id.toIdentifier() }
+        runCatchingCancellable { service.refresh(assetIds) }
+            .onFailure { Log.e(TAG, "assets refresh failed", it) }
     }
 
     fun hideAsset(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
@@ -114,13 +125,6 @@ class AssetsViewModel @Inject constructor(
 
     fun hideBalances() {
         userConfig.hideBalances()
-    }
-
-    fun onHideWelcomeBanner() = viewModelScope.launch(Dispatchers.IO) {
-        val wallet = getSession().value?.wallet ?: return@launch
-        val key = GemBannerKey(walletId = wallet.id.id, assetId = null, event = BannerEvent.Onboarding.toJson())
-        runCatchingCancellable { service.applyBannerAction(key, GemBannerAction.Close) }
-            .onFailure { Log.e(TAG, "closing the welcome banner failed", it) }
     }
 
     private companion object {

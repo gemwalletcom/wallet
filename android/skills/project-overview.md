@@ -1,5 +1,6 @@
 # Project Overview
 
+Use when you need the Android module layout, channel list, or where a new feature module belongs.
 Gem Wallet Android is a Kotlin and Jetpack Compose application backed by the shared Rust core.
 
 ## Technology Stack
@@ -36,11 +37,7 @@ android/
 
 ## Build Flavors
 
-- `google`
-- `huawei`
-- `samsung`
-- `solana`
-- `universal`
+Product flavors are distribution channels: `google` (default), `universal`, `huawei`, `solana`, `samsung`, `emerald`, and `fdroid`. All of them are declared in one matrix, `gradle/channels.gradle.kts`; select one with `-Pchannel=<name>`. See the decision record in `../docs/DECISIONS.md` before changing channel wiring.
 
 ## Key Dependencies
 

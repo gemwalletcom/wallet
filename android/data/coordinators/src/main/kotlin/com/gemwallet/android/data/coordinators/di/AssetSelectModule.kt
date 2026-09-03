@@ -19,7 +19,6 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
-import com.gemwallet.android.application.assets.cases.SyncBalances
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 
 @InstallIn(SingletonComponent::class)
@@ -43,8 +42,7 @@ object AssetSelectModule {
     fun provideGetChainAssets(
         assetStore: GemstoneAssetStore,
         getCurrentWalletId: GetCurrentWalletId,
-        syncBalances: SyncBalances,
-    ): GetChainAssets = GetChainAssetsImpl(assetStore, getCurrentWalletId, syncBalances)
+    ): GetChainAssets = GetChainAssetsImpl(assetStore, getCurrentWalletId)
 
     @Provides
     @Singleton

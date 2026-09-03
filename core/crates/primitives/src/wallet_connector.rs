@@ -97,7 +97,6 @@ impl WalletConnectionMethods {
 }
 
 #[derive(Debug, Serialize)]
-#[typeshare(swift = "CaseIterable, Sendable")]
 pub enum WalletConnectionEvents {
     #[serde(rename = "connect")]
     Connect,

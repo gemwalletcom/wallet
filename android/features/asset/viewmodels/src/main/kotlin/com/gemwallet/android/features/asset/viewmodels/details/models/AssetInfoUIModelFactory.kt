@@ -18,27 +18,27 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.VerificationStatus
 import com.wallet.core.primitives.WalletType
 import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemAssetNetworkDestination
 import uniffi.gemstone.GemBalanceRow
-import uniffi.gemstone.GemSwapServiceInterface
+import uniffi.gemstone.GemSwapPairSuggestion
 import javax.inject.Inject
 import java.math.BigInteger
 
-class AssetInfoUIModelFactory @Inject constructor(
-    private val swapService: GemSwapServiceInterface,
-) {
+class AssetInfoUIModelFactory @Inject constructor() {
 
     fun create(
         chainAssetInfo: ChainAssetInfo,
+        swapPair: GemSwapPairSuggestion,
         explorerName: String,
         walletType: WalletType,
         explorerAddressUrl: String?,
         explorerTokenUrl: String?,
         verificationStatus: VerificationStatus?,
         networkDestination: GemAssetNetworkDestination?,
+        shareUrl: String,
     ): AssetInfoUIModel {
         val assetInfo = chainAssetInfo.assetInfo
         val feeAssetInfo = chainAssetInfo.feeAssetInfo
@@ -49,11 +49,6 @@ class AssetInfoUIModelFactory @Inject constructor(
         val currencyFormatter = CurrencyFormatter(currency = currency)
         val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Auto)
         val fiatTotal = if (balances.fiatTotalAmount == 0.0) "" else currencyFormatter.string(balances.fiatTotalAmount)
-        val swapPair = swapService.pairForAsset(
-            assetId = asset.id.toIdentifier(),
-            hasBalance = (balances.balance.available.toBigIntegerOrNull() ?: BigInteger.ZERO) > BigInteger.ZERO,
-        )
-
         return AssetInfoUIModel(
             assetInfo = assetInfo,
             name = assetName(asset),
@@ -71,6 +66,7 @@ class AssetInfoUIModelFactory @Inject constructor(
             explorerTokenUrl = explorerTokenUrl,
             verificationStatus = verificationStatus,
             networkDestination = networkDestination?.let(::networkDestination),
+            shareUrl = shareUrl,
             accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
                 walletType = walletType,
                 totalBalance = valueFormatter.string(balances.balance.getTotalAmount(), balances.asset),
@@ -84,7 +80,7 @@ class AssetInfoUIModelFactory @Inject constructor(
 
     private fun networkDestination(destination: GemAssetNetworkDestination): AssetInfoUIModel.NetworkDestination? = when (destination) {
         is GemAssetNetworkDestination.Asset -> AssetInfoUIModel.NetworkDestination.Asset(destination.asset.toPrimitives().id)
-        is GemAssetNetworkDestination.Assets -> destination.chain.toChain()?.let(AssetInfoUIModel.NetworkDestination::Assets)
+        is GemAssetNetworkDestination.Assets -> AssetInfoUIModel.NetworkDestination.Assets(destination.chain.requireChain())
     }
 
     private fun assetName(asset: Asset): String =

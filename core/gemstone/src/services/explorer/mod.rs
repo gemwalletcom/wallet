@@ -22,7 +22,9 @@ impl GemExplorerService {
     pub fn new(preferences: Arc<GemPreferencesService>) -> Self {
         Self { preferences }
     }
+}
 
+impl GemExplorerService {
     pub fn get_explorer_name(&self, chain: Chain) -> String {
         let selected = self.preferences.get_explorer_name(chain);
         rules::selected_explorer(&self.get_explorers(chain), selected).unwrap_or_default()
@@ -41,9 +43,7 @@ impl GemExplorerService {
         let name = self.get_explorer_name(chain);
         Explorer { chain }.get_token_url(&name, &address).map(|url| link(&name, url))
     }
-}
 
-impl GemExplorerService {
     pub fn get_explorers(&self, chain: Chain) -> Vec<String> {
         get_block_explorers_by_chain(chain.as_ref()).into_iter().map(|explorer| explorer.name()).collect()
     }

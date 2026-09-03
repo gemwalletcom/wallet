@@ -3,9 +3,9 @@ package com.gemwallet.android.features.swap.viewmodels.models
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
-import com.gemwallet.android.application.swap.cases.getQuote
 import uniffi.gemstone.SwapperException
 import uniffi.gemstone.SwapperProvider
+import uniffi.gemstone.SwapperQuote
 
 internal sealed interface SwapQuotePhase {
     data object NoInput : SwapQuotePhase
@@ -28,9 +28,12 @@ internal sealed interface SwapTransferPhase {
     ) : SwapTransferPhase
 }
 
+internal typealias SelectQuote = (List<SwapperQuote>, SwapperProvider?) -> SwapperQuote?
+
 internal data class SwapQuoteSession(
     val quotes: SwapQuotesResult? = null,
     val selectedProvider: SwapperProvider? = null,
+    val selectedQuote: SwapperQuote? = null,
     val quotePhase: SwapQuotePhase = SwapQuotePhase.NoInput,
     val transferPhase: SwapTransferPhase = SwapTransferPhase.Idle,
     val refreshPausedUntilRestart: Boolean = false,
@@ -38,7 +41,7 @@ internal data class SwapQuoteSession(
     val quote: QuoteState?
         get() {
             val current = quotes ?: return null
-            val selected = current.getQuote(selectedProvider) ?: return null
+            val selected = selectedQuote ?: return null
             return QuoteState(selected, current.pay, current.receive)
         }
 
@@ -64,10 +67,12 @@ internal fun SwapQuoteSession.onRefreshRequested(params: SwapQuoteRequestParams)
 internal fun SwapQuoteSession.onFetchStarted(requestKey: SwapQuoteRequestKey): SwapQuoteSession =
     if (acceptsQuotePhase) copy(quotePhase = SwapQuotePhase.Loading(requestKey)) else this
 
-internal fun SwapQuoteSession.onQuoteResults(results: SwapQuotesResult): SwapQuoteSession {
+internal fun SwapQuoteSession.onQuoteResults(results: SwapQuotesResult, select: SelectQuote): SwapQuoteSession {
     val error = results.quoteErrorOrNull()
+    val quotes = if (acceptsQuotes) results.takeIf { error == null } else quotes
     return copy(
-        quotes = if (acceptsQuotes) results.takeIf { error == null } else quotes,
+        quotes = quotes,
+        selectedQuote = quotes?.let { select(it.items, selectedProvider) },
         quotePhase = if (acceptsQuotePhase) results.phaseFor(error) else quotePhase,
     )
 }
@@ -81,8 +86,9 @@ private fun SwapQuotesResult.quoteErrorOrNull(): Throwable? = when {
 private fun SwapQuotesResult.phaseFor(error: Throwable?): SwapQuotePhase =
     if (error == null) SwapQuotePhase.Ready else SwapQuotePhase.Failed(requestKey, error)
 
-internal fun SwapQuoteSession.onProviderSelected(provider: SwapperProvider): SwapQuoteSession = copy(
+internal fun SwapQuoteSession.onProviderSelected(provider: SwapperProvider, select: SelectQuote): SwapQuoteSession = copy(
     selectedProvider = provider,
+    selectedQuote = quotes?.let { select(it.items, provider) },
     transferPhase = SwapTransferPhase.Idle,
     refreshPausedUntilRestart = false,
 )

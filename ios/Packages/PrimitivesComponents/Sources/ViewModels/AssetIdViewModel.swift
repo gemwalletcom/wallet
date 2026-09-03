@@ -1,10 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import class Gemstone.GemAssetConfigService
 import enum Gemstone.GemImage
 import GemstonePrimitives
 import Primitives
 import SwiftUI
+
+private let assetConfig = GemAssetConfigService()
 
 public struct AssetIdViewModel: Sendable {
     private let assetId: AssetId
@@ -29,20 +32,17 @@ public struct AssetIdViewModel: Sendable {
             placeholder: imagePlaceholder,
             chainPlaceholder: chainPlaceholder,
         )
-        switch (assetId.chain, assetId.type) {
-        case (.hyperCore, .token):
-            if let token = try? assetId.twoSubTokenIds(), let chain = Chain.allCases.first(where: { $0.asset.symbol == token.1 }) {
-                let chainAssetImage = AssetIdViewModel(assetId: chain.assetId).assetImage
-                return AssetImage(
-                    type: defaultAssetImage.type,
-                    imageURL: chainAssetImage.imageURL,
-                    placeholder: chainAssetImage.placeholder,
-                    chainPlaceholder: chainPlaceholder,
-                )
-            }
-        default: return defaultAssetImage
+        let iconAssetId = AssetId(core: assetConfig.iconAssetId(assetId: assetId.identifier))
+        guard iconAssetId != assetId else {
+            return defaultAssetImage
         }
-        return defaultAssetImage
+        let iconAssetImage = AssetIdViewModel(assetId: iconAssetId).assetImage
+        return AssetImage(
+            type: defaultAssetImage.type,
+            imageURL: iconAssetImage.imageURL,
+            placeholder: iconAssetImage.placeholder,
+            chainPlaceholder: chainPlaceholder,
+        )
     }
 
     private var imageURL: URL? {

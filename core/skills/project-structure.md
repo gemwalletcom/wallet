@@ -1,6 +1,7 @@
 # Project Structure
 
-Gem Wallet Core is a Rust-based cryptocurrency wallet backend engine supporting 35+ blockchain networks. It is a Cargo workspace with 50+ crates covering transaction processing, asset management, DeFi integrations, swap operations, and cross-platform mobile support.
+Use when you need to find which crate or app owns a capability, or where a new crate belongs.
+Gem Wallet Core is a Rust-based cryptocurrency wallet backend engine supporting 50+ blockchain networks. It is a Cargo workspace with 60+ crates covering transaction processing, asset management, DeFi integrations, swap operations, and cross-platform mobile support.
 
 ## Directory Tree
 
@@ -29,7 +30,8 @@ Shared Rust library compiled to iOS Swift Package and Android AAR using UniFFI b
 
 Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 - **Bitcoin family** (`gem_bitcoin`): Bitcoin, Bitcoin Cash, Litecoin, Dogecoin
-- **EVM chains** (`gem_evm`, `gem_optimism`, `gem_bsc`, `gem_everstake`, `gem_monad`): Ethereum, Polygon, Arbitrum, Optimism, Base, zkSync, Linea, BSC, Monad
+- **EVM chains** (`gem_evm` family crate plus `gem_optimism`, `gem_bsc`, `gem_everstake`, `gem_monad`, `gem_tempo`): Ethereum, Polygon, Arbitrum, Optimism, Base, zkSync, Linea, BSC, Monad, Tempo, and the other chains in `ChainConfig`; see [New Chain Checklist](new-chain-checklist.md) for the crate boundary
+- **EVM indexers** (`gem_alchemy`, `gem_ankr`, `gem_blockscout`): address history and token balance providers composed only by `settings_chain`
 - **Alternative L1s**: Solana (`gem_solana`), Sui (`gem_sui`), TON (`gem_ton`), Aptos (`gem_aptos`), NEAR (`gem_near`), Stellar (`gem_stellar`), Algorand (`gem_algorand`), Tron (`gem_tron`), XRP (`gem_xrp`), Cardano (`gem_cardano`), Polkadot (`gem_polkadot`)
 - **Cosmos ecosystem** (`gem_cosmos`): Cosmos Hub, Osmosis, Celestia, Injective, Sei, Noble
 
@@ -39,6 +41,8 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 - **generate** (`bin/generate/`): Code generation utilities
 - **gas-bench** (`bin/gas-bench/`): Gas benchmarking tool for blockchain operations
 - **img-downloader** (`bin/img-downloader/`): Image asset downloader utility
+- **cli** (`bin/cli/`): Command-line entry point for Core operations
+- **nodecheck** (`bin/nodecheck/`): Node availability and RPC health checks
 
 ## Core Crates
 
@@ -60,13 +64,11 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 
 ### Pricing & Market Data
 - `pricer/`: Asset pricing aggregation and management
-- `prices_dex/`: DEX-specific price feeds and calculations
-- `coingecko/`: CoinGecko API integration for market data
+- `prices/`: Price provider implementations (CoinGecko, DefiLlama, Jupiter) behind one `PriceProvider` contract
+- `coingecko/`: CoinGecko API client
 
 ### NFT & Digital Assets
-- `nft/`: NFT data models and business logic
-- `nft_client/`: NFT marketplace API clients
-- `nft_provider/`: NFT data provider integrations (OpenSea, Magic Eden)
+- `nft/`: NFT models, provider factory, and provider clients (OpenSea, Magic Eden, Alchemy, TON)
 
 ### Integrations & Services
 - `fiat/`: Fiat on-ramp/off-ramp providers (MoonPay, Transak, Mercuryo, Paybis, Flashnet)

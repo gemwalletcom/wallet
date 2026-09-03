@@ -4,7 +4,7 @@ import com.gemwallet.android.ui.R
 import uniffi.gemstone.GemTransferAmountResult
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.GemTransferService
+import uniffi.gemstone.GemTransferServiceInterface
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.domains.confirm.asset
@@ -30,7 +30,8 @@ import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.AssetPriceValue
 import uniffi.gemstone.GemConfirmSimulationState
-import uniffi.gemstone.GemConfirmTransferService
+import uniffi.gemstone.GemAcquireAssetFlow
+import uniffi.gemstone.GemConfirmTransferServiceInterface
 import uniffi.gemstone.GemExecuteResult
 import uniffi.gemstone.GemSwapQuoteSummary
 import com.gemwallet.android.model.Crypto
@@ -54,6 +55,7 @@ import com.gemwallet.android.domains.confirm.ConfirmState
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.wallet.core.primitives.AddressName
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualType
@@ -83,9 +85,9 @@ import javax.inject.Inject
 class ConfirmViewModel @Inject constructor(
     private val getSession: GetSession,
     private val buildConfirmProperties: BuildConfirmProperties,
-    private val confirmService: GemConfirmTransferService,
+    private val confirmService: GemConfirmTransferServiceInterface,
     private val savedStateHandle: SavedStateHandle,
-    private val transferService: GemTransferService,
+    private val transferService: GemTransferServiceInterface,
 ) : ViewModel() {
 
     private val restart = MutableStateFlow(false)
@@ -405,5 +407,7 @@ class ConfirmViewModel @Inject constructor(
 
         return ConfirmDetailElement.SwapDetails(model)
     }
+
+    fun acquireFlow(asset: Asset): GemAcquireAssetFlow = confirmService.acquireAssetFlow(asset.chain.string)
 }
 

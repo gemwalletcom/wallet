@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
-import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
-import com.gemwallet.android.blockchain.operators.gemstone.GemValidatePhraseOperator
+import uniffi.gemstone.GemMnemonic
 import com.gemwallet.android.serializer.toJson
 import io.mockk.coEvery
 import uniffi.gemstone.GemNameServiceInterface
@@ -55,9 +54,7 @@ class ImportViewModelTest {
     private fun viewModel(nameService: GemNameServiceInterface) = ImportViewModel(
         service = mockk(relaxed = true),
         nameService = nameService,
-        syncWalletImport = mockk(relaxed = true),
-        validatePhrase = GemValidatePhraseOperator(),
-        findPhraseWord = GemFindPhraseWord(),
+        mnemonic = GemMnemonic(),
     )
 
     @Before

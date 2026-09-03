@@ -198,12 +198,15 @@ pub fn recommended_validator_ids(chain: Chain) -> Vec<String> {
     get_validators().remove(chain.as_ref()).unwrap_or_default()
 }
 
-pub fn recommended_validator(chain: Chain, validators: Vec<DelegationValidator>) -> Option<DelegationValidator> {
+pub fn recommended_validators(chain: Chain, validators: &[DelegationValidator]) -> Vec<DelegationValidator> {
     let recommended = recommended_validator_ids(chain);
-    let candidates: Vec<&DelegationValidator> = validators.iter().filter(|validator| recommended.contains(&validator.id)).collect();
-    candidates
+    validators.iter().filter(|validator| recommended.contains(&validator.id)).cloned().collect()
+}
+
+pub fn recommended_validator(chain: Chain, validators: Vec<DelegationValidator>) -> Option<DelegationValidator> {
+    recommended_validators(chain, &validators)
         .choose(&mut rand::rng())
-        .map(|validator| (*validator).clone())
+        .cloned()
         .or_else(|| validators.first().cloned())
 }
 
@@ -465,6 +468,13 @@ mod tests {
         let recommended = recommended_validator_ids(Chain::Cosmos);
         assert!(!recommended.is_empty());
         let validators = vec![validator("other"), validator(&recommended[0])];
+        assert_eq!(
+            recommended_validators(Chain::Cosmos, &validators)
+                .iter()
+                .map(|validator| validator.id.as_str())
+                .collect::<Vec<_>>(),
+            vec![recommended[0].as_str()]
+        );
         assert_eq!(recommended_validator(Chain::Cosmos, validators).unwrap().id, recommended[0]);
         assert_eq!(recommended_validator(Chain::Cosmos, vec![validator("other")]).unwrap().id, "other");
         assert!(recommended_validator(Chain::Cosmos, vec![]).is_none());

@@ -21,6 +21,10 @@ final class AddNodeSceneViewModel {
     var isPresentingAlertMessage: AlertMessage?
     var loadTrigger: AddNodeLoadTrigger?
 
+    var nodeCheckDebounce: Duration {
+        .milliseconds(service.nodeCheckDebounceMilliseconds())
+    }
+
     init(chain: Chain, service: any GemChainSettingsServiceProtocol) {
         self.chain = chain
         self.service = service

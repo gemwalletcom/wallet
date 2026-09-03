@@ -1,12 +1,10 @@
 use std::{collections::HashMap, error::Error};
 
-use gem_client::ReqwestClient;
+use gem_client::{ClientExt, ReqwestClient};
 use primitives::FiatProviderName;
-use reqwest::Method;
 
-use super::models::{Asset, CheckoutOrder, Country, CreateOrderRequest, FiatCurrency, Order, PAYMENT_METHOD_CARD, Quote};
-
-const BUY_ORDER_TYPE: &str = "buy";
+use super::models::{Asset, BuyQuoteQuery, CheckoutOrder, Country, CreateOrderRequest, FiatCurrency, Order, PAYMENT_METHOD_CARD, Quote};
+use super::target::BanxaTarget;
 
 pub struct BanxaClient {
     client: ReqwestClient,
@@ -28,36 +26,37 @@ impl BanxaClient {
     }
 
     pub async fn get_assets_buy(&self) -> Result<Vec<Asset>, Box<dyn Error + Send + Sync>> {
-        let path = format!("/{}/v2/crypto/{BUY_ORDER_TYPE}", self.partner);
-        Ok(self.client.request(Method::GET, &path).send().await?.json().await?)
+        Ok(self.client.get(BanxaTarget::Assets { partner: self.partner.clone() }).await?)
     }
 
     pub async fn get_order(&self, order_id: &str) -> Result<Order, Box<dyn Error + Send + Sync>> {
-        let path = format!("/{}/v2/orders/{order_id}", self.partner);
-        Ok(self.client.request(Method::GET, &path).send().await?.json().await?)
+        let target = BanxaTarget::Order {
+            partner: self.partner.clone(),
+            order_id: order_id.to_string(),
+        };
+        Ok(self.client.get(target).await?)
     }
 
     pub async fn get_quote_buy(&self, symbol: &str, chain: &str, fiat_currency: &str, fiat_amount: f64) -> Result<Quote, Box<dyn Error + Send + Sync>> {
-        let fiat_amount = fiat_amount.to_string();
-        let query = vec![
-            ("paymentMethodId", PAYMENT_METHOD_CARD),
-            ("crypto", symbol),
-            ("blockchain", chain),
-            ("fiat", fiat_currency),
-            ("fiatAmount", fiat_amount.as_str()),
-        ];
-        let path = format!("/{}/v2/quotes/buy", self.partner);
-        Ok(self.client.request(Method::GET, &path).query(&query).send().await?.json().await?)
+        let target = BanxaTarget::BuyQuote {
+            partner: self.partner.clone(),
+            query: BuyQuoteQuery {
+                payment_method_id: PAYMENT_METHOD_CARD,
+                crypto: symbol.to_string(),
+                blockchain: chain.to_string(),
+                fiat: fiat_currency.to_string(),
+                fiat_amount: fiat_amount.to_string(),
+            },
+        };
+        Ok(self.client.get(target).await?)
     }
 
     pub async fn get_countries(&self) -> Result<Vec<Country>, Box<dyn Error + Send + Sync>> {
-        let path = format!("/{}/v2/countries", self.partner);
-        Ok(self.client.request(Method::GET, &path).send().await?.json().await?)
+        Ok(self.client.get(BanxaTarget::Countries { partner: self.partner.clone() }).await?)
     }
 
     pub async fn get_fiat_currencies_buy(&self) -> Result<Vec<FiatCurrency>, Box<dyn Error + Send + Sync>> {
-        let path = format!("/{}/v2/fiats/{BUY_ORDER_TYPE}", self.partner);
-        Ok(self.client.request(Method::GET, &path).send().await?.json().await?)
+        Ok(self.client.get(BanxaTarget::FiatCurrencies { partner: self.partner.clone() }).await?)
     }
 
     pub async fn create_buy_order(
@@ -70,8 +69,6 @@ impl BanxaClient {
         wallet_address: String,
     ) -> Result<CheckoutOrder, Box<dyn Error + Send + Sync>> {
         let request = CreateOrderRequest::new(quote_id, symbol, fiat_currency, fiat_amount, network, wallet_address, self.redirect_url.clone());
-        let path = format!("/{}/v2/buy", self.partner);
-        let response = self.client.request(Method::POST, &path).json(&request).send().await?.error_for_status()?;
-        response.json().await.map_err(|e| e.into())
+        Ok(self.client.post(BanxaTarget::CreateBuyOrder { partner: self.partner.clone() }, &request).await?)
     }
 }

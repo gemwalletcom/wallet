@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use primitives::{Asset, AssetId, Chain, Currency};
-use swapper::{AssetList, Quote, SwapperError, SwapperSlippage};
+use swapper::{AssetList, Quote, SwapperError, SwapperProvider, SwapperSlippage};
 
 use super::rules;
 use super::{GemSwapPairSuggestion, GemSwapService, GemSwapTransfer};
@@ -81,6 +81,10 @@ impl GemSwapQuoteService {
 
     pub async fn suggest_pair(&self, pay_asset_id: Option<AssetId>) -> Result<Option<GemSwapPairSuggestion>, GemServiceError> {
         self.swap.suggest_pair(self.session.current_wallet_id()?, pay_asset_id).await
+    }
+
+    pub fn selected_quote(&self, quotes: Vec<Quote>, preferred: Option<SwapperProvider>) -> Option<Quote> {
+        rules::selected_quote(&quotes, preferred)
     }
 
     pub async fn get_transfer(&self, quote: Quote) -> Result<GemSwapTransfer, SwapperError> {

@@ -196,15 +196,20 @@ pub async fn record_node_state<T: ChainState + ?Sized>(
     chain_id_method: &str,
     block_number_method: &str,
 ) -> NodeCheckRecorder {
-    let (recorder, chain_id) = recorder
-        .record_value_timed(chain_id_method, async {
-            state.get_chain_id().await.map_err(|error| error.to_string()).and_then(|chain_id| match expected_chain_id {
-                Some(expected) if chain_id != expected => Err(format!("expected {expected}, received {chain_id}")),
-                _ => Ok(chain_id),
-            })
-        })
-        .await;
-    if chain_id.is_none() {
+    let started = Instant::now();
+    let chain_id = state
+        .get_chain_id()
+        .await
+        .map_err(|error| error.to_string())
+        .and_then(|chain_id| match (chain_id, expected_chain_id) {
+            (Some(chain_id), Some(expected)) if chain_id != expected => Err(format!("expected {expected}, received {chain_id}")),
+            (chain_id, _) => Ok(chain_id),
+        });
+    let recorder = match chain_id.transpose() {
+        Some(chain_id) => recorder.record_value_with_latency(chain_id_method, chain_id, started.elapsed()).0,
+        None => recorder,
+    };
+    if recorder.has_failed() {
         return recorder;
     }
 
@@ -273,8 +278,8 @@ mod tests {
 
     #[async_trait]
     impl ChainState for TestState {
-        async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
-            Ok("chain".to_string())
+        async fn get_chain_id(&self) -> Result<Option<String>, Box<dyn Error + Sync + Send>> {
+            Ok(Some("chain".to_string()))
         }
 
         async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>> {

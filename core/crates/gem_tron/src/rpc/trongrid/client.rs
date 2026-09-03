@@ -1,42 +1,43 @@
 use crate::rpc::provider::TronAccountProvider;
 use crate::rpc::trongrid::{
     mapper::TronGridMapper,
-    model::{Data, TronGridAccount, TronGridTransaction},
+    model::{Data, TransactionsQuery, TronGridAccount, TronGridTransaction},
     target::TronGridTarget,
 };
 use async_trait::async_trait;
 use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
-use gem_client::{Client, ClientExt};
+use gem_client::{Client, ClientError, ClientExt};
+use serde::de::DeserializeOwned;
 use std::collections::HashMap;
 use std::error::Error;
 use std::result::Result;
 
 const TRANSACTIONS_PAGE_SIZE: usize = 200;
-type TransactionsTarget = fn(String, usize, Option<String>) -> TronGridTarget;
+const API_KEY_HEADER: &str = "TRON-PRO-API-KEY";
 
 #[derive(Clone)]
 pub struct TronGridClient<C: Client> {
     client: C,
-    api_key: String,
+    api_key: Option<String>,
 }
 
 impl<C: Client> TronGridClient<C> {
     pub fn new(client: C, api_key: String) -> Self {
-        Self { client, api_key }
-    }
-
-    fn headers(&self) -> HashMap<String, String> {
-        if self.api_key.is_empty() {
-            HashMap::new()
-        } else {
-            let mut headers = HashMap::new();
-            headers.insert("TRON-PRO-API-KEY".to_string(), self.api_key.clone());
-            headers
+        Self {
+            client,
+            api_key: (!api_key.is_empty()).then_some(api_key),
         }
     }
 
-    async fn get_transaction_page(&self, target: TronGridTarget) -> Result<Data<Vec<TronGridTransaction>>, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get_with_headers(&target.path(), self.headers()).await?)
+    fn headers(&self) -> HashMap<String, String> {
+        self.api_key
+            .as_ref()
+            .map(|api_key| HashMap::from([(API_KEY_HEADER.to_string(), api_key.clone())]))
+            .unwrap_or_default()
+    }
+
+    async fn send<R: DeserializeOwned + Send>(&self, target: TronGridTarget) -> Result<R, ClientError> {
+        self.client.get(target).headers(self.headers()).await
     }
 
     async fn get_transaction_pages(
@@ -44,7 +45,7 @@ impl<C: Client> TronGridClient<C> {
         address: &str,
         limit: usize,
         page_size: usize,
-        target: TransactionsTarget,
+        target: impl Fn(String, TransactionsQuery) -> TronGridTarget,
     ) -> Result<Vec<TronGridTransaction>, Box<dyn Error + Send + Sync>> {
         if limit == 0 {
             return Ok(Vec::new());
@@ -56,7 +57,11 @@ impl<C: Client> TronGridClient<C> {
 
         for _ in 0..max_pages {
             let page_limit = (limit - transactions.len()).min(page_size);
-            let page = self.get_transaction_page(target(address.to_string(), page_limit, fingerprint.clone())).await?;
+            let query = TransactionsQuery {
+                limit: page_limit,
+                fingerprint: fingerprint.clone(),
+            };
+            let page: Data<Vec<TronGridTransaction>> = self.send(target(address.to_string(), query)).await?;
             let is_empty = page.data.is_empty();
 
             transactions.extend(page.data);
@@ -75,19 +80,20 @@ impl<C: Client> TronGridClient<C> {
     }
 
     pub async fn get_transactions(&self, address: &str, limit: usize) -> Result<Vec<TronGridTransaction>, Box<dyn Error + Send + Sync>> {
-        self.get_transaction_pages(address, limit, TRANSACTIONS_PAGE_SIZE, TronGridTarget::GetTransactions).await
-    }
-
-    pub async fn get_trc20_transactions(&self, address: &str, limit: usize) -> Result<Vec<TronGridTransaction>, Box<dyn Error + Send + Sync>> {
-        self.get_transaction_pages(address, limit, TRANSACTIONS_PAGE_SIZE, TronGridTarget::GetTrc20Transactions)
+        self.get_transaction_pages(address, limit, TRANSACTIONS_PAGE_SIZE, |address, query| TronGridTarget::GetTransactions { address, query })
             .await
     }
 
+    pub async fn get_trc20_transactions(&self, address: &str, limit: usize) -> Result<Vec<TronGridTransaction>, Box<dyn Error + Send + Sync>> {
+        self.get_transaction_pages(address, limit, TRANSACTIONS_PAGE_SIZE, |address, query| TronGridTarget::GetTrc20Transactions {
+            address,
+            query,
+        })
+        .await
+    }
+
     pub async fn get_accounts(&self, address: &str) -> Result<Data<Vec<TronGridAccount>>, Box<dyn Error + Send + Sync>> {
-        Ok(self
-            .client
-            .get_with_headers(&TronGridTarget::GetAccount(address.to_string()).path(), self.headers())
-            .await?)
+        Ok(self.send(TronGridTarget::GetAccount { address: address.to_string() }).await?)
     }
 }
 
@@ -101,6 +107,13 @@ impl<C: Client> ChainTransactions for TronGridClient<C> {
             trc20_transactions,
             limit,
         )))
+    }
+}
+
+#[async_trait]
+impl<C: Client> TronAccountProvider for TronGridClient<C> {
+    async fn get_accounts_by_address(&self, address: &str) -> Result<Vec<TronGridAccount>, Box<dyn Error + Send + Sync>> {
+        Ok(self.get_accounts(address).await?.data)
     }
 }
 
@@ -131,7 +144,10 @@ mod tests {
             String::new(),
         );
 
-        let transactions = client.get_transaction_pages("address", 6, 4, TronGridTarget::GetTransactions).await.unwrap();
+        let transactions = client
+            .get_transaction_pages("address", 6, 4, |address, query| TronGridTarget::GetTransactions { address, query })
+            .await
+            .unwrap();
 
         assert_eq!(transactions.len(), 6);
         assert_eq!(transactions.last().unwrap().transaction_id, "page-two-transaction-2");
@@ -142,12 +158,5 @@ mod tests {
                 "/v1/accounts/address/transactions?limit=2&fingerprint=2NgPQPX6mkxX1nyEcdNgHL1S2oc6C2YNniHptY2Nbq9Ja5fetDtG2WmdZHJ6LSz5JcuhU5ofSuCDwavxdAmdx4HY3kqMowHJwVn1V9kHL4MLPEgGQSNYpmjSu9z6tWbuTpaLashp8XLgJgxbyK1kTinb6THXLug265TJGCo9LU4VbEDG8kbG9AgpSsQqcSm3AxRhcu56RqnsdVDTTM4gTjJ1uRc",
             ]
         );
-    }
-}
-
-#[async_trait]
-impl<C: Client> TronAccountProvider for TronGridClient<C> {
-    async fn get_accounts_by_address(&self, address: &str) -> Result<Vec<TronGridAccount>, Box<dyn Error + Send + Sync>> {
-        Ok(self.get_accounts(address).await?.data)
     }
 }

@@ -1,7 +1,7 @@
 use futures::TryFutureExt;
 use std::sync::Arc;
 
-use primitives::{Asset, AssetFull, AssetId, BannerEvent, Chain, Deeplink, VerificationStatus};
+use primitives::{Asset, AssetId, BannerEvent, Chain, Deeplink, VerificationStatus};
 
 use crate::block_explorer::GemBlockExplorerLink;
 use crate::deeplink::GemDeeplinkService;
@@ -122,14 +122,6 @@ impl GemAssetDetailsService {
         )
         .await;
         failures
-    }
-
-    pub async fn sync_asset(&self, asset_id: AssetId) -> Result<AssetFull, GemServiceError> {
-        self.assets.sync_asset(asset_id).await
-    }
-
-    pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
-        self.assets.sync_missing_assets(asset_ids).await
     }
 
     pub async fn sync_transactions(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {

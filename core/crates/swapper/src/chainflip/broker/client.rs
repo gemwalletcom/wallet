@@ -2,11 +2,11 @@ use super::{
     AssetsResponse, QuoteRequest, QuoteResponse, VaultSwapExtras, VaultSwapResponse,
     jsonrpc::RequestSwapParameterEncoding,
     model::{ChainflipAsset, DcaParameters},
+    target::BrokerTarget,
 };
 use crate::SwapperError;
-use gem_client::{Client, ClientExt, build_path_with_query};
+use gem_client::{Client, ClientExt};
 use gem_jsonrpc::types::{JsonRpcResult, ToJsonRpcRequest};
-use serde_json::{Value, json};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug)]
@@ -26,12 +26,11 @@ where
     }
 
     pub async fn get_assets(&self) -> Result<AssetsResponse, SwapperError> {
-        self.client.get("/assets").await.map_err(SwapperError::from)
+        self.client.get(BrokerTarget::Assets).await.map_err(SwapperError::from)
     }
 
     pub async fn get_quotes(&self, request: &QuoteRequest) -> Result<Vec<QuoteResponse>, SwapperError> {
-        let path = build_path_with_query("/quotes-native", request)?;
-        self.client.get(&path).await.map_err(SwapperError::from)
+        self.client.get(BrokerTarget::Quotes).query(request).await.map_err(SwapperError::from)
     }
 
     pub async fn encode_vault_swap(
@@ -44,26 +43,17 @@ where
         extra_params: VaultSwapExtras,
         dca_params: Option<DcaParameters>,
     ) -> Result<VaultSwapResponse, SwapperError> {
-        let extra_params_json = match extra_params {
-            VaultSwapExtras::Evm(evm) => serde_json::to_value(evm)?,
-            VaultSwapExtras::Tron(tron) => serde_json::to_value(tron)?,
-            VaultSwapExtras::Solana(sol) => serde_json::to_value(sol)?,
-        };
-
-        let params = json!([
+        let request = RequestSwapParameterEncoding {
             source_asset,
             destination_asset,
             destination_address,
             broker_commission,
-            extra_params_json,
-            Value::Null,
+            extra_params,
             boost_fee,
-            Vec::<Value>::new(),
             dca_params,
-        ]);
-
-        let request = RequestSwapParameterEncoding(params).to_jsonrpc_request(1);
-        let response: JsonRpcResult<VaultSwapResponse> = self.client.post("/rpc", &request).await?;
+        }
+        .to_jsonrpc_request(1);
+        let response: JsonRpcResult<VaultSwapResponse> = self.client.post(BrokerTarget::Rpc, &request).await?;
         response.take().map_err(SwapperError::from)
     }
 }

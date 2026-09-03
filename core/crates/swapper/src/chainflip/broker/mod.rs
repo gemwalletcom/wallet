@@ -3,6 +3,7 @@ mod client;
 mod jsonrpc;
 pub mod model;
 mod quote;
+mod target;
 
 pub use assets::*;
 pub use client::BrokerClient;

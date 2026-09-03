@@ -1,17 +1,16 @@
 package com.gemwallet.android.payment
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.gemwallet.android.ext.decodePayment
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemRecipient
-import com.gemwallet.android.ext.request
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetInfo
 import uniffi.gemstone.GemTransactionInputType
 import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.model.PaymentRecipient
 import com.gemwallet.android.model.toPaymentWalletAsset
+import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemPaymentDestination
 import com.gemwallet.android.testkit.includeGemstoneLibs
@@ -23,6 +22,7 @@ import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockAssetXrp
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Payment
 import com.wallet.core.primitives.PaymentRequest
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
@@ -53,7 +53,7 @@ class PaymentTransferTest {
     private val paymentService = GemPaymentService(mockk<AlienProvider>())
 
     private fun decode(url: String): PaymentRequest =
-        requireNotNull(paymentService.decodePayment(url)?.request) { "not a payment request: $url" }
+        requireNotNull((paymentService.decodeUrl(url).decodeJson<Payment>() as? Payment.Request)?.content) { "not a payment request: $url" }
 
     private fun destination(assetInfo: AssetInfo, url: String): GemPaymentDestination =
         paymentService.transferDestination(decode(url).toJson(), assetInfo.toPaymentWalletAsset())

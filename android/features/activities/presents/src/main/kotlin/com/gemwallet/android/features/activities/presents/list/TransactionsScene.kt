@@ -35,6 +35,7 @@ import com.wallet.core.primitives.Chain
 internal fun TransactionsScene(
     isRefreshing: Boolean,
     transactions: List<TransactionDataAggregate>,
+    availableChains: List<Chain>,
     chainsFilter: List<Chain>,
     typeFilter: List<TransactionTypeFilter>,
     listState: LazyListState = rememberLazyListState(),
@@ -93,7 +94,7 @@ internal fun TransactionsScene(
     }
     if (showFilters) {
         TransactionsFilter(
-            availableChains = Chain.entries,
+            availableChains = availableChains,
             chainsFilter = chainsFilter,
             typesFilter = typeFilter,
             onDismissRequest = { showFilters = false },

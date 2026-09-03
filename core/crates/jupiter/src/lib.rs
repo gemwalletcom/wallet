@@ -1,5 +1,6 @@
 pub mod client;
 pub mod model;
+mod target;
 
 #[cfg(test)]
 pub(crate) mod testkit;

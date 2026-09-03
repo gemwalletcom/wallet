@@ -10,6 +10,7 @@ import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemPriceAlertService
+import uniffi.gemstone.GemPriceAlertServiceInterface
 import uniffi.gemstone.GemPriceAlertStore
 import javax.inject.Singleton
 import uniffi.gemstone.GemNotificationPermissions
@@ -41,4 +42,7 @@ object PriceAlertsModule {
         device = deviceService,
         permissions = notificationPermissions,
     )
+
+    @Provides
+    fun provideGemPriceAlertServiceInterface(service: GemPriceAlertService): GemPriceAlertServiceInterface = service
 }

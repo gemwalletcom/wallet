@@ -2,10 +2,6 @@ package com.gemwallet.android
 
 import uniffi.gemstone.GemTransferService
 import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
-import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.checksumAddress
-import com.gemwallet.android.ext.isMemoSupport
-import com.gemwallet.android.ext.isValidAddress
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.domains.confirm.applicationMetadata
 import com.gemwallet.android.domains.confirm.asset
@@ -16,6 +12,7 @@ import com.wallet.core.primitives.TransferDataOutputAction
 import com.wallet.core.primitives.TransferDataOutputType
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAccount
+import com.wallet.core.primitives.Chain
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
@@ -23,8 +20,6 @@ import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.ApplicationMetadataSource
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Payment
 import com.wallet.core.primitives.PaymentAmount
 import com.wallet.core.primitives.PaymentLink
@@ -35,26 +30,22 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
-import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemPaymentTransaction
 import uniffi.gemstone.AlienProvider
+import com.gemwallet.android.ext.toGem
+import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemPaymentService
 import java.math.BigInteger
 
 class PaymentNavigationTest {
 
     private val transferService = GemTransferService()
-
-    @After
-    fun tearDown() = unmockkStatic("com.gemwallet.android.ext.ChainKt")
 
     @Test
     fun routes_paymentLink_loadsTransactionForExistingAccount() = runTest {
@@ -78,7 +69,7 @@ class PaymentNavigationTest {
             memo = "payment-memo",
             request = request,
         )
-        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentService, GemTransferService())
+        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentService, GemTransferService(), assetsService(assetInfo.asset))
 
         val routes = navigation.routes(
             Payment.Link(PaymentLink.SolanaPay(PaymentLinkSolanaPayInner("https://example.com/pay")))
@@ -119,7 +110,7 @@ class PaymentNavigationTest {
             memo = null,
             request = request,
         )
-        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentService, GemTransferService())
+        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentService, GemTransferService(), assetsService(assetInfo.asset))
 
         val routes = navigation.routes(
             Payment.Link(PaymentLink.SolanaPay(PaymentLinkSolanaPayInner("https://example.com/pay")))
@@ -137,16 +128,15 @@ class PaymentNavigationTest {
     }
 
     @Test
-    fun routes_paymentLink_fallsBackToEncodedTransactionForUnknownAsset() = runTest {
-        val assetInfo = mockAssetInfo(asset = mockAssetSolanaUSDC())
+    fun routes_paymentLink_asksCoreForTheRequestAssetInsteadOfTheEnabledList() = runTest {
+        val assetInfo = mockAssetInfo(
+            asset = mockAssetSolana(),
+            owner = mockAccount(chain = Chain.Solana, address = SOLANA_ADDRESS),
+        )
         val getSelectAssetsInfo = mockk<GetSelectAssetsInfo>()
         val paymentService = spyk(GemPaymentService(mockk<AlienProvider>()))
         val account = requireNotNull(assetInfo.owner)
-        mockkStatic("com.gemwallet.android.ext.ChainKt")
-        every { account.chain.checksumAddress(any(), any()) } answers { secondArg() }
-        every { account.chain.isValidAddress(any(), any()) } returns true
-        every { account.chain.isMemoSupport() } returns true
-        every { account.chain.asset() } returns mockAssetSolana()
+        val requestedAsset = mockAssetSolanaUSDC()
         every { getSelectAssetsInfo() } returns flowOf(listOf(assetInfo))
         coEvery { paymentService.load(any(), any()) } returns paymentTransaction(
             account = account,
@@ -156,10 +146,10 @@ class PaymentNavigationTest {
                 amount = PaymentAmount.AtomicValue("19000000"),
                 memo = "payment-memo",
                 references = null,
-                assetId = AssetId(Chain.Solana),
+                assetId = requestedAsset.id,
             ),
         )
-        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentService, GemTransferService())
+        val navigation = PaymentNavigation(getSelectAssetsInfo, paymentService, GemTransferService(), assetsService(requestedAsset))
 
         val routes = navigation.routes(
             Payment.Link(PaymentLink.SolanaPay(PaymentLinkSolanaPayInner("https://example.com/pay")))
@@ -167,14 +157,12 @@ class PaymentNavigationTest {
 
         val route = routes.single() as ConfirmRoute
         val transfer = requireNotNull(transferService.unpack(route.params))
-        val assetId = transfer.inputType.asset.id
-        val generic = transfer.inputType as GemTransactionInputType.Generic
-        assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
-        assertEquals("payment-memo", transfer.recipient.memo)
-        assertEquals(account.chain, assetId.chain)
-        assertEquals(null, assetId.tokenId)
-        assertEquals("", transfer.recipient.address)
-        assertEquals(BigInteger.ZERO, transfer.value)
+        assertEquals(requestedAsset.id, transfer.inputType.asset.id)
+        assertEquals(BigInteger("19000000"), transfer.value)
+    }
+
+    private fun assetsService(asset: Asset) = mockk<GemAssetsServiceInterface> {
+        coEvery { ensureTokenAsset(asset.id.toIdentifier()) } returns asset.toGem()
     }
 
     private fun paymentTransaction(

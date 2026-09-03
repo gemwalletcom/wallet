@@ -20,15 +20,15 @@ impl GemConfigService {
     pub fn new(api: Arc<GemApiClient>, preferences: Arc<GemPreferencesService>) -> Self {
         Self { api, preferences }
     }
+}
 
+impl GemConfigService {
     pub async fn update_config(&self) -> ConfigResult {
         let config = self.api.client.get_config().await.map_err(GemApiError::from)?;
         self.preferences.set_config(&config)?;
         Ok(config)
     }
-}
 
-impl GemConfigService {
     pub async fn get_config(&self) -> ConfigResult {
         match self.preferences.get_config() {
             Some(config) => Ok(config),

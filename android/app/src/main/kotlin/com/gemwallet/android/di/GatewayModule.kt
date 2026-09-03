@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit
 import uniffi.gemstone.Config
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemChartService
+import uniffi.gemstone.GemChartServiceInterface
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemConfigService
@@ -39,6 +40,7 @@ import uniffi.gemstone.GemSearchStore
 import uniffi.gemstone.GemSearchService
 import uniffi.gemstone.GemBannerService
 import uniffi.gemstone.GemAppStartService
+import uniffi.gemstone.GemAppStartServiceInterface
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPortfolioService
 import uniffi.gemstone.GemPortfolioServiceInterface
@@ -47,6 +49,7 @@ import uniffi.gemstone.GemRewardsService
 import uniffi.gemstone.GemRewardsServiceInterface
 import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemSupportService
+import uniffi.gemstone.GemSupportServiceInterface
 import uniffi.gemstone.GemSupportStore
 import uniffi.gemstone.GemWalletConfigurationService
 import uniffi.gemstone.GemBannerStore
@@ -178,6 +181,9 @@ object GatewayModule {
         deviceService: GemDeviceService,
     ): GemAppStartService = GemAppStartService(configService, bannerService, assetsService, balanceService, walletConfigurationService, walletService, deviceService)
 
+    @Provides
+    fun provideGemAppStartServiceInterface(service: GemAppStartService): GemAppStartServiceInterface = service
+
 
     @Provides
     @Singleton
@@ -305,4 +311,10 @@ object GatewayModule {
     fun provideTransactionSimulationServiceInterface(
         service: TransactionSimulationService,
     ): TransactionSimulationServiceInterface = service
+
+    @Provides
+    fun provideGemSupportServiceInterface(service: GemSupportService): GemSupportServiceInterface = service
+
+    @Provides
+    fun provideGemChartServiceInterface(service: GemChartService): GemChartServiceInterface = service
 }

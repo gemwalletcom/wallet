@@ -17,9 +17,8 @@ import Testing
 struct CreateWalletModelTests {
     @Test
     func createWalletSetsWalletConfiguration() async throws {
-        let walletStore = WalletStore.mock(db: .mockWithChains(AssetConfiguration.allChains))
         let model = CreateWalletModel(
-            service: GemWalletService.mock(walletStore: walletStore),
+            service: GemWalletService.mock(db: .mockWithChains(AssetConfiguration.allChains)),
             preferences: .mock(),
             avatarService: GemAvatarServiceMock(),
             onComplete: nil,

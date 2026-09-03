@@ -14,6 +14,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.features.settings.develop.viewmodels.DevelopViewModel
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
+import com.gemwallet.android.ui.theme.Placeholder
 
 @Composable
 fun DevelopScene(
@@ -54,17 +55,17 @@ fun DevelopScene(
                 }
             }
             item {
-                PropertyItem("Device Id", data = deviceId.ifEmpty { "-" }) {
+                PropertyItem("Device Id", data = deviceId.ifEmpty { Placeholder.empty }) {
                     clipboardManager.setPlainText(context, deviceId)
                 }
                 if (notificationsAvailable) {
                     val pushToken by viewModel.pushToken.collectAsState()
-                    PropertyItem("Push token", data = pushToken.ifEmpty { "-" }) {
+                    PropertyItem("Push token", data = pushToken.ifEmpty { Placeholder.empty }) {
                         clipboardManager.setPlainText(context, pushToken)
                     }
                 }
                 val platformStore by viewModel.platformStore.collectAsState()
-                PropertyItem("Store", data = platformStore?.string ?: "-") {
+                PropertyItem("Store", data = platformStore?.string ?: Placeholder.empty) {
                     clipboardManager.setPlainText(context, platformStore?.string ?: "")
                 }
             }

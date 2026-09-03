@@ -1,8 +1,9 @@
 use super::models::{Assets, PaybisQuote, PaybisResponse, QuoteRequest, Request, RequestResponse, SellAssets};
+use super::target::PaybisTarget;
 use crate::rsa_signature::generate_rsa_pss_signature;
-use gem_client::ReqwestClient;
+use gem_client::{ClientExt, ReqwestClient};
 use primitives::FiatProviderName;
-use reqwest::Method;
+use serde::Serialize;
 use std::collections::HashMap;
 use url::Url;
 
@@ -23,20 +24,15 @@ impl PaybisClient {
         }
     }
 
-    fn sign_request(&self, body: &str) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
-        generate_rsa_pss_signature(&self.private_key, body)
-    }
-
-    async fn signed_post<T: serde::de::DeserializeOwned>(&self, path: &str, body: String) -> Result<T, Box<dyn std::error::Error + Send + Sync>> {
-        let signature = self.sign_request(&body)?;
+    async fn signed_post<B: Serialize + Send + Sync, T: serde::de::DeserializeOwned + Send>(
+        &self,
+        target: PaybisTarget,
+        body: &B,
+    ) -> Result<T, Box<dyn std::error::Error + Send + Sync>> {
+        let signature = generate_rsa_pss_signature(&self.private_key, &serde_json::to_string(body)?)?;
         self.client
-            .request(Method::POST, path)
-            .header("X-Request-Signature", signature)
-            .header("Content-Type", "application/json")
-            .body(body)
-            .send()
-            .await?
-            .json::<PaybisResponse<T>>()
+            .post::<_, PaybisResponse<T>>(target, body)
+            .headers(HashMap::from([("X-Request-Signature".to_string(), signature)]))
             .await?
             .into()
     }
@@ -50,8 +46,7 @@ impl PaybisClient {
             currency_code_to: crypto_currency,
         };
 
-        let body = serde_json::to_string(&request_body)?;
-        self.signed_post("/v2/quote", body).await
+        self.signed_post(PaybisTarget::Quote, &request_body).await
     }
 
     pub async fn get_sell_quote(&self, crypto_currency: String, fiat_currency: String, fiat_amount: f64) -> Result<PaybisQuote, Box<dyn std::error::Error + Send + Sync>> {
@@ -63,16 +58,12 @@ impl PaybisClient {
             currency_code_to: fiat_currency,
         };
 
-        let body = serde_json::to_string(&request_body)?;
-        self.signed_post("/v2/quote", body).await
+        self.signed_post(PaybisTarget::Quote, &request_body).await
     }
 
     async fn get_assets(&self, flow: &str) -> Result<Assets, Box<dyn std::error::Error + Send + Sync>> {
         self.client
-            .request(Method::GET, &format!("/v2/currency/pairs/{flow}"))
-            .send()
-            .await?
-            .json::<PaybisResponse<Assets>>()
+            .get::<PaybisResponse<Assets>>(PaybisTarget::CurrencyPairs { flow: flow.to_string() })
             .await?
             .into()
     }
@@ -82,18 +73,11 @@ impl PaybisClient {
     }
 
     pub async fn get_sell_assets(&self) -> Result<SellAssets, Box<dyn std::error::Error + Send + Sync>> {
-        self.client
-            .request(Method::GET, "/v2/currency/pairs/sell-crypto")
-            .send()
-            .await?
-            .json::<SellAssets>()
-            .await
-            .map_err(|e| e.into())
+        Ok(self.client.get(PaybisTarget::SellCurrencyPairs).await?)
     }
 
     pub async fn create_request(&self, request_body: Request) -> Result<RequestResponse, Box<dyn std::error::Error + Send + Sync>> {
-        let body = serde_json::to_string(&request_body)?;
-        self.signed_post("/v3/request", body).await
+        self.signed_post(PaybisTarget::Request, &request_body).await
     }
 
     pub async fn get_redirect_url(

@@ -21,7 +21,6 @@ use primitives::{Chain, StakeChain, node_config::NodeRegion};
 use std::str::FromStr;
 
 use {
-    fee_config::{FeeConfig, get_fee_config},
     fiat_config::{FiatConfig, get_fiat_config},
     perpetual_config::{PerpetualConfig, get_perpetual_config, leverage_options},
     scan_config::{ScanConfig, get_scan_config},
@@ -76,10 +75,6 @@ impl Config {
 
     fn get_chain_config(&self, chain: Chain) -> ChainConfig {
         crate::config::chain::get_chain_config(chain)
-    }
-
-    fn get_fee_config(&self, chain: Chain) -> FeeConfig {
-        get_fee_config(chain)
     }
 
     fn get_wallet_connect_config(&self) -> WalletConnectConfig {

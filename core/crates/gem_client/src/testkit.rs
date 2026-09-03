@@ -7,7 +7,7 @@ use std::{
     sync::Arc,
 };
 
-type GetHandler = Arc<dyn Fn(&str) -> Result<Vec<u8>, ClientError> + Send + Sync>;
+type GetHandler = Arc<dyn Fn(&str, &HashMap<String, String>) -> Result<Vec<u8>, ClientError> + Send + Sync>;
 type PostHandler = Arc<dyn Fn(&str, &[u8], &HashMap<String, String>) -> Result<Vec<u8>, ClientError> + Send + Sync>;
 
 #[derive(Clone, Default)]
@@ -24,6 +24,14 @@ impl MockClient {
     pub fn with_get<F>(mut self, handler: F) -> Self
     where
         F: Fn(&str) -> Result<Vec<u8>, ClientError> + Send + Sync + 'static,
+    {
+        self.get_handler = Some(Arc::new(move |path, _headers| handler(path)));
+        self
+    }
+
+    pub fn with_get_with_headers<F>(mut self, handler: F) -> Self
+    where
+        F: Fn(&str, &HashMap<String, String>) -> Result<Vec<u8>, ClientError> + Send + Sync + 'static,
     {
         self.get_handler = Some(Arc::new(handler));
         self
@@ -54,12 +62,12 @@ impl Debug for MockClient {
 
 #[async_trait]
 impl Client for MockClient {
-    async fn get_with<R>(&self, path: &str, _query: &[(String, String)], _headers: HashMap<String, String>) -> Result<R, ClientError>
+    async fn get_with<R>(&self, path: &str, headers: HashMap<String, String>) -> Result<R, ClientError>
     where
         R: DeserializeOwned,
     {
         let handler = self.get_handler.as_ref().ok_or(ClientError::Http { status: 404, body: vec![] })?;
-        let data = handler(path)?;
+        let data = handler(path, &headers)?;
         deserialize_response(&Response { status: Some(200), data })
     }
 
@@ -67,7 +75,7 @@ impl Client for MockClient {
     where
         R: DeserializeOwned,
     {
-        self.get_with(url, &[], HashMap::new()).await
+        self.get_with(url, HashMap::new()).await
     }
 
     async fn post_with<T, R>(&self, path: &str, body: &T, headers: HashMap<String, String>) -> Result<R, ClientError>

@@ -1,24 +1,23 @@
 # AGENTS.md
 
-Guidance for Coding Agents (Claude Code or Codex, etc.) collaborating in this monorepo.
+Guidance for Coding Agents (Claude Code, Codex, etc.) collaborating in this monorepo. This file is the routing layer plus the non-negotiable rules. Everything else lives in a skill, a platform guide, or a design doc; load only what the task needs.
 
 ## Skills
 
-Read this file first, then load only the skills relevant to your current task — you do not need to read all files upfront. `cross-platform-awareness.md` and `engineering-principles.md` apply to every task; the rest are load-on-demand.
+`task-workflow.md`, `cross-platform-awareness.md`, and `engineering-principles.md` apply to every task. The rest are load-on-demand; the one-line description tells you when.
 
-- [Project Overview](skills/project-overview.md) — Repo layout, ownership boundaries, and shared concepts
+- [Task Workflow](skills/task-workflow.md) — Scope, investigation, cross-stack order (Core → bindings → iOS/Android), verification, cleanup rounds, handoff, and guide maintenance
 - [Cross-Platform Awareness](skills/cross-platform-awareness.md) — Rules for changes that can affect both apps
+- [Engineering Principles](skills/engineering-principles.md) — Clean-code, generic-solution, and test-intent rules shared across the repo
+- [Project Overview](skills/project-overview.md) — Repo layout, layer architecture, and ownership boundaries
 - [Development Commands](skills/development-commands.md) — Root build, generate, localization, and platform entrypoint commands
-- [Architecture](skills/architecture.md) — High-level iOS, Android, and shared-layer architecture
-- [Engineering Principles](skills/engineering-principles.md) — Clean-code rules shared across the repo
+- [Quality Checks](skills/quality-checks.md) — Iteration and closing check matrices per change type
 - [Code Review](skills/code-review.md) — Review checklist for correctness, conventions, parity, and adversarial security hardening
 - [Security](skills/security.md) — Wallet-critical security rules for key material, signing, auth, and transaction handling
-- [Quality Checks](skills/quality-checks.md) — Lint, format, and static-analysis commands for each platform
+- [Localization](skills/localization.md) — Fluent sources, generation, and generated output locations for both apps
 - [Maestro UI Testing](skills/testing-maestro.md) — When to use Maestro flows vs unit or native UI tests, and cross-platform authoring rules
-- [Release Process](skills/release-process.md) — Branching, versioning, and commit expectations
-- [Localization](skills/localization.md) — Shared localization flow and generated output locations
-- [New Feature Workflow](skills/new-feature-workflow.md) — End-to-end sequence for cross-stack features (Core → bindings → iOS/Android)
-- [Decision Records](skills/decisions.md) — Non-obvious architectural choices and their rationale
+- [Release Process](skills/release-process.md) — Branching, versioning, commits, publication boundaries, store builds, and removing or disabling support
+- [Guidance Refresh](.agents/skills/guidance-refresh/SKILL.md) — How lessons become shared guidance, budgets, skill format, and the local sweep each teammate runs
 
 ## Platform Guides
 
@@ -34,12 +33,15 @@ If a task spans multiple platforms, read every affected guide. Do not treat ever
 
 Cross-platform subsystem references live in [docs/](docs). Read the relevant one before changing that area:
 
+- [Architecture](docs/ARCHITECTURE.md) — the reference every new feature follows: Core-owned services, pure rules, stores, app mapping, and the request-enum shape every HTTP and JSON-RPC client converges on
+- [Decision Records](docs/DECISIONS.md) — repo-wide architectural choices and their rationale
+- [Services](docs/SERVICES.md) — how a Gemstone service is built and the remaining migration work
 - [Deep links](docs/DEEPLINKS.md) — deep link URL contract, support-chat links, and the web association requirements
 - [Device and subscriptions](docs/DEVICE_SUBSCRIPTIONS.md) — device registration, subscription sync, and the iOS/Android contract
 - [Payments](docs/PAYMENTS.md) — payment decoding flow, implementation map, and QR test cases
 - [Swapper](docs/SWAPPER.md) — quote flow, route preloading, and the shared route cache
 
-Core-owned subsystems (keystore, device and wallet authentication, WebSockets, provider coverage) are documented in [docs/](docs); the architecture reference every new feature follows is [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), and the remaining migration work is [docs/SERVICES.md](docs/SERVICES.md).
+Core-owned subsystems (keystore, device and wallet authentication, WebSockets, provider coverage) are listed in [core/AGENTS.md](core/AGENTS.md).
 
 ## Security
 
@@ -49,52 +51,16 @@ This is a crypto wallet. Treat security-sensitive changes as high risk by defaul
 - Never log, print, persist, snapshot, or expose secret material unless the feature explicitly requires secure handling and existing patterns already support it
 - Preserve transaction integrity: amounts, addresses, chain IDs, signatures, simulation data, and confirmation flows must stay explicit and verifiable
 - Prefer existing secure-storage and auth layers over inventing new persistence or authentication paths
-- If a `core/` cryptography or signing change also affects mobile interfaces, generated outputs, platform build inputs, or app-side integration, regenerate and verify the affected apps
-
-## Testing
-
-- Tests must verify intent, not just behavior. If the same test still passes after the business rule flips, it is a tautology — fix the assertion or the function under test
-- When fixing a high-impact bug, add or update the smallest meaningful test only if it materially reduces regression risk; keep it compact, avoid trivial/framework/formatting-only coverage, and skip purely visual UI polish unless coverage is explicitly requested or already cheap to extend
-- "Tests pass" is not a green light if any were skipped, marked `xfail`, or guarded behind feature flags you did not run — report what you actually executed
-
-## Working Across the Monorepo
-
-- Use single-word names for Core settings keys; `_` is reserved for separating the settings hierarchy in environment variables.
-- When two patterns contradict (iOS vs. Android handling of a shared flow, two error-mapping styles in `core/`, parallel provider implementations), do not blend them. Pick the more recent or more tested one, state why, and flag the other for follow-up
-- Never wrap an immutable request client in a shared `Mutex` or hold that client lock across network or database I/O. Use mutexes only for narrowly scoped mutable coordination
-- Prefer immutable bindings and transformations. Use `mut` only when ownership requires mutation, and keep its scope narrow
-- Use full domain terms in code names: write `transaction`, not `tx`, except when preserving external protocol field names, database columns, or URLs verbatim
-- For multi-step work that crosses Core → bindings → iOS/Android, checkpoint after each step: state what changed, what was verified, what is left. Do not continue from a state you cannot describe back
-- If a regeneration's effect on either app is unclear, stop and restate before adding more changes
-
-## Mobile Localization
-
-- Mobile app localization source of truth lives in `localization/app/*.ftl`, using Fluent message IDs with underscores, for example `common_cancel`
-- Fluent comments are supported in source files (`#`, `##`, `###`) and ignored by generation; use English comments in `en.ftl` for section or string context
-- Add new keys in the right section by prefix (`common_*` under `# Common`, `wallet_*` under `# Wallet`, etc.)
-- Add every new app key to every language file, translated for the context where the string is used; do not leave missing keys for generation to hide
-- iOS InfoPlist localization source lives in `localization/InfoPlist/*.ftl`
-- iOS widget localization source lives in `localization/widget/*.ftl`
-- Run `just localize` after editing localization source files
-- Generated outputs live under `ios/Packages/Localization/` and `android/ui/src/main/res/`
-- Do not edit generated iOS `.xcstrings` catalogs, generated `Localized.swift`/`WidgetLocalized.swift`, or Android `strings.xml` files by hand
-- Backend/core localization is separate; see [core/CLAUDE.md](core/CLAUDE.md) before changing `core/crates/localizer/i18n`
 
 ## Task Completion
 
-For documentation-only changes, do not run mobile/core build and test suites unless the docs change also modifies executable scripts, generated inputs, localization inputs, CI configuration, build configuration, or release/security procedures. Verify docs-only changes with lightweight checks such as `git diff --check`, link/path inspection, and a quick read-through of the edited files.
+Fix causes, not symptoms. Ask why the failure was possible before changing anything, and fix the layer that made it possible; if that fix is out of scope, name the cause and flag it (see [Engineering Principles](skills/engineering-principles.md)).
 
-During active implementation, rebase conflict resolution, or compile-fix loops, prefer targeted build/test commands and defer broad verification until the change is ready to commit. Do not run full platform builds, full test suites, broad lint, or format after every small edit unless the risk of the change requires it.
+Non-negotiable, whatever the task size:
 
-Run final verification as a batch after you believe no more code edits are needed. If formatting, localization, generation, or a compile fix changes source after that batch starts, rerun the affected targeted checks before handoff.
+1. Build the affected platform(s) and run the relevant tests. Documentation-only changes use the lightweight checks in [skills/quality-checks.md](skills/quality-checks.md) instead.
+2. Run two cleanup rounds on your own diff before handoff. Round one, once the code works and before the verification batch: dedupe, simplify, remove dead code and stale fixtures, and match the surrounding codebase conventions. Round two, on the final diff after verification: read it as a reviewer would and remove anything round one left. Rerun the affected targeted checks if a round changed source. Details in [skills/task-workflow.md](skills/task-workflow.md).
+3. Review security impact for changes touching secrets, signing, auth, transactions, or wallet recovery.
+4. If `core/` changed mobile interfaces, generated models, platform build inputs, or app-side integration, regenerate and verify the affected app(s); otherwise keep verification scoped to Core.
 
-Before finishing a task:
-1. Build the affected platform(s)
-2. Run the relevant test suites
-3. Review security impact for changes affecting secrets, signing, auth, transactions, or wallet recovery
-4. If `core/` changed mobile interfaces, generated models, platform build inputs, or app-side integration, regenerate and verify the affected app(s); otherwise keep verification scoped to Core
-5. Remove dead code, keep imports clean, and follow platform patterns
-
-Do not close a task based only on reasoning, `git diff`, or file inspection. Run real verification commands for the changed area. If verification is blocked by unrelated repo state, report the exact command you ran and the blocking failure explicitly.
-
-For wallet-critical flows (signing, secure storage, migrations, key import/export, transaction construction), "completed" is wrong if anything was skipped silently. Surface skipped records, swallowed errors, or untested branches explicitly — a silent success on these paths is the most expensive failure mode in this repo.
+Do not close a task on reasoning, `git diff`, or file inspection alone. Run real verification for the changed area and report the exact commands, their results, and anything skipped or blocked. For wallet-critical flows (signing, secure storage, migrations, key import/export, transaction construction), "completed" is wrong if anything was skipped silently: surface skipped records, swallowed errors, and untested branches explicitly. A silent success on these paths is the most expensive failure mode in this repo.

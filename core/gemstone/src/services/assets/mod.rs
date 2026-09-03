@@ -82,21 +82,6 @@ impl GemAssetsService {
         Ok(asset)
     }
 
-    pub async fn sync_asset(&self, asset_id: AssetId) -> Result<AssetFull, GemServiceError> {
-        let currency = self.preferences.get_currency();
-        let asset = self.get_asset(asset_id.clone()).await?;
-        self.store.save_asset(asset.clone()).await?;
-        let price = asset
-            .price
-            .as_ref()
-            .map(|price| AssetPrice::new(asset_id.clone(), price.price, price.price_change_percentage_24h, price.updated_at));
-        self.price.update_asset_price(asset_id.clone(), price, currency.clone()).await?;
-        if let Some(market) = asset.market.clone() {
-            self.price.update_market(asset_id, market, currency).await?;
-        }
-        Ok(asset)
-    }
-
     pub async fn sync_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
         let asset_ids = crate::services::collections::unique(asset_ids);
         if asset_ids.is_empty() {
@@ -138,6 +123,21 @@ impl GemAssetsService {
 }
 
 impl GemAssetsService {
+    pub async fn sync_asset(&self, asset_id: AssetId) -> Result<AssetFull, GemServiceError> {
+        let currency = self.preferences.get_currency();
+        let asset = self.get_asset(asset_id.clone()).await?;
+        self.store.save_asset(asset.clone()).await?;
+        let price = asset
+            .price
+            .as_ref()
+            .map(|price| AssetPrice::new(asset_id.clone(), price.price, price.price_change_percentage_24h, price.updated_at));
+        self.price.update_asset_price(asset_id.clone(), price, currency.clone()).await?;
+        if let Some(market) = asset.market.clone() {
+            self.price.update_market(asset_id, market, currency).await?;
+        }
+        Ok(asset)
+    }
+
     pub(crate) async fn ensure_simulation_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
         let existing = self.store.get_asset_ids(asset_ids.clone()).await?;
         let missing = rules::missing_asset_ids(asset_ids, existing);

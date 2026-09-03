@@ -1,13 +1,15 @@
+#[cfg(test)]
+use crate::models::staking::SuiValidator;
 use crate::models::staking::{SuiStakeDelegation, SuiStakeStatus, SuiSystemState, SuiValidators};
 use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 use primitives::{Chain, DelegationBase, DelegationState, DelegationValidator};
 
-pub fn map_validators(validators: SuiValidators, default_apy: f64) -> Vec<DelegationValidator> {
+pub fn map_validators(validators: SuiValidators) -> Vec<DelegationValidator> {
     validators
         .apys
         .into_iter()
-        .map(|validator| DelegationValidator::stake(Chain::Sui, validator.address, String::new(), true, 0.0, default_apy))
+        .map(|validator| DelegationValidator::stake(Chain::Sui, validator.address, String::new(), true, 0.0, validator.apy * 100.0))
         .collect()
 }
 
@@ -50,5 +52,31 @@ fn map_stake_state(status: &SuiStakeStatus) -> DelegationState {
         SuiStakeStatus::Active => DelegationState::Active,
         SuiStakeStatus::Pending => DelegationState::Activating,
         SuiStakeStatus::Unstaked => DelegationState::Deactivating,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_map_validators_uses_individual_apys() {
+        let validators = map_validators(SuiValidators {
+            apys: vec![
+                SuiValidator {
+                    address: "validator1".to_string(),
+                    apy: 0.015625,
+                },
+                SuiValidator {
+                    address: "validator2".to_string(),
+                    apy: 0.03125,
+                },
+            ],
+        });
+
+        assert_eq!(
+            validators.into_iter().map(|validator| (validator.id, validator.apr)).collect::<Vec<_>>(),
+            vec![("validator1".to_string(), 1.5625), ("validator2".to_string(), 3.125)]
+        );
     }
 }

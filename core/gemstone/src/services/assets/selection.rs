@@ -1,10 +1,13 @@
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{Asset, AssetBasic, AssetId};
+use primitives::{Asset, AssetBasic, AssetId, Chain, NFTData};
 
 use super::model::GemAssetAction;
 use super::rules;
+use crate::services::chain::rules as chain_rules;
+use crate::services::nft::GemNftSearchItem;
+use crate::services::nft::rules as nft_rules;
 
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
@@ -53,12 +56,20 @@ impl GemAssetSelectionService {
         self.preferences.get_currency()
     }
 
+    pub fn filter_chains(&self) -> Result<Vec<Chain>, GemServiceError> {
+        Ok(chain_rules::wallet_chains_by_rank(&self.session.current_wallet()?))
+    }
+
     pub fn supports_tokens(&self) -> bool {
         self.session
             .get_current_wallet()
             .ok()
             .flatten()
             .is_some_and(|wallet| !rules::token_chains(&wallet).is_empty())
+    }
+
+    pub fn search_collections(&self, data: Vec<NFTData>, query: String) -> Vec<GemNftSearchItem> {
+        nft_rules::search_collections(data, &query)
     }
 
     pub fn show_perpetuals(&self) -> bool {

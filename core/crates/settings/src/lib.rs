@@ -224,7 +224,6 @@ pub struct Name {
     pub ud: URL,
     pub sns: URL,
     pub ton: URL,
-    pub eths: URL,
     pub spaceid: URL,
     pub did: URL,
     pub suins: URL,

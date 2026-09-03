@@ -1,4 +1,4 @@
-use primitives::{Account, Chain, NFTData, VerificationStatus, Wallet, WalletType};
+use primitives::{Account, Chain, NFTAssetData, NFTData, VerificationStatus, Wallet, WalletType};
 
 use crate::config::chain::supports_nft_transfer;
 use crate::services::chain::rules::chain_matches_query;
@@ -9,6 +9,39 @@ pub fn verified_collections(data: Vec<NFTData>) -> Vec<NFTData> {
 
 pub fn unverified_collections(data: Vec<NFTData>) -> Vec<NFTData> {
     collections(data, false)
+}
+
+#[allow(clippy::large_enum_variant)]
+#[derive(Debug, Clone, uniffi::Enum)]
+pub enum GemNftSearchItem {
+    Collection { data: NFTData },
+    Asset { data: NFTAssetData },
+}
+
+pub fn search_collections(data: Vec<NFTData>, query: &str) -> Vec<GemNftSearchItem> {
+    let query = query.trim().to_lowercase();
+    if query.is_empty() {
+        return Vec::new();
+    }
+    sorted_collections(data)
+        .into_iter()
+        .flat_map(|data| {
+            if data.collection.name.to_lowercase().contains(&query) {
+                return vec![GemNftSearchItem::Collection { data }];
+            }
+            let mut assets: Vec<_> = data.assets.into_iter().filter(|asset| asset.name.to_lowercase().contains(&query)).collect();
+            assets.sort_by_key(|asset| asset.name.to_lowercase());
+            assets
+                .into_iter()
+                .map(|asset| GemNftSearchItem::Asset {
+                    data: NFTAssetData {
+                        collection: data.collection.clone(),
+                        asset,
+                    },
+                })
+                .collect()
+        })
+        .collect()
 }
 
 pub fn sorted_collections(data: Vec<NFTData>) -> Vec<NFTData> {
@@ -79,6 +112,27 @@ mod tests {
 
     fn names(data: Vec<NFTData>) -> Vec<String> {
         data.into_iter().map(|item| item.collection.name).collect()
+    }
+
+    #[test]
+    fn test_search_matches_the_collection_name_or_its_assets() {
+        let punks = NFTData::mock_with("Punks", VerificationStatus::Verified, 2);
+        let mut apes = NFTData::mock_with("Apes", VerificationStatus::Verified, 3);
+        apes.assets[1].name = "Punk Ape".to_string();
+        apes.assets[2].name = "Ape 2".to_string();
+        let items = vec![punks.clone(), apes.clone()];
+
+        let results = search_collections(items.clone(), " punk ");
+        let labels: Vec<String> = results
+            .iter()
+            .map(|item| match item {
+                GemNftSearchItem::Collection { data } => format!("collection {} ({})", data.collection.name, data.assets.len()),
+                GemNftSearchItem::Asset { data } => format!("asset {} of {}", data.asset.name, data.collection.name),
+            })
+            .collect();
+        assert_eq!(labels, vec!["asset Punk Ape of Apes", "collection Punks (2)"]);
+        assert!(search_collections(items.clone(), "").is_empty());
+        assert!(search_collections(items, "zzz").is_empty());
     }
 
     #[test]

@@ -2,7 +2,6 @@ package com.gemwallet.android.features.setup_wallet.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.wallet.cases.SetWalletName
 import com.gemwallet.android.application.wallet.cases.GetWallet
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
@@ -17,13 +16,17 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import android.util.Log
+import com.gemwallet.android.ext.runCatchingCancellable
+import kotlinx.coroutines.Dispatchers
+import uniffi.gemstone.GemWalletServiceInterface
 import kotlinx.coroutines.launch
 
 @HiltViewModel(assistedFactory = SetupWalletViewModel.Factory::class)
 class SetupWalletViewModel @AssistedInject constructor(
     @Assisted private val walletId: WalletId,
     private val getWallet: GetWallet,
-    private val setWalletName: SetWalletName,
+    private val service: GemWalletServiceInterface,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(SetupWalletViewModelState())
@@ -50,14 +53,19 @@ class SetupWalletViewModel @AssistedInject constructor(
 
     fun onNameChange(name: String) {
         state.update { it.copy(walletName = name) }
-        viewModelScope.launch {
-            setWalletName.setWalletName(walletId, name)
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatchingCancellable { service.rename(walletId.id, name) }
+                .onFailure { Log.e(TAG, "renaming wallet ${walletId.id} failed", it) }
         }
     }
 
     @AssistedFactory
     interface Factory {
         fun create(walletId: WalletId): SetupWalletViewModel
+    }
+
+    private companion object {
+        const val TAG = "SetupWallet"
     }
 }
 

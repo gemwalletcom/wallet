@@ -56,3 +56,25 @@ pub struct Output {
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     pub value: BigUint,
 }
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GraphqlRequest {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub operation_name: Option<&'static str>,
+    pub variables: GraphqlVariables,
+    pub query: &'static str,
+}
+
+#[derive(Debug, Clone, Default, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GraphqlVariables {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub address: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub limit: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub block_number: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transaction: Option<String>,
+}

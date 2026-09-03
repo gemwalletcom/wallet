@@ -1,10 +1,10 @@
-use gem_client::ReqwestClient;
+use gem_client::{ClientError, ClientExt, ReqwestClient};
 use primitives::FiatProviderName;
-use reqwest::Method;
 use std::collections::HashMap;
 
 use super::mapper::map_sell_quote;
 use super::models::{Currencies, CurrencyLimits, MercuryoResponse, Quote, QuoteQuery, QuoteSellQuery, Response};
+use super::target::MercuryoTarget;
 
 pub struct MercuryoClient {
     client: ReqwestClient,
@@ -33,14 +33,7 @@ impl MercuryoClient {
             network: network.clone(),
             widget_id: self.widget_id.clone(),
         };
-        self.client
-            .request(Method::GET, "/v1.6/widget/buy/rate")
-            .query(&query)
-            .send()
-            .await?
-            .json::<MercuryoResponse<Quote>>()
-            .await?
-            .into()
+        self.client.get::<MercuryoResponse<Quote>>(MercuryoTarget::BuyRate { query }).await?.into()
     }
 
     pub async fn get_quote_sell(&self, fiat_currency: String, symbol: String, fiat_amount: f64, network: String) -> Result<Quote, Box<dyn std::error::Error + Send + Sync>> {
@@ -59,34 +52,23 @@ impl MercuryoClient {
             network,
             widget_id: self.widget_id.clone(),
         };
-        self.client
-            .request(Method::GET, "/v1.6/public/convert")
-            .query(&query)
-            .send()
-            .await?
-            .json::<MercuryoResponse<Quote>>()
-            .await?
-            .into()
+        self.client.get::<MercuryoResponse<Quote>>(MercuryoTarget::Convert { query }).await?.into()
     }
 
-    pub async fn get_currencies(&self) -> Result<Currencies, reqwest::Error> {
-        let response = self
-            .client
-            .request(Method::GET, "/v1.6/lib/currencies")
-            .send()
-            .await?
-            .json::<Response<Currencies>>()
-            .await?;
-        Ok(response.data)
+    pub async fn get_currencies(&self) -> Result<Currencies, ClientError> {
+        Ok(self.client.get::<Response<Currencies>>(MercuryoTarget::Currencies).await?.data)
     }
 
-    pub async fn get_countries(&self) -> Result<Response<Vec<String>>, reqwest::Error> {
-        let query = [("type", "alpha2")];
-        self.client.request(Method::GET, "/v1.6/public/card-countries").query(&query).send().await?.json().await
+    pub async fn get_countries(&self) -> Result<Response<Vec<String>>, ClientError> {
+        self.client.get(MercuryoTarget::CardCountries).await
     }
 
-    pub async fn get_currency_limits(&self, from: String, to: String) -> Result<Response<HashMap<String, CurrencyLimits>>, reqwest::Error> {
-        let query = [("from", from), ("to", to), ("widget_id", self.widget_id.clone())];
-        self.client.request(Method::GET, "/v1.6/public/currency-limits").query(&query).send().await?.json().await
+    pub async fn get_currency_limits(&self, from: String, to: String) -> Result<Response<HashMap<String, CurrencyLimits>>, ClientError> {
+        let target = MercuryoTarget::CurrencyLimits {
+            from,
+            to,
+            widget_id: self.widget_id.clone(),
+        };
+        self.client.get(target).await
     }
 }

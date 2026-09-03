@@ -7,6 +7,7 @@ import Foundation
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
+import Style
 import struct Gemstone.GemTransferData
 
 public struct TransactionInputViewModel: Sendable {
@@ -69,7 +70,7 @@ public struct TransactionInputViewModel: Sendable {
     }
 
     var networkFeeText: String? {
-        infoModel.feeDisplay?.amount.text ?? "-"
+        infoModel.feeDisplay?.amount.text ?? Placeholder.empty
     }
 
     var networkFeeFiatText: String? {

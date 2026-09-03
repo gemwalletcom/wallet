@@ -3,11 +3,9 @@ package com.gemwallet.android.data.coordinators.di
 import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
 import com.gemwallet.android.application.fiat.cases.ObserveFiatTransactions
-import com.gemwallet.android.application.fiat.cases.SyncFiatTransactions
 import com.gemwallet.android.data.coordinators.fiat.GetAssetPriceUsdImpl
 import com.gemwallet.android.data.coordinators.fiat.GetBuyAssetInfoImpl
 import com.gemwallet.android.data.coordinators.fiat.ObserveFiatTransactionsImpl
-import com.gemwallet.android.data.coordinators.fiat.SyncFiatTransactionsImpl
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.service.store.database.FiatTransactionsDao
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceStore
@@ -15,7 +13,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemFiatService
 import uniffi.gemstone.GemFiatStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneFiatStore
 import javax.inject.Singleton
@@ -45,13 +42,6 @@ object FiatModule {
     @Provides
     @Singleton
     fun provideGemFiatStore(store: GemstoneFiatStore): GemFiatStore = store
-
-    @Provides
-    @Singleton
-    fun provideSyncFiatTransactions(
-        getSession: GetSession,
-        fiatService: GemFiatService,
-    ): SyncFiatTransactions = SyncFiatTransactionsImpl(getSession, fiatService)
 
     @Provides
     @Singleton

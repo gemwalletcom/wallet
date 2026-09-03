@@ -88,7 +88,10 @@ impl Across {
     fn multicall_request(chain: Chain, calls: Vec<IMulticall3::Call3>) -> Result<EthereumRpc, SwapperError> {
         let chain = EVMChain::from_chain(chain).ok_or(SwapperError::NotSupportedChain)?;
         let data = IMulticall3::aggregate3Call { calls }.abi_encode();
-        Ok(EthereumRpc::Call(TransactionObject::new_call(deployment_by_chain(&chain), data), BlockParameter::Latest))
+        Ok(EthereumRpc::Call {
+            transaction: TransactionObject::new_call(deployment_by_chain(&chain), data),
+            block: BlockParameter::Latest,
+        })
     }
 
     fn decode_multicall(result: String) -> Result<Vec<IMulticall3::Result>, SwapperError> {
@@ -226,7 +229,13 @@ impl Across {
         }
         .abi_encode();
         let tx = TransactionObject::new_call_to_value(deployment.spoke_pool, &value, data);
-        Ok((EthereumRpc::EstimateGas(serde_json::to_value(tx)?, BlockParameter::Latest), v3_relay_data))
+        Ok((
+            EthereumRpc::EstimateGas {
+                transaction: serde_json::to_value(tx)?,
+                block: BlockParameter::Latest,
+            },
+            v3_relay_data,
+        ))
     }
 
     async fn get_destination_gas(&self, chain: Chain, limit_request: EthereumRpc, include_gas_token_price: bool) -> Result<DestinationGas, SwapperError> {
@@ -237,7 +246,7 @@ impl Across {
         };
         let requests = vec![limit_request, EthereumRpc::GasPrice].into_iter().chain(gas_token_price_request).collect();
         let mut results = create_client_with_chain(self.rpc_provider.clone(), chain)
-            .batch_request::<_, String>(requests)
+            .batch_request::<String, _>(requests)
             .await?
             .into_iter();
         let default_limit = U256::from(match chain {
@@ -350,7 +359,7 @@ impl Swapper for Across {
         .collect();
         let requests = vec![Self::multicall_request(Chain::Ethereum, calls)?, TokenConfig::request(&mainnet_token)];
         let [multicall_response, config_response]: [String; 2] = create_client_with_chain(self.rpc_provider.clone(), Chain::Ethereum)
-            .batch_request::<_, String>(requests)
+            .batch_request::<String, _>(requests)
             .await?
             .take_all()?
             .try_into()

@@ -272,7 +272,7 @@ extension CollectibleViewModel {
     func onSelectRefresh() {
         Task {
             do {
-                try await service.refreshAsset(walletId: wallet.id.id, assetId: assetData.asset.id.identifier)
+                try await service.refreshAsset(assetId: assetData.asset.id.identifier)
                 isPresentingToast = .success(Localized.Common.refresh)
             } catch {
                 debugLog("Refresh nft asset error: \(error)")
@@ -313,7 +313,7 @@ extension CollectibleViewModel {
 
     private func setWalletAvatar() async throws {
         guard let url = assetData.asset.images.preview.url.asURL else { return }
-        try await service.setWalletAvatar(walletId: wallet.id.id, url: url.absoluteString)
+        try await service.setWalletAvatar(url: url.absoluteString)
     }
 
     private func saveImageToGallery() async throws(ImageGalleryServiceError) {

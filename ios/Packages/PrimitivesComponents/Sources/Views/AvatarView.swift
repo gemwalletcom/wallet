@@ -10,17 +10,20 @@ public struct AvatarView: View {
     private let size: CGFloat
     private let action: VoidAction
     private let removeAction: VoidAction
+    private let style: AssetImageView.Style?
 
     public init(
         avatarImage: AssetImage,
         size: CGFloat,
         action: VoidAction = nil,
         removeAction: VoidAction = nil,
+        style: AssetImageView.Style? = nil,
     ) {
         self.avatarImage = avatarImage
         self.size = size
         self.action = action
         self.removeAction = removeAction
+        self.style = style
     }
 
     public var body: some View {
@@ -52,6 +55,7 @@ public struct AvatarView: View {
         AssetImageView(
             assetImage: avatarImage,
             size: size,
+            style: style,
         )
     }
 

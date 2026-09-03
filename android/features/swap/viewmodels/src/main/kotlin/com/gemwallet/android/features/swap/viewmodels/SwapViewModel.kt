@@ -283,7 +283,7 @@ class SwapViewModel @Inject constructor(
     }
 
     fun setProvider(provider: SwapperProvider) {
-        session.update { it.onProviderSelected(provider) }
+        session.update { it.onProviderSelected(provider, swapQuoteService::selectedQuote) }
     }
 
     fun setSlippage(slippageBps: UInt?) {
@@ -385,7 +385,7 @@ class SwapViewModel @Inject constructor(
 
     private fun onQuoteResults(results: SwapQuotesResult?) {
         results ?: return
-        session.update { it.onQuoteResults(results) }
+        session.update { it.onQuoteResults(results, swapQuoteService::selectedQuote) }
     }
 
     private fun buttonAction(quoteSession: SwapQuoteSession, value: BigDecimal, pay: AssetInfo?): GemSwapButtonAction =

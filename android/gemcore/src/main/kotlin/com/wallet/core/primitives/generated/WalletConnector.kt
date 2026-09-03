@@ -61,18 +61,6 @@ data class WalletConnection (
 )
 
 @Serializable
-enum class WalletConnectionEvents(val string: String) {
-	@SerialName("connect")
-	Connect("connect"),
-	@SerialName("disconnect")
-	Disconnect("disconnect"),
-	@SerialName("accountsChanged")
-	AccountsChanged("accountsChanged"),
-	@SerialName("chainChanged")
-	ChainChanged("chainChanged"),
-}
-
-@Serializable
 enum class WalletConnectionMethods(val string: String) {
 	@SerialName("eth_chainId")
 	EthChainId("eth_chainId"),

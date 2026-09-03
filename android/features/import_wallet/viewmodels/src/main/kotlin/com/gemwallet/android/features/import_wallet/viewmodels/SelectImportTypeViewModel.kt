@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
-import com.gemwallet.android.ext.toChain
-import uniffi.gemstone.GemChainService
+import com.gemwallet.android.ext.requireChain
+import uniffi.gemstone.GemChainServiceInterface
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SelectImportTypeViewModel @Inject constructor(
-    private val chainService: GemChainService,
+    private val chainService: GemChainServiceInterface,
 ) : ViewModel() {
     private val state = MutableStateFlow(SelectChainViewModelState())
     val uiState = state.map { it.toUIState() }
@@ -31,12 +31,12 @@ class SelectImportTypeViewModel @Inject constructor(
         viewModelScope.launch {
             snapshotFlow{ chainFilter.text }.collectLatest { query ->
                 state.update { old -> old.copy(
-                    chains = chainService.getChains(query.toString()).mapNotNull { it.toChain() }
+                    chains = chainService.getChains(query.toString()).map { it.requireChain() }
                 ) }
             }
         }
         viewModelScope.launch {
-            state.update { it.copy(chains = chainService.getChains("").mapNotNull { it.toChain() }) }
+            state.update { it.copy(chains = chainService.getChains("").map { it.requireChain() }) }
         }
     }
 

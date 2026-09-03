@@ -110,6 +110,37 @@ pub struct CoinQuery {
     pub developer_data: bool,
 }
 
+impl CoinQuery {
+    pub fn metadata() -> Self {
+        Self {
+            market_data: false,
+            community_data: true,
+            tickers: false,
+            localization: true,
+            developer_data: true,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Clone)]
+pub struct MarketChartQuery {
+    pub vs_currency: &'static str,
+    pub days: String,
+    pub interval: String,
+    pub precision: &'static str,
+}
+
+impl MarketChartQuery {
+    pub fn usd(days: &str, interval: &str) -> Self {
+        Self {
+            vs_currency: "usd",
+            days: days.to_string(),
+            interval: interval.to_string(),
+            precision: "full",
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CoinMarketsQuery {
     pub vs_currency: &'static str,

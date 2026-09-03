@@ -2,12 +2,12 @@
 
 import BigInt
 import Foundation
+import struct Gemstone.GemBalanceRequirement
+import enum Gemstone.GemConfirmError
 import GemstonePrimitives
 import InfoSheet
 import Primitives
 import PrimitivesTestKit
-import struct Gemstone.GemBalanceRequirement
-import enum Gemstone.GemConfirmError
 import Testing
 @testable import Transfer
 
@@ -60,6 +60,7 @@ struct ConfirmInfoSheetBuilderTests {
             for: ConfirmTransferError(error: error),
             feePrice: nil,
             currency: Currency.usd.rawValue,
+            acquireFlow: { _ in .fiat },
             onGetAsset: { _, _ in },
         )
     }

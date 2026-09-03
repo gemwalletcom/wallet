@@ -8,9 +8,9 @@ use crate::{provider::state_mapper, rpc::client::BitcoinClient};
 
 #[async_trait]
 impl<C: Client> ChainState for BitcoinClient<C> {
-    async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
+    async fn get_chain_id(&self) -> Result<Option<String>, Box<dyn Error + Sync + Send>> {
         let node_info = self.get_node_info().await?;
-        Ok(state_mapper::map_chain_id(self.chain, &node_info)?)
+        Ok(Some(state_mapper::map_chain_id(self.chain, &node_info)?))
     }
 
     async fn get_node_status(&self) -> Result<NodeSyncStatus, Box<dyn Error + Sync + Send>> {
@@ -26,8 +26,10 @@ impl<C: Client> ChainState for BitcoinClient<C> {
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
-    use crate::provider::testkit::*;
     use chain_traits::ChainState;
+    use primitives::Chain;
+
+    use crate::provider::testkit::*;
 
     #[tokio::test]
     async fn test_get_bitcoin_latest_block() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -45,10 +47,7 @@ mod chain_integration_tests {
         let client = create_bitcoin_test_client();
         let chain_id = client.get_chain_id().await?;
 
-        assert!(!chain_id.is_empty());
-        assert_eq!(chain_id, primitives::Chain::Bitcoin.network_id());
-        println!("Bitcoin chain ID: {}", chain_id);
-
+        assert_eq!(chain_id.as_deref(), Some(Chain::Bitcoin.network_id()));
         Ok(())
     }
 

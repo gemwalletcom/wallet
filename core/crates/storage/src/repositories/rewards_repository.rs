@@ -13,7 +13,7 @@ use crate::sql_types::{RewardEventType, RewardRedemptionType, RewardStatus, Tran
 use crate::{DatabaseClient, DatabaseError, DieselResultExt, ReferralValidationError, UsernameValidationError};
 use chrono::NaiveDateTime;
 use primitives::rewards::RewardStatus as PrimitiveRewardStatus;
-use primitives::{Chain, ConfigKey, Device, NaiveDateTimeExt, ReferralLeader, ReferralLeaderboard, RewardEvent, Rewards, WalletId, now};
+use primitives::{Chain, ConfigKey, NaiveDateTimeExt, ReferralLeader, ReferralLeaderboard, RewardEvent, Rewards, WalletId, now};
 
 fn create_username_and_rewards(client: &mut DatabaseClient, wallet_id: i32, address: &str, device_id: i32) -> Result<RewardsRow, DatabaseError> {
     UsernamesStore::create_username(
@@ -264,7 +264,6 @@ pub trait RewardsRepository {
     fn get_username_by_wallet_id(&mut self, wallet_id: i32) -> Result<Option<String>, DatabaseError>;
     fn get_reward_events_by_wallet_id(&mut self, wallet_id: i32) -> Result<Vec<RewardEvent>, DatabaseError>;
     fn get_reward_event(&mut self, event_id: i32) -> Result<RewardEvent, DatabaseError>;
-    fn get_reward_event_devices(&mut self, event_id: i32) -> Result<Vec<Device>, DatabaseError>;
     fn create_reward(&mut self, wallet_id: i32, username: &str) -> Result<(Rewards, i32), UsernameValidationError>;
     fn get_referral_code(&mut self, code: &str) -> Result<Option<String>, DatabaseError>;
     fn get_referrer_info(&mut self, username: &str) -> Result<ReferrerInfo, DatabaseError>;
@@ -284,7 +283,6 @@ pub trait RewardsRepository {
     fn get_referrer_username(&mut self, referred_username: &str) -> Result<Option<String>, DatabaseError>;
     fn get_address_by_username(&mut self, username: &str) -> Result<String, DatabaseError>;
     fn get_status_by_username(&mut self, username: &str) -> Result<PrimitiveRewardStatus, DatabaseError>;
-    fn get_referral_count_by_username(&mut self, username: &str) -> Result<i32, DatabaseError>;
     fn count_referrals_since(&mut self, referrer_username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError>;
     fn get_rewards_leaderboard(&mut self) -> Result<ReferralLeaderboard, DatabaseError>;
     fn disable_rewards(&mut self, username: &str, reason: &str, comment: &str) -> Result<i32, DatabaseError>;
@@ -347,13 +345,6 @@ impl RewardsRepository for DatabaseClient {
     fn get_reward_event(&mut self, event_id: i32) -> Result<RewardEvent, DatabaseError> {
         let event = require_reward_event(self, event_id)?;
         Ok(event.as_primitive())
-    }
-
-    fn get_reward_event_devices(&mut self, event_id: i32) -> Result<Vec<Device>, DatabaseError> {
-        let event = require_reward_event(self, event_id)?;
-        let username = require_username(self, UsernameLookup::Username(&event.username))?;
-        let devices = WalletsStore::get_devices_by_wallet_id(self, username.wallet_id)?;
-        Ok(devices.into_iter().map(|d| d.as_primitive()).collect())
     }
 
     fn create_reward(&mut self, wallet_id: i32, username: &str) -> Result<(Rewards, i32), UsernameValidationError> {
@@ -496,11 +487,6 @@ impl RewardsRepository for DatabaseClient {
     fn get_status_by_username(&mut self, username: &str) -> Result<PrimitiveRewardStatus, DatabaseError> {
         let rewards = require_rewards(self, username)?;
         Ok(*rewards.status)
-    }
-
-    fn get_referral_count_by_username(&mut self, username: &str) -> Result<i32, DatabaseError> {
-        let rewards = require_rewards(self, username)?;
-        Ok(rewards.referral_count)
     }
 
     fn count_referrals_since(&mut self, referrer_username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError> {

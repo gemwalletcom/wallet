@@ -75,17 +75,6 @@ impl GemPerpetualService {
         rules::autoclose_summary(&data)
     }
 
-    pub async fn sync_markets(&self, chain: Chain) -> Result<(), GemServiceError> {
-        let currency = self.preferences.get_currency();
-        let data = self.gateway.get_perpetuals_data(chain).await?;
-        self.asset_store.save_assets(rules::perpetual_asset_basics(&data)).await?;
-        self.store.save_perpetuals(data).await?;
-        if let Some(price) = rules::collateral_price(chain) {
-            self.price.update_prices(vec![price], currency).await?;
-        }
-        self.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp()))
-    }
-
     pub async fn sync_markets_if_needed(&self, chain: Chain, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
         if !trigger.should_sync_markets(self.markets_updated_at()?, Utc::now().timestamp()) {
             return Ok(false);
@@ -111,12 +100,46 @@ impl GemPerpetualService {
             .is_some_and(|wallet| rules::show_perpetuals(self.preferences.is_perpetual_enabled(), &wallet))
     }
 
-    pub async fn get_portfolio(&self, chain: Chain, address: String) -> Result<PerpetualPortfolio, GemServiceError> {
-        Ok(self.gateway.get_perpetual_portfolio(chain, address).await?)
-    }
-
     pub async fn set_pinned(&self, perpetual_id: String, pinned: bool) -> Result<(), GemServiceError> {
         self.store.set_pinned(vec![perpetual_id], pinned).await
+    }
+
+    pub async fn sync_current_positions(&self) -> Result<(), GemServiceError> {
+        let wallet = self.session.current_wallet()?;
+        let Some(account) = hyperliquid_account(&wallet.accounts) else {
+            return Ok(());
+        };
+        self.sync_positions(wallet.id, account.chain, account.address.clone()).await.map(|_| ())
+    }
+
+    pub async fn connection(&self, wallet: Wallet) -> Result<Option<GemPerpetualConnection>, GemServiceError> {
+        let Some(account) = hyperliquid_account(&wallet.accounts) else {
+            return Ok(None);
+        };
+        let chain = account.chain;
+        let address = account.address.clone();
+        let mode = match self.sync_positions(wallet.id.clone(), chain, address.clone()).await {
+            Ok(mode) => mode,
+            Err(_) => self.account_mode(wallet.id, chain, address.clone()).await?,
+        };
+        Ok(Some(GemPerpetualConnection { address, mode }))
+    }
+}
+
+impl GemPerpetualService {
+    pub async fn sync_markets(&self, chain: Chain) -> Result<(), GemServiceError> {
+        let currency = self.preferences.get_currency();
+        let data = self.gateway.get_perpetuals_data(chain).await?;
+        self.asset_store.save_assets(rules::perpetual_asset_basics(&data)).await?;
+        self.store.save_perpetuals(data).await?;
+        if let Some(price) = rules::collateral_price(chain) {
+            self.price.update_prices(vec![price], currency).await?;
+        }
+        self.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp()))
+    }
+
+    pub async fn get_portfolio(&self, chain: Chain, address: String) -> Result<PerpetualPortfolio, GemServiceError> {
+        Ok(self.gateway.get_perpetual_portfolio(chain, address).await?)
     }
 
     pub async fn apply_socket_message(&self, wallet_id: WalletId, mode: PerpetualAccountMode, data: Vec<u8>) -> Result<GemPerpetualSocketUpdate, GemServiceError> {
@@ -155,27 +178,6 @@ impl GemPerpetualService {
             HyperliquidSocketMessage::Unknown => Ok(GemPerpetualSocketUpdate::Unknown),
         }
     }
-
-    pub async fn sync_current_positions(&self) -> Result<(), GemServiceError> {
-        let wallet = self.session.current_wallet()?;
-        let Some(account) = hyperliquid_account(&wallet.accounts) else {
-            return Ok(());
-        };
-        self.sync_positions(wallet.id, account.chain, account.address.clone()).await.map(|_| ())
-    }
-
-    pub async fn connection(&self, wallet: Wallet) -> Result<Option<GemPerpetualConnection>, GemServiceError> {
-        let Some(account) = hyperliquid_account(&wallet.accounts) else {
-            return Ok(None);
-        };
-        let chain = account.chain;
-        let address = account.address.clone();
-        let mode = match self.sync_positions(wallet.id.clone(), chain, address.clone()).await {
-            Ok(mode) => mode,
-            Err(_) => self.account_mode(wallet.id, chain, address.clone()).await?,
-        };
-        Ok(Some(GemPerpetualConnection { address, mode }))
-    }
 }
 
 impl GemPerpetualService {
@@ -188,6 +190,7 @@ impl GemPerpetualService {
         self.update_balance(wallet_id, summary.balance).await?;
         Ok(mode)
     }
+
     pub async fn account_mode(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
         match self.gateway.get_perpetual_account_mode(chain, address).await {
             Ok(mode) => {
@@ -203,13 +206,16 @@ impl GemPerpetualService {
     pub fn markets_updated_at(&self) -> Result<Option<i64>, GemServiceError> {
         self.preferences.get_perpetual_markets_updated_at()
     }
+
     pub async fn get_candlesticks(&self, chain: Chain, symbol: String, period: ChartPeriod) -> Result<Vec<GemChartCandleStick>, GemServiceError> {
         Ok(self.gateway.get_perpetual_candlesticks(chain, symbol, period.as_ref().to_string()).await?)
     }
+
     pub async fn clear_markets(&self) -> Result<(), GemServiceError> {
         self.store.delete_perpetuals().await?;
         self.preferences.set_perpetual_markets_updated_at(None)
     }
+
     pub fn collateral_asset_id(&self, chain: Chain) -> Option<AssetId> {
         rules::collateral_asset_id(chain)
     }
@@ -220,6 +226,7 @@ impl GemPerpetualService {
         let update = rules::balance_update(&balance).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
         self.balance.update_balances(wallet_id, vec![update]).await
     }
+
     pub async fn update_prices(&self, prices: HashMap<String, f64>) -> Result<(), GemServiceError> {
         let now = Utc::now().timestamp();
         if !rules::prices_outdated(self.preferences.get_perpetual_prices_updated_at()?, now, PRICES_UPDATE_INTERVAL_SECONDS) {

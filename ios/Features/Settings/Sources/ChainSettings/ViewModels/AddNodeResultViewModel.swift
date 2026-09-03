@@ -24,7 +24,7 @@ struct AddNodeResultViewModel {
     }
 
     var chainIdField: ListItemField {
-        ListItemField(title: Localized.Nodes.ImportNode.chainId, value: result.chainId)
+        ListItemField(title: Localized.Nodes.ImportNode.chainId, value: result.chainId ?? Placeholder.empty)
     }
 
     var inSyncField: ListItemField {

@@ -91,58 +91,61 @@ impl From<&BlockParameter> for serde_json::Value {
 #[derive(Debug, Clone)]
 pub enum EthereumRpc {
     BlockNumber,
-    Call(TransactionObject, BlockParameter),
+    Call { transaction: TransactionObject, block: BlockParameter },
     ChainId,
-    EstimateGas(Value, BlockParameter),
+    EstimateGas { transaction: Value, block: BlockParameter },
     FeeHistory { blocks: u64, reward_percentiles: Vec<u64> },
     GasPrice,
-    GetBalance(String, BlockParameter),
-    GetBlockByNumber(u64, bool),
-    GetBlockReceipts(u64),
-    GetCode(String, BlockParameter),
-    GetTransactionByHash(String),
-    GetTransactionCount(String, BlockParameter),
-    GetTransactionReceipt(String),
-    SendRawTransaction(String),
-    TraceCall(TransactionObject, BlockParameter),
+    GetBalance { address: String, block: BlockParameter },
+    GetBlockByNumber { number: u64, include_transactions: bool },
+    GetBlockReceipts { number: u64 },
+    GetCode { address: String, block: BlockParameter },
+    GetTransactionByHash { hash: String },
+    GetTransactionCount { address: String, block: BlockParameter },
+    GetTransactionReceipt { hash: String },
+    SendRawTransaction { data: String },
+    TraceCall { transaction: TransactionObject, block: BlockParameter },
 }
 
 impl ToJsonRpcRequest for EthereumRpc {
     fn method(&self) -> &'static str {
         match self {
             Self::BlockNumber => method::ETH_BLOCK_NUMBER,
-            Self::Call(_, _) => method::ETH_CALL,
+            Self::Call { .. } => method::ETH_CALL,
             Self::ChainId => method::ETH_CHAIN_ID,
-            Self::EstimateGas(_, _) => method::ETH_ESTIMATE_GAS,
+            Self::EstimateGas { .. } => method::ETH_ESTIMATE_GAS,
             Self::FeeHistory { .. } => method::ETH_FEE_HISTORY,
             Self::GasPrice => method::ETH_GAS_PRICE,
-            Self::GetBalance(_, _) => method::ETH_GET_BALANCE,
-            Self::GetBlockByNumber(_, _) => method::ETH_GET_BLOCK_BY_NUMBER,
-            Self::GetBlockReceipts(_) => method::ETH_GET_BLOCK_RECEIPTS,
-            Self::GetCode(_, _) => method::ETH_GET_CODE,
-            Self::GetTransactionByHash(_) => method::ETH_GET_TRANSACTION_BY_HASH,
-            Self::GetTransactionCount(_, _) => method::ETH_GET_TRANSACTION_COUNT,
-            Self::GetTransactionReceipt(_) => method::ETH_GET_TRANSACTION_RECEIPT,
-            Self::SendRawTransaction(_) => method::ETH_SEND_RAW_TRANSACTION,
-            Self::TraceCall(_, _) => method::TRACE_CALL,
+            Self::GetBalance { .. } => method::ETH_GET_BALANCE,
+            Self::GetBlockByNumber { .. } => method::ETH_GET_BLOCK_BY_NUMBER,
+            Self::GetBlockReceipts { .. } => method::ETH_GET_BLOCK_RECEIPTS,
+            Self::GetCode { .. } => method::ETH_GET_CODE,
+            Self::GetTransactionByHash { .. } => method::ETH_GET_TRANSACTION_BY_HASH,
+            Self::GetTransactionCount { .. } => method::ETH_GET_TRANSACTION_COUNT,
+            Self::GetTransactionReceipt { .. } => method::ETH_GET_TRANSACTION_RECEIPT,
+            Self::SendRawTransaction { .. } => method::ETH_SEND_RAW_TRANSACTION,
+            Self::TraceCall { .. } => method::TRACE_CALL,
         }
     }
 
     fn params(&self) -> Value {
         match self {
             Self::BlockNumber | Self::ChainId | Self::GasPrice => json!([]),
-            Self::Call(transaction, block) => json!([transaction, Value::from(block)]),
-            Self::EstimateGas(transaction, block) => json!([transaction, Value::from(block)]),
+            Self::Call { transaction, block } => json!([transaction, Value::from(block)]),
+            Self::EstimateGas { transaction, block } => json!([transaction, Value::from(block)]),
             Self::FeeHistory { blocks, reward_percentiles } => {
                 json!([format!("0x{blocks:x}"), Value::from(&BlockParameter::Latest), reward_percentiles])
             }
-            Self::GetBalance(address, block) | Self::GetCode(address, block) | Self::GetTransactionCount(address, block) => {
+            Self::GetBalance { address, block } | Self::GetCode { address, block } | Self::GetTransactionCount { address, block } => {
                 json!([address, Value::from(block)])
             }
-            Self::GetBlockByNumber(block_number, include_transactions) => json!([format!("0x{block_number:x}"), include_transactions]),
-            Self::GetBlockReceipts(block_number) => json!([format!("0x{block_number:x}")]),
-            Self::GetTransactionByHash(hash) | Self::GetTransactionReceipt(hash) | Self::SendRawTransaction(hash) => json!([hash]),
-            Self::TraceCall(transaction, block) => json!([transaction, ["trace", "stateDiff"], Value::from(block)]),
+            Self::GetBlockByNumber {
+                number: block_number,
+                include_transactions,
+            } => json!([format!("0x{block_number:x}"), include_transactions]),
+            Self::GetBlockReceipts { number } => json!([format!("0x{number:x}")]),
+            Self::GetTransactionByHash { hash } | Self::GetTransactionReceipt { hash } | Self::SendRawTransaction { data: hash } => json!([hash]),
+            Self::TraceCall { transaction, block } => json!([transaction, ["trace", "stateDiff"], Value::from(block)]),
         }
     }
 }
@@ -185,7 +188,10 @@ mod tests {
     #[test]
     fn builds_call_request() {
         assert_request(
-            EthereumRpc::Call(TransactionObject::new_call("0x1234", vec![0xab, 0xcd]), BlockParameter::Latest),
+            EthereumRpc::Call {
+                transaction: TransactionObject::new_call("0x1234", vec![0xab, 0xcd]),
+                block: BlockParameter::Latest,
+            },
             method::ETH_CALL,
             json!([{"to": "0x1234", "data": "0xabcd"}, "latest"]),
         );
@@ -193,8 +199,22 @@ mod tests {
 
     #[test]
     fn encodes_block_quantities_as_hex() {
-        assert_request(EthereumRpc::GetBlockByNumber(26, true), method::ETH_GET_BLOCK_BY_NUMBER, json!(["0x1a", true]));
-        assert_request(EthereumRpc::GetBlockByNumber(26, false), method::ETH_GET_BLOCK_BY_NUMBER, json!(["0x1a", false]));
+        assert_request(
+            EthereumRpc::GetBlockByNumber {
+                number: 26,
+                include_transactions: true,
+            },
+            method::ETH_GET_BLOCK_BY_NUMBER,
+            json!(["0x1a", true]),
+        );
+        assert_request(
+            EthereumRpc::GetBlockByNumber {
+                number: 26,
+                include_transactions: false,
+            },
+            method::ETH_GET_BLOCK_BY_NUMBER,
+            json!(["0x1a", false]),
+        );
     }
 
     #[test]
@@ -211,6 +231,10 @@ mod tests {
 
     #[test]
     fn builds_broadcast_request() {
-        assert_request(EthereumRpc::SendRawTransaction("0xsigned".into()), method::ETH_SEND_RAW_TRANSACTION, json!(["0xsigned"]));
+        assert_request(
+            EthereumRpc::SendRawTransaction { data: "0xsigned".into() },
+            method::ETH_SEND_RAW_TRANSACTION,
+            json!(["0xsigned"]),
+        );
     }
 }

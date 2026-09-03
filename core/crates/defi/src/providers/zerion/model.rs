@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 pub struct ZerionPositionsResponse {
@@ -58,4 +58,28 @@ pub struct ZerionRelationship {
 #[derive(Debug, Deserialize)]
 pub struct ZerionRelationshipData {
     pub id: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct PositionsQuery {
+    #[serde(rename = "filter[positions]")]
+    pub positions: &'static str,
+    #[serde(rename = "filter[chain_ids]")]
+    pub chain_ids: String,
+    #[serde(rename = "filter[trash]")]
+    pub trash: &'static str,
+    pub currency: &'static str,
+    pub sort: &'static str,
+}
+
+impl PositionsQuery {
+    pub fn complex(chain_id: &str) -> Self {
+        Self {
+            positions: "only_complex",
+            chain_ids: chain_id.to_string(),
+            trash: "only_non_trash",
+            currency: "usd",
+            sort: "-value",
+        }
+    }
 }

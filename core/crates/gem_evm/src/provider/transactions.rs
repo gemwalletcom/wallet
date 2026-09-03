@@ -55,10 +55,13 @@ impl<C: Client + Clone> EthereumProvider<C> {
             Some(block_number) => {
                 let responses = self
                     .client
-                    .batch_request::<EthereumRpc, Value>(vec![
-                        EthereumRpc::GetTransactionByHash(hash.clone()),
-                        EthereumRpc::GetTransactionReceipt(hash),
-                        EthereumRpc::GetBlockByNumber(block_number, false),
+                    .batch_request::<Value, _>(vec![
+                        EthereumRpc::GetTransactionByHash { hash: hash.clone() },
+                        EthereumRpc::GetTransactionReceipt { hash },
+                        EthereumRpc::GetBlockByNumber {
+                            number: block_number,
+                            include_transactions: false,
+                        },
                     ])
                     .await?
                     .take_all()?;
@@ -68,7 +71,7 @@ impl<C: Client + Clone> EthereumProvider<C> {
             None => {
                 let responses = self
                     .client
-                    .batch_request::<EthereumRpc, Value>(vec![EthereumRpc::GetTransactionByHash(hash.clone()), EthereumRpc::GetTransactionReceipt(hash)])
+                    .batch_request::<Value, _>(vec![EthereumRpc::GetTransactionByHash { hash: hash.clone() }, EthereumRpc::GetTransactionReceipt { hash }])
                     .await?
                     .take_all()?;
                 let [transaction, receipt] = responses.try_into().map_err(|_| "EVM transaction batch response length mismatch")?;

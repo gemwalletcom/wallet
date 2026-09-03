@@ -43,8 +43,7 @@ use devices::{
 use gem_auth::AuthClient;
 use gem_rewards::{AbuseIPDBClient, IpApiClient, IpCheckProvider, IpSecurityClient};
 use model::APIService;
-use name_resolver::NameProviderFactory;
-use name_resolver::client::{Client as NameClient, NameConfig};
+use name_resolver::{NameClient, NameConfig, NameProviderFactory};
 use pricer::{ChartClient, MarketsClient, PriceAlertClient, PriceClient};
 use primitives::{ConfigKey, FiatProviderName, PriceConfig};
 use rocket::{Build, Rocket, catchers, routes};
@@ -207,8 +206,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let name_config = NameConfig {
         max_name_length: settings_clone.name.max_name_length,
     };
-    let providers = NameProviderFactory::create_providers(settings_clone.clone());
-    let name_client = NameClient::new(providers, name_config);
+    let name_client = NameClient::new(NameProviderFactory::new_providers(settings_clone.name.clone()), name_config);
 
     let user_agent = settings::service_user_agent("api", None);
     let chain_client = chain::ChainClient::new(ChainProviders::from_settings(&settings, &user_agent));

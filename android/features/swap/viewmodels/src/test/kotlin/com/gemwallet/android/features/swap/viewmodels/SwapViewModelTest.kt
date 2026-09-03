@@ -14,7 +14,6 @@ import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.swap.viewmodels.models.SwapActionState
-import com.gemwallet.android.features.swap.viewmodels.models.SwapError
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.model.AssetBalance
 import uniffi.gemstone.GemTransferData
@@ -107,6 +106,7 @@ class SwapViewModelTest {
     private val swapQuoteService = mockk<GemSwapQuoteServiceInterface>(relaxed = true) {
         every { slippageBps() } returns null
         coEvery { suggestPair(any()) } returns null
+        every { selectedQuote(any(), any()) } answers { firstArg<List<SwapperQuote>>().firstOrNull() }
     }
 
     private val createdViewModels = mutableListOf<SwapViewModel>()
@@ -344,7 +344,7 @@ class SwapViewModelTest {
         awaitCondition { viewModel.uiState.value.action is SwapActionState.TransferError }
 
         val action = viewModel.uiState.value.action as SwapActionState.TransferError
-        assertTrue(action.error is SwapError.NoQuote)
+        assertTrue(action.error is SwapperException.NoQuoteAvailable)
         assertEquals(BigInteger("2500000"), viewModel.quote.value?.quote?.toValue)
     }
 

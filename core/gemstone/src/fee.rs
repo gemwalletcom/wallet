@@ -56,10 +56,3 @@ impl GemGasPriceType {
         GasPriceType::from(self.clone()).custom(gas_price).into()
     }
 }
-
-#[uniffi::export]
-impl GemGasPriceType {
-    pub fn total_fee(&self) -> BigInt {
-        GasPriceType::from(self.clone()).total_fee()
-    }
-}

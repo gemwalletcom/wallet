@@ -148,17 +148,12 @@ impl Asset {
 
 pub trait AssetVecExt {
     fn ids(&self) -> Vec<AssetId>;
-    fn ids_set(&self) -> HashSet<AssetId>;
     fn asset(&self, asset_id: AssetId) -> Option<Asset>;
     fn asset_result(&self, asset_id: AssetId) -> Result<&Asset, Box<dyn Error + Send + Sync>>;
 }
 
 impl AssetVecExt for Vec<Asset> {
     fn ids(&self) -> Vec<AssetId> {
-        self.iter().map(|x| x.id.clone()).collect()
-    }
-
-    fn ids_set(&self) -> HashSet<AssetId> {
         self.iter().map(|x| x.id.clone()).collect()
     }
 

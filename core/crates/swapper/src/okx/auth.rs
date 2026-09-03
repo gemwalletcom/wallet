@@ -1,8 +1,6 @@
 use super::model::OkxClientConfig;
-use crate::SwapperError;
 use gem_encoding::encode_base64;
 use hmac::{Hmac, KeyInit, Mac};
-use serde::Serialize;
 use sha2::Sha256;
 use std::collections::HashMap;
 
@@ -11,11 +9,6 @@ pub(super) const HEADER_SIGN: &str = "OK-ACCESS-SIGN";
 pub(super) const HEADER_TIMESTAMP: &str = "OK-ACCESS-TIMESTAMP";
 pub(super) const HEADER_PASSPHRASE: &str = "OK-ACCESS-PASSPHRASE";
 pub(super) const HEADER_PROJECT: &str = "OK-ACCESS-PROJECT";
-
-pub(super) fn build_query_string<T: Serialize>(params: &T) -> Result<String, SwapperError> {
-    let encoded = serde_urlencoded::to_string(params)?;
-    if encoded.is_empty() { Ok(String::new()) } else { Ok(format!("?{encoded}")) }
-}
 
 pub(super) fn sign(timestamp: &str, method: &str, path: &str, secret_key: &str) -> String {
     type HmacSha256 = Hmac<Sha256>;

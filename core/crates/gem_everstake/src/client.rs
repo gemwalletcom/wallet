@@ -2,9 +2,7 @@ use std::{error::Error, str::FromStr};
 
 use alloy_primitives::{Address, U256};
 use alloy_sol_types::SolCall;
-use gem_client::Client;
-#[cfg(feature = "reqwest")]
-use gem_client::{ClientExt, ReqwestClient};
+use gem_client::{Client, ClientExt};
 use gem_evm::multicall3::{IMulticall3, create_call3, decode_call3_return};
 use gem_evm::rpc::EthereumClient;
 use gem_evm::u256::u256_to_biguint;
@@ -13,16 +11,22 @@ use num_traits::Zero;
 
 use crate::constants::EVERSTAKE_ACCOUNTING_ADDRESS;
 use crate::contracts::IAccounting;
-use crate::models::AccountState;
-#[cfg(feature = "reqwest")]
-use crate::models::StatsResponse;
+use crate::models::{AccountState, StatsResponse};
+use crate::target::EverstakeTarget;
 
-#[cfg(feature = "reqwest")]
-pub async fn staking_apy(url: &str) -> Result<Option<f64>, Box<dyn Error + Send + Sync>> {
-    let client = ReqwestClient::new(url.to_string(), gem_client::reqwest_client());
-    let response: StatsResponse = client.get("/api/v1/stats").await?;
+pub struct EverstakeClient<C: Client> {
+    client: C,
+}
 
-    Ok(Some(response.apr * 100.0))
+impl<C: Client> EverstakeClient<C> {
+    pub fn new(client: C) -> Self {
+        Self { client }
+    }
+
+    pub async fn get_staking_apy(&self) -> Result<f64, Box<dyn Error + Send + Sync>> {
+        let response: StatsResponse = self.client.get(EverstakeTarget::GetStats).await?;
+        Ok(response.apr * 100.0)
+    }
 }
 
 pub async fn account_state<C: Client + Clone>(client: &EthereumClient<C>, address: &str) -> Result<AccountState, Box<dyn Error + Sync + Send>> {
@@ -60,4 +64,21 @@ where
     }
     let value: U256 = decode_call3_return::<T>(result)?.into();
     Ok(u256_to_biguint(&value))
+}
+
+#[cfg(test)]
+mod tests {
+    use gem_client::testkit::MockClient;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_get_staking_apy() {
+        let client = EverstakeClient::new(MockClient::new().with_get(|path| {
+            assert_eq!(path, "/api/v1/stats");
+            Ok(br#"{"apr":"0.0325"}"#.to_vec())
+        }));
+
+        assert_eq!(client.get_staking_apy().await.unwrap(), 3.25);
+    }
 }

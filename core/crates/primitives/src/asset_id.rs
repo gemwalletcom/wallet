@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt};
+use std::fmt;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 
@@ -158,16 +158,11 @@ impl AssetId {
 
 pub trait AssetIdVecExt {
     fn ids(&self) -> Vec<String>;
-    fn ids_set(&self) -> HashSet<AssetId>;
 }
 
 impl AssetIdVecExt for Vec<AssetId> {
     fn ids(&self) -> Vec<String> {
         self.iter().map(|x| x.to_string()).collect()
-    }
-
-    fn ids_set(&self) -> HashSet<AssetId> {
-        self.iter().cloned().collect()
     }
 }
 

@@ -1,5 +1,5 @@
 use super::{
-    constants::{MAYAN_FORWARDER, SDK_VERSION},
+    constants::{MAYAN_FORWARDER, MAYAN_PROGRAM_ID, SDK_VERSION},
     wormhole_chain,
 };
 use crate::{SwapperError, error::ProviderErrorResponse, fees::default_referral_address};
@@ -736,5 +736,61 @@ mod tests {
         let result: MayanTransactionResult = serde_json::from_str(include_str!("test/swift_refunded.json")).unwrap();
         assert_eq!(result.from_token_chain, "2");
         assert_eq!(result.to_token_chain, "1");
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QuoteQuery {
+    pub wormhole: bool,
+    pub swift: bool,
+    pub mctp: bool,
+    pub shuttle: bool,
+    pub fast_mctp: bool,
+    pub gasless: bool,
+    pub only_direct: bool,
+    pub full_list: bool,
+    pub mono_chain: bool,
+    pub solana_program: &'static str,
+    pub forwarder_address: &'static str,
+    pub amount_in64: String,
+    pub from_token: String,
+    pub from_chain: String,
+    pub to_token: String,
+    pub to_chain: String,
+    pub referrer: String,
+    pub referrer_bps: u32,
+    pub sdk_version: &'static str,
+    pub slippage_bps: String,
+}
+
+impl From<QuoteParams> for QuoteQuery {
+    fn from(params: QuoteParams) -> Self {
+        let slippage_bps = match params.slippage_mode {
+            SlippageMode::Auto => "auto".to_string(),
+            SlippageMode::Exact => params.slippage_bps.to_string(),
+        };
+        Self {
+            wormhole: false,
+            swift: true,
+            mctp: true,
+            shuttle: false,
+            fast_mctp: true,
+            gasless: false,
+            only_direct: false,
+            full_list: false,
+            mono_chain: true,
+            solana_program: MAYAN_PROGRAM_ID,
+            forwarder_address: MAYAN_FORWARDER,
+            amount_in64: params.amount_in64,
+            from_token: params.from_token,
+            from_chain: params.from_chain,
+            to_token: params.to_token,
+            to_chain: params.to_chain,
+            referrer: params.referrer,
+            referrer_bps: params.referrer_bps,
+            sdk_version: SDK_VERSION,
+            slippage_bps,
+        }
     }
 }

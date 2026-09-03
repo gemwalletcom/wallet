@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
-import uniffi.gemstone.GemPriceAlertService
+import uniffi.gemstone.GemPriceAlertServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -39,7 +39,7 @@ class PriceAlertViewModel @Inject constructor(
     private val getAssetPriceAlertState: GetAssetPriceAlertState,
     private val getAssetTokenInfo: GetAssetTokenInfo,
     private val enableDevicePush: EnableDevicePush,
-    private val service: GemPriceAlertService,
+    private val service: GemPriceAlertServiceInterface,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 

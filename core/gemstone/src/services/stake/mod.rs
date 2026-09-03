@@ -106,8 +106,8 @@ impl GemStakeService {
         rules::claim_rewards(chain, delegations)
     }
 
-    pub fn recommended_validator_ids(&self, chain: Chain) -> Vec<String> {
-        rules::recommended_validator_ids(chain)
+    pub fn recommended_validators(&self, chain: Chain, validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {
+        rules::recommended_validators(chain, &validators)
     }
 
     pub fn recommended_validator(&self, chain: Chain, validators: Vec<DelegationValidator>) -> Option<DelegationValidator> {

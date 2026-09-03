@@ -11,6 +11,7 @@ use std::sync::Arc;
 use primitives::{Account, NFTAssetData, NFTAssetId, NFTData, ReportNft, WalletId};
 
 pub use collectible::{GemCollectibleLinks, GemCollectibleService};
+pub use rules::GemNftSearchItem;
 pub use store::GemNftStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};

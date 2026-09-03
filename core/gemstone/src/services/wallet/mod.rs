@@ -30,7 +30,7 @@ pub(crate) mod testkit;
 use std::sync::Arc;
 
 use gem_keystore::Mnemonic;
-use primitives::{Account, Chain, Wallet, WalletId, WalletSource, WalletType};
+use primitives::{Chain, Wallet, WalletId, WalletSource, WalletType};
 
 use crate::block_explorer::GemBlockExplorerLink;
 use crate::keystore::decode_password;
@@ -38,6 +38,7 @@ use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_f
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::file::GemFileStore;
+use crate::services::name::GemAddressStore;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
@@ -65,6 +66,7 @@ pub struct GemWalletService {
     files: Arc<dyn GemFileStore>,
     preferences: Arc<GemWalletPreferencesService>,
     explorer: Arc<GemExplorerService>,
+    addresses: Arc<dyn GemAddressStore>,
 }
 
 #[uniffi::export]
@@ -79,6 +81,7 @@ impl GemWalletService {
         files: Arc<dyn GemFileStore>,
         preferences: Arc<GemWalletPreferencesService>,
         explorer: Arc<GemExplorerService>,
+        addresses: Arc<dyn GemAddressStore>,
     ) -> Self {
         Self {
             keystore,
@@ -89,6 +92,7 @@ impl GemWalletService {
             files,
             preferences,
             explorer,
+            addresses,
         }
     }
 
@@ -110,6 +114,14 @@ impl GemWalletService {
 
     pub fn next_wallet_index(&self) -> Result<i32, GemServiceError> {
         Ok(rules::next_wallet_index(&self.store.get_wallets()?))
+    }
+
+    pub fn wallets_limit(&self) -> u32 {
+        rules::WALLETS_LIMIT
+    }
+
+    pub fn can_add_wallet(&self) -> Result<bool, GemServiceError> {
+        Ok(rules::can_add_wallet(self.store.get_wallets()?.len()))
     }
 
     pub async fn import_wallet(&self, name: String, import: GemWalletImportType, source: WalletSource) -> Result<GemWalletImportResult, GemServiceError> {
@@ -144,7 +156,7 @@ impl GemWalletService {
                 }
             }
         };
-        self.store.add_wallet(wallet.clone()).await?;
+        self.store_wallet(&wallet).await?;
         if wallet.source == WalletSource::Create {
             self.preferences.complete_initial_synchronization(wallet.id.clone())?;
         }
@@ -160,6 +172,7 @@ impl GemWalletService {
             self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?;
         }
         self.store.delete_wallet(wallet.id.clone()).await?;
+        self.addresses.delete_address_names(rules::wallet_address_names(&wallet)).await?;
         if let Some(image_url) = wallet.image_url.clone() {
             self.files.remove(image_url)?;
         }
@@ -238,15 +251,15 @@ impl GemWalletService {
     }
 
     pub async fn rename(&self, wallet_id: WalletId, name: String) -> Result<(), GemServiceError> {
-        self.store.set_name(wallet_id, name).await
+        let wallet = self.store.get_wallet(wallet_id.clone())?.ok_or_else(|| GemServiceError::NotFound {
+            msg: format!("wallet {} not found", wallet_id.id()),
+        })?;
+        self.store.set_name(wallet_id, name.clone()).await?;
+        self.addresses.save_address_names(rules::wallet_address_names(&Wallet { name, ..wallet })).await
     }
 
     pub fn sorted_wallets(&self, wallets: Vec<Wallet>) -> Vec<Wallet> {
         rules::sorted_wallets(wallets)
-    }
-
-    pub fn display_account(&self, wallet: Wallet) -> Option<Account> {
-        rules::display_account(&wallet)
     }
 
     pub fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
@@ -295,7 +308,12 @@ impl GemWalletService {
     async fn add_chains(&self, wallet: &mut Wallet, missing: Vec<Chain>, password: Vec<u8>) -> Result<(), GemServiceError> {
         let accounts = self.keystore.add_accounts(keystore_id_for_wallet(wallet.id.id()), password, missing)?;
         wallet.accounts.extend(accounts.into_iter().map(rules::account));
-        self.store.add_wallet(wallet.clone()).await
+        self.store_wallet(wallet).await
+    }
+
+    async fn store_wallet(&self, wallet: &Wallet) -> Result<(), GemServiceError> {
+        self.store.add_wallet(wallet.clone()).await?;
+        self.addresses.save_address_names(rules::wallet_address_names(wallet)).await
     }
 
     async fn invalidate_subscriptions(&self) -> Result<(), GemServiceError> {
@@ -318,10 +336,10 @@ mod tests {
     use std::path::PathBuf;
 
     use futures::executor::block_on;
-    use primitives::Currency;
+    use primitives::{AddressType, Currency};
     use tempfile::TempDir;
 
-    use super::testkit::{MemoryKeystorePassword, MemoryWalletStore, TEST_PASSWORD};
+    use super::testkit::{MemoryAddressStore, MemoryKeystorePassword, MemoryWalletStore, TEST_PASSWORD};
     use super::*;
     use crate::services::file::testkit::NoopFileStore;
     use crate::services::preferences::testkit::MemoryPreferencesStore;
@@ -338,6 +356,7 @@ mod tests {
     struct TestContext {
         service: GemWalletService,
         passwords: Arc<MemoryKeystorePassword>,
+        addresses: Arc<MemoryAddressStore>,
         directory: TempDir,
     }
 
@@ -346,6 +365,7 @@ mod tests {
             let directory = TempDir::new().unwrap();
             let wallets = Arc::new(MemoryWalletStore::default());
             let passwords = Arc::new(MemoryKeystorePassword::default());
+            let addresses = Arc::new(MemoryAddressStore::default());
             let preferences = Arc::new(MemoryPreferencesStore::default());
             let keystore = GemKeystore::new(directory.path().to_string_lossy().to_string()).unwrap();
             let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets.clone()));
@@ -359,8 +379,14 @@ mod tests {
                 Arc::new(NoopFileStore),
                 Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default()))),
                 Arc::new(GemExplorerService::new(app_preferences)),
+                addresses.clone(),
             );
-            Self { service, passwords, directory }
+            Self {
+                service,
+                passwords,
+                addresses,
+                directory,
+            }
         }
 
         async fn import(&self, name: &str, words: [&str; 12]) -> Wallet {
@@ -413,6 +439,36 @@ mod tests {
             assert!(!context.keystore_path(&kept).exists());
             assert_eq!(context.service.session.get_current_wallet_id().unwrap(), None);
             assert_eq!(context.service.app_preferences.get_currency(), Currency::EUR);
+        });
+    }
+
+    #[test]
+    fn test_wallet_accounts_are_named_after_the_wallet_until_it_is_deleted() {
+        block_on(async {
+            let context = TestContext::new();
+            let wallet = context.import("Savings", PHRASE).await;
+            let account = wallet.accounts[0].clone();
+            let name = |context: &TestContext| context.addresses.get_address_name(account.chain, account.address.clone()).unwrap();
+
+            let stored = name(&context).unwrap();
+            assert_eq!((stored.name.as_str(), stored.address_type), ("Savings", AddressType::InternalWallet));
+
+            context.service.rename(wallet.id.clone(), "Spending".to_string()).await.unwrap();
+            assert_eq!(name(&context).unwrap().name, "Spending");
+
+            context.service.delete_wallet(wallet.id.clone()).await.unwrap();
+            assert!(name(&context).is_none());
+        });
+    }
+
+    #[test]
+    fn test_import_creates_the_keystore_password_only_while_the_keystore_is_empty() {
+        block_on(async {
+            let context = TestContext::new();
+            context.import("First", PHRASE).await;
+            context.import("Second", OTHER_PHRASE).await;
+
+            assert_eq!(*context.passwords.create_requests.lock().unwrap(), vec![true, false]);
         });
     }
 

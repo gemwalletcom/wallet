@@ -23,18 +23,6 @@ impl GemAddressService {
         Self {}
     }
 
-    pub fn validate(&self, address: String, chain: Chain) -> bool {
-        crate::address::validate_address(&address, chain)
-    }
-
-    pub fn checksum(&self, address: String, chain: Chain) -> String {
-        crate::address::checksum_address(&address, chain)
-    }
-
-    pub fn short(&self, address: String, chain: Chain) -> String {
-        crate::address::short_address(&address, chain)
-    }
-
     pub fn format(&self, address: String, chain: Option<Chain>, style: GemAddressFormatStyle) -> String {
         format_address(&address, chain, style)
     }

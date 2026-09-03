@@ -37,14 +37,17 @@ public final class ValidatorSelectSceneViewModel {
         Localized.Stake.validators
     }
 
+    private var recommendedValidators: [DelegationValidator] {
+        service.recommendedValidators(chain: chain.rawValue, validators: validators.map { $0.json() }).compactMap { try? DelegationValidator($0) }
+    }
+
     public var list: [ListItemValueSection<DelegationValidator>] {
         switch type {
         case .stake:
-            let recommended = Set(service.recommendedValidatorIds(chain: chain.rawValue))
             return [
                 listSection(
                     title: Localized.Common.recommended,
-                    validators: validators.filter { recommended.contains($0.id) },
+                    validators: recommendedValidators,
                 ),
                 listSection(
                     title: Localized.Stake.active,

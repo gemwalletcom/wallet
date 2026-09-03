@@ -14,6 +14,9 @@ pub const FUNGIBLE_ASSET_DEPOSIT_EVENT: &str = "0x1::fungible_asset::Deposit";
 pub const DELEGATION_POOL_ADD_STAKE_FUNCTION: &str = "0x1::delegation_pool::add_stake";
 pub const DELEGATION_POOL_UNLOCK_FUNCTION: &str = "0x1::delegation_pool::unlock";
 pub const DELEGATION_POOL_WITHDRAW_FUNCTION: &str = "0x1::delegation_pool::withdraw";
+pub const DELEGATION_POOL_GET_STAKE_FUNCTION: &str = "0x1::delegation_pool::get_stake";
+pub const DELEGATION_POOL_OPERATOR_COMMISSION_FUNCTION: &str = "0x1::delegation_pool::operator_commission_percentage";
+pub const STAKE_GET_LOCKUP_SECS_FUNCTION: &str = "0x1::stake::get_lockup_secs";
 
 pub const DELEGATION_POOL_ADD_STAKE_EVENT: &str = "0x1::delegation_pool::AddStake";
 pub const DELEGATION_POOL_UNLOCK_STAKE_EVENT: &str = "0x1::delegation_pool::UnlockStake";

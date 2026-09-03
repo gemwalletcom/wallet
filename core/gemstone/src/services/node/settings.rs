@@ -1,10 +1,9 @@
 use std::sync::Arc;
 
-use primitives::node::Node;
 use primitives::node_config::NodeRegion;
 use primitives::{Chain, Latency};
 
-use super::model::{GemAddNodeError, GemNodeCheck, GemNodeStatusState};
+use super::model::{GemAddNodeError, GemNodeCheck, GemNodeSelection, GemNodeStatusState};
 use super::rules;
 use crate::gateway::GemGateway;
 use crate::services::chain::rules as chain_rules;
@@ -42,12 +41,10 @@ impl GemChainSettingsService {
         self.explorer.set_explorer_name(chain, name)
     }
 
-    pub async fn nodes(&self, chain: Chain) -> Result<Vec<Node>, GemServiceError> {
-        Ok(self.nodes.sorted_nodes(chain, self.nodes.get_nodes(chain).await?))
-    }
-
-    pub fn selected_node(&self, chain: Chain) -> Node {
-        self.nodes.selected_node(chain)
+    pub async fn nodes(&self, chain: Chain) -> Result<Vec<GemNodeSelection>, GemServiceError> {
+        let nodes = self.nodes.get_nodes(chain).await?;
+        let selected_url = self.nodes.selected_node(chain).url;
+        Ok(rules::node_selections(self.nodes.sorted_nodes(chain, nodes), &selected_url))
     }
 
     pub async fn select_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {

@@ -8,7 +8,6 @@ import com.wallet.core.primitives.ChainAsset
 import com.wallet.core.primitives.ChainType
 import uniffi.gemstone.Config
 import uniffi.gemstone.supportsPrivateKeyImport
-import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemAssetConfigService
 
 private val assetConfig = GemAssetConfigService()
@@ -52,16 +51,6 @@ fun Chain.isSwapSupport(): Boolean = Config().getChainConfig(string).isSwapSuppo
 
 fun Chain.isMemoSupport() = Config().getChainConfig(string).isMemoSupported
 
-fun Chain.isValidAddress(address: String, addressService: GemAddressService): Boolean =
-    addressService.validate(checksumAddress(address, addressService), string)
-
-fun Chain.checksumAddress(address: String, addressService: GemAddressService): String =
-    addressService.checksum(address = address, chain = string)
-
 fun Chain.isPrivateKeyImportSupported(): Boolean = supportsPrivateKeyImport(string)
 
-fun uniffi.gemstone.Chain.toChain(): Chain? {
-    return Chain.entries.firstOrNull { it.string == this }
-}
-
-fun uniffi.gemstone.Chain.requireChain(): Chain = requireNotNull(toChain()) { "unknown chain: $this" }
+fun uniffi.gemstone.Chain.requireChain(): Chain = requireNotNull(Chain.entries.firstOrNull { it.string == this }) { "unknown chain: $this" }

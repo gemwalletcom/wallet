@@ -1,9 +1,17 @@
 use std::cmp::Reverse;
 
-use primitives::{AssetId, Chain, ChainAsset, NodeCheckProfile, NodeCheckRequest, node_check_request};
+use primitives::{AssetId, Chain, ChainAsset, NodeCheckProfile, NodeCheckRequest, Wallet, node_check_request};
+
+use crate::services::collections::unique;
 
 pub fn chains_by_rank() -> Vec<Chain> {
     let mut chains = Chain::all();
+    chains.sort_by_key(|chain| Reverse(AssetId::from_chain(*chain).default_rank()));
+    chains
+}
+
+pub fn wallet_chains_by_rank(wallet: &Wallet) -> Vec<Chain> {
+    let mut chains = unique(wallet.accounts.iter().map(|account| account.chain));
     chains.sort_by_key(|chain| Reverse(AssetId::from_chain(*chain).default_rank()));
     chains
 }
@@ -28,8 +36,8 @@ pub fn chain_matches_query(chain: Chain, query: &str) -> bool {
     .any(|value| value.contains(&query))
 }
 
-pub fn is_valid_network_id(chain: Chain, network_id: &str) -> bool {
-    chain.network_id() == network_id
+pub fn mismatched_network_id(chain: Chain, network_id: Option<&str>) -> Option<String> {
+    network_id.filter(|network_id| chain.network_id() != *network_id).map(str::to_string)
 }
 
 pub fn node_verification_address(chain: Chain) -> Option<String> {
@@ -45,6 +53,13 @@ pub fn node_verification_address(chain: Chain) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::Account;
+
+    #[test]
+    fn test_wallet_chains_by_rank_orders_the_wallet_accounts() {
+        let wallet = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::Doge, Chain::Ethereum, Chain::Doge, Chain::Bitcoin], "address"));
+        assert_eq!(wallet_chains_by_rank(&wallet), vec![Chain::Bitcoin, Chain::Ethereum, Chain::Doge]);
+    }
 
     #[test]
     fn test_chains_by_rank_orders_and_filters() {
@@ -71,8 +86,12 @@ mod tests {
     }
 
     #[test]
-    fn test_is_valid_network_id() {
-        assert!(is_valid_network_id(Chain::Ethereum, Chain::Ethereum.network_id()));
-        assert!(!is_valid_network_id(Chain::Ethereum, Chain::SmartChain.network_id()));
+    fn test_only_a_reported_network_id_is_checked() {
+        assert_eq!(mismatched_network_id(Chain::Ethereum, Some(Chain::Ethereum.network_id())), None);
+        assert_eq!(mismatched_network_id(Chain::Ethereum, None), None);
+        assert_eq!(
+            mismatched_network_id(Chain::Ethereum, Some(Chain::SmartChain.network_id())),
+            Some(Chain::SmartChain.network_id().to_string())
+        );
     }
 }

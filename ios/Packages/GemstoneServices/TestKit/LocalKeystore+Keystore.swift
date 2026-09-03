@@ -52,7 +52,7 @@ public extension LocalKeystore {
     func importWallet(name: String, type: KeystoreImportType) throws -> Primitives.Wallet {
         switch type {
         case let .address(address, chain):
-            return Primitives.Wallet.makeView(name: name, chain: chain, address: address)
+            return viewWallet(name: name, chain: chain, address: address)
         case let .phrase(words, chains):
             return try importWallet(name: name, import: .multicoinPhrase(words: words, chains: chains.map(\.rawValue)))
         case let .single(words, chain):
@@ -66,4 +66,18 @@ public extension LocalKeystore {
         let password = try keystorePassword(createIfMissing: true)
         return try gemKeystore.createStore(import: `import`, password: gemKeystore.decodePassword(password: password)).mapToWallet(name: name, source: .import)
     }
+}
+
+private func viewWallet(name: String, chain: Chain, address: String) -> Primitives.Wallet {
+    Primitives.Wallet(
+        id: WalletId.make(walletType: .view, chain: chain, address: address),
+        externalId: nil,
+        name: name,
+        index: 0,
+        type: .view,
+        accounts: [Account(chain: chain, address: address, derivationPath: "", extendedPublicKey: "")],
+        isPinned: false,
+        imageUrl: nil,
+        source: .import,
+    )
 }

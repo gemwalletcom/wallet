@@ -27,7 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
-import uniffi.gemstone.GemRecentActivityService
+import uniffi.gemstone.GemRecentActivityServiceInterface
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -46,7 +46,7 @@ class PerpetualMarketViewModel @Inject constructor(
     private val getBalance: GetPerpetualBalance,
     private val getRecentAssets: GetRecentAssets,
     private val service: GemPerpetualServiceInterface,
-    private val recentActivity: GemRecentActivityService,
+    private val recentActivity: GemRecentActivityServiceInterface,
     private val perpetualObserver: PerpetualObserver,
 ) : ViewModel() {
 

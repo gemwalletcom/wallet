@@ -12,7 +12,7 @@ import com.gemwallet.android.ext.millisToSeconds
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageSender
-import uniffi.gemstone.GemSupportService
+import uniffi.gemstone.GemSupportServiceInterface
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,7 +24,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SupportChatSceneViewModel @Inject constructor(
-    private val supportService: GemSupportService,
+    private val supportService: GemSupportServiceInterface,
     private val getSupportMessages: GetSupportMessages,
     private val failPendingSupportMessages: FailPendingSupportMessages,
     private val getSupportTyping: GetSupportTyping,
