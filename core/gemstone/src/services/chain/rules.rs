@@ -36,8 +36,8 @@ pub fn chain_matches_query(chain: Chain, query: &str) -> bool {
     .any(|value| value.contains(&query))
 }
 
-pub fn is_valid_network_id(chain: Chain, network_id: &str) -> bool {
-    chain.network_id() == network_id
+pub fn mismatched_network_id(chain: Chain, network_id: Option<&str>) -> Option<String> {
+    network_id.filter(|network_id| chain.network_id() != *network_id).map(str::to_string)
 }
 
 pub fn node_verification_address(chain: Chain) -> Option<String> {
@@ -86,8 +86,12 @@ mod tests {
     }
 
     #[test]
-    fn test_is_valid_network_id() {
-        assert!(is_valid_network_id(Chain::Ethereum, Chain::Ethereum.network_id()));
-        assert!(!is_valid_network_id(Chain::Ethereum, Chain::SmartChain.network_id()));
+    fn test_only_a_reported_network_id_is_checked() {
+        assert_eq!(mismatched_network_id(Chain::Ethereum, Some(Chain::Ethereum.network_id())), None);
+        assert_eq!(mismatched_network_id(Chain::Ethereum, None), None);
+        assert_eq!(
+            mismatched_network_id(Chain::Ethereum, Some(Chain::SmartChain.network_id())),
+            Some(Chain::SmartChain.network_id().to_string())
+        );
     }
 }

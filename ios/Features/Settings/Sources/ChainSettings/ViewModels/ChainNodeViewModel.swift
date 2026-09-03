@@ -2,35 +2,40 @@
 
 import Components
 import Formatters
-import Foundation
+import struct Gemstone.GemNodeSelection
 import enum Gemstone.GemNodeStatusState
-import GemstonePrimitives
 import Localization
-import Primitives
 import Style
 
 struct ChainNodeViewModel {
-    let chainNode: ChainNode
+    let node: GemNodeSelection
 
     private let gemNodeFlag: String?
     private let statusState: GemNodeStatusState
     private let formatter: ValueFormatter
 
     init(
-        chainNode: ChainNode,
+        node: GemNodeSelection,
         gemNodeFlag: String?,
         statusState: GemNodeStatusState,
         formatter: ValueFormatter,
     ) {
-        self.chainNode = chainNode
+        self.node = node
         self.gemNodeFlag = gemNodeFlag
         self.statusState = statusState
         self.formatter = formatter
     }
 
+    var url: String {
+        node.url
+    }
+
+    var selection: String? {
+        node.isSelected ? node.url : .none
+    }
+
     var title: String {
-        guard let host = chainNode.host else { return "" }
-        guard let gemNodeFlag else { return host }
+        guard let gemNodeFlag else { return node.host }
         return Localized.Nodes.gemWalletNode + " " + gemNodeFlag
     }
 
@@ -63,14 +68,6 @@ struct ChainNodeViewModel {
 
 extension ChainNodeViewModel: Identifiable {
     var id: String {
-        chainNode.id
-    }
-}
-
-// MARK: - Models extensions
-
-extension ChainNode {
-    var host: String? {
-        URL(string: node.url)?.host
+        node.url
     }
 }

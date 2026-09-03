@@ -10,7 +10,10 @@ use gem_jsonrpc::types::{ERROR_CLIENT_ERROR, JsonRpcError};
 use primitives::Chain;
 
 use crate::jsonrpc::XrpRpc;
-use crate::models::rpc::{AccountInfo, AccountInfoResult, AccountLedger, AccountObjects, FeesResult, Ledger, LedgerData, LedgerInfo, TransactionBroadcast, TransactionStatus};
+use crate::models::rpc::{
+    AccountInfo, AccountInfoResult, AccountLedger, AccountObjects, FeesResult, Ledger, LedgerData, LedgerInfo, ServerInfo, ServerInfoResult, TransactionBroadcast,
+    TransactionStatus,
+};
 
 #[derive(Clone, Debug)]
 pub struct XrpClient<C: Client + Clone> {
@@ -50,6 +53,10 @@ impl<C: Client + Clone> XrpClient<C> {
             return Err("XRP RPC returned an unvalidated ledger".into());
         }
         Ok(ledger)
+    }
+
+    pub async fn get_server_info(&self) -> Result<ServerInfo, Box<dyn Error + Send + Sync>> {
+        Ok(self.request::<ServerInfoResult>(XrpRpc::GetServerInfo).await?.info)
     }
 
     pub async fn get_fees(&self) -> Result<FeesResult, Box<dyn Error + Send + Sync>> {

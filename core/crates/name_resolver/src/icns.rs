@@ -71,7 +71,7 @@ impl NameClient for IcnsClient {
     }
 
     fn domains(&self) -> Vec<&'static str> {
-        vec![] // DOMAIN_MAP.keys().cloned().collect()
+        DOMAIN_MAP.keys().copied().collect()
     }
 
     fn chains(&self) -> Vec<Chain> {

@@ -20,11 +20,10 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.wallet.core.primitives.Node
-import com.wallet.core.primitives.NodeState
 import uniffi.gemstone.GemNodeStatusState
 import uniffi.gemstone.Latency
 import uniffi.gemstone.LatencyType
+import com.gemwallet.android.ui.theme.Placeholder
 
 @Composable
 internal fun NodeItem(
@@ -33,12 +32,12 @@ internal fun NodeItem(
     isDeleteRevealed: Boolean,
     onDeleteReveal: () -> Unit,
     onDeleteCollapse: () -> Unit,
-    onSelect: (Node) -> Unit,
+    onSelect: (String) -> Unit,
     onDelete: (() -> Unit)?,
 ) {
     val content: @Composable (ListPosition) -> Unit = { position ->
         ListItem(
-            modifier = Modifier.clickable(onClick = { onSelect(model.node) }),
+            modifier = Modifier.clickable(onClick = { onSelect(model.url) }),
             title = {
                 ListItemTitleText(
                     text = model.title(),
@@ -96,7 +95,7 @@ private fun NodeRowUiModel.title(): String {
 private fun NodeRowUiModel.latestBlockText(): String {
     val blockValue = when (val currentState = statusState) {
         GemNodeStatusState.Error,
-        GemNodeStatusState.Loading -> "-"
+        GemNodeStatusState.Loading -> Placeholder.empty
         is GemNodeStatusState.Result -> DecimalFormat.getInstance().format(currentState.latestBlockNumber.toLong())
     }
 
@@ -112,11 +111,7 @@ fun NodeItemPreview() {
     WalletTheme {
         NodeItem(
             model = NodeRowUiModel(
-                node = Node(
-                    url = "https://some.url.eth",
-                    status = NodeState.Active,
-                    priority = 0,
-                ),
+                url = "https://some.url.eth",
                 host = "some.url.eth",
                 selected = true,
                 canDelete = true,

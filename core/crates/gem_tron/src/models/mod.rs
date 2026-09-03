@@ -24,6 +24,12 @@ pub struct Block {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+pub struct BlockId {
+    #[serde(rename = "blockID")]
+    pub block_id: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
 pub struct BlockTransactions {
     pub block_header: BlockHeader,
     #[serde(default)]

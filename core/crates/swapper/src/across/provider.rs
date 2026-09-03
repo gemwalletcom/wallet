@@ -237,7 +237,7 @@ impl Across {
         };
         let requests = vec![limit_request, EthereumRpc::GasPrice].into_iter().chain(gas_token_price_request).collect();
         let mut results = create_client_with_chain(self.rpc_provider.clone(), chain)
-            .batch_request::<_, String>(requests)
+            .batch_request::<String, _>(requests)
             .await?
             .into_iter();
         let default_limit = U256::from(match chain {
@@ -350,7 +350,7 @@ impl Swapper for Across {
         .collect();
         let requests = vec![Self::multicall_request(Chain::Ethereum, calls)?, TokenConfig::request(&mainnet_token)];
         let [multicall_response, config_response]: [String; 2] = create_client_with_chain(self.rpc_provider.clone(), Chain::Ethereum)
-            .batch_request::<_, String>(requests)
+            .batch_request::<String, _>(requests)
             .await?
             .take_all()?
             .try_into()

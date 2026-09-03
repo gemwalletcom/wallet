@@ -177,7 +177,7 @@ name:
   icns:
     url: https://osmosis-rest.publicnode.com
   lens:
-    url: https://api-v2.lens.dev
+    url: https://api.lens.xyz/graphql
   base:
     url: https://mainnet.base.org
   hyperliquid:
@@ -185,7 +185,7 @@ name:
   alldomains:
     url: https://solana-rpc.publicnode.com
   near:
-    url: https://near-rpc.publicnode.com
+    url: https://rpc.mainnet.near.org
 
 chains:
   solana:

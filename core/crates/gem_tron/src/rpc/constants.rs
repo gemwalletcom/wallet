@@ -4,6 +4,7 @@ pub const NAME_SELECTOR: &str = "name()";
 pub const SYMBOL_SELECTOR: &str = "symbol()";
 pub const DECIMALS_SELECTOR: &str = "decimals()";
 pub const DEFAULT_OWNER_ADDRESS: &str = TRON_BLACK_HOLE_ADDRESS;
+pub const GENESIS_BLOCK_NUMBER: u64 = 0;
 
 // Bandwidth estimate for TRON transactions
 pub const DEFAULT_BANDWIDTH_BYTES: u64 = 300;

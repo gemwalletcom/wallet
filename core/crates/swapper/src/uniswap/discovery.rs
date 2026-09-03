@@ -72,7 +72,7 @@ pub(super) async fn discover_v3_pools(client: &JsonRpcClient<RpcClient>, factory
         .abi_encode();
         EthereumRpc::Call(TransactionObject::new_call(factory, data), BlockParameter::Latest)
     });
-    let responses = client.batch_request::<_, String>(requests.collect()).await?;
+    let responses = client.batch_request::<String, _>(requests.collect()).await?;
     Ok(pools
         .iter()
         .zip(responses)
@@ -90,7 +90,7 @@ pub(super) async fn discover_v4_pools(client: &JsonRpcClient<RpcClient>, state_v
         let data = IUniswapV4StateView::getSlot0Call { poolId: *pool_id }.abi_encode();
         EthereumRpc::Call(TransactionObject::new_call(state_view, data), BlockParameter::Latest)
     });
-    let responses = client.batch_request::<_, String>(requests.collect()).await?;
+    let responses = client.batch_request::<String, _>(requests.collect()).await?;
     Ok(decode_v4_discoveries(pools, responses))
 }
 

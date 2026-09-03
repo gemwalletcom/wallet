@@ -5,7 +5,7 @@ use gem_jsonrpc::types::{ERROR_INTERNAL_ERROR, JsonRpcError};
 
 use num_bigint::{BigInt, BigUint, Sign};
 use serde_json::json;
-use serde_serializers::biguint_from_hex_str;
+use serde_serializers::{biguint_from_hex_str, u64_from_str};
 use std::str::FromStr;
 
 use super::model::{Block, BlockHeader, TraceCallResult, TransactionReceipt};
@@ -52,11 +52,7 @@ impl<C: Client + Clone> EthereumClient<C> {
     }
 
     pub async fn get_block_timestamp(&self, block_number: u64) -> Result<BigUint, JsonRpcError> {
-        Ok(self
-            .client
-            .request::<EthereumRpc, BlockHeader>(EthereumRpc::GetBlockByNumber(block_number, false))
-            .await?
-            .timestamp)
+        Ok(self.client.request::<BlockHeader, _>(EthereumRpc::GetBlockByNumber(block_number, false)).await?.timestamp)
     }
 
     pub async fn get_block_receipts(&self, block_number: u64) -> Result<Vec<TransactionReceipt>, JsonRpcError> {
@@ -64,9 +60,7 @@ impl<C: Client + Clone> EthereumClient<C> {
     }
 
     pub async fn get_latest_block(&self) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
-        let block_hex: String = self.client.request(EthereumRpc::BlockNumber).await?;
-        let block_hex = block_hex.trim_start_matches("0x");
-        Ok(u64::from_str_radix(block_hex, 16)?)
+        u64_from_str(&self.client.request::<String, _>(EthereumRpc::BlockNumber).await?)
     }
 
     pub async fn get_transaction_receipt(&self, hash: &str) -> Result<Option<TransactionReceipt>, JsonRpcError> {
@@ -95,8 +89,8 @@ impl<C: Client + Clone> EthereumClient<C> {
         Ok(BigInt::from_biguint(Sign::Plus, biguint))
     }
 
-    pub async fn get_chain_id(&self) -> Result<String, JsonRpcError> {
-        self.client.request(EthereumRpc::ChainId).await
+    pub async fn get_chain_id(&self) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
+        u64_from_str(&self.client.request::<String, _>(EthereumRpc::ChainId).await?)
     }
 
     pub async fn get_transaction_count(&self, address: &str) -> Result<String, JsonRpcError> {
@@ -112,7 +106,7 @@ impl<C: Client + Clone> EthereumClient<C> {
             .iter()
             .map(|selector| hex::decode(selector).map(|data| EthereumRpc::Call(TransactionObject::new_call(contract_address, data), BlockParameter::Latest)))
             .collect::<Result<_, _>>()?;
-        let results = self.client.batch_request::<EthereumRpc, String>(requests).await?.take_all()?;
+        let results = self.client.batch_request::<String, _>(requests).await?.take_all()?;
         results.try_into().map_err(|_| "Array conversion failed".into())
     }
 

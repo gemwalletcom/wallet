@@ -35,6 +35,10 @@ impl StringOrNumberFromValue for u64 {
     }
 }
 
+pub fn u64_from_str(value: &str) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
+    parse_u64_string(value).map_err(|error| error.into())
+}
+
 pub fn deserialize_u64_from_str<'de, D>(deserializer: D) -> Result<u64, D::Error>
 where
     D: Deserializer<'de>,
@@ -105,6 +109,13 @@ mod tests {
     struct TestOptionStrOrIntStruct {
         #[serde(default, deserialize_with = "deserialize_option_u64_from_str_or_int")]
         pub value: Option<u64>,
+    }
+
+    #[test]
+    fn test_u64_from_str_reads_a_hex_quantity_and_a_decimal_string() {
+        assert_eq!(u64_from_str("0x2a").unwrap(), 42);
+        assert_eq!(u64_from_str("42").unwrap(), 42);
+        assert!(u64_from_str("0xzz").is_err());
     }
 
     #[test]

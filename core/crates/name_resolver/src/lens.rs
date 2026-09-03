@@ -17,8 +17,16 @@ struct Data<T> {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Record {
-    pub handle_to_address: Option<String>,
+    pub username: Option<Username>,
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Username {
+    pub linked_to: Option<String>,
+}
+
+const LENS_NAMESPACE: &str = "0x1aA55B9042f08f45825dC4b651B64c9F98Af4615";
 
 pub struct LensClient {
     api_url: String,
@@ -39,9 +47,10 @@ impl NameClient for LensClient {
     }
 
     async fn resolve(&self, query: &NameQuery, _chain: Chain) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let handle = format!("{}/{}", query.suffix, query.name);
-
-        let query = format!("query {{handleToAddress(request: {{handle: \"{handle}\" }} )}}");
+        let query = format!(
+            "query {{ username(request: {{ username: {{ localName: \"{}\", namespace: \"{LENS_NAMESPACE}\" }} }}) {{ linkedTo }} }}",
+            query.name
+        );
         let query = serde_json::json!({
             "query": query,
         });
@@ -55,7 +64,8 @@ impl NameClient for LensClient {
             .json::<Data<Record>>()
             .await?
             .data
-            .handle_to_address;
+            .username
+            .and_then(|username| username.linked_to);
 
         address.ok_or("address not found".into())
     }

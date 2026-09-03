@@ -96,11 +96,11 @@ impl GemGateway {
 
     pub async fn check_node(&self, chain: Chain, url: &str) -> Result<GemNodeCheck, GatewayError> {
         let provider = self.chain_factory.create_with_url(chain, url.to_string()).await?;
-        let status = provider.get_nodes_status().await.map_err(map_network_error)?;
-        if !chain_rules::is_valid_network_id(chain, &status.chain_id) {
+        let (chain_id, status) = futures::try_join!(provider.get_chain_id(), provider.get_nodes_status()).map_err(map_network_error)?;
+        if let Some(network_id) = chain_rules::mismatched_network_id(chain, chain_id.as_deref()) {
             return Err(GatewayError::NetworkIdMismatch {
                 chain: chain.to_string(),
-                network_id: status.chain_id,
+                network_id,
             });
         }
         if let Some(address) = chain_rules::node_verification_address(chain) {
@@ -109,7 +109,7 @@ impl GemGateway {
         let sync = provider.get_node_status().await.map_err(map_network_error)?;
         Ok(GemNodeCheck {
             url: url.to_string(),
-            chain_id: status.chain_id,
+            chain_id,
             latest_block_number: status.latest_block_number,
             is_in_sync: sync.in_sync,
             latency: Latency::from_milliseconds(status.latency_ms),

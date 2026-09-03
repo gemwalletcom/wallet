@@ -8,7 +8,9 @@ mod tests {
         client::{NameClient, NameConfig},
         ens::ENSClient,
         hyperliquid::Hyperliquid,
+        icns::IcnsClient,
         injective::InjectiveNameClient,
+        lens::LensClient,
         model::NameQuery,
         near::NearNameClient,
         suins::SuinsClient,
@@ -47,6 +49,26 @@ mod tests {
         let client = InjectiveNameClient::new(nodes[0].url.clone());
         let address_result = client.resolve(&NameQuery::new("test.inj"), Chain::Injective).await;
         assert_eq!(address_result.unwrap(), "inj14apqz6u2nprsly3j0mqa6jwpxnmnphq3pp0q9g");
+    }
+
+    #[tokio::test]
+    async fn test_resolve_icns() {
+        let current_dir = env::current_dir().unwrap();
+        let path = current_dir.join("../../Settings.yaml");
+        let settings = Settings::new_setting_path(path).unwrap();
+        let client = name_resolver::client::Client::new(vec![Box::new(IcnsClient::new(settings.name.icns.url))], NameConfig { max_name_length: 20 });
+        let record = client.resolve("dogemos.osmo", Chain::Osmosis).await.unwrap();
+        assert_eq!(record.address, "osmo1z98eg2ztdp2glyla62629nrlvczg8s7f8sgpm5");
+    }
+
+    #[tokio::test]
+    async fn test_resolve_lens() {
+        let current_dir = env::current_dir().unwrap();
+        let path = current_dir.join("../../Settings.yaml");
+        let settings = Settings::new_setting_path(path).unwrap();
+        let client = LensClient::new(settings.name.lens.url);
+        let address = client.resolve(&NameQuery::new("stani.lens"), Chain::Ethereum).await.unwrap();
+        assert_eq!(address, "0xAd2c0BEAdE60fb9f7ec5C87bDE8e4c126145F6E7");
     }
 
     #[tokio::test]

@@ -27,6 +27,16 @@ pub struct LedgerData {
     pub ledger: Ledger,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServerInfoResult {
+    pub info: ServerInfo,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServerInfo {
+    pub network_id: Option<u64>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AccountObjects {
     pub account_objects: Option<Vec<AccountObject>>,

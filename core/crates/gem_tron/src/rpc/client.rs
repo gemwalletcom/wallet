@@ -3,11 +3,11 @@ use primitives::{Asset, AssetId, asset_type::AssetType, chain::Chain};
 use std::{error::Error, str::FromStr};
 
 use crate::models::{
-    Block, BlockTransactions, BlockTransactionsInfo, ChainParameter, ChainParametersResponse, Transaction, TransactionReceiptData, TriggerConstantContractRequest,
+    Block, BlockId, BlockTransactions, BlockTransactionsInfo, ChainParameter, ChainParametersResponse, Transaction, TransactionReceiptData, TriggerConstantContractRequest,
     TriggerConstantContractResponse, TronTransactionBroadcast, WitnessesList,
 };
 use crate::models::{TriggerSmartContractData, TronAccount, TronAccountRequest, TronAccountUsage, TronBlock, TronEmptyAccount, TronReward};
-use crate::rpc::constants::{DECIMALS_SELECTOR, DEFAULT_OWNER_ADDRESS, NAME_SELECTOR, SYMBOL_SELECTOR};
+use crate::rpc::constants::{DECIMALS_SELECTOR, DEFAULT_OWNER_ADDRESS, GENESIS_BLOCK_NUMBER, NAME_SELECTOR, SYMBOL_SELECTOR};
 use gem_client::{Client, ClientExt};
 use gem_evm::contracts::erc20::{decode_abi_string, decode_abi_uint8};
 
@@ -105,6 +105,10 @@ impl<C: Client> TronClient<C> {
 
     pub async fn get_latest_block(&self) -> Result<i64, Box<dyn Error + Send + Sync>> {
         Ok(self.get_block().await?.block_header.raw_data.number)
+    }
+
+    pub async fn get_genesis_block_id(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.get::<BlockId>(&format!("/wallet/getblockbynum?num={}", GENESIS_BLOCK_NUMBER)).await?.block_id)
     }
 
     pub async fn get_witnesses_list(&self) -> Result<WitnessesList, Box<dyn Error + Send + Sync>> {

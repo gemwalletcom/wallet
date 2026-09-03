@@ -23,17 +23,17 @@ impl<C: Client + Clone> JsonRpcClient<C> {
         Self { client }
     }
 
-    pub async fn request<T: ToJsonRpcRequest, U: DeserializeOwned + Send>(&self, request: T) -> Result<U, JsonRpcError> {
+    pub async fn request<U: DeserializeOwned + Send, T: ToJsonRpcRequest>(&self, request: T) -> Result<U, JsonRpcError> {
         self.request_with_cache(&request, None).await?.take()
     }
 
-    pub async fn request_with_cache<T: ToJsonRpcRequest, U: DeserializeOwned + Send>(&self, request: &T, ttl: Option<u64>) -> Result<JsonRpcResult<U>, JsonRpcError> {
+    pub async fn request_with_cache<U: DeserializeOwned + Send, T: ToJsonRpcRequest>(&self, request: &T, ttl: Option<u64>) -> Result<JsonRpcResult<U>, JsonRpcError> {
         let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
         let request = request.to_jsonrpc_request(timestamp);
         self.send_request(request, ttl).await
     }
 
-    pub async fn batch_request<T: ToJsonRpcRequest, U: DeserializeOwned + Send>(&self, requests: Vec<T>) -> Result<JsonRpcResults<U>, JsonRpcError> {
+    pub async fn batch_request<U: DeserializeOwned + Send, T: ToJsonRpcRequest>(&self, requests: Vec<T>) -> Result<JsonRpcResults<U>, JsonRpcError> {
         let requests: Vec<JsonRpcRequest> = requests.iter().enumerate().map(|(index, request)| request.to_jsonrpc_request(index as u64 + 1)).collect();
         if requests.is_empty() {
             return Ok(Default::default());

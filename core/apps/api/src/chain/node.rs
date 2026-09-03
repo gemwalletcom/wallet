@@ -90,7 +90,6 @@ mod tests {
             NodeStatusResult {
                 region: NodeRegion::Us,
                 status: Some(NodeStatus {
-                    chain_id: "bitcoin".to_string(),
                     latest_block_number: 100,
                     latency_ms: 20,
                 }),
@@ -105,7 +104,6 @@ mod tests {
         .unwrap();
 
         assert_eq!(output[0]["region"], "us");
-        assert_eq!(output[0]["status"]["chainId"], "bitcoin");
         assert_eq!(output[0].get("error"), None);
         assert_eq!(output[1]["region"], "eu");
         assert_eq!(output[1]["error"], "bitcoin eu node is unavailable");

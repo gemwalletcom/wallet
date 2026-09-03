@@ -39,6 +39,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.theme.Placeholder
 import com.gemwallet.android.ui.theme.Spacer16
 import com.wallet.core.primitives.Chain
 import java.text.NumberFormat
@@ -91,7 +92,7 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
             val nf = NumberFormat.getInstance()
             val status = requireNotNull(uiModel.status)
 
-            PropertyItem(R.string.nodes_import_node_chain_id, status.chainId)
+            PropertyItem(R.string.nodes_import_node_chain_id, status.chainId ?: Placeholder.empty)
             PropertyItem(
                 title = {
                     PropertyTitleText(R.string.nodes_import_node_in_sync)

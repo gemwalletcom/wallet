@@ -107,7 +107,7 @@ public struct PerpetualPositionViewModel {
     public var fundingPaymentsField: ListItemField {
         ListItemField(
             title: TextValue(text: Localized.Info.Perpetual.FundingPayments.title, style: .body),
-            value: TextValue(text: fundingPaymentsModel.text ?? "-", style: fundingPaymentsModel.textStyle),
+            value: TextValue(text: fundingPaymentsModel.text ?? Placeholder.empty, style: fundingPaymentsModel.textStyle),
         )
     }
 

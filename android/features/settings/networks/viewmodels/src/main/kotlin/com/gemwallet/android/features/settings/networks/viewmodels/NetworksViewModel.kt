@@ -6,12 +6,11 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import uniffi.gemstone.GemChainSettingsServiceInterface
+import uniffi.gemstone.GemNodeSelection
 import uniffi.gemstone.GemNodeStatusState
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUiModel
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NetworksUIState
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.Node
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,7 +24,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
-import java.net.URI
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -36,8 +34,8 @@ class NetworksViewModel @Inject constructor(
 
     private val state = MutableStateFlow(State())
     val uiState = state
-        .map { it.toUIState(::canDeleteNode, service::nodeFlag) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, state.value.toUIState(::canDeleteNode, service::nodeFlag))
+        .map { it.toUIState() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, state.value.toUIState())
     val chainFilter = TextFieldState()
 
     private var observeNodesJob: Job? = null
@@ -58,7 +56,6 @@ class NetworksViewModel @Inject constructor(
                 chain = chain,
                 selectChain = false,
                 explorers = service.explorers(chain.string),
-                currentNode = service.selectedNode(chain.string).decodeJson(),
                 currentExplorer = service.explorerName(chain.string),
                 availableAddNode = true,
                 nodes = emptyList(),
@@ -74,11 +71,11 @@ class NetworksViewModel @Inject constructor(
         refreshNodeStatuses(chain, System.nanoTime())
     }
 
-    fun onSelectNode(node: Node) {
+    fun onSelectNode(url: String) {
         val chain = state.value.chain ?: return
         viewModelScope.launch {
-            service.selectNode(chain.string, node.url)
-            updateState { it.copy(currentNode = node) }
+            service.selectNode(chain.string, url)
+            loadNodes(chain)
         }
     }
 
@@ -92,39 +89,34 @@ class NetworksViewModel @Inject constructor(
         updateState { it.copy(selectChain = true) }
     }
 
-    fun onDeleteNode(node: Node) {
+    fun onDeleteNode(url: String) {
         val chain = state.value.chain ?: return
         viewModelScope.launch {
-            service.deleteNode(chain.string, node.url)
-            updateState {
-                val nodes = it.nodes.filterNot { currentNode -> currentNode.url == node.url }
-                val nodeStates = visibleNodeStates(nodes, it.nodeStates)
-                val currentNode = currentNodeFor(chain, nodes, it.currentNode)
-                it.copy(
-                    nodes = nodes,
-                    currentNode = currentNode,
-                    nodeStates = nodeStates,
-                )
-            }
+            service.deleteNode(chain.string, url)
+            loadNodes(chain)
         }
     }
 
     private fun observeNodes(chain: Chain) {
         observeNodesJob?.cancel()
         observeNodesJob = viewModelScope.launch {
-            val nodes = service.nodes(chain.string).map { it.decodeJson<Node>() }
-            val currentNode = currentNodeFor(chain, nodes, state.value.currentNode)
-            val currentStates = visibleNodeStates(nodes, state.value.nodeStates)
-
-            updateState {
-                it.copy(
-                    nodes = nodes,
-                    currentNode = currentNode,
-                    nodeStates = currentStates,
-                )
-            }
-
+            loadNodes(chain)
             refreshNodeStatuses(chain, System.nanoTime())
+        }
+    }
+
+    private suspend fun loadNodes(chain: Chain) {
+        val nodes = buildNodeRows(
+            selections = service.nodes(chain.string),
+            gemNodeFlag = service::nodeFlag,
+            canDelete = { url -> canDeleteNode(chain, url) },
+        )
+
+        updateState {
+            it.copy(
+                nodes = nodes,
+                nodeStates = visibleNodeStates(nodes, it.nodeStates),
+            )
         }
     }
 
@@ -145,14 +137,12 @@ class NetworksViewModel @Inject constructor(
                 return@launch
             }
 
-            val currentNode = currentNodeFor(chain, nodes, state.value.currentNode)
-            val loadingStates = nodes.associate { it.url to GemNodeStatusState.Loading }
+            val loadingStates = nodes.associate { it.id to GemNodeStatusState.Loading }
             updateState { current ->
                 if (current.chain != chain) {
                     current
                 } else {
                     current.copy(
-                        currentNode = currentNode,
                         refreshNonce = refreshNonce,
                         nodeStates = loadingStates,
                     )
@@ -163,25 +153,22 @@ class NetworksViewModel @Inject constructor(
                 nodes.forEach { node ->
                     launch {
                         val nodeState = withContext(Dispatchers.IO) {
-                            service.nodeStatus(chain.string, node.url)
+                            service.nodeStatus(chain.string, node.id)
                         }
                         updateNodesIfCurrent(chain, refreshNonce) { current ->
-                            if (current.nodes.none { it.url == node.url }) {
+                            if (current.nodes.none { it.id == node.id }) {
                                 current
                             } else {
-                                val nodeStates = visibleNodeStates(
-                                    current.nodes,
-                                    current.nodeStates + (node.url to nodeState),
+                                current.copy(
+                                    nodeStates = visibleNodeStates(
+                                        current.nodes,
+                                        current.nodeStates + (node.id to nodeState),
+                                    ),
                                 )
-                                current.copy(nodeStates = nodeStates).withCurrentNodeFor(chain)
                             }
                         }
                     }
                 }
-            }
-
-            updateNodesIfCurrent(chain, refreshNonce) { current ->
-                current.withCurrentNodeFor(chain)
             }
         }
     }
@@ -193,33 +180,24 @@ class NetworksViewModel @Inject constructor(
         }
     }
 
-    private fun State.withCurrentNodeFor(chain: Chain): State =
-        copy(currentNode = currentNodeFor(chain, nodes, currentNode))
-
     private fun updateState(transform: (State) -> State) {
         state.update(transform)
     }
 
     private fun canDeleteNode(chain: Chain, url: String): Boolean = service.canDeleteNode(chain.string, url)
 
-    private fun currentNodeFor(chain: Chain, nodes: List<Node>, selectedNode: Node? = null): Node {
-        val current = service.selectedNode(chain.string).decodeJson<Node>()
-        return nodes.firstOrNull { it.url == (selectedNode?.url ?: current.url) } ?: current
-    }
-
     private data class State(
         val chain: Chain? = null,
         val explorers: List<String> = emptyList(),
-        val currentNode: Node? = null,
         val currentExplorer: String? = null,
         val nodeStates: Map<String, GemNodeStatusState> = emptyMap(),
-        val nodes: List<Node> = emptyList(),
+        val nodes: List<NodeRowUiModel> = emptyList(),
         val availableChains: List<Chain> = emptyList(),
         val selectChain: Boolean = true,
         val availableAddNode: Boolean = true,
         val refreshNonce: Long = 0,
     ) {
-        fun toUIState(canDeleteNode: (Chain, String) -> Boolean, gemNodeFlag: (String) -> String?): NetworksUIState {
+        fun toUIState(): NetworksUIState {
             return NetworksUIState(
                 chain = chain,
                 chains = availableChains,
@@ -227,52 +205,32 @@ class NetworksViewModel @Inject constructor(
                 blockExplorers = explorers,
                 currentExplorer = currentExplorer,
                 availableAddNode = availableAddNode,
-                nodeRows = if (chain == null || currentNode == null) {
-                    emptyList()
-                } else {
-                    buildNodeRows(
-                        nodes = nodes,
-                        currentNode = currentNode,
-                        nodeStates = nodeStates,
-                        gemNodeFlag = gemNodeFlag,
-                        canDelete = { url -> canDeleteNode(chain, url) },
-                    )
-                },
+                nodeRows = nodes.map { it.copy(statusState = nodeStates[it.id] ?: GemNodeStatusState.Loading) },
             )
         }
     }
 }
 
 internal fun visibleNodeStates(
-    nodes: List<Node>,
+    nodes: List<NodeRowUiModel>,
     nodeStates: Map<String, GemNodeStatusState>,
 ): Map<String, GemNodeStatusState> {
-    val nodeUrls = nodes.mapTo(hashSetOf()) { it.url }
+    val nodeUrls = nodes.mapTo(hashSetOf()) { it.id }
     return nodeStates.filterKeys(nodeUrls::contains)
 }
 
 internal fun buildNodeRows(
-    nodes: List<Node>,
-    currentNode: Node,
-    nodeStates: Map<String, GemNodeStatusState>,
+    selections: List<GemNodeSelection>,
     gemNodeFlag: (String) -> String?,
     canDelete: (String) -> Boolean,
 ): List<NodeRowUiModel> {
-    return nodes.map { node ->
+    return selections.map { selection ->
         NodeRowUiModel(
-            node = node,
-            host = displayHost(node.url),
-            gemNodeFlag = gemNodeFlag(node.url),
-            selected = node.url == currentNode.url,
-            canDelete = canDelete(node.url),
-            statusState = nodeStates[node.url] ?: GemNodeStatusState.Loading,
+            url = selection.url,
+            host = selection.host,
+            gemNodeFlag = gemNodeFlag(selection.url),
+            selected = selection.isSelected,
+            canDelete = canDelete(selection.url),
         )
     }
-}
-
-private fun displayHost(url: String): String {
-    return runCatching { URI(url).host }
-        .getOrNull()
-        ?.takeIf { it.isNotBlank() }
-        ?: url.removePrefix("https://").removePrefix("http://")
 }

@@ -11,6 +11,7 @@ pub enum XrpRpc {
     GetFees,
     GetLedger(u64),
     GetLatestValidatedLedger,
+    GetServerInfo,
     GetTransaction(String),
     SubmitTransaction(String),
 }
@@ -23,6 +24,7 @@ impl ToJsonRpcRequest for XrpRpc {
             Self::GetAccountTransactions { .. } => method::ACCOUNT_TRANSACTIONS,
             Self::GetFees => method::FEE,
             Self::GetLedger(_) | Self::GetLatestValidatedLedger => method::LEDGER,
+            Self::GetServerInfo => method::SERVER_INFO,
             Self::GetTransaction(_) => method::TRANSACTION,
             Self::SubmitTransaction(_) => method::SUBMIT,
         }
@@ -53,6 +55,7 @@ impl ToJsonRpcRequest for XrpRpc {
                 "expand": true
             }]),
             Self::GetLatestValidatedLedger => json!([{"ledger_index": "validated"}]),
+            Self::GetServerInfo => json!([{}]),
             Self::GetTransaction(transaction_id) => json!([{"transaction": transaction_id}]),
             Self::SubmitTransaction(data) => json!([{
                 "tx_blob": data,

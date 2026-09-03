@@ -123,7 +123,7 @@ internal fun NetworkScene(
         ConfirmNodeDeleteDialog(
             nodeName = pendingNode.host,
             onConfirm = {
-                onAction(NetworkAction.DeleteNode(pendingNode.node))
+                onAction(NetworkAction.DeleteNode(pendingNode.url))
                 nodeDelete = null
             },
             onDismiss = { nodeDelete = null },

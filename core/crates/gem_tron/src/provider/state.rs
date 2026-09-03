@@ -10,8 +10,8 @@ use crate::rpc::TronProvider;
 
 #[async_trait]
 impl<C: Client> ChainState for TronProvider<C> {
-    async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
-        Ok("".to_string())
+    async fn get_chain_id(&self) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
+        Ok(Some(state_mapper::map_chain_id(&self.get_genesis_block_id().await?)?))
     }
 
     async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Send + Sync>> {
@@ -26,6 +26,8 @@ impl<C: Client> ChainState for TronProvider<C> {
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
+    use primitives::Chain;
+
     use super::*;
     use crate::provider::testkit::create_test_client;
 
@@ -35,8 +37,7 @@ mod chain_integration_tests {
 
         let chain_id = tron_client.get_chain_id().await.unwrap();
 
-        // Tron doesn't have a traditional chain ID like Ethereum
-        assert_eq!(chain_id, "");
+        assert_eq!(chain_id.as_deref(), Some(Chain::Tron.network_id()));
     }
 
     #[tokio::test]

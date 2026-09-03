@@ -13,8 +13,8 @@ use crate::rpc::{SuiClient, SuiProvider};
 #[cfg(feature = "rpc")]
 #[async_trait]
 impl ChainState for SuiProvider {
-    async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
-        SuiClient::get_chain_id(self).await
+    async fn get_chain_id(&self) -> Result<Option<String>, Box<dyn Error + Sync + Send>> {
+        Ok(Some(SuiClient::get_chain_id(self).await?))
     }
 
     async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>> {
@@ -29,6 +29,8 @@ impl ChainState for SuiProvider {
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
+    use primitives::Chain;
+
     use super::*;
     use crate::provider::testkit::*;
 
@@ -36,8 +38,8 @@ mod chain_integration_tests {
     async fn test_get_chain_id() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_sui_test_client();
         let chain_id = client.get_chain_id().await?;
-        assert!(!chain_id.is_empty());
-        println!("Sui chain ID: {}", chain_id);
+
+        assert_eq!(chain_id.as_deref(), Some(Chain::Sui.network_id()));
         Ok(())
     }
 

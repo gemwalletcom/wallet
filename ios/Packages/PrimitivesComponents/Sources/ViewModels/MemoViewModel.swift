@@ -2,6 +2,7 @@
 
 import Components
 import Localization
+import Style
 
 public struct MemoViewModel {
     private let memo: String?
@@ -17,7 +18,7 @@ public struct MemoViewModel {
 
     public var formattedMemo: String {
         let value = memo ?? ""
-        return value.isEmpty ? "-" : value
+        return value.isEmpty ? Placeholder.empty : value
     }
 
     public var listItemModel: ListItemModel {
