@@ -1,19 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemRecentActivityService
-import protocol Gemstone.GemPriceServiceProtocol
-import protocol Gemstone.GemPortfolioServiceProtocol
+import AppService
+import ConnectionStatusService
+import Foundation
+import Gemstone
 import protocol Gemstone.GemBalanceServiceProtocol
 import protocol Gemstone.GemFiatServiceProtocol
 import protocol Gemstone.GemNftServiceProtocol
-import GemstoneServices
-import AppService
-import WalletConnectorService
-import ConnectionStatusService
-import Foundation
+import protocol Gemstone.GemPortfolioServiceProtocol
+import protocol Gemstone.GemPriceServiceProtocol
+import class Gemstone.GemRecentActivityService
 import protocol Gemstone.GemStakeServiceProtocol
-import Gemstone
 import GemstonePrimitives
+import GemstoneServices
 import NativeProviderService
 import Preferences
 import Primitives
@@ -75,8 +74,8 @@ struct ServicesFactory {
             preferences: GemstonePreferencesStore(namespace: "gateway"),
             securePreferences: GemstoneSecurePreferencesStore(namespace: "gateway"),
         )
-        let assetsService = gatewayService.assetsService(api: apiClient, store: gemstoneAssetStore, price: priceService, preferences: preferencesService)
         let walletSessionService = Gemstone.GemWalletSessionService(store: GemstoneWalletSessionStore(store: preferencesStore), wallets: gemstoneWalletStore)
+        let assetsService = gatewayService.assetsService(api: apiClient, store: gemstoneAssetStore, price: priceService, preferences: preferencesService, session: walletSessionService)
         let scanConfiguration = URLSessionConfiguration.default
         scanConfiguration.timeoutIntervalForRequest = TimeInterval(Config().getScanConfig().timeoutSeconds)
         let scanService = Gemstone.GemScanService(
@@ -446,7 +445,7 @@ extension ServicesFactory {
         provider: NativeProvider,
         deviceKey: Gemstone.GemDeviceKeyService,
     ) -> Gemstone.GemDeviceApiClient {
-        return Gemstone.GemDeviceApiClient(
+        Gemstone.GemDeviceApiClient(
             provider: provider,
             deviceKey: deviceKey,
         )

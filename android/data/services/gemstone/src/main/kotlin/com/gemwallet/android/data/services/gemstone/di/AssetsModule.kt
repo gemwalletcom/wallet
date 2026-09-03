@@ -216,7 +216,8 @@ object AssetsModule {
         assetStore: GemAssetStore,
         priceService: GemPriceService,
         preferencesService: GemPreferencesService,
-    ): GemAssetsService = GemAssetsService(apiClient, gateway, assetStore, priceService, preferencesService)
+        session: GemWalletSessionService,
+    ): GemAssetsService = GemAssetsService(apiClient, gateway, assetStore, priceService, preferencesService, session)
 
     @Provides
     fun provideGemReceiveService(

@@ -450,6 +450,15 @@ Three gotchas if you repeat the sweep, all met on this pass:
   that rule (with `Chain.hasNativeAsset` / `isTokenSupported` config reads); iOS
   `Chain.hasNativeAsset` had no reader left and is deleted.
 
+- **Opening an asset for the current wallet is one Core call.** `GemAssetsService` holds the
+  session now and `open_asset(asset_id)` reads the current wallet itself before
+  `open_wallet_asset` (chain in the wallet, native asset exists, asset and balance rows ensured).
+  Android's `AssetNavigationPolicy` re-derived the "can open" half of that rule from
+  `Chain.hasNativeAsset()` and gated every in-app asset open with it while notification and
+  deep-link opens skipped Core; the navigator, the notification routes and the deep-link route
+  all go through `open_asset` now and the policy is deleted. iOS `NavigationHandler` /
+  `NavigationPresenter` stop reading `currentWallet` to hand it back to Core for the same call.
+
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**

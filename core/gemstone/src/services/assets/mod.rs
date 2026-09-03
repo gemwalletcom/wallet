@@ -21,6 +21,7 @@ use crate::api::{GemApiClient, GemApiError};
 use crate::gateway::GemGateway;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
+use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemAssetsService {
@@ -29,18 +30,27 @@ pub struct GemAssetsService {
     store: Arc<dyn GemAssetStore>,
     price: Arc<GemPriceService>,
     preferences: Arc<GemPreferencesService>,
+    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
 impl GemAssetsService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemApiClient>, gateway: Arc<GemGateway>, store: Arc<dyn GemAssetStore>, price: Arc<GemPriceService>, preferences: Arc<GemPreferencesService>) -> Self {
+    pub fn new(
+        api: Arc<GemApiClient>,
+        gateway: Arc<GemGateway>,
+        store: Arc<dyn GemAssetStore>,
+        price: Arc<GemPriceService>,
+        preferences: Arc<GemPreferencesService>,
+        session: Arc<GemWalletSessionService>,
+    ) -> Self {
         Self {
             api,
             gateway,
             store,
             price,
             preferences,
+            session,
         }
     }
 
@@ -110,6 +120,11 @@ impl GemAssetsService {
         let assets = self.get_assets(missing, None).await?;
         self.store.save_assets(assets.clone()).await?;
         Ok(assets.into_iter().map(|asset| asset.asset.id).collect())
+    }
+
+    pub async fn open_asset(&self, asset_id: AssetId) -> Result<Option<Asset>, GemServiceError> {
+        let wallet = self.session.current_wallet()?;
+        self.open_wallet_asset(wallet, asset_id).await
     }
 
     pub async fn open_wallet_asset(&self, wallet: Wallet, asset_id: AssetId) -> Result<Option<Asset>, GemServiceError> {

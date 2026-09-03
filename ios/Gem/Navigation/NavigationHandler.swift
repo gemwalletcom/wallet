@@ -1,23 +1,23 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Store
-import GemstoneServices
 import Components
-import WalletConnectorService
-import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import protocol Gemstone.GemAssetsServiceProtocol
-import protocol Gemstone.GemTransactionStateServiceProtocol
+import class Gemstone.GemPaymentService
 import enum Gemstone.GemPushNotification
 import protocol Gemstone.GemPushNotificationServiceProtocol
+import protocol Gemstone.GemTransactionStateServiceProtocol
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import GemstonePrimitives
+import GemstoneServices
 import Localization
-import class Gemstone.GemPaymentService
 import Primitives
 import PrimitivesComponents
+import Store
 import Style
 import SwiftUI
 import WalletConnector
+import WalletConnectorService
 
 @Observable
 final class NavigationHandler: Sendable {
@@ -252,9 +252,7 @@ extension NavigationHandler {
     }
 
     private func navigateToAsset(_ assetId: AssetId) async throws {
-        guard let wallet = walletSessionService.currentWallet,
-              let asset = try await assetsService.openWalletAsset(wallet: wallet, assetId: assetId)
-        else {
+        guard let asset = try await assetsService.openAsset(for: assetId) else {
             return
         }
         navigationState.openAsset(asset)

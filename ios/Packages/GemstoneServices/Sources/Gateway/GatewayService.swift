@@ -3,10 +3,9 @@
 import BigInt
 import Foundation
 import Gemstone
+import GemstonePrimitives
 import NativeProviderService
 import Primitives
-
-import GemstonePrimitives
 
 public actor GatewayService: Sendable {
     let gateway: GemGateway
@@ -73,8 +72,9 @@ public actor GatewayService: Sendable {
         store: any GemAssetStore,
         price: GemPriceService,
         preferences: GemPreferencesService,
+        session: GemWalletSessionService,
     ) -> GemAssetsService {
-        GemAssetsService(api: api, gateway: gateway, store: store, price: price, preferences: preferences)
+        GemAssetsService(api: api, gateway: gateway, store: store, price: price, preferences: preferences, session: session)
     }
 
     public nonisolated func perpetualService(
@@ -132,7 +132,6 @@ public extension GatewayService {
     func latestBlock(chain: Primitives.Chain) async throws -> BigInt {
         try await gateway.getBlockNumber(chain: chain.rawValue).asBigInt
     }
-
 }
 
 // MARK: - Staking
@@ -157,7 +156,6 @@ public extension GatewayService {
 // MARK: - Perpetual
 
 public extension GatewayService {
-
     func getPerpetualAccountMode(chain: Primitives.Chain, address: String) async throws -> Primitives.PerpetualAccountMode {
         try await Primitives.PerpetualAccountMode(gateway.getPerpetualAccountMode(chain: chain.rawValue, address: address))
     }

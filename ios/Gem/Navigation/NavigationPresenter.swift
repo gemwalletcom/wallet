@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import protocol Gemstone.GemAssetsServiceProtocol
-import GemstonePrimitives
 import protocol Gemstone.GemNftServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
+import GemstonePrimitives
 import GemstoneServices
-import Components
 import NFT
 import Primitives
 import PrimitivesComponents
@@ -86,7 +86,7 @@ extension NavigationPresenter {
     ) async throws {
         switch action {
         case let .asset(assetId), let .perpetual(assetId):
-            guard let asset = try await assetsService.openWalletAsset(wallet: wallet, assetId: assetId) else {
+            guard let asset = try await assetsService.openAsset(for: assetId) else {
                 return
             }
             navigationState.openAsset(asset)
@@ -97,7 +97,7 @@ extension NavigationPresenter {
                 wallet: wallet,
             )
         case let .nft(assetId):
-            let assetData = try NFTAssetData(await nftService.ensureAsset(assetId: assetId.identifier))
+            let assetData = try await NFTAssetData(nftService.ensureAsset(assetId: assetId.identifier))
             nftDestination.append(Scenes.Collectible(assetData: assetData))
         }
     }

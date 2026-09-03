@@ -10,9 +10,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import com.gemwallet.android.ui.LocalAddressService
 import com.gemwallet.android.ui.LocalAssetConfigService
 import com.gemwallet.android.ui.LocalChainService
+import com.gemwallet.android.ui.LocalAssetsService
 import com.gemwallet.android.ui.LocalDeeplinkService
 import com.gemwallet.android.ui.LocalTransferService
 import uniffi.gemstone.GemAssetConfigService
+import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemTransferService
@@ -48,6 +50,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
     @Inject lateinit var addressService: GemAddressService
     @Inject lateinit var transferService: GemTransferService
     @Inject lateinit var deeplinkService: GemDeeplinkService
+    @Inject lateinit var assetsService: GemAssetsService
     @Inject lateinit var chainService: GemChainService
     @Inject lateinit var assetConfigService: GemAssetConfigService
 
@@ -87,6 +90,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
                 LocalAddressService provides addressService,
                 LocalTransferService provides transferService,
                 LocalDeeplinkService provides deeplinkService,
+                LocalAssetsService provides assetsService,
                 LocalChainService provides chainService,
                 LocalAssetConfigService provides assetConfigService,
             ) {

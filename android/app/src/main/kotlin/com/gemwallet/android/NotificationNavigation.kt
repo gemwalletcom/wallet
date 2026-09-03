@@ -86,8 +86,8 @@ class NotificationNavigation @Inject constructor(
         if (assetId == null) {
             return emptyList()
         }
-        prepareAssets(assetId)
-        return listOf(AssetRoute(assetId))
+        val asset = assetsService.openAsset(assetId.toIdentifier())?.toPrimitives() ?: return emptyList()
+        return listOf(AssetRoute(asset.id))
     }
 
     private suspend fun prepareAssets(vararg assetIds: AssetId) {
