@@ -491,6 +491,12 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `GemChainService` for matching; iOS `SelectAssetFlow` filtered `Chain.allCases` itself. Both
   `Chain.isNftSupported` readers are gone.
 
+- **Which icon an asset borrows is Core's answer.** `GemAssetConfigService::icon_asset_id(asset_id)`
+  maps a HyperCore perpetual (`hypercore_perpetual::BTC`) to the chain whose native symbol it
+  names and returns any other id unchanged; iOS `AssetIdViewModel` and Android `Asset.getIconUrl`
+  each scanned every chain for that symbol, and their `twoSubTokenIds` / `twoSubtokenIds`
+  helpers are gone.
+
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**
