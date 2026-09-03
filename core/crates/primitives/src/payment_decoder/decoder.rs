@@ -3,7 +3,7 @@ use std::str::FromStr;
 use super::error::{PaymentDecoderError, Result};
 use crate::{Chain, ChainType, payment::Payment};
 
-use super::{bip21, erc681, solana_pay, ton_pay};
+use super::{bip21, erc681, solana_pay, ton_pay, xrp};
 
 const DOGECOIN_SCHEME: &str = "dogecoin";
 const RIPPLE_SCHEME: &str = "ripple";
@@ -33,6 +33,7 @@ impl PaymentURLDecoder {
             Chain::Ethereum => erc681::decode(path),
             Chain::Solana => solana_pay::decode(path),
             Chain::Ton => ton_pay::decode(path),
+            Chain::Xrp => xrp::decode(path),
             chain => bip21::decode(Some(chain), path),
         }
     }
