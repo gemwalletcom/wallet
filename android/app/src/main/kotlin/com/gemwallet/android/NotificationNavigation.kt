@@ -26,7 +26,9 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemPushNotification
 import uniffi.gemstone.GemPushNotificationService
@@ -84,7 +86,9 @@ class NotificationNavigation @Inject constructor(
         if (assetId == null) {
             return emptyList()
         }
-        val asset = assetsService.openAsset(assetId.toIdentifier())?.toPrimitives() ?: return emptyList()
+        val asset = withContext(Dispatchers.IO) {
+            assetsService.openAsset(assetId.toIdentifier())
+        }?.toPrimitives() ?: return emptyList()
         return listOf(AssetRoute(asset.id))
     }
 

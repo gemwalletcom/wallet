@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAssetsService
@@ -203,12 +204,21 @@ class NotificationNavigationTest {
     @Test
     fun assetNotification_opensAssetThroughCore() = runBlocking {
         val asset = mockAsset(chain = Chain.Solana)
-        coEvery { assetsService.openAsset(asset.id.toIdentifier()) } returns asset.toGem()
+        val callingThreads = mutableListOf<String>()
+        coEvery { assetsService.openAsset(asset.id.toIdentifier()) } answers {
+            callingThreads += Thread.currentThread().name
+            asset.toGem()
+        }
 
         val route = subject.prepareNavigation(GemPushNotification.Asset(asset.id.toIdentifier()))
 
         assertEquals(listOf(AssetRoute(asset.id)), route)
         coVerify(exactly = 0) { setCurrentWallet.setCurrentWallet(any()) }
+        assertTrue(
+            "openAsset reads the current wallet through a synchronous store callback that blocks on Room; " +
+                "the notification routes are built on the main scope. Got $callingThreads",
+            callingThreads.single().startsWith("DefaultDispatcher-worker"),
+        )
     }
 
     @Test

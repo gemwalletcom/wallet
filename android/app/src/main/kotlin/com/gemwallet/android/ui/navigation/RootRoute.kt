@@ -6,7 +6,9 @@ import com.gemwallet.android.ui.LocalTransferService
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemTransferService
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -151,11 +153,12 @@ class WalletNavigator(
         return backStack.add(route)
     }
 
-    private fun openAssetRoute(route: AssetRoute) {
-        scope.launch {
-            if (assetsService.openAsset(route.assetId.toIdentifier()) != null) {
-                push(route)
-            }
+    private fun openAssetRoute(route: AssetRoute) = scope.launch {
+        val asset = withContext(Dispatchers.IO) {
+            assetsService.openAsset(route.assetId.toIdentifier())
+        }
+        if (asset != null) {
+            push(route)
         }
     }
 
