@@ -4,8 +4,6 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.StakeChain
 import uniffi.gemstone.Config
 
-fun StakeChain.Companion.isStaked(chain: Chain): Boolean = byChain(chain) != null
-
 fun StakeChain.Companion.byChain(chain: Chain): StakeChain?
     = StakeChain.entries.firstOrNull { it.string == chain.string }
 

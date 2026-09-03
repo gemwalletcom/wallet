@@ -72,26 +72,22 @@ struct AssetSceneViewModelTests {
     }
 
     @Test
-    func showProviderBalance() {
-        let shown = AssetSceneViewModel.mock(.mock(asset: .mockEthereum()))
-        let hidden = AssetSceneViewModel.mock(.mock(asset: .mockEthereum(), metadata: .mock(isStakeEnabled: false)))
-
-        #expect(shown.showProviderBalance(for: .stake) == true)
-        #expect(hidden.showProviderBalance(for: .stake) == false)
-        #expect(AssetSceneViewModel.mock(.mock(balance: .mock(earn: BigInt(100)))).showProviderBalance(for: .earn) == true)
-        #expect(AssetSceneViewModel.mock(.mock()).showProviderBalance(for: .earn) == false)
-    }
-
-    @Test
-    func balanceTextWithSymbol() {
+    func balanceRows() {
         let ethereum = AssetSceneViewModel.mock(
             .mock(
                 asset: .mockEthereum(),
                 balance: .mock(staked: BigInt(6_000_000_000_000_000_000), earn: BigInt(4_000_000_000_000_000_000)),
             )
         )
-        #expect(ethereum.balanceTextWithSymbol(for: .stake) == "6 ETH")
-        #expect(ethereum.balanceTextWithSymbol(for: .earn) == "4 ETH")
+        let rows = ethereum.balanceRows
+        #expect(rows.count == 3)
+        guard case let .staked(staked) = rows[1], case let .earn(earn) = rows[2] else {
+            Issue.record("Expected available, staked and earn rows")
+            return
+        }
+        #expect(ethereum.stakeBalanceText(staked) == "6 ETH")
+        #expect(ethereum.balanceText(earn) == "4 ETH")
+        #expect(AssetSceneViewModel.mock(.mock(asset: .mockEthereum(), metadata: .mock(isStakeEnabled: false))).balanceRows.isEmpty)
     }
 
     @Test

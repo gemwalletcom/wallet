@@ -48,55 +48,25 @@ class AssetInfoUIModelFactoryTest {
     }
 
     @Test
-    fun `available is hidden when equal to total and shown otherwise`() {
-        val whole = model(mockAsset(chain = Chain.Cosmos), available = "3000000")
-        val partial = model(mockAsset(chain = Chain.Cosmos), available = "1000000", staked = "2000000")
-
-        assertEquals("", whole.accountInfoUIModel.available)
-        assertTrue(partial.accountInfoUIModel.available.isNotEmpty())
-    }
-
-    @Test
-    fun `stake renders the staked value`() {
-        val cosmos = model(
-            mockAsset(chain = Chain.Cosmos, symbol = "ATOM", decimals = 6),
-            staked = "6000000",
-        )
-
-        assertEquals("6 ATOM", cosmos.accountInfoUIModel.stake)
-    }
-
-    @Test
-    fun `stake is hidden on an unsupported chain`() {
-        val hidden = model(mockAsset(chain = Chain.Bitcoin), staked = "6000000")
-
-        assertEquals("", hidden.accountInfoUIModel.stake)
-    }
-
-    @Test
-    fun `stake falls back to the apr when no position is held`() {
-        val apr = model(
-            mockAsset(chain = Chain.Cosmos),
-            metadata = mockAssetMetaData(isStakeEnabled = true, stakingApr = 5.0),
-        )
+    fun `balance rows render the core rows with the apr standing in for an empty stake`() {
         val position = model(
             mockAsset(chain = Chain.Cosmos, symbol = "ATOM", decimals = 6),
             metadata = mockAssetMetaData(isStakeEnabled = true, stakingApr = 5.0),
+            available = "1000000",
             staked = "2000000",
+            reserved = "500000",
+        ).accountInfoUIModel.balances
+        assertEquals(
+            listOf(AssetInfoUIModel.BalanceViewType.Available, AssetInfoUIModel.BalanceViewType.Stake, AssetInfoUIModel.BalanceViewType.Reserved),
+            position.map { it.type },
         )
+        assertEquals(listOf("1 ATOM", "2 ATOM", "0.5 ATOM"), position.map { it.value })
 
-        assertTrue(apr.accountInfoUIModel.stake.startsWith("APR"))
-        assertEquals("2 ATOM", position.accountInfoUIModel.stake)
-        assertFalse(position.accountInfoUIModel.stake.startsWith("APR"))
-    }
+        val apr = model(mockAsset(chain = Chain.Cosmos), metadata = mockAssetMetaData(isStakeEnabled = true, stakingApr = 5.0)).accountInfoUIModel.balances
+        assertEquals(listOf(AssetInfoUIModel.BalanceViewType.Stake), apr.map { it.type })
+        assertTrue(apr.single().value.startsWith("APR"))
 
-    @Test
-    fun `reserved is shown only when non zero`() {
-        val reserved = model(mockAsset(chain = Chain.Bitcoin), available = "100000000", reserved = "500000")
-        val noReserved = model(mockAsset(chain = Chain.Bitcoin), available = "100000000")
-
-        assertTrue(reserved.accountInfoUIModel.reserved.isNotEmpty())
-        assertEquals("", noReserved.accountInfoUIModel.reserved)
+        assertTrue(model(mockAsset(chain = Chain.Bitcoin), available = "100000000").accountInfoUIModel.balances.isEmpty())
     }
 
     private fun model(

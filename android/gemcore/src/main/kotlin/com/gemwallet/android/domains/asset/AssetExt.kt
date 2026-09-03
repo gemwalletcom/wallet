@@ -2,7 +2,6 @@ package com.gemwallet.android.domains.asset
 
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.byChain
-import com.gemwallet.android.ext.isStaked
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.type
 import com.wallet.core.primitives.Asset

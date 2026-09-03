@@ -36,25 +36,9 @@ class AssetInfoUIModel(
         val totalBalance: String = "0",
         val totalFiat: String = "",
         val owner: String = "",
-        val hasBalanceDetails: Boolean = false,
-        val available: String = "0",
-        val stake: String = "0",
-        val reserved: String = "0",
+        val balances: List<BalanceUIModel> = emptyList(),
         val balanceMetadata: BalanceMetadata? = null,
-    ) {
-        val balances: List<BalanceUIModel>
-            get() = mutableListOf<BalanceUIModel>().apply {
-                if (available.isNotEmpty() && available != "0") {
-                    add(BalanceUIModel(BalanceViewType.Available, available))
-                }
-                if (stake.isNotEmpty() && stake != "0") {
-                    add(BalanceUIModel(BalanceViewType.Stake, stake))
-                }
-                if (reserved.isNotEmpty() && reserved != "0") {
-                    add(BalanceUIModel(BalanceViewType.Reserved, reserved))
-                }
-            }
-    }
+    )
 
     data class BalanceUIModel(
         val type: BalanceViewType,
@@ -64,6 +48,7 @@ class AssetInfoUIModel(
     enum class BalanceViewType(@param:StringRes val label: Int) {
         Available(R.string.asset_balances_available),
         Stake(R.string.wallet_stake),
+        PendingUnconfirmed(R.string.stake_pending),
         Reserved(R.string.asset_balances_reserved)
     }
 }

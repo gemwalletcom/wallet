@@ -13,7 +13,7 @@ use rand::seq::IndexedRandom;
 
 use super::model::{GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemStakeAction, GemStakeActionItem};
 use crate::models::custom_types::GemBigUint;
-use crate::services::balance::GemAssetBalance;
+use crate::services::balance::{GemAssetBalance, GemBalanceRow};
 use crate::services::transfer::rules as transfer_rules;
 
 const SYSTEM_VALIDATOR_IDS: [&str; 2] = [DelegationValidator::SYSTEM_ID, "unstaking"];
@@ -146,6 +146,37 @@ impl GemAssetBalance {
 
     pub fn shows_stake_balance(&self, chain: Chain, is_stake_enabled: bool) -> bool {
         StakeChain::from_str(chain.as_ref()).is_ok() && (is_stake_enabled || self.staked_value(chain) > GemBigUint::ZERO)
+    }
+
+    pub fn detail_rows(&self, chain: Chain, is_stake_enabled: bool) -> Vec<GemBalanceRow> {
+        let positive = |value: &GemBigUint| (*value > GemBigUint::ZERO).then(|| value.clone());
+        let rows: Vec<GemBalanceRow> = [
+            self.shows_stake_balance(chain, is_stake_enabled)
+                .then(|| GemBalanceRow::Staked { value: self.staked_value(chain) }),
+            positive(&self.earn).map(|value| GemBalanceRow::Earn { value }),
+            positive(&self.pending_unconfirmed).map(|value| GemBalanceRow::PendingUnconfirmed { value }),
+            positive(&self.reserved).map(|value| GemBalanceRow::Reserved { value }),
+        ]
+        .into_iter()
+        .flatten()
+        .collect();
+        let held_beyond_available = [
+            &self.frozen,
+            &self.locked,
+            &self.pending,
+            &self.pending_unconfirmed,
+            &self.staked,
+            &self.rewards,
+            &self.reserved,
+            &self.earn,
+        ]
+        .into_iter()
+        .any(|value| *value > GemBigUint::ZERO);
+        if held_beyond_available {
+            std::iter::once(GemBalanceRow::Available { value: self.available.clone() }).chain(rows).collect()
+        } else {
+            rows
+        }
     }
 }
 
@@ -573,6 +604,47 @@ mod tests {
         assert!(stake_balance(40, 0, 0, 0, 0).shows_stake_balance(Chain::Tron, false));
         assert!(!stake_balance(0, 0, 40, 0, 0).shows_stake_balance(Chain::Tron, false));
         assert!(!stake_balance(0, 0, 0, 0, 0).shows_stake_balance(Chain::Bitcoin, true));
+    }
+
+    #[test]
+    fn test_detail_rows_list_what_the_wallet_holds_beyond_available() {
+        use GemBalanceRow::*;
+        let nothing = GemAssetBalance {
+            available: BigUint::from(5u32),
+            ..GemAssetBalance::mock()
+        };
+        assert!(nothing.detail_rows(Chain::Ethereum, false).is_empty(), "only an available balance needs no breakdown");
+        assert_eq!(
+            nothing.detail_rows(Chain::Cosmos, true),
+            vec![Staked { value: BigUint::ZERO }],
+            "a stakeable chain offers staking before anything is staked"
+        );
+
+        let staked = GemAssetBalance {
+            available: BigUint::from(5u32),
+            staked: BigUint::from(100u32),
+            rewards: BigUint::from(1u32),
+            reserved: BigUint::from(2u32),
+            pending_unconfirmed: BigUint::from(3u32),
+            ..GemAssetBalance::mock()
+        };
+        assert_eq!(
+            staked.detail_rows(Chain::Cosmos, false),
+            vec![
+                Available { value: BigUint::from(5u32) },
+                Staked { value: BigUint::from(101u32) },
+                PendingUnconfirmed { value: BigUint::from(3u32) },
+                Reserved { value: BigUint::from(2u32) },
+            ]
+        );
+        let earn = GemAssetBalance {
+            earn: BigUint::from(7u32),
+            ..GemAssetBalance::mock()
+        };
+        assert_eq!(
+            earn.detail_rows(Chain::Ethereum, false),
+            vec![Available { value: BigUint::ZERO }, Earn { value: BigUint::from(7u32) }]
+        );
     }
 
     #[test]

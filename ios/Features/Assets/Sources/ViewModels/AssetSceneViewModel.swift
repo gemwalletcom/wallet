@@ -7,6 +7,8 @@ import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerContext
 import GemstoneServices
 import struct Gemstone.GemAssetBalance
+import enum Gemstone.GemBalanceRow
+import typealias Gemstone.GemBigUint
 import GemstonePrimitives
 import Localization
 import Preferences
@@ -120,16 +122,13 @@ public final class AssetSceneViewModel: Sendable {
         return nil
     }
 
-    var showBalances: Bool {
-        assetDataModel.showBalances || showProviderBalance(for: .earn)
-    }
-
-    var showReservedBalance: Bool {
-        assetDataModel.hasReservedBalance
-    }
-
-    var showPendingUnconfirmedBalance: Bool {
-        assetDataModel.hasPendingUnconfirmedBalance
+    var balanceRows: [GemBalanceRow] {
+        let rows = stakeBalance.detailRows(chain: asset.chain.rawValue, isStakeEnabled: assetData.metadata.isStakeEnabled)
+        #if DEBUG
+            return rows
+        #else
+            return rows.filter { if case .earn = $0 { false } else { true } }
+        #endif
     }
 
     var showResources: Bool {
@@ -178,7 +177,7 @@ public final class AssetSceneViewModel: Sendable {
 
     var showEarnButton: Bool {
         #if DEBUG
-            assetData.metadata.isEarnEnabled && !wallet.isViewOnly && !showProviderBalance(for: .earn)
+            assetData.metadata.isEarnEnabled && !wallet.isViewOnly && !balanceRows.contains { if case .earn = $0 { true } else { false } }
         #else
             false
         #endif
@@ -297,23 +296,12 @@ public final class AssetSceneViewModel: Sendable {
         return .swap(assetData.asset.chain.asset, assetData.asset)
     }
 
-    func showProviderBalance(for type: StakeProviderType) -> Bool {
-        switch type {
-        case .stake: stakeBalance.showsStakeBalance(chain: asset.chain.rawValue, isStakeEnabled: assetData.metadata.isStakeEnabled)
-        #if DEBUG
-            case .earn: assetData.balance.earn > .zero
-        #else
-            case .earn: false
-        #endif
-        }
+    func balanceText(_ value: GemBigUint) -> String {
+        assetDataModel.balanceTextWithSymbol(BigInt(core: value))
     }
 
-    func balanceTextWithSymbol(for type: StakeProviderType) -> String {
-        let value = switch type {
-        case .stake: stakedValue
-        case .earn: assetData.balance.earn
-        }
-        return assetDataModel.balanceTextWithSymbol(value)
+    func stakeBalanceText(_ value: GemBigUint) -> String {
+        value == GemBigUint(BigInt.zero.description) ? aprModel(for: .stake).text : balanceText(value)
     }
 
     func balanceTitle(for type: StakeProviderType) -> String {

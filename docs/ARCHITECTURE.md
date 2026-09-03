@@ -865,3 +865,14 @@ module, and Android carried a stale hand-copied version without `prices` — bot
 several rows of one screen each re-derive a fact from the same record, ask Core for the screen's
 facts in one call.
 
+**Which balance rows an asset shows is a rule on the balance.** iOS's asset scene decided the
+breakdown section from a `[BalanceType: BigInt]` map ("any bucket beyond available"), then
+each row from its own predicate, and fell back to a lone APR row; Android's factory decided it
+from `isStaked(chain) || reserved != 0`, hid the available row when it equalled the total, and
+rendered three of the five rows. `GemAssetBalance::detail_rows(chain, is_stake_enabled)` returns
+the ordered rows (`Available`, `Staked`, `Earn`, `PendingUnconfirmed`, `Reserved`) with their
+values — the available row only when something is held beyond it, the staked row whenever the
+chain stakes (zero means "offer staking", which both apps render as the APR) — and each app only
+formats them. iOS's `AssetData.balances` map and the `has*Balance` predicates, and Android's
+`hasBalanceDetails`/`formatAvailable`/`formatStake`/`formatReserved` and `isStaked`, are gone.
+

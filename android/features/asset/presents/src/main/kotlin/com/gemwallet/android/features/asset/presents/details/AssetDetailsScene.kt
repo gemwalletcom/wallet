@@ -151,7 +151,8 @@ internal fun AssetDetailsScene(
                         balance = item.value,
                         listPosition = position,
                         onAction = when (item.type) {
-                            AssetInfoUIModel.BalanceViewType.Available -> null
+                            AssetInfoUIModel.BalanceViewType.Available,
+                            AssetInfoUIModel.BalanceViewType.PendingUnconfirmed -> null
                             AssetInfoUIModel.BalanceViewType.Stake -> {
                                 { onAction(AssetDetailsAction.Stake(uiState.asset.id)) }
                             }
