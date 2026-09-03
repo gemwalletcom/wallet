@@ -91,6 +91,6 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
     }
 
     public func deeplinkGemUrl(deeplink: Deeplink) -> String {
-        deeplinks.buildGemUrl(deeplink: deeplink)
+        deeplinks.buildUrl(deeplink: deeplink)
     }
 }

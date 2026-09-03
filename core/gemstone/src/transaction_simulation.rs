@@ -54,6 +54,7 @@ impl TransactionSimulationService {
 
         Ok(simulation.prepend_warnings(validation_warnings))
     }
+
     pub async fn simulate_send_transaction(&self, chain: Chain, transaction_type: WalletConnectTransactionType, data: String) -> Result<SimulationResult, GemstoneError> {
         let transaction_type: WcWalletConnectTransactionType = transaction_type.into();
         let validation_warnings = simulation::send_transaction_validation_warnings(&transaction_type, &data);
@@ -68,6 +69,7 @@ impl TransactionSimulationService {
 
         Ok(simulation.prepend_warnings(validation_warnings))
     }
+
     pub async fn simulate_transaction(&self, chain: Chain, encoded_transaction: String, signer_address: Option<String>) -> Result<SimulationResult, GemstoneError> {
         self.simulate_chain_transaction(
             chain,
@@ -211,7 +213,9 @@ impl GemSimulationFormatter {
     pub fn shows_header(&self, simulation: Option<SimulationResult>, is_approval: bool) -> bool {
         is_approval || simulation.as_ref().and_then(SimulationResult::valid_header).is_some()
     }
+}
 
+impl GemSimulationFormatter {
     pub fn balance_changes(&self, simulation: Option<SimulationResult>, known_asset_ids: Vec<AssetId>) -> Vec<GemSimulationChange> {
         let known: HashSet<String> = known_asset_ids.into_iter().map(|asset_id| asset_id.to_string()).collect();
         simulation

@@ -508,6 +508,19 @@ Three gotchas if you repeat the sweep, all met on this pass:
   available balance`). Android now searches with the same `query_filters()` and only asks the
   swapper for the supported list once an opposite asset constrains it, which is what iOS does.
 
+- **Exports with no app caller are gone.** A sweep of every `#[uniffi::export]` method against
+  both apps un-exported `GemPerpetualService::{get_portfolio, apply_socket_message}` (the
+  portfolio and stream services call them in Rust), `GemDeeplinkService::build_gem_url`,
+  `GemSimulationFormatter::balance_changes`, `MessageSigner::plain_preview`,
+  `GemWalletPreferencesService::{get_assets_timestamp, is_initial_load_completed}` and
+  `GemNodeService::get_nodes`, and deleted `GemAddressService::short` (with `short_address`) and
+  `Config::get_fee_config`; the iOS wrappers and mock methods that only existed for them went
+  too. Still exported for the test kits alone: `GemWalletService::setup_chains` (three iOS
+  store-adapter tests), `GemKeystore::preview_import` (Android instrumented fixtures) and
+  `GemConfirmService::simulation` with `GemSimulationFormatter::{payload_fields, shows_header}`
+  (the iOS confirm mock recomputes a simulation from a `SimulationResult`; handing tests a
+  `GemConfirmSimulation` directly would free all three).
+
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**

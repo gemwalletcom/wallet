@@ -31,10 +31,6 @@ impl GemAddressService {
         crate::address::checksum_address(&address, chain)
     }
 
-    pub fn short(&self, address: String, chain: Chain) -> String {
-        crate::address::short_address(&address, chain)
-    }
-
     pub fn format(&self, address: String, chain: Option<Chain>, style: GemAddressFormatStyle) -> String {
         format_address(&address, chain, style)
     }

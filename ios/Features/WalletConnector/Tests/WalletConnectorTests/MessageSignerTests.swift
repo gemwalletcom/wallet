@@ -14,7 +14,6 @@ struct MessageSignerTests {
         let signer = MessageSigner(message: SignMessage(chain: "solana", signType: .base58, data: data))
 
         #expect(try signer.hash().encodeString() == "This is an example message to be signed - 1747125759060")
-        #expect(signer.plainPreview() == "This is an example message to be signed - 1747125759060")
         #expect(try signer.payloadPreview(simulationPayload: []) == nil)
     }
 

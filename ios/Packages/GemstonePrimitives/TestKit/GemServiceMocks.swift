@@ -721,14 +721,6 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     }
 
     public func setPinned(perpetualId _: String, pinned _: Bool) async throws {}
-
-    public func getPortfolio(chain _: Gemstone.Chain, address _: String) async throws -> Gemstone.PerpetualPortfolio {
-        try Primitives.PerpetualPortfolio(day: nil, week: nil, month: nil, allTime: nil, accountSummary: nil).json()
-    }
-
-    public func applySocketMessage(walletId _: String, mode _: Gemstone.PerpetualAccountMode, data _: Data) async throws -> Gemstone.GemPerpetualSocketUpdate {
-        .applied
-    }
 }
 
 public final class GemAssetDiscoveryServiceMock: GemAssetDiscoveryServiceProtocol, @unchecked Sendable {

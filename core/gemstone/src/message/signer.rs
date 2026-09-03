@@ -94,25 +94,6 @@ impl MessageSigner {
         Ok(payload_preview)
     }
 
-    pub fn plain_preview(&self) -> String {
-        match self.message.sign_type {
-            SignDigestType::SuiPersonal | SignDigestType::Eip191 | SignDigestType::TronPersonal => self.data_as_utf8_or_hex(),
-            SignDigestType::Base58 => match self.preview() {
-                Ok(MessagePreview::Text(preview)) => preview,
-                _ => "".to_string(),
-            },
-            SignDigestType::TonPersonal => match self.preview() {
-                Ok(MessagePreview::Text(preview)) => preview,
-                _ => self.data_as_utf8_or_hex(),
-            },
-            SignDigestType::Siwe => self.data_as_utf8_or_hex(),
-            SignDigestType::Eip712 => {
-                let value: serde_json::Value = serde_json::from_slice(&self.message.data).unwrap_or_default();
-                serde_json::to_string_pretty(&value).unwrap_or_default()
-            }
-        }
-    }
-
     pub fn hash(&self) -> Result<Vec<u8>, GemstoneError> {
         match &self.message.sign_type {
             SignDigestType::SuiPersonal => {
@@ -138,6 +119,27 @@ impl MessageSigner {
     pub fn sign_with_keystore(&self, keystore: Arc<GemKeystore>, keystore_id: String, password: Vec<u8>) -> Result<String, GemstoneError> {
         let private_key = keystore.signing_key(&keystore_id, self.message.chain, password)?;
         self.sign(private_key)
+    }
+}
+
+impl MessageSigner {
+    pub fn plain_preview(&self) -> String {
+        match self.message.sign_type {
+            SignDigestType::SuiPersonal | SignDigestType::Eip191 | SignDigestType::TronPersonal => self.data_as_utf8_or_hex(),
+            SignDigestType::Base58 => match self.preview() {
+                Ok(MessagePreview::Text(preview)) => preview,
+                _ => "".to_string(),
+            },
+            SignDigestType::TonPersonal => match self.preview() {
+                Ok(MessagePreview::Text(preview)) => preview,
+                _ => self.data_as_utf8_or_hex(),
+            },
+            SignDigestType::Siwe => self.data_as_utf8_or_hex(),
+            SignDigestType::Eip712 => {
+                let value: serde_json::Value = serde_json::from_slice(&self.message.data).unwrap_or_default();
+                serde_json::to_string_pretty(&value).unwrap_or_default()
+            }
+        }
     }
 }
 

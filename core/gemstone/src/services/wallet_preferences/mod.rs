@@ -41,14 +41,6 @@ impl GemWalletPreferencesService {
         Self { store }
     }
 
-    pub fn get_assets_timestamp(&self, wallet_id: WalletId) -> u64 {
-        self.get_timestamp(wallet_id, WalletPreferenceKey::AssetsTimestamp)
-    }
-
-    pub fn is_initial_load_completed(&self, wallet_id: WalletId, step: GemDiscoveryStep) -> Result<bool, GemServiceError> {
-        self.get_flag(wallet_id, initial_load_key(step))
-    }
-
     pub fn includes_perpetual_collateral(&self, wallet_id: WalletId) -> bool {
         let mode = self.get_perpetual_account_mode(wallet_id).unwrap_or(PerpetualAccountMode::Standard);
         crate::services::perpetual::rules::includes_perpetual_collateral(mode)
@@ -59,6 +51,16 @@ impl GemWalletPreferencesService {
             Some("unified") => PerpetualAccountMode::Unified,
             _ => PerpetualAccountMode::Standard,
         })
+    }
+}
+
+impl GemWalletPreferencesService {
+    pub fn get_assets_timestamp(&self, wallet_id: WalletId) -> u64 {
+        self.get_timestamp(wallet_id, WalletPreferenceKey::AssetsTimestamp)
+    }
+
+    pub fn is_initial_load_completed(&self, wallet_id: WalletId, step: GemDiscoveryStep) -> Result<bool, GemServiceError> {
+        self.get_flag(wallet_id, initial_load_key(step))
     }
 }
 
