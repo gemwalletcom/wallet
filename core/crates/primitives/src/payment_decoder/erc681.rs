@@ -37,6 +37,7 @@ pub fn decode(path: &str) -> Result<Payment> {
                 .and_then(|value| amount::atomic(&value))
                 .map(PaymentAmount::AtomicValue),
             memo,
+            label: None,
             references: None,
             asset_id: Some(AssetId::from(chain, Some(target.to_string()))),
         })),
@@ -49,6 +50,7 @@ pub fn decode(path: &str) -> Result<Payment> {
                 .or_else(|| query::value(&parameters, QUERY_AMOUNT).and_then(|value| amount::exact(&value, chain)))
                 .map(PaymentAmount::ExactValue),
             memo,
+            label: None,
             references: None,
             asset_id: Some(AssetId::from_chain(chain)),
         })),

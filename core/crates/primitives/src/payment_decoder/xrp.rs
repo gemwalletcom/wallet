@@ -30,6 +30,7 @@ mod tests {
             address: ADDRESS.to_string(),
             amount: Some(PaymentAmount::ExactValue("10".to_string())),
             memo: Some("12345".to_string()),
+            label: None,
             references: None,
             asset_id: Some(AssetId::from_chain(Chain::Xrp)),
         });

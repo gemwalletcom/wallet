@@ -129,6 +129,7 @@ mod tests {
             address: " 0xabc ".into(),
             amount: None,
             memo: Some("tag".into()),
+            label: None,
             references: None,
             asset_id: None,
         };

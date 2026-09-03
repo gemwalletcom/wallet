@@ -12,6 +12,7 @@ const TRANSACTION_LINK_PREFIX: &str = "https";
 const QUERY_AMOUNT: &str = "amount";
 const QUERY_SPL_TOKEN: &str = "spl-token";
 const QUERY_MEMO: &str = "memo";
+const QUERY_LABEL: &str = "label";
 const QUERY_REFERENCE: &str = "reference";
 
 pub fn decode(path: &str) -> Result<Payment> {
@@ -37,6 +38,7 @@ pub fn decode(path: &str) -> Result<Payment> {
         address: recipient.to_string(),
         amount,
         memo: query::value(&parameters, QUERY_MEMO),
+        label: query::value(&parameters, QUERY_LABEL),
         references: match query::values(&parameters, QUERY_REFERENCE) {
             references if references.is_empty() => None,
             references => Some(references),
@@ -86,6 +88,7 @@ mod tests {
                 address: RECIPIENT.to_string(),
                 amount: Some(PaymentAmount::ExactValue("1".to_string())),
                 memo: Some("OrderId5678".to_string()),
+                label: Some("Michael".to_string()),
                 references: None,
                 asset_id: Some(AssetId::from(Chain::Solana, Some(SOLANA_USDC_TOKEN_ID.to_string()))),
             })

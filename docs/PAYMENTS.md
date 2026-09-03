@@ -9,11 +9,11 @@ Open the scanner from the wallet screen and scan this page from another device. 
 | Type | Supported fields | Core implementation |
 |---|---|---|
 | Plain address | A raw address with optional `amount`; the chain comes from the wallet assets it validates against | [Decoder](../core/crates/primitives/src/payment_decoder/decoder.rs) |
-| BIP-21 | `bitcoin:`, `litecoin:`, `bitcoincash:`, `dogecoin:`, `zcash:` with `amount` and `memo` | [BIP-21 decoder](../core/crates/primitives/src/payment_decoder/bip21.rs) |
+| BIP-21 | `bitcoin:`, `litecoin:`, `bitcoincash:`, `dogecoin:`, `zcash:` with `amount`, `memo`, and `label` | [BIP-21 decoder](../core/crates/primitives/src/payment_decoder/bip21.rs) |
 | BIP-321 | `bitcoin:` may omit the address when `bc` carries it. Lightning, BOLT 12, silent payment and other instructions are ignored beside an on-chain address and rejected alone | [BIP-321 decoder](../core/crates/primitives/src/payment_decoder/bip321.rs) |
 | XRP | `xrp:`, `ripple:`, `xrpl:` with destination tag `dt` | [XRP decoder](../core/crates/primitives/src/payment_decoder/xrp.rs) |
 | ERC-681 | EVM native transfers and token `transfer` with `address` and `uint256` | [ERC-681 decoder](../core/crates/primitives/src/payment_decoder/erc681.rs) |
-| Solana Pay | SOL and SPL-token transfers with `amount`, `spl-token`, repeated `reference`, and `memo` | [Solana Pay decoder](../core/crates/primitives/src/payment_decoder/solana_pay.rs) |
+| Solana Pay | SOL and SPL-token transfers with `amount`, `spl-token`, repeated `reference`, `memo`, and `label` | [Solana Pay decoder](../core/crates/primitives/src/payment_decoder/solana_pay.rs) |
 | TON transfer | Native TON transfer with atomic `amount` and text comment | [TON decoder](../core/crates/primitives/src/payment_decoder/ton_pay.rs) |
 
 ## How decoding works
@@ -52,7 +52,7 @@ Routing is decided in Core by [payment_destination](../core/gemstone/src/payment
 
 `GemPaymentService` is the one payment object on both apps: it decodes URLs, routes destinations, builds transfer data and loads Solana transaction links through the alien provider it is constructed with.
 
-Parameter keys are case-insensitive. Any unimplemented `req-` parameter rejects the whole URI, and so does a scheme the decoder does not list, so a new chain never gains a payment URI by accident. Payment instructions Gem cannot sign are ignored when the URI still carries an on-chain address, so `bitcoin:<address>?sp=<silent payment>` pays on chain; a URI that carries only such instructions is rejected.
+Parameter keys are case-insensitive. Every format whose standard defines `label` parses it into `PaymentRequest.label`. Any unimplemented `req-` parameter rejects the whole URI, and so does a scheme the decoder does not list, so a new chain never gains a payment URI by accident. Payment instructions Gem cannot sign are ignored when the URI still carries an on-chain address, so `bitcoin:<address>?sp=<silent payment>` pays on chain; a URI that carries only such instructions is rejected.
 
 WalletConnect and Gem deeplinks are routed before payments. Solana transaction links load the merchant and encoded transaction through the payment service before opening confirmation. Confirmation then preloads the transaction and simulates it concurrently using the same transaction simulation service as WalletConnect.
 

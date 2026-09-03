@@ -9,6 +9,7 @@ use crate::{
 const REQUIRED_PARAMETER_PREFIX: &str = "req-";
 const QUERY_AMOUNT: &str = "amount";
 const QUERY_MEMO: &str = "memo";
+const QUERY_LABEL: &str = "label";
 
 pub fn decode(chain: Option<Chain>, path: &str) -> Result<Payment> {
     Ok(Payment::Request(get_request(chain, path)?))
@@ -34,6 +35,7 @@ pub fn get_request(chain: Option<Chain>, path: &str) -> Result<PaymentRequest> {
             })
             .map(PaymentAmount::ExactValue),
         memo: query::value(&parameters, QUERY_MEMO),
+        label: query::value(&parameters, QUERY_LABEL),
         references: None,
         asset_id: chain.map(AssetId::from_chain),
     })
@@ -54,15 +56,15 @@ mod tests {
         });
 
         assert_eq!(decode(Some(Chain::Bitcoin), BITCOIN_ADDRESS).unwrap(), bitcoin);
-        assert_eq!(decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?label=Luke-Jr")).unwrap(), bitcoin);
         assert_eq!(decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?dontexist=")).unwrap(), bitcoin);
-        assert_eq!(decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?amount=&memo=")).unwrap(), bitcoin);
+        assert_eq!(decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?amount=&memo=&label=")).unwrap(), bitcoin);
 
         assert_eq!(
             decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?amount=50&label=Luke-Jr&message=Donation%20for%20xyz")).unwrap(),
             Payment::Request(PaymentRequest {
                 address: BITCOIN_ADDRESS.to_string(),
                 amount: Some(PaymentAmount::ExactValue("50".to_string())),
+                label: Some("Luke-Jr".to_string()),
                 asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
                 ..PaymentRequest::mock()
             })
