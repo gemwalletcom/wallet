@@ -1,7 +1,6 @@
 package com.gemwallet.android.ext
 
 import com.gemwallet.android.domains.asset.defaultAssets
-import com.gemwallet.android.math.fromHex
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -17,11 +16,6 @@ fun Wallet.getAccount(chain: Chain): Account? {
 fun Wallet.getAccount(assetId: AssetId): Account? = getAccount(assetId.chain)
 
 val WalletType.isViewOnly: Boolean get() = this == WalletType.View
-
-val Wallet.hyperliquidAccount: Account?
-    get() = accounts.firstOrNull {
-        it.chain == Chain.Arbitrum || it.chain == Chain.HyperCore || it.chain == Chain.Hyperliquid
-    }
 
 val HypercoreUSDC: Asset = Chain.HyperCore.defaultAssets
     .first { it.type == AssetType.PERPETUAL }

@@ -891,4 +891,8 @@ private extension Primitives.Wallet {
     var supportsPerpetuals: Bool {
         isMultiCoins && hyperliquidAccount != nil
     }
+
+    var hyperliquidAccount: Primitives.Account? {
+        accounts.first { $0.chain == .hyperCore }
+    }
 }
