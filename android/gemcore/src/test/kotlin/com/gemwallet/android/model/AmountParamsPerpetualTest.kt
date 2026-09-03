@@ -9,6 +9,7 @@ import com.wallet.core.primitives.TransactionType
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.GemPerpetualPositionAction
+import java.math.BigInteger
 
 class AmountParamsPerpetualTest {
 
@@ -23,7 +24,7 @@ class AmountParamsPerpetualTest {
     fun transactionType_followsThePositionAction() {
         assertEquals(TransactionType.PerpetualOpenPosition, perpetual(GemPerpetualPositionAction.Open(transferData)).transactionType)
         assertEquals(TransactionType.PerpetualModifyPosition, perpetual(GemPerpetualPositionAction.Increase(transferData)).transactionType)
-        assertEquals(TransactionType.PerpetualModifyPosition, perpetual(GemPerpetualPositionAction.Reduce(transferData, "0")).transactionType)
+        assertEquals(TransactionType.PerpetualModifyPosition, perpetual(GemPerpetualPositionAction.Reduce(transferData, BigInteger.ZERO)).transactionType)
     }
 
     @Test
@@ -34,7 +35,7 @@ class AmountParamsPerpetualTest {
 
     @Test
     fun perpetualParams_surviveTheRoutePayload() {
-        val params = perpetual(GemPerpetualPositionAction.Reduce(transferData, "1500000"))
+        val params = perpetual(GemPerpetualPositionAction.Reduce(transferData, BigInteger("1500000")))
 
         assertEquals(params, AmountParams.unpack(requireNotNull(params.pack())))
     }

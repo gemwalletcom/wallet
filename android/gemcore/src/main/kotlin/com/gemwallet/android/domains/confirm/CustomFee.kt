@@ -34,17 +34,17 @@ data class CustomFee(
 
             return GemCustomFee.estimate(
                 chain = currentFee.feeAsset.chain.string,
-                rate = rate?.toString(),
-                loadedFee = currentFee.amount.toString(),
-                baseTotal = baseTotal.toString(),
-                normalTotal = normalTotal.toString(),
+                rate = rate,
+                loadedFee = currentFee.amount,
+                baseTotal = baseTotal,
+                normalTotal = normalTotal,
             ).use { estimate ->
                 CustomFee(
                     rate = rate,
                     placeholder = ValueFormatter(style = ValueFormatter.Style.Auto).string(baseTotal, decimals),
-                    networkFee = FeeUIModel.FeeInfo(BigInteger(estimate.feeValue()), currentFee.feeAsset, currentFee.price, currentFee.currency, currentFee.priority),
-                    maxRateText = format(BigInteger(estimate.maxRate()), decimals),
-                    minRateText = estimate.minimumRate()?.let { format(BigInteger(it), decimals) } ?: "",
+                    networkFee = FeeUIModel.FeeInfo(estimate.feeValue(), currentFee.feeAsset, currentFee.price, currentFee.currency, currentFee.priority),
+                    maxRateText = format(estimate.maxRate(), decimals),
+                    minRateText = estimate.minimumRate()?.let { format(it, decimals) } ?: "",
                     isOverMax = estimate.isOverMax(),
                     isBelowMinimum = estimate.isBelowMinimum(),
                     isConfirmEnabled = estimate.isValid(),
@@ -62,11 +62,11 @@ data class CustomFee(
             when (selection) {
                 is FeeSelection.Custom -> selection.gasPrice
                 is FeeSelection.Preset -> feeRates.firstOrNull { it.priority.toPrimitives() == loadedPriority }
-                    ?.let { it.gasPriceType.totalFee().toBigInteger() } ?: BigInteger.ZERO
+                    ?.let { it.gasPriceType.totalFee() } ?: BigInteger.ZERO
             }
 
         private fun normalTotal(feeRates: List<GemFeeRate>): BigInteger? =
             (feeRates.firstOrNull { it.priority.toPrimitives() == FeePriority.Normal } ?: feeRates.firstOrNull())
-                ?.let { it.gasPriceType.totalFee().toBigInteger() }
+                ?.let { it.gasPriceType.totalFee() }
     }
 }

@@ -10,7 +10,6 @@ import enum Gemstone.GemExecuteResult
 import protocol Gemstone.GemConfirmTransferServiceProtocol
 import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstoneServices
-import BigInt
 import Components
 import Foundation
 import GemstonePrimitives
@@ -430,8 +429,8 @@ extension ConfirmTransferSceneViewModel {
         do {
             result = try await service.execute(
                 confirm: confirmData,
-                value: amount.value.description,
-                networkFee: amount.networkFee.description,
+                value: amount.value,
+                networkFee: amount.networkFee,
                 simulation: simulation?.json(),
             )
         } catch let GemConfirmError.Broadcast(hashes, msg) {

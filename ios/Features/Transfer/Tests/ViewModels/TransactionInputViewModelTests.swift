@@ -34,7 +34,7 @@ struct TransactionInputViewModelTests {
             data: .mock(value: 100),
             fee: nil,
             metaData: nil,
-            transferAmount: .failure(GemConfirmError.InsufficientBalance(asset: Asset.mock().map(), requirement: GemBalanceRequirement(required: "1", available: "0", shortfall: "1"))),
+            transferAmount: .failure(GemConfirmError.InsufficientBalance(asset: Asset.mock().map(), requirement: GemBalanceRequirement(required: 1, available: 0, shortfall: 1))),
             feeAsset: .mock(),
             currency: Currency.usd.rawValue,
         )

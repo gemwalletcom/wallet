@@ -54,7 +54,7 @@ class TransferDataCodecTest {
         outputType: TransferDataOutputType,
         outputAction: TransferDataOutputAction,
         transactionType: TransactionType,
-        gasLimit: String? = null,
+        gasLimit: BigInteger? = null,
         approval: ApprovalData? = null,
     ) = GemTransferData(
         inputType = GemTransactionInputType.Generic(
@@ -72,7 +72,7 @@ class TransferDataCodecTest {
             ),
         ),
         recipient = recipient,
-        value = BigInteger.ZERO.toString(),
+        value = BigInteger.ZERO,
     )
 
     @Test
@@ -81,7 +81,7 @@ class TransferDataCodecTest {
         val original = GemTransferData(
             inputType = GemTransactionInputType.transfer(asset),
             recipient = GemRecipient(address = "recipient", name = "recipient.sol", memo = "payment-memo", references = listOf("reference")),
-            value = "19000000",
+            value = BigInteger("19000000"),
             useMaxAmount = true,
         )
 
@@ -89,7 +89,7 @@ class TransferDataCodecTest {
 
         assertTrue(transfer.inputType is GemTransactionInputType.Transfer)
         assertEquals(asset, transfer.inputType.asset)
-        assertEquals("19000000", transfer.value)
+        assertEquals(BigInteger("19000000"), transfer.value)
         assertEquals("recipient", transfer.recipient.address)
         assertEquals("recipient.sol", transfer.recipient.name)
         assertEquals("payment-memo", transfer.recipient.memo)
@@ -115,7 +115,7 @@ class TransferDataCodecTest {
             outputType = TransferDataOutputType.EncodedTransaction,
             outputAction = TransferDataOutputAction.Send,
             transactionType = TransactionType.Transfer,
-            gasLimit = "21000",
+            gasLimit = BigInteger("21000"),
             approval = approval,
         )
 
@@ -132,7 +132,7 @@ class TransferDataCodecTest {
         assertEquals("Merchant", metadata.name)
         assertEquals(ApplicationMetadataSource.Payment, metadata.source)
         assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
-        assertEquals("21000", generic.extra.gasLimit)
+        assertEquals(BigInteger("21000"), generic.extra.gasLimit)
         assertEquals(TransactionType.Transfer, generic.extra.transactionType.decodeJson<TransactionType>())
         assertEquals(approval, requireNotNull(generic.extra.approval).decodeJson<ApprovalData>())
     }
@@ -170,14 +170,14 @@ class TransferDataCodecTest {
         val original = GemTransferData(
             inputType = GemTransactionInputType.transfer(asset),
             recipient = GemRecipient("recipient"),
-            value = BigInteger.ONE.toString(),
+            value = BigInteger.ONE,
         )
 
         val transfer = roundTrip(original)
 
         assertTrue(transfer.inputType is GemTransactionInputType.Transfer)
         assertEquals(asset, transfer.inputType.asset)
-        assertEquals(BigInteger.ONE.toString(), transfer.value)
+        assertEquals(BigInteger.ONE, transfer.value)
         assertEquals(null, transfer.recipient.memo)
         assertEquals(false, transfer.useMaxAmount)
     }

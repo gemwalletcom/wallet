@@ -6,6 +6,7 @@ use primitives::{Asset, AutocloseEstimator, Chain, PerpetualDirection, StakeChai
 use super::model::{GemAmountEarnType, GemAmountError, GemAmountLimits, GemAmountPerpetualPosition, GemAmountRules, GemAmountStakeType, GemAmountType, GemPerpetualAutoclose};
 use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT};
 use crate::config::stake::get_stake_config;
+use crate::models::custom_types::GemBigInt;
 use crate::services::balance::GemAssetBalance;
 use crate::services::transfer::rules as transfer_rules;
 use gem_hypercore::perpetual_formatter::PerpetualFormatter;
@@ -35,8 +36,8 @@ impl GemAmountType {
         }
     }
 
-    pub fn validate(&self, asset: &Asset, balance: &GemAssetBalance, value: String) -> Result<(), GemAmountError> {
-        validate(&parse_value(&value)?, &self.available_value(asset, balance), &minimum_value(self, asset))
+    pub fn validate(&self, asset: &Asset, balance: &GemAssetBalance, value: GemBigInt) -> Result<(), GemAmountError> {
+        validate(&value, &self.available_value(asset, balance), &minimum_value(self, asset))
     }
 }
 
@@ -60,7 +61,7 @@ impl GemAmountType {
             },
             Self::Perpetual { position, .. } => match position {
                 GemAmountPerpetualPosition::Open | GemAmountPerpetualPosition::Increase => BigInt::from(balance.available.clone()),
-                GemAmountPerpetualPosition::Reduce { available } => available.clone(),
+                GemAmountPerpetualPosition::Reduce { available } => BigInt::from(available.clone()),
             },
         }
     }
@@ -75,19 +76,15 @@ pub fn perpetual_autoclose(price: f64, direction: PerpetualDirection, leverage: 
     }
 }
 
-pub fn parse_value(value: &str) -> Result<BigInt, GemAmountError> {
-    value.parse::<BigInt>().map_err(|_| GemAmountError::InvalidValue { value: value.to_string() })
-}
-
 pub fn validate(value: &BigInt, available: &BigInt, minimum: &BigInt) -> Result<(), GemAmountError> {
     if value <= &BigInt::from(0) {
         return Err(GemAmountError::Zero);
     }
     if value < minimum {
-        return Err(GemAmountError::BelowMinimum { minimum: minimum.to_string() });
+        return Err(GemAmountError::BelowMinimum { minimum: minimum.clone() });
     }
     if value > available {
-        return Err(GemAmountError::InsufficientBalance { available: available.to_string() });
+        return Err(GemAmountError::InsufficientBalance { available: available.clone() });
     }
     Ok(())
 }
@@ -363,7 +360,7 @@ mod tests {
         assert_eq!(GemAmountType::Withdraw.available_value(&usdc(), &balance(1, 0, 0, 0)), BigInt::from(7));
         assert_eq!(
             GemAmountType::Perpetual {
-                position: GemAmountPerpetualPosition::Reduce { available: BigInt::from(42) },
+                position: GemAmountPerpetualPosition::Reduce { available: BigUint::from(42u32) },
                 price: 1.0,
                 leverage: 1,
                 size_decimals: 0
@@ -400,34 +397,33 @@ mod tests {
         assert_eq!(validate(&BigInt::from(0), &BigInt::from(10), &BigInt::from(0)), Err(GemAmountError::Zero));
         assert_eq!(
             validate(&BigInt::from(1), &BigInt::from(10), &BigInt::from(2)),
-            Err(GemAmountError::BelowMinimum { minimum: "2".into() })
+            Err(GemAmountError::BelowMinimum { minimum: BigInt::from(2) })
         );
         assert_eq!(
             validate(&BigInt::from(11), &BigInt::from(10), &BigInt::from(0)),
-            Err(GemAmountError::InsufficientBalance { available: "10".into() })
+            Err(GemAmountError::InsufficientBalance { available: BigInt::from(10) })
         );
         assert_eq!(validate(&BigInt::from(5), &BigInt::from(10), &BigInt::from(2)), Ok(()));
         assert_eq!(validate(&BigInt::from(0), &BigInt::from(10), &BigInt::from(5)), Err(GemAmountError::Zero));
         assert_eq!(validate(&BigInt::from(-1), &BigInt::from(10), &BigInt::from(5)), Err(GemAmountError::Zero));
-        assert_eq!(parse_value("abc"), Err(GemAmountError::InvalidValue { value: "abc".into() }));
 
         let stake = GemAmountType::Stake {
             stake_type: GemAmountStakeType::Stake,
         };
         let bnb = asset(Chain::SmartChain);
         assert_eq!(
-            stake.validate(&bnb, &balance(5_000_000_000_000_000_000, 0, 0, 0), "990000000000000000".to_string()),
+            stake.validate(&bnb, &balance(5_000_000_000_000_000_000, 0, 0, 0), BigInt::from(990_000_000_000_000_000u64)),
             Err(GemAmountError::BelowMinimum {
-                minimum: "1000000000000000000".into()
+                minimum: BigInt::from(1_000_000_000_000_000_000u64)
             })
         );
         assert_eq!(
-            stake.validate(&bnb, &balance(5_000_000_000_000_000_000, 0, 0, 0), "1500000000000000000".to_string()),
+            stake.validate(&bnb, &balance(5_000_000_000_000_000_000, 0, 0, 0), BigInt::from(1_500_000_000_000_000_000u64)),
             Ok(())
         );
         assert_eq!(
-            GemAmountType::Transfer.validate(&bnb, &balance(10, 0, 0, 0), "11".to_string()),
-            Err(GemAmountError::InsufficientBalance { available: "10".into() })
+            GemAmountType::Transfer.validate(&bnb, &balance(10, 0, 0, 0), BigInt::from(11)),
+            Err(GemAmountError::InsufficientBalance { available: BigInt::from(10) })
         );
     }
 

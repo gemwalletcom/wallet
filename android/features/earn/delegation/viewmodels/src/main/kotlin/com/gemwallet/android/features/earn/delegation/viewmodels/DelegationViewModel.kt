@@ -127,8 +127,7 @@ class DelegationViewModel @Inject constructor(
             buildUndelegate()?.let { amountCall(it) }
             return
         }
-        val balance = Crypto(delegation.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO)
-        confirmCall(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Unstake(delegation).toJson(), balance.atomicValue.toString(), false))
+        confirmCall(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Unstake(delegation).toJson(), BigInteger(delegation.base.balance), false))
     }
 
     fun onRedelegate(call: AmountTransactionAction) {
@@ -138,8 +137,7 @@ class DelegationViewModel @Inject constructor(
     fun onWithdraw(call: ConfirmTransactionAction) {
         val assetInfo = assetInfo.value ?: return
         val delegation = delegation.value ?: return
-        val balance = Crypto(delegation.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO)
-        call(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toJson(), balance.atomicValue.toString(), false))
+        call(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toJson(), BigInteger(delegation.base.balance), false))
     }
 
     fun onClaimRewards(call: ConfirmTransactionAction) {
@@ -149,7 +147,7 @@ class DelegationViewModel @Inject constructor(
             stakeService.stakeTransferData(
                 assetInfo.asset.toGem(),
                 StakeType.Rewards(listOf(delegation.validator)).toJson(),
-                delegation.rewardsBalance().toString(),
+                delegation.rewardsBalance(),
                 false,
             )
         )

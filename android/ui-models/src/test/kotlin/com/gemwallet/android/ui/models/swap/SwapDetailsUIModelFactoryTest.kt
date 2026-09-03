@@ -15,6 +15,7 @@ import org.junit.Test
 import com.wallet.core.primitives.swap.SwapPriceImpact
 import com.wallet.core.primitives.swap.SwapPriceImpactType
 import uniffi.gemstone.SwapperProvider
+import java.math.BigInteger
 
 class SwapDetailsUIModelFactoryTest {
 
@@ -100,8 +101,8 @@ class SwapDetailsUIModelFactoryTest {
             SwapDetailsUIModelInput(
                 payAsset = assetInfo(symbol = "ETH", decimals = 18),
                 receiveAsset = assetInfo(symbol = "USDC", decimals = 6),
-                fromValue = "1000000000000000000",
-                toValue = "2000000000",
+                fromValue = BigInteger("1000000000000000000"),
+                toValue = BigInteger("2000000000"),
                 provider = provider(
                     toValue = "2000000000",
                     receiveAsset = assetInfo(symbol = "USDC", decimals = 6),
@@ -130,16 +131,6 @@ class SwapDetailsUIModelFactoryTest {
     @Test
     fun `returns null when receive amount is zero`() {
         assertNull(swapDetails(toValue = "0"))
-    }
-
-    @Test
-    fun `returns null when amount input is invalid`() {
-        assertNull(
-            swapDetails(
-                fromValue = "invalid",
-                toValue = "950000000000000000",
-            )
-        )
     }
 
     @Test
@@ -185,8 +176,8 @@ class SwapDetailsUIModelFactoryTest {
         SwapDetailsUIModelInput(
             payAsset = payAsset,
             receiveAsset = receiveAsset,
-            fromValue = fromValue,
-            toValue = toValue,
+            fromValue = BigInteger(fromValue),
+            toValue = BigInteger(toValue),
             provider = provider,
             providers = providers,
             slippageBps = slippageBps,
@@ -194,7 +185,7 @@ class SwapDetailsUIModelFactoryTest {
             etaInSeconds = etaInSeconds,
             isProviderSelectable = isProviderSelectable,
             priceImpact = priceImpact,
-            minReceiveValue = summary(toValue, slippageBps, etaInSeconds).minReceiveValue().toBigInteger(),
+            minReceiveValue = summary(toValue, slippageBps, etaInSeconds).minReceiveValue(),
             etaMinutes = summary(toValue, slippageBps, etaInSeconds).etaMinutes(),
         ),
     )
@@ -210,7 +201,7 @@ class SwapDetailsUIModelFactoryTest {
         providerId = SwapperProvider.OKX,
         title = "OKX (DEX)",
         receiveAsset = receiveAsset,
-        toValue = toValue,
+        toValue = BigInteger(toValue),
     )
 
     private fun assetInfo(

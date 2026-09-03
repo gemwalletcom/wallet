@@ -30,7 +30,7 @@ data class FeeAssetUIModel(
         fun from(asset: Asset, balance: GemAssetBalance, prices: List<GemAssetPrice>, currency: Currency) = FeeAssetUIModel(
             asset = asset,
             price = prices.firstOrNull { it.assetId == balance.assetId }?.toAssetPriceInfo(currency),
-            available = BigInteger(balance.available),
+            available = balance.available,
         )
     }
 }

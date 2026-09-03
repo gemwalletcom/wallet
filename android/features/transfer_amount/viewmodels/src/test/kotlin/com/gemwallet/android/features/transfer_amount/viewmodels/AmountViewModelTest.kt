@@ -184,7 +184,7 @@ class AmountViewModelTest {
     @Test
     fun `onMaxAmount reserves the network fee from the balance`() = viewModelTest { viewModel ->
         availableBalanceFlow.value = BigInteger("2000000")
-        every { provider.limits } returns MutableStateFlow(GemAmountLimits(availableValue = "2000000", maxValue = "1500000", reservesFee = true))
+        every { provider.limits } returns MutableStateFlow(GemAmountLimits(availableValue = BigInteger("2000000"), maxValue = BigInteger("1500000"), reservesFee = true))
         every { provider.reserveForFee } returns MutableStateFlow(BigInteger("500000"))
         every { provider.maxValue() } returns BigInteger("1500000")
 
@@ -197,7 +197,7 @@ class AmountViewModelTest {
     @Test
     fun `typing the max amount by hand shows the reserved fee note`() = viewModelTest { viewModel ->
         availableBalanceFlow.value = BigInteger("2000000")
-        limitsFlow.value = GemAmountLimits(availableValue = "2000000", maxValue = "1500000", reservesFee = true)
+        limitsFlow.value = GemAmountLimits(availableValue = BigInteger("2000000"), maxValue = BigInteger("1500000"), reservesFee = true)
         reserveForFeeFlow.value = BigInteger("500000")
         every { provider.maxValue() } returns BigInteger("1500000")
 
@@ -208,7 +208,7 @@ class AmountViewModelTest {
         assertNotNull(viewModel.reserveForFeeFormatted.value)
     }
 
-    private fun transferBalance(available: BigInteger) = mockGemAssetBalance(asset, available.toString())
+    private fun transferBalance(available: BigInteger) = mockGemAssetBalance(asset, available)
 
     private fun viewModelTest(block: suspend TestScope.(AmountViewModel) -> Unit) = runTest(testDispatcher) {
         val params = AmountParams.Transfer(asset.id, GemRecipient(address = "to", name = null))

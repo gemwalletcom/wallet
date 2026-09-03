@@ -95,7 +95,7 @@ class StakeViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val rewardsText = combine(claimRewards.filterNotNull(), assetInfo.filterNotNull()) { claimRewards, assetInfo ->
-        ValueFormatter(style = ValueFormatter.Style.Auto).string(BigInteger(claimRewards.value), assetInfo.asset)
+        ValueFormatter(style = ValueFormatter.Style.Auto).string(claimRewards.value, assetInfo.asset)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     val actions = combine(
@@ -146,8 +146,7 @@ class StakeViewModel @Inject constructor(
             return
         }
         val assetInfo = assetInfo.value ?: return
-        val balance = Crypto(delegation.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO)
-        onConfirm(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toJson(), balance.atomicValue.toString(), false))
+        onConfirm(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toJson(), BigInteger(delegation.base.balance), false))
     }
 
     fun onRewards(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {

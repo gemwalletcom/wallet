@@ -41,7 +41,7 @@ public extension GemSwapQuoteServiceProtocol {
         let quotes = try await getQuotes(
             fromAsset: fromAsset.map(),
             toAsset: toAsset.map(),
-            value: amount.description,
+            value: BigUInt(amount),
             useMaxAmount: useMaxAmount,
             slippageBps: slippage.exactBps,
         )

@@ -13,15 +13,16 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.TransactionState
+import java.math.BigInteger
 
 sealed interface TransactionDetailsValue {
 
     sealed interface Amount : TransactionDetailsValue {
         class Swap(
             val fromAsset: AssetInfo,
-            val fromValue: String,
+            val fromValue: BigInteger,
             val toAsset: AssetInfo,
-            val toValue: String,
+            val toValue: BigInteger,
             val currency: Currency,
         ) : Amount
 
@@ -94,7 +95,7 @@ sealed interface TransactionDetailsValue {
 
     class SwapProgress(
         val fromAsset: Asset,
-        val fromValue: String,
+        val fromValue: BigInteger,
         val providerName: String,
         val transfer: GemSwapProgressStep,
         val swap: GemSwapProgressStep,

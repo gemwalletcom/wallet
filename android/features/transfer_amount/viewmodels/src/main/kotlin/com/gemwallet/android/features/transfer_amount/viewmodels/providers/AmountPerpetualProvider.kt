@@ -154,14 +154,14 @@ class AmountPerpetualProvider(
     override val balance: StateFlow<GemAssetBalance?> = getPerpetualBalance.getBalance()
         .combine(assetInfo.filterNotNull()) { perpetualBalance, current ->
             val available = perpetualBalance?.available ?: 0.0
-            current.balance.toGem().copy(available = Crypto(available.toBigDecimal(), current.asset.decimals).atomicValue.toString())
+            current.balance.toGem().copy(available = Crypto(available.toBigDecimal(), current.asset.decimals).atomicValue)
         }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
     override suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData {
         return service.perpetualTransferData(
             action = params.positionAction,
-            value = amount.atomicValue.toString(),
+            value = amount.atomicValue,
             useMaxAmount = isMax,
             leverage = leverageState.value?.current?.toUByte() ?: params.positionAction.data.leverage,
             takeProfit = trigger(takeProfit.value),

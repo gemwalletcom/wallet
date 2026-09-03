@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import enum Gemstone.GemConfirmError
 import enum Gemstone.GemTransferAmountResult
 import Foundation
@@ -14,8 +13,8 @@ public extension GemTransferAmountResult {
         switch self {
         case let .amount(amount):
             .success(Primitives.TransferAmount(
-                value: BigInt(core: amount.value),
-                networkFee: BigInt(core: amount.networkFee),
+                value: amount.value,
+                networkFee: amount.networkFee,
                 useMaxAmount: amount.isMaxAmount,
             ))
         case let .error(error):

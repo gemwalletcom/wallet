@@ -16,7 +16,7 @@ class AmountValidationTest {
 
     private val asset = mockAssetCosmos()
 
-    private fun balance(available: String) = mockGemAssetBalance(asset, available)
+    private fun balance(available: String) = mockGemAssetBalance(asset, BigInteger(available))
 
     @Test
     fun `insufficient balance error uses asset symbol`() {

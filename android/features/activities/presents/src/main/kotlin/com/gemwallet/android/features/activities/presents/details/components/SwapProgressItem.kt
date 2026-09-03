@@ -53,7 +53,7 @@ import uniffi.gemstone.GemSwapProgressStep
 internal fun SwapProgressItem(progress: TransactionDetailsValue.SwapProgress) {
     val chainName = progress.fromAsset.chain.networkName()
     val transferValue = ValueFormatter(style = ValueFormatter.Style.Auto)
-        .string(progress.fromValue.toBigInteger(), progress.fromAsset)
+        .string(progress.fromValue, progress.fromAsset)
 
     val transferStatus = progress.transfer.status()
     val swapStatus = progress.swap.status()

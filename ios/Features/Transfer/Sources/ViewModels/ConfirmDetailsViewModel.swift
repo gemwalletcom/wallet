@@ -48,10 +48,10 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
                     selectedQuote: quote,
                     slippage: .manual(bps: quote.slippageBps),
                     currency: currency,
-                    swapPriceImpact: fromAssetPrice.swapValue(quote.fromValue)
-                        .priceImpact(receive: toAssetPrice.swapValue(quote.toValue))
+                    swapPriceImpact: fromAssetPrice.swapValue(BigUInt(quote.fromValueBigInt))
+                        .priceImpact(receive: toAssetPrice.swapValue(BigUInt(quote.toValueBigInt)))
                         .flatMap { try? Primitives.SwapPriceImpact($0) },
-                    minReceiveValue: BigInt(core: summary.minReceiveValue()),
+                    minReceiveValue: BigInt(summary.minReceiveValue()),
                     etaMinutes: summary.etaMinutes(),
                 ),
             )

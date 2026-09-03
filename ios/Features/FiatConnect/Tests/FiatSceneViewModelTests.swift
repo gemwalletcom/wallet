@@ -147,7 +147,7 @@ final class FiatSceneViewModelTests {
     func sellValidationRefreshesAfterBalanceChange() {
         let asset = Asset.mockEthereumUSDT()
         let service = GemFiatQuoteServiceMock(check: { quote in
-            quote == nil ? .valid : .insufficientBalance(required: "104970000", available: "0")
+            quote == nil ? .valid : .insufficientBalance(required: 104970000, available: 0)
         })
         let model = FiatSceneViewModelTests.mock(service: service, assetAddress: .mock(asset: asset), type: .sell)
         model.sellViewModel.selectedQuote = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 104.97, type: .sell)
@@ -171,7 +171,7 @@ final class FiatSceneViewModelTests {
         let affordable = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 100, type: .sell)
         let unaffordable = FiatQuote.mock(fiatAmount: 100, cryptoAmount: 300, type: .sell)
         let service = GemFiatQuoteServiceMock(check: { quote in
-            quote?.cryptoAmount == 300 ? .insufficientBalance(required: "300000000", available: "200000000") : .valid
+            quote?.cryptoAmount == 300 ? .insufficientBalance(required: 300000000, available: 200000000) : .valid
         })
         let model = FiatSceneViewModelTests.mock(service: service, assetAddress: .mock(asset: asset), type: .sell)
 

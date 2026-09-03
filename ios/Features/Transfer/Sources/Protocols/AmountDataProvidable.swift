@@ -25,7 +25,7 @@ extension AmountDataProvidable {
     }
 
     var reserveForFee: BigInt {
-        BigInt(stringLiteral: rules.reserveForFee)
+        rules.reserveForFee
     }
 
     var canChangeValue: Bool {
@@ -41,11 +41,11 @@ extension AmountDataProvidable {
     }
 
     func availableValue(from assetData: AssetData) -> BigInt {
-        BigInt(stringLiteral: limits(from: assetData).availableValue)
+        limits(from: assetData).availableValue
     }
 
     func maxValue(from assetData: AssetData) -> BigInt {
-        BigInt(stringLiteral: limits(from: assetData).maxValue)
+        limits(from: assetData).maxValue
     }
 
     func shouldReserveFee(from assetData: AssetData) -> Bool {

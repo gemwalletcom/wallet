@@ -8,7 +8,6 @@ import com.gemwallet.android.model.FeeSelection
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
 import uniffi.gemstone.GemFeeRate
-import java.math.BigInteger
 
 class FeeDetailsModel(
     private val currentFee: FeeUIModel.FeeInfo,
@@ -38,7 +37,7 @@ class FeeDetailsModel(
             val feeConfig = Config().getFeeConfig(chain.string)
             val decimals = feeRateDecimals(feeUnitType, feeConfig, feeAsset.asset.decimals)
             val selectedTotalFee = feeRates.firstOrNull { it.priority == currentFee.priority.toGem() }
-                ?.let { it.gasPriceType.totalFee().toBigInteger() }
+                ?.let { it.gasPriceType.totalFee() }
             return FeeDetailsModel(
                 currentFee = currentFee,
                 feeRates = feeRates,
@@ -51,7 +50,7 @@ class FeeDetailsModel(
                         feeAsset = feeAsset.priceValue,
                         feeUnitType = feeUnitType,
                         feeRateDecimals = decimals,
-                        totalFee = rate.gasPriceType.totalFee().toBigInteger(),
+                        totalFee = rate.gasPriceType.totalFee(),
                         selectedTotalFee = selectedTotalFee,
                         selectedFeeAmount = currentFee.amount,
                         unitSymbol = unitSymbol,

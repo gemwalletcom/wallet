@@ -12,7 +12,7 @@ data class AssetPriceValue(
 ) {
     val currency: Currency? get() = price?.currency
 
-    fun calculateFiat(rawInput: String): BigDecimal = calculateFiat(Crypto(rawInput.toBigIntegerOrNull() ?: BigInteger.ZERO).value(asset.decimals))
+    fun calculateFiat(value: BigInteger): BigDecimal = calculateFiat(Crypto(value).value(asset.decimals))
 
     fun calculateFiat(value: BigDecimal): BigDecimal =
         price?.takeIf { it.price.price > 0.0 }?.let { value * it.price.price.toBigDecimal() } ?: BigDecimal.ZERO
@@ -22,7 +22,7 @@ data class AssetPriceValue(
         return price?.currency?.let { CurrencyFormatter(currency = it).string(value) } ?: ""
     }
 
-    fun swapValue(value: String): GemSwapValue = GemSwapValue(
+    fun swapValue(value: BigInteger): GemSwapValue = GemSwapValue(
         value = value,
         decimals = asset.decimals.toUInt(),
         price = price?.price?.price,

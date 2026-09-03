@@ -29,13 +29,14 @@ import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
+import java.math.BigInteger
 
 @Composable
 fun SwapListHead(
     fromAsset: AssetPriceValue?,
-    fromValue: String,
+    fromValue: BigInteger,
     toAsset: AssetPriceValue?,
-    toValue: String,
+    toValue: BigInteger,
     currency: Currency? = null,
     onSwapClick: (() -> Unit)? = null,
     onAssetClick: ((AssetId) -> Unit)? = null,
@@ -82,7 +83,7 @@ fun SwapListHead(
 @Composable
 private fun SwapItem(
     assetInfo: AssetPriceValue,
-    value: String,
+    value: BigInteger,
     currency: Currency?,
     onSwapClick: (() -> Unit)?,
     onAssetClick: ((AssetId) -> Unit)?,
@@ -105,7 +106,7 @@ private fun SwapItem(
                 ),
         ) {
             Text(
-                text = ValueFormatter(style = ValueFormatter.Style.Auto).string(value.toBigInteger(), asset),
+                text = ValueFormatter(style = ValueFormatter.Style.Auto).string(value, asset),
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontSize = 24.sp,
                     lineHeight = 32.sp,

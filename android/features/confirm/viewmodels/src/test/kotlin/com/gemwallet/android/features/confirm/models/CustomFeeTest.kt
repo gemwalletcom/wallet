@@ -19,8 +19,8 @@ import java.math.BigInteger
 class CustomFeeTest {
 
     private val feeRates = listOf(
-        GemFeeRate(FeePriority.Normal.toGem(), GemGasPriceType.Regular(gasPrice = "2")),
-        GemFeeRate(FeePriority.Fast.toGem(), GemGasPriceType.Regular(gasPrice = "3")),
+        GemFeeRate(FeePriority.Normal.toGem(), GemGasPriceType.Regular(gasPrice = BigInteger("2"))),
+        GemFeeRate(FeePriority.Fast.toGem(), GemGasPriceType.Regular(gasPrice = BigInteger("3"))),
     )
 
     private fun currentFee(feeAsset: Asset) = FeeUIModel.FeeInfo(

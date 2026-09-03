@@ -18,7 +18,7 @@ object SwapProviderUIModelFactory {
     fun create(
         provider: SwapperProviderType,
         receiveAsset: AssetPriceValue,
-        toValue: String,
+        toValue: BigInteger,
     ): SwapProviderUIModel {
         return create(
             providerId = provider.id,
@@ -32,9 +32,8 @@ object SwapProviderUIModelFactory {
         providerId: SwapperProvider,
         title: String,
         receiveAsset: AssetPriceValue,
-        toValue: String,
+        toValue: BigInteger,
     ): SwapProviderUIModel {
-        val toAmount = Crypto(toValue)
         val fiatValue = receiveAsset.calculateFiat(toValue)
 
         return SwapProviderUIModel(
@@ -42,7 +41,7 @@ object SwapProviderUIModelFactory {
             title = title,
             icon = providerId.getSwapProviderIcon(),
             amount = ValueFormatter(style = ValueFormatter.Style.Auto)
-                .string(toAmount.atomicValue, receiveAsset.asset),
+                .string(toValue, receiveAsset.asset),
             fiat = receiveAsset.formatFiat(fiatValue),
         )
     }
@@ -51,8 +50,8 @@ object SwapProviderUIModelFactory {
 data class SwapDetailsUIModelInput(
     val payAsset: AssetPriceValue,
     val receiveAsset: AssetPriceValue,
-    val fromValue: String,
-    val toValue: String,
+    val fromValue: BigInteger,
+    val toValue: BigInteger,
     val provider: SwapProviderUIModel,
     val providers: List<SwapProviderUIModel> = emptyList(),
     val slippageBps: UInt,

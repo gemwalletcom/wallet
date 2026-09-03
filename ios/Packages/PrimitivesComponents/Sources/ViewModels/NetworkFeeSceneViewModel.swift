@@ -144,7 +144,7 @@ public struct NetworkFeeSceneViewModel {
 
 private extension NetworkFeeSceneViewModel {
     func totalFee(for gasPriceType: GasPriceType) -> BigInt {
-        BigInt(core: gasPriceType.map().totalFee())
+        gasPriceType.map().totalFee()
     }
 
     var feeRateDecimals: Int { feeAsset.chain.feeRateDecimals(assetDecimals: feeAsset.decimals.asInt) }

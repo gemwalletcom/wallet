@@ -221,7 +221,7 @@ class SwapViewModel @Inject constructor(
                     priceImpact = quote.pay.swapValue(quote.quote.fromValue)
                         .priceImpact(quote.receive.swapValue(quote.quote.toValue))
                         ?.decodeJson(),
-                    minReceiveValue = summary.minReceiveValue().toBigInteger(),
+                    minReceiveValue = summary.minReceiveValue(),
                     etaMinutes = summary.etaMinutes(),
                 ),
             )
@@ -390,16 +390,16 @@ class SwapViewModel @Inject constructor(
 
     private fun buttonAction(quoteSession: SwapQuoteSession, value: BigDecimal, pay: AssetInfo?): GemSwapButtonAction =
         GemSwapButtonInput(
-            value = pay?.let { Crypto(value, it.asset.decimals).atomicValue.toString() } ?: "0",
-            availableBalance = pay?.balance?.balance?.available ?: "0",
+            value = pay?.let { Crypto(value, it.asset.decimals).atomicValue } ?: BigInteger.ZERO,
+            availableBalance = pay?.balance?.balance?.available?.let(::BigInteger) ?: BigInteger.ZERO,
             quoteError = quoteSession.quoteError,
             transferError = quoteSession.transferError,
         ).action()
 
-    private fun applyMinimumAmount(amount: String) {
+    private fun applyMinimumAmount(amount: BigInteger) {
         val asset = payAsset.value?.asset ?: return
         payValue.clearText()
-        payValue.setTextAndPlaceCursorAtEnd(Crypto(BigInteger(amount)).value(asset.decimals).toString())
+        payValue.setTextAndPlaceCursorAtEnd(Crypto(amount).value(asset.decimals).toString())
     }
 
     private suspend fun setReceive(amount: String) = withContext(Dispatchers.Main) {

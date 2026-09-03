@@ -11,7 +11,7 @@ public extension GemFiatQuoteServiceProtocol {
     }
 
     func amountCheck(type: FiatQuoteType, amount: Double, quote: FiatQuote?, available: BigInt) -> GemFiatAmountCheck {
-        amountCheck(quoteType: type.json(), amount: amount, quote: quote?.json(), available: available.description)
+        amountCheck(quoteType: type.json(), amount: amount, quote: quote?.json(), available: BigUInt(available))
     }
 
     func quotes(type: FiatQuoteType, asset: Asset, amount: Double) async throws -> [FiatQuote] {

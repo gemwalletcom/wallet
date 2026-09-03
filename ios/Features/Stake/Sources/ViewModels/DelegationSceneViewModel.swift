@@ -168,14 +168,14 @@ extension DelegationSceneViewModel {
     }
 
     private func stakeTransferData(_ stakeType: StakeType) -> GemTransferData {
-        service.stakeTransferData(asset: asset.map(), stakeType: stakeType.json(), value: model.delegation.base.balanceValue.description, useMaxAmount: false)
+        service.stakeTransferData(asset: asset.map(), stakeType: stakeType.json(), value: model.delegation.base.balanceValue, useMaxAmount: false)
     }
 
     private func claimRewardsTransferData() -> GemTransferData {
         service.stakeTransferData(
             asset: asset.map(),
             stakeType: StakeType.rewards([model.delegation.validator]).json(),
-            value: model.delegation.base.rewardsValue.description,
+            value: model.delegation.base.rewardsValue,
             useMaxAmount: false,
         )
     }

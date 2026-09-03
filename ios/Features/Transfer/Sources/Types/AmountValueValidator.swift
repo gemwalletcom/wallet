@@ -22,17 +22,15 @@ struct AmountValueValidator: ValueValidator {
 
     func validate(_ value: BigInt) throws {
         do {
-            try type.validate(asset: asset.map(), balance: GemAssetBalance(balance, assetId: asset.id), value: value.description)
+            try type.validate(asset: asset.map(), balance: GemAssetBalance(balance, assetId: asset.id), value: value)
         } catch GemAmountError.Zero {
             throw SilentValidationError()
-        } catch GemAmountError.InvalidValue {
-            throw TransferError.invalidAmount
         } catch let GemAmountError.BelowMinimum(minimum) {
-            throw TransferError.minimumAmount(asset: asset, required: try BigInt.from(string: minimum))
+            throw TransferError.minimumAmount(asset: asset, required: minimum)
         } catch let GemAmountError.InsufficientBalance(available) {
             throw TransferAmountCalculatorError.insufficientBalance(
                 asset,
-                requirement: BalanceRequirement(required: value, available: try BigInt.from(string: available)),
+                requirement: BalanceRequirement(required: value, available: available),
             )
         }
     }

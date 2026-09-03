@@ -69,7 +69,7 @@ class RequestSwapQuotesImpl(
         val quotes = swapService.getQuotes(
             fromAsset = params.pay.asset.toGem(),
             toAsset = params.receive.asset.toGem(),
-            value = amount.toString(),
+            value = amount,
             useMaxAmount = BigInteger(params.pay.balance.balance.available) == amount,
             slippageBps = params.slippageBps,
         )

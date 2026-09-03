@@ -47,6 +47,7 @@ import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemPaymentTransaction
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemPaymentService
+import java.math.BigInteger
 
 class PaymentNavigationTest {
 
@@ -92,7 +93,7 @@ class PaymentNavigationTest {
         assertEquals("payment-memo", transfer.recipient.memo)
         assertEquals(assetInfo.asset.id, assetId)
         assertEquals(account.address, transfer.recipient.address)
-        assertEquals("19000000", transfer.value)
+        assertEquals(BigInteger("19000000"), transfer.value)
         assertEquals(ApplicationMetadataSource.Payment, metadataSource)
         assertEquals(TransferDataOutputType.EncodedTransaction, generic.extra.outputType.decodeJson<TransferDataOutputType>())
         assertEquals(TransferDataOutputAction.Send, generic.extra.outputAction.decodeJson<TransferDataOutputAction>())
@@ -132,7 +133,7 @@ class PaymentNavigationTest {
         assertEquals(null, transfer.recipient.memo)
         assertEquals(assetInfo.asset.id, assetId)
         assertEquals(recipient, transfer.recipient.address)
-        assertEquals("19000000", transfer.value)
+        assertEquals(BigInteger("19000000"), transfer.value)
     }
 
     @Test
@@ -173,7 +174,7 @@ class PaymentNavigationTest {
         assertEquals(account.chain, assetId.chain)
         assertEquals(null, assetId.tokenId)
         assertEquals("", transfer.recipient.address)
-        assertEquals("0", transfer.value)
+        assertEquals(BigInteger.ZERO, transfer.value)
     }
 
     private fun paymentTransaction(

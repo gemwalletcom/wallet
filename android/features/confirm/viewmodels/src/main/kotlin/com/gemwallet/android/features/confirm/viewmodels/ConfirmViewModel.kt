@@ -183,7 +183,7 @@ class ConfirmViewModel @Inject constructor(
     private val transferAmount = preloadData.map { preload ->
         if (preload == null) return@map null
         when (val amount = preload.amount) {
-            is GemTransferAmountResult.Amount -> BigInteger(amount.amount.value)
+            is GemTransferAmountResult.Amount -> amount.amount.value
             is GemTransferAmountResult.Error -> {
                 state.update { ConfirmState.Error(amount.error) }
                 null
@@ -199,7 +199,7 @@ class ConfirmViewModel @Inject constructor(
         val amount = when {
             transferAmount != null -> Crypto(transferAmount)
             request.useMaxAmount -> return@combine null
-            else -> Crypto(request.value.toBigInteger())
+            else -> Crypto(request.value)
         }
 
         AmountUIModel(
@@ -207,9 +207,9 @@ class ConfirmViewModel @Inject constructor(
             headerKind = inputType.headerKind(),
             amount = amount.atomicValue,
             fromAsset = preload.fromAsset,
-            fromAmount = amount.atomicValue.toString(),
+            fromAmount = amount.atomicValue,
             toAsset = preload.toAsset,
-            toAmount = inputType.swapData?.quote?.toValue,
+            toAmount = inputType.swapData?.quote?.toValue?.let(::BigInteger),
             nftAsset = inputType.nftAsset,
             currency = preload.currency,
         )
@@ -314,7 +314,7 @@ class ConfirmViewModel @Inject constructor(
                 error("confirm input is not loaded")
             }
             val amount = when (val calculated = preload.amount) {
-                is GemTransferAmountResult.Amount -> BigInteger(calculated.amount.value)
+                is GemTransferAmountResult.Amount -> calculated.amount.value
                 is GemTransferAmountResult.Error -> throw calculated.error
             }
             val transactionHash = execute(signerParams.copy(finalAmount = amount))
@@ -334,8 +334,8 @@ class ConfirmViewModel @Inject constructor(
     private suspend fun execute(signerParams: SignerParams): String {
         val result = confirmService.execute(
             confirm = signerParams.confirmData,
-            value = signerParams.finalAmount.toString(),
-            networkFee = signerParams.fee.amount.toString(),
+            value = signerParams.finalAmount,
+            networkFee = signerParams.fee.amount,
             simulation = simulationResult.value?.toJson(),
         )
         return when (result) {
@@ -386,23 +386,23 @@ class ConfirmViewModel @Inject constructor(
             providerId = swapData.providerId,
             title = swapData.quote.providerData.protocolName,
             receiveAsset = toAsset,
-            toValue = swapData.quote.toValue,
+            toValue = BigInteger(swapData.quote.toValue),
         )
         val model = SwapDetailsUIModelFactory.create(
             SwapDetailsUIModelInput(
                 payAsset = fromAsset,
                 receiveAsset = toAsset,
                 fromValue = transfer.value,
-                toValue = swapData.quote.toValue,
+                toValue = BigInteger(swapData.quote.toValue),
                 provider = provider,
                 slippageBps = swapData.quote.slippageBps,
                 selectedSlippage = swapData.quote.slippageBps,
                 etaInSeconds = swapData.quote.etaInSeconds,
                 isProviderSelectable = false,
                 priceImpact = fromAsset.swapValue(transfer.value)
-                    .priceImpact(toAsset.swapValue(swapData.quote.toValue))
+                    .priceImpact(toAsset.swapValue(BigInteger(swapData.quote.toValue)))
                     ?.decodeJson(),
-                minReceiveValue = summary.minReceiveValue().toBigInteger(),
+                minReceiveValue = summary.minReceiveValue(),
                 etaMinutes = summary.etaMinutes(),
             ),
         ) ?: return null

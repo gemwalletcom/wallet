@@ -305,7 +305,7 @@ class SwapViewModelTest {
 
         val quotesState = seedReadyQuote(viewModel, quotesFlow)
         assertEquals(SwapActionState.Ready, viewModel.uiState.value.action)
-        assertEquals("2500000", viewModel.quote.value?.quote?.toValue)
+        assertEquals(BigInteger("2500000"), viewModel.quote.value?.quote?.toValue)
 
         var confirmCalls = 0
         viewModel.swap { confirmCalls++ }
@@ -315,7 +315,7 @@ class SwapViewModelTest {
         advanceUntilIdle()
 
         assertEquals(SwapActionState.TransferLoading, viewModel.uiState.value.action)
-        assertEquals("2500000", viewModel.quote.value?.quote?.toValue)
+        assertEquals(BigInteger("2500000"), viewModel.quote.value?.quote?.toValue)
         assertEquals(0, confirmCalls)
 
         confirmInputGate.complete(Unit)
@@ -345,7 +345,7 @@ class SwapViewModelTest {
 
         val action = viewModel.uiState.value.action as SwapActionState.TransferError
         assertTrue(action.error is SwapError.NoQuote)
-        assertEquals("2500000", viewModel.quote.value?.quote?.toValue)
+        assertEquals(BigInteger("2500000"), viewModel.quote.value?.quote?.toValue)
     }
 
     @Test
@@ -370,7 +370,7 @@ class SwapViewModelTest {
         val state = viewModel.uiState.value
         assertEquals(GemSwapButtonAction.Swap, state.buttonAction)
         assertEquals(ButtonState.Enabled, state.buttonState)
-        assertEquals("2500000", viewModel.quote.value?.quote?.toValue)
+        assertEquals(BigInteger("2500000"), viewModel.quote.value?.quote?.toValue)
 
         coEvery { swapQuoteService.getTransfer(any()) } returns mockGemSwapTransfer(from = solInfo.owner!!, toAddress = "0xconfirm")
 
@@ -549,7 +549,7 @@ class SwapViewModelTest {
         confirmInputGate.complete(Unit)
         awaitCondition { confirmInput != null }
 
-        assertEquals("1000000000", confirmInput?.value)
+        assertEquals(BigInteger("1000000000"), confirmInput?.value)
     }
 
     @Test
@@ -662,7 +662,7 @@ class SwapViewModelTest {
         assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
 
         failQuote(viewModel, quotesFlow, SwapperException.InputAmountException("500000000"))
-        awaitCondition { viewModel.uiState.value.buttonAction == GemSwapButtonAction.UseMinimumAmount("500000000") }
+        awaitCondition { viewModel.uiState.value.buttonAction == GemSwapButtonAction.UseMinimumAmount(BigInteger("500000000")) }
         assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
 
         viewModel.onPrimaryAction(onConfirm = {}, onShowPriceImpactWarning = {}, authorize = { it() })
@@ -713,8 +713,8 @@ class SwapViewModelTest {
             val quote = firstArg<SwapperQuote>()
             mockGemSwapTransfer(
                 from = solInfo.owner!!,
-                fromAmount = BigInteger(quote.fromValue),
-                toAmount = BigInteger(quote.toValue),
+                fromAmount = quote.fromValue,
+                toAmount = quote.toValue,
                 useMaxAmount = quote.request.options.useMaxAmount,
                 toAddress = "0xconfirm",
             )
@@ -755,9 +755,9 @@ class SwapViewModelTest {
         fromValue: String = "1000000000",
         toValue: String = "2500000",
     ) = SwapperQuote(
-        fromValue = fromValue,
+        fromValue = BigInteger(fromValue),
         minFromValue = null,
-        toValue = toValue,
+        toValue = BigInteger(toValue),
         data = SwapperProviderData(
             provider = SwapperProviderType(
                 id = SwapperProvider.UNISWAP_V3,
@@ -789,7 +789,7 @@ class SwapViewModelTest {
             ),
             walletAddress = solInfo.owner!!.address,
             destinationAddress = usdcInfo.owner!!.address,
-            value = fromValue,
+            value = BigInteger(fromValue),
             options = SwapperOptions(
                 slippage = SwapperSlippage(
                     bps = 50u,

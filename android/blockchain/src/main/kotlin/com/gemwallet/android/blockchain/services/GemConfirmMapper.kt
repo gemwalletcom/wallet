@@ -15,7 +15,7 @@ import uniffi.gemstone.GemConfirmPreload
 fun confirmLoadOptions(selection: FeeSelection, feeAssetSelection: FeeAssetSelection) = GemConfirmLoadOptions(
     feeSelection = when (selection) {
         is FeeSelection.Preset -> GemConfirmFeeSelection.Priority(selection.priority.toGem())
-        is FeeSelection.Custom -> GemConfirmFeeSelection.Custom(selection.gasPrice.toString())
+        is FeeSelection.Custom -> GemConfirmFeeSelection.Custom(selection.gasPrice)
     },
     feeAssetId = when (feeAssetSelection) {
         FeeAssetSelection.Automatic -> null

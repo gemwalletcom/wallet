@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
 import Foundation
 import GemstonePrimitives
@@ -40,7 +39,7 @@ enum ConfirmInfoSheetBuilder {
                 onGetAsset(asset, FiatConfig.insufficientNetworkFeeBuyAmount)
             })
         case let .MinimumAccountBalanceTooLow(asset, requirement):
-            return .accountMinimalBalance(asset.map(), required: BigInt(core: requirement.required))
+            return .accountMinimalBalance(asset.map(), required: requirement.required)
         case let .Sign(.dustThreshold, chain, _):
             let chain = Chain(core: chain)
             return .dustThreshold(chain, image: image(for: chain.asset))

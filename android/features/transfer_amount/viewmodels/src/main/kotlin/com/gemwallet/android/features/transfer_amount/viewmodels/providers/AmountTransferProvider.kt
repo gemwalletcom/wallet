@@ -73,7 +73,7 @@ class AmountTransferProvider(
         return GemTransferData(
             inputType = inputType,
             recipient = recipient,
-            value = amount.atomicValue.toString(),
+            value = amount.atomicValue,
             useMaxAmount = isMax,
         )
     }

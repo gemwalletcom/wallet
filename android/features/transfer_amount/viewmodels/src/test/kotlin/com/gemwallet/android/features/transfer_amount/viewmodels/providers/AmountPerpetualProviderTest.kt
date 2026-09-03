@@ -29,6 +29,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemPerpetualAutoclose
+import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountPerpetualProviderTest {
@@ -56,7 +57,7 @@ class AmountPerpetualProviderTest {
     @Test
     fun `showsAutoclose is true for Open and false for Reduce`() {
         assertTrue(makeProvider().showsAutoclose)
-        val reduce = makeProvider(positionAction = GemPerpetualPositionAction.Reduce(mockGemPerpetualTransferData(direction = PerpetualDirection.Long), "10"))
+        val reduce = makeProvider(positionAction = GemPerpetualPositionAction.Reduce(mockGemPerpetualTransferData(direction = PerpetualDirection.Long), BigInteger.TEN))
         assertFalse(reduce.showsAutoclose)
     }
 

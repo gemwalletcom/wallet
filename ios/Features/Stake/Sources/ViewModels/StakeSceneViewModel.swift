@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
 import Formatters
 import Foundation
@@ -148,7 +147,7 @@ public final class StakeSceneViewModel {
             service.stakeTransferData(
                 asset: asset.map(),
                 stakeType: StakeType.withdraw(delegation.delegation).json(),
-                value: delegation.delegation.base.balanceValue.description,
+                value: delegation.delegation.base.balanceValue,
                 useMaxAmount: false,
             )
         case .active, .pending, .inactive, .activating, .deactivating:
@@ -175,7 +174,7 @@ public final class StakeSceneViewModel {
     }
 
     var claimRewardsText: String {
-        formatter.string(BigInt(core: claimRewards.value), decimals: asset.decimals.asInt, currency: asset.symbol)
+        formatter.string(claimRewards.value, decimals: asset.decimals.asInt, currency: asset.symbol)
     }
 
     var showRewards: Bool {

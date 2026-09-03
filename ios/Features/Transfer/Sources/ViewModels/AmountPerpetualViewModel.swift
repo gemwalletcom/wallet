@@ -104,7 +104,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     func makeTransferData(value: BigInt, useMaxAmount: Bool) -> GemTransferData {
         service.perpetualTransferData(
             action: data.positionAction,
-            value: value.description,
+            value: value,
             useMaxAmount: useMaxAmount,
             leverage: leverage,
             takeProfit: takeProfit.flatMap { numericFormatter.double(from: $0) },

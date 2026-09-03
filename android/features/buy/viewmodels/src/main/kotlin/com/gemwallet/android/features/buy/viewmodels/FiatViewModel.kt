@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
@@ -240,7 +241,7 @@ class FiatViewModel @Inject constructor(
     private fun amountError(type: FiatQuoteType, amount: Double?, data: AssetData, quote: FiatQuote?): BuyError? {
         amount ?: return BuyError.ValueIncorrect
         if (amount == 0.0) return BuyError.EmptyAmount
-        return when (val check = service.amountCheck(type.toJson(), amount, quote?.toJson(), data.balance.balance.available)) {
+        return when (val check = service.amountCheck(type.toJson(), amount, quote?.toJson(), BigInteger(data.balance.balance.available))) {
             is GemFiatAmountCheck.BelowMinimum -> BuyError.MinimumAmount(check.minimum.toInt())
             is GemFiatAmountCheck.AboveMaximum -> BuyError.MaximumAmount(check.maximum.toInt())
             is GemFiatAmountCheck.InsufficientBalance -> BuyError.InsufficientBalance

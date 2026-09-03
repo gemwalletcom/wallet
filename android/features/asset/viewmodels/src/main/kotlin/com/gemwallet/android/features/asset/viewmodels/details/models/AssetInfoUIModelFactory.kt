@@ -79,13 +79,13 @@ class AssetInfoUIModelFactory @Inject constructor(
 
     private fun balanceRows(assetInfo: AssetInfo, formatter: ValueFormatter): List<AssetInfoUIModel.BalanceUIModel> {
         val asset = assetInfo.asset
-        val text = { value: String -> formatter.string(value.toBigInteger(), asset) }
+        val text = { value: BigInteger -> formatter.string(value, asset) }
         return assetInfo.balance.toGem().detailRows(asset.chain.string, assetInfo.metadata.isStakeEnabled).mapNotNull { row ->
             when (row) {
                 is GemBalanceRow.Available -> AssetInfoUIModel.BalanceUIModel(AssetInfoUIModel.BalanceViewType.Available, text(row.value))
                 is GemBalanceRow.Staked -> AssetInfoUIModel.BalanceUIModel(
                     AssetInfoUIModel.BalanceViewType.Stake,
-                    if (row.value.toBigInteger() == BigInteger.ZERO) {
+                    if (row.value == BigInteger.ZERO) {
                         "APR ${(assetInfo.metadata.stakingApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
                     } else {
                         text(row.value)

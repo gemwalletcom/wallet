@@ -232,7 +232,7 @@ pub fn transfer_data(
     let (extra, value) = match transaction {
         WalletConnectTransaction::Ethereum { data, kind } => {
             let value = data.value.as_deref().map(hex_value).transpose()?.unwrap_or(BigInt::ZERO);
-            let gas_limit = data.gas_limit.as_deref().or(data.gas.as_deref()).map(hex_value).transpose()?.map(|gas| gas.to_string());
+            let gas_limit = data.gas_limit.as_deref().or(data.gas.as_deref()).map(hex_value).transpose()?;
             let gas_price = match (data.max_fee_per_gas.as_deref(), data.max_priority_fee_per_gas.as_deref()) {
                 (Some(max_fee), Some(priority_fee)) => Some(GemGasPriceType::Eip1559 {
                     gas_price: hex_value(max_fee)?,
@@ -505,7 +505,7 @@ mod tests {
             panic!("expected a generic input");
         };
         assert_eq!(asset.id, primitives::AssetId::from_chain(Chain::Ethereum));
-        assert_eq!(extra.gas_limit.as_deref(), Some("21000"));
+        assert_eq!(extra.gas_limit, Some(BigInt::from(21000)));
         assert!(
             matches!(extra.gas_price, Some(GemGasPriceType::Eip1559 { ref gas_price, ref priority_fee }) if *gas_price == BigInt::from(100) && *priority_fee == BigInt::from(2))
         );

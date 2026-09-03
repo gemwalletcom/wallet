@@ -50,7 +50,7 @@ pub type GemEarnType = EarnType;
 #[derive(Debug, Clone, Serialize, Deserialize, uniffi::Record)]
 pub struct GemTransferDataExtra {
     pub to: String,
-    pub gas_limit: Option<String>,
+    pub gas_limit: Option<GemBigInt>,
     pub gas_price: Option<GemGasPriceType>,
     pub data: Option<Vec<u8>>,
     pub output_type: GemTransferDataOutputType,
@@ -359,7 +359,7 @@ impl From<GemTransferDataExtra> for TransferDataExtra {
     fn from(value: GemTransferDataExtra) -> Self {
         TransferDataExtra {
             to: value.to,
-            gas_limit: value.gas_limit.map(|s| s.parse().unwrap_or_default()),
+            gas_limit: value.gas_limit,
             gas_price: value.gas_price.map(|gp| gp.into()),
             data: value.data,
             output_type: value.output_type,
@@ -398,7 +398,7 @@ impl From<TransferDataExtra> for GemTransferDataExtra {
     fn from(value: TransferDataExtra) -> Self {
         GemTransferDataExtra {
             to: value.to,
-            gas_limit: value.gas_limit.map(|x| x.to_string()),
+            gas_limit: value.gas_limit,
             gas_price: value.gas_price.map(|x| x.into()),
             data: value.data,
             output_type: value.output_type,

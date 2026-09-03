@@ -31,15 +31,13 @@ internal fun GemTransactionLoadFee.toFee(
     }
 }
 
-private fun GemTransactionLoadFee.toFeeOptions() = options.options
-    .mapKeys { it.key.name }
-    .mapValues { it.value.toBigInteger() }
+private fun GemTransactionLoadFee.toFeeOptions() = options.options.mapKeys { it.key.name }
 
 private fun GemTransactionLoadFee.toPlainFee(feeAssetId: AssetId, priority: FeePriority): Fee.Plain {
     return Fee.Plain(
         feeAssetId = feeAssetId,
         priority = priority,
-        amount = fee.toBigInteger(),
+        amount = fee,
         options = toFeeOptions(),
     )
 }
@@ -49,9 +47,9 @@ private fun GemTransactionLoadFee.toRegularFee(feeAssetId: AssetId, priority: Fe
     return Fee.Regular(
         feeAssetId = feeAssetId,
         priority = priority,
-        maxGasPrice = price.gasPrice.toBigInteger(),
-        limit = gasLimit.toBigInteger(),
-        amount = fee.toBigInteger(),
+        maxGasPrice = price.gasPrice,
+        limit = gasLimit,
+        amount = fee,
         options = toFeeOptions(),
     )
 }
@@ -61,10 +59,10 @@ private fun GemTransactionLoadFee.toEip1559Fee(feeAssetId: AssetId, priority: Fe
     return Fee.Eip1559(
         feeAssetId = feeAssetId,
         priority = priority,
-        maxGasPrice = price.gasPrice.toBigInteger(),
-        minerFee = price.priorityFee.toBigInteger(),
-        limit = gasLimit.toBigInteger(),
-        amount = fee.toBigInteger(),
+        maxGasPrice = price.gasPrice,
+        minerFee = price.priorityFee,
+        limit = gasLimit,
+        amount = fee,
         options = toFeeOptions(),
     )
 }
@@ -74,11 +72,11 @@ private fun GemTransactionLoadFee.toSolanaFee(feeAssetId: AssetId, priority: Fee
     return Fee.Solana(
         feeAssetId = feeAssetId,
         priority = priority,
-        maxGasPrice = price.gasPrice.toBigInteger(),
-        minerFee = price.priorityFee.toBigInteger(),
-        unitFee = price.unitPrice.toBigInteger(),
-        limit = gasLimit.toBigInteger(),
-        amount = fee.toBigInteger(),
+        maxGasPrice = price.gasPrice,
+        minerFee = price.priorityFee,
+        unitFee = price.unitPrice,
+        limit = gasLimit,
+        amount = fee,
         options = toFeeOptions(),
     )
 }

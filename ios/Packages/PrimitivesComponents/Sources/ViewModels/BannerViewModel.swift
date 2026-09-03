@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
 import Formatters
 import Foundation
@@ -169,7 +168,7 @@ struct BannerViewModel {
 
     private func formatted(_ amount: GemBannerAmount) -> String {
         ValueFormatter(style: .auto)
-            .string(BigInt(stringLiteral: amount.value), decimals: amount.decimals.asInt, currency: amount.symbol)
+            .string(amount.value, decimals: amount.decimals.asInt, currency: amount.symbol)
     }
 }
 

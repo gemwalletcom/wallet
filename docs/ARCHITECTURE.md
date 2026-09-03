@@ -159,7 +159,7 @@ pub enum GemApprovalValue {
 
 ### Field types
 
-- Big-integer atomic quantities are `GemBigInt` / `GemBigUint`, never `String`. `String` moves the parse to every call site, and each one invents its own failure behaviour.
+- Big-integer atomic quantities are `GemBigInt` / `GemBigUint`, never `String`. `String` moves the parse to every call site, and each one invents its own failure behaviour. The bindings type them too (`core/gemstone/uniffi.toml`): Kotlin sees `java.math.BigInteger`, Swift sees `BigInt` / `BigUInt`, so an app never parses a Core value and never `.toString()`s one to hand it back. The only parses left on the apps are of typeshare models and database columns, which are strings by generation.
 - `amount` is for `f64`. `value` is for big integers. Do not mix them.
 - Full domain words: `transaction`, not `tx` — except where an external protocol field, database column or URL uses the short form verbatim.
 
@@ -741,6 +741,16 @@ Android activity recreation (the scene re-enters and forwards the same event) in
 of the request the user was still looking at (#1044). A duplicate is not a decision: the outcome's
 `response` is optional and `None` for one, the app sends nothing, and Android's `WCRequestViewModel`
 keeps the in-flight request across the re-entry instead of resetting on dispose.
+
+**A typed custom type that the apps still see as a string is half a rule.** `GemBigInt` was a
+`uniffi::custom_type!` over `String`, so every Kotlin field arrived as `String` and 60 call sites
+parsed it with `toBigIntegerOrNull() ?: BigInteger.ZERO` — a malformed amount silently became
+zero in a wallet — while Swift had `BigInt(core:)` with a precondition, and both apps
+`.toString()`'d every value they handed back. The binding config now maps the custom type to
+`BigInteger` / `BigInt`, which deleted the parses, the `BalanceRequirement` mirror Android kept
+only to hold parsed values, iOS's `BigInt(core:)`, and the string-typed amounts that had
+survived on `GemAmountError`, `GemAmountType::validate` and `GemTransferDataExtra.gas_limit`
+(whose `From` impl had `parse().unwrap_or_default()`, the same zero fallback inside Core).
 
 **Core cannot spawn; the app lends it an executor through a port.** Pending transaction polling
 moved into `GemTransactionStateService` (`track_pending` at foreground, `track` when the app

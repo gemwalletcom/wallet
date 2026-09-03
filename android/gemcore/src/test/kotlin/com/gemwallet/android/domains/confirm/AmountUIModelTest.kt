@@ -32,7 +32,7 @@ class AmountUIModelTest {
         amount = BigInteger("1000000000"),
         fromAsset = AssetPriceValue(mockAssetSolana(), price?.let { mockAssetPriceInfo(price = it) }),
         toAsset = null,
-        fromAmount = "1000000000",
+        fromAmount = BigInteger("1000000000"),
         toAmount = null,
         nftAsset = null,
         currency = Currency.USD,

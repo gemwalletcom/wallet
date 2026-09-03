@@ -19,7 +19,7 @@ class TransferDataTest {
         val transfer = GemTransferData(
             inputType = GemTransactionInputType.transfer(mockAsset()),
             recipient = GemRecipient(address = "destination", memo = "memo", references = listOf("reference")),
-            value = BigInteger.ONE.toString(),
+            value = BigInteger.ONE,
         )
 
         val decoded = requireNotNull(transferService.unpack(requireNotNull(transferService.pack(transfer))))
@@ -27,7 +27,7 @@ class TransferDataTest {
         assertEquals("destination", decoded.recipient.address)
         assertEquals("memo", decoded.recipient.memo)
         assertEquals(listOf("reference"), decoded.recipient.references)
-        assertEquals(BigInteger.ONE.toString(), decoded.value)
+        assertEquals(BigInteger.ONE, decoded.value)
     }
 
     @Test

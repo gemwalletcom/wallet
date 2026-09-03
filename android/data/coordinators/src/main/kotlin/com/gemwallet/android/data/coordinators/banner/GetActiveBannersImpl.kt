@@ -62,6 +62,6 @@ class GetActiveBannersImpl(
 
     private fun hasStakeBalance(assetInfo: AssetInfo?): Boolean {
         val balance = assetInfo?.balance ?: return false
-        return balance.toGem().stakedValue(assetInfo.asset.chain.string).toBigInteger() > BigInteger.ZERO
+        return balance.toGem().stakedValue(assetInfo.asset.chain.string) > BigInteger.ZERO
     }
 }

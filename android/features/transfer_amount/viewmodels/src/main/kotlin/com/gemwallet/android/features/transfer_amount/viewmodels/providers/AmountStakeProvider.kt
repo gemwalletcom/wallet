@@ -188,7 +188,7 @@ class AmountStakeProvider(
             is AmountParams.Stake.Freeze -> StakeType.Freeze(selectedResource.value)
             is AmountParams.Stake.Unfreeze -> StakeType.Unfreeze(selectedResource.value)
         }
-        return service.stakeTransferData(current.asset.toGem(), stakeType.toJson(), amount.atomicValue.toString(), isMax)
+        return service.stakeTransferData(current.asset.toGem(), stakeType.toJson(), amount.atomicValue, isMax)
     }
 
     private val currentValidator: DelegationValidator

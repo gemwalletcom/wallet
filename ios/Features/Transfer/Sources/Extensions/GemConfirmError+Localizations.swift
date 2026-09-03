@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Formatters
 import struct Gemstone.Asset
 import enum Gemstone.GemConfirmError
@@ -20,7 +19,7 @@ extension GemConfirmError: @retroactive LocalizedError {
         case let .InsufficientBalance(asset, _): Localized.Transfer.insufficientBalance(Self.title(asset: asset))
         case let .InsufficientNetworkFee(asset, _): Localized.Transfer.insufficientNetworkFeeBalance(Self.title(asset: asset))
         case let .MinimumAccountBalanceTooLow(asset, requirement):
-            Localized.Transfer.minimumAccountBalance(ValueFormatter(style: .full).string(BigInt(core: requirement.required), asset: asset.map()).boldMarkdown())
+            Localized.Transfer.minimumAccountBalance(ValueFormatter(style: .full).string(requirement.required, asset: asset.map()).boldMarkdown())
         case let .Network(msg), let .Load(msg), let .Broadcast(_, msg), let .Record(msg), let .Sign(_, _, msg), let .ApprovalInvalid(msg): msg
         }
     }

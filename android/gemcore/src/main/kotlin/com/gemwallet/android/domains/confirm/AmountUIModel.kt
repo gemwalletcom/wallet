@@ -17,8 +17,8 @@ class AmountUIModel(
     val amount: BigInteger,
     val fromAsset: AssetPriceValue,
     val toAsset: AssetPriceValue?,
-    val fromAmount: String,
-    val toAmount: String?,
+    val fromAmount: BigInteger,
+    val toAmount: BigInteger?,
     val nftAsset: NFTAsset?,
     val currency: Currency,
 ) {

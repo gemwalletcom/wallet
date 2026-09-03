@@ -78,6 +78,6 @@ public final class GemstoneBalanceStore: GemBalanceStore, @unchecked Sendable {
     }
 
     private func value(_ value: GemBalanceValue) -> UpdateBalanceValue {
-        UpdateBalanceValue(value: value.value, amount: value.amount)
+        UpdateBalanceValue(value: value.value.description, amount: value.amount)
     }
 }

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Foundation
 import Gemstone
 import GemstonePrimitives
@@ -495,7 +496,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     }
 
     public func claimRewards(chain _: Gemstone.Chain, delegations: [Gemstone.Delegation]) -> GemClaimRewards {
-        GemClaimRewards(value: "0", destination: .amount(delegations: delegations))
+        GemClaimRewards(value: 0, destination: .amount(delegations: delegations))
     }
 
     public func recommendedValidatorIds(chain _: Gemstone.Chain) -> [String] {
@@ -886,20 +887,7 @@ public extension Gemstone.GemFeeAsset {
     ) -> Gemstone.GemFeeAsset {
         Gemstone.GemFeeAsset(
             asset: asset.map(),
-            balance: balance ?? Gemstone.GemAssetBalance(
-                assetId: asset.id.identifier,
-                available: "0",
-                frozen: "0",
-                locked: "0",
-                staked: "0",
-                pending: "0",
-                pendingUnconfirmed: "0",
-                rewards: "0",
-                reserved: "0",
-                withdrawable: "0",
-                earn: "0",
-                metadata: nil,
-            ),
+            balance: balance ?? .mock(assetId: asset.id.identifier),
             price: price,
         )
     }

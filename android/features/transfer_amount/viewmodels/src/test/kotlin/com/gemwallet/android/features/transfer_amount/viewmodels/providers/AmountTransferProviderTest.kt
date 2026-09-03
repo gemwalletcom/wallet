@@ -68,7 +68,7 @@ class AmountTransferProviderTest {
         provider.assetInfo.filterNotNull().first()
         val transfer = provider.buildTransfer(amount = Crypto(BigInteger.ONE), isMax = false)
         assertTrue(transfer.inputType is GemTransactionInputType.Transfer)
-        assertEquals(BigInteger.ONE.toString(), transfer.value)
+        assertEquals(BigInteger.ONE, transfer.value)
         assertEquals("to", transfer.recipient.address)
         assertEquals("memo", transfer.recipient.memo)
     }

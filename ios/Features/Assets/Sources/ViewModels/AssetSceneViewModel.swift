@@ -297,7 +297,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     func balanceText(_ value: GemBigUint) -> String {
-        assetDataModel.balanceTextWithSymbol(BigInt(core: value))
+        assetDataModel.balanceTextWithSymbol(BigInt(value))
     }
 
     func stakeBalanceText(_ value: GemBigUint) -> String {
@@ -499,7 +499,7 @@ extension AssetSceneViewModel {
     }
 
     private var stakedValue: BigInt {
-        BigInt(stringLiteral: stakeBalance.stakedValue(chain: asset.chain.rawValue))
+        BigInt(stakeBalance.stakedValue(chain: asset.chain.rawValue))
     }
 
     private var feeAssetDataModel: AssetDataViewModel {

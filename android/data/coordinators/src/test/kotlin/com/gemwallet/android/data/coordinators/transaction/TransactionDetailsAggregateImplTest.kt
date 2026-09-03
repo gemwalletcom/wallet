@@ -39,6 +39,7 @@ import uniffi.gemstone.GemTransactionDetails
 import uniffi.gemstone.GemTransactionHeaderKind
 import uniffi.gemstone.GemTransactionParticipant
 import uniffi.gemstone.GemTransactionParticipantRole
+import java.math.BigInteger
 
 class TransactionDetailsAggregateImplTest {
 
@@ -253,8 +254,8 @@ class TransactionDetailsAggregateImplTest {
         val swapAmount = amount as TransactionDetailsValue.Amount.Swap
         Assert.assertEquals(bnbAsset, swapAmount.fromAsset.asset)
         Assert.assertEquals(tonAsset, swapAmount.toAsset.asset)
-        Assert.assertEquals("90", swapAmount.fromValue)
-        Assert.assertEquals("190", swapAmount.toValue)
+        Assert.assertEquals(BigInteger("90"), swapAmount.fromValue)
+        Assert.assertEquals(BigInteger("190"), swapAmount.toValue)
         Assert.assertEquals(Currency.USD, swapAmount.currency)
     }
 
@@ -298,7 +299,7 @@ class TransactionDetailsAggregateImplTest {
             details = mockGemTransactionDetails(
                 swapProgress = GemSwapProgress(
                     fromAsset = ethAsset.toGem(),
-                    fromValue = "1000000000000000000",
+                    fromValue = BigInteger("1000000000000000000"),
                     providerName = "NEAR Intents",
                     transfer = GemSwapProgressStep.PENDING,
                     swap = GemSwapProgressStep.WAITING,
@@ -308,7 +309,7 @@ class TransactionDetailsAggregateImplTest {
         )
         val swapProgress = progress.swapProgress
         Assert.assertEquals(ethAsset, swapProgress?.fromAsset)
-        Assert.assertEquals("1000000000000000000", swapProgress?.fromValue)
+        Assert.assertEquals(BigInteger("1000000000000000000"), swapProgress?.fromValue)
         Assert.assertEquals("NEAR Intents", swapProgress?.providerName)
         Assert.assertEquals(GemSwapProgressStep.PENDING, swapProgress?.transfer)
         Assert.assertEquals(GemSwapProgressStep.WAITING, swapProgress?.swap)

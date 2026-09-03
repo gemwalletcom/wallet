@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Foundation
 import Gemstone
 import Primitives
@@ -26,7 +25,7 @@ public extension FeeSelection {
     func map() -> GemConfirmFeeSelection {
         switch self {
         case let .preset(priority): .priority(priority: priority.map())
-        case let .custom(gasPrice): .custom(gasPrice: gasPrice.description)
+        case let .custom(gasPrice): .custom(gasPrice: gasPrice)
         }
     }
 }

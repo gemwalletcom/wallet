@@ -19,7 +19,7 @@ data class Simulation(
     val primaryPayloadFields: List<PayloadField> = emptyList(),
     val secondaryPayloadFields: List<PayloadField> = emptyList(),
     val headerAsset: Asset? = null,
-    val headerValue: String? = null,
+    val headerValue: BigInteger? = null,
     val headerIsUnlimited: Boolean = false,
     val balanceChanges: List<SimulationAssetChange> = emptyList(),
 )
@@ -46,7 +46,7 @@ fun GemConfirmSimulationState.toSimulation(
         headerAsset = header?.asset?.toPrimitives(),
         headerValue = (header?.value as? GemApprovalValue.Exact)?.value,
         headerIsUnlimited = header?.value is GemApprovalValue.Unlimited,
-        balanceChanges = details.balanceChanges.map { SimulationAssetChange(asset = it.asset.toPrimitives(), value = it.value.toBigInteger()) },
+        balanceChanges = details.balanceChanges.map { SimulationAssetChange(asset = it.asset.toPrimitives(), value = it.value) },
     )
 }
 

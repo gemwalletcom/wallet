@@ -10,14 +10,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.confirm.BalanceRequirement
 import com.gemwallet.android.domains.confirm.ConfirmState
-import com.gemwallet.android.domains.confirm.toPrimitives
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.domains.fiat.FiatConfig
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.gemwallet.android.features.confirm.presents.toPreloadLabel
 import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.GemBalanceRequirement
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemSignerError
 import com.gemwallet.android.model.ValueFormatter
@@ -32,7 +31,6 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.gemwallet.android.ext.requireChain
-import java.math.BigInteger
 
 @Composable
 internal fun ConfirmErrorInfo(
@@ -99,7 +97,7 @@ private fun Throwable.toInfoSheetEntity(
     return when (this) {
         is GemConfirmException.InsufficientBalance -> {
             val asset = asset.toPrimitives()
-            val formatted = requirement.toPrimitives().formatted(asset)
+            val formatted = requirement.formatted(asset)
             BalanceRequiredInfo(
                 asset = asset,
                 required = formatted.required,
@@ -111,7 +109,7 @@ private fun Throwable.toInfoSheetEntity(
         }
         is GemConfirmException.InsufficientNetworkFee -> {
             val asset = asset.toPrimitives()
-            val formatted = requirement?.toPrimitives()?.formatted(asset)
+            val formatted = requirement?.formatted(asset)
             if (formatted == null) {
                 NetworkFeeRequiredInfo(
                     chain = asset.chain,
@@ -133,7 +131,7 @@ private fun Throwable.toInfoSheetEntity(
             val asset = asset.toPrimitives()
             InfoSheetEntity.MinimumAccountBalanceInfo(
                 asset = asset,
-                value = ValueFormatter(style = ValueFormatter.Style.Full).string(BigInteger(requirement.required), asset),
+                value = ValueFormatter(style = ValueFormatter.Style.Full).string(requirement.required, asset),
             )
         }
         is GemConfirmException.Sign -> InfoSheetEntity.DustThresholdInfo(chain = chain.requireChain()).takeIf { error == GemSignerError.DustThreshold }
@@ -147,7 +145,7 @@ private fun Asset.acquireActionLabel(): String = stringResource(
     symbol,
 )
 
-private fun BalanceRequirement.formatted(asset: Asset): FormattedBalanceRequirement {
+private fun GemBalanceRequirement.formatted(asset: Asset): FormattedBalanceRequirement {
     val formatter = ValueFormatter(style = ValueFormatter.Style.Full)
     return FormattedBalanceRequirement(
         required = formatter.string(required, asset),

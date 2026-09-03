@@ -5,22 +5,23 @@ import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.GemAssetPrice
 import uniffi.gemstone.GemConfirmMetadata
+import java.math.BigInteger
 
 fun mockGemAssetBalance(
     asset: Asset = mockAssetEthereum(),
-    available: String = "0",
+    available: BigInteger = BigInteger.ZERO,
 ) = GemAssetBalance(
     assetId = asset.id.toIdentifier(),
     available = available,
-    frozen = "0",
-    locked = "0",
-    staked = "0",
-    pending = "0",
-    pendingUnconfirmed = "0",
-    rewards = "0",
-    reserved = "0",
-    withdrawable = "0",
-    earn = "0",
+    frozen = BigInteger.ZERO,
+    locked = BigInteger.ZERO,
+    staked = BigInteger.ZERO,
+    pending = BigInteger.ZERO,
+    pendingUnconfirmed = BigInteger.ZERO,
+    rewards = BigInteger.ZERO,
+    reserved = BigInteger.ZERO,
+    withdrawable = BigInteger.ZERO,
+    earn = BigInteger.ZERO,
     metadata = null,
 )
 

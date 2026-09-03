@@ -111,10 +111,10 @@ public final class SwapSceneViewModel {
             slippage: selectedSlippage,
             currency: service.currencyCode,
             isProviderSelectionEnabled: isQuoteInteractionEnabled,
-            swapPriceImpact: fromAssetPrice.swapValue(selectedQuote.fromValue)
-                .priceImpact(receive: toAssetPrice.swapValue(selectedQuote.toValue))
+            swapPriceImpact: fromAssetPrice.swapValue(BigUInt(selectedQuote.fromValueBigInt))
+                .priceImpact(receive: toAssetPrice.swapValue(BigUInt(selectedQuote.toValueBigInt)))
                 .flatMap { try? Primitives.SwapPriceImpact($0) },
-            minReceiveValue: BigInt(core: summary.minReceiveValue()),
+            minReceiveValue: BigInt(summary.minReceiveValue()),
             etaMinutes: summary.etaMinutes(),
             swapProviderSelectAction: { [weak self] quote in
                 self?.onFinishSwapProviderSelection(quote)
@@ -351,8 +351,8 @@ extension SwapSceneViewModel {
 extension SwapSceneViewModel {
     private var buttonAction: GemSwapButtonAction {
         GemSwapButtonInput(
-            value: currentInput?.value.description ?? .zero,
-            availableBalance: fromAsset?.balance.available.description ?? .zero,
+            value: currentInput?.value ?? .zero,
+            availableBalance: fromAsset?.balance.available ?? .zero,
             quoteError: swapState.quotes.swapperError,
             transferError: swapState.swapTransferData.swapperError,
         ).action()
@@ -378,14 +378,7 @@ extension SwapSceneViewModel {
     }
 
     private func applyQuote(_ quote: SwapperQuote, asset: Asset) {
-        do {
-            toValue = try toValueFormatter.format(
-                quoteValue: quote.toValue,
-                decimals: asset.decimals.asInt,
-            )
-        } catch {
-            debugLog("SwapScene apply quote error: \(error)")
-        }
+        toValue = toValueFormatter.format(value: BigInt(quote.toValue), decimals: asset.decimals.asInt)
     }
 
     private func applyPercentToFromValue(percent: Int, assetData: AssetData) {
@@ -395,8 +388,8 @@ extension SwapSceneViewModel {
         )
     }
 
-    private func applyMinAmount(_ amount: String) {
-        guard let fromAsset, let value = BigInt(amount) else { return }
+    private func applyMinAmount(_ value: BigInt) {
+        guard let fromAsset else { return }
         resetTransferDataState()
         amountInputModel.text = formatter.format(value: value, decimals: fromAsset.asset.decimals.asInt)
         setLoadTrigger(isImmediate: true)

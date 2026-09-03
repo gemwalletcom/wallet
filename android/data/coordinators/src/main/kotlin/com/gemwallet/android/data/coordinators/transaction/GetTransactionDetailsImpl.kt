@@ -52,6 +52,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
+import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetTransactionDetailsImpl(
@@ -131,8 +132,8 @@ class TransactionDetailsAggregateImpl(
                     TransactionDetailsValue.Amount.Swap(
                         fromAsset = fromAsset,
                         toAsset = toAsset,
-                        fromValue = swapMetadata.fromValue,
-                        toValue = swapMetadata.toValue,
+                        fromValue = BigInteger(swapMetadata.fromValue),
+                        toValue = BigInteger(swapMetadata.toValue),
                         currency = currency,
                     )
                 }
@@ -257,8 +258,8 @@ class TransactionDetailsAggregateImpl(
             val rate = buildAssetRatePair(
                 fromAsset = fromAsset,
                 toAsset = toAsset,
-                fromValue = metadata.fromValue,
-                toValue = metadata.toValue,
+                fromValue = BigInteger(metadata.fromValue),
+                toValue = BigInteger(metadata.toValue),
             ) ?: return null
             return TransactionDetailsValue.Rate(rate)
         }

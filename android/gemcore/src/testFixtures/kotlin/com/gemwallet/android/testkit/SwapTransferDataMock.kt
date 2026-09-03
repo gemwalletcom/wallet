@@ -75,9 +75,9 @@ fun mockSwapTransferData(
     return GemTransferData(
         inputType = GemTransactionInputType.swap(fromAsset, toAsset, swapData),
         recipient = GemRecipient(address = swapData.data.to, memo = swapData.data.memo),
-        value = fromAmount.toString(),
+        value = fromAmount,
         useMaxAmount = useMaxAmount,
-        minimumValue = minFromAmount?.toString(),
+        minimumValue = minFromAmount,
     )
 }
 
@@ -100,6 +100,6 @@ fun mockGemSwapTransfer(
         gasLimit = null,
     ).toJson(),
     recipient = from.address,
-    value = fromAmount.toString(),
+    value = fromAmount,
     useMaxAmount = useMaxAmount,
 )

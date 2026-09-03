@@ -38,7 +38,6 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.GemNetworkError
 import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemSignerError
-import java.math.BigInteger
 import com.gemwallet.android.domains.confirm.ConfirmProperty
 import com.gemwallet.android.domains.confirm.ConfirmState
 import com.gemwallet.android.domains.confirm.FeeUIModel
@@ -182,7 +181,7 @@ fun ConfirmScreen(
                         val title = if (simulation.headerIsUnlimited) {
                             stringResource(R.string.simulation_header_unlimited_asset, asset.symbol)
                         } else {
-                            simulation.headerValue?.toBigIntegerOrNull()
+                            simulation.headerValue
                                 ?.let { ValueFormatter(style = ValueFormatter.Style.Full).string(it, asset) } ?: asset.symbol
                         }
                         AmountListHead(amount = title, icon = asset)
@@ -432,7 +431,7 @@ private fun Throwable.toConfirmLabel(): String? = when (this) {
     is GemConfirmException.InsufficientNetworkFee -> stringResource(R.string.transfer_insufficient_network_fee_balance, asset.toPrimitives().title.boldMarkdown())
     is GemConfirmException.MinimumAccountBalanceTooLow -> stringResource(
         R.string.transfer_minimum_account_balance,
-        ValueFormatter(style = ValueFormatter.Style.Full).string(BigInteger(requirement.required), asset.toPrimitives()).boldMarkdown(),
+        ValueFormatter(style = ValueFormatter.Style.Full).string(requirement.required, asset.toPrimitives()).boldMarkdown(),
     )
     is GemConfirmException.Offline -> GemNetworkError.Offline.localizedDescription()
     is GemConfirmException.Network -> msg

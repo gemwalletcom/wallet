@@ -6,3 +6,24 @@ ffi_module_name = "GemstoneFFI"
 generate_module_map = false
 experimental_sendable_value_types = true
 omit_localized_error_conformance = true
+[bindings.kotlin.custom_types.GemBigInt]
+type_name = "java.math.BigInteger"
+lift = "java.math.BigInteger({})"
+lower = "{}.toString()"
+
+[bindings.kotlin.custom_types.GemBigUint]
+type_name = "java.math.BigInteger"
+lift = "java.math.BigInteger({})"
+lower = "{}.toString()"
+
+[bindings.swift.custom_types.GemBigInt]
+type_name = "BigInt"
+imports = ["BigInt"]
+lift = "BigInt(stringLiteral: {})"
+lower = "{}.description"
+
+[bindings.swift.custom_types.GemBigUint]
+type_name = "BigUInt"
+imports = ["BigInt"]
+lift = "BigUInt(stringLiteral: {})"
+lower = "{}.description"

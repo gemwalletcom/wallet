@@ -34,6 +34,7 @@ import uniffi.gemstone.GemSwapTransfer
 import uniffi.gemstone.SwapperAssetList
 import uniffi.gemstone.SwapperQuote
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class RequestSwapQuotesImplTest {
 
@@ -291,7 +292,7 @@ class RequestSwapQuotesImplTest {
         override suspend fun getQuotes(
             fromAsset: uniffi.gemstone.Asset,
             toAsset: uniffi.gemstone.Asset,
-            value: String,
+            value: BigInteger,
             useMaxAmount: Boolean,
             slippageBps: UInt?,
         ): List<SwapperQuote> {

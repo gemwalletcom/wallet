@@ -17,6 +17,7 @@ import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemSimulationBalanceChange
 import uniffi.gemstone.GemSimulationValue
+import java.math.BigInteger
 
 class SimulationTest {
 
@@ -33,8 +34,8 @@ class SimulationTest {
         val usdc = mockAssetSolanaUSDC()
         val simulation = state(
             balanceChanges = listOf(
-                GemSimulationBalanceChange(asset = solana.toGem(), value = "-100005000"),
-                GemSimulationBalanceChange(asset = usdc.toGem(), value = "750000"),
+                GemSimulationBalanceChange(asset = solana.toGem(), value = BigInteger("-100005000")),
+                GemSimulationBalanceChange(asset = usdc.toGem(), value = BigInteger("750000")),
             ),
         ).toSimulation(warnings = emptyList(), chain = null, confirmService = confirmService)
 
@@ -58,11 +59,11 @@ class SimulationTest {
         assertNull(unlimited.headerValue)
         assertEquals(usdc, unlimited.headerAsset)
 
-        val exact = state(header = GemSimulationValue(asset = usdc.toGem(), value = GemApprovalValue.Exact("750000")))
+        val exact = state(header = GemSimulationValue(asset = usdc.toGem(), value = GemApprovalValue.Exact(BigInteger("750000"))))
             .toSimulation(warnings = emptyList(), chain = null, confirmService = confirmService)
 
         assertEquals(false, exact.headerIsUnlimited)
-        assertEquals("750000", exact.headerValue)
+        assertEquals(BigInteger("750000"), exact.headerValue)
     }
 
     private fun state(

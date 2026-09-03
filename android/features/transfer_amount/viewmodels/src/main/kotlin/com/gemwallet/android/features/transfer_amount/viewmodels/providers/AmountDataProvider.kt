@@ -44,11 +44,11 @@ abstract class AmountDataProvider(
 
     val canChangeValue: StateFlow<Boolean> by lazy { rules.map { it?.canChangeValue ?: true }.stateIn(scope, SharingStarted.Eagerly, true) }
     val showsAssetBalance: StateFlow<Boolean> by lazy { rules.map { it?.showsAssetBalance ?: true }.stateIn(scope, SharingStarted.Eagerly, true) }
-    val minimumValue: StateFlow<BigInteger> by lazy { rules.map { it?.minimumValue?.toBigIntegerOrNull() ?: BigInteger.ZERO }.stateIn(scope, SharingStarted.Eagerly, BigInteger.ZERO) }
-    val reserveForFee: StateFlow<BigInteger> by lazy { rules.map { it?.reserveForFee?.toBigIntegerOrNull() ?: BigInteger.ZERO }.stateIn(scope, SharingStarted.Eagerly, BigInteger.ZERO) }
-    val availableBalance: StateFlow<BigInteger> by lazy { limits.map { it?.availableValue?.toBigIntegerOrNull() ?: BigInteger.ZERO }.stateIn(scope, SharingStarted.Eagerly, BigInteger.ZERO) }
+    val minimumValue: StateFlow<BigInteger> by lazy { rules.map { it?.minimumValue ?: BigInteger.ZERO }.stateIn(scope, SharingStarted.Eagerly, BigInteger.ZERO) }
+    val reserveForFee: StateFlow<BigInteger> by lazy { rules.map { it?.reserveForFee ?: BigInteger.ZERO }.stateIn(scope, SharingStarted.Eagerly, BigInteger.ZERO) }
+    val availableBalance: StateFlow<BigInteger> by lazy { limits.map { it?.availableValue ?: BigInteger.ZERO }.stateIn(scope, SharingStarted.Eagerly, BigInteger.ZERO) }
 
-    fun maxValue(): BigInteger = limits.value?.maxValue?.toBigIntegerOrNull() ?: availableBalance.value
+    fun maxValue(): BigInteger = limits.value?.maxValue ?: availableBalance.value
 
     abstract suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData
 }

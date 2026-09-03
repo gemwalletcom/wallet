@@ -70,7 +70,7 @@ class BuildPerpetualParamsImplTest {
 
         assertEquals(PerpetualDirection.Long.toJson(), own.data.direction)
         assertEquals(PerpetualDirection.Short.toJson(), other.data.direction)
-        assertEquals(true, own.available.toBigInteger() < other.available.toBigInteger())
+        assertEquals(true, own.available < other.available)
     }
 
     private suspend fun reduceFor(walletId: WalletId): GemPerpetualPositionAction.Reduce {
@@ -85,7 +85,7 @@ class BuildPerpetualParamsImplTest {
                     val position = thirdArg<String?>()?.decodeJson<PerpetualPosition>()
                     GemPerpetualPositionAction.Reduce(
                         mockGemPerpetualTransferData(direction = requireNotNull(position).direction),
-                        BigInteger.valueOf((position.marginAmount * 1_000_000).toLong()).toString(),
+                        BigInteger.valueOf((position.marginAmount * 1_000_000).toLong()),
                     )
                 }
             },

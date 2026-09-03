@@ -143,7 +143,7 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) throws -> GemTransferData {
-        try service.stakeTransferData(asset: asset.map(), stakeType: getStakeType().json(), value: value.description, useMaxAmount: useMaxAmount)
+        try service.stakeTransferData(asset: asset.map(), stakeType: getStakeType().json(), value: value, useMaxAmount: useMaxAmount)
     }
 
     private func getStakeType() throws -> StakeType {

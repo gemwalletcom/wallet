@@ -11,24 +11,24 @@ public extension GemFeeOptions {
     }
 
     static func from(_ feeOptionMap: FeeOptionMap) -> GemFeeOptions {
-        var gemOptions: [Gemstone.FeeOption: String] = [:]
+        var gemOptions: [Gemstone.FeeOption: BigInt] = [:]
         for (option, value) in feeOptionMap {
             switch option {
             case .tokenAccountCreation:
-                gemOptions[.tokenAccountCreation] = value.description
+                gemOptions[.tokenAccountCreation] = value
             }
         }
         return GemFeeOptions(options: gemOptions)
     }
 
-    func map() throws -> FeeOptionMap {
+    func map() -> FeeOptionMap {
         var feeOptions: FeeOptionMap = [:]
         for (option, value) in options {
             let feeOption: Primitives.FeeOption = switch option {
             case .tokenAccountCreation:
                 .tokenAccountCreation
             }
-            feeOptions[feeOption] = try BigInt.from(string: value)
+            feeOptions[feeOption] = value
         }
         return feeOptions
     }

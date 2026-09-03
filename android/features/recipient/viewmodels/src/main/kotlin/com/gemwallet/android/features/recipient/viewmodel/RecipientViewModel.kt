@@ -249,7 +249,7 @@ class RecipientViewModel @Inject constructor(
             GemTransferData(
                 inputType = GemTransactionInputType.transferNft(nftAsset.chain.asset(), nftAsset),
                 recipient = destination,
-                value = BigInteger.ZERO.toString(),
+                value = BigInteger.ZERO,
             )
         )
     }

@@ -27,7 +27,7 @@ struct SwapDetailsViewModelTests {
 
     @Test
     func switchRate() throws {
-        let model = try SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: "250000000000").map())
+        let model = try SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: 250_000_000_000).map())
 
         #expect(model.rateText == "1 ETH ≈ 250,000.00 USDT")
 
@@ -37,7 +37,7 @@ struct SwapDetailsViewModelTests {
 
     @Test
     func minReceiveAppliesSlippageBasisPoints() throws {
-        let model = try SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: "250000000000").map())
+        let model = try SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: 250_000_000_000).map())
 
         #expect(model.minReceiveField.value.text == "248,750 USDT")
     }
@@ -53,7 +53,7 @@ extension SwapDetailsViewModel {
             slippage: .auto,
             currency: Currency.usd.rawValue,
             swapPriceImpact: nil,
-            minReceiveValue: BigInt(core: summary.minReceiveValue()),
+            minReceiveValue: BigInt(summary.minReceiveValue()),
             etaMinutes: summary.etaMinutes(),
             swapProviderSelectAction: nil,
         )

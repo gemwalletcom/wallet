@@ -2,6 +2,7 @@ package com.gemwallet.android.domains.swap
 
 import com.gemwallet.android.model.Crypto
 import com.wallet.core.primitives.Asset
+import java.math.BigInteger
 
 data class AssetRatePair(
     val forward: String,
@@ -11,8 +12,8 @@ data class AssetRatePair(
 fun buildAssetRatePair(
     fromAsset: Asset,
     toAsset: Asset,
-    fromValue: String,
-    toValue: String,
+    fromValue: BigInteger,
+    toValue: BigInteger,
     formatter: AssetRateFormatter = AssetRateFormatter(),
 ): AssetRatePair? {
     return try {

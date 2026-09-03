@@ -42,7 +42,7 @@ internal fun BannerItem(
                         GemTransferData(
                             inputType = GemTransactionInputType.account(assetInfo.asset, AccountDataType.Activate),
                             recipient = GemRecipient(owner.address),
-                            value = BigInteger.ZERO.toString(),
+                            value = BigInteger.ZERO,
                         )
                     )
                 }

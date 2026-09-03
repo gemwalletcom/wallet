@@ -9,7 +9,6 @@ import enum Gemstone.GemConfirmError
 import enum Gemstone.GemExecuteResult
 import GemstoneServicesTestKit
 import GemstoneServices
-import BigInt
 import Foundation
 import GemstonePrimitivesTestKit
 import Primitives
@@ -83,7 +82,7 @@ struct ConfirmSubmissionTests {
             simulation: GemConfirmSimulation(
                 primaryFields: [],
                 secondaryFields: [],
-                header: GemSimulationValue(asset: usdt.map(), value: .exact(value: "1000000")),
+                header: GemSimulationValue(asset: usdt.map(), value: .exact(value: 1000000)),
                 balanceChanges: [],
                 hasCriticalWarning: false,
             ),

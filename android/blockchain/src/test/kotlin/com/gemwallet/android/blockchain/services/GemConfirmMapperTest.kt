@@ -34,7 +34,7 @@ class GemConfirmMapperTest {
     fun confirmLoadOptions_mapsTheFeeAndFeeAssetSelection() {
         val options = confirmLoadOptions(FeeSelection.Custom(BigInteger("42")), FeeAssetSelection.Selected(mockAssetTempoUSDCe().id))
 
-        assertEquals(GemConfirmFeeSelection.Custom("42"), options.feeSelection)
+        assertEquals(GemConfirmFeeSelection.Custom(BigInteger("42")), options.feeSelection)
         assertEquals("tempo_0x20C000000000000000000000b9537d11c60E8b50", options.feeAssetId)
         assertEquals(null, confirmLoadOptions(FeeSelection.Preset(FeePriority.Fast), FeeAssetSelection.Automatic).feeAssetId)
     }
@@ -47,19 +47,19 @@ class GemConfirmMapperTest {
             transfer = GemTransferData(
                 inputType = GemTransactionInputType.transfer(asset),
                 recipient = GemRecipient("0xrecipient"),
-                value = "1000000000000000",
+                value = BigInteger("1000000000000000"),
             ),
         )
         val feeRates = listOf(
-            GemFeeRate(FeePriority.Normal.toGem(), GemGasPriceType.Eip1559(gasPrice = "2", priorityFee = "3")),
-            GemFeeRate(FeePriority.Fast.toGem(), GemGasPriceType.Eip1559(gasPrice = "1", priorityFee = "1")),
+            GemFeeRate(FeePriority.Normal.toGem(), GemGasPriceType.Eip1559(gasPrice = BigInteger("2"), priorityFee = BigInteger("3"))),
+            GemFeeRate(FeePriority.Fast.toGem(), GemGasPriceType.Eip1559(gasPrice = BigInteger.ONE, priorityFee = BigInteger.ONE)),
         )
         val preload = GemConfirmPreload(
             confirmData = GemConfirmData(
                 fee = GemTransactionLoadFee(
-                    fee = "21000",
+                    fee = BigInteger("21000"),
                     gasPriceType = feeRates[0].gasPriceType,
-                    gasLimit = "21000",
+                    gasLimit = BigInteger("21000"),
                     options = GemFeeOptions(emptyMap()),
                     feeAsset = asset.id.chain.string,
                 ),
@@ -71,7 +71,7 @@ class GemConfirmMapperTest {
             ),
             metadata = mockGemConfirmMetadata(asset),
             feeAsset = asset.toGem(),
-            amount = GemTransferAmountResult.Amount(GemTransferAmount(value = "1", networkFee = "1", isMaxAmount = false)),
+            amount = GemTransferAmountResult.Amount(GemTransferAmount(value = BigInteger.ONE, networkFee = BigInteger.ONE, isMaxAmount = false)),
         )
 
         val result = preload.toSignerParams()

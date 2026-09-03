@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Foundation
 import Gemstone
 import Primitives
@@ -8,9 +7,9 @@ import Primitives
 public extension GemTransactionLoadFee {
     func map() throws -> Fee {
         try Fee(
-            fee: BigInt.from(string: fee),
+            fee: fee,
             gasPriceType: gasPriceType.map(),
-            gasLimit: BigInt.from(string: gasLimit),
+            gasLimit: gasLimit,
             options: options.map(),
             feeAssetId: try AssetId(id: feeAsset),
         )
@@ -20,9 +19,9 @@ public extension GemTransactionLoadFee {
 public extension Fee {
     func map() -> Gemstone.GemTransactionLoadFee {
         Gemstone.GemTransactionLoadFee(
-            fee: fee.description,
+            fee: fee,
             gasPriceType: gasPriceType.map(),
-            gasLimit: gasLimit.description,
+            gasLimit: gasLimit,
             options: options.map(),
             feeAsset: feeAssetId.identifier,
         )

@@ -25,12 +25,11 @@ object AmountValidation {
 
     fun validate(type: GemAmountType, asset: Asset, amount: Crypto, balance: GemAssetBalance) {
         try {
-            type.validate(asset.toGem(), balance, amount.atomicValue.toString())
+            type.validate(asset.toGem(), balance, amount.atomicValue)
         } catch (error: GemAmountException) {
             throw when (error) {
-                is GemAmountException.InvalidValue -> AmountError.IncorrectAmount
                 is GemAmountException.Zero -> AmountError.ZeroAmount
-                is GemAmountException.BelowMinimum -> AmountError.MinimumValue(ValueFormatter(style = ValueFormatter.Style.Full).string(error.minimum.toBigInteger(), asset))
+                is GemAmountException.BelowMinimum -> AmountError.MinimumValue(ValueFormatter(style = ValueFormatter.Style.Full).string(error.minimum, asset))
                 is GemAmountException.InsufficientBalance -> AmountError.InsufficientBalance(asset.symbol)
             }
         }

@@ -406,6 +406,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
   wallet only where a screen acts on a wallet that is not current (`GemWalletService` rename,
   delete, pin, `export_secret`; `GemAppStartService::setup_wallet`).
 
+- **Big integers are typed on both sides of the boundary.** `uniffi.toml` maps `GemBigInt` /
+  `GemBigUint` to `java.math.BigInteger` and `BigInt` / `BigUInt`, so no app code parses a Core
+  amount or renders one to a string to hand it back; `GemAmountError`, `GemAmountType::validate`
+  and `GemTransferDataExtra.gas_limit` carry big integers too. What still parses is the
+  typeshare model (`Balance`, `SwapQuote`, `Delegation.base`, `TransactionSwapMetadata`) and the
+  database columns both apps store as text — a typeshare-level mapping would finish it.
+
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**

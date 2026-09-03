@@ -19,11 +19,6 @@ public struct SwapValueFormatter {
         return value
     }
 
-    public func format(quoteValue: String, decimals: Int) throws -> String {
-        let value = try BigInt.from(string: quoteValue)
-        return format(value: value, decimals: decimals)
-    }
-
     public func format(value: BigInt, decimals: Int) -> String {
         formatter.string(value, decimals: decimals)
     }

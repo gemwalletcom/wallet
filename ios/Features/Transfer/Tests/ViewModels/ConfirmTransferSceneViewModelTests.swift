@@ -264,8 +264,8 @@ struct ConfirmTransferSceneViewModelTests {
         ]
         let model = ConfirmTransferSceneViewModel.mock(
             gemConfirmService: GemConfirmServiceMock(preload: .success(.mock(confirmData: .mock(feeRates: [
-                GemFeeRate(priority: .normal, gasPriceType: .regular(gasPrice: "20")),
-                GemFeeRate(priority: .fast, gasPriceType: .regular(gasPrice: "30")),
+                GemFeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 20)),
+                GemFeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 30)),
             ])))),
         )
 
@@ -495,7 +495,7 @@ struct ConfirmTransferSceneViewModelTests {
     func insufficientNetworkFeeErrorShowsRequiredAmount() {
         let model = ConfirmTransferSceneViewModel.mock()
         let required = BigInt(21_000_000_000_000)
-        model.onSelectListError(error: .confirm(.InsufficientNetworkFee(asset: Asset.mockEthereum().map(), requirement: GemBalanceRequirement(required: required.description, available: "0", shortfall: required.description))))
+        model.onSelectListError(error: .confirm(.InsufficientNetworkFee(asset: Asset.mockEthereum().map(), requirement: GemBalanceRequirement(required: required, available: 0, shortfall: required))))
 
         guard case let .info(.insufficientNetworkFee(_, _, sheetRequirement, _, _, _)) = model.isPresentingSheet else {
             Issue.record("Expected insufficientNetworkFee sheet")
@@ -536,7 +536,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func tronInsufficientBalanceActionShowsGetOptions() {
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(.mockTronUSDT())))
-        model.onSelectListError(error: .confirm(.InsufficientBalance(asset: Asset.mockTron().map(), requirement: GemBalanceRequirement(required: "36798300", available: "36070000", shortfall: "728300"))))
+        model.onSelectListError(error: .confirm(.InsufficientBalance(asset: Asset.mockTron().map(), requirement: GemBalanceRequirement(required: 36798300, available: 36070000, shortfall: 728300))))
 
         guard case let .info(sheet) = model.isPresentingSheet,
               case let .balanceRequired(_, _, requirement, action) = sheet
@@ -565,7 +565,7 @@ struct ConfirmTransferSceneViewModelTests {
     func tronTokenInsufficientBalancePreservesAsset() {
         let asset = Asset.mockTronUSDT()
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
-        model.onSelectListError(error: .confirm(.InsufficientBalance(asset: asset.map(), requirement: GemBalanceRequirement(required: "2", available: "1", shortfall: "1"))))
+        model.onSelectListError(error: .confirm(.InsufficientBalance(asset: asset.map(), requirement: GemBalanceRequirement(required: 2, available: 1, shortfall: 1))))
 
         guard case let .info(.balanceRequired(_, _, _, action)) = model.isPresentingSheet else {
             Issue.record("Expected balanceRequired sheet")
@@ -586,7 +586,7 @@ struct ConfirmTransferSceneViewModelTests {
     func insufficientBalanceBuyActionUsesErrorAsset() {
         let asset = Asset.mockEthereumUSDT()
         let model = ConfirmTransferSceneViewModel.mock(data: .mock(type: .transfer(asset)))
-        model.onSelectListError(error: .confirm(.InsufficientBalance(asset: asset.map(), requirement: GemBalanceRequirement(required: "2", available: "1", shortfall: "1"))))
+        model.onSelectListError(error: .confirm(.InsufficientBalance(asset: asset.map(), requirement: GemBalanceRequirement(required: 2, available: 1, shortfall: 1))))
 
         guard case let .info(.balanceRequired(_, _, _, action)) = model.isPresentingSheet else {
             Issue.record("Expected balanceRequired sheet")

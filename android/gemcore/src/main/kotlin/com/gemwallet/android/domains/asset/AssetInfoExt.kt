@@ -47,10 +47,10 @@ val AssetInfo.availableBalanceAmount: String
     get() = ValueFormatter(style = ValueFormatter.Style.Auto)
         .string(balance.balance.available.toBigInteger(), decimals = asset.decimals)
 
-fun AssetInfo.calculateFiat(rawInput: String): BigDecimal = toAssetPriceValue().calculateFiat(rawInput)
+fun AssetInfo.calculateFiat(value: BigInteger): BigDecimal = toAssetPriceValue().calculateFiat(value)
 
 fun AssetInfo.calculateFiat(value: BigDecimal): BigDecimal = toAssetPriceValue().calculateFiat(value)
 
 fun AssetInfo.formatFiat(value: BigDecimal): String = toAssetPriceValue().formatFiat(value)
 
-fun AssetInfo.swapValue(value: String): GemSwapValue = toAssetPriceValue().swapValue(value)
+fun AssetInfo.swapValue(value: BigInteger): GemSwapValue = toAssetPriceValue().swapValue(value)

@@ -76,7 +76,7 @@ class ConfirmViewModelRetryTest {
         val transfer = GemTransferData(
             inputType = GemTransactionInputType.Perpetual(asset.toGem(), PerpetualType.Open(mockPerpetualConfirmData(direction = PerpetualDirection.Long)).toGem()),
             recipient = GemRecipient(address = ""),
-            value = BigInteger.TEN.toString(),
+            value = BigInteger.TEN,
         )
         val viewModel = viewModel(transfer)
         runCurrent()
@@ -108,9 +108,9 @@ class ConfirmViewModelRetryTest {
                     preload = GemConfirmPreload(
                     confirmData = GemConfirmData(
                         fee = GemTransactionLoadFee(
-                            fee = "1",
-                            gasPriceType = GemGasPriceType.Regular(gasPrice = "1"),
-                            gasLimit = "1",
+                            fee = BigInteger.ONE,
+                            gasPriceType = GemGasPriceType.Regular(gasPrice = BigInteger.ONE),
+                            gasLimit = BigInteger.ONE,
                             options = GemFeeOptions(emptyMap()),
                             feeAsset = asset.id.chain.string,
                         ),
@@ -122,7 +122,7 @@ class ConfirmViewModelRetryTest {
                     ),
                     metadata = mockGemConfirmMetadata(asset),
                     feeAsset = asset.toGem(),
-                    amount = GemTransferAmountResult.Amount(GemTransferAmount(value = "1", networkFee = "1", isMaxAmount = false)),
+                    amount = GemTransferAmountResult.Amount(GemTransferAmount(value = BigInteger.ONE, networkFee = BigInteger.ONE, isMaxAmount = false)),
                     ),
                 )
             }

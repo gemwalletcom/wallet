@@ -44,7 +44,7 @@ struct FiatAmountValidator: ValueValidator {
         case let .insufficientBalance(required, available):
             throw TransferAmountCalculatorError.insufficientBalance(
                 asset,
-                requirement: BalanceRequirement(required: try BigInt.from(string: required), available: try BigInt.from(string: available)),
+                requirement: BalanceRequirement(required: BigInt(required), available: BigInt(available)),
             )
         case .valid:
             break

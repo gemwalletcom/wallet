@@ -102,14 +102,14 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
 
     public func addPrices(assetIds _: [AssetId]) async throws {}
 
-    public func getQuotes(fromAsset _: Asset, toAsset _: Asset, value: String, useMaxAmount _: Bool, slippageBps _: UInt32?) async throws -> [SwapperQuote] {
+    public func getQuotes(fromAsset _: Asset, toAsset _: Asset, value: BigUInt, useMaxAmount _: Bool, slippageBps _: UInt32?) async throws -> [SwapperQuote] {
         if let quotesDelay {
             try await Task.sleep(for: quotesDelay)
         }
         if let quotesError {
             throw quotesError
         }
-        return try quotes(BigInt.from(string: value))
+        return quotes(BigInt(value))
     }
 
     public func getTransfer(quote: SwapperQuote) async throws -> GemSwapTransfer {
