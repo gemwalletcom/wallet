@@ -5,6 +5,7 @@ pub mod message;
 pub mod staking;
 pub mod staking_osmosis;
 pub mod transaction;
+pub mod wasm;
 
 #[cfg(feature = "signer")]
 pub mod contract;
@@ -17,6 +18,7 @@ pub use message::*;
 pub use staking::*;
 pub use staking_osmosis::*;
 pub use transaction::*;
+pub use wasm::*;
 
 #[cfg(feature = "signer")]
 pub use contract::*;

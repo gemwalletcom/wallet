@@ -7,8 +7,8 @@ use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainStakin
 use gem_client::{Client, ClientExt, build_path_with_query};
 
 use crate::models::{
-    ApiResult, BroadcastTransaction, Chainhead, JettonMastersResponse, JettonWalletsResponse, NftCollectionsResponse, NftItemsResponse, RunGetMethodRequest, RunGetMethodResult,
-    StackArg, TraceByAddressQuery, TraceByBlockQuery, TraceByMessageQuery, TraceByTransactionQuery, TraceResponse, WalletInfo,
+    ApiResult, BroadcastTransaction, Chainhead, DnsRecordsResponse, JettonMastersResponse, JettonWalletsResponse, NftCollectionsResponse, NftItemsResponse, RunGetMethodRequest,
+    RunGetMethodResult, StackArg, TraceByAddressQuery, TraceByBlockQuery, TraceByMessageQuery, TraceByTransactionQuery, TraceResponse, WalletInfo,
     simulation::{TonEmulationRequest, TonEmulationResponse},
 };
 
@@ -29,6 +29,10 @@ impl<C: Client> TonClient<C> {
 
     pub async fn get_master_head(&self) -> Result<Chainhead, Box<dyn Error + Send + Sync>> {
         Ok(self.client.get("/api/v3/masterchainInfo").await?)
+    }
+
+    pub async fn get_dns_records(&self, domain: &str) -> Result<DnsRecordsResponse, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.get(&format!("/api/v3/dns/records?domain={domain}&limit=1")).await?)
     }
 
     pub async fn get_token_info(&self, token_id: &str) -> Result<JettonMastersResponse, Box<dyn Error + Send + Sync>> {

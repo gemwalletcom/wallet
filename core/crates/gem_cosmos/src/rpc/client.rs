@@ -5,12 +5,15 @@ use crate::models::account::Balances;
 use crate::models::staking::{Delegations, Rewards, UnbondingDelegations};
 use crate::models::{Account, AccountResponse, BroadcastRequest, BroadcastResponse, InjectiveAccount};
 use crate::models::{
-    AnnualProvisionsResponse, BlockResponse, InflationResponse, OsmosisEpochProvisionsResponse, OsmosisMintParamsResponse, StakingPoolResponse, SupplyResponse,
+    AnnualProvisionsResponse, BlockResponse, InflationResponse, OsmosisEpochProvisionsResponse, OsmosisMintParamsResponse, SmartQueryResponse, StakingPoolResponse, SupplyResponse,
     TransactionResponse, TransactionsResponse, ValidatorsResponse,
 };
 use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainSimulation, ChainTraits};
 use gem_client::{Client, ClientExt};
+use gem_encoding::encode_base64;
 use primitives::chain_cosmos::CosmosChain;
+use serde::Serialize;
+use serde::de::DeserializeOwned;
 
 pub struct CosmosClient<C: Client> {
     pub chain: CosmosChain,
@@ -24,6 +27,11 @@ impl<C: Client> CosmosClient<C> {
 
     pub fn get_chain(&self) -> CosmosChain {
         self.chain
+    }
+
+    pub async fn get_contract_smart_query<Q: Serialize + Send + Sync, R: DeserializeOwned + Send>(&self, contract: &str, query: &Q) -> Result<R, Box<dyn Error + Send + Sync>> {
+        let path = format!("/cosmwasm/wasm/v1/contract/{contract}/smart/{}", encode_base64(serde_json::to_string(query)?.as_bytes()));
+        Ok(self.client.get::<SmartQueryResponse<R>>(&path).await?.data)
     }
 
     pub async fn get_transaction(&self, hash: String) -> Result<TransactionResponse, Box<dyn Error + Send + Sync>> {

@@ -1,6 +1,6 @@
 # Decision Records
 
-Repo-wide architectural choices that are not obvious from the code, with the rationale. Do not "improve" these without understanding it. Decisions about the shape of Core-owned services (what was tried and reverted) live in [ARCHITECTURE.md § 12](ARCHITECTURE.md#12-shapes-that-were-tried-and-reverted). Code-style exceptions belong in the platform skills, not here.
+Repo-wide architectural choices that are not obvious from the code, with the rationale. Do not "improve" these without understanding it. Decisions about the shape of Core-owned services (what was tried and reverted) live in [ARCHITECTURE.md § 13](ARCHITECTURE.md#13-shapes-that-were-tried-and-reverted). Code-style exceptions belong in the platform skills, not here.
 
 ## Gemstone is bundled locally
 

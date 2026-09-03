@@ -22,7 +22,7 @@ pub use clients::{
 use defi::DefiClient;
 use gem_auth::AuthClient;
 use guard::{AuthenticatedDevice, AuthenticatedDeviceWallet, VerifiedDeviceId};
-use name_resolver::client::Client as NameClient;
+use name_resolver::NameClient;
 use nft::NFTClient;
 use primitives::DeviceToken;
 use primitives::device::Device;
@@ -251,11 +251,7 @@ pub async fn get_device_name_resolve_v2(
     chain: ChainParam,
     client: &State<NameClient>,
 ) -> Result<ApiResponse<Option<NameRecord>>, ApiError> {
-    let result = client.resolve(name, chain.0).await;
-    match result {
-        Ok(record) => Ok(Some(record).into()),
-        Err(_) => Ok(None.into()),
-    }
+    Ok(client.resolve(name, chain.0).await.ok().flatten().into())
 }
 
 #[post("/devices/scan/transaction", data = "<request>")]

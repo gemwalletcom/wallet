@@ -28,7 +28,8 @@ Reference: `crates/storage/src/database/mod.rs`.
 
 ## RPC Clients
 
-- `gem_jsonrpc::JsonRpcClient` for blockchain RPC; `batch_call()` for batches; errors propagate as `JsonRpcError`
+- Every HTTP client owns a request enum — `FooTarget` for REST (method, path with query, body, request headers), `FooRpc` for JSON-RPC (`ToJsonRpcRequest`) — and its methods only build a variant and send it. The cases (path and query building, headers and signing, bodies and content types, envelopes, pagination, tests) and the reference clients are in [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md) § 12
+- `gem_jsonrpc::JsonRpcClient` for blockchain RPC; `batch_request()` for batches; errors propagate as `JsonRpcError`
 - `primitives::hex` for hex encoding, not `alloy_primitives::hex`; RPC calls take hex strings directly, avoid double encoding
 - Never wrap an immutable request client in a shared `Mutex` or hold that client lock across network or database I/O. Use mutexes only for narrowly scoped mutable coordination
 

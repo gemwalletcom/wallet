@@ -591,7 +591,84 @@ A mock's defaults should be the *usual* case. A mock that fails by default becom
 
 Check for a test pinning the difference before picking a side — a divergence is sometimes a deliberate decision no one wrote down. If a test pins it, adopt that reading into Core; if nothing does, take the better one and say which in the commit message.
 
-## 12. Shapes that were tried and reverted
+## 12. A client's requests are one enum; the client only sends
+
+**Every HTTP client owns a request enum. A client method builds one variant and sends it. Nothing
+else in the client spells a path, a query key, a header name or a JSON-RPC method.**
+
+The enum is a § 1 rule for a request: inputs in, wire format out, no transport, no secret, no
+clock. The two references are
+[`TronGridTarget`](../core/crates/gem_tron/src/rpc/trongrid/target.rs) for REST (`FooTarget` in
+`rpc/target.rs`) and [`SolanaRpc`](../core/crates/gem_solana/src/jsonrpc.rs) for JSON-RPC
+(`FooRpc` in `jsonrpc.rs`, method constants in `method.rs`); every other client builds its
+requests inline and converges on this.
+
+```rust
+// rpc/trongrid/target.rs
+pub enum TronGridTarget {
+    GetTransactions { address: String, limit: usize, fingerprint: Option<String> },
+    GetAccount { address: String },
+}
+
+impl TronGridTarget {
+    pub fn path(&self) -> String {
+        match self {
+            Self::GetTransactions { address, limit, fingerprint } => with_fingerprint(format!("/v1/accounts/{address}/transactions?limit={limit}"), fingerprint.as_deref()),
+            Self::GetAccount { address } => format!("/v1/accounts/{address}"),
+        }
+    }
+}
+
+// rpc/trongrid/client.rs
+impl<C: Client> TronGridClient<C> {
+    fn headers(&self) -> HashMap<String, String> {
+        self.api_key.as_ref().map(|key| HashMap::from([(API_KEY_HEADER.to_string(), key.clone())])).unwrap_or_default()
+    }
+
+    async fn send<R: DeserializeOwned + Send>(&self, target: TronGridTarget) -> Result<R, ClientError> {
+        self.client.get_with_headers(&target.path(), self.headers()).await
+    }
+
+    pub async fn get_accounts(&self, address: &str) -> Result<Data<Vec<TronGridAccount>>, ClientError> {
+        self.send(TronGridTarget::GetAccount { address: address.to_string() }).await
+    }
+}
+```
+
+Variant fields are named: `GetAccount(String)` does not say what the string is. The target owns
+the method, the path with its query, the body and the headers intrinsic to the request. The
+client owns the transport, the credentials, the clock, the signature, the envelope and the
+pagination loop. A GET-only host needs only `path()`; `GemDeviceApiTarget` is the full shape with
+`method()`, `body()` and a signed header.
+
+| Case | Shape | Reference |
+|---|---|---|
+| Path parameter | `format!` in `path()`. A chain or network segment is a field the target reads; a chain-to-slug map is a pure `fn` with its own test | `TronGridTarget`, Blockscout `/{chain_id}/…`, `alchemy_url` |
+| Query string | Part of `path()`: `RpcClient` (the apps' transport) and `MockClient` drop the `query` argument of `get_with`. One or two fixed parameters are a `format!`; more, or any optional one, is a flat `Serialize` struct through `build_path_with_query` (`None` omitted, values encoded, a slice of pairs for a repeated key) | `GemApiTarget`, `CoinMarketsQuery`, `mayan::quote_path` |
+| Optional parameter | An `Option` field on one variant, never a second variant | `GetTransactions { fingerprint: Option<String>, .. }`, `GetPriceAlerts { asset_id }` |
+| Method and body | `method()` and `body()` on the target; `send` matches on the method. `Client` speaks GET and POST; the device client builds `gem_jsonrpc::Target` for PUT and DELETE. A host that multiplexes on the body (HyperCore `/info`, Cardano GraphQL) has a constant path and a variant per query | `GemDeviceApiTarget` |
+| Raw body | `String` for `text/plain` and form-urlencoded, `Vec<u8>` for binary; the content type in the target's `headers()`, always from `ContentType` | Bitcoin `sendtx`, Stellar, Algorand, Aptos BCS, `SendSupportImage` |
+| Credentials | `fn headers(&self)` on the client, empty when the key is blank (`Option<String>` decided once at construction); a key the host wants in the query is appended by `send` the same way. Transport default headers are backend-only: `RpcClient` has none | `JupiterClient`, `NearIntentsClient`, Blockscout `apikey` |
+| Request header | On the target: cache TTL (`X_CACHE_TTL`), API version, idempotency key | `HyperCoreClient`, TON emulate, Flashnet |
+| Signature | A pure `fn` in `auth.rs` over method, path, body, timestamp and nonce; the client reads the clock and merges the result last. A refreshed token sits behind an injected port | `okx::auth::sign`, `GoPlusProvider::sign`, `build_device_auth_header` |
+| Envelope | Unwrapped once in `send`; a typed error body through `get_or_error::<_, ErrorResponse>`; a 404 that means "none" is a value (§ 3) | TON `ApiResult`, GoPlus `Response`, THORChain, Stellar `AccountResult` |
+| Pagination | The cursor on the variant, the page size a `const`, the loop in the client with a page cap and a repeated-cursor guard; the loop takes a closure that builds the page's variant | `get_transaction_pages`, `AlchemyClient::get_nfts_by_owner` |
+| JSON-RPC | `ToJsonRpcRequest` with constants from `method.rs` and typed parameter enums beside it; `batch_request` then `take_all`; `request_with_cache`; the same enum posted to a path when a REST host has an RPC route | `SolanaRpc`, `EthereumRpc`, Chainflip broker |
+| Construction | `new(client, key)` with `C: Client` already pointed at the host. Never `ReqwestClient::request` from a client: it bypasses `Client` and never works on the apps | `TronGridClient` |
+
+**Tests.** Two per client. The target test (`test_path`, or `assert_request` for JSON-RPC) pins the
+exact string for every case that can flip. The client test, over `MockClient` or
+`mock_jsonrpc_client`, asserts what the target cannot: the paths a loop produced, a merged
+header, an envelope's failure branch.
+
+**Still to converge.** Inline paths in every REST client but TronGrid and the Gem APIs.
+`get_with_query` in the backend-only clients (Alchemy NFT, Blockscout, Pyth, Zerion, OpenSea,
+TonAPI, Jupiter, CoinMarketCap), which would lose their query on the apps. The fiat providers'
+direct `ReqwestClient::request`. Raw `Value` params in Alchemy and the Chainflip broker.
+`build_path_with_query` returning a `Result` a flat struct cannot produce. Two cache headers:
+`request_with_cache` sends `Cache-Control`, everything else and both apps use `x-gem-cache-ttl`.
+
+## 13. Shapes that were tried and reverted
 
 Each of these looked right once and cost a revert. Read them before reaching for the same shape. Repo-wide decisions outside the service architecture live in [DECISIONS.md](DECISIONS.md).
 

@@ -33,7 +33,7 @@ If a task spans multiple platforms, read every affected guide. Do not treat ever
 
 Cross-platform subsystem references live in [docs/](docs). Read the relevant one before changing that area:
 
-- [Architecture](docs/ARCHITECTURE.md) — the reference every new feature follows: Core-owned services, pure rules, stores, and app mapping
+- [Architecture](docs/ARCHITECTURE.md) — the reference every new feature follows: Core-owned services, pure rules, stores, app mapping, and the request-enum shape every HTTP and JSON-RPC client converges on
 - [Decision Records](docs/DECISIONS.md) — repo-wide architectural choices and their rationale
 - [Services](docs/SERVICES.md) — how a Gemstone service is built and the remaining migration work
 - [Deep links](docs/DEEPLINKS.md) — deep link URL contract, support-chat links, and the web association requirements

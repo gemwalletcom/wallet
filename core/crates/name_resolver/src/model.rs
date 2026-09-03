@@ -1,3 +1,5 @@
+use idna::uts46::{AsciiDenyList, DnsLength, Hyphens, Uts46};
+
 pub struct NameQuery {
     pub name: String,
     pub domain: String,
@@ -13,6 +15,11 @@ impl NameQuery {
             domain: domain.to_string(),
             suffix,
         }
+    }
+
+    pub fn ascii_domain(&self) -> Result<String, idna::Errors> {
+        let domain = Uts46::new().to_ascii(self.domain.as_bytes(), AsciiDenyList::STD3, Hyphens::Allow, DnsLength::Ignore)?;
+        Ok(domain.into_owned())
     }
 }
 
@@ -45,5 +52,11 @@ mod tests {
         assert_eq!(query.name, "alice");
         assert_eq!(query.domain, "alice");
         assert_eq!(query.suffix, "");
+    }
+
+    #[test]
+    fn test_ascii_domain() {
+        assert_eq!(NameQuery::new("Vitalik.ETH").ascii_domain().unwrap(), "vitalik.eth");
+        assert_eq!(NameQuery::new("🐈.hl").ascii_domain().unwrap(), "xn--zn8h.hl");
     }
 }

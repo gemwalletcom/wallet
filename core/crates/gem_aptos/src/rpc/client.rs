@@ -35,6 +35,10 @@ impl<C: Client> AptosClient<C> {
         self.chain
     }
 
+    pub async fn view<T: Serialize + Send + Sync, R: DeserializeOwned + Send>(&self, request: &T) -> Result<R, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.post("/v1/view", request).await?)
+    }
+
     pub async fn get_ledger(&self) -> Result<Ledger, Box<dyn Error + Send + Sync>> {
         Ok(self.client.get("/v1/").await?)
     }
@@ -172,7 +176,7 @@ impl<C: Client> AptosClient<C> {
             "arguments": [pool_address, delegator_address]
         });
 
-        let (active, inactive, pending_inactive): (String, String, String) = self.client.post("/v1/view", &view_request).await?;
+        let (active, inactive, pending_inactive): (String, String, String) = self.view(&view_request).await?;
 
         Ok(DelegationPoolStake {
             active: BigUint::from_str(&active).unwrap_or_else(|_| BigUint::from(0u32)),
@@ -193,7 +197,7 @@ impl<C: Client> AptosClient<C> {
             "arguments": [pool_address]
         });
 
-        let result: Vec<String> = self.client.post("/v1/view", &view_request).await?;
+        let result: Vec<String> = self.view(&view_request).await?;
         let commission_bps = result.first().and_then(|s| s.parse::<u64>().ok()).unwrap_or(0);
 
         Ok(commission_bps as f64 / 100.0)
@@ -206,7 +210,7 @@ impl<C: Client> AptosClient<C> {
             "arguments": [pool_address]
         });
 
-        let result: Vec<String> = self.client.post("/v1/view", &view_request).await?;
+        let result: Vec<String> = self.view(&view_request).await?;
         let lockup_secs = result.first().and_then(|s| s.parse::<u64>().ok()).ok_or("Failed to parse lockup_secs")?;
 
         Ok(lockup_secs)
