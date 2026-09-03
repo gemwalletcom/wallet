@@ -128,7 +128,7 @@ struct WalletNavigationView: View {
                 model: viewModelFactory.chartScene(
                     asset: $0.asset,
                     walletId: model.wallet.id,
-                    onSetPriceAlert: model.presentPriceAlert,
+                    onSetPriceAlert: { presenter.isPresentingPriceAlert.wrappedValue = $0 },
                 ),
             )
         }
@@ -198,10 +198,6 @@ struct WalletNavigationView: View {
                         perpetualRecipientData: data,
                         wallet: model.wallet,
                         onComplete: { model.isPresentingSheet = nil },
-                    )
-                case let .setPriceAlert(asset):
-                    SetPriceAlertNavigationStack(
-                        model: viewModelFactory.setPriceAlertScene(walletId: model.wallet.id, asset: asset) { model.onSetPriceAlertComplete(message: $0) },
                     )
                 case .addAsset:
                     AddAssetNavigationStack(wallet: model.wallet)

@@ -250,14 +250,6 @@ public extension WalletSceneViewModel {
         isPresentingSheet = nil
     }
 
-    func onSetPriceAlertComplete(message: String) {
-        isPresentingSheet = nil
-        isPresentingToastMessage = .priceAlert(message: message)
-    }
-
-    func presentPriceAlert(_ asset: Asset) {
-        isPresentingSheet = .setPriceAlert(asset)
-    }
 }
 
 // MARK: - Private

@@ -34,14 +34,13 @@ public final class SetPriceAlertViewModel {
         walletId: Primitives.WalletId,
         asset: Primitives.Asset,
         service: any GemPriceAlertServiceProtocol,
-        price: Double? = nil,
         onComplete: StringAction,
     ) {
         self.asset = asset
         self.service = service
         currencyFormatter = CurrencyFormatter(currencyCode: service.currency())
         self.onComplete = onComplete
-        state = SetPriceAlertViewModelState(price: price)
+        state = SetPriceAlertViewModelState()
         assetQuery = ObservableQuery(AssetRequest(walletId: walletId, assetId: asset.id), initialValue: .with(asset: asset))
     }
 

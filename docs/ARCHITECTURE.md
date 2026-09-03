@@ -761,6 +761,13 @@ completed transactions it saved to a `GemTransactionTracking` port; each app's a
 Core `track` call on its own scope and returns. The rule of what to track stays in Core
 (`rules::pending_transactions`); the app contributes the thread, nothing else.
 
+**A store that moves into Core keeps the app's write order.** Both apps wrote a new price alert
+to their store first and pushed it to the API second, so the list updated at once and a failed
+push was reconciled away on the next sync. When the store adapter moved behind
+`GemPriceAlertService`, the service was written API-first, store-second — the list stayed
+empty until the round trip finished and never filled on a failed push (#1022). The order a
+flow writes in is behavior, not an implementation detail: carry it across with the store.
+
 **A launch-time entry is not the place for a screen's dependency.** `GemRewardsService`,
 `GemReceiveService`, `GemNodeStatusService`, `GemPerpetualDetailsService`, `GemPriceAlertService`,
 `GemServiceStatus`, `GemAppUpdateService`, `GemNotificationService`, `GemNftService`,

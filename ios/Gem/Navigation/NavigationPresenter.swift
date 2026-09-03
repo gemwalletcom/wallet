@@ -16,7 +16,7 @@ import Transactions
 final class NavigationPresenter: Sendable {
     @MainActor private var _isPresentingAssetInput: SelectedAssetInput?
     @MainActor private var _isPresentingPayment: PaymentDestination?
-    @MainActor private var _isPresentingPriceAlert: SetPriceAlertInput?
+    @MainActor private var _isPresentingPriceAlert: Asset?
     @MainActor private var _isPresentingSupport: Bool = false
     @MainActor private var _isPresentingWallets: Bool = false
     private let assetsService: any GemAssetsServiceProtocol
@@ -44,7 +44,7 @@ extension NavigationPresenter {
         Binding(get: { self._isPresentingPayment }, set: { self._isPresentingPayment = $0 })
     }
 
-    var isPresentingPriceAlert: Binding<SetPriceAlertInput?> {
+    var isPresentingPriceAlert: Binding<Asset?> {
         Binding(get: { self._isPresentingPriceAlert }, set: { self._isPresentingPriceAlert = $0 })
     }
 

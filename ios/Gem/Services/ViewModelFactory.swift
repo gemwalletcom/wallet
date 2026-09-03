@@ -236,8 +236,8 @@ public struct ViewModelFactory: Sendable {
     }
 
     @MainActor
-    public func setPriceAlertScene(walletId: WalletId, asset: Asset, price: Double? = nil, onComplete: StringAction) -> SetPriceAlertViewModel {
-        SetPriceAlertViewModel(walletId: walletId, asset: asset, service: priceAlertService, price: price, onComplete: onComplete)
+    public func setPriceAlertScene(walletId: WalletId, asset: Asset, onComplete: StringAction) -> SetPriceAlertViewModel {
+        SetPriceAlertViewModel(walletId: walletId, asset: asset, service: priceAlertService, onComplete: onComplete)
     }
 
     @MainActor

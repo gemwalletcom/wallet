@@ -93,9 +93,9 @@ struct MainTabView: View {
                 )
             }
         }
-        .sheet(item: presenter.isPresentingPriceAlert) { input in
+        .sheet(item: presenter.isPresentingPriceAlert) { asset in
             SetPriceAlertNavigationStack(
-                model: viewModelFactory.setPriceAlertScene(walletId: wallet.id, asset: input.asset, price: input.price, onComplete: onSetPriceAlertComplete),
+                model: viewModelFactory.setPriceAlertScene(walletId: wallet.id, asset: asset, onComplete: onSetPriceAlertComplete),
             )
         }
         .toast(message: $model.isPresentingToastMessage)

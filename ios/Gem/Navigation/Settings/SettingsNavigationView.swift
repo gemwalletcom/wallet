@@ -67,7 +67,7 @@ struct SettingsNavigationView: View {
                 model: viewModelFactory.chartScene(
                     asset: scene.asset,
                     walletId: walletId,
-                    onSetPriceAlert: { _ in },
+                    onSetPriceAlert: { presenter.isPresentingPriceAlert.wrappedValue = $0 },
                 ),
             )
         }
