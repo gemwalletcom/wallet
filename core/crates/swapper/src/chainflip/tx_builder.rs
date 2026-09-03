@@ -3,14 +3,14 @@ use crate::{SwapperError, SwapperQuoteData, alien::RpcProvider, client_factory::
 use num_bigint::BigUint;
 
 use gem_encoding::encode_base64;
-use gem_solana::{DEFAULT_SWAP_COMPUTE_UNIT_LIMIT, SolanaClient, try_decode_blockhash};
+use gem_solana::{SolanaClient, try_decode_blockhash};
 use gem_tron::address::TronAddress;
 use primitives::{
     Chain,
     hex::{decode_hex, encode},
     swap::SwapQuoteDataType::Contract,
 };
-use solana_primitives::{AccountMeta, InstructionBuilder, Pubkey, TransactionBuilder, compute_budget::set_compute_unit_limit};
+use solana_primitives::{AccountMeta, InstructionBuilder, Pubkey, TransactionBuilder};
 use std::{str::FromStr, sync::Arc};
 
 pub(super) fn build_tron_quote_data(response: &TronVaultSwapResponse, value: BigUint) -> Result<SwapperQuoteData, SwapperError> {
@@ -53,7 +53,6 @@ pub(super) fn build_solana_transaction(fee_payer: &str, response: &SolanaVaultSw
     let instruction = InstructionBuilder::new(program_id).accounts(accounts).data(data).build();
 
     let mut transaction_builder = TransactionBuilder::new(fee_payer, blockhash);
-    transaction_builder.add_instruction(set_compute_unit_limit(DEFAULT_SWAP_COMPUTE_UNIT_LIMIT));
     transaction_builder.add_instruction(instruction);
 
     let transaction = transaction_builder.build().map_err(SwapperError::transaction_error)?;
@@ -67,6 +66,7 @@ mod tests {
     use super::*;
     use crate::chainflip::broker::{SolanaVaultSwapResponse, TronVaultSwapResponse};
     use gem_jsonrpc::types::JsonRpcResponse;
+    use gem_solana::decode_transaction;
     use num_bigint::BigUint;
 
     #[test]
@@ -134,11 +134,9 @@ mod tests {
         let response: JsonRpcResponse<SolanaVaultSwapResponse> = serde_json::from_str(include_str!("./test/chainflip_sol_arb_usdc_quote_data.json"))?;
 
         let tx_b64 = build_solana_transaction(wallet_address, &response.result, blockhash)?;
+        let transaction = decode_transaction(&tx_b64).map_err(SwapperError::transaction_error)?;
 
-        assert_eq!(
-            tx_b64,
-            "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAQIhfupPuKcYE+oWKNRaIwBKQhB6vsZxjpwpHXTx7w7758q21EdC4D4NruUv9F26xeVqhYm0WXVWkSIjeQIxD3II9tUC6aOjrGBy017zEItREWS3QDEQI/vMhwSVTo/1e2664X/uFi6gx6sRwFnSAPu1ODmcAsu2sf8IuwYArWOf4gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAAiKB2TmOdpVByNvc2jO/SqWcRJnwnp6i4PhwcXOdR2sf+adsEMvxMdgZ9RYJ0BKLVq++GfFFu+oFIYBJkEkLMJpzwID++OVGHruXrGUzSEC5Cyny69vOfFr8T0fbCq+HOAgUABQKgaAYABwYGAQADAgS2AaMmXOLzaY3EgB0sBAAAAAAEAAAAFAAAAFFLyx+aq7kE5hBr0QUrZtJwbbu3BwAAAABsAAAAAAoAAACF+6k+4pxgT6hYo1FojAEpCEHq+xnGOnCkddPHvDvvn8qhRbbz/dR46Sb6cwLQdTEAAAAAAAAAAAAAAAAAAAAAAAAeg9KXLT3KOjMNYMJ3fuW40laDxj+jWRFphWCYMPQgVAUABAAtEQAAADiSTMM0VhiQ46gZQHNTcQ4J"
-        );
+        assert_eq!(transaction.get_compute_unit_limit(), None);
 
         Ok(())
     }

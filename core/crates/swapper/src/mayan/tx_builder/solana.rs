@@ -44,9 +44,8 @@ pub(in crate::mayan::tx_builder) async fn build_quote_data(
     let (lookup_tables, blockhash) = try_join!(lookup_tables, blockhash)?;
     let fee_payer = SolanaAddress::parse(&quote.request.wallet_address).map_err(solana_error)?.into();
     let data = encode_v0_transaction(fee_payer, &blockhash, &transaction.instructions, &lookup_tables).map_err(solana_error)?;
-    let gas_limit = compute_budget::get_compute_unit_limit(&transaction.instructions).map(|limit| limit.to_string());
 
-    Ok(SwapperQuoteData::new_contract(String::new(), BigUint::from(0u64), data, None, gas_limit))
+    Ok(SwapperQuoteData::new_contract(String::new(), BigUint::from(0u64), data, None, None))
 }
 
 pub(in crate::mayan::tx_builder) struct SolanaLedgerDeposit<'a> {

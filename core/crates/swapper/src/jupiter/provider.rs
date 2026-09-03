@@ -7,17 +7,14 @@ use async_trait::async_trait;
 use gem_client::Client;
 use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcResult};
 use gem_solana::{
-    JUPITER_PROGRAM_ID, MAX_COMPUTE_UNIT_LIMIT, SolanaAccountEncoding, SolanaRpc, TOKEN_PROGRAM, USDC_TOKEN_MINT, USDS_TOKEN_MINT, USDT_TOKEN_MINT, WSOL_TOKEN_ADDRESS,
-    get_pubkey_by_str,
-    models::{AccountData, SimulateTransactionResult, ValueResult},
-    set_encoded_transaction_compute_unit_limit,
+    JUPITER_PROGRAM_ID, SolanaAccountEncoding, SolanaRpc, TOKEN_PROGRAM, USDC_TOKEN_MINT, USDS_TOKEN_MINT, USDT_TOKEN_MINT, WSOL_TOKEN_ADDRESS, get_pubkey_by_str,
+    models::{AccountData, ValueResult},
     token_account::get_token_account,
 };
 use num_bigint::BigUint;
 use primitives::{AssetId, Chain};
 
 const MAX_ACCOUNTS: u8 = 64;
-const COMPUTE_UNIT_BUFFER_PERCENT: u64 = 20;
 const PREFERRED_FEE_MINTS: [&str; 4] = [USDC_TOKEN_MINT, USDT_TOKEN_MINT, USDS_TOKEN_MINT, WSOL_TOKEN_ADDRESS];
 
 #[derive(Debug)]
@@ -82,23 +79,6 @@ where
             .map(|_| fee_account)
             .ok_or_else(|| SwapperError::compute_quote_error("Jupiter referral fee account is unavailable"))
     }
-
-    async fn simulate_compute_unit_limit(&self, encoded_transaction: &str) -> Result<u32, SwapperError> {
-        let simulation: ValueResult<SimulateTransactionResult> = self
-            .rpc_client
-            .request(SolanaRpc::SimulateTransaction(encoded_transaction.to_string()))
-            .await
-            .map_err(SwapperError::transaction_error)?;
-        if let Some(error) = simulation.value.err {
-            return Err(SwapperError::transaction_error(format!("Jupiter transaction simulation failed: {error}")));
-        }
-        Ok(simulation
-            .value
-            .units_consumed
-            .filter(|units| *units > 0)
-            .map(|units| units.saturating_mul(100 + COMPUTE_UNIT_BUFFER_PERCENT).div_ceil(100).min(u64::from(MAX_COMPUTE_UNIT_LIMIT)) as u32)
-            .unwrap_or(MAX_COMPUTE_UNIT_LIMIT))
-    }
 }
 
 #[async_trait]
@@ -159,15 +139,13 @@ where
 
     async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
         let route = quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?;
-        let compute_unit_limit = self.simulate_compute_unit_limit(&route.route_data).await?;
-        let transaction = set_encoded_transaction_compute_unit_limit(&route.route_data, compute_unit_limit).map_err(SwapperError::transaction_error)?;
 
         Ok(SwapperQuoteData::new_contract(
             JUPITER_PROGRAM_ID.to_string(),
             BigUint::ZERO,
-            transaction,
+            route.route_data.clone(),
             None,
-            Some(compute_unit_limit.to_string()),
+            None,
         ))
     }
 }
@@ -176,7 +154,7 @@ where
 mod swap_integration_tests {
     use super::*;
     use crate::{FetchQuoteData, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options};
-    use gem_solana::{MAX_COMPUTE_UNIT_LIMIT, decode_transaction};
+    use gem_solana::decode_transaction;
     use primitives::AssetId;
     use solana_primitives::MAX_TRANSACTION_SIZE;
     use std::sync::Arc;
@@ -206,17 +184,12 @@ mod swap_integration_tests {
         let route = &quote.data.routes[0];
         assert_eq!(route.input, AssetId::from(Chain::Solana, Some(WSOL_TOKEN_ADDRESS.to_string())));
         assert_eq!(route.output, AssetId::from(Chain::Solana, Some(USDC_TOKEN_MINT.to_string())));
-        let provisional_transaction = decode_transaction(&route.route_data).map_err(SwapperError::transaction_error)?;
-        assert_eq!(provisional_transaction.get_compute_unit_limit(), Some(MAX_COMPUTE_UNIT_LIMIT));
-
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
-        let compute_unit_limit = quote_data.gas_limit_as_u32().map_err(SwapperError::transaction_error)?;
         let transaction = decode_transaction(&quote_data.data).map_err(SwapperError::transaction_error)?;
-        println!("Jupiter compute unit limit: provisional={MAX_COMPUTE_UNIT_LIMIT}, final={compute_unit_limit}");
 
         assert_eq!(quote_data.to, JUPITER_PROGRAM_ID);
-        assert!((1..MAX_COMPUTE_UNIT_LIMIT).contains(&compute_unit_limit));
-        assert_eq!(transaction.get_compute_unit_limit(), Some(compute_unit_limit));
+        assert!(quote_data.gas_limit.is_none());
+        assert_eq!(quote_data.data, route.route_data);
         assert!(transaction.serialize().map_err(SwapperError::transaction_error)?.len() <= MAX_TRANSACTION_SIZE);
 
         Ok(())

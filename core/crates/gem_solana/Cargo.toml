@@ -6,6 +6,7 @@ edition = { workspace = true }
 [features]
 default = []
 rpc = [
+    "signer",
     "gem_jsonrpc/client",
     "dep:async-trait",
     "dep:gem_client",

@@ -1,11 +1,8 @@
 use super::model::BuildResponse;
 use crate::SwapperError;
 use gem_encoding::encode_base64;
-use gem_solana::{JUPITER_PROGRAM_ID, MAX_COMPUTE_UNIT_LIMIT, instruction_from_primitive, instructions_from_primitives};
-use solana_primitives::{
-    AddressLookupTableAccount, MAX_TRANSACTION_SIZE, Pubkey, TransactionBuilder,
-    compute_budget::{ensure_compute_unit_price, parse_compute_unit_limit_data, set_compute_unit_limit},
-};
+use gem_solana::{JUPITER_PROGRAM_ID, instruction_from_primitive, instructions_from_primitives};
+use solana_primitives::{AddressLookupTableAccount, MAX_TRANSACTION_SIZE, Pubkey, TransactionBuilder};
 
 impl BuildResponse {
     pub(super) fn into_transaction(self, payer: &str, fee_account: &str) -> Result<String, SwapperError> {
@@ -24,11 +21,7 @@ impl BuildResponse {
 
         let payer = Pubkey::from_base58(payer).map_err(SwapperError::transaction_error)?;
 
-        let mut compute_budget_instructions = instructions_from_primitives(self.compute_budget_instructions).map_err(SwapperError::transaction_error)?;
-        compute_budget_instructions.retain(|instruction| parse_compute_unit_limit_data(&instruction.data).is_none());
-        let mut instructions = vec![set_compute_unit_limit(MAX_COMPUTE_UNIT_LIMIT)];
-        instructions.extend(compute_budget_instructions);
-        ensure_compute_unit_price(&mut instructions, 0);
+        let mut instructions = instructions_from_primitives(self.compute_budget_instructions).map_err(SwapperError::transaction_error)?;
         instructions.extend(instructions_from_primitives(self.setup_instructions).map_err(SwapperError::transaction_error)?);
         instructions.push(instruction_from_primitive(self.swap_instruction).map_err(SwapperError::transaction_error)?);
         if let Some(cleanup_instruction) = self.cleanup_instruction {
@@ -105,8 +98,8 @@ mod tests {
     fn test_into_transaction() {
         let transaction = build_response().into_transaction(PAYER, FEE_ACCOUNT).unwrap();
         let decoded = decode_transaction(&transaction).unwrap();
-        assert_eq!(decoded.get_compute_unit_limit(), Some(MAX_COMPUTE_UNIT_LIMIT));
-        assert_eq!(decoded.get_compute_unit_price(), Some(0));
+        assert_eq!(decoded.get_compute_unit_limit(), None);
+        assert_eq!(decoded.get_compute_unit_price(), None);
 
         assert_eq!(
             build_response().into_transaction(PAYER, USDC_TOKEN_MINT),

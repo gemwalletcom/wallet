@@ -1,18 +1,23 @@
 use async_trait::async_trait;
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
+use num_bigint::BigInt;
 use std::error::Error;
 
-use crate::constants::{DEFAULT_COMPUTE_UNIT_LIMIT, DEFAULT_SWAP_COMPUTE_UNIT_LIMIT};
+use crate::constants::{DEFAULT_COMPUTE_UNIT_ESTIMATE, MAX_COMPUTE_UNIT_LIMIT};
 use crate::provider::preload_mapper::{calculate_fee_rates, calculate_transaction_fee};
 use gem_client::Client;
+use gem_encoding::encode_base64;
 use primitives::{
-    Chain, FeeRate, SolanaNftStandard, SolanaTokenProgramId, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
+    Chain, FeeRate, SignerInput, SolanaNftStandard, SolanaTokenProgramId, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata,
+    TransactionPreloadInput,
 };
 
 use crate::{
     METAPLEX_CORE_PROGRAM, get_token_program_id_by_address, metaplex_core,
     rpc::{SolanaClient, SolanaProvider},
 };
+
+const COMPUTE_UNIT_BUFFER_PERCENT: u32 = 20;
 
 struct SolanaNftPreload {
     token_program: Option<SolanaTokenProgramId>,
@@ -24,8 +29,8 @@ struct SolanaNftPreload {
 impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
     fn transaction_fee_estimate_units(&self, operation: TransactionFeeOperation) -> Option<u64> {
         Some(match operation {
-            TransactionFeeOperation::Transfer | TransactionFeeOperation::TokenTransfer => DEFAULT_COMPUTE_UNIT_LIMIT as u64,
-            TransactionFeeOperation::Swap => DEFAULT_SWAP_COMPUTE_UNIT_LIMIT as u64,
+            TransactionFeeOperation::Transfer | TransactionFeeOperation::TokenTransfer => DEFAULT_COMPUTE_UNIT_ESTIMATE,
+            TransactionFeeOperation::Swap => u64::from(MAX_COMPUTE_UNIT_LIMIT),
         })
     }
 
@@ -93,7 +98,25 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
     }
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
-        let fee = calculate_transaction_fee(&input.input_type, &input.gas_price, input.metadata.get_recipient_token_address()?);
+        let mut estimation_fee = input.default_fee();
+        estimation_fee.gas_limit = MAX_COMPUTE_UNIT_LIMIT.into();
+        let transaction = crate::signer::transaction_for_simulation(&SignerInput::new(input.clone(), estimation_fee))?;
+        let encoded_transaction = encode_base64(&transaction.serialize()?);
+        let simulation = self.simulate_encoded_transaction(&encoded_transaction).await?;
+        if let Some(error) = simulation.err {
+            return Err(format!("Solana transaction simulation failed: {error}").into());
+        }
+        let units_consumed = simulation
+            .units_consumed
+            .filter(|units| *units > 0)
+            .ok_or("Solana transaction simulation did not return compute units")?;
+        let compute_unit_limit = BigInt::from(
+            units_consumed
+                .saturating_mul(u64::from(100 + COMPUTE_UNIT_BUFFER_PERCENT))
+                .div_ceil(100)
+                .min(u64::from(MAX_COMPUTE_UNIT_LIMIT)) as u32,
+        );
+        let fee = calculate_transaction_fee(&input.input_type, &input.gas_price, compute_unit_limit, input.metadata.get_recipient_token_address()?);
         Ok(TransactionLoadData { fee, metadata: input.metadata })
     }
 
@@ -134,6 +157,7 @@ impl<C: Client + Clone> SolanaClient<C> {
 mod chain_integration_tests {
     use super::*;
     use crate::provider::testkit::{TEST_EMPTY_ADDRESS, create_solana_test_client};
+    use num_bigint::BigUint;
     use primitives::swap::SwapData;
     use primitives::testkit::signer_mock::TEST_SOLANA_SENDER;
     use primitives::{Asset, SwapProvider};
@@ -164,6 +188,47 @@ mod chain_integration_tests {
         assert!(result.get_sender_token_address()?.is_none());
         assert!(result.get_recipient_token_address()?.is_none());
         assert_eq!(result.get_solana_references()?, references);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_get_solana_transaction_load_transfer_sol() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client = create_solana_test_client();
+        let input_type = TransactionInputType::Transfer(Asset::mock_sol());
+        let metadata = client
+            .get_transaction_preload(TransactionPreloadInput {
+                input_type: input_type.clone(),
+                sender_address: TEST_SOLANA_SENDER.to_string(),
+                destination_address: TEST_SOLANA_SENDER.to_string(),
+                references: vec![],
+            })
+            .await?;
+        let gas_price = client
+            .get_transaction_fee_rates(input_type.clone())
+            .await?
+            .into_iter()
+            .next()
+            .ok_or("missing Solana fee rate")?
+            .gas_price_type;
+        let load = client
+            .get_transaction_load(TransactionLoadInput {
+                input_type,
+                sender_address: TEST_SOLANA_SENDER.to_string(),
+                destination_address: TEST_SOLANA_SENDER.to_string(),
+                value: BigUint::from(1u8),
+                gas_price,
+                memo: None,
+                is_max_value: false,
+                metadata,
+            })
+            .await?;
+
+        println!("Solana transfer compute unit limit: {}, fee: {}", load.fee.gas_limit, load.fee.fee);
+
+        assert!(load.fee.gas_limit > BigInt::from(0u8));
+        assert!(load.fee.gas_limit < BigInt::from(DEFAULT_COMPUTE_UNIT_ESTIMATE));
+        assert_eq!(load.fee.fee_asset, primitives::AssetId::from_chain(Chain::Solana));
 
         Ok(())
     }

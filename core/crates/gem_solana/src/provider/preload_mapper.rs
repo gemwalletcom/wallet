@@ -3,13 +3,18 @@ use primitives::{AssetId, AssetSubtype, Chain, FeeOption, FeePriority, FeeRate, 
 use std::collections::HashMap;
 
 use crate::{
-    constants::{DEFAULT_COMPUTE_UNIT_LIMIT, DEFAULT_SWAP_COMPUTE_UNIT_LIMIT, STATIC_BASE_FEE},
+    constants::{DEFAULT_COMPUTE_UNIT_ESTIMATE, MAX_COMPUTE_UNIT_LIMIT, STATIC_BASE_FEE},
     models::prioritization_fee::SolanaPrioritizationFee,
 };
 
 const STAKE_ACCOUNT_CREATION_FEE: u64 = 2_282_880;
 
-pub fn calculate_transaction_fee(input_type: &TransactionInputType, gas_price_type: &GasPriceType, recipient_token_address: Option<String>) -> TransactionFee {
+pub(crate) fn calculate_transaction_fee(
+    input_type: &TransactionInputType,
+    gas_price_type: &GasPriceType,
+    compute_unit_limit: BigInt,
+    recipient_token_address: Option<String>,
+) -> TransactionFee {
     let mut options = HashMap::new();
     let recipient_asset = input_type.get_recipient_asset();
     if recipient_asset.chain() == Chain::Solana && recipient_asset.id.token_subtype() == AssetSubtype::TOKEN && recipient_token_address.is_none() {
@@ -21,16 +26,13 @@ pub fn calculate_transaction_fee(input_type: &TransactionInputType, gas_price_ty
     if let TransactionInputType::Stake(_, StakeType::Stake(_)) = input_type {
         options.insert(FeeOption::TokenAccountCreation, BigInt::from(STAKE_ACCOUNT_CREATION_FEE));
     }
-    TransactionFee::new_gas_price_type(
-        gas_price_type.clone(),
-        gas_price_type.total_fee(),
-        get_compute_unit_limit(input_type),
-        options,
-        AssetId::from_chain(Chain::Solana),
-    )
+    let unit_price = gas_price_type.unit_price();
+    let gas_price_type = GasPriceType::solana(gas_price_type.gas_price(), calculate_priority_fee(&unit_price, &compute_unit_limit), unit_price);
+    let fee = gas_price_type.total_fee();
+    TransactionFee::new_gas_price_type(gas_price_type, fee, compute_unit_limit, options, AssetId::from_chain(Chain::Solana))
 }
 
-pub fn calculate_priority_fee(input_type: &TransactionInputType, prioritization_fees: &[SolanaPrioritizationFee]) -> BigInt {
+fn calculate_unit_price(input_type: &TransactionInputType, prioritization_fees: &[SolanaPrioritizationFee]) -> BigInt {
     let mut fees: Vec<i64> = prioritization_fees.iter().map(|f| f.prioritization_fee).collect();
     fees.sort_by(|a, b| b.cmp(a));
     fees.truncate(5);
@@ -46,7 +48,7 @@ pub fn calculate_priority_fee(input_type: &TransactionInputType, prioritization_
     }
 }
 
-fn get_compute_unit_limit(input_type: &TransactionInputType) -> BigInt {
+fn get_compute_unit_estimate(input_type: &TransactionInputType) -> BigInt {
     match input_type {
         TransactionInputType::Transfer(_)
         | TransactionInputType::Deposit(_)
@@ -55,16 +57,15 @@ fn get_compute_unit_limit(input_type: &TransactionInputType) -> BigInt {
         | TransactionInputType::TokenApprove(_, _)
         | TransactionInputType::Generic(_, _, _)
         | TransactionInputType::Perpetual(_, _)
-        | TransactionInputType::Earn(_, _, _) => BigInt::from(DEFAULT_COMPUTE_UNIT_LIMIT),
-        TransactionInputType::Swap(_, _, swap_data) => swap_data
-            .data
-            .gas_limit
-            .as_ref()
-            .and_then(|x| x.parse::<u64>().ok())
-            .map(BigInt::from)
-            .unwrap_or(BigInt::from(DEFAULT_SWAP_COMPUTE_UNIT_LIMIT)),
-        TransactionInputType::Stake(_, _) => BigInt::from(DEFAULT_COMPUTE_UNIT_LIMIT),
+        | TransactionInputType::Earn(_, _, _)
+        | TransactionInputType::Stake(_, _) => BigInt::from(DEFAULT_COMPUTE_UNIT_ESTIMATE),
+        TransactionInputType::Swap(_, _, _) => BigInt::from(MAX_COMPUTE_UNIT_LIMIT),
     }
+}
+
+fn calculate_priority_fee(unit_price: &BigInt, compute_unit_limit: &BigInt) -> BigInt {
+    let scale = BigInt::from(SOLANA_PRIORITY_FEE_SCALE);
+    (unit_price * compute_unit_limit + &scale - 1u8) / scale
 }
 
 fn get_multiple_of(input_type: &TransactionInputType) -> i64 {
@@ -94,33 +95,19 @@ fn round_to_nearest(value: i64, multiple: i64, round_up: bool) -> i64 {
 }
 
 pub fn calculate_fee_rates(input_type: &TransactionInputType, prioritization_fees: &[SolanaPrioritizationFee]) -> Vec<FeeRate> {
-    let mut fees: Vec<i64> = prioritization_fees.iter().map(|f| f.prioritization_fee).collect();
-    fees.sort_by(|a, b| b.cmp(a));
-    fees.truncate(5);
-
-    let multiple_of = get_multiple_of(input_type);
     let static_base_fee = BigInt::from(STATIC_BASE_FEE);
-
-    let total_priority_base = if fees.is_empty() {
-        BigInt::from(multiple_of)
-    } else {
-        let average = fees.iter().sum::<i64>() / fees.len() as i64;
-        let rounded = round_to_nearest(average, multiple_of, true);
-        BigInt::from(std::cmp::max(rounded, multiple_of))
-    };
-
-    let compute_unit_limit = get_compute_unit_limit(input_type);
+    let normal_unit_price = calculate_unit_price(input_type, prioritization_fees);
+    let compute_unit_limit = get_compute_unit_estimate(input_type);
 
     [FeePriority::Normal, FeePriority::Fast]
         .iter()
         .map(|priority| {
-            let total_priority = match priority {
-                FeePriority::Normal => total_priority_base.clone(),
-                FeePriority::Fast => &total_priority_base * 3,
+            let unit_price = match priority {
+                FeePriority::Normal => normal_unit_price.clone(),
+                FeePriority::Fast => &normal_unit_price * 3,
             };
 
-            let priority_fee = (total_priority.clone() * compute_unit_limit.clone()) / BigInt::from(SOLANA_PRIORITY_FEE_SCALE);
-            let unit_price = total_priority;
+            let priority_fee = calculate_priority_fee(&unit_price, &compute_unit_limit);
 
             FeeRate::new(*priority, GasPriceType::solana(static_base_fee.clone(), priority_fee, unit_price))
         })
@@ -133,15 +120,9 @@ mod tests {
     use primitives::swap::SwapData;
     use primitives::{Asset, AssetId, AssetType, Chain, DelegationValidator, SwapProvider, asset_constants::SOLANA_USDC_ASSET_ID};
 
-    fn mock_swap_data_with_gas_limit(provider: SwapProvider, gas_limit: Option<&str>) -> SwapData {
-        let mut data = SwapData::mock_with_provider(provider);
-        data.data.gas_limit = gas_limit.map(|s| s.to_string());
-        data
-    }
-
     #[test]
     fn test_calculate_transaction_fee() {
-        let gas_price_type = GasPriceType::eip1559(BigInt::from(5000u64), BigInt::from(15000u64));
+        let gas_price_type = GasPriceType::solana(5_000u64, 0u64, 150_000u64);
         let input_type = TransactionInputType::Transfer(Asset {
             id: AssetId::from_chain(Chain::Solana),
             name: "SOL".to_string(),
@@ -150,48 +131,38 @@ mod tests {
             asset_type: AssetType::NATIVE,
         });
 
-        let fee = calculate_transaction_fee(&input_type, &gas_price_type, None);
+        let fee = calculate_transaction_fee(&input_type, &gas_price_type, BigInt::from(100_001u64), None);
 
-        assert_eq!(fee.fee, BigInt::from(20_000u64));
+        assert_eq!(fee.fee, BigInt::from(20_001u64));
         assert_eq!(fee.gas_price_type.gas_price(), BigInt::from(5000u64));
-        assert_eq!(fee.gas_price_type.priority_fee(), BigInt::from(15000u64));
-        assert_eq!(fee.gas_limit, BigInt::from(100_000u64));
+        assert_eq!(fee.gas_price_type.priority_fee(), BigInt::from(15_001u64));
+        assert_eq!(fee.gas_limit, BigInt::from(100_001u64));
         assert!(fee.options.is_empty());
     }
 
     #[test]
     fn test_calculate_transaction_fee_swap() {
         let gas_price_type = GasPriceType::solana(5000u64, 30000u64, 100u64);
-        let input_type = TransactionInputType::Swap(Asset::mock_sol(), Asset::mock_spl_token(), mock_swap_data_with_gas_limit(SwapProvider::Jupiter, None));
+        let input_type = TransactionInputType::Swap(Asset::mock_sol(), Asset::mock_spl_token(), SwapData::mock_with_provider(SwapProvider::Jupiter));
 
-        let fee = calculate_transaction_fee(&input_type, &gas_price_type, Some("recipient_token_address".to_string()));
+        let fee = calculate_transaction_fee(&input_type, &gas_price_type, BigInt::from(550_000u64), Some("recipient_token_address".to_string()));
 
-        assert_eq!(fee.fee, BigInt::from(35_000u64));
-        assert_eq!(fee.gas_limit, BigInt::from(DEFAULT_SWAP_COMPUTE_UNIT_LIMIT));
-    }
-
-    #[test]
-    fn test_calculate_transaction_fee_swap_with_provider_gas_limit() {
-        let gas_price_type = GasPriceType::solana(5000u64, 30000u64, 100u64);
-        let input_type = TransactionInputType::Swap(Asset::mock_sol(), Asset::mock_spl_token(), mock_swap_data_with_gas_limit(SwapProvider::Okx, Some("550000")));
-
-        let fee = calculate_transaction_fee(&input_type, &gas_price_type, Some("recipient_token_address".to_string()));
-
+        assert_eq!(fee.fee, BigInt::from(5_055u64));
         assert_eq!(fee.gas_limit, BigInt::from(550_000u64));
     }
 
     #[test]
     fn test_calculate_transaction_fee_cross_chain_swap_without_token_creation() {
-        let gas_price_type = GasPriceType::eip1559(BigInt::from(5000u64), BigInt::from(15000u64));
+        let gas_price_type = GasPriceType::solana(5_000u64, 15_000u64, 150_000u64);
         let input_type = TransactionInputType::Swap(Asset::mock_spl_token(), Asset::mock_ethereum_usdc(), SwapData::mock_with_provider(SwapProvider::Jupiter));
 
-        let fee = calculate_transaction_fee(&input_type, &gas_price_type, None);
+        let fee = calculate_transaction_fee(&input_type, &gas_price_type, BigInt::from(100_000u64), None);
 
         assert!(!fee.options.contains_key(&FeeOption::TokenAccountCreation));
     }
 
     #[test]
-    fn test_calculate_priority_fee() {
+    fn test_calculate_unit_price() {
         let fees = vec![SolanaPrioritizationFee { prioritization_fee: 150_000 }];
         let input_type = TransactionInputType::Transfer(Asset {
             id: AssetId::from_chain(Chain::Solana),
@@ -201,8 +172,8 @@ mod tests {
             asset_type: AssetType::NATIVE,
         });
 
-        let priority_fee = calculate_priority_fee(&input_type, &fees);
-        assert_eq!(priority_fee, BigInt::from(150_000));
+        let unit_price = calculate_unit_price(&input_type, &fees);
+        assert_eq!(unit_price, BigInt::from(150_000));
     }
 
     #[test]
@@ -272,13 +243,13 @@ mod tests {
     #[test]
     fn test_calculate_fee_rates_swap() {
         let fees = vec![SolanaPrioritizationFee { prioritization_fee: 150_000 }];
-        let input_type = TransactionInputType::Swap(Asset::mock_sol(), Asset::mock_spl_token(), mock_swap_data_with_gas_limit(SwapProvider::Jupiter, None));
+        let input_type = TransactionInputType::Swap(Asset::mock_sol(), Asset::mock_spl_token(), SwapData::mock_with_provider(SwapProvider::Jupiter));
 
         let rates = calculate_fee_rates(&input_type, &fees);
         assert_eq!(rates.len(), 2);
 
-        assert_eq!(rates[0].gas_price_type.priority_fee(), BigInt::from(84_000u64));
-        assert_eq!(rates[1].gas_price_type.priority_fee(), BigInt::from(252_000u64));
+        assert_eq!(rates[0].gas_price_type.priority_fee(), BigInt::from(280_000u64));
+        assert_eq!(rates[1].gas_price_type.priority_fee(), BigInt::from(840_000u64));
     }
 
     #[test]
@@ -325,7 +296,7 @@ mod tests {
 
     #[test]
     fn test_calculate_transaction_fee_token_recipient_exists() {
-        let gas_price_type = GasPriceType::eip1559(BigInt::from(5000u64), BigInt::from(15000u64));
+        let gas_price_type = GasPriceType::solana(5_000u64, 15_000u64, 150_000u64);
         let asset = Asset {
             id: SOLANA_USDC_ASSET_ID.clone(),
             name: "USDC".to_string(),
@@ -335,7 +306,12 @@ mod tests {
         };
         let input_type = TransactionInputType::Transfer(asset);
 
-        let fee = calculate_transaction_fee(&input_type, &gas_price_type, Some("recipient_token_address".to_string()));
+        let fee = calculate_transaction_fee(
+            &input_type,
+            &gas_price_type,
+            BigInt::from(DEFAULT_COMPUTE_UNIT_ESTIMATE),
+            Some("recipient_token_address".to_string()),
+        );
 
         assert_eq!(fee.fee, BigInt::from(20_000u64));
         assert!(fee.options.is_empty());
@@ -343,7 +319,7 @@ mod tests {
 
     #[test]
     fn test_calculate_transaction_fee_token_recipient_new() {
-        let gas_price_type = GasPriceType::eip1559(BigInt::from(5000u64), BigInt::from(15000u64));
+        let gas_price_type = GasPriceType::solana(5_000u64, 15_000u64, 150_000u64);
         let asset = Asset {
             id: SOLANA_USDC_ASSET_ID.clone(),
             name: "USDC".to_string(),
@@ -353,7 +329,7 @@ mod tests {
         };
         let input_type = TransactionInputType::Transfer(asset);
 
-        let fee = calculate_transaction_fee(&input_type, &gas_price_type, None);
+        let fee = calculate_transaction_fee(&input_type, &gas_price_type, BigInt::from(DEFAULT_COMPUTE_UNIT_ESTIMATE), None);
 
         assert_eq!(fee.fee, BigInt::from(2_059_280u64)); // 20_000 gas + 2_039_280 token account creation
         assert_eq!(fee.options.len(), 1);
@@ -367,7 +343,7 @@ mod tests {
         let validator = DelegationValidator::stake(Chain::Solana, "validator".to_string(), "validator".to_string(), true, 0.0, 0.0);
         let input_type = TransactionInputType::Stake(Asset::mock_sol(), StakeType::Stake(validator));
 
-        let fee = calculate_transaction_fee(&input_type, &gas_price_type, None);
+        let fee = calculate_transaction_fee(&input_type, &gas_price_type, BigInt::from(DEFAULT_COMPUTE_UNIT_ESTIMATE), None);
 
         assert_eq!(fee.fee, BigInt::from(2_290_380u64));
         assert_eq!(fee.options[&FeeOption::TokenAccountCreation], BigInt::from(STAKE_ACCOUNT_CREATION_FEE));
