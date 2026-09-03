@@ -1,5 +1,5 @@
 use crate::types::{ERROR_CLIENT_ERROR, ERROR_INTERNAL_ERROR, JsonRpcError, JsonRpcRequest, JsonRpcResult, JsonRpcResults, ToJsonRpcRequest};
-use gem_client::{Client, ClientError, ClientExt};
+use gem_client::{Client, ClientError, ClientExt, X_CACHE_TTL};
 use serde::de::DeserializeOwned;
 use std::{collections::HashMap, time::SystemTime};
 
@@ -56,7 +56,7 @@ impl<C: Client + Clone> JsonRpcClient<C> {
     async fn send_request<T: DeserializeOwned + Send>(&self, request: JsonRpcRequest, ttl: Option<u64>) -> Result<JsonRpcResult<T>, JsonRpcError> {
         let mut headers = HashMap::new();
         if let Some(ttl_seconds) = ttl {
-            headers.insert("Cache-Control".to_string(), format!("max-age={}", ttl_seconds));
+            headers.insert(X_CACHE_TTL.to_string(), ttl_seconds.to_string());
         }
 
         let result: JsonRpcResult<T> = self.client.post("", &request).headers(headers).await?;
