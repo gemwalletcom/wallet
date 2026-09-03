@@ -32,6 +32,7 @@ signer = { path = "../signer", optional = true }
 
 [dev-dependencies]
 chain_traits = { path = "../chain_traits", features = ["testkit"] }
+gem_client = { path = "../gem_client", features = ["testkit"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 settings = { path = "../settings", features = ["testkit"] }
 primitives = { path = "../primitives", features = ["testkit"] }
