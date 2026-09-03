@@ -2,10 +2,10 @@
 
 import BigInt
 import Foundation
+import enum Gemstone.GemApprovalValue
 import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemAssetPrice
 import struct Gemstone.GemConfirmMetadata
-import enum Gemstone.GemApprovalValue
 import struct Gemstone.GemFeeAsset
 import Primitives
 
@@ -32,7 +32,7 @@ public extension GemFeeAsset {
         try (
             asset: asset.map(),
             balance: Primitives.Balance(balance),
-            price: price.map { Primitives.Price(price: $0.price, priceChangePercentage24h: $0.priceChangePercentage24h, updatedAt: Date(timeIntervalSince1970: TimeInterval($0.updatedAt))) }
+            price: price.map { Primitives.Price(price: $0.price, priceChangePercentage24h: $0.priceChangePercentage24h, updatedAt: Date(timeIntervalSince1970: TimeInterval($0.updatedAt))) },
         )
     }
 }
@@ -46,7 +46,6 @@ public extension Primitives.Price {
         )
     }
 }
-
 
 public extension GemApprovalValue {
     func map() -> Primitives.ApprovalValue {
@@ -67,7 +66,6 @@ public extension GemConfirmMetadata {
     var feePrice: Primitives.Price? { price(for: feeAssetBalance.assetId) }
 
     var balance: Primitives.Balance? { try? Primitives.Balance(assetBalance) }
-    var feeBalance: Primitives.Balance? { try? Primitives.Balance(feeAssetBalance) }
 
     func price(for assetId: String) -> Primitives.Price? {
         prices.first { $0.assetId == assetId }.map { Primitives.Price($0) }
