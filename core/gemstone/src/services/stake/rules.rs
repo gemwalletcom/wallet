@@ -144,10 +144,6 @@ impl GemAssetBalance {
         principal + &self.pending + &self.rewards
     }
 
-    pub fn shows_stake_balance(&self, chain: Chain, is_stake_enabled: bool) -> bool {
-        StakeChain::from_str(chain.as_ref()).is_ok() && (is_stake_enabled || self.staked_value(chain) > GemBigUint::ZERO)
-    }
-
     pub fn detail_rows(&self, chain: Chain, is_stake_enabled: bool) -> Vec<GemBalanceRow> {
         let positive = |value: &GemBigUint| (*value > GemBigUint::ZERO).then(|| value.clone());
         let rows: Vec<GemBalanceRow> = [
@@ -177,6 +173,12 @@ impl GemAssetBalance {
         } else {
             rows
         }
+    }
+}
+
+impl GemAssetBalance {
+    pub fn shows_stake_balance(&self, chain: Chain, is_stake_enabled: bool) -> bool {
+        StakeChain::from_str(chain.as_ref()).is_ok() && (is_stake_enabled || self.staked_value(chain) > GemBigUint::ZERO)
     }
 }
 

@@ -6,13 +6,12 @@ use zeroize::Zeroizing;
 
 const AUTH_SIGNING_BYTES_LENGTH: usize = 32;
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct GemAuthMessage {
     pub message: String,
     pub hash: Vec<u8>,
 }
 
-#[uniffi::export]
 pub fn create_auth_message(address: &str, auth_nonce: AuthNonce) -> GemAuthMessage {
     let auth_message = AuthMessage {
         chain: Chain::Ethereum,
