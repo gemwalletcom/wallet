@@ -53,7 +53,7 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
     public func addPrices(assetIds _: [AssetId]) async throws {}
 
     public func bannerContent(event _: BannerEvent, asset _: Asset?) -> GemBannerContent {
-        GemBannerContent(icon: .none, title: .none, description: .none)
+        GemBannerContent(icon: .none, title: .none, description: .none, link: .none)
     }
 
     public func applyBannerAction(key _: GemBannerKey, action _: GemBannerAction) async throws {}

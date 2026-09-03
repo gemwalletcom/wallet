@@ -1,7 +1,9 @@
 use crate::models::custom_types::GemBigInt;
 use primitives::{Asset, AssetId, BannerEvent, BannerState, Chain, ChainAsset, VerificationStatus, Wallet, WalletSource};
 
-use super::model::{GemBannerAmount, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerTitle};
+use super::model::{GemBannerAmount, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerLink, GemBannerTitle};
+use crate::config::chain::account_activation_fee_url;
+use crate::config::docs::DocsUrl;
 
 const ACCOUNT_ACTIVATION_CHAINS: [Chain; 3] = [Chain::Xrp, Chain::Stellar, Chain::Algorand];
 const TRADE_PERPETUALS_CHAINS: [Chain; 2] = [Chain::HyperCore, Chain::Hyperliquid];
@@ -70,6 +72,18 @@ pub fn banner_content(event: BannerEvent, asset: Option<&Asset>) -> GemBannerCon
         icon: banner_icon(event, asset.map(|asset| asset.id.chain)),
         title: banner_title(event, asset),
         description: banner_description(event, asset),
+        link: banner_link(event, asset.map(|asset| asset.id.chain)),
+    }
+}
+
+fn banner_link(event: BannerEvent, chain: Option<Chain>) -> Option<GemBannerLink> {
+    match event {
+        BannerEvent::Stake | BannerEvent::ActivateAsset | BannerEvent::Onboarding | BannerEvent::TradePerpetuals => None,
+        BannerEvent::AccountActivation => account_activation_fee_url(chain?).map(|url| GemBannerLink::External { url }),
+        BannerEvent::AccountBlockedMultiSignature => Some(GemBannerLink::Docs {
+            item: DocsUrl::TronMultiSignature,
+        }),
+        BannerEvent::SuspiciousAsset => Some(GemBannerLink::Docs { item: DocsUrl::TokenVerification }),
     }
 }
 
@@ -383,6 +397,17 @@ mod tests {
         assert_eq!(ethereum.id.chain.account_activation_fee(), None);
         let without_fee = banner_content(BannerEvent::AccountActivation, Some(&ethereum));
         assert_eq!(without_fee.description, None);
+        assert_eq!(without_fee.link, None);
+        assert_eq!(
+            banner_content(BannerEvent::AccountActivation, Some(&xrp)).link,
+            Some(GemBannerLink::External {
+                url: account_activation_fee_url(Chain::Xrp).unwrap()
+            })
+        );
+        assert_eq!(
+            banner_content(BannerEvent::SuspiciousAsset, Some(&ethereum)).link,
+            Some(GemBannerLink::Docs { item: DocsUrl::TokenVerification })
+        );
         assert_eq!(without_fee.title, Some(GemBannerTitle::AccountActivation));
     }
 

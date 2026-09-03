@@ -459,6 +459,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
   all go through `open_asset` now and the policy is deleted. iOS `NavigationHandler` /
   `NavigationPresenter` stop reading `currentWallet` to hand it back to Core for the same call.
 
+- **A banner's link is part of its content.** `GemBannerContent.link: Option<GemBannerLink { Docs { item: DocsUrl }, External { url } }>`
+  names what a tap opens (the chain's reserve documentation for account activation, the
+  multi-signature and token-verification docs); the apps only turn a `Docs` item into their
+  UTM-tagged docs URL. iOS `BannerViewModel.url` and the two Android banner click handlers
+  (`BannerItem`, `AssetsScreen`) held that per-event switch, and Android never opened the
+  suspicious-asset docs; `BannersScene` opens the link for every caller now.
+
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**

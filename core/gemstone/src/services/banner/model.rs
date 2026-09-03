@@ -1,3 +1,4 @@
+use crate::config::docs::DocsUrl;
 use crate::models::custom_types::GemBigInt;
 use primitives::{AssetId, BannerEvent, BannerState, Chain, Wallet, WalletId};
 
@@ -87,11 +88,18 @@ pub enum GemBannerDescription {
     TradePerpetuals,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemBannerLink {
+    Docs { item: DocsUrl },
+    External { url: String },
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemBannerContent {
     pub icon: Option<GemBannerIcon>,
     pub title: Option<GemBannerTitle>,
     pub description: Option<GemBannerDescription>,
+    pub link: Option<GemBannerLink>,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]

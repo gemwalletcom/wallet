@@ -22,6 +22,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -29,8 +31,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.AppUrl
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
@@ -43,6 +47,7 @@ import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.features.banner.viewmodels.BannersViewModel
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Banner
+import uniffi.gemstone.GemBannerLink
 
 private val bannerEmojiFontSize = 32.sp
 
@@ -59,16 +64,20 @@ fun BannersScene(
 
     val banners by viewModel.banners.collectAsStateWithLifecycle()
     val pageState = rememberPagerState { banners.size }
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
 
     if (banners.isEmpty()) {
         return
     }
     HorizontalPager(pageState, pageSpacing = paddingDefault) { page ->
         val banner = banners[page].banner
-        val model = bannerItemUIModel(banner, banners[page].content)
+        val content = banners[page].content
+        val model = bannerItemUIModel(banner, content)
         Box(
             modifier = Modifier.listItem(ListPosition.Single).clickable {
                 viewModel.onSelect(banner)
+                content.link?.url()?.let { uriHandler.open(context, it) }
                 onClick(banner)
             }
         ) {
@@ -161,4 +170,9 @@ private fun BannerIconView(icon: BannerIcon) {
             contentDescription = null,
         )
     }
+}
+
+private fun GemBannerLink.url(): String = when (this) {
+    is GemBannerLink.Docs -> AppUrl.docs(item)
+    is GemBannerLink.External -> url
 }

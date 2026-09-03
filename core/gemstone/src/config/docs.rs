@@ -1,7 +1,7 @@
 use crate::models::GemStakeChain;
 use primitives::Asset;
 
-#[derive(uniffi::Enum, Clone)]
+#[derive(uniffi::Enum, Clone, Debug, PartialEq)]
 pub enum DocsUrl {
     Start,
     WhatIsWatchWallet,

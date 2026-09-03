@@ -45,11 +45,17 @@ public final class GemSecureStoreMock: GemSecureStore, @unchecked Sendable {
 
     public init() {}
 
-    public func get(key: String) throws -> String? { values[key] }
+    public func get(key: String) throws -> String? {
+        values[key]
+    }
 
-    public func set(key: String, value: String) throws { values[key] = value }
+    public func set(key: String, value: String) throws {
+        values[key] = value
+    }
 
-    public func remove(key: String) throws { values[key] = nil }
+    public func remove(key: String) throws {
+        values[key] = nil
+    }
 }
 
 public final class GemPreferencesStoreMock: GemPreferencesStore, @unchecked Sendable {
@@ -88,17 +94,25 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         lock.withLock { priceAlertsEnabled = enabled }
     }
 
-    public func getCurrency() -> Gemstone.Currency { Primitives.Currency.usd.rawValue }
+    public func getCurrency() -> Gemstone.Currency {
+        Primitives.Currency.usd.rawValue
+    }
 
     public func setCurrency(currency _: Gemstone.Currency) throws {}
 
-    public func setupCurrency(localeCurrency _: String?) throws -> Gemstone.Currency { Primitives.Currency.usd.rawValue }
+    public func setupCurrency(localeCurrency _: String?) throws -> Gemstone.Currency {
+        Primitives.Currency.usd.rawValue
+    }
 
-    public func getChartPeriod() -> Gemstone.ChartPeriod { (Primitives.ChartPeriod.day.json()) ?? "\"day\"" }
+    public func getChartPeriod() -> Gemstone.ChartPeriod {
+        (Primitives.ChartPeriod.day.json()) ?? "\"day\""
+    }
 
     public func setChartPeriod(period _: Gemstone.ChartPeriod) throws {}
 
-    public func isPushNotificationsEnabled() -> Bool { false }
+    public func isPushNotificationsEnabled() -> Bool {
+        false
+    }
 
     public func setPushNotificationsEnabled(enabled _: Bool) throws {}
 
@@ -108,9 +122,13 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
     private var acceptTermsCompleted = false
     private var appearance: Gemstone.Appearance = (Primitives.Appearance.system.json()) ?? "\"system\""
 
-    public func isPerpetualEnabled() -> Bool { perpetualEnabled }
+    public func isPerpetualEnabled() -> Bool {
+        perpetualEnabled
+    }
 
-    public func setPerpetualEnabled(enabled: Bool) throws { perpetualEnabled = enabled }
+    public func setPerpetualEnabled(enabled: Bool) throws {
+        perpetualEnabled = enabled
+    }
 
     public func showPerpetuals(wallet: Gemstone.Wallet) -> Bool {
         perpetualEnabled && ((try? Primitives.Wallet(wallet).supportsPerpetuals) ?? false)
@@ -122,45 +140,75 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         collectionsShown
     }
 
-    public func isHideBalanceEnabled() -> Bool { hideBalanceEnabled }
+    public func isHideBalanceEnabled() -> Bool {
+        hideBalanceEnabled
+    }
 
-    public func setHideBalanceEnabled(enabled: Bool) throws { hideBalanceEnabled = enabled }
+    public func setHideBalanceEnabled(enabled: Bool) throws {
+        hideBalanceEnabled = enabled
+    }
 
-    public func isDeveloperEnabled() -> Bool { developerEnabled }
+    public func isDeveloperEnabled() -> Bool {
+        developerEnabled
+    }
 
-    public func setDeveloperEnabled(enabled: Bool) throws { developerEnabled = enabled }
+    public func setDeveloperEnabled(enabled: Bool) throws {
+        developerEnabled = enabled
+    }
 
-    public func isAcceptTermsCompleted() -> Bool { acceptTermsCompleted }
+    public func isAcceptTermsCompleted() -> Bool {
+        acceptTermsCompleted
+    }
 
-    public func setAcceptTermsCompleted() throws { acceptTermsCompleted = true }
+    public func setAcceptTermsCompleted() throws {
+        acceptTermsCompleted = true
+    }
 
-    public func getAppearance() -> Gemstone.Appearance { appearance }
+    public func getAppearance() -> Gemstone.Appearance {
+        appearance
+    }
 
-    public func setAppearance(appearance: Gemstone.Appearance) throws { self.appearance = appearance }
+    public func setAppearance(appearance: Gemstone.Appearance) throws {
+        self.appearance = appearance
+    }
 
-    public func getSwapSlippageBps() -> UInt32? { nil }
+    public func getSwapSlippageBps() -> UInt32? {
+        nil
+    }
 
     public func setSwapSlippageBps(bps _: UInt32?) throws {}
 
-    public func getPerpetualLeverage() -> UInt8 { 5 }
+    public func getPerpetualLeverage() -> UInt8 {
+        5
+    }
 
     public func setPerpetualLeverage(leverage _: UInt8) throws {}
 
-    public func getPerpetualTakeProfitPercent() -> UInt8 { 0 }
+    public func getPerpetualTakeProfitPercent() -> UInt8 {
+        0
+    }
 
     public func setPerpetualTakeProfitPercent(percent _: UInt8) throws {}
 
-    public func getPerpetualStopLossPercent() -> UInt8 { 0 }
+    public func getPerpetualStopLossPercent() -> UInt8 {
+        0
+    }
 
     public func setPerpetualStopLossPercent(percent _: UInt8) throws {}
 
-    public func incrementLaunchesCount() throws -> UInt32 { 1 }
+    public func incrementLaunchesCount() throws -> UInt32 {
+        1
+    }
 
-    public func shouldRequestReview() -> Bool { false }
+    public func shouldRequestReview() -> Bool {
+        false
+    }
 
     public func setRateApplicationShown() throws {}
 
-    public func shouldAskNotifications() -> Bool { false }
+    public func shouldAskNotifications() -> Bool {
+        false
+    }
 
     public func setNotificationsAsked() throws {}
 
@@ -207,11 +255,11 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
 public final class StubAlienProvider: AlienProvider, @unchecked Sendable {
     public init() {}
 
-    public func request(target: AlienTarget) async throws -> AlienResponse {
+    public func request(target _: AlienTarget) async throws -> AlienResponse {
         throw AnyError("StubAlienProvider does not perform requests")
     }
 
-    public func getEndpoint(chain: Gemstone.Chain) throws -> String {
+    public func getEndpoint(chain _: Gemstone.Chain) throws -> String {
         throw AnyError("StubAlienProvider has no endpoints")
     }
 }
@@ -255,7 +303,9 @@ public final class GemManageContactServiceMock: GemManageContactServiceProtocol,
 public final class GemContactStoreMock: GemContactStore, @unchecked Sendable {
     public init() {}
 
-    public func getAddresses(contactId _: String) async throws -> [Gemstone.ContactAddress] { [] }
+    public func getAddresses(contactId _: String) async throws -> [Gemstone.ContactAddress] {
+        []
+    }
 
     public func saveContact(contact _: Gemstone.Contact, addresses _: [Gemstone.ContactAddress]) async throws {}
 
@@ -267,7 +317,9 @@ public final class GemContactStoreMock: GemContactStore, @unchecked Sendable {
 public final class GemAddressStoreMock: GemAddressStore, @unchecked Sendable {
     public init() {}
 
-    public func getAddressName(chain _: Gemstone.Chain, address _: String) throws -> Gemstone.AddressName? { nil }
+    public func getAddressName(chain _: Gemstone.Chain, address _: String) throws -> Gemstone.AddressName? {
+        nil
+    }
 
     public func saveAddressNames(names _: [Gemstone.AddressName]) async throws {}
 
@@ -277,13 +329,21 @@ public final class GemAddressStoreMock: GemAddressStore, @unchecked Sendable {
 public final class GemFileStoreMock: GemFileStore, @unchecked Sendable {
     public init() {}
 
-    public func saveFile(data _: Data, extension _: String) throws -> String { "" }
+    public func saveFile(data _: Data, extension _: String) throws -> String {
+        ""
+    }
 
-    public func saveNamedFile(data _: Data, fileName: String) throws -> String { fileName }
+    public func saveNamedFile(data _: Data, fileName: String) throws -> String {
+        fileName
+    }
 
-    public func exists(fileName _: String) -> Bool { false }
+    public func exists(fileName _: String) -> Bool {
+        false
+    }
 
-    public func path(fileName: String) -> String { fileName }
+    public func path(fileName: String) -> String {
+        fileName
+    }
 
     public func remove(fileName _: String) throws {}
 }
@@ -301,7 +361,9 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         self.builder = builder
     }
 
-    public func currency() -> Gemstone.Currency { Primitives.Currency.usd.rawValue }
+    public func currency() -> Gemstone.Currency {
+        Primitives.Currency.usd.rawValue
+    }
 
     public func stakeTransferData(asset: Gemstone.Asset, stakeType: Gemstone.StakeType, value: Gemstone.GemBigInt, useMaxAmount: Bool) -> GemTransferData {
         builder.stakeTransferData(asset: asset, stakeType: stakeType, value: value, useMaxAmount: useMaxAmount)
@@ -315,7 +377,9 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         throw AnyError("not stubbed")
     }
 
-    public func perpetualLeverage(maxLeverage: UInt8) -> UInt8 { min(5, maxLeverage) }
+    public func perpetualLeverage(maxLeverage: UInt8) -> UInt8 {
+        min(5, maxLeverage)
+    }
 
     public func perpetualAutoclose(price _: Double, direction _: Gemstone.PerpetualDirection, leverage _: UInt8) -> GemPerpetualAutoclose {
         GemPerpetualAutoclose(takeProfit: nil, stopLoss: nil)
@@ -331,7 +395,9 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
         self.check = check
     }
 
-    public func currency() -> Gemstone.Currency { Primitives.Currency.usd.rawValue }
+    public func currency() -> Gemstone.Currency {
+        Primitives.Currency.usd.rawValue
+    }
 
     public func config() -> Gemstone.FiatConfig {
         Gemstone.FiatConfig(defaultBuyAmount: 50, defaultSellAmount: 100, minimumAmount: 5, maximumAmount: 10000, randomMaxAmount: 1000, suggestedAmounts: [100, 250], insufficientNetworkFeeBuyAmount: 10)
@@ -341,15 +407,21 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
         (try? Primitives.FiatQuoteType(quoteType)) == .sell ? 100 : 50
     }
 
-    public func randomAmount() -> UInt32 { 50 }
+    public func randomAmount() -> UInt32 {
+        50
+    }
 
     public func amountCheck(quoteType _: Gemstone.FiatQuoteType, amount _: Double, quote: Gemstone.FiatQuote?, available _: GemBigUint) -> GemFiatAmountCheck {
         check(quote.flatMap { try? Primitives.FiatQuote($0) })
     }
 
-    public func quoteDebounceMilliseconds() -> UInt64 { 250 }
+    public func quoteDebounceMilliseconds() -> UInt64 {
+        250
+    }
 
-    public func quoteRefreshIntervalMilliseconds() -> UInt64 { 300_000 }
+    public func quoteRefreshIntervalMilliseconds() -> UInt64 {
+        300_000
+    }
 
     public func syncTransactions() async throws {}
 
@@ -418,7 +490,6 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
     public func recipient(chain: Gemstone.Chain, input: String, nameRecord: Gemstone.NameRecord?, memo: String?, references: [String]) throws -> GemRecipient {
         try rules.recipient(chain: chain, input: input, nameRecord: nameRecord, memo: memo, references: references)
     }
-
 }
 
 public final class GemPortfolioServiceMock: GemPortfolioServiceProtocol, @unchecked Sendable {
@@ -500,15 +571,15 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     }
 
     public func recommendedValidatorIds(chain _: Gemstone.Chain) -> [String] {
-        validators.map { $0 }
+        validators.map(\.self)
     }
 
     public func recommendedValidator(chain _: Gemstone.Chain, validators _: [Gemstone.DelegationValidator]) -> Gemstone.DelegationValidator? {
-        self.validators.first
+        validators.first
     }
 
     public func selectableValidators(validators _: [Gemstone.DelegationValidator]) -> [Gemstone.DelegationValidator] {
-        self.validators
+        validators
     }
 
     public func sync(chain _: Gemstone.Chain) async throws {}
@@ -557,7 +628,7 @@ public final class GemBalanceServiceMock: GemBalanceServiceProtocol, @unchecked 
         self.assetBalances = assetBalances
     }
 
-    public func balances(walletId: String, assetIds: [Gemstone.AssetId]) throws -> [GemAssetBalance] {
+    public func balances(walletId _: String, assetIds: [Gemstone.AssetId]) throws -> [GemAssetBalance] {
         assetBalances.filter { assetIds.contains($0.assetId) }
     }
 
@@ -743,7 +814,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
     }
 
     public func bannerContent(event _: Gemstone.BannerEvent, asset _: Gemstone.Asset?) -> GemBannerContent {
-        GemBannerContent(icon: .none, title: .none, description: .none)
+        GemBannerContent(icon: .none, title: .none, description: .none, link: .none)
     }
 
     public func applyBannerAction(key _: GemBannerKey, action: GemBannerAction) async throws {
@@ -800,7 +871,7 @@ public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Se
     public func setupWallet(wallet _: Gemstone.Wallet) async throws {}
 
     public func bannerContent(event _: Gemstone.BannerEvent, asset _: Gemstone.Asset?) -> GemBannerContent {
-        GemBannerContent(icon: .none, title: .none, description: .none)
+        GemBannerContent(icon: .none, title: .none, description: .none, link: .none)
     }
 }
 

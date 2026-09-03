@@ -31,15 +31,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.AppUrl
 import com.gemwallet.android.features.assets.viewmodels.AssetsViewModel
 import com.gemwallet.android.features.assets.views.components.AssetsHead
 import com.gemwallet.android.features.assets.views.components.AssetsListFooter
@@ -56,12 +53,9 @@ import com.gemwallet.android.ui.components.screen.AssetToastEffect
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.SnackbarHost
 import com.gemwallet.android.ui.models.AssetsGroupType
-import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.BannerEvent
-import uniffi.gemstone.DocsUrl
 
 private const val AssetsHeadItemKey = "assets_head"
 private const val WelcomeBannerItemKey = "welcome_banner"
@@ -89,8 +83,6 @@ fun AssetsScreen(
     val showWelcomeBanner by viewModel.showWelcomeBanner.collectAsStateWithLifecycle()
     val collectionsAvailable by viewModel.collectionsAvailable.collectAsStateWithLifecycle()
 
-    val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
     val snackbar = remember { SnackbarHostState() }
     AssetToastEffect(viewModel.toastEvents, snackbar)
 
@@ -167,13 +159,7 @@ fun AssetsScreen(
                 item(key = BannersItemKey) {
                     BannersScene(
                         asset = null,
-                        onClick = { banner ->
-                            when (banner.event) {
-                                BannerEvent.AccountBlockedMultiSignature ->
-                                    uriHandler.open(context, AppUrl.docs(DocsUrl.TronMultiSignature))
-                                else -> {}
-                            }
-                        },
+                        onClick = {},
                         false
                     )
                 }
