@@ -112,3 +112,28 @@ pub struct StatusActionResponse {
     pub amount_in: TokenAmount,
     pub amount_out: TokenAmount,
 }
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PathsQuery {
+    pub src_chain_id: u64,
+    pub src_token: String,
+    pub dst_chain_id: u64,
+}
+
+impl PathsQuery {
+    pub fn native(source_chain_id: u64, destination_chain_id: u64) -> Self {
+        Self {
+            src_chain_id: source_chain_id,
+            src_token: EVM_ZERO_ADDRESS.to_string(),
+            dst_chain_id: destination_chain_id,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StatusQuery {
+    pub tx_hash: String,
+    pub chain_id: u64,
+}

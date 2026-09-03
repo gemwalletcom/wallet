@@ -1,4 +1,5 @@
 use super::model::{BuildRequest, BuildResponse};
+use super::target::JupiterTarget;
 use crate::SwapperError;
 use gem_client::{Client, ClientExt};
 
@@ -19,6 +20,6 @@ where
     }
 
     pub(super) async fn get_build(&self, request: &BuildRequest) -> Result<BuildResponse, SwapperError> {
-        self.client.get("/swap/v2/build").query(request).await.map_err(SwapperError::from)
+        self.client.get(JupiterTarget::Build).query(request).await.map_err(SwapperError::from)
     }
 }
