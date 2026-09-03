@@ -37,7 +37,7 @@ fun SelectReceiveScreen(
             IconButton(
                 onClick = {
                     viewModel.onChangeVisibility(it.asset.id, true)
-                    clipboardManager.setPlainText(context, viewModel.getAccount(it.asset.id)?.address ?: "")
+                    clipboardManager.setPlainText(context, it.accountAddress)
                 }
             ) {
                 Icon(imageVector = AppIcons.ContentCopy, contentDescription = "")

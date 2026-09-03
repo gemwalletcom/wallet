@@ -28,7 +28,6 @@ import com.gemwallet.android.ui.models.AssetToastEmitterImpl
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
-import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -211,10 +210,6 @@ open class BaseAssetSelectViewModel(
     fun onClearFilters() {
         chainFilter.update { emptyList() }
         balanceFilter.update { false }
-    }
-
-    fun getAccount(assetId: AssetId): Account? {
-        return session.value?.wallet?.getAccount(assetId)
     }
 
     init {
