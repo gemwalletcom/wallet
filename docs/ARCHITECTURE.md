@@ -876,3 +876,11 @@ chain stakes (zero means "offer staking", which both apps render as the APR) —
 formats them. iOS's `AssetData.balances` map and the `has*Balance` predicates, and Android's
 `hasBalanceDetails`/`formatAvailable`/`formatStake`/`formatReserved` and `isStaked`, are gone.
 
+**A direction the signer interprets is a Core convention, not a screen's choice.** The HyperCore
+signer treats `PerpetualConfirmData.direction` as the *position* direction for a close and a
+reduce (`is_buy = direction == Short`, reduce-only), and the slippage price follows the same
+reading. Android built a reduce order with the position direction; iOS flipped it, so a reduce
+on a long became a reduce-only buy. The screens now both pass the position direction and the
+signer test pins the convention. When two apps disagree on an input Core signs, the signer's
+reading is the rule — write it down there, then fix the app.
+

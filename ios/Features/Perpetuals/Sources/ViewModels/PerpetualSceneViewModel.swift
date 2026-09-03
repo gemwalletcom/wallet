@@ -291,18 +291,9 @@ public extension PerpetualSceneViewModel {
     func onReducePosition() {
         isPresentingModifyAlert = false
 
-        guard let position = positions.first?.position else {
-            return
-        }
-
-        let direction: PerpetualDirection = switch position.direction {
-        case .long: .short
-        case .short: .long
-        }
-
-        guard let transferData = createTransferData(direction: direction, leverage: position.leverage, marginType: position.marginType) else {
-            return
-        }
+        guard let position = positions.first?.position,
+              let transferData = createTransferData(direction: position.direction, leverage: position.leverage, marginType: position.marginType)
+        else { return }
         let baseAsset = Chain.hyperCore.defaultAsset(type: .perpetual)
 
         onPositionAction(
