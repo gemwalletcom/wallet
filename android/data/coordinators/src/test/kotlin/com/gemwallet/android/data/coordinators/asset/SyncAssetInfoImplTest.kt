@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.application.assets.cases.SyncMissingAssets
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAccount
@@ -27,13 +26,11 @@ class SyncAssetInfoImplTest {
     private val assetsService = mockk<GemAssetsService>()
     private val balanceService = mockk<GemBalanceService>(relaxed = true)
     private val streamSubscriptionService = mockk<GemStreamSubscriptionService>(relaxed = true)
-    private val syncMissingAssets = mockk<SyncMissingAssets>(relaxed = true)
 
     private val subject = SyncAssetInfoImpl(
         assetsService = assetsService,
         balanceService = balanceService,
         streamSubscriptionService = streamSubscriptionService,
-        syncMissingAssets = syncMissingAssets,
     )
 
     private val asset = mockAsset()
@@ -50,6 +47,7 @@ class SyncAssetInfoImplTest {
     @Test
     fun syncAssetInfo_syncsBalanceMetadataAndPricesThroughCore() = runTest {
         coEvery { assetsService.syncAsset("bitcoin") } returns assetFull.toJson()
+        coEvery { assetsService.syncMissingAssets(any()) } returns emptyList()
 
         subject.syncAssetInfo(asset.id, wallet)
 
@@ -77,9 +75,10 @@ class SyncAssetInfoImplTest {
             ),
         )
         coEvery { assetsService.syncAsset("bitcoin") } returns assetFull.toJson()
+        coEvery { assetsService.syncMissingAssets(any()) } returns emptyList()
 
         subject.syncAssetInfo(asset.id, wallet)
 
-        coVerify { syncMissingAssets.syncMissingAssets(listOf(associatedAssetId)) }
+        coVerify { assetsService.syncMissingAssets(listOf(associatedAssetId.toIdentifier())) }
     }
 }

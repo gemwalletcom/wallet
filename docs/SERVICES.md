@@ -529,6 +529,15 @@ Three gotchas if you repeat the sweep, all met on this pass:
   offered `Chain.entries` — every chain, not the wallet's. `TransactionsViewModel` holds the Core
   service directly now, so the one-line `SyncTransactions` case and coordinator are deleted.
 
+- **Android pass-through cases are gone where a Core service already sits next to them.**
+  `GetBannerContent`, `ApplyBannerAction` (with the app-only `BannerAction` enum),
+  `SyncMissingAssets`, `SetWalletPinned` and the unread `GetRemoteConfig` each wrapped one
+  `Gem*Service` call; `BannersViewModel`, `WalletsViewModel`, `NotificationNavigation` and
+  `SyncAssetInfoImpl` call the service. `Banner.toGemKey()` / `Wallet.onboardingBannerKey()`
+  in `ext/Banner.kt` are the one place Android builds a banner key. `SettingsViewModelTest`
+  now joins the view model scope before `resetMain()` — its `withContext(IO)` hop used to resume
+  on a reset Main and fail the next test.
+
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**

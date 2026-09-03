@@ -8,7 +8,6 @@ import com.gemwallet.android.application.wallet.cases.GetAllWallets
 import com.gemwallet.android.application.wallet.cases.GetWalletDetails
 import com.gemwallet.android.application.wallet.cases.GetWalletSecretData
 import com.gemwallet.android.application.wallet.cases.SetWalletName
-import com.gemwallet.android.application.wallet.cases.SetWalletPinned
 import com.gemwallet.android.blockchain.operators.LoadPrivateDataOperator
 import com.gemwallet.android.application.addresses.cases.RenameWalletAddresses
 import com.gemwallet.android.data.coordinators.wallet.DeleteWalletImpl
@@ -18,7 +17,6 @@ import com.gemwallet.android.data.coordinators.wallet.GetAllWalletsImpl
 import com.gemwallet.android.data.coordinators.wallet.GetWalletDetailsImpl
 import com.gemwallet.android.data.coordinators.wallet.GetWalletSecretDataImpl
 import com.gemwallet.android.data.coordinators.wallet.SetWalletNameImpl
-import com.gemwallet.android.data.coordinators.wallet.SetWalletPinnedImpl
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.application.session.cases.GetSession
@@ -88,11 +86,6 @@ object WalletModule {
         userConfig: UserConfig,
     ): DeleteWallet {
         return DeleteWalletImpl(walletService, userConfig)
-    }
-
-    @Provides
-    fun provideSetWalletPinned(walletService: GemWalletService): SetWalletPinned {
-        return SetWalletPinnedImpl(walletService)
     }
 
 }

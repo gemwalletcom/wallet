@@ -1,7 +1,6 @@
 package com.gemwallet.android
 
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.application.assets.cases.SyncMissingAssets
 import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
@@ -49,7 +48,6 @@ class NotificationNavigationTest {
     private val setCurrentWallet = mockk<SetCurrentWallet>(relaxed = true)
     private val getWallet = mockk<GetWallet>()
     private val createTransaction = mockk<CreateTransaction>()
-    private val syncMissingAssets = mockk<SyncMissingAssets>()
     private val assetsService = mockk<GemAssetsService>()
     private val pushNotificationService = GemPushNotificationService()
 
@@ -58,7 +56,6 @@ class NotificationNavigationTest {
         setCurrentWallet = setCurrentWallet,
         getWallet = getWallet,
         createTransaction = createTransaction,
-        syncMissingAssets = syncMissingAssets,
         assetsService = assetsService,
         pushNotificationService = pushNotificationService,
     )
@@ -69,7 +66,7 @@ class NotificationNavigationTest {
         coEvery { setCurrentWallet.setCurrentWallet(any()) } coAnswers {
             session.value = mockSession(wallet = mockWallet(id = (invocation.args.first() as WalletId).id))
         }
-        coEvery { syncMissingAssets.syncMissingAssets(any()) } returns emptyList()
+        coEvery { assetsService.syncMissingAssets(any()) } returns emptyList()
     }
 
     @Test
@@ -199,7 +196,7 @@ class NotificationNavigationTest {
         val route = subject.prepareNavigation(GemPushNotification.Support)
 
         assertEquals(listOf(SupportRoute), route)
-        coVerify(exactly = 0) { syncMissingAssets.syncMissingAssets(any()) }
+        coVerify(exactly = 0) { assetsService.syncMissingAssets(any()) }
         coVerify(exactly = 0) { setCurrentWallet.setCurrentWallet(any()) }
     }
 

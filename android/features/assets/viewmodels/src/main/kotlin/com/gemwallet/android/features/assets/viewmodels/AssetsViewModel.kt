@@ -7,6 +7,7 @@ import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetHideBalancesState
 import com.gemwallet.android.application.assets.cases.GetImportInProgress
 import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
+import com.gemwallet.android.ext.onboardingBannerKey
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
@@ -19,7 +20,6 @@ import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.AssetToastEmitter
 import com.gemwallet.android.ui.models.AssetToastEmitterImpl
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.BannerEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,7 +29,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemBannerAction
-import uniffi.gemstone.GemBannerKey
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import javax.inject.Inject
 
@@ -118,8 +117,7 @@ class AssetsViewModel @Inject constructor(
 
     fun onHideWelcomeBanner() = viewModelScope.launch(Dispatchers.IO) {
         val wallet = getSession().value?.wallet ?: return@launch
-        val key = GemBannerKey(walletId = wallet.id.id, assetId = null, event = BannerEvent.Onboarding.toJson())
-        runCatchingCancellable { service.applyBannerAction(key, GemBannerAction.Close) }
+        runCatchingCancellable { service.applyBannerAction(wallet.onboardingBannerKey(), GemBannerAction.Close) }
             .onFailure { Log.e(TAG, "closing the welcome banner failed", it) }
     }
 

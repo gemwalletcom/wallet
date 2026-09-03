@@ -14,7 +14,6 @@ import com.gemwallet.android.application.assets.cases.GetSearchLists
 import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
 import uniffi.gemstone.GemBannerService
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
-import com.gemwallet.android.application.assets.cases.SyncMissingAssets
 import com.gemwallet.android.application.assets.cases.SyncAssetInfo
 import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.application.wallet_import.cases.GetImportWalletState
@@ -34,7 +33,6 @@ import com.gemwallet.android.data.coordinators.asset.GetImportInProgressImpl
 import com.gemwallet.android.data.coordinators.asset.GetSearchListsImpl
 import com.gemwallet.android.data.coordinators.asset.GetShowWelcomeBannerImpl
 import com.gemwallet.android.data.coordinators.asset.GetWalletSummaryImpl
-import com.gemwallet.android.data.coordinators.asset.SyncMissingAssetsImpl
 import com.gemwallet.android.data.coordinators.asset.SyncAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.SyncAssetsImpl
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
@@ -133,14 +131,6 @@ object AssetModule {
 
     @Provides
     @Singleton
-    fun provideSyncMissingAssets(
-        assetsService: GemAssetsService,
-    ): SyncMissingAssets = SyncMissingAssetsImpl(
-        assetsService = assetsService,
-    )
-
-    @Provides
-    @Singleton
     fun provideEnableAsset(
         balanceService: GemBalanceService,
     ): EnableAsset = EnableAssetImpl(balanceService)
@@ -151,12 +141,10 @@ object AssetModule {
         assetsService: GemAssetsService,
         balanceService: GemBalanceService,
         streamSubscriptionService: GemStreamSubscriptionService,
-        syncMissingAssets: SyncMissingAssets,
     ): SyncAssetInfo = SyncAssetInfoImpl(
         assetsService = assetsService,
         balanceService = balanceService,
         streamSubscriptionService = streamSubscriptionService,
-        syncMissingAssets = syncMissingAssets,
     )
 
     @Provides

@@ -18,7 +18,8 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -58,8 +59,8 @@ class SettingsViewModelTest {
     }
 
     @After
-    fun tearDown() {
-        viewModel.viewModelScope.cancel()
+    fun tearDown() = runTest(testDispatcher) {
+        viewModel.viewModelScope.coroutineContext.job.cancelAndJoin()
         Dispatchers.resetMain()
     }
 

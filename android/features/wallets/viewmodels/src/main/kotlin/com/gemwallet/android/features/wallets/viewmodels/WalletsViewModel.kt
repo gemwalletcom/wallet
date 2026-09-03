@@ -5,20 +5,20 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet.cases.DeleteWallet
 import com.gemwallet.android.application.wallet.cases.GetAllWallets
 import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
-import com.gemwallet.android.application.wallet.cases.SetWalletPinned
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemWalletService
 import javax.inject.Inject
 
 @HiltViewModel
 class WalletsViewModel @Inject constructor(
     private val getAllWallets: GetAllWallets,
     private val setCurrentWallet: SetCurrentWallet,
-    private val setWalletPinned: SetWalletPinned,
+    private val service: GemWalletService,
     private val deleteWallet: DeleteWallet,
 ) : ViewModel() {
 
@@ -35,6 +35,6 @@ class WalletsViewModel @Inject constructor(
 
     fun togglePin(walletId: WalletId) = viewModelScope.launch(Dispatchers.IO) {
         val wallet = wallets.value.firstOrNull { it.id == walletId.id } ?: return@launch
-        setWalletPinned(walletId, !wallet.isPinned)
+        service.setPinned(walletId.id, !wallet.isPinned)
     }
 }
