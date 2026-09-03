@@ -1,5 +1,9 @@
-use primitives::PerpetualDirection;
-use primitives::perpetual::{CancelOrderData, PerpetualModifyPositionType, TPSLOrderData};
+use crate::models::custom_types::GemBigInt;
+use crate::perpetual::GemPerpetual;
+use crate::services::transfer::GemTransferData;
+use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
+use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, TPSLOrderData};
+use primitives::{Asset, PerpetualDirection, PerpetualProvider, PerpetualType};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAutocloseField {
@@ -66,6 +70,17 @@ pub struct GemAutocloseModify {
 impl GemAutocloseModify {
     pub fn can_build(&self) -> bool {
         self.take_profit.is_acceptable() && self.stop_loss.is_acceptable() && (self.take_profit.should_update() || self.stop_loss.should_update())
+    }
+
+    pub fn transfer(&self, provider: PerpetualProvider, asset: Asset) -> GemTransferData {
+        let data = PerpetualModifyConfirmData {
+            base_asset: HYPERCORE_PERPETUAL_USDC.clone(),
+            asset_index: self.asset_index,
+            modify_types: self.build(),
+            take_profit_order_id: self.take_profit.order_id,
+            stop_loss_order_id: self.stop_loss.order_id,
+        };
+        GemPerpetual::new(provider).transfer_data(asset, PerpetualType::Modify(data), GemBigInt::ZERO, false)
     }
 
     pub fn build(&self) -> Vec<PerpetualModifyPositionType> {
@@ -161,5 +176,22 @@ mod tests {
 
         let unchanged_stop_loss = modify(field(Some(120.0), Some(100.0), true, Some(12345)), field(Some(90.0), Some(90.0), true, Some(67890))).build();
         assert!(matches!(&unchanged_stop_loss[1], PerpetualModifyPositionType::Tpsl(order) if order.stop_loss.is_none()));
+    }
+
+    #[test]
+    fn test_transfer_carries_the_modify_and_the_order_ids_it_replaces() {
+        let modify = modify(field(Some(120.0), Some(100.0), true, Some(7)), field(None, None, false, None));
+        let transfer = modify.transfer(PerpetualProvider::Hypercore, Asset::from_chain(primitives::Chain::HyperCore));
+
+        let crate::models::transaction::GemTransactionInputType::Perpetual {
+            perpetual_type: PerpetualType::Modify(data),
+            ..
+        } = &transfer.input_type
+        else {
+            panic!("expected a modify transfer")
+        };
+        assert_eq!((data.asset_index, data.take_profit_order_id, data.stop_loss_order_id), (5, Some(7), None));
+        assert_eq!(data.modify_types.len(), 2, "a cancel of the old order and the new tp/sl");
+        assert_eq!(transfer.recipient, GemPerpetual::new(PerpetualProvider::Hypercore).recipient());
     }
 }

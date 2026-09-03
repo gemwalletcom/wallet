@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
+import enum Gemstone.GemPerpetualPositionKind
 import BigInt
 import Formatters
 import Foundation
@@ -238,71 +239,29 @@ public extension PerpetualSceneViewModel {
     }
 
     func onClosePosition() {
-        guard
-            let position = positions.first?.position,
-            let assetIndex = UInt32(perpetual.identifier)
-        else { return }
-
         do {
-            let data = try position.closeOrder(
-                assetIndex: Int32(assetIndex),
-                perpetual: perpetual,
-                asset: asset,
-                baseAsset: Chain.hyperCore.defaultAsset(type: .perpetual),
-            )
-            onTransferData?(PerpetualFormatter(provider: perpetual.provider).transferData(asset: asset, perpetualType: .close(data)))
+            onTransferData?(try service.closeTransfer(perpetual: perpetual.json(), asset: asset.map(), position: positions.first?.position.json()))
         } catch {
             debugLog("perpetual scene: close position error \(error)")
         }
     }
 
     func onOpenLongPosition() {
-        guard let transferData = createTransferData(
-            direction: .long,
-            leverage: perpetual.maxLeverage,
-            marginType: perpetual.marginType,
-        ) else {
-            return
-        }
-        onPositionAction(.open(transferData))
+        onPositionAction(.open(direction: PerpetualDirection.long.json()))
     }
 
     func onOpenShortPosition() {
-        guard let transferData = createTransferData(
-            direction: .short,
-            leverage: perpetual.maxLeverage,
-            marginType: perpetual.marginType,
-        ) else {
-            return
-        }
-        onPositionAction(.open(transferData))
+        onPositionAction(.open(direction: PerpetualDirection.short.json()))
     }
 
     func onIncreasePosition() {
         isPresentingModifyAlert = false
-
-        guard let position = positions.first?.position,
-              let transferData = createTransferData(direction: position.direction, leverage: position.leverage, marginType: position.marginType)
-        else { return }
-
-        onPositionAction(.increase(transferData))
+        onPositionAction(.increase)
     }
 
     func onReducePosition() {
         isPresentingModifyAlert = false
-
-        guard let position = positions.first?.position,
-              let transferData = createTransferData(direction: position.direction, leverage: position.leverage, marginType: position.marginType)
-        else { return }
-        let baseAsset = Chain.hyperCore.defaultAsset(type: .perpetual)
-
-        onPositionAction(
-            .reduce(
-                transferData,
-                available: BigInt(position.marginAmount * pow(10.0, Double(baseAsset.decimals))),
-                positionDirection: position.direction,
-            ),
-        )
+        onPositionAction(.reduce)
     }
 
     func onAutocloseComplete() {
@@ -329,29 +288,17 @@ private extension PerpetualSceneViewModel {
         }
     }
 
-    func createTransferData(direction: PerpetualDirection, leverage: UInt8, marginType: PerpetualMarginType) -> PerpetualTransferData? {
-        guard let assetIndex = Int(perpetual.identifier) else {
-            return nil
+    func onPositionAction(_ kind: GemPerpetualPositionKind) {
+        do {
+            let positionAction = try service.positionAction(perpetual: perpetual.json(), asset: asset.map(), position: positions.first?.position.json(), kind: kind)
+            let recipientData = PerpetualRecipientData(
+                recipient: RecipientData(recipient: PerpetualFormatter(provider: perpetual.provider).recipient, amount: .none),
+                positionAction: positionAction,
+            )
+            onPerpetualRecipientData?(recipientData)
+        } catch {
+            debugLog("perpetual scene: position action error \(error)")
         }
-
-        return PerpetualTransferData(
-            provider: perpetual.provider,
-            direction: direction,
-            asset: asset,
-            baseAsset: Chain.hyperCore.defaultAsset(type: .perpetual),
-            assetIndex: assetIndex,
-            price: perpetual.price,
-            leverage: leverage,
-            marginType: marginType,
-        )
-    }
-
-    func onPositionAction(_ positionAction: PerpetualPositionAction) {
-        let recipientData = PerpetualRecipientData(
-            recipient: RecipientData(recipient: PerpetualFormatter(provider: perpetual.provider).recipient, amount: .none),
-            positionAction: positionAction,
-        )
-        onPerpetualRecipientData?(recipientData)
     }
 
     func updateTransactions() async {

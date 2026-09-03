@@ -1,60 +1,41 @@
 package com.gemwallet.android.model
 
-import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
 import com.gemwallet.android.testkit.mockAssetHyperCoreUBTC
-import com.gemwallet.android.testkit.mockPerpetualTransferData
+import com.gemwallet.android.testkit.mockGemPerpetualTransferData
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.TransactionType
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.math.BigInteger
+import uniffi.gemstone.GemPerpetualPositionAction
 
 class AmountParamsPerpetualTest {
 
     private val assetId = mockAssetHyperCoreUBTC().id
-    private val transferData = mockPerpetualTransferData()
+    private val transferData = mockGemPerpetualTransferData()
     private val perpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC-PERP")
 
-    private fun perpetual(positionAction: PerpetualPositionAction): AmountParams.Perpetual =
+    private fun perpetual(positionAction: GemPerpetualPositionAction): AmountParams.Perpetual =
         AmountParams.Perpetual(assetId, perpetualId, positionAction)
 
     @Test
-    fun transactionType_isOpenPositionForOpenAction() {
-        assertEquals(
-            TransactionType.PerpetualOpenPosition,
-            perpetual(PerpetualPositionAction.Open(transferData)).transactionType,
-        )
-    }
-
-    @Test
-    fun transactionType_isModifyPositionForIncrease() {
-        assertEquals(
-            TransactionType.PerpetualModifyPosition,
-            perpetual(PerpetualPositionAction.Increase(transferData)).transactionType,
-        )
-    }
-
-    @Test
-    fun transactionType_isModifyPositionForReduce() {
-        val reduce = PerpetualPositionAction.Reduce(
-            data = transferData,
-            available = BigInteger.ZERO,
-            positionDirection = PerpetualDirection.Long,
-        )
-        assertEquals(
-            TransactionType.PerpetualModifyPosition,
-            perpetual(reduce).transactionType,
-        )
+    fun transactionType_followsThePositionAction() {
+        assertEquals(TransactionType.PerpetualOpenPosition, perpetual(GemPerpetualPositionAction.Open(transferData)).transactionType)
+        assertEquals(TransactionType.PerpetualModifyPosition, perpetual(GemPerpetualPositionAction.Increase(transferData)).transactionType)
+        assertEquals(TransactionType.PerpetualModifyPosition, perpetual(GemPerpetualPositionAction.Reduce(transferData, "0")).transactionType)
     }
 
     @Test
     fun direction_derivesFromPositionActionData() {
-        val data = mockPerpetualTransferData(direction = PerpetualDirection.Short)
-        assertEquals(
-            PerpetualDirection.Short,
-            perpetual(PerpetualPositionAction.Open(data)).direction,
-        )
+        val data = mockGemPerpetualTransferData(direction = PerpetualDirection.Short)
+        assertEquals(PerpetualDirection.Short, perpetual(GemPerpetualPositionAction.Open(data)).direction)
+    }
+
+    @Test
+    fun perpetualParams_surviveTheRoutePayload() {
+        val params = perpetual(GemPerpetualPositionAction.Reduce(transferData, "1500000"))
+
+        assertEquals(params, AmountParams.unpack(requireNotNull(params.pack())))
     }
 }

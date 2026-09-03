@@ -884,3 +884,18 @@ on a long became a reduce-only buy. The screens now both pass the position direc
 signer test pins the convention. When two apps disagree on an input Core signs, the signer's
 reading is the rule — write it down there, then fix the app.
 
+**A position action is a Core value the apps carry, not a mirror they each build.** Both apps kept
+their own `PerpetualTransferData` / `PerpetualPositionAction` (provider, direction, asset index,
+price, leverage, margin type; open / increase / reduce with the reducible margin), built them
+from the market and the position in the position screen, and turned them into an order and a
+transfer in the amount screen through per-app factories — which is where the reduce-direction
+bug lived. `GemPerpetualDetailsService::position_action(perpetual, asset, position, kind)` and
+`close_transfer` build the action and the close on the position screen;
+`GemAmountService::perpetual_transfer_data(action, value, use_max_amount, leverage, take_profit,
+stop_loss)` turns it into the transfer, formatting the trigger prices itself; the autoclose sheet
+asks `GemAutocloseModify::transfer(provider, asset)` for the modify. iOS carries the record through
+navigation as-is; Android carries it through the route via `GemTransferService::{encode,
+decode}_position_action`, the same way it already carried the confirm input.
+`GemPerpetual::{order, close_order, transfer_data}` stopped being exported. When an app-side type
+exists only to be handed to Core later, make it a Core record and let Core build it.
+

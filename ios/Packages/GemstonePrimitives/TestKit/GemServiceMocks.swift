@@ -306,6 +306,10 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         builder.stakeTransferData(asset: asset, stakeType: stakeType, value: value, useMaxAmount: useMaxAmount)
     }
 
+    public func perpetualTransferData(action: GemPerpetualPositionAction, value: Gemstone.GemBigInt, useMaxAmount: Bool, leverage: UInt8, takeProfit: Double?, stopLoss: Double?) -> GemTransferData {
+        builder.perpetualTransferData(action: action, value: value, useMaxAmount: useMaxAmount, leverage: leverage, takeProfit: takeProfit, stopLoss: stopLoss)
+    }
+
     public func earnTransferData(asset _: Gemstone.Asset, earnType _: Gemstone.EarnType, value _: Gemstone.GemBigInt, useMaxAmount _: Bool) async throws -> GemTransferData {
         throw AnyError("not stubbed")
     }

@@ -8,8 +8,8 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.ConfirmState
 import com.gemwallet.android.domains.confirm.confirmInput
 import com.gemwallet.android.domains.confirm.pack
+import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.domains.confirm.perpetual
 import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemConfirmData
 import uniffi.gemstone.GemConfirmPreload
@@ -21,7 +21,8 @@ import uniffi.gemstone.GemTransactionLoadMetadata
 import uniffi.gemstone.GemConfirmTransferService
 import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemTransferData
-import com.gemwallet.android.model.SignerParams
+import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemTransactionInputType
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetHyperCoreUBTC
 import com.gemwallet.android.testkit.mockGemConfirmMetadata
@@ -73,10 +74,10 @@ class ConfirmViewModelRetryTest {
 
     @Test
     fun retryAfterPreloadFailureRunsThePreloaderAgain() = runTest(testDispatcher) {
-        val input = GemTransferData.perpetual(
-            asset = asset,
-            perpetualType = PerpetualType.Open(mockPerpetualConfirmData(direction = PerpetualDirection.Long)),
-            value = BigInteger.TEN,
+        val input = GemTransferData(
+            inputType = GemTransactionInputType.Perpetual(asset.toGem(), PerpetualType.Open(mockPerpetualConfirmData(direction = PerpetualDirection.Long)).toGem()),
+            recipient = GemRecipient(address = ""),
+            value = BigInteger.TEN.toString(),
         ).confirmInput(account)
         val viewModel = viewModel(input)
         runCurrent()

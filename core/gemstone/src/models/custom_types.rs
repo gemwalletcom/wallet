@@ -87,6 +87,21 @@ pub mod decimal_string {
         GemBigInt::from_str(&text).map_err(serde::de::Error::custom)
     }
 
+    pub mod unsigned {
+        use super::super::GemBigUint;
+        use serde::{Deserialize, Deserializer, Serializer};
+        use std::str::FromStr;
+
+        pub fn serialize<S: Serializer>(value: &GemBigUint, serializer: S) -> Result<S::Ok, S::Error> {
+            serializer.serialize_str(&value.to_string())
+        }
+
+        pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<GemBigUint, D::Error> {
+            let text = String::deserialize(deserializer)?;
+            GemBigUint::from_str(&text).map_err(serde::de::Error::custom)
+        }
+    }
+
     pub mod optional {
         use super::super::GemBigInt;
         use serde::{Deserialize, Deserializer, Serializer};

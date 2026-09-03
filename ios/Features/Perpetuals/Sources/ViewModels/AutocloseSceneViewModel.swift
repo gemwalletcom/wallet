@@ -111,16 +111,7 @@ public extension AutocloseSceneViewModel {
 
         switch type {
         case let .modify(position, onTransferAction):
-            let modifyTypes = modify.modifyTypes()
-            let data = PerpetualModifyConfirmData(
-                baseAsset: Chain.hyperCore.defaultAsset(type: .perpetual),
-                assetIndex: assetIndex,
-                modifyTypes: modifyTypes,
-                takeProfitOrderId: takeProfitOrderId,
-                stopLossOrderId: stopLossOrderId,
-            )
-
-            onTransferAction?(PerpetualFormatter(provider: position.perpetual.provider).transferData(asset: position.asset, perpetualType: .modify(data)))
+            onTransferAction?(modify.transfer(provider: position.perpetual.provider.map(), asset: position.asset.map()))
 
         case let .open(_, onComplete):
             onComplete(input.takeProfit, input.stopLoss)

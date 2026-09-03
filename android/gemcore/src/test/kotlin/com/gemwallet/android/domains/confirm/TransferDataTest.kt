@@ -2,10 +2,6 @@ package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockAssetHyperCoreUBTC
-import com.gemwallet.android.testkit.mockPerpetualConfirmData
-import com.gemwallet.android.testkit.mockPerpetualReduceData
-import com.wallet.core.primitives.PerpetualType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -18,23 +14,6 @@ import java.math.BigInteger
 class TransferDataTest {
 
     private val transferService = GemTransferService()
-
-    @Test
-    fun everyPerpetualGoesToTheHyperliquidProvider() {
-        val variants = listOf(
-            PerpetualType.Open(mockPerpetualConfirmData()),
-            PerpetualType.Close(mockPerpetualConfirmData()),
-            PerpetualType.Increase(mockPerpetualConfirmData()),
-            PerpetualType.Reduce(mockPerpetualReduceData()),
-        )
-
-        variants.forEach { perpetualType ->
-            val transfer = GemTransferData.perpetual(mockAssetHyperCoreUBTC(), perpetualType)
-
-            assertEquals("", transfer.recipient.address)
-            assertEquals("Hyperliquid", transfer.recipient.name)
-        }
-    }
 
     @Test
     fun theRoutePayloadKeepsTheMemoAndReferences() {

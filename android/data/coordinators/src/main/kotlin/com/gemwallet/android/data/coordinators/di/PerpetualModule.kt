@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.perpetual.cases.BuildPerpetualParams
+import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualAccountMode
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
@@ -108,10 +109,12 @@ object PerpetualModule {
     fun provideBuildPerpetualParams(
         perpetualStore: GemstonePerpetualStore,
         getSession: GetSession,
+        service: GemPerpetualDetailsServiceInterface,
     ): BuildPerpetualParams {
         return BuildPerpetualParamsImpl(
             perpetualStore = perpetualStore,
             getSession = getSession,
+            service = service,
         )
     }
 }

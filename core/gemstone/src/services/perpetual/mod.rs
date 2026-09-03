@@ -22,7 +22,7 @@ use crate::services::preferences::GemPreferencesService;
 
 pub use autoclose::{GemAutocloseField, GemAutocloseModify};
 pub use details::GemPerpetualDetailsService;
-pub use model::{GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualSocketUpdate};
+pub use model::{GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualSocketUpdate, GemPerpetualTransferData};
 pub use store::GemPerpetualStore;
 
 use crate::gateway::GemGateway;

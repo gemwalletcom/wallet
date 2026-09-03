@@ -54,14 +54,6 @@ impl GemPerpetual {
         perpetual_rules::funding_apr(funding)
     }
 
-    pub fn order(&self, input: GemPerpetualOrderInput) -> PerpetualType {
-        perpetual_rules::order(self.provider.clone(), input)
-    }
-
-    pub fn close_order(&self, input: GemPerpetualCloseInput) -> PerpetualConfirmData {
-        perpetual_rules::close_order(self.provider.clone(), input)
-    }
-
     pub fn recipient(&self) -> GemRecipient {
         GemRecipient {
             address: String::new(),
@@ -77,7 +69,15 @@ impl GemPerpetual {
         };
         GemRecipient { address, ..self.recipient() }
     }
+}
 
+impl GemPerpetual {
+    pub fn order(&self, input: GemPerpetualOrderInput) -> PerpetualType {
+        perpetual_rules::order(self.provider.clone(), input)
+    }
+    pub fn close_order(&self, input: GemPerpetualCloseInput) -> PerpetualConfirmData {
+        perpetual_rules::close_order(self.provider.clone(), input)
+    }
     pub fn transfer_data(&self, asset: GemAsset, perpetual_type: PerpetualType, value: GemBigInt, use_max_amount: bool) -> GemTransferData {
         GemTransferData {
             input_type: GemTransactionInputType::Perpetual { asset, perpetual_type },

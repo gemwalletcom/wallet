@@ -1,12 +1,14 @@
 use std::sync::Arc;
 
-use primitives::{AssetId, Chain, ChartPeriod, Currency};
+use primitives::{Asset, AssetId, Chain, ChartPeriod, Currency, Perpetual, PerpetualPosition};
 
-use super::GemPerpetualService;
+use super::model::{GemPerpetualPositionAction, GemPerpetualPositionKind};
+use super::{GemPerpetualService, rules};
 use crate::models::perpetual::{GemChartCandleStick, GemPerpetualSubscription};
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::transactions::GemTransactionsService;
+use crate::services::transfer::GemTransferData;
 use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
@@ -36,6 +38,20 @@ impl GemPerpetualDetailsService {
 
     pub fn currency(&self) -> Currency {
         self.preferences.get_currency()
+    }
+
+    pub fn position_action(
+        &self,
+        perpetual: Perpetual,
+        asset: Asset,
+        position: Option<PerpetualPosition>,
+        kind: GemPerpetualPositionKind,
+    ) -> Result<GemPerpetualPositionAction, GemServiceError> {
+        rules::position_action(&perpetual, &asset, position, kind)
+    }
+
+    pub fn close_transfer(&self, perpetual: Perpetual, asset: Asset, position: Option<PerpetualPosition>) -> Result<GemTransferData, GemServiceError> {
+        rules::close_transfer(&perpetual, &asset, position)
     }
 
     pub fn chart_period(&self) -> ChartPeriod {

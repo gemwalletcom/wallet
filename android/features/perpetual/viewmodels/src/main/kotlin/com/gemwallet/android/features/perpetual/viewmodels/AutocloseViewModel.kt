@@ -3,7 +3,6 @@ package com.gemwallet.android.features.perpetual.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.perpetual.cases.BuildPerpetualParams
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByAsset
 import uniffi.gemstone.GemAutocloseEstimator
@@ -17,7 +16,6 @@ import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModelFactory
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.PerpetualModifyPositionType
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.TpslType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,28 +27,24 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 import javax.inject.Inject
 import com.gemwallet.android.serializer.toJson
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.domains.perpetual.toGem
+import com.gemwallet.android.ext.hyperliquidAccount
+import com.gemwallet.android.domains.confirm.confirmInput
 import com.gemwallet.android.ext.toGem
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AutocloseViewModel @Inject constructor(
     private val getPositionByAsset: GetPerpetualPositionByAsset,
-    private val buildPerpetualParams: BuildPerpetualParams,
-    getSession: GetSession,
+    private val getSession: GetSession,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -118,21 +112,13 @@ class AutocloseViewModel @Inject constructor(
     fun onConfirm() {
         submitAttempted.value = true
         val position = position.value ?: return
-        val perpetualId = position.perpetual.id
         val assetIndex = position.perpetual.identifier.toIntOrNull() ?: return
+        val account = getSession().value?.wallet?.hyperliquidAccount ?: return
         val takeProfitField = autocloseField(position, TpslType.TakeProfit, takeProfitText.value)
         val stopLossField = autocloseField(position, TpslType.StopLoss, stopLossText.value)
         val modify = GemAutocloseModify(position.position.direction.toJson(), assetIndex, takeProfitField.toGem(), stopLossField.toGem())
         if (!modify.canBuild()) return
-        val modifyTypes = modify.build().map { it.decodeJson<PerpetualModifyPositionType>() }
-        viewModelScope.launch {
-            buildPerpetualParams.modify(
-                perpetualId = perpetualId,
-                modifyTypes = modifyTypes,
-                takeProfitOrderId = takeProfitField.orderId,
-                stopLossOrderId = stopLossField.orderId,
-            )?.let { _confirmRequests.tryEmit(it) }
-        }
+        _confirmRequests.tryEmit(modify.transfer(position.perpetual.provider.toGem(), position.asset.toGem()).confirmInput(account))
     }
 
     private fun buildUiModel(

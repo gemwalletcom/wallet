@@ -106,6 +106,7 @@ extension Primitives.PerpetualAccountMode: JsonCodable {}
 extension Primitives.PerpetualAccountSummary: JsonCodable {}
 extension Primitives.PerpetualBalance: JsonCodable {}
 extension Primitives.PerpetualConfirmData: JsonCodable {}
+extension Primitives.Perpetual: JsonCodable {}
 extension Primitives.PerpetualData: JsonCodable {}
 extension Primitives.PerpetualDirection: JsonCodable {}
 extension Primitives.PerpetualMarginType: JsonCodable {}

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemPerpetualPositionAction
 import struct Gemstone.GemRecipient
 import Primitives
 
@@ -19,9 +20,9 @@ public struct RecipientData: Equatable, Hashable, Sendable {
 
 public struct PerpetualRecipientData: Equatable, Hashable, Sendable {
     public let recipient: RecipientData
-    public let positionAction: PerpetualPositionAction
+    public let positionAction: GemPerpetualPositionAction
 
-    public init(recipient: RecipientData, positionAction: PerpetualPositionAction) {
+    public init(recipient: RecipientData, positionAction: GemPerpetualPositionAction) {
         self.recipient = recipient
         self.positionAction = positionAction
     }
@@ -29,6 +30,7 @@ public struct PerpetualRecipientData: Equatable, Hashable, Sendable {
 
 extension PerpetualRecipientData: Identifiable {
     public var id: String {
-        positionAction.id
+        let data = positionAction.data
+        return "\(data.assetIndex)_\(data.direction)"
     }
 }

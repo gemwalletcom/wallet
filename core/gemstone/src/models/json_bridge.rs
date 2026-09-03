@@ -16,8 +16,8 @@ use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImpactT
 use primitives::{
     AccountDataType, ApplicationMetadata, ApplicationMetadataSource, AssetList, ChainAsset, ConnectionComponent, ConnectionStatus, ContractCallData, DelegationBase,
     DelegationState, DelegationValidator, NFTAsset, NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, NFTImages, NFTResource, NFTType, Payment, PaymentAmount, PaymentLink,
-    PaymentRequest, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualOrderType, PerpetualPosition, PerpetualTriggerOrder, ReportNft, ScanAddressTarget,
-    ScanTransaction, ScanTransactionPayload, SimulationHeader, SimulationResult, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, StakeValidator,
+    PaymentRequest, Perpetual, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualOrderType, PerpetualPosition, PerpetualTriggerOrder, ReportNft,
+    ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationHeader, SimulationResult, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, StakeValidator,
     TransactionPerpetualMetadata, TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
 use primitives::{
@@ -122,6 +122,7 @@ json_bridge!(
     PerpetualAccountSummary,
     PerpetualBalance,
     PerpetualConfirmData,
+    Perpetual,
     PerpetualData,
     PerpetualDirection,
     PerpetualMarginType,

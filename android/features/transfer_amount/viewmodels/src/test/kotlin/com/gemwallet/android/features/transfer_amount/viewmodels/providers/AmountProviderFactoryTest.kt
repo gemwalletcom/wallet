@@ -9,10 +9,10 @@ import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import uniffi.gemstone.GemAmountServiceInterface
-import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
+import uniffi.gemstone.GemPerpetualPositionAction
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.mockAssetCosmos
-import com.gemwallet.android.testkit.mockPerpetualTransferData
+import com.gemwallet.android.testkit.mockGemPerpetualTransferData
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.Resource
@@ -72,7 +72,7 @@ class AmountProviderFactoryTest {
 
     @Test
     fun `Perpetual params produce PerpetualProvider`() {
-        val positionAction = PerpetualPositionAction.Open(mockPerpetualTransferData())
+        val positionAction = GemPerpetualPositionAction.Open(mockGemPerpetualTransferData())
         val provider = factory.create(
             AmountParams.Perpetual(asset.id, PerpetualId(PerpetualProvider.Hypercore, "BTC-PERP"), positionAction),
             scope,

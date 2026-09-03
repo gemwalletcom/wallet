@@ -2,7 +2,9 @@ package com.gemwallet.android.features.transfer_amount.presents
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
+import com.gemwallet.android.domains.perpetual.data
+import com.gemwallet.android.serializer.decodeJson
+import uniffi.gemstone.GemPerpetualPositionAction
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.R
@@ -26,19 +28,14 @@ fun AmountTitle.asString(): String = when (this) {
 }
 
 @Composable
-private fun perpetualTitle(action: PerpetualPositionAction): String {
-    val direction = when (action) {
-        is PerpetualPositionAction.Open,
-        is PerpetualPositionAction.Increase -> action.data.direction
-        is PerpetualPositionAction.Reduce -> action.positionDirection
-    }
-    val directionLabel = stringResource(when (direction) {
+private fun perpetualTitle(action: GemPerpetualPositionAction): String {
+    val directionLabel = stringResource(when (action.data.direction.decodeJson<PerpetualDirection>()) {
         PerpetualDirection.Short -> R.string.perpetual_short
         PerpetualDirection.Long -> R.string.perpetual_long
     })
     return when (action) {
-        is PerpetualPositionAction.Open -> directionLabel
-        is PerpetualPositionAction.Increase -> stringResource(R.string.perpetual_increase_direction, directionLabel)
-        is PerpetualPositionAction.Reduce -> stringResource(R.string.perpetual_reduce_direction, directionLabel)
+        is GemPerpetualPositionAction.Open -> directionLabel
+        is GemPerpetualPositionAction.Increase -> stringResource(R.string.perpetual_increase_direction, directionLabel)
+        is GemPerpetualPositionAction.Reduce -> stringResource(R.string.perpetual_reduce_direction, directionLabel)
     }
 }

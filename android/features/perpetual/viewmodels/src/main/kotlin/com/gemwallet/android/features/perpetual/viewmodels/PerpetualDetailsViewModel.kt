@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.perpetual.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -49,6 +50,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
+import uniffi.gemstone.GemPerpetualPositionKind
 import uniffi.gemstone.GemPerpetualSubscription
 import javax.inject.Inject
 
@@ -67,6 +69,7 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     private companion object {
         const val SubscriptionGraceMillis = 5_000L
+        const val TAG = "PerpetualDetails"
     }
 
     val assetId = savedStateHandle.requireAssetId()
@@ -193,31 +196,28 @@ class PerpetualDetailsViewModel @Inject constructor(
         fetch()
     }
 
-    fun openPosition(direction: PerpetualDirection, amountAction: AmountTransactionAction) {
-        val perpetualId = perpetual.value?.id ?: return
-        viewModelScope.launch {
-            buildPerpetualParams.open(perpetualId, direction)?.let(amountAction::invoke)
-        }
-    }
+    fun openPosition(direction: PerpetualDirection, amountAction: AmountTransactionAction) =
+        position(GemPerpetualPositionKind.Open(direction.toJson()), amountAction)
 
-    fun increasePosition(amountAction: AmountTransactionAction) {
-        val perpetualId = perpetual.value?.id ?: return
-        viewModelScope.launch {
-            buildPerpetualParams.increase(perpetualId)?.let(amountAction::invoke)
-        }
-    }
+    fun increasePosition(amountAction: AmountTransactionAction) = position(GemPerpetualPositionKind.Increase, amountAction)
 
-    fun reducePosition(amountAction: AmountTransactionAction) {
+    fun reducePosition(amountAction: AmountTransactionAction) = position(GemPerpetualPositionKind.Reduce, amountAction)
+
+    private fun position(kind: GemPerpetualPositionKind, amountAction: AmountTransactionAction) {
         val perpetualId = perpetual.value?.id ?: return
         viewModelScope.launch {
-            buildPerpetualParams.reduce(perpetualId)?.let(amountAction::invoke)
+            runCatchingCancellable { buildPerpetualParams.position(perpetualId, kind) }
+                .onSuccess { params -> params?.let(amountAction::invoke) }
+                .onFailure { Log.e(TAG, "perpetual position action failed", it) }
         }
     }
 
     fun closePosition(confirmAction: ConfirmTransactionAction) {
         val perpetualId = perpetual.value?.id ?: return
         viewModelScope.launch {
-            buildPerpetualParams.close(perpetualId)?.let(confirmAction::invoke)
+            runCatchingCancellable { buildPerpetualParams.close(perpetualId) }
+                .onSuccess { input -> input?.let(confirmAction::invoke) }
+                .onFailure { Log.e(TAG, "perpetual close failed", it) }
         }
     }
 }

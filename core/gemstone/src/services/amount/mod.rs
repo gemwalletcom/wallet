@@ -12,6 +12,8 @@ use crate::config::perpetual_config::{leverage_options, select_leverage};
 use crate::models::GemEarnType;
 use crate::models::custom_types::GemBigInt;
 use crate::services::error::GemServiceError;
+use crate::services::perpetual::GemPerpetualPositionAction;
+use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::stake::GemStakeService;
 use crate::services::transfer::GemTransferData;
@@ -48,6 +50,18 @@ impl GemAmountService {
             self.preferences.get_perpetual_take_profit_percent(),
             self.preferences.get_perpetual_stop_loss_percent(),
         )
+    }
+
+    pub fn perpetual_transfer_data(
+        &self,
+        action: GemPerpetualPositionAction,
+        value: GemBigInt,
+        use_max_amount: bool,
+        leverage: u8,
+        take_profit: Option<f64>,
+        stop_loss: Option<f64>,
+    ) -> GemTransferData {
+        perpetual_rules::order_transfer(action, value, use_max_amount, leverage, take_profit, stop_loss)
     }
 
     pub fn stake_transfer_data(&self, asset: Asset, stake_type: StakeType, value: GemBigInt, use_max_amount: bool) -> GemTransferData {
