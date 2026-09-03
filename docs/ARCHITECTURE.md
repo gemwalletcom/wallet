@@ -1002,4 +1002,17 @@ keeps a Swift protocol requirement, a Kotlin interface method, a mock method and
 by grepping every generated protocol method against both apps' non-generated sources (wrappers
 included — a wrapper with no caller counts as none), then move the Rust method to a plain `impl`
 block if Core calls it and delete it otherwise; the ports the apps implement are the exception,
-because Core is their caller.
+because Core is their caller. Two traps in that sweep: a wrapper calls the export with implicit
+`self` (`newest(`, not `.newest(`), so a hand check must grep the bare name; and a name shared by
+two protocols (`includesPerpetualCollateral` on the home and wallet-preferences services) looks
+called on both apps when each app calls a different receiver — check the receiver before
+un-exporting. The nine `GemGateway` methods, every one un-called by both apps, survived earlier
+sweeps for exactly these reasons.
+
+**A side effect that belongs to an entity's lifecycle belongs to the Core service that owns
+the entity.** Android named a wallet's own accounts when its store added the wallet, renamed them
+through a case beside the wallet rename, and never deleted them; iOS did none of it. The rule was
+on the wrong layer on one app and missing on the other because it had been attached to a store
+write instead of to `GemWalletService`. Once import, rename and delete in Core save, re-save and
+delete the names through the address port, both apps get the behaviour and neither carries a case
+for it.
