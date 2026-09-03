@@ -586,6 +586,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `InfoSheetButton`; `ConfirmErrorInfo` takes an `acquireFlow` lambda). `GemAssetConfigService::acquire_flow`
   stays exported only because the iOS confirm mock answers through it.
 
+- **The slippage sheet's default is the pay chain's on both apps.** Android asked
+  `GemSwapQuoteService::default_slippage(chain)` (Solana gets three times the default); iOS read
+  `SwapConfig.default_slippage`, the chain-agnostic value, so a Solana swap's "auto" showed the
+  wrong number. `SwapSlippageViewModel` takes the pay chain and asks the service. Android's unread
+  `PerpetualFormatter.minimumOrderUsdAmount` and the `GemPerpetual::minimum_order_usd_amount` export
+  behind it are gone (the amount rule uses the crate function).
+
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**

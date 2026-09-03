@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.Config
 import BigInt
 import Components
 import Formatters
 import Foundation
+import class Gemstone.Config
 import enum Gemstone.GemSwapButtonAction
 import struct Gemstone.GemSwapButtonInput
 import protocol Gemstone.GemSwapQuoteServiceProtocol
@@ -54,6 +54,7 @@ public final class SwapSceneViewModel {
     var quoteDebounce: Duration {
         .milliseconds(service.quoteDebounceMilliseconds())
     }
+
     var selectedSlippage: SwapSlippage = .auto
 
     private let onSwap: TransferDataAction
@@ -62,6 +63,7 @@ public final class SwapSceneViewModel {
     var quoteRefreshInterval: TimeInterval {
         TimeInterval(service.refreshIntervalMilliseconds()) / 1000
     }
+
     private let formatter = SwapValueFormatter(valueFormatter: .full)
     private let toValueFormatter = SwapValueFormatter(valueFormatter: ValueFormatter(style: .auto))
 
@@ -138,9 +140,11 @@ public final class SwapSceneViewModel {
         selectedSlippage.isCustom
     }
 
-    var swapSlippageViewModel: SwapSlippageViewModel {
-        SwapSlippageViewModel(
+    var swapSlippageViewModel: SwapSlippageViewModel? {
+        guard let fromAsset else { return nil }
+        return SwapSlippageViewModel(
             service: service,
+            chain: fromAsset.asset.chain,
             slippage: selectedSlippage,
             onSelect: { [weak self] slippage in
                 self?.onSelectSlippage(slippage)

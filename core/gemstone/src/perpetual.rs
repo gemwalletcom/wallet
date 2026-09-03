@@ -32,12 +32,6 @@ impl GemPerpetual {
         Self { provider }
     }
 
-    pub fn minimum_order_usd_amount(&self, price: f64, decimals: i32, leverage: u8) -> u64 {
-        match self.provider {
-            PerpetualProvider::Hypercore => PerpetualFormatter::minimum_order_usd_amount(price, decimals, leverage),
-        }
-    }
-
     pub fn format_price(&self, price: f64, decimals: i32) -> String {
         match self.provider {
             PerpetualProvider::Hypercore => PerpetualFormatter::format_price(price, decimals),

@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Formatters
+import Foundation
 import class Gemstone.Config
 import enum Gemstone.GemSlippageCheck
 import protocol Gemstone.GemSwapQuoteServiceProtocol
-import Formatters
-import Foundation
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -27,7 +27,7 @@ public final class SwapSlippageViewModel {
     var inputModel: InputValidationViewModel
     var infoSheet: InfoSheetType?
 
-    public init(service: any GemSwapQuoteServiceProtocol, slippage: SwapSlippage, onSelect: @escaping (SwapSlippage) -> Void) {
+    public init(service: any GemSwapQuoteServiceProtocol, chain: Chain, slippage: SwapSlippage, onSelect: @escaping (SwapSlippage) -> Void) {
         self.service = service
         self.onSelect = onSelect
         let config = Config.shared.swapConfig()
@@ -37,7 +37,7 @@ public final class SwapSlippageViewModel {
         switch slippage {
         case .auto:
             isAuto = true
-            bps = config.defaultSlippage.bps
+            bps = service.defaultSlippage(chain: chain.rawValue).bps
         case let .manual(value):
             isAuto = false
             bps = value
