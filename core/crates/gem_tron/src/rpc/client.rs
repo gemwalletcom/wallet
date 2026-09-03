@@ -3,11 +3,12 @@ use primitives::{Asset, AssetId, asset_type::AssetType, chain::Chain};
 use std::{error::Error, str::FromStr};
 
 use crate::models::{
-    Block, BlockId, BlockTransactions, BlockTransactionsInfo, ChainParameter, ChainParametersResponse, Transaction, TransactionReceiptData, TriggerConstantContractRequest,
-    TriggerConstantContractResponse, TronTransactionBroadcast, WitnessesList,
+    Block, BlockId, BlockTransactions, BlockTransactionsInfo, ChainParameter, ChainParametersResponse, NowBlockRequest, Transaction, TransactionReceiptData,
+    TriggerConstantContractRequest, TriggerConstantContractResponse, TriggerSmartContractRequest, TronTransactionBroadcast, WitnessesList,
 };
 use crate::models::{TriggerSmartContractData, TronAccount, TronAccountRequest, TronAccountUsage, TronBlock, TronEmptyAccount, TronReward};
 use crate::rpc::constants::{DECIMALS_SELECTOR, DEFAULT_OWNER_ADDRESS, GENESIS_BLOCK_NUMBER, NAME_SELECTOR, SYMBOL_SELECTOR};
+use crate::rpc::target::TronTarget;
 use gem_client::{Client, ClientExt};
 use gem_evm::contracts::erc20::{decode_abi_string, decode_abi_uint8};
 
@@ -22,23 +23,23 @@ impl<C: Client> TronClient<C> {
     }
 
     pub async fn get_block(&self) -> Result<Block, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get("/wallet/getblock").await?)
+        Ok(self.client.get(TronTarget::GetBlock).await?)
     }
 
     pub async fn get_block_transactions(&self, block: u64) -> Result<BlockTransactions, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/wallet/getblockbynum?num={}", block)).await?)
+        Ok(self.client.get(TronTarget::GetBlockByNumber { number: block }).await?)
     }
 
     pub async fn get_block_transactions_receipts(&self, block: u64) -> Result<BlockTransactionsInfo, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/wallet/gettransactioninfobyblocknum?num={}", block)).await?)
+        Ok(self.client.get(TronTarget::GetTransactionInfoByBlockNumber { number: block }).await?)
     }
 
     pub async fn get_transaction(&self, id: String) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/wallet/gettransactionbyid?value={}", id)).await?)
+        Ok(self.client.get(TronTarget::GetTransactionById { id }).await?)
     }
 
     pub async fn get_transaction_receipt(&self, id: String) -> Result<Option<TransactionReceiptData>, Box<dyn Error + Send + Sync>> {
-        let response: serde_json::Value = self.client.get(&format!("/wallet/gettransactioninfobyid?value={}", id)).await?;
+        let response: serde_json::Value = self.client.get(TronTarget::GetTransactionInfoById { id }).await?;
         if response.as_object().is_some_and(|object| object.is_empty()) {
             return Ok(None);
         }
@@ -77,7 +78,7 @@ impl<C: Client> TronClient<C> {
     }
 
     async fn trigger_constant_contract_request(&self, request: &(impl serde::Serialize + Send + Sync)) -> Result<TriggerConstantContractResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.post("/wallet/triggerconstantcontract", request).await?)
+        Ok(self.client.post(TronTarget::TriggerConstantContract, request).await?)
     }
 
     pub async fn estimate_energy_with_data(&self, contract_data: &TriggerSmartContractData) -> Result<u64, Box<dyn Error + Send + Sync>> {
@@ -85,16 +86,16 @@ impl<C: Client> TronClient<C> {
     }
 
     pub(crate) async fn trigger_smart_contract_call(&self, contract_data: &TriggerSmartContractData) -> Result<TriggerConstantContractResponse, Box<dyn Error + Send + Sync>> {
-        let request_payload = serde_json::json!({
-            "owner_address": contract_data.owner_address,
-            "contract_address": contract_data.contract_address,
-            "data": contract_data.data,
-            "fee_limit": contract_data.fee_limit,
-            "call_value": contract_data.call_value,
-            "visible": true,
-        });
+        let request = TriggerSmartContractRequest {
+            owner_address: contract_data.owner_address.clone(),
+            contract_address: contract_data.contract_address.clone(),
+            data: contract_data.data.clone(),
+            fee_limit: contract_data.fee_limit,
+            call_value: contract_data.call_value,
+            visible: true,
+        };
 
-        self.trigger_constant_contract_request(&request_payload).await
+        self.trigger_constant_contract_request(&request).await
     }
 }
 
@@ -108,15 +109,15 @@ impl<C: Client> TronClient<C> {
     }
 
     pub async fn get_genesis_block_id(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get::<BlockId>(&format!("/wallet/getblockbynum?num={}", GENESIS_BLOCK_NUMBER)).await?.block_id)
+        Ok(self.client.get::<BlockId>(TronTarget::GetBlockByNumber { number: GENESIS_BLOCK_NUMBER }).await?.block_id)
     }
 
     pub async fn get_witnesses_list(&self) -> Result<WitnessesList, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get("/wallet/listwitnesses").await?)
+        Ok(self.client.get(TronTarget::ListWitnesses).await?)
     }
 
     pub async fn get_chain_parameters(&self) -> Result<Vec<ChainParameter>, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get::<ChainParametersResponse>("/wallet/getchainparameters").await?.chain_parameter)
+        Ok(self.client.get::<ChainParametersResponse>(TronTarget::GetChainParameters).await?.chain_parameter)
     }
 
     pub async fn get_token_data(&self, token_id: String) -> Result<Asset, Box<dyn Error + Send + Sync>> {
@@ -139,7 +140,7 @@ impl<C: Client> TronClient<C> {
             visible: true,
         };
 
-        Ok(self.client.post("/wallet/getaccount", &request).await?)
+        Ok(self.client.post(TronTarget::GetAccount, &request).await?)
     }
 
     pub async fn get_account_usage(&self, address: &str) -> Result<TronAccountUsage, Box<dyn Error + Send + Sync>> {
@@ -148,7 +149,7 @@ impl<C: Client> TronClient<C> {
             visible: true,
         };
 
-        Ok(self.client.post("/wallet/getaccountresource", &request).await?)
+        Ok(self.client.post(TronTarget::GetAccountResource, &request).await?)
     }
 
     pub async fn get_reward(&self, address: &str) -> Result<TronReward, Box<dyn Error + Send + Sync>> {
@@ -157,7 +158,7 @@ impl<C: Client> TronClient<C> {
             visible: true,
         };
 
-        Ok(self.client.post("/wallet/getReward", &request).await?)
+        Ok(self.client.post(TronTarget::GetReward, &request).await?)
     }
 
     pub async fn is_new_account(&self, address: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
@@ -166,17 +167,17 @@ impl<C: Client> TronClient<C> {
             visible: true,
         };
 
-        let account: TronEmptyAccount = self.client.post("/wallet/getaccount", &request).await?;
+        let account: TronEmptyAccount = self.client.post(TronTarget::GetAccount, &request).await?;
         Ok(account.address.is_none_or(|addr| addr.is_empty()))
     }
 
     pub async fn broadcast_transaction(&self, data: String) -> Result<TronTransactionBroadcast, Box<dyn Error + Send + Sync>> {
         let json_value: serde_json::Value = serde_json::from_str(&data)?;
-        Ok(self.client.post("/wallet/broadcasttransaction", &json_value).await?)
+        Ok(self.client.post(TronTarget::BroadcastTransaction, &json_value).await?)
     }
 
     pub async fn get_tron_block(&self) -> Result<TronBlock, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.post("/wallet/getnowblock", &serde_json::json!({})).await?)
+        Ok(self.client.post(TronTarget::GetNowBlock, &NowBlockRequest {}).await?)
     }
 
     pub async fn estimate_trc20_transfer_gas(
