@@ -6,10 +6,8 @@ import com.gemwallet.android.blockchain.operators.gemstone.GemFindPhraseWord
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_import.cases.SyncWalletImport
-import com.gemwallet.android.application.wallet_import.values.ImportError
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
 import com.gemwallet.android.domains.wallet_import.toGemImport
-import com.gemwallet.android.domains.wallet_import.validatedOrImportError
 import com.gemwallet.android.serializer.decodeJson
 import kotlinx.coroutines.CancellationException
 import uniffi.gemstone.GemNameServiceInterface
@@ -106,7 +104,7 @@ class ImportViewModel @Inject constructor(
             try {
                 val import = state.value.importType.toGemImport(
                     data = if (nameRecord?.address.isNullOrEmpty()) data.trim() else nameRecord.address,
-                ).validatedOrImportError()
+                ).validated()
                 val walletName = nameRecord?.name?.takeIf { it.isNotBlank() } ?: generatedName
                 val result = when (val imported = service.importWallet(walletName, import, WalletSource.Import.toGem())) {
                     is GemWalletImportResult.Existing -> WalletImportResult.Existing(imported.wallet.decodeJson())
@@ -126,7 +124,7 @@ class ImportViewModel @Inject constructor(
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {
-                state.update { it.copy(dataError = (err as? ImportError) ?: ImportError.CreateError(err.message.orEmpty()), loading = false) }
+                state.update { it.copy(dataError = err, loading = false) }
             }
         }
     }
@@ -143,7 +141,7 @@ data class ImportViewModelState(
     val generatedNameIndex: Int = 0,
     val chainName: String = "",
     val data: String = "",
-    val dataError: ImportError? = null,
+    val dataError: Throwable? = null,
     val existingWalletResult: WalletImportResult.Existing? = null,
 ) {
     fun toUIState(): ImportUIState {
@@ -165,6 +163,6 @@ data class ImportUIState(
     val importType: ImportType = ImportType(WalletType.Multicoin),
     val generatedNameIndex: Int = 0,
     val chainName: String = "",
-    val dataError: ImportError? = null,
+    val dataError: Throwable? = null,
     val existingWalletResult: WalletImportResult.Existing? = null,
 )

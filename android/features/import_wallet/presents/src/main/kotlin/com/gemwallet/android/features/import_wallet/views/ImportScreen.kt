@@ -39,7 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.application.wallet_import.values.ImportError
+import uniffi.gemstone.GemWalletImportException
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
 import com.gemwallet.android.features.import_wallet.components.ImportInput
 import com.gemwallet.android.features.import_wallet.components.WalletTypeTab
@@ -169,7 +169,7 @@ private fun ImportScene(
     generatedNameIndex: Int,
     chainName: String,
     nameResolveState: NameRecordState,
-    dataError: ImportError?,
+    dataError: Throwable?,
     buttonState: ButtonState,
     onImport: (generatedName: String, value: String) -> Unit,
     onInput: (String) -> Unit,
@@ -330,21 +330,20 @@ private fun TypeSelection(
 }
 
 @Composable
-private fun ErrorMessage(error: ImportError?) {
+private fun ErrorMessage(error: Throwable?) {
     val text = when (error) {
-        is ImportError.CreateError -> stringResource(
-            R.string.errors_create_wallet,
-            error.message?.takeIf { it.isNotBlank() } ?: stringResource(R.string.errors_unknown_try_again),
-        )
-        is ImportError.InvalidWords -> stringResource(
+        is GemWalletImportException.InvalidSecretPhraseWords -> stringResource(
             R.string.errors_import_invalid_secret_phrase_word,
             error.words.joinToString()
         )
-        ImportError.InvalidationSecretPhrase -> stringResource(R.string.errors_import_invalid_secret_phrase)
-        ImportError.InvalidAddress -> stringResource(R.string.errors_invalid_address_name)
-        ImportError.InvalidationPrivateKey -> stringResource(R.string.errors_import_invalid_private_key)
-        is ImportError.DuplicatedWallet -> "Duplicated wallet"
+        is GemWalletImportException.InvalidSecretPhrase -> stringResource(R.string.errors_import_invalid_secret_phrase)
+        is GemWalletImportException.InvalidAddress -> stringResource(R.string.errors_invalid_address_name)
+        is GemWalletImportException.InvalidPrivateKey -> stringResource(R.string.errors_import_invalid_private_key)
         null -> return
+        else -> stringResource(
+            R.string.errors_create_wallet,
+            error.message?.takeIf { it.isNotBlank() } ?: stringResource(R.string.errors_unknown_try_again),
+        )
     }
     Text(text = text, color = MaterialTheme.colorScheme.error)
 }

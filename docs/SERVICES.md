@@ -543,6 +543,12 @@ Three gotchas if you repeat the sweep, all met on this pass:
   now joins the view model scope before `resetMain()` — its `withContext(IO)` hop used to resume
   on a reset Main and fail the next test.
 
+- **Android classifies Core's import error where the screen branches.** `ImportError` mirrored
+  `GemWalletImportException` case for case (plus a `DuplicatedWallet` nothing threw), with a
+  `validatedOrImportError` re-wrap between the two; the import screen switches on
+  `GemWalletImportException` now, exactly as iOS's `GemWalletImportError: LocalizedError` does,
+  and any other failure keeps its message.
+
 - **Two device API clients, and the split is load-bearing.** `deviceRegistrationClient` has no preflight and is what `GemDeviceService`/`GemSubscriptionService` use; the general client has one and is what every other service uses. That is what stops the sync path recursing into itself. `GemDeviceApiClient.set_device_sync_preflight` must only ever be called on the general client; nothing enforces it, so this note is the only record of it.
 
 - **Transfer model collapse.** Generate the `TransactionInputType` enum from typeshare so the primitives tuple enum, the gemstone named-field enum and the Swift/Kotlin enums become one (685 Core, 52 Android, 5 iOS references). Transaction construction is wallet-critical — do it only after both apps carry Core records through confirm. **Not started.**
