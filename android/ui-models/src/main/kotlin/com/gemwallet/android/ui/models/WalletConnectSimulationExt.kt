@@ -4,8 +4,6 @@ import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.SimulationPayloadField
 import com.wallet.core.primitives.SimulationPayloadFieldType
-import com.wallet.core.primitives.SimulationSeverity
-import com.wallet.core.primitives.SimulationWarning
 import uniffi.gemstone.GemBlockExplorerLink
 
 data class PayloadField(
@@ -13,9 +11,6 @@ data class PayloadField(
     val explorerLink: BlockExplorerLink? = null,
     val chain: Chain? = null,
 )
-
-fun List<SimulationWarning>.hasCriticalWarning(): Boolean =
-    any { it.severity == SimulationSeverity.Critical }
 
 fun List<SimulationPayloadField>.withExplorerLinks(
     chain: Chain?,

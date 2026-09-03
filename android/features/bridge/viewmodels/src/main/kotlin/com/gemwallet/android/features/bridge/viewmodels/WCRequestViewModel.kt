@@ -17,7 +17,6 @@ import com.gemwallet.android.features.bridge.viewmodels.model.WCRequest
 import com.gemwallet.android.features.bridge.viewmodels.model.map
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
-import com.gemwallet.android.ui.models.hasCriticalWarning
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -68,7 +67,7 @@ class WCRequestViewModel @Inject constructor(
     val buttonState = sceneState.map { scene ->
         val request = (scene as? RequestSceneState.Content)?.request as? WCRequest.SignMessage
         buttonState(
-            enabled = request?.simulation?.warnings?.hasCriticalWarning() != true,
+            enabled = request?.hasCriticalWarning != true,
             loading = scene is RequestSceneState.Responding,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Enabled)

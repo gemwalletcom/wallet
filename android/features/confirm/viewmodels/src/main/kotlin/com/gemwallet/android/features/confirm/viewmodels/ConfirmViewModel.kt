@@ -44,7 +44,6 @@ import com.gemwallet.android.ui.models.swap.SwapProviderUIModelFactory
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
-import com.gemwallet.android.ui.models.hasCriticalWarning
 import com.gemwallet.android.domains.confirm.AmountUIModel
 import com.gemwallet.android.domains.confirm.FeeAssetUIModel
 import com.gemwallet.android.domains.confirm.toFeeAssetUIModel
@@ -169,7 +168,7 @@ class ConfirmViewModel @Inject constructor(
         buttonState(
             enabled = state !is ConfirmState.Prepare
                 && state !is ConfirmState.Sending
-                && !simulation.warnings.hasCriticalWarning(),
+                && !simulation.hasCriticalWarning,
             loading = state is ConfirmState.Sending || state is ConfirmState.Prepare || state is ConfirmState.Result,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Loading)

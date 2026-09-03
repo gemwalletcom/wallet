@@ -16,6 +16,7 @@ pub struct GemSignMessagePreview {
     pub text: String,
     pub primary_fields: Vec<SimulationPayloadField>,
     pub secondary_fields: Vec<SimulationPayloadField>,
+    pub has_critical_warning: bool,
 }
 
 #[derive(uniffi::Object)]
@@ -45,11 +46,13 @@ impl GemSignMessageService {
 
     pub fn preview(&self, message: SignMessage, simulation: SimulationResult) -> GemSignMessagePreview {
         let signer = MessageSigner::new(message);
+        let has_critical_warning = simulation.has_critical_warning();
         let payload = signer.payload_preview(simulation.payload).ok().flatten();
         GemSignMessagePreview {
             text: signer.plain_preview(),
             primary_fields: payload.as_ref().map(|preview| preview.primary.clone()).unwrap_or_default(),
             secondary_fields: payload.map(|preview| preview.secondary).unwrap_or_default(),
+            has_critical_warning,
         }
     }
 

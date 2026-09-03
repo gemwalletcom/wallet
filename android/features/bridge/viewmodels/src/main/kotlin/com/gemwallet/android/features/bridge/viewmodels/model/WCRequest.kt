@@ -54,6 +54,9 @@ sealed class WCRequest(
         override val warnings: List<SimulationWarning>
             get() = simulation.warnings
 
+        override val hasCriticalWarning: Boolean
+            get() = preview.hasCriticalWarning
+
         override val primaryPayloadFields: List<PayloadField> by lazy { preview.primaryFields.fields() }
 
         override val secondaryPayloadFields: List<PayloadField> by lazy { preview.secondaryFields.fields() }

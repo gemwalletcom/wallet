@@ -16,6 +16,7 @@ import java.math.BigInteger
 
 data class Simulation(
     val warnings: List<SimulationWarning> = emptyList(),
+    val hasCriticalWarning: Boolean = false,
     val primaryPayloadFields: List<PayloadField> = emptyList(),
     val secondaryPayloadFields: List<PayloadField> = emptyList(),
     val headerAsset: Asset? = null,
@@ -39,6 +40,7 @@ fun GemConfirmSimulationState.toSimulation(
 
     return Simulation(
         warnings = warnings,
+        hasCriticalWarning = details.hasCriticalWarning,
         primaryPayloadFields = details.primaryFields.map { it.toPrimitives() }
             .withExplorerLinks(chain) { chain, address -> confirmService.addressUrl(chain.string, address) },
         secondaryPayloadFields = details.secondaryFields.map { it.toPrimitives() }

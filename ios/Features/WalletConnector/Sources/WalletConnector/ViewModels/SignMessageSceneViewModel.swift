@@ -108,7 +108,7 @@ public final class SignMessageSceneViewModel {
     }
 
     public var isButtonDisabled: Bool {
-        simulationWarnings.hasCritical
+        preview.hasCriticalWarning
     }
 
     public var buttonType: ButtonType {

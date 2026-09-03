@@ -380,8 +380,11 @@ Three gotchas if you repeat the sweep, all met on this pass:
   one and show `failure` if there is one; iOS's `handleRequest`/`rejectRequest` and Android's `WalletConnectRequestHandler`, the
   connection lookup and the per-request origin check are gone, and `WCRequestViewModel` holds
   the Core service plus the SDK responder, the pending-request port, `GemSignMessageService` and the
-  active-request tracker. `GemSignMessageService { names, explorer }` answers the preview, the
-  payload address names and the explorer links for the sign-message screen on both apps.
+  active-request tracker. `GemSignMessageService { names, explorer }` answers the preview (text,
+  payload fields and `has_critical_warning`, which is what disables the sign button — the
+  per-app "any warning is critical" helpers are gone; the confirm screen reads the same flag off
+  `GemConfirmSimulation`), the payload address names and the explorer links for the
+  sign-message screen on both apps.
 
 ### 4. Core surface
 
