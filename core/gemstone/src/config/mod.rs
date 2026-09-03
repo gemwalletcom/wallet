@@ -16,6 +16,7 @@ pub mod validators;
 pub mod wallet_connect;
 
 use crate::config::chain::ChainConfig;
+use crate::services::nft::rules::nft_chains;
 use primitives::{Chain, StakeChain, node_config::NodeRegion};
 use std::str::FromStr;
 
@@ -67,6 +68,10 @@ impl Config {
 
     fn leverage_options(&self, max_leverage: u8) -> Vec<u8> {
         leverage_options(max_leverage)
+    }
+
+    fn get_nft_chains(&self) -> Vec<Chain> {
+        nft_chains()
     }
 
     fn get_chain_config(&self, chain: Chain) -> ChainConfig {

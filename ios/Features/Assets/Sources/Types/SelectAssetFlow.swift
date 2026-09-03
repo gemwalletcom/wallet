@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.Config
 import enum Gemstone.GemAssetAction
 import GemstonePrimitives
 import Localization
@@ -103,7 +104,7 @@ public extension SelectAssetType {
                     listType: .copy(.collection),
                     defaultFilters: [
                         .enabled,
-                        .chainsOrAssets([], Chain.allCases.filter(\.isNFTSupported).map(\.rawValue)),
+                        .chainsOrAssets([], Config().getNftChains()),
                     ],
                     rowSelection: .navigate,
                     capabilities: [.networkSearch, .recents],
