@@ -322,6 +322,10 @@ A sweep of the `#[typeshare]` types in `core/crates/primitives` against both app
 
 - **Sixteen are nested** inside a type the apps do use — `StreamEvent` hosts six, `Markets` two, plus `CoreListItem`, `WalletSubscription`, `PortfolioAssets`, `FiatProvider`/`FiatQuote`, `RewardRedemptionOption`, `StreamMessage`, `WalletConfigurationResult`. Their generated model is still required; they go only when the host does.
 - **`TransactionInputType`** is unreferenced but stays — it is the target of the transfer-model collapse in section 4.
+- A later pass (September 2026) found `BalanceType` — a file that was not even in `lib.rs` — and
+  `AssetRank`, which only `AssetScore::rank_type` (a skipped field) uses in Core; the first is
+  deleted with its two generated files, the second is no longer shared. `AssetScoreType` went
+  with the verification-status move.
 
 Three gotchas if you repeat the sweep, all met on this pass:
 1. A `#[typeshare(skip)]` on a *field* stops compiling once the struct attribute is removed, so it has to go with it.
