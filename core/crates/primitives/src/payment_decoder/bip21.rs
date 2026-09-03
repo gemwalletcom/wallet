@@ -7,14 +7,12 @@ use crate::{
 };
 
 const REQUIRED_PARAMETER_PREFIX: &str = "req-";
-const AUTHORITY_PREFIX: &str = "//";
 const QUERY_AMOUNT: &str = "amount";
 const QUERY_MEMO: &str = "memo";
 const QUERY_DESTINATION_TAG: &str = "dt";
 
 pub fn decode(chain: Option<Chain>, path: &str) -> Result<Payment> {
     let asset_id = chain.map(AssetId::from_chain);
-    let path = path.strip_prefix(AUTHORITY_PREFIX).unwrap_or(path);
 
     let Some((address, query)) = path.split_once('?') else {
         return Ok(Payment::Request(PaymentRequest {
@@ -66,7 +64,6 @@ mod tests {
         });
 
         assert_eq!(decode(Some(Chain::Bitcoin), BITCOIN_ADDRESS).unwrap(), bitcoin);
-        assert_eq!(decode(Some(Chain::Bitcoin), &format!("//{BITCOIN_ADDRESS}")).unwrap(), bitcoin);
         assert_eq!(decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?label=Luke-Jr")).unwrap(), bitcoin);
         assert_eq!(decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?dontexist=")).unwrap(), bitcoin);
         assert_eq!(decode(Some(Chain::Bitcoin), &format!("{BITCOIN_ADDRESS}?amount=&memo=")).unwrap(), bitcoin);

@@ -27,6 +27,7 @@ impl PaymentURLDecoder {
         let Some((scheme, path)) = uri.split_once(':') else {
             return bip21::decode(None, uri);
         };
+        let path = path.strip_prefix("//").unwrap_or(path);
 
         match get_chain(&scheme.to_ascii_lowercase()).ok_or(PaymentDecoderError::InvalidScheme)? {
             Chain::Ethereum => erc681::decode(path),
