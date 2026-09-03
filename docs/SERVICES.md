@@ -650,6 +650,11 @@ Three gotchas if you repeat the sweep, all met on this pass:
   `Wallet.onboardingBannerKey`, the home's `showWelcomeBanner`/`onHideWelcomeBanner` and
   `GemBannerService::shows_onboarding` are gone, and the DAO no longer pre-filters banner
   states in SQL — Core's `is_visible` decides.
+- **The recommended validators section is one Core answer.** Both validator-select screens
+  asked `GemStakeService::recommended_validator_ids(chain)` and then ran the same
+  `validators.filter { ids.contains(id) }` themselves; `recommended_validators(chain, validators)`
+  returns the section (and `recommended_validator` picks from it), so neither app keeps the
+  membership filter and the id accessor is gone.
 - **The wallets limit is Core's rule on both apps.** iOS's `WalletsSceneViewModel` kept
   `walletsLimit = 100` and refused to open the create/import sheets past it (gem-ios #1067);
   Android had no limit at all. `rules::can_add_wallet` / `WALLETS_LIMIT` back

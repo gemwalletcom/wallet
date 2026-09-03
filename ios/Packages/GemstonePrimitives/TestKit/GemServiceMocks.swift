@@ -561,8 +561,8 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         GemClaimRewards(value: 0, destination: .amount(delegations: delegations))
     }
 
-    public func recommendedValidatorIds(chain _: Gemstone.Chain) -> [String] {
-        validators.map(\.self)
+    public func recommendedValidators(chain _: Gemstone.Chain, validators: [Gemstone.DelegationValidator]) -> [Gemstone.DelegationValidator] {
+        validators.filter { self.validators.contains($0) }
     }
 
     public func recommendedValidator(chain _: Gemstone.Chain, validators _: [Gemstone.DelegationValidator]) -> Gemstone.DelegationValidator? {
