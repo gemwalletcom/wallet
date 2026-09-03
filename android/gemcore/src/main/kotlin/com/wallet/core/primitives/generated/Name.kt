@@ -17,12 +17,8 @@ enum class NameProvider(val string: String) {
 	Sns("sns"),
 	@SerialName("ton")
 	Ton("ton"),
-	@SerialName("tree")
-	Tree("tree"),
 	@SerialName("spaceid")
 	Spaceid("spaceid"),
-	@SerialName("eths")
-	Eths("eths"),
 	@SerialName("did")
 	Did("did"),
 	@SerialName("suins")

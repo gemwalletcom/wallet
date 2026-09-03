@@ -162,8 +162,6 @@ name:
     url: https://sdk-proxy.sns.id
   ton:
     url: https://toncenter.com
-  eths:
-    url: https://api.eths.center
   spaceid:
     url: https://api.prd.space.id
   did:

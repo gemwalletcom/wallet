@@ -16,7 +16,6 @@ Resolves human-readable names to addresses. Every provider lives in `src/provide
 - [Interchain Nameservice](https://www.icns.xyz/) - `.cosmos`, `.osmo`, `.celestia`, `.sei`
 - [d.id](https://d.id/) - `.bit`
 - [Lens](https://www.lens.xyz/) - `.lens`
-- [eths.center](https://eths.center/) - `.tree`, `.eths`, `.honk`
 - [Space ID](https://space.id) - `.bnb`, `.arb`
 - [Hyperliquid Names](https://hlnames.xyz/) - `.hl`
 - NEAR accounts - `.near`

@@ -3,7 +3,6 @@ pub mod aptos;
 pub mod basenames;
 pub mod did;
 pub mod ens;
-pub mod eths;
 pub mod hyperliquid;
 pub mod icns;
 pub mod injective;
