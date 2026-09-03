@@ -191,6 +191,13 @@
     },
     {
       "target": {
+        "containerPath": "container:Features\/Settings",
+        "identifier": "ChainSettingsTests",
+        "name": "ChainSettingsTests"
+      }
+    },
+    {
+      "target": {
         "containerPath": "container:Packages\/Preferences",
         "identifier": "PreferencesTest",
         "name": "PreferencesTest"

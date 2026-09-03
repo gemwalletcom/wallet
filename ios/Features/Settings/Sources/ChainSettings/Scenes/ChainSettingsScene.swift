@@ -26,11 +26,10 @@ public struct ChainSettingsScene: View {
                         titleTagStyle: nodeModel.titleTagStyle,
                         subtitle: .none,
                         subtitleExtra: .none,
-                        value: nodeModel.chainNode.host,
-                        selection: model.selectedNode.host,
-                    ) { _ in
-                        model.onSelectNode(nodeModel.chainNode)
-                    }
+                        value: nodeModel.chainNode,
+                        selection: model.selectedNode,
+                        action: model.onSelectNode,
+                    )
                     .contextMenu(
                         .copy(value: nodeModel.chainNode.node.url),
                     )

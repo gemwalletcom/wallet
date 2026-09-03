@@ -794,6 +794,68 @@ public final class GemCurrencyServiceMock: GemCurrencyServiceProtocol, @unchecke
     }
 }
 
+public final class GemChainSettingsServiceMock: GemChainSettingsServiceProtocol, @unchecked Sendable {
+    private let nodeUrls: [String]
+    private var selectedUrl: String
+
+    public init(nodeUrls: [String]) {
+        self.nodeUrls = nodeUrls
+        selectedUrl = nodeUrls.first ?? ""
+    }
+
+    public func nodes(chain _: Gemstone.Chain) async throws -> [Gemstone.Node] {
+        nodeUrls.map(node(url:))
+    }
+
+    public func selectedNode(chain _: Gemstone.Chain) -> Gemstone.Node {
+        node(url: selectedUrl)
+    }
+
+    public func selectNode(chain _: Gemstone.Chain, url: String) async throws {
+        selectedUrl = url
+    }
+
+    public func nodeStatus(chain _: Gemstone.Chain, url _: String) async -> GemNodeStatusState {
+        .loading
+    }
+
+    public func canDeleteNode(chain _: Gemstone.Chain, url _: String) -> Bool {
+        true
+    }
+
+    public func nodeFlag(url _: String) -> String? {
+        nil
+    }
+
+    public func chains(query _: String) -> [Gemstone.Chain] {
+        []
+    }
+
+    public func explorers(chain _: Gemstone.Chain) -> [String] {
+        []
+    }
+
+    public func explorerName(chain _: Gemstone.Chain) -> String {
+        ""
+    }
+
+    public func nodeCheckDebounceMilliseconds() -> UInt64 {
+        0
+    }
+
+    public func checkNode(chain _: Gemstone.Chain, url _: String) async throws -> GemNodeCheck {
+        throw AnyError("not stubbed")
+    }
+
+    public func addNode(chain _: Gemstone.Chain, url _: String) async throws {}
+    public func deleteNode(chain _: Gemstone.Chain, url _: String) async throws {}
+    public func setExplorerName(chain _: Gemstone.Chain, name _: String) throws {}
+
+    private func node(url: String) -> Gemstone.Node {
+        Primitives.Node(url: url, status: .active, priority: 0).json()
+    }
+}
+
 public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Sendable {
     public private(set) var closedKeys: [GemBannerKey] = []
     public private(set) var handledActions: [GemBannerAction] = []
