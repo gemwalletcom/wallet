@@ -327,6 +327,7 @@ Each is one question. Nothing below is blocked on investigation.
 | S8 privacy lock | iOS has an app-lock setting with a `shouldCoverScreen` rule and an overlay window; Android has none. | Product call. The cover predicate is Core's; the overlay is platform. |
 | S9 WalletConnect one-click auth (SIWE) | Android only, and its rules — including *what the user is asked to sign* — live in `WCAuthViewModel.kt` UI code. | Product call. Whoever takes it moves the rules to Core first. |
 | Polling on top of a live socket | T5/T7: screens still poll while a socket is open, and each screen asks for its own price subscription rather than Core deciding when prices are subscribed (deleting `PriceUpdater.swift`). | Design change, not a missing call. |
+| Onboarding banner "wallet empty" premise | Both apps ask Core (`is_visible_event(Onboarding)` on iOS's `visibleBanners`, `shows_onboarding` on Android's `GetShowWelcomeBanner`) but feed it different facts: iOS passes `totalFiatValue == 0`, Android passes "every enabled balance is zero". A funded wallet holding only unpriced tokens gets the banner on iOS and not on Android. | Pick the balance rule (a wallet with coins is not empty), have iOS derive `isWalletEmpty` from its observed asset rows, then fold Android's welcome banner into the `visibleBanners` list so `shows_onboarding` can go. |
 | Frozen `assetConfig` table | `Chain.asset()` builds an immutable lookup once at first access. Threading a service through ~21 Android sites so a pure function can read a constant costs every caller a parameter for nothing at runtime, and a frozen table cannot drift into an app-side variant. | Decide whether the no-service-at-a-call-site rule carves this out before spending the change. |
 
 ### 2. Unused generated models to remove
@@ -631,6 +632,13 @@ Three gotchas if you repeat the sweep, all met on this pass:
   are gone. `SettingsViewModelTest`'s rewards tests waited on a `withContext(IO)` hop with
   `advanceUntilIdle()` alone and flaked; one test now waits for Core's answer with `first {}`
   and covers both directions.
+- **`GemAddressService` keeps only `format`.** `validate` and `checksum` had no iOS caller and
+  Android's only callers were `Chain.isValidAddress` (unused) and `Chain.checksumAddress`, which
+  `ContactAddressInput.resolvedAddress` used to re-derive the recipient address rule Core
+  already applies in `GemNameService::validate_recipient` (name-record address else input,
+  checksummed) — the contact view model reads `AddressInputModel.resolvedAddress`, which is
+  that Core answer. The helper, its test and the stale `ChecksumAddressTest` instrumented
+  test (it no longer even compiled) are deleted; Core's `address.rs` tests own the checksum rule.
 - **Android reports collectibles through `GemCollectibleService::report`.** The export was
   iOS-only because Android had no report action. `NftDetailsViewModel` now holds
   `GemCollectibleServiceInterface` (the `RefreshNftAsset` case that wrapped `refresh_asset` is

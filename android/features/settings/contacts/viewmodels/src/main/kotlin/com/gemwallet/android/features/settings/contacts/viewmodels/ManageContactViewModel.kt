@@ -8,7 +8,6 @@ import android.util.Log
 import com.gemwallet.android.application.contacts.cases.GetContacts
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.requireChain
-import com.gemwallet.android.ext.isValidAddress
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressForm
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressInput
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAvatarState
