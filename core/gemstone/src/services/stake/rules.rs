@@ -16,7 +16,6 @@ use crate::models::custom_types::GemBigUint;
 use crate::services::balance::{GemAssetBalance, GemBalanceRow};
 use crate::services::transfer::rules as transfer_rules;
 
-const SYSTEM_VALIDATOR_IDS: [&str; 2] = [DelegationValidator::SYSTEM_ID, "unstaking"];
 use crate::config::stake::get_stake_config;
 use crate::config::validators::get_validators;
 
@@ -56,7 +55,7 @@ pub fn can_claim_rewards(wallet_type: WalletType, delegation: &Delegation) -> bo
 
 pub fn validator_explorer_address(validator: &DelegationValidator) -> Option<String> {
     match validator.provider_type {
-        StakeProviderType::Stake if !SYSTEM_VALIDATOR_IDS.contains(&validator.id.as_str()) => Some(validator.id.clone()),
+        StakeProviderType::Stake if !DelegationValidator::is_system_id(&validator.id) => Some(validator.id.clone()),
         StakeProviderType::Stake | StakeProviderType::Earn => None,
     }
 }
@@ -185,7 +184,7 @@ impl GemAssetBalance {
 pub fn selectable_validators(validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {
     let mut selectable: Vec<DelegationValidator> = validators
         .into_iter()
-        .filter(|validator| validator.is_active && !validator.name.trim().is_empty() && !SYSTEM_VALIDATOR_IDS.contains(&validator.id.as_str()))
+        .filter(|validator| validator.is_active && !validator.name.trim().is_empty() && !DelegationValidator::is_system_id(&validator.id))
         .collect();
     selectable.sort_by(|left, right| right.apr.total_cmp(&left.apr));
     selectable

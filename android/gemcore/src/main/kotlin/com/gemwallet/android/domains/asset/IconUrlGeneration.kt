@@ -57,13 +57,7 @@ fun Asset.getIconUrl(): String {
 
 fun Asset.getSupportIconUrl(): String? = id.getSupportIconUrl()
 
-const val SYSTEM_VALIDATOR_ID = "system"
-
-fun DelegationValidator.getIconUrl(): String = if (id == SYSTEM_VALIDATOR_ID) {
-    chain.getIconUrl()
-} else {
-    GemImage.Validator(chain.string, id).url()
-}
+fun DelegationValidator.getIconUrl(): String = GemImage.Validator(chain.string, id).url()
 
 fun FiatProviderName.getFiatProviderIcon(): String = "file:///android_asset/fiat/${string}.svg"
 

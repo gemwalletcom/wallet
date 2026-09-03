@@ -1,4 +1,4 @@
-use primitives::{AssetId, Chain, ImageFormatter};
+use primitives::{AssetId, Chain, DelegationValidator, ImageFormatter};
 
 use super::public::ASSETS_URL;
 
@@ -15,6 +15,9 @@ impl GemImage {
     pub fn url(&self) -> String {
         match self {
             Self::Asset { asset_id } => ImageFormatter::get_asset_url_for_asset_id(ASSETS_URL, asset_id.clone()),
+            Self::Validator { chain, validator_id } if DelegationValidator::is_system_id(validator_id) => {
+                ImageFormatter::get_asset_url_for_asset_id(ASSETS_URL, AssetId::from_chain(*chain))
+            }
             Self::Validator { chain, validator_id } => ImageFormatter::get_validator_url(ASSETS_URL, chain.as_ref(), validator_id),
             Self::NftAsset { asset_id } => ImageFormatter::get_nft_asset_url(&format!("{ASSETS_URL}/nft"), asset_id),
             Self::AssetList { list_id } => ImageFormatter::get_asset_list_url(ASSETS_URL, list_id),
@@ -42,6 +45,18 @@ mod tests {
             }
             .url(),
             "https://assets.gemwallet.com/blockchains/cosmos/validators/cosmosvaloper1/logo.png"
+        );
+        assert_eq!(
+            GemImage::Validator {
+                chain: Chain::Cosmos,
+                validator_id: DelegationValidator::SYSTEM_ID.to_string()
+            }
+            .url(),
+            GemImage::Asset {
+                asset_id: AssetId::from_chain(Chain::Cosmos)
+            }
+            .url(),
+            "the system validator shows the chain's own logo"
         );
         assert_eq!(
             GemImage::NftAsset {

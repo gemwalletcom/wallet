@@ -35,9 +35,7 @@ public struct ValidatorViewModel {
     public var imageUrl: URL? {
         switch validator.providerType {
         case .stake:
-            validator.id == DelegationValidator.systemId
-                ? GemImage.asset(assetId: validator.chain.assetId.identifier).imageURL
-                : GemImage.validator(chain: validator.chain.rawValue, validatorId: validator.id).imageURL
+            GemImage.validator(chain: validator.chain.rawValue, validatorId: validator.id).imageURL
         case .earn:
             nil
         }
