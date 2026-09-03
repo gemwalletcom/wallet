@@ -59,7 +59,7 @@ This is a crypto wallet. Treat security-sensitive changes as high risk by defaul
 
 ## Working Across the Monorepo
 
-- Fix causes, not symptoms. Fix a failure at the layer that owns the invariant; if the real fix is out of scope, flag it instead of shipping a patch over it — see [Engineering Principles](skills/engineering-principles.md)
+- Fix causes, not symptoms. Ask why the failure was possible before changing anything, and fix the layer that made it possible; if that fix is out of scope, name the cause and flag it — see [Engineering Principles](skills/engineering-principles.md)
 - Use single-word names for Core settings keys; `_` is reserved for separating the settings hierarchy in environment variables.
 - When two patterns contradict (iOS vs. Android handling of a shared flow, two error-mapping styles in `core/`, parallel provider implementations), do not blend them. Pick the more recent or more tested one, state why, and flag the other for follow-up
 - Never wrap an immutable request client in a shared `Mutex` or hold that client lock across network or database I/O. Use mutexes only for narrowly scoped mutable coordination

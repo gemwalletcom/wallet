@@ -4,10 +4,13 @@ These rules govern the monorepo unless a platform guide gives a stricter local r
 
 ## Fix Causes, Not Symptoms
 
-- Trace a failure to the layer that owns the invariant and fix it there, not in the caller that noticed it
-- A null check, swallowed error, retry, or sleep is a fix only when the state it handles is real and you can name it
-- When a test fails, change the code, not the assertion
-- If the real fix is out of scope, say what the cause is and flag it. Never present a symptom patch as a fix
+Before changing anything, ask why the failure was possible at all. Keep asking until the answer names a layer you can fix.
+
+- Who produced this value or state? Fix it there, not in the caller that noticed it
+- Is this condition real? A null check, swallowed error, retry, or sleep is a fix only when you can name the state it handles
+- Why is this test failing? Change the code, not the assertion
+- Is this the only place? Two similar patches usually mean one shared cause
+- If the real fix is out of scope, name the cause and flag it. Never present a symptom patch as a fix
 
 ## Clean Code Principles
 
