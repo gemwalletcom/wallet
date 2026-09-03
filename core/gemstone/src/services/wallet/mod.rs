@@ -147,9 +147,6 @@ impl GemWalletService {
         if remaining.is_empty() || self.session.get_current_wallet_id()? == Some(wallet.id) {
             self.session.set_current_wallet_id(rules::next_current_wallet(&remaining))?;
         }
-        if remaining.is_empty() {
-            self.app_preferences.clear()?;
-        }
         self.invalidate_subscriptions().await?;
         Ok(match remaining.is_empty() {
             true => GemWalletDeletion::LastWalletDeleted,
@@ -306,6 +303,7 @@ mod tests {
     use std::path::PathBuf;
 
     use futures::executor::block_on;
+    use primitives::Currency;
     use tempfile::TempDir;
 
     use super::testkit::{MemoryKeystorePassword, MemoryWalletStore, TEST_PASSWORD};
@@ -325,7 +323,6 @@ mod tests {
     struct TestContext {
         service: GemWalletService,
         passwords: Arc<MemoryKeystorePassword>,
-        preferences: Arc<MemoryPreferencesStore>,
         directory: TempDir,
     }
 
@@ -348,12 +345,7 @@ mod tests {
                 Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default()))),
                 Arc::new(GemExplorerService::new(app_preferences)),
             );
-            Self {
-                service,
-                passwords,
-                preferences,
-                directory,
-            }
+            Self { service, passwords, directory }
         }
 
         async fn import(&self, name: &str, words: [&str; 12]) -> Wallet {
@@ -381,7 +373,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_wallet_removes_every_secret_copy_and_reports_the_outcome() {
+    fn test_delete_wallet_removes_secret_copies_preserves_preferences_and_reports_outcome() {
         block_on(async {
             let context = TestContext::new();
             let kept = context.import("Kept", OTHER_PHRASE).await;
@@ -398,14 +390,14 @@ mod tests {
             assert!(context.keystore_path(&kept).exists());
             assert_eq!(context.service.session.get_current_wallet_id().unwrap(), Some(kept.id.clone()));
 
-            context.preferences.values.lock().unwrap().insert("is_developer_enabled".to_string(), "true".to_string());
+            context.service.app_preferences.set_currency(Currency::EUR).unwrap();
 
             let outcome = context.service.delete_wallet(kept.id.clone()).await.unwrap();
 
             assert_eq!(outcome, GemWalletDeletion::LastWalletDeleted);
             assert!(!context.keystore_path(&kept).exists());
             assert_eq!(context.service.session.get_current_wallet_id().unwrap(), None);
-            assert_eq!(context.preferences.values.lock().unwrap().get("is_developer_enabled"), None);
+            assert_eq!(context.service.app_preferences.get_currency(), Currency::EUR);
         });
     }
 
@@ -498,11 +490,12 @@ mod tests {
                 "deleting one of several wallets must bump"
             );
 
+            let before = context.service.app_preferences.get_subscriptions_version();
             context.service.delete_wallet(wallet.id.clone()).await.unwrap();
             assert_eq!(
                 context.service.app_preferences.get_subscriptions_version(),
-                1,
-                "deleting the last wallet clears preferences first, so the bump restarts from zero"
+                before + 1,
+                "deleting the last wallet must bump without resetting app preferences"
             );
         });
     }
