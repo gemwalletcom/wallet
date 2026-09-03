@@ -2,7 +2,10 @@ use crate::{SwapperError, config::get_swap_proxy_url};
 use gem_client::{Client, ClientExt};
 use std::{collections::HashMap, fmt::Debug};
 
-use super::model::{ExplorerTransaction, QuoteRequest, QuoteResponseResult};
+use super::model::{ExplorerTransaction, ExplorerTransactionsQuery, QuoteRequest, QuoteResponseResult};
+use super::target::{NearIntentsExplorerTarget, NearIntentsTarget};
+
+const TRANSACTIONS_SEARCH_LIMIT: usize = 10;
 
 pub fn base_url() -> String {
     get_swap_proxy_url("near-intents/1click")
@@ -37,7 +40,11 @@ where
     }
 
     pub async fn get_quote(&self, request: &QuoteRequest) -> Result<QuoteResponseResult, SwapperError> {
-        self.client.post("/v0/quote", request).headers(self.build_headers()).await.map_err(SwapperError::from)
+        self.client
+            .post(NearIntentsTarget::Quote, request)
+            .headers(self.build_headers())
+            .await
+            .map_err(SwapperError::from)
     }
 }
 
@@ -51,13 +58,17 @@ impl<C: Client + Send + Sync + Debug> NearIntentsExplorer<C> {
         Self { client }
     }
 
-    async fn get_transactions(&self, query: &str) -> Result<Vec<ExplorerTransaction>, SwapperError> {
-        let path = format!("/api/v0/transactions?{query}");
-        self.client.get::<Vec<ExplorerTransaction>>(&path).await.map_err(SwapperError::from)
-    }
-
     pub async fn search_transaction(&self, hash: &str) -> Result<Option<ExplorerTransaction>, SwapperError> {
-        let transactions = self.get_transactions(&format!("search={hash}&numberOfTransactions=10")).await?;
+        let transactions: Vec<ExplorerTransaction> = self
+            .client
+            .get(NearIntentsExplorerTarget::Transactions {
+                query: ExplorerTransactionsQuery {
+                    search: hash.to_string(),
+                    number_of_transactions: TRANSACTIONS_SEARCH_LIMIT,
+                },
+            })
+            .await
+            .map_err(SwapperError::from)?;
         Ok(transactions.into_iter().find(|tx| tx.origin_chain_tx_hashes.iter().any(|h| h.eq_ignore_ascii_case(hash))))
     }
 }
