@@ -9,7 +9,6 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.requireChain
-import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState
@@ -55,13 +54,13 @@ class AddAssetViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val availableChains = wallet.map { wallet ->
-        wallet?.let { service.chains(it.toJson()).mapNotNull { chain -> chain.toChain() } }
+        wallet?.let { service.chains(it.toJson()).map { chain -> chain.requireChain() } }
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val chains = snapshotFlow { chainFilter.text }.combine(availableChains) { query, availableChains ->
-        availableChains?.let { service.matchingChains(it.map { chain -> chain.string }, query.toString()).mapNotNull { chain -> chain.toChain() } } ?: emptyList()
+        availableChains?.let { service.matchingChains(it.map { chain -> chain.string }, query.toString()).map { chain -> chain.requireChain() } } ?: emptyList()
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

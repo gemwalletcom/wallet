@@ -10,7 +10,7 @@ import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAssetConfigServiceInterface
 import uniffi.gemstone.GemTransactionsServiceInterface
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.requireChain
 import android.util.Log
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -56,7 +56,7 @@ class TransactionsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val availableChains: StateFlow<List<Chain>> = session
-        .map { runCatchingCancellable { service.filterChains() }.getOrDefault(emptyList()).mapNotNull { it.toChain() } }
+        .map { runCatchingCancellable { service.filterChains() }.getOrDefault(emptyList()).map { it.requireChain() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private var syncedWalletId: WalletId? = null

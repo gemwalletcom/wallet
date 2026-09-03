@@ -53,8 +53,4 @@ fun Chain.isMemoSupport() = Config().getChainConfig(string).isMemoSupported
 
 fun Chain.isPrivateKeyImportSupported(): Boolean = supportsPrivateKeyImport(string)
 
-fun uniffi.gemstone.Chain.toChain(): Chain? {
-    return Chain.entries.firstOrNull { it.string == this }
-}
-
-fun uniffi.gemstone.Chain.requireChain(): Chain = requireNotNull(toChain()) { "unknown chain: $this" }
+fun uniffi.gemstone.Chain.requireChain(): Chain = requireNotNull(Chain.entries.firstOrNull { it.string == this }) { "unknown chain: $this" }

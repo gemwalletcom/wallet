@@ -5,7 +5,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.ui.Modifier
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.assetType
-import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ChainItem
@@ -29,7 +29,7 @@ fun LazyListScope.selectFilterChain(
     item {
         SubheaderItem(R.string.settings_networks_title)
     }
-    val chains = chainService.getMatchingChains(availableChains.map { it.string }, query).mapNotNull { it.toChain() }
+    val chains = chainService.getMatchingChains(availableChains.map { it.string }, query).map { it.requireChain() }
     val items = availableChains.map { it.asset() }.filter { asset ->
         chains.contains(asset.id.chain) ||
             asset.id.chain.assetType()?.string?.contains(query, ignoreCase = true) == true

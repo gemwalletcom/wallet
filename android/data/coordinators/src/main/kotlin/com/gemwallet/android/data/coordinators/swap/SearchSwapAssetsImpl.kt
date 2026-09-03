@@ -4,7 +4,7 @@ import com.gemwallet.android.application.swap.cases.SearchSwapAssets
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.domains.asset.eligible
 import com.gemwallet.android.domains.asset.queryFilters
@@ -50,7 +50,7 @@ class SearchSwapAssetsImpl(
                     searchService.swapSearch(
                         wallet,
                         query,
-                        supported.chains.mapNotNull { it.toChain() },
+                        supported.chains.map { it.requireChain() },
                         supported.assetIds.mapNotNull { it.toAssetId() },
                     )
                 }

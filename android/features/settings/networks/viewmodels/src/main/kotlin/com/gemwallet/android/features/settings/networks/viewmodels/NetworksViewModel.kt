@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
-import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.requireChain
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
@@ -45,9 +45,9 @@ class NetworksViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            updateState { it.copy(availableChains = service.chains("").mapNotNull { it.toChain() }) }
+            updateState { it.copy(availableChains = service.chains("").map { it.requireChain() }) }
             snapshotFlow { chainFilter.text }.collectLatest { query ->
-                updateState { it.copy(availableChains = service.chains(query.toString()).mapNotNull { it.toChain() }) }
+                updateState { it.copy(availableChains = service.chains(query.toString()).map { it.requireChain() }) }
             }
         }
     }

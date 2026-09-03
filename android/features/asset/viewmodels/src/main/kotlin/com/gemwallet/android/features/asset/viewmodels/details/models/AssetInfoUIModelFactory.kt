@@ -18,7 +18,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.VerificationStatus
 import com.wallet.core.primitives.WalletType
 import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemAssetNetworkDestination
@@ -80,7 +80,7 @@ class AssetInfoUIModelFactory @Inject constructor() {
 
     private fun networkDestination(destination: GemAssetNetworkDestination): AssetInfoUIModel.NetworkDestination? = when (destination) {
         is GemAssetNetworkDestination.Asset -> AssetInfoUIModel.NetworkDestination.Asset(destination.asset.toPrimitives().id)
-        is GemAssetNetworkDestination.Assets -> destination.chain.toChain()?.let(AssetInfoUIModel.NetworkDestination::Assets)
+        is GemAssetNetworkDestination.Assets -> AssetInfoUIModel.NetworkDestination.Assets(destination.chain.requireChain())
     }
 
     private fun assetName(asset: Asset): String =

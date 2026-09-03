@@ -1,6 +1,6 @@
 package com.gemwallet.android.application.wallet_connect
 
-import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.requireChain
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletConnectionMethods
 import uniffi.gemstone.GemChainServiceInterface
@@ -60,5 +60,5 @@ enum class ChainNamespace(val string: String, val methods: List<WalletConnection
 
 fun Chain.Companion.fromWalletConnectChainId(chainService: GemChainServiceInterface, walletConnectChainId: String?): Chain? {
     val chainId = walletConnectChainId ?: return null
-    return chainService.chainFromCaip2(chainId)?.toChain()
+    return chainService.chainFromCaip2(chainId)?.requireChain()
 }

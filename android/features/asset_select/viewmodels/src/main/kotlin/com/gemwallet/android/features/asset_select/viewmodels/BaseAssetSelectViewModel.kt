@@ -33,7 +33,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualId
 import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.requireChain
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import com.wallet.core.primitives.Wallet
@@ -84,7 +84,7 @@ open class BaseAssetSelectViewModel(
     private val isSearching = MutableStateFlow(false)
 
     val availableChains = session
-        .map { runCatchingCancellable { service.filterChains() }.getOrDefault(emptyList()).mapNotNull { it.toChain() } }
+        .map { runCatchingCancellable { service.filterChains() }.getOrDefault(emptyList()).map { it.requireChain() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     protected val currentQuery = snapshotFlow { queryState.text.toString() }

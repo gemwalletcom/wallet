@@ -1,7 +1,7 @@
 package com.gemwallet.android.application.wallet_connect
 
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.ApplicationMetadata
@@ -30,7 +30,7 @@ sealed class WalletConnectPendingRequest(
 ) {
     internal val result = CompletableDeferred<String>()
 
-    val chain: Chain by lazy { checkNotNull(chainId.toChain()) { "Unsupported chain $chainId" } }
+    val chain: Chain by lazy { chainId.requireChain() }
     val wallet: Wallet by lazy { walletJson.decodeJson() }
     val account: Account by lazy { checkNotNull(wallet.getAccount(chain)) { "Wallet has no $chain account" } }
     val appMetadata: ApplicationMetadata by lazy { sessionJson.decodeJson<WalletConnectionSession>().metadata }
