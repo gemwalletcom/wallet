@@ -2,7 +2,6 @@
 
 import Foundation
 import typealias Gemstone.Asset
-import typealias Gemstone.AssetFull
 import typealias Gemstone.AssetId
 import typealias Gemstone.BannerEvent
 import typealias Gemstone.Chain
@@ -30,14 +29,6 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
     }
 
     public func refresh(assetId _: AssetId) async -> [GemAssetRefreshFailure] {
-        []
-    }
-
-    public func syncAsset(assetId _: AssetId) async throws -> AssetFull {
-        Primitives.AssetFull.mock().json()
-    }
-
-    public func syncMissingAssets(assetIds _: [AssetId]) async throws -> [AssetId] {
         []
     }
 

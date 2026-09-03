@@ -619,6 +619,18 @@ Three gotchas if you repeat the sweep, all met on this pass:
   sign-message path each platform drives from its SDK; `GemPreferencesService::{set_notifications_asked, should_ask_notifications,
   set_price_alerts_enabled, *_swap_slippage_bps}` are Android's push/N1 adapters and
   `UserConfig`. Anything else that shows up as one-sided is a candidate.
+- **The receive screen prefetches what iOS prefetches.** Android's `ReceiveViewModel` ran
+  `SyncAssetInfo` on open — a price subscription, a metadata `sync_asset`, a balance update and
+  the association prefetch — where iOS only enables the asset and prefetches the other network
+  assets through `GemReceiveService::sync_missing_assets`. Android now does the same
+  (`syncMissingAssets` over `networkAssetIds` minus the source once the list is known); the
+  asset screen's `GemAssetDetailsService::refresh` is where the metadata/balance/price sync
+  belongs and already runs on both apps. `SyncAssetInfo`, its impl, test and provider are
+  deleted, `GemAssetsService::sync_asset` is un-exported (only `refresh` calls it), and
+  `GemAssetDetailsService::{sync_asset, sync_missing_assets}` — never called by either app —
+  are gone. `SettingsViewModelTest`'s rewards tests waited on a `withContext(IO)` hop with
+  `advanceUntilIdle()` alone and flaked; one test now waits for Core's answer with `first {}`
+  and covers both directions.
 - **Android reports collectibles through `GemCollectibleService::report`.** The export was
   iOS-only because Android had no report action. `NftDetailsViewModel` now holds
   `GemCollectibleServiceInterface` (the `RefreshNftAsset` case that wrapped `refresh_asset` is

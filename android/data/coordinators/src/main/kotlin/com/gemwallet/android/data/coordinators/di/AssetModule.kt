@@ -13,7 +13,6 @@ import com.gemwallet.android.application.assets.cases.GetSearchLists
 import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
 import uniffi.gemstone.GemBannerService
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
-import com.gemwallet.android.application.assets.cases.SyncAssetInfo
 import com.gemwallet.android.application.assets.cases.SyncAssets
 import com.gemwallet.android.application.banner.cases.HasMultiSign
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
@@ -30,7 +29,6 @@ import com.gemwallet.android.data.coordinators.asset.GetHideBalancesStateImpl
 import com.gemwallet.android.data.coordinators.asset.GetSearchListsImpl
 import com.gemwallet.android.data.coordinators.asset.GetShowWelcomeBannerImpl
 import com.gemwallet.android.data.coordinators.asset.GetWalletSummaryImpl
-import com.gemwallet.android.data.coordinators.asset.SyncAssetInfoImpl
 import com.gemwallet.android.data.coordinators.asset.SyncAssetsImpl
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
@@ -49,12 +47,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemWalletPreferencesService
 import javax.inject.Singleton
-import uniffi.gemstone.GemStreamSubscriptionService
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.coordinators.asset.WalletAssetsCoordinator
@@ -131,18 +127,6 @@ object AssetModule {
     fun provideEnableAsset(
         balanceService: GemBalanceService,
     ): EnableAsset = EnableAssetImpl(balanceService)
-
-    @Provides
-    @Singleton
-    fun provideSyncAssetInfo(
-        assetsService: GemAssetsService,
-        balanceService: GemBalanceService,
-        streamSubscriptionService: GemStreamSubscriptionService,
-    ): SyncAssetInfo = SyncAssetInfoImpl(
-        assetsService = assetsService,
-        balanceService = balanceService,
-        streamSubscriptionService = streamSubscriptionService,
-    )
 
     @Provides
     @Singleton

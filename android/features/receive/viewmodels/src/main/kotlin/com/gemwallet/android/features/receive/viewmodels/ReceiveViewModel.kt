@@ -2,9 +2,9 @@ package com.gemwallet.android.features.receive.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.cases.SyncAssetInfo
 import com.gemwallet.android.application.receive.cases.GetReceiveAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.serializer.toJson
@@ -34,7 +34,6 @@ import uniffi.gemstone.GemReceiveServiceInterface
 class ReceiveViewModel @AssistedInject constructor(
     @Assisted private val sourceAssetId: AssetId,
     private val getReceiveAssetInfo: GetReceiveAssetInfo,
-    private val syncAssetInfo: SyncAssetInfo,
     private val service: GemReceiveServiceInterface,
     getSession: GetSession,
 ) : ViewModel() {
@@ -61,7 +60,8 @@ class ReceiveViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            syncAssetInfo.syncAssetInfo(sourceAssetId, session.filterNotNull().first().wallet)
+            val associations = networkAssetIds.first { it.size > 1 }.filter { it != sourceAssetId }
+            runCatchingCancellable { service.syncMissingAssets(associations.map { it.toIdentifier() }) }
         }
     }
 
