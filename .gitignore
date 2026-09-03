@@ -7,3 +7,10 @@ core/.env
 core/.vscode/
 core/gemstone/src/.build/
 *.code-workspace
+
+!.agents/
+.agents/*
+!.agents/skills/
+!.claude/
+.claude/*
+!.claude/skills

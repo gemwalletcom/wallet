@@ -4,7 +4,7 @@ Run the checks that match the area you touched. Use the narrowest meaningful com
 
 For SwiftUI and Compose work, pure presentation changes should not spend most of the loop in full app builds.
 
-Unit tests must not spin up ad hoc local HTTP/TCP servers to mock provider responses. Prefer existing testkit fixtures, pure mappers/parsers, dependency-injected clients, or real gated integration tests when network behavior matters.
+Before running checks, confirm the active checkout/worktree and command directory. Use the feature flags that compile the changed path, and verify that filtered commands selected the intended tests. Tool-specific caveats (Cargo test filters, lock contention) live in the platform development-commands skills.
 
 ## Iteration Matrix
 
@@ -34,7 +34,13 @@ Unit tests must not spin up ad hoc local HTTP/TCP servers to mock provider respo
 
 Navigation, app wiring, wallet-critical UI, security-sensitive code, Room migrations, signing, transaction construction, wallet import/export, seed phrases, private keys, and auth flows are never presentation-only. Use the stricter platform/security checks for those tasks.
 
+For Core crates with `default = []`, per-crate `cargo clippy -p <crate>` and `cargo test -p <crate>` skip feature-gated modules and pass in seconds. Add `--all-features` or the gating feature (`just test <CRATE>` already does); see [Core Development Commands](../core/skills/development-commands.md).
+
 Except for documentation-only changes, closing a task requires at least one real build or test command for the changed area. Do not substitute `git diff`, static inspection, or reasoning for execution. If execution is blocked by unrelated repo state, include the exact command and the blocking failure in the handoff.
+
+Compiling a gated integration test with `--no-run` proves build compatibility, not live provider behavior. Report deterministic tests, gated live tests, and checks that were compiled but not executed as separate results.
+
+If a broad suite fails outside the changed path, rerun the narrow affected check to separate a regression from an environmental or pre-existing failure. Report both results; a targeted pass does not turn the failed broad suite into a pass.
 
 ## Ready-to-Commit Batch
 

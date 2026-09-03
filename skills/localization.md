@@ -17,4 +17,4 @@ Use this skill for shared localization flow and generated output locations.
 - Android localization output lives under `android/ui/src/main/res/`
 - Treat generated localization outputs as generated artifacts, not hand-edited source
 - Never resolve merge conflicts in generated localization outputs by hand: rebase, keep your side of the tree, run `just localize`, and commit the regenerated files
-- Core/backend localization is separate under `core/crates/localizer/i18n/`
+- Core/backend localization is separate; see [core/skills/localization.md](../core/skills/localization.md)

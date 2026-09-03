@@ -593,7 +593,7 @@ Check for a test pinning the difference before picking a side — a divergence i
 
 ## 12. Shapes that were tried and reverted
 
-Each of these looked right once and cost a revert. Read them before reaching for the same shape.
+Each of these looked right once and cost a revert. Read them before reaching for the same shape. Repo-wide decisions outside the service architecture live in [DECISIONS.md](DECISIONS.md).
 
 **A shared child renders a value; it does not hold a service.** `NetworkFeeSceneViewModel`,
 `SwapDetailsViewModel` and `PriceImpactViewModel` are built by more than one screen, each with a
@@ -655,6 +655,15 @@ Android factory test that asserted it was repointed through the real `GemSwapQuo
 still guards parity end to end; it was not deleted and not left asserting a copy that no longer
 exists. Mutation-check the moved rule with inputs that can tell the mutants apart — a
 single-element list makes `any` and `all` indistinguishable.
+
+**A family member does not get its own `ChainType`.** `ChainType::Tempo` was added for an EVM
+chain with a different fee model and reverted. It forced `Ethereum | Tempo` dual arms through
+Core and both apps, and every family-wide gate had to be taught about it. The shape that holds:
+the chain keeps `ChainType::Ethereum`, divergence rides in `ChainConfig` fields and a dedicated
+`gem_tempo` crate behind the `EvmSigner` and `EvmFeeCalculator` seams, and the factories select
+it once (`TempoProvider::new_or_else`, `Chain::Tempo => EvmChainSigner::new(TempoSigner)`). A
+`Chain::Tempo` comparison survives only where behavior is truly per-chain, such as one swap
+provider's gas limit. See `core/skills/new-chain-checklist.md`.
 
 **Stage explicit paths in a shared checkout.** A `git add -A` sweep committed another session's
 half-applied view-model edit with no Core counterpart and broke `main` for everyone until the
