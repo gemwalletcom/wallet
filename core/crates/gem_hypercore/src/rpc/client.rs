@@ -11,26 +11,17 @@ use crate::models::{
     user::{AgentSession, DelegatorHistoryUpdate, LedgerUpdate, UserAbstractionMode, UserFee},
 };
 use chain_traits::{ChainSimulation, ChainTraits};
-use gem_client::{CONTENT_TYPE, Client, ClientExt, ContentType};
+use gem_client::{Client, ClientExt};
 use primitives::InMemoryPreferences;
 use serde::de::DeserializeOwned;
-use std::{collections::HashMap, error::Error, sync::Arc};
+use std::{error::Error, sync::Arc};
 
 use crate::config::HypercoreConfig;
-use gem_client::X_CACHE_TTL;
+use crate::models::info::{CandleSnapshotRequest, InfoRequest};
+use crate::rpc::target::HyperCoreTarget;
 use primitives::{Chain, Preferences};
-use serde_json::json;
 
-const SPOT_META_CACHE_TTL_SECS: u64 = 3600;
-const USER_ABSTRACTION_CACHE_TTL_SECS: u64 = 3600;
 pub(crate) const AGENT_OWNER_CACHE_PREFIX: &str = "hypercore_agent_owner_";
-
-fn info_cache_headers(ttl_secs: u64) -> HashMap<String, String> {
-    HashMap::from([
-        (String::from(CONTENT_TYPE), ContentType::ApplicationJson.as_str().to_string()),
-        (String::from(X_CACHE_TTL), ttl_secs.to_string()),
-    ])
-}
 
 pub(crate) fn agent_owner_cache_key(agent_address: &str) -> String {
     format!("{AGENT_OWNER_CACHE_PREFIX}{}", agent_address.to_lowercase())
@@ -78,174 +69,155 @@ impl<C: Client> HyperCoreClient<C> {
         }
     }
 
-    async fn info<T>(&self, payload: serde_json::Value) -> Result<T, Box<dyn Error + Send + Sync>>
+    async fn info<T>(&self, request: InfoRequest) -> Result<T, Box<dyn Error + Send + Sync>>
     where
         T: DeserializeOwned + Send,
     {
-        Ok(self.client.post("/info", &payload).await?)
-    }
-
-    async fn info_with_cache<T>(&self, payload: serde_json::Value, ttl_secs: u64) -> Result<T, Box<dyn Error + Send + Sync>>
-    where
-        T: DeserializeOwned + Send,
-    {
-        Ok(self.client.post("/info", &payload).headers(info_cache_headers(ttl_secs)).await?)
+        Ok(self.client.post(HyperCoreTarget::Info { request: request.clone() }, &request).await?)
     }
 
     pub async fn exchange(&self, payload: serde_json::Value) -> Result<serde_json::Value, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.post("/exchange", &payload).await?)
+        Ok(self.client.post(HyperCoreTarget::Exchange, &payload).await?)
     }
 
     pub async fn get_validators(&self) -> Result<Vec<Validator>, Box<dyn Error + Send + Sync>> {
-        self.info(json!({"type": "validatorSummaries"})).await
+        self.info(InfoRequest::ValidatorSummaries).await
     }
 
     pub async fn get_staking_delegations(&self, user: &str) -> Result<Vec<DelegationBalance>, Box<dyn Error + Send + Sync>> {
-        self.info(json!({"type": "delegations", "user": user})).await
+        self.info(InfoRequest::Delegations { user: user.to_string() }).await
     }
 
     pub async fn get_spot_balances(&self, user: &str) -> Result<Balances, Box<dyn Error + Send + Sync>> {
-        self.info(json!({
-            "type": "spotClearinghouseState",
-            "user": user
-        }))
-        .await
+        self.info(InfoRequest::SpotClearinghouseState { user: user.to_string() }).await
     }
 
     pub async fn get_stake_balance(&self, user: &str) -> Result<StakeBalance, Box<dyn Error + Send + Sync>> {
-        self.info(json!({
-            "type": "delegatorSummary",
-            "user": user
-        }))
-        .await
+        self.info(InfoRequest::DelegatorSummary { user: user.to_string() }).await
     }
 
     pub async fn get_user_fills_by_time(&self, user: &str, start_time: i64) -> Result<Vec<UserFill>, Box<dyn Error + Send + Sync>> {
-        self.info(json!({
-            "type": "userFillsByTime",
-            "user": user,
-            "startTime": start_time
-        }))
+        self.info(InfoRequest::UserFillsByTime {
+            user: user.to_string(),
+            start_time,
+        })
         .await
     }
 
     pub async fn get_clearinghouse_state(&self, user: &str) -> Result<AssetPositions, Box<dyn Error + Send + Sync>> {
-        self.info(json!({"type": "clearinghouseState", "user": user})).await
+        self.info(InfoRequest::ClearinghouseState {
+            user: user.to_string(),
+            dex: None,
+        })
+        .await
     }
 
     pub async fn get_clearinghouse_state_with_dex(&self, user: &str, dex: &str) -> Result<AssetPositions, Box<dyn Error + Send + Sync>> {
-        self.info(json!({"type": "clearinghouseState", "user": user, "dex": dex})).await
+        self.info(InfoRequest::ClearinghouseState {
+            user: user.to_string(),
+            dex: Some(dex.to_string()),
+        })
+        .await
     }
 
     pub async fn get_metadata(&self) -> Result<HypercoreMetadataResponse, Box<dyn Error + Send + Sync>> {
-        self.info(json!({"type": "metaAndAssetCtxs"})).await
+        self.info(InfoRequest::MetaAndAssetCtxs { dex: None }).await
     }
 
     pub async fn get_metadata_with_dex(&self, dex: &str) -> Result<HypercoreMetadataResponse, Box<dyn Error + Send + Sync>> {
-        self.info(json!({"type": "metaAndAssetCtxs", "dex": dex})).await
+        self.info(InfoRequest::MetaAndAssetCtxs { dex: Some(dex.to_string()) }).await
     }
 
     pub async fn get_perp_dexs(&self) -> Result<Vec<Option<PerpDex>>, Box<dyn Error + Send + Sync>> {
-        self.info(json!({"type": "perpDexs"})).await
+        self.info(InfoRequest::PerpDexs).await
     }
 
     pub async fn get_spot_meta(&self) -> Result<SpotMeta, Box<dyn Error + Send + Sync>> {
-        self.info_with_cache(json!({ "type": "spotMeta" }), SPOT_META_CACHE_TTL_SECS).await
+        self.info(InfoRequest::SpotMeta).await
     }
 
     pub async fn get_spot_orderbook(&self, coin: &str) -> Result<OrderbookResponse, Box<dyn Error + Send + Sync>> {
-        let response = self.info(json!({ "type": "l2Book", "coin": coin })).await?;
-        Ok(serde_json::from_value(response)?)
+        self.info(InfoRequest::L2Book { coin: coin.to_string() }).await
     }
 
     pub async fn get_candlesticks(&self, coin: &str, interval: &str, start_time: i64, end_time: i64) -> Result<Vec<Candlestick>, Box<dyn Error + Send + Sync>> {
-        self.info(json!({
-            "type": "candleSnapshot",
-            "req": {
-                "coin": coin,
-                "interval": interval,
-                "startTime": start_time,
-                "endTime": end_time
-            }
-        }))
+        self.info(InfoRequest::CandleSnapshot {
+            req: CandleSnapshotRequest {
+                coin: coin.to_string(),
+                interval: interval.to_string(),
+                start_time,
+                end_time,
+            },
+        })
         .await
     }
 
     pub async fn get_user_abstraction(&self, user: &str) -> Result<UserAbstractionMode, Box<dyn Error + Send + Sync>> {
-        self.info_with_cache(
-            json!({
-                "type": "userAbstraction",
-                "user": user
-            }),
-            USER_ABSTRACTION_CACHE_TTL_SECS,
-        )
-        .await
+        self.info(InfoRequest::UserAbstraction { user: user.to_string() }).await
     }
 
     pub async fn get_referral(&self, user: &str) -> Result<Referral, Box<dyn Error + Send + Sync>> {
-        self.info(json!({
-            "type": "referral",
-            "user": user
-        }))
-        .await
+        self.info(InfoRequest::Referral { user: user.to_string() }).await
     }
 
     pub async fn get_extra_agents(&self, user: &str) -> Result<Vec<AgentSession>, Box<dyn Error + Send + Sync>> {
-        self.info(json!({
-            "type": "extraAgents",
-            "user": user
-        }))
-        .await
+        self.info(InfoRequest::ExtraAgents { user: user.to_string() }).await
     }
 
     pub async fn get_builder_fee(&self, user: &str, builder: &str) -> Result<u32, Box<dyn Error + Send + Sync>> {
-        self.info(json!({
-            "type": "maxBuilderFee",
-            "user": user,
-            "builder": builder
-        }))
+        self.info(InfoRequest::MaxBuilderFee {
+            user: user.to_string(),
+            builder: builder.to_string(),
+        })
         .await
     }
 
     pub async fn get_user_fees(&self, user: &str) -> Result<UserFee, Box<dyn Error + Send + Sync>> {
-        self.info(json!({
-            "type": "userFees",
-            "user": user
-        }))
-        .await
+        self.info(InfoRequest::UserFees { user: user.to_string() }).await
     }
 
     pub async fn get_ledger_updates(&self, user: &str, start_time: i64) -> Result<Vec<LedgerUpdate>, Box<dyn Error + Send + Sync>> {
-        self.info(json!({
-            "type": "userNonFundingLedgerUpdates",
-            "user": user,
-            "startTime": start_time
-        }))
+        self.info(InfoRequest::UserNonFundingLedgerUpdates {
+            user: user.to_string(),
+            start_time,
+        })
         .await
     }
 
     pub async fn get_delegator_history(&self, user: &str) -> Result<Vec<DelegatorHistoryUpdate>, Box<dyn Error + Send + Sync>> {
-        self.info(json!({
-            "type": "delegatorHistory",
-            "user": user
-        }))
-        .await
+        self.info(InfoRequest::DelegatorHistory { user: user.to_string() }).await
     }
 
     pub async fn get_open_orders(&self, user: &str) -> Result<Vec<OpenOrder>, Box<dyn Error + Send + Sync>> {
-        self.info(json!({"type": "frontendOpenOrders", "user": user})).await
+        self.info(InfoRequest::FrontendOpenOrders {
+            user: user.to_string(),
+            dex: None,
+        })
+        .await
     }
 
     pub async fn get_open_orders_with_dex(&self, user: &str, dex: &str) -> Result<Vec<OpenOrder>, Box<dyn Error + Send + Sync>> {
-        self.info(json!({"type": "frontendOpenOrders", "user": user, "dex": dex})).await
+        self.info(InfoRequest::FrontendOpenOrders {
+            user: user.to_string(),
+            dex: Some(dex.to_string()),
+        })
+        .await
     }
 
     pub async fn get_perpetual_portfolio(&self, user: &str) -> Result<HypercorePortfolioResponse, Box<dyn Error + Send + Sync>> {
-        self.info(json!({"type": "portfolio", "user": user})).await
+        self.info(InfoRequest::Portfolio {
+            user: user.to_string(),
+            dex: None,
+        })
+        .await
     }
 
     pub async fn get_perpetual_portfolio_with_dex(&self, user: &str, dex: &str) -> Result<HypercorePortfolioResponse, Box<dyn Error + Send + Sync>> {
-        self.info(json!({"type": "portfolio", "user": user, "dex": dex})).await
+        self.info(InfoRequest::Portfolio {
+            user: user.to_string(),
+            dex: Some(dex.to_string()),
+        })
+        .await
     }
 }
 
@@ -262,7 +234,9 @@ impl<C: Client> chain_traits::ChainProvider for HyperCoreClient<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gem_client::Target;
     use gem_client::testkit::MockClient;
+    use serde_json::json;
     use std::sync::Mutex;
 
     #[tokio::test]
@@ -288,6 +262,14 @@ mod tests {
         let recorded_headers = seen_headers.lock().unwrap().clone();
 
         assert_eq!(mode, UserAbstractionMode::Default);
-        assert_eq!(recorded_headers, vec![info_cache_headers(USER_ABSTRACTION_CACHE_TTL_SECS)]);
+        assert_eq!(
+            recorded_headers,
+            vec![
+                HyperCoreTarget::Info {
+                    request: InfoRequest::UserAbstraction { user: "0x123".to_string() }
+                }
+                .headers()
+            ]
+        );
     }
 }
