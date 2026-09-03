@@ -22,9 +22,10 @@ Request signing for all of them: [Device Authentication](./DEVICE_AUTHENTICATION
 
 ```mermaid
 flowchart LR
-    Triggers["App start · wallet import · wallet delete<br/>currency · push token · wallet observer"] --> Check{"Diverged from<br/>backend?"}
+    Start["App start"] --> Sync["One device sync<br/>concurrent callers join it"]
+    Triggers["Wallet import · wallet delete<br/>currency · push token · wallet observer"] --> Check{"Local state<br/>changed?"]
     Check -- no --> Skip["No requests"]
-    Check -- yes --> Sync["One device sync<br/>concurrent callers join it"]
+    Check -- yes --> Sync
     Sync --> Subs["Reconcile subscriptions"]
     Sync --> Device["PUT device"]
     Subs --> Record["Record what was published"]
@@ -34,6 +35,8 @@ flowchart LR
 Subscriptions are reconciled by diffing local wallets against `GET /v2/devices/subscriptions`: missing addresses are added per wallet grouped by chain, and wallets the backend still knows but the device no longer has are removed in full. Adding a wallet never removes another wallet's subscriptions.
 
 Registration comes first. If the device is not registered, or registration fails, nothing else may assume the device exists — the next sync retries it.
+
+App start always checks the remote device record so a record lost by the backend is recreated without waiting for a local change. Other triggers use local divergence and avoid a request when nothing changed.
 
 ## Ordering
 
@@ -62,7 +65,7 @@ Changes on either platform must keep these true:
 - Concurrent triggers produce one sync, not one per caller.
 - Published state is recorded only after a successful sync.
 - Adding a wallet does not remove other wallets' subscriptions; deleting one removes its own.
-- Nothing changed since the last sync means no requests.
+- Outside the app-start existence check, nothing changed since the last sync means no requests.
 
 Keep this document current in the same change when the sync triggers, the reconcile rules, or the platform mechanisms above change.
 

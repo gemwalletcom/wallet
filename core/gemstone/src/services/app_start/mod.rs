@@ -76,7 +76,7 @@ impl GemAppStartService {
         record(&mut failures, GemAppStartStep::UpdateConfig, async { self.config.update_config().await.map(|_| ()) }).await;
         record(&mut failures, GemAppStartStep::SetupBanners, self.banners.setup()).await;
         record(&mut failures, GemAppStartStep::SyncAssets, self.sync_assets()).await;
-        record(&mut failures, GemAppStartStep::SyncDevice, self.device.synchronize_if_needed()).await;
+        record(&mut failures, GemAppStartStep::SyncDevice, async { self.device.synchronize().await.map(|_| ()) }).await;
         failures
     }
 
