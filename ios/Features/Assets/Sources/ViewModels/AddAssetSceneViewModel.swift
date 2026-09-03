@@ -33,6 +33,10 @@ public final class AddAssetSceneViewModel {
         Localized.Wallet.AddToken.title
     }
 
+    var networksModel: NetworkSelectorViewModel {
+        NetworkSelectorViewModel(state: .data(.plain(input.chains)))
+    }
+
     var networkTitle: String {
         Localized.Transfer.network
     }
@@ -59,10 +63,6 @@ public final class AddAssetSceneViewModel {
 
     var errorSystemImage: String {
         SystemImage.errorOccurred
-    }
-
-    var chains: [Chain] {
-        input.chains
     }
 
     var addressBinding: Binding<String> {
