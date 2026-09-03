@@ -4,6 +4,7 @@ mod tests {
 
     use name_resolver::{
         alldomains::AllDomainsClient,
+        aptos::AptosClient,
         base::Basenames,
         client::{NameClient, NameConfig},
         ens::ENSClient,
@@ -77,6 +78,16 @@ mod tests {
         let client = SuinsClient::new(nodes[0].url.clone());
         let address_result = client.resolve(&NameQuery::new("alpha.sui"), Chain::Sui).await;
         assert_eq!(address_result.unwrap(), "0x54e5c2a6f1276ac2ff623ac54e53e5a61a576906b3ec42fac8fe8bf5615d0957");
+    }
+
+    #[tokio::test]
+    async fn test_resolve_aptos_name() {
+        let current_dir = env::current_dir().unwrap();
+        let path = current_dir.join("../../Settings.yaml");
+        let settings = Settings::new_setting_path(path).unwrap();
+        let client = AptosClient::new(settings.name.aptos.url);
+        let address = client.resolve(&NameQuery::new("petra.apt"), Chain::Aptos).await.unwrap();
+        assert_eq!(address, "0xfe2ffdb3a74307f7314a1c8ab3762b6b5869a3c1278cdd5d230249453e15a1db");
     }
 
     #[tokio::test]
