@@ -4,6 +4,7 @@ import BigInt
 import Components
 import struct Gemstone.GemAssetBalance
 import protocol Gemstone.GemAssetDetailsServiceProtocol
+import enum Gemstone.GemAssetNetworkDestination
 import enum Gemstone.GemBalanceRow
 import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerContext
@@ -107,19 +108,8 @@ public final class AssetSceneViewModel: Sendable {
         ListItemField(title: ResourceViewModel(resource: .bandwidth).title, value: feeAssetDataModel.bandwidthText)
     }
 
-    var networkDestination: AssetNetworkDestination? {
-        switch asset.id.type {
-        case .native:
-            break
-        case .token:
-            if asset.chain.hasNativeAsset {
-                return .asset(asset.chain.asset)
-            }
-        }
-        if asset.chain.isTokenSupported {
-            return .assets(asset.chain)
-        }
-        return nil
+    var networkDestination: GemAssetNetworkDestination? {
+        service.networkDestination(assetId: asset.id.identifier)
     }
 
     var balanceRows: [GemBalanceRow] {

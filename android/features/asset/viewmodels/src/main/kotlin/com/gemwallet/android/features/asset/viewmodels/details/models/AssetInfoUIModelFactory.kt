@@ -18,7 +18,10 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.VerificationStatus
 import com.wallet.core.primitives.WalletType
 import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.GemAssetNetworkDestination
 import uniffi.gemstone.GemBalanceRow
 import uniffi.gemstone.GemSwapServiceInterface
 import javax.inject.Inject
@@ -35,6 +38,7 @@ class AssetInfoUIModelFactory @Inject constructor(
         explorerAddressUrl: String?,
         explorerTokenUrl: String?,
         verificationStatus: VerificationStatus?,
+        networkDestination: GemAssetNetworkDestination?,
     ): AssetInfoUIModel {
         val assetInfo = chainAssetInfo.assetInfo
         val feeAssetInfo = chainAssetInfo.feeAssetInfo
@@ -66,6 +70,7 @@ class AssetInfoUIModelFactory @Inject constructor(
             explorerAddressUrl = explorerAddressUrl,
             explorerTokenUrl = explorerTokenUrl,
             verificationStatus = verificationStatus,
+            networkDestination = networkDestination?.let(::networkDestination),
             accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
                 walletType = walletType,
                 totalBalance = valueFormatter.string(balances.balance.getTotalAmount(), balances.asset),
@@ -75,6 +80,11 @@ class AssetInfoUIModelFactory @Inject constructor(
                 balanceMetadata = feeAssetInfo.balance.metadata,
             ),
         )
+    }
+
+    private fun networkDestination(destination: GemAssetNetworkDestination): AssetInfoUIModel.NetworkDestination? = when (destination) {
+        is GemAssetNetworkDestination.Asset -> AssetInfoUIModel.NetworkDestination.Asset(destination.asset.toPrimitives().id)
+        is GemAssetNetworkDestination.Assets -> destination.chain.toChain()?.let(AssetInfoUIModel.NetworkDestination::Assets)
     }
 
     private fun assetName(asset: Asset): String =

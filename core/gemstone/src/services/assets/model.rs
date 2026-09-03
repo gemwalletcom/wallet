@@ -1,4 +1,4 @@
-use primitives::{Asset, AssetType, RecentActivityType};
+use primitives::{Asset, AssetType, Chain, RecentActivityType};
 use strum::IntoEnumIterator;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -6,6 +6,12 @@ pub enum AssetList {
     Buy,
     Sell,
     Swap,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemAssetNetworkDestination {
+    Asset { asset: Asset },
+    Assets { chain: Chain },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

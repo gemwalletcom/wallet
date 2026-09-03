@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -87,12 +88,12 @@ public struct AssetScene: View {
                 switch model.networkDestination {
                 case let .asset(asset):
                     NavigationLink(
-                        value: Scenes.Asset(asset: asset),
+                        value: Scenes.Asset(asset: asset.map()),
                         label: { networkView },
                     )
                 case let .assets(chain):
                     NavigationLink(
-                        value: Scenes.NetworkAssets(chain: chain),
+                        value: Scenes.NetworkAssets(chain: Chain(core: chain)),
                         label: { networkView },
                     )
                 case nil:

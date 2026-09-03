@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAssetConfigService
 import BigInt
 import Foundation
 import Gemstone
+import class Gemstone.GemAssetConfigService
 import Primitives
 
 private let assetConfig = GemAssetConfigService()
@@ -70,10 +70,6 @@ public extension Primitives.Chain {
 
     var isNFTSupported: Bool {
         ChainConfig.config(chain: self).isNftSupported
-    }
-
-    var hasNativeAsset: Bool {
-        ChainConfig.config(chain: self).hasNativeAsset
     }
 
     var isDefiSupported: Bool {

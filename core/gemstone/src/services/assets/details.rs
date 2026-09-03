@@ -17,7 +17,7 @@ use crate::services::wallet_session::GemWalletSessionService;
 
 use crate::services::failures::{StepFailure, record};
 
-use super::{GemAssetsService, rules};
+use super::{GemAssetNetworkDestination, GemAssetsService, rules};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemAssetRefreshStep {
@@ -158,6 +158,10 @@ impl GemAssetDetailsService {
 
     pub async fn apply_banner_action(&self, key: GemBannerKey, action: GemBannerAction) -> Result<(), GemServiceError> {
         self.banners.apply_action(key, action).await
+    }
+
+    pub fn network_destination(&self, asset_id: AssetId) -> Option<GemAssetNetworkDestination> {
+        rules::network_destination(&asset_id)
     }
 
     pub fn verification_status(&self, asset: Asset, rank: i32) -> Option<VerificationStatus> {

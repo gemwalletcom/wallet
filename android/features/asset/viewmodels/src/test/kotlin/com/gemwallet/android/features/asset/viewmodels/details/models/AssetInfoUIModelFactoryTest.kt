@@ -99,6 +99,7 @@ class AssetInfoUIModelFactoryTest {
             explorerAddressUrl = null,
             explorerTokenUrl = null,
             verificationStatus = null,
+            networkDestination = null,
         )
     }
 }

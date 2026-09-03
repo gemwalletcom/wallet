@@ -99,6 +99,7 @@ class AssetDetailsViewModel @Inject constructor(
                     assetDetailsService.tokenUrl(asset.chain.string, tokenId)?.link
                 },
                 verificationStatus = assetDetailsService.verificationStatus(asset.toGem(), it.chainAssetInfo.assetInfo.metadata.rankScore)?.toPrimitives(),
+                networkDestination = assetDetailsService.networkDestination(asset.id.toIdentifier()),
             )
         }
     }

@@ -8,6 +8,7 @@ import typealias Gemstone.BannerEvent
 import typealias Gemstone.Chain
 import typealias Gemstone.Deeplink
 import protocol Gemstone.GemAssetDetailsServiceProtocol
+import enum Gemstone.GemAssetNetworkDestination
 import struct Gemstone.GemAssetRefreshFailure
 import enum Gemstone.GemBannerAction
 import struct Gemstone.GemBannerContent
@@ -56,6 +57,10 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
     }
 
     public func applyBannerAction(key _: GemBannerKey, action _: GemBannerAction) async throws {}
+
+    public func networkDestination(assetId _: AssetId) -> GemAssetNetworkDestination? {
+        .none
+    }
 
     public func verificationStatus(asset _: Asset, rank _: Int32) -> Gemstone.VerificationStatus? {
         .none
