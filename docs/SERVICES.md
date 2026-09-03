@@ -520,7 +520,8 @@ Three gotchas if you repeat the sweep, all met on this pass:
   a `SimulationResult` through those formatter exports — a mocked Core rule (the critical-warning
   test passed because the mock re-derived the flag); tests hand it a `GemConfirmSimulation` now.
   A second pass caught `GemTransferService::{approval, metadata}` (only unread iOS wrappers called
-  them; Core calls the input type directly) plus the unread iOS `Date.isOutdated`,
+  them; Core calls the input type directly), `GemConfigService::update_config` (its Android case
+  had no reader) plus the unread iOS `Date.isOutdated`,
   `TransactionState.isCompleted`, `GemFeeAsset.feeBalance` and `getCurrentWallet()` helpers and
   Android's `getWalletConnectOutputAction`. Still exported for the test kits alone:
   `GemWalletService::setup_chains` (three iOS store-adapter tests) and
