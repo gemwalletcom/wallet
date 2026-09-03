@@ -115,9 +115,7 @@ class RecipientViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, RecipientState.Loading)
 
-    val wallets = session.map { session ->
-        session?.wallet?.let { wallet -> service.otherWallets(wallet.id.id).map { it.decodeJson<Wallet>() } }.orEmpty()
-    }
+    val wallets = session.map { service.recipientWallets().map { it.decodeJson<Wallet>() } }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

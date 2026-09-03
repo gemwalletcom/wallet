@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use primitives::name::NameRecord;
-use primitives::{Asset, Chain, Wallet, WalletId};
+use primitives::{Asset, Chain, Wallet};
 
 use super::model::GemRecipientError;
 use crate::GemstoneError;
@@ -37,8 +37,9 @@ impl GemRecipientService {
         self.names.recipient(chain, input, name_record, memo, references)
     }
 
-    pub fn other_wallets(&self, wallet_id: WalletId) -> Result<Vec<Wallet>, GemServiceError> {
-        Ok(self.session.get_wallets()?.into_iter().filter(|wallet| wallet.id != wallet_id).collect())
+    pub fn recipient_wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
+        let current = self.session.current_wallet_id()?;
+        Ok(self.session.get_wallets()?.into_iter().filter(|wallet| wallet.id != current).collect())
     }
 
     pub fn scan_destination(&self, url: String, asset: GemPaymentWalletAsset) -> Result<GemPaymentDestination, GemstoneError> {

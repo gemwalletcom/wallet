@@ -4,9 +4,9 @@ import protocol Gemstone.GemRecipientServiceProtocol
 import Primitives
 
 public extension GemRecipientServiceProtocol {
-    func otherWallets(wallet: Wallet) -> [Wallet] {
+    func recipientWallets() -> [Wallet] {
         do {
-            return try otherWallets(walletId: wallet.id.id).map { try Wallet($0) }
+            return try recipientWallets().map { try Wallet($0) }
         } catch {
             preconditionFailure("Undecodable wallets: \(error)")
         }

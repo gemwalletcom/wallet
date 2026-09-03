@@ -196,7 +196,7 @@ extension RecipientSceneViewModel {
             ContactRecipientSectionViewModel(contacts: contacts).listItems
         case .pinned, .wallets, .view:
             WalletRecipientSectionViewModel(
-                wallets: service.otherWallets(wallet: wallet),
+                wallets: service.recipientWallets(),
                 section: section,
                 chain: asset.chain,
             ).listItems

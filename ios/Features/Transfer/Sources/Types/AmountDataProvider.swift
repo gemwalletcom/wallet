@@ -13,7 +13,7 @@ public enum AmountDataProvider: AmountDataProvidable, @unchecked Sendable {
     case perpetual(AmountPerpetualViewModel)
     case earn(AmountEarnViewModel)
 
-    static func make(from input: AmountInput, wallet: Wallet, service: any GemAmountServiceProtocol) -> AmountDataProvider {
+    static func make(from input: AmountInput, service: any GemAmountServiceProtocol) -> AmountDataProvider {
         switch input.type {
         case let .transfer(recipient):
             .transfer(AmountTransferViewModel(asset: input.asset, action: .send(recipient)))
