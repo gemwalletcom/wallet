@@ -338,7 +338,12 @@ A sweep of the `#[typeshare]` types in `core/crates/primitives` against both app
 - A later pass (September 2026) found `BalanceType` — a file that was not even in `lib.rs` — and
   `AssetRank`, which only `AssetScore::rank_type` (a skipped field) uses in Core; the first is
   deleted with its two generated files, the second is no longer shared. `AssetScoreType` went
-  with the verification-status move.
+  with the verification-status move. A third pass un-shared `WalletConnectionEvents` (Core's
+  `rules::` enumerates it; neither app named it). The other unreferenced names the sweep still
+  prints — `AddressChains`, `TransactionWalletConnectMetadata`, the `Stream*`/`Support*` event
+  payloads, `RewardLevel`/`RewardRedemptionType`, `WebSocketPricePayload` — are nested in a
+  `json_bridge!` type (`WalletSubscription`, `Transaction` metadata, `StreamEvent`, `Rewards`)
+  the apps decode, so they stay.
 
 Three gotchas if you repeat the sweep, all met on this pass:
 1. A `#[typeshare(skip)]` on a *field* stops compiling once the struct attribute is removed, so it has to go with it.
