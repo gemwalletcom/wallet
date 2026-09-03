@@ -80,20 +80,17 @@ where
     }
 
     client
-        .post_swap(
-            "/get-swap/sui",
-            GetSwapSuiParams {
-                amount_in64: route.effective_amount_in64.clone(),
-                input_coin_type: route.from_token.contract.clone(),
-                middle_coin_type: mctp_input_contract.to_string(),
-                user_wallet: quote.request.wallet_address.clone(),
-                with_wh_fee: route.has_auction == Some(true) || route.cheaper_chain.as_deref() != Some(WormholeChain::Sui.name()),
-                referrer_address,
-                slippage_bps: route.slippage_bps,
-                chain_name: route.from_chain.clone(),
-                sdk_version: SDK_VERSION,
-            },
-        )
+        .get_swap_sui(GetSwapSuiParams {
+            amount_in64: route.effective_amount_in64.clone(),
+            input_coin_type: route.from_token.contract.clone(),
+            middle_coin_type: mctp_input_contract.to_string(),
+            user_wallet: quote.request.wallet_address.clone(),
+            with_wh_fee: route.has_auction == Some(true) || route.cheaper_chain.as_deref() != Some(WormholeChain::Sui.name()),
+            referrer_address,
+            slippage_bps: route.slippage_bps,
+            chain_name: route.from_chain.clone(),
+            sdk_version: SDK_VERSION,
+        })
         .await
         .map(Some)
 }
