@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.coordinators.di
 
 import uniffi.gemstone.GemCollectibleServiceInterface
-import uniffi.gemstone.GemNftService
 import com.gemwallet.android.application.nft.cases.GetNftAssetDetails
 import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.nft.cases.RefreshNftAsset
