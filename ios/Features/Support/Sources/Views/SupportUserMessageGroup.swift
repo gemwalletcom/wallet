@@ -9,13 +9,8 @@ struct SupportUserMessageGroup: View {
     var body: some View {
         VStack(alignment: .trailing, spacing: .tiny) {
             ForEach(messages) { message in
-                HStack(alignment: .center, spacing: .small) {
+                HStack(spacing: .zero) {
                     Spacer(minLength: .space32)
-                    if message.isFailed {
-                        Image(systemName: SystemImage.errorOccurred)
-                            .font(.body)
-                            .foregroundStyle(Colors.red)
-                    }
                     SupportMessageBubble(model: message)
                 }
             }

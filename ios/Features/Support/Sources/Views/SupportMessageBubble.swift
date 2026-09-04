@@ -18,6 +18,16 @@ struct SupportMessageBubble: View {
     }
 
     var body: some View {
+        HStack(alignment: .center, spacing: .small) {
+            if model.isFailed {
+                failedIndicator
+            }
+            messageView
+        }
+        .frame(maxWidth: Constants.maxWidth, alignment: model.alignment)
+    }
+
+    private var messageView: some View {
         VStack(alignment: model.alignment.horizontal, spacing: .tiny) {
             if model.hasImages {
                 imagesView
@@ -26,7 +36,12 @@ struct SupportMessageBubble: View {
                 textBubble
             }
         }
-        .frame(maxWidth: Constants.maxWidth, alignment: model.alignment)
+    }
+
+    private var failedIndicator: some View {
+        Image(systemName: SystemImage.errorOccurred)
+            .font(.body)
+            .foregroundStyle(Colors.red)
     }
 
     private var textBubble: some View {
