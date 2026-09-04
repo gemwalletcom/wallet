@@ -5,11 +5,9 @@ import Foundation
 actor SetupState {
     private var isSetup = false
 
-    func start() -> Bool {
-        if isSetup {
-            return false
-        }
+    func start(_ operation: @Sendable () -> Void) {
+        guard !isSetup else { return }
+        operation()
         isSetup = true
-        return true
     }
 }
