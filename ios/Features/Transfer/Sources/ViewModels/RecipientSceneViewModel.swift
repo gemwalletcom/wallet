@@ -41,6 +41,8 @@ public final class RecipientSceneViewModel {
         contactsQuery.value
     }
 
+    public let walletsQuery = ObservableQuery(WalletsRequest(isPinned: .none), initialValue: [Wallet]())
+
     public init(
         wallet: Wallet,
         asset: Asset,
@@ -196,7 +198,7 @@ extension RecipientSceneViewModel {
             ContactRecipientSectionViewModel(contacts: contacts).listItems
         case .pinned, .wallets, .view:
             WalletRecipientSectionViewModel(
-                wallets: service.recipientWallets(),
+                wallets: service.recipientWallets(wallets: walletsQuery.value),
                 section: section,
                 chain: asset.chain,
             ).listItems

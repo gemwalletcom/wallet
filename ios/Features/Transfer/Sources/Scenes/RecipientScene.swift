@@ -110,6 +110,7 @@ public struct RecipientScene: View {
             }
         }
         .bindQuery(model.contactsQuery)
+        .bindQuery(model.walletsQuery)
         .onChange(of: model.addressInputModel.text, model.onChangeAddressText)
     }
 }

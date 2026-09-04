@@ -28,9 +28,9 @@ class GemstoneWalletStore(
     private val transactionRunner: StoreTransactionRunner,
 ) : GemWalletStore {
 
-    override fun getWallets(): List<String> = getAllNow().map { it.toJson() }
+    override suspend fun getWallets(): List<String> = getAllNow().map { it.toJson() }
 
-    override fun getWallet(walletId: String): String? = getWalletNow(WalletId(walletId))?.toJson()
+    override suspend fun getWallet(walletId: String): String? = getWalletNow(WalletId(walletId))?.toJson()
 
     override suspend fun addWallet(wallet: String) {
         addWallet(wallet.decodeJson<Wallet>())
@@ -50,9 +50,9 @@ class GemstoneWalletStore(
         .map { record -> record?.toDTO(accountsDao.getByWalletId(walletId.id)) }
         .flowOn(Dispatchers.IO)
 
-    fun getAllNow(): List<Wallet> = walletsDao.getAllNow().toDTO()
+    suspend fun getAllNow(): List<Wallet> = walletsDao.getAllNow().toDTO()
 
-    fun getWalletNow(walletId: WalletId): Wallet? = walletsDao.getByIdNow(walletId.id).toDTO().firstOrNull()
+    suspend fun getWalletNow(walletId: WalletId): Wallet? = walletsDao.getByIdNow(walletId.id).toDTO().firstOrNull()
 
     suspend fun addWallet(wallet: Wallet): Wallet = withContext(Dispatchers.IO) {
         transactionRunner.run {

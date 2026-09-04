@@ -46,7 +46,7 @@ class GemstoneTransactionStateStore(
         }
     }
 
-    private fun pendingTransaction(record: DbTransaction): GemPendingTransaction? {
+    private suspend fun pendingTransaction(record: DbTransaction): GemPendingTransaction? {
         val wallet = walletStore.getWalletNow(record.walletId) ?: return null
         return GemPendingTransaction(wallet = wallet.toJson(), transaction = record.toDTO().toJson())
     }

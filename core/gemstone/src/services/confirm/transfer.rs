@@ -71,9 +71,9 @@ impl GemConfirmTransferService {
         self.password.authentication().unwrap_or(GemKeystoreAuthentication::None)
     }
 
-    pub fn confirm_input(&self, transfer: GemTransferData) -> Result<GemConfirmInput, GemConfirmError> {
+    pub fn confirm_input(&self, wallet: Wallet, transfer: GemTransferData) -> Result<GemConfirmInput, GemConfirmError> {
         let chain = transfer.input_type.asset().chain();
-        let from = self.wallet()?.account(chain).cloned().ok_or(GemConfirmError::AccountMissing { chain })?;
+        let from = wallet.account(chain).cloned().ok_or(GemConfirmError::AccountMissing { chain })?;
         Ok(GemConfirmInput { from, transfer })
     }
 
@@ -92,7 +92,7 @@ impl GemConfirmTransferService {
         network_fee: GemBigInt,
         simulation: Option<SimulationResult>,
     ) -> Result<GemExecuteResult, GemConfirmError> {
-        let wallet = self.wallet()?;
+        let wallet = self.wallet().await?;
         let wallet_id = wallet.id.clone();
         let input_type = confirm.input.transfer.input_type.clone();
         let input = SendInput {
@@ -152,8 +152,8 @@ fn is_broadcast(result: &GemExecuteResult) -> bool {
 }
 
 impl GemConfirmTransferService {
-    fn wallet(&self) -> Result<Wallet, GemConfirmError> {
-        Ok(self.session.current_wallet()?)
+    async fn wallet(&self) -> Result<Wallet, GemConfirmError> {
+        Ok(self.session.current_wallet().await?)
     }
 
     fn wallet_id(&self) -> Result<WalletId, GemConfirmError> {

@@ -25,7 +25,7 @@ impl GemAvatarService {
 
     pub async fn set_image(&self, wallet_id: WalletId, image: Vec<u8>) -> Result<(), GemServiceError> {
         let file_name = self.files.save_file(image, IMAGE_EXTENSION.to_string())?;
-        self.remove_previous(&wallet_id)?;
+        self.remove_previous(&wallet_id).await?;
         self.wallets.set_image_url(wallet_id, Some(file_name)).await
     }
 
@@ -35,14 +35,14 @@ impl GemAvatarService {
     }
 
     pub async fn remove_image(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        self.remove_previous(&wallet_id)?;
+        self.remove_previous(&wallet_id).await?;
         self.wallets.set_image_url(wallet_id, None).await
     }
 }
 
 impl GemAvatarService {
-    fn remove_previous(&self, wallet_id: &WalletId) -> Result<(), GemServiceError> {
-        match self.wallets.get_wallet(wallet_id.clone())?.and_then(|wallet| wallet.image_url) {
+    async fn remove_previous(&self, wallet_id: &WalletId) -> Result<(), GemServiceError> {
+        match self.wallets.get_wallet(wallet_id.clone()).await?.and_then(|wallet| wallet.image_url) {
             Some(previous) => self.files.remove(previous),
             None => Ok(()),
         }

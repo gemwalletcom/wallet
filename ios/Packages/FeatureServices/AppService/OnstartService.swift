@@ -48,7 +48,7 @@ public struct OnstartService: Sendable {
 
     public func setupWallets() async {
         do {
-            let failures = try await keystore.migrateV3Keystores(for: session.getWallets())
+            let failures = try await keystore.migrateV3Keystores(for: await session.getWallets())
             for failure in failures {
                 debugLog("v3 keystore migration failed for \(failure.walletId.id): \(failure.error)")
             }

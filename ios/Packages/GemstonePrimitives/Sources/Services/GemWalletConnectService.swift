@@ -23,8 +23,8 @@ public extension GemWalletConnectServiceProtocol {
         metadata: Primitives.ApplicationMetadata,
         origin: String?,
         validation: WalletConnectionVerificationStatus,
-    ) throws -> (proposal: WalletConnectionSessionProposal, verificationStatus: WalletConnectionVerificationStatus) {
-        let result = try prepareSessionProposal(
+    ) async throws -> (proposal: WalletConnectionSessionProposal, verificationStatus: WalletConnectionVerificationStatus) {
+        let result = try await prepareSessionProposal(
             requiredChainIds: requiredChainIds,
             optionalChainIds: optionalChainIds,
             metadata: metadata.json(),

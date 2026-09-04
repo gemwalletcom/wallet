@@ -65,7 +65,7 @@ class WalletSearchViewModel @Inject constructor(
         service.search(query, GemSearchScope.All)
     }
 
-    private val showPerpetuals = getSession().map { service.showPerpetuals() }
+    private val showPerpetuals = getSession().map { service.showPerpetuals(it?.wallet?.toJson()) }
 
     private val visiblePerpetuals = combine(
         getPerpetuals.getPerpetuals(currentQuery.map { it.takeIf(String::isNotEmpty) }),

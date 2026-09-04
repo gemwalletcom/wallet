@@ -31,7 +31,7 @@ struct WalletsSceneViewModelTests {
         try session.setCurrent(walletId: .multicoin(address: "0x1"))
 
         let model = WalletsSceneViewModel.mock(walletService: service)
-        model.walletsQuery.value = session.wallets
+        model.walletsQuery.value = await session.wallets
 
         #expect(model.currentWalletId == .multicoin(address: "0x1"))
 

@@ -8,18 +8,17 @@ import GemstonePrimitives
 
 struct WalletNameGenerator {
     private let type: ImportWalletType
+    private let wallets: [Wallet]
     private let service: any GemWalletServiceProtocol
 
-    init(type: ImportWalletType, service: any GemWalletServiceProtocol) {
+    init(type: ImportWalletType, wallets: [Wallet], service: any GemWalletServiceProtocol) {
         self.type = type
+        self.wallets = wallets
         self.service = service
     }
 
-    func name() async -> String {
-        name(
-            type: type,
-            index: (try? service.nextWalletIndex()) ?? .zero,
-        )
+    func name() -> String {
+        name(type: type, index: service.nextWalletIndex(wallets: wallets))
     }
 
     private func name(type: ImportWalletType, index: Int) -> String {

@@ -165,7 +165,7 @@ extension NavigationHandler {
 @MainActor
 extension NavigationHandler {
     private func handlePayment(_ payment: Payment) async throws {
-        guard let wallet = walletSessionService.currentWallet else { return }
+        guard let wallet = await walletSessionService.currentWallet else { return }
         switch payment {
         case let .request(request):
             let assets = try assetStore.getAssetsData(walletId: wallet.id, filters: [])
@@ -257,7 +257,7 @@ extension NavigationHandler {
     }
 
     private func navigateToAsset(walletId: WalletId, assetId: AssetId) async throws {
-        guard let wallet = try? walletSessionService.getWallet(walletId: walletId),
+        guard let wallet = try? await walletSessionService.getWallet(walletId: walletId),
               let asset = try await assetsService.openWalletAsset(wallet: wallet, assetId: assetId)
         else {
             return
@@ -278,7 +278,7 @@ extension NavigationHandler {
     }
 
     private func navigateToTransaction(walletId: WalletId, assetId: AssetId, transaction: Primitives.Transaction) async throws {
-        guard let wallet = try? walletSessionService.getWallet(walletId: walletId),
+        guard let wallet = try? await walletSessionService.getWallet(walletId: walletId),
               let asset = try await transactionStateService.addNotificationTransaction(
                   wallet: wallet.json(),
                   assetId: assetId.identifier,
@@ -320,7 +320,7 @@ extension NavigationHandler {
     }
 
     private func presentSwap(from fromId: AssetId, to toId: AssetId?) async throws {
-        guard let wallet = walletSessionService.currentWallet else { return }
+        guard let wallet = await walletSessionService.currentWallet else { return }
         try await presenter.presentSwap(from: fromId, to: toId, wallet: wallet)
     }
 
@@ -330,16 +330,16 @@ extension NavigationHandler {
         case .buy: .buy(asset, amount: amount)
         case .sell: .sell(asset, amount: amount)
         }
-        try presentAssetInput(type: selectedType, for: asset)
+        try await presentAssetInput(type: selectedType, for: asset)
     }
 
     private func presentReceive(assetId: AssetId) async throws {
         let asset = try await assetsService.ensureAsset(for: assetId)
-        try presentAssetInput(type: .receive(.asset), for: asset)
+        try await presentAssetInput(type: .receive(.asset), for: asset)
     }
 
-    private func presentAssetInput(type: SelectedAssetType, for asset: Asset) throws {
-        guard let wallet = walletSessionService.currentWallet else { return }
+    private func presentAssetInput(type: SelectedAssetType, for asset: Asset) async throws {
+        guard let wallet = await walletSessionService.currentWallet else { return }
         try presenter.presentAssetInput(type: type, for: asset, wallet: wallet)
     }
 

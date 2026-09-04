@@ -73,12 +73,12 @@ impl GemStakeService {
     }
 
     pub async fn sync(&self, chain: Chain) -> Result<(), GemServiceError> {
-        let (wallet_id, address) = self.current_account(chain)?;
+        let (wallet_id, address) = self.current_account(chain).await?;
         self.sync_wallet(wallet_id, chain, address).await
     }
 
     pub async fn sync_earn(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
-        let (wallet_id, address) = self.current_account(asset_id.chain)?;
+        let (wallet_id, address) = self.current_account(asset_id.chain).await?;
         self.sync_earn_wallet(wallet_id, asset_id, address).await
     }
 
@@ -140,8 +140,8 @@ impl GemStakeService {
         self.store.update_delegations(wallet_id, positions, delete_ids).await
     }
 
-    fn current_account(&self, chain: Chain) -> Result<(WalletId, String), GemServiceError> {
-        let wallet = self.session.current_wallet()?;
+    async fn current_account(&self, chain: Chain) -> Result<(WalletId, String), GemServiceError> {
+        let wallet = self.session.current_wallet().await?;
         let account = wallet.account(chain).ok_or_else(|| GemServiceError::NotFound {
             msg: format!("wallet {} has no {chain} account", wallet.id.id()),
         })?;

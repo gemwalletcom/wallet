@@ -364,7 +364,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     private var senderAddress: String {
-        (try? service.confirmInput(transfer: request.data).from.address) ?? ""
+        (try? service.confirmInput(wallet: wallet.json(), transfer: request.data).from.address) ?? ""
     }
 
     public func assetAddress(_ asset: Asset) -> AssetAddress {
@@ -393,7 +393,7 @@ extension ConfirmTransferSceneViewModel {
 
     func load(request: ConfirmTransferRequest, selection: GemConfirmFeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferData {
         let scene = try await service.load(
-            input: service.confirmInput(transfer: request.data),
+            input: service.confirmInput(wallet: wallet.json(), transfer: request.data),
             options: options(selection: selection, feeAssetSelection: feeAssetSelection),
             simulation: request.simulation?.json(),
         )

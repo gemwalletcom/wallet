@@ -5,6 +5,7 @@ import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.ApplicationMetadataSource
 import com.wallet.core.primitives.WalletConnectionSessionProposal
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -35,7 +36,7 @@ class PrepareSessionProposalImplTest {
     @Test
     fun prepareSessionProposal_mapsCoreProposal() = runTest {
         val proposal = WalletConnectionSessionProposal(defaultWallet = currentWallet, wallets = wallets, metadata = metadata)
-        every {
+        coEvery {
             walletConnectService.prepareSessionProposal(
                 requiredChainIds = listOf("eip155:1"),
                 optionalChainIds = emptyList(),
@@ -53,7 +54,7 @@ class PrepareSessionProposalImplTest {
 
     @Test
     fun prepareSessionProposal_failsWhenCoreRejects() = runTest {
-        every { walletConnectService.prepareSessionProposal(any(), any(), any(), any(), any()) } throws GemWalletConnectException.UnsupportedWallets()
+        coEvery { walletConnectService.prepareSessionProposal(any(), any(), any(), any(), any()) } throws GemWalletConnectException.UnsupportedWallets()
 
         assertTrue(runCatching { prepare(requiredChainIds = listOf("eip155:1", "cosmos:unknown-9")) }.isFailure)
     }

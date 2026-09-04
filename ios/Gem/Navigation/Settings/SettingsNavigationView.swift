@@ -39,7 +39,7 @@ struct SettingsNavigationView: View {
 
     var body: some View {
         SettingsScene(
-            model: viewModelFactory.settingsScene(walletId: walletId),
+            model: viewModelFactory.settingsScene(),
             isPresentingWallets: presenter.isPresentingWallets,
             isPresentingSupport: $isPresentingSupport,
         )

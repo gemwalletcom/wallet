@@ -41,7 +41,7 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         Primitives.Currency.usd.rawValue
     }
 
-    public func showPerpetuals() -> Bool {
+    public func showPerpetuals(wallet _: String?) -> Bool {
         perpetualsShown
     }
 
@@ -49,11 +49,11 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         nftSearchItems
     }
 
-    public func supportsTokens() -> Bool {
+    public func supportsTokens(wallet _: String?) -> Bool {
         tokensSupported
     }
 
-    public func filterChains() throws -> [Gemstone.Chain] {
+    public func filterChains(wallet _: String) -> [Gemstone.Chain] {
         filterChainsResult
     }
 

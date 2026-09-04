@@ -64,7 +64,7 @@ public final class GemConfirmTransferServiceMock: GemConfirmTransferServiceProto
         authenticationValue
     }
 
-    public func confirmInput(transfer: GemTransferData) throws -> GemConfirmInput {
+    public func confirmInput(wallet _: String, transfer: GemTransferData) throws -> GemConfirmInput {
         try GemConfirmInput(from: wallet.account(for: transfer.chain).map(), transfer: transfer)
     }
 

@@ -6,20 +6,24 @@ import Primitives
 
 public extension GemWalletSessionServiceProtocol {
     var wallets: [Wallet] {
-        do {
-            return try getWallets()
-        } catch {
-            debugLog("get wallets error: \(error)")
-            return []
+        get async {
+            do {
+                return try await getWallets()
+            } catch {
+                debugLog("get wallets error: \(error)")
+                return []
+            }
         }
     }
 
     var currentWallet: Wallet? {
-        do {
-            return try getCurrentWallet().map { try Wallet($0) }
-        } catch {
-            debugLog("current wallet unavailable: \(error)")
-            return .none
+        get async {
+            do {
+                return try await getCurrentWallet().map { try Wallet($0) }
+            } catch {
+                debugLog("current wallet unavailable: \(error)")
+                return .none
+            }
         }
     }
 
@@ -32,12 +36,12 @@ public extension GemWalletSessionServiceProtocol {
         }
     }
 
-    func getWallets() throws -> [Wallet] {
-        try getWallets().map { try Wallet($0) }
+    func getWallets() async throws -> [Wallet] {
+        try await getWallets().map { try Wallet($0) }
     }
 
-    func getWallet(walletId: WalletId) throws -> Wallet {
-        guard let wallet = try getWallet(walletId: walletId.id) else {
+    func getWallet(walletId: WalletId) async throws -> Wallet {
+        guard let wallet = try await getWallet(walletId: walletId.id) else {
             throw WalletSessionServiceError.noWalletId
         }
         return try Wallet(wallet)
@@ -53,16 +57,11 @@ public extension GemWalletSessionServiceProtocol {
         }
     }
 
-    var showsRewardsValue: Bool {
-        do {
-            return try showsRewards()
-        } catch {
-            debugLog("rewards availability unavailable: \(error)")
-            return false
-        }
+    func showsRewards(wallets: [Wallet]) -> Bool {
+        showsRewards(wallets: wallets.map { $0.json() })
     }
 
-    func walletsCount() throws -> Int {
-        try getWallets().count
+    func walletsCount() async throws -> Int {
+        try await getWallets().count
     }
 }

@@ -31,7 +31,7 @@ class CreateWalletViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            state.update { it.copy(generatedNameIndex = service.nextWalletIndex()) }
+            state.update { it.copy(generatedNameIndex = service.nextWalletIndex(service.wallets())) }
             runCatchingCancellable { service.createWallet() }
                 .onSuccess { words -> state.update { it.copy(data = words) } }
                 .onFailure { err -> state.update { it.copy(dataError = err.message.orEmpty()) } }

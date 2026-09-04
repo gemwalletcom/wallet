@@ -94,21 +94,17 @@ impl GemPerpetualService {
         Ok(true)
     }
 
-    pub async fn sync_enablement(&self, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
+    pub async fn sync_enablement(&self, wallet: Option<Wallet>, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
         if !self.preferences.is_perpetual_enabled() {
             self.clear_markets().await?;
             return Ok(false);
         }
         self.sync_markets_if_needed(Chain::HyperCore, trigger).await?;
-        Ok(self.should_connect_perpetuals())
+        Ok(self.should_connect_perpetuals(wallet))
     }
 
-    pub fn should_connect_perpetuals(&self) -> bool {
-        self.session
-            .get_current_wallet()
-            .ok()
-            .flatten()
-            .is_some_and(|wallet| rules::show_perpetuals(self.preferences.is_perpetual_enabled(), &wallet))
+    pub fn should_connect_perpetuals(&self, wallet: Option<Wallet>) -> bool {
+        wallet.is_some_and(|wallet| rules::show_perpetuals(self.preferences.is_perpetual_enabled(), &wallet))
     }
 
     pub async fn set_pinned(&self, perpetual_id: String, pinned: bool) -> Result<(), GemServiceError> {
@@ -116,7 +112,7 @@ impl GemPerpetualService {
     }
 
     pub async fn sync_current_positions(&self) -> Result<(), GemServiceError> {
-        let wallet = self.session.current_wallet()?;
+        let wallet = self.session.current_wallet().await?;
         let Some(account) = hyperliquid_account(&wallet.accounts) else {
             return Ok(());
         };

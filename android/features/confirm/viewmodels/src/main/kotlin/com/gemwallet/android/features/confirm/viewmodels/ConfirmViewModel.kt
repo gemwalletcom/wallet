@@ -109,10 +109,12 @@ class ConfirmViewModel @Inject constructor(
         feeSelection,
         feeAssetSelection,
         restart,
-    ) { request, feeSelection, feeAssetSelection, _ ->
+        session,
+    ) { request, feeSelection, feeAssetSelection, _, session ->
         state.update { ConfirmState.Prepare }
+        val wallet = session?.wallet ?: return@combine null
         val input = try {
-            confirmService.confirmInput(request)
+            confirmService.confirmInput(wallet.toJson(), request)
         } catch (_: GemConfirmException.AccountMissing) {
             state.update { ConfirmState.FatalError(R.string.errors_wallet_account_missing) }
             return@combine null

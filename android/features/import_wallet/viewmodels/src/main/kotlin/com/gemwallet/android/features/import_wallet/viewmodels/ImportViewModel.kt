@@ -68,7 +68,7 @@ class ImportViewModel @Inject constructor(
 
     fun importSelect(importType: ImportType) = viewModelScope.launch {
         val generatedNameIndex = withContext(Dispatchers.IO) {
-            service.nextWalletIndex()
+            service.nextWalletIndex(service.wallets())
         }
         val chainName = if (importType.walletType == WalletType.Multicoin) "" else importType.chain?.networkName().orEmpty()
         state.update {

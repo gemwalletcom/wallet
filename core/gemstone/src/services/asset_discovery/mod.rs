@@ -57,7 +57,7 @@ impl GemAssetDiscoveryService {
     }
 
     async fn sync_assets(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        let Some(wallet) = self.wallet_store.get_wallet(wallet_id.clone())? else {
+        let Some(wallet) = self.wallet_store.get_wallet(wallet_id.clone()).await? else {
             return Ok(());
         };
         let from_timestamp = self.preferences.get_assets_timestamp(wallet_id.clone());

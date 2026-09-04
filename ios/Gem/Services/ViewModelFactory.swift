@@ -201,8 +201,8 @@ public struct ViewModelFactory: Sendable {
     }
 
     @MainActor
-    public func settingsScene(walletId: WalletId) -> SettingsViewModel {
-        SettingsViewModel(walletId: walletId, service: walletSessionService, observablePreferences: observablePreferences)
+    public func settingsScene() -> SettingsViewModel {
+        SettingsViewModel(service: walletSessionService, observablePreferences: observablePreferences)
     }
 
     @MainActor
@@ -242,7 +242,7 @@ public struct ViewModelFactory: Sendable {
 
     @MainActor
     public func inAppNotificationsScene() -> InAppNotificationsViewModel? {
-        walletSessionService.currentWallet.map { InAppNotificationsViewModel(wallet: $0, service: inAppNotificationService) }
+        currentWallet(in: currentWallets()).map { InAppNotificationsViewModel(wallet: $0, service: inAppNotificationService) }
     }
 
     @MainActor
@@ -474,7 +474,7 @@ public struct ViewModelFactory: Sendable {
 
     @MainActor
     public func selectAssetScene(selectType: SelectAssetType, selectAssetAction: AssetAction = .none) -> SelectAssetViewModel? {
-        walletSessionService.currentWallet.map { selectAssetScene(wallet: $0, selectType: selectType, selectAssetAction: selectAssetAction) }
+        currentWallet(in: currentWallets()).map { selectAssetScene(wallet: $0, selectType: selectType, selectAssetAction: selectAssetAction) }
     }
 
     @MainActor
@@ -576,7 +576,21 @@ public struct ViewModelFactory: Sendable {
 
     @MainActor
     public func rewardsScene(activateCode: String?) -> RewardsViewModel? {
-        try? RewardsViewModel(service: rewardsService, activateCode: activateCode)
+        let wallets = currentWallets()
+        return try? RewardsViewModel(
+            service: rewardsService,
+            wallets: wallets,
+            currentWallet: currentWallet(in: wallets),
+            activateCode: activateCode,
+        )
+    }
+
+    private func currentWallets() -> [Wallet] {
+        (try? storeManager.walletStore.getWallets()) ?? []
+    }
+
+    private func currentWallet(in wallets: [Wallet]) -> Wallet? {
+        walletSessionService.currentWalletId.flatMap { walletId in wallets.first { $0.id == walletId } }
     }
 
     @MainActor

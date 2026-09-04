@@ -69,7 +69,7 @@ impl GemAmountService {
     }
 
     pub async fn earn_transfer_data(&self, asset: Asset, earn_type: GemEarnType, value: GemBigInt, use_max_amount: bool) -> Result<GemTransferData, GemServiceError> {
-        let wallet = self.session.current_wallet()?;
+        let wallet = self.session.current_wallet().await?;
         let account = wallet.account(asset.chain()).ok_or_else(|| GemServiceError::NotFound {
             msg: format!("wallet {} has no {} account", wallet.id.id(), asset.chain()),
         })?;

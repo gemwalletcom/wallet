@@ -667,16 +667,16 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         autocloseSummary
     }
 
-    public func syncEnablement(trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
+    public func syncEnablement(wallet: String?, trigger: Gemstone.GemMarketsRefreshTrigger) async throws -> Bool {
         if isPerpetualEnabled {
             _ = try await syncMarketsIfNeeded(chain: "hypercore", trigger: trigger)
         } else {
             try await clearMarkets()
         }
-        return shouldConnectPerpetuals()
+        return shouldConnectPerpetuals(wallet: wallet)
     }
 
-    public func shouldConnectPerpetuals() -> Bool {
+    public func shouldConnectPerpetuals(wallet _: String?) -> Bool {
         isPerpetualEnabled && connects
     }
 

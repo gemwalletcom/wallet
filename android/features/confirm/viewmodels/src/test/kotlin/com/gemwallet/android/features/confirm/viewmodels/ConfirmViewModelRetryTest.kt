@@ -95,7 +95,7 @@ class ConfirmViewModelRetryTest {
     private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
         val input = GemConfirmInput(from = account.toGem(), transfer = transfer)
         every { confirmService.getCurrency() } returns Currency.USD.toGem()
-        every { confirmService.confirmInput(transfer) } returns input
+        every { confirmService.confirmInput(any(), transfer) } returns input
         var calls = 0
         coEvery { confirmService.load(any(), any(), any()) } answers {
             calls += 1

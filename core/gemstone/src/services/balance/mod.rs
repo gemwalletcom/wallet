@@ -91,6 +91,7 @@ impl GemBalanceService {
         let Some(wallet) = self
             .wallet_store
             .get_wallet(wallet_id.clone())
+            .await
             .map_err(|error| GemServiceError::Store { msg: error.to_string() })?
         else {
             return Ok(());

@@ -94,7 +94,7 @@ impl GemWalletConnectService {
         self.store.delete_sessions(vec![session_id]).await
     }
 
-    pub fn prepare_session_proposal(
+    pub async fn prepare_session_proposal(
         &self,
         required_chain_ids: Vec<String>,
         optional_chain_ids: Vec<String>,
@@ -102,7 +102,7 @@ impl GemWalletConnectService {
         origin: Option<String>,
         validation: WalletConnectionVerificationStatus,
     ) -> Result<GemSessionProposal, GemWalletConnectError> {
-        let wallets = self.session.get_wallets()?;
+        let wallets = self.session.get_wallets().await?;
         let current_wallet_id = self.session.get_current_wallet_id()?;
         let required = rules::parse_chains(&required_chain_ids).ok_or(GemWalletConnectError::UnsupportedChains)?;
         let optional = rules::parse_known_chains(&optional_chain_ids);
