@@ -100,6 +100,21 @@ pub struct GemConfirmMetadata {
     pub prices: Vec<GemAssetPrice>,
 }
 
+#[uniffi::export]
+impl GemConfirmMetadata {
+    pub fn price(&self, asset_id: AssetId) -> Option<GemAssetPrice> {
+        self.prices.iter().find(|price| price.asset_id == asset_id).cloned()
+    }
+
+    pub fn asset_price(&self) -> Option<GemAssetPrice> {
+        self.price(self.asset_balance.asset_id.clone())
+    }
+
+    pub fn fee_price(&self) -> Option<GemAssetPrice> {
+        self.price(self.fee_asset_balance.asset_id.clone())
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFeeRateRow {
     pub priority: FeePriority,
@@ -192,6 +207,29 @@ pub struct GemConfirmSimulation {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_metadata_pairs_each_balance_with_its_own_price() {
+        let balance = |chain: primitives::Chain| GemAssetBalance {
+            asset_id: AssetId::from_chain(chain),
+            ..GemAssetBalance::mock()
+        };
+        let price = |chain: primitives::Chain, value: f64| GemAssetPrice {
+            asset_id: AssetId::from_chain(chain),
+            price: value,
+            price_change_percentage_24h: 0.0,
+            updated_at: chrono::Utc::now(),
+        };
+        let metadata = GemConfirmMetadata {
+            asset_balance: balance(primitives::Chain::Solana),
+            fee_asset_balance: balance(primitives::Chain::Bitcoin),
+            prices: vec![price(primitives::Chain::Bitcoin, 2.0), price(primitives::Chain::Solana, 1.0)],
+        };
+
+        assert_eq!(metadata.asset_price().map(|price| price.price), Some(1.0));
+        assert_eq!(metadata.fee_price().map(|price| price.price), Some(2.0));
+        assert_eq!(metadata.price(AssetId::from_chain(primitives::Chain::Ethereum)), None);
+    }
 
     #[test]
     fn test_fee_selection_answers_only_for_its_own_case() {

@@ -27,12 +27,12 @@ data class FeeAssetUIModel(
     private val amount: BigDecimal get() = Crypto(available).value(asset.decimals)
 
     companion object {
-        fun from(asset: Asset, balance: GemAssetBalance, prices: List<GemAssetPrice>, currency: Currency) = FeeAssetUIModel(
+        fun from(asset: Asset, balance: GemAssetBalance, price: GemAssetPrice?, currency: Currency) = FeeAssetUIModel(
             asset = asset,
-            price = prices.firstOrNull { it.assetId == balance.assetId }?.toAssetPriceInfo(currency),
+            price = price?.toAssetPriceInfo(currency),
             available = balance.available,
         )
     }
 }
 
-fun GemFeeAsset.toFeeAssetUIModel(currency: Currency): FeeAssetUIModel = FeeAssetUIModel.from(asset.toPrimitives(), balance, listOfNotNull(price), currency)
+fun GemFeeAsset.toFeeAssetUIModel(currency: Currency): FeeAssetUIModel = FeeAssetUIModel.from(asset.toPrimitives(), balance, price, currency)

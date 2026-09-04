@@ -132,7 +132,7 @@ class ConfirmViewModel @Inject constructor(
                 currency = currency,
                 fromAsset = scene.preload.metadata.prices.toAssetPriceValue(request.inputType.asset, currency),
                 toAsset = request.inputType.toAsset?.let { scene.preload.metadata.prices.toAssetPriceValue(it, currency) },
-                feeAsset = FeeAssetUIModel.from(scene.preload.feeAsset.toPrimitives(), scene.preload.metadata.feeAssetBalance, scene.preload.metadata.prices, currency),
+                feeAsset = FeeAssetUIModel.from(scene.preload.feeAsset.toPrimitives(), scene.preload.metadata.feeAssetBalance, scene.preload.metadata.feePrice(), currency),
                 feeAssets = scene.feeAssets.map { it.toFeeAssetUIModel(currency) },
                 simulation = scene.simulation,
             )

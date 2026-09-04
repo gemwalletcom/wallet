@@ -62,21 +62,15 @@ public extension GemConfirmMetadata {
 
     var available: BigInt { BigInt(assetBalance.available) }
 
-    var assetPrice: Primitives.Price? { price(for: assetBalance.assetId) }
-    var feePrice: Primitives.Price? { price(for: feeAssetBalance.assetId) }
+    var assetPrice: Primitives.Price? { assetPrice().map { Primitives.Price($0) } }
+    var feePrice: Primitives.Price? { feePrice().map { Primitives.Price($0) } }
 
     var balance: Primitives.Balance? { try? Primitives.Balance(assetBalance) }
 
-    func price(for assetId: String) -> Primitives.Price? {
-        prices.first { $0.assetId == assetId }.map { Primitives.Price($0) }
-    }
-
     func price(for assetId: Primitives.AssetId) -> Primitives.Price? {
-        price(for: assetId.identifier)
+        price(assetId: assetId.identifier).map { Primitives.Price($0) }
     }
-}
 
-public extension GemConfirmMetadata {
     var assetPrices: [Primitives.AssetId: Primitives.Price] {
         Dictionary(uniqueKeysWithValues: prices.compactMap { price in
             (try? Primitives.AssetId(id: price.assetId)).map { ($0, Primitives.Price(price)) }
