@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use gem_client::{CONTENT_TYPE, ContentType, Target, X_CACHE_TTL};
+use gem_client::{Target, X_CACHE_TTL};
 
 use crate::models::info::InfoRequest;
 
-const INFO_CACHE_TTL_SECS: u64 = 3600;
+pub(crate) const INFO_CACHE_TTL_SECS: u64 = 3600;
 
 #[derive(Clone, Debug)]
 pub enum HyperCoreTarget {
@@ -24,10 +24,7 @@ impl Target for HyperCoreTarget {
         match self {
             Self::Info {
                 request: InfoRequest::SpotMeta | InfoRequest::UserAbstraction { .. },
-            } => HashMap::from([
-                (CONTENT_TYPE.to_string(), ContentType::ApplicationJson.as_str().to_string()),
-                (X_CACHE_TTL.to_string(), INFO_CACHE_TTL_SECS.to_string()),
-            ]),
+            } => HashMap::from([(X_CACHE_TTL.to_string(), INFO_CACHE_TTL_SECS.to_string())]),
             _ => HashMap::new(),
         }
     }

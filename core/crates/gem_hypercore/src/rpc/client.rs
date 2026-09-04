@@ -234,7 +234,8 @@ impl<C: Client> chain_traits::ChainProvider for HyperCoreClient<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gem_client::Target;
+    use crate::rpc::target::INFO_CACHE_TTL_SECS;
+    use gem_client::X_CACHE_TTL;
     use gem_client::testkit::MockClient;
     use serde_json::json;
     use std::sync::Mutex;
@@ -263,13 +264,8 @@ mod tests {
 
         assert_eq!(mode, UserAbstractionMode::Default);
         assert_eq!(
-            recorded_headers,
-            vec![
-                HyperCoreTarget::Info {
-                    request: InfoRequest::UserAbstraction { user: "0x123".to_string() }
-                }
-                .headers()
-            ]
+            recorded_headers.iter().map(|headers| headers.get(X_CACHE_TTL).cloned()).collect::<Vec<_>>(),
+            vec![Some(INFO_CACHE_TTL_SECS.to_string())]
         );
     }
 }

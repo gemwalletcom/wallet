@@ -58,7 +58,7 @@ mod tests {
     async fn test_broadcast_transaction() {
         let client = AlgorandClient::new(MockClient::new().with_post_with_headers(|path, body, headers| {
             assert_eq!(path, "/v2/transactions");
-            assert_eq!(body, br#""deadbeef""#);
+            assert_eq!(body, [0xde, 0xad, 0xbe, 0xef]);
             assert_eq!(headers.get(CONTENT_TYPE).map(String::as_str), Some(ContentType::ApplicationXBinary.as_str()));
             Ok(br#"{"txId":"TXID"}"#.to_vec())
         }));

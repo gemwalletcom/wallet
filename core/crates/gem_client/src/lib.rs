@@ -31,7 +31,7 @@ pub use query::{build_path_with_query, build_request_url};
 use request::BodyMethod;
 pub use request::{GetRequest, PostRequest};
 pub use target::Target;
-pub use types::{ClientError, Response, decode_json_byte_array, deserialize_response, encode_request_body};
+pub use types::{ClientError, Response, decode_json_byte_array, deserialize_response, encode_request};
 
 #[cfg(feature = "reqwest")]
 pub use reqwest_client::{ReqwestClient, json_response};

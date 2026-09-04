@@ -1,4 +1,4 @@
-use crate::{Client, ClientError, Response, deserialize_response};
+use crate::{Client, ClientError, Response, deserialize_response, encode_request};
 use async_trait::async_trait;
 use serde::{Serialize, de::DeserializeOwned};
 use std::{
@@ -84,7 +84,7 @@ impl Client for MockClient {
         R: DeserializeOwned,
     {
         let handler = self.post_handler.as_ref().ok_or(ClientError::Http { status: 404, body: vec![] })?;
-        let body_bytes = serde_json::to_vec(body).map_err(|e| ClientError::Serialization(e.to_string()))?;
+        let (headers, body_bytes) = encode_request(headers, body)?;
         let data = handler(path, &body_bytes, &headers)?;
         deserialize_response(&Response { status: Some(200), data })
     }

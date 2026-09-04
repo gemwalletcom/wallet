@@ -81,7 +81,13 @@ impl From<serde_json::Error> for ClientError {
     }
 }
 
-pub fn encode_request_body<T: Serialize>(headers: &HashMap<String, String>, body: &T) -> Result<Vec<u8>, ClientError> {
+pub fn encode_request<T: Serialize>(mut headers: HashMap<String, String>, body: &T) -> Result<(HashMap<String, String>, Vec<u8>), ClientError> {
+    headers.entry(CONTENT_TYPE.to_string()).or_insert_with(|| ContentType::ApplicationJson.as_str().to_string());
+    let data = encode_request_body(&headers, body)?;
+    Ok((headers, data))
+}
+
+fn encode_request_body<T: Serialize>(headers: &HashMap<String, String>, body: &T) -> Result<Vec<u8>, ClientError> {
     let content_type = headers.get(CONTENT_TYPE).map(String::as_str);
     let is_multipart = content_type.is_some_and(|value| value.starts_with(MULTIPART_FORM_DATA));
     match content_type.and_then(|value| ContentType::from_str(value).ok()) {
@@ -127,4 +133,29 @@ fn validate_http_status(response: &Response) -> Result<(), ClientError> {
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_encode_request_declares_json_next_to_custom_headers() {
+        let headers = HashMap::from([("x-auth-token".to_string(), "token".to_string())]);
+
+        let (headers, body) = encode_request(headers, &serde_json::json!({"content": "hello"})).unwrap();
+
+        assert_eq!(headers.get(CONTENT_TYPE).map(String::as_str), Some(ContentType::ApplicationJson.as_str()));
+        assert_eq!(body, br#"{"content":"hello"}"#.to_vec());
+    }
+
+    #[test]
+    fn test_encode_request_keeps_explicit_content_type() {
+        let headers = HashMap::from([(CONTENT_TYPE.to_string(), ContentType::TextPlain.as_str().to_string())]);
+
+        let (headers, body) = encode_request(headers, &"raw".to_string()).unwrap();
+
+        assert_eq!(headers.get(CONTENT_TYPE).map(String::as_str), Some(ContentType::TextPlain.as_str()));
+        assert_eq!(body, b"raw".to_vec());
+    }
 }

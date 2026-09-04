@@ -6,7 +6,7 @@ use std::{
 };
 
 use async_trait::async_trait;
-use gem_client::{CONTENT_TYPE, Client, ClientError, ContentType, Response, build_request_url, deserialize_response, encode_request_body};
+use gem_client::{Client, ClientError, Response, build_request_url, deserialize_response, encode_request};
 use primitives::Chain;
 use serde::{Serialize, de::DeserializeOwned};
 
@@ -137,9 +137,7 @@ where
         R: DeserializeOwned,
     {
         let url = build_request_url(&self.base_url, path);
-        let mut request_headers = HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationJson.as_str().to_string())]);
-        request_headers.extend(headers);
-        let data = encode_request_body(&request_headers, body)?;
+        let (request_headers, data) = encode_request(headers, body)?;
 
         let target = Target {
             url,
