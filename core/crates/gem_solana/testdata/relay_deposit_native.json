@@ -1,0 +1,44 @@
+{
+  "result": {
+    "blockTime": 1788317205,
+    "meta": {
+      "err": null,
+      "fee": 5000,
+      "preBalances": [
+        227383861,
+        139151564,
+        179937819012,
+        1,
+        1628641
+      ],
+      "postBalances": [
+        37378861,
+        139151564,
+        180127819012,
+        1,
+        1628641
+      ],
+      "preTokenBalances": [],
+      "postTokenBalances": []
+    },
+    "slot": 0,
+    "transaction": {
+      "message": {
+        "accountKeys": [
+          "6mW9UoanWQNFcmUnzzNCFyk6KCemATDEMEWeQ938jj6E",
+          "99vQwtBwYtrqqD9YSXbdum3KBdxPAVxYTaQ3cfnJSrN2"
+        ],
+        "instructions": [
+          {
+            "accounts": [4, 0, 0, 2, 3],
+            "data": "VyPN4WGD26G1nitkCKCRi9CZ4QPUBEQvf5vWKhzyResGLV1S8XRRYXfPNo1sQhMXU",
+            "programIdIndex": 1
+          }
+        ]
+      },
+      "signatures": [
+        "4ijbHQFVEKD76JKD91EYWCJ7ZaxvutCQa9x1hweuVfmAsDW4dEJso3GRmE5LbdWR1WnpywjCP632nxovmbW6CXzw"
+      ]
+    }
+  }
+}

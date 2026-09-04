@@ -11,14 +11,14 @@ pub fn make_staking_transaction(context: &ParseContext<'_>, to: &str, transactio
 
     Some(PrimitivesTransaction::new(
         context.transaction.hash.clone(),
-        AssetId::from_chain(*context.chain),
+        AssetId::from_chain(*context.metadata.chain),
         from,
         to.to_string(),
         contract,
         transaction_type,
-        context.receipt.get_state(),
-        context.receipt.get_fee(),
-        AssetId::from_chain(*context.chain),
+        context.metadata.receipt.get_state(),
+        context.metadata.receipt.get_fee(),
+        AssetId::from_chain(*context.metadata.chain),
         value.clone(),
         None,
         None,

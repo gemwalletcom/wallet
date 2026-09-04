@@ -10,17 +10,17 @@ use crate::{
 };
 use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, decode_hex};
 
-use super::{EVENT_WORD_SIZE, ParseContext, ProtocolParser, ethereum_value_from_log_data, universal_router::decode_execute_swap};
+use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data, universal_router::decode_execute_swap};
 
 pub struct PancakeSwapParser;
 
-impl ProtocolParser for PancakeSwapParser {
+impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for PancakeSwapParser {
     fn matches(&self, context: &ParseContext<'_>) -> bool {
         context
             .transaction
             .to
             .as_ref()
-            .is_some_and(|to| get_pancakeswap_router_deployment_by_chain(context.chain).is_some_and(|deployment| deployment.universal_router.eq_ignore_ascii_case(to)))
+            .is_some_and(|to| get_pancakeswap_router_deployment_by_chain(context.metadata.chain).is_some_and(|deployment| deployment.universal_router.eq_ignore_ascii_case(to)))
     }
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction> {
@@ -37,12 +37,12 @@ impl PancakeSwapParser {
     fn try_map_command_swap(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
         let input_bytes = decode_hex(&context.transaction.input).ok()?;
         decode_execute_swap(
-            context.chain,
+            context.metadata.chain,
             UniversalRouterAbi::V2,
             &Self::provider(),
             &context.transaction.from,
             &input_bytes,
-            context.receipt,
+            context.metadata.receipt,
         )
     }
 
@@ -56,16 +56,16 @@ impl PancakeSwapParser {
 
         match (has_native_value, outgoing.as_slice(), incoming.as_slice()) {
             (_, [(out_token, out_value)], [(in_token, in_value)]) if out_token != in_token => Some(TransactionSwapMetadata {
-                from_asset: AssetId::from_token(*context.chain, out_token),
+                from_asset: AssetId::from_token(*context.metadata.chain, out_token),
                 from_value: (-(*out_value).clone()).magnitude().clone(),
-                to_asset: AssetId::from_token(*context.chain, in_token),
+                to_asset: AssetId::from_token(*context.metadata.chain, in_token),
                 to_value: (*in_value).magnitude().clone(),
                 provider: Some(Self::provider()),
             }),
             (true, [], [(in_token, in_value)]) => Some(TransactionSwapMetadata {
-                from_asset: AssetId::from_chain(*context.chain),
+                from_asset: AssetId::from_chain(*context.metadata.chain),
                 from_value: context.transaction.value.clone(),
-                to_asset: AssetId::from_token(*context.chain, in_token),
+                to_asset: AssetId::from_token(*context.metadata.chain, in_token),
                 to_value: (*in_value).magnitude().clone(),
                 provider: Some(Self::provider()),
             }),
@@ -76,7 +76,7 @@ impl PancakeSwapParser {
     fn net_erc20_transfers(user: &str, context: &ParseContext<'_>) -> HashMap<String, BigInt> {
         let mut net_by_token: HashMap<String, BigInt> = HashMap::new();
 
-        for log in &context.receipt.logs {
+        for log in &context.metadata.receipt.logs {
             if log.topics.len() != 3 || log.topics.first().is_none_or(|t| t != TRANSFER_TOPIC) {
                 continue;
             }

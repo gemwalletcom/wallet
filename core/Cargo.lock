@@ -1697,6 +1697,7 @@ name = "chain_traits"
 version = "2.114.11"
 dependencies = [
  "async-trait",
+ "chrono",
  "futures",
  "num-bigint 0.5.1",
  "primitives",
@@ -3923,6 +3924,7 @@ dependencies = [
  "gem_client",
  "gem_encoding",
  "gem_jsonrpc",
+ "hex",
  "num-bigint 0.5.1",
  "num-traits",
  "primitives",

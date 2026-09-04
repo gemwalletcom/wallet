@@ -39,7 +39,7 @@ pub trait EvmStakingClient: Send + Sync {
         Err("Chain does not support staking".into())
     }
 
-    fn protocol_parser(&self) -> Option<&'static dyn ProtocolParser> {
+    fn protocol_parser(&self) -> Option<&'static ProtocolParser> {
         None
     }
 

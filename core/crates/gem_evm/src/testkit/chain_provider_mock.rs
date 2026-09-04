@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use num_bigint::BigInt;
 use primitives::{AssetBalance, AssetId, Chain, Transaction, TransactionFee, TransactionLoadInput};
 
-use crate::rpc::parsers::{ParseContext, ProtocolParser};
+use crate::rpc::parsers::{ParseContext, ProtocolParser, TransactionParser};
 use crate::rpc::{EvmFeeCalculator, EvmStakingClient};
 use crate::transaction_params::TransactionParams;
 
@@ -12,7 +12,7 @@ pub struct MockChainProvider;
 
 struct MockProtocolParser;
 
-impl ProtocolParser for MockProtocolParser {
+impl TransactionParser<ParseContext<'_>, Transaction> for MockProtocolParser {
     fn matches(&self, _context: &ParseContext<'_>) -> bool {
         false
     }
@@ -32,7 +32,7 @@ impl EvmStakingClient for MockChainProvider {
         Ok(Some(AssetBalance::new(AssetId::from_chain(Chain::SmartChain), 123u32.into())))
     }
 
-    fn protocol_parser(&self) -> Option<&'static dyn ProtocolParser> {
+    fn protocol_parser(&self) -> Option<&'static ProtocolParser> {
         Some(&MockProtocolParser)
     }
 }

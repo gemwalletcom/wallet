@@ -7,7 +7,7 @@ use futures::try_join;
 use gem_encoding::decode_base64;
 use gem_evm::EVM_ZERO_ADDRESS;
 use gem_solana::{
-    ASSOCIATED_TOKEN_ACCOUNT_PROGRAM, SYSTEM_PROGRAM_ID, SolanaAddress, SolanaClient, WSOL_TOKEN_ADDRESS, encode_v0_transaction, instruction_from_primitive,
+    ASSOCIATED_TOKEN_ACCOUNT_PROGRAM, Base64InstructionData, SYSTEM_PROGRAM_ID, SolanaAddress, SolanaClient, WSOL_TOKEN_ADDRESS, encode_v0_transaction, instruction_from_primitive,
     instructions_from_primitives,
 };
 use num_bigint::BigUint;
@@ -92,14 +92,16 @@ pub(in crate::mayan::tx_builder) fn append_client_swap_instructions(
 ) -> Result<Vec<String>, SwapperError> {
     let setup = swap.setup_instructions.unwrap_or_default();
     let compute_budget = swap.compute_budget_instructions.unwrap_or_default();
-    instructions.extend(instructions_from_primitives(compute_budget).map_err(solana_error)?);
+    instructions.extend(instructions_from_primitives::<Base64InstructionData>(compute_budget).map_err(solana_error)?);
     if from_token_contract == EVM_ZERO_ADDRESS && !setup_wraps_native_sol(&setup, user)? {
         instructions.extend(wrap_native_sol_instructions(user, amount_in64.parse::<u64>()?)?);
     }
     instructions.extend(setup_instructions(setup, relayer)?);
-    instructions.push(instruction_from_primitive(swap.swap_instruction).map_err(solana_error)?);
+    instructions.push(instruction_from_primitive::<Base64InstructionData>(swap.swap_instruction).map_err(solana_error)?);
     if let Some(cleanup_instruction) = swap.cleanup_instruction {
-        instructions.push(wrap_instruction_in_cpi_proxy(instruction_from_primitive(cleanup_instruction).map_err(solana_error)?)?);
+        instructions.push(wrap_instruction_in_cpi_proxy(
+            instruction_from_primitive::<Base64InstructionData>(cleanup_instruction).map_err(solana_error)?,
+        )?);
     }
     Ok(swap.address_lookup_table_addresses)
 }
@@ -109,7 +111,7 @@ pub(in crate::mayan::tx_builder) fn setup_instructions(instructions: Vec<SolanaI
         .into_iter()
         .map(|instruction| {
             override_setup_payer(instruction, payer)
-                .and_then(|instruction| instruction_from_primitive(instruction).map_err(solana_error))
+                .and_then(|instruction| instruction_from_primitive::<Base64InstructionData>(instruction).map_err(solana_error))
                 .and_then(wrap_instruction_in_cpi_proxy)
         })
         .collect()

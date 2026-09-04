@@ -28,7 +28,7 @@ impl EthereumMapper {
         transaction: &Transaction,
         transaction_receipt: &TransactionReceipt,
         timestamp: &BigUint,
-        parser: Option<&'static dyn ProtocolParser>,
+        parser: Option<&'static ProtocolParser>,
     ) -> Option<PrimitivesTransaction> {
         match parser {
             Some(parser) => Self::map_transaction_with_parsers(chain, transaction, transaction_receipt, timestamp, &[parser]),
@@ -41,7 +41,7 @@ impl EthereumMapper {
         transaction: &Transaction,
         transaction_receipt: &TransactionReceipt,
         timestamp: &BigUint,
-        parsers: &[&'static dyn ProtocolParser],
+        parsers: &[&'static ProtocolParser],
     ) -> Option<PrimitivesTransaction> {
         let transaction = match transaction.calls.as_ref().and_then(|calls| calls.last()) {
             Some(call) => Cow::Owned(Transaction {

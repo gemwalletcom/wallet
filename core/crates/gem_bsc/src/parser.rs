@@ -1,20 +1,20 @@
 use gem_evm::address::ethereum_address_from_topic;
 use gem_evm::rpc::model::Log;
 use gem_evm::rpc::parsers::staking::make_staking_transaction;
-use gem_evm::rpc::parsers::{EVENT_WORD_SIZE, ParseContext, ProtocolParser, ethereum_value_from_log_data};
+use gem_evm::rpc::parsers::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data};
 use primitives::{Chain, Transaction as PrimitivesTransaction, TransactionType};
 
 use crate::constants::{EVENT_CLAIMED, EVENT_DELEGATED, EVENT_REDELEGATED, EVENT_UNDELEGATED, STAKE_HUB_ADDRESS};
 
 pub struct BscParser;
 
-impl ProtocolParser for BscParser {
+impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for BscParser {
     fn matches(&self, context: &ParseContext<'_>) -> bool {
-        *context.chain == Chain::SmartChain && context.is_to_any(&[STAKE_HUB_ADDRESS])
+        *context.metadata.chain == Chain::SmartChain && context.is_to_any(&[STAKE_HUB_ADDRESS])
     }
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction> {
-        context.receipt.logs.iter().find_map(|log| Self::parse_log(context, log))
+        context.metadata.receipt.logs.iter().find_map(|log| Self::parse_log(context, log))
     }
 }
 

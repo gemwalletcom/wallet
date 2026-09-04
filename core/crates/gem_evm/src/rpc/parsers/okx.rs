@@ -9,7 +9,7 @@ use crate::{
 };
 use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata};
 
-use super::{EVENT_WORD_SIZE, ParseContext, ProtocolParser, ethereum_value_from_log_data};
+use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data};
 
 pub(crate) const FUNCTION_OKX_DAG_SWAP_BY_ORDER_ID: &str = "0xf2c42696";
 pub(crate) const FUNCTION_OKX_UNISWAP_V3_SWAP_TO: &str = "0x0d5f0e3b";
@@ -33,7 +33,7 @@ struct OkxSwapEvent {
     to_amount: BigUint,
 }
 
-impl ProtocolParser for OkxParser {
+impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for OkxParser {
     fn matches(&self, context: &ParseContext<'_>) -> bool {
         Self::matches_selector(&context.transaction.input)
     }
@@ -60,6 +60,7 @@ impl OkxParser {
 
     fn try_map_receipt_event(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
         let event = context
+            .metadata
             .receipt
             .logs
             .iter()
@@ -87,22 +88,22 @@ impl OkxParser {
 
     fn try_map_transfer_swap(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
         let from = ethereum_address_checksum(&context.transaction.from).ok()?;
-        let transfers: Vec<ReceiptTransfer> = context.receipt.logs.iter().filter_map(ReceiptTransfer::from_log).collect();
+        let transfers: Vec<ReceiptTransfer> = context.metadata.receipt.logs.iter().filter_map(ReceiptTransfer::from_log).collect();
         let outgoing: Vec<&ReceiptTransfer> = transfers.iter().filter(|transfer| transfer.from == from && transfer.value != "0").collect();
         let incoming: Vec<&ReceiptTransfer> = transfers.iter().filter(|transfer| transfer.to == from && transfer.value != "0").collect();
 
         match (context.transaction.value > BigUint::from(0u8), outgoing.as_slice(), incoming.as_slice()) {
             (_, [sent], [received]) if sent.token != received.token => Some(TransactionSwapMetadata {
-                from_asset: AssetId::from_token(*context.chain, &sent.token),
+                from_asset: AssetId::from_token(*context.metadata.chain, &sent.token),
                 from_value: BigUint::from_str(&sent.value).ok()?,
-                to_asset: AssetId::from_token(*context.chain, &received.token),
+                to_asset: AssetId::from_token(*context.metadata.chain, &received.token),
                 to_value: BigUint::from_str(&received.value).ok()?,
                 provider: Some(Self::provider()),
             }),
             (true, [], [received]) => Some(TransactionSwapMetadata {
-                from_asset: AssetId::from_chain(*context.chain),
+                from_asset: AssetId::from_chain(*context.metadata.chain),
                 from_value: context.transaction.value.clone(),
-                to_asset: AssetId::from_token(*context.chain, &received.token),
+                to_asset: AssetId::from_token(*context.metadata.chain, &received.token),
                 to_value: BigUint::from_str(&received.value).ok()?,
                 provider: Some(Self::provider()),
             }),
@@ -113,10 +114,10 @@ impl OkxParser {
     fn asset_id_from_token(context: &ParseContext<'_>, token: &str) -> Option<AssetId> {
         let token = ethereum_address_checksum(token).ok()?;
         if token == ethereum_address_checksum(NATIVE_TOKEN_ADDRESS).ok()? || token == Address::ZERO.to_checksum(None) {
-            return Some(AssetId::from_chain(*context.chain));
+            return Some(AssetId::from_chain(*context.metadata.chain));
         }
 
-        Some(AssetId::from_token(*context.chain, &token))
+        Some(AssetId::from_token(*context.metadata.chain, &token))
     }
 }
 

@@ -9,8 +9,9 @@ use primitives::{
         ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, AVALANCHE_USDC_ASSET_ID, AVALANCHE_USDT_ASSET_ID, BASE_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID,
         GNOSIS_USDC_ASSET_ID, HYPEREVM_USDC_ASSET_ID, HYPEREVM_USDT_ASSET_ID, INK_USDC_ASSET_ID, INK_USDT0_ASSET_ID, LINEA_USDT_ASSET_ID, MANTLE_USDC_ASSET_ID,
         MONAD_USDC_ASSET_ID, OPTIMISM_USDC_ASSET_ID, OPTIMISM_USDT_ASSET_ID, PLASMA_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SEIEVM_USDC_ASSET_ID,
-        SEIEVM_USDT_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID, TEMPO_USDT0_ASSET_ID, TRON_USDT_ASSET_ID,
-        TRON_USDT_TOKEN_ID, UNICHAIN_USDC_ASSET_ID, WORLD_USDC_E_ASSET_ID, ZKSYNC_USDT_ASSET_ID,
+        SEIEVM_USDT_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID, SOLANA_CBBTC_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDG_ASSET_ID, SOLANA_USDT_ASSET_ID,
+        TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID, TEMPO_USDT0_ASSET_ID, TRON_USDT_ASSET_ID, TRON_USDT_TOKEN_ID, UNICHAIN_USDC_ASSET_ID, WORLD_USDC_E_ASSET_ID,
+        ZKSYNC_USDT_ASSET_ID,
     },
     contract_constants::{EVM_ZERO_ADDRESS, TRON_BLACK_HOLE_ADDRESS},
 };
@@ -73,6 +74,15 @@ pub static SUPPORTED_CHAINS: LazyLock<Vec<SwapperChainAsset>> = LazyLock::new(||
             vec![TEMPO_BRIDGED_USDC_ASSET_ID.clone(), TEMPO_PATHUSD_ASSET_ID.clone(), TEMPO_USDT0_ASSET_ID.clone()],
         ),
         SwapperChainAsset::Assets(Chain::Tron, vec![TRON_USDT_ASSET_ID.clone()]),
+        SwapperChainAsset::Assets(
+            Chain::Solana,
+            vec![
+                SOLANA_USDC_ASSET_ID.clone(),
+                SOLANA_USDT_ASSET_ID.clone(),
+                SOLANA_USDG_ASSET_ID.clone(),
+                SOLANA_CBBTC_ASSET_ID.clone(),
+            ],
+        ),
     ]
 });
 
@@ -81,6 +91,13 @@ pub fn asset_to_currency(asset_id: &AssetId) -> Result<String, SwapperError> {
         ChainType::Ethereum => {
             if asset_id.is_native() {
                 Ok(EVM_ZERO_ADDRESS.to_string())
+            } else {
+                asset_id.token_id.clone().ok_or(SwapperError::NotSupportedAsset)
+            }
+        }
+        ChainType::Solana => {
+            if asset_id.is_native() {
+                Ok(SYSTEM_PROGRAM_ID.to_string())
             } else {
                 asset_id.token_id.clone().ok_or(SwapperError::NotSupportedAsset)
             }
@@ -101,6 +118,7 @@ pub fn asset_to_currency(asset_id: &AssetId) -> Result<String, SwapperError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gem_solana::USDC_TOKEN_MINT;
     use primitives::{Chain, asset_constants::ETHEREUM_USDC_TOKEN_ID};
 
     #[test]
@@ -117,8 +135,16 @@ mod tests {
     }
 
     #[test]
-    fn test_non_evm_asset_not_supported() {
-        assert_eq!(asset_to_currency(&AssetId::from_chain(Chain::Solana)), Err(SwapperError::NotSupportedChain));
+    fn test_solana_assets() {
+        assert_eq!(asset_to_currency(&AssetId::from_chain(Chain::Solana)).unwrap(), SYSTEM_PROGRAM_ID);
+        assert_eq!(asset_to_currency(&AssetId::from_token(Chain::Solana, USDC_TOKEN_MINT)).unwrap(), USDC_TOKEN_MINT);
+        assert_eq!(asset_to_currency(&AssetId::from_chain(Chain::Ton)), Err(SwapperError::NotSupportedChain));
+
+        assert_eq!(map_currency_to_asset_id(Chain::Solana, SYSTEM_PROGRAM_ID), AssetId::from_chain(Chain::Solana));
+        assert_eq!(
+            map_currency_to_asset_id(Chain::Solana, USDC_TOKEN_MINT),
+            AssetId::from_token(Chain::Solana, USDC_TOKEN_MINT)
+        );
     }
 
     #[test]

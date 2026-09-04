@@ -8,6 +8,8 @@ use crate::{
 };
 use primitives::{AssetId, Chain, NFTAssetId, SwapProvider, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionType};
 
+use super::parsers::ProtocolParsers;
+
 const CHAIN: Chain = Chain::Solana;
 const SWAP_PROGRAMS: &[(SwapProvider, &str)] = &[(SwapProvider::Jupiter, JUPITER_PROGRAM_ID), (SwapProvider::Okx, OKX_DEX_V2_PROGRAM_ID)];
 const MPL_CORE_TRANSFER_V1: u8 = 14;
@@ -121,6 +123,9 @@ fn map_swap_metadata(transaction: &BlockTransaction, owner: &str, provider: Swap
                 Sign::Minus => (change, &balance_changes),
                 Sign::NoSign => return None,
             };
+            if to.amount.sign() != Sign::Plus || from.amount.sign() != Sign::Minus {
+                return None;
+            }
             (from.asset_id.clone(), from.amount.magnitude().clone(), to.asset_id.clone(), to.amount.magnitude().clone())
         }
         [a, b] => {
@@ -169,6 +174,10 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
     let fee_asset_id = chain.as_asset_id();
     let created_at = DateTime::from_timestamp(block_time, 0)?;
     let memo = map_memo(&transaction.transaction.message.instructions, account_keys);
+
+    if let Some(transaction) = ProtocolParsers::map_transaction(transaction, created_at, memo.as_deref()) {
+        return Some(transaction);
+    }
 
     if (account_keys.len() == 3 && account_keys.last()? == SYSTEM_PROGRAM_ID)
         || (account_keys.len() == 4 && account_keys.iter().any(|key| key == SYSTEM_PROGRAM_ID) && account_keys.iter().any(|key| key == COMPUTE_BUDGET_PROGRAM_ID))

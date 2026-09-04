@@ -17,6 +17,7 @@ use primitives::{
 
 pub mod node_check;
 mod transaction_fee;
+pub mod transaction_parser;
 
 pub use transaction_fee::{TransactionFeeEstimate, TransactionFeeEstimates, TransactionFeeOperation};
 

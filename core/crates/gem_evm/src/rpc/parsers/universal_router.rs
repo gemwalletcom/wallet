@@ -17,7 +17,7 @@ use crate::{
 };
 use primitives::{AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, decode_hex};
 
-use super::{EVENT_WORD_SIZE, ParseContext, ProtocolParser, ethereum_value_from_log_data};
+use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data};
 
 const WITHDRAWAL_TOPIC: &str = "0x7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65";
 
@@ -41,22 +41,29 @@ impl RouterAbi {
     }
 }
 
-impl ProtocolParser for UniversalRouterParser {
+impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for UniversalRouterParser {
     fn matches(&self, context: &ParseContext<'_>) -> bool {
         context
             .transaction
             .to
             .as_ref()
-            .is_some_and(|to| get_provider_by_chain_contract(context.chain, to).is_some())
+            .is_some_and(|to| get_provider_by_chain_contract(context.metadata.chain, to).is_some())
     }
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction> {
         let to = context.transaction.to.as_ref()?;
-        let provider = get_provider_by_chain_contract(context.chain, to)?;
+        let provider = get_provider_by_chain_contract(context.metadata.chain, to)?;
         let input_bytes = decode_hex(&context.transaction.input).ok()?;
         let execute_call = IUniversalRouter::executeCall::abi_decode(&input_bytes).ok()?;
-        let router_abi = RouterAbi::from_chain_contract(context.chain, to);
-        let metadata = decode_execute_swap_call(context.chain, router_abi, &provider, &context.transaction.from, &execute_call, context.receipt)?;
+        let router_abi = RouterAbi::from_chain_contract(context.metadata.chain, to);
+        let metadata = decode_execute_swap_call(
+            context.metadata.chain,
+            router_abi,
+            &provider,
+            &context.transaction.from,
+            &execute_call,
+            context.metadata.receipt,
+        )?;
 
         context.make_swap_transaction(&context.transaction.from, &context.transaction.from, &metadata)
     }
