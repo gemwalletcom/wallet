@@ -14,6 +14,7 @@ import com.gemwallet.android.ui.components.image.EmojiView
 import com.gemwallet.android.ui.components.image.InitialsAvatar
 import com.gemwallet.android.ui.components.image.RemoveBadge
 import com.gemwallet.android.ui.components.image.walletImageModel
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.listItemIconSize
 
 @Composable
@@ -24,10 +25,14 @@ internal fun ContactAvatar(
     size: Dp = listItemIconSize,
     onRemove: (() -> Unit)? = null,
 ) {
-    val initials = name.take(2).uppercase()
+    val initials = name.trim().take(2).uppercase()
     Box(modifier = modifier) {
         when (avatar) {
-            ContactAvatarState.Empty -> InitialsAvatar(text = initials, size = size)
+            ContactAvatarState.Empty -> InitialsAvatar(
+                text = initials,
+                size = size,
+                placeholder = AppIcons.Person,
+            )
             is ContactAvatarState.Image -> AsyncImage(
                 model = walletImageModel(LocalContext.current, avatar.imageUrl),
                 size = size,

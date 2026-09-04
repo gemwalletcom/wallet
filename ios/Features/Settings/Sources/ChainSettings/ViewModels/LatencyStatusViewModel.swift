@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemNodeStatusState
+import GemstonePrimitives
 import Localization
 import Primitives
 import Style
@@ -58,17 +60,17 @@ struct LatencyStatusViewModel {
 extension LatencyStatusViewModel {
     init(serviceStatus: ServiceStatusState) {
         switch serviceStatus {
-        case let .result(milliseconds): self.init(state: .latency(.from(duration: Double(milliseconds))))
+        case let .result(latency): self.init(state: .latency(latency))
         case .error: self.init(state: .error)
         case .loading: self.init(state: .loading)
         }
     }
 
-    init(nodeStatus: NodeStatusState) {
+    init(nodeStatus: GemNodeStatusState) {
         switch nodeStatus {
-        case let .result(status): self.init(state: status.latestBlockNumber > 0 ? .latency(status.latency) : .error)
+        case let .result(_, latency): self.init(state: .latency(latency.map()))
         case .error: self.init(state: .error)
-        case .none: self.init(state: .loading)
+        case .loading: self.init(state: .loading)
         }
     }
 }

@@ -11,20 +11,19 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import uniffi.gemstone.GemNotificationService
+import uniffi.gemstone.GemNotificationServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class InAppNotificationsViewModel @Inject constructor(
     private val getCurrentWallet: GetCurrentWallet,
     private val getInAppNotifications: GetInAppNotifications,
-    private val notificationService: GemNotificationService,
+    private val notificationService: GemNotificationServiceInterface,
 ) : ViewModel() {
 
     val notifications: StateFlow<List<InAppNotification>> = getCurrentWallet.observe()
@@ -35,19 +34,10 @@ class InAppNotificationsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val wallet = getCurrentWallet.getCurrentWallet() ?: return@launch
             try {
-                notificationService.sync(wallet.id.id)
+                notificationService.open()
             } catch (err: Throwable) {
-                Log.e(TAG, "Sync notifications error", err)
-            }
-            try {
-                val hasUnread = getInAppNotifications(wallet.id).first().any { it.readAt == null }
-                if (hasUnread) {
-                    notificationService.markRead()
-                }
-            } catch (err: Throwable) {
-                Log.e(TAG, "Mark notifications read error", err)
+                Log.e(TAG, "Open notifications error", err)
             }
         }
     }

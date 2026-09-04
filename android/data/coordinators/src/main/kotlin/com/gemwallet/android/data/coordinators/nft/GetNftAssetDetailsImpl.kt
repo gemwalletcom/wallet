@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.nft
 
-import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemCollectibleServiceInterface
 import com.gemwallet.android.application.nft.cases.GetNftAssetDetails
 import com.gemwallet.android.application.nft.cases.GetAssetNft
 import com.gemwallet.android.application.session.cases.GetSession
@@ -13,12 +13,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOn
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetNftAssetDetailsImpl(
     private val getSession: GetSession,
     private val getAssetNft: GetAssetNft,
-    private val explorerService: GemExplorerService,
+    private val collectibleService: GemCollectibleServiceInterface,
 ) : GetNftAssetDetails {
 
     override fun invoke(assetId: NFTAssetId): Flow<NftAssetDetailsData?> {
@@ -29,18 +31,17 @@ class GetNftAssetDetailsImpl(
                         val nftAsset = nftData.assets.firstOrNull() ?: return@map null
                         val chain = nftAsset.chain
                         val account = session.wallet.getAccount(chain) ?: return@map null
+                        val links = nftAsset.contractAddress?.let { collectibleService.links(chain.string, it, nftAsset.tokenId) }
                         NftAssetDetailsData(
                             collection = nftData.collection,
                             asset = nftAsset,
                             account = account,
-                            contractExplorerLink = nftAsset.contractAddress?.let { address ->
-                                explorerService.getTokenUrl(chain.string, address)?.let { BlockExplorerLink(it.name, it.link) }
-                            },
-                            tokenIdExplorerLink = nftAsset.contractAddress?.let { address ->
-                                explorerService.getNftUrl(chain.string, address, nftAsset.tokenId)?.let { BlockExplorerLink(it.name, it.link) }
-                            },
+                            canSend = collectibleService.canSend(chain.string),
+                            contractExplorerLink = links?.contract?.let { BlockExplorerLink(it.name, it.link) },
+                            tokenIdExplorerLink = links?.token?.let { BlockExplorerLink(it.name, it.link) },
                         )
                     }
             }
+            .flowOn(Dispatchers.IO)
     }
 }

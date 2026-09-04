@@ -6,16 +6,24 @@ use crate::services::error::GemServiceError;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use primitives::{AssetId, Chain, DelegationState, DelegationValidator, StakeProviderType, WalletId, WalletType};
+use primitives::{Asset, AssetId, Chain, Currency, Delegation, DelegationBase, DelegationValidator, StakeProviderType, StakeType, WalletId, WalletType};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
+use crate::models::custom_types::GemBigInt;
 use crate::models::{GemContractCallData, GemEarnType};
 
-pub use model::{GemDelegationAction, GemStakeBalance};
+pub use model::{GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemStakeAction, GemStakeActionItem};
 pub use store::GemStakeStore;
 
+use crate::block_explorer::GemBlockExplorerLink;
+use crate::services::balance::GemAssetBalance;
+use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemAddressStore;
+use crate::services::preferences::GemPreferencesService;
+use crate::services::transfer::GemTransferData;
+use crate::services::transfer::rules as transfer_rules;
+use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemStakeService {
@@ -23,70 +31,83 @@ pub struct GemStakeService {
     static_api: Arc<GemStaticApiClient>,
     store: Arc<dyn GemStakeStore>,
     address_store: Arc<dyn GemAddressStore>,
+    explorer: Arc<GemExplorerService>,
+    preferences: Arc<GemPreferencesService>,
+    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
 impl GemStakeService {
     #[uniffi::constructor]
-    pub fn new(gateway: Arc<GemGateway>, static_api: Arc<GemStaticApiClient>, store: Arc<dyn GemStakeStore>, address_store: Arc<dyn GemAddressStore>) -> Self {
+    pub fn new(
+        gateway: Arc<GemGateway>,
+        static_api: Arc<GemStaticApiClient>,
+        store: Arc<dyn GemStakeStore>,
+        address_store: Arc<dyn GemAddressStore>,
+        explorer: Arc<GemExplorerService>,
+        preferences: Arc<GemPreferencesService>,
+        session: Arc<GemWalletSessionService>,
+    ) -> Self {
         Self {
             gateway,
             static_api,
             store,
             address_store,
+            explorer,
+            preferences,
+            session,
         }
     }
 
-    pub async fn sync(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<(), GemServiceError> {
-        let apr = self.store.get_apr(AssetId::from_chain(chain), StakeProviderType::Stake).await?.unwrap_or_default();
-        let names = self.sync_validators(chain, &address, apr).await?;
-        self.sync_delegations(wallet_id, chain, &address, &names).await
+    pub fn currency(&self) -> Currency {
+        self.preferences.get_currency()
     }
 
-    pub async fn sync_earn(&self, wallet_id: WalletId, asset_id: AssetId, address: String) -> Result<(), GemServiceError> {
-        let apr = self.store.get_apr(asset_id.clone(), StakeProviderType::Earn).await?.unwrap_or_default();
-        let providers = rules::earn_validators(self.gateway.get_earn_providers(asset_id.clone()), apr);
-        self.store.save_validators(providers).await?;
-        let positions = self.gateway.get_earn_positions(address, asset_id.clone()).await?;
-        let existing_ids = self.store.get_delegation_ids(wallet_id.clone(), asset_id, StakeProviderType::Earn).await?;
-        let delete_ids = rules::stale_delegation_ids(existing_ids, &positions);
-        self.store.update_delegations(wallet_id, positions, delete_ids).await
+    pub fn stake_transfer_data(&self, asset: Asset, stake_type: StakeType, value: GemBigInt, use_max_amount: bool) -> GemTransferData {
+        transfer_rules::stake_transfer_data(asset, stake_type, value, use_max_amount)
     }
 
-    pub async fn get_earn_data(&self, asset_id: AssetId, address: String, value: String, earn_type: GemEarnType) -> Result<GemContractCallData, GemServiceError> {
-        Ok(self.gateway.get_earn_data(asset_id, address, value, earn_type).await?)
+    pub fn validator_url(&self, validator: DelegationValidator) -> Option<GemBlockExplorerLink> {
+        let address = rules::validator_explorer_address(&validator)?;
+        self.explorer.get_validator_url(validator.chain, address)
     }
 
-    pub fn delegation_actions(&self, wallet_type: WalletType, chain: Chain, provider: StakeProviderType, state: DelegationState) -> Vec<GemDelegationAction> {
-        rules::delegation_actions(wallet_type, chain, provider, state)
+    pub async fn sync(&self, chain: Chain) -> Result<(), GemServiceError> {
+        let (wallet_id, address) = self.current_account(chain)?;
+        self.sync_wallet(wallet_id, chain, address).await
     }
 
-    pub fn can_claim_delegation_rewards(&self, wallet_type: WalletType, chain: Chain, state: DelegationState, rewards: String) -> bool {
-        rules::can_claim_rewards(wallet_type, chain, state, &rewards)
+    pub async fn sync_earn(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
+        let (wallet_id, address) = self.current_account(asset_id.chain)?;
+        self.sync_earn_wallet(wallet_id, asset_id, address).await
     }
 
-    pub fn validator_explorer_address(&self, validator: DelegationValidator) -> Option<String> {
-        rules::validator_explorer_address(&validator)
+    pub fn delegation_actions(&self, wallet_type: WalletType, delegation: Delegation) -> Vec<GemDelegationAction> {
+        rules::delegation_actions(wallet_type, &delegation)
     }
 
-    pub fn shows_completion_date(&self, state: DelegationState) -> bool {
-        rules::shows_completion_date(state)
+    pub fn can_claim_delegation_rewards(&self, wallet_type: WalletType, delegation: Delegation) -> bool {
+        rules::can_claim_rewards(wallet_type, &delegation)
     }
 
-    pub fn shows_rewards(&self, state: DelegationState, rewards: String) -> bool {
-        rules::shows_rewards(state, &rewards)
+    pub fn shows_completion_date(&self, delegation: DelegationBase) -> bool {
+        rules::shows_completion_date(&delegation)
     }
 
-    pub fn can_claim_stake_rewards(&self, chain: Chain, rewards_value: String) -> bool {
-        rules::can_claim_stake_rewards(chain, &rewards_value)
+    pub fn shows_rewards(&self, delegation: DelegationBase) -> bool {
+        rules::shows_rewards(&delegation)
     }
 
-    pub fn requires_frozen_balance(&self, chain: Chain, frozen_value: String) -> bool {
-        rules::requires_frozen_balance(chain, &frozen_value)
+    pub fn stake_actions(&self, wallet_type: WalletType, chain: Chain, has_validators: bool, balance: GemAssetBalance, delegations: Vec<Delegation>) -> Vec<GemStakeActionItem> {
+        rules::stake_actions(wallet_type, chain, has_validators, &balance, &delegations)
     }
 
-    pub fn recommended_validator_ids(&self, chain: Chain) -> Vec<String> {
-        rules::recommended_validator_ids(chain)
+    pub fn claim_rewards(&self, chain: Chain, delegations: Vec<Delegation>) -> GemClaimRewards {
+        rules::claim_rewards(chain, delegations)
+    }
+
+    pub fn recommended_validators(&self, chain: Chain, validators: Vec<DelegationValidator>) -> Vec<DelegationValidator> {
+        rules::recommended_validators(chain, &validators)
     }
 
     pub fn recommended_validator(&self, chain: Chain, validators: Vec<DelegationValidator>) -> Option<DelegationValidator> {
@@ -99,6 +120,33 @@ impl GemStakeService {
 }
 
 impl GemStakeService {
+    pub async fn get_earn_data(&self, asset_id: AssetId, address: String, value: String, earn_type: GemEarnType) -> Result<GemContractCallData, GemServiceError> {
+        Ok(self.gateway.get_earn_data(asset_id, address, value, earn_type).await?)
+    }
+
+    pub async fn sync_wallet(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<(), GemServiceError> {
+        let apr = self.store.get_apr(AssetId::from_chain(chain), StakeProviderType::Stake).await?.unwrap_or_default();
+        let names = self.sync_validators(chain, &address, apr).await?;
+        self.sync_delegations(wallet_id, chain, &address, &names).await
+    }
+
+    pub async fn sync_earn_wallet(&self, wallet_id: WalletId, asset_id: AssetId, address: String) -> Result<(), GemServiceError> {
+        let apr = self.store.get_apr(asset_id.clone(), StakeProviderType::Earn).await?.unwrap_or_default();
+        let providers = rules::earn_validators(self.gateway.get_earn_providers(asset_id.clone()), apr);
+        self.store.save_validators(providers).await?;
+        let positions = self.gateway.get_earn_positions(address, asset_id.clone()).await?;
+        let existing_ids = self.store.get_delegation_ids(wallet_id.clone(), asset_id, StakeProviderType::Earn).await?;
+        let delete_ids = rules::stale_delegation_ids(existing_ids, &positions);
+        self.store.update_delegations(wallet_id, positions, delete_ids).await
+    }
+
+    fn current_account(&self, chain: Chain) -> Result<(WalletId, String), GemServiceError> {
+        let wallet = self.session.current_wallet()?;
+        let account = wallet.account(chain).ok_or_else(|| GemServiceError::NotFound {
+            msg: format!("wallet {} has no {chain} account", wallet.id.id()),
+        })?;
+        Ok((wallet.id.clone(), account.address.clone()))
+    }
     async fn sync_validators(&self, chain: Chain, address: &str, apr: f64) -> Result<HashMap<String, String>, GemServiceError> {
         let names: HashMap<String, String> = self
             .static_api

@@ -4,7 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.stake.cases.GetDelegations
-import com.gemwallet.android.application.stake.cases.GetRecommendedValidatorIds
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
+import com.wallet.core.primitives.DelegationValidator
+import uniffi.gemstone.GemStakeServiceInterface
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.features.transfer_amount.models.ValidatorsSource
 import com.gemwallet.android.features.transfer_amount.models.ValidatorsUIState
@@ -26,7 +29,7 @@ import javax.inject.Inject
 class ValidatorsViewModel @Inject constructor(
     private val getValidators: GetValidators,
     private val getDelegations: GetDelegations,
-    private val getRecommendedValidatorIds: GetRecommendedValidatorIds,
+    private val service: GemStakeServiceInterface,
     val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -51,12 +54,12 @@ class ValidatorsViewModel @Inject constructor(
             source == null -> ValidatorsUIState.Loading
             validators.isNotEmpty() -> {
                 val recommended = when (source) {
-                    is ValidatorsSource.ChainValidators -> getRecommendedValidatorIds(source.assetId)
-                    is ValidatorsSource.Rewards -> emptySet()
+                    is ValidatorsSource.ChainValidators -> service.recommendedValidators(source.assetId.chain.string, validators.map { it.toJson() }).map { it.decodeJson<DelegationValidator>() }
+                    is ValidatorsSource.Rewards -> emptyList()
                 }
                 ValidatorsUIState.Loaded(
                     loading = false,
-                    recommended = validators.filter { recommended.contains(it.id) },
+                    recommended = recommended,
                     validators = validators,
                 )
             }

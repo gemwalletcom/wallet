@@ -1,27 +1,24 @@
 package com.gemwallet.android.ui.models.swap
 
-import com.gemwallet.android.domains.asset.calculateFiat
-import com.gemwallet.android.domains.asset.formatFiat
 import com.gemwallet.android.domains.asset.getSwapProviderIcon
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.domains.swap.buildAssetRatePair
 import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.swap.SwapPriceImpact
 import java.math.BigInteger
 import uniffi.gemstone.SwapperProvider
 import uniffi.gemstone.SwapperProviderType
-import uniffi.gemstone.GemSwapQuoteService
 
 object SwapProviderUIModelFactory {
     fun create(
         provider: SwapperProviderType,
-        receiveAsset: AssetInfo,
-        toValue: String,
+        receiveAsset: AssetPriceValue,
+        toValue: BigInteger,
     ): SwapProviderUIModel {
         return create(
             providerId = provider.id,
@@ -34,10 +31,9 @@ object SwapProviderUIModelFactory {
     fun create(
         providerId: SwapperProvider,
         title: String,
-        receiveAsset: AssetInfo,
-        toValue: String,
+        receiveAsset: AssetPriceValue,
+        toValue: BigInteger,
     ): SwapProviderUIModel {
-        val toAmount = Crypto(toValue)
         val fiatValue = receiveAsset.calculateFiat(toValue)
 
         return SwapProviderUIModel(
@@ -45,40 +41,32 @@ object SwapProviderUIModelFactory {
             title = title,
             icon = providerId.getSwapProviderIcon(),
             amount = ValueFormatter(style = ValueFormatter.Style.Auto)
-                .string(toAmount.atomicValue, receiveAsset.asset),
+                .string(toValue, receiveAsset.asset),
             fiat = receiveAsset.formatFiat(fiatValue),
         )
     }
 }
 
 data class SwapDetailsUIModelInput(
-    val payAsset: AssetInfo,
-    val receiveAsset: AssetInfo,
-    val fromValue: String,
-    val toValue: String,
+    val payAsset: AssetPriceValue,
+    val receiveAsset: AssetPriceValue,
+    val fromValue: BigInteger,
+    val toValue: BigInteger,
     val provider: SwapProviderUIModel,
     val providers: List<SwapProviderUIModel> = emptyList(),
     val slippageBps: UInt,
     val selectedSlippage: UInt?,
     val etaInSeconds: UInt?,
     val isProviderSelectable: Boolean,
+    val priceImpact: SwapPriceImpact? = null,
+    val minReceiveValue: BigInteger = BigInteger.ZERO,
+    val etaMinutes: UInt? = null,
 )
 
 object SwapDetailsUIModelFactory {
-    private const val BPS_SCALE = 10_000
-
     private val rateFormatter = AssetRateFormatter()
 
-    fun create(input: SwapDetailsUIModelInput, swapQuoteService: GemSwapQuoteService): SwapDetailsUIModel? {
-        return create(input) { payFiatValue, receiveFiatValue ->
-            swapQuoteService.priceImpact(payFiatValue, receiveFiatValue)?.decodeJson()
-        }
-    }
-
-    internal fun create(
-        input: SwapDetailsUIModelInput,
-        priceImpactCalculator: (Double, Double) -> SwapPriceImpact?,
-    ): SwapDetailsUIModel? {
+    fun create(input: SwapDetailsUIModelInput): SwapDetailsUIModel? {
         val rate = buildAssetRatePair(
             fromAsset = input.payAsset.asset,
             toAsset = input.receiveAsset.asset,
@@ -88,10 +76,7 @@ object SwapDetailsUIModelFactory {
         ) ?: return null
 
         val slippagePercent = input.slippageBps.toDouble() / 100.0
-        val priceImpact = priceImpactCalculator(
-            input.payAsset.calculateFiat(input.fromValue).toDouble(),
-            input.receiveAsset.calculateFiat(input.toValue).toDouble(),
-        )?.let {
+        val priceImpact = input.priceImpact?.let {
             SwapPriceImpactUIModel(
                 type = it.impactType,
                 displayText = it.percentage.formatAsPercentage(),
@@ -101,7 +86,7 @@ object SwapDetailsUIModelFactory {
         }
 
         val toAmount = Crypto(input.toValue)
-        val minReceiveAtomic = minimumReceiveAtomic(toAmount.atomicValue, input.slippageBps)
+        val minReceiveAtomic = input.minReceiveValue
 
         return SwapDetailsUIModel(
             provider = input.provider,
@@ -113,20 +98,10 @@ object SwapDetailsUIModelFactory {
             slippageText = slippagePercent.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess),
             slippageBps = input.slippageBps,
             selectedSlippage = input.selectedSlippage,
-            estimatedTime = input.etaInSeconds?.formatSwapEta(),
+            estimatedTime = input.etaMinutes?.let { "≈ $it min" },
             isProviderSelectable = input.isProviderSelectable,
         )
     }
 
-    internal fun minimumReceiveAtomic(atomicValue: BigInteger, slippageBps: UInt): BigInteger =
-        atomicValue * (BPS_SCALE - slippageBps.toInt()).toBigInteger() / BPS_SCALE.toBigInteger()
 }
 
-private fun UInt.formatSwapEta(): String? {
-    if (this <= 60u) {
-        return null
-    }
-
-    val minutes = (this / 60u).toInt().coerceAtLeast(1)
-    return "≈ $minutes min"
-}

@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use primitives::{AssetId, Chain, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, swap_transaction_timeout};
 
-use super::model::{GemTransactionPostProcessing, GemTransactionStateUpdate};
+use super::model::{GemTransactionStateUpdate, TransactionPostProcessing};
 use crate::services::collections::unique;
 
 pub fn destination_chain(transaction: &Transaction) -> Option<Chain> {
@@ -19,19 +19,19 @@ pub fn has_timed_out(transaction: &Transaction, now: DateTime<Utc>) -> bool {
     (now - transaction.created_at).num_milliseconds() > timeout_ms as i64
 }
 
-pub fn post_processing(transaction: &Transaction, previous_state: TransactionState, state: TransactionState) -> Option<GemTransactionPostProcessing> {
+pub fn post_processing(transaction: &Transaction, previous_state: TransactionState, state: TransactionState) -> Option<TransactionPostProcessing> {
     let entered_transit = previous_state == TransactionState::Pending && state == TransactionState::InTransit;
     if !state.is_completed() && !entered_transit {
         return None;
     }
     let balance_asset_ids = transaction.associated_asset_ids();
     if !state.is_completed() {
-        return Some(GemTransactionPostProcessing {
+        return Some(TransactionPostProcessing {
             balance_asset_ids,
             ..Default::default()
         });
     }
-    let mut processing = GemTransactionPostProcessing {
+    let mut processing = TransactionPostProcessing {
         balance_asset_ids,
         ..Default::default()
     };

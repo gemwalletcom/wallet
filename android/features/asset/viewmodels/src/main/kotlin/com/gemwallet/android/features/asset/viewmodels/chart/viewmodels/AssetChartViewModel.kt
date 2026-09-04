@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
-import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemChartServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,13 +27,11 @@ class AssetChartViewModel internal constructor(
     getAssetById: GetAssetById,
     getAssetLinks: GetAssetLinks,
     getAssetMarket: GetAssetMarket,
-    private val explorerService: GemExplorerService,
+    private val chartService: GemChartServiceInterface,
     getPriceAlerts: GetPriceAlerts,
     getCurrentCurrency: GetCurrentCurrency,
     val assetId: AssetId,
 ) : ViewModel() {
-
-    private val explorerName = explorerService.getExplorerName(assetId.chain.string)
 
     val priceAlertsCount = getPriceAlerts(assetId)
         .map { it.size }
@@ -54,7 +52,7 @@ class AssetChartViewModel internal constructor(
         asset,
         links,
         market,
-        getCurrentCurrency.getCurrency().distinctUntilChanged(),
+        getCurrentCurrency.getCurrency(),
     ) { asset, links, market, currency ->
         asset?.let {
             AssetMarketUIModel(
@@ -63,9 +61,8 @@ class AssetChartViewModel internal constructor(
                 assetLinks = links.toModel(),
                 currency = currency,
                 marketInfo = market,
-                explorerName = explorerName,
                 tokenExplorerLink = it.id.tokenId?.let { tokenId ->
-                    explorerService.getTokenUrl(it.id.chain.string, tokenId)?.let { url -> BlockExplorerLink(url.name, url.link) }
+                    chartService.tokenUrl(it.id.chain.string, tokenId)?.let { url -> BlockExplorerLink(url.name, url.link) }
                 },
             )
         }
@@ -77,7 +74,7 @@ class AssetChartViewModel internal constructor(
         getAssetById: GetAssetById,
         getAssetLinks: GetAssetLinks,
         getAssetMarket: GetAssetMarket,
-        explorerService: GemExplorerService,
+        chartService: GemChartServiceInterface,
         getPriceAlerts: GetPriceAlerts,
         getCurrentCurrency: GetCurrentCurrency,
         savedStateHandle: SavedStateHandle,
@@ -85,7 +82,7 @@ class AssetChartViewModel internal constructor(
         getAssetById = getAssetById,
         getAssetLinks = getAssetLinks,
         getAssetMarket = getAssetMarket,
-        explorerService = explorerService,
+        chartService = chartService,
         getPriceAlerts = getPriceAlerts,
         getCurrentCurrency = getCurrentCurrency,
         assetId = savedStateHandle.requireAssetId(),

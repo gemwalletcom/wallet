@@ -10,48 +10,50 @@ import Style
 import SwiftUI
 
 public struct FeeRateViewModel: Identifiable {
-    public let feeRate: FeeRate
+    public let priority: FeePriority
+    public let unitValue: BigInt
+    public let fee: BigInt?
     public let unitType: FeeUnitType
     public let decimals: Int
     public let symbol: String
-    public let totalFee: BigInt
 
     public init(
-        feeRate: FeeRate,
+        priority: FeePriority,
+        unitValue: BigInt,
+        fee: BigInt?,
         unitType: FeeUnitType,
         decimals: Int,
         symbol: String,
-        totalFee: BigInt,
     ) {
-        self.feeRate = feeRate
+        self.priority = priority
+        self.unitValue = unitValue
+        self.fee = fee
         self.unitType = unitType
         self.decimals = decimals
         self.symbol = symbol
-        self.totalFee = totalFee
     }
 
     public var id: String {
-        feeRate.priority.rawValue
+        priority.rawValue
     }
 
     public var emoji: String {
-        switch feeRate.priority {
+        switch priority {
         case .fast: Emoji.FeeRate.fast.rawValue
         case .normal: Emoji.FeeRate.normal.rawValue
         }
     }
 
     public var title: String {
-        switch feeRate.priority {
+        switch priority {
         case .normal: Localized.FeeRates.normal
         case .fast: Localized.FeeRates.fast
         }
     }
 
     public var feeUnitModel: FeeUnitViewModel {
-        let unit = FeeUnit(type: unitType, value: totalFee)
-        return FeeUnitViewModel(
-            unit: unit,
+        FeeUnitViewModel(
+            unit: FeeUnit(type: unitType, value: unitValue),
             decimals: decimals,
             symbol: symbol,
         )
@@ -59,11 +61,5 @@ public struct FeeRateViewModel: Identifiable {
 
     public var valueText: String {
         feeUnitModel.value
-    }
-}
-
-extension FeeRateViewModel: Comparable {
-    public static func < (lhs: FeeRateViewModel, rhs: FeeRateViewModel) -> Bool {
-        lhs.feeRate.priority.rank > rhs.feeRate.priority.rank
     }
 }

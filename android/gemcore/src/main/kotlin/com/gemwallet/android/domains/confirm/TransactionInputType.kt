@@ -14,11 +14,8 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.StakeType
-import com.wallet.core.primitives.TransactionType
-import com.wallet.core.primitives.swap.ApprovalData
 import com.wallet.core.primitives.swap.SwapData
 import uniffi.gemstone.GemTransactionInputType
-import uniffi.gemstone.GemTransferService
 
 val GemTransactionInputType.asset: Asset
     get() = when (this) {
@@ -56,11 +53,6 @@ val GemTransactionInputType.stakeType: StakeType?
 val GemTransactionInputType.perpetualType: PerpetualType?
     get() = (this as? GemTransactionInputType.Perpetual)?.perpetualType?.decodeJson<PerpetualType>()
 
-fun GemTransactionInputType.approvalData(
-    transactionType: TransactionType,
-    transferService: GemTransferService,
-): ApprovalData? = transferService.approval(this, transactionType.toJson())?.decodeJson<ApprovalData>()
-
 fun GemTransactionInputType.Companion.transfer(asset: Asset): GemTransactionInputType =
     GemTransactionInputType.Transfer(asset.toGem())
 
@@ -76,11 +68,5 @@ fun GemTransactionInputType.Companion.transferNft(asset: Asset, nftAsset: NFTAss
 fun GemTransactionInputType.Companion.swap(fromAsset: Asset, toAsset: Asset, swapData: SwapData): GemTransactionInputType =
     GemTransactionInputType.Swap(fromAsset.toGem(), toAsset.toGem(), swapData.toJson())
 
-fun GemTransactionInputType.Companion.stake(asset: Asset, stakeType: StakeType): GemTransactionInputType =
-    GemTransactionInputType.Stake(asset.toGem(), stakeType.toJson())
-
 fun GemTransactionInputType.Companion.account(asset: Asset, accountType: AccountDataType): GemTransactionInputType =
     GemTransactionInputType.Account(asset.toGem(), accountType.toJson())
-
-fun GemTransactionInputType.Companion.perpetual(asset: Asset, perpetualType: PerpetualType): GemTransactionInputType =
-    GemTransactionInputType.Perpetual(asset.toGem(), perpetualType.toGem())

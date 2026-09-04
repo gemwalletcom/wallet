@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
 import Formatters
 import Foundation
@@ -113,18 +112,10 @@ struct BannerViewModel {
     }
 
     var url: URL? {
-        switch banner.event {
-        case .stake,
-             .activateAsset,
-             .onboarding,
-             .tradePerpetuals:
-            .none
-        case .accountActivation:
-            asset?.chain.accountActivationFeeUrl
-        case .accountBlockedMultiSignature:
-            AppUrl.docs(.tronMultiSignature)
-        case .suspiciousAsset:
-            AppUrl.docs(.tokenVerification)
+        switch content.link {
+        case let .docs(item): AppUrl.docs(item)
+        case let .external(url): URL(string: url)
+        case .none: .none
         }
     }
 
@@ -163,13 +154,9 @@ struct BannerViewModel {
         }
     }
 
-    private var asset: Asset? {
-        banner.asset
-    }
-
     private func formatted(_ amount: GemBannerAmount) -> String {
         ValueFormatter(style: .auto)
-            .string(BigInt(stringLiteral: amount.value), decimals: amount.decimals.asInt, currency: amount.symbol)
+            .string(amount.value, decimals: amount.decimals.asInt, currency: amount.symbol)
     }
 }
 

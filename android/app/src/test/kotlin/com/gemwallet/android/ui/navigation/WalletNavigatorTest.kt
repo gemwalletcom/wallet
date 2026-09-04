@@ -1,7 +1,11 @@
 package com.gemwallet.android.ui.navigation
 
+import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemTransferService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.runTest
 import androidx.compose.runtime.mutableStateOf
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
@@ -15,11 +19,11 @@ import com.gemwallet.android.features.onboarding.AcceptTermsRoute
 import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.features.setup_wallet.navigation.SetupWalletRoute
 import com.gemwallet.android.domains.swap.SwapItemType
-import com.gemwallet.android.ext.hasNativeAsset
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.ImportType
-import com.gemwallet.android.testkit.mockAccount
+import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
-import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.navigation.routes.AddPriceAlertTargetRoute
 import com.gemwallet.android.ui.navigation.routes.AmountRoute
@@ -49,9 +53,8 @@ import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.WalletType
-import io.mockk.every
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
+import io.mockk.coEvery
+import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -61,49 +64,31 @@ import org.junit.Test
 class WalletNavigatorTest {
 
     @Test
-    fun openAsset_requiresSupportedWalletChain() {
-        mockkStatic("com.gemwallet.android.ext.ChainKt")
-        every { Chain.Tron.hasNativeAsset() } returns true
-        every { Chain.Tempo.hasNativeAsset() } returns false
-        val navigator = navigatorWith(
-            WalletRootRoute,
-            assetNavigationPolicy = WalletAssetNavigationPolicy(
-                mockWallet(accounts = listOf(mockAccount(chain = Chain.Tron), mockAccount(chain = Chain.Tempo))),
-            ),
-        )
-
-        try {
-            navigator.openAsset(mockAssetId(Chain.Ton))
-            navigator.openAsset(mockAssetId(Chain.Tempo))
-            navigator.openAsset(mockAssetId(Chain.Tron))
-            navigator.openAsset(mockAssetId(Chain.Tempo, "0xtoken"))
-
-            assertEquals(
-                listOf(
-                    WalletRootRoute,
-                    AssetRoute(mockAssetId(Chain.Tron)),
-                    AssetRoute(mockAssetId(Chain.Tempo, "0xtoken")),
-                ),
-                navigator.backStack.toList(),
-            )
-        } finally {
-            unmockkStatic("com.gemwallet.android.ext.ChainKt")
+    fun openAsset_pushesOnlyAssetsCoreOpens() = runTest {
+        val blocked = mockAssetId(Chain.Tempo)
+        val opened = mockAssetId(Chain.Tron)
+        val callingThreads = mutableListOf<String>()
+        val assetsService = mockk<GemAssetsServiceInterface> {
+            coEvery { openAsset(blocked.toIdentifier()) } answers {
+                callingThreads += Thread.currentThread().name
+                null
+            }
+            coEvery { openAsset(opened.toIdentifier()) } answers {
+                callingThreads += Thread.currentThread().name
+                mockAsset(chain = Chain.Tron).toGem()
+            }
         }
-    }
+        val navigator = navigatorWith(WalletRootRoute, assetsService = assetsService, scope = this)
 
-    @Test
-    fun openAsset_appliesPolicyToPendingRoutes() {
-        val blockedAsset = mockAssetId(Chain.Tempo)
-        val navigator = navigatorWith(
-            WalletRootRoute,
-            WalletsRoute,
-            assetNavigationPolicy = AssetNavigationPolicy { it != blockedAsset },
+        navigator.openAsset(blocked).join()
+        navigator.openAsset(opened).join()
+
+        assertEquals(listOf(WalletRootRoute, AssetRoute(opened)), navigator.backStack.toList())
+        assertTrue(
+            "openAsset reads the current wallet through a synchronous store callback that blocks on Room; " +
+                "calling it on the navigator scope lands on main. Got $callingThreads",
+            callingThreads.size == 2 && callingThreads.all { it.startsWith("DefaultDispatcher-worker") },
         )
-
-        val opened = navigator.openPendingNavigation(listOf(AssetRoute(blockedAsset)))
-
-        assertFalse(opened)
-        assertEquals(listOf(WalletRootRoute, WalletsRoute), navigator.backStack.toList())
     }
 
     @Test
@@ -558,14 +543,16 @@ class WalletNavigatorTest {
 
     private fun navigatorWith(
         vararg routes: NavKey,
-        assetNavigationPolicy: AssetNavigationPolicy = AssetNavigationPolicy { true },
+        assetsService: GemAssetsServiceInterface = mockk(),
+        scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined),
     ): WalletNavigator {
         return WalletNavigator(
             backStack = NavBackStack(*routes),
             currentTab = mutableStateOf(assetsRoute),
-            assetNavigationPolicy = assetNavigationPolicy,
             transferService = GemTransferService(),
             deeplinkService = GemDeeplinkService(),
+            assetsService = assetsService,
+            scope = scope,
         )
     }
 }

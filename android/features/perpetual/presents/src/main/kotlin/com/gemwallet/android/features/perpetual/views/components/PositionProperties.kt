@@ -21,6 +21,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualMarginType
+import com.gemwallet.android.ui.theme.Placeholder
 
 private val usdFormatter = CurrencyFormatter(currency = Currency.USD)
 
@@ -100,7 +101,7 @@ private fun AutocloseRow(
                     }
                     takeProfitText != null -> ListItemSupportText(takeProfitText)
                     stopLossText != null -> ListItemSupportText(stopLossText)
-                    else -> ListItemSupportText("-")
+                    else -> ListItemSupportText(Placeholder.empty)
                 }
             }
             DataBadgeChevron()

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstonePrimitives
-import protocol Gemstone.GemNftServiceProtocol
+import protocol Gemstone.GemCollectibleServiceProtocol
 import Components
 import Foundation
 import Localization
@@ -11,7 +11,7 @@ import Primitives
 @Observable
 @MainActor
 public final class ReportNftViewModel {
-    private let nftService: any GemNftServiceProtocol
+    private let service: any GemCollectibleServiceProtocol
     private let assetData: NFTAssetData
     private let onComplete: VoidAction
 
@@ -19,12 +19,8 @@ public final class ReportNftViewModel {
 
     let reasons = ReportReasonViewModel.allCases
 
-    public init(
-        nftService: any GemNftServiceProtocol,
-        assetData: NFTAssetData,
-        onComplete: VoidAction,
-    ) {
-        self.nftService = nftService
+    init(service: any GemCollectibleServiceProtocol, assetData: NFTAssetData, onComplete: VoidAction) {
+        self.service = service
         self.assetData = assetData
         self.onComplete = onComplete
     }
@@ -41,7 +37,7 @@ public final class ReportNftViewModel {
         state = .loading
         Task {
             do {
-                try await nftService.report(report: ReportNft(
+                try await service.report(report: ReportNft(
                     collectionId: assetData.collection.id.identifier,
                     assetId: assetData.asset.id.identifier,
                     reason: reason,

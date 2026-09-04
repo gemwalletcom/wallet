@@ -2,7 +2,6 @@
 
 import protocol Gemstone.GemStakeServiceProtocol
 import Components
-import protocol Gemstone.GemExplorerServiceProtocol
 import GemstonePrimitives
 import Foundation
 import Localization
@@ -16,22 +15,17 @@ public final class ValidatorSelectSceneViewModel {
     public let currentValidator: DelegationValidator?
     private let validators: [DelegationValidator]
     public var selectValidator: ((DelegationValidator) -> Void)?
-    private let explorerService: any GemExplorerServiceProtocol
-
-
-    private let stakeService: any GemStakeServiceProtocol
+    private let service: any GemStakeServiceProtocol
 
     public init(
-        explorerService: any GemExplorerServiceProtocol,
-        stakeService: any GemStakeServiceProtocol,
+        service: any GemStakeServiceProtocol,
         type: ValidatorSelectType,
         chain: Chain,
         currentValidator: DelegationValidator?,
         validators: [DelegationValidator],
         selectValidator: ((DelegationValidator) -> Void)? = nil,
     ) {
-        self.explorerService = explorerService
-        self.stakeService = stakeService
+        self.service = service
         self.type = type
         self.chain = chain
         self.currentValidator = currentValidator
@@ -43,14 +37,17 @@ public final class ValidatorSelectSceneViewModel {
         Localized.Stake.validators
     }
 
+    private var recommendedValidators: [DelegationValidator] {
+        service.recommendedValidators(chain: chain.rawValue, validators: validators.map { $0.json() }).compactMap { try? DelegationValidator($0) }
+    }
+
     public var list: [ListItemValueSection<DelegationValidator>] {
         switch type {
         case .stake:
-            let recommended = Set(stakeService.recommendedValidatorIds(chain: chain.rawValue))
             return [
                 listSection(
                     title: Localized.Common.recommended,
-                    validators: validators.filter { recommended.contains($0.id) },
+                    validators: recommendedValidators,
                 ),
                 listSection(
                     title: Localized.Stake.active,
@@ -68,7 +65,7 @@ public final class ValidatorSelectSceneViewModel {
     }
 
     public func explorerLink(for validator: DelegationValidator) -> BlockExplorerLink? {
-        explorerService.getValidatorUrl(chain: validator.chain.rawValue, address: validator.id).map { BlockExplorerLink($0) }
+        service.validatorUrl(validator: validator.json()).map { BlockExplorerLink($0) }
     }
 
     public func explorerContext(for validator: DelegationValidator) -> ExplorerContextData? {

@@ -12,6 +12,11 @@ pub struct ApiResult<T> {
     pub result: T,
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct SendBocRequest {
+    pub boc: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct RunGetMethodRequest {
     pub address: String,

@@ -45,9 +45,9 @@ mod tests {
         let client = BlockscoutClient::new(
             MockClient::new().with_get(|path| {
                 let response = match path {
-                    "/1/api/v2/addresses/0x123/transactions" => TRANSACTIONS,
-                    "/1/api/v2/addresses/0x123/token-transfers" => TOKEN_TRANSFERS,
-                    "/1/api/v2/addresses/0x123/token-balances" => TOKEN_BALANCES,
+                    "/1/api/v2/addresses/0x123/transactions?sort=block_number&order=desc&items_count=3&apikey=key" => TRANSACTIONS,
+                    "/1/api/v2/addresses/0x123/token-transfers?sort=block_number&order=desc&items_count=3&apikey=key" => TOKEN_TRANSFERS,
+                    "/1/api/v2/addresses/0x123/token-balances?apikey=key" => TOKEN_BALANCES,
                     _ => panic!("unexpected path: {path}"),
                 };
                 Ok(response.as_bytes().to_vec())

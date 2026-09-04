@@ -15,7 +15,7 @@ import com.gemwallet.android.ext.getPerpetualMetadata
 import com.gemwallet.android.ext.getSwapMetadata
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
-import com.gemwallet.android.model.TransactionExtended
+import com.wallet.core.primitives.TransactionExtended
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.PriceChangeFormatter
@@ -27,7 +27,7 @@ import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemAddressService
-import uniffi.gemstone.GemTransactionFormatter
+import uniffi.gemstone.GemTransactionSummary
 import com.gemwallet.android.domains.transaction.format
 import com.gemwallet.android.domains.transaction.sign
 import uniffi.gemstone.GemAmountSign
@@ -49,14 +49,13 @@ private val usdFiatFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.F
 class GetTransactionsImpl(
     private val getCurrentWalletId: GetCurrentWalletId,
     private val transactionStore: GemstoneTransactionStore,
-    private val transactionFormatter: GemTransactionFormatter,
     private val addressService: GemAddressService,
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetTransactions {
 
     private val transactions: StateFlow<List<TransactionDataAggregate>> =
         transactionStore.walletTransactions(getCurrentWalletId, emptyList())
-            .map { items -> items.map { TransactionDataAggregateImpl(it, transactionFormatter, addressService) } }
+            .map { items -> items.map { TransactionDataAggregateImpl(it, addressService) } }
             .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
     override fun transactions(): StateFlow<List<TransactionDataAggregate>> = transactions
@@ -64,22 +63,23 @@ class GetTransactionsImpl(
     override fun getTransactions(
         filters: List<TransactionsRequestFilter>,
     ): Flow<List<TransactionDataAggregate>> = transactionStore.walletTransactions(getCurrentWalletId, filters)
-        .map { items -> items.map { TransactionDataAggregateImpl(it, transactionFormatter, addressService) } }
+        .map { items -> items.map { TransactionDataAggregateImpl(it, addressService) } }
         .flowOn(Dispatchers.IO)
 }
 
 @Stable
 class TransactionDataAggregateImpl(
     private val data: TransactionExtended,
-    private val transactionFormatter: GemTransactionFormatter,
     private val addressService: GemAddressService,
 ) : TransactionDataAggregate {
+
+    private val row = GemTransactionSummary(data.transaction.toJson())
 
     override val id: TransactionId = data.transaction.id
 
     override val asset: Asset = data.asset
 
-    override val subtitle: GemTransactionSubtitle = transactionFormatter.subtitle(data.transaction.toJson())
+    override val subtitle: GemTransactionSubtitle = row.subtitle()
 
     override val addressName: String? = subtitle.address()?.let { address ->
         listOfNotNull(data.fromAddress, data.toAddress).firstOrNull { it.address == address }?.name
@@ -89,13 +89,13 @@ class TransactionDataAggregateImpl(
         ?.let { AddressFormatter(addressService, it, chain = data.transaction.assetId.chain).value() }
         .orEmpty()
 
-    private val coreValue: GemTransactionValue = transactionFormatter.value(data.transaction.toJson())
+    private val coreValue: GemTransactionValue = row.value()
 
     override val valueSign: GemAmountSign = coreValue.sign()
 
     override val value: String = amount(coreValue).orEmpty()
 
-    override val equivalentValue: String? = amount(transactionFormatter.equivalentValue(data.transaction.toJson()))
+    override val equivalentValue: String? = amount(row.equivalentValue())
 
     private fun amount(value: GemTransactionValue): String? = when (value) {
         GemTransactionValue.None -> null
@@ -114,7 +114,7 @@ class TransactionDataAggregateImpl(
 
     override val nftImageUrl: String? = data.transaction.getNftMetadata()?.getImageUrl()
 
-    override val title: GemTransactionTitle = transactionFormatter.title(data.transaction.toJson())
+    override val title: GemTransactionTitle = row.title()
 
     override val type: TransactionType = data.transaction.type
 

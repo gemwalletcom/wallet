@@ -8,6 +8,3 @@ interface GetValidators {
     operator fun invoke(assetId: AssetId): Flow<List<DelegationValidator>>
 }
 
-interface GetRecommendedValidatorIds {
-    operator fun invoke(assetId: AssetId): List<String>
-}

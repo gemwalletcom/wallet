@@ -1,6 +1,7 @@
 package com.gemwallet.android.testkit
 
-import com.gemwallet.android.domains.perpetual.PerpetualTransferData
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.CancelOrderData
 import com.wallet.core.primitives.PerpetualConfirmData
@@ -9,6 +10,7 @@ import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualModifyConfirmData
 import com.wallet.core.primitives.PerpetualModifyPositionType
 import com.wallet.core.primitives.PerpetualProvider
+import uniffi.gemstone.GemPerpetualTransferData
 import com.wallet.core.primitives.PerpetualReduceData
 import com.wallet.core.primitives.TPSLOrderData
 
@@ -86,22 +88,17 @@ fun mockCancel(orderIds: List<Long>, assetIndex: Int = 0) = PerpetualModifyPosit
     orderIds.map { CancelOrderData(assetIndex = assetIndex, orderId = it) },
 )
 
-fun mockPerpetualTransferData(
-    provider: PerpetualProvider = PerpetualProvider.Hypercore,
+fun mockGemPerpetualTransferData(
     direction: PerpetualDirection = PerpetualDirection.Long,
     asset: Asset = mockAssetHyperCoreUBTC(),
-    baseAsset: Asset = mockAssetHyperCoreUSDC(),
-    assetIndex: Int = 0,
-    price: Double = 100.0,
     leverage: UByte = 1u,
-    marginType: PerpetualMarginType = PerpetualMarginType.Cross,
-) = PerpetualTransferData(
-    provider = provider,
-    direction = direction,
-    asset = asset,
-    baseAsset = baseAsset,
-    assetIndex = assetIndex,
-    price = price,
+) = GemPerpetualTransferData(
+    provider = PerpetualProvider.Hypercore.toGem(),
+    direction = direction.toJson(),
+    asset = asset.toGem(),
+    baseAsset = mockAssetHyperCoreUSDC().toGem(),
+    assetIndex = 0,
+    price = 100.0,
     leverage = leverage,
-    marginType = marginType,
+    marginType = PerpetualMarginType.Cross.toJson(),
 )

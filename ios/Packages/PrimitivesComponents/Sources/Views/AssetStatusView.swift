@@ -5,11 +5,11 @@ import Localization
 import SwiftUI
 
 public struct AssetStatusView: View {
-    private let model: AssetScoreTypeViewModel
+    private let model: VerificationStatusViewModel
     private let action: () -> Void
 
     public init(
-        model: AssetScoreTypeViewModel,
+        model: VerificationStatusViewModel,
         action: @escaping () -> Void,
     ) {
         self.model = model
@@ -20,7 +20,7 @@ public struct AssetStatusView: View {
         NavigationCustomLink(with:
             ListItemImageView(
                 title: Localized.Transaction.status,
-                subtitle: model.status,
+                subtitle: model.title,
                 subtitleStyle: model.statusStyle,
                 assetImage: model.assetImage,
                 infoAction: action,

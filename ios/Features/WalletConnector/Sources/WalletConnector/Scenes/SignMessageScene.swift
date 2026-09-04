@@ -54,9 +54,9 @@ public struct SignMessageScene: View {
                         model.onViewPayloadDetails()
                     }
                 }
-            } else if case let .text(string) = model.messageDisplayType {
+            } else {
                 Section(Localized.SignMessage.message) {
-                    Text(string)
+                    Text(model.messageText)
                 }
             }
         }

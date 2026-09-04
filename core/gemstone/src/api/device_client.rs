@@ -2,9 +2,10 @@ use std::sync::Arc;
 
 use gem_api::GemDeviceApiClient as DeviceApiClient;
 
-use crate::services::device::{DeviceSyncPreflight, GemDeviceService};
+use crate::services::device::{DeviceSyncPreflight, GemDeviceKeyService, GemDeviceService};
 
 use crate::alien::{AlienError, AlienProvider, AlienProviderWrapper};
+use crate::config::public::API_URL;
 
 #[derive(Debug, uniffi::Object)]
 pub struct GemDeviceApiClient {
@@ -14,9 +15,9 @@ pub struct GemDeviceApiClient {
 #[uniffi::export]
 impl GemDeviceApiClient {
     #[uniffi::constructor]
-    pub fn new(provider: Arc<dyn AlienProvider>, base_url: String, device_private_key: Vec<u8>) -> Self {
+    pub fn new(provider: Arc<dyn AlienProvider>, device_key: Arc<GemDeviceKeyService>) -> Self {
         Self {
-            client: DeviceApiClient::new(base_url, Arc::new(AlienProviderWrapper::new(provider)), device_private_key),
+            client: DeviceApiClient::new(API_URL.to_string(), Arc::new(AlienProviderWrapper::new(provider)), device_key),
         }
     }
 }

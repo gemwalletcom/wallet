@@ -12,7 +12,7 @@ use super::{
 use crate::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProvider, PriceProviderAsset};
 
 pub struct PythProvider {
-    pyth_client: PythClient,
+    pyth_client: PythClient<ReqwestClient>,
 }
 
 impl PythProvider {

@@ -1,12 +1,4 @@
-use primitives::{Chain, Wallet, WalletSource};
-
-pub type GemWalletSource = WalletSource;
-
-#[uniffi::remote(Enum)]
-pub enum GemWalletSource {
-    Create,
-    Import,
-}
+use primitives::{Chain, Wallet};
 
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemWalletImportType {
@@ -26,4 +18,10 @@ pub enum GemWalletImportResult {
 pub enum GemWalletDeletion {
     WalletsRemaining,
     LastWalletDeleted,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemWalletSecret {
+    Words { words: Vec<String> },
+    PrivateKey { key: String },
 }

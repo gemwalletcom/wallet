@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store

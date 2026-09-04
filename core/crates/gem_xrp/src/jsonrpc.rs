@@ -5,36 +5,38 @@ use crate::method;
 
 #[derive(Clone, Debug)]
 pub enum XrpRpc {
-    GetAccountInfo(String),
-    GetAccountObjects(String),
+    GetAccountInfo { address: String },
+    GetAccountObjects { address: String },
     GetAccountTransactions { address: String, limit: usize },
     GetFees,
-    GetLedger(u64),
+    GetLedger { index: u64 },
     GetLatestValidatedLedger,
-    GetTransaction(String),
-    SubmitTransaction(String),
+    GetServerInfo,
+    GetTransaction { hash: String },
+    SubmitTransaction { data: String },
 }
 
 impl ToJsonRpcRequest for XrpRpc {
     fn method(&self) -> &'static str {
         match self {
-            Self::GetAccountInfo(_) => method::ACCOUNT_INFO,
-            Self::GetAccountObjects(_) => method::ACCOUNT_OBJECTS,
+            Self::GetAccountInfo { .. } => method::ACCOUNT_INFO,
+            Self::GetAccountObjects { .. } => method::ACCOUNT_OBJECTS,
             Self::GetAccountTransactions { .. } => method::ACCOUNT_TRANSACTIONS,
             Self::GetFees => method::FEE,
-            Self::GetLedger(_) | Self::GetLatestValidatedLedger => method::LEDGER,
-            Self::GetTransaction(_) => method::TRANSACTION,
-            Self::SubmitTransaction(_) => method::SUBMIT,
+            Self::GetLedger { .. } | Self::GetLatestValidatedLedger => method::LEDGER,
+            Self::GetServerInfo => method::SERVER_INFO,
+            Self::GetTransaction { .. } => method::TRANSACTION,
+            Self::SubmitTransaction { .. } => method::SUBMIT,
         }
     }
 
     fn params(&self) -> serde_json::Value {
         match self {
-            Self::GetAccountInfo(address) => json!([{
+            Self::GetAccountInfo { address } => json!([{
                 "account": address,
                 "ledger_index": "current"
             }]),
-            Self::GetAccountObjects(address) => json!([{
+            Self::GetAccountObjects { address } => json!([{
                 "account": address,
                 "type": "state",
                 "ledger_index": "validated"
@@ -47,14 +49,15 @@ impl ToJsonRpcRequest for XrpRpc {
                 "ledger_index_min": -1
             }]),
             Self::GetFees => json!([{}]),
-            Self::GetLedger(block_number) => json!([{
-                "ledger_index": block_number,
+            Self::GetLedger { index } => json!([{
+                "ledger_index": index,
                 "transactions": true,
                 "expand": true
             }]),
             Self::GetLatestValidatedLedger => json!([{"ledger_index": "validated"}]),
-            Self::GetTransaction(transaction_id) => json!([{"transaction": transaction_id}]),
-            Self::SubmitTransaction(data) => json!([{
+            Self::GetServerInfo => json!([{}]),
+            Self::GetTransaction { hash } => json!([{"transaction": hash}]),
+            Self::SubmitTransaction { data } => json!([{
                 "tx_blob": data,
                 "fail_hard": true
             }]),
@@ -90,7 +93,9 @@ mod tests {
     #[test]
     fn builds_broadcast_request_with_fail_hard() {
         assert_request(
-            XrpRpc::SubmitTransaction("signed-transaction".into()),
+            XrpRpc::SubmitTransaction {
+                data: "signed-transaction".into(),
+            },
             method::SUBMIT,
             json!([{"tx_blob": "signed-transaction", "fail_hard": true}]),
         );

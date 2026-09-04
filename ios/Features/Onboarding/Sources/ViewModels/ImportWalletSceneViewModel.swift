@@ -1,5 +1,5 @@
-import protocol Gemstone.GemOnboardingServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemWalletServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
@@ -13,7 +13,7 @@ import Preferences
 @Observable
 @MainActor
 final class ImportWalletSceneViewModel {
-    private let service: any GemOnboardingServiceProtocol
+    private let service: any GemWalletServiceProtocol
     private let preferences: ObservablePreferences
     private let wordSuggester = WordSuggester()
     let type: ImportWalletType
@@ -31,7 +31,7 @@ final class ImportWalletSceneViewModel {
     private let onComplete: (@MainActor @Sendable (ImportWalletSceneResult) -> Void)?
 
     init(
-        service: any GemOnboardingServiceProtocol,
+        service: any GemWalletServiceProtocol,
         preferences: ObservablePreferences,
         nameService: any GemNameServiceProtocol,
         type: ImportWalletType,
@@ -229,7 +229,7 @@ extension ImportWalletSceneViewModel {
     private func activateWallet(_ wallet: Wallet) async {
         preferences.acceptTerms()
         do {
-            try await service.session().setCurrent(wallet: wallet)
+            try service.setCurrentWalletId(walletId: wallet.id.id)
         } catch {
             isPresentingAlertMessage = AlertMessage(title: alertTitle, message: error.localizedDescription)
         }

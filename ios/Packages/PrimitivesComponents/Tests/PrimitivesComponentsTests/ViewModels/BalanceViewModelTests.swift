@@ -57,15 +57,4 @@ struct BalanceViewModelTests {
         #expect(BalanceViewModel.mock(asset: .mockEthereum()).hasStakingResources == false)
         #expect(BalanceViewModel.mock(asset: .mockBNB()).hasStakingResources == false)
     }
-
-    @Test
-    func hasFrozenResources() {
-        #expect(BalanceViewModel.mock(asset: .mockTron(), balance: .mock(frozen: BigInt(1))).hasFrozenResources == true)
-        #expect(BalanceViewModel.mock(asset: .mockTron(), balance: .mock(locked: BigInt(1))).hasFrozenResources == true)
-
-        #expect(BalanceViewModel.mock(asset: .mockTron(), balance: .mock()).hasFrozenResources == false)
-        #expect(BalanceViewModel.mock(asset: .mockTron(), balance: .mock(staked: BigInt(1), pending: BigInt(1), rewards: BigInt(1))).hasFrozenResources == false)
-
-        #expect(BalanceViewModel.mock(asset: .mockEthereum(), balance: .mock(frozen: BigInt(1), locked: BigInt(1))).hasFrozenResources == false)
-    }
 }

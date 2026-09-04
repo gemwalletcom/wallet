@@ -7,21 +7,20 @@ import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.withExplorerLinks
 import uniffi.gemstone.GemApprovalValue
 import uniffi.gemstone.GemConfirmSimulationState
-import uniffi.gemstone.GemConfirmTransferService
+import uniffi.gemstone.GemConfirmTransferServiceInterface
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.SimulationPayloadField
 import com.wallet.core.primitives.SimulationWarning
 import java.math.BigInteger
 
 data class Simulation(
     val warnings: List<SimulationWarning> = emptyList(),
+    val hasCriticalWarning: Boolean = false,
     val primaryPayloadFields: List<PayloadField> = emptyList(),
     val secondaryPayloadFields: List<PayloadField> = emptyList(),
     val headerAsset: Asset? = null,
-    val headerValue: String? = null,
+    val headerValue: BigInteger? = null,
     val headerIsUnlimited: Boolean = false,
     val balanceChanges: List<SimulationAssetChange> = emptyList(),
 )
@@ -34,24 +33,22 @@ data class SimulationAssetChange(
 fun GemConfirmSimulationState.toSimulation(
     warnings: List<SimulationWarning>,
     chain: Chain?,
-    confirmService: GemConfirmTransferService,
+    confirmService: GemConfirmTransferServiceInterface,
 ): Simulation {
     val details = simulation ?: return Simulation(warnings = warnings)
     val header = details.header
 
     return Simulation(
         warnings = warnings,
-        primaryPayloadFields = details.primaryFields.map { it.decodeJson<SimulationPayloadField>() }
-            .withExplorerLinks(chain, confirmService),
-        secondaryPayloadFields = details.secondaryFields.map { it.decodeJson<SimulationPayloadField>() }
-            .withExplorerLinks(chain, confirmService),
+        hasCriticalWarning = details.hasCriticalWarning,
+        primaryPayloadFields = details.primaryFields.map { it.toPrimitives() }
+            .withExplorerLinks(chain) { chain, address -> confirmService.addressUrl(chain.string, address) },
+        secondaryPayloadFields = details.secondaryFields.map { it.toPrimitives() }
+            .withExplorerLinks(chain) { chain, address -> confirmService.addressUrl(chain.string, address) },
         headerAsset = header?.asset?.toPrimitives(),
         headerValue = (header?.value as? GemApprovalValue.Exact)?.value,
         headerIsUnlimited = header?.value is GemApprovalValue.Unlimited,
-        balanceChanges = details.balanceChanges.mapNotNull { change ->
-            val value = change.value.toBigIntegerOrNull() ?: return@mapNotNull null
-            SimulationAssetChange(asset = change.asset.toPrimitives(), value = value)
-        },
+        balanceChanges = details.balanceChanges.map { SimulationAssetChange(asset = it.asset.toPrimitives(), value = it.value) },
     )
 }
 

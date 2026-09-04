@@ -39,19 +39,19 @@ impl TraceResponse {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct TraceByMessageQuery {
     pub msg_hash: String,
     pub include_actions: bool,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct TraceByTransactionQuery {
     pub tx_hash: String,
     pub include_actions: bool,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct TraceByBlockQuery {
     pub mc_seqno: u64,
     pub include_actions: bool,
@@ -60,7 +60,7 @@ pub struct TraceByBlockQuery {
     pub sort: &'static str,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct TraceByAddressQuery {
     pub account: String,
     pub include_actions: bool,

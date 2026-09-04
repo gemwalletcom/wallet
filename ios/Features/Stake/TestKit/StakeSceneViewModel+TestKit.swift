@@ -15,9 +15,7 @@ public extension StakeSceneViewModel {
         StakeSceneViewModel(
             wallet: wallet,
             chain: chain,
-            currencyCode: "USD",
-            stakeService: stakeService,
-            explorerService: GemExplorerServiceMock(),
+            service: stakeService,
         )
     }
 }

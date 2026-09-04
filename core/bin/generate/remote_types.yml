@@ -1,0 +1,23 @@
+remote:
+  - AssetType
+  - Asset
+  - FeePriority
+  - FeeUnitType
+  - PerpetualProvider
+  - WalletType
+  - WalletSource
+  - TpslType
+  - WalletConnectionVerificationStatus
+  - VerificationStatus
+  - RecentActivityType
+  - SimulationPayloadFieldType
+  - SimulationPayloadFieldDisplay
+  - SimulationPayloadFieldKind
+  - SimulationPayloadField
+  - LatencyType
+  - Latency
+  - PortfolioType
+codes:
+  - Currency
+identifiers:
+  - AssetId

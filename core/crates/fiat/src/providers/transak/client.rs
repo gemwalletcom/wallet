@@ -1,15 +1,20 @@
 use super::{
     mapper::map_widget_params,
-    models::{Asset, Country, CreateWidgetUrlRequest, CreateWidgetUrlResponse, Data, FiatCurrency, Response, TokenResponse, TransakQuote, TransakResponse},
+    models::{
+        Asset, Country, CreateWidgetUrlRequest, CreateWidgetUrlResponse, Data, FiatCurrency, QuoteQuery, RefreshTokenRequest, Response, TokenResponse, TransakQuote,
+        TransakResponse,
+    },
+    target::{TransakGatewayTarget, TransakTarget},
 };
-use gem_client::ReqwestClient;
+use gem_client::{ClientError, ClientExt, ReqwestClient};
 use primitives::{AccessTokenCacher, FiatProviderName, FiatQuoteUrlData};
-use reqwest::Method;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
 use std::time::{Duration, UNIX_EPOCH};
+
+const API_KEY_HEADER: &str = "x-api-key";
 
 pub struct TransakClient {
     client: ReqwestClient,
@@ -39,6 +44,10 @@ impl TransakClient {
             referrer_domain,
             access_token_cacher,
         }
+    }
+
+    fn headers(&self) -> HashMap<String, String> {
+        HashMap::from([(API_KEY_HEADER.to_string(), self.api_key.clone())])
     }
 
     pub async fn get_buy_quote(&self, symbol: String, fiat_currency: String, fiat_amount: f64, network: String) -> Result<TransakQuote, Box<dyn std::error::Error + Send + Sync>> {
@@ -72,27 +81,18 @@ impl TransakClient {
         crypto_amount: Option<&str>,
         network: String,
     ) -> Result<TransakQuote, Box<dyn std::error::Error + Send + Sync>> {
-        let mut query = vec![
-            ("isBuyOrSell", quote_type.to_string()),
-            ("fiatCurrency", fiat_currency.to_string()),
-            ("cryptoCurrency", symbol.to_string()),
-            ("network", network.to_string()),
-            ("partnerApiKey", self.api_key.to_string()),
-        ];
-        if let Some(amount) = fiat_amount {
-            query.push(("fiatAmount", amount.to_string()));
-        }
-        if let Some(amount) = crypto_amount {
-            query.push(("cryptoAmount", amount.to_string()));
-        }
-
+        let query = QuoteQuery {
+            is_buy_or_sell: quote_type.to_string(),
+            fiat_currency,
+            crypto_currency: symbol,
+            network,
+            partner_api_key: self.api_key.clone(),
+            fiat_amount: fiat_amount.map(|amount| amount.to_string()),
+            crypto_amount: crypto_amount.map(str::to_string),
+        };
         self.client
-            .request(Method::GET, "/api/v1/pricing/public/quotes")
-            .header("x-api-key", &self.api_key)
-            .query(&query)
-            .send()
-            .await?
-            .json::<TransakResponse<TransakQuote>>()
+            .get::<TransakResponse<TransakQuote>>(TransakTarget::Quotes { query })
+            .headers(self.headers())
             .await?
             .into()
     }
@@ -100,18 +100,11 @@ impl TransakClient {
     pub async fn create_widget_url(&self, params: HashMap<String, Value>, ip_address: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
         let access_token = self.get_access_token().await?;
         let request_body = CreateWidgetUrlRequest { params };
+        let mut headers = self.headers();
+        headers.insert("access-token".to_string(), access_token);
+        headers.insert("x-user-ip".to_string(), ip_address.to_string());
 
-        let response: Data<CreateWidgetUrlResponse> = self
-            .gateway
-            .request(Method::POST, "/api/v2/auth/session")
-            .header("access-token", &access_token)
-            .header("x-api-key", &self.api_key)
-            .header("x-user-ip", ip_address)
-            .json(&request_body)
-            .send()
-            .await?
-            .json()
-            .await?;
+        let response: Data<CreateWidgetUrlResponse> = self.gateway.post(TransakGatewayTarget::AuthSession, &request_body).headers(headers).await?;
 
         Ok(response.data.widget_url)
     }
@@ -121,21 +114,16 @@ impl TransakClient {
             .await
     }
 
-    pub async fn get_supported_assets(&self) -> Result<Response<Vec<Asset>>, reqwest::Error> {
-        self.client
-            .request(Method::GET, "/cryptocoverage/api/v1/public/crypto-currencies")
-            .send()
-            .await?
-            .json()
-            .await
+    pub async fn get_supported_assets(&self) -> Result<Response<Vec<Asset>>, ClientError> {
+        self.client.get(TransakTarget::CryptoCurrencies).await
     }
 
-    pub async fn get_countries(&self) -> Result<Response<Vec<Country>>, reqwest::Error> {
-        self.client.request(Method::GET, "/api/v2/countries").send().await?.json().await
+    pub async fn get_countries(&self) -> Result<Response<Vec<Country>>, ClientError> {
+        self.client.get(TransakTarget::Countries).await
     }
 
-    pub async fn get_fiat_currencies(&self) -> Result<Response<Vec<FiatCurrency>>, reqwest::Error> {
-        self.client.request(Method::GET, "/fiat/public/v1/currencies/fiat-currencies").send().await?.json().await
+    pub async fn get_fiat_currencies(&self) -> Result<Response<Vec<FiatCurrency>>, ClientError> {
+        self.client.get(TransakTarget::FiatCurrencies).await
     }
 
     pub(super) async fn get_access_token(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
@@ -143,20 +131,14 @@ impl TransakClient {
     }
 
     async fn refresh_access_token(&self) -> Result<(String, Duration), Box<dyn Error + Send + Sync>> {
-        let path = format!("/partners/api/v2/refresh-token?apiKey={}", self.api_key);
-        let body = serde_json::json!({
-            "apiKey": self.api_key
-        });
+        let mut headers = self.headers();
+        headers.insert("api-secret".to_string(), self.api_secret.clone());
+        let body = RefreshTokenRequest { api_key: self.api_key.clone() };
 
         let response: Data<TokenResponse> = self
             .client
-            .request(Method::POST, &path)
-            .header("x-api-key", &self.api_key)
-            .header("api-secret", &self.api_secret)
-            .json(&body)
-            .send()
-            .await?
-            .json()
+            .post(TransakTarget::RefreshToken { api_key: self.api_key.clone() }, &body)
+            .headers(headers)
             .await?;
         let expires_in = Duration::from_secs(response.data.expires_at.saturating_sub(UNIX_EPOCH.elapsed()?.as_secs()));
         Ok((response.data.access_token, expires_in))

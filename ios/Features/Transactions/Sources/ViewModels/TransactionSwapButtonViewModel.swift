@@ -2,27 +2,23 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemSwapAgain
 import Localization
 import Primitives
 
 public struct TransactionSwapButtonViewModel {
-    private let metadata: TransactionSwapMetadata?
-    private let state: TransactionState
+    private let swapAgain: GemSwapAgain?
 
-    public init(metadata: TransactionSwapMetadata?, state: TransactionState) {
-        self.metadata = metadata
-        self.state = state
+    public init(swapAgain: GemSwapAgain?) {
+        self.swapAgain = swapAgain
     }
 }
 
 extension TransactionSwapButtonViewModel: ItemModelProvidable {
     public var itemModel: TransactionItemModel {
-        guard metadata != nil, state == .confirmed else {
+        guard swapAgain != nil else {
             return .empty
         }
-
-        return TransactionItemModel.swapAgain(
-            text: Localized.Transaction.swapAgain,
-        )
+        return TransactionItemModel.swapAgain(text: Localized.Transaction.swapAgain)
     }
 }

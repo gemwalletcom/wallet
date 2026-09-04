@@ -1,59 +1,47 @@
 package com.gemwallet.android.features.add_asset.viewmodels
 
-import uniffi.gemstone.GemAddressService
 import android.util.Log
-import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ext.toChain
-import com.gemwallet.android.ext.toIdentifier
-import uniffi.gemstone.GemAssetConfigService
-import uniffi.gemstone.GemChainService
-import uniffi.gemstone.GemExplorerService
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.add_asset.cases.AddCustomToken
-import com.gemwallet.android.application.add_asset.cases.GetAvailableTokenChains
-import com.gemwallet.android.application.add_asset.cases.ObserveToken
-import com.gemwallet.android.application.add_asset.cases.SearchCustomToken
-import com.gemwallet.android.ext.checksumAddress
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.requireChain
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState
 import com.gemwallet.android.features.add_asset.viewmodels.models.TokenSearchState
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
-import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemAddAssetServiceInterface
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AddAssetViewModel @Inject constructor(
-    private val addressService: GemAddressService,
-    private val searchCustomToken: SearchCustomToken,
-    private val observeToken: ObserveToken,
-    private val addCustomToken: AddCustomToken,
-    getAvailableTokenChains: GetAvailableTokenChains,
-    private val explorerService: GemExplorerService,
-    private val chainService: GemChainService,
-    private val assetConfig: GemAssetConfigService,
+    getSession: GetSession,
+    private val service: GemAddAssetServiceInterface,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(State())
@@ -62,67 +50,56 @@ class AddAssetViewModel @Inject constructor(
 
     val chainFilter = TextFieldState()
 
-    val availableChains = getAvailableTokenChains()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    private val wallet = getSession().map { it?.wallet }.filterNotNull()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val chains = snapshotFlow { chainFilter.text }.combine(availableChains) { query, availableChains ->
-        availableChains?.let { chainService.getMatchingChains(it.map { chain -> chain.string }, query.toString()).mapNotNull { chain -> chain.toChain() } } ?: emptyList()
-    }
-    .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val defaultChain = availableChains.map { chains ->
-        assetConfig.defaultTokenChain(chains.orEmpty().map { it.string })?.toChain() ?: Chain.Ethereum
-    }
-    private val chain = MutableStateFlow<Chain?>(null)
-    val selectedChain = defaultChain.combine(chain) {defaultChain, chain ->
-        chain ?: defaultChain
-    }
-    .stateIn(viewModelScope, SharingStarted.Eagerly, Chain.Ethereum)
-
-    val addressState = mutableStateOf("")
-    val addressQuery = snapshotFlow { addressState.value }
-
-    private val customAssetId = addressQuery.combine(selectedChain) { address, chain ->
-        AssetId(chain, chain.checksumAddress(address, addressService))
-    }
-
-    val searchState = customAssetId.flatMapLatest { assetId ->
-        flow {
-            if (assetId.tokenId.isNullOrEmpty()) {
-                emit(TokenSearchState.Idle)
-                return@flow
-            }
-
-            emit(TokenSearchState.Loading)
-            emit(searchToken(searchCustomToken, observeToken, assetId))
-        }
-    }
-    .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, TokenSearchState.Idle)
-
-    val token = customAssetId
-    .flatMapLatest { assetId ->
-        if (assetId.tokenId.isNullOrEmpty()) {
-            return@flatMapLatest flowOf(null)
-        }
-        observeToken(assetId)
+    val availableChains = wallet.map { wallet ->
+        wallet?.let { service.chains(it.toJson()).map { chain -> chain.requireChain() } }
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val buttonState = combine(searchState, token, uiState) { searchState, token, uiState ->
-        buttonState(
-            enabled = searchState is TokenSearchState.Idle && token != null,
-            loading = uiState.isLoading,
-        )
+    val chains = snapshotFlow { chainFilter.text }.combine(availableChains) { query, availableChains ->
+        availableChains?.let { service.matchingChains(it.map { chain -> chain.string }, query.toString()).map { chain -> chain.requireChain() } } ?: emptyList()
+    }
+    .flowOn(Dispatchers.IO)
+    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    private val chain = MutableStateFlow<Chain?>(null)
+    val selectedChain = availableChains.combine(chain) { availableChains, chain ->
+        chain ?: service.defaultChain(availableChains.orEmpty().map { it.string })?.requireChain()
+    }
+    .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val addressState = mutableStateOf("")
+
+    val searchState = snapshotFlow { addressState.value }.combine(selectedChain) { address, chain -> chain to address }
+        .flatMapLatest { (chain, address) ->
+            flow {
+                if (address.isEmpty() || chain == null) {
+                    emit(TokenSearchState.Idle)
+                    return@flow
+                }
+                emit(TokenSearchState.Loading)
+                emit(searchToken(chain, address))
+            }
+        }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, TokenSearchState.Idle)
+
+    val token = searchState.map { (it as? TokenSearchState.Found)?.asset }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val buttonState = combine(token, uiState) { token, uiState ->
+        buttonState(enabled = token != null, loading = uiState.isLoading)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
 
-    val explorerLink = token.combine(selectedChain) { token, chain ->
-        val tokenId = token?.id?.tokenId ?: return@combine null
-        val link = explorerService.getTokenUrl(chain.string, tokenId) ?: return@combine null
+    val explorerLink = token.map { token ->
+        val tokenId = token?.id?.tokenId ?: return@map null
+        val link = service.tokenUrl(token.id.chain.string, tokenId) ?: return@map null
         BlockExplorerLink(name = link.name, link = link.link)
     }
+    .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun onQrScan() {
@@ -156,17 +133,24 @@ class AddAssetViewModel @Inject constructor(
     }
 
     fun addAsset(onFinish: () -> Unit) = viewModelScope.launch {
-        val assetId = token.value?.id ?: return@launch
+        val asset = token.value ?: return@launch
+        val wallet = wallet.value ?: return@launch
         state.update { it.copy(isImporting = true) }
         val added = runCatchingCancellable {
             withContext(Dispatchers.IO) {
-                addCustomToken(selectedChain.value, assetId)
+                service.add(wallet.toJson(), asset.id.toIdentifier())
             }
-        }.onFailure { Log.e(TAG, "add custom token failed for ${assetId.toIdentifier()}", it) }
+        }.onFailure { Log.e(TAG, "add custom token failed for ${asset.id.toIdentifier()}", it) }
         state.update { it.copy(isImporting = false) }
         if (added.isSuccess) {
             onFinish()
         }
+    }
+
+    private suspend fun searchToken(chain: Chain, address: String): TokenSearchState = try {
+        TokenSearchState.Found(service.token(chain.string, address).toPrimitives())
+    } catch (_: Exception) {
+        TokenSearchState.Error
     }
 
     private companion object {
@@ -188,19 +172,5 @@ class AddAssetViewModel @Inject constructor(
                 isLoading = isImporting,
             )
         }
-    }
-}
-
-suspend fun searchToken(
-    searchCustomToken: SearchCustomToken,
-    observeToken: ObserveToken,
-    assetId: AssetId,
-): TokenSearchState {
-    return try {
-        searchCustomToken(assetId)
-        val found = observeToken(assetId).firstOrNull() != null
-        if (found) TokenSearchState.Idle else TokenSearchState.Error
-    } catch (_: Exception) {
-        TokenSearchState.Error
     }
 }

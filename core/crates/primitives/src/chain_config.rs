@@ -563,7 +563,7 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
         },
         ChainConfig {
             chain: Chain::Xrp,
-            network_id: "",
+            network_id: "0",
             denom: None,
             slip44: 144,
             chain_type: ChainType::Xrp,

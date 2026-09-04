@@ -3,7 +3,6 @@ package com.gemwallet.android
 import android.content.Intent
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.application.assets.cases.SyncMissingAssets
 import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
@@ -27,7 +26,9 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Transaction
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemPushNotification
 import uniffi.gemstone.GemPushNotificationService
@@ -38,7 +39,6 @@ class NotificationNavigation @Inject constructor(
     private val setCurrentWallet: SetCurrentWallet,
     private val getWallet: GetWallet,
     private val createTransaction: CreateTransaction,
-    private val syncMissingAssets: SyncMissingAssets,
     private val assetsService: GemAssetsService,
     private val pushNotificationService: GemPushNotificationService,
 ) {
@@ -86,12 +86,14 @@ class NotificationNavigation @Inject constructor(
         if (assetId == null) {
             return emptyList()
         }
-        prepareAssets(assetId)
-        return listOf(AssetRoute(assetId))
+        val asset = withContext(Dispatchers.IO) {
+            assetsService.openAsset(assetId.toIdentifier())
+        }?.toPrimitives() ?: return emptyList()
+        return listOf(AssetRoute(asset.id))
     }
 
     private suspend fun prepareAssets(vararg assetIds: AssetId) {
-        syncMissingAssets.syncMissingAssets(assetIds.toList())
+        assetsService.syncMissingAssets(assetIds.map { it.toIdentifier() })
     }
 
     private suspend fun prepareWalletAssetRoutes(walletId: WalletId, assetId: AssetId?): List<NavKey> {

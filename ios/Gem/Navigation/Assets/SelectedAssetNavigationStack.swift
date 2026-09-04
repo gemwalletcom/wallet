@@ -11,10 +11,7 @@ import struct Gemstone.GemTransferData
 
 struct SelectedAssetNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.balanceService) private var balanceService
-    @Environment(\.assetsService) private var assetsService
-    @Environment(\.receiveService) private var receiveService
-    @Environment(\.recentAssetsService) private var recentAssetsService
+    @Environment(\.navigationPresenter) private var presenter
 
     @State private var navigationPath = NavigationPath()
 
@@ -52,15 +49,7 @@ struct SelectedAssetNavigationStack: View {
                         ),
                     )
                 case .receive:
-                    ReceiveScene(
-                        model: ReceiveViewModel(
-                            assetData: input.assetData,
-                            wallet: wallet,
-                            balanceService: balanceService,
-                            assetsService: assetsService,
-                            receiveService: receiveService,
-                        ),
-                    )
+                    ReceiveScene(model: viewModelFactory.receiveScene(assetData: input.assetData, wallet: wallet))
                 case let .buy(_, amount):
                     FiatConnectNavigationView(
                         model: viewModelFactory.fiatScene(
@@ -127,18 +116,8 @@ struct SelectedAssetNavigationStack: View {
                 )
             }
             .taskOnce {
-                updateRecent()
+                presenter.recordRecent(input: input)
             }
-        }
-    }
-}
-
-// MARK: - Private
-
-extension SelectedAssetNavigationStack {
-    private func updateRecent() {
-        if let data = input.type.recentActivityData(assetId: input.asset.id) {
-            Task { try? await recentAssetsService.recordAsset(activityType: data.type.map(), assetId: data.assetId.identifier, walletId: wallet.id.id) }
         }
     }
 }

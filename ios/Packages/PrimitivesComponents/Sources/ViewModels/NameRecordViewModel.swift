@@ -29,7 +29,7 @@ public final class NameRecordViewModel {
         state = .loading
         nameRecordTask = Task {
             do {
-                try await Task.sleep(for: .debounce)
+                try await Task.sleep(for: .milliseconds(nameService.nameRecordDebounceMilliseconds()))
                 if let record = try await nameService.getNameRecord(name: name, chain: chain),
                    record.name.isNotEmpty,
                    record.address.isNotEmpty

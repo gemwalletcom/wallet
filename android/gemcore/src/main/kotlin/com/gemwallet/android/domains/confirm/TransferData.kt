@@ -1,67 +1,12 @@
 package com.gemwallet.android.domains.confirm
 
-import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.math.fromHex
-import com.gemwallet.android.math.has0xPrefix
-import com.gemwallet.android.model.HyperliquidRecipient
 import com.gemwallet.android.serializer.packRouteString
 import com.gemwallet.android.serializer.unpackRouteString
-import com.wallet.core.primitives.Account
-import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.PerpetualType
-import com.wallet.core.primitives.StakeType
-import uniffi.gemstone.GemConfirmInput
-import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.GemTransferService
-import java.math.BigInteger
+import uniffi.gemstone.GemTransferServiceInterface
 
-fun GemTransferData.confirmInput(from: Account): GemConfirmInput = GemConfirmInput(
-    from = from.toGem(),
-    transfer = this,
-)
+fun GemTransferServiceInterface.pack(transfer: GemTransferData): String? =
+    runCatching { encodeTransferData(transfer).packRouteString() }.getOrNull()
 
-fun GemTransferService.pack(input: GemConfirmInput): String? =
-    runCatching { encodeConfirmInput(input).packRouteString() }.getOrNull()
-
-fun GemTransferService.unpack(packed: String): GemConfirmInput? =
-    runCatching { decodeConfirmInput(packed.unpackRouteString()) }.getOrNull()
-
-fun GemTransferData.Companion.stake(
-    asset: Asset,
-    stakeType: StakeType,
-    value: BigInteger,
-    useMaxAmount: Boolean = false,
-): GemTransferData = GemTransferData(
-    inputType = GemTransactionInputType.stake(asset, stakeType),
-    recipient = GemRecipient(stakeType.validatorId.orEmpty()),
-    value = value.toString(),
-    useMaxAmount = useMaxAmount,
-)
-
-fun GemTransferData.Companion.perpetual(
-    asset: Asset,
-    perpetualType: PerpetualType,
-    value: BigInteger = BigInteger.ZERO,
-    useMaxAmount: Boolean = false,
-): GemTransferData = GemTransferData(
-    inputType = GemTransactionInputType.perpetual(asset, perpetualType),
-    recipient = HyperliquidRecipient.provider,
-    value = value.toString(),
-    useMaxAmount = useMaxAmount,
-)
-
-fun String.toTransactionData(): ByteArray =
-    if (has0xPrefix()) runCatching { fromHex() }.getOrElse { toByteArray() } else toByteArray()
-
-private val StakeType.validatorId: String?
-    get() = when (this) {
-        is StakeType.Stake -> content.id
-        is StakeType.Unstake -> content.validator.id
-        is StakeType.Withdraw -> content.validator.id
-        is StakeType.Redelegate,
-        is StakeType.Rewards,
-        is StakeType.Freeze,
-        is StakeType.Unfreeze -> null
-    }
+fun GemTransferServiceInterface.unpack(packed: String): GemTransferData? =
+    runCatching { decodeTransferData(packed.unpackRouteString()) }.getOrNull()

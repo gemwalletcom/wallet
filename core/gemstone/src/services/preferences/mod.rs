@@ -1,6 +1,8 @@
 use std::str::FromStr;
 pub mod rules;
 pub mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
@@ -9,9 +11,9 @@ use primitives::ChartPeriod;
 use primitives::currency::Currency;
 use primitives::{Appearance, Chain, ConfigResponse, Device, Wallet};
 
-use crate::clock::unix_seconds;
 use crate::config::perpetual_config;
 use crate::services::assets::AssetList;
+use primitives::unix_seconds;
 
 pub use store::{GemPreferencesStore, GemSecureStore};
 
@@ -23,6 +25,7 @@ const PUSH_NOTIFICATIONS_ENABLED: &str = "is_push_notifications_enabled";
 const LAUNCHES_COUNT: &str = "launches_count";
 const RATE_APPLICATION_SHOWN: &str = "rate_application_shown";
 const NOTIFICATIONS_ASKED_AT: &str = "notifications_asked_at";
+const PUSH_NOTIFICATIONS_DECLINED: &str = "push_notifications_declined";
 const SKIPPED_APP_VERSION: &str = "skipped_app_version";
 const CONFIG: &str = "config";
 const BUY_ASSETS_VERSION: &str = "buy_assets_version";
@@ -80,17 +83,6 @@ impl GemPreferencesService {
         self.store.set(CHART_PERIOD.to_string(), period.as_ref().to_string())
     }
 
-    pub fn get_perpetual_chart_period(&self) -> ChartPeriod {
-        self.store
-            .get(PERPETUAL_CHART_PERIOD.to_string())
-            .and_then(|value| ChartPeriod::from_str(&value).ok())
-            .unwrap_or(ChartPeriod::Day)
-    }
-
-    pub fn set_perpetual_chart_period(&self, period: ChartPeriod) -> Result<(), GemServiceError> {
-        self.store.set(PERPETUAL_CHART_PERIOD.to_string(), period.as_ref().to_string())
-    }
-
     pub fn is_push_notifications_enabled(&self) -> bool {
         self.store.get(PUSH_NOTIFICATIONS_ENABLED.to_string()).as_deref() == Some("true")
     }
@@ -113,6 +105,10 @@ impl GemPreferencesService {
 
     pub fn show_perpetuals(&self, wallet: Wallet) -> bool {
         crate::services::perpetual::rules::show_perpetuals(self.is_perpetual_enabled(), &wallet)
+    }
+
+    pub fn show_collections(&self, wallet: Wallet) -> bool {
+        crate::services::wallet::rules::show_collections(&wallet)
     }
 
     pub fn is_hide_balance_enabled(&self) -> bool {
@@ -182,10 +178,6 @@ impl GemPreferencesService {
         self.store.set(PERPETUAL_STOP_LOSS.to_string(), percent.to_string())
     }
 
-    pub fn get_launches_count(&self) -> u32 {
-        self.store.get(LAUNCHES_COUNT.to_string()).and_then(|value| value.parse().ok()).unwrap_or(0)
-    }
-
     pub fn increment_launches_count(&self) -> Result<u32, GemServiceError> {
         let count = self.get_launches_count() + 1;
         self.store.set(LAUNCHES_COUNT.to_string(), count.to_string())?;
@@ -203,7 +195,7 @@ impl GemPreferencesService {
 
     pub fn should_ask_notifications(&self) -> bool {
         let last_asked_at: u64 = self.store.get(NOTIFICATIONS_ASKED_AT.to_string()).and_then(|value| value.parse().ok()).unwrap_or(0);
-        rules::should_ask_notifications(last_asked_at, unix_seconds().unwrap_or(last_asked_at))
+        rules::should_ask_notifications(self.is_push_notifications_declined(), last_asked_at, unix_seconds().unwrap_or(last_asked_at))
     }
 
     pub fn set_notifications_asked(&self) -> Result<(), GemServiceError> {
@@ -211,21 +203,40 @@ impl GemPreferencesService {
         self.store.set(NOTIFICATIONS_ASKED_AT.to_string(), now.to_string())
     }
 
-    pub fn is_price_alerts_enabled(&self) -> bool {
-        self.store.get(PRICE_ALERTS_ENABLED.to_string()).as_deref() == Some("true")
-    }
-
     #[uniffi::constructor]
     pub fn new(store: Arc<dyn GemPreferencesStore>) -> Self {
         Self { store }
     }
 
-    pub fn default_currency(&self, locale_currency: Option<String>) -> Currency {
-        rules::default_currency(locale_currency)
-    }
-
     pub fn set_price_alerts_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
         self.store.set(PRICE_ALERTS_ENABLED.to_string(), enabled.to_string())
+    }
+}
+
+impl GemPreferencesService {
+    pub fn get_perpetual_chart_period(&self) -> ChartPeriod {
+        self.store
+            .get(PERPETUAL_CHART_PERIOD.to_string())
+            .and_then(|value| ChartPeriod::from_str(&value).ok())
+            .unwrap_or(ChartPeriod::Day)
+    }
+    pub fn set_perpetual_chart_period(&self, period: ChartPeriod) -> Result<(), GemServiceError> {
+        self.store.set(PERPETUAL_CHART_PERIOD.to_string(), period.as_ref().to_string())
+    }
+    pub fn is_push_notifications_declined(&self) -> bool {
+        self.store.get(PUSH_NOTIFICATIONS_DECLINED.to_string()).as_deref() == Some("true")
+    }
+    pub fn set_push_notifications_declined(&self, declined: bool) -> Result<(), GemServiceError> {
+        self.store.set(PUSH_NOTIFICATIONS_DECLINED.to_string(), declined.to_string())
+    }
+    pub fn get_launches_count(&self) -> u32 {
+        self.store.get(LAUNCHES_COUNT.to_string()).and_then(|value| value.parse().ok()).unwrap_or(0)
+    }
+    pub fn is_price_alerts_enabled(&self) -> bool {
+        self.store.get(PRICE_ALERTS_ENABLED.to_string()).as_deref() == Some("true")
+    }
+    pub fn default_currency(&self, locale_currency: Option<String>) -> Currency {
+        rules::default_currency(locale_currency)
     }
 }
 
@@ -346,39 +357,12 @@ impl GemPreferencesService {
 
 #[cfg(test)]
 mod tests {
+    use super::testkit::MemoryPreferencesStore;
     use super::*;
-    use std::collections::HashMap;
-    use std::sync::Mutex;
-
-    #[derive(Default)]
-    struct MemoryStore {
-        values: Mutex<HashMap<String, String>>,
-    }
-
-    impl GemPreferencesStore for MemoryStore {
-        fn get(&self, key: String) -> Option<String> {
-            self.values.lock().unwrap().get(&key).cloned()
-        }
-
-        fn set(&self, key: String, value: String) -> Result<(), GemServiceError> {
-            self.values.lock().unwrap().insert(key, value);
-            Ok(())
-        }
-
-        fn remove(&self, key: String) -> Result<(), GemServiceError> {
-            self.values.lock().unwrap().remove(&key);
-            Ok(())
-        }
-
-        fn clear(&self) -> Result<(), GemServiceError> {
-            self.values.lock().unwrap().clear();
-            Ok(())
-        }
-    }
 
     #[test]
     fn test_price_alerts_enabled_defaults_to_false_and_round_trips() {
-        let service = GemPreferencesService::new(Arc::new(MemoryStore::default()));
+        let service = GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()));
 
         assert!(!service.is_price_alerts_enabled());
 
@@ -391,7 +375,7 @@ mod tests {
 
     #[test]
     fn test_clear_removes_stored_preferences() {
-        let service = GemPreferencesService::new(Arc::new(MemoryStore::default()));
+        let service = GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()));
         service.set_developer_enabled(true).unwrap();
         service.set_accept_terms_completed().unwrap();
 

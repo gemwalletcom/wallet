@@ -1,7 +1,6 @@
 package com.gemwallet.android
 
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.application.assets.cases.SyncMissingAssets
 import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.SetCurrentWallet
@@ -35,6 +34,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAssetsService
@@ -49,7 +49,6 @@ class NotificationNavigationTest {
     private val setCurrentWallet = mockk<SetCurrentWallet>(relaxed = true)
     private val getWallet = mockk<GetWallet>()
     private val createTransaction = mockk<CreateTransaction>()
-    private val syncMissingAssets = mockk<SyncMissingAssets>()
     private val assetsService = mockk<GemAssetsService>()
     private val pushNotificationService = GemPushNotificationService()
 
@@ -58,7 +57,6 @@ class NotificationNavigationTest {
         setCurrentWallet = setCurrentWallet,
         getWallet = getWallet,
         createTransaction = createTransaction,
-        syncMissingAssets = syncMissingAssets,
         assetsService = assetsService,
         pushNotificationService = pushNotificationService,
     )
@@ -69,7 +67,7 @@ class NotificationNavigationTest {
         coEvery { setCurrentWallet.setCurrentWallet(any()) } coAnswers {
             session.value = mockSession(wallet = mockWallet(id = (invocation.args.first() as WalletId).id))
         }
-        coEvery { syncMissingAssets.syncMissingAssets(any()) } returns emptyList()
+        coEvery { assetsService.syncMissingAssets(any()) } returns emptyList()
     }
 
     @Test
@@ -199,29 +197,38 @@ class NotificationNavigationTest {
         val route = subject.prepareNavigation(GemPushNotification.Support)
 
         assertEquals(listOf(SupportRoute), route)
-        coVerify(exactly = 0) { syncMissingAssets.syncMissingAssets(any()) }
+        coVerify(exactly = 0) { assetsService.syncMissingAssets(any()) }
         coVerify(exactly = 0) { setCurrentWallet.setCurrentWallet(any()) }
     }
 
     @Test
-    fun assetNotification_prefetchesAssetAndReturnsAssetRoute() = runBlocking {
-        val assetId = mockAssetId(Chain.Solana)
+    fun assetNotification_opensAssetThroughCore() = runBlocking {
+        val asset = mockAsset(chain = Chain.Solana)
+        val callingThreads = mutableListOf<String>()
+        coEvery { assetsService.openAsset(asset.id.toIdentifier()) } answers {
+            callingThreads += Thread.currentThread().name
+            asset.toGem()
+        }
 
-        val route = subject.prepareNavigation(GemPushNotification.Asset(assetId.toIdentifier()))
+        val route = subject.prepareNavigation(GemPushNotification.Asset(asset.id.toIdentifier()))
 
-        assertEquals(listOf(AssetRoute(assetId)), route)
-        coVerify { syncMissingAssets.syncMissingAssets(listOf(assetId)) }
+        assertEquals(listOf(AssetRoute(asset.id)), route)
         coVerify(exactly = 0) { setCurrentWallet.setCurrentWallet(any()) }
+        assertTrue(
+            "openAsset reads the current wallet through a synchronous store callback that blocks on Room; " +
+                "the notification routes are built on the main scope. Got $callingThreads",
+            callingThreads.single().startsWith("DefaultDispatcher-worker"),
+        )
     }
 
     @Test
-    fun priceAlertNotification_opensAssetRoute() = runBlocking {
+    fun priceAlertNotification_isRejectedWhenCoreDoesNotOpenTheAsset() = runBlocking {
         val assetId = mockAssetId(Chain.Bitcoin)
+        coEvery { assetsService.openAsset(assetId.toIdentifier()) } returns null
 
         val route = subject.prepareNavigation(GemPushNotification.PriceAlert(assetId.toIdentifier()))
 
-        assertEquals(listOf(AssetRoute(assetId)), route)
-        coVerify { syncMissingAssets.syncMissingAssets(listOf(assetId)) }
+        assertEquals(emptyList<Any>(), route)
     }
 
     @Test

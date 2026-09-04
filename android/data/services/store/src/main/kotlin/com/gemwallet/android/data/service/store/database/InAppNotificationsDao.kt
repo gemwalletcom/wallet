@@ -15,4 +15,7 @@ interface InAppNotificationsDao {
 
     @Query("SELECT * FROM in_app_notifications WHERE wallet_id = :walletId ORDER BY created_at DESC")
     fun getNotifications(walletId: String): Flow<List<DbInAppNotification>>
+
+    @Query("SELECT EXISTS(SELECT 1 FROM in_app_notifications WHERE wallet_id = :walletId AND read_at IS NULL)")
+    suspend fun hasUnread(walletId: String): Boolean
 }

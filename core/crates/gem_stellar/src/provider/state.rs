@@ -12,7 +12,7 @@ impl<C: Client> ChainState for StellarClient<C> {
         Ok(self.get_node_status().await?.ingest_latest_ledger as u64)
     }
 
-    async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
-        Ok(self.get_node_status().await?.network_passphrase)
+    async fn get_chain_id(&self) -> Result<Option<String>, Box<dyn Error + Sync + Send>> {
+        Ok(Some(self.get_node_status().await?.network_passphrase))
     }
 }

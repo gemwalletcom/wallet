@@ -1,3 +1,4 @@
+pub mod details;
 pub mod model;
 pub mod rules;
 pub mod store;
@@ -6,15 +7,23 @@ use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
 use chrono::Utc;
-use primitives::{AssetId, Transaction, WalletId};
+use primitives::{AssetId, Chain, Currency, WalletId};
 
-pub use model::{GemAmountSign, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue};
+pub use details::GemTransactionDetailsService;
+pub use model::{
+    GemAmountSign, GemSwapAgain, GemSwapProgress, GemSwapProgressStep, GemTransactionDetails, GemTransactionHeaderKind, GemTransactionParticipant, GemTransactionParticipantRole,
+    GemTransactionSubtitle, GemTransactionSummary, GemTransactionTitle, GemTransactionValue,
+};
 pub use store::GemTransactionStore;
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::assets::GemAssetsService;
+use crate::services::chain::rules as chain_rules;
 use crate::services::name::GemAddressStore;
+use crate::services::preferences::GemPreferencesService;
+use crate::services::transaction_state::GemTransactionTracking;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
+use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemTransactionsService {
@@ -22,7 +31,10 @@ pub struct GemTransactionsService {
     assets: Arc<GemAssetsService>,
     store: Arc<dyn GemTransactionStore>,
     address_store: Arc<dyn GemAddressStore>,
-    preferences: Arc<GemWalletPreferencesService>,
+    wallet_preferences: Arc<GemWalletPreferencesService>,
+    preferences: Arc<GemPreferencesService>,
+    session: Arc<GemWalletSessionService>,
+    tracking: Arc<dyn GemTransactionTracking>,
 }
 
 #[uniffi::export]
@@ -33,19 +45,39 @@ impl GemTransactionsService {
         assets: Arc<GemAssetsService>,
         store: Arc<dyn GemTransactionStore>,
         address_store: Arc<dyn GemAddressStore>,
-        preferences: Arc<GemWalletPreferencesService>,
+        wallet_preferences: Arc<GemWalletPreferencesService>,
+        preferences: Arc<GemPreferencesService>,
+        session: Arc<GemWalletSessionService>,
+        tracking: Arc<dyn GemTransactionTracking>,
     ) -> Self {
         Self {
             api,
             assets,
             store,
             address_store,
+            wallet_preferences,
             preferences,
+            session,
+            tracking,
         }
     }
 
-    pub async fn sync(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
-        let from_timestamp = self.preferences.get_transactions_timestamp(wallet_id.clone(), asset_id.clone());
+    pub fn filter_chains(&self) -> Result<Vec<Chain>, GemServiceError> {
+        Ok(chain_rules::wallet_chains_by_rank(&self.session.current_wallet()?))
+    }
+
+    pub fn currency(&self) -> Currency {
+        self.preferences.get_currency()
+    }
+
+    pub async fn sync(&self, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
+        self.sync_wallet(self.session.current_wallet_id()?, asset_id).await
+    }
+}
+
+impl GemTransactionsService {
+    pub async fn sync_wallet(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
+        let from_timestamp = self.wallet_preferences.get_transactions_timestamp(wallet_id.clone(), asset_id.clone());
         let timestamp = Utc::now().timestamp() as u64;
         let response = self
             .api
@@ -58,35 +90,13 @@ impl GemTransactionsService {
         if !new_asset_ids.is_empty() {
             self.assets.add_missing_balances(wallet_id.clone(), new_asset_ids).await?;
         }
+        let pending = rules::pending_transactions(&response.transactions);
         self.store.save_transactions(wallet_id.clone(), response.transactions).await?;
         self.address_store.save_address_names(response.address_names).await?;
-        self.preferences.set_transactions_timestamp(wallet_id, asset_id, timestamp)
-    }
-}
-
-#[derive(Default, uniffi::Object)]
-pub struct GemTransactionFormatter {}
-
-#[uniffi::export]
-impl GemTransactionFormatter {
-    #[uniffi::constructor]
-    pub fn new() -> Self {
-        Self {}
-    }
-
-    pub fn title(&self, transaction: Transaction) -> GemTransactionTitle {
-        rules::transaction_title(&transaction)
-    }
-
-    pub fn subtitle(&self, transaction: Transaction) -> GemTransactionSubtitle {
-        rules::transaction_subtitle(&transaction)
-    }
-
-    pub fn value(&self, transaction: Transaction) -> GemTransactionValue {
-        rules::transaction_value(&transaction)
-    }
-
-    pub fn equivalent_value(&self, transaction: Transaction) -> GemTransactionValue {
-        rules::transaction_equivalent_value(&transaction)
+        self.wallet_preferences.set_transactions_timestamp(wallet_id.clone(), asset_id, timestamp)?;
+        if !pending.is_empty() {
+            self.tracking.track(wallet_id, pending);
+        }
+        Ok(())
     }
 }

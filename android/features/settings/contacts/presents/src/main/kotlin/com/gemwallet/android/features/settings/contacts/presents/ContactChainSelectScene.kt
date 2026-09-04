@@ -6,7 +6,7 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.SelectChain
 import com.wallet.core.primitives.Chain
@@ -21,7 +21,7 @@ fun ContactChainSelectScene(
     val chainFilter = rememberTextFieldState()
     val query = chainFilter.text.toString()
     val chainService = remember { GemChainService() }
-    val chains = remember(query) { chainService.getChains(query).mapNotNull { it.toChain() } }
+    val chains = remember(query) { chainService.getChains(query).map { it.requireChain() } }
 
     SelectChain(
         chains = chains,

@@ -55,7 +55,7 @@ pub struct GemPendingTransaction {
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
-pub struct GemTransactionPostProcessing {
+pub struct TransactionPostProcessing {
     pub balance_asset_ids: Vec<AssetId>,
     pub stake_chains: Vec<Chain>,
     pub earn_asset_ids: Vec<AssetId>,

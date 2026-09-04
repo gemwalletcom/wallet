@@ -79,6 +79,7 @@ extension ManageContactScene {
                 size: .image.extraLarge,
                 action: onSelectAvatar,
                 removeAction: model.onClearAvatar,
+                style: model.avatarStyle,
             )
             .frame(maxWidth: .infinity, alignment: .center)
             .listRowBackground(Color.clear)

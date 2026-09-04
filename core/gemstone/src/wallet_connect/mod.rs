@@ -18,15 +18,6 @@ use crate::{
 
 pub(crate) mod simulation;
 
-// UniFFI remote enum declaration
-#[uniffi::remote(Enum)]
-pub enum WalletConnectionVerificationStatus {
-    Verified,
-    Unknown,
-    Invalid,
-    Malicious,
-}
-
 #[uniffi::remote(Enum)]
 pub enum WalletConnectLink {
     Connect { uri: String },

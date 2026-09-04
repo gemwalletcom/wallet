@@ -5,6 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemChainService
+import uniffi.gemstone.GemChainServiceInterface
 import uniffi.gemstone.GemDeeplinkService
 import javax.inject.Singleton
 
@@ -20,4 +21,6 @@ object ChainModule {
     @Singleton
     fun provideGemDeeplinkService(): GemDeeplinkService = GemDeeplinkService()
 
+    @Provides
+    fun provideGemChainServiceInterface(service: GemChainService): GemChainServiceInterface = service
 }

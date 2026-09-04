@@ -20,6 +20,7 @@ pub trait TransactionsRepository {
         asset_id: Option<AssetId>,
         from_datetime: Option<NaiveDateTime>,
         limit: usize,
+        offset: usize,
     ) -> Result<Vec<TransactionRow>, DatabaseError>;
     fn count_transactions_by_addresses(&mut self, addresses: Vec<String>, chains: Vec<String>) -> Result<i64, DatabaseError>;
     fn get_transactions_addresses(&mut self, min_count: i64, limit: i64, since: NaiveDateTime) -> Result<Vec<AddressChainIdResultRow>, DatabaseError>;
@@ -56,6 +57,7 @@ impl TransactionsRepository for DatabaseClient {
         asset_id: Option<AssetId>,
         from_datetime: Option<NaiveDateTime>,
         limit: usize,
+        offset: usize,
     ) -> Result<Vec<TransactionRow>, DatabaseError> {
         Ok(TransactionsStore::get_transactions_by_device_id(
             self,
@@ -65,6 +67,7 @@ impl TransactionsRepository for DatabaseClient {
             asset_id.map(|id| id.to_string()),
             from_datetime,
             limit,
+            offset,
         )?)
     }
 

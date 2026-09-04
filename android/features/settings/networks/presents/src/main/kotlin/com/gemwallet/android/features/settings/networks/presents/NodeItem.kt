@@ -9,7 +9,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUiModel
-import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeStatusState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ActionIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -21,8 +20,10 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.wallet.core.primitives.Node
-import com.wallet.core.primitives.NodeState
+import uniffi.gemstone.GemNodeStatusState
+import uniffi.gemstone.Latency
+import uniffi.gemstone.LatencyType
+import com.gemwallet.android.ui.theme.Placeholder
 
 @Composable
 internal fun NodeItem(
@@ -31,19 +32,19 @@ internal fun NodeItem(
     isDeleteRevealed: Boolean,
     onDeleteReveal: () -> Unit,
     onDeleteCollapse: () -> Unit,
-    onSelect: (Node) -> Unit,
+    onSelect: (String) -> Unit,
     onDelete: (() -> Unit)?,
 ) {
     val content: @Composable (ListPosition) -> Unit = { position ->
         ListItem(
-            modifier = Modifier.clickable(onClick = { onSelect(model.node) }),
+            modifier = Modifier.clickable(onClick = { onSelect(model.url) }),
             title = {
                 ListItemTitleText(
                     text = model.title(),
                     titleBadge = {
                         LatencyStatusBadge(
                             latency = model.statusState.latency,
-                            isLoading = model.statusState is NodeStatusState.Loading,
+                            isLoading = model.statusState is GemNodeStatusState.Loading,
                         )
                     },
                 )
@@ -93,19 +94,16 @@ private fun NodeRowUiModel.title(): String {
 @Composable
 private fun NodeRowUiModel.latestBlockText(): String {
     val blockValue = when (val currentState = statusState) {
-        NodeStatusState.Error,
-        NodeStatusState.Loading -> "-"
-        is NodeStatusState.Result -> currentState.latestBlock
-            .takeIf { it > 0UL }
-            ?.let { DecimalFormat.getInstance().format(it.toLong()) }
-            ?: "-"
+        GemNodeStatusState.Error,
+        GemNodeStatusState.Loading -> Placeholder.empty
+        is GemNodeStatusState.Result -> DecimalFormat.getInstance().format(currentState.latestBlockNumber.toLong())
     }
 
     return "${stringResource(R.string.nodes_import_node_latest_block)}: $blockValue"
 }
 
-private val NodeStatusState.latency: ULong?
-    get() = (this as? NodeStatusState.Result)?.latency
+private val GemNodeStatusState.latency: Latency?
+    get() = (this as? GemNodeStatusState.Result)?.latency
 
 @Preview
 @Composable
@@ -113,18 +111,13 @@ fun NodeItemPreview() {
     WalletTheme {
         NodeItem(
             model = NodeRowUiModel(
-                node = Node(
-                    url = "https://some.url.eth",
-                    status = NodeState.Active,
-                    priority = 0,
-                ),
+                url = "https://some.url.eth",
                 host = "some.url.eth",
                 selected = true,
                 canDelete = true,
-                statusState = NodeStatusState.Result(
-                    latestBlock = 123902302938UL,
-                    latency = 440UL,
-                    chainId = "ethereum",
+                statusState = GemNodeStatusState.Result(
+                    latestBlockNumber = 123902302938UL,
+                    latency = Latency(LatencyType.FAST, 440.0),
                 ),
             ),
             listPosition = ListPosition.Middle,

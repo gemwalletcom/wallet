@@ -1,13 +1,13 @@
 use crate::model::{FiatProviderAsset, filter_token_id};
 
 use super::mapper::map_asset_chain;
-use super::models::{Asset, Country, MoonPayBuyQuote, MoonPayIpAddress, MoonPayResponse, MoonPaySellQuote};
+use super::models::{Asset, BuyQuoteQuery, Country, MoonPayBuyQuote, MoonPayIpAddress, MoonPayResponse, MoonPaySellQuote, SellQuoteQuery};
+use super::target::MoonPayTarget;
 use super::widget::MoonPayWidget;
-use gem_client::ReqwestClient;
+use gem_client::{ClientError, ClientExt, ReqwestClient};
 use primitives::currency::Currency;
 use primitives::fiat_assets::FiatAssetLimits;
 use primitives::{FiatProviderName, FiatQuoteType, PaymentType};
-use reqwest::Method;
 
 #[derive(Clone)]
 pub struct MoonPayClient {
@@ -29,54 +29,49 @@ impl MoonPayClient {
         }
     }
 
-    pub async fn get_ip_address(&self, ip_address: &str) -> Result<MoonPayIpAddress, reqwest::Error> {
+    fn api_key_query(&self) -> [(&'static str, &str); 1] {
+        [("apiKey", self.api_key.as_str())]
+    }
+
+    pub async fn get_ip_address(&self, ip_address: &str) -> Result<MoonPayIpAddress, ClientError> {
         self.client
-            .request(Method::GET, "/v4/ip_address/")
-            .query(&[("ipAddress", ip_address), ("apiKey", &self.api_key)])
-            .send()
-            .await?
-            .json()
+            .get(MoonPayTarget::IpAddress {
+                ip_address: ip_address.to_string(),
+            })
+            .query(&self.api_key_query())
             .await
     }
 
     pub async fn get_buy_quote(&self, symbol: String, fiat_currency: String, fiat_amount: f64) -> Result<MoonPayBuyQuote, Box<dyn std::error::Error + Send + Sync>> {
-        self.client
-            .request(Method::GET, &format!("/v3/currencies/{symbol}/buy_quote/"))
-            .query(&[
-                ("baseCurrencyCode", fiat_currency),
-                ("baseCurrencyAmount", fiat_amount.to_string()),
-                ("areFeesIncluded", "true".to_string()),
-                ("apiKey", self.api_key.clone()),
-            ])
-            .send()
-            .await?
-            .json::<MoonPayResponse<MoonPayBuyQuote>>()
-            .await?
-            .into()
+        let target = MoonPayTarget::BuyQuote {
+            symbol,
+            query: BuyQuoteQuery {
+                base_currency_code: fiat_currency,
+                base_currency_amount: fiat_amount.to_string(),
+                are_fees_included: true,
+            },
+        };
+        self.client.get::<MoonPayResponse<MoonPayBuyQuote>>(target).query(&self.api_key_query()).await?.into()
     }
 
     pub async fn get_sell_quote(&self, symbol: String, fiat_currency: String, fiat_amount: f64) -> Result<MoonPaySellQuote, Box<dyn std::error::Error + Send + Sync>> {
-        self.client
-            .request(Method::GET, &format!("/v3/currencies/{symbol}/sell_quote/"))
-            .query(&[
-                ("quoteCurrencyCode", fiat_currency),
-                ("quoteCurrencyAmount", fiat_amount.to_string()),
-                ("areFeesIncluded", "true".to_string()),
-                ("apiKey", self.api_key.clone()),
-            ])
-            .send()
-            .await?
-            .json::<MoonPayResponse<MoonPaySellQuote>>()
-            .await?
-            .into()
+        let target = MoonPayTarget::SellQuote {
+            symbol,
+            query: SellQuoteQuery {
+                quote_currency_code: fiat_currency,
+                quote_currency_amount: fiat_amount.to_string(),
+                are_fees_included: true,
+            },
+        };
+        self.client.get::<MoonPayResponse<MoonPaySellQuote>>(target).query(&self.api_key_query()).await?.into()
     }
 
-    pub async fn get_assets(&self) -> Result<Vec<Asset>, reqwest::Error> {
-        self.client.request(Method::GET, "/v3/currencies").send().await?.json().await
+    pub async fn get_assets(&self) -> Result<Vec<Asset>, ClientError> {
+        self.client.get(MoonPayTarget::Currencies).await
     }
 
-    pub async fn get_countries(&self) -> Result<Vec<Country>, reqwest::Error> {
-        self.client.request(Method::GET, "/v3/countries").send().await?.json().await
+    pub async fn get_countries(&self) -> Result<Vec<Country>, ClientError> {
+        self.client.get(MoonPayTarget::Countries).await
     }
 
     pub fn map_asset(asset: Asset) -> Option<FiatProviderAsset> {

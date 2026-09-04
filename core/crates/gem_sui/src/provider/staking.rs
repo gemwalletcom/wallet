@@ -18,10 +18,9 @@ impl ChainStaking for SuiProvider {
         Ok(Some(apy))
     }
 
-    async fn get_staking_validators(&self, apy: Option<f64>) -> Result<Vec<DelegationValidator>, Box<dyn Error + Sync + Send>> {
-        let validators = self.get_validators().await?;
-        let default_apy = apy.unwrap_or(0.0);
-        let delegation_validators = staking_mapper::map_validators(validators, default_apy);
+    async fn get_staking_validators(&self, _apy: Option<f64>) -> Result<Vec<DelegationValidator>, Box<dyn Error + Sync + Send>> {
+        let validators = self.get_validator_apys().await?;
+        let delegation_validators = staking_mapper::map_validators(validators);
         Ok(delegation_validators)
     }
 

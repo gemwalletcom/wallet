@@ -4,6 +4,7 @@ import GemstoneServices
 import Components
 import Localization
 import NFT
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store
@@ -13,14 +14,8 @@ import Transactions
 
 struct TransactionsNavigationView: View {
     @Environment(\.navigationState) private var navigationState
-    @Environment(\.explorerService) private var explorerService
-    @Environment(\.transactionFormatter) private var transactionFormatter
-    @Environment(\.preferencesService) private var preferencesService
-    @Environment(\.assetsService) private var assetsService
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.avatarService) private var avatarService
     @Environment(\.navigationPresenter) private var presenter
-    @Environment(\.nftService) private var nftService
 
     @State private var model: TransactionsViewModel
 
@@ -43,28 +38,16 @@ struct TransactionsNavigationView: View {
             .navigationTitle(model.title)
             .navigationDestination(for: Scenes.Transaction.self) {
                 TransactionNavigationView(
-                    model: TransactionSceneViewModel(
+                    model: viewModelFactory.transactionScene(
                         transaction: $0.transaction,
                         walletId: model.wallet.id,
-                        preferencesService: preferencesService,
-                        explorerService: explorerService,
-                        transactionFormatter: transactionFormatter,
                         onHeaderAction: onSelectTransactionHeaderAction,
                         onAddContact: { model.isPresentingSheet = .addContact($0) },
                     ),
                 )
             }
             .navigationDestination(for: Scenes.Collectible.self) {
-                CollectibleScene(
-                    model: CollectibleViewModel(
-                        wallet: model.wallet,
-                        assetData: $0.assetData,
-                        avatarService: avatarService,
-                        nftService: nftService,
-                        explorerService: explorerService,
-                        isPresentingSelectedAssetInput: presenter.isPresentingAssetInput,
-                    ),
-                )
+                CollectibleScene(model: viewModelFactory.collectibleScene(wallet: model.wallet, assetData: $0.assetData, isPresentingSelectedAssetInput: presenter.isPresentingAssetInput))
             }
             .toast(message: $model.isPresentingToastMessage)
             .sheet(item: $model.isPresentingSheet) { type in
@@ -100,8 +83,6 @@ extension TransactionsNavigationView {
                     action,
                     wallet: model.wallet,
                     navigationState: navigationState,
-                    assetsService: assetsService,
-                    nftService: nftService,
                     nftDestination: navigationState.activity,
                 )
             } catch {

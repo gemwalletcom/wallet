@@ -5,11 +5,12 @@ import Foundation
 import GemstonePrimitivesTestKit
 import NativeProviderService
 import Primitives
+import PrimitivesTestKit
 
 public extension GatewayService {
     static func mock() -> GatewayService {
         GatewayService(
-            provider: NativeProvider(session: .offline, url: Constants.apiURL),
+            provider: NativeProvider(session: .offline, nodeProvider: NodeURLProviderMock()),
             preferences: GemPreferencesStoreMock(),
             securePreferences: GemSecureStoreMock(),
         )

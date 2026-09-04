@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
-use strum::{AsRefStr, EnumString};
+use strum::{AsRefStr, EnumIter, EnumString};
 use typeshare::typeshare;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, AsRefStr, EnumString, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, AsRefStr, EnumIter, EnumString, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, CaseIterable, Sendable")]
 #[strum(serialize_all = "UPPERCASE")]
 pub enum Currency {

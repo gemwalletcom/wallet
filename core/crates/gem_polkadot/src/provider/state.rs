@@ -9,8 +9,8 @@ use crate::rpc::PolkadotProvider;
 
 #[async_trait]
 impl<C: Client> ChainState for PolkadotProvider<C> {
-    async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
-        Ok(self.get_node_version().await?.chain)
+    async fn get_chain_id(&self) -> Result<Option<String>, Box<dyn Error + Sync + Send>> {
+        Ok(Some(self.get_node_version().await?.chain))
     }
 
     async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>> {
@@ -49,6 +49,8 @@ mod tests {
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
+    use primitives::Chain;
+
     use super::*;
     use crate::provider::testkit::create_polkadot_test_client;
 
@@ -56,8 +58,8 @@ mod chain_integration_tests {
     async fn test_get_chain_id() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_polkadot_test_client();
         let chain_id = client.get_chain_id().await?;
-        assert!(!chain_id.is_empty());
-        println!("Chain ID: {}", chain_id);
+
+        assert_eq!(chain_id.as_deref(), Some(Chain::Polkadot.network_id()));
         Ok(())
     }
 

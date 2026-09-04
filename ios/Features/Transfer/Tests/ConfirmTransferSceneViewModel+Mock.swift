@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitives
-import protocol Gemstone.GemNameServiceProtocol
-import class Gemstone.GemAmountService
-import protocol Gemstone.GemTransactionStateServiceProtocol
 import struct Gemstone.GemConfirmData
+import protocol Gemstone.GemNameServiceProtocol
+import protocol Gemstone.GemTransactionStateServiceProtocol
+import struct Gemstone.GemTransferData
+import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
@@ -14,8 +14,6 @@ import Store
 import StoreTestKit
 @testable import Transfer
 import TransferTestKit
-import class Gemstone.GemSimulationFormatter
-import struct Gemstone.GemTransferData
 
 @MainActor
 extension ConfirmTransferSceneViewModel {
@@ -27,21 +25,18 @@ extension ConfirmTransferSceneViewModel {
         gemConfirmService: GemConfirmServiceMock = GemConfirmServiceMock(),
         nameService: any GemNameServiceProtocol = GemNameServiceMock(),
         transactionStateService: any GemTransactionStateServiceProtocol = GemTransactionStateServiceMock(),
-        currency: Currency = .usd,
         onComplete: VoidAction = nil,
     ) -> ConfirmTransferSceneViewModel {
-        ConfirmTransferSceneViewModel(
-            request: request ?? ConfirmTransferRequest(
-                wallet: wallet ?? .mock(accounts: [.mock(chain: data.chain)]),
-                data: data,
-                simulation: simulation,
-            ),
+        let wallet = wallet ?? .mock(accounts: [.mock(chain: data.chain)])
+        return ConfirmTransferSceneViewModel(
+            request: request ?? ConfirmTransferRequest(data: data, simulation: simulation),
+            wallet: wallet,
             service: GemConfirmTransferServiceMock(
+                wallet: wallet,
                 confirm: gemConfirmService,
                 names: nameService,
                 transactionState: transactionStateService,
             ),
-            currency: currency,
             onComplete: onComplete,
         )
     }

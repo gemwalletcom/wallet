@@ -2,7 +2,7 @@ use primitives::Chain;
 
 use crate::config::chain::{custom_fee_enabled, minimum_custom_fee_rate};
 
-#[derive(uniffi::Record, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FeeConfig {
     pub decimals: u32,
     pub max_multiplier: u32,

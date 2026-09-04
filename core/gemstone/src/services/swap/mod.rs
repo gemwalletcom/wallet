@@ -1,11 +1,11 @@
-pub mod config;
 pub mod model;
+pub mod quote;
 pub mod rules;
 pub mod store;
 
-use crate::clock::unix_seconds;
 use crate::keystore::decode_password;
 use crate::models::custom_types::GemBigUint;
+use primitives::unix_seconds;
 use std::sync::Arc;
 
 use primitives::{Asset, Wallet};
@@ -20,7 +20,7 @@ use crate::message::signer::MessageSigner;
 use crate::models::swap::GemSwapQuoteData;
 use crate::services::error::GemServiceError;
 use crate::services::wallet::GemKeystorePassword;
-pub use model::{GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapTransfer};
+pub use model::{GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapQuoteSummary, GemSwapTransfer};
 use primitives::{AssetId, WalletId};
 pub use store::GemSwapStore;
 
@@ -62,10 +62,6 @@ impl GemSwapService {
         Ok(rules::sort_quotes(self.swapper.get_quote(&request).await?))
     }
 
-    pub fn pair_for_asset(&self, asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {
-        rules::pair_for_asset(asset_id, has_balance)
-    }
-
     pub async fn suggest_pair(&self, wallet_id: WalletId, pay_asset_id: Option<AssetId>) -> Result<Option<GemSwapPairSuggestion>, GemServiceError> {
         let pay_asset_id = match pay_asset_id {
             Some(asset_id) => asset_id,
@@ -83,6 +79,12 @@ impl GemSwapService {
     pub async fn get_transfer(&self, wallet: Wallet, quote: Quote) -> Result<GemSwapTransfer, SwapperError> {
         let data = self.get_quote_data(&wallet, &quote).await?;
         rules::swap_transfer(&wallet, &quote, data)
+    }
+}
+
+impl GemSwapService {
+    pub fn pair_for_asset(&self, asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {
+        rules::pair_for_asset(asset_id, has_balance)
     }
 }
 

@@ -4,13 +4,11 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.ext.toChain
-import com.gemwallet.android.ext.isNftSupported
+import com.gemwallet.android.ext.toPrimitives
+import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
-import uniffi.gemstone.GemChainService
+import uniffi.gemstone.GemNftServiceInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flowOn
@@ -20,24 +18,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ReceiveNftChainsViewModel @Inject constructor(
-    getSession: GetSession,
-    private val chainService: GemChainService,
+    private val service: GemNftServiceInterface,
 ) : ViewModel() {
-
-    private val wallet = getSession().value?.wallet
-
-    private val allChains: List<Chain> = Chain.entries
-        .filter { it.isNftSupported() }
-        .filter { chain -> wallet?.getAccount(chain) != null }
 
     val chainFilter = TextFieldState()
 
-    val chains = snapshotFlow { chainFilter.text.toString() }
-        .map { query ->
-            chainService.getMatchingChains(allChains.map { it.string }, query).mapNotNull { it.toChain() }
-        }
+    private val accounts = snapshotFlow { chainFilter.text.toString() }
+        .map { query -> service.receiveAccounts(query).mapNotNull { it.toPrimitives() } }
         .flowOn(Dispatchers.IO)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, allChains)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    fun addressFor(chain: Chain): String = wallet?.getAccount(chain)?.address.orEmpty()
+    val chains = accounts.map { accounts -> accounts.map(Account::chain) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    fun addressFor(chain: Chain): String = accounts.value.firstOrNull { it.chain == chain }?.address.orEmpty()
 }

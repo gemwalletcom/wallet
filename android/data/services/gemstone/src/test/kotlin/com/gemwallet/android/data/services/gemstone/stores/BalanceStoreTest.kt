@@ -10,6 +10,7 @@ import org.junit.Test
 import uniffi.gemstone.GemBalanceUpdate
 import uniffi.gemstone.GemBalanceUpdateType
 import uniffi.gemstone.GemBalanceValue
+import java.math.BigInteger
 
 class GemstoneBalanceStoreTest {
 
@@ -20,7 +21,7 @@ class GemstoneBalanceStoreTest {
     fun tokenUpdateWritesBalanceWithoutCreatingRows() = runTest {
         subject.updateBalances(
             "wallet-1",
-            listOf(GemBalanceUpdate("ethereum_0xtoken", GemBalanceUpdateType.Token(GemBalanceValue("1000000000000000000", 1.0)), true)),
+            listOf(GemBalanceUpdate("ethereum_0xtoken", GemBalanceUpdateType.Token(GemBalanceValue(BigInteger("1000000000000000000"), 1.0)), true)),
         )
 
         verify(exactly = 0) { balancesDao.insertIgnore(any()) }

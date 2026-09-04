@@ -3,7 +3,6 @@ package com.gemwallet.android.data.coordinators.stake
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
-import com.gemwallet.android.application.stake.cases.GetRecommendedValidatorIds
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.application.stake.cases.SyncStakeDelegations
@@ -14,6 +13,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.StakeProviderType
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -27,8 +27,8 @@ class SyncStakeDelegationsImpl(
     private val stakeService: GemStakeService,
 ) : SyncStakeDelegations {
 
-    override suspend fun sync(walletId: WalletId, assetId: AssetId, address: String) = withContext(Dispatchers.IO) {
-        stakeService.sync(walletId.id, assetId.chain.string, address)
+    override suspend fun sync(chain: Chain) = withContext(Dispatchers.IO) {
+        stakeService.sync(chain.string)
     }
 }
 
@@ -40,13 +40,6 @@ class GetValidatorsImpl(
     override fun invoke(assetId: AssetId): Flow<List<DelegationValidator>> =
         stakeStore.observeValidators(assetId, StakeProviderType.Stake)
             .map { validators -> stakeService.selectableValidators(validators.map { it.toJson() }).map { it.decodeJson<DelegationValidator>() } }
-}
-
-class GetRecommendedValidatorIdsImpl(
-    private val stakeService: GemStakeServiceInterface,
-) : GetRecommendedValidatorIds {
-
-    override fun invoke(assetId: AssetId): List<String> = stakeService.recommendedValidatorIds(assetId.chain.string)
 }
 
 class GetRecommendedValidatorImpl(

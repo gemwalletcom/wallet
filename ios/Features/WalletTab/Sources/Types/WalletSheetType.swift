@@ -12,7 +12,6 @@ public enum WalletSheetType: Identifiable, Equatable, Sendable {
     case infoSheet(InfoSheetType)
     case transferData(GemTransferData)
     case perpetualRecipientData(PerpetualRecipientData)
-    case setPriceAlert(Asset)
     case addAsset
     case portfolio(PortfolioType)
     case addContact(AddContactType)
@@ -23,7 +22,6 @@ public enum WalletSheetType: Identifiable, Equatable, Sendable {
         case let .infoSheet(type): "infoSheet-\(type.id)"
         case let .transferData(data): "transferData-\(data.id)"
         case .perpetualRecipientData: "perpetualRecipientData"
-        case let .setPriceAlert(asset): "setPriceAlert-\(asset.id.identifier)"
         case .addAsset: "addAsset"
         case let .portfolio(type): "portfolio-\(type.id)"
         case let .addContact(type): "addContact-\(type.id)"

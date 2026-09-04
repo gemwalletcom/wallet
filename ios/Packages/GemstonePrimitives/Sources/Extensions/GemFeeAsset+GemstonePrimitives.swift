@@ -2,27 +2,26 @@
 
 import BigInt
 import Foundation
+import enum Gemstone.GemApprovalValue
 import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemAssetPrice
 import struct Gemstone.GemConfirmMetadata
-import enum Gemstone.GemApprovalValue
 import struct Gemstone.GemFeeAsset
-import enum Gemstone.GemTransferAmountError
 import Primitives
 
 public extension Primitives.Balance {
     init(_ balance: GemAssetBalance) throws {
         try self.init(
-            available: BigInt.from(string: balance.available),
-            frozen: BigInt.from(string: balance.frozen),
-            locked: BigInt.from(string: balance.locked),
-            staked: BigInt.from(string: balance.staked),
-            pending: BigInt.from(string: balance.pending),
-            pendingUnconfirmed: BigInt.from(string: balance.pendingUnconfirmed),
-            rewards: BigInt.from(string: balance.rewards),
-            reserved: BigInt.from(string: balance.reserved),
-            withdrawable: BigInt.from(string: balance.withdrawable),
-            earn: BigInt.from(string: balance.earn),
+            available: BigInt(balance.available),
+            frozen: BigInt(balance.frozen),
+            locked: BigInt(balance.locked),
+            staked: BigInt(balance.staked),
+            pending: BigInt(balance.pending),
+            pendingUnconfirmed: BigInt(balance.pendingUnconfirmed),
+            rewards: BigInt(balance.rewards),
+            reserved: BigInt(balance.reserved),
+            withdrawable: BigInt(balance.withdrawable),
+            earn: BigInt(balance.earn),
             metadata: balance.metadata.map { try BalanceMetadata($0) },
         )
     }
@@ -33,7 +32,7 @@ public extension GemFeeAsset {
         try (
             asset: asset.map(),
             balance: Primitives.Balance(balance),
-            price: price.map { Primitives.Price(price: $0.price, priceChangePercentage24h: $0.priceChangePercentage24h, updatedAt: Date(timeIntervalSince1970: TimeInterval($0.updatedAt))) }
+            price: price.map { Primitives.Price(price: $0.price, priceChangePercentage24h: $0.priceChangePercentage24h, updatedAt: Date(timeIntervalSince1970: TimeInterval($0.updatedAt))) },
         )
     }
 }
@@ -48,22 +47,10 @@ public extension Primitives.Price {
     }
 }
 
-
-public extension GemTransferAmountError {
-    var assetId: Primitives.AssetId? {
-        switch self {
-        case let .InsufficientBalance(assetId, _, _),
-             let .InsufficientNetworkFee(assetId, _, _),
-             let .MinimumAccountBalanceTooLow(assetId, _, _):
-            try? Primitives.AssetId(id: assetId)
-        }
-    }
-}
-
 public extension GemApprovalValue {
-    func map() throws -> Primitives.ApprovalValue {
+    func map() -> Primitives.ApprovalValue {
         switch self {
-        case let .exact(value): .exact(try BigInt.from(string: value))
+        case let .exact(value): .exact(BigInt(value))
         case .unlimited: .unlimited
         }
     }
@@ -73,14 +60,12 @@ public extension GemConfirmMetadata {
     var assetId: Primitives.AssetId? { try? Primitives.AssetId(id: assetBalance.assetId) }
     var feeAssetId: Primitives.AssetId? { try? Primitives.AssetId(id: feeAssetBalance.assetId) }
 
-    var available: BigInt { (try? BigInt.from(string: assetBalance.available)) ?? .zero }
-    var feeAvailable: String { feeAssetBalance.available }
+    var available: BigInt { BigInt(assetBalance.available) }
 
     var assetPrice: Primitives.Price? { price(for: assetBalance.assetId) }
     var feePrice: Primitives.Price? { price(for: feeAssetBalance.assetId) }
 
     var balance: Primitives.Balance? { try? Primitives.Balance(assetBalance) }
-    var feeBalance: Primitives.Balance? { try? Primitives.Balance(feeAssetBalance) }
 
     func price(for assetId: String) -> Primitives.Price? {
         prices.first { $0.assetId == assetId }.map { Primitives.Price($0) }

@@ -4,7 +4,7 @@ import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.data.service.store.database.entities.toDTO
-import com.gemwallet.android.model.TransactionExtended
+import com.wallet.core.primitives.TransactionExtended
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.WalletId
@@ -37,5 +37,4 @@ class GemstoneTransactionStore(
     fun observeTransactionsCount(walletId: WalletId, filters: List<TransactionsRequestFilter>): Flow<Int?> =
         transactionsDao.getTransactionsCount(walletId, filters)
 
-    suspend fun deletePending(state: TransactionState) = transactionsDao.deleteByState(state)
 }

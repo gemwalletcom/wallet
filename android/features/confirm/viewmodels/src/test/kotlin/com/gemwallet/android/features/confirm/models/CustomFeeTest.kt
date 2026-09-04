@@ -1,35 +1,45 @@
 package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.model.FeeSelection
+import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
+import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeePriority
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uniffi.gemstone.GemFeeRate
-import uniffi.gemstone.GemGasPriceType
+import uniffi.gemstone.FeeUnitType
+import uniffi.gemstone.GemFeeRateRows
 import java.math.BigInteger
 
 class CustomFeeTest {
 
-    private val feeRates = listOf(
-        GemFeeRate(FeePriority.Normal.toGem(), GemGasPriceType.Regular(gasPrice = "2")),
-        GemFeeRate(FeePriority.Fast.toGem(), GemGasPriceType.Regular(gasPrice = "3")),
+    private fun rows(selectedTotal: BigInteger) = GemFeeRateRows(
+        rows = emptyList(),
+        unitType = FeeUnitType.GWEI,
+        unitDecimals = 0u,
+        supportsCustomFee = true,
+        selectedTotal = selectedTotal,
+        normalTotal = BigInteger("2"),
     )
 
-    private val currentFee = FeeUIModel.FeeInfo(
+    private fun currentFee(feeAsset: Asset) = FeeUIModel.FeeInfo(
         amount = BigInteger("1000"),
-        feeAsset = mockAssetEthereum(),
+        feeAsset = feeAsset,
         price = null,
         currency = Currency.USD,
         priority = FeePriority.Normal,
     )
 
-    private fun custom(input: String, decimals: Int = 0, minimumCustomFeeRate: BigInteger? = null, selection: FeeSelection = FeeSelection.Preset(FeePriority.Normal)) =
-        CustomFee.from(input, currentFee, feeRates, selection, decimals, maxMultiplier = 10, minimumCustomFeeRate)
+    private fun custom(
+        input: String,
+        decimals: Int = 0,
+        feeAsset: Asset = mockAssetEthereum(),
+        selectedTotal: BigInteger = BigInteger("2"),
+    ) = CustomFee.from(input, currentFee(feeAsset), rows(selectedTotal), decimals)
 
     @Test
     fun customFeeFrom() {
@@ -38,23 +48,20 @@ class CustomFeeTest {
         assertEquals(BigInteger("2000"), valid.networkFee.amount)
         assertTrue(valid.isConfirmEnabled)
 
-        val fractional = custom("0.1", decimals = 1, minimumCustomFeeRate = BigInteger.ONE)
+        val fractional = custom("0.1", decimals = 1)
         assertEquals(BigInteger("1"), fractional.rate)
         assertTrue(fractional.isConfirmEnabled)
 
-        val belowMinimum = custom("0.3", decimals = 1, minimumCustomFeeRate = BigInteger("5"))
+        val belowMinimum = custom("0.5", decimals = 1, feeAsset = mockAsset(chain = Chain.Litecoin))
         assertTrue(belowMinimum.isBelowMinimum)
+        assertEquals("5", belowMinimum.minRateText)
         assertFalse(belowMinimum.isConfirmEnabled)
-
-        val atMinimum = custom("0.5", decimals = 1, minimumCustomFeeRate = BigInteger("5"))
-        assertFalse(atMinimum.isBelowMinimum)
-        assertTrue(atMinimum.isConfirmEnabled)
 
         val overMax = custom("21")
         assertTrue(overMax.isOverMax)
         assertFalse(overMax.isConfirmEnabled)
 
-        val anchoredToNormal = custom("21", selection = FeeSelection.Custom(BigInteger("20")))
+        val anchoredToNormal = custom("21", selectedTotal = BigInteger("20"))
         assertTrue(anchoredToNormal.isOverMax)
     }
 }

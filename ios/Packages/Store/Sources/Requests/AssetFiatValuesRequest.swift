@@ -21,12 +21,12 @@ public struct AssetFiatValuesRequest: DatabaseQueryable, Equatable {
         case .perpetual:
             return try [perpetualFiatValue(db)]
         case .wallet:
-            let assets = try assetRecords(db).compactMap {
+            let assets = try assetRecords(db).map {
                 AssetFiatValue(record: $0, amount: $0.balance.totalAmount)
             }
             return includesPerpetualCollateral ? try assets + [perpetualFiatValue(db)] : assets
         case .earn:
-            return try assetRecords(db).compactMap {
+            return try assetRecords(db).map {
                 AssetFiatValue(record: $0, amount: $0.balance.stakedAmount + $0.balance.earnAmount)
             }
         }
@@ -51,12 +51,11 @@ public struct AssetFiatValuesRequest: DatabaseQueryable, Equatable {
 }
 
 extension AssetFiatValue {
-    init?(record: AssetRecordInfoMinimal, amount: Double) {
-        guard let price = record.price, price.price > 0 else { return nil }
+    init(record: AssetRecordInfoMinimal, amount: Double) {
         self.init(
             amount: amount,
-            price: price.price,
-            priceChangePercentage24h: price.priceChangePercentage24h,
+            price: record.price?.price ?? 0,
+            priceChangePercentage24h: record.price?.priceChangePercentage24h ?? 0,
         )
     }
 }

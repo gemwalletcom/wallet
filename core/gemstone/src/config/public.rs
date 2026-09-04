@@ -1,4 +1,4 @@
-use primitives::GEM_ANDROID_PACKAGE_ID;
+use primitives::{GEM_ANDROID_PACKAGE_ID, GEM_API_HOST};
 
 #[derive(uniffi::Enum, Clone)]
 pub enum PublicUrl {
@@ -15,6 +15,12 @@ pub enum PublicUrl {
 }
 
 pub const ASSETS_URL: &str = "https://assets.gemwallet.com";
+pub const API_URL: &str = "https://api.gemwallet.com";
+pub const DEVICE_STREAM_PATH: &str = "/v2/devices/stream";
+
+pub fn device_stream_url() -> String {
+    format!("wss://{GEM_API_HOST}{DEVICE_STREAM_PATH}")
+}
 
 #[uniffi::export]
 impl PublicUrl {

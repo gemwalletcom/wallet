@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.data.services.gemstone.assets.AssetsAvailabilityService
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.entities.DbBalance
 import com.gemwallet.android.data.service.store.database.entities.toAssetInfoModel
@@ -29,7 +28,6 @@ import com.wallet.core.primitives.AssetId
 
 class GemstoneAssetStore(
     private val assetsDao: AssetsDao,
-    private val availabilityService: AssetsAvailabilityService,
 ) : GemAssetStore {
 
     override suspend fun getAssetIds(assetIds: List<String>): List<String> = withContext(Dispatchers.IO) {
@@ -58,11 +56,17 @@ class GemstoneAssetStore(
         assetsDao.insertBalances(assetIds.map { balanceRecord(walletId, it, enabled) })
     }
 
-    override suspend fun setBuyableAssets(assetIds: List<String>) = availabilityService.updateBuyAvailable(assetIds)
+    override suspend fun setBuyableAssets(assetIds: List<String>) = withContext(Dispatchers.IO) {
+        assetsDao.setBuyableAssets(assetIds)
+    }
 
-    override suspend fun setSellableAssets(assetIds: List<String>) = availabilityService.updateSellAvailable(assetIds)
+    override suspend fun setSellableAssets(assetIds: List<String>) = withContext(Dispatchers.IO) {
+        assetsDao.setSellableAssets(assetIds)
+    }
 
-    override suspend fun setSwappableAssets(assetIds: List<String>) = availabilityService.updateSwapAvailable(assetIds)
+    override suspend fun setSwappableAssets(assetIds: List<String>) = withContext(Dispatchers.IO) {
+        assetsDao.setSwapEnabled(assetIds)
+    }
 
     override suspend fun setStakeableAssets(assetIds: List<String>) = withContext(Dispatchers.IO) {
         assetsDao.setStakeEnabled(assetIds)

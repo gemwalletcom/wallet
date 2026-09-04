@@ -106,6 +106,7 @@ extension Primitives.PerpetualAccountMode: JsonCodable {}
 extension Primitives.PerpetualAccountSummary: JsonCodable {}
 extension Primitives.PerpetualBalance: JsonCodable {}
 extension Primitives.PerpetualConfirmData: JsonCodable {}
+extension Primitives.Perpetual: JsonCodable {}
 extension Primitives.PerpetualData: JsonCodable {}
 extension Primitives.PerpetualDirection: JsonCodable {}
 extension Primitives.PerpetualMarginType: JsonCodable {}
@@ -161,6 +162,7 @@ extension Primitives.SwapQuoteData: JsonCodable {}
 extension Primitives.SwapQuoteDataType: JsonCodable {}
 extension Primitives.TPSLOrderData: JsonCodable {}
 extension Primitives.Transaction: JsonCodable {}
+extension Primitives.TransactionExtended: JsonCodable {}
 extension Primitives.TransactionPerpetualMetadata: JsonCodable {}
 extension Primitives.TransactionState: JsonCodable {}
 extension Primitives.TransactionType: JsonCodable {}

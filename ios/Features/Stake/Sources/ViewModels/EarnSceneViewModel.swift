@@ -4,7 +4,6 @@ import BigInt
 import Components
 import GemstoneServices
 import Foundation
-import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import Localization
@@ -15,13 +14,11 @@ import Store
 @MainActor
 @Observable
 public final class EarnSceneViewModel {
-    private let stakeService: any GemStakeServiceProtocol
-    private let explorerService: any GemExplorerServiceProtocol
+    private let service: any GemStakeServiceProtocol
     private var viewState: StateViewType<Bool> = .loading
 
     public let wallet: Wallet
     public let asset: Asset
-    private let currencyCode: String
 
     public let assetQuery: ObservableQuery<AssetRequest>
     public let positionsQuery: ObservableQuery<DelegationsRequest>
@@ -42,15 +39,11 @@ public final class EarnSceneViewModel {
     public init(
         wallet: Wallet,
         asset: Asset,
-        currencyCode: String,
-        stakeService: any GemStakeServiceProtocol,
-        explorerService: any GemExplorerServiceProtocol,
+        service: any GemStakeServiceProtocol,
     ) {
         self.wallet = wallet
         self.asset = asset
-        self.currencyCode = currencyCode
-        self.stakeService = stakeService
-        self.explorerService = explorerService
+        self.service = service
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: asset.id), initialValue: .with(asset: asset))
         positionsQuery = ObservableQuery(
             DelegationsRequest(walletId: wallet.id, assetId: asset.id, providerType: .earn),
@@ -67,7 +60,7 @@ public final class EarnSceneViewModel {
     }
 
     private func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
-        (try? stakeService.selectableValidators(validators: validators.map { $0.json() }).map { try DelegationValidator($0) }) ?? []
+        (try? service.selectableValidators(validators: validators.map { $0.json() }).map { try DelegationValidator($0) }) ?? []
     }
 
     var assetModel: AssetViewModel {
@@ -102,7 +95,7 @@ public final class EarnSceneViewModel {
     var positionModels: [DelegationViewModel] {
         positions
             .filter { (BigInt($0.base.balance) ?? .zero) > 0 }
-            .map { DelegationViewModel(explorerService: explorerService, stakeService: stakeService, delegation: $0, asset: asset, currencyCode: currencyCode) }
+            .map { DelegationViewModel(service: service, delegation: $0, asset: asset, currencyCode: service.currency()) }
     }
 
     var hasPositions: Bool {
@@ -133,12 +126,7 @@ extension EarnSceneViewModel {
     func load() async {
         viewState = .loading
         do {
-            let address = try wallet.account(for: asset.id.chain).address
-            try await stakeService.syncEarn(
-                walletId: wallet.id.id,
-                assetId: asset.id.identifier,
-                address: address,
-            )
+            try await service.syncEarn(assetId: asset.id.identifier)
             viewState = .data(true)
         } catch {
             viewState = .error(error)

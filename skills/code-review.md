@@ -11,17 +11,25 @@ The source-of-truth details stay in the topic-specific skills. This file should 
 1. Read `AGENTS.md`, `skills/cross-platform-awareness.md`, and `skills/engineering-principles.md`.
 2. Read the platform guide for every changed area: `ios/AGENTS.md`, `android/AGENTS.md`, or `core/AGENTS.md`.
 3. Read `skills/security.md` before reviewing key management, wallet import/export, seed phrases, signing, transaction construction, auth, secure storage, external payload parsing, or cryptographic flows.
-4. Inspect the diff, then read the full changed files and nearby patterns before judging the change.
-5. Check whether generated files, localization outputs, or mobile bindings were edited directly. Generated outputs must come from the source inputs.
+4. Fix the review range with `skills/task-workflow.md` § 1 and § 2: a PR's actual base rather than `main`, the PR addressed explicitly from a detached checkout, and for a large refactor the architectural start and every affected surface before the range is frozen. Do not claim full coverage while inventory, discovery, validation, or attack-path work is incomplete.
+6. Inspect the diff, then read the full changed files, callers, exports, configuration, and nearby patterns before judging the change.
+7. Check whether generated files, localization outputs, or mobile bindings were edited directly. Generated outputs must come from the source inputs.
+
+Review is findings-only by default. Do not edit code, commit, push, open or update PRs/issues, post review comments, or resolve threads unless the user separately requests that action.
 
 ## 1. Correct Implementation and Cross-Platform Consistency
 
 - Verify the change implements the requested behavior, not just code that compiles.
+- Verify the change removes the cause, not the symptom. A retry, fallback, wider timeout, or special case at the point where a bad value is observed is a finding unless the producer is fixed too, or the author has named it as temporary symptom relief with the root cause as follow-up (`skills/engineering-principles.md` § Fix Causes, Not Symptoms).
+- Trace the runtime path that establishes the behavior. A registered chain/asset/provider, generated type, or successful build is insufficient when response decoding, transaction construction, signer support, app consumption, or runtime loading is unverified.
 - Check edge cases, failure paths, empty states, invalid inputs, retries, cancellation, and unsupported chains or assets.
 - Apply `skills/cross-platform-awareness.md` for shared app behavior, generated files, localization, and `core/` regeneration requirements.
 - Confirm tests assert the business rule. A test that would still pass after flipping the rule is not meaningful coverage.
 - Look for stale call sites, unused additions, unreachable branches, missing migrations, missing localization keys, and behavior hidden behind feature flags.
 - Verify error handling preserves useful context while still failing closed where the app cannot safely continue.
+- For compatibility claims, inspect the repository's exports, bindings, configuration, and shipped release tags as applicable. State repository-specific compatibility separately from general upstream compatibility.
+- Tie drift-prone protocol, provider, contract, fee, minimum, or release claims to a current authoritative source and a named revision, block, tag, or observation time. Label limited live samples as indicative rather than universal.
+- Separate network-level behavior from provider-specific behavior, and corroborate transport/TLS/rate-limit failures before treating them as product or protocol defects.
 
 ## 2. Coding Style, Codebase Convention, and Reviewability
 
@@ -57,4 +65,4 @@ When the agent's built-in review workflow has its own severity labels, use those
 - Medium: edge-case correctness bugs, brittle error handling, test gaps for changed behavior, or maintainability issues that slow review
 - Low: small style or convention issues that are safe to batch with other edits
 
-When asked to fix issues, make the smallest scoped patch, rerun the affected checks from `skills/quality-checks.md`, and re-review the resulting diff before handoff.
+When asked to fix issues, implement only the findings the user selected, make the smallest scoped patch, rerun the affected checks from `skills/quality-checks.md`, and re-review the resulting diff before handoff.

@@ -36,6 +36,7 @@ import com.gemwallet.android.ui.components.perpetual.color
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Resource
+import com.gemwallet.android.ui.theme.Placeholder
 
 @Composable
 fun ProviderExtras(
@@ -165,7 +166,7 @@ private fun AutocloseRowValue(takeProfit: String?, stopLoss: String?) {
             }
             tpText != null -> ListItemSupportText(tpText)
             slText != null -> ListItemSupportText(slText)
-            else -> ListItemSupportText("-")
+            else -> ListItemSupportText(Placeholder.empty)
         }
     }
 }

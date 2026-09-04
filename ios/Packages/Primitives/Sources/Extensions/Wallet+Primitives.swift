@@ -23,39 +23,4 @@ public extension Wallet {
         }
         return account
     }
-
-    var hyperliquidAccount: Account? {
-        accounts.first {
-            $0.chain == .arbitrum || $0.chain == .hyperCore || $0.chain == .hyperliquid
-        }
-    }
-
-    var hasPerpetualsSupport: Bool {
-        isMultiCoins && hyperliquidAccount != nil
-    }
-}
-
-/// factory
-public extension Wallet {
-    static func makeView(name: String, chain: Chain, address: String) -> Wallet {
-        let id = WalletId.make(walletType: .view, chain: chain, address: address)
-        return Wallet(
-            id: id,
-            externalId: nil,
-            name: name,
-            index: 0,
-            type: .view,
-            accounts: [
-                Account(
-                    chain: chain,
-                    address: address,
-                    derivationPath: "",
-                    extendedPublicKey: "",
-                ),
-            ],
-            isPinned: false,
-            imageUrl: nil,
-            source: .import,
-        )
-    }
 }

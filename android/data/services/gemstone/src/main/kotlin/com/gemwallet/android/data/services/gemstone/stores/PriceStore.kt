@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.PricesDao
 import com.gemwallet.android.data.service.store.database.entities.DbPrice
@@ -8,7 +9,6 @@ import com.gemwallet.android.data.service.store.database.entities.toRecord
 import com.gemwallet.android.ext.secondsToMillis
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
-import com.gemwallet.android.ext.toAssetId
 import com.wallet.core.primitives.AssetMarket
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatRate
@@ -28,17 +28,16 @@ class GemstonePriceStore(
     override fun getPrices(assetIds: List<String>): List<GemAssetPrice> =
         pricesDao.getByAssets(assetIds).map { it.toGemAssetPrice() }
 
-    override suspend fun getEnabledPriceAssetIds(walletId: String): List<String> =
-        assetsDao.getAssetsPriceUpdate(walletId).mapNotNull { it.toAssetId()?.toIdentifier() }
+    override suspend fun getEnabledPriceAssetIds(walletId: String): List<String> = assetsDao.getAssetsPriceUpdate(walletId)
 
     override suspend fun getRate(currency: String): String? =
-        pricesDao.getRates(currency.decodeJson<Currency>()).firstOrNull()?.toDTO()?.toJson()
+        pricesDao.getRates(currency.toCurrency()).firstOrNull()?.toDTO()?.toJson()
 
     override suspend fun saveRates(rates: List<String>) =
         pricesDao.setRates(rates.map { it.decodeJson<FiatRate>().toRecord() })
 
     override suspend fun savePrices(currency: String, prices: List<GemPriceUpdate>) {
-        val currency = currency.decodeJson<Currency>()
+        val currency = currency.toCurrency()
         pricesDao.insert(
             prices.map {
                 DbPrice(
@@ -54,7 +53,7 @@ class GemstonePriceStore(
     }
 
     override suspend fun convertPrices(currency: String, rate: Double) =
-        pricesDao.updateValues(currency.decodeJson<Currency>(), rate)
+        pricesDao.updateValues(currency.toCurrency(), rate)
 
     override suspend fun saveMarket(assetId: String, market: String) {
         assetsDao.setMarket(market.decodeJson<AssetMarket>().toRecord(AssetId(assetId)))

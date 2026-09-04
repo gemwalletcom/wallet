@@ -1,10 +1,11 @@
 use crate::providers::goplus::{
     mapper,
     models::{AccessToken, AccessTokenRequest, Response, SecurityAddress, SecurityToken},
+    target::GoPlusTarget,
 };
-use crate::{AddressTarget, ScanProvider, ScanResult, TokenTarget};
+use crate::{AddressScanProvider, AddressTarget, ScanResult, TokenScanProvider, TokenTarget};
 use async_trait::async_trait;
-use gem_client::{Client, ClientExt, build_path_with_query};
+use gem_client::{Client, ClientExt};
 use primitives::{AccessTokenCacher, Chain};
 use sha1::{Digest, Sha1};
 use std::collections::HashMap;
@@ -50,7 +51,7 @@ impl<C: Client> GoPlusProvider<C> {
             sign: Self::sign(&self.app_key, time, &self.app_secret),
             time,
         };
-        let response: Response<Option<AccessToken>> = self.client.post("/api/v1/token", &request).await?;
+        let response: Response<Option<AccessToken>> = self.client.post(GoPlusTarget::Token, &request).await?;
         if response.code != 1 {
             return Err(response.message.into());
         }
@@ -67,26 +68,26 @@ impl<C: Client> GoPlusProvider<C> {
 }
 
 #[async_trait]
-impl<C: Client> ScanProvider for GoPlusProvider<C> {
+impl<C: Client> AddressScanProvider for GoPlusProvider<C> {
     fn name(&self) -> &'static str {
         Self::NAME
     }
 
-    fn supports_address_chain(&self, chain: Chain) -> bool {
+    fn supports_chain(&self, chain: Chain) -> bool {
         mapper::map_address_chain(chain).is_ok()
     }
 
-    fn supports_token_chain(&self, chain: Chain) -> bool {
-        mapper::map_token_chain(chain).is_ok()
-    }
-
     async fn scan_address(&self, target: &AddressTarget) -> Result<ScanResult<AddressTarget>, Box<dyn std::error::Error + Send + Sync>> {
-        let path = format!("/api/v1/address_security/{}", target.address);
-        let query = vec![("chain_id", mapper::map_address_chain(target.chain)?)];
-        let url = build_path_with_query(&path, &query)?;
-        let response = self.client.get_with_headers::<Response<Option<SecurityAddress>>>(&url, self.headers().await?).await?;
+        let response = self
+            .client
+            .get::<Response<Option<SecurityAddress>>>(GoPlusTarget::AddressSecurity {
+                address: target.address.clone(),
+                chain_id: mapper::map_address_chain(target.chain)?,
+            })
+            .headers(self.headers().await?)
+            .await?;
         if response.code != 1 && response.code != 2 {
-            return Err(response.message.into());
+            return Err(format!("GoPlus error code={}: {}", response.code, response.message).into());
         }
         let security = response.result;
         let is_partial = response.code == 2;
@@ -103,22 +104,34 @@ impl<C: Client> ScanProvider for GoPlusProvider<C> {
             } else {
                 security.is_none().then(|| "No address data found".to_string())
             },
-            provider: self.name().into(),
+            provider: Self::NAME.into(),
         })
+    }
+}
+
+#[async_trait]
+impl<C: Client> TokenScanProvider for GoPlusProvider<C> {
+    fn name(&self) -> &'static str {
+        Self::NAME
+    }
+
+    fn supports_chain(&self, chain: Chain) -> bool {
+        mapper::map_token_chain(chain).is_ok()
     }
 
     async fn scan_token(&self, target: &TokenTarget) -> Result<ScanResult<TokenTarget>, Box<dyn std::error::Error + Send + Sync>> {
-        let path = format!("/api/v1/token_security/{}", mapper::map_token_chain(target.chain)?);
         let token_id = if target.chain == Chain::Tron {
             target.token_id.clone()
         } else {
             target.token_id.to_lowercase()
         };
-        let query = vec![("contract_addresses", token_id.as_str())];
-        let url = build_path_with_query(&path, &query)?;
         let response = self
             .client
-            .get_with_headers::<Response<Option<HashMap<String, SecurityToken>>>>(&url, self.headers().await?)
+            .get::<Response<Option<HashMap<String, SecurityToken>>>>(GoPlusTarget::TokenSecurity {
+                chain_id: mapper::map_token_chain(target.chain)?,
+                contract_addresses: token_id.clone(),
+            })
+            .headers(self.headers().await?)
             .await?;
         if response.code != 1 && response.code != 2 {
             return Err(response.message.into());
@@ -141,7 +154,7 @@ impl<C: Client> ScanProvider for GoPlusProvider<C> {
             target: target.clone(),
             is_malicious,
             reason,
-            provider: self.name().into(),
+            provider: Self::NAME.into(),
         })
     }
 }
@@ -257,5 +270,24 @@ mod tests {
             .unwrap_err();
 
         assert_eq!(error.to_string(), "Wrong Signature");
+    }
+
+    #[tokio::test]
+    async fn test_scan_address_returns_api_code() {
+        let client = MockClient::new().with_get(|path| {
+            assert_eq!(path, "/api/v1/address_security/0xabc?chain_id=1");
+            Ok(br#"{"code":5000,"message":"system error","result":null}"#.to_vec())
+        });
+        let provider = GoPlusProvider::mock(client);
+
+        let error = provider
+            .scan_address(&AddressTarget {
+                address: "0xabc".to_string(),
+                chain: Chain::Ethereum,
+            })
+            .await
+            .unwrap_err();
+
+        assert_eq!(error.to_string(), "GoPlus error code=5000: system error");
     }
 }

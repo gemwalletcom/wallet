@@ -8,10 +8,8 @@ import com.gemwallet.android.data.coordinators.stake.GetDelegationImpl
 import com.gemwallet.android.data.coordinators.stake.GetDelegationsImpl
 import com.gemwallet.android.data.coordinators.stake.GetRecommendedValidatorImpl
 import com.gemwallet.android.data.coordinators.stake.GetStakeValidatorImpl
-import com.gemwallet.android.application.stake.cases.GetRecommendedValidatorIds
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.application.stake.cases.SyncStakeDelegations
-import com.gemwallet.android.data.coordinators.stake.GetRecommendedValidatorIdsImpl
 import com.gemwallet.android.data.coordinators.stake.GetValidatorsImpl
 import com.gemwallet.android.data.coordinators.stake.SyncStakeDelegationsImpl
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneStakeStore
@@ -38,10 +36,6 @@ object StakeModule {
     @Provides
     @Singleton
     fun provideGetValidators(stakeStore: GemstoneStakeStore, stakeService: GemStakeServiceInterface): GetValidators = GetValidatorsImpl(stakeStore, stakeService)
-
-    @Provides
-    @Singleton
-    fun provideGetRecommendedValidatorIds(stakeService: GemStakeServiceInterface): GetRecommendedValidatorIds = GetRecommendedValidatorIdsImpl(stakeService)
 
     @Provides
     @Singleton

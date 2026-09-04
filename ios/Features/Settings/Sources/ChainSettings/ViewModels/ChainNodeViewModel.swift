@@ -2,32 +2,41 @@
 
 import Components
 import Formatters
-import Foundation
-import GemstonePrimitives
+import struct Gemstone.GemNodeSelection
+import enum Gemstone.GemNodeStatusState
 import Localization
-import Primitives
 import Style
 
 struct ChainNodeViewModel {
-    let chainNode: ChainNode
+    let node: GemNodeSelection
 
-    private let statusState: NodeStatusState
+    private let gemNodeFlag: String?
+    private let statusState: GemNodeStatusState
     private let formatter: ValueFormatter
 
     init(
-        chainNode: ChainNode,
-        statusState: NodeStatusState,
+        node: GemNodeSelection,
+        gemNodeFlag: String?,
+        statusState: GemNodeStatusState,
         formatter: ValueFormatter,
     ) {
-        self.chainNode = chainNode
+        self.node = node
+        self.gemNodeFlag = gemNodeFlag
         self.statusState = statusState
         self.formatter = formatter
     }
 
+    var url: String {
+        node.url
+    }
+
+    var selection: String? {
+        node.isSelected ? node.url : .none
+    }
+
     var title: String {
-        guard let host = chainNode.host else { return "" }
-        guard let region = NodeURL.region(url: chainNode.node.url) else { return host }
-        return Localized.Nodes.gemWalletNode + " " + NodeURL.flag(region: region)
+        guard let gemNodeFlag else { return node.host }
+        return Localized.Nodes.gemWalletNode + " " + gemNodeFlag
     }
 
     var titleExtra: String? {
@@ -59,18 +68,6 @@ struct ChainNodeViewModel {
 
 extension ChainNodeViewModel: Identifiable {
     var id: String {
-        chainNode.id
-    }
-}
-
-// MARK: - Models extensions
-
-extension ChainNode {
-    var host: String? {
-        URL(string: node.url)?.host
-    }
-
-    var isGemNode: Bool {
-        NodeURL.region(url: node.url) != nil
+        node.url
     }
 }

@@ -1,7 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemDeviceServiceProtocol
-import protocol Gemstone.GemPriceServiceProtocol
 import Contacts
 import GemstoneServices
 import InAppNotifications
@@ -17,69 +15,31 @@ import SwiftUI
 import WalletConnector
 
 struct SettingsNavigationView: View {
-    @Environment(\.navigationState) private var navigationState
-    @Environment(\.addressService) private var addressService
-    @Environment(\.applicationMetadataService) private var applicationMetadataService
-    @Environment(\.deeplinkService) private var deeplinkService
     @Environment(\.navigationHandler) private var navigationHandler
-    @Environment(\.transactionsService) private var transactionsService
-    @Environment(\.explorerService) private var explorerService
-    @Environment(\.bannerService) private var bannerService
     @Environment(\.walletConnector) private var walletConnector
-    @Environment(\.balanceService) private var balanceService
-    @Environment(\.walletSessionService) private var walletSessionService
-    @Environment(\.priceAlertService) private var priceAlertService
-    @Environment(\.preferencesService) private var preferencesService
-    @Environment(\.deviceKeyService) private var deviceKeyService
-    @Environment(\.priceService) private var priceService
-    @Environment(\.chartService) private var chartService
-    @Environment(\.nodeService) private var nodeService
-    @Environment(\.chainService) private var chainService
-    @Environment(\.gatewayService) private var gatewayService
-    @Environment(\.serviceStatusService) private var serviceStatusService
     @Environment(\.observablePreferences) private var observablePreferences
-    @Environment(\.appUpdateService) private var appUpdateService
-    @Environment(\.perpetualService) private var perpetualService
     @Environment(\.walletConnectorPresenter) private var walletConnectorPresenter
-    @Environment(\.rewardsService) private var rewardsService
-    @Environment(\.inAppNotificationService) private var inAppNotificationService
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.supportService) private var supportService
-    @Environment(\.walletPreferencesService) private var walletPreferencesService
     @Environment(\.navigationPresenter) private var presenter
 
     @State private var currencyModel: CurrencySceneViewModel
 
     let walletId: WalletId
-    private let deviceService: any GemDeviceServiceProtocol
     @Binding var isPresentingSupport: Bool
 
     init(
         walletId: WalletId,
-        preferences: ObservablePreferences = AppResolver.main.services.observablePreferences,
-        priceService: any GemPriceServiceProtocol,
-        deviceService: any GemDeviceServiceProtocol,
+        viewModelFactory: ViewModelFactory = AppResolver.main.services.viewModelFactory,
         isPresentingSupport: Binding<Bool>,
     ) {
         self.walletId = walletId
-        self.deviceService = deviceService
         _isPresentingSupport = isPresentingSupport
-        _currencyModel = State(
-            initialValue: CurrencySceneViewModel(
-                currencyStorage: preferences,
-                priceService: priceService,
-                deviceService: deviceService,
-            ),
-        )
+        _currencyModel = State(initialValue: viewModelFactory.currencyScene())
     }
 
     var body: some View {
         SettingsScene(
-            model: SettingsViewModel(
-                walletId: walletId,
-                walletSessionService: walletSessionService,
-                observablePreferences: observablePreferences,
-            ),
+            model: viewModelFactory.settingsScene(walletId: walletId),
             isPresentingWallets: presenter.isPresentingWallets,
             isPresentingSupport: $isPresentingSupport,
         )
@@ -89,61 +49,43 @@ struct SettingsNavigationView: View {
         }
         .navigationDestination(for: Scenes.Notifications.self) { _ in
             NotificationsScene(
-                model: NotificationsViewModel(
-                    deviceService: deviceService,
-                    bannerService: bannerService,
-                    preferencesService: preferencesService,
-                ),
+                model: viewModelFactory.notificationsScene(),
             )
         }
         .navigationDestination(for: Scenes.PriceAlerts.self) { _ in
             PriceAlertsNavigationView(
-                model: PriceAlertsSceneViewModel(priceAlertService: priceAlertService, preferencesService: preferencesService),
+                model: viewModelFactory.priceAlertsScene(),
             )
         }
         .navigationDestination(for: Scenes.AssetPriceAlert.self) {
             AssetPriceAlertsScene(
-                model: AssetPriceAlertsViewModel(
-                    priceAlertService: priceAlertService,
-                    preferencesService: preferencesService,
-                    walletId: walletId,
-                    asset: $0.asset,
-                ),
+                model: viewModelFactory.assetPriceAlertsScene(walletId: walletId, asset: $0.asset),
             )
         }
         .navigationDestination(for: Scenes.Price.self) { scene in
             ChartScene(
-                model: ChartSceneViewModel(
-                    explorerService: explorerService,
-                    service: chartService,
-                    priceService: priceService,
-                    assetModel: AssetViewModel(asset: scene.asset),
-                    priceAlertService: priceAlertService,
+                model: viewModelFactory.chartScene(
+                    asset: scene.asset,
                     walletId: walletId,
-                    preferencesService: preferencesService,
-                    onSetPriceAlert: { _ in },
+                    onSetPriceAlert: { presenter.isPresentingPriceAlert.wrappedValue = $0 },
                 ),
             )
         }
         .navigationDestination(for: Scenes.Chains.self) { _ in
-            ChainListSettingsScene(model: ChainListSettingsViewModel(chainService: chainService))
+            ChainListSettingsScene(model: viewModelFactory.chainListSettingsScene())
         }
         .navigationDestination(for: Scenes.ServiceStatus.self) { _ in
-            ServiceStatusScene(model: ServiceStatusViewModel(serviceStatusService: serviceStatusService))
+            ServiceStatusScene(model: viewModelFactory.serviceStatusScene())
         }
         .navigationDestination(for: Scenes.AboutUs.self) { _ in
             AboutUsScene(
-                model: AboutUsViewModel(
-                    preferences: observablePreferences,
-                    appUpdateService: appUpdateService,
-                ),
+                model: viewModelFactory.aboutUsScene(),
             )
         }
         .navigationDestination(for: Scenes.WalletConnect.self) { _ in
             ConnectionsScene(
                 model: ConnectionsViewModel(
                     connector: walletConnector,
-                    applicationMetadataService: applicationMetadataService,
                     walletConnectorPresenter: walletConnectorPresenter,
                 ),
             )
@@ -157,47 +99,26 @@ struct SettingsNavigationView: View {
             }
         }
         .navigationDestination(for: Scenes.InAppNotifications.self) { _ in
-            if let wallet = walletSessionService.currentWallet {
-                InAppNotificationsScene(
-                    model: InAppNotificationsViewModel(
-                        wallet: wallet,
-                        notificationService: inAppNotificationService,
-                    ),
-                )
+            if let model = viewModelFactory.inAppNotificationsScene() {
+                InAppNotificationsScene(model: model)
             }
         }
         .navigationDestination(for: Scenes.Currency.self) { _ in
             CurrencyScene(model: currencyModel)
         }
         .navigationDestination(for: Scenes.Preferences.self) { _ in
-            PreferencesScene(model: PreferencesViewModel(currencyModel: currencyModel, preferencesService: preferencesService, preferences: observablePreferences))
+            PreferencesScene(model: viewModelFactory.preferencesScene(currencyModel: currencyModel))
         }
         .navigationDestination(for: Scenes.Appearance.self) { _ in
             AppearanceScene(model: AppearanceViewModel(preferences: observablePreferences))
         }
         .navigationDestination(for: Scenes.Referral.self) { scene in
-            let wallets = walletSessionService.wallets.filter { $0.type == .multicoin }
-            if let wallet = wallets.first(where: { $0.id == walletSessionService.currentWallet?.id }) ?? wallets.first {
-                RewardsScene(
-                    model: RewardsViewModel(
-                        rewardsService: rewardsService,
-                        wallet: wallet,
-                        wallets: wallets,
-                        activateCode: scene.code,
-                        preferencesService: preferencesService,
-                    ),
-                )
+            if let model = viewModelFactory.rewardsScene(activateCode: scene.code) {
+                RewardsScene(model: model)
             }
         }
         .navigationDestination(for: Scenes.ChainSettings.self) {
-            ChainSettingsScene(
-                model: ChainSettingsSceneViewModel(
-                    nodeService: nodeService,
-                    gatewayService: gatewayService,
-                    explorerService: explorerService,
-                    chain: $0.chain,
-                ),
-            )
+            ChainSettingsScene(model: viewModelFactory.chainSettingsScene(chain: $0.chain))
         }
         .navigationDestination(for: Scenes.Contacts.self) { _ in
             ContactsNavigationView(model: viewModelFactory.contactsScene())

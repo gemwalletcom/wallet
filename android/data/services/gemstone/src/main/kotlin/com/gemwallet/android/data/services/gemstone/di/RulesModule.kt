@@ -5,19 +5,14 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAddressService
-import uniffi.gemstone.GemAmountService
 import uniffi.gemstone.BalanceCalculator
-import uniffi.gemstone.GemApplicationMetadataService
 import uniffi.gemstone.GemAssetConfigService
+import uniffi.gemstone.GemAssetConfigServiceInterface
 import uniffi.gemstone.GemConnectionService
-import uniffi.gemstone.GemNameService
-import uniffi.gemstone.GemReceiveService
-import uniffi.gemstone.GemRecipientService
 import uniffi.gemstone.GemSecurityService
 import uniffi.gemstone.GemSimulationFormatter
-import uniffi.gemstone.GemSwapQuoteService
-import uniffi.gemstone.GemTransactionFormatter
 import uniffi.gemstone.GemTransferService
+import uniffi.gemstone.GemTransferServiceInterface
 import uniffi.gemstone.PriceAlertFormatter
 import javax.inject.Singleton
 
@@ -31,15 +26,7 @@ object RulesModule {
 
     @Provides
     @Singleton
-    fun provideGemAmountService(): GemAmountService = GemAmountService()
-
-    @Provides
-    @Singleton
     fun provideBalanceCalculator(): BalanceCalculator = BalanceCalculator()
-
-    @Provides
-    @Singleton
-    fun provideGemApplicationMetadataService(): GemApplicationMetadataService = GemApplicationMetadataService()
 
     @Provides
     @Singleton
@@ -49,13 +36,6 @@ object RulesModule {
     @Singleton
     fun provideGemConnectionService(): GemConnectionService = GemConnectionService()
 
-    @Provides
-    @Singleton
-    fun provideGemReceiveService(): GemReceiveService = GemReceiveService()
-
-    @Provides
-    @Singleton
-    fun provideGemRecipientService(nameService: GemNameService): GemRecipientService = nameService.recipients()
 
     @Provides
     @Singleton
@@ -67,17 +47,15 @@ object RulesModule {
 
     @Provides
     @Singleton
-    fun provideGemSwapQuoteService(): GemSwapQuoteService = GemSwapQuoteService()
-
-    @Provides
-    @Singleton
-    fun provideGemTransactionFormatter(): GemTransactionFormatter = GemTransactionFormatter()
-
-    @Provides
-    @Singleton
     fun provideGemTransferService(): GemTransferService = GemTransferService()
 
     @Provides
     @Singleton
     fun providePriceAlertFormatter(): PriceAlertFormatter = PriceAlertFormatter()
+
+    @Provides
+    fun provideGemTransferServiceInterface(service: GemTransferService): GemTransferServiceInterface = service
+
+    @Provides
+    fun provideGemAssetConfigServiceInterface(service: GemAssetConfigService): GemAssetConfigServiceInterface = service
 }

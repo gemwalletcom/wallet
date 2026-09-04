@@ -18,11 +18,10 @@ import SwiftUI
 
 @Observable
 @MainActor
-final class PerpetualsSceneViewModel {
+public final class PerpetualsSceneViewModel {
 
     private let observerService: any PerpetualObservable
-    let perpetualService: any GemPerpetualServiceProtocol
-    let recentAssetsService: any GemRecentActivityServiceProtocol
+    private let service: any GemPerpetualServiceProtocol
 
     let wallet: Wallet
 
@@ -51,9 +50,9 @@ final class PerpetualsSceneViewModel {
     let onSelectAsset: ((Asset) -> Void)?
     let onSelectPortfolio: VoidAction
 
-    init(
+    public init(
         wallet: Wallet,
-        perpetualService: any GemPerpetualServiceProtocol,
+        service: any GemPerpetualServiceProtocol,
         observerService: any PerpetualObservable,
         recentAssetsService: any GemRecentActivityServiceProtocol,
         onSelectAssetType: ((SelectAssetType) -> Void)? = nil,
@@ -61,9 +60,8 @@ final class PerpetualsSceneViewModel {
         onSelectPortfolio: (() -> Void)? = nil,
     ) {
         self.wallet = wallet
-        self.perpetualService = perpetualService
+        self.service = service
         self.observerService = observerService
-        self.recentAssetsService = recentAssetsService
         self.onSelectAssetType = onSelectAssetType
         self.onSelectAsset = onSelectAsset
         self.onSelectPortfolio = onSelectPortfolio
@@ -73,7 +71,7 @@ final class PerpetualsSceneViewModel {
             PerpetualWalletBalanceRequest(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
             initialValue: .zero,
         )
-        recentModel = RecentAssetsModel(walletId: wallet.id, types: [.perpetual], recentAssetsService: recentAssetsService)
+        recentModel = RecentAssetsModel(walletId: wallet.id, types: [.perpetual], service: recentAssetsService)
     }
 
     var navigationTitle: String {
@@ -140,9 +138,9 @@ final class PerpetualsSceneViewModel {
 
 extension PerpetualsSceneViewModel {
     func load(source: RefreshSource = .timer) async {
-        async let updateObserver: PerpetualAccountMode? = observerService.update(for: wallet)
+        async let positions: () = syncPositions()
         async let refreshMarkets: () = updateMarkets(source: source)
-        _ = await (updateObserver, refreshMarkets)
+        _ = await (positions, refreshMarkets)
     }
 
     func onAppear() async {
@@ -161,9 +159,17 @@ extension PerpetualsSceneViewModel {
         }
     }
 
+    func syncPositions() async {
+        do {
+            try await service.syncCurrentPositions()
+        } catch {
+            debugLog("Failed to sync positions: \(error)")
+        }
+    }
+
     func updateMarkets(source: RefreshSource) async {
         do {
-            try await perpetualService.updateMarkets(trigger: source.marketsRefreshTrigger)
+            try await service.updateMarkets(trigger: source.marketsRefreshTrigger)
         } catch {
             debugLog("Failed to update markets: \(error)")
         }
@@ -183,7 +189,7 @@ extension PerpetualsSceneViewModel {
     func onPinPerpetual(_ perpetualData: PerpetualData) {
         Task {
             do {
-                try await perpetualService.setPinned(!perpetualData.metadata.isPinned, perpetualId: perpetualData.perpetual.id)
+                try await service.setPinned(!perpetualData.metadata.isPinned, perpetualId: perpetualData.perpetual.id)
             } catch {
                 debugLog("PerpetualsSceneViewModel pin perpetual error: \(error)")
             }
@@ -208,13 +214,7 @@ extension PerpetualsSceneViewModel {
 
     func onSelectPerpetual(asset: Asset) {
         onSelectAsset?(asset)
-        Task { [recentAssetsService, wallet] in
-            do {
-                try await recentAssetsService.recordAsset(activityType: .perpetual, assetId: asset.id.identifier, walletId: wallet.id.id)
-            } catch {
-                debugLog("Failed to update recent activity: \(error)")
-            }
-        }
+        recentModel.add(action: .open, asset: asset)
     }
 
     func onSelectRecent(asset: Asset) {

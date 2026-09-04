@@ -8,9 +8,11 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemNotificationService
+import uniffi.gemstone.GemNotificationServiceInterface
 import uniffi.gemstone.GemNotificationStore
 import javax.inject.Singleton
 import uniffi.gemstone.GemWalletPreferencesService
+import uniffi.gemstone.GemWalletSessionService
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -32,5 +34,9 @@ object InAppNotificationsModule {
         apiClient: GemDeviceApiClient,
         store: GemNotificationStore,
         walletPreferencesService: GemWalletPreferencesService,
-    ): GemNotificationService = GemNotificationService(apiClient, store, walletPreferencesService)
+        walletSessionService: GemWalletSessionService,
+    ): GemNotificationService = GemNotificationService(apiClient, store, walletPreferencesService, walletSessionService)
+
+    @Provides
+    fun provideGemNotificationServiceInterface(service: GemNotificationService): GemNotificationServiceInterface = service
 }

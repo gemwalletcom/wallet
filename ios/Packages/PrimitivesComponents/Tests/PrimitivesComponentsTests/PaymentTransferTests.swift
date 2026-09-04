@@ -9,8 +9,7 @@ import PrimitivesTestKit
 import Testing
 
 struct PaymentTransferTests {
-    let addressService = GemAddressService()
-    let paymentService = GemPaymentService()
+    let paymentService = GemPaymentService.mock()
 
     @Test
     func transactionUsesDecodedTransfer() throws {
@@ -27,7 +26,7 @@ struct PaymentTransferTests {
             ),
         )
 
-        let destination = try PaymentDestinationBuilder.build(transaction: transaction, asset: asset, addressService: addressService, paymentService: paymentService)
+        let destination = PaymentDestinationBuilder.build(transaction: transaction, asset: asset, paymentService: paymentService)
         guard case let .confirm(data) = destination else {
             Issue.record("Expected confirmation")
             return
@@ -55,7 +54,7 @@ struct PaymentTransferTests {
             ),
         )
 
-        let destination = try PaymentDestinationBuilder.build(transaction: transaction, asset: asset, addressService: addressService, paymentService: paymentService)
+        let destination = PaymentDestinationBuilder.build(transaction: transaction, asset: asset, paymentService: paymentService)
         guard case let .confirm(data) = destination else {
             Issue.record("Expected confirmation for a decoded transfer without a memo")
             return
@@ -81,7 +80,7 @@ struct PaymentTransferTests {
             ),
         )
 
-        let destination = try PaymentDestinationBuilder.build(transaction: transaction, asset: asset, addressService: addressService, paymentService: paymentService)
+        let destination = PaymentDestinationBuilder.build(transaction: transaction, asset: asset, paymentService: paymentService)
         guard case let .confirm(data) = destination else {
             Issue.record("Expected confirmation via the encoded transaction fallback")
             return
@@ -96,103 +95,29 @@ struct PaymentTransferTests {
     @Test
     func destinationWithExactAmountConfirms() throws {
         let asset = Asset.mockEthereum()
-        let address = "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"
-        let checksummedAddress = "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
-        let payment = PaymentRequest.mock(address: " \n\(address)\r ", amount: .exactValue("1.234"))
+        let payment = PaymentRequest.mock(address: " \n0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a\r ", amount: .exactValue("1.234"))
 
-        let destination = try PaymentDestinationBuilder.transfer(payment: payment, asset: asset, addressService: addressService, paymentService: paymentService)
-
-        guard case let .confirm(data) = destination else {
+        guard case let .confirm(data) = try PaymentDestinationBuilder.transfer(payment: payment, asset: asset, paymentService: paymentService) else {
             Issue.record("Expected confirmation")
             return
         }
-        #expect(data.recipient.address == checksummedAddress)
+        #expect(data.recipient.address == "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a")
         #expect(data.value == "1234000000000000000")
     }
 
     @Test
-    func destinationWithoutAmountRequiresRecipient() throws {
-        let asset = Asset.mockEthereum()
-        let payment = PaymentRequest.mock(address: "0x123", memo: "test memo", references: ["reference"])
-
-        let destination = try PaymentDestinationBuilder.transfer(payment: payment, asset: asset, addressService: addressService, paymentService: paymentService)
-
-        guard case let .recipient(data) = destination else {
-            Issue.record("Expected recipient review")
-            return
-        }
-        #expect(data.recipient.address == payment.address)
-        #expect(data.recipient.memo == payment.memo)
-        #expect(data.recipient.references == ["reference"])
-        #expect(data.amount == nil)
-    }
-
-    @Test
-    func destinationWithAmountAndMemoConfirms() throws {
+    func destinationWithoutMemoRequiresRecipient() throws {
         let xrp = Asset.mock(id: .mock(Chain.xrp), name: "XRP", symbol: "XRP", decimals: 6)
-        let payment = PaymentRequest.mock(address: Self.xrpAddress, amount: .exactValue("10"), memo: "12345", assetId: xrp.id)
+        let payment = PaymentRequest.mock(address: Self.xrpAddress, amount: .exactValue("10"), references: ["reference"], assetId: xrp.id)
 
-        let destination = try PaymentDestinationBuilder.transfer(payment: payment, asset: xrp, addressService: addressService, paymentService: paymentService)
-
-        guard case let .confirm(data) = destination else {
-            Issue.record("Expected confirmation for tagged XRP payment")
-            return
-        }
-        #expect(data.recipient.address == Self.xrpAddress)
-        #expect(data.recipient.memo == "12345")
-        #expect(data.value == "10000000")
-    }
-
-    @Test
-    func destinationWithAmountWithoutMemoRequiresRecipient() throws {
-        let xrp = Asset.mock(id: .mock(Chain.xrp), name: "XRP", symbol: "XRP", decimals: 6)
-        let payment = PaymentRequest.mock(address: Self.xrpAddress, amount: .exactValue("10"), assetId: xrp.id)
-
-        let destination = try PaymentDestinationBuilder.transfer(payment: payment, asset: xrp, addressService: addressService, paymentService: paymentService)
-
-        guard case let .recipient(data) = destination else {
+        guard case let .recipient(data) = try PaymentDestinationBuilder.transfer(payment: payment, asset: xrp, paymentService: paymentService) else {
             Issue.record("Expected recipient review for XRP payment without a destination tag")
             return
         }
         #expect(data.recipient.address == Self.xrpAddress)
         #expect(data.recipient.memo == nil)
+        #expect(data.recipient.references == ["reference"])
         #expect(data.amount == "10")
-    }
-
-    @Test
-    func destinationBelowSmallestUnitRequiresRecipient() throws {
-        let asset = Asset.mockEthereum()
-        let payment = PaymentRequest.mock(
-            address: "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a",
-            amount: .exactValue("0.0000000000000000001"),
-        )
-
-        let destination = try PaymentDestinationBuilder.transfer(payment: payment, asset: asset, addressService: addressService, paymentService: paymentService)
-
-        guard case let .recipient(data) = destination else {
-            Issue.record("Expected recipient review for an unrepresentable ETH amount")
-            return
-        }
-        #expect(data.amount == "0.0000000000000000001")
-    }
-
-    @Test
-    func destinationSolanaWithoutMemoConfirms() throws {
-        let asset = Asset.mockSolanaUSDC()
-        let payment = PaymentRequest.mock(
-            address: "HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5",
-            amount: .exactValue("1"),
-            assetId: asset.id,
-        )
-
-        let destination = try PaymentDestinationBuilder.transfer(payment: payment, asset: asset, addressService: addressService, paymentService: paymentService)
-
-        guard case let .confirm(data) = destination else {
-            Issue.record("Expected a Solana payment without a memo to confirm")
-            return
-        }
-        #expect(data.value == "1000000")
-        #expect(data.recipient.memo == nil)
     }
 
     private static let xrpAddress = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"

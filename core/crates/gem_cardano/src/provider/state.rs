@@ -8,8 +8,8 @@ use crate::rpc::client::CardanoClient;
 
 #[async_trait]
 impl<C: Client> ChainState for CardanoClient<C> {
-    async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
-        self.get_network_magic().await
+    async fn get_chain_id(&self) -> Result<Option<String>, Box<dyn Error + Sync + Send>> {
+        Ok(Some(self.get_network_magic().await?))
     }
 
     async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>> {

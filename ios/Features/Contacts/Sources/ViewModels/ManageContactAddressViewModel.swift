@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemManageContactServiceProtocol
+import protocol Gemstone.GemNameServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
@@ -50,6 +51,7 @@ public final class ManageContactAddressViewModel {
 
     public init(
         service: any GemManageContactServiceProtocol,
+        nameService: any GemNameServiceProtocol,
         mode: Mode,
         onComplete: @escaping (Input) -> Void,
     ) {
@@ -58,14 +60,10 @@ public final class ManageContactAddressViewModel {
         self.onComplete = onComplete
         title = Localized.Common.address
 
-        let addressService = service.addresses()
-        let chain = mode.contactAddress?.chain ?? service.defaultContactChain
         addressInputModel = AddressInputViewModel(
-            chain: chain,
-            nameService: service.names(),
+            chain: mode.contactAddress?.chain ?? service.defaultContactChain,
+            nameService: nameService,
             placeholder: title,
-            addressService: addressService,
-            validators: [.required(requireName: title), .address(Asset(chain), addressService: addressService)],
         )
 
         if let address = mode.contactAddress {
@@ -100,7 +98,7 @@ public final class ManageContactAddressViewModel {
             state: .data(.plain(Chain.allCases)),
             selectedItems: [chain],
             selectionType: .checkmark,
-            chainService: service.chains(),
+            title: networkTitle,
         )
     }
 
@@ -131,7 +129,11 @@ extension ManageContactAddressViewModel {
     }
 
     func onHandleScan(_ result: String) {
-        addressInputModel.update(text: result)
+        let scan = service.scannedAddress(input: result)
+        addressInputModel.update(text: scan.address)
+        if let scannedMemo = scan.memo {
+            memo = scannedMemo
+        }
     }
 
     func complete() {

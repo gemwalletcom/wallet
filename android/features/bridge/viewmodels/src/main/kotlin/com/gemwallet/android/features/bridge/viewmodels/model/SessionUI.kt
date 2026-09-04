@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.bridge.viewmodels.model
 
-import uniffi.gemstone.GemApplicationMetadataService
 import com.gemwallet.android.ext.getShortUrl
 import com.gemwallet.android.ext.shortName
 import com.wallet.core.primitives.ApplicationMetadata
@@ -11,10 +10,10 @@ data class SessionUI(
     val uri: String = "",
 )
 
-fun ApplicationMetadata.toSessionUI(applicationMetadataService: GemApplicationMetadataService): SessionUI {
+fun ApplicationMetadata.toSessionUI(): SessionUI {
     return SessionUI(
         icon = icon,
-        name = shortName(applicationMetadataService),
+        name = shortName,
         uri = url.getShortUrl().orEmpty(),
     )
 }

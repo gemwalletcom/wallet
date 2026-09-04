@@ -2,15 +2,9 @@ package com.gemwallet.android.features.assets.viewmodels
 
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetHideBalancesState
-import com.gemwallet.android.application.assets.cases.GetImportInProgress
-import com.gemwallet.android.application.assets.cases.GetShowWelcomeBanner
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
-import com.gemwallet.android.application.assets.cases.HideAsset
-import com.gemwallet.android.application.assets.cases.HideWelcomeBanner
-import com.gemwallet.android.application.assets.cases.SyncAssets
-import com.gemwallet.android.application.assets.cases.SetAssetPinned
-import com.gemwallet.android.application.assets.cases.ToggleHideBalances
 import com.gemwallet.android.application.session.cases.GetSession
+import uniffi.gemstone.GemWalletHomeServiceInterface
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAsset
@@ -23,7 +17,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -33,6 +26,13 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.testkit.mockWallet
+import io.mockk.coEvery
+import io.mockk.coVerify
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.first
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -46,14 +46,7 @@ class AssetsViewModelTest {
         )
     )
 
-    private val syncAssets = mockk<SyncAssets>(relaxed = true)
-    private val hideAsset = mockk<HideAsset>(relaxed = true)
-    private val setAssetPinned = mockk<SetAssetPinned>(relaxed = true)
-    private val toggleHideBalances = mockk<ToggleHideBalances>(relaxed = true)
-    private val hideWelcomeBanner = mockk<HideWelcomeBanner>(relaxed = true)
-    private val getImportInProgress = object : GetImportInProgress {
-        override fun invoke(): Flow<Boolean> = flowOf(false)
-    }
+    private val service = mockk<GemWalletHomeServiceInterface>(relaxed = true)
     private val getActiveAssetsInfo = object : GetActiveAssetsInfo {
         override fun getAssetsInfo(hideBalance: Boolean): Flow<List<AssetInfoDataAggregate>> = activeAssetsFlow
     }
@@ -63,13 +56,9 @@ class AssetsViewModelTest {
     private val getHideBalancesState = object : GetHideBalancesState {
         override fun invoke(): Flow<Boolean> = flowOf(false)
     }
-    private val getShowWelcomeBanner = object : GetShowWelcomeBanner {
-        override fun invoke(): Flow<Boolean> {
-            return activeAssetsFlow.map { items -> items.all { it.isZeroBalance } }
-        }
-    }
+    private val session = MutableStateFlow<Session?>(null)
     private val getSession = object : GetSession {
-        override fun invoke(): StateFlow<Session?> = MutableStateFlow(null)
+        override fun invoke(): StateFlow<Session?> = session
     }
 
     @Before
@@ -93,27 +82,52 @@ class AssetsViewModelTest {
     }
 
     @Test
-    fun `show welcome banner stays true for created wallet with no assets`() = runTest(testDispatcher) {
-        activeAssetsFlow.value = emptyList()
+    fun `the loading row follows core's first load answer around the refresh`() = runTest(testDispatcher) {
+        val refreshStarted = CompletableDeferred<Unit>()
+        val refreshGate = CompletableDeferred<Unit>()
+        every { service.showsInitialLoading() } returns true
+        coEvery { service.refresh(any()) } coAnswers {
+            refreshStarted.complete(Unit)
+            refreshGate.await()
+        }
+        session.value = mockSession(wallet = mockWallet())
 
         val viewModel = createViewModel()
         advanceUntilIdle()
 
-        assertTrue(viewModel.showWelcomeBanner.value)
+        refreshStarted.await()
+        assertTrue(viewModel.isLoadingAssets.value)
+        refreshGate.complete(Unit)
+        assertFalse(viewModel.isLoadingAssets.first { !it })
+        coVerify(exactly = 1) { service.refresh(any()) }
+    }
+
+    @Test
+    fun `a wallet core has already loaded refreshes without the loading row`() = runTest(testDispatcher) {
+        val refreshStarted = CompletableDeferred<Unit>()
+        val refreshGate = CompletableDeferred<Unit>()
+        every { service.showsInitialLoading() } returns false
+        coEvery { service.refresh(any()) } coAnswers {
+            refreshStarted.complete(Unit)
+            refreshGate.await()
+        }
+        session.value = mockSession(wallet = mockWallet())
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        refreshStarted.await()
+        assertFalse(viewModel.isLoadingAssets.value)
+        refreshGate.complete(Unit)
     }
 
     private fun createViewModel() = AssetsViewModel(
-        syncAssets = syncAssets,
-        hideAsset = hideAsset,
-        setAssetPinned = setAssetPinned,
-        toggleHideBalances = toggleHideBalances,
-        hideWelcomeBanner = hideWelcomeBanner,
-        getImportInProgress = getImportInProgress,
+        service = service,
         getActiveAssetsInfo = getActiveAssetsInfo,
         getWalletSummary = getWalletSummary,
         getHideBalancesState = getHideBalancesState,
-        getShowWelcomeBanner = getShowWelcomeBanner,
         getSession = getSession,
+        userConfig = mockk(relaxed = true),
     )
 
     private fun assetAggregate(

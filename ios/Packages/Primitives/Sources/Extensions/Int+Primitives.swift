@@ -1,15 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Foundation
 
 public extension Int32 {
     var asInt: Int {
         Int(self)
-    }
-
-    var asBigInt: BigInt {
-        BigInt(self)
     }
 
     var asString: String {
@@ -37,9 +32,6 @@ public extension Int {
         String(self)
     }
 
-    var asBigInt: BigInt {
-        BigInt(self)
-    }
 }
 
 public extension Int32 {
@@ -59,7 +51,4 @@ public extension UInt64 {
         self = value
     }
 
-    var asBigInt: BigInt {
-        BigInt(self)
-    }
 }

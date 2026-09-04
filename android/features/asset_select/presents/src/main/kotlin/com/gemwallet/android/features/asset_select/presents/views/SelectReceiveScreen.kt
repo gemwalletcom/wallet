@@ -6,13 +6,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.features.asset_select.viewmodels.AssetSelectViewModel
 import com.gemwallet.android.ui.icons.AppIcons
 import com.wallet.core.primitives.AssetId
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
+import uniffi.gemstone.GemAssetAction
 
 @Composable
 fun SelectReceiveScreen(
@@ -31,13 +31,13 @@ fun SelectReceiveScreen(
         closeIcon = closeIcon,
         showFilter = showFilter,
         titleBadge = ::getAssetBadge,
-        recentType = RecentActivityType.Receive,
+        action = GemAssetAction.RECEIVE,
         onSelectRecent = onSelect,
         itemTrailing = {
             IconButton(
                 onClick = {
                     viewModel.onChangeVisibility(it.asset.id, true)
-                    clipboardManager.setPlainText(context, viewModel.getAccount(it.asset.id)?.address ?: "")
+                    clipboardManager.setPlainText(context, it.accountAddress)
                 }
             ) {
                 Icon(imageVector = AppIcons.ContentCopy, contentDescription = "")

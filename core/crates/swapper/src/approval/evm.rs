@@ -37,7 +37,10 @@ where
         .parse()
         .map_err(|_| SwapperError::TransactionError(format!("{}: {spender}", INVALID_ADDRESS)))?;
     let allowance_data = IERC20::allowanceCall { owner, spender }.abi_encode();
-    let allowance_call = EthereumRpc::Call(TransactionObject::new_call(&token, allowance_data), BlockParameter::Latest);
+    let allowance_call = EthereumRpc::Call {
+        transaction: TransactionObject::new_call(&token, allowance_data),
+        block: BlockParameter::Latest,
+    };
 
     let result: String = client.request(allowance_call).await.map_err(SwapperError::from)?;
 
@@ -86,7 +89,10 @@ where
         _2: eth_address::parse_str(&spender)?,
     }
     .abi_encode();
-    let permit2_call = EthereumRpc::Call(TransactionObject::new_call(permit2_contract, permit2_data), BlockParameter::Latest);
+    let permit2_call = EthereumRpc::Call {
+        transaction: TransactionObject::new_call(permit2_contract, permit2_data),
+        block: BlockParameter::Latest,
+    };
 
     let result: String = client.request(permit2_call).await.map_err(SwapperError::from)?;
 

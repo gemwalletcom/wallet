@@ -2,13 +2,13 @@ package com.gemwallet.android.data.services.gemstone.perpetual
 
 import android.util.Log
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
-import com.gemwallet.android.application.perpetual.cases.SyncPerpetuals
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnectable
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketEvent
 import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.wallet.core.primitives.ChartCandleUpdate
 import com.wallet.core.primitives.PerpetualAccountMode
+import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import com.gemwallet.android.serializer.decodeJson
 import kotlinx.coroutines.CoroutineScope
@@ -30,7 +30,6 @@ import uniffi.gemstone.GemPerpetualSubscription
 
 class HyperliquidObserverService(
     private val observePerpetualWallet: ObservePerpetualWallet,
-    private val syncPerpetuals: SyncPerpetuals,
     private val perpetualService: GemPerpetualService,
     private val streamService: GemPerpetualStreamService,
     private val connection: WebSocketConnectable,
@@ -65,7 +64,8 @@ class HyperliquidObserverService(
                 .distinctUntilChangedBy { it?.id?.id }
                 .collectLatest { wallet ->
                     if (wallet == null) return@collectLatest
-                    runCatching { syncPerpetuals.syncPerpetuals(GemMarketsRefreshTrigger.SCHEDULED) }
+                    runCatchingCancellable { perpetualService.syncEnablement(GemMarketsRefreshTrigger.SCHEDULED) }
+                        .onFailure { Log.e(TAG, "perpetual markets sync failed", it) }
                 }
         }
     }

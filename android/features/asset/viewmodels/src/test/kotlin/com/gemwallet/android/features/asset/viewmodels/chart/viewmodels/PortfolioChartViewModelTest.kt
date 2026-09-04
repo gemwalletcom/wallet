@@ -2,15 +2,17 @@ package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.cases.GetPortfolioData
-import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.model.Session
+import com.gemwallet.android.serializer.toJson
+import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
 import com.wallet.core.primitives.ChartDateValue
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.ChartValuePercentage
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PortfolioChartData
 import com.wallet.core.primitives.PortfolioChartType
 import com.wallet.core.primitives.PortfolioData
@@ -41,14 +43,21 @@ import org.junit.Test
 class PortfolioChartViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private val currencyFlow = MutableStateFlow(Currency.USD)
+    private val session = mockSession()
+    private val sessionFlow = MutableStateFlow<Session?>(session)
     private val viewModels = mutableListOf<ViewModel>()
 
-    private val getCurrentCurrency = mockk<GetCurrentCurrency>(relaxed = true) {
-        every { getCurrency() } returns currencyFlow
+    private val getSession = mockk<GetSession> {
+        every { this@mockk.invoke() } returns sessionFlow
     }
     private val observePerpetualWallet = mockk<ObservePerpetualWallet>(relaxed = true)
-    private val getPortfolioData = mockk<GetPortfolioData>(relaxed = true)
+    private val service = mockk<uniffi.gemstone.GemPortfolioServiceInterface>()
+
+    private fun stubPortfolio(type: PortfolioType? = null, period: ChartPeriod? = null, data: PortfolioData) {
+        coEvery {
+            service.portfolioData(any(), type?.toGem() ?: any(), period?.toJson() ?: any())
+        } returns data.toJson()
+    }
 
     @Before
     fun setUp() {
@@ -71,7 +80,7 @@ class PortfolioChartViewModelTest {
 
     @Test
     fun `renders chart when portfolio has values`() = runTest(testDispatcher) {
-        coEvery { getPortfolioData.getPortfolioData(PortfolioType.Wallet, ChartPeriod.All, Currency.USD) } returns portfolioData(listOf(10f, 12f, 14f))
+        stubPortfolio(PortfolioType.Wallet, ChartPeriod.All, portfolioData(listOf(10f, 12f, 14f)))
 
         val viewModel = createViewModel()
         val state = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == 3 }
@@ -81,21 +90,19 @@ class PortfolioChartViewModelTest {
 
     @Test
     fun `initial request uses all period by default`() = runTest(testDispatcher) {
-        coEvery { getPortfolioData.getPortfolioData(PortfolioType.Wallet, ChartPeriod.All, Currency.USD) } returns portfolioData(listOf(1f, 2f))
+        stubPortfolio(PortfolioType.Wallet, ChartPeriod.All, portfolioData(listOf(1f, 2f)))
 
         val viewModel = createViewModel()
         viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == 2 }
 
         assertEquals(ChartPeriod.All, viewModel.chartUIState.first { it.chart != StateViewType.Loading }.period)
-        coVerify(exactly = 1) { getPortfolioData.getPortfolioData(PortfolioType.Wallet, ChartPeriod.All, Currency.USD) }
+        coVerify(exactly = 1) { service.portfolioData(session.wallet.toJson(), PortfolioType.Wallet.toGem(), ChartPeriod.All.toJson()) }
     }
 
     @Test
     fun `selecting period updates state and refetches`() = runTest(testDispatcher) {
-        coEvery { getPortfolioData.getPortfolioData(any(), any(), any()) } returns portfolioData(listOf(1f, 2f))
-        coEvery {
-            getPortfolioData.getPortfolioData(PortfolioType.Wallet, ChartPeriod.Month, Currency.USD)
-        } returns portfolioData(listOf(1f, 2f, 3f))
+        stubPortfolio(data = portfolioData(listOf(1f, 2f)))
+        stubPortfolio(PortfolioType.Wallet, ChartPeriod.Month, portfolioData(listOf(1f, 2f, 3f)))
         val viewModel = createViewModel()
         backgroundScope.launch { viewModel.chartUIState.collect {} }
 
@@ -103,44 +110,38 @@ class PortfolioChartViewModelTest {
         val state = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == 3 }
 
         assertEquals(ChartPeriod.Month, state.period)
-        coVerify { getPortfolioData.getPortfolioData(PortfolioType.Wallet, ChartPeriod.Month, Currency.USD) }
+        coVerify { service.portfolioData(any(), PortfolioType.Wallet.toGem(), ChartPeriod.Month.toJson()) }
     }
 
     @Test
     fun `resets period when the selected period is unavailable`() = runTest(testDispatcher) {
         val periods = listOf(ChartPeriod.Day, ChartPeriod.Week, ChartPeriod.Month)
-        coEvery {
-            getPortfolioData.getPortfolioData(any(), ChartPeriod.All, any())
-        } returns portfolioData(listOf(1f, 2f), availablePeriods = periods)
-        coEvery {
-            getPortfolioData.getPortfolioData(any(), ChartPeriod.Day, any())
-        } returns portfolioData(listOf(1f, 2f, 3f), availablePeriods = periods)
+        stubPortfolio(period = ChartPeriod.All, data = portfolioData(listOf(1f, 2f), availablePeriods = periods))
+        stubPortfolio(period = ChartPeriod.Day, data = portfolioData(listOf(1f, 2f, 3f), availablePeriods = periods))
         val viewModel = createViewModel()
         backgroundScope.launch { viewModel.chartUIState.collect {} }
 
         val state = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == 3 }
 
         assertEquals(ChartPeriod.Day, state.period)
-        coVerify { getPortfolioData.getPortfolioData(PortfolioType.Wallet, ChartPeriod.Day, Currency.USD) }
+        coVerify { service.portfolioData(any(), PortfolioType.Wallet.toGem(), ChartPeriod.Day.toJson()) }
     }
 
     @Test
     fun `starts on perpetuals when opened with perpetuals type`() = runTest(testDispatcher) {
-        coEvery {
-            getPortfolioData.getPortfolioData(PortfolioType.Perpetuals, ChartPeriod.All, Currency.USD)
-        } returns portfolioData(listOf(1f, 2f))
+        stubPortfolio(PortfolioType.Perpetuals, ChartPeriod.All, portfolioData(listOf(1f, 2f)))
         val viewModel = createViewModel(initialType = PortfolioType.Perpetuals)
         backgroundScope.launch { viewModel.chartUIState.collect {} }
 
         viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == 2 }
 
         assertEquals(PortfolioType.Perpetuals, viewModel.selectedType.value)
-        coVerify(exactly = 0) { getPortfolioData.getPortfolioData(PortfolioType.Wallet, any(), any()) }
+        coVerify(exactly = 0) { service.portfolioData(any(), PortfolioType.Wallet.toGem(), any()) }
     }
 
     @Test
     fun `shows error state when the portfolio request fails`() = runTest(testDispatcher) {
-        coEvery { getPortfolioData.getPortfolioData(any(), any(), any()) } throws IllegalStateException("network down")
+        coEvery { service.portfolioData(any(), any(), any()) } throws IllegalStateException("network down")
         val viewModel = createViewModel()
         backgroundScope.launch { viewModel.chartUIState.collect {} }
 
@@ -151,9 +152,7 @@ class PortfolioChartViewModelTest {
 
     @Test
     fun `flat chart without variation is empty`() = runTest(testDispatcher) {
-        coEvery {
-            getPortfolioData.getPortfolioData(PortfolioType.Wallet, ChartPeriod.All, Currency.USD)
-        } returns portfolioData(listOf(5f, 5f, 5f))
+        stubPortfolio(PortfolioType.Wallet, ChartPeriod.All, portfolioData(listOf(5f, 5f, 5f)))
         val viewModel = createViewModel()
         backgroundScope.launch { viewModel.chartUIState.collect {} }
 
@@ -165,9 +164,7 @@ class PortfolioChartViewModelTest {
     @Test
     fun `exposes all time statistics from portfolio`() = runTest(testDispatcher) {
         val allTimeHigh = ChartValuePercentage(date = 1L, value = 99f, percentage = 5f)
-        coEvery {
-            getPortfolioData.getPortfolioData(PortfolioType.Wallet, ChartPeriod.All, Currency.USD)
-        } returns portfolioData(listOf(1f, 2f), statistics = listOf(PortfolioStatistic.AllTimeHigh(allTimeHigh)))
+        stubPortfolio(PortfolioType.Wallet, ChartPeriod.All, portfolioData(listOf(1f, 2f), statistics = listOf(PortfolioStatistic.AllTimeHigh(allTimeHigh))))
 
         val viewModel = createViewModel()
         val statistics = viewModel.statistics.first { it.isNotEmpty() }
@@ -193,9 +190,9 @@ class PortfolioChartViewModelTest {
     )
 
     private fun createViewModel(initialType: PortfolioType = PortfolioType.Wallet) = PortfolioChartViewModel(
-        getCurrentCurrency = getCurrentCurrency,
+        service = service,
+        getSession = getSession,
         observePerpetualWallet = observePerpetualWallet,
-        getPortfolioData = getPortfolioData,
         initialType = initialType,
     ).also(viewModels::add)
 }

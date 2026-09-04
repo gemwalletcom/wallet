@@ -1,12 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemAvatarServiceProtocol
-import protocol Gemstone.GemNftServiceProtocol
-import GemstoneServices
 import Components
-import protocol Gemstone.GemExplorerServiceProtocol
 import Foundation
+import struct Gemstone.GemCollectibleLinks
+import protocol Gemstone.GemCollectibleServiceProtocol
 import GemstonePrimitives
+import GemstoneServices
 import ImageGalleryService
 import InfoSheet
 import Localization
@@ -19,11 +18,9 @@ import SwiftUI
 @MainActor
 public final class CollectibleViewModel {
     private let wallet: Wallet
-    private let avatarService: any GemAvatarServiceProtocol
-    private let explorerService: any GemExplorerServiceProtocol
+    private let service: any GemCollectibleServiceProtocol
 
     let assetData: NFTAssetData
-    let nftService: any GemNftServiceProtocol
 
     var isPresentingAlertMessage: AlertMessage?
     var isPresentingToast: ToastMessage?
@@ -35,16 +32,12 @@ public final class CollectibleViewModel {
     public init(
         wallet: Wallet,
         assetData: NFTAssetData,
-        avatarService: any GemAvatarServiceProtocol,
-        nftService: any GemNftServiceProtocol,
-        explorerService: any GemExplorerServiceProtocol,
+        service: any GemCollectibleServiceProtocol,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
     ) {
         self.wallet = wallet
         self.assetData = assetData
-        self.avatarService = avatarService
-        self.nftService = nftService
-        self.explorerService = explorerService
+        self.service = service
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
     }
 
@@ -89,7 +82,7 @@ public final class CollectibleViewModel {
     }
 
     var contractExplorerLink: BlockExplorerLink? {
-        explorerService.getTokenUrl(chain: assetData.asset.chain.rawValue, address: contractValue).map { BlockExplorerLink($0) }
+        links.contract.map { BlockExplorerLink($0) }
     }
 
     var contractExplorerContext: ExplorerContextData? {
@@ -121,11 +114,7 @@ public final class CollectibleViewModel {
     }
 
     var tokenIdExplorerLink: BlockExplorerLink? {
-        explorerService.getNftUrl(
-            chain: assetData.asset.chain.rawValue,
-            contractAddress: contractValue,
-            tokenId: tokenIdValue,
-        ).map { BlockExplorerLink($0) }
+        links.token.map { BlockExplorerLink($0) }
     }
 
     var tokenIdExplorerContext: ExplorerContextData? {
@@ -155,7 +144,7 @@ public final class CollectibleViewModel {
     }
 
     var isSendEnabled: Bool {
-        wallet.canSign && assetData.asset.chain.supportsNftTransfer
+        (try? service.canSend(chain: assetData.asset.chain.map())) ?? false
     }
 
     var headerButtons: [HeaderButton] {
@@ -188,8 +177,8 @@ public final class CollectibleViewModel {
         assetData.collection.links.isNotEmpty
     }
 
-    var scoreViewModel: AssetScoreTypeViewModel {
-        AssetScoreTypeViewModel(scoreType: AssetScoreType(verificationStatus: assetData.collection.status))
+    var statusViewModel: VerificationStatusViewModel {
+        VerificationStatusViewModel(status: assetData.collection.status)
     }
 
     var showStatus: Bool {
@@ -283,7 +272,7 @@ extension CollectibleViewModel {
     func onSelectRefresh() {
         Task {
             do {
-                try await nftService.refreshAsset(walletId: wallet.id.id, assetId: assetData.asset.id.identifier)
+                try await service.refreshAsset(assetId: assetData.asset.id.identifier)
                 isPresentingToast = .success(Localized.Common.refresh)
             } catch {
                 debugLog("Refresh nft asset error: \(error)")
@@ -292,13 +281,17 @@ extension CollectibleViewModel {
         }
     }
 
+    func reportModel() -> ReportNftViewModel {
+        ReportNftViewModel(service: service, assetData: assetData, onComplete: onReportComplete)
+    }
+
     func onReportComplete() {
         isPresentingReportSheet = false
         isPresentingToast = .success(Localized.Transaction.Status.confirmed)
     }
 
     func onSelectStatus() {
-        isPresentingInfoSheet = .assetStatus(scoreViewModel.scoreType)
+        isPresentingInfoSheet = .assetStatus(assetData.collection.status)
     }
 }
 
@@ -309,6 +302,10 @@ extension CollectibleViewModel {
         assetData.collection.contractAddress
     }
 
+    private var links: GemCollectibleLinks {
+        service.links(chain: assetData.asset.chain.rawValue, contractAddress: contractValue, tokenId: tokenIdValue)
+    }
+
     private func openSettings() {
         guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else { return }
         UIApplication.shared.open(settingsURL)
@@ -316,7 +313,7 @@ extension CollectibleViewModel {
 
     private func setWalletAvatar() async throws {
         guard let url = assetData.asset.images.preview.url.asURL else { return }
-        try await avatarService.setImage(url: url, for: wallet)
+        try await service.setWalletAvatar(url: url.absoluteString)
     }
 
     private func saveImageToGallery() async throws(ImageGalleryServiceError) {

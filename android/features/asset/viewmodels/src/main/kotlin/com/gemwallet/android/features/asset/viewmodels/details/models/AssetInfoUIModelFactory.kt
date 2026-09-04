@@ -6,34 +6,39 @@ import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.isStaked
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ChainAssetInfo
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.getTotalAmount
-import com.gemwallet.android.model.toStakeBalance
+import com.gemwallet.android.model.toGem
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.StakeChain
+import com.wallet.core.primitives.VerificationStatus
 import com.wallet.core.primitives.WalletType
 import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toIdentifier
-import uniffi.gemstone.GemSwapServiceInterface
+import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.GemAssetNetworkDestination
+import uniffi.gemstone.GemBalanceRow
+import uniffi.gemstone.GemSwapPairSuggestion
 import javax.inject.Inject
 import java.math.BigInteger
 
-class AssetInfoUIModelFactory @Inject constructor(
-    private val swapService: GemSwapServiceInterface,
-) {
+class AssetInfoUIModelFactory @Inject constructor() {
 
     fun create(
         chainAssetInfo: ChainAssetInfo,
+        swapPair: GemSwapPairSuggestion,
         explorerName: String,
         walletType: WalletType,
         explorerAddressUrl: String?,
         explorerTokenUrl: String?,
+        verificationStatus: VerificationStatus?,
+        networkDestination: GemAssetNetworkDestination?,
+        shareUrl: String,
     ): AssetInfoUIModel {
         val assetInfo = chainAssetInfo.assetInfo
         val feeAssetInfo = chainAssetInfo.feeAssetInfo
@@ -44,11 +49,6 @@ class AssetInfoUIModelFactory @Inject constructor(
         val currencyFormatter = CurrencyFormatter(currency = currency)
         val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Auto)
         val fiatTotal = if (balances.fiatTotalAmount == 0.0) "" else currencyFormatter.string(balances.fiatTotalAmount)
-        val swapPair = swapService.pairForAsset(
-            assetId = asset.id.toIdentifier(),
-            hasBalance = (balances.balance.available.toBigIntegerOrNull() ?: BigInteger.ZERO) > BigInteger.ZERO,
-        )
-
         return AssetInfoUIModel(
             assetInfo = assetInfo,
             name = assetName(asset),
@@ -64,53 +64,46 @@ class AssetInfoUIModelFactory @Inject constructor(
             explorerName = explorerName,
             explorerAddressUrl = explorerAddressUrl,
             explorerTokenUrl = explorerTokenUrl,
+            verificationStatus = verificationStatus,
+            networkDestination = networkDestination?.let(::networkDestination),
+            shareUrl = shareUrl,
             accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
                 walletType = walletType,
                 totalBalance = valueFormatter.string(balances.balance.getTotalAmount(), balances.asset),
                 totalFiat = fiatTotal,
                 owner = assetInfo.owner?.address ?: "",
+                balances = balanceRows(assetInfo, valueFormatter),
                 balanceMetadata = feeAssetInfo.balance.metadata,
-                hasBalanceDetails = StakeChain.isStaked(asset.id.chain) || balances.balanceAmount.reserved != 0.0,
-                available = formatAvailable(assetInfo, valueFormatter),
-                stake = formatStake(assetInfo, valueFormatter),
-                reserved = formatReserved(assetInfo, valueFormatter),
             ),
         )
+    }
+
+    private fun networkDestination(destination: GemAssetNetworkDestination): AssetInfoUIModel.NetworkDestination? = when (destination) {
+        is GemAssetNetworkDestination.Asset -> AssetInfoUIModel.NetworkDestination.Asset(destination.asset.toPrimitives().id)
+        is GemAssetNetworkDestination.Assets -> AssetInfoUIModel.NetworkDestination.Assets(destination.chain.requireChain())
     }
 
     private fun assetName(asset: Asset): String =
         if (asset.type == AssetType.NATIVE) asset.id.chain.asset().name else asset.name
 
-    private fun formatAvailable(assetInfo: AssetInfo, formatter: ValueFormatter): String {
-        val balances = assetInfo.balance
-        return if (balances.balanceAmount.available != balances.totalAmount) {
-            formatter.string(balances.balance.available.toBigInteger(), balances.asset)
-        } else {
-            ""
-        }
-    }
-
-    private fun formatStake(assetInfo: AssetInfo, formatter: ValueFormatter): String {
-        val balances = assetInfo.balance
-        val stakeBalance = balances.balance.toStakeBalance()
-        val chain = assetInfo.asset.chain.string
-        if (!stakeBalance.showsStakeBalance(chain, assetInfo.metadata.isStakeEnabled)) {
-            return ""
-        }
-        val staked = stakeBalance.stakedValue(chain).toBigInteger()
-        return if (staked == BigInteger.ZERO) {
-            "APR ${(assetInfo.metadata.stakingApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
-        } else {
-            formatter.string(staked, balances.asset)
-        }
-    }
-
-    private fun formatReserved(assetInfo: AssetInfo, formatter: ValueFormatter): String {
-        val balances = assetInfo.balance
-        return if (balances.balanceAmount.reserved != 0.0) {
-            formatter.string(balances.balance.reserved.toBigInteger(), balances.asset)
-        } else {
-            ""
+    private fun balanceRows(assetInfo: AssetInfo, formatter: ValueFormatter): List<AssetInfoUIModel.BalanceUIModel> {
+        val asset = assetInfo.asset
+        val text = { value: BigInteger -> formatter.string(value, asset) }
+        return assetInfo.balance.toGem().detailRows(asset.chain.string, assetInfo.metadata.isStakeEnabled).mapNotNull { row ->
+            when (row) {
+                is GemBalanceRow.Available -> AssetInfoUIModel.BalanceUIModel(AssetInfoUIModel.BalanceViewType.Available, text(row.value))
+                is GemBalanceRow.Staked -> AssetInfoUIModel.BalanceUIModel(
+                    AssetInfoUIModel.BalanceViewType.Stake,
+                    if (row.value == BigInteger.ZERO) {
+                        "APR ${(assetInfo.metadata.stakingApr ?: 0.0).formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess)}"
+                    } else {
+                        text(row.value)
+                    },
+                )
+                is GemBalanceRow.PendingUnconfirmed -> AssetInfoUIModel.BalanceUIModel(AssetInfoUIModel.BalanceViewType.PendingUnconfirmed, text(row.value))
+                is GemBalanceRow.Reserved -> AssetInfoUIModel.BalanceUIModel(AssetInfoUIModel.BalanceViewType.Reserved, text(row.value), row.url)
+                is GemBalanceRow.Earn -> null
+            }
         }
     }
 }

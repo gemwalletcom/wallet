@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import protocol Gemstone.GemChainServiceProtocol
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -11,7 +10,6 @@ import SwiftUI
 
 public struct AddAssetScene: View {
     @State private var model: AddAssetSceneViewModel
-    @State private var networksModel: NetworkSelectorViewModel
     @State private var isPresentingUrl: URL?
 
     @FocusState private var focusedField: Field?
@@ -19,12 +17,11 @@ public struct AddAssetScene: View {
         case address
     }
 
-    var action: ((Asset) -> Void)?
+    private let onComplete: VoidAction
 
-    public init(model: AddAssetSceneViewModel, chainService: any GemChainServiceProtocol, action: ((Asset) -> Void)? = nil) {
+    public init(model: AddAssetSceneViewModel, onComplete: VoidAction) {
         _model = State(initialValue: model)
-        _networksModel = State(initialValue: NetworkSelectorViewModel(state: .data(.plain(model.chains)), chainService: chainService))
-        self.action = action
+        self.onComplete = onComplete
     }
 
     public var body: some View {
@@ -50,7 +47,7 @@ public struct AddAssetScene: View {
             .navigationTitle(model.title)
             .navigationDestination(for: Scenes.NetworksSelector.self) { _ in
                 NetworkSelectorScene(
-                    model: $networksModel,
+                    model: model.networksModel,
                     onFinishSelection: onFinishChainSelection(chains:),
                 )
             }
@@ -143,7 +140,8 @@ extension AddAssetScene {
 
     private func onSelectImportToken() {
         guard case let .data(asset) = model.state else { return }
-        action?(asset.asset)
+        model.add(asset.asset)
+        onComplete?()
     }
 
     private func onSelectScan() {

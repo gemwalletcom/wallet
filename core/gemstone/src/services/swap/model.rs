@@ -1,8 +1,48 @@
 use crate::models::custom_types::GemBigInt;
 use crate::models::custom_types::GemBigUint;
-use primitives::AssetId;
-use primitives::swap::{SwapQuote, SwapQuoteData};
-use swapper::SwapperError;
+use crate::models::transaction::GemTransactionInputType;
+use crate::services::transfer::{GemRecipient, GemTransferData};
+use primitives::swap::{SwapData, SwapQuote, SwapQuoteData};
+use primitives::{Asset, AssetId};
+use swapper::{Quote, SwapperError};
+
+use super::rules;
+
+#[derive(Debug, Clone, PartialEq, uniffi::Object)]
+pub struct GemSwapQuoteSummary {
+    quote: SwapQuote,
+    min_receive_value: GemBigUint,
+    eta_minutes: Option<u32>,
+}
+
+#[uniffi::export]
+impl GemSwapQuoteSummary {
+    #[uniffi::constructor]
+    pub fn new(quote: SwapQuote) -> Self {
+        Self {
+            min_receive_value: rules::min_receive_value(&quote.to_value, quote.slippage_bps),
+            eta_minutes: quote.eta_in_seconds.and_then(rules::eta_minutes),
+            quote,
+        }
+    }
+
+    #[uniffi::constructor]
+    pub fn from_quote(quote: Quote) -> Self {
+        Self::new(rules::swap_quote(&quote))
+    }
+
+    pub fn quote(&self) -> SwapQuote {
+        self.quote.clone()
+    }
+
+    pub fn min_receive_value(&self) -> GemBigUint {
+        self.min_receive_value.clone()
+    }
+
+    pub fn eta_minutes(&self) -> Option<u32> {
+        self.eta_minutes
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapTransfer {
@@ -11,6 +51,31 @@ pub struct GemSwapTransfer {
     pub recipient: String,
     pub value: GemBigUint,
     pub use_max_amount: bool,
+}
+
+#[uniffi::export]
+impl GemSwapTransfer {
+    pub fn transfer_data(&self, from_asset: Asset, to_asset: Asset) -> GemTransferData {
+        GemTransferData {
+            input_type: GemTransactionInputType::Swap {
+                from_asset,
+                to_asset,
+                swap_data: SwapData {
+                    quote: self.quote.clone(),
+                    data: self.data.clone(),
+                },
+            },
+            recipient: GemRecipient {
+                address: self.recipient.clone(),
+                name: None,
+                memo: self.data.memo.clone(),
+                references: vec![],
+            },
+            value: self.value.clone().into(),
+            use_max_amount: self.use_max_amount,
+            minimum_value: self.quote.min_from_value.clone().map(Into::into),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

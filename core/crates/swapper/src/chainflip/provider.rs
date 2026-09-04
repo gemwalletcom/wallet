@@ -497,7 +497,7 @@ mod tests {
 
         let (quote_request, _) = build_quote_request(&request, &assets_response()).unwrap();
         assert_eq!(
-            gem_client::build_path_with_query("/quotes-native", &quote_request).unwrap(),
+            gem_client::build_path_with_query("/quotes-native", &quote_request),
             "/quotes-native?amount=1000000000000000000&sourceAsset=eth.eth&destinationAsset=btc.btc&commissionBps=45&isVaultSwap=true"
         );
     }

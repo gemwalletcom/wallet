@@ -5,14 +5,6 @@ import Gemstone
 import Primitives
 
 public extension Primitives.DeepLink {
-    func url(deeplinkService: GemDeeplinkService) -> URL {
-        deeplinkService.buildUrl(deeplink: map()).asURL!
-    }
-
-    func gemUrl(deeplinkService: GemDeeplinkService) -> URL {
-        deeplinkService.buildGemUrl(deeplink: map()).asURL!
-    }
-
     func map() -> Gemstone.Deeplink {
         switch self {
         case let .asset(assetId): .asset(assetId: assetId.identifier)

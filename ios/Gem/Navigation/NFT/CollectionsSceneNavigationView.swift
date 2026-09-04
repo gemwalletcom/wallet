@@ -2,6 +2,7 @@
 
 import Components
 import NFT
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI

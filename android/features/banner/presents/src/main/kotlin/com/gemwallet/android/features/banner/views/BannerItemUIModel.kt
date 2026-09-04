@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.icons.AppIcons
@@ -17,7 +17,6 @@ import uniffi.gemstone.GemBannerContent
 import uniffi.gemstone.GemBannerDescription
 import uniffi.gemstone.GemBannerIcon
 import uniffi.gemstone.GemBannerTitle
-import java.math.BigInteger
 
 internal data class BannerItemUIModel(
     val title: String?,
@@ -74,7 +73,7 @@ private fun bannerDescription(description: GemBannerDescription): String = when 
 @Composable
 private fun bannerIcon(icon: GemBannerIcon): BannerIcon? = when (icon) {
     GemBannerIcon.MoneyBag -> BannerIcon.Emoji(Emoji.moneyBag)
-    is GemBannerIcon.Network -> icon.chain.toChain()?.let { BannerIcon.Url(it.getIconUrl()) }
+    is GemBannerIcon.Network -> BannerIcon.Url(icon.chain.requireChain().getIconUrl())
     GemBannerIcon.Warning -> BannerIcon.Vector(AppIcons.Warning)
     GemBannerIcon.Suspicious -> BannerIcon.Drawable(R.drawable.suspicious)
     GemBannerIcon.Bitcoin -> BannerIcon.Vector(AppIcons.CurrencyBitcoin)
@@ -82,4 +81,4 @@ private fun bannerIcon(icon: GemBannerIcon): BannerIcon? = when (icon) {
 }
 
 private fun formatAmount(amount: GemBannerAmount): String = ValueFormatter(style = ValueFormatter.Style.Auto)
-    .string(BigInteger(amount.value), decimals = amount.decimals, currency = amount.symbol)
+    .string(amount.value, decimals = amount.decimals, currency = amount.symbol)

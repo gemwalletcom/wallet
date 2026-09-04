@@ -1,17 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Components
 import Formatters
+import enum Gemstone.GemNodeStatusState
 import Primitives
 import Style
 
 struct NodeStatusStateViewModel {
-    let nodeStatus: NodeStatusState
+    let nodeStatus: GemNodeStatusState
 
     func latestBlockText(title: String, formatter: ValueFormatter) -> String {
         let value = switch nodeStatus {
-        case let .result(nodeStatus): formatter.string(nodeStatus.latestBlockNumber, decimals: 0)
-        case .error, .none: "-"
+        case let .result(latestBlockNumber, _): formatter.string(BigInt(latestBlockNumber), decimals: 0)
+        case .error, .loading: "-"
         }
         return "\(title): \(value)"
     }

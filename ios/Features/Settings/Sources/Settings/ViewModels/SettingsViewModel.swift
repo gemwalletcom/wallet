@@ -17,16 +17,16 @@ import GemstoneServices
 @MainActor
 public final class SettingsViewModel {
     private let walletId: WalletId
-    private let walletSessionService: any GemWalletSessionServiceProtocol
+    private let service: any GemWalletSessionServiceProtocol
     private let observablePreferences: ObservablePreferences
 
     public init(
         walletId: WalletId,
-        walletSessionService: any GemWalletSessionServiceProtocol,
+        service: any GemWalletSessionServiceProtocol,
         observablePreferences: ObservablePreferences,
     ) {
         self.walletId = walletId
-        self.walletSessionService = walletSessionService
+        self.service = service
         self.observablePreferences = observablePreferences
     }
 
@@ -44,7 +44,7 @@ public final class SettingsViewModel {
 
     var walletsValue: String {
         do {
-            return try "\(walletSessionService.walletsCount())"
+            return try "\(service.walletsCount())"
         } catch {
             debugLog("wallets count unavailable: \(error)")
             return .empty
@@ -96,7 +96,7 @@ public final class SettingsViewModel {
     }
 
     var showsRewards: Bool {
-        walletSessionService.showsRewardsValue
+        service.showsRewardsValue
     }
 
     var aboutUsTitle: String {

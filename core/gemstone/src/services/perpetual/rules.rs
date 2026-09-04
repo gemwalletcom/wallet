@@ -1,21 +1,25 @@
 use chrono::Utc;
 use number_formatter::{BigNumberFormatter, NumberFormatterError};
-use primitives::chart::ChartCandleStick;
+use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::{PerpetualBalance, PerpetualData};
 use primitives::{
-    AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, PerpetualAccountMode, PerpetualDirection, PerpetualPosition, PerpetualProvider, Wallet,
-    WalletType,
+    Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, ChartPeriod, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType,
+    PerpetualPosition, PerpetualProvider, Wallet, WalletType,
 };
 
-use super::model::{GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualCloseInput, GemPerpetualOrderAction, GemPerpetualOrderInput};
+use super::model::{
+    GemAutocloseSummary, GemMarketsRefreshTrigger, GemPerpetualCloseInput, GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionKind,
+    GemPerpetualTransferData,
+};
+use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
 use crate::services::error::GemServiceError;
-use num_bigint::BigInt;
+use crate::services::transfer::GemTransferData;
+use num_bigint::BigUint;
 use primitives::{PerpetualConfirmData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, PerpetualType};
 use std::cmp::Ordering;
 use std::collections::HashSet;
-use std::str::FromStr;
 
 use crate::models::asset::wallet_default_assets;
 use crate::services::balance::{GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
@@ -100,7 +104,7 @@ impl GemPerpetualOrderAction {
     }
 }
 
-pub fn slippage_price(market_price: f64, direction: PerpetualDirection, opens: bool, slippage: f64) -> f64 {
+fn slippage_price(market_price: f64, direction: PerpetualDirection, opens: bool, slippage: f64) -> f64 {
     let fraction = slippage / 100.0;
     let multiplier = match (direction, opens) {
         (PerpetualDirection::Long, true) | (PerpetualDirection::Short, false) => 1.0 + fraction,
@@ -109,7 +113,7 @@ pub fn slippage_price(market_price: f64, direction: PerpetualDirection, opens: b
     market_price * multiplier
 }
 
-pub fn order_amounts(usd_amount: f64, leverage: u8, price: f64) -> (f64, f64, f64) {
+fn order_amounts(usd_amount: f64, leverage: u8, price: f64) -> (f64, f64, f64) {
     let size = (usd_amount * f64::from(leverage)) / price;
     let fiat_value = price * size;
     let margin_amount = fiat_value / f64::from(leverage);
@@ -124,7 +128,11 @@ pub fn includes_perpetual_collateral(mode: PerpetualAccountMode) -> bool {
 }
 
 pub fn show_perpetuals(enabled: bool, wallet: &Wallet) -> bool {
-    enabled && wallet.wallet_type == WalletType::Multicoin && crate::services::stream::rules::hyperliquid_account(&wallet.accounts).is_some()
+    enabled && supports_perpetuals(wallet)
+}
+
+pub fn supports_perpetuals(wallet: &Wallet) -> bool {
+    wallet.wallet_type == WalletType::Multicoin && crate::services::stream::rules::hyperliquid_account(&wallet.accounts).is_some()
 }
 
 fn is_markets_stale(updated_at: Option<i64>, now: i64) -> bool {
@@ -185,9 +193,8 @@ pub fn collateral_price(chain: Chain) -> Option<AssetPrice> {
     collateral_asset_id(chain).map(|asset_id| AssetPrice::new(asset_id, 1.0, 0.0, Utc::now()))
 }
 
-pub fn order(provider: PerpetualProvider, input: GemPerpetualOrderInput) -> Result<PerpetualType, GemServiceError> {
-    let usdc_value = BigInt::from_str(&input.usdc_value).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() })?;
-    let usd_amount = usdc_value.to_string().parse::<f64>().unwrap_or_default() / 10f64.powi(input.usdc_decimals);
+pub fn order(provider: PerpetualProvider, input: GemPerpetualOrderInput) -> PerpetualType {
+    let usd_amount = input.usdc_value.to_string().parse::<f64>().unwrap_or_default() / 10f64.powi(input.usdc_decimals);
     let slippage = slippage_percent(input.slippage);
     let (size, fiat_value, margin_amount) = order_amounts(usd_amount, input.leverage, input.price);
     let price = slippage_price(input.price, input.direction.clone(), input.action.opens_position(), slippage);
@@ -211,11 +218,132 @@ pub fn order(provider: PerpetualProvider, input: GemPerpetualOrderInput) -> Resu
         stop_loss: input.stop_loss,
     };
 
-    Ok(match input.action {
+    match input.action {
         GemPerpetualOrderAction::Open => PerpetualType::Open(data),
         GemPerpetualOrderAction::Increase => PerpetualType::Increase(data),
         GemPerpetualOrderAction::Reduce { position_direction } => PerpetualType::Reduce(PerpetualReduceData { data, position_direction }),
+    }
+}
+
+fn asset_index(perpetual: &Perpetual) -> Result<i32, GemServiceError> {
+    perpetual.identifier.parse().map_err(|_| GemServiceError::InvalidInput {
+        msg: format!("perpetual {} has no asset index", perpetual.identifier),
     })
+}
+
+fn position_for(perpetual: &Perpetual, position: Option<PerpetualPosition>) -> Result<PerpetualPosition, GemServiceError> {
+    position.ok_or_else(|| GemServiceError::InvalidInput {
+        msg: format!("no position on {}", perpetual.identifier),
+    })
+}
+
+fn margin_amount_value(position: &PerpetualPosition) -> BigUint {
+    BigUint::from((position.margin_amount * 10f64.powi(HYPERCORE_PERPETUAL_USDC.decimals)).max(0.0) as u64)
+}
+
+pub fn position_action(
+    perpetual: &Perpetual,
+    asset: &Asset,
+    position: Option<PerpetualPosition>,
+    kind: GemPerpetualPositionKind,
+) -> Result<GemPerpetualPositionAction, GemServiceError> {
+    let asset_index = asset_index(perpetual)?;
+    let data = |direction: PerpetualDirection, leverage: u8, margin_type: PerpetualMarginType| GemPerpetualTransferData {
+        provider: perpetual.provider.clone(),
+        direction,
+        asset: asset.clone(),
+        base_asset: HYPERCORE_PERPETUAL_USDC.clone(),
+        asset_index,
+        price: perpetual.price,
+        leverage,
+        margin_type,
+    };
+    Ok(match kind {
+        GemPerpetualPositionKind::Open { direction } => {
+            let margin_type = if perpetual.is_isolated_only {
+                PerpetualMarginType::Isolated
+            } else {
+                PerpetualMarginType::Cross
+            };
+            GemPerpetualPositionAction::Open {
+                data: data(direction, perpetual.max_leverage, margin_type),
+            }
+        }
+        GemPerpetualPositionKind::Increase => {
+            let position = position_for(perpetual, position)?;
+            GemPerpetualPositionAction::Increase {
+                data: data(position.direction.clone(), position.leverage, position.margin_type.clone()),
+            }
+        }
+        GemPerpetualPositionKind::Reduce => {
+            let position = position_for(perpetual, position)?;
+            GemPerpetualPositionAction::Reduce {
+                available: margin_amount_value(&position),
+                data: data(position.direction.clone(), position.leverage, position.margin_type.clone()),
+            }
+        }
+    })
+}
+
+pub fn close_transfer(perpetual: &Perpetual, asset: &Asset, position: Option<PerpetualPosition>) -> Result<GemTransferData, GemServiceError> {
+    let position = position_for(perpetual, position)?;
+    let data = close_order(
+        perpetual.provider.clone(),
+        GemPerpetualCloseInput {
+            asset_index: asset_index(perpetual)?,
+            direction: position.direction,
+            margin_type: position.margin_type,
+            base_asset: HYPERCORE_PERPETUAL_USDC.clone(),
+            asset: asset.clone(),
+            market_price: perpetual.price,
+            size: position.size,
+            leverage: position.leverage,
+            pnl: position.pnl,
+            entry_price: position.entry_price,
+            margin_amount: position.margin_amount,
+            slippage: None,
+        },
+    );
+    Ok(GemPerpetual::new(perpetual.provider.clone()).transfer_data(asset.clone(), PerpetualType::Close(data), GemBigInt::ZERO, false))
+}
+
+pub fn order_transfer(
+    action: GemPerpetualPositionAction,
+    usdc_value: GemBigInt,
+    use_max_amount: bool,
+    leverage: u8,
+    take_profit: Option<f64>,
+    stop_loss: Option<f64>,
+) -> GemTransferData {
+    let data = action.data().clone();
+    let perpetual = GemPerpetual::new(data.provider.clone());
+    let order_action = match &action {
+        GemPerpetualPositionAction::Open { .. } => GemPerpetualOrderAction::Open,
+        GemPerpetualPositionAction::Increase { .. } => GemPerpetualOrderAction::Increase,
+        GemPerpetualPositionAction::Reduce { .. } => GemPerpetualOrderAction::Reduce {
+            position_direction: data.direction.clone(),
+        },
+    };
+    let trigger = |price: Option<f64>| price.map(|price| perpetual.format_price(price, data.asset.decimals));
+    let perpetual_type = order(
+        data.provider.clone(),
+        GemPerpetualOrderInput {
+            action: order_action,
+            direction: data.direction,
+            margin_type: data.margin_type,
+            base_asset: data.base_asset.clone(),
+            asset: data.asset.clone(),
+            asset_index: data.asset_index,
+            price: data.price,
+            usdc_value: usdc_value.clone(),
+            usdc_decimals: data.base_asset.decimals,
+            leverage,
+            slippage: None,
+            take_profit: trigger(take_profit),
+            stop_loss: trigger(stop_loss),
+        },
+    );
+    perpetual.transfer_data(data.asset, perpetual_type, usdc_value, use_max_amount)
 }
 
 pub fn close_order(provider: PerpetualProvider, input: GemPerpetualCloseInput) -> PerpetualConfirmData {
@@ -243,6 +371,14 @@ pub fn close_order(provider: PerpetualProvider, input: GemPerpetualCloseInput) -
     }
 }
 
+pub fn symbol(perpetual: &Perpetual) -> String {
+    perpetual.name.clone()
+}
+
+pub fn apply_candle_update(candles: Vec<ChartCandleStick>, update: ChartCandleUpdate, perpetual: &Perpetual, period: &ChartPeriod) -> Option<Vec<ChartCandleStick>> {
+    (update.coin == symbol(perpetual) && update.interval == candle_interval(period)).then(|| merge_candle(candles, update.candle))
+}
+
 pub fn merge_candle(candles: Vec<ChartCandleStick>, candle: ChartCandleStick) -> Vec<ChartCandleStick> {
     let Some(last_date) = candles.last().map(|last| last.date) else {
         return candles;
@@ -264,9 +400,11 @@ pub fn merge_candle(candles: Vec<ChartCandleStick>, candle: ChartCandleStick) ->
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::transaction::GemTransactionInputType;
     use chrono::DateTime;
+    use num_bigint::BigInt;
     use num_bigint::BigUint;
-    use primitives::{Asset, ChartPeriod, PerpetualDirection, PerpetualId, PerpetualMarginType};
+    use primitives::PerpetualId;
 
     fn modify_data(modify_types: Vec<PerpetualModifyPositionType>, take_profit_order_id: Option<u64>, stop_loss_order_id: Option<u64>) -> PerpetualModifyConfirmData {
         PerpetualModifyConfirmData {
@@ -358,6 +496,108 @@ mod tests {
             pnl: 0.0,
             funding: None,
         }
+    }
+
+    fn market(identifier: &str) -> Perpetual {
+        Perpetual {
+            id: PerpetualId::new(PerpetualProvider::Hypercore, "BTC"),
+            name: "BTC".into(),
+            provider: PerpetualProvider::Hypercore,
+            asset_id: AssetId::from_chain(Chain::HyperCore),
+            identifier: identifier.into(),
+            price: 100.0,
+            price_percent_change_24h: 0.0,
+            open_interest: 0.0,
+            volume_24h: 0.0,
+            funding: 0.0,
+            max_leverage: 20,
+            is_isolated_only: true,
+        }
+    }
+
+    #[test]
+    fn test_position_action_reads_the_market_for_an_open_and_the_position_otherwise() {
+        let market = market("7");
+        let asset = Asset::from_chain(Chain::HyperCore);
+        let mut held = position("p");
+        held.direction = PerpetualDirection::Short;
+        held.leverage = 5;
+        held.margin_amount = 2.5;
+        let open_long = GemPerpetualPositionKind::Open {
+            direction: PerpetualDirection::Long,
+        };
+
+        let open = position_action(&market, &asset, None, open_long.clone()).unwrap();
+        let GemPerpetualPositionAction::Open { data } = &open else { panic!("expected an open") };
+        assert_eq!(
+            (data.asset_index, data.leverage, &data.direction, &data.margin_type),
+            (7, 20, &PerpetualDirection::Long, &PerpetualMarginType::Isolated)
+        );
+        assert_eq!(data.base_asset.id, HYPERCORE_PERPETUAL_USDC.id);
+
+        let reduce = position_action(&market, &asset, Some(held.clone()), GemPerpetualPositionKind::Reduce).unwrap();
+        let GemPerpetualPositionAction::Reduce { data, available } = &reduce else {
+            panic!("expected a reduce")
+        };
+        assert_eq!(
+            (&data.direction, data.leverage, &data.margin_type),
+            (&PerpetualDirection::Short, 5, &PerpetualMarginType::Cross),
+            "a reduce keeps the position direction"
+        );
+        assert_eq!(*available, BigUint::from(2_500_000u32));
+        let encoded = serde_json::to_string(&reduce).unwrap();
+        assert_eq!(
+            serde_json::from_str::<GemPerpetualPositionAction>(&encoded).unwrap(),
+            reduce,
+            "the action survives a route round trip"
+        );
+
+        assert!(
+            position_action(&market, &asset, None, GemPerpetualPositionKind::Increase).is_err(),
+            "increasing needs a position"
+        );
+        assert!(position_action(&self::market("BTC"), &asset, None, open_long).is_err());
+    }
+
+    #[test]
+    fn test_order_transfer_and_close_transfer_address_the_provider() {
+        let market = market("7");
+        let asset = Asset::from_chain(Chain::HyperCore);
+        let open = position_action(
+            &market,
+            &asset,
+            None,
+            GemPerpetualPositionKind::Open {
+                direction: PerpetualDirection::Long,
+            },
+        )
+        .unwrap();
+        let transfer = order_transfer(open, BigInt::from(50_000_000), false, 8, Some(120.5), None);
+        let GemTransactionInputType::Perpetual {
+            perpetual_type: PerpetualType::Open(data),
+            ..
+        } = &transfer.input_type
+        else {
+            panic!("expected an open perpetual transfer")
+        };
+        let formatted = GemPerpetual::new(PerpetualProvider::Hypercore).format_price(120.5, asset.decimals);
+        assert_eq!(
+            (data.leverage, data.take_profit.as_deref()),
+            (8, Some(formatted.as_str())),
+            "the chosen leverage and a formatted trigger price go into the order"
+        );
+        assert_eq!(transfer.value, BigInt::from(50_000_000));
+        assert_eq!(transfer.recipient, GemPerpetual::new(PerpetualProvider::Hypercore).recipient());
+
+        let close = close_transfer(&market, &asset, Some(position("p"))).unwrap();
+        assert!(matches!(
+            close.input_type,
+            GemTransactionInputType::Perpetual {
+                perpetual_type: PerpetualType::Close(_),
+                ..
+            }
+        ));
+        assert!(close_transfer(&market, &asset, None).is_err());
     }
 
     #[test]
@@ -485,7 +725,7 @@ mod tests {
             asset: Asset::mock(),
             asset_index: 1,
             price: 100.0,
-            usdc_value: "50000000".to_string(),
+            usdc_value: BigInt::from(50_000_000),
             usdc_decimals: 6,
             leverage: 4,
             slippage: None,
@@ -496,15 +736,14 @@ mod tests {
 
     #[test]
     fn test_perpetual_order_keeps_the_position_action_and_prices_in_the_slippage() {
-        let open = order(PerpetualProvider::Hypercore, order_input(GemPerpetualOrderAction::Open)).unwrap();
-        let increase = order(PerpetualProvider::Hypercore, order_input(GemPerpetualOrderAction::Increase)).unwrap();
+        let open = order(PerpetualProvider::Hypercore, order_input(GemPerpetualOrderAction::Open));
+        let increase = order(PerpetualProvider::Hypercore, order_input(GemPerpetualOrderAction::Increase));
         let reduce = order(
             PerpetualProvider::Hypercore,
             order_input(GemPerpetualOrderAction::Reduce {
                 position_direction: PerpetualDirection::Short,
             }),
-        )
-        .unwrap();
+        );
 
         let PerpetualType::Open(data) = open else { panic!("expected an open order") };
         assert_eq!(data.slippage, 2.0);
@@ -568,6 +807,21 @@ mod tests {
 
         assert_eq!(merge_candle(candles.clone(), candle(500, 90.0)), candles);
         assert_eq!(merge_candle(Vec::new(), candle(500, 90.0)), Vec::new());
+
+        let perpetual = market("0");
+        let update = |coin: &str, interval: &str| ChartCandleUpdate {
+            coin: coin.to_string(),
+            interval: interval.to_string(),
+            candle: candle(3000, 110.0),
+        };
+        let symbol = symbol(&perpetual);
+        assert_eq!(apply_candle_update(candles.clone(), update(&symbol, "30m"), &perpetual, &ChartPeriod::Day), Some(appended));
+        assert_eq!(
+            apply_candle_update(candles.clone(), update(&symbol, "1m"), &perpetual, &ChartPeriod::Day),
+            None,
+            "a candle for another interval is not this chart's"
+        );
+        assert_eq!(apply_candle_update(candles, update("OTHER", "30m"), &perpetual, &ChartPeriod::Day), None);
     }
 
     #[test]

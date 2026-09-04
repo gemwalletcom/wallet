@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.asset.getFiatProviderIcon
+import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
@@ -28,7 +29,6 @@ import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.space2
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.FiatTransactionAssetData
 import com.wallet.core.primitives.FiatTransactionStatus
@@ -51,7 +51,7 @@ fun FiatTransactionItem(
     val cryptoAmount = ValueFormatter(style = ValueFormatter.Style.Short)
         .string(BigInteger(transaction.value), asset)
 
-    val fiatCurrency = Currency.entries.first { it.string == transaction.fiatCurrency }
+    val fiatCurrency = transaction.fiatCurrency.toCurrency()
     val fiatFormatted = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = fiatCurrency).string(transaction.fiatAmount)
 
     val isDimmed = transaction.status == FiatTransactionStatus.Failed ||

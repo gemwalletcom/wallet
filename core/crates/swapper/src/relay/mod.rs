@@ -5,6 +5,7 @@ mod mapper;
 mod model;
 mod provider;
 mod solana;
+mod target;
 #[cfg(test)]
 mod testkit;
 

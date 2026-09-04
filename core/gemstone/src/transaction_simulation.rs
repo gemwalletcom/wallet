@@ -37,7 +37,9 @@ impl TransactionSimulationService {
             provider: coalescing_provider(provider),
         }
     }
+}
 
+impl TransactionSimulationService {
     pub async fn simulate_sign_message(&self, chain: Chain, sign_type: SignDigestType, data: String, session_domain: String) -> Result<SimulationResult, GemstoneError> {
         let sign_type: WcSignDigestType = sign_type.into();
         let validation_warnings = simulation::sign_message_validation_warnings(chain, &sign_type, &data, &session_domain);
@@ -200,7 +202,9 @@ impl GemSimulationFormatter {
     pub fn header(&self, simulation: Option<SimulationResult>) -> Option<SimulationHeader> {
         simulation.and_then(|simulation| simulation.valid_header().cloned())
     }
+}
 
+impl GemSimulationFormatter {
     pub fn payload_fields(&self, payload: Vec<SimulationPayloadField>, shows_header: bool) -> Vec<SimulationPayloadField> {
         if !shows_header {
             return payload;

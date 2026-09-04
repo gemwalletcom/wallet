@@ -6,6 +6,15 @@ import protocol Gemstone.GemWalletServiceProtocol
 import Primitives
 
 public extension GemWalletServiceProtocol {
+    var currentWalletId: WalletId? {
+        do {
+            return try currentWalletId().map { try WalletId.from(id: $0) }
+        } catch {
+            debugLog("current wallet id unavailable: \(error)")
+            return .none
+        }
+    }
+
     func nextWalletIndex() throws -> Int {
         Int(try nextWalletIndex() as Int32)
     }
@@ -18,7 +27,7 @@ public extension GemWalletServiceProtocol {
         }
     }
 
-    func importWallet(name: String, type: KeystoreImportType, source: WalletSource) async throws -> WalletImportResult {
+    func importWallet(name: String, type: KeystoreImportType, source: Primitives.WalletSource) async throws -> WalletImportResult {
         let walletImport = try type.walletImport.validated()
         return switch try await importWallet(name: name, import: walletImport, source: source.map()) {
         case let .new(wallet): try .new(Wallet(wallet))
@@ -44,5 +53,9 @@ public extension GemWalletServiceProtocol {
 
     func rename(walletId: WalletId, newName: String) async throws {
         try await rename(walletId: walletId.id, name: newName)
+    }
+
+    func getWallets() throws -> [Wallet] {
+        try wallets().map { try Wallet($0) }
     }
 }

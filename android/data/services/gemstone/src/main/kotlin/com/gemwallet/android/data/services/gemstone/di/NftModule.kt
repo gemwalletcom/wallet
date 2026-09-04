@@ -6,8 +6,14 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemAvatarService
+import uniffi.gemstone.GemCollectibleService
+import uniffi.gemstone.GemCollectibleServiceInterface
 import uniffi.gemstone.GemDeviceApiClient
+import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemNftService
+import uniffi.gemstone.GemNftServiceInterface
+import uniffi.gemstone.GemWalletSessionService
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -20,6 +26,13 @@ class NftModule {
 
     @Provides
     @Singleton
-    fun provideGemNftService(apiClient: GemDeviceApiClient, nftStore: GemstoneNftStore): GemNftService =
-        GemNftService(apiClient, nftStore)
+    fun provideGemNftService(apiClient: GemDeviceApiClient, nftStore: GemstoneNftStore, walletSessionService: GemWalletSessionService): GemNftService =
+        GemNftService(apiClient, nftStore, walletSessionService)
+
+    @Provides
+    fun provideGemCollectibleService(nfts: GemNftService, avatars: GemAvatarService, explorer: GemExplorerService): GemCollectibleServiceInterface =
+        GemCollectibleService(nfts, avatars, explorer)
+
+    @Provides
+    fun provideGemNftServiceInterface(service: GemNftService): GemNftServiceInterface = service
 }

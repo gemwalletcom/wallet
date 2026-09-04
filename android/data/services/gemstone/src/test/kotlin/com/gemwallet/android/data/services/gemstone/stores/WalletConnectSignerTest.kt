@@ -30,6 +30,7 @@ import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransactionInputType
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemTransferDataExtra
+import java.math.BigInteger
 
 class WalletConnectSignerTest {
     private val account = mockAccount(chain = Chain.Ethereum)
@@ -97,7 +98,7 @@ class WalletConnectSignerTest {
                 ),
             ),
             recipient = GemRecipient(address = "", name = null, memo = null, references = emptyList()),
-            value = "0",
+            value = BigInteger.ZERO,
             useMaxAmount = false,
             minimumValue = null,
         )

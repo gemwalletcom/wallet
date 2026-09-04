@@ -8,8 +8,8 @@ use crate::rpc::AlgorandProvider;
 
 #[async_trait]
 impl<C: Client> ChainState for AlgorandProvider<C> {
-    async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
-        Ok(self.get_transactions_params().await?.genesis_id)
+    async fn get_chain_id(&self) -> Result<Option<String>, Box<dyn Error + Sync + Send>> {
+        Ok(Some(self.get_transactions_params().await?.genesis_id))
     }
 
     async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>> {
@@ -19,15 +19,17 @@ impl<C: Client> ChainState for AlgorandProvider<C> {
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
-    use crate::provider::testkit::*;
     use chain_traits::ChainState;
+    use primitives::Chain;
+
+    use crate::provider::testkit::*;
 
     #[tokio::test]
     async fn test_algorand_get_chain_id() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_algorand_test_client();
         let chain_id = client.get_chain_id().await?;
-        println!("Algorand chain ID: {}", chain_id);
-        assert!(chain_id == "mainnet-v1.0");
+
+        assert_eq!(chain_id.as_deref(), Some(Chain::Algorand.network_id()));
         Ok(())
     }
 

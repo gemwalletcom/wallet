@@ -3,12 +3,6 @@ use crate::models::GemTransactionInputType;
 use crate::models::custom_types::GemBigInt;
 use primitives::FeePriority;
 
-#[uniffi::remote(Enum)]
-pub enum FeePriority {
-    Normal,
-    Fast,
-}
-
 use primitives::{BroadcastOptions, FeeRate, GasPriceType, TransactionInputType, TransactionPreloadInput, UTXO};
 
 pub type GemUTXO = UTXO;

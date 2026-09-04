@@ -9,8 +9,10 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.ServiceStatusState
 import uniffi.gemstone.GemServiceEndpointType
+import uniffi.gemstone.Latency
 
 @Composable
 internal fun ServiceStatusItem(
@@ -48,5 +50,5 @@ private fun ServiceStatusRowUiModel.title(): String {
     return "$name $flag"
 }
 
-private val ServiceStatusState.latency: ULong?
-    get() = (this as? ServiceStatusState.Result)?.latencyMilliseconds?.toULong()
+private val ServiceStatusState.latency: Latency?
+    get() = (this as? ServiceStatusState.Result)?.latency?.toGem()

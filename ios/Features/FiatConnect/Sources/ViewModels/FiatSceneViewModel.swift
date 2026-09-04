@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemBalanceServiceProtocol
-import protocol Gemstone.GemFiatServiceProtocol
+import protocol Gemstone.GemFiatQuoteServiceProtocol
 import GemstoneServices
 import BigInt
 import Components
@@ -19,17 +18,16 @@ import Validators
 @MainActor
 @Observable
 public final class FiatSceneViewModel {
-    let fiatService: any GemFiatServiceProtocol
+    private let service: any GemFiatQuoteServiceProtocol
 
     var quoteDebounce: Duration {
-        .milliseconds(fiatService.quoteDebounceMilliseconds())
+        .milliseconds(service.quoteDebounceMilliseconds())
     }
 
     var quoteRefreshInterval: TimeInterval {
-        TimeInterval(fiatService.quoteRefreshIntervalMilliseconds()) / 1000
+        TimeInterval(service.quoteRefreshIntervalMilliseconds()) / 1000
     }
     private let wallet: Wallet
-    private let balanceService: any GemBalanceServiceProtocol
     private let assetAddress: AssetAddress
     private let currencyFormatter: CurrencyFormatter
     private let valueFormatter = ValueFormatter(locale: .US, style: .auto)
@@ -50,46 +48,23 @@ public final class FiatSceneViewModel {
     let sellViewModel: FiatOperationViewModel
 
     public init(
-        fiatService: any GemFiatServiceProtocol,
-        currencyFormatter: CurrencyFormatter = CurrencyFormatter(currencyCode: Currency.usd.rawValue),
+        service: any GemFiatQuoteServiceProtocol,
         assetAddress: AssetAddress,
         wallet: Wallet,
-        balanceService: any GemBalanceServiceProtocol,
         type: FiatQuoteType = .buy,
         amount: Int? = nil,
+        locale: Locale = .current,
     ) {
-        self.fiatService = fiatService
-        self.currencyFormatter = currencyFormatter
+        self.service = service
+        currencyFormatter = CurrencyFormatter(locale: locale, currencyCode: service.currencyCode)
         self.assetAddress = assetAddress
         self.wallet = wallet
-        self.balanceService = balanceService
         self.type = type
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: assetAddress.asset.id), initialValue: .with(asset: assetAddress.asset))
         priceUsdQuery = ObservableQuery(PriceUsdRequest(assetId: assetAddress.asset.id), initialValue: nil)
 
-        let buyOperation = BuyOperation(
-            service: fiatService,
-            asset: assetAddress.asset,
-            currencyFormatter: currencyFormatter,
-            walletId: wallet.id,
-        )
-        let sellOperation = SellOperation(
-            service: fiatService,
-            asset: assetAddress.asset,
-            currencyFormatter: currencyFormatter,
-            walletId: wallet.id,
-        )
-
-        buyViewModel = FiatOperationViewModel(
-            operation: buyOperation,
-            asset: assetAddress.asset,
-            currencyFormatter: currencyFormatter,
-        )
-        sellViewModel = FiatOperationViewModel(
-            operation: sellOperation,
-            asset: assetAddress.asset,
-            currencyFormatter: currencyFormatter,
-        )
+        buyViewModel = FiatOperationViewModel(service: service, type: .buy, asset: assetAddress.asset, currencyFormatter: currencyFormatter)
+        sellViewModel = FiatOperationViewModel(service: service, type: .sell, asset: assetAddress.asset, currencyFormatter: currencyFormatter)
 
         let defaultAmount = switch type {
         case .buy: buyViewModel.amount
@@ -183,7 +158,7 @@ public final class FiatSceneViewModel {
     }
 
     var suggestedAmounts: [Int] {
-        FiatConfig.suggestedAmounts
+        service.config().suggestedAmounts.map(Int.init)
     }
 
     var showFiatTypePicker: Bool {
@@ -234,6 +209,12 @@ extension FiatSceneViewModel {
     func onAssetDataChange(_: AssetData, _ newValue: AssetData) {
         buyViewModel.onAssetDataChange(newValue)
         sellViewModel.onAssetDataChange(newValue)
+
+        if !newValue.metadata.isSellEnabled, type == .sell {
+            let amount = sellViewModel.amount
+            type = .buy
+            buyViewModel.setAmount(amount)
+        }
     }
 
     func onSelectContinue() {
@@ -243,13 +224,12 @@ extension FiatSceneViewModel {
             urlState = .loading
 
             do {
-                guard let url = try await FiatQuoteUrl(fiatService.getQuoteUrl(walletId: wallet.id.id, quoteId: selectedQuote.id)).redirectUrl.asURL else {
+                guard let url = try await service.quoteUrl(asset: asset, quoteId: selectedQuote.id).redirectUrl.asURL else {
                     urlState = .noData
                     return
                 }
 
                 urlState = .data(())
-                Task { await enableAsset() }
                 await UIApplication.shared.open(url, options: [:])
             } catch {
                 urlState = .error(error)
@@ -268,8 +248,7 @@ extension FiatSceneViewModel {
     }
 
     func onSelectRandomAmount() {
-        let amount = Int.random(in: FiatConfig.defaultBuyAmount ..< FiatConfig.randomMaxAmount)
-        selectAmount(amount)
+        selectAmount(Int(service.randomAmount()))
     }
 
     func onSelectFiatProviders() {
@@ -298,16 +277,8 @@ extension FiatSceneViewModel {
 // MARK: - Private
 
 extension FiatSceneViewModel {
-    private func enableAsset() async {
-        do {
-            try await balanceService.setAssetsEnabled(wallet: wallet, assetIds: [asset.id], enabled: true)
-        } catch {
-            debugLog("FiatSceneViewModel enableAsset error: \(error)")
-        }
-    }
-
-    var walletId: WalletId {
-        wallet.id
+    func fiatTransactionsModel() -> FiatTransactionsViewModel {
+        FiatTransactionsViewModel(walletId: wallet.id, service: service)
     }
 
     private var balanceModel: BalanceViewModel {

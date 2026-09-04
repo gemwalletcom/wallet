@@ -212,12 +212,6 @@ impl GemSwapper {
         SwapperError::InputAmountError { min_amount }
     }
 
-    pub async fn get_quote_by_provider(&self, provider: SwapperProvider, request: QuoteRequest) -> Result<Quote, SwapperError> {
-        let provider = self.get_swapper_by_provider(&provider)?;
-        let request = Self::quote_request_for_mode(provider.amount_mode(&request), &request)?;
-        provider.get_quote(&request).await
-    }
-
     fn quote_request_for_mode(mode: SwapAmountMode, request: &QuoteRequest) -> Result<QuoteRequest, SwapperError> {
         match mode {
             SwapAmountMode::Fixed => Ok(QuoteRequest {

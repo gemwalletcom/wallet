@@ -46,6 +46,7 @@ internal fun LazyListScope.walletConnectTextMessage(message: String) {
 internal fun WalletConnectPayloadDetailsSheet(
     primaryFields: List<PayloadField>,
     secondaryFields: List<PayloadField>,
+    addressNames: Map<String, String>,
     onViewFullMessage: () -> Unit,
     onDismissRequest: () -> Unit,
 ) {
@@ -58,6 +59,7 @@ internal fun WalletConnectPayloadDetailsSheet(
             simulationPayloadDetailsContent(
                 primaryFields = primaryFields,
                 secondaryFields = secondaryFields,
+                addressNames = addressNames,
             )
             item {
                 PropertyItem(

@@ -18,4 +18,13 @@ public struct InAppNotificationStore: Sendable {
             }
         }
     }
+
+    public func hasUnreadNotifications(walletId: WalletId) throws -> Bool {
+        try db.read { db in
+            try NotificationRecord
+                .filter(NotificationRecord.Columns.walletId == walletId.id)
+                .filter(NotificationRecord.Columns.readAt == nil)
+                .fetchCount(db) > 0
+        }
+    }
 }

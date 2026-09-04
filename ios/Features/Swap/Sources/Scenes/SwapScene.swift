@@ -63,13 +63,15 @@ public struct SwapScene: View {
             }
         }
         .sheet(isPresented: $isPresentingSlippage) {
-            SwapSlippageScene(model: model.swapSlippageViewModel)
-                .presentationDetents([.medium])
-                .presentationBackground(Colors.grayBackground)
+            if let slippageModel = model.swapSlippageViewModel {
+                SwapSlippageScene(model: slippageModel)
+                    .presentationDetents([.medium])
+                    .presentationBackground(Colors.grayBackground)
+            }
         }
         .onChangeBindQuery(model.fromAssetQuery, action: model.onChangeFromAsset)
         .onChangeBindQuery(model.toAssetQuery, action: model.onChangeToAsset)
-        .debouncedTask(id: model.loadTrigger) {
+        .debouncedTask(id: model.loadTrigger, interval: model.quoteDebounce) {
             await model.load()
         }
         .debounce(

@@ -158,8 +158,8 @@ fun AssetSelectScene(
     assetsHeaderClickable: Boolean = false,
     snackbar: SnackbarHostState? = null,
 ) {
-    val onSelect: (AssetId) -> Unit = { onAction(AssetSelectAction.Select(it)) }
-    val onSelectRecent: (AssetId) -> Unit = { onAction(AssetSelectAction.SelectRecent(it)) }
+    val onSelect: (Asset) -> Unit = { onAction(AssetSelectAction.Select(it)) }
+    val onSelectRecent: (Asset) -> Unit = { onAction(AssetSelectAction.SelectRecent(it)) }
     val onOpenRecentsSheet: (() -> Unit)? = if (recentsSheetEnabled) { { onAction(AssetSelectAction.OpenRecentsSheet) } } else null
     val onAssetsHeaderClick: (() -> Unit)? = if (assetsHeaderClickable) { { onAction(AssetSelectAction.ShowAllAssets) } } else null
     val listState = rememberLazyListState()
@@ -274,7 +274,7 @@ fun AssetSelectScene(
 private fun LazyListScope.assets(
     items: List<AssetInfoDataAggregate>,
     group: AssetsGroupType,
-    onSelect: ((AssetId) -> Unit)?,
+    onSelect: ((Asset) -> Unit)?,
     support: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)?,
     titleBadge: (AssetInfoDataAggregate) -> String?,
     itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)?,
@@ -290,7 +290,7 @@ private fun LazyListScope.assets(
 
 fun LazyListScope.assetRows(
     items: List<AssetInfoDataAggregate>,
-    onSelect: ((AssetId) -> Unit)?,
+    onSelect: ((Asset) -> Unit)?,
     support: ((AssetInfoDataAggregate) -> (@Composable () -> Unit)?)?,
     titleBadge: (AssetInfoDataAggregate) -> String?,
     itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)?,
@@ -321,7 +321,7 @@ fun AssetSelectRow(
     titleBadge: (AssetInfoDataAggregate) -> String?,
     itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)?,
     longPressedAsset: MutableState<AssetId?>,
-    onSelect: ((AssetId) -> Unit)?,
+    onSelect: ((Asset) -> Unit)?,
     contextActions: AssetContextActions,
 ) {
     AssetContextMenuRow(
@@ -331,7 +331,7 @@ fun AssetSelectRow(
         isBalanceEnabled = item.balanceEnabled,
         longPressed = longPressedAsset,
         actions = contextActions,
-        onClick = { onSelect?.invoke(item.asset.id) },
+        onClick = { onSelect?.invoke(item.asset) },
     ) { rowModifier ->
         AssetListItem(
             modifier = rowModifier,
@@ -380,7 +380,7 @@ fun LazyListScope.searchState(
 
 private fun LazyListScope.recent(
     items: List<Asset>,
-    onSelect: ((AssetId) -> Unit)?,
+    onSelect: ((Asset) -> Unit)?,
     onOpenRecentsSheet: (() -> Unit)? = null,
 ) {
     if (items.isEmpty()) {
@@ -399,7 +399,7 @@ private fun LazyListScope.recent(
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.background)
-                        .clickable(onClick = { onSelect?.invoke(asset.id) })
+                        .clickable(onClick = { onSelect?.invoke(asset) })
                         .padding(paddingSmall),
                     horizontalArrangement = Arrangement.spacedBy(paddingSmall),
                     verticalAlignment = Alignment.CenterVertically,

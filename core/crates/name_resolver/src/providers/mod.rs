@@ -1,0 +1,15 @@
+pub mod alldomains;
+pub mod aptos;
+pub mod basenames;
+pub mod did;
+pub mod ens;
+pub mod hyperliquid;
+pub mod icns;
+pub mod injective;
+pub mod lens;
+pub mod near;
+pub mod sns;
+pub mod spaceid;
+pub mod suins;
+pub mod ton;
+pub mod ud;

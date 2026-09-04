@@ -1,5 +1,8 @@
 use std::sync::{Arc, Mutex};
 
+use gem_api::DeviceKey;
+use gem_client::ClientError;
+
 use crate::device::{GemDeviceKeyPair, device_public_key, generate_device_key_pair};
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemSecureStore;
@@ -38,6 +41,18 @@ impl GemDeviceKeyService {
         };
         *cached = Some(key_pair.clone());
         Ok(key_pair)
+    }
+}
+
+impl DeviceKey for GemDeviceKeyService {
+    fn private_key(&self) -> Result<Vec<u8>, ClientError> {
+        Ok(self.key_pair().map_err(|error| ClientError::Network(error.to_string()))?.private_key)
+    }
+}
+
+impl std::fmt::Debug for GemDeviceKeyService {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("GemDeviceKeyService")
     }
 }
 

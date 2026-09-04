@@ -1,11 +1,7 @@
-import protocol Gemstone.GemPerpetualServiceProtocol
-import protocol Gemstone.GemPreferencesServiceProtocol
-import protocol Gemstone.GemTransactionsServiceProtocol
-import protocol Gemstone.GemExplorerServiceProtocol
-import class Gemstone.GemTransactionFormatter
 import Components
 import Perpetuals
 import GemstoneServices
+import GemstonePrimitives
 import Primitives
 import Store
 import Style
@@ -16,30 +12,9 @@ public struct PerpetualNavigationView: View {
     @State private var model: PerpetualSceneViewModel
     @Binding var isPresentingSheet: WalletSheetType?
 
-    public init(
-        asset: Asset,
-        wallet: Wallet,
-        perpetualService: any GemPerpetualServiceProtocol,
-        transactionsService: any GemTransactionsServiceProtocol,
-        observerService: any PerpetualObservable,
-        explorerService: any GemExplorerServiceProtocol,
-        transactionFormatter: GemTransactionFormatter,
-        preferencesService: any GemPreferencesServiceProtocol,
-        isPresentingSheet: Binding<WalletSheetType?>,
-    ) {
+    public init(model: PerpetualSceneViewModel, isPresentingSheet: Binding<WalletSheetType?>) {
         _isPresentingSheet = isPresentingSheet
-        _model = State(initialValue: PerpetualSceneViewModel(
-            wallet: wallet,
-            asset: asset,
-            perpetualService: perpetualService,
-            transactionsService: transactionsService,
-            observerService: observerService,
-            explorerService: explorerService,
-            transactionFormatter: transactionFormatter,
-            preferencesService: preferencesService,
-            onTransferData: { isPresentingSheet.wrappedValue = .transferData($0) },
-            onPerpetualRecipientData: { isPresentingSheet.wrappedValue = .perpetualRecipientData($0) },
-        ))
+        _model = State(initialValue: model)
     }
 
     public var body: some View {

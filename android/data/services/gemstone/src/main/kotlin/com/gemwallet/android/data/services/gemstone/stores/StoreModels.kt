@@ -7,19 +7,20 @@ import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.BalanceMetadata
 import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.GemAssetPrice
+import java.math.BigInteger
 
 fun DbBalance.toGemAssetBalance(): GemAssetBalance = GemAssetBalance(
     assetId = assetId,
-    available = available,
-    frozen = frozen,
-    locked = locked,
-    staked = staked,
-    pending = pending,
-    pendingUnconfirmed = pendingUnconfirmed,
-    rewards = rewards,
-    reserved = reserved,
-    withdrawable = withdrawable,
-    earn = earn,
+    available = BigInteger(available),
+    frozen = BigInteger(frozen),
+    locked = BigInteger(locked),
+    staked = BigInteger(staked),
+    pending = BigInteger(pending),
+    pendingUnconfirmed = BigInteger(pendingUnconfirmed),
+    rewards = BigInteger(rewards),
+    reserved = BigInteger(reserved),
+    withdrawable = BigInteger(withdrawable),
+    earn = BigInteger(earn),
     metadata = BalanceMetadata(
         votes = votes.toUInt(),
         energyAvailable = energyAvailable.toUInt(),

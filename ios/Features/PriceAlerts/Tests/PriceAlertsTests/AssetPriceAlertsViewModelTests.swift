@@ -30,13 +30,12 @@ struct AssetPriceAlertsViewModelTests {
 
 extension AssetPriceAlertsViewModel {
     static func mock(
-        priceAlertService: any GemPriceAlertServiceProtocol = GemPriceAlertServiceMock(),
+        service: any GemPriceAlertServiceProtocol = GemPriceAlertServiceMock(),
         walletId: WalletId = .mock(),
         asset: Asset = .mock(),
     ) -> AssetPriceAlertsViewModel {
         AssetPriceAlertsViewModel(
-            priceAlertService: priceAlertService,
-            preferencesService: GemPreferencesServiceMock(),
+            service: service,
             walletId: walletId,
             asset: asset,
         )

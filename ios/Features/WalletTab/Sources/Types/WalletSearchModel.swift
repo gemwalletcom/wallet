@@ -32,10 +32,6 @@ extension WalletSearchModel {
         [.asset, .perpetual, .list, .nft]
     }
 
-    static var recentActivityTypes: [RecentActivityType] {
-        RecentActivityType.allCases
-    }
-
     var searchMode: WalletSearchMode {
         searchableQuery.isNotEmpty ? .searching : .initial
     }

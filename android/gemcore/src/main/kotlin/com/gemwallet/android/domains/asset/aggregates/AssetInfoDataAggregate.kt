@@ -45,7 +45,6 @@ fun AssetInfo.toAssetInfoDataAggregate(
     hideBalance: Boolean = false,
     displayedAmount: Double = balance.totalAmount,
 ): AssetInfoDataAggregate {
-    val currency = price?.currency ?: Currency.USD
     val assetPrice = price?.price
     val priceValue = assetPrice?.price?.takeIf(Double::isFinite)
     val changePercentage = assetPrice?.priceChangePercentage24h?.takeIf(Double::isFinite)
@@ -58,10 +57,11 @@ fun AssetInfo.toAssetInfoDataAggregate(
     val balanceEquivalent = if (hideBalance) {
         "*****"
     } else {
-        priceValue
-            ?.takeUnless { it == 0.0 }
-            ?.let { CurrencyFormatter(currency = currency).string(displayedAmount * it) }
-            .orEmpty()
+        price?.let { info ->
+            priceValue
+                ?.takeUnless { it == 0.0 }
+                ?.let { CurrencyFormatter(currency = info.currency).string(displayedAmount * it) }
+        }.orEmpty()
     }
 
     return AssetInfoDataAggregate(
@@ -71,9 +71,9 @@ fun AssetInfo.toAssetInfoDataAggregate(
         balance = formattedBalance,
         balanceEquivalent = balanceEquivalent,
         isZeroBalance = displayedAmount == 0.0,
-        price = assetPrice?.let {
+        price = price?.let {
             AssetPriceDataAggregate(
-                currency = currency,
+                currency = it.currency,
                 value = priceValue,
                 changePercentage = changePercentage,
             )

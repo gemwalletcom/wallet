@@ -3,6 +3,7 @@ use std::fmt::Debug;
 use gem_client::{Client, ClientExt};
 
 use super::model::{SquidRouteRequest, SquidRouteResponse, SquidStatusResponse};
+use super::target::SquidTarget;
 use crate::SwapperError;
 
 #[derive(Clone, Debug)]
@@ -22,12 +23,17 @@ where
     }
 
     pub async fn get_route(&self, request: &SquidRouteRequest) -> Result<SquidRouteResponse, SwapperError> {
-        self.client.post("/v2/route", request).await.map_err(SwapperError::from)
+        self.client.post(SquidTarget::Route, request).await.map_err(SwapperError::from)
     }
 
     pub async fn get_status(&self, transaction_hash: &str, source_chain_id: &str) -> Result<SquidStatusResponse, SwapperError> {
-        let path = format!("/v2/status?transactionId={transaction_hash}&fromChainId={source_chain_id}");
-        self.client.get(&path).await.map_err(SwapperError::from)
+        self.client
+            .get(SquidTarget::Status {
+                transaction_id: transaction_hash.to_string(),
+                from_chain_id: source_chain_id.to_string(),
+            })
+            .await
+            .map_err(SwapperError::from)
     }
 }
 

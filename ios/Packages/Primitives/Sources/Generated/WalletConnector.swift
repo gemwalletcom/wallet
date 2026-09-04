@@ -71,13 +71,6 @@ public struct WalletConnection: Codable, Equatable, Hashable, Sendable {
 	}
 }
 
-public enum WalletConnectionEvents: String, Codable, CaseIterable, Sendable {
-	case connect
-	case disconnect
-	case accountsChanged
-	case chainChanged
-}
-
 public enum WalletConnectionMethods: String, Codable, CaseIterable, Sendable {
 	case ethChainId = "eth_chainId"
 	case personalSign = "personal_sign"

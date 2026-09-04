@@ -1,10 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstonePrimitivesTestKit
-import protocol Gemstone.GemNameServiceProtocol
+import GemstonePrimitives
 import GemstoneServices
 import GemstoneServicesTestKit
-import class Gemstone.GemOnboardingService
+import protocol Gemstone.GemNameServiceProtocol
+import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
 import Preferences
 import PreferencesTestKit
@@ -19,10 +20,10 @@ import Testing
 struct ImportWalletSceneViewModelTests {
     @Test
     func existingImportSetsCurrentWallet() async throws {
-        let walletStore = WalletStore.mock(db: .mockWithChains([.ethereum]))
+        let db = DB.mockWithChains([.ethereum])
         let sessionStore = GemstoneWalletSessionStore.mock()
-        let session = GemWalletSessionService(store: sessionStore, wallets: GemstoneWalletStore(store: walletStore))
-        let service = GemOnboardingService.mock(walletStore: walletStore, sessionStore: sessionStore)
+        let session = GemWalletSessionService(store: sessionStore, wallets: GemstoneWalletStore(store: WalletStore.mock(db: db)))
+        let service = GemWalletService.mock(db: db, sessionStore: sessionStore)
 
         let walletA = try await service.importWallet(
             name: "Wallet A",
@@ -72,7 +73,7 @@ struct ImportWalletSceneViewModelTests {
 @MainActor
 private extension ImportWalletSceneViewModel {
     static func mock(
-        service: GemOnboardingService? = nil,
+        service: GemWalletService? = nil,
         nameService: any GemNameServiceProtocol = GemNameServiceMock(nameRecord: .mock()),
     ) -> ImportWalletSceneViewModel {
         ImportWalletSceneViewModel(

@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.models
 
 import com.gemwallet.android.domains.price.PriceChangeCalculator
-import com.gemwallet.android.ext.secondsToMillis
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.model.AssetPriceInfo
 import com.gemwallet.android.model.CurrencyFormatter
@@ -12,7 +11,6 @@ import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
 import com.gemwallet.android.ui.models.chart.ChartValueType
 import com.wallet.core.primitives.ChartDateValue
 import com.wallet.core.primitives.ChartPeriod
-import com.wallet.core.primitives.ChartValue
 import com.wallet.core.primitives.Currency
 
 internal const val MinChartPoints = 2
@@ -42,38 +40,34 @@ data class ChartUIModel(
 }
 
 internal fun ChartUIModel.Companion.from(
-    prices: List<ChartValue>,
+    chart: Chart,
     priceInfo: AssetPriceInfo?,
     period: ChartPeriod,
     currency: Currency,
 ): ChartUIModel {
-    val basePrice = prices.firstOrNull { it.value != 0.0f }?.value ?: 0.0f
+    val basePrice = chart.values.firstOrNull { it.value != 0.0 }?.value ?: 0.0
     val currencyFormatter = CurrencyFormatter(currency = currency)
     val priceFormatter: (Double) -> String = currencyFormatter::string
-    val historicalPoints = prices.map { chartValue ->
+    val historicalPoints = chart.values.map { value ->
         PricePoint(
-            y = chartValue.value,
-            price = chartValue.value.toDouble(),
-            priceChangePercentage = PriceChangeCalculator.percentage(from = basePrice.toDouble(), to = chartValue.value.toDouble()),
-            timestamp = chartValue.timestamp.toLong().secondsToMillis(),
+            y = value.value.toFloat(),
+            price = value.value,
+            priceChangePercentage = PriceChangeCalculator.percentage(from = basePrice, to = value.value),
+            timestamp = value.date,
         )
     }
-    val lastTimestampMillis = (prices.lastOrNull()?.timestamp ?: 0).toLong().secondsToMillis()
-    val currentPoint: PricePoint? = priceInfo
-        ?.takeIf { historicalPoints.isNotEmpty() && it.price.updatedAt >= lastTimestampMillis }
-        ?.let { assetInfo ->
-            val changePercent = if (period == ChartPeriod.Day) {
-                assetInfo.price.priceChangePercentage24h
-            } else {
-                PriceChangeCalculator.percentage(from = basePrice.toDouble(), to = assetInfo.price.price)
-            }
-            PricePoint(
-                y = assetInfo.price.price.toFloat(),
-                price = assetInfo.price.price,
-                priceChangePercentage = changePercent,
-                timestamp = System.currentTimeMillis(),
-            )
+    val currentPoint = chart.current?.let { current ->
+        val changePercent = when {
+            period == ChartPeriod.Day && priceInfo != null -> priceInfo.price.priceChangePercentage24h
+            else -> PriceChangeCalculator.percentage(from = basePrice, to = current.value)
         }
+        PricePoint(
+            y = current.value.toFloat(),
+            price = current.value,
+            priceChangePercentage = changePercent,
+            timestamp = current.date,
+        )
+    }
 
     return ChartUIModel(
         period = period,

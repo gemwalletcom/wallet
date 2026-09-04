@@ -1,9 +1,11 @@
 package com.gemwallet.android.domains.confirm
 
-import com.gemwallet.android.testkit.mockAssetInfo
+import com.gemwallet.android.model.AssetPriceValue
+import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.TransactionType
+import uniffi.gemstone.GemTransactionHeaderKind
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -26,14 +28,13 @@ class AmountUIModelTest {
 
     private fun model(price: Double?) = AmountUIModel(
         transactionType = TransactionType.Transfer,
+        headerKind = GemTransactionHeaderKind.Amount(showsFiat = true),
         amount = BigInteger("1000000000"),
-        asset = mockAssetInfo(asset = mockAssetSolana()),
-        fromAsset = mockAssetInfo(asset = mockAssetSolana()),
+        fromAsset = AssetPriceValue(mockAssetSolana(), price?.let { mockAssetPriceInfo(price = it) }),
         toAsset = null,
-        fromAmount = "1000000000",
+        fromAmount = BigInteger("1000000000"),
         toAmount = null,
         nftAsset = null,
-        price = price,
         currency = Currency.USD,
     )
 

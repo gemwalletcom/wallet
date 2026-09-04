@@ -36,13 +36,6 @@ public extension GemWalletSessionServiceProtocol {
         try getWallets().map { try Wallet($0) }
     }
 
-    func getCurrentWallet() throws -> Wallet {
-        guard let currentWallet else {
-            throw WalletSessionServiceError.noWallet
-        }
-        return currentWallet
-    }
-
     func getWallet(walletId: WalletId) throws -> Wallet {
         guard let wallet = try getWallet(walletId: walletId.id) else {
             throw WalletSessionServiceError.noWalletId

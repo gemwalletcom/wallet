@@ -58,3 +58,18 @@ pub struct GemAssetBalance {
     pub earn: GemBigUint,
     pub metadata: Option<BalanceMetadata>,
 }
+
+impl GemAssetBalance {
+    pub fn votes(&self) -> u32 {
+        self.metadata.as_ref().map(|metadata| metadata.votes).unwrap_or_default()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemBalanceRow {
+    Available { value: GemBigUint },
+    Staked { value: GemBigUint },
+    Earn { value: GemBigUint },
+    PendingUnconfirmed { value: GemBigUint },
+    Reserved { value: GemBigUint, url: Option<String> },
+}

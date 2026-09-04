@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemRecipient
 import Components
 import Foundation
 import GemstonePrimitives
@@ -16,17 +17,17 @@ struct WalletRecipientSectionViewModel {
         self.chain = chain
     }
 
-    var listItems: [ListItemValue<Recipient>] {
+    var listItems: [ListItemValue<GemRecipient>] {
         wallets
             .filter(walletFilter)
-            .compactMap { wallet -> ListItemValue<Recipient>? in
+            .compactMap { wallet -> ListItemValue<GemRecipient>? in
                 guard let account = wallet.accounts.first(where: { $0.chain == chain }) else {
                     return nil
                 }
                 return ListItemValue(
                     title: wallet.name,
                     subtitle: AddressFormatter(address: account.address, chain: account.chain).value(),
-                    value: Recipient(name: wallet.name, address: account.address, memo: nil),
+                    value: GemRecipient(address: account.address, name: wallet.name),
                 )
             }
     }

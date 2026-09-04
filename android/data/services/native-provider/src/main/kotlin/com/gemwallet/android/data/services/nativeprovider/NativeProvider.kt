@@ -1,7 +1,5 @@
 package com.gemwallet.android.data.services.nativeprovider
 
-import com.gemwallet.android.cases.nodes.GetNodeUrlCase
-import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ext.isNetworkUnavailable
 import com.gemwallet.android.ext.toGatewayNetworkMessage
 import kotlinx.coroutines.CancellationException
@@ -16,18 +14,16 @@ import uniffi.gemstone.AlienResponse
 import uniffi.gemstone.AlienTarget
 import uniffi.gemstone.Chain
 import uniffi.gemstone.GatewayException
+import uniffi.gemstone.GemNodeServiceInterface
 import java.io.IOException
 
 class NativeProvider(
-    private val getNodeUrlCase: GetNodeUrlCase,
+    private val nodeService: GemNodeServiceInterface,
     private val httpClient: OkHttpClient = OkHttpClient(),
 ) : AlienProvider {
     private val cache = MemoryCache()
 
-    override fun getEndpoint(chain: Chain): String {
-        return chain.toChain()?.let(getNodeUrlCase::getNodeUrl)
-            ?: throw GatewayException.PlatformException("Can't found node url for chain: $chain")
-    }
+    override fun getEndpoint(chain: Chain): String = nodeService.nodeUrl(chain)
 
     override suspend fun request(target: AlienTarget): AlienResponse = withContext(Dispatchers.IO) {
         val cacheKey = target.nativeCacheKey()

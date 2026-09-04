@@ -1,16 +1,15 @@
 package com.gemwallet.android.domains.asset
 
-import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.ext.twoSubtokenIds
 import com.gemwallet.android.ext.type
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
-import com.wallet.core.primitives.AssetType
-import com.gemwallet.android.Constants
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.Config
+import uniffi.gemstone.GemAssetConfigService
+import uniffi.gemstone.GemImage
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.FiatProvider
 import com.wallet.core.primitives.FiatProviderName
@@ -36,7 +35,7 @@ private fun chainIconUrl(chain: Chain): String = "file:///android_asset/chains/i
 
 fun AssetId.getIconUrl(): String = when {
     tokenId.isNullOrEmpty() -> chain.getIconUrl()
-    else -> "${Constants.ASSETS_URL}/blockchains/${chain.string}/assets/${tokenId}/logo.png"
+    else -> GemImage.Asset(toIdentifier()).url()
 }
 
 fun AssetId.getSupportIconUrl(): String? = when (type()) {
@@ -44,26 +43,11 @@ fun AssetId.getSupportIconUrl(): String? = when (type()) {
     AssetSubtype.TOKEN -> chain.getIconUrl()
 }
 
-fun Asset.getIconUrl(): String {
-    if (type == AssetType.PERPETUAL) {
-        val chainIcon = id.twoSubtokenIds()?.second?.let { symbol ->
-            Chain.entries.firstOrNull { it.asset().symbol == symbol }?.getIconUrl()
-        }
-
-        if (chainIcon != null) return chainIcon
-    }
-    return id.getIconUrl()
-}
+fun Asset.getIconUrl(): String = (GemAssetConfigService().iconAssetId(id.toIdentifier()).toAssetId() ?: id).getIconUrl()
 
 fun Asset.getSupportIconUrl(): String? = id.getSupportIconUrl()
 
-const val SYSTEM_VALIDATOR_ID = "system"
-
-fun DelegationValidator.getIconUrl(): String = if (id == SYSTEM_VALIDATOR_ID) {
-    chain.getIconUrl()
-} else {
-    "${Constants.ASSETS_URL}/blockchains/${chain.string}/validators/${id}/logo.png"
-}
+fun DelegationValidator.getIconUrl(): String = GemImage.Validator(chain.string, id).url()
 
 fun FiatProviderName.getFiatProviderIcon(): String = "file:///android_asset/fiat/${string}.svg"
 
@@ -98,10 +82,8 @@ fun SwapperProvider.getSwapProviderIcon(): String {
     return "file:///android_asset/swap/${iconName.lowercase()}.svg"
 }
 
-fun getListIconUrl(listId: String): String = "${Constants.ASSETS_URL}/lists/$listId.png"
+fun getListIconUrl(listId: String): String = GemImage.AssetList(listId).url()
 
-fun NFTAsset.getImageUrl(): String = nftImageUrl(id.toIdentifier())
+fun NFTAsset.getImageUrl(): String = GemImage.NftAsset(id.toIdentifier()).url()
 
-fun TransactionNFTTransferMetadata.getImageUrl(): String = nftImageUrl(assetId.toIdentifier())
-
-private fun nftImageUrl(assetId: String): String = "${Constants.ASSETS_URL}/nft/assets/$assetId/preview"
+fun TransactionNFTTransferMetadata.getImageUrl(): String = GemImage.NftAsset(assetId.toIdentifier()).url()

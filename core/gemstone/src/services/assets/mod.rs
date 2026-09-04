@@ -1,21 +1,27 @@
+pub mod add;
 pub mod config;
+pub mod details;
 pub mod model;
 pub mod rules;
+pub mod selection;
 pub mod store;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use primitives::currency::Currency;
 use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, Chain, ConfigVersions, FiatAssets, FiatQuoteType, SearchResponse, Wallet, WalletId};
 
-pub use model::{AssetList, GemAssetAction, GemAssetFilter};
+pub use add::GemAddAssetService;
+pub use details::GemAssetDetailsService;
+pub use model::{AssetList, GemAssetAction, GemAssetFilter, GemAssetNetworkDestination};
+pub use selection::GemAssetSelectionService;
 pub use store::GemAssetStore;
 
 use crate::api::{GemApiClient, GemApiError};
 use crate::gateway::GemGateway;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
+use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemAssetsService {
@@ -24,18 +30,27 @@ pub struct GemAssetsService {
     store: Arc<dyn GemAssetStore>,
     price: Arc<GemPriceService>,
     preferences: Arc<GemPreferencesService>,
+    session: Arc<GemWalletSessionService>,
 }
 
 #[uniffi::export]
 impl GemAssetsService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemApiClient>, gateway: Arc<GemGateway>, store: Arc<dyn GemAssetStore>, price: Arc<GemPriceService>, preferences: Arc<GemPreferencesService>) -> Self {
+    pub fn new(
+        api: Arc<GemApiClient>,
+        gateway: Arc<GemGateway>,
+        store: Arc<dyn GemAssetStore>,
+        price: Arc<GemPriceService>,
+        preferences: Arc<GemPreferencesService>,
+        session: Arc<GemWalletSessionService>,
+    ) -> Self {
         Self {
             api,
             gateway,
             store,
             price,
             preferences,
+            session,
         }
     }
 
@@ -67,25 +82,12 @@ impl GemAssetsService {
         Ok(asset)
     }
 
-    pub async fn sync_asset(&self, asset_id: AssetId, currency: Currency) -> Result<AssetFull, GemServiceError> {
-        let asset = self.get_asset(asset_id.clone()).await?;
-        self.store.save_asset(asset.clone()).await?;
-        let price = asset
-            .price
-            .as_ref()
-            .map(|price| AssetPrice::new(asset_id.clone(), price.price, price.price_change_percentage_24h, price.updated_at));
-        self.price.update_asset_price(asset_id.clone(), price, currency.clone()).await?;
-        if let Some(market) = asset.market.clone() {
-            self.price.update_market(asset_id, market, currency).await?;
-        }
-        Ok(asset)
-    }
-
-    pub async fn sync_assets(&self, asset_ids: Vec<AssetId>, currency: Currency) -> Result<(), GemServiceError> {
+    pub async fn sync_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
         let asset_ids = crate::services::collections::unique(asset_ids);
         if asset_ids.is_empty() {
             return Ok(());
         }
+        let currency = self.preferences.get_currency();
         let assets = self.get_assets(asset_ids, Some(currency.to_string())).await?;
         if assets.is_empty() {
             return Ok(());
@@ -105,12 +107,9 @@ impl GemAssetsService {
         Ok(assets.into_iter().map(|asset| asset.asset.id).collect())
     }
 
-    pub async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
-        let stored = self.store.get_asset_ids(asset_ids).await?;
-        if stored.is_empty() {
-            return Ok(());
-        }
-        self.store.add_missing_balances(wallet_id, stored).await
+    pub async fn open_asset(&self, asset_id: AssetId) -> Result<Option<Asset>, GemServiceError> {
+        let wallet = self.session.current_wallet()?;
+        self.open_wallet_asset(wallet, asset_id).await
     }
 
     pub async fn open_wallet_asset(&self, wallet: Wallet, asset_id: AssetId) -> Result<Option<Asset>, GemServiceError> {
@@ -121,11 +120,53 @@ impl GemAssetsService {
         self.add_missing_balances(wallet.id, vec![asset_id]).await?;
         Ok(Some(asset))
     }
+}
 
-    pub async fn setup_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {
+impl GemAssetsService {
+    pub async fn sync_asset(&self, asset_id: AssetId) -> Result<AssetFull, GemServiceError> {
+        let currency = self.preferences.get_currency();
+        let asset = self.get_asset(asset_id.clone()).await?;
+        self.store.save_asset(asset.clone()).await?;
+        let price = asset
+            .price
+            .as_ref()
+            .map(|price| AssetPrice::new(asset_id.clone(), price.price, price.price_change_percentage_24h, price.updated_at));
+        self.price.update_asset_price(asset_id.clone(), price, currency.clone()).await?;
+        if let Some(market) = asset.market.clone() {
+            self.price.update_market(asset_id, market, currency).await?;
+        }
+        Ok(asset)
+    }
+
+    pub(crate) async fn ensure_simulation_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+        let existing = self.store.get_asset_ids(asset_ids.clone()).await?;
+        let missing = rules::missing_asset_ids(asset_ids, existing);
+        if missing.is_empty() {
+            return Ok(());
+        }
+        // Simulation assets may not exist in the backend; fall back to the node.
+        if let Ok(assets) = self.get_assets(missing.clone(), None).await {
+            self.store.save_assets(assets).await?;
+        }
+        for asset_id in missing {
+            self.ensure_token_asset(asset_id).await?;
+        }
+        Ok(())
+    }
+
+    pub async fn add_missing_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+        let stored = self.store.get_asset_ids(asset_ids).await?;
+        if stored.is_empty() {
+            return Ok(());
+        }
+        self.store.add_missing_balances(wallet_id, stored).await
+    }
+
+    pub async fn setup_wallet(&self, wallet: Wallet) -> Result<Vec<AssetId>, GemServiceError> {
         let (enabled, disabled) = rules::default_balances(&wallet);
-        self.store.add_balances(wallet.id.clone(), enabled, true).await?;
-        self.store.add_balances(wallet.id, disabled, false).await
+        self.store.add_balances(wallet.id.clone(), enabled.clone(), true).await?;
+        self.store.add_balances(wallet.id, disabled, false).await?;
+        Ok(enabled)
     }
 
     pub fn assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
@@ -147,34 +188,42 @@ impl GemAssetsService {
     pub async fn search(&self, query: String, chains: Vec<Chain>, tags: Vec<String>) -> Result<SearchResponse, GemApiError> {
         Ok(self.api.client.get_search(query, chains, tags).await?)
     }
-}
 
-impl GemAssetsService {
     async fn search_token_asset(&self, asset_id: &AssetId, token_id: String) -> Result<Option<Asset>, GemApiError> {
         let assets = self.api.client.get_search_assets(token_id, vec![asset_id.chain]).await?;
         Ok(assets.into_iter().map(|basic| basic.asset).find(|asset| &asset.id == asset_id))
     }
 
     pub async fn sync_availability(&self, versions: ConfigVersions) -> Result<(), GemServiceError> {
-        for (list, remote_version) in rules::asset_list_versions(&versions) {
-            if !rules::is_asset_list_outdated(self.preferences.get_assets_version(list).as_deref(), remote_version) {
-                continue;
-            }
-            let assets = match list {
-                AssetList::Buy => self.get_fiat_assets(FiatQuoteType::Buy).await?,
-                AssetList::Sell => self.get_fiat_assets(FiatQuoteType::Sell).await?,
-                AssetList::Swap => self.get_swap_assets().await?,
-            };
-            let asset_ids = rules::asset_ids(&assets.asset_ids);
-            self.sync_missing_assets(asset_ids.clone()).await?;
-            match list {
-                AssetList::Buy => self.store.set_buyable_assets(asset_ids).await?,
-                AssetList::Sell => self.store.set_sellable_assets(asset_ids).await?,
-                AssetList::Swap => self.store.set_swappable_assets(asset_ids).await?,
-            }
-            self.preferences.set_assets_version(list, assets.version.to_string())?;
+        let results = futures::future::join_all(
+            rules::asset_list_versions(&versions)
+                .into_iter()
+                .map(|(list, remote_version)| self.sync_availability_list(list, remote_version)),
+        )
+        .await;
+        for result in results {
+            result?;
         }
         Ok(())
+    }
+
+    async fn sync_availability_list(&self, list: AssetList, remote_version: i32) -> Result<(), GemServiceError> {
+        if !rules::is_asset_list_outdated(self.preferences.get_assets_version(list).as_deref(), remote_version) {
+            return Ok(());
+        }
+        let assets = match list {
+            AssetList::Buy => self.get_fiat_assets(FiatQuoteType::Buy).await?,
+            AssetList::Sell => self.get_fiat_assets(FiatQuoteType::Sell).await?,
+            AssetList::Swap => self.get_swap_assets().await?,
+        };
+        let asset_ids = rules::asset_ids(&assets.asset_ids);
+        self.sync_missing_assets(asset_ids.clone()).await?;
+        match list {
+            AssetList::Buy => self.store.set_buyable_assets(asset_ids).await?,
+            AssetList::Sell => self.store.set_sellable_assets(asset_ids).await?,
+            AssetList::Swap => self.store.set_swappable_assets(asset_ids).await?,
+        }
+        self.preferences.set_assets_version(list, assets.version.to_string())
     }
 
     pub async fn search_tokens(&self, token_id: String, chains: Vec<Chain>) -> Vec<AssetBasic> {

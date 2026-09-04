@@ -15,7 +15,10 @@ pub fn build_quoter_request(wallet_address: &str, quoter_v2: &str, amount_in: U2
     }
     .abi_encode();
 
-    EthereumRpc::Call(TransactionObject::new_call_with_from(wallet_address, quoter_v2, call_data), BlockParameter::Latest)
+    EthereumRpc::Call {
+        transaction: TransactionObject::new_call_with_from(wallet_address, quoter_v2, call_data),
+        block: BlockParameter::Latest,
+    }
 }
 
 // Returns (amountOut, gasEstimate)

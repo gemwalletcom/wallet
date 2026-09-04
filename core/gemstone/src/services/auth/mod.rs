@@ -2,13 +2,13 @@ pub mod rules;
 
 use std::sync::Arc;
 
-use primitives::{AuthNonce, AuthPayload, Wallet, hex};
+use primitives::{AuthNonce, AuthPayload, Wallet};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::auth::create_auth_message;
-use crate::device::device_public_key;
 use crate::keystore::decode_password;
 use crate::keystore::{GemKeystore, keystore_id_for_wallet};
+use crate::services::device::GemDeviceKeyService;
 use crate::services::error::GemServiceError;
 use crate::services::wallet::GemKeystorePassword;
 
@@ -17,18 +17,18 @@ pub struct GemAuthService {
     api: Arc<GemDeviceApiClient>,
     keystore: Arc<GemKeystore>,
     password: Arc<dyn GemKeystorePassword>,
-    device_private_key: Vec<u8>,
+    device_key: Arc<GemDeviceKeyService>,
 }
 
 #[uniffi::export]
 impl GemAuthService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemDeviceApiClient>, keystore: Arc<GemKeystore>, password: Arc<dyn GemKeystorePassword>, device_private_key: Vec<u8>) -> Self {
+    pub fn new(api: Arc<GemDeviceApiClient>, keystore: Arc<GemKeystore>, password: Arc<dyn GemKeystorePassword>, device_key: Arc<GemDeviceKeyService>) -> Self {
         Self {
             api,
             keystore,
             password,
-            device_private_key,
+            device_key,
         }
     }
 }
@@ -47,7 +47,7 @@ impl GemAuthService {
         let password = decode_password(&self.password.get_password(false)?);
         let signature = self.keystore.sign_auth(keystore_id_for_wallet(wallet.id.id()), rules::AUTH_CHAIN, message.hash, password)?;
         Ok(AuthPayload {
-            device_id: hex::encode(device_public_key(self.device_private_key.clone())?),
+            device_id: self.device_key.device_id()?,
             chain: rules::AUTH_CHAIN,
             address: account.address.clone(),
             nonce: nonce.nonce,

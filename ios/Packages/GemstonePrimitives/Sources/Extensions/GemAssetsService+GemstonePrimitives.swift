@@ -13,21 +13,11 @@ public extension GemAssetsServiceProtocol {
         try await openWalletAsset(wallet: wallet.json(), assetId: assetId.identifier).map { $0.map() }
     }
 
+    func openAsset(for assetId: Primitives.AssetId) async throws -> Primitives.Asset? {
+        try await openAsset(assetId: assetId.identifier).map { $0.map() }
+    }
+
     func ensureTokenAsset(for assetId: Primitives.AssetId) async throws -> Primitives.Asset {
         try await ensureTokenAsset(assetId: assetId.identifier).map()
     }
-
-    @discardableResult
-    func syncMissingAssets(for assetIds: [Primitives.AssetId]) async throws -> [Primitives.AssetId] {
-        try await syncMissingAssets(assetIds: assetIds.ids).map { try Primitives.AssetId(id: $0) }
-    }
-
-    @discardableResult
-    func syncAsset(for assetId: Primitives.AssetId, currency: String) async throws -> Primitives.AssetFull {
-        guard let currency = Primitives.Currency(rawValue: currency) else {
-            throw AnyError("unknown currency: \(currency)")
-        }
-        return try await Primitives.AssetFull(syncAsset(assetId: assetId.identifier, currency: currency.json()))
-    }
-
 }

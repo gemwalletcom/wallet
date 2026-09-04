@@ -7,7 +7,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.type
-import com.wallet.core.primitives.RecentActivityType
+import uniffi.gemstone.GemAssetAction
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.screen.SceneTitle
@@ -25,7 +25,7 @@ fun AssetSelectScreen(
     closeIcon: Boolean = false,
     titleBadge: (AssetInfoDataAggregate) -> String?,
     showPopular: Boolean = false,
-    recentType: RecentActivityType? = null,
+    action: GemAssetAction? = null,
     onCancel: () -> Unit,
     onSelect: ((AssetId) -> Unit)? = null,
     onSelectRecent: ((AssetId) -> Unit)? = null,
@@ -47,10 +47,11 @@ fun AssetSelectScreen(
     val chainsFilter by viewModel.chainFilter.collectAsStateWithLifecycle()
     val balanceFilter by viewModel.balanceFilter.collectAsStateWithLifecycle()
 
-    val selectAsset: ((AssetId) -> Unit)? = when {
-        onSelect == null -> null
-        recentType == null -> onSelect
-        else -> { id -> viewModel.updateRecent(id, recentType); onSelect(id) }
+    val selectAsset: ((Asset) -> Unit)? = onSelect?.let { select ->
+        { asset ->
+            action?.let { viewModel.updateRecent(asset, it) }
+            select(asset.id)
+        }
     }
 
     AssetSelectScene(
@@ -90,8 +91,8 @@ fun AssetSelectScreen(
                 is AssetSelectAction.ChainFilter -> viewModel.onChainFilter(action.chain)
                 is AssetSelectAction.BalanceFilter -> viewModel.onBalanceFilter(action.onlyWithBalance)
                 AssetSelectAction.ClearFilters -> viewModel.onClearFilters()
-                is AssetSelectAction.Select -> selectAsset?.invoke(action.assetId)
-                is AssetSelectAction.SelectRecent -> onSelectRecent?.invoke(action.assetId)
+                is AssetSelectAction.Select -> selectAsset?.invoke(action.asset)
+                is AssetSelectAction.SelectRecent -> onSelectRecent?.invoke(action.asset.id)
                 AssetSelectAction.OpenRecentsSheet -> recentsViewModel.show(filters = viewModel.assetFilters(), types = viewModel.recentTypes)
                 AssetSelectAction.Cancel -> onCancel()
                 AssetSelectAction.AddAsset -> onAddAsset?.invoke()
@@ -104,6 +105,6 @@ fun AssetSelectScreen(
     )
 
     if (onSelectRecent != null) {
-        RecentsSheetHost(viewModel = recentsViewModel, onSelect = onSelectRecent)
+        RecentsSheetHost(viewModel = recentsViewModel, onSelect = { onSelectRecent(it.id) })
     }
 }

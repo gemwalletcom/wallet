@@ -25,15 +25,4 @@ public extension URL {
     func withUTM(source: String) -> URL {
         appending(queryItems: [URLQueryItem(name: "utm_source", value: source)])
     }
-
-    func toWebSocketURL() -> URL {
-        guard var components = URLComponents(url: self, resolvingAgainstBaseURL: false) else {
-            return self
-        }
-
-        components.scheme = components.scheme?
-            .lowercased()
-            .replacingOccurrences(of: "http", with: "ws")
-        return components.url ?? self
-    }
 }

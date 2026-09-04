@@ -4,11 +4,11 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.util.Log
 import com.gemwallet.android.application.asset_select.cases.GetChainAssets
-import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.cases.HideAsset
-import com.gemwallet.android.application.assets.cases.SetAssetPinned
-import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
@@ -26,16 +26,15 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemWalletHomeServiceInterface
 import javax.inject.Inject
 
 @HiltViewModel
 class NetworkAssetsViewModel @Inject constructor(
     getChainAssets: GetChainAssets,
-    private val getSession: GetSession,
-    private val hideAsset: HideAsset,
-    private val setAssetPinned: SetAssetPinned,
-    private val switchAssetVisibility: SwitchAssetVisibility,
+    private val service: GemWalletHomeServiceInterface,
     @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -56,9 +55,12 @@ class NetworkAssetsViewModel @Inject constructor(
         .map { assets -> assets.filter { !it.metadata.isPinned }.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val hidden: StateFlow<List<AssetInfoDataAggregate>> = getChainAssets.hidden(chain)
-        .map { assets -> assets.filter { it.asset.type != AssetType.NATIVE }.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
+    private val hiddenAssets = getChainAssets.hidden(chain)
+        .map { assets -> assets.filter { it.asset.type != AssetType.NATIVE } }
         .flowOn(Dispatchers.IO)
+
+    val hidden: StateFlow<List<AssetInfoDataAggregate>> = hiddenAssets
+        .map { assets -> assets.map { it.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val isEmpty: StateFlow<Boolean> = combine(pinned, unpinned, hidden) { pinned, unpinned, hidden ->
@@ -68,20 +70,27 @@ class NetworkAssetsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            getChainAssets.updateBalances(chain)
+            val assetIds = (activeAssets.first() + hiddenAssets.first()).map { it.asset.id.toIdentifier() }
+            runCatchingCancellable { service.updateBalances(assetIds) }
+                .onFailure { Log.e(TAG, "balances update failed for ${chain.string}", it) }
         }
     }
 
-    fun hideAsset(assetId: AssetId) = viewModelScope.launch {
-        hideAsset.invoke(assetId)
+    fun hideAsset(assetId: AssetId) = setEnabled(assetId, false)
+
+    fun addToWallet(assetId: AssetId) = setEnabled(assetId, true)
+
+    fun togglePin(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
+        runCatchingCancellable { service.setAssetPinned(assetId.toIdentifier(), pinned.value.none { it.id == assetId }) }
+            .onFailure { Log.e(TAG, "pinning ${assetId.toIdentifier()} failed", it) }
     }
 
-    fun togglePin(assetId: AssetId) = viewModelScope.launch {
-        setAssetPinned(assetId, pinned.value.none { it.id == assetId })
+    private fun setEnabled(assetId: AssetId, enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+        runCatchingCancellable { service.setAssetsEnabled(listOf(assetId.toIdentifier()), enabled) }
+            .onFailure { Log.e(TAG, "setting ${assetId.toIdentifier()} enabled=$enabled failed", it) }
     }
 
-    fun addToWallet(assetId: AssetId) = viewModelScope.launch {
-        val walletId = getSession().value?.wallet?.id ?: return@launch
-        switchAssetVisibility(walletId, assetId, true)
+    private companion object {
+        const val TAG = "NetworkAssets"
     }
 }

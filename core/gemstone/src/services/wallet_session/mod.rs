@@ -1,5 +1,7 @@
 pub mod rules;
 pub mod store;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use std::sync::Arc;
 
@@ -51,5 +53,20 @@ impl GemWalletSessionService {
 
     pub fn get_wallet(&self, wallet_id: WalletId) -> Result<Option<Wallet>, GemServiceError> {
         self.wallets.get_wallet(wallet_id)
+    }
+}
+
+impl GemWalletSessionService {
+    pub fn current_wallet_id(&self) -> Result<WalletId, GemServiceError> {
+        self.store.get_current_wallet_id()?.ok_or_else(|| GemServiceError::NotFound {
+            msg: "no current wallet".to_string(),
+        })
+    }
+
+    pub fn current_wallet(&self) -> Result<Wallet, GemServiceError> {
+        let wallet_id = self.current_wallet_id()?;
+        self.wallets.get_wallet(wallet_id.clone())?.ok_or_else(|| GemServiceError::NotFound {
+            msg: format!("wallet {} not found", wallet_id.id()),
+        })
     }
 }

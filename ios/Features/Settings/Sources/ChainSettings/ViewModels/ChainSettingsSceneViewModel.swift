@@ -2,48 +2,34 @@
 
 import Formatters
 import Foundation
-import protocol Gemstone.GemExplorerServiceProtocol
-import class Gemstone.GemNodeService
+import protocol Gemstone.GemChainSettingsServiceProtocol
+import struct Gemstone.GemNodeSelection
+import enum Gemstone.GemNodeStatusState
 import GemstonePrimitives
-import GemstoneServices
 import Localization
 import Primitives
 
 @Observable
 @MainActor
 public final class ChainSettingsSceneViewModel {
-    private let explorerService: any GemExplorerServiceProtocol
-
-    let nodeService: GemNodeService
-    let gatewayService: GatewayService
+    private let service: any GemChainSettingsServiceProtocol
     let chain: Chain
 
     var selectedExplorer: String?
-    var selectedNode: ChainNode
-    var nodeDelete: ChainNode?
+    var nodeDelete: GemNodeSelection?
     var explorers: [String]
     var isPresentingImportNode: Bool = false
 
     private let formatter = ValueFormatter.full_US
 
-    private var nodes: [ChainNode] = []
-    private var statusStateByNodeId: [String: NodeStatusState] = [:]
+    private var nodes: [GemNodeSelection] = []
+    private var statusStateByNodeUrl: [String: GemNodeStatusState] = [:]
 
-    public init(
-        nodeService: GemNodeService,
-        gatewayService: GatewayService,
-        explorerService: any GemExplorerServiceProtocol,
-        chain: Chain,
-    ) {
-        self.nodeService = nodeService
-        self.gatewayService = gatewayService
-        self.explorerService = explorerService
-
+    public init(chain: Chain, service: any GemChainSettingsServiceProtocol) {
         self.chain = chain
-
-        selectedNode = chain.defaultChainNode
-        explorers = explorerService.getExplorers(chain: chain.rawValue)
-        selectedExplorer = explorerService.getExplorerName(chain: chain.rawValue)
+        self.service = service
+        explorers = service.explorers(chain: chain.rawValue)
+        selectedExplorer = service.explorerName(chain: chain.rawValue)
     }
 
     var title: String {
@@ -57,8 +43,9 @@ public final class ChainSettingsSceneViewModel {
     var nodesModels: [ChainNodeViewModel] {
         nodes.map { node in
             ChainNodeViewModel(
-                chainNode: node,
-                statusState: statusStateByNodeId[node.id] ?? .none,
+                node: node,
+                gemNodeFlag: service.nodeFlag(url: node.url),
+                statusState: statusStateByNodeUrl[node.url] ?? .loading,
                 formatter: formatter,
             )
         }
@@ -76,8 +63,12 @@ public final class ChainSettingsSceneViewModel {
         Localized.Common.deleteConfirmation(nodeName)
     }
 
-    func canDelete(node: ChainNode) -> Bool {
-        nodeService.canDeleteNode(chain: chain.rawValue, url: node.node.url)
+    func canDelete(url: String) -> Bool {
+        service.canDeleteNode(chain: chain.rawValue, url: url)
+    }
+
+    func addNodeModel() -> AddNodeSceneViewModel {
+        AddNodeSceneViewModel(chain: chain, service: service)
     }
 }
 
@@ -88,7 +79,6 @@ extension ChainSettingsSceneViewModel {
         do {
             clear()
             try await loadNodes()
-            selectedNode = try currentNode()
             await loadNodesStates()
         } catch {
             // TODO: - handle error
@@ -99,17 +89,17 @@ extension ChainSettingsSceneViewModel {
     func onSelectExplorer(name: String) {
         selectedExplorer = name
         do {
-            try explorerService.setExplorerName(chain: chain.rawValue, name: name)
+            try service.setExplorerName(chain: chain.rawValue, name: name)
         } catch {
             debugLog("chain settings scene: on explorer select error \(error)")
         }
     }
 
-    func onSelectNode(_ node: ChainNode) {
-        selectedNode = node
+    func onSelectNode(_ url: String) {
         Task {
             do {
-                try await nodeService.selectNode(chain: chain.rawValue, url: node.node.url)
+                try await service.selectNode(chain: chain.rawValue, url: url)
+                try await loadNodes()
             } catch {
                 // TODO: - handle error
                 debugLog("chain settings scene: on chain select error \(error)")
@@ -117,8 +107,8 @@ extension ChainSettingsSceneViewModel {
         }
     }
 
-    func onSelectNodeForDeletion(_ chainNode: ChainNode) {
-        nodeDelete = chainNode
+    func onSelectNodeForDeletion(_ node: GemNodeSelection) {
+        nodeDelete = node
     }
 
     func onPresentImportNode() {
@@ -148,48 +138,30 @@ extension ChainSettingsSceneViewModel {
 
 extension ChainSettingsSceneViewModel {
     private func loadNodes() async throws {
-        nodes = try await nodeService.sortedNodes(chain: chain.rawValue, nodes: nodeService.getNodes(chain: chain.rawValue))
-            .map { try ChainNode(chain: chain.rawValue, node: Primitives.Node($0)) }
+        nodes = try await service.nodes(chain: chain.rawValue)
     }
 
     private func clear() {
-        statusStateByNodeId = [:]
+        statusStateByNodeUrl = [:]
     }
 
     private func loadNodesStates() async {
-        await withTaskGroup(of: (ChainNode, NodeStatusState).self) { group in
-            for node in nodes {
+        await withTaskGroup(of: (String, GemNodeStatusState).self) { group in
+            for url in nodes.map(\.url) {
                 group.addTask {
-                    await (node, self.loadNodeStatusState(for: node))
+                    await (url, self.service.nodeStatus(chain: self.chain.rawValue, url: url))
                 }
             }
 
-            for await (node, state) in group {
-                statusStateByNodeId[node.id] = state
+            for await (url, state) in group {
+                statusStateByNodeUrl[url] = state
             }
         }
     }
 
     private func delete() async throws {
         guard let nodeDelete else { return }
-        try await nodeService.deleteNode(chain: chain.rawValue, url: nodeDelete.node.url)
-        selectedNode = try currentNode()
+        try await service.deleteNode(chain: chain.rawValue, url: nodeDelete.url)
         try await loadNodes()
-    }
-
-    private func currentNode() throws -> ChainNode {
-        try ChainNode(chain: chain.rawValue, node: Primitives.Node(nodeService.selectedNode(chain: chain.rawValue)))
-    }
-
-    private func loadNodeStatusState(for node: ChainNode) async -> NodeStatusState {
-        guard let url = URL(string: node.node.url) else {
-            return .error(error: URLError(.badURL))
-        }
-        do {
-            let nodeStatus = try await gatewayService.nodeStatus(chain: chain, url: url.absoluteString)
-            return .result(nodeStatus)
-        } catch {
-            return .error(error: error)
-        }
     }
 }

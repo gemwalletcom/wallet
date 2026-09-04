@@ -38,17 +38,22 @@ mod tests {
     use chain_traits::{ChainTransactions, TransactionsRequest};
 
     const TRANSACTIONS_RESPONSE: &str = include_str!("../../testdata/transactions_by_address.json");
+    const TRC20_TRANSACTIONS_RESPONSE: &str = include_str!("../../testdata/trc20_transactions_by_address.json");
     const ADDRESS: &str = "TBKwjUtXVsX1r724C1V52nocBgtioDjx9u";
-    const LAGGING_TRANSACTION_ID: &str = "e5c5dc535b267134024e887c00b1522426661b1b5ae6efb76606f4d83bca1a81";
-    const INCOMING_TRANSACTION_ID: &str = "7b633cd06802d7117a7202650c7580516c742ce1e20d43ba736ab8da1a02cd8f";
+    const INCOMING_TRANSACTION_ID: &str = "d61c72e80f48b6d014301fc088f5d7f5a512d08b17cc6208d6b9993aeea12b0a";
 
     #[tokio::test]
     async fn test_get_transactions_by_address() {
-        let client = TronProvider::mock(|_| Ok(TRANSACTIONS_RESPONSE.as_bytes().to_vec()));
+        let client = TronProvider::mock(|path| {
+            if path.contains("/transactions/trc20") {
+                Ok(TRC20_TRANSACTIONS_RESPONSE.as_bytes().to_vec())
+            } else {
+                Ok(TRANSACTIONS_RESPONSE.as_bytes().to_vec())
+            }
+        });
         let result = client.get_transactions_by_address(TransactionsRequest::new(ADDRESS.to_string(), 4)).await.unwrap();
         let transactions = result.transaction_requests().unwrap();
         assert_eq!(transactions.len(), 4);
-        assert!(transactions.iter().any(|transaction| transaction.hash == LAGGING_TRANSACTION_ID));
         assert!(transactions.iter().any(|transaction| transaction.hash == INCOMING_TRANSACTION_ID));
     }
 }

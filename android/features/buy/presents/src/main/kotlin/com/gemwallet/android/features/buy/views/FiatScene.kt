@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.getFiatProviderIcon
 import com.gemwallet.android.features.buy.viewmodels.models.BuyFiatProviderUIModel
+import com.gemwallet.android.features.buy.viewmodels.models.BuyError
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSceneState
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.ui.R
@@ -70,6 +71,7 @@ fun BuyScene(
     onLotSelect: (FiatSuggestion) -> Unit,
     onAmount: (String) -> Unit,
     onProviderSelect: (FiatProvider) -> Unit,
+    onRetry: () -> Unit,
     onFiatTransactions: () -> Unit,
     onBuy: () -> Unit
 ) {
@@ -91,10 +93,11 @@ fun BuyScene(
             }
         },
         mainAction = {
+            val canRetry = (state as? FiatSceneState.Error)?.error is BuyError.QuoteRequestFailed
             MainActionButton(
-                title = stringResource(R.string.common_continue),
-                state = buttonState,
-                onClick = onBuy,
+                title = stringResource(if (canRetry) R.string.common_try_again else R.string.common_continue),
+                state = if (canRetry) ButtonState.Enabled else buttonState,
+                onClick = if (canRetry) onRetry else onBuy,
             )
         }
     ) {

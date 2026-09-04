@@ -1,6 +1,7 @@
 use gem_client::{Client as Transport, ClientError, ClientExt};
 
-use crate::model::Items;
+use crate::model::{Items, PageQuery};
+use crate::target::BlockscoutTarget;
 use crate::{TokenBalance, TokenTransfer, Transaction};
 
 pub struct Client<C: Transport> {
@@ -15,32 +16,33 @@ impl<C: Transport> Client<C> {
     }
 
     pub async fn get_transactions(&self, address: &str, limit: usize) -> Result<Vec<Transaction>, ClientError> {
-        let response: Items<Transaction> = self.client.get_with_query(&self.address_path(address, "transactions"), &self.page_query(limit)).await?;
-        Ok(response.items)
+        let target = BlockscoutTarget::Transactions {
+            chain_id: self.chain_id,
+            address: address.to_string(),
+            query: PageQuery::newest(limit),
+        };
+        Ok(self.client.get::<Items<Transaction>>(target).query(&self.api_key_query()).await?.items)
     }
 
     pub async fn get_token_transfers(&self, address: &str, limit: usize) -> Result<Vec<TokenTransfer>, ClientError> {
-        let response: Items<TokenTransfer> = self.client.get_with_query(&self.address_path(address, "token-transfers"), &self.page_query(limit)).await?;
-        Ok(response.items)
+        let target = BlockscoutTarget::TokenTransfers {
+            chain_id: self.chain_id,
+            address: address.to_string(),
+            query: PageQuery::newest(limit),
+        };
+        Ok(self.client.get::<Items<TokenTransfer>>(target).query(&self.api_key_query()).await?.items)
     }
 
     pub async fn get_token_balances(&self, address: &str) -> Result<Vec<TokenBalance>, ClientError> {
-        self.client
-            .get_with_query(&self.address_path(address, "token-balances"), &[("apikey".to_string(), self.api_key.clone())])
-            .await
+        let target = BlockscoutTarget::TokenBalances {
+            chain_id: self.chain_id,
+            address: address.to_string(),
+        };
+        self.client.get(target).query(&self.api_key_query()).await
     }
 
-    fn address_path(&self, address: &str, endpoint: &str) -> String {
-        format!("/{}/api/v2/addresses/{address}/{endpoint}", self.chain_id)
-    }
-
-    fn page_query(&self, limit: usize) -> [(String, String); 4] {
-        [
-            ("sort".to_string(), "block_number".to_string()),
-            ("order".to_string(), "desc".to_string()),
-            ("items_count".to_string(), limit.to_string()),
-            ("apikey".to_string(), self.api_key.clone()),
-        ]
+    fn api_key_query(&self) -> [(&'static str, &str); 1] {
+        [("apikey", self.api_key.as_str())]
     }
 }
 
@@ -57,8 +59,8 @@ mod tests {
         let client = Client::new(
             MockClient::new().with_get(|path| {
                 let response = match path {
-                    "/1/api/v2/addresses/0x123/transactions" => TRANSACTIONS,
-                    "/1/api/v2/addresses/0x123/token-transfers" => TOKEN_TRANSFERS,
+                    "/1/api/v2/addresses/0x123/transactions?sort=block_number&order=desc&items_count=3&apikey=key" => TRANSACTIONS,
+                    "/1/api/v2/addresses/0x123/token-transfers?sort=block_number&order=desc&items_count=3&apikey=key" => TOKEN_TRANSFERS,
                     _ => panic!("unexpected path: {path}"),
                 };
                 Ok(response.as_bytes().to_vec())
@@ -102,7 +104,7 @@ mod tests {
     async fn test_get_token_balances() {
         let client = Client::new(
             MockClient::new().with_get(|path| {
-                assert_eq!(path, "/1/api/v2/addresses/0x123/token-balances");
+                assert_eq!(path, "/1/api/v2/addresses/0x123/token-balances?apikey=key");
                 Ok(TOKEN_BALANCES.as_bytes().to_vec())
             }),
             1,

@@ -1,23 +1,20 @@
 package com.gemwallet.android.features.assets.viewmodels
 
+import com.gemwallet.android.domains.search.toGem
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemSearchScope
+import uniffi.gemstone.GemAssetSelectionServiceInterface
 import android.content.Context
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
 import com.gemwallet.android.application.asset_select.cases.SearchListAssets
 import com.gemwallet.android.application.asset_select.cases.SearchSelectAssets
-import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.cases.SetAssetPinned
-import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
-import com.gemwallet.android.application.perpetual.cases.SetPerpetualPinned
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.application.tokens.cases.SearchTokens
-import com.gemwallet.android.application.tokens.cases.WalletSearchScope
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
-import com.gemwallet.android.data.services.gemstone.config.showPerpetuals
-import com.gemwallet.android.data.services.gemstone.tokens.WalletSearch
 import com.gemwallet.android.data.services.gemstone.assets.listPriorityQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
@@ -29,10 +26,10 @@ import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectS
 import com.gemwallet.android.features.asset_select.viewmodels.models.ListSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
-import com.wallet.core.primitives.RecentActivityType
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.AssetToast
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,13 +40,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import uniffi.gemstone.GemAssetConfigService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -58,26 +55,15 @@ class AssetsResultsViewModel @Inject constructor(
     searchSelectAssets: SearchSelectAssets,
     searchListAssets: SearchListAssets,
     getRecentAssets: GetRecentAssets,
-    updateRecentAsset: UpdateRecentAsset,
-    switchAssetVisibility: SwitchAssetVisibility,
-    setAssetPinned: SetAssetPinned,
-    @WalletSearch searchTokensCase: SearchTokens,
-    assetConfig: GemAssetConfigService,
-    private val searchScopeCase: WalletSearchScope,
+    service: GemAssetSelectionServiceInterface,
     getPerpetuals: GetPerpetuals,
-    userConfig: UserConfig,
-    private val setPerpetualPinned: SetPerpetualPinned,
     @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle,
 ) : BaseAssetSelectViewModel(
     getSession,
     getRecentAssets,
-    updateRecentAsset,
-    switchAssetVisibility,
-    setAssetPinned,
-    searchTokensCase,
+    service,
     selectSearchOf(savedStateHandle, searchSelectAssets, searchListAssets),
-    assetConfig,
     remoteSearch = false,
 ) {
 
@@ -98,7 +84,7 @@ class AssetsResultsViewModel @Inject constructor(
         is WalletSearchTag.List ->
             combine(
                 getPerpetuals.getPerpetuals(listPriorityQuery(scope.id)),
-                userConfig.showPerpetuals(getSession()),
+                getSession().map { service.showPerpetuals() },
             ) { items, show ->
                 if (show) items.take(WalletSearchConfig.resultsLimit) else emptyList()
             }
@@ -134,9 +120,8 @@ class AssetsResultsViewModel @Inject constructor(
             isFetching.value = true
             if (pull) isPullRefreshing.value = true
             try {
-                val session = getSession().filterNotNull().first()
-                val chains = walletSearchChains(session.wallet)
-                searchScopeCase.search(queryState.text.toString(), session.currency, chains, scope)
+                runCatchingCancellable { service.search(queryState.text.toString(), scope.toGem()) }
+                    .onFailure { Log.e("AssetsResults", "search failed", it) }
             } finally {
                 isFetching.value = false
                 isPullRefreshing.value = false
@@ -150,9 +135,6 @@ class AssetsResultsViewModel @Inject constructor(
         emitToast(AssetToast.Pin(item.name, !item.isPinned))
     }
 
-    fun onOpenPerpetual(assetId: AssetId) {
-        updateRecent(assetId, RecentActivityType.Perpetual)
-    }
 }
 
 private fun selectSearchOf(

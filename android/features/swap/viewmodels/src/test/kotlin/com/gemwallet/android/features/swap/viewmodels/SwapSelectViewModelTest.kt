@@ -4,12 +4,8 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
-import com.gemwallet.android.application.asset_select.cases.SwitchAssetVisibility
-import com.gemwallet.android.application.assets.cases.SetAssetPinned
-import com.gemwallet.android.application.asset_select.cases.UpdateRecentAsset
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.swap.cases.SearchSwapAssets
-import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import io.mockk.coEvery
@@ -28,7 +24,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemAssetConfigService
+import uniffi.gemstone.GemAssetSelectionServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SwapSelectViewModelTest {
@@ -37,10 +33,7 @@ class SwapSelectViewModelTest {
 
     private val getSession = mockk<GetSession>()
     private val getRecentAssets = mockk<GetRecentAssets>()
-    private val updateRecentAsset = mockk<UpdateRecentAsset>(relaxed = true)
-    private val switchAssetVisibility = mockk<SwitchAssetVisibility>(relaxed = true)
-    private val setAssetPinned = mockk<SetAssetPinned>(relaxed = true)
-    private val searchTokensCase = mockk<SearchTokens>()
+    private val service = mockk<GemAssetSelectionServiceInterface>()
     private val searchSwapAssets = mockk<SearchSwapAssets>()
 
     @Before
@@ -49,7 +42,8 @@ class SwapSelectViewModelTest {
         every { getSession() } returns MutableStateFlow(null)
         every { getRecentAssets(any()) } returns flowOf(emptyList())
         every { searchSwapAssets(any(), any(), any(), any()) } returns flowOf(emptyList())
-        coEvery { searchTokensCase.search(any<String>(), any(), any()) } returns true
+        coEvery { service.searchAssets(any()) } returns emptyList()
+        every { service.supportsTokens() } returns false
     }
 
     @After
@@ -66,17 +60,13 @@ class SwapSelectViewModelTest {
         Snapshot.sendApplyNotifications()
         advanceUntilIdle()
 
-        coVerify(exactly = 0) { searchTokensCase.search(any<String>(), any(), any()) }
+        coVerify(exactly = 0) { service.searchAssets(any()) }
     }
 
     private fun createViewModel(type: SwapItemType) = SwapSelectViewModel(
         getSession = getSession,
         getRecentAssets = getRecentAssets,
-        updateRecentAsset = updateRecentAsset,
-        switchAssetVisibility = switchAssetVisibility,
-        setAssetPinned = setAssetPinned,
-        searchTokensCase = searchTokensCase,
-        assetConfig = GemAssetConfigService(),
+        service = service,
         searchSwapAssets = searchSwapAssets,
         savedStateHandle = SavedStateHandle(
             mapOf(RouteArgument.SwapItemType.key to type)

@@ -7,6 +7,7 @@ mod provider;
 mod provider_proxy;
 mod quote_data;
 mod referral;
+mod target;
 #[cfg(test)]
 mod testkit;
 

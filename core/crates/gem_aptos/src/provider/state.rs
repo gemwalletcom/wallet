@@ -10,8 +10,8 @@ use crate::rpc::client::AptosClient;
 
 #[async_trait]
 impl<C: Client> ChainState for AptosClient<C> {
-    async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
-        Ok(self.get_ledger().await?.chain_id.to_string())
+    async fn get_chain_id(&self) -> Result<Option<String>, Box<dyn Error + Sync + Send>> {
+        Ok(Some(self.get_ledger().await?.chain_id.to_string()))
     }
 
     async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>> {
@@ -26,15 +26,17 @@ impl<C: Client> ChainState for AptosClient<C> {
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
-    use crate::provider::testkit::create_aptos_test_client;
     use chain_traits::ChainState;
+    use primitives::Chain;
+
+    use crate::provider::testkit::create_aptos_test_client;
 
     #[tokio::test]
     async fn test_aptos_get_chain_id() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_aptos_test_client();
         let chain_id = client.get_chain_id().await?;
-        assert!(!chain_id.is_empty());
-        println!("Aptos chain ID: {}", chain_id);
+
+        assert_eq!(chain_id.as_deref(), Some(Chain::Aptos.network_id()));
         Ok(())
     }
 

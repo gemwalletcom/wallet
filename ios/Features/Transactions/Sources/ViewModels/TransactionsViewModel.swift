@@ -1,28 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemChainServiceProtocol
-import protocol Gemstone.GemTransactionsServiceProtocol
 import Components
-import protocol Gemstone.GemExplorerServiceProtocol
-import class Gemstone.GemTransactionFormatter
 import Foundation
-import protocol Gemstone.GemPreferencesServiceProtocol
+import protocol Gemstone.GemTransactionsServiceProtocol
+import GemstonePrimitives
+import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
 import Store
-import GemstoneServices
 
 @Observable
 @MainActor
 public final class TransactionsViewModel {
-    public let explorerService: any GemExplorerServiceProtocol
-    let transactionFormatter: GemTransactionFormatter
-    public let transactionsService: any GemTransactionsServiceProtocol
-    private let preferencesService: any GemPreferencesServiceProtocol
-
+    private let service: any GemTransactionsServiceProtocol
     private let type: TransactionsRequestType
-    private let chainService: any GemChainServiceProtocol
 
     public let wallet: Wallet
 
@@ -36,22 +28,18 @@ public final class TransactionsViewModel {
     public var isPresentingToastMessage: ToastMessage?
 
     public init(
-        transactionsService: any GemTransactionsServiceProtocol,
-        explorerService: any GemExplorerServiceProtocol,
-        transactionFormatter: GemTransactionFormatter,
+        service: any GemTransactionsServiceProtocol,
         wallet: Wallet,
         type: TransactionsRequestType,
-        chainService: any GemChainServiceProtocol,
-        preferencesService: any GemPreferencesServiceProtocol,
     ) {
-        self.transactionsService = transactionsService
-        self.explorerService = explorerService
-        self.transactionFormatter = transactionFormatter
+        self.service = service
         self.type = type
-        self.chainService = chainService
         self.wallet = wallet
-        filterModel = TransactionsFilterViewModel(wallet: wallet, type: type, chainService: chainService)
-        self.preferencesService = preferencesService
+        filterModel = TransactionsFilterViewModel(wallet: wallet, chains: Self.filterChains(service), type: type)
+    }
+
+    private static func filterChains(_ service: any GemTransactionsServiceProtocol) -> [Chain] {
+        ((try? service.filterChains()) ?? []).map { Chain(core: $0) }
     }
 
     public var title: String {
@@ -63,7 +51,7 @@ public final class TransactionsViewModel {
     }
 
     public var currency: String {
-        preferencesService.currencyCode
+        service.currency()
     }
 
     public var emptyContentModel: EmptyContentTypeViewModel {
@@ -84,7 +72,7 @@ public extension TransactionsViewModel {
 
     func load() async {
         do {
-            try await transactionsService.sync(walletId: walletId.id, assetId: nil)
+            try await service.sync(assetId: nil)
         } catch {
             debugLog("load getTransactions error \(error)")
         }
@@ -95,7 +83,7 @@ public extension TransactionsViewModel {
 
 extension TransactionsViewModel {
     private func onSelectCleanFilters() {
-        filterModel = TransactionsFilterViewModel(wallet: wallet, type: type, chainService: chainService)
+        filterModel = TransactionsFilterViewModel(wallet: wallet, chains: Self.filterChains(service), type: type)
     }
 
     private func onSelectReceive() {

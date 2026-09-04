@@ -1,3 +1,6 @@
+pub mod model;
+pub mod quote;
+pub mod rules;
 pub mod store;
 
 use crate::services::error::GemServiceError;
@@ -9,6 +12,8 @@ use primitives::{AssetId, FiatQuote, FiatQuoteType, FiatQuoteUrl, WalletId};
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::assets::GemAssetsService;
 
+pub use model::GemFiatAmountCheck;
+pub use quote::GemFiatQuoteService;
 pub use store::GemFiatStore;
 
 const QUOTE_DEBOUNCE_MILLISECONDS: u64 = 250;
@@ -27,7 +32,9 @@ impl GemFiatService {
     pub fn new(api: Arc<GemDeviceApiClient>, assets: Arc<GemAssetsService>, store: Arc<dyn GemFiatStore>) -> Self {
         Self { api, assets, store }
     }
+}
 
+impl GemFiatService {
     pub fn quote_debounce_milliseconds(&self) -> u64 {
         QUOTE_DEBOUNCE_MILLISECONDS
     }

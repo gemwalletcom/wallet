@@ -21,3 +21,9 @@ pub struct CreateWidgetUrlRequest {
 pub struct CreateWidgetUrlResponse {
     pub widget_url: String,
 }
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RefreshTokenRequest {
+    pub api_key: String,
+}

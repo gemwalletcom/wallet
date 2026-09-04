@@ -8,17 +8,4 @@ public extension Primitives.Wallet {
     var legacyV3Id: String {
         externalId ?? id.id
     }
-
-    var chains: [Chain] {
-        let walletChains = accounts.map(\.chain).asSet()
-        return walletChains.intersection(AssetConfiguration.allChains).asArray().sortByRank()
-    }
-
-    var chainsWithTokens: [Chain] {
-        accounts.map(\.chain).asSet().filter(\.isTokenSupported).asArray().sortByRank()
-    }
-
-    var hasTokenSupport: Bool {
-        accounts.contains { $0.chain.isTokenSupported }
-    }
 }

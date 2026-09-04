@@ -1,7 +1,12 @@
+use super::model::GemNodeSelection;
 use crate::services::collections::unique_by;
 use primitives::Chain;
 use primitives::node::{Node, NodeState};
 use primitives::node_config::{self, NodePriority, NodeRegion};
+use url::Url;
+
+const NODE_URL_SCHEME: &str = "https";
+const NODE_CHECK_DEBOUNCE_MILLISECONDS: u64 = 250;
 
 pub fn merge_nodes(default_nodes: Vec<Node>, stored_nodes: Vec<Node>) -> Vec<Node> {
     unique_by(default_nodes.into_iter().chain(stored_nodes), |node| node.url.clone())
@@ -23,6 +28,24 @@ pub fn sorted_nodes(chain: Chain, nodes: Vec<Node>) -> Vec<Node> {
 
 pub fn selected_node(selected_url: Option<String>, nodes: Vec<Node>, fallback: Node) -> Node {
     selected_url.and_then(|url| nodes.into_iter().find(|node| node.url == url)).unwrap_or(fallback)
+}
+
+pub fn node_selections(nodes: Vec<Node>, selected_url: &str) -> Vec<GemNodeSelection> {
+    nodes
+        .into_iter()
+        .map(|node| GemNodeSelection {
+            host: node_host(&node.url),
+            is_selected: node.url == selected_url,
+            url: node.url,
+        })
+        .collect()
+}
+
+fn node_host(url: &str) -> String {
+    Url::parse(url)
+        .ok()
+        .and_then(|parsed| parsed.host_str().map(str::to_string))
+        .unwrap_or_else(|| url.to_string())
 }
 
 pub fn chain_node(chain: Chain, selected_url: Option<String>, stored_nodes: Vec<Node>) -> Node {
@@ -49,7 +72,7 @@ pub fn region_node(chain: Chain, region: NodeRegion) -> Node {
     }
 }
 
-pub fn config_node(node: node_config::Node) -> Node {
+fn config_node(node: node_config::Node) -> Node {
     let (status, priority) = match node.priority {
         NodePriority::High => (NodeState::Active, 3),
         NodePriority::Medium => (NodeState::Active, 2),
@@ -65,6 +88,20 @@ pub fn default_nodes(chain: Chain) -> Vec<Node> {
         .map(|region| region_node(chain, region))
         .chain(node_config::get_nodes_for_chain(chain).into_iter().map(config_node))
         .collect()
+}
+
+pub fn node_check_debounce_milliseconds() -> u64 {
+    NODE_CHECK_DEBOUNCE_MILLISECONDS
+}
+
+pub fn node_url(input: &str) -> Option<String> {
+    let input = input.trim().trim_end_matches('/');
+    let candidate = match input.contains("://") {
+        true => input.to_string(),
+        false => format!("{NODE_URL_SCHEME}://{input}"),
+    };
+    let url = Url::parse(&candidate).ok()?;
+    (url.scheme() == NODE_URL_SCHEME && url.host_str().is_some_and(|host| host.contains('.'))).then_some(candidate)
 }
 
 pub fn websocket_url(url: &str) -> String {
@@ -101,6 +138,19 @@ mod tests {
     }
 
     #[test]
+    fn test_node_url_requires_https_and_a_dotted_host() {
+        assert_eq!(node_url("cloudflare-eth.com").as_deref(), Some("https://cloudflare-eth.com"));
+        assert_eq!(node_url(" https://rpc.example.com/v1 ").as_deref(), Some("https://rpc.example.com/v1"));
+        assert_eq!(node_url("https://tron.api.pocket.network/").as_deref(), Some("https://tron.api.pocket.network"));
+        assert_eq!(node_url("http://cloudflare-eth.com"), None);
+        assert_eq!(node_url("ws://rpc.example.com"), None);
+        assert_eq!(node_url("https:///missing-host"), None);
+        assert_eq!(node_url("localhost:8545"), None);
+        assert_eq!(node_url("not-a-url"), None);
+        assert_eq!(node_url(""), None);
+    }
+
+    #[test]
     fn test_merge_nodes_keeps_defaults_first_and_drops_duplicate_urls() {
         let merged = merge_nodes(vec![node("https://a", 1)], vec![node("https://a", 5), node("https://b", 2)]);
 
@@ -117,6 +167,19 @@ mod tests {
         assert_eq!(selected_node(Some("https://b".to_string()), nodes.clone(), node("https://f", 0)).url, "https://b");
         assert_eq!(selected_node(Some("https://c".to_string()), nodes.clone(), node("https://f", 0)).url, "https://f");
         assert_eq!(selected_node(None, nodes, node("https://f", 0)).url, "https://f");
+    }
+
+    #[test]
+    fn test_node_selections_marks_the_url_and_not_the_host() {
+        let nodes = vec![node("https://rpc.example.com/one", 1), node("https://rpc.example.com/two", 2)];
+        let selections = node_selections(nodes, "https://rpc.example.com/two");
+        let selected = selections.iter().filter(|selection| selection.is_selected).map(|selection| selection.url.as_str());
+
+        assert_eq!(
+            selections.iter().map(|selection| selection.host.as_str()).collect::<Vec<_>>(),
+            vec!["rpc.example.com", "rpc.example.com"]
+        );
+        assert_eq!(selected.collect::<Vec<_>>(), vec!["https://rpc.example.com/two"]);
     }
 
     #[test]

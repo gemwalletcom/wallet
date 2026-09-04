@@ -16,7 +16,7 @@ public extension RecentsSceneViewModel {
         RecentsSceneViewModel(
             walletId: walletId,
             types: types,
-            recentAssetsService: GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock())),
+            service: GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock()), session: .mock()),
             onSelect: onSelect,
         )
     }

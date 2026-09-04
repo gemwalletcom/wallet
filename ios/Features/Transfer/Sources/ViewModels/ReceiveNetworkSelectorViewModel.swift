@@ -15,10 +15,6 @@ struct ReceiveNetworkSelectorViewModel: SelectableListAdoptable, SelectableListN
         Localized.Settings.Networks.title
     }
 
-    var doneTitle: String {
-        Localized.Common.done
-    }
-
     init(assetIds: [AssetId]) {
         let items = assetIds.map(ReceiveNetworkItem.init)
         self.init(state: .data(.plain(items)))

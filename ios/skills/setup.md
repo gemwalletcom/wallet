@@ -36,3 +36,4 @@ just generate-stone
 
 - Use the repo root `just setup-git` if submodules are missing or out of date
 - Run `just bootstrap` before opening a fresh checkout in Xcode so the local Gemstone UniFFI sources exist
+- Xcode latest stable is expected; Apple framework documentation ships inside Xcode at `/Applications/Xcode.app/Contents/PlugIns/IDEIntelligenceChat.framework/Versions/A/Resources/AdditionalDocumentation`

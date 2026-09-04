@@ -1,20 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Foundation
 import class Gemstone.Config
 import Primitives
 
 public struct PerpetualConfig {
     private init() {}
-
-    public static var defaultLeverage: UInt8 {
-        Config.shared.getPerpetualConfig().defaultLeverage
-    }
-
-    public static var depositAddress: String {
-        Config.shared.getPerpetualConfig().depositAddress
-    }
 
     public static var depositAssetId: String {
         Config.shared.getPerpetualConfig().depositAssetId
@@ -26,14 +17,6 @@ public struct PerpetualConfig {
         }
         let usdc = Chain.hyperCore.defaultAsset(type: .perpetual)
         return Primitives.Asset(id: assetId, name: usdc.name, symbol: usdc.symbol, decimals: usdc.decimals, type: .token)
-    }
-
-    public static var minDeposit: BigInt {
-        BigInt(Config.shared.getPerpetualConfig().minDeposit)
-    }
-
-    public static var minWithdraw: BigInt {
-        BigInt(Config.shared.getPerpetualConfig().minWithdraw)
     }
 
     public static var leverageOptions: [UInt8] {
@@ -51,9 +34,4 @@ public struct PerpetualConfig {
     public static func leverageOptions(maxLeverage: UInt8) -> [UInt8] {
         Array(Config.shared.leverageOptions(maxLeverage: maxLeverage))
     }
-
-    public static func selectLeverage(desired: UInt8, options: [UInt8]) -> UInt8 {
-        Config.shared.selectLeverage(desired: desired, options: Data(options))
-    }
-
 }

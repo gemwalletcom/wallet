@@ -14,6 +14,6 @@ impl<C: Client> GemStaticApiClient<C> {
     }
 
     pub async fn get_validators(&self, chain: Chain) -> Result<Vec<StakeValidator>, ClientError> {
-        self.client.get(&GemStaticApiTarget::GetValidators(chain).path()).await
+        self.client.get(GemStaticApiTarget::GetValidators { chain }).await
     }
 }

@@ -43,3 +43,6 @@ pub struct QuoteResponse {
     pub to_token: Token,
     pub quotes: Vec<QuoteEntry>,
 }
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SwapBody {}

@@ -1,19 +1,15 @@
 package com.gemwallet.android.features.settings.contacts.viewmodels
 
-import uniffi.gemstone.GemAddressService
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressInput
 import com.gemwallet.android.ui.models.name.NameRecordState
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NameProvider
 import com.wallet.core.primitives.NameRecord
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ContactAddressInputTest {
-
-    private val addressService = GemAddressService()
 
     private val chain = Chain.Ethereum
     private val resolvedAddress = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
@@ -21,14 +17,6 @@ class ContactAddressInputTest {
     private fun completed(name: String = "vitalik.eth") = NameRecordState.Complete(
         NameRecord(name = name, chain = chain, address = resolvedAddress, provider = NameProvider.Ens),
     )
-
-    @Test
-    fun resolvedRecordReplacesTypedNameAsAddress() {
-        val typed = ContactAddressInput(chain = chain, address = "vitalik.eth")
-
-        assertEquals(resolvedAddress, typed.copy(nameResolveState = completed()).resolvedAddress(addressService))
-        assertEquals("vitalik.eth", typed.resolvedAddress(addressService))
-    }
 
     @Test
     fun confirmStaysDisabledWhileResolving() {

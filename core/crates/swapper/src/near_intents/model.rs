@@ -103,3 +103,10 @@ pub struct ExplorerTransaction {
     pub amount_out: String,
     pub origin_chain_tx_hashes: Vec<String>,
 }
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExplorerTransactionsQuery {
+    pub search: String,
+    pub number_of_transactions: usize,
+}

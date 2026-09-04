@@ -10,7 +10,12 @@ public struct ConnectionSceneViewModel: Sendable {
     private static let dateFormatter = RelativeDateFormatter()
 
     let model: WalletConnectionViewModel
-    let connector: any WalletConnectorServiceable
+    private let connector: any WalletConnectorServiceable
+
+    init(model: WalletConnectionViewModel, connector: any WalletConnectorServiceable) {
+        self.model = model
+        self.connector = connector
+    }
 
     var title: String {
         Localized.WalletConnect.Connection.title

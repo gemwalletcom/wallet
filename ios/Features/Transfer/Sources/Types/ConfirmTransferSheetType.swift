@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import InfoSheet
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 

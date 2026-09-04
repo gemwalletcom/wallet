@@ -1,7 +1,7 @@
 package com.gemwallet.android.testkit
 
 import com.wallet.core.primitives.Transaction
-import com.gemwallet.android.model.TransactionExtended
+import com.wallet.core.primitives.TransactionExtended
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Price
 
@@ -23,5 +23,6 @@ fun mockTransactionExtended(
     price = price,
     feePrice = feePrice,
     assets = assets,
+    prices = emptyList(),
     confirmationEtaSeconds = confirmationEtaSeconds,
 )

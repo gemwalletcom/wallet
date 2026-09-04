@@ -1,5 +1,7 @@
+use crate::models::custom_types::{GemBigInt, GemBigUint};
 use primitives::chart::ChartCandleUpdate;
-use primitives::{Asset, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType};
+use primitives::{Asset, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualProvider};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemPerpetualSocketUpdate {
@@ -26,7 +28,7 @@ pub struct GemPerpetualOrderInput {
     pub asset: Asset,
     pub asset_index: i32,
     pub price: f64,
-    pub usdc_value: String,
+    pub usdc_value: GemBigInt,
     pub usdc_decimals: i32,
     pub leverage: u8,
     pub slippage: Option<f64>,
@@ -68,4 +70,46 @@ pub struct GemAutocloseSummary {
 pub enum GemMarketsRefreshTrigger {
     Scheduled,
     UserRequested,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, uniffi::Enum)]
+pub enum GemPerpetualPositionKind {
+    Open { direction: PerpetualDirection },
+    Increase,
+    Reduce,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, uniffi::Record)]
+pub struct GemPerpetualTransferData {
+    pub provider: PerpetualProvider,
+    pub direction: PerpetualDirection,
+    pub asset: Asset,
+    pub base_asset: Asset,
+    pub asset_index: i32,
+    pub price: f64,
+    pub leverage: u8,
+    pub margin_type: PerpetualMarginType,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, uniffi::Enum)]
+pub enum GemPerpetualPositionAction {
+    Open {
+        data: GemPerpetualTransferData,
+    },
+    Increase {
+        data: GemPerpetualTransferData,
+    },
+    Reduce {
+        data: GemPerpetualTransferData,
+        #[serde(with = "crate::models::custom_types::decimal_string::unsigned")]
+        available: GemBigUint,
+    },
+}
+
+impl GemPerpetualPositionAction {
+    pub fn data(&self) -> &GemPerpetualTransferData {
+        match self {
+            Self::Open { data } | Self::Increase { data } | Self::Reduce { data, .. } => data,
+        }
+    }
 }

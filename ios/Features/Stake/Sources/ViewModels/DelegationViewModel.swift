@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import protocol Gemstone.GemExplorerServiceProtocol
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import Formatters
@@ -16,8 +15,7 @@ public struct DelegationViewModel: Sendable {
     public let currencyCode: String
     private let asset: Asset
     private let formatter: ValueFormatter
-    private let explorerService: any GemExplorerServiceProtocol
-    private let stakeService: any GemStakeServiceProtocol
+    private let service: any GemStakeServiceProtocol
     private let priceFormatter: CurrencyFormatter
 
     private static let dateFormatterDefault: DateComponentsFormatter = {
@@ -37,8 +35,7 @@ public struct DelegationViewModel: Sendable {
     }()
 
     public init(
-        explorerService: any GemExplorerServiceProtocol,
-        stakeService: any GemStakeServiceProtocol,
+        service: any GemStakeServiceProtocol,
         delegation: Delegation,
         asset: Asset,
         formatter: ValueFormatter = .short,
@@ -48,8 +45,7 @@ public struct DelegationViewModel: Sendable {
         self.currencyCode = currencyCode
         self.asset = asset
         self.formatter = formatter
-        self.explorerService = explorerService
-        self.stakeService = stakeService
+        self.service = service
         priceFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
     }
 
@@ -86,7 +82,7 @@ public struct DelegationViewModel: Sendable {
     }
 
     private var showsRewards: Bool {
-        stakeService.showsRewards(state: delegation.base.state.json(), rewards: delegation.base.rewards)
+        service.showsRewards(delegation: delegation.base.json())
     }
 
     public var rewardsText: String? {
@@ -116,12 +112,11 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var validatorUrl: URL? {
-        guard let address = stakeService.validatorExplorerAddress(validator: delegation.validator.json()) else { return nil }
-        return explorerService.getValidatorUrl(chain: delegation.validator.chain.rawValue, address: address).map { BlockExplorerLink($0) }?.url
+        service.validatorUrl(validator: delegation.validator.json()).map { BlockExplorerLink($0) }?.url
     }
 
     public var completionDateText: String? {
-        guard stakeService.showsCompletionDate(state: delegation.base.state.json()) else { return nil }
+        guard service.showsCompletionDate(delegation: delegation.base.json()) else { return nil }
         let now = Date.now
         if let completionDate = delegation.base.completionDate, completionDate > now {
             if now.distance(to: completionDate) < 86400 {

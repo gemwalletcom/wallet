@@ -3,7 +3,8 @@
 import BigInt
 import Components
 import Formatters
-import class Gemstone.GemSwapQuoteService
+import class Gemstone.GemSwapQuoteSummary
+import GemstonePrimitives
 import struct Gemstone.SwapperQuote
 import Preferences
 import Primitives
@@ -18,15 +19,15 @@ struct SwapDetailsViewModelTests {
     func swapEstimationField() throws {
         #expect(
             try SwapDetailsViewModel
-                .mock(selectedQuote: SwapperQuote.mock(etaInSeconds: nil).map(swapQuoteService: GemSwapQuoteService())).swapEstimationField == nil,
+                .mock(selectedQuote: SwapperQuote.mock(etaInSeconds: nil).map()).swapEstimationField == nil,
         )
-        #expect(try SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 30).map(swapQuoteService: GemSwapQuoteService())).swapEstimationField == nil)
-        #expect(try SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 180).map(swapQuoteService: GemSwapQuoteService())).swapEstimationField?.value.text == "≈ 3 min")
+        #expect(try SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 30).map()).swapEstimationField == nil)
+        #expect(try SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 180).map()).swapEstimationField?.value.text == "≈ 3 min")
     }
 
     @Test
     func switchRate() throws {
-        let model = try SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: "250000000000").map(swapQuoteService: GemSwapQuoteService()))
+        let model = try SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: 250_000_000_000).map())
 
         #expect(model.rateText == "1 ETH ≈ 250,000.00 USDT")
 
@@ -36,22 +37,24 @@ struct SwapDetailsViewModelTests {
 
     @Test
     func minReceiveAppliesSlippageBasisPoints() throws {
-        let model = try SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: "250000000000").map(swapQuoteService: GemSwapQuoteService()))
+        let model = try SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: 250_000_000_000).map())
 
         #expect(model.minReceiveField.value.text == "248,750 USDT")
     }
 }
 
 extension SwapDetailsViewModel {
-    static func mock(selectedQuote: SwapQuote = try! SwapperQuote.mock().map(swapQuoteService: GemSwapQuoteService())) -> SwapDetailsViewModel {
-        SwapDetailsViewModel(
-            state: .data([SwapperQuote.mock()]),
+    static func mock(selectedQuote: SwapQuote = try! SwapperQuote.mock().map()) -> SwapDetailsViewModel {
+        let summary = GemSwapQuoteSummary(quote: selectedQuote.json())
+        return SwapDetailsViewModel(
             fromAssetPrice: AssetPriceValue(asset: .mockEthereum(), price: .mock()),
             toAssetPrice: AssetPriceValue(asset: .mockEthereumUSDT(), price: .mock()),
             selectedQuote: selectedQuote,
             slippage: .auto,
             currency: Currency.usd.rawValue,
-            swapQuoteService: GemSwapQuoteService(),
+            swapPriceImpact: nil,
+            minReceiveValue: BigInt(summary.minReceiveValue()),
+            etaMinutes: summary.etaMinutes(),
             swapProviderSelectAction: nil,
         )
     }

@@ -5,6 +5,8 @@ use serde::{Serialize, de::DeserializeOwned};
 
 mod content_type;
 mod provider_config;
+mod request;
+mod target;
 mod types;
 
 #[cfg(feature = "testkit")]
@@ -24,6 +26,8 @@ pub mod query;
 pub use content_type::{CONTENT_TYPE, ContentType};
 pub use provider_config::RemoteProviderConfig;
 pub use query::{build_path_with_query, build_request_url};
+pub use request::{GetRequest, PostRequest};
+pub use target::Target;
 pub use types::{ClientError, Response, decode_json_byte_array, deserialize_response};
 
 #[cfg(feature = "reqwest")]
@@ -40,7 +44,7 @@ pub const X_CACHE_TTL: &str = "x-gem-cache-ttl";
 
 #[async_trait]
 pub trait Client: Send + Sync + Debug {
-    async fn get_with<R>(&self, path: &str, query: &[(String, String)], headers: HashMap<String, String>) -> Result<R, ClientError>
+    async fn get_with<R>(&self, path: &str, headers: HashMap<String, String>) -> Result<R, ClientError>
     where
         R: DeserializeOwned;
 
@@ -56,58 +60,32 @@ pub trait Client: Send + Sync + Debug {
 
 #[async_trait]
 pub trait ClientExt: Client {
-    async fn get<R>(&self, path: &str) -> Result<R, ClientError>
-    where
-        R: DeserializeOwned + Send,
-    {
-        self.get_with(path, &[], HashMap::new()).await
+    fn get<R>(&self, target: impl Target) -> GetRequest<'_, Self, R> {
+        GetRequest::new(self, target.path(), target.headers())
     }
 
-    async fn get_with_query<R>(&self, path: &str, query: &[(String, String)]) -> Result<R, ClientError>
-    where
-        R: DeserializeOwned + Send,
-    {
-        self.get_with(path, query, HashMap::new()).await
-    }
-
-    async fn get_with_headers<R>(&self, path: &str, headers: HashMap<String, String>) -> Result<R, ClientError>
-    where
-        R: DeserializeOwned + Send,
-    {
-        self.get_with(path, &[], headers).await
-    }
-
-    async fn post<T, R>(&self, path: &str, body: &T) -> Result<R, ClientError>
+    fn post<'a, T, R>(&'a self, target: impl Target, body: &'a T) -> PostRequest<'a, Self, T, R>
     where
         T: Serialize + Send + Sync,
-        R: DeserializeOwned + Send,
     {
-        self.post_with(path, body, HashMap::new()).await
+        PostRequest::new(self, target.path(), target.headers(), body)
     }
 
-    async fn post_with_headers<T, R>(&self, path: &str, body: &T, headers: HashMap<String, String>) -> Result<R, ClientError>
-    where
-        T: Serialize + Send + Sync,
-        R: DeserializeOwned + Send,
-    {
-        self.post_with(path, body, headers).await
-    }
-
-    async fn get_or_error<R, E>(&self, path: &str) -> Result<R, ClientError<Option<E>>>
+    async fn get_or_error<R, E>(&self, target: impl Target + Send) -> Result<R, ClientError<Option<E>>>
     where
         R: DeserializeOwned + Send,
         E: DeserializeOwned + Send,
     {
-        self.get(path).await.map_err(ClientError::decode_body)
+        self.get(target).await.map_err(ClientError::decode_body)
     }
 
-    async fn post_or_error<T, R, E>(&self, path: &str, body: &T) -> Result<R, ClientError<Option<E>>>
+    async fn post_or_error<T, R, E>(&self, target: impl Target + Send, body: &T) -> Result<R, ClientError<Option<E>>>
     where
         T: Serialize + Send + Sync,
         R: DeserializeOwned + Send,
         E: DeserializeOwned + Send,
     {
-        self.post(path, body).await.map_err(ClientError::decode_body)
+        self.post(target, body).await.map_err(ClientError::decode_body)
     }
 }
 

@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemAmountSign
-import class Gemstone.GemTransactionFormatter
-import enum Gemstone.GemTransactionValue
-import protocol Gemstone.GemExplorerServiceProtocol
 import BigInt
 import Components
 import Formatters
 import Foundation
+import enum Gemstone.GemAmountSign
+import enum Gemstone.GemImage
+import class Gemstone.GemTransactionSummary
+import enum Gemstone.GemTransactionValue
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -17,21 +17,16 @@ import SwiftUI
 public struct TransactionViewModel: Sendable {
     public let transaction: TransactionExtended
 
-    private let explorerService: any GemExplorerServiceProtocol
-    private let assetImageFormatter = AssetImageFormatter()
-    private let transactionFormatter: GemTransactionFormatter
+    private let row: GemTransactionSummary
     private let currency: String
     private let formatter: ValueFormatter = .short
 
     public init(
-        explorerService: any GemExplorerServiceProtocol,
-        transactionFormatter: GemTransactionFormatter,
         transaction: TransactionExtended,
         currency: String,
     ) {
+        row = GemTransactionSummary(transaction: transaction.transaction.json())
         self.transaction = transaction
-        self.explorerService = explorerService
-        self.transactionFormatter = transactionFormatter
         self.currency = currency
     }
 
@@ -40,7 +35,7 @@ public struct TransactionViewModel: Sendable {
         if let nftMetadata = transaction.transaction.metadata?.decode(TransactionNFTTransferMetadata.self) {
             return AssetImage(
                 type: .text(""),
-                imageURL: assetImageFormatter.getNFTUrl(for: nftMetadata.assetId.identifier),
+                imageURL: GemImage.nftAsset(assetId: nftMetadata.assetId.identifier).imageURL,
                 placeholder: asset.placeholder,
                 chainPlaceholder: overlayImage,
             )
@@ -83,7 +78,7 @@ public struct TransactionViewModel: Sendable {
     }
 
     private var amountSign: GemAmountSign {
-        guard case let .amount(sign) = transactionFormatter.value(transaction: transaction.transaction.json()) else { return .none }
+        guard case let .amount(sign) = row.value() else { return .none }
         return sign
     }
 
@@ -102,7 +97,7 @@ public struct TransactionViewModel: Sendable {
 
     public var titleTextValue: TextValue {
         TextValue(
-            text: transactionFormatter.title(transaction: transaction.transaction.json()).title,
+            text: row.title().title,
             style: TextStyle(font: Font.system(.body, weight: .medium), color: .primary),
         )
     }
@@ -130,7 +125,7 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var titleExtraTextValue: TextValue? {
-        let title: String? = switch transactionFormatter.subtitle(transaction: transaction.transaction.json()) {
+        let title: String? = switch row.subtitle() {
         case let .toAddress(address): participantTitle(prefix: Localized.Transfer.to, address: address, chain: assetId.chain)
         case let .fromAddress(address): participantTitle(prefix: Localized.Transfer.from, address: address, chain: assetId.chain)
         case let .toResource(resource): resourceTitle(prefix: Localized.Transfer.to, resource: resource)
@@ -149,11 +144,11 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var subtitleTextValue: TextValue? {
-        amountTextValue(transactionFormatter.value(transaction: transaction.transaction.json()), textStyle: nil)
+        amountTextValue(row.value(), textStyle: nil)
     }
 
     public var subtitleExtraTextValue: TextValue? {
-        amountTextValue(transactionFormatter.equivalentValue(transaction: transaction.transaction.json()), textStyle: .footnote)
+        amountTextValue(row.equivalentValue(), textStyle: .footnote)
     }
 
     private func amountTextValue(_ value: GemTransactionValue, textStyle: TextStyle?) -> TextValue? {
@@ -201,13 +196,6 @@ public struct TransactionViewModel: Sendable {
         transaction.transaction.metadata?.decode(TransactionSwapMetadata.self)
     }
 
-    public var participant: String {
-        switch transaction.transaction.direction {
-        case .incoming: transaction.transaction.from
-        case .outgoing, .selfTransfer: transaction.transaction.to
-        }
-    }
-
     private var assetId: AssetId {
         transaction.transaction.assetId
     }
@@ -222,10 +210,6 @@ public struct TransactionViewModel: Sendable {
         }
 
         return .none
-    }
-
-    public func addressLink(account: SimpleAccount) -> BlockExplorerLink {
-        BlockExplorerLink(explorerService.getAddressUrl(chain: account.chain.rawValue, address: account.address))
     }
 
     // MARK: - Private methods

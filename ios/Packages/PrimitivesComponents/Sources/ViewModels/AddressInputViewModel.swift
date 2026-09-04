@@ -1,11 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemNameServiceProtocol
-import class Gemstone.GemRecipientService
+import struct Gemstone.GemRecipient
 import struct Gemstone.GemRecipientValidation
 import Components
 import Foundation
-import protocol Gemstone.GemAddressServiceProtocol
+import protocol Gemstone.GemNameServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -18,8 +17,7 @@ import Validators
 public final class AddressInputViewModel {
     let placeholder: String
     public let nameRecordViewModel: NameRecordViewModel
-    private let recipientService: GemRecipientService
-    private let addressService: any GemAddressServiceProtocol
+    private let nameService: any GemNameServiceProtocol
 
     public var chain: Chain {
         didSet { onChangeChain() }
@@ -31,17 +29,14 @@ public final class AddressInputViewModel {
         chain: Chain,
         nameService: any GemNameServiceProtocol,
         placeholder: String,
-        addressService: any GemAddressServiceProtocol,
-        validators: [any TextValidator] = [],
     ) {
         self.chain = chain
         self.placeholder = placeholder
-        self.addressService = addressService
         nameRecordViewModel = NameRecordViewModel(nameService: nameService)
-        recipientService = nameService.recipients()
+        self.nameService = nameService
         inputModel = InputValidationViewModel(
             mode: .manual,
-            validators: validators,
+            validators: Self.validators(chain: chain, placeholder: placeholder, nameService: nameService),
         )
     }
 
@@ -66,18 +61,18 @@ public final class AddressInputViewModel {
         validation.address
     }
 
-    public func recipient(memo: String?, references: [String] = []) throws -> Recipient {
-        try Recipient(recipientService.recipient(
+    public func recipient(memo: String?, references: [String] = []) throws -> GemRecipient {
+        try nameService.recipient(
             chain: chain.rawValue,
             input: text,
             nameRecord: nameResolveState.result?.json(),
             memo: memo,
             references: references,
-        ))
+        )
     }
 
     private var validation: GemRecipientValidation {
-        recipientService.validate(chain: chain.rawValue, input: text, nameRecord: nameResolveState.result?.json())
+        nameService.validateRecipient(chain: chain.rawValue, input: text, nameRecord: nameResolveState.result?.json())
     }
 
     @discardableResult
@@ -102,9 +97,6 @@ public final class AddressInputViewModel {
         }
     }
 
-    public func updateValidators(_ validators: [any TextValidator]) {
-        inputModel.update(validators: validators)
-    }
 }
 
 extension AddressInputViewModel {
@@ -137,10 +129,7 @@ extension AddressInputViewModel {
 
         inputModel = InputValidationViewModel(
             mode: .manual,
-            validators: [
-                .required(requireName: placeholder),
-                .address(Asset(chain), addressService: addressService),
-            ],
+            validators: Self.validators(chain: chain, placeholder: placeholder, nameService: nameService),
         )
         text = currentText
 
@@ -149,5 +138,9 @@ extension AddressInputViewModel {
         } else if currentText.isNotEmpty {
             inputModel.update()
         }
+    }
+
+    private static func validators(chain: Chain, placeholder: String, nameService: any GemNameServiceProtocol) -> [any TextValidator] {
+        [.required(requireName: placeholder), .address(Asset(chain), nameService: nameService)]
     }
 }

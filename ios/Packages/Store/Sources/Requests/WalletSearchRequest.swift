@@ -7,17 +7,17 @@ import Primitives
 public struct WalletSearchResult: Equatable, Sendable {
     public let assets: [AssetData]
     public let perpetuals: [PerpetualData]
-    public let nfts: [NFTSearchItem]
+    public let collections: [NFTData]
     public let lists: [AssetList]
 
-    public init(assets: [AssetData], perpetuals: [PerpetualData], nfts: [NFTSearchItem], lists: [AssetList]) {
+    public init(assets: [AssetData], perpetuals: [PerpetualData], collections: [NFTData], lists: [AssetList]) {
         self.assets = assets
         self.perpetuals = perpetuals
-        self.nfts = nfts
+        self.collections = collections
         self.lists = lists
     }
 
-    public static let empty = WalletSearchResult(assets: [], perpetuals: [], nfts: [], lists: [])
+    public static let empty = WalletSearchResult(assets: [], perpetuals: [], collections: [], lists: [])
 }
 
 public struct WalletSearchRequest: DatabaseQueryable, Hashable {
@@ -41,10 +41,10 @@ public struct WalletSearchRequest: DatabaseQueryable, Hashable {
 
         let assets = types.contains(.asset) ? try loadAssets(db, query: query, searchKey: searchKey, scope: scope) : []
         let perpetuals = types.contains(.perpetual) ? try loadPerpetuals(db, query: query, searchKey: searchKey, scope: scope) : []
-        let nfts = types.contains(.nft) && scope.isAll && query.isNotEmpty ? try loadNFTs(db, query: query) : []
+        let collections = types.contains(.nft) && scope.isAll && query.isNotEmpty ? try NFTRequest(walletId: walletId, filter: .all).fetch(db) : []
         let lists = types.contains(.list) && scope.isAll ? try loadLists(db, searchKey: searchKey) : []
 
-        return WalletSearchResult(assets: assets, perpetuals: perpetuals, nfts: nfts, lists: lists)
+        return WalletSearchResult(assets: assets, perpetuals: perpetuals, collections: collections, lists: lists)
     }
 }
 
@@ -109,22 +109,6 @@ extension WalletSearchRequest {
         }
 
         return try request.limit(limit).asRequest(of: PerpetualInfo.self).fetchAll(db).map { $0.mapToPerpetualData() }
-    }
-
-    private func loadNFTs(_ db: Database, query: String) throws -> [NFTSearchItem] {
-        let collections = try NFTRequest(walletId: walletId, filter: .all).fetch(db)
-
-        let items = collections.flatMap { data -> [NFTSearchItem] in
-            guard !data.collection.name.localizedCaseInsensitiveContains(query) else {
-                return [.collection(data)]
-            }
-            return data.assets
-                .filter { $0.name.localizedCaseInsensitiveContains(query) }
-                .sorted { $0.name < $1.name }
-                .map { .asset(NFTAssetData(collection: data.collection, asset: $0)) }
-        }
-
-        return items.prefix(limit).asArray()
     }
 
     private func loadLists(_ db: Database, searchKey: String) throws -> [AssetList] {

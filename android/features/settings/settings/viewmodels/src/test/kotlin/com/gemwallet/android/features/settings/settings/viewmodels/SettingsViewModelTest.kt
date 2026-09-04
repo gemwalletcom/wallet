@@ -4,10 +4,12 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockWallet
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.GemWalletSessionServiceInterface
@@ -16,8 +18,10 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -56,8 +60,8 @@ class SettingsViewModelTest {
     }
 
     @After
-    fun tearDown() {
-        viewModel.viewModelScope.cancel()
+    fun tearDown() = runTest(testDispatcher) {
+        viewModel.viewModelScope.coroutineContext.job.cancelAndJoin()
         Dispatchers.resetMain()
     }
 
@@ -71,42 +75,34 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `rewards stay available while no wallets are loaded`() = runTest(testDispatcher) {
-        wallets.value = emptyList()
-        viewModel = createViewModel()
-        advanceUntilIdle()
-
-        assertTrue(viewModel.isRewardsAvailable.value)
-    }
-
-    @Test
-    fun `single wallet hides rewards`() = runTest(testDispatcher) {
+    fun `rewards follow core's answer for the loaded wallets`() = runTest(testDispatcher) {
         every { walletSessionService.showsRewards() } returns false
         wallets.value = listOf(mockWallet(type = WalletType.Single))
         viewModel = createViewModel()
         advanceUntilIdle()
 
-        assertFalse(viewModel.isRewardsAvailable.value)
-    }
+        assertFalse(viewModel.isRewardsAvailable.first { !it })
 
-    @Test
-    fun `multicoin wallet shows rewards`() = runTest(testDispatcher) {
         every { walletSessionService.showsRewards() } returns true
         wallets.value = listOf(mockWallet(type = WalletType.Multicoin))
-        viewModel = createViewModel()
         advanceUntilIdle()
 
-        assertTrue(viewModel.isRewardsAvailable.value)
+        assertTrue(viewModel.isRewardsAvailable.first { it })
     }
 
     private val walletSessionService = mockk<GemWalletSessionServiceInterface>(relaxed = true).also {
         every { it.showsRewards() } returns true
     }
 
+    private val getCurrentCurrency = mockk<GetCurrentCurrency> {
+        every { getCurrency() } returns MutableStateFlow(Currency.USD)
+    }
+
     private fun createViewModel() = SettingsViewModel(
         userConfig = userConfig,
         getWallets = getWallets,
         getSession = getSession,
+        getCurrentCurrency = getCurrentCurrency,
         switchPushEnabled = switchPushEnabled,
         getPushEnabled = getPushEnabled,
         notificationsAvailable = true,

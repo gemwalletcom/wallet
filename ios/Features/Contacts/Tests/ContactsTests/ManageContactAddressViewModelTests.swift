@@ -67,6 +67,7 @@ extension ManageContactAddressViewModel {
     static func mock(mode: Mode) -> ManageContactAddressViewModel {
         ManageContactAddressViewModel(
             service: GemManageContactServiceMock(),
+            nameService: GemNameServiceMock(),
             mode: mode,
             onComplete: { _ in },
         )

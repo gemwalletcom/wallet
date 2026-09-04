@@ -11,24 +11,3 @@ public struct AssetScore: Codable, Equatable, Sendable {
 		self.rank = rank
 	}
 }
-
-public enum AssetRank: String, Codable, CaseIterable, Equatable, Sendable {
-	case high
-	case medium
-	case low
-	case trivial
-	case inactive
-	case abandoned
-	case suspended
-	case migrated
-	case deprecated
-	case spam
-	case fraudulent
-	case unknown
-}
-
-public enum AssetScoreType: String, Codable, Equatable, Sendable {
-	case verified
-	case unverified
-	case suspicious
-}

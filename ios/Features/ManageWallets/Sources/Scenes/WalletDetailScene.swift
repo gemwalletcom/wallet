@@ -48,7 +48,7 @@ public struct WalletDetailScene: View {
                     Section {
                         NavigationCustomLink(
                             with: ListItemView(title: Localized.Common.show(Localized.Common.secretPhrase)),
-                            action: model.onShowSecretPhrase,
+                            action: model.onShowSecret,
                         )
                     } header: {
                         Text(Localized.Common.secretPhrase)
@@ -57,7 +57,7 @@ public struct WalletDetailScene: View {
                     Section {
                         NavigationCustomLink(
                             with: ListItemView(title: Localized.Common.show(Localized.Common.privateKey)),
-                            action: model.onShowPrivateKey,
+                            action: model.onShowSecret,
                         )
                     } header: {
                         Text(Localized.Common.privateKey)

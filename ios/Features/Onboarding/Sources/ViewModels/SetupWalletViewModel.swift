@@ -7,13 +7,13 @@ import Primitives
 import PrimitivesComponents
 import Store
 import Style
-import protocol Gemstone.GemOnboardingServiceProtocol
+import protocol Gemstone.GemWalletServiceProtocol
 import GemstonePrimitives
 
 @MainActor
 @Observable
 public final class SetupWalletViewModel: Sendable {
-    private let service: any GemOnboardingServiceProtocol
+    private let service: any GemWalletServiceProtocol
     private let onSelectImageAction: (Wallet) -> Void
     private let onCompleteAction: (Wallet) -> Void
 
@@ -26,7 +26,7 @@ public final class SetupWalletViewModel: Sendable {
 
     public init(
         wallet: Wallet,
-        service: any GemOnboardingServiceProtocol,
+        service: any GemWalletServiceProtocol,
         onSelectImage: @escaping (Wallet) -> Void,
         onComplete: @escaping (Wallet) -> Void,
     ) {

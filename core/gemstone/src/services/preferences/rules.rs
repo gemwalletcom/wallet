@@ -11,8 +11,8 @@ pub fn should_request_review(launches_count: u32, rate_application_shown: bool) 
     launches_count >= REVIEW_REQUEST_LAUNCHES && !rate_application_shown
 }
 
-pub fn should_ask_notifications(last_asked_at: u64, now: u64) -> bool {
-    now.saturating_sub(last_asked_at) >= ASK_NOTIFICATIONS_COOLDOWN_SECONDS
+pub fn should_ask_notifications(declined: bool, last_asked_at: u64, now: u64) -> bool {
+    !declined && now.saturating_sub(last_asked_at) >= ASK_NOTIFICATIONS_COOLDOWN_SECONDS
 }
 
 pub fn default_currency(locale_currency: Option<String>) -> Currency {
@@ -62,10 +62,11 @@ mod tests {
     fn test_asking_for_notifications_again_waits_a_month() {
         let now = 1_700_000_000;
 
-        assert!(should_ask_notifications(0, now));
-        assert!(should_ask_notifications(now - ASK_NOTIFICATIONS_COOLDOWN_SECONDS, now));
-        assert!(!should_ask_notifications(now - ASK_NOTIFICATIONS_COOLDOWN_SECONDS + 1, now));
-        assert!(!should_ask_notifications(now, now));
+        assert!(should_ask_notifications(false, 0, now));
+        assert!(should_ask_notifications(false, now - ASK_NOTIFICATIONS_COOLDOWN_SECONDS, now));
+        assert!(!should_ask_notifications(false, now - ASK_NOTIFICATIONS_COOLDOWN_SECONDS + 1, now));
+        assert!(!should_ask_notifications(false, now, now));
+        assert!(!should_ask_notifications(true, 0, now));
     }
 
     #[test]

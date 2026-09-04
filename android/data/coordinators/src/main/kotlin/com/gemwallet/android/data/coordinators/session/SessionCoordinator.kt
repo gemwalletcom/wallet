@@ -1,5 +1,7 @@
 package com.gemwallet.android.data.coordinators.session
 
+import com.gemwallet.android.ext.toCurrency
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetCurrentWallet
 import com.gemwallet.android.application.session.cases.GetSession
@@ -28,9 +30,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemCurrencyService
 import uniffi.gemstone.GemPreferencesService
-import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemWalletSessionService
 import java.util.Locale
 
@@ -40,12 +41,11 @@ class SessionCoordinator(
     private val walletStore: GemstoneWalletStore,
     private val walletSessionService: GemWalletSessionService,
     private val preferencesService: GemPreferencesService,
-    private val priceService: GemPriceService,
-    private val deviceService: GemDeviceService,
+    private val currencyService: GemCurrencyService,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetSession, GetCurrentWallet, GetCurrentCurrency, SetCurrentCurrency, SetCurrentWallet {
 
-    private val currencyState = MutableStateFlow(preferencesService.getCurrency().decodeJson<Currency>())
+    private val currencyState = MutableStateFlow(preferencesService.getCurrency().toCurrency())
 
     private val currentWallet: Flow<Wallet?> = sessionStore.observeSession()
         .flatMapLatest { record ->
@@ -59,7 +59,7 @@ class SessionCoordinator(
 
     init {
         scope.launch {
-            setCurrency(preferencesService.setupCurrency(sessionStore.storedCurrency()?.string ?: localeCurrencyCode()).decodeJson())
+            setCurrency(preferencesService.setupCurrency(sessionStore.storedCurrency()?.toGem() ?: localeCurrencyCode()).toCurrency())
         }
     }
 
@@ -71,18 +71,15 @@ class SessionCoordinator(
 
     override fun observe(): Flow<Wallet?> = session.map { it?.wallet }.distinctUntilChanged()
 
-    override suspend fun getCurrentCurrency(): Currency = currencyState.value
-
-    override fun getCurrency(): Flow<Currency> = currencyState
+    override fun getCurrency(): StateFlow<Currency> = currencyState
 
     override fun setCurrentCurrency(currency: Currency) {
         scope.launch {
             if (currencyState.value == currency) {
                 return@launch
             }
-            setCurrency(currency)
-            priceService.changeCurrency(currency.toJson())
-            deviceService.synchronizeIfNeeded()
+            currencyService.setCurrency(currency.toGem())
+            currencyState.value = currency
         }
     }
 
@@ -91,7 +88,7 @@ class SessionCoordinator(
     }
 
     private suspend fun setCurrency(currency: Currency) = withContext(Dispatchers.IO) {
-        preferencesService.setCurrency(currency.toJson())
+        preferencesService.setCurrency(currency.toGem())
         currencyState.value = currency
     }
 

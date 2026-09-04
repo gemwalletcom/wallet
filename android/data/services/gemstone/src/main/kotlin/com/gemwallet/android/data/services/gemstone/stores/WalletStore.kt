@@ -25,7 +25,6 @@ class GemstoneWalletStore(
     private val walletsDao: WalletsDao,
     private val accountsDao: AccountsDao,
     private val assetsDao: AssetsDao,
-    private val addressStore: GemstoneAddressStore,
     private val transactionRunner: StoreTransactionRunner,
 ) : GemWalletStore {
 
@@ -59,7 +58,6 @@ class GemstoneWalletStore(
         transactionRunner.run {
             walletsDao.insert(wallet.toRecord())
             insertAccountsWithNativeAssets(wallet)
-            addressStore.saveWalletAddresses(wallet)
             wallet
         }
     }
@@ -69,12 +67,6 @@ class GemstoneWalletStore(
     suspend fun rename(walletId: WalletId, name: String) = walletsDao.setName(walletId.id, name)
 
     suspend fun setImageUrl(walletId: WalletId, imageUrl: String?) = walletsDao.setImageUrl(walletId.id, imageUrl)
-
-    suspend fun updateAccounts(wallet: Wallet) = withContext(Dispatchers.IO) {
-        transactionRunner.run {
-            insertAccountsWithNativeAssets(wallet)
-        }
-    }
 
     suspend fun removeWallet(walletId: WalletId): Boolean = withContext(Dispatchers.IO) {
         val wallet = walletsDao.getById(walletId.id).firstOrNull() ?: return@withContext false

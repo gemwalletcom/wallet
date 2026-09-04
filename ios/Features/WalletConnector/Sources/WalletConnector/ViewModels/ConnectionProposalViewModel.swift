@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemApplicationMetadataService
 import Components
 import Foundation
 import Localization
@@ -13,16 +12,13 @@ import WalletConnectorService
 public struct ConnectionProposalViewModel {
     private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate
     private let pairingProposal: WCPairingProposal
-    private let applicationMetadataService: GemApplicationMetadataService
 
     var walletSelectorModel: SelectWalletViewModel
 
     public init(
         confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
         pairingProposal: WCPairingProposal,
-        applicationMetadataService: GemApplicationMetadataService,
     ) {
-        self.applicationMetadataService = applicationMetadataService
         self.confirmTransferDelegate = confirmTransferDelegate
         self.pairingProposal = pairingProposal
         walletSelectorModel = SelectWalletViewModel(
@@ -60,7 +56,7 @@ public struct ConnectionProposalViewModel {
     }
 
     var appName: String {
-        payload.metadata.shortName(applicationMetadataService: applicationMetadataService)
+        payload.metadata.shortName
     }
 
     var websiteText: String? {

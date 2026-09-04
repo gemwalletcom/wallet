@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.GemTransactionInputType
-import class Gemstone.GemAmountService
 import BigInt
 import Foundation
 import enum Gemstone.GemAmountType
@@ -26,10 +25,8 @@ enum TransferAction {
 public final class AmountTransferViewModel: AmountDataProvidable {
     let asset: Asset
     let action: TransferAction
-    let amountService: GemAmountService
 
-    init(asset: Asset, action: TransferAction, amountService: GemAmountService) {
-        self.amountService = amountService
+    init(asset: Asset, action: TransferAction) {
         self.asset = asset
         self.action = action
     }
@@ -77,7 +74,7 @@ public final class AmountTransferViewModel: AmountDataProvidable {
         }
         return GemTransferData(
             inputType: transferType,
-            recipient: action.recipient.recipient.gem,
+            recipient: action.recipient.recipient,
             value: value,
             useMaxAmount: useMaxAmount,
         )

@@ -6,4 +6,6 @@ edition = { workspace = true }
 [dependencies]
 fluent-syntax = "0.12.0"
 primitives = { path = "../../crates/primitives" }
+config = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }

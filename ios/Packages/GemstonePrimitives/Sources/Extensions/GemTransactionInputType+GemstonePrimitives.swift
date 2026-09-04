@@ -32,20 +32,6 @@ public extension GemTransactionInputType {
 }
 
 public extension GemTransactionInputType {
-    var outputAction: Primitives.TransferDataOutputAction {
-        Primitives.TransferDataOutputAction(core: output().outputAction)
-    }
-
-    func metadata(transferService: GemTransferService) throws -> AnyCodableValue? {
-        try transferService.metadata(inputType: self).map { try JSONDecoder().decode(AnyCodableValue.self, from: Data($0.utf8)) }
-    }
-
-    func approvalData(for transactionType: Primitives.TransactionType, transferService: GemTransferService) throws -> Primitives.ApprovalData? {
-        try transferService.approval(inputType: self, transactionType: transactionType.json()).map { try Primitives.ApprovalData($0) }
-    }
-}
-
-public extension GemTransactionInputType {
     static func transfer(_ asset: Primitives.Asset) -> Self {
         .transfer(asset: asset.map())
     }

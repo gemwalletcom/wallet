@@ -31,21 +31,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.AppUrl
 import com.gemwallet.android.features.assets.viewmodels.AssetsViewModel
 import com.gemwallet.android.features.assets.views.components.AssetsHead
 import com.gemwallet.android.features.assets.views.components.AssetsListFooter
 import com.gemwallet.android.features.assets.views.components.assets
 import com.gemwallet.android.features.banner.views.BannersScene
-import com.gemwallet.android.features.banner.views.WelcomeBanner
 import com.gemwallet.android.features.nft.presents.CollectionsPreviewAction
 import com.gemwallet.android.features.nft.presents.CollectionsPreviewSection
 import com.gemwallet.android.features.perpetual.views.PerpetualsPreviewSection
@@ -56,15 +52,11 @@ import com.gemwallet.android.ui.components.screen.AssetToastEffect
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.SnackbarHost
 import com.gemwallet.android.ui.models.AssetsGroupType
-import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.BannerEvent
-import uniffi.gemstone.DocsUrl
 
 private const val AssetsHeadItemKey = "assets_head"
-private const val WelcomeBannerItemKey = "welcome_banner"
 private const val InAppUpdateBannerItemKey = "in_app_update_banner"
 private const val BannersItemKey = "banners"
 private const val ImportingItemKey = "importing"
@@ -81,16 +73,13 @@ fun AssetsScreen(
     listState: LazyListState = rememberLazyListState(),
     viewModel: AssetsViewModel = hiltViewModel(),
 ) {
-    val importing by viewModel.importInProgress.collectAsStateWithLifecycle()
+    val importing by viewModel.isLoadingAssets.collectAsStateWithLifecycle()
     val pinnedAssets by viewModel.pinnedAssets.collectAsStateWithLifecycle()
     val unpinnedAssets by viewModel.unpinnedAssets.collectAsStateWithLifecycle()
     val walletSummary by viewModel.walletSummary.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-    val showWelcomeBanner by viewModel.showWelcomeBanner.collectAsStateWithLifecycle()
     val collectionsAvailable by viewModel.collectionsAvailable.collectAsStateWithLifecycle()
 
-    val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
     val snackbar = remember { SnackbarHostState() }
     AssetToastEffect(viewModel.toastEvents, snackbar)
 
@@ -152,29 +141,15 @@ fun AssetsScreen(
                         onHideBalances = viewModel::hideBalances
                     )
                 }
-                if (showWelcomeBanner) {
-                    item(key = WelcomeBannerItemKey) {
-                        WelcomeBanner(
-                            onBuy = { onAction(AssetsAction.Buy) },
-                            onReceive = { onAction(AssetsAction.Receive) },
-                            onClose = viewModel::onHideWelcomeBanner
-                        )
-                    }
-                }
                 item(key = InAppUpdateBannerItemKey) {
                     InAppUpdateBanner()
                 }
                 item(key = BannersItemKey) {
                     BannersScene(
                         asset = null,
-                        onClick = { banner ->
-                            when (banner.event) {
-                                BannerEvent.AccountBlockedMultiSignature ->
-                                    uriHandler.open(context, AppUrl.docs(DocsUrl.TronMultiSignature))
-                                else -> {}
-                            }
-                        },
-                        false
+                        onClick = {},
+                        onBuy = { onAction(AssetsAction.Buy) },
+                        onReceive = { onAction(AssetsAction.Receive) },
                     )
                 }
                 if (importing) {

@@ -175,19 +175,16 @@ where
     let min_middle_amount = route.min_middle_amount.as_ref().ok_or(SwapperError::InvalidRoute)?;
     let deposit_mode = if route.has_auction == Some(true) { "SWAP" } else { context.bridge_mode.deposit_mode() };
     let swap: SolanaClientSwap = client
-        .get_swap(
-            "/get-swap/solana",
-            GetSwapSolanaParams::mctp(
-                route,
-                value_to_query(min_middle_amount)?,
-                context.mctp_input_contract.clone(),
-                quote.request.wallet_address.clone(),
-                route.effective_amount_in64.clone(),
-                deposit_mode,
-                context.referrer_address.clone(),
-                context.ledger.to_string(),
-            ),
-        )
+        .get_swap_solana(GetSwapSolanaParams::mctp(
+            route,
+            value_to_query(min_middle_amount)?,
+            context.mctp_input_contract.clone(),
+            quote.request.wallet_address.clone(),
+            route.effective_amount_in64.clone(),
+            deposit_mode,
+            context.referrer_address.clone(),
+            context.ledger.to_string(),
+        ))
         .await?;
 
     let lookup_table_addresses = append_client_swap_instructions(

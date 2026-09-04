@@ -38,6 +38,6 @@ struct ManageContactViewModelTests {
 
 extension ManageContactViewModel {
     static func mock(mode: Mode) -> ManageContactViewModel {
-        ManageContactViewModel(service: GemManageContactServiceMock(), mode: mode)
+        ManageContactViewModel(service: GemManageContactServiceMock(), nameService: GemNameServiceMock(), mode: mode)
     }
 }

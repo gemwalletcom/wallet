@@ -449,6 +449,21 @@ mod tests {
     }
 
     #[test]
+    fn test_map_transaction_incoming_token_transfer() {
+        let transaction: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_incoming_token_transfer.json")).unwrap();
+        let receipt: TransactionReceiptData = serde_json::from_str(include_str!("../../testdata/transaction_incoming_token_transfer_receipt.json")).unwrap();
+
+        let transaction = map_transaction(Chain::Tron, transaction, receipt).unwrap();
+
+        assert_eq!(transaction.hash(), "d61c72e80f48b6d014301fc088f5d7f5a512d08b17cc6208d6b9993aeea12b0a");
+        assert_eq!(transaction.asset_id, AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
+        assert_eq!(transaction.transaction_type, TransactionType::Transfer);
+        assert_eq!(transaction.from, "TWn9ecrNEPY8qczxRoEsHxi5oac4aVVVDa");
+        assert_eq!(transaction.to, "TYwzBzDWtLNT3xvhmBW2NSEFA9cZjt5ccC");
+        assert_eq!(transaction.value, BigUint::from(10894000000u64));
+    }
+
+    #[test]
     fn test_map_transaction_gasfree_transfer() {
         let transaction: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_gasfree_transfer.json")).unwrap();
         let receipt: TransactionReceiptData = serde_json::from_str(include_str!("../../testdata/transaction_gasfree_transfer_receipt.json")).unwrap();

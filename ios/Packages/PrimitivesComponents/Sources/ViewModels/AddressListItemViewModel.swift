@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemRecipient
 import Components
 import Foundation
 import GemstonePrimitives
@@ -86,7 +87,7 @@ public struct AddressListItemViewModel {
 
     public var addContactRecipient: ChainRecipient {
         ChainRecipient(
-            recipient: Recipient(name: nil, address: account.address, memo: account.memo),
+            recipient: GemRecipient(address: account.address, memo: account.memo),
             chain: account.chain,
         )
     }

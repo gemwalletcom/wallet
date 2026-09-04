@@ -121,7 +121,7 @@ internal fun PerpetualMarketScene(
                     recentPerpetuals(
                         items = recent,
                         onSeeAll = { onAction(PerpetualMarketAction.OpenRecentsSheet) },
-                        onSelect = { assetId -> onAction(PerpetualMarketAction.OpenRecent(assetId)) },
+                        onSelect = { asset -> onAction(PerpetualMarketAction.OpenRecent(asset)) },
                     )
                 }
                 if (!isSearching) {
@@ -147,7 +147,7 @@ internal fun PerpetualMarketScene(
                         PerpetualPositionItem(
                             data = item,
                             listPosition = position,
-                            modifier = Modifier.clickable { onAction(PerpetualMarketAction.OpenPerpetual(item.asset.id)) }
+                            modifier = Modifier.clickable { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) }
                         )
                     }
                 }
@@ -162,7 +162,7 @@ internal fun PerpetualMarketScene(
                             listPosition = position,
                             longPressState = longPressedAsset,
                             onTogglePin = { onAction(PerpetualMarketAction.TogglePin(it)) },
-                            onClick = { onAction(PerpetualMarketAction.OpenPerpetual(it)) },
+                            onClick = { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) },
                         )
                     }
                 }
@@ -188,7 +188,7 @@ internal fun PerpetualMarketScene(
                                 listPosition = position,
                                 longPressState = longPressedAsset,
                                 onTogglePin = { onAction(PerpetualMarketAction.TogglePin(it)) },
-                                onClick = { onAction(PerpetualMarketAction.OpenPerpetual(it)) },
+                                onClick = { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) },
                             )
                         }
                     }
@@ -201,7 +201,7 @@ internal fun PerpetualMarketScene(
 private fun LazyListScope.recentPerpetuals(
     items: List<Asset>,
     onSeeAll: () -> Unit,
-    onSelect: (AssetId) -> Unit,
+    onSelect: (Asset) -> Unit,
 ) {
     if (items.isEmpty()) {
         return
@@ -222,7 +222,7 @@ private fun LazyListScope.recentPerpetuals(
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.background)
-                        .clickable { onSelect(asset.id) }
+                        .clickable { onSelect(asset) }
                         .padding(paddingSmall),
                     horizontalArrangement = Arrangement.spacedBy(paddingSmall),
                     verticalAlignment = Alignment.CenterVertically,

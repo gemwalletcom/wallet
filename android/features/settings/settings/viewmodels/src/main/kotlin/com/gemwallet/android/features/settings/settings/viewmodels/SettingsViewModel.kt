@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
@@ -31,6 +32,7 @@ class SettingsViewModel @Inject constructor(
     private val userConfig: UserConfig,
     private val getWallets: GetWallets,
     private val getSession: GetSession,
+    private val getCurrentCurrency: GetCurrentCurrency,
     private val switchPushEnabled: SwitchPushEnabled,
     private val getPushEnabled: GetPushEnabled,
     val notificationsAvailable: NotificationsAvailable,
@@ -39,7 +41,7 @@ class SettingsViewModel @Inject constructor(
 
     private val session = getSession()
     private val wallets = getWallets()
-    private val state = MutableStateFlow(SettingsViewModelState())
+    private val state = MutableStateFlow(SettingsViewModelState(currency = getCurrentCurrency.getCurrency().value))
     val uiState = state.asStateFlow()
 
     val isRewardsAvailable = wallets
@@ -107,7 +109,7 @@ class SettingsViewModel @Inject constructor(
     private fun refresh() = viewModelScope.launch(Dispatchers.IO) {
         state.update {
             it.copy(
-                currency = session.value?.currency ?: Currency.USD,
+                currency = getCurrentCurrency.getCurrency().value,
                 developEnabled = userConfig.developEnabled(),
             )
         }
@@ -135,6 +137,6 @@ class SettingsViewModel @Inject constructor(
 }
 
 data class SettingsViewModelState(
-    val currency: Currency = Currency.USD,
+    val currency: Currency,
     val developEnabled: Boolean = false,
 )

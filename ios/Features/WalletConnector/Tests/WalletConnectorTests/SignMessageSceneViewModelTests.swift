@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemApplicationMetadataService
+import class Gemstone.GemSignMessageService
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import Foundation
@@ -27,12 +27,9 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
-            explorerService: GemExplorerServiceMock(),
-            keystore: KeystoreMock(),
-            nameService: GemNameServiceMock(),
+            service: GemSignMessageService.mock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
-            applicationMetadataService: GemApplicationMetadataService(),
         )
 
         #expect(viewModel.walletText == "My Secure Wallet")
@@ -52,12 +49,9 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
-            explorerService: GemExplorerServiceMock(),
-            keystore: KeystoreMock(),
-            nameService: GemNameServiceMock(),
+            service: GemSignMessageService.mock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
-            applicationMetadataService: GemApplicationMetadataService(),
         )
 
         #expect(viewModel.connectionViewModel.connection.wallet.id == .multicoin(address: "0xspecific"))
@@ -75,12 +69,9 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
-            explorerService: GemExplorerServiceMock(),
-            keystore: KeystoreMock(),
-            nameService: GemNameServiceMock(),
+            service: GemSignMessageService.mock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
-            applicationMetadataService: GemApplicationMetadataService(),
         )
 
         #expect(viewModel.appText == "PancakeSwap")
@@ -98,12 +89,9 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
-            explorerService: GemExplorerServiceMock(),
-            keystore: KeystoreMock(),
-            nameService: GemNameServiceMock(),
+            service: GemSignMessageService.mock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
-            applicationMetadataService: GemApplicationMetadataService(),
         )
 
         #expect(viewModel.title == "Review Request")
@@ -136,12 +124,9 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
-            explorerService: GemExplorerServiceMock(),
-            keystore: KeystoreMock(),
-            nameService: GemNameServiceMock(),
+            service: GemSignMessageService.mock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
-            applicationMetadataService: GemApplicationMetadataService(),
         )
 
         #expect(viewModel.networkText == "Ethereum")
@@ -159,12 +144,9 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
-            explorerService: GemExplorerServiceMock(),
-            keystore: KeystoreMock(),
-            nameService: GemNameServiceMock(),
+            service: GemSignMessageService.mock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
-            applicationMetadataService: GemApplicationMetadataService(),
         )
 
         #expect(viewModel.walletAssetImage == WalletViewModel(wallet: payload.wallet).avatarImage)
@@ -183,12 +165,9 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
-            explorerService: GemExplorerServiceMock(),
-            keystore: KeystoreMock(),
-            nameService: GemNameServiceMock(),
+            service: GemSignMessageService.mock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
-            applicationMetadataService: GemApplicationMetadataService(),
         )
 
         #expect(!viewModel.isButtonDisabled)
@@ -210,12 +189,9 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
-            explorerService: GemExplorerServiceMock(),
-            keystore: KeystoreMock(),
-            nameService: GemNameServiceMock(),
+            service: GemSignMessageService.mock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
-            applicationMetadataService: GemApplicationMetadataService(),
         )
 
         #expect(!viewModel.isButtonDisabled)
@@ -244,12 +220,9 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
-            explorerService: GemExplorerServiceMock(),
-            keystore: KeystoreMock(),
-            nameService: GemNameServiceMock(),
+            service: GemSignMessageService.mock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
-            applicationMetadataService: GemApplicationMetadataService(),
         )
 
         #expect(viewModel.simulationWarnings.count == 2)
@@ -268,12 +241,9 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
-            explorerService: GemExplorerServiceMock(),
-            keystore: KeystoreMock(),
-            nameService: GemNameServiceMock(),
+            service: GemSignMessageService.mock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
-            applicationMetadataService: GemApplicationMetadataService(),
         )
 
         #expect(viewModel.isButtonDisabled)
@@ -302,12 +272,9 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
-            explorerService: GemExplorerServiceMock(),
-            keystore: KeystoreMock(),
-            nameService: GemNameServiceMock(),
+            service: GemSignMessageService.mock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
-            applicationMetadataService: GemApplicationMetadataService(),
         )
 
         #expect(viewModel.simulationWarnings.count == 2)
@@ -374,12 +341,9 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
-            explorerService: GemExplorerServiceMock(),
-            keystore: KeystoreMock(),
-            nameService: GemNameServiceMock(),
+            service: GemSignMessageService.mock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
-            applicationMetadataService: GemApplicationMetadataService(),
         )
 
         #expect(viewModel.simulationWarnings.count == 1)
@@ -412,12 +376,9 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
-            explorerService: GemExplorerServiceMock(),
-            keystore: KeystoreMock(),
-            nameService: GemNameServiceMock(),
+            service: GemSignMessageService.mock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
-            applicationMetadataService: GemApplicationMetadataService(),
         )
 
         #expect(viewModel.simulationWarnings.count == 2)
@@ -452,12 +413,9 @@ struct SignMessageSceneViewModelTests {
         )
 
         let viewModel = SignMessageSceneViewModel(
-            explorerService: GemExplorerServiceMock(),
-            keystore: KeystoreMock(),
-            nameService: GemNameServiceMock(),
+            service: GemSignMessageService.mock(),
             payload: payload,
             confirmTransferDelegate: { _ in },
-            applicationMetadataService: GemApplicationMetadataService(),
         )
 
         #expect(viewModel.payloadModel.hasFields)

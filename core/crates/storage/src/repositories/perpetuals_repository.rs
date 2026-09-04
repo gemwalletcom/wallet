@@ -8,8 +8,6 @@ pub trait PerpetualsRepository {
 
     fn perpetuals_update(&mut self, values: Vec<NewPerpetualRow>) -> Result<usize, DatabaseError>;
 
-    fn perpetuals_all(&mut self) -> Result<Vec<Perpetual>, DatabaseError>;
-
     fn get_perpetual_rows(&mut self) -> Result<Vec<PerpetualRow>, DatabaseError>;
 }
 
@@ -23,10 +21,6 @@ impl PerpetualsRepository for DatabaseClient {
 
     fn perpetuals_update(&mut self, values: Vec<NewPerpetualRow>) -> Result<usize, DatabaseError> {
         Ok(PerpetualsStore::perpetuals_update(self, values)?)
-    }
-
-    fn perpetuals_all(&mut self) -> Result<Vec<Perpetual>, DatabaseError> {
-        Ok(PerpetualsStore::get_perpetual_rows(self)?.into_iter().map(|x| x.as_primitive()).collect())
     }
 
     fn get_perpetual_rows(&mut self) -> Result<Vec<PerpetualRow>, DatabaseError> {

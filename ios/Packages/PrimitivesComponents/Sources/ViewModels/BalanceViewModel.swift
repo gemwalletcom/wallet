@@ -70,32 +70,8 @@ public struct BalanceViewModel: Sendable {
         usesFreeze
     }
 
-    public var hasFrozenResources: Bool {
-        usesFreeze && !frozenResources.isZero
-    }
-
-    public var frozenResources: BigInt {
-        balance.frozen + balance.locked
-    }
-
     private var usesFreeze: Bool {
         StakeChain(rawValue: asset.chain.rawValue)?.usesFreeze ?? false
-    }
-
-    public var hasReservedBalance: Bool {
-        !balance.reserved.isZero
-    }
-
-    public var reservedBalanceTextWithSymbol: String {
-        formatter.string(balance.reserved, decimals: asset.decimals.asInt, currency: asset.symbol)
-    }
-
-    public var hasPendingUnconfirmedBalance: Bool {
-        !balance.pendingUnconfirmed.isZero
-    }
-
-    public var pendingUnconfirmedBalanceTextWithSymbol: String {
-        formatter.string(balance.pendingUnconfirmed, decimals: asset.decimals.asInt, currency: asset.symbol)
     }
 
     public var balanceTextColor: Color {

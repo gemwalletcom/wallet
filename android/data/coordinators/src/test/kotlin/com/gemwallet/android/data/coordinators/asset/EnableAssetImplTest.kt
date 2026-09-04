@@ -26,4 +26,11 @@ class EnableAssetImplTest {
 
         coVerify { balanceService.setAssetsEnabled(walletId.id, listOf(asset.id.toIdentifier()), true) }
     }
+
+    @Test
+    fun coreFailureDoesNotPropagate() = runTest {
+        coEvery { balanceService.setAssetsEnabled(any(), any(), any()) } throws IllegalStateException("offline")
+
+        subject(mockWalletId(), mockAsset().id)
+    }
 }

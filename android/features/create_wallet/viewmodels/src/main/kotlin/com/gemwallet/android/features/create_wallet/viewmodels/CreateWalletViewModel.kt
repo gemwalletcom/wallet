@@ -2,10 +2,16 @@ package com.gemwallet.android.features.create_wallet.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.blockchain.operators.CreateWalletOperator
-import com.gemwallet.android.application.wallet_import.cases.ImportWalletService
-import uniffi.gemstone.GemWalletService
+import com.gemwallet.android.domains.wallet_import.multicoinImport
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.serializer.decodeJson
+import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
+import com.wallet.core.primitives.WalletSource
+import kotlinx.coroutines.CancellationException
+import uniffi.gemstone.GemWalletServiceInterface
+import uniffi.gemstone.GemWalletImportResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,27 +23,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateWalletViewModel @Inject constructor(
-    private val createWalletOperator: CreateWalletOperator,
-    private val walletService: GemWalletService,
-    private val importWalletService: ImportWalletService,
+    private val service: GemWalletServiceInterface,
 ) : ViewModel() {
 
     private val state = MutableStateFlow(CreateWalletViewModelState())
     val uiState = state.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            val generatedNameIndex = withContext(Dispatchers.IO) {
-                walletService.nextWalletIndex()
-            }
-            state.update { it.copy(generatedNameIndex = generatedNameIndex) }
-            createWalletOperator()
-                .onSuccess { data ->
-                    state.update { it.copy(data = data.split(" ")) }
-                }
-                .onFailure {  err ->
-                    state.update { it.copy(dataError = err.message.orEmpty()) }
-                }
+        viewModelScope.launch(Dispatchers.IO) {
+            state.update { it.copy(generatedNameIndex = service.nextWalletIndex()) }
+            runCatchingCancellable { service.createWallet() }
+                .onSuccess { words -> state.update { it.copy(data = words) } }
+                .onFailure { err -> state.update { it.copy(dataError = err.message.orEmpty()) } }
         }
     }
 
@@ -62,18 +59,28 @@ class CreateWalletViewModel @Inject constructor(
         }
         state.update { it.copy(isShowSafeMessage = true, loading = true) }
         viewModelScope.launch(Dispatchers.IO) {
-            val phrase = state.value.data.joinToString(" ")
             val newState = try {
-                val wallet = importWalletService.createWallet(state.value.name, phrase)
-                withContext(Dispatchers.Main){
+                val wallet = createWallet(state.value.name, state.value.data.joinToString(" "))
+                withContext(Dispatchers.Main) {
                     onCreated(if (state.value.isExistingWallets()) wallet.id else null)
                 }
                 state.value.copy(loading = false)
+            } catch (err: CancellationException) {
+                throw err
             } catch (err: Throwable) {
                 state.value.copy(loading = false, dataError = err.message.orEmpty())
             }
             state.update { newState }
         }
+    }
+
+    private suspend fun createWallet(name: String, phrase: String): Wallet {
+        val wallet = when (val result = service.importWallet(name, multicoinImport(phrase).validated(), WalletSource.Create.toGem())) {
+            is GemWalletImportResult.Existing -> result.wallet.decodeJson<Wallet>()
+            is GemWalletImportResult.New -> result.wallet.decodeJson<Wallet>()
+        }
+        service.setCurrentWalletId(wallet.id.id)
+        return wallet
     }
 }
 

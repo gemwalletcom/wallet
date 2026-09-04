@@ -2,15 +2,16 @@ package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.cases.GetAssetChartData
 import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
-import com.gemwallet.android.application.assets.cases.GetChartPeriod
-import com.gemwallet.android.application.assets.cases.SetChartPeriod
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.toJson
+import uniffi.gemstone.GemChart
+import uniffi.gemstone.GemChartService
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
-import com.gemwallet.android.testkit.mockChartPrices
+import com.wallet.core.primitives.ChartDateValue
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
 import com.wallet.core.primitives.ChartPeriod
@@ -47,14 +48,12 @@ class ChartViewModelTest {
     private val getCurrentCurrency = mockk<GetCurrentCurrency>(relaxed = true) {
         every { getCurrency() } returns currencyFlow
     }
-    private val getAssetChartData = mockk<GetAssetChartData>(relaxed = true)
-    private val getChartPeriod = mockk<GetChartPeriod>()
-    private val setChartPeriod = mockk<SetChartPeriod>(relaxed = true)
+    private val chartService = mockk<GemChartService>(relaxed = true)
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        every { getChartPeriod() } returns ChartPeriod.Day
+        every { chartService.chartPeriod() } returns ChartPeriod.Day.toJson()
     }
 
     @After
@@ -75,7 +74,7 @@ class ChartViewModelTest {
         val prices = mockChartPrices(values = listOf(10f, 12f, 14f))
         val tokenInfoFlow = MutableStateFlow<AssetInfo?>(null)
         every { getAssetTokenInfo(asset.id) } returns tokenInfoFlow
-        coEvery { getAssetChartData.getAssetChartData(asset.id, ChartPeriod.Day, Currency.USD) } returns prices
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toJson()) } returns prices.toGemChart()
 
         val viewModel = createViewModel(tokenInfoFlow)
         val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == prices.size }.chart.dataOrNull!!
@@ -90,7 +89,7 @@ class ChartViewModelTest {
         val prices = mockChartPrices(values = listOf(100f, 105f, 110f))
         val tokenInfoFlow = MutableStateFlow<AssetInfo?>(mockAssetInfo(asset = asset))
         every { getAssetTokenInfo(asset.id) } returns tokenInfoFlow
-        coEvery { getAssetChartData.getAssetChartData(asset.id, ChartPeriod.Day, Currency.USD) } returns prices
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toJson()) } returns prices.toGemChart()
 
         val viewModel = createViewModel(tokenInfoFlow)
         val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == prices.size }.chart.dataOrNull!!
@@ -104,13 +103,13 @@ class ChartViewModelTest {
         val prices = mockChartPrices(values = listOf(1f, 2f))
         val tokenInfoFlow = MutableStateFlow<AssetInfo?>(null)
         every { getAssetTokenInfo(asset.id) } returns tokenInfoFlow
-        coEvery { getAssetChartData.getAssetChartData(asset.id, ChartPeriod.Day, Currency.USD) } returns prices
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toJson()) } returns prices.toGemChart()
 
         val viewModel = createViewModel(tokenInfoFlow)
         val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == prices.size }.chart.dataOrNull!!
 
         coVerify(exactly = 1) {
-            getAssetChartData.getAssetChartData(asset.id, ChartPeriod.Day, Currency.USD)
+            chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toJson())
         }
         assertEquals(prices.size, uiModel.chartPoints.size)
         assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
@@ -120,16 +119,16 @@ class ChartViewModelTest {
     fun `initial request uses saved chart period`() = runTest(testDispatcher) {
         val prices = mockChartPrices(values = listOf(1f, 2f))
         val tokenInfoFlow = MutableStateFlow<AssetInfo?>(null)
-        every { getChartPeriod() } returns ChartPeriod.Month
+        every { chartService.chartPeriod() } returns ChartPeriod.Month.toJson()
         every { getAssetTokenInfo(asset.id) } returns tokenInfoFlow
-        coEvery { getAssetChartData.getAssetChartData(asset.id, ChartPeriod.Month, Currency.USD) } returns prices
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Month.toJson()) } returns prices.toGemChart()
 
         val viewModel = createViewModel(tokenInfoFlow)
         viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == prices.size }
 
         assertEquals(ChartPeriod.Month, viewModel.chartUIState.value.period)
         coVerify(exactly = 1) {
-            getAssetChartData.getAssetChartData(asset.id, ChartPeriod.Month, Currency.USD)
+            chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Month.toJson())
         }
     }
 
@@ -142,7 +141,7 @@ class ChartViewModelTest {
         val state = viewModel.chartUIState.first { it.period == ChartPeriod.Month }
 
         assertEquals(ChartPeriod.Month, state.period)
-        verify(exactly = 1) { setChartPeriod(ChartPeriod.Month) }
+        verify(exactly = 1) { chartService.setChartPeriod(ChartPeriod.Month.toJson()) }
     }
 
     private fun createViewModel(tokenInfoFlow: MutableStateFlow<AssetInfo?>): ChartViewModel {
@@ -150,10 +149,13 @@ class ChartViewModelTest {
         return ChartViewModel(
             getAssetTokenInfo = getAssetTokenInfo,
             getCurrentCurrency = getCurrentCurrency,
-            getAssetChartData = getAssetChartData,
-            getChartPeriod = getChartPeriod,
-            setChartPeriod = setChartPeriod,
+            chartService = chartService,
             assetId = asset.id,
         ).also(viewModels::add)
     }
+
+    private fun mockChartPrices(values: List<Float>): List<ChartDateValue> =
+        values.mapIndexed { index, value -> ChartDateValue(date = 1_000L + index * 60_000L, value = value.toDouble()) }
+
+    private fun List<ChartDateValue>.toGemChart() = GemChart(values = map { it.toJson() }, current = null)
 }

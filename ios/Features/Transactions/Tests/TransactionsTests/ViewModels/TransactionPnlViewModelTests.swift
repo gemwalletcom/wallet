@@ -7,7 +7,7 @@ import Testing
 struct TransactionPnlViewModelTests {
     @Test
     func positivePnl() {
-        if case let .pnl(_, value, color) = TransactionPnlViewModel(metadata: .mock(pnl: 100)).itemModel {
+        if case let .pnl(_, value, color) = TransactionPnlViewModel(pnl: 100).itemModel {
             #expect(value.contains("+"))
             #expect(color == Colors.green)
         } else {
@@ -17,7 +17,7 @@ struct TransactionPnlViewModelTests {
 
     @Test
     func negativePnl() {
-        if case let .pnl(_, value, color) = TransactionPnlViewModel(metadata: .mock(pnl: -50)).itemModel {
+        if case let .pnl(_, value, color) = TransactionPnlViewModel(pnl: -50).itemModel {
             #expect(value.contains("-"))
             #expect(color == Colors.red)
         } else {
@@ -26,16 +26,8 @@ struct TransactionPnlViewModelTests {
     }
 
     @Test
-    func zeroPnl() {
-        if case .empty = TransactionPnlViewModel(metadata: .mock(pnl: 0)).itemModel {
-        } else {
-            Issue.record("Expected empty")
-        }
-    }
-
-    @Test
-    func nonPerpetualMetadata() {
-        if case .empty = TransactionPnlViewModel(metadata: nil).itemModel {
+    func noPnl() {
+        if case .empty = TransactionPnlViewModel(pnl: nil).itemModel {
         } else {
             Issue.record("Expected empty")
         }

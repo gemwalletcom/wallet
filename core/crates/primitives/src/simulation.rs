@@ -242,6 +242,10 @@ pub struct SimulationResult {
 }
 
 impl SimulationResult {
+    pub fn has_critical_warning(&self) -> bool {
+        self.warnings.iter().any(|warning| warning.severity == SimulationSeverity::Critical)
+    }
+
     pub fn asset_ids(&self) -> Vec<AssetId> {
         let mut asset_ids = Vec::new();
         for asset_id in self
@@ -328,6 +332,24 @@ mod tests {
         SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType, promote_single_secondary_payload_field,
     };
     use crate::{AssetId, Chain, testkit::signer_mock::TEST_SOLANA_SENDER};
+
+    #[test]
+    fn test_has_critical_warning() {
+        let result = |severities: Vec<SimulationSeverity>| SimulationResult {
+            warnings: severities
+                .into_iter()
+                .map(|severity| SimulationWarning::new(severity, SimulationWarningType::ValidationError, None))
+                .collect(),
+            balance_changes: vec![],
+            payload: vec![],
+            header: None,
+        };
+
+        assert!(!result(vec![]).has_critical_warning());
+        assert!(!result(vec![SimulationSeverity::Warning]).has_critical_warning());
+        assert!(result(vec![SimulationSeverity::Critical]).has_critical_warning());
+        assert!(result(vec![SimulationSeverity::Warning, SimulationSeverity::Critical]).has_critical_warning());
+    }
 
     #[test]
     fn test_asset_ids_cover_balance_changes_and_the_header() {

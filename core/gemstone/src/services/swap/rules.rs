@@ -3,9 +3,10 @@ use num_bigint::BigUint;
 use primitives::swap::{SwapProviderData, SwapQuote, SwapQuoteData};
 use primitives::{Asset, AssetId, Chain, Wallet};
 use swapper::permit2_data::{Permit2Detail, PermitSingle};
-use swapper::{Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode};
+use swapper::{Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode};
 
 use crate::config::swap_config::{SwapConfig, get_default_slippage};
+use crate::models::swap::GemSlippageCheck;
 use crate::services::swap::model::{GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapTransfer};
 use std::collections::HashMap;
 
@@ -25,6 +26,37 @@ pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, valu
     })
 }
 
+const BASIS_POINTS: u32 = 10_000;
+const ETA_MINIMUM_SECONDS: u32 = 60;
+
+pub fn selected_quote(quotes: &[Quote], preferred: Option<SwapperProvider>) -> Option<Quote> {
+    quotes.iter().find(|quote| Some(quote.data.provider.id) == preferred).or_else(|| quotes.first()).cloned()
+}
+
+pub fn min_receive_value(value: &BigUint, slippage_bps: u32) -> BigUint {
+    let kept = BASIS_POINTS.saturating_sub(slippage_bps);
+    value * BigUint::from(kept) / BigUint::from(BASIS_POINTS)
+}
+
+pub fn slippage_check(bps: u32, config: &SwapConfig) -> GemSlippageCheck {
+    if bps < config.min_slippage_bps {
+        GemSlippageCheck::BelowMinimum
+    } else if bps > config.max_slippage_bps {
+        GemSlippageCheck::AboveMaximum
+    } else if bps >= config.high_slippage_warning_bps {
+        GemSlippageCheck::High
+    } else {
+        GemSlippageCheck::Valid
+    }
+}
+
+pub fn eta_minutes(seconds: u32) -> Option<u32> {
+    match seconds > ETA_MINIMUM_SECONDS {
+        true => Some(seconds / ETA_MINIMUM_SECONDS),
+        false => None,
+    }
+}
+
 pub fn sort_quotes(mut quotes: Vec<Quote>) -> Vec<Quote> {
     quotes.sort_by_key(|quote| std::cmp::Reverse(to_value(quote)));
     quotes
@@ -42,9 +74,14 @@ pub fn swap_transfer(wallet: &Wallet, quote: &Quote, data: SwapQuoteData) -> Res
 }
 
 const QUOTE_REFRESH_INTERVAL_MILLISECONDS: u64 = 30_000;
+const QUOTE_DEBOUNCE_MILLISECONDS: u64 = 250;
 
 pub fn quote_refresh_interval_milliseconds() -> u64 {
     QUOTE_REFRESH_INTERVAL_MILLISECONDS
+}
+
+pub fn quote_debounce_milliseconds() -> u64 {
+    QUOTE_DEBOUNCE_MILLISECONDS
 }
 
 pub fn swap_quote(quote: &Quote) -> SwapQuote {
@@ -197,6 +234,61 @@ pub fn pair_for_asset(asset_id: AssetId, has_balance: bool) -> GemSwapPairSugges
 
 #[cfg(test)]
 mod tests {
+    fn provider_quote(provider: SwapperProvider) -> Quote {
+        let wallet = wallet(&[Chain::Ethereum, Chain::Solana]);
+        Quote {
+            from_value: BigUint::from(100u64),
+            min_from_value: None,
+            to_value: BigUint::from(1u64),
+            data: swapper::ProviderData {
+                provider: swapper::ProviderType::new(provider),
+                slippage_bps: 50,
+                routes: vec![],
+            },
+            request: quote_request(&wallet, &asset(Chain::Ethereum), &asset(Chain::Solana), BigUint::from(100u32), false, None).unwrap(),
+            eta_in_seconds: None,
+        }
+    }
+
+    #[test]
+    fn test_selected_quote_prefers_the_chosen_provider_then_the_best() {
+        let quotes = vec![provider_quote(SwapperProvider::Okx), provider_quote(SwapperProvider::Jupiter)];
+
+        assert_eq!(selected_quote(&quotes, Some(SwapperProvider::Jupiter)).unwrap().data.provider.id, SwapperProvider::Jupiter);
+        assert_eq!(selected_quote(&quotes, Some(SwapperProvider::Thorchain)).unwrap().data.provider.id, SwapperProvider::Okx);
+        assert_eq!(selected_quote(&quotes, None).unwrap().data.provider.id, SwapperProvider::Okx);
+        assert!(selected_quote(&[], Some(SwapperProvider::Jupiter)).is_none());
+    }
+
+    #[test]
+    fn test_min_receive_value_and_eta() {
+        let value = BigUint::from(1_000_000u32);
+        assert_eq!(min_receive_value(&value, 0), value);
+        assert_eq!(min_receive_value(&value, 100), BigUint::from(990_000u32));
+        assert_eq!(min_receive_value(&value, BASIS_POINTS), BigUint::from(0u32));
+        assert_eq!(min_receive_value(&value, BASIS_POINTS + 1), BigUint::from(0u32));
+
+        assert_eq!(eta_minutes(60), None);
+        assert_eq!(eta_minutes(61), Some(1));
+        assert_eq!(eta_minutes(180), Some(3));
+    }
+
+    #[test]
+    fn test_slippage_check_rejects_the_bounds_and_warns_from_the_threshold() {
+        let config = SwapConfig {
+            min_slippage_bps: 10,
+            max_slippage_bps: 1_000,
+            high_slippage_warning_bps: 500,
+            ..crate::config::swap_config::get_swap_config()
+        };
+        assert_eq!(slippage_check(9, &config), GemSlippageCheck::BelowMinimum);
+        assert_eq!(slippage_check(10, &config), GemSlippageCheck::Valid);
+        assert_eq!(slippage_check(499, &config), GemSlippageCheck::Valid);
+        assert_eq!(slippage_check(500, &config), GemSlippageCheck::High);
+        assert_eq!(slippage_check(1_000, &config), GemSlippageCheck::High);
+        assert_eq!(slippage_check(1_001, &config), GemSlippageCheck::AboveMaximum);
+    }
+
     #[test]
     fn test_pair_for_asset_pays_with_the_native_asset_only_when_the_token_is_unheld() {
         let ethereum = AssetId::from_chain(Chain::Ethereum);
@@ -287,12 +379,20 @@ mod tests {
             data_type: primitives::swap::SwapQuoteDataType::Contract,
             value: BigUint::from(100u64),
             data: "0x".to_string(),
-            memo: None,
+            memo: Some("swap-memo".to_string()),
             approval: None,
             gas_limit: None,
         };
 
         let transfer = swap_transfer(&wallet, &quote, data.clone()).unwrap();
+
+        let transfer_data = transfer.transfer_data(asset(Chain::Ethereum), asset(Chain::Solana));
+        assert_eq!(transfer_data.recipient.address, "solana-address");
+        assert_eq!(transfer_data.recipient.memo.as_deref(), Some("swap-memo"));
+        assert_eq!(transfer_data.value, num_bigint::BigInt::from(100u64));
+        assert_eq!(transfer_data.minimum_value, Some(num_bigint::BigInt::from(90u64)));
+        assert!(transfer_data.use_max_amount);
+        assert!(matches!(&transfer_data.input_type, crate::models::transaction::GemTransactionInputType::Swap { swap_data, .. } if swap_data.data == data));
 
         assert_eq!(transfer.recipient, "solana-address");
         assert_eq!(transfer.value, BigUint::from(100u64));

@@ -69,6 +69,7 @@ pub trait BlockExplorer: Send + Sync {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 pub struct BlockExplorerLink {
     pub name: String,

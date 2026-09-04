@@ -5,6 +5,8 @@ import com.gemwallet.android.application.wallet_connect.values.WalletConnectPair
 import com.gemwallet.android.serializer.decodeJson
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class PrepareSessionProposalImpl(
     private val walletConnectService: GemWalletConnectServiceInterface,
@@ -20,13 +22,15 @@ class PrepareSessionProposalImpl(
         origin: String?,
         validation: WalletConnectionVerificationStatus,
     ): WalletConnectPairingProposal {
-        val prepared = walletConnectService.prepareSessionProposal(
-            requiredChainIds = requiredChainIds,
-            optionalChainIds = optionalChainIds,
-            metadata = walletConnectService.applicationMetadata(name, description, url, icons),
-            origin = origin,
-            validation = validation,
-        )
+        val prepared = withContext(Dispatchers.IO) {
+            walletConnectService.prepareSessionProposal(
+                requiredChainIds = requiredChainIds,
+                optionalChainIds = optionalChainIds,
+                metadata = walletConnectService.applicationMetadata(name, description, url, icons),
+                origin = origin,
+                validation = validation,
+            )
+        }
         return WalletConnectPairingProposal(
             proposal = prepared.proposal.decodeJson(),
             verificationStatus = prepared.verificationStatus,

@@ -1,46 +1,32 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
-import com.gemwallet.android.model.NodeStatus
-import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeStatusState
-import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.Node
-import com.wallet.core.primitives.NodeState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemNodeSelection
+import uniffi.gemstone.GemNodeStatusState
+import uniffi.gemstone.Latency
+import uniffi.gemstone.LatencyType
 
 class NetworksNodeUiStateTest {
 
     @Test
     fun `visibleNodeStates removes deleted node entries`() {
-        val gemNode = Node(
-            url = "https://gemnodes.com/bitcoin",
-            status = NodeState.Active,
-            priority = 10,
-        )
-        val remainingNode = Node(
-            url = "https://custom.example.com/bitcoin",
-            status = NodeState.Active,
-            priority = 0,
-        )
-        val deletedNode = Node(
-            url = "https://deleted.example.com/bitcoin",
-            status = NodeState.Active,
-            priority = 0,
-        )
+        val gemNode = selection("https://gemnodes.com/bitcoin")
+        val remainingNode = selection("https://custom.example.com/bitcoin")
+        val deletedNode = selection("https://deleted.example.com/bitcoin")
         val nodeStates = mapOf(
-            gemNode.url to NodeStatusState.Loading,
-            remainingNode.url to NodeStatusState.Error,
-            deletedNode.url to NodeStatusState.Result(
-                latestBlock = 1UL,
-                latency = 20UL,
-                chainId = "bitcoin",
+            gemNode.url to GemNodeStatusState.Loading,
+            remainingNode.url to GemNodeStatusState.Error,
+            deletedNode.url to GemNodeStatusState.Result(
+                latestBlockNumber = 1UL,
+                latency = Latency(LatencyType.FAST, 20.0),
             ),
         )
 
         val visibleStates = visibleNodeStates(
-            nodes = listOf(gemNode, remainingNode),
+            nodes = rows(gemNode, remainingNode),
             nodeStates = nodeStates,
         )
 
@@ -49,66 +35,44 @@ class NetworksNodeUiStateTest {
 
     @Test
     fun `buildNodeRows marks rows the delete rule allows`() {
-        val gemNode = Node(
-            url = "https://gemnodes.com/bitcoin",
-            status = NodeState.Active,
-            priority = 10,
-        )
-        val defaultNode = Node(
-            url = "https://default.example.com/bitcoin",
-            status = NodeState.Active,
-            priority = 0,
-        )
-        val customNode = Node(
-            url = "https://custom.example.com/bitcoin",
-            status = NodeState.Active,
-            priority = 0,
-        )
+        val gemNode = selection("https://gemnodes.com/bitcoin")
+        val defaultNode = selection("https://default.example.com/bitcoin")
+        val customNode = selection("https://custom.example.com/bitcoin")
 
         val rows = buildNodeRows(
-            nodes = listOf(gemNode, defaultNode, customNode),
-            currentNode = gemNode,
-            nodeStates = mapOf(customNode.url to NodeStatusState.Error),
-            gemNodeFlags = mapOf(gemNode.url to "🇺🇸"),
+            selections = listOf(gemNode, defaultNode, customNode),
+            gemNodeFlag = { url -> "🇺🇸".takeIf { url == gemNode.url } },
             canDelete = { url -> url == customNode.url },
         )
 
-        assertFalse(rows.first { it.node.url == gemNode.url }.canDelete)
-        assertFalse(rows.first { it.node.url == defaultNode.url }.canDelete)
-        assertTrue(rows.first { it.node.url == customNode.url }.canDelete)
-        assertEquals(NodeStatusState.Error, rows.first { it.node.url == customNode.url }.statusState)
+        assertFalse(rows.first { it.url == gemNode.url }.canDelete)
+        assertFalse(rows.first { it.url == defaultNode.url }.canDelete)
+        assertTrue(rows.first { it.url == customNode.url }.canDelete)
     }
 
     @Test
-    fun `toStatusState maps zero latest block to error`() {
-        val status = NodeStatus(
-            url = "https://rpc.example.com/bitcoin",
-            chainId = "bitcoin",
-            blockNumber = 0UL,
-            inSync = true,
-            latency = 20UL,
+    fun `buildNodeRows selects the node core marked on a shared host`() {
+        val firstNode = selection("https://rpc.example.com/one")
+        val secondNode = selection("https://rpc.example.com/two", isSelected = true)
+
+        val rows = buildNodeRows(
+            selections = listOf(firstNode, secondNode),
+            gemNodeFlag = { null },
+            canDelete = { true },
         )
 
-        assertEquals(NodeStatusState.Error, status.toStatusState())
+        assertEquals(listOf(secondNode.url), rows.filter { it.selected }.map { it.url })
     }
 
-    @Test
-    fun `toStatusState keeps successful node responses as result`() {
-        val status = NodeStatus(
-            url = "https://rpc.example.com/bitcoin",
-            chainId = "bitcoin",
-            blockNumber = 42UL,
-            inSync = true,
-            latency = 20UL,
-        )
+    private fun selection(url: String, isSelected: Boolean = false) = GemNodeSelection(
+        url = url,
+        host = url.removePrefix("https://").substringBefore("/"),
+        isSelected = isSelected,
+    )
 
-        assertEquals(
-            NodeStatusState.Result(
-                latestBlock = 42UL,
-                latency = 20UL,
-                chainId = "bitcoin",
-            ),
-            status.toStatusState()
-        )
-    }
+    private fun rows(vararg selections: GemNodeSelection) = buildNodeRows(
+        selections = selections.toList(),
+        gemNodeFlag = { null },
+        canDelete = { false },
+    )
 }

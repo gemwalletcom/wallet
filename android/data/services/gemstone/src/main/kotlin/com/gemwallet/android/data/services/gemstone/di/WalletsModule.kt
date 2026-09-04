@@ -4,7 +4,6 @@ import android.content.Context
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
-import com.gemwallet.android.application.addresses.cases.SaveWalletAddresses
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAddressStore
 import com.gemwallet.android.data.service.store.database.AccountsDao
 import com.gemwallet.android.data.service.store.database.AssetsDao
@@ -18,12 +17,14 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemKeystore
 import uniffi.gemstone.GemWalletService
+import uniffi.gemstone.GemWalletServiceInterface
 import uniffi.gemstone.GemWalletSessionService
 import javax.inject.Singleton
 import com.gemwallet.android.data.services.gemstone.GemstoneFileStore
 import com.gemwallet.android.data.service.store.LocalStore
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemAvatarService
+import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemFileStore
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemWalletPreferencesService
@@ -47,6 +48,8 @@ object WalletsModule {
         preferencesService: GemPreferencesService,
         fileStore: GemFileStore,
         walletPreferencesService: GemWalletPreferencesService,
+        explorerService: GemExplorerService,
+        addressStore: GemstoneAddressStore,
     ): GemWalletService = GemWalletService(
         keystore,
         GemstoneKeystorePassword(passwordStore),
@@ -55,7 +58,12 @@ object WalletsModule {
         preferencesService,
         fileStore,
         walletPreferencesService,
+        explorerService,
+        addressStore,
     )
+
+    @Provides
+    fun provideGemWalletServiceInterface(service: GemWalletService): GemWalletServiceInterface = service
 
     @Provides
     @Singleton
@@ -72,9 +80,8 @@ object WalletsModule {
         walletsDao: WalletsDao,
         accountsDao: AccountsDao,
         assetsDao: AssetsDao,
-        addressStore: GemstoneAddressStore,
         transactionRunner: StoreTransactionRunner,
-    ): GemstoneWalletStore = GemstoneWalletStore(walletsDao, accountsDao, assetsDao, addressStore, transactionRunner)
+    ): GemstoneWalletStore = GemstoneWalletStore(walletsDao, accountsDao, assetsDao, transactionRunner)
 
     @Provides
     @Singleton

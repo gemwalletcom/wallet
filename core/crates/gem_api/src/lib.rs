@@ -7,7 +7,7 @@ pub mod static_target;
 pub mod target;
 
 pub use client::GemApiClient;
-pub use device_client::{GemDeviceApiClient, WalletRequestPreflight};
+pub use device_client::{DeviceKey, GemDeviceApiClient, WalletRequestPreflight};
 pub use device_target::{GemDeviceApiBody, GemDeviceApiTarget};
 pub use method::GemApiMethod;
 pub use static_client::GemStaticApiClient;

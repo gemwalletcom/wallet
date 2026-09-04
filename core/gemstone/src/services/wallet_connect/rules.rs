@@ -21,6 +21,7 @@ use num_bigint::BigInt;
 use primitives::{Asset, TransactionType, TransferDataOutputAction, TransferDataOutputType};
 
 pub const USER_REJECTED_ERROR_CODE: i32 = 4001;
+const METHOD_NOT_FOUND_ERROR_CODE: i32 = -32601;
 
 pub fn session_account(connection: &WalletConnection, chain: Chain) -> Result<Account, GemServiceError> {
     validate_session_chain(&connection.session, chain)?;
@@ -159,6 +160,17 @@ pub fn user_rejected_error() -> GemWalletConnectRpcError {
     }
 }
 
+pub fn method_not_found_error() -> GemWalletConnectRpcError {
+    GemWalletConnectRpcError {
+        code: METHOD_NOT_FOUND_ERROR_CODE,
+        message: "Method not found".to_string(),
+    }
+}
+
+pub fn request_message_id(topic: &str, request_id: &str) -> String {
+    format!("request-{topic}-{request_id}")
+}
+
 pub fn session_methods() -> Vec<String> {
     WalletConnectionMethods::all().iter().filter_map(serde_name).collect()
 }
@@ -198,6 +210,15 @@ fn supports(wallet: &Wallet, required: &[Chain], optional: &[Chain]) -> bool {
     optional.is_empty() || optional.iter().any(|chain| chains.contains(chain))
 }
 
+pub fn validate_transaction_sender(transaction: &WalletConnectTransaction, account: &Account) -> Result<(), GemServiceError> {
+    match transaction {
+        WalletConnectTransaction::Ethereum { data, .. } if !data.from.eq_ignore_ascii_case(&account.address) => Err(GemServiceError::InvalidInput {
+            msg: format!("transaction sender {} is not the session account {}", data.from, account.address),
+        }),
+        _ => Ok(()),
+    }
+}
+
 pub fn transfer_data(
     chain: Chain,
     metadata: ApplicationMetadata,
@@ -211,7 +232,7 @@ pub fn transfer_data(
     let (extra, value) = match transaction {
         WalletConnectTransaction::Ethereum { data, kind } => {
             let value = data.value.as_deref().map(hex_value).transpose()?.unwrap_or(BigInt::ZERO);
-            let gas_limit = data.gas_limit.as_deref().or(data.gas.as_deref()).map(hex_value).transpose()?.map(|gas| gas.to_string());
+            let gas_limit = data.gas_limit.as_deref().or(data.gas.as_deref()).map(hex_value).transpose()?;
             let gas_price = match (data.max_fee_per_gas.as_deref(), data.max_priority_fee_per_gas.as_deref()) {
                 (Some(max_fee), Some(priority_fee)) => Some(GemGasPriceType::Eip1559 {
                     gas_price: hex_value(max_fee)?,
@@ -428,6 +449,33 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_transaction_sender_binds_an_evm_request_to_the_session_account() {
+        let account = Account::mock(Chain::Ethereum, "0xAbC");
+        let evm = |from: &str| WalletConnectTransaction::Ethereum {
+            data: crate::wallet_connect::WCEthereumTransactionData {
+                chain_id: Some(1),
+                from: from.to_string(),
+                to: "0xto".to_string(),
+                value: None,
+                gas: None,
+                gas_limit: None,
+                gas_price: None,
+                max_fee_per_gas: None,
+                max_priority_fee_per_gas: None,
+                nonce: None,
+                data: None,
+            },
+            kind: EvmTransactionKind::Transfer,
+        };
+
+        assert!(validate_transaction_sender(&evm("0xabc"), &account).is_ok(), "EVM addresses compare without case");
+        assert!(
+            validate_transaction_sender(&evm("0xother"), &account).is_err(),
+            "a dapp cannot simulate for one account and sign with another"
+        );
+    }
+
+    #[test]
     fn test_transfer_data_maps_evm_and_encoded_transactions() {
         let metadata = application_metadata("app".into(), String::new(), "https://app.example".into(), vec![]);
         let evm = WalletConnectTransaction::Ethereum {
@@ -457,7 +505,7 @@ mod tests {
             panic!("expected a generic input");
         };
         assert_eq!(asset.id, primitives::AssetId::from_chain(Chain::Ethereum));
-        assert_eq!(extra.gas_limit.as_deref(), Some("21000"));
+        assert_eq!(extra.gas_limit, Some(BigInt::from(21000)));
         assert!(
             matches!(extra.gas_price, Some(GemGasPriceType::Eip1559 { ref gas_price, ref priority_fee }) if *gas_price == BigInt::from(100) && *priority_fee == BigInt::from(2))
         );

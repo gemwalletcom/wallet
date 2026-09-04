@@ -22,10 +22,6 @@ impl GemChainService {
         rules::matching_chains(chains, &query)
     }
 
-    pub fn is_valid_network_id(&self, chain: Chain, network_id: String) -> bool {
-        rules::is_valid_network_id(chain, &network_id)
-    }
-
     pub fn caip2_namespace(&self, chain: Chain) -> Option<String> {
         wallet_connect_namespace(chain)
     }

@@ -4,7 +4,6 @@ pub fn map_address_chain(chain: Chain) -> Result<&'static str, String> {
     match chain {
         Chain::Ethereum => Ok("1"),
         Chain::SmartChain => Ok("56"),
-        Chain::Solana => Ok("solana"),
         Chain::Polygon => Ok("137"),
         Chain::Arbitrum => Ok("42161"),
         Chain::Tron => Ok("tron"),
@@ -58,12 +57,13 @@ mod tests {
 
     #[test]
     fn test_maps_supported_chains() {
-        assert_eq!(map_address_chain(Chain::Solana), Ok("solana"));
+        assert_eq!(map_address_chain(Chain::Ethereum), Ok("1"));
         assert_eq!(map_token_chain(Chain::Blast), Ok("81457"));
     }
 
     #[test]
     fn test_rejects_unsupported_chains() {
+        assert!(map_address_chain(Chain::Solana).is_err());
         assert!(map_address_chain(Chain::Blast).is_err());
         assert!(map_token_chain(Chain::Fantom).is_err());
     }

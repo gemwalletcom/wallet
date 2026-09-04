@@ -1,39 +1,26 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemConfirmError
-import GemstonePrimitives
-import GemstoneServices
 import Foundation
+import enum Gemstone.GemConfirmError
+import GemstoneServices
 import Primitives
-import Validators
 
 enum ConfirmTransferError {
-    case amount(TransferAmountCalculatorError)
-    case scan(GemConfirmError)
-    case chain(ChainCoreError)
+    case confirm(GemConfirmError)
     case other(Error)
 
     init(error: Error) {
         switch error {
-        case let error as TransferAmountCalculatorError:
-            self = .amount(error)
-        case let .InsufficientNetworkFee(assetId) as GemConfirmError:
-            self = .amount(.insufficientNetworkFee(AssetId(core: assetId).chain.asset, requirement: nil))
-        case let error as GemConfirmError where error.isScanRejection:
-            self = .scan(error)
+        case let error as GemConfirmError where error.hasInfoSheet:
+            self = .confirm(error)
         default:
-            switch ChainCoreError.fromError(error) {
-            case let .some(chainError): self = .chain(chainError)
-            case .none: self = .other(error)
-            }
+            self = .other(error)
         }
     }
 
     var displayError: Error {
         switch self {
-        case let .amount(error): error
-        case let .scan(error): error
-        case let .chain(error): error
+        case let .confirm(error): error
         case let .other(error): error
         }
     }

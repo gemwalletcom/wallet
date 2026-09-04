@@ -6,8 +6,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.device.cases.EnableDevicePush
-import com.gemwallet.android.application.pricealerts.cases.IncludePriceAlert
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toCurrency
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.domains.pricealerts.formatAmount
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.ValueDirection
@@ -22,7 +24,7 @@ import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.PriceAlertNotificationType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,6 +37,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import android.util.Log
+import uniffi.gemstone.GemPriceAlertServiceInterface
 import uniffi.gemstone.PriceAlertFormatter
 import java.math.BigDecimal
 import javax.inject.Inject
@@ -42,7 +46,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PriceAlertTargetViewModel @Inject constructor(
     private val getAssetInfo: GetAssetInfo,
-    private val includePriceAlert: IncludePriceAlert,
+    private val service: GemPriceAlertServiceInterface,
     private val enableDevicePush: EnableDevicePush,
     private val priceAlertFormatter: PriceAlertFormatter,
     savedStateHandle: SavedStateHandle,
@@ -56,8 +60,7 @@ class PriceAlertTargetViewModel @Inject constructor(
     val assetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
 
     val assetInfo = getAssetInfo(assetId)
-    val currency = assetInfo.map { it?.price?.currency ?: Currency.USD }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, Currency.USD)
+    val currency = service.currency().toCurrency()
     val currentPrice = assetInfo.map { info ->
         info?.price?.let { CurrencyFormatter(currency = it.currency).string(it.price.price) } ?: ""
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
@@ -75,9 +78,9 @@ class PriceAlertTargetViewModel @Inject constructor(
         it?.price?.price?.priceChangePercentage24h.toValueDirection()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ValueDirection.None)
 
-    val priceSuggestions: StateFlow<List<Pair<String, String>>> = combine(currentPriceValue, currency) { price, cur ->
-        if (price <= 0.0) return@combine emptyList()
-        val fmt = CurrencyFormatter(currency = cur)
+    val priceSuggestions: StateFlow<List<Pair<String, String>>> = currentPriceValue.map { price ->
+        if (price <= 0.0) return@map emptyList()
+        val fmt = CurrencyFormatter(currency = currency)
         priceAlertFormatter.roundedValues(price, suggestionOffsetPercent).map { value ->
             fmt.string(BigDecimal.valueOf(value)) to value.toBigDecimal().stripTrailingZeros().toPlainString()
         }
@@ -123,20 +126,25 @@ class PriceAlertTargetViewModel @Inject constructor(
         val direction = resolvedDirection.value ?: return null
         val price = if (type == PriceAlertNotificationType.Price) inputValue else null
         val percentage = if (type == PriceAlertNotificationType.PricePercentChange) inputValue else null
+        val priceAlert = PriceAlert(
+            assetId = assetId,
+            currency = currency,
+            price = price,
+            pricePercentChange = percentage,
+            priceDirection = direction,
+        )
         viewModelScope.launch(Dispatchers.IO) {
-            includePriceAlert.includePriceAlert(
-                assetId = assetId,
-                currency = currency.value,
-                price = price,
-                percentage = percentage,
-                direction = direction,
-            )
+            runCatchingCancellable { service.enablePriceAlert(priceAlert.toJson()) }
+                .onFailure { Log.e(TAG, "enabling the price alert for ${assetId.toIdentifier()} failed", it) }
         }
-        return PriceAlertConfirmResult(type, direction, type.formatAmount(inputValue, currency.value))
+        return PriceAlertConfirmResult(type, direction, type.formatAmount(inputValue, currency))
     }
 
     fun onPushNotificationGranted() = viewModelScope.launch(Dispatchers.IO) {
         enableDevicePush()
     }
 
+    private companion object {
+        const val TAG = "PriceAlertTarget"
+    }
 }

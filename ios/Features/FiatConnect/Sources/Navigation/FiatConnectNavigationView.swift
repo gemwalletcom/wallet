@@ -39,12 +39,7 @@ public struct FiatConnectNavigationView: View {
             }
         }
         .navigationDestination(for: Scenes.FiatTransactions.self) { _ in
-            FiatTransactionsScene(
-                model: FiatTransactionsViewModel(
-                    walletId: model.walletId,
-                    service: model.fiatService,
-                ),
-            )
+            FiatTransactionsScene(model: model.fiatTransactionsModel())
         }
         .sheet(isPresented: $model.isPresentingFiatProvider) {
             SelectableListNavigationStack(

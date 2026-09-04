@@ -20,7 +20,10 @@ pub fn build_quote_exact_single_request(token_in: &Address, v4_quoter: &str, amo
     };
     let quote_single = IV4Quoter::quoteExactInputSingleCall { params };
     let call_data: Vec<u8> = quote_single.abi_encode();
-    EthereumRpc::Call(TransactionObject::new_call(v4_quoter, call_data), BlockParameter::Latest)
+    EthereumRpc::Call {
+        transaction: TransactionObject::new_call(v4_quoter, call_data),
+        block: BlockParameter::Latest,
+    }
 }
 
 pub fn build_quote_exact_requests(v4_quoter: &str, quote_params: &[Vec<(Vec<TokenPair>, IV4Quoter::QuoteExactParams)>]) -> Vec<Vec<EthereumRpc>> {
@@ -33,7 +36,10 @@ pub fn build_quote_exact_requests(v4_quoter: &str, quote_params: &[Vec<(Vec<Toke
 pub fn build_quote_exact_request(v4_quoter: &str, params: &IV4Quoter::QuoteExactParams) -> EthereumRpc {
     let quote = IV4Quoter::quoteExactInputCall { params: params.clone() };
     let call_data: Vec<u8> = quote.abi_encode();
-    EthereumRpc::Call(TransactionObject::new_call(v4_quoter, call_data), BlockParameter::Latest)
+    EthereumRpc::Call {
+        transaction: TransactionObject::new_call(v4_quoter, call_data),
+        block: BlockParameter::Latest,
+    }
 }
 
 // Returns (amountOut, gasEstimate)
@@ -78,7 +84,7 @@ mod tests {
 
         let rpc = build_quote_exact_single_request(&token_in, v4_quoter, amount_in, pool_key);
 
-        if let EthereumRpc::Call(call, _) = rpc {
+        if let EthereumRpc::Call { transaction: call, .. } = rpc {
             assert!(call.data.starts_with("0xaa9d21cb"));
         }
     }

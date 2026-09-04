@@ -1,8 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.Config
 import Formatters
 import Foundation
+import class Gemstone.Config
+import enum Gemstone.GemSlippageCheck
+import protocol Gemstone.GemSwapQuoteServiceProtocol
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -14,37 +16,41 @@ import Validators
 @Observable
 public final class SwapSlippageViewModel {
     private static let maxFractionDigits: Int = 2
-    private static let formatter = NumericFormatter()
+    private nonisolated static let formatter = NumericFormatter()
 
+    private let service: any GemSwapQuoteServiceProtocol
     private let onSelect: (SwapSlippage) -> Void
-    private let highWarningBps: UInt32
     private let suggestionsBps: [UInt32]
-    private let minPercent: Double
     private let maxPercent: Double
 
     var isAuto: Bool
     var inputModel: InputValidationViewModel
     var infoSheet: InfoSheetType?
 
-    public init(slippage: SwapSlippage, onSelect: @escaping (SwapSlippage) -> Void) {
+    public init(service: any GemSwapQuoteServiceProtocol, chain: Chain, slippage: SwapSlippage, onSelect: @escaping (SwapSlippage) -> Void) {
+        self.service = service
         self.onSelect = onSelect
         let config = Config.shared.swapConfig()
-        highWarningBps = config.highSlippageWarningBps
         suggestionsBps = config.slippageSuggestionsBps
-        minPercent = Double(config.minSlippageBps) / 100
         maxPercent = Double(config.maxSlippageBps) / 100
         let bps: UInt32
         switch slippage {
         case .auto:
             isAuto = true
-            bps = config.defaultSlippage.bps
+            bps = service.defaultSlippage(chain: chain.rawValue).bps
         case let .manual(value):
             isAuto = false
             bps = value
         }
         inputModel = InputValidationViewModel(
             mode: .onDemand,
-            validators: [PercentTextValidator(minimum: minPercent, maximum: maxPercent)],
+            validators: [
+                SwapSlippageValidator(
+                    service: service,
+                    minimumText: Self.format(bps: config.minSlippageBps),
+                    maximumText: Self.format(bps: config.maxSlippageBps),
+                ),
+            ],
         )
         inputModel.text = Self.format(bps: bps)
     }
@@ -62,7 +68,7 @@ public final class SwapSlippageViewModel {
     }
 
     var selectedBps: UInt32 {
-        parseBps(inputModel.text)
+        Self.bps(from: inputModel.text) ?? 0
     }
 
     var errorText: String? {
@@ -74,7 +80,7 @@ public final class SwapSlippageViewModel {
     }
 
     var warningText: String? {
-        guard inputModel.isValid, selectedBps >= highWarningBps else { return nil }
+        guard inputModel.isValid, service.slippageCheck(bps: selectedBps) == .high else { return nil }
         return Localized.Swap.slippageWarning
     }
 
@@ -101,12 +107,37 @@ public final class SwapSlippageViewModel {
         onSelect(isAuto ? .auto : .manual(bps: selectedBps))
     }
 
+    nonisolated static func bps(from text: String) -> UInt32? {
+        guard let percent = formatter.double(from: text), percent > 0 else { return nil }
+        return UInt32((percent * 100).rounded())
+    }
+
     private static func format(bps: UInt32) -> String {
         (Double(bps) / 100).formatted(.number.precision(.fractionLength(0 ... 2)))
     }
+}
 
-    private func parseBps(_ text: String) -> UInt32 {
-        guard let percent = Self.formatter.double(from: text), percent > 0 else { return 0 }
-        return UInt32((min(percent, maxPercent) * 100).rounded())
+private struct SwapSlippageValidator: TextValidator {
+    private let service: any GemSwapQuoteServiceProtocol
+    private let minimumText: String
+    private let maximumText: String
+
+    init(service: any GemSwapQuoteServiceProtocol, minimumText: String, maximumText: String) {
+        self.service = service
+        self.minimumText = minimumText
+        self.maximumText = maximumText
+    }
+
+    func validate(_ text: String) throws {
+        guard let bps = SwapSlippageViewModel.bps(from: text) else { return }
+        switch service.slippageCheck(bps: bps) {
+        case .valid, .high: return
+        case .belowMinimum: throw AnyError(Localized.Common.minimumValue("\(minimumText)%"))
+        case .aboveMaximum: throw AnyError(Localized.Common.maximumValue("\(maximumText)%"))
+        }
+    }
+
+    var id: String {
+        "SwapSlippageValidator"
     }
 }

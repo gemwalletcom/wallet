@@ -9,6 +9,7 @@ import MarketInsight
 import NFT
 import Perpetuals
 import PriceAlerts
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import QRScanner
@@ -19,32 +20,10 @@ import Transfer
 import WalletTab
 
 struct WalletNavigationView: View {
-    @Environment(\.explorerService) private var explorerService
-    @Environment(\.deeplinkService) private var deeplinkService
-    @Environment(\.transactionFormatter) private var transactionFormatter
-    @Environment(\.balanceService) private var balanceService
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.navigationState) private var navigationState
     @Environment(\.navigationPresenter) private var presenter
-    @Environment(\.priceService) private var priceService
-    @Environment(\.chartService) private var chartService
-    @Environment(\.portfolioService) private var portfolioService
-    @Environment(\.priceAlertService) private var priceAlertService
-    @Environment(\.preferencesService) private var preferencesService
-    @Environment(\.assetsService) private var assetsService
-    @Environment(\.transactionsService) private var transactionsService
-    @Environment(\.bannerService) private var bannerService
-    @Environment(\.swapService) private var swapService
-    @Environment(\.stakeService) private var stakeService
-    @Environment(\.streamSubscriptionService) private var streamSubscriptionService
-    @Environment(\.perpetualService) private var perpetualService
-    @Environment(\.hyperliquidObserverService) private var hyperliquidObserverService
-    @Environment(\.recentAssetsService) private var recentAssetsService
-    @Environment(\.searchService) private var searchService
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.avatarService) private var avatarService
-    @Environment(\.nftService) private var nftService
-    @Environment(\.observablePreferences) private var preferences
 
     @State private var model: WalletSceneViewModel
 
@@ -59,13 +38,8 @@ struct WalletNavigationView: View {
 
             if model.isPresentingSearch {
                 WalletSearchScene(
-                    model: WalletSearchSceneViewModel(
+                    model: viewModelFactory.walletSearchScene(
                         wallet: model.wallet,
-                        searchService: searchService,
-                        recentAssetsService: recentAssetsService,
-                        balanceService: balanceService,
-                        perpetualService: perpetualService,
-                        preferences: preferences,
                         onDismissSearch: model.onToggleSearch,
                         onSelectAssetAction: navigationState.openAsset,
                         onAddToken: model.onSelectAddCustomToken,
@@ -101,68 +75,38 @@ struct WalletNavigationView: View {
         }
         .navigationDestination(for: Scenes.Asset.self) {
             AssetNavigationView(
-                model: AssetSceneViewModel(
-                    balanceService: balanceService,
-                    assetsService: assetsService,
-                    transactionsService: transactionsService,
-                    priceUpdater: streamSubscriptionService,
-                    priceAlertService: priceAlertService,
-                    bannerService: bannerService,
-                    swapService: swapService,
-                    explorerService: explorerService,
-                    transactionFormatter: transactionFormatter,
-                    deeplinkService: deeplinkService,
-                    preferences: preferences,
-                    input: AssetSceneInput(
-                        wallet: model.wallet,
-                        asset: $0.asset,
-                    ),
+                model: viewModelFactory.assetScene(
+                    wallet: model.wallet,
+                    asset: $0.asset,
                     isPresentingSelectedAssetInput: model.isPresentingSelectedAssetInput,
                 ),
             )
         }
         .navigationDestination(for: Scenes.NetworkAssets.self) { destination in
             NetworkAssetsScene(
-                model: NetworkAssetsSceneViewModel(
+                model: viewModelFactory.networkAssetsScene(
                     wallet: model.wallet,
                     chain: destination.chain,
-                    balanceService: balanceService,
-                    preferencesService: preferencesService,
                     onManageAssets: { model.onSelectManage(chains: [destination.chain]) },
                 ),
             )
         }
         .navigationDestination(for: Scenes.Transaction.self) {
             TransactionNavigationView(
-                model: TransactionSceneViewModel(
+                model: viewModelFactory.transactionScene(
                     transaction: $0.transaction,
                     walletId: model.wallet.id,
-                    preferencesService: preferencesService,
-                    explorerService: explorerService,
-                    transactionFormatter: transactionFormatter,
                     onHeaderAction: onSelectTransactionHeaderAction,
                     onAddContact: { model.isPresentingSheet = .addContact($0) },
                 ),
             )
         }
         .navigationDestination(for: Scenes.Collectible.self) {
-            CollectibleScene(
-                model: CollectibleViewModel(
-                    wallet: model.wallet,
-                    assetData: $0.assetData,
-                    avatarService: avatarService,
-                    nftService: nftService,
-                    explorerService: explorerService,
-                    isPresentingSelectedAssetInput: model.isPresentingSelectedAssetInput,
-                ),
-            )
+            CollectibleScene(model: viewModelFactory.collectibleScene(wallet: model.wallet, assetData: $0.assetData, isPresentingSelectedAssetInput: model.isPresentingSelectedAssetInput))
         }
         .navigationDestination(for: Scenes.Collections.self) { _ in
             CollectionsSceneNavigationView(
-                model: CollectionsViewModel(
-                    nftService: nftService,
-                    wallet: model.wallet,
-                ),
+                model: viewModelFactory.collectionsScene(wallet: model.wallet),
             )
         }
         .navigationDestination(for: Scenes.Collection.self) { scene in
@@ -181,27 +125,21 @@ struct WalletNavigationView: View {
         }
         .navigationDestination(for: Scenes.Price.self) {
             ChartScene(
-                model: ChartSceneViewModel(
-                    explorerService: explorerService,
-                    service: chartService,
-                    priceService: priceService,
-                    assetModel: AssetViewModel(asset: $0.asset),
-                    priceAlertService: priceAlertService,
+                model: viewModelFactory.chartScene(
+                    asset: $0.asset,
                     walletId: model.wallet.id,
-                    preferencesService: preferencesService,
-                    onSetPriceAlert: model.presentPriceAlert,
+                    onSetPriceAlert: { presenter.isPresentingPriceAlert.wrappedValue = $0 },
                 ),
             )
         }
         .navigationDestination(for: Scenes.Perpetuals.self) { _ in
             PerpetualsNavigationView(
-                wallet: model.wallet,
-                perpetualService: perpetualService,
-                observerService: hyperliquidObserverService,
-                recentAssetsService: recentAssetsService,
-                onSelectAssetType: { model.isPresentingSheet = .selectAsset($0, chains: []) },
-                onSelectAsset: navigationState.openAsset,
-                onSelectPortfolio: { model.isPresentingSheet = .portfolio(.perpetuals) },
+                model: viewModelFactory.perpetualsScene(
+                    wallet: model.wallet,
+                    onSelectAssetType: { model.isPresentingSheet = .selectAsset($0, chains: []) },
+                    onSelectAsset: navigationState.openAsset,
+                    onSelectPortfolio: { model.isPresentingSheet = .portfolio(.perpetuals) },
+                ),
             )
         }
         .navigationDestination(for: Scenes.AssetsResults.self) { destination in
@@ -221,25 +159,18 @@ struct WalletNavigationView: View {
         }
         .navigationDestination(for: Scenes.Perpetual.self) {
             PerpetualNavigationView(
-                asset: $0.asset,
-                wallet: model.wallet,
-                perpetualService: perpetualService,
-                transactionsService: transactionsService,
-                observerService: hyperliquidObserverService,
-                explorerService: explorerService,
-                transactionFormatter: transactionFormatter,
-                preferencesService: preferencesService,
+                model: viewModelFactory.perpetualScene(
+                    asset: $0.asset,
+                    wallet: model.wallet,
+                    onTransferData: { model.isPresentingSheet = .transferData($0) },
+                    onPerpetualRecipientData: { model.isPresentingSheet = .perpetualRecipientData($0) },
+                ),
                 isPresentingSheet: $model.isPresentingSheet,
             )
         }
         .navigationDestination(for: Scenes.AssetPriceAlert.self) {
             AssetPriceAlertsScene(
-                model: AssetPriceAlertsViewModel(
-                    priceAlertService: priceAlertService,
-                    preferencesService: preferencesService,
-                    walletId: model.wallet.id,
-                    asset: $0.asset,
-                ),
+                model: viewModelFactory.assetPriceAlertsScene(walletId: model.wallet.id, asset: $0.asset),
             )
         }
         .scanReceiveSheet(isPresented: $model.isPresentingScanner, action: onScan)
@@ -268,26 +199,10 @@ struct WalletNavigationView: View {
                         wallet: model.wallet,
                         onComplete: { model.isPresentingSheet = nil },
                     )
-                case let .setPriceAlert(asset):
-                    SetPriceAlertNavigationStack(
-                        model: SetPriceAlertViewModel(
-                            walletId: model.wallet.id,
-                            asset: asset,
-                            priceAlertService: priceAlertService,
-                            preferencesService: preferencesService,
-                        ) { model.onSetPriceAlertComplete(message: $0) },
-                    )
                 case .addAsset:
                     AddAssetNavigationStack(wallet: model.wallet)
                 case let .portfolio(defaultType):
-                    PortfolioScene(
-                        model: PortfolioSceneViewModel(
-                            wallet: model.wallet,
-                            portfolioService: portfolioService,
-                            preferences: preferences,
-                            defaultType: defaultType,
-                        ),
-                    )
+                    PortfolioScene(model: viewModelFactory.portfolioScene(wallet: model.wallet, defaultType: defaultType))
                 case let .addContact(action):
                     AddContactNavigationView(action: action)
                 }
@@ -313,8 +228,6 @@ extension WalletNavigationView {
                     action,
                     wallet: model.wallet,
                     navigationState: navigationState,
-                    assetsService: assetsService,
-                    nftService: nftService,
                     nftDestination: navigationState.wallet,
                 )
             } catch {

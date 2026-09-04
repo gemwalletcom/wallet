@@ -19,10 +19,12 @@ import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.space6
+import uniffi.gemstone.Latency
+import uniffi.gemstone.LatencyType
 
 @Composable
 internal fun LatencyStatusBadge(
-    latency: ULong?,
+    latency: Latency?,
     isLoading: Boolean,
 ) {
     if (isLoading) {
@@ -31,7 +33,7 @@ internal fun LatencyStatusBadge(
         return
     }
 
-    val color = latency?.statusColor() ?: MaterialTheme.colorScheme.error
+    val color = latency?.latencyType?.color() ?: MaterialTheme.colorScheme.error
     Row(
         Modifier
             .padding(start = paddingHalfSmall)
@@ -45,7 +47,7 @@ internal fun LatencyStatusBadge(
                 end = paddingHalfSmall,
                 bottom = space2,
             ),
-            text = latency?.let { stringResource(R.string.common_latency_in_ms, it.toLong()) }
+            text = latency?.let { stringResource(R.string.common_latency_in_ms, it.value.toLong()) }
                 ?: stringResource(R.string.errors_error),
             color = color,
             maxLines = 1,
@@ -56,10 +58,8 @@ internal fun LatencyStatusBadge(
 }
 
 @Composable
-private fun ULong.statusColor(): Color {
-    return when {
-        this < 1024UL -> MaterialTheme.colorScheme.tertiary
-        this < 2048UL -> Color(0xffff9314)
-        else -> MaterialTheme.colorScheme.error
-    }
+private fun LatencyType.color(): Color = when (this) {
+    LatencyType.FAST -> MaterialTheme.colorScheme.tertiary
+    LatencyType.NORMAL -> Color(0xffff9314)
+    LatencyType.SLOW -> MaterialTheme.colorScheme.error
 }

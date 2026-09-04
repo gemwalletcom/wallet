@@ -7,6 +7,7 @@ use primitives::{Chain, Wallet};
 pub use model::{GemAppStartFailure, GemAppStartStep};
 
 use crate::services::assets::GemAssetsService;
+use crate::services::balance::GemBalanceService;
 use crate::services::banner::GemBannerService;
 use crate::services::config::GemConfigService;
 use crate::services::device::GemDeviceService;
@@ -20,6 +21,7 @@ pub struct GemAppStartService {
     config: Arc<GemConfigService>,
     banners: Arc<GemBannerService>,
     assets: Arc<GemAssetsService>,
+    balance: Arc<GemBalanceService>,
     wallet_configuration: Arc<GemWalletConfigurationService>,
     wallet: Arc<GemWalletService>,
     device: Arc<GemDeviceService>,
@@ -32,6 +34,7 @@ impl GemAppStartService {
         config: Arc<GemConfigService>,
         banners: Arc<GemBannerService>,
         assets: Arc<GemAssetsService>,
+        balance: Arc<GemBalanceService>,
         wallet_configuration: Arc<GemWalletConfigurationService>,
         wallet: Arc<GemWalletService>,
         device: Arc<GemDeviceService>,
@@ -40,6 +43,7 @@ impl GemAppStartService {
             config,
             banners,
             assets,
+            balance,
             wallet_configuration,
             wallet,
             device,
@@ -61,7 +65,7 @@ impl GemAppStartService {
             Ok(wallets) => {
                 for wallet in wallets {
                     let wallet_id = wallet.id.clone();
-                    if let Err(error) = self.assets.setup_wallet(wallet).await {
+                    if let Err(error) = self.balance.setup_wallet(wallet).await {
                         failures.push(GemAppStartFailure::new(GemAppStartStep::SetupWalletAssets, format!("wallet {}: {error}", wallet_id.id())));
                     }
                 }
@@ -76,7 +80,7 @@ impl GemAppStartService {
         record(&mut failures, GemAppStartStep::UpdateConfig, async { self.config.update_config().await.map(|_| ()) }).await;
         record(&mut failures, GemAppStartStep::SetupBanners, self.banners.setup()).await;
         record(&mut failures, GemAppStartStep::SyncAssets, self.sync_assets()).await;
-        record(&mut failures, GemAppStartStep::SyncDevice, self.device.synchronize_if_needed()).await;
+        record(&mut failures, GemAppStartStep::SyncDevice, async { self.device.synchronize().await.map(|_| ()) }).await;
         failures
     }
 
@@ -84,7 +88,7 @@ impl GemAppStartService {
         let mut failures = Vec::new();
         record(&mut failures, GemAppStartStep::SetupWalletAssets, async {
             self.assets.sync_default_assets().await?;
-            self.assets.setup_wallet(wallet.clone()).await
+            self.balance.setup_wallet(wallet.clone()).await
         })
         .await;
         record(&mut failures, GemAppStartStep::SetupWalletBanners, self.banners.setup_wallet(wallet.clone())).await;

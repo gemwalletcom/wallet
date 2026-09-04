@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.stake.viewmodels
 
+import uniffi.gemstone.GemClaimRewardsDestination
 import uniffi.gemstone.GemStakeServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -9,34 +10,23 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.application.stake.cases.SyncStakeDelegations
-import com.gemwallet.android.domains.stake.hasRewards
-import com.gemwallet.android.domains.stake.rewardsBalance
-import com.gemwallet.android.domains.stake.sumRewardsBalance
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.stakeChain
 import com.gemwallet.android.AppUrl
-import com.gemwallet.android.ext.claimAllAvailable
-import com.gemwallet.android.ext.canClaimRewards
-import com.gemwallet.android.ext.freezed
-import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.domains.confirm.confirmInput
-import com.gemwallet.android.domains.confirm.stake
 import com.wallet.core.primitives.StakeType
-import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
-import com.gemwallet.android.model.getFrozenResourceAmount
+import com.gemwallet.android.model.toGem
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.gemwallet.android.features.stake.models.StakeAction
-import com.gemwallet.android.features.stake.models.StakeActionItem
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.DelegationState
-import com.wallet.core.primitives.WalletType
 import com.gemwallet.android.ext.isViewOnly
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -89,68 +79,38 @@ class StakeViewModel @Inject constructor(
     val walletType = session.mapLatest { it?.wallet?.type }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val account = session.combine(assetId) { session, assetId ->
-        session?.wallet?.getAccount(assetId.chain)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
     val delegations = session.filterNotNull().combine(assetId) { session, assetId ->
         session.wallet.id to assetId
     }
         .flatMapLatest { (walletId, assetId) -> getDelegations(walletId, assetId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val isStakeEnabled = assetId
+    private val hasValidators = assetId
         .flatMapLatest { getValidators(it) }
         .mapLatest { validators -> validators.isNotEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    private val stakeFrozenRequired = assetInfo
-        .mapLatest { assetInfo ->
-            assetInfo != null && stakeService.requiresFrozenBalance(
-                assetInfo.asset.chain.string,
-                assetInfo.balance.balance.getFrozenResourceAmount().toString(),
-            )
-        }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    private val claimRewards = combine(delegations, assetInfo.filterNotNull()) { delegations, assetInfo ->
+        stakeService.claimRewards(assetInfo.asset.chain.string, delegations.map { it.toJson() })
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val rewardsBalance = delegations
-        .mapLatest { delegations -> delegations.sumRewardsBalance() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, BigInteger.ZERO)
+    val rewardsText = combine(claimRewards.filterNotNull(), assetInfo.filterNotNull()) { claimRewards, assetInfo ->
+        ValueFormatter(style = ValueFormatter.Style.Auto).string(claimRewards.value, assetInfo.asset)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     val actions = combine(
-        session.mapLatest { it?.wallet?.type }.filterNotNull(),
-        rewardsBalance,
+        walletType.filterNotNull(),
+        delegations,
         assetInfo.filterNotNull(),
-        isStakeEnabled,
-        stakeFrozenRequired,
-    ) { walletType, rewardsBalance, assetInfo, isStakeEnabled, stakeFrozenRequired ->
-        if (walletType == WalletType.View) {
-            return@combine emptyList()
-        }
-        listOfNotNull(
-            StakeAction.Stake,
-            StakeAction.Freeze.takeIf { assetInfo.stakeChain?.freezed() == true },
-            StakeAction.Unfreeze.takeIf { assetInfo.stakeChain?.freezed() == true },
-            rewardsBalance
-                .takeIf { stakeService.canClaimStakeRewards(assetInfo.asset.chain.string, rewardsBalance.toString()) }
-                ?.let {
-                    StakeAction.Rewards(
-                        data = ValueFormatter(style = ValueFormatter.Style.Auto)
-                            .string(rewardsBalance, assetInfo.asset),
-                    )
-                },
-        ).map { action ->
-            val frozenRequired = action == StakeAction.Stake && stakeFrozenRequired
-            StakeActionItem(
-                action = action,
-                enabled = when {
-                    frozenRequired -> true
-                    action == StakeAction.Stake -> isStakeEnabled
-                    else -> true
-                },
-                frozenRequired = frozenRequired,
-            )
-        }
+        hasValidators,
+    ) { walletType, delegations, assetInfo, hasValidators ->
+        stakeService.stakeActions(
+            walletType = walletType.toGem(),
+            chain = assetInfo.asset.chain.string,
+            hasValidators = hasValidators,
+            balance = assetInfo.balance.toGem(),
+            delegations = delegations.map { it.toJson() },
+        )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val sync = MutableStateFlow<Boolean>(true)
@@ -163,14 +123,8 @@ class StakeViewModel @Inject constructor(
                     return@flow
                 }
                 val assetInfo = assetInfo.filterNotNull().first()
-                val account = account.filterNotNull().first()
-                val walletId = session.filterNotNull().first().wallet.id
                 emit(true)
-                syncStakeDelegations.sync(
-                    walletId = walletId,
-                    assetId = assetInfo.asset.id,
-                    address = account.address,
-                )
+                syncStakeDelegations.sync(assetInfo.asset.id.chain)
                 emit(false)
                 sync.update { false }
             }
@@ -192,28 +146,14 @@ class StakeViewModel @Inject constructor(
             return
         }
         val assetInfo = assetInfo.value ?: return
-        val from = assetInfo.owner ?: return
-        val balance = Crypto(delegation.base.balance.toBigIntegerOrNull() ?: BigInteger.ZERO)
-        onConfirm(GemTransferData.stake(assetInfo.asset, StakeType.Withdraw(delegation), balance.atomicValue).confirmInput(from))
+        onConfirm(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toJson(), BigInteger(delegation.base.balance), false))
     }
 
     fun onRewards(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
         val assetInfo = assetInfo.value ?: return
-        val account = account.value ?: return
-        val withRewards = delegations.value.filter { it.hasRewards() }
-        val canClaimAllRewards = assetInfo.chain.claimAllAvailable || withRewards.size == 1
-        if (canClaimAllRewards) {
-            onConfirm(
-                GemTransferData.stake(
-                    asset = assetInfo.asset,
-                    stakeType = StakeType.Rewards(withRewards.map { it.validator }),
-                    value = withRewards.sumOf { it.rewardsBalance() },
-                ).confirmInput(account)
-            )
-        } else {
-            onAmount(
-                AmountParams.Stake.Rewards(assetInfo.asset.id)
-            )
+        when (val destination = claimRewards.value?.destination ?: return) {
+            is GemClaimRewardsDestination.Transfer -> onConfirm(destination.transfer)
+            is GemClaimRewardsDestination.Amount -> onAmount(AmountParams.Stake.Rewards(assetInfo.asset.id))
         }
     }
 }

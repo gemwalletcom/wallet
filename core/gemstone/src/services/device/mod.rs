@@ -51,16 +51,8 @@ impl GemDeviceService {
         }
     }
 
-    pub async fn is_registered(&self) -> Result<bool, GemServiceError> {
-        Ok(self.preferences.is_device_registered())
-    }
-
-    pub async fn synchronize(&self) -> Result<Device, GemServiceError> {
-        let _guard = self.sync_lock.lock().await;
-        self.sync(self.current_device().await?).await
-    }
-
     pub async fn set_push_enabled(&self, enabled: bool) -> Result<(), GemServiceError> {
+        self.preferences.set_push_notifications_declined(!enabled)?;
         self.preferences.set_push_notifications_enabled(enabled)?;
         self.synchronize_if_needed().await
     }
@@ -72,6 +64,17 @@ impl GemDeviceService {
             self.sync(device).await?;
         }
         Ok(())
+    }
+}
+
+impl GemDeviceService {
+    pub async fn synchronize(&self) -> Result<Device, GemServiceError> {
+        let _guard = self.sync_lock.lock().await;
+        self.sync(self.current_device().await?).await
+    }
+
+    pub async fn is_registered(&self) -> Result<bool, GemServiceError> {
+        Ok(self.preferences.is_device_registered())
     }
 }
 

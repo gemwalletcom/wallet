@@ -3,5 +3,6 @@ pub const ACCOUNT_OBJECTS: &str = "account_objects";
 pub const ACCOUNT_TRANSACTIONS: &str = "account_tx";
 pub const FEE: &str = "fee";
 pub const LEDGER: &str = "ledger";
+pub const SERVER_INFO: &str = "server_info";
 pub const SUBMIT: &str = "submit";
 pub const TRANSACTION: &str = "tx";

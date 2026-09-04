@@ -14,7 +14,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class CollectionsViewModel: CollectionsViewable, Sendable {
-    private let nftService: any GemNftServiceProtocol
+    private let service: any GemNftServiceProtocol
 
     public let query: ObservableQuery<NFTRequest>
 
@@ -23,10 +23,10 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
     public let wallet: Wallet
 
     public init(
-        nftService: any GemNftServiceProtocol,
+        service: any GemNftServiceProtocol,
         wallet: Wallet,
     ) {
-        self.nftService = nftService
+        self.service = service
         self.wallet = wallet
         query = ObservableQuery(NFTRequest(walletId: wallet.id, filter: .all), initialValue: [])
     }
@@ -60,15 +60,15 @@ public final class CollectionsViewModel: CollectionsViewable, Sendable {
 
     private func collections(verified: Bool) -> [NFTData] {
         let data = nftDataList.map { $0.json() }
-        let collections = verified ? nftService.verifiedCollections(data: data) : nftService.unverifiedCollections(data: data)
-        return nftService.sortedCollections(data: collections).compactMap { try? NFTData($0) }
+        let collections = verified ? service.verifiedCollections(data: data) : service.unverifiedCollections(data: data)
+        return service.sortedCollections(data: collections).compactMap { try? NFTData($0) }
     }
 
     // MARK: - Actions
 
     public func load() async {
         do {
-            let count = try await nftService.sync(walletId: wallet.id.id)
+            let count = try await service.sync()
             debugLog("update nfts: \(count)")
         } catch {
             debugLog("update nfts error: \(error)")

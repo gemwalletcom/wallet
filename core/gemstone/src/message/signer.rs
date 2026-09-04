@@ -1,6 +1,5 @@
 use std::borrow::Cow;
 
-use crate::clock::unix_seconds;
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use bs58;
@@ -10,6 +9,7 @@ use gem_sui::signer as sui_signer;
 use gem_ton::address::base64_to_hex_address;
 use gem_ton::signer::{TonSignDataResponse, TonSignMessageData, TonSignResult, TonSigner};
 use primitives::hex::encode_with_0x;
+use primitives::unix_seconds;
 use signer::{SIGNATURE_LENGTH, Signer, ensure_ethereum_signature_recovery_id_offset, hash_eip712};
 use sui_types::PersonalMessage;
 
@@ -94,25 +94,6 @@ impl MessageSigner {
         Ok(payload_preview)
     }
 
-    pub fn plain_preview(&self) -> String {
-        match self.message.sign_type {
-            SignDigestType::SuiPersonal | SignDigestType::Eip191 | SignDigestType::TronPersonal => self.data_as_utf8_or_hex(),
-            SignDigestType::Base58 => match self.preview() {
-                Ok(MessagePreview::Text(preview)) => preview,
-                _ => "".to_string(),
-            },
-            SignDigestType::TonPersonal => match self.preview() {
-                Ok(MessagePreview::Text(preview)) => preview,
-                _ => self.data_as_utf8_or_hex(),
-            },
-            SignDigestType::Siwe => self.data_as_utf8_or_hex(),
-            SignDigestType::Eip712 => {
-                let value: serde_json::Value = serde_json::from_slice(&self.message.data).unwrap_or_default();
-                serde_json::to_string_pretty(&value).unwrap_or_default()
-            }
-        }
-    }
-
     pub fn hash(&self) -> Result<Vec<u8>, GemstoneError> {
         match &self.message.sign_type {
             SignDigestType::SuiPersonal => {
@@ -135,6 +116,34 @@ impl MessageSigner {
         }
     }
 
+    pub fn sign_with_keystore(&self, keystore: Arc<GemKeystore>, keystore_id: String, password: Vec<u8>) -> Result<String, GemstoneError> {
+        let private_key = keystore.signing_key(&keystore_id, self.message.chain, password)?;
+        self.sign(private_key)
+    }
+}
+
+impl MessageSigner {
+    pub fn plain_preview(&self) -> String {
+        match self.message.sign_type {
+            SignDigestType::SuiPersonal | SignDigestType::Eip191 | SignDigestType::TronPersonal => self.data_as_utf8_or_hex(),
+            SignDigestType::Base58 => match self.preview() {
+                Ok(MessagePreview::Text(preview)) => preview,
+                _ => "".to_string(),
+            },
+            SignDigestType::TonPersonal => match self.preview() {
+                Ok(MessagePreview::Text(preview)) => preview,
+                _ => self.data_as_utf8_or_hex(),
+            },
+            SignDigestType::Siwe => self.data_as_utf8_or_hex(),
+            SignDigestType::Eip712 => {
+                let value: serde_json::Value = serde_json::from_slice(&self.message.data).unwrap_or_default();
+                serde_json::to_string_pretty(&value).unwrap_or_default()
+            }
+        }
+    }
+}
+
+impl MessageSigner {
     pub fn get_result(&self, data: &[u8]) -> String {
         match &self.message.sign_type {
             SignDigestType::Eip191 | SignDigestType::Eip712 | SignDigestType::Siwe | SignDigestType::TronPersonal => {
@@ -148,11 +157,6 @@ impl MessageSigner {
             SignDigestType::SuiPersonal | SignDigestType::TonPersonal => BASE64.encode(data),
             SignDigestType::Base58 => bs58::encode(data).into_string(),
         }
-    }
-
-    pub fn sign_with_keystore(&self, keystore: Arc<GemKeystore>, keystore_id: String, password: Vec<u8>) -> Result<String, GemstoneError> {
-        let private_key = keystore.signing_key(&keystore_id, self.message.chain, password)?;
-        self.sign(private_key)
     }
 }
 
@@ -220,7 +224,7 @@ mod tests {
         eip712::{GemEIP712Section, GemEIP712Value, GemEIP712ValueType},
         sign_type::SignDigestType,
     };
-    use crate::signer::GemChainSigner;
+    use crate::signer::ChainTransactionSigner;
     use gem_evm::EIP712Domain;
     use primitives::Address;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
@@ -228,7 +232,7 @@ mod tests {
     #[test]
     fn test_eip712_chain_signer_matches_message_signer() {
         let json = include_str!("./test/eip712_seaport.json");
-        let via_chain_signer = GemChainSigner::new(Chain::Ethereum)
+        let via_chain_signer = ChainTransactionSigner::new(Chain::Ethereum)
             .sign_message(json.as_bytes().to_vec(), TEST_PRIVATE_KEY.to_vec())
             .unwrap();
         let via_message_signer = MessageSigner::new(SignMessage {

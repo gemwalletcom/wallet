@@ -4,7 +4,6 @@ import Components
 import Formatters
 import Foundation
 import Gemstone
-import protocol Gemstone.GemPreferencesServiceProtocol
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import GemstoneServices
 import Localization
@@ -17,9 +16,8 @@ import Style
 @Observable
 public final class SetPriceAlertViewModel {
     private let asset: Primitives.Asset
-    private let priceAlertService: any GemPriceAlertServiceProtocol
+    private let service: any GemPriceAlertServiceProtocol
     private let onComplete: StringAction
-    private let preferencesService: any GemPreferencesServiceProtocol
     private let currencyFormatter: CurrencyFormatter
     private let numericFormatter = NumericFormatter()
     private let priceAlertFormatter = PriceAlertFormatter()
@@ -35,17 +33,14 @@ public final class SetPriceAlertViewModel {
     public init(
         walletId: Primitives.WalletId,
         asset: Primitives.Asset,
-        priceAlertService: any GemPriceAlertServiceProtocol,
-        preferencesService: any GemPreferencesServiceProtocol,
-        price: Double? = nil,
+        service: any GemPriceAlertServiceProtocol,
         onComplete: StringAction,
     ) {
         self.asset = asset
-        self.priceAlertService = priceAlertService
-        self.preferencesService = preferencesService
-        currencyFormatter = CurrencyFormatter(currencyCode: preferencesService.currencyCode)
+        self.service = service
+        currencyFormatter = CurrencyFormatter(currencyCode: service.currency())
         self.onComplete = onComplete
-        state = SetPriceAlertViewModelState(price: price)
+        state = SetPriceAlertViewModelState()
         assetQuery = ObservableQuery(AssetRequest(walletId: walletId, assetId: asset.id), initialValue: .with(asset: asset))
     }
 
@@ -153,7 +148,7 @@ public final class SetPriceAlertViewModel {
         }
         return Primitives.PriceAlert(
             assetId: asset.id,
-            currency: preferencesService.currencyValue,
+            currency: Currency(core: service.currency()),
             price: price,
             pricePercentChange: pricePercentChange,
             priceDirection: alertDirection,
@@ -176,7 +171,7 @@ extension SetPriceAlertViewModel {
         let priceAlert = priceAlert()
         onComplete?(completeMessage)
         do {
-            try await priceAlertService.enable(priceAlert: priceAlert)
+            try await service.enable(priceAlert: priceAlert)
         } catch {
             debugLog("Set price alert error: \(error.localizedDescription)")
         }

@@ -8,8 +8,8 @@ sealed interface SwapActionState {
     data object QuoteLoading : SwapActionState
     data object Ready : SwapActionState
     data object TransferLoading : SwapActionState
-    data class QuoteError(val error: SwapError) : SwapActionState
-    data class TransferError(val error: SwapError) : SwapActionState
+    data class QuoteError(val error: Throwable) : SwapActionState
+    data class TransferError(val error: Throwable) : SwapActionState
 }
 
 data class SwapItemInteraction(
@@ -40,7 +40,7 @@ data class SwapUiState(
     val isTransferLoading: Boolean = false,
     val isInputEmpty: Boolean = true,
 ) {
-    val error: SwapError?
+    val error: Throwable?
         get() = when (val currentAction = action) {
             is SwapActionState.QuoteError -> currentAction.error
             is SwapActionState.TransferError -> currentAction.error
@@ -77,9 +77,9 @@ internal fun createSwapUiState(session: SwapQuoteSession, buttonAction: GemSwapB
 
     val action = when {
         transferPhase is SwapTransferPhase.Loading -> SwapActionState.TransferLoading
-        transferPhase is SwapTransferPhase.Failed -> SwapActionState.TransferError(SwapError.toError(transferPhase.error))
+        transferPhase is SwapTransferPhase.Failed -> SwapActionState.TransferError(transferPhase.error)
         quotePhase is SwapQuotePhase.Loading -> SwapActionState.QuoteLoading
-        quotePhase is SwapQuotePhase.Failed -> SwapActionState.QuoteError(SwapError.toError(quotePhase.error))
+        quotePhase is SwapQuotePhase.Failed -> SwapActionState.QuoteError(quotePhase.error)
         session.quote != null -> SwapActionState.Ready
         else -> SwapActionState.None
     }

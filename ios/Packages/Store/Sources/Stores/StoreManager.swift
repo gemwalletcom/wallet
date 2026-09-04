@@ -10,11 +10,11 @@ public struct StoreManager: Sendable {
     public let transactionStore: TransactionStore
     public let nodeStore: NodeStore
     public let walletStore: WalletStore
-    public let connectionsStore: ConnectionsStore
+    public let connectionsStore: ConnectionStore
     public let stakeStore: StakeStore
     public let bannerStore: BannerStore
     public let priceAlertStore: PriceAlertStore
-    public let nftStore: NFTStore
+    public let nftStore: NftStore
     public let addressStore: AddressStore
     public let perpetualStore: PerpetualStore
     public let recentActivityStore: RecentActivityStore
@@ -33,11 +33,11 @@ public struct StoreManager: Sendable {
         transactionStore = TransactionStore(db: db)
         nodeStore = NodeStore(db: db)
         walletStore = WalletStore(db: db)
-        connectionsStore = ConnectionsStore(db: db)
+        connectionsStore = ConnectionStore(db: db)
         stakeStore = StakeStore(db: db)
         bannerStore = BannerStore(db: db)
         priceAlertStore = PriceAlertStore(db: db)
-        nftStore = NFTStore(db: db)
+        nftStore = NftStore(db: db)
         addressStore = AddressStore(db: db)
         perpetualStore = PerpetualStore(db: db)
         recentActivityStore = RecentActivityStore(db: db)

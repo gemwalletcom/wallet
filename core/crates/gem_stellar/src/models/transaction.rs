@@ -114,3 +114,45 @@ impl Payment {
         self.transaction.as_ref()?.memo.clone()
     }
 }
+
+const ORDER_DESCENDING: &str = "desc";
+const JOIN_TRANSACTIONS: &str = "transactions";
+
+#[derive(Debug, Clone, Serialize)]
+pub struct PaymentsQuery {
+    pub order: Option<&'static str>,
+    pub limit: Option<usize>,
+    pub include_failed: bool,
+    pub cursor: Option<String>,
+    pub join: &'static str,
+}
+
+impl Default for PaymentsQuery {
+    fn default() -> Self {
+        Self {
+            order: None,
+            limit: None,
+            include_failed: true,
+            cursor: None,
+            join: JOIN_TRANSACTIONS,
+        }
+    }
+}
+
+impl PaymentsQuery {
+    pub fn latest(limit: usize) -> Self {
+        Self {
+            order: Some(ORDER_DESCENDING),
+            limit: Some(limit),
+            ..Self::default()
+        }
+    }
+
+    pub fn page(limit: usize, cursor: Option<String>) -> Self {
+        Self {
+            limit: Some(limit),
+            cursor,
+            ..Self::default()
+        }
+    }
+}

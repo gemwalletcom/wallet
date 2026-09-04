@@ -3,6 +3,7 @@
 import enum Gemstone.GemContactAvatar
 import struct Gemstone.GemContactAddressInput
 import protocol Gemstone.GemManageContactServiceProtocol
+import protocol Gemstone.GemNameServiceProtocol
 import Components
 import GemstoneServices
 import Foundation
@@ -41,6 +42,7 @@ public final class ManageContactViewModel {
     }
 
     private let service: any GemManageContactServiceProtocol
+    private let nameService: any GemNameServiceProtocol
     private let mode: Mode
 
     let contactId: String
@@ -56,9 +58,11 @@ public final class ManageContactViewModel {
 
     public init(
         service: any GemManageContactServiceProtocol,
+        nameService: any GemNameServiceProtocol,
         mode: Mode,
     ) {
         self.service = service
+        self.nameService = nameService
         self.mode = mode
 
         nameInputModel = InputValidationViewModel(
@@ -134,9 +138,16 @@ public final class ManageContactViewModel {
 
     var avatarImage: AssetImage {
         switch avatar {
-        case .empty: AssetImage(type: .text(initials))
+        case .empty: initials.isEmpty ? .image(Images.System.personCircleFill) : AssetImage(type: .text(initials))
         case let .image(imageUrl): AssetImage(type: .text(initials), imageURL: ImageSource(imageUrl).url)
         case let .emoji(value): AssetImage(type: .emoji(value.emoji))
+        }
+    }
+
+    var avatarStyle: AssetImageView.Style? {
+        switch avatar {
+        case .empty: initials.isEmpty ? AssetImageView.Style(foregroundColor: Colors.grayLightFaded) : nil
+        case .image, .emoji: nil
         }
     }
 
@@ -181,6 +192,7 @@ public final class ManageContactViewModel {
     func addressModel(mode: ManageContactAddressViewModel.Mode) -> ManageContactAddressViewModel {
         ManageContactAddressViewModel(
             service: service,
+            nameService: nameService,
             mode: mode,
             onComplete: { [weak self] in self?.onAddressComplete($0) },
         )

@@ -10,7 +10,6 @@ import SwiftUI
 import GemstoneServices
 
 struct PriceAlertsNavigationView: View {
-    @Environment(\.walletSessionService) private var walletSessionService
     @Environment(\.viewModelFactory) private var viewModelFactory
 
     @State private var isPresentingAddAsset: Bool = false
@@ -30,13 +29,9 @@ struct PriceAlertsNavigationView: View {
                 }
             }
             .sheet(isPresented: $isPresentingAddAsset) {
-                AddAssetPriceAlertsNavigationStack(
-                    selectAssetModel: viewModelFactory.selectAssetScene(
-                        wallet: walletSessionService.currentWallet!,
-                        selectType: .priceAlert,
-                        selectAssetAction: onSelectAsset,
-                    ),
-                )
+                if let selectAssetModel = viewModelFactory.selectAssetScene(selectType: .priceAlert, selectAssetAction: onSelectAsset) {
+                    AddAssetPriceAlertsNavigationStack(selectAssetModel: selectAssetModel)
+                }
             }
             .toast(message: $isPresentingToastMessage)
     }

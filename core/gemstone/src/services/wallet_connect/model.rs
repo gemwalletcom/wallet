@@ -5,12 +5,14 @@ use crate::message::sign_type::SignMessage;
 use crate::wallet_connect::WalletConnectResponseType;
 
 #[derive(Debug, Clone, uniffi::Record)]
-pub struct GemWalletConnectRequest {
+pub struct GemWalletConnectSessionRequest {
     pub topic: String,
+    pub request_id: String,
     pub method: String,
     pub params: String,
-    pub chain_id: String,
-    pub domain: String,
+    pub chain_id: Option<String>,
+    pub origin: Option<String>,
+    pub validation: WalletConnectionVerificationStatus,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -23,7 +25,34 @@ pub struct GemWalletConnectRpcError {
 pub enum GemWalletConnectResponse {
     Response { value: WalletConnectResponseType },
     Null,
-    MethodNotFound,
+    Error { error: GemWalletConnectRpcError },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemWalletConnectFailure {
+    MaliciousOrigin,
+    Failed { message: String },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemWalletConnectOutcome {
+    pub response: Option<GemWalletConnectResponse>,
+    pub failure: Option<GemWalletConnectFailure>,
+}
+
+impl GemWalletConnectOutcome {
+    pub fn rejected(failure: Option<GemWalletConnectFailure>) -> Self {
+        Self {
+            response: Some(GemWalletConnectResponse::Error {
+                error: crate::services::wallet_connect::rules::user_rejected_error(),
+            }),
+            failure,
+        }
+    }
+
+    pub fn ignored() -> Self {
+        Self { response: None, failure: None }
+    }
 }
 
 #[derive(Debug, Clone, uniffi::Record)]

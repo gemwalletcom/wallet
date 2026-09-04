@@ -1,8 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
-import com.gemwallet.android.application.perpetual.cases.SyncPerpetuals
-import com.gemwallet.android.cases.nodes.GetNodeUrlCase
+import uniffi.gemstone.GemNodeServiceInterface
 import com.gemwallet.android.data.services.gemstone.perpetual.HyperliquidObserverService
 import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
@@ -19,10 +18,14 @@ import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemAssetStore
+import uniffi.gemstone.GemPerpetualDetailsService
+import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualService
+import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualStreamService
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemTransactionsService
 import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemPriceService
 import dagger.Module
@@ -57,33 +60,40 @@ object PerpetualModule {
         preferencesService: GemPreferencesService,
         balanceService: GemBalanceService,
         walletPreferencesService: GemWalletPreferencesService,
+        walletSessionService: GemWalletSessionService,
     ): GemPerpetualService =
-        GemPerpetualService(gateway, priceService, perpetualStore, assetStore, preferencesService, balanceService, walletPreferencesService)
+        GemPerpetualService(gateway, priceService, perpetualStore, assetStore, preferencesService, balanceService, walletPreferencesService, walletSessionService)
 
     @Provides
     @Singleton
     fun provideGemPerpetualServiceInterface(service: GemPerpetualService): GemPerpetualServiceInterface = service
 
     @Provides
+    fun provideGemPerpetualDetailsService(
+        perpetualService: GemPerpetualService,
+        transactionsService: GemTransactionsService,
+        preferencesService: GemPreferencesService,
+        walletSessionService: GemWalletSessionService,
+    ): GemPerpetualDetailsServiceInterface = GemPerpetualDetailsService(perpetualService, transactionsService, preferencesService, walletSessionService)
+
+    @Provides
     @Singleton
     fun provideHyperliquidObserverService(
         observePerpetualWallet: ObservePerpetualWallet,
-        syncPerpetuals: SyncPerpetuals,
         perpetualService: GemPerpetualService,
-        getNodeUrlCase: GetNodeUrlCase,
+        nodeService: GemNodeServiceInterface,
         okHttpClient: OkHttpClient,
         connectionService: GemConnectionService,
     ): HyperliquidObserverService {
         val connection = WebSocketConnection(
             client = okHttpClient,
             requestProvider = {
-                WebSocketRequest(url = getNodeUrlCase.getWebSocketNodeUrl(Chain.HyperCore))
+                WebSocketRequest(url = nodeService.websocketNodeUrl(Chain.HyperCore.string))
             },
             connectionService = connectionService,
         )
         return HyperliquidObserverService(
             observePerpetualWallet = observePerpetualWallet,
-            syncPerpetuals = syncPerpetuals,
             perpetualService = perpetualService,
             streamService = GemPerpetualStreamService(perpetualService, GemstonePerpetualStreamConnection(connection)),
             connection = connection,

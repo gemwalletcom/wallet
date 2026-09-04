@@ -7,26 +7,24 @@ import Localization
 import Primitives
 
 struct TransactionPriceViewModel {
-    private let metadata: TransactionPerpetualMetadata?
+    private let price: Double?
     private let currencyFormatter: CurrencyFormatter
 
-    init(metadata: TransactionPerpetualMetadata?, currencyFormatter: CurrencyFormatter = .usd) {
-        self.metadata = metadata
+    init(price: Double?, currencyFormatter: CurrencyFormatter = .usd) {
+        self.price = price
         self.currencyFormatter = currencyFormatter
     }
 }
 
 extension TransactionPriceViewModel: ItemModelProvidable {
     var itemModel: TransactionItemModel {
-        guard let metadata, metadata.price > 0 else {
+        guard let price else {
             return .empty
         }
 
-        let priceFormatted = currencyFormatter.string(metadata.price)
-
         return .price(
             title: Localized.Asset.price,
-            value: priceFormatted,
+            value: currencyFormatter.string(price),
         )
     }
 }

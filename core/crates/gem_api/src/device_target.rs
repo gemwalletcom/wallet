@@ -1,4 +1,4 @@
-use gem_client::ClientError;
+use gem_client::{ClientError, build_path_with_query};
 use primitives::rewards::RedemptionRequest;
 use primitives::{
     AuthenticatedRequest, ChainAddress, ChartPeriod, Device, FiatQuoteType, NFTAssetId, PortfolioAssetsRequest, PriceAlert, ReferralCode, ReportNft, ScanTransactionPayload,
@@ -36,6 +36,8 @@ pub enum GemDeviceApiTarget {
         wallet_id: String,
         asset_id: Option<String>,
         from_timestamp: u64,
+        limit: usize,
+        offset: usize,
     },
     GetAssetsList {
         wallet_id: String,
@@ -160,15 +162,23 @@ impl GemDeviceApiTarget {
             Self::IsDeviceRegistered => "/v2/devices/is_registered".to_string(),
             Self::GetAuthNonce => "/v2/devices/auth/nonce".to_string(),
             Self::GetSubscriptions | Self::AddSubscriptions(_) | Self::DeleteSubscriptions(_) => "/v2/devices/subscriptions".to_string(),
-            Self::GetPriceAlerts { asset_id } => match asset_id {
-                Some(asset_id) => format!("/v2/devices/price_alerts?asset_id={asset_id}"),
-                None => "/v2/devices/price_alerts".to_string(),
-            },
+            Self::GetPriceAlerts { asset_id } => build_path_with_query("/v2/devices/price_alerts", &PriceAlertsQuery { asset_id: asset_id.clone() }),
             Self::AddPriceAlerts(_) | Self::DeletePriceAlerts(_) => "/v2/devices/price_alerts".to_string(),
-            Self::GetTransactions { asset_id, from_timestamp, .. } => match asset_id {
-                Some(asset_id) => format!("/v2/devices/transactions?from_timestamp={from_timestamp}&asset_id={asset_id}"),
-                None => format!("/v2/devices/transactions?from_timestamp={from_timestamp}"),
-            },
+            Self::GetTransactions {
+                asset_id,
+                from_timestamp,
+                limit,
+                offset,
+                ..
+            } => build_path_with_query(
+                "/v2/devices/transactions",
+                &TransactionsQuery {
+                    from_timestamp: *from_timestamp,
+                    asset_id: asset_id.clone(),
+                    limit: *limit,
+                    offset: *offset,
+                },
+            ),
             Self::GetAssetsList { from_timestamp, .. } => format!("/v2/devices/assets?from_timestamp={from_timestamp}"),
             Self::GetWalletConfiguration { .. } => "/v2/devices/wallet_configuration".to_string(),
             Self::ScanTransaction(_) => "/v2/devices/scan/transaction".to_string(),
@@ -241,6 +251,19 @@ impl GemDeviceApiTarget {
             _ => Ok(None),
         }
     }
+}
+
+#[derive(Serialize)]
+struct PriceAlertsQuery {
+    asset_id: Option<String>,
+}
+
+#[derive(Serialize)]
+struct TransactionsQuery {
+    from_timestamp: u64,
+    asset_id: Option<String>,
+    limit: usize,
+    offset: usize,
 }
 
 fn json<T: Serialize>(value: &T) -> Result<Option<GemDeviceApiBody>, ClientError> {

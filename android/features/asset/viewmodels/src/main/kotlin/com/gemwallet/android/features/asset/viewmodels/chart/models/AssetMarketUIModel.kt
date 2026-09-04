@@ -12,7 +12,6 @@ class AssetMarketUIModel(
     val assetTitle: String,
     val assetLinks: List<Link> = emptyList(),
     val currency: Currency = Currency.USD,
-    val explorerName: String,
     val tokenExplorerLink: BlockExplorerLink? = null,
     val marketInfo: AssetMarket? = null,
 ) {

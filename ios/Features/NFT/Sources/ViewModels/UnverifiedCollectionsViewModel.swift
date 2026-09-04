@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import Localization
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store

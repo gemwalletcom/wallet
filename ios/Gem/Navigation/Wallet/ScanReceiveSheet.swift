@@ -12,7 +12,6 @@ extension View {
 
 private struct ScanReceiveSheet: ViewModifier {
     @Environment(\.viewModelFactory) private var viewModelFactory
-    @Environment(\.walletSessionService) private var walletSessionService
 
     @Binding var isPresented: Bool
 
@@ -22,13 +21,10 @@ private struct ScanReceiveSheet: ViewModifier {
 
     func body(content: Content) -> some View {
         content.sheet(isPresented: $isPresented, onDismiss: onDismiss) {
-            if let wallet = walletSessionService.currentWallet {
+            if let selectAssetModel = viewModelFactory.selectAssetScene(selectType: .receive(.asset)) {
                 ScanReceiveNavigationStack(
                     model: ScanReceiveViewModel(
-                        selectAssetModel: viewModelFactory.selectAssetScene(
-                            wallet: wallet,
-                            selectType: .receive(.asset),
-                        ),
+                        selectAssetModel: selectAssetModel,
                         onScan: { code = $0 },
                     ),
                 )

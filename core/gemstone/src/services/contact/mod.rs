@@ -10,11 +10,12 @@ use primitives::contact::ContactAddress;
 use primitives::{Chain, Contact};
 
 use crate::address_formatter::{GemAddressFormatStyle, GemAddressService};
-use crate::services::chain::GemChainService;
+use crate::models::payment::GemPayment;
+use crate::payment::GemPaymentService;
 use crate::services::file::GemFileStore;
-use crate::services::name::{GemAddressStore, GemNameService};
+use crate::services::name::GemAddressStore;
 
-pub use model::{GemContactAddressInput, GemContactAvatar, GemContactInput};
+pub use model::{GemContactAddressInput, GemContactAvatar, GemContactInput, GemContactScannedAddress};
 pub use store::GemContactStore;
 
 const AVATAR_EXTENSION: &str = "png";
@@ -97,44 +98,25 @@ impl GemContactService {
 }
 
 #[derive(uniffi::Object)]
-pub struct GemContactsService {
-    contacts: Arc<GemContactService>,
-}
-
-#[uniffi::export]
-impl GemContactsService {
-    #[uniffi::constructor]
-    pub fn new(contacts: Arc<GemContactService>) -> Self {
-        Self { contacts }
-    }
-
-    pub async fn update_contact(&self, contact: Contact, addresses: Vec<ContactAddress>) -> Result<(), GemServiceError> {
-        self.contacts.update_contact(contact, addresses).await
-    }
-
-    pub async fn delete_contact(&self, contact: Contact) -> Result<(), GemServiceError> {
-        self.contacts.delete_contact(contact).await
-    }
-}
-
-#[derive(uniffi::Object)]
 pub struct GemManageContactService {
     contacts: Arc<GemContactService>,
     addresses: Arc<GemAddressService>,
-    names: Arc<GemNameService>,
-    chains: Arc<GemChainService>,
+    payments: Arc<GemPaymentService>,
 }
 
 #[uniffi::export]
 impl GemManageContactService {
     #[uniffi::constructor]
-    pub fn new(contacts: Arc<GemContactService>, addresses: Arc<GemAddressService>, names: Arc<GemNameService>, chains: Arc<GemChainService>) -> Self {
-        Self {
-            contacts,
-            addresses,
-            names,
-            chains,
-        }
+    pub fn new(contacts: Arc<GemContactService>, addresses: Arc<GemAddressService>, payments: Arc<GemPaymentService>) -> Self {
+        Self { contacts, addresses, payments }
+    }
+
+    pub fn scanned_address(&self, input: String) -> GemContactScannedAddress {
+        let request = match self.payments.decode_url(input.clone()) {
+            Ok(GemPayment::Request(request)) => Some(request),
+            Ok(GemPayment::Link(_)) | Err(_) => None,
+        };
+        rules::scanned_address(&input, request.as_ref())
     }
 
     pub fn default_chain(&self) -> Chain {
@@ -147,17 +129,5 @@ impl GemManageContactService {
 
     pub fn format_address(&self, address: String, chain: Chain, style: GemAddressFormatStyle) -> String {
         self.addresses.format(address, Some(chain), style)
-    }
-
-    pub fn names(&self) -> Arc<GemNameService> {
-        self.names.clone()
-    }
-
-    pub fn addresses(&self) -> Arc<GemAddressService> {
-        self.addresses.clone()
-    }
-
-    pub fn chains(&self) -> Arc<GemChainService> {
-        self.chains.clone()
     }
 }

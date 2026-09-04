@@ -3,6 +3,7 @@ use std::fmt::Debug;
 use gem_client::{Client, ClientExt};
 
 use super::model::{RelayChainsResponse, RelayErrorResponse, RelayQuoteRequest, RelayQuoteResponse, RelayRequestsResponse};
+use super::target::RelayTarget;
 use crate::SwapperError;
 
 #[derive(Clone, Debug)]
@@ -23,17 +24,16 @@ where
 
     pub async fn get_quote(&self, request: RelayQuoteRequest) -> Result<RelayQuoteResponse, SwapperError> {
         self.client
-            .post_or_error::<_, _, RelayErrorResponse>("/quote/v2", &request)
+            .post_or_error::<_, _, RelayErrorResponse>(RelayTarget::Quote, &request)
             .await
             .map_err(SwapperError::from)
     }
 
     pub async fn get_request(&self, identifier: &str) -> Result<RelayRequestsResponse, SwapperError> {
-        let path = format!("/requests/v3?term={}", identifier);
-        self.client.get(&path).await.map_err(SwapperError::from)
+        self.client.get(RelayTarget::Request { term: identifier.to_string() }).await.map_err(SwapperError::from)
     }
 
     pub async fn get_chains(&self) -> Result<RelayChainsResponse, SwapperError> {
-        self.client.get("/chains").await.map_err(SwapperError::from)
+        self.client.get(RelayTarget::Chains).await.map_err(SwapperError::from)
     }
 }

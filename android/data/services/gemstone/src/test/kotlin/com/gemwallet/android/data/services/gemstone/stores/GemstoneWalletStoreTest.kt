@@ -31,7 +31,6 @@ class GemstoneWalletStoreTest {
 
     private val walletsDao = mockk<WalletsDao>(relaxed = true)
     private val accountsDao = mockk<AccountsDao>(relaxed = true)
-    private val addressStore = mockk<GemstoneAddressStore>(relaxed = true)
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
     private val transactionRunner = RecordingStoreTransactionRunner()
 
@@ -39,7 +38,6 @@ class GemstoneWalletStoreTest {
         walletsDao = walletsDao,
         accountsDao = accountsDao,
         assetsDao = assetsDao,
-        addressStore = addressStore,
         transactionRunner = transactionRunner,
     )
 
@@ -63,30 +61,6 @@ class GemstoneWalletStoreTest {
         coVerifyOrder {
             walletsDao.insert(any())
             assetsDao.insert(match<List<DbAsset>> { records -> records.map { it.id } == listOf("ethereum") })
-            accountsDao.insert(any<List<DbAccount>>())
-        }
-        assertEquals(1, transactionRunner.runCount)
-    }
-
-    @Test
-    fun updateAccounts_insertsNativeAssetsBeforeAccounts() = runBlocking {
-        stubNativeAssets()
-        val wallet = mockWallet(
-            id = "wallet-1",
-            accounts = listOf(
-                mockAccount(chain = Chain.Ethereum),
-                mockAccount(chain = Chain.Solana),
-            )
-        )
-        coJustRun { assetsDao.insert(any<List<DbAsset>>()) }
-        coJustRun { accountsDao.insert(any<List<DbAccount>>()) }
-
-        subject.updateAccounts(wallet)
-
-        coVerifyOrder {
-            assetsDao.insert(match<List<DbAsset>> { records ->
-                records.map { it.id }.toSet() == setOf("ethereum", "solana")
-            })
             accountsDao.insert(any<List<DbAccount>>())
         }
         assertEquals(1, transactionRunner.runCount)

@@ -5,7 +5,7 @@ import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.WalletConnectionSession
 import uniffi.gemstone.GemSessionApproval
 import uniffi.gemstone.GemWalletConnectServiceInterface
-import uniffi.gemstone.GemChainService
+import uniffi.gemstone.GemChainServiceInterface
 
 fun WalletConnectSession.toConnectionSession(service: GemWalletConnectServiceInterface): WalletConnectionSession? {
     val metadata = metadata ?: return null
@@ -19,7 +19,7 @@ fun WalletConnectSession.toConnectionSession(service: GemWalletConnectServiceInt
     }.getOrNull()?.decodeJson()
 }
 
-fun GemSessionApproval.toSupportedNamespaces(chainService: GemChainService): Map<String, WalletConnectSessionNamespace> {
+fun GemSessionApproval.toSupportedNamespaces(chainService: GemChainServiceInterface): Map<String, WalletConnectSessionNamespace> {
     return accounts
         .mapNotNull { account ->
             val namespace = chainService.caip2Namespace(account.chain) ?: return@mapNotNull null

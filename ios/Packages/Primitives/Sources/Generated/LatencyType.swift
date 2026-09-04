@@ -11,11 +11,11 @@ public enum LatencyType: String, Codable, Equatable, Hashable, Sendable {
 }
 
 public struct Latency: Codable, Equatable, Hashable, Sendable {
-	public let latency_type: LatencyType
+	public let latencyType: LatencyType
 	public let value: Double
 
-	public init(latency_type: LatencyType, value: Double) {
-		self.latency_type = latency_type
+	public init(latencyType: LatencyType, value: Double) {
+		self.latencyType = latencyType
 		self.value = value
 	}
 }

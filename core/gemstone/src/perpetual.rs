@@ -10,10 +10,15 @@ use primitives::{
     PerpetualType, TpslType,
 };
 
+use crate::config::perpetual_config::HYPERLIQUID_DEPOSIT_ADDRESS;
+use crate::models::custom_types::GemBigInt;
 use crate::models::perpetual::GemPerpetualSubscription;
-use crate::services::error::GemServiceError;
+use crate::models::{GemAsset, GemTransactionInputType};
 use crate::services::perpetual::model::{GemPerpetualCloseInput, GemPerpetualOrderInput};
 use crate::services::perpetual::rules as perpetual_rules;
+use crate::services::transfer::model::{GemRecipient, GemTransferData};
+
+const HYPERLIQUID_NAME: &str = "Hyperliquid";
 
 #[derive(Debug, uniffi::Object)]
 pub struct GemPerpetual {
@@ -27,21 +32,9 @@ impl GemPerpetual {
         Self { provider }
     }
 
-    pub fn minimum_order_usd_amount(&self, price: f64, decimals: i32, leverage: u8) -> u64 {
-        match self.provider {
-            PerpetualProvider::Hypercore => PerpetualFormatter::minimum_order_usd_amount(price, decimals, leverage),
-        }
-    }
-
     pub fn format_price(&self, price: f64, decimals: i32) -> String {
         match self.provider {
             PerpetualProvider::Hypercore => PerpetualFormatter::format_price(price, decimals),
-        }
-    }
-
-    pub fn format_size(&self, size: f64, decimals: i32) -> String {
-        match self.provider {
-            PerpetualProvider::Hypercore => PerpetualFormatter::format_size(size, decimals),
         }
     }
 
@@ -49,19 +42,53 @@ impl GemPerpetual {
         perpetual_rules::funding_apr(funding)
     }
 
-    pub fn order(&self, input: GemPerpetualOrderInput) -> Result<PerpetualType, GemServiceError> {
-        perpetual_rules::order(self.provider.clone(), input)
+    pub fn recipient(&self) -> GemRecipient {
+        GemRecipient {
+            address: String::new(),
+            name: Some(self.name().to_string()),
+            memo: None,
+            references: vec![],
+        }
     }
 
-    pub fn close_order(&self, input: GemPerpetualCloseInput) -> PerpetualConfirmData {
-        perpetual_rules::close_order(self.provider.clone(), input)
+    pub fn deposit_recipient(&self) -> GemRecipient {
+        let address = match self.provider {
+            PerpetualProvider::Hypercore => HYPERLIQUID_DEPOSIT_ADDRESS.to_string(),
+        };
+        GemRecipient { address, ..self.recipient() }
     }
 }
 
-#[uniffi::remote(Enum)]
-pub enum TpslType {
-    TakeProfit,
-    StopLoss,
+impl GemPerpetual {
+    pub fn format_size(&self, size: f64, decimals: i32) -> String {
+        match self.provider {
+            PerpetualProvider::Hypercore => PerpetualFormatter::format_size(size, decimals),
+        }
+    }
+
+    pub fn order(&self, input: GemPerpetualOrderInput) -> PerpetualType {
+        perpetual_rules::order(self.provider.clone(), input)
+    }
+    pub fn close_order(&self, input: GemPerpetualCloseInput) -> PerpetualConfirmData {
+        perpetual_rules::close_order(self.provider.clone(), input)
+    }
+    pub fn transfer_data(&self, asset: GemAsset, perpetual_type: PerpetualType, value: GemBigInt, use_max_amount: bool) -> GemTransferData {
+        GemTransferData {
+            input_type: GemTransactionInputType::Perpetual { asset, perpetual_type },
+            recipient: self.recipient(),
+            value,
+            use_max_amount,
+            minimum_value: None,
+        }
+    }
+}
+
+impl GemPerpetual {
+    fn name(&self) -> &'static str {
+        match self.provider {
+            PerpetualProvider::Hypercore => HYPERLIQUID_NAME,
+        }
+    }
 }
 
 #[uniffi::remote(Enum)]
@@ -122,10 +149,6 @@ impl GemAutocloseEstimator {
 
     pub fn pnl(&self, price: f64) -> f64 {
         self.inner.pnl(price)
-    }
-
-    pub fn price_change_percent(&self, price: f64) -> f64 {
-        self.inner.price_change_percent(price)
     }
 
     pub fn roe(&self, price: f64) -> f64 {

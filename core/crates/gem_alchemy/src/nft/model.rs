@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -71,4 +71,14 @@ pub struct TokenMetadata {
 pub struct Attribute {
     pub trait_type: String,
     pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OwnedNftsQuery {
+    pub owner: String,
+    pub page_size: usize,
+    pub with_metadata: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub page_key: Option<String>,
 }

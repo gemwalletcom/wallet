@@ -13,13 +13,13 @@ public extension PortfolioSceneViewModel {
     @MainActor
     static func mock(
         wallet: Wallet = .mock(),
-        portfolioService: any GemPortfolioServiceProtocol = GemPortfolioServiceMock(),
+        service: any GemPortfolioServiceProtocol = GemPortfolioServiceMock(),
         preferences: ObservablePreferences = .mock(),
         defaultType: PortfolioType = .wallet,
     ) -> PortfolioSceneViewModel {
         PortfolioSceneViewModel(
             wallet: wallet,
-            portfolioService: portfolioService,
+            service: service,
             preferences: preferences,
             defaultType: defaultType,
         )

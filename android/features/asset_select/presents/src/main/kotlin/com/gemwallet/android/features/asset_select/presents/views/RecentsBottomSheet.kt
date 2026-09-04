@@ -31,6 +31,7 @@ import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.SheetSizing
+import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 
 @Composable
@@ -40,7 +41,7 @@ fun RecentsBottomSheet(
     query: TextFieldState,
     onDismissRequest: () -> Unit,
     onClear: () -> Unit,
-    onSelect: (AssetId) -> Unit,
+    onSelect: (Asset) -> Unit,
 ) {
     ModalBottomSheet(
         isVisible = isVisible,
@@ -94,7 +95,7 @@ fun RecentsBottomSheet(
                         AssetListItem(
                             asset = recent.asset,
                             listPosition = position,
-                            modifier = Modifier.clickable { onSelect(recent.asset.id) },
+                            modifier = Modifier.clickable { onSelect(recent.asset) },
                         )
                     }
                 }

@@ -3,9 +3,11 @@ package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.cases.GetPortfolioData
 import com.gemwallet.android.application.assets.cases.walletChartPeriods
-import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.PortfolioState
@@ -19,8 +21,10 @@ import com.gemwallet.android.ui.models.flatMap
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PortfolioChartType
+import com.wallet.core.primitives.PortfolioData
 import com.wallet.core.primitives.PortfolioType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import uniffi.gemstone.GemPortfolioServiceInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
@@ -30,6 +34,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -39,9 +44,9 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class PortfolioChartViewModel internal constructor(
-    getCurrentCurrency: GetCurrentCurrency,
+    private val service: GemPortfolioServiceInterface,
+    getSession: GetSession,
     observePerpetualWallet: ObservePerpetualWallet,
-    private val getPortfolioData: GetPortfolioData,
     initialType: PortfolioType,
 ) : ViewModel() {
     private val _selectedType = MutableStateFlow(initialType)
@@ -62,13 +67,13 @@ class PortfolioChartViewModel internal constructor(
     private val portfolio = combine(
         selectedType,
         selectedPeriod,
-        getCurrentCurrency.getCurrency().distinctUntilChanged(),
+        getSession().filterNotNull().distinctUntilChanged(),
         refreshController.trigger,
-    ) { type, period, currency, _ -> PortfolioState(type, period, currency) }
-        .transformLatest { state ->
+    ) { type, period, session, _ -> PortfolioState(type, period, session.currency) to session.wallet }
+        .transformLatest { (state, wallet) ->
             emit(state)
             val data = try {
-                getPortfolioData.getPortfolioData(state.type, state.period, state.currency)
+                service.portfolioData(wallet.toJson(), state.type.toGem(), state.period.toJson()).decodeJson<PortfolioData>()
             } catch (e: Exception) {
                 currentCoroutineContext().ensureActive()
                 null
@@ -140,14 +145,14 @@ class PortfolioChartViewModel internal constructor(
 
     @Inject
     constructor(
-        getCurrentCurrency: GetCurrentCurrency,
+        service: GemPortfolioServiceInterface,
+        getSession: GetSession,
         observePerpetualWallet: ObservePerpetualWallet,
-        getPortfolioData: GetPortfolioData,
         savedStateHandle: SavedStateHandle,
     ) : this(
-        getCurrentCurrency = getCurrentCurrency,
+        service = service,
+        getSession = getSession,
         observePerpetualWallet = observePerpetualWallet,
-        getPortfolioData = getPortfolioData,
         initialType = savedStateHandle.portfolioType(),
     )
 }

@@ -24,11 +24,4 @@ struct SetPriceAlertViewModelState {
 
     private var priceAmount: String = .empty
     private var percentageAmount: String = .empty
-
-    init(price: Double? = nil) {
-        if let price {
-            type = .price
-            priceAmount = String(price)
-        }
-    }
 }

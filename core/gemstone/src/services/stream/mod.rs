@@ -74,11 +74,11 @@ impl GemStreamService {
             }
             StreamEvent::Balances(update) => self.balance.update(update.wallet_id, update.asset_ids).await,
             StreamEvent::Transactions(update) => {
-                self.transactions.sync(update.wallet_id.clone(), None).await?;
+                self.transactions.sync_wallet(update.wallet_id.clone(), None).await?;
                 self.balance.update(update.wallet_id, update.asset_ids).await
             }
             StreamEvent::PriceAlerts(_) => self.price_alert.sync(None).await,
-            StreamEvent::Nft(update) => self.nft.sync(update.wallet_id).await.map(|_| ()),
+            StreamEvent::Nft(update) => self.nft.sync_wallet(update.wallet_id).await.map(|_| ()),
             StreamEvent::Perpetual(update) => {
                 let Some(wallet) = self.wallet_store.get_wallet(update.wallet_id.clone())? else {
                     return Ok(());

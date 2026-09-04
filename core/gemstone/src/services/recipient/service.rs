@@ -1,0 +1,55 @@
+use std::sync::Arc;
+
+use primitives::name::NameRecord;
+use primitives::{Asset, Chain, Wallet};
+
+use super::model::GemRecipientError;
+use crate::GemstoneError;
+use crate::models::payment::GemPayment;
+use crate::payment::{GemPaymentConfirmTransfer, GemPaymentDestination, GemPaymentService, GemPaymentWalletAsset};
+use crate::services::error::GemServiceError;
+use crate::services::name::GemNameService;
+use crate::services::transfer::model::{GemRecipient, GemTransferData};
+use crate::services::wallet_session::GemWalletSessionService;
+
+#[derive(uniffi::Object)]
+pub struct GemRecipientService {
+    names: Arc<GemNameService>,
+    payments: Arc<GemPaymentService>,
+    session: Arc<GemWalletSessionService>,
+}
+
+#[uniffi::export]
+impl GemRecipientService {
+    #[uniffi::constructor]
+    pub fn new(names: Arc<GemNameService>, payments: Arc<GemPaymentService>, session: Arc<GemWalletSessionService>) -> Self {
+        Self { names, payments, session }
+    }
+
+    pub fn recipient(
+        &self,
+        chain: Chain,
+        input: String,
+        name_record: Option<NameRecord>,
+        memo: Option<String>,
+        references: Vec<String>,
+    ) -> Result<GemRecipient, GemRecipientError> {
+        self.names.recipient(chain, input, name_record, memo, references)
+    }
+
+    pub fn recipient_wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
+        let current = self.session.current_wallet_id()?;
+        Ok(self.session.get_wallets()?.into_iter().filter(|wallet| wallet.id != current).collect())
+    }
+
+    pub fn scan_destination(&self, url: String, asset: GemPaymentWalletAsset) -> Result<GemPaymentDestination, GemstoneError> {
+        Ok(match self.payments.decode_url(url)? {
+            GemPayment::Request(request) => self.payments.transfer_destination(request, asset),
+            GemPayment::Link(_) => GemPaymentDestination::Unsupported,
+        })
+    }
+
+    pub fn transfer_data(&self, transfer: GemPaymentConfirmTransfer, asset: Asset) -> GemTransferData {
+        self.payments.transfer_data(transfer, asset)
+    }
+}

@@ -9,7 +9,7 @@ import SwiftUI
 import Testing
 import GemstoneServices
 import GemstoneServicesTestKit
-import class Gemstone.GemOnboardingService
+import class Gemstone.GemWalletService
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
 import Preferences
@@ -19,17 +19,18 @@ import PreferencesTestKit
 struct WalletsSceneViewModelTests {
     @Test
     func onDeleteConfirmed() async throws {
-        let walletStore = WalletStore.mock(db: .mock())
+        let db = DB.mock()
+        let walletStore = WalletStore.mock(db: db)
         for address in ["0x1", "0x2", "0x3"] {
             try walletStore.addWallet(.mock(id: .multicoin(address: address)))
         }
 
         let sessionStore = GemstoneWalletSessionStore.mock()
         let session = GemWalletSessionService(store: sessionStore, wallets: GemstoneWalletStore(store: walletStore))
-        let service = GemWalletService.mock(walletStore: walletStore, sessionStore: sessionStore)
+        let service = GemWalletService.mock(db: db, sessionStore: sessionStore)
         try session.setCurrent(walletId: .multicoin(address: "0x1"))
 
-        let model = WalletsSceneViewModel.mock(walletService: service, session: session)
+        let model = WalletsSceneViewModel.mock(walletService: service)
         model.walletsQuery.value = session.wallets
 
         #expect(model.currentWalletId == .multicoin(address: "0x1"))
@@ -54,14 +55,12 @@ extension WalletsSceneViewModel {
     static func mock(
         navigationPath: Binding<NavigationPath> = .constant(NavigationPath()),
         walletService: GemWalletService = .mock(),
-        session: GemWalletSessionService = .mock(),
         isPresentingCreateWalletSheet: Binding<Bool> = .constant(false),
         isPresentingImportWalletSheet: Binding<Bool> = .constant(false),
     ) -> WalletsSceneViewModel {
         WalletsSceneViewModel(
             navigationPath: navigationPath,
             walletService: walletService,
-            session: session,
             preferences: .mock(),
             isPresentingCreateWalletSheet: isPresentingCreateWalletSheet,
             isPresentingImportWalletSheet: isPresentingImportWalletSheet,

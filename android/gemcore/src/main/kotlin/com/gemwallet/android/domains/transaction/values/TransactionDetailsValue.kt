@@ -1,6 +1,7 @@
 package com.gemwallet.android.domains.transaction.values
 
 import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemSwapProgressStep
 import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.model.AssetInfo
 import com.wallet.core.primitives.AddressType
@@ -12,15 +13,16 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.TransactionState
+import java.math.BigInteger
 
 sealed interface TransactionDetailsValue {
 
     sealed interface Amount : TransactionDetailsValue {
         class Swap(
             val fromAsset: AssetInfo,
-            val fromValue: String,
+            val fromValue: BigInteger,
             val toAsset: AssetInfo,
-            val toValue: String,
+            val toValue: BigInteger,
             val currency: Currency,
         ) : Amount
 
@@ -93,9 +95,10 @@ sealed interface TransactionDetailsValue {
 
     class SwapProgress(
         val fromAsset: Asset,
-        val fromValue: String,
+        val fromValue: BigInteger,
         val providerName: String,
-        val state: TransactionState,
+        val transfer: GemSwapProgressStep,
+        val swap: GemSwapProgressStep,
         val etaInSeconds: UInt?,
     ) : TransactionDetailsValue
 

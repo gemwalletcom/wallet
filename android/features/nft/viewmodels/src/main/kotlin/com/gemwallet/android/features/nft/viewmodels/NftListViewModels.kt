@@ -1,11 +1,12 @@
 package com.gemwallet.android.features.nft.viewmodels
 
-import uniffi.gemstone.GemNftService
+import uniffi.gemstone.GemNftServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.nft.cases.GetNftCollections
-import com.gemwallet.android.application.nft.cases.SyncNftCollections
+import android.util.Log
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
@@ -26,8 +27,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NftListViewModels @Inject constructor(
-    private val syncNftCollections: SyncNftCollections,
-    private val nftService: GemNftService,
+    private val nftService: GemNftServiceInterface,
     getNftCollections: GetNftCollections,
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
@@ -77,20 +77,27 @@ class NftListViewModels @Inject constructor(
         if (current == lastSyncedWalletId) return
         lastSyncedWalletId = current
         viewModelScope.launch(Dispatchers.IO) {
-            val walletId = session.firstOrNull()?.wallet?.id ?: return@launch
-            syncNftCollections.syncNftCollections(walletId)
+            sync()
         }
     }
 
     fun refresh() {
         viewModelScope.launch(Dispatchers.IO) {
-            val walletId = session.firstOrNull()?.wallet?.id ?: return@launch
             _isRefreshing.update { true }
             try {
-                syncNftCollections.syncNftCollections(walletId)
+                sync()
             } finally {
                 _isRefreshing.update { false }
             }
         }
+    }
+
+    private suspend fun sync() {
+        runCatchingCancellable { nftService.sync() }
+            .onFailure { Log.e(TAG, "nft collections sync failed", it) }
+    }
+
+    private companion object {
+        const val TAG = "NftList"
     }
 }

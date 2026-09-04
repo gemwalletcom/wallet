@@ -1,9 +1,9 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
-import com.gemwallet.android.application.asset_select.cases.ClearRecentAssets
 import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsEmptyState
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.RecentAsset
 import com.wallet.core.primitives.RecentActivityType
@@ -33,6 +33,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAssetConfigService
+import uniffi.gemstone.GemRecentActivityService
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RecentsSheetViewModelTest {
@@ -47,7 +48,7 @@ class RecentsSheetViewModelTest {
     )
 
     private val getRecentAssets = mockk<GetRecentAssets>(relaxed = true)
-    private val clearRecentAssets = mockk<ClearRecentAssets>(relaxed = true)
+    private val recentActivityService = mockk<GemRecentActivityService>(relaxed = true)
 
     @Before
     fun setUp() {
@@ -61,7 +62,7 @@ class RecentsSheetViewModelTest {
 
     @Test
     fun `show makes visible and dismiss hides`() = runTest(testDispatcher) {
-        val vm = RecentsSheetViewModel(getRecentAssets, clearRecentAssets, GemAssetConfigService())
+        val vm = RecentsSheetViewModel(getRecentAssets, recentActivityService, GemAssetConfigService())
 
         assertFalse(vm.visible.value)
 
@@ -77,7 +78,7 @@ class RecentsSheetViewModelTest {
     @Test
     fun `uiModel keeps content after dismiss`() = runTest(testDispatcher) {
         every { getRecentAssets(any()) } returns flowOf(recentItems)
-        val vm = RecentsSheetViewModel(getRecentAssets, clearRecentAssets, GemAssetConfigService())
+        val vm = RecentsSheetViewModel(getRecentAssets, recentActivityService, GemAssetConfigService())
 
         vm.show()
         vm.uiModel.first { it.items.isNotEmpty() }
@@ -89,7 +90,7 @@ class RecentsSheetViewModelTest {
 
     @Test
     fun `clear delegates to coordinator with current types`() = runTest(testDispatcher) {
-        val vm = RecentsSheetViewModel(getRecentAssets, clearRecentAssets, GemAssetConfigService())
+        val vm = RecentsSheetViewModel(getRecentAssets, recentActivityService, GemAssetConfigService())
         val types = listOf(RecentActivityType.Swap)
         vm.show(types = types)
         advanceUntilIdle()
@@ -97,7 +98,7 @@ class RecentsSheetViewModelTest {
         vm.onClear()
         advanceUntilIdle()
 
-        coVerify { clearRecentAssets(types) }
+        coVerify { recentActivityService.clear(types.map { it.toGem() }) }
     }
 
     @Test

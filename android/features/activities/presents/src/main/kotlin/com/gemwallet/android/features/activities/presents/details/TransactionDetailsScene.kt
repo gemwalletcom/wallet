@@ -21,6 +21,7 @@ import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
+import com.gemwallet.android.model.toAssetPriceValue
 import com.gemwallet.android.ui.components.list_head.SwapListHead
 import com.gemwallet.android.ui.components.list_item.property.AssetRatePropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -69,9 +70,9 @@ internal fun TransactionDetailsScene(
                             onClick = data.amountAction(item.asset)?.let { action -> { onAction(action) } },
                         )
                         is TransactionDetailsValue.Amount.Swap -> SwapListHead(
-                            fromAsset = item.fromAsset,
+                            fromAsset = item.fromAsset.toAssetPriceValue(),
                             fromValue = item.fromValue,
-                            toAsset = item.toAsset,
+                            toAsset = item.toAsset.toAssetPriceValue(),
                             toValue = item.toValue,
                             currency = item.currency,
                             onSwapClick = {

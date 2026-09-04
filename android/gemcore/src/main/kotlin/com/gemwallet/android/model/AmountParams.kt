@@ -2,7 +2,10 @@ package com.gemwallet.android.model
 
 import com.gemwallet.android.serializer.GemRecipientSerializer
 import uniffi.gemstone.GemRecipient
-import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
+import com.gemwallet.android.serializer.GemPerpetualPositionActionSerializer
+import com.gemwallet.android.domains.perpetual.data
+import com.gemwallet.android.serializer.decodeJson
+import uniffi.gemstone.GemPerpetualPositionAction
 import com.gemwallet.android.serializer.packRoutePayload
 import com.gemwallet.android.serializer.unpackRoutePayload
 import com.wallet.core.primitives.AssetId
@@ -116,14 +119,15 @@ sealed interface AmountParams {
     data class Perpetual(
         override val assetId: AssetId,
         val perpetualId: PerpetualId,
-        val positionAction: PerpetualPositionAction,
+        @Serializable(GemPerpetualPositionActionSerializer::class)
+        val positionAction: GemPerpetualPositionAction,
     ) : AmountParams {
-        val direction: PerpetualDirection get() = positionAction.data.direction
+        val direction: PerpetualDirection get() = positionAction.data.direction.decodeJson()
 
         override val transactionType: TransactionType get() = when (positionAction) {
-            is PerpetualPositionAction.Open -> TransactionType.PerpetualOpenPosition
-            is PerpetualPositionAction.Increase,
-            is PerpetualPositionAction.Reduce -> TransactionType.PerpetualModifyPosition
+            is GemPerpetualPositionAction.Open -> TransactionType.PerpetualOpenPosition
+            is GemPerpetualPositionAction.Increase,
+            is GemPerpetualPositionAction.Reduce -> TransactionType.PerpetualModifyPosition
         }
     }
 

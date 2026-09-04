@@ -3,7 +3,6 @@
 import Components
 import Foundation
 import class Gemstone.GemChainService
-import protocol Gemstone.GemChainServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -16,47 +15,32 @@ public struct NetworkSelectorViewModel: SelectableSheetViewable {
     public let state: StateViewType<SelectableListType<Chain>>
 
     public var selectedItems: Set<Chain>
+    public private(set) var search: ListSearch<Chain>?
 
-    private let chainService: any GemChainServiceProtocol
+    public let title: String
+
+    private let chainService = GemChainService()
 
     public init(
         state: StateViewType<SelectableListType<Chain>>,
         selectedItems: [Chain] = [],
         selectionType: SelectionType = .navigationLink,
-        chainService: any GemChainServiceProtocol,
+        title: String = Localized.Settings.Networks.title,
     ) {
-        self.chainService = chainService
         self.selectionType = selectionType
         self.state = state
         self.selectedItems = Set(selectedItems)
-    }
-
-    public var title: String {
-        Localized.Settings.Networks.title
-    }
-
-    public var cancelButtonTitle: String {
-        Localized.Common.cancel
-    }
-
-    public var clearButtonTitle: String {
-        Localized.Filter.clear
-    }
-
-    public var doneButtonTitle: String {
-        Localized.Common.done
-    }
-
-    public var confirmButtonTitle: String {
-        Localized.Transfer.confirm
-    }
-
-    public var search: ListSearch<Chain>? {
-        ListSearch(
+        self.title = title
+        search = ListSearch(
             filter: filter(chain:query:),
             emptyContent: EmptyContentTypeViewModel(type: .search(type: EmptyContentType.SearchType.networks)),
         )
     }
+
+    public var cancelButtonTitle: String { Localized.Common.cancel }
+    public var clearButtonTitle: String { Localized.Filter.clear }
+    public var doneButtonTitle: String { Localized.Common.done }
+    public var confirmButtonTitle: String { Localized.Transfer.confirm }
 
     private func filter(chain: Chain, query: String) -> Bool {
         !chainService.getMatchingChains(chains: [chain.rawValue], query: query).isEmpty

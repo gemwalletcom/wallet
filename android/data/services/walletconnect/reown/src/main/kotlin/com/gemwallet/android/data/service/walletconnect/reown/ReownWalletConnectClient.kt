@@ -29,6 +29,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import uniffi.gemstone.Config
 import uniffi.gemstone.GemWalletConnectService
 import com.gemwallet.android.serializer.decodeJson
 import javax.inject.Inject
@@ -50,14 +51,15 @@ class ReownWalletConnectClient @Inject constructor(
     override val events: SharedFlow<WalletConnectEvent> = walletEvents.asSharedFlow()
 
     override fun initialize(onSuccess: () -> Unit, onError: (String) -> Unit) {
+        val config = Config().getWalletConnectConfig()
         CoreClient.initialize(
             application = context as Application,
-            projectId = PROJECT_ID,
+            projectId = config.projectId,
             metaData = Core.Model.AppMetaData(
-                name = "Gem Wallet",
-                description = "Gem Web3 Wallet",
-                url = "https://gemwallet.com",
-                icons = listOf("https://gemwallet.com/images/gem-logo-256x256.png"),
+                name = config.appName,
+                description = config.appDescription,
+                url = config.appUrl,
+                icons = config.appIcons,
                 redirect = "gem://wc/",
             ),
             connectionType = ConnectionType.AUTOMATIC,
@@ -305,7 +307,6 @@ class ReownWalletConnectClient @Inject constructor(
 
     private companion object {
         const val TAG = "WalletConnect"
-        const val PROJECT_ID = "3bc07cd7179d11ea65335fb9377702b6"
     }
 }
 

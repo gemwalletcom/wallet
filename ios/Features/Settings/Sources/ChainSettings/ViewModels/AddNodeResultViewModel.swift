@@ -1,8 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import BigInt
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemNodeCheck
+import GemstonePrimitives
 import Localization
 import Primitives
 import Style
@@ -10,33 +13,29 @@ import Style
 struct AddNodeResultViewModel {
     static let valueFormatter = ValueFormatter.full_US
 
-    private let addNodeResult: AddNodeResult
+    private let result: GemNodeCheck
 
-    init(addNodeResult: AddNodeResult) {
-        self.addNodeResult = addNodeResult
+    init(result: GemNodeCheck) {
+        self.result = result
     }
 
-    var url: URL {
-        addNodeResult.url
-    }
-
-    var isInSync: Bool {
-        addNodeResult.isInSync
+    var url: String {
+        result.url
     }
 
     var chainIdField: ListItemField {
-        ListItemField(title: Localized.Nodes.ImportNode.chainId, value: addNodeResult.chainID)
+        ListItemField(title: Localized.Nodes.ImportNode.chainId, value: result.chainId ?? Placeholder.empty)
     }
 
     var inSyncField: ListItemField {
-        ListItemField(title: Localized.Nodes.ImportNode.inSync, value: isInSync ? Emoji.checkmark : Emoji.reject)
+        ListItemField(title: Localized.Nodes.ImportNode.inSync, value: result.isInSync ? Emoji.checkmark : Emoji.reject)
     }
 
     var latestBlockField: ListItemField {
-        ListItemField(title: Localized.Nodes.ImportNode.latestBlock, value: Self.valueFormatter.string(addNodeResult.blockNumber, decimals: 0))
+        ListItemField(title: Localized.Nodes.ImportNode.latestBlock, value: Self.valueFormatter.string(BigInt(result.latestBlockNumber), decimals: 0))
     }
 
     var latencyField: ListItemField {
-        ListItemField(title: Localized.Nodes.ImportNode.latency, value: LatencyViewModel(latency: addNodeResult.latency).title)
+        ListItemField(title: Localized.Nodes.ImportNode.latency, value: LatencyViewModel(latency: result.latency.map()).title)
     }
 }

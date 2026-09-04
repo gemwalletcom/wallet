@@ -106,24 +106,8 @@ public struct AssetDataViewModel: Sendable {
         balanceViewModel.balanceTextWithSymbol(value)
     }
 
-    public var hasReservedBalance: Bool {
-        balanceViewModel.hasReservedBalance
-    }
-
-    public var hasPendingUnconfirmedBalance: Bool {
-        balanceViewModel.hasPendingUnconfirmedBalance
-    }
-
     public var hasAvailableBalance: Bool {
         balanceViewModel.availableBalanceAmount > 0
-    }
-
-    public var reservedBalanceTextWithSymbol: String {
-        balanceViewModel.reservedBalanceTextWithSymbol
-    }
-
-    public var pendingUnconfirmedBalanceTextWithSymbol: String {
-        balanceViewModel.pendingUnconfirmedBalanceTextWithSymbol
     }
 
     public var balanceTextColor: Color {
@@ -189,10 +173,6 @@ public struct AssetDataViewModel: Sendable {
 
     public var assetAddress: AssetAddress {
         assetData.assetAddress
-    }
-
-    public var showBalances: Bool {
-        assetData.balances.contains(where: { $0.key != .available && $0.value > 0 })
     }
 
     public var showResources: Bool {

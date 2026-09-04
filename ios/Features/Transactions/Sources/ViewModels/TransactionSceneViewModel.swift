@@ -2,11 +2,11 @@
 
 import BigInt
 import Components
-import protocol Gemstone.GemExplorerServiceProtocol
-import class Gemstone.GemTransactionFormatter
+import protocol Gemstone.GemTransactionDetailsServiceProtocol
+import struct Gemstone.GemTransactionDetails
+import GemstonePrimitives
 import Formatters
 import Foundation
-import protocol Gemstone.GemPreferencesServiceProtocol
 import InfoSheet
 import Primitives
 import PrimitivesComponents
@@ -16,9 +16,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class TransactionSceneViewModel {
-    private let preferencesService: any GemPreferencesServiceProtocol
-    private let explorerService: any GemExplorerServiceProtocol
-    private let transactionFormatter: GemTransactionFormatter
+    private let service: any GemTransactionDetailsServiceProtocol
     private let onHeaderAction: ((TransactionHeaderAction) -> Void)?
     private let onAddContact: ((AddContactType) -> Void)?
 
@@ -33,15 +31,11 @@ public final class TransactionSceneViewModel {
     public init(
         transaction: TransactionExtended,
         walletId: WalletId,
-        preferencesService: any GemPreferencesServiceProtocol,
-        explorerService: any GemExplorerServiceProtocol,
-        transactionFormatter: GemTransactionFormatter,
+        service: any GemTransactionDetailsServiceProtocol,
         onHeaderAction: ((TransactionHeaderAction) -> Void)? = nil,
         onAddContact: ((AddContactType) -> Void)? = nil,
     ) {
-        self.preferencesService = preferencesService
-        self.explorerService = explorerService
-        self.transactionFormatter = transactionFormatter
+        self.service = service
         self.onHeaderAction = onHeaderAction
         self.onAddContact = onAddContact
         query = ObservableQuery(TransactionRequest(walletId: walletId, transactionId: transaction.transaction.id), initialValue: transaction)
@@ -78,24 +72,20 @@ extension TransactionSceneViewModel: ListSectionProvideable {
     public func itemModel(for item: TransactionItem) -> any ItemModelProvidable<TransactionItemModel> {
         switch item {
         case .header: headerViewModel
-        case .swapProgress: swapProgressViewModel
-        case .swapButton: TransactionSwapButtonViewModel(metadata: model.transaction.transaction.metadata?.decode(TransactionSwapMetadata.self), state: model.transaction.transaction.state)
+        case .swapProgress: TransactionSwapProgressViewModel(progress: details.swapProgress)
+        case .swapButton: TransactionSwapButtonViewModel(swapAgain: details.swapAgain)
         case .date: TransactionDateViewModel(date: model.transaction.transaction.createdAt)
         case .status: TransactionStatusViewModel(state: model.transaction.transaction.state, onInfoAction: onSelectStatusInfo)
-        case .estimatedConfirmation:
-            TransactionEstimatedConfirmationViewModel(
-                seconds: transactionExtended.transaction.state == .pending && swapProgressViewModel.progress == nil ? transactionExtended.confirmationEtaSeconds : nil,
-                onInfoAction: onSelectEstimatedConfirmationInfo,
-            )
-        case .participant: TransactionParticipantViewModel(transactionViewModel: model, onAddContact: onAddContact)
+        case .estimatedConfirmation: TransactionEstimatedConfirmationViewModel(seconds: details.estimatedConfirmationSeconds, onInfoAction: onSelectEstimatedConfirmationInfo)
+        case .participant: TransactionParticipantViewModel(transactionViewModel: model, participant: service.participant(transaction: transactionExtended.transaction.json()), onAddContact: onAddContact)
         case .memo: TransactionMemoViewModel(transaction: model.transaction.transaction)
         case .rate: TransactionRateViewModel(transaction: model.transaction, direction: rateDirection)
         case .network: TransactionNetworkViewModel(chain: model.transaction.asset.chain)
-        case .pnl: TransactionPnlViewModel(metadata: model.transaction.transaction.metadata?.decode(TransactionPerpetualMetadata.self))
-        case .price: TransactionPriceViewModel(metadata: model.transaction.transaction.metadata?.decode(TransactionPerpetualMetadata.self))
-        case .provider: TransactionProviderViewModel(metadata: model.transaction.transaction.metadata?.decode(TransactionSwapMetadata.self))
+        case .pnl: TransactionPnlViewModel(pnl: details.pnl)
+        case .price: TransactionPriceViewModel(price: details.price)
+        case .provider: TransactionProviderViewModel(name: details.providerName)
         case .fee: TransactionNetworkFeeViewModel(feeDisplay: model.infoModel.feeDisplay, onInfoAction: onSelectFee)
-        case .explorerLink: TransactionExplorerViewModel(transactionViewModel: model, explorerService: explorerService)
+        case .explorerLink: explorerViewModel
         }
     }
 }
@@ -157,30 +147,34 @@ extension TransactionSceneViewModel {
 
 extension TransactionSceneViewModel {
     private var model: TransactionViewModel {
-        TransactionViewModel(
-            explorerService: explorerService,
-            transactionFormatter: transactionFormatter,
-            transaction: transactionExtended,
-            currency: preferencesService.currencyCode,
-        )
+        TransactionViewModel(transaction: transactionExtended, currency: service.currency())
+    }
+
+    private var transactionLink: BlockExplorerLink {
+        let transaction = transactionExtended.transaction
+        return BlockExplorerLink(service.transactionLink(
+            chain: transaction.assetId.chain.rawValue,
+            hash: transaction.id.hash,
+            provider: transaction.swapProvider,
+            recipient: transaction.to,
+            memo: transaction.memo,
+        ))
     }
 
     private var headerViewModel: TransactionHeaderViewModel {
         TransactionHeaderViewModel(
             transaction: model.transaction,
+            kind: service.headerKind(transaction: transactionExtended.transaction.json()),
             infoModel: model.infoModel,
         )
     }
 
-    private var swapProgressViewModel: TransactionSwapProgressViewModel {
-        TransactionSwapProgressViewModel(transaction: transactionExtended)
+    private var details: GemTransactionDetails {
+        service.details(transaction: transactionExtended.json())
     }
 
     private var explorerViewModel: TransactionExplorerViewModel {
-        TransactionExplorerViewModel(
-            transactionViewModel: model,
-            explorerService: explorerService,
-        )
+        TransactionExplorerViewModel(transactionLink: transactionLink)
     }
 
     private var headerAction: TransactionHeaderAction? {
@@ -218,7 +212,7 @@ extension TransactionSceneViewModel {
     var feeDetailsViewModel: NetworkFeeSceneViewModel {
         NetworkFeeSceneViewModel(
             feeAsset: model.transaction.feeAsset,
-            currency: preferencesService.currencyValue,
+            currency: Currency(core: service.currency()),
             selection: .preset(.normal),
             feeAssetPrice: model.transaction.feePrice,
             feeAmount: BigInt(model.transaction.transaction.fee),

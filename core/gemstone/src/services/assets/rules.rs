@@ -1,6 +1,6 @@
-use primitives::{Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, Chain, ConfigVersions, Wallet};
+use primitives::{Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, Chain, ConfigVersions, VerificationStatus, Wallet};
 
-use super::model::AssetList;
+use super::model::{AssetList, GemAssetNetworkDestination};
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
 use crate::services::collections::{missing, missing_by, unique};
@@ -70,6 +70,12 @@ pub fn default_token_chain(chains: &[Chain]) -> Option<Chain> {
     chains.iter().find(|chain| **chain == Chain::Ethereum).or(chains.first()).copied()
 }
 
+pub fn token_chains(wallet: &Wallet) -> Vec<Chain> {
+    let mut chains = unique(wallet.accounts.iter().map(|account| account.chain).filter(|chain| chain.default_asset_type().is_some()));
+    chains.sort_by_key(|chain| std::cmp::Reverse(AssetId::from_chain(*chain).default_rank()));
+    chains
+}
+
 pub fn popular_asset_ids() -> Vec<AssetId> {
     [Chain::Bitcoin, Chain::Ethereum, Chain::Solana].into_iter().map(AssetId::from_chain).collect()
 }
@@ -88,14 +94,91 @@ pub fn default_balances(wallet: &Wallet) -> (Vec<AssetId>, Vec<AssetId>) {
     .partition(|asset_id| wallet_asset_is_enabled(asset_id.clone(), wallet.wallet_type.clone()))
 }
 
+pub fn icon_asset_id(asset_id: &AssetId) -> AssetId {
+    perpetual_coin(asset_id)
+        .and_then(|coin| Chain::all().into_iter().find(|chain| Asset::from_chain(*chain).symbol == coin))
+        .map(AssetId::from_chain)
+        .unwrap_or_else(|| asset_id.clone())
+}
+
+fn perpetual_coin(asset_id: &AssetId) -> Option<String> {
+    let ids = AssetId::decode_token_id(asset_id.token_id.as_deref()?);
+    (asset_id.chain == Chain::HyperCore && ids.first().is_some_and(|kind| kind == "perpetual")).then(|| ids.get(1).cloned())?
+}
+
+pub fn network_destination(asset_id: &AssetId) -> Option<GemAssetNetworkDestination> {
+    let chain = asset_id.chain;
+    if asset_id.is_token() && chain.has_native_asset() {
+        return Some(GemAssetNetworkDestination::Asset { asset: Asset::from_chain(chain) });
+    }
+    chain.default_asset_type().is_some().then_some(GemAssetNetworkDestination::Assets { chain })
+}
+
+pub fn verification_status(asset: &Asset, rank: i32) -> Option<VerificationStatus> {
+    if asset.id.is_native() {
+        return None;
+    }
+    match VerificationStatus::from_rank(rank) {
+        VerificationStatus::Unverified => Some(VerificationStatus::Unverified),
+        VerificationStatus::Verified | VerificationStatus::Suspicious => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_icon_asset_id_borrows_the_underlying_chain_icon_for_a_perpetual() {
+        let bitcoin_perpetual = AssetId::from(Chain::HyperCore, Some(AssetId::sub_token_id(&["perpetual".to_string(), "BTC".to_string()])));
+        assert_eq!(icon_asset_id(&bitcoin_perpetual), AssetId::from_chain(Chain::Bitcoin));
+        let unknown_perpetual = AssetId::from(Chain::HyperCore, Some(AssetId::sub_token_id(&["perpetual".to_string(), "PUMP".to_string()])));
+        assert_eq!(icon_asset_id(&unknown_perpetual), unknown_perpetual);
+        let token = Asset::mock_ethereum_usdc().id;
+        assert_eq!(icon_asset_id(&token), token);
+    }
+
+    #[test]
+    fn test_network_destination_opens_the_native_asset_or_the_chain_list() {
+        let ethereum = Chain::Ethereum;
+        assert_eq!(
+            network_destination(&Asset::mock_ethereum_usdc().id),
+            Some(GemAssetNetworkDestination::Asset {
+                asset: Asset::from_chain(ethereum)
+            })
+        );
+        assert_eq!(
+            network_destination(&AssetId::from_token(Chain::Tempo, "0x1")),
+            Some(GemAssetNetworkDestination::Assets { chain: Chain::Tempo })
+        );
+        assert_eq!(
+            network_destination(&AssetId::from_chain(ethereum)),
+            Some(GemAssetNetworkDestination::Assets { chain: ethereum })
+        );
+        assert_eq!(network_destination(&AssetId::from_chain(Chain::Bitcoin)), None);
+    }
+
+    #[test]
+    fn test_verification_status_rows_unverified_tokens_only() {
+        let token = Asset::mock_ethereum_usdc();
+        assert_eq!(verification_status(&token, 10), Some(VerificationStatus::Unverified));
+        assert_eq!(verification_status(&token, 3), None);
+        assert_eq!(verification_status(&token, 20), None);
+        assert_eq!(verification_status(&Asset::mock(), 10), None);
+    }
+
     #[test]
     fn test_default_token_chain_prefers_ethereum_then_first() {
         assert_eq!(default_token_chain(&[Chain::Solana, Chain::Ethereum]), Some(Chain::Ethereum));
         assert_eq!(default_token_chain(&[Chain::Solana, Chain::Tron]), Some(Chain::Solana));
         assert_eq!(default_token_chain(&[]), None);
+    }
+
+    #[test]
+    fn test_token_chains_keeps_token_networks_by_rank() {
+        let multicoin = wallet(WalletType::Multicoin, &[Chain::Bitcoin, Chain::Doge, Chain::Near, Chain::Xrp, Chain::Ethereum, Chain::Near]);
+        assert_eq!(token_chains(&multicoin), vec![Chain::Ethereum, Chain::Xrp, Chain::Near]);
+        assert!(token_chains(&wallet(WalletType::Single, &[Chain::Bitcoin])).is_empty());
     }
 
     #[test]

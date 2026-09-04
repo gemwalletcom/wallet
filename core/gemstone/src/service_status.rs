@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Instant;
 
-use primitives::{GEM_API_HOST, node_config::NodeRegion};
+use primitives::{GEM_API_HOST, Latency, node_config::NodeRegion};
 
 use crate::GemstoneError;
 use crate::alien::{AlienHttpMethod, AlienProvider, AlienTarget};
@@ -60,7 +60,7 @@ impl GemServiceStatus {
             .collect()
     }
 
-    pub async fn get_endpoint_latency(&self, url: String) -> Result<u64, GemstoneError> {
+    pub async fn get_endpoint_latency(&self, url: String) -> Result<Latency, GemstoneError> {
         let target = AlienTarget {
             url,
             method: AlienHttpMethod::Get,
@@ -70,6 +70,6 @@ impl GemServiceStatus {
         let start_time = Instant::now();
         self.provider.request(target).await?;
 
-        Ok(start_time.elapsed().as_millis() as u64)
+        Ok(Latency::from_milliseconds(start_time.elapsed().as_millis() as u64))
     }
 }

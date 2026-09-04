@@ -81,7 +81,7 @@ impl<E> Client for RpcClient<E>
 where
     E: RpcClientError,
 {
-    async fn get_with<R>(&self, path: &str, _query: &[(String, String)], headers: HashMap<String, String>) -> Result<R, ClientError>
+    async fn get_with<R>(&self, path: &str, headers: HashMap<String, String>) -> Result<R, ClientError>
     where
         R: DeserializeOwned,
     {

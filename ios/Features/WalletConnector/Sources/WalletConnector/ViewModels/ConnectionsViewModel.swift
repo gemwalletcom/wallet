@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemApplicationMetadataService
 import Components
 import WalletConnectorService
 import Foundation
@@ -25,14 +24,11 @@ public final class ConnectionsViewModel {
     var isPresentingScanner: Bool = false
     var isPresentingAlertMessage: AlertMessage?
     var isPresentingConnectorBar: Bool = false
-    private let applicationMetadataService: GemApplicationMetadataService
 
     public init(
         connector: any WalletConnectorServiceable,
-        applicationMetadataService: GemApplicationMetadataService,
         walletConnectorPresenter: WalletConnectorPresenter? = nil,
     ) {
-        self.applicationMetadataService = applicationMetadataService
         self.connector = connector
         self.walletConnectorPresenter = walletConnectorPresenter
         query = ObservableQuery(ConnectionsRequest(), initialValue: [])
@@ -77,7 +73,7 @@ public final class ConnectionsViewModel {
     }
 
     func connectionViewModel(connection: WalletConnection) -> WalletConnectionViewModel {
-        WalletConnectionViewModel(connection: connection, applicationMetadataService: applicationMetadataService)
+        WalletConnectionViewModel(connection: connection)
     }
 
     func connectionSceneModel(connection: WalletConnection) -> ConnectionSceneViewModel {

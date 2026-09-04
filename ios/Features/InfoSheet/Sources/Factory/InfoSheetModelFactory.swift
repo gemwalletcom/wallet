@@ -21,7 +21,7 @@ public enum InfoSheetModelFactory {
                 image: .image(Images.Info.networkFee),
                 button: .url(AppUrl.docs(.networkFees)),
             )
-        case let .balanceRequired(asset, image, requirement, action):
+        case let .balanceRequired(asset, image, requirement, button):
             return InfoSheetModel(
                 title: Localized.Info.balanceRequiredTitle(asset.symbol),
                 description: Localized.Info.balanceRequiredDescription(
@@ -30,9 +30,9 @@ public enum InfoSheetModelFactory {
                     Self.formatted(requirement.shortfall, asset: asset),
                 ),
                 image: .assetImage(image),
-                button: .action(title: Self.acquireTitle(asset), action: action),
+                button: button,
             )
-        case let .insufficientNetworkFee(asset, image, requirement, price, currency, action):
+        case let .insufficientNetworkFee(asset, image, requirement, price, currency, button):
             let description: String = if let requirement {
                 Localized.Info.InsufficientNetworkFeeBalance.description(
                     Self.requiredFeeText(requirement.required, feeAsset: asset, price: price, currency: currency).boldMarkdown(),
@@ -47,7 +47,7 @@ public enum InfoSheetModelFactory {
                 title: Localized.Info.balanceRequiredTitle(asset.symbol),
                 description: description,
                 image: .assetImage(image),
-                button: .action(title: Self.acquireTitle(asset), action: action),
+                button: button,
             )
         case let .transactionState(imageURL, placeholder, state):
             let model = TransactionStateViewModel(state: state)
@@ -105,10 +105,10 @@ public enum InfoSheetModelFactory {
                 image: .image(Images.Logo.logo),
                 button: .url(AppUrl.docs(.noQuotes)),
             )
-        case let .assetStatus(scoreType):
-            let model = AssetScoreTypeViewModel(scoreType: scoreType)
+        case let .assetStatus(status):
+            let model = VerificationStatusViewModel(status: status)
             return InfoSheetModel(
-                title: model.status,
+                title: model.title,
                 description: model.description,
                 image: .assetImage(model.assetImage),
                 button: .url(model.docsUrl),
@@ -231,12 +231,6 @@ public enum InfoSheetModelFactory {
                 image: .image(Images.Logo.logo),
             )
         }
-    }
-
-    private static func acquireTitle(_ asset: Asset) -> String {
-        asset.chain == .tron
-            ? Localized.Asset.getAsset(asset.symbol)
-            : Localized.Asset.buyAsset(asset.symbol)
     }
 
     private static func formatted(_ value: BigInt, asset: Asset) -> String {

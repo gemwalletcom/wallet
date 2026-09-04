@@ -2,6 +2,11 @@ package com.gemwallet.android.features.wallets.presents.views
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MaterialTheme
+import com.gemwallet.android.ui.R
+import androidx.compose.ui.res.stringResource
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +33,7 @@ fun WalletsScreen(
 ) {
     val viewModel: WalletsViewModel = hiltViewModel()
     val wallets by viewModel.wallets.collectAsStateWithLifecycle()
+    val isWalletsLimitReached by viewModel.isWalletsLimitReached.collectAsStateWithLifecycle()
     val walletSections = remember(wallets) {
         wallets.toWalletSections()
     }
@@ -39,8 +45,8 @@ fun WalletsScreen(
         unpinnedWallets = walletSections.unpinnedWallets,
         onAction = { action ->
             when (action) {
-                WalletsAction.Create -> onCreateWallet()
-                WalletsAction.Import -> onImportWallet()
+                WalletsAction.Create -> viewModel.onAddWallet(onCreateWallet)
+                WalletsAction.Import -> viewModel.onAddWallet(onImportWallet)
                 is WalletsAction.Edit -> onEditWallet(action.walletId)
                 is WalletsAction.Select -> {
                     viewModel.selectWallet(action.walletId)
@@ -52,6 +58,10 @@ fun WalletsScreen(
             }
         },
     )
+
+    if (isWalletsLimitReached) {
+        WalletsLimitDialog(limit = viewModel.walletsLimit, onDismiss = viewModel::dismissWalletsLimit)
+    }
 
     deleteWalletId?.let { pendingDeleteWalletId ->
         ConfirmWalletDeleteDialog(
@@ -137,4 +147,24 @@ fun PreviewWalletScreen() {
             )
         }
     }
+}
+
+@Composable
+private fun WalletsLimitDialog(limit: UInt, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.background,
+        title = { Text(stringResource(R.string.errors_wallets_limit_title)) },
+        text = {
+            Text(
+                text = stringResource(R.string.errors_wallets_limit_description, limit.toInt()),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.common_done))
+            }
+        },
+    )
 }

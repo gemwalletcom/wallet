@@ -1,5 +1,6 @@
 use crate::model::{Info, Listing, ListingsResponse};
-use gem_client::{Client, RemoteProviderConfig, ReqwestClient};
+use crate::target::CoinMarketCapTarget;
+use gem_client::{Client, ClientExt, RemoteProviderConfig, ReqwestClient};
 use serde_json::Value;
 use std::{collections::HashMap, error::Error};
 
@@ -30,30 +31,33 @@ impl<C: Client> CoinMarketCapClient<C> {
     }
 
     pub async fn get_latest_listings(&self, limit: usize) -> Result<Vec<Listing>, Box<dyn Error + Send + Sync>> {
-        self.get_listings("/v1/cryptocurrency/listings/latest", limit).await
+        self.get_listings(CoinMarketCapTarget::LatestListings { limit }).await
     }
 
     pub async fn get_trending_latest(&self, limit: usize) -> Result<Vec<Listing>, Box<dyn Error + Send + Sync>> {
-        self.get_listings("/v1/cryptocurrency/trending/latest", limit).await
+        self.get_listings(CoinMarketCapTarget::TrendingListings { limit }).await
     }
 
     pub async fn get_info_by_ids(&self, ids: &[u64]) -> Result<Vec<Info>, Box<dyn Error + Send + Sync>> {
-        let ids = ids.iter().map(u64::to_string).collect::<Vec<_>>().join(",");
-        self.get_info(&[("id".to_string(), ids)]).await
+        let value = ids.iter().map(u64::to_string).collect::<Vec<_>>().join(",");
+        self.get_info(CoinMarketCapTarget::Info { key: "id".to_string(), value }).await
     }
 
     pub async fn get_info_by_id_or_symbol(&self, id_or_symbol: &str) -> Result<Vec<Info>, Box<dyn Error + Send + Sync>> {
         let key = if id_or_symbol.chars().all(|c| c.is_ascii_digit()) { "id" } else { "symbol" };
-        self.get_info(&[(key.to_string(), id_or_symbol.to_string())]).await
+        self.get_info(CoinMarketCapTarget::Info {
+            key: key.to_string(),
+            value: id_or_symbol.to_string(),
+        })
+        .await
     }
 
-    async fn get_listings(&self, path: &str, limit: usize) -> Result<Vec<Listing>, Box<dyn Error + Send + Sync>> {
-        let response: ListingsResponse = self.client.get_with(path, &[("limit".to_string(), limit.to_string())], self.headers()).await?;
-        Ok(response.data)
+    async fn get_listings(&self, target: CoinMarketCapTarget) -> Result<Vec<Listing>, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.get::<ListingsResponse>(target).headers(self.headers()).await?.data)
     }
 
-    async fn get_info(&self, query: &[(String, String)]) -> Result<Vec<Info>, Box<dyn Error + Send + Sync>> {
-        let response: Value = self.client.get_with("/v2/cryptocurrency/info", query, self.headers()).await?;
+    async fn get_info(&self, target: CoinMarketCapTarget) -> Result<Vec<Info>, Box<dyn Error + Send + Sync>> {
+        let response: Value = self.client.get(target).headers(self.headers()).await?;
         let Some(data) = response.get("data").and_then(Value::as_object) else {
             return Ok(vec![]);
         };
@@ -86,7 +90,7 @@ mod tests {
     async fn test_get_listings_paths() {
         let client = MockClient::new().with_get(|path| {
             let body = match path {
-                "/v1/cryptocurrency/listings/latest" | "/v1/cryptocurrency/trending/latest" => include_str!("../testdata/listings_latest.json"),
+                "/v1/cryptocurrency/listings/latest?limit=2" | "/v1/cryptocurrency/trending/latest?limit=2" => include_str!("../testdata/listings_latest.json"),
                 _ => {
                     return Err(gem_client::ClientError::Http {
                         status: 404,
@@ -109,7 +113,7 @@ mod tests {
     async fn test_get_info_parses_id_and_symbol_shapes() {
         let client = MockClient::new().with_get(|path| {
             let body = match path {
-                "/v2/cryptocurrency/info" => include_str!("../testdata/cryptocurrency_info.json"),
+                "/v2/cryptocurrency/info?symbol=ETH" => include_str!("../testdata/cryptocurrency_info.json"),
                 _ => {
                     return Err(gem_client::ClientError::Http {
                         status: 404,

@@ -1,8 +1,15 @@
-use crate::clock::unix_milliseconds;
+use primitives::unix_milliseconds;
 
 use zeroize::Zeroizing;
 
+use crate::config::public::{DEVICE_STREAM_PATH, device_stream_url};
 use crate::services::error::GemServiceError;
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemDeviceStreamRequest {
+    pub url: String,
+    pub authorization: String,
+}
 
 #[derive(uniffi::Object)]
 pub struct GemDeviceRequestSigner {
@@ -25,6 +32,13 @@ impl GemDeviceRequestSigner {
     pub fn sign(&self, method: String, path: String, wallet_id: String, body: Vec<u8>) -> Result<String, GemServiceError> {
         let timestamp_ms = unix_milliseconds().map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
         gem_auth::build_device_auth_header(&self.private_key, &method, &path, &wallet_id, &body, timestamp_ms).map_err(|error| GemServiceError::Core { msg: error.to_string() })
+    }
+
+    pub fn device_stream_request(&self) -> Result<GemDeviceStreamRequest, GemServiceError> {
+        Ok(GemDeviceStreamRequest {
+            url: device_stream_url(),
+            authorization: self.sign("GET".to_string(), DEVICE_STREAM_PATH.to_string(), String::new(), Vec::new())?,
+        })
     }
 }
 
@@ -52,5 +66,9 @@ mod tests {
         assert_eq!(parts[2], "wallet");
         assert_eq!(parts[3].len(), 64);
         assert!(GemDeviceRequestSigner::new(vec![1, 2, 3]).is_err());
+
+        let stream = signer.device_stream_request().unwrap();
+        assert_eq!(stream.url, "wss://api.gemwallet.com/v2/devices/stream");
+        assert!(stream.authorization.starts_with("Gem "));
     }
 }

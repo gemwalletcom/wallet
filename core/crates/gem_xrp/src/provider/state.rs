@@ -10,8 +10,8 @@ use crate::rpc::XrpClient;
 
 #[async_trait]
 impl<C: Client + Clone> ChainState for XrpClient<C> {
-    async fn get_chain_id(&self) -> Result<String, Box<dyn Error + Sync + Send>> {
-        Ok("".to_string())
+    async fn get_chain_id(&self) -> Result<Option<String>, Box<dyn Error + Sync + Send>> {
+        Ok(self.get_server_info().await?.network_id.map(|network_id| network_id.to_string()))
     }
 
     async fn get_block_latest_number(&self) -> Result<u64, Box<dyn Error + Sync + Send>> {
@@ -27,10 +27,24 @@ impl<C: Client + Clone> ChainState for XrpClient<C> {
 #[cfg(test)]
 mod tests {
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
+    use primitives::Chain;
     use serde_json::json;
 
     use super::*;
     use crate::method;
+
+    #[tokio::test]
+    async fn test_get_chain_id_reads_the_network_id_and_stays_unset_when_the_server_omits_it() {
+        let client = XrpClient::new(mock_jsonrpc_client(|rpc_method, params| {
+            assert_eq!(rpc_method, method::SERVER_INFO);
+            assert_eq!(params, &json!([{}]));
+            Ok(json!({"info": {"network_id": 0}, "status": "success"}))
+        }));
+        assert_eq!(client.get_chain_id().await.unwrap().as_deref(), Some(Chain::Xrp.network_id()));
+
+        let client = XrpClient::new(mock_jsonrpc_client(|_, _| Ok(json!({"info": {}, "status": "success"}))));
+        assert_eq!(client.get_chain_id().await.unwrap(), None);
+    }
 
     #[tokio::test]
     async fn test_get_block_latest_number_uses_validated_ledger() {
@@ -58,8 +72,19 @@ mod tests {
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
+    use primitives::Chain;
+
     use super::*;
     use crate::provider::testkit::create_xrp_test_client;
+
+    #[tokio::test]
+    async fn test_get_xrp_chain_id() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client = create_xrp_test_client();
+        let chain_id = client.get_chain_id().await?;
+
+        assert_eq!(chain_id.as_deref(), Some(Chain::Xrp.network_id()));
+        Ok(())
+    }
 
     #[tokio::test]
     async fn test_get_xrp_latest_validated_block() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

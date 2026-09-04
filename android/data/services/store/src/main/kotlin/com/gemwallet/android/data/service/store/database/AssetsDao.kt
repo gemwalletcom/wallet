@@ -177,23 +177,32 @@ interface AssetsDao {
     @Query("UPDATE asset SET is_stake_enabled = 1 WHERE id IN (:ids) AND is_stake_enabled = 0")
     suspend fun setStakeEnabled(ids: List<String>)
 
-    @Query("SELECT id FROM asset WHERE id IN (:ids) AND is_swap_enabled = 1")
-    suspend fun getSwapAvailableAssetIds(ids: List<String>): List<String>
+    @Query("UPDATE asset SET is_swap_enabled = 1 WHERE id IN (:ids) AND is_swap_enabled = 0")
+    suspend fun setSwapEnabled(ids: List<String>)
 
-    @Query("UPDATE asset SET is_swap_enabled = :value WHERE id IN (:ids)")
-    suspend fun setSwapAvailable(ids: List<String>, value: Boolean)
+    @Query("UPDATE asset SET is_buy_enabled = 1 WHERE id IN (:ids) AND is_buy_enabled = 0")
+    suspend fun enableBuy(ids: List<String>)
 
-    @Query("SELECT id FROM asset WHERE is_buy_enabled = 1")
-    suspend fun getBuyAvailableAssetIds(): List<String>
+    @Query("UPDATE asset SET is_buy_enabled = 0 WHERE id NOT IN (:ids) AND is_buy_enabled = 1")
+    suspend fun disableBuyExcept(ids: List<String>)
 
-    @Query("UPDATE asset SET is_buy_enabled = :value WHERE id IN (:ids)")
-    suspend fun setBuyAvailable(ids: List<String>, value: Boolean)
+    @Transaction
+    suspend fun setBuyableAssets(ids: List<String>) {
+        enableBuy(ids)
+        disableBuyExcept(ids)
+    }
 
-    @Query("SELECT id FROM asset WHERE is_sell_enabled = 1")
-    suspend fun getSellAvailableAssetIds(): List<String>
+    @Query("UPDATE asset SET is_sell_enabled = 1 WHERE id IN (:ids) AND is_sell_enabled = 0")
+    suspend fun enableSell(ids: List<String>)
 
-    @Query("UPDATE asset SET is_sell_enabled = :value WHERE id IN (:ids)")
-    suspend fun setSellAvailable(ids: List<String>, value: Boolean)
+    @Query("UPDATE asset SET is_sell_enabled = 0 WHERE id NOT IN (:ids) AND is_sell_enabled = 1")
+    suspend fun disableSellExcept(ids: List<String>)
+
+    @Transaction
+    suspend fun setSellableAssets(ids: List<String>) {
+        enableSell(ids)
+        disableSellExcept(ids)
+    }
 
     @Query("SELECT * FROM asset WHERE id = :id")
     fun getAsset(id: String): Flow<DbAsset?>

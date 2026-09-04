@@ -10,9 +10,9 @@ import Primitives
 import Store
 
 public final class GemstoneNftStore: GemNftStore, @unchecked Sendable {
-    private let store: NFTStore
+    private let store: NftStore
 
-    public init(store: NFTStore) {
+    public init(store: NftStore) {
         self.store = store
     }
 

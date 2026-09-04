@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
-import uniffi.gemstone.GemApplicationMetadataService
 import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
 import androidx.lifecycle.ViewModel
@@ -13,7 +12,6 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyConte
 import com.wallet.core.primitives.WalletConnectionSessionProposal
 import com.gemwallet.android.features.bridge.viewmodels.model.map
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
-import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectOriginVerifier
 import com.gemwallet.android.features.bridge.viewmodels.model.toSessionUI
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
@@ -27,18 +25,17 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemWalletConnectService
+import uniffi.gemstone.GemWalletConnectException
+import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import javax.inject.Inject
 
 @HiltViewModel
 class ProposalSceneViewModel @Inject constructor(
-    private val applicationMetadataService: GemApplicationMetadataService,
     private val approveWalletConnection: ApproveWalletConnection,
     private val prepareSessionProposal: PrepareSessionProposal,
-    private val originVerifier: WalletConnectOriginVerifier,
     private val activeRequest: ActiveWalletConnectRequest,
-    private val walletConnectService: GemWalletConnectService,
+    private val walletConnectService: GemWalletConnectServiceInterface,
 ) : ViewModel() {
 
     val state = MutableStateFlow<ProposalSceneState>(ProposalSceneState.Init(WalletConnectionVerificationStatus.UNKNOWN))
@@ -46,7 +43,7 @@ class ProposalSceneViewModel @Inject constructor(
     private val _proposal = MutableStateFlow<WalletConnectSessionProposal?>(null)
     private val _sessionProposal = MutableStateFlow<WalletConnectionSessionProposal?>(null)
 
-    val proposal = _sessionProposal.map { it?.metadata?.toSessionUI(applicationMetadataService) }
+    val proposal = _sessionProposal.map { it?.metadata?.toSessionUI() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val availableWallets = _sessionProposal.map { it?.wallets.orEmpty() }
@@ -72,11 +69,6 @@ class ProposalSceneViewModel @Inject constructor(
             Log.d(TAG, "Ignoring duplicate proposal")
             return
         }
-        if (originVerifier.isRejected(proposal.url, verifyContext)) {
-            onNotify(BridgeRequestError.MaliciousSession)
-            reject(proposal)
-            return
-        }
         viewModelScope.launch(Dispatchers.IO) {
             val prepared = runCatchingCancellable {
                 prepareSessionProposal(
@@ -91,6 +83,7 @@ class ProposalSceneViewModel @Inject constructor(
                 )
             }.getOrElse { error ->
                 Log.e(TAG, "session proposal rejected: ${error.message}")
+                if (error is GemWalletConnectException.InvalidOrigin) onNotify(BridgeRequestError.MaliciousSession)
                 reject(proposal)
                 return@launch
             }

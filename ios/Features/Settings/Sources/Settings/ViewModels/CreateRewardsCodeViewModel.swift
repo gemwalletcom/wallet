@@ -11,7 +11,7 @@ import GemstoneServices
 @Observable
 @MainActor
 final class CreateRewardsCodeViewModel: TextInputViewModelProtocol {
-    private let rewardsService: any GemRewardsServiceProtocol
+    private let service: any GemRewardsServiceProtocol
     private let wallet: Wallet
     private let onSuccess: (Rewards) -> Void
 
@@ -20,11 +20,11 @@ final class CreateRewardsCodeViewModel: TextInputViewModelProtocol {
     var errorMessage: String?
 
     init(
-        rewardsService: any GemRewardsServiceProtocol,
+        service: any GemRewardsServiceProtocol,
         wallet: Wallet,
         onSuccess: @escaping (Rewards) -> Void,
     ) {
-        self.rewardsService = rewardsService
+        self.service = service
         self.wallet = wallet
         self.onSuccess = onSuccess
     }
@@ -50,7 +50,7 @@ final class CreateRewardsCodeViewModel: TextInputViewModelProtocol {
         let code = text
 
         do {
-            let rewards = try await rewardsService.createReferral(wallet: wallet, code: code)
+            let rewards = try await service.createReferral(wallet: wallet, code: code)
             onSuccess(rewards)
         } catch {
             errorMessage = error.localizedDescription

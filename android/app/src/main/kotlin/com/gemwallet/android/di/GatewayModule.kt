@@ -1,8 +1,6 @@
 package com.gemwallet.android.di
 
 import android.content.Context
-import com.gemwallet.android.Constants
-import com.gemwallet.android.cases.nodes.GetNodeUrlCase
 import com.gemwallet.android.data.password.TinkGemPreferences
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePreferencesStore
 import com.gemwallet.android.math.fromHex
@@ -19,6 +17,9 @@ import java.util.concurrent.TimeUnit
 import uniffi.gemstone.Config
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemChartService
+import uniffi.gemstone.GemChartServiceInterface
+import uniffi.gemstone.GemExplorerService
+import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemConfigService
 import uniffi.gemstone.GemAuthService
 import uniffi.gemstone.GemBalanceService
@@ -26,6 +27,8 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import uniffi.gemstone.GemKeystore
 import uniffi.gemstone.GemDeviceApiClient as GemstoneDeviceApiClient
+import uniffi.gemstone.GemFiatQuoteService
+import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemFiatService
 import uniffi.gemstone.GemFiatServiceInterface
 import uniffi.gemstone.GemFiatStore
@@ -37,11 +40,16 @@ import uniffi.gemstone.GemSearchStore
 import uniffi.gemstone.GemSearchService
 import uniffi.gemstone.GemBannerService
 import uniffi.gemstone.GemAppStartService
+import uniffi.gemstone.GemAppStartServiceInterface
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPortfolioService
+import uniffi.gemstone.GemPortfolioServiceInterface
 import uniffi.gemstone.GemPortfolioStore
 import uniffi.gemstone.GemRewardsService
+import uniffi.gemstone.GemRewardsServiceInterface
+import uniffi.gemstone.GemWalletSessionService
 import uniffi.gemstone.GemSupportService
+import uniffi.gemstone.GemSupportServiceInterface
 import uniffi.gemstone.GemSupportStore
 import uniffi.gemstone.GemWalletConfigurationService
 import uniffi.gemstone.GemBannerStore
@@ -53,8 +61,6 @@ import uniffi.gemstone.GemStaticApiClient
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPreferencesStore
 import uniffi.gemstone.GemSecureStore
-import uniffi.gemstone.GemPaymentLinkService
-import uniffi.gemstone.GemPaymentLinkServiceInterface
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemServiceStatus
 import uniffi.gemstone.serviceStatusTimeoutSeconds
@@ -65,6 +71,7 @@ import uniffi.gemstone.GemFileStore
 import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemNodeServiceInterface
 import uniffi.gemstone.GemDeviceKeyService
 
 @InstallIn(SingletonComponent::class)
@@ -79,11 +86,11 @@ object GatewayModule {
     @Singleton
     @Provides
     fun provideAlienProvider(
-        getNodeUrlCase: GetNodeUrlCase,
+        nodeService: GemNodeServiceInterface,
         okHttpClient: OkHttpClient,
     ): AlienProvider {
         return NativeProvider(
-            getNodeUrlCase = getNodeUrlCase,
+            nodeService = nodeService,
             httpClient = okHttpClient,
         )
     }
@@ -108,7 +115,7 @@ object GatewayModule {
     @Provides
     @Singleton
     fun provideGemstoneApiClient(alienProvider: AlienProvider): GemstoneApiClient =
-        GemstoneApiClient(alienProvider, Constants.API_URL)
+        GemstoneApiClient(alienProvider)
 
     @Provides
     @Singleton
@@ -116,11 +123,7 @@ object GatewayModule {
     fun provideDeviceRegistrationApiClient(
         alienProvider: AlienProvider,
         deviceKeyService: GemDeviceKeyService,
-    ): GemstoneDeviceApiClient = GemstoneDeviceApiClient(
-        alienProvider,
-        Constants.API_URL,
-        deviceKeyService.keyPair().privateKey,
-    )
+    ): GemstoneDeviceApiClient = GemstoneDeviceApiClient(alienProvider, deviceKeyService)
 
     @Provides
     @Singleton
@@ -128,11 +131,8 @@ object GatewayModule {
         alienProvider: AlienProvider,
         deviceKeyService: GemDeviceKeyService,
         deviceService: Lazy<GemDeviceService>,
-    ): GemstoneDeviceApiClient = GemstoneDeviceApiClient(
-        alienProvider,
-        Constants.API_URL,
-        deviceKeyService.keyPair().privateKey,
-    ).apply { setDeviceSyncPreflight(deviceService.get()) }
+    ): GemstoneDeviceApiClient = GemstoneDeviceApiClient(alienProvider, deviceKeyService)
+        .apply { setDeviceSyncPreflight(deviceService.get()) }
 
 
 
@@ -147,7 +147,7 @@ object GatewayModule {
         apiClient,
         keystore,
         GemstoneKeystorePassword(passwordStore),
-        deviceKeyService.keyPair().privateKey,
+        deviceKeyService,
     )
 
 
@@ -175,10 +175,14 @@ object GatewayModule {
         configService: GemConfigService,
         bannerService: GemBannerService,
         assetsService: GemAssetsService,
+        balanceService: GemBalanceService,
         walletConfigurationService: GemWalletConfigurationService,
         walletService: GemWalletService,
         deviceService: GemDeviceService,
-    ): GemAppStartService = GemAppStartService(configService, bannerService, assetsService, walletConfigurationService, walletService, deviceService)
+    ): GemAppStartService = GemAppStartService(configService, bannerService, assetsService, balanceService, walletConfigurationService, walletService, deviceService)
+
+    @Provides
+    fun provideGemAppStartServiceInterface(service: GemAppStartService): GemAppStartServiceInterface = service
 
 
     @Provides
@@ -196,7 +200,8 @@ object GatewayModule {
         apiClient: GemstoneDeviceApiClient,
         authService: GemAuthService,
         balanceService: GemBalanceService,
-    ): GemRewardsService = GemRewardsService(apiClient, authService, balanceService)
+        sessionService: GemWalletSessionService,
+    ): GemRewardsServiceInterface = GemRewardsService(apiClient, authService, balanceService, sessionService)
 
 
     @Provides
@@ -211,6 +216,13 @@ object GatewayModule {
     @Singleton
     fun provideGemFiatServiceInterface(service: GemFiatService): GemFiatServiceInterface = service
 
+    @Provides
+    fun provideGemFiatQuoteService(
+        fiatService: GemFiatService,
+        balanceService: GemBalanceService,
+        walletSessionService: GemWalletSessionService,
+    ): GemFiatQuoteServiceInterface = GemFiatQuoteService(fiatService, balanceService, walletSessionService)
+
 
     @Provides
     @Singleton
@@ -219,17 +231,27 @@ object GatewayModule {
         store: GemPortfolioStore,
         priceService: GemPriceService,
         perpetualService: GemPerpetualService,
-    ): GemPortfolioService = GemPortfolioService(apiClient, store, priceService, perpetualService)
+        preferencesService: GemPreferencesService,
+    ): GemPortfolioService = GemPortfolioService(apiClient, store, priceService, perpetualService, preferencesService)
+
+    @Provides
+    fun provideGemPortfolioServiceInterface(service: GemPortfolioService): GemPortfolioServiceInterface = service
 
     @Provides
     @Singleton
     fun provideGemStaticApiClient(alienProvider: AlienProvider): GemStaticApiClient =
-        GemStaticApiClient(alienProvider, Constants.ASSETS_URL)
+        GemStaticApiClient(alienProvider)
 
 
     @Provides
     @Singleton
-    fun provideGemChartService(apiClient: GemstoneApiClient, priceService: GemPriceService): GemChartService = GemChartService(apiClient, priceService)
+    fun provideGemChartService(
+        apiClient: GemstoneApiClient,
+        priceService: GemPriceService,
+        preferencesService: GemPreferencesService,
+        priceAlertService: GemPriceAlertService,
+        explorerService: GemExplorerService,
+    ): GemChartService = GemChartService(apiClient, priceService, preferencesService, priceAlertService, explorerService)
 
     @Provides
     @Singleton
@@ -241,18 +263,17 @@ object GatewayModule {
     @Singleton
     fun provideGemScanService(
         okHttpClient: OkHttpClient,
-        getNodeUrlCase: GetNodeUrlCase,
+        nodeService: GemNodeServiceInterface,
         deviceKeyService: GemDeviceKeyService,
     ): GemScanService = GemScanService(
         GemstoneDeviceApiClient(
             NativeProvider(
-                getNodeUrlCase = getNodeUrlCase,
+                nodeService = nodeService,
                 httpClient = okHttpClient.newBuilder()
                     .callTimeout(Config().getScanConfig().timeoutSeconds.toLong(), TimeUnit.SECONDS)
                     .build(),
             ),
-            Constants.API_URL,
-            deviceKeyService.keyPair().privateKey,
+            deviceKeyService,
         )
     )
 
@@ -260,24 +281,20 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun providePaymentLinkService(alienProvider: AlienProvider): GemPaymentLinkServiceInterface = GemPaymentLinkService(alienProvider)
-
-    @Provides
-    @Singleton
-    fun provideGemPaymentService(): GemPaymentService = GemPaymentService()
+    fun provideGemPaymentService(alienProvider: AlienProvider): GemPaymentService = GemPaymentService(alienProvider)
 
 
     @Provides
     @Singleton
     fun provideGemServiceStatus(
-        getNodeUrlCase: GetNodeUrlCase,
+        nodeService: GemNodeServiceInterface,
         okHttpClient: OkHttpClient,
     ): GemServiceStatus {
         val httpClient = okHttpClient.newBuilder()
             .callTimeout(serviceStatusTimeoutSeconds().toLong(), TimeUnit.SECONDS)
             .build()
         val provider = NativeProvider(
-            getNodeUrlCase = getNodeUrlCase,
+            nodeService = nodeService,
             httpClient = httpClient,
         )
         return GemServiceStatus(provider)
@@ -294,4 +311,10 @@ object GatewayModule {
     fun provideTransactionSimulationServiceInterface(
         service: TransactionSimulationService,
     ): TransactionSimulationServiceInterface = service
+
+    @Provides
+    fun provideGemSupportServiceInterface(service: GemSupportService): GemSupportServiceInterface = service
+
+    @Provides
+    fun provideGemChartServiceInterface(service: GemChartService): GemChartServiceInterface = service
 }

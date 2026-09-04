@@ -6,8 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.device.cases.EnableDevicePush
 import com.gemwallet.android.application.pricealerts.cases.GetAssetPriceAlertState
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
-import com.gemwallet.android.application.pricealerts.cases.SetAssetPriceAlertEnabled
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +20,9 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemAssetDetailsServiceInterface
 import javax.inject.Inject
+import android.util.Log
 
 @HiltViewModel
 class AssetPriceAlertsViewModel @Inject constructor(
@@ -27,7 +30,7 @@ class AssetPriceAlertsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     getAssetPriceAlertState: GetAssetPriceAlertState,
     getPriceAlerts: GetPriceAlerts,
-    private val setAssetPriceAlertEnabled: SetAssetPriceAlertEnabled,
+    private val service: GemAssetDetailsServiceInterface,
     private val enableDevicePush: EnableDevicePush,
 ) : ViewModel() {
 
@@ -46,12 +49,17 @@ class AssetPriceAlertsViewModel @Inject constructor(
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
-    fun toggle(assetId: AssetId) = viewModelScope.launch {
+    fun toggle(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
         val enabled = isEnabled.value ?: return@launch
-        setAssetPriceAlertEnabled.setAssetPriceAlertEnabled(assetId, !enabled)
+        runCatchingCancellable { service.setPriceAlert(assetId.toIdentifier(), !enabled) }
+            .onFailure { Log.e(TAG, "setting the auto price alert for ${assetId.toIdentifier()} failed", it) }
     }
 
     fun onPushNotificationGranted() = viewModelScope.launch(Dispatchers.IO) {
         enableDevicePush()
+    }
+
+    private companion object {
+        const val TAG = "AssetPriceAlerts"
     }
 }

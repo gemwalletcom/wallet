@@ -7,16 +7,11 @@ import Primitives
 import Store
 import SwiftUI
 import protocol Gemstone.GemWalletServiceProtocol
-import protocol Gemstone.GemWalletSessionServiceProtocol
 
 @Observable
 @MainActor
 public final class WalletsSceneViewModel {
-
-    public static let walletsLimit = 100
-
     private let service: any GemWalletServiceProtocol
-    private let session: any GemWalletSessionServiceProtocol
     private let preferences: ObservablePreferences
     private let isPresentingCreateWalletSheet: Binding<Bool>
     private let isPresentingImportWalletSheet: Binding<Bool>
@@ -26,7 +21,7 @@ public final class WalletsSceneViewModel {
     var walletDelete: Wallet?
 
     var currentWalletId: WalletId? {
-        session.currentWalletId
+        service.currentWalletId
     }
 
     let pinnedWalletsQuery: ObservableQuery<WalletsRequest>
@@ -39,14 +34,12 @@ public final class WalletsSceneViewModel {
     public init(
         navigationPath: Binding<NavigationPath>,
         walletService: any GemWalletServiceProtocol,
-        session: any GemWalletSessionServiceProtocol,
         preferences: ObservablePreferences,
         isPresentingCreateWalletSheet: Binding<Bool>,
         isPresentingImportWalletSheet: Binding<Bool>,
     ) {
         self.navigationPath = navigationPath
         service = walletService
-        self.session = session
         self.preferences = preferences
         isPresentingAlertMessage = nil
         walletDelete = nil
@@ -70,7 +63,7 @@ public final class WalletsSceneViewModel {
 extension WalletsSceneViewModel {
     func setCurrent(_ walletId: WalletId) {
         do {
-            try session.setCurrent(walletId: walletId)
+            try service.setCurrentWalletId(walletId: walletId.id)
         } catch {
             debugLog("set current wallet error: \(error)")
         }
@@ -148,14 +141,11 @@ extension WalletsSceneViewModel {
 
 extension WalletsSceneViewModel {
     private func validate() -> Bool {
-        // fix: https://github.com/gemwalletcom/gem-ios/issues/1067
-        if wallets.count > WalletsSceneViewModel.walletsLimit {
-            isPresentingAlertMessage = AlertMessage(
-                title: Localized.Errors.Wallets.Limit.title,
-                message: Localized.Errors.Wallets.Limit.description(WalletsSceneViewModel.walletsLimit),
-            )
-            return false
-        }
-        return true
+        guard (try? service.canAddWallet()) == false else { return true }
+        isPresentingAlertMessage = AlertMessage(
+            title: Localized.Errors.Wallets.Limit.title,
+            message: Localized.Errors.Wallets.Limit.description(Int(service.walletsLimit())),
+        )
+        return false
     }
 }

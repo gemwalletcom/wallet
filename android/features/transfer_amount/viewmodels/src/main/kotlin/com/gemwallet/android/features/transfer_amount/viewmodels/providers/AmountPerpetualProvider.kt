@@ -3,13 +3,14 @@ package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.domains.perpetual.LeverageState
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
-import com.gemwallet.android.domains.perpetual.PerpetualOrderFactory
-import com.gemwallet.android.domains.perpetual.PerpetualPositionAction
+import com.gemwallet.android.domains.perpetual.data
+import uniffi.gemstone.GemPerpetualPositionAction
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
+import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAutocloseEstimator
+import uniffi.gemstone.GemPerpetualAutoclose
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.PerpetualFormatter
 import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
@@ -17,34 +18,30 @@ import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.toGem
 import com.gemwallet.android.model.NumericFormatter
 import com.wallet.core.primitives.PerpetualDirection
-import com.wallet.core.primitives.TpslType
 import kotlinx.coroutines.CoroutineScope
-import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemTransferData
-import com.gemwallet.android.domains.confirm.confirmInput
-import com.gemwallet.android.domains.confirm.perpetual
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
-import uniffi.gemstone.GemTransferBalance
+import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.GemAmountPerpetualPosition
 import uniffi.gemstone.GemAmountType
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.domains.perpetual.toGem
+import com.gemwallet.android.ext.toGem
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountPerpetualProvider(
     private val params: AmountParams.Perpetual,
-    private val userConfig: UserConfig,
+    private val service: GemAmountServiceInterface,
     getAssetInfo: GetAssetInfo,
     getPerpetual: GetPerpetual,
     getPerpetualBalance: GetPerpetualBalance,
@@ -55,7 +52,7 @@ class AmountPerpetualProvider(
     override val canSwitchInputType: Boolean = false
 
     private val isOpenAction: Boolean =
-        params.positionAction is PerpetualPositionAction.Open
+        params.positionAction is GemPerpetualPositionAction.Open
 
     private val numericFormatter = NumericFormatter()
 
@@ -85,15 +82,10 @@ class AmountPerpetualProvider(
     private val userSelectedLeverage = MutableStateFlow<Int?>(null)
 
     val leverageState: StateFlow<LeverageState?> = if (isOpenAction) {
-        combine(
-            perpetual.filterNotNull(),
-            userConfig.perpetualLeverage(),
-            userSelectedLeverage,
-        ) { current, preferred, override ->
-            val options = PerpetualConfig.leverageOptions(current.maxLeverage)
+        combine(perpetual.filterNotNull(), userSelectedLeverage) { current, override ->
             LeverageState(
-                current = PerpetualConfig.selectLeverage(override ?: preferred, options),
-                options = options,
+                current = override ?: service.perpetualLeverage(current.maxLeverage.toUByte()).toInt(),
+                options = PerpetualConfig.leverageOptions(current.maxLeverage),
                 direction = params.direction,
             )
         }.stateIn(scope, SharingStarted.Eagerly, null)
@@ -116,38 +108,30 @@ class AmountPerpetualProvider(
         )
     }
 
-    val takeProfit: StateFlow<String?> = autocloseTrigger(takeProfitInput, takeProfitEdited, TpslType.TakeProfit)
-    val stopLoss: StateFlow<String?> = autocloseTrigger(stopLossInput, stopLossEdited, TpslType.StopLoss)
+    private val defaultAutoclose: StateFlow<GemPerpetualAutoclose?> = if (isOpenAction) {
+        combine(perpetual.filterNotNull(), leverageState.filterNotNull()) { market, state ->
+            service.perpetualAutoclose(market.price, direction.toGem(), state.current.toUByte())
+        }.stateIn(scope, SharingStarted.Eagerly, null)
+    } else {
+        MutableStateFlow(null)
+    }
+
+    val takeProfit: StateFlow<String?> = autocloseTrigger(takeProfitInput, takeProfitEdited) { it.takeProfit }
+    val stopLoss: StateFlow<String?> = autocloseTrigger(stopLossInput, stopLossEdited) { it.stopLoss }
 
     private fun autocloseTrigger(
         input: StateFlow<String?>,
         edited: StateFlow<Boolean>,
-        type: TpslType,
+        default: (GemPerpetualAutoclose) -> Double?,
     ): StateFlow<String?> {
         if (!isOpenAction) return input
-        return combine(input, edited, defaultTrigger(type)) { value, isEdited, default ->
-            if (isEdited) value else default ?: value
-        }.stateIn(scope, SharingStarted.Eagerly, null)
-    }
-
-    private fun defaultTrigger(type: TpslType): Flow<String?> {
-        val percent = when (type) {
-            TpslType.TakeProfit -> userConfig.perpetualTakeProfit()
-            TpslType.StopLoss -> userConfig.perpetualStopLoss()
-        }
-        return percent.flatMapLatest { value ->
-            if (value == 0) {
-                flowOf(null)
+        return combine(input, edited, defaultAutoclose.filterNotNull(), perpetual.filterNotNull()) { value, isEdited, autoclose, market ->
+            if (isEdited) {
+                value
             } else {
-                combine(perpetual.filterNotNull(), leverageState.filterNotNull()) { market, _ ->
-                    PerpetualFormatter.formatInputPrice(
-                        provider = market.provider,
-                        price = estimatorFor("").targetPriceFromRoe(value, type.toGem()),
-                        decimals = market.asset.decimals,
-                    )
-                }
+                default(autoclose)?.let { PerpetualFormatter.formatInputPrice(market.provider, it, market.asset.decimals) } ?: value
             }
-        }
+        }.stateIn(scope, SharingStarted.Eagerly, null)
     }
 
     override val amountType: StateFlow<GemAmountType?> = combine(
@@ -155,9 +139,9 @@ class AmountPerpetualProvider(
         leverageState,
     ) { current, state ->
         val position = when (val action = params.positionAction) {
-            is PerpetualPositionAction.Reduce -> GemAmountPerpetualPosition.Reduce(action.available.toString())
-            is PerpetualPositionAction.Increase -> GemAmountPerpetualPosition.Increase
-            else -> GemAmountPerpetualPosition.Open
+            is GemPerpetualPositionAction.Reduce -> GemAmountPerpetualPosition.Reduce(action.available)
+            is GemPerpetualPositionAction.Increase -> GemAmountPerpetualPosition.Increase
+            is GemPerpetualPositionAction.Open -> GemAmountPerpetualPosition.Open
         }
         val leverage = state?.current ?: params.positionAction.data.leverage.toInt()
         GemAmountType.Perpetual(position = position, price = current.price, leverage = leverage.toUByte(), sizeDecimals = current.asset.decimals)
@@ -167,43 +151,23 @@ class AmountPerpetualProvider(
         .flatMapLatest { getAssetInfo(HypercoreUSDC.id) }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
-    override val balance: StateFlow<GemTransferBalance?> = getPerpetualBalance.getBalance()
+    override val balance: StateFlow<GemAssetBalance?> = getPerpetualBalance.getBalance()
         .combine(assetInfo.filterNotNull()) { perpetualBalance, current ->
             val available = perpetualBalance?.available ?: 0.0
-            current.toAmountBalance().copy(available = Crypto(available.toBigDecimal(), current.asset.decimals).atomicValue.toString())
+            current.balance.toGem().copy(available = Crypto(available.toBigDecimal(), current.asset.decimals).atomicValue)
         }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
-    override suspend fun buildConfirmInput(amount: Crypto, isMax: Boolean): GemConfirmInput {
-        val current = assetInfo.value ?: error("assetInfo not loaded")
-        val owner = current.owner ?: error("owner missing")
-        val perpetualMarket = perpetual.value ?: error("perpetual not loaded")
-        val perpetualType = PerpetualOrderFactory.makePerpetualOrder(
-            positionAction = params.positionAction,
-            usdcValue = amount.atomicValue,
-            usdcDecimals = current.asset.decimals,
-            leverage = leverageState.value?.current?.toUByte() ?: params.positionAction.data.leverage,
-            takeProfit = formatTriggerForOrder(takeProfit.value, perpetualMarket),
-            stopLoss = formatTriggerForOrder(stopLoss.value, perpetualMarket),
-        )
-        return GemTransferData.perpetual(
-            asset = perpetualMarket.asset,
-            perpetualType = perpetualType,
+    override suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData {
+        return service.perpetualTransferData(
+            action = params.positionAction,
             value = amount.atomicValue,
             useMaxAmount = isMax,
-        ).confirmInput(owner)
-    }
-
-    private fun formatTriggerForOrder(
-        text: String?,
-        data: PerpetualDetailsDataAggregate,
-    ): String? {
-        if (!showsAutoclose) return null
-        val price = text?.let { numericFormatter.double(it) } ?: return null
-        return PerpetualFormatter.formatPrice(
-            provider = data.provider,
-            price = price,
-            decimals = data.asset.decimals,
+            leverage = leverageState.value?.current?.toUByte() ?: params.positionAction.data.leverage,
+            takeProfit = trigger(takeProfit.value),
+            stopLoss = trigger(stopLoss.value),
         )
     }
+
+    private fun trigger(text: String?): Double? = if (showsAutoclose) text?.let { numericFormatter.double(it) } else null
 }

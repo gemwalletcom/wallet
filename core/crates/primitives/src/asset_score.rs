@@ -11,15 +11,6 @@ pub struct AssetScore {
     pub rank_type: AssetRank,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable")]
-#[serde(rename_all = "lowercase")]
-pub enum AssetScoreType {
-    Verified,
-    Unverified,
-    Suspicious,
-}
-
 impl AssetScore {
     pub fn new(rank: i32) -> Self {
         let rank_type = AssetRank::from_rank(rank);
@@ -38,7 +29,6 @@ impl Default for AssetScore {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, EnumIter, PartialEq, Eq)]
-#[typeshare(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "lowercase")]
 pub enum AssetRank {
     High,

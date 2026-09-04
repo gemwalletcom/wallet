@@ -5,16 +5,16 @@ import protocol Gemstone.GemPreferencesServiceProtocol
 import Primitives
 
 public extension GemPreferencesServiceProtocol {
-    var currencyValue: Primitives.Currency {
-        (try? Primitives.Currency(getCurrency())) ?? .usd
+    var currency: Primitives.Currency {
+        Primitives.Currency(core: getCurrency())
     }
 
     var currencyCode: String {
-        currencyValue.rawValue
+        getCurrency()
     }
 
     func setCurrencyValue(_ currency: Primitives.Currency) throws {
-        try setCurrency(currency: currency.json())
+        try setCurrency(currency: currency.rawValue)
     }
 
     var chartPeriodValue: ChartPeriod {
@@ -23,28 +23,6 @@ public extension GemPreferencesServiceProtocol {
 
     func setChartPeriodValue(_ period: ChartPeriod) {
         try? setChartPeriod(period: period.json())
-    }
-
-    var perpetualChartPeriodValue: ChartPeriod {
-        (try? ChartPeriod(getPerpetualChartPeriod())) ?? .day
-    }
-
-    func setPerpetualChartPeriodValue(_ period: ChartPeriod) {
-        try? setPerpetualChartPeriod(period: period.json())
-    }
-
-    var swapSlippage: SwapSlippage {
-        switch getSwapSlippageBps() {
-        case let .some(bps): .manual(bps: bps)
-        case .none: .auto
-        }
-    }
-
-    func setSwapSlippage(_ slippage: SwapSlippage) throws {
-        switch slippage {
-        case .auto: try setSwapSlippageBps(bps: nil)
-        case let .manual(bps): try setSwapSlippageBps(bps: bps)
-        }
     }
 
     var appearanceValue: Primitives.Appearance {

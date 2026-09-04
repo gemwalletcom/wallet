@@ -9,6 +9,7 @@ mod provider;
 mod quote_data_mapper;
 mod quote_mapper;
 mod swap_mapper;
+mod target;
 
 pub use provider::ThorChain;
 

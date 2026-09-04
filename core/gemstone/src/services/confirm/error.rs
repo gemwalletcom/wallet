@@ -1,9 +1,11 @@
 use crate::GemstoneError;
 use crate::gateway::GatewayError;
+use crate::models::custom_types::GemBigInt;
+use crate::services::error::GemServiceError;
 use crate::signer::GemSignerError;
-use primitives::{AssetId, Chain};
+use primitives::{Asset, AssetId, Chain};
 
-#[derive(Debug, uniffi::Error)]
+#[derive(Debug, Clone, uniffi::Error)]
 pub enum GemConfirmError {
     ScanMalicious,
     ScanMemoRequired { symbol: String },
@@ -15,10 +17,13 @@ pub enum GemConfirmError {
     Record { msg: String },
     AccountMissing { chain: Chain },
     BalanceMissing { asset_id: AssetId },
-    InsufficientNetworkFee { asset_id: AssetId },
+    InsufficientBalance { asset: Asset, requirement: GemBalanceRequirement },
+    InsufficientNetworkFee { asset: Asset, requirement: Option<GemBalanceRequirement> },
+    MinimumAccountBalanceTooLow { asset: Asset, requirement: GemBalanceRequirement },
     SenderMismatch { from: String, signer: String },
-    Sign { error: GemSignerError, msg: String },
+    Sign { error: GemSignerError, chain: Chain, msg: String },
     ApprovalInvalid { msg: String },
+    Cancelled,
 }
 
 impl std::fmt::Display for GemConfirmError {
@@ -30,8 +35,11 @@ impl std::fmt::Display for GemConfirmError {
             Self::Offline => write!(f, "network offline"),
             Self::AccountMissing { chain } => write!(f, "wallet has no {chain} account"),
             Self::BalanceMissing { asset_id } => write!(f, "no stored balance for {asset_id}"),
-            Self::InsufficientNetworkFee { asset_id } => write!(f, "not enough {asset_id} to pay the network fee"),
+            Self::InsufficientBalance { asset, .. } => write!(f, "not enough {} balance", asset.symbol),
+            Self::InsufficientNetworkFee { asset, .. } => write!(f, "not enough {} to pay the network fee", asset.symbol),
+            Self::MinimumAccountBalanceTooLow { asset, requirement } => write!(f, "{} balance must stay above {}", asset.symbol, requirement.required),
             Self::SenderMismatch { from, signer } => write!(f, "transaction was built for {from} but would be signed by {signer}"),
+            Self::Cancelled => write!(f, "cancelled"),
             Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg, .. } | Self::Record { msg } | Self::Sign { msg, .. } | Self::ApprovalInvalid { msg } => {
                 write!(f, "{msg}")
             }
@@ -41,15 +49,35 @@ impl std::fmt::Display for GemConfirmError {
 
 impl std::error::Error for GemConfirmError {}
 
-impl From<GemstoneError> for GemConfirmError {
-    fn from(error: GemstoneError) -> Self {
-        match error {
-            GemstoneError::SignerError { error, msg } => Self::Sign { error, msg },
-            GemstoneError::AnyError { msg } => Self::Sign {
-                error: GemSignerError::SigningError(msg.clone()),
-                msg,
-            },
-        }
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemBalanceRequirement {
+    pub required: GemBigInt,
+    pub available: GemBigInt,
+    pub shortfall: GemBigInt,
+}
+
+impl GemBalanceRequirement {
+    pub fn new(required: GemBigInt, available: GemBigInt) -> Self {
+        let shortfall = (&required - &available).max(GemBigInt::ZERO);
+        Self { required, available, shortfall }
+    }
+}
+
+pub(super) fn sign_error(chain: Chain, error: GemstoneError) -> GemConfirmError {
+    match error {
+        GemstoneError::Cancelled => GemConfirmError::Cancelled,
+        GemstoneError::SignerError { error, msg } => GemConfirmError::Sign { error, chain, msg },
+        GemstoneError::AnyError { msg } => GemConfirmError::Sign {
+            error: GemSignerError::SigningError(msg.clone()),
+            chain,
+            msg,
+        },
+    }
+}
+
+impl From<GemServiceError> for GemConfirmError {
+    fn from(error: GemServiceError) -> Self {
+        Self::Load { msg: error.to_string() }
     }
 }
 
@@ -72,6 +100,15 @@ pub(super) fn broadcast_error(hashes: Vec<String>, error: GatewayError) -> GemCo
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_a_cancelled_signer_is_a_cancel_not_a_failure() {
+        assert!(matches!(sign_error(Chain::Ethereum, GemstoneError::Cancelled), GemConfirmError::Cancelled));
+        assert!(matches!(
+            sign_error(Chain::Ethereum, GemstoneError::AnyError { msg: "boom".into() }),
+            GemConfirmError::Sign { error: GemSignerError::SigningError(msg), chain: Chain::Ethereum, .. } if msg == "boom"
+        ));
+    }
 
     #[test]
     fn test_gateway_errors_keep_their_kind() {

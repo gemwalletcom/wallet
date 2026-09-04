@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemTransactionHeaderKind
 import enum Gemstone.GemTransactionInputType
 import GemstonePrimitives
 import struct Gemstone.GemConfirmMetadata
@@ -10,39 +11,28 @@ import Primitives
 public enum TransactionHeaderTypeBuilder {
     public static func build(
         infoModel: TransactionInfoViewModel,
+        kind: GemTransactionHeaderKind,
         transaction: Transaction,
         metadata: TransactionExtendedMetadata?,
     ) -> TransactionHeaderType {
         let inputType: TransactionHeaderInputType = {
-            switch transaction.type {
-            case .transfer,
-                 .stakeDelegate,
-                 .stakeUndelegate,
-                 .stakeRedelegate,
-                 .stakeRewards,
-                 .stakeWithdraw,
-                 .smartContractCall,
-                 .stakeFreeze,
-                 .stakeUnfreeze:
-                return .amount(showFiat: true)
+            switch kind {
+            case let .amount(showsFiat):
+                return .amount(showFiat: showsFiat)
             case .swap:
                 guard let metadata, let input = SwapMetadataViewModel(metadata: metadata).headerInput else {
                     return .amount(showFiat: true)
                 }
                 return .swap(input)
-            case .assetActivation:
-                return .symbol
-            case .tokenApproval:
-                return .assetImage
-            case .transferNFT:
+            case .nft:
                 guard let metadata = transaction.metadata?.decode(TransactionNFTTransferMetadata.self) else {
                     return .amount(showFiat: false)
                 }
                 return .nft(name: metadata.name, id: metadata.assetId.identifier)
-            case .perpetualOpenPosition, .perpetualClosePosition, .perpetualModifyPosition:
+            case .symbol:
                 return .symbol
-            case .earnDeposit, .earnWithdraw:
-                return .amount(showFiat: true)
+            case .assetImage:
+                return .assetImage
             }
         }()
         return infoModel.headerType(input: inputType)
@@ -54,24 +44,15 @@ public enum TransactionHeaderTypeBuilder {
         metadata: GemConfirmMetadata?,
     ) -> TransactionHeaderType {
         let inputType: TransactionHeaderInputType = {
-            switch dataType {
-            case .transfer,
-                 .deposit,
-                 .withdrawal,
-                 .stake,
-                 .generic:
-                return .amount(showFiat: true)
-            case .tokenApprove:
-                return .assetImage
-            case let .transferNft(_, nftAsset):
+            switch dataType.headerKind() {
+            case let .amount(showsFiat):
+                return .amount(showFiat: showsFiat)
+            case .nft:
+                guard case let .transferNft(_, nftAsset) = dataType else { return .amount(showFiat: false) }
                 let nft = Primitives.NFTAsset(core: nftAsset)
                 return .nft(name: nft.name, id: nft.id.identifier)
-            case let .account(_, type):
-                switch Primitives.AccountDataType(core: type) {
-                case .activate:
-                    return .amount(showFiat: false)
-                }
-            case let .swap(fromAsset, toAsset, data):
+            case .swap:
+                guard case let .swap(fromAsset, toAsset, data) = dataType else { return .amount(showFiat: true) }
                 let assetPrices = (metadata?.assetPrices ?? [:]).map { assetId, price in
                     price.mapToAssetPrice(assetId: assetId)
                 }
@@ -97,10 +78,10 @@ public enum TransactionHeaderTypeBuilder {
                     return .amount(showFiat: true)
                 }
                 return .swap(input)
-            case .perpetual:
+            case .symbol:
                 return .symbol
-            case .earn:
-                return .amount(showFiat: true)
+            case .assetImage:
+                return .assetImage
             }
         }()
         return infoModel.headerType(input: inputType)

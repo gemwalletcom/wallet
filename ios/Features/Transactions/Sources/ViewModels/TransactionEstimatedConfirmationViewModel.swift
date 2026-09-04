@@ -17,10 +17,7 @@ struct TransactionEstimatedConfirmationViewModel {
 
 extension TransactionEstimatedConfirmationViewModel: ItemModelProvidable {
     var itemModel: TransactionItemModel {
-        guard
-            let seconds,
-            seconds > 0
-        else {
+        guard let seconds else {
             return .empty
         }
         return .listItem(ListItemModel(

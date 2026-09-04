@@ -11,8 +11,3 @@ fun String.toAssetId(): AssetId? {
     return runCatching { AssetId(this) }.getOrNull()
 }
 
-fun AssetId.twoSubtokenIds(): Pair<String, String>? = tokenId
-    ?.split("::")
-    ?.takeIf { it.size >= 2 }?.let {
-        Pair(it[0], it[1])
-    }

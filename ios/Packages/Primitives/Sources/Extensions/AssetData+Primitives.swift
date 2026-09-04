@@ -1,4 +1,3 @@
-import BigInt
 import Foundation
 
 extension AssetData: Identifiable {
@@ -10,19 +9,5 @@ extension AssetData: Identifiable {
 public extension AssetData {
     var assetAddress: AssetAddress {
         AssetAddress(asset: asset, address: account.address)
-    }
-
-    var balances: [BalanceType: BigInt] {
-        [
-            BalanceType.available: balance.available,
-            BalanceType.frozen: balance.frozen,
-            BalanceType.locked: balance.locked,
-            BalanceType.pending: balance.pending,
-            BalanceType.pendingUnconfirmed: balance.pendingUnconfirmed,
-            BalanceType.staked: balance.staked,
-            BalanceType.rewards: balance.rewards,
-            BalanceType.reserved: balance.reserved,
-            BalanceType.earn: balance.earn,
-        ]
     }
 }

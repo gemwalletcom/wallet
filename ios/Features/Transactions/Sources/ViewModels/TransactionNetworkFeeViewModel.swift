@@ -5,6 +5,7 @@ import Foundation
 import Localization
 import Primitives
 import PrimitivesComponents
+import Style
 
 struct TransactionNetworkFeeViewModel {
     private let feeDisplay: AmountDisplay?
@@ -26,7 +27,7 @@ extension TransactionNetworkFeeViewModel: ItemModelProvidable {
         .fee(
             ListItemModel(
                 title: Localized.Transfer.networkFee,
-                subtitle: feeDisplay?.fiat?.text ?? feeDisplay?.amount.text ?? "-",
+                subtitle: feeDisplay?.fiat?.text ?? feeDisplay?.amount.text ?? Placeholder.empty,
                 subtitleExtra: nil,
                 infoAction: onInfoAction,
             ),

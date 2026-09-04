@@ -1,8 +1,15 @@
 package com.gemwallet.android.ui.navigation
 
+import com.gemwallet.android.ui.LocalAssetsService
 import com.gemwallet.android.ui.LocalDeeplinkService
 import com.gemwallet.android.ui.LocalTransferService
+import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemTransferService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.key
@@ -28,8 +35,9 @@ import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.domains.confirm.pack
-import uniffi.gemstone.GemConfirmInput
+import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.model.ImportType
+import com.gemwallet.android.model.PaymentRecipient
 import com.gemwallet.android.toRoute
 import com.gemwallet.android.ui.navigation.routes.AboutusRoute
 import com.gemwallet.android.ui.navigation.routes.AddAssetRoute
@@ -88,7 +96,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.NFTAssetId
-import com.wallet.core.primitives.PaymentRequest
 import com.wallet.core.primitives.PortfolioType
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
@@ -110,19 +117,21 @@ data class SwapSelection(
 fun rememberWalletNavigationState(
     startDestination: NavKey,
     currentTab: MutableState<String>,
-    assetNavigationPolicy: AssetNavigationPolicy,
 ): WalletNavigator {
     val transferService = LocalTransferService.current
     val deeplinkService = LocalDeeplinkService.current
+    val assetsService = LocalAssetsService.current
+    val scope = rememberCoroutineScope()
     return key(startDestination) {
         val backStack = rememberWalletNavBackStack(startDestination)
-        remember(backStack, currentTab, assetNavigationPolicy, transferService, deeplinkService) {
+        remember(backStack, currentTab, transferService, deeplinkService, assetsService, scope) {
             WalletNavigator(
                 backStack = backStack,
                 currentTab = currentTab,
-                assetNavigationPolicy = assetNavigationPolicy,
                 transferService = transferService,
                 deeplinkService = deeplinkService,
+                assetsService = assetsService,
+                scope = scope,
             )
         }
     }
@@ -131,9 +140,10 @@ fun rememberWalletNavigationState(
 class WalletNavigator(
     val backStack: NavBackStack<NavKey>,
     val currentTab: MutableState<String>,
-    private val assetNavigationPolicy: AssetNavigationPolicy,
     private val transferService: GemTransferService,
     private val deeplinkService: GemDeeplinkService,
+    private val assetsService: GemAssetsServiceInterface,
+    private val scope: CoroutineScope,
 ) {
     private val toastMessages = mutableStateMapOf<NavKey, String>()
     private val swapSelections = mutableStateMapOf<NavKey, SwapSelection>()
@@ -143,8 +153,14 @@ class WalletNavigator(
         return backStack.add(route)
     }
 
-    private fun openAssetRoute(route: AssetRoute): Boolean =
-        assetNavigationPolicy.canOpen(route.assetId) && push(route)
+    private fun openAssetRoute(route: AssetRoute) = scope.launch {
+        val asset = withContext(Dispatchers.IO) {
+            assetsService.openAsset(route.assetId.toIdentifier())
+        }
+        if (asset != null) {
+            push(route)
+        }
+    }
 
     private fun replaceTop(route: NavKey) {
         if (backStack.isNotEmpty()) {
@@ -214,9 +230,7 @@ class WalletNavigator(
     fun finishWalletSecurityReminder(walletId: WalletId, type: WalletType) = replaceTop(WalletPhraseRoute(walletId, type))
     fun openSetupWallet(walletId: WalletId) = replaceTop(SetupWalletRoute(walletId))
     fun openAddAsset() = push(AddAssetRoute)
-    fun openAsset(assetId: AssetId) {
-        openAssetRoute(AssetRoute(assetId))
-    }
+    fun openAsset(assetId: AssetId) = openAssetRoute(AssetRoute(assetId))
     fun openNetworkAssets(chain: Chain) = push(NetworkAssetsRoute(chain))
     fun openAssetChart(assetId: AssetId) = push(AssetChartRoute(assetId))
     fun openPortfolioChart(type: PortfolioType = PortfolioType.Wallet) = push(PortfolioChartRoute(type))
@@ -233,10 +247,11 @@ class WalletNavigator(
     fun openInAppNotifications() = push(InAppNotificationsRoute)
     fun openNotificationUrl(url: String): Boolean {
         val action = runCatching { deeplinkService.urlAction(url) }.getOrNull() as? UrlAction.Deeplink ?: return false
-        return when (val route = action.deeplink.toRoute() ?: return false) {
+        when (val route = action.deeplink.toRoute() ?: return false) {
             is AssetRoute -> openAssetRoute(route)
             else -> push(route)
         }
+        return true
     }
     fun openAboutUs() = push(AboutusRoute)
     fun openNetworks() = push(NetworksRoute)
@@ -254,8 +269,8 @@ class WalletNavigator(
     fun openReceive() = push(ReceiveSelectRoute)
     fun openReceive(assetId: AssetId) = push(ReceiveRoute(assetId))
     fun openReceiveNftChains() = push(ReceiveNftChainsRoute)
-    fun openRecipient(payment: PaymentRequest? = null, chains: List<Chain> = emptyList()) = push(SendSelectRoute(payment, chains))
-    fun openRecipient(assetId: AssetId, payment: PaymentRequest? = null) = push(RecipientInputRoute(assetId, nftAssetId = null, payment = payment))
+    fun openRecipient(payment: PaymentRecipient? = null, chains: List<Chain> = emptyList()) = push(SendSelectRoute(payment, chains))
+    fun openRecipient(assetId: AssetId, payment: PaymentRecipient? = null) = push(RecipientInputRoute(assetId, nftAssetId = null, payment = payment))
     fun openNftRecipient(assetId: AssetId, nftAssetId: NFTAssetId) = push(RecipientInputRoute(assetId, nftAssetId.toIdentifier()))
     fun openAmount(params: AmountParams) {
         val pack = params.pack() ?: return
@@ -302,8 +317,8 @@ class WalletNavigator(
         }
     }
     fun openFiatTransactions() = push(FiatTransactionsRoute)
-    fun openConfirm(input: GemConfirmInput) {
-        val pack = transferService.pack(input) ?: return
+    fun openConfirm(transfer: GemTransferData) {
+        val pack = transferService.pack(transfer) ?: return
         push(ConfirmRoute(pack))
     }
     fun openNftList() = push(NftListRoute)
@@ -324,7 +339,6 @@ class WalletNavigator(
         if (routes.isEmpty()) return false
         if (!canOpenPendingNavigation()) return false
         if (!confirmed && needsPendingNavigationConfirmation()) return false
-        if (!routes.filterIsInstance<AssetRoute>().all { assetNavigationPolicy.canOpen(it.assetId) }) return false
         resetToWallet()
         routes.forEach(::push)
         return true
