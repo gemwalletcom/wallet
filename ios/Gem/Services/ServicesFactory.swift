@@ -12,6 +12,7 @@ import protocol Gemstone.GemPriceServiceProtocol
 import class Gemstone.GemRecentActivityService
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
+import Localization
 import GemstoneServices
 import NativeProviderService
 import Preferences
@@ -103,6 +104,7 @@ struct ServicesFactory {
             preferences: walletPreferencesService,
             explorer: explorerService,
             addresses: gemstoneAddressStore,
+            localizer: GemstoneLocalizer(),
         )
         let avatarService = Gemstone.GemAvatarService(wallets: gemstoneWalletStore, files: gemstoneFileStore, provider: nativeProvider)
         let webSocket = Self.makeWebSocket(deviceKeyService: deviceKeyService, reconnection: connectionService)
@@ -476,5 +478,16 @@ extension ServicesFactory {
         let requestProvider = AuthenticatedRequestProvider(deviceKeyService: deviceKeyService)
         let configuration = WebSocketConfiguration(requestProvider: requestProvider, reconnection: reconnection)
         return WebSocketConnection(configuration: configuration)
+    }
+}
+
+final class GemstoneLocalizer: GemLocalizer, Sendable {
+    func text(text: GemLocalizedText) -> String {
+        switch text {
+        case let .walletDefaultName(index):
+            Localized.Wallet.defaultName(Int(index))
+        case let .walletDefaultNameChain(chain, index):
+            Localized.Wallet.defaultNameChain(Chain(core: chain).networkName, Int(index))
+        }
     }
 }

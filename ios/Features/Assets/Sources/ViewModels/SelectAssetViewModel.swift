@@ -59,7 +59,7 @@ public final class SelectAssetViewModel {
         let filter = AssetsFilterViewModel(
             type: selectType,
             model: ChainsFilterViewModel(
-                chains: service.filterChains(accounts: wallet.accounts.map { $0.map() }).map { Chain(core: $0) },
+                chains: service.filterChains(wallet: wallet.json()).map { Chain(core: $0) },
                 selected: chains,
             ),
         )
@@ -117,7 +117,7 @@ public final class SelectAssetViewModel {
     }
 
     public var showAddToken: Bool {
-        flow.capabilities.contains(.addCustomToken) && service.supportsTokens(accounts: wallet.accounts.map { $0.map() }) && filterModel.chainsFilter.hasChains
+        flow.capabilities.contains(.addCustomToken) && service.supportsTokens(wallet: wallet.json()) && filterModel.chainsFilter.hasChains
     }
 
     public var showFilter: Bool {

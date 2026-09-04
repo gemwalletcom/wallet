@@ -93,11 +93,6 @@ data class CreateWalletViewModelState(
     val dataError: String? = null,
     val isShowSafeMessage: Boolean = false,
 ) {
-    fun isExistingWallets() = defaultName.index() > 1
+    fun isExistingWallets() = defaultName?.hasExistingWallets == true
 }
 
-private fun GemWalletDefaultName?.index(): Int = when (this) {
-    is GemWalletDefaultName.Multicoin -> index
-    is GemWalletDefaultName.Chain -> index
-    null -> 0
-}

@@ -1,4 +1,4 @@
-use primitives::{Account, Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, Chain, ConfigVersions, VerificationStatus, Wallet};
+use primitives::{Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, Chain, ConfigVersions, VerificationStatus, Wallet};
 
 use super::model::{AssetList, GemAssetNetworkDestination};
 
@@ -70,8 +70,8 @@ pub fn default_token_chain(chains: &[Chain]) -> Option<Chain> {
     chains.iter().find(|chain| **chain == Chain::Ethereum).or(chains.first()).copied()
 }
 
-pub fn token_chains(accounts: &[Account]) -> Vec<Chain> {
-    let mut chains = unique(accounts.iter().map(|account| account.chain).filter(|chain| chain.default_asset_type().is_some()));
+pub fn token_chains(wallet: &Wallet) -> Vec<Chain> {
+    let mut chains = unique(wallet.accounts.iter().map(|account| account.chain).filter(|chain| chain.default_asset_type().is_some()));
     chains.sort_by_key(|chain| std::cmp::Reverse(AssetId::from_chain(*chain).default_rank()));
     chains
 }
@@ -177,8 +177,8 @@ mod tests {
     #[test]
     fn test_token_chains_keeps_token_networks_by_rank() {
         let multicoin = wallet(WalletType::Multicoin, &[Chain::Bitcoin, Chain::Doge, Chain::Near, Chain::Xrp, Chain::Ethereum, Chain::Near]);
-        assert_eq!(token_chains(&multicoin.accounts), vec![Chain::Ethereum, Chain::Xrp, Chain::Near]);
-        assert!(token_chains(&wallet(WalletType::Single, &[Chain::Bitcoin]).accounts).is_empty());
+        assert_eq!(token_chains(&multicoin), vec![Chain::Ethereum, Chain::Xrp, Chain::Near]);
+        assert!(token_chains(&wallet(WalletType::Single, &[Chain::Bitcoin])).is_empty());
     }
 
     #[test]

@@ -83,7 +83,7 @@ open class BaseAssetSelectViewModel(
     private val isSearching = MutableStateFlow(false)
 
     val availableChains = session
-        .map { session -> session?.wallet?.let { service.filterChains(it.accounts.map { account -> account.toGem() }).map { chain -> chain.requireChain() } } ?: emptyList() }
+        .map { session -> session?.wallet?.let { service.filterChains(it.toJson()).map { chain -> chain.requireChain() } } ?: emptyList() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     protected val currentQuery = snapshotFlow { queryState.text.toString() }
@@ -162,7 +162,7 @@ open class BaseAssetSelectViewModel(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Idle)
 
-    val isAddAssetAvailable = getSession().map { service.supportsTokens(it?.wallet?.accounts?.map { account -> account.toGem() } ?: emptyList()) }
+    val isAddAssetAvailable = getSession().map { service.supportsTokens(it?.wallet?.toJson()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     fun onChangeVisibility(assetId: AssetId, visible: Boolean) = viewModelScope.launch {

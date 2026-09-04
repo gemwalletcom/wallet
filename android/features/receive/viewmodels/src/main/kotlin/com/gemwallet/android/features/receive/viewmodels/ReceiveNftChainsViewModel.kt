@@ -31,7 +31,7 @@ class ReceiveNftChainsViewModel @Inject constructor(
     private val session = getSession()
 
     private val accounts = combine(snapshotFlow { chainFilter.text.toString() }, session) { query, session ->
-        session?.wallet?.let { service.receiveAccounts(it.accounts.map { account -> account.toGem() }, query).mapNotNull { account -> account.toPrimitives() } } ?: emptyList()
+        session?.wallet?.let { service.receiveAccounts(it.toJson(), query).mapNotNull { account -> account.toPrimitives() } } ?: emptyList()
     }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

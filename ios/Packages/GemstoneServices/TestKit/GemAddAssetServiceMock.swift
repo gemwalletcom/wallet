@@ -20,7 +20,7 @@ public final class GemAddAssetServiceMock: GemAddAssetServiceProtocol, @unchecke
         self.asset = asset
     }
 
-    public func chains(accounts _: [Gemstone.Account]) -> [Chain] { chains.map(\.rawValue) }
+    public func chains(wallet _: Wallet) -> [Chain] { chains.map(\.rawValue) }
     public func defaultChain(chains: [Chain]) -> Chain? { chains.first }
     public func matchingChains(chains: [Chain], query: String) -> [Chain] { chains }
     public func tokenUrl(chain: Chain, tokenId: String) -> GemBlockExplorerLink? { nil }

@@ -50,11 +50,11 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         nftSearchItems
     }
 
-    public func supportsTokens(accounts _: [Gemstone.Account]) -> Bool {
+    public func supportsTokens(wallet _: String?) -> Bool {
         tokensSupported
     }
 
-    public func filterChains(accounts _: [Gemstone.Account]) -> [Gemstone.Chain] {
+    public func filterChains(wallet _: String) -> [Gemstone.Chain] {
         filterChainsResult
     }
 

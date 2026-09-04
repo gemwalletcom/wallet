@@ -36,6 +36,7 @@ use crate::block_explorer::GemBlockExplorerLink;
 use crate::keystore::decode_password;
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_for_wallet};
 use crate::services::error::GemServiceError;
+use crate::services::localization::{GemLocalizedText, GemLocalizer};
 use crate::services::explorer::GemExplorerService;
 use crate::services::file::GemFileStore;
 use crate::services::name::GemAddressStore;
@@ -67,6 +68,7 @@ pub struct GemWalletService {
     preferences: Arc<GemWalletPreferencesService>,
     explorer: Arc<GemExplorerService>,
     addresses: Arc<dyn GemAddressStore>,
+    localizer: Arc<dyn GemLocalizer>,
 }
 
 #[uniffi::export]
@@ -82,6 +84,7 @@ impl GemWalletService {
         preferences: Arc<GemWalletPreferencesService>,
         explorer: Arc<GemExplorerService>,
         addresses: Arc<dyn GemAddressStore>,
+        localizer: Arc<dyn GemLocalizer>,
     ) -> Self {
         Self {
             keystore,
@@ -93,6 +96,7 @@ impl GemWalletService {
             preferences,
             explorer,
             addresses,
+            localizer,
         }
     }
 
@@ -114,9 +118,13 @@ impl GemWalletService {
 
     pub async fn default_wallet_name(&self, chain: Option<Chain>) -> Result<GemWalletDefaultName, GemServiceError> {
         let index = rules::next_wallet_index(&self.store.get_wallets().await?);
-        Ok(match chain {
-            Some(chain) => GemWalletDefaultName::Chain { chain, index },
-            None => GemWalletDefaultName::Multicoin { index },
+        let text = match chain {
+            Some(chain) => GemLocalizedText::WalletDefaultNameChain { chain, index },
+            None => GemLocalizedText::WalletDefaultName { index },
+        };
+        Ok(GemWalletDefaultName {
+            name: self.localizer.text(text),
+            has_existing_wallets: index > 1,
         })
     }
 
@@ -339,6 +347,7 @@ mod tests {
 
     use super::testkit::{MemoryAddressStore, MemoryKeystorePassword, MemoryWalletStore, TEST_PASSWORD};
     use super::*;
+    use crate::services::localization::testkit::EnglishLocalizer;
     use crate::services::file::testkit::NoopFileStore;
     use crate::services::preferences::testkit::MemoryPreferencesStore;
     use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
@@ -378,6 +387,7 @@ mod tests {
                 Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default()))),
                 Arc::new(GemExplorerService::new(app_preferences)),
                 addresses.clone(),
+                Arc::new(EnglishLocalizer),
             );
             Self {
                 service,

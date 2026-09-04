@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{Account, Asset, AssetBasic, AssetId, Chain, NFTData, Wallet};
+use primitives::{Asset, AssetBasic, AssetId, Chain, NFTData, Wallet};
 
 use super::model::GemAssetAction;
 use super::rules;
@@ -56,12 +56,12 @@ impl GemAssetSelectionService {
         self.preferences.get_currency()
     }
 
-    pub fn filter_chains(&self, accounts: Vec<Account>) -> Vec<Chain> {
-        chain_rules::wallet_chains_by_rank(&accounts)
+    pub fn filter_chains(&self, wallet: Wallet) -> Vec<Chain> {
+        chain_rules::wallet_chains_by_rank(&wallet)
     }
 
-    pub fn supports_tokens(&self, accounts: Vec<Account>) -> bool {
-        !rules::token_chains(&accounts).is_empty()
+    pub fn supports_tokens(&self, wallet: Option<Wallet>) -> bool {
+        wallet.is_some_and(|wallet| !rules::token_chains(&wallet).is_empty())
     }
 
     pub fn search_collections(&self, data: Vec<NFTData>, query: String) -> Vec<GemNftSearchItem> {

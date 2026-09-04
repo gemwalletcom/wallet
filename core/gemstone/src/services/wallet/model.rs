@@ -8,10 +8,10 @@ pub enum GemWalletImportType {
     Address { address: String, chain: Chain },
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
-pub enum GemWalletDefaultName {
-    Multicoin { index: i32 },
-    Chain { chain: Chain, index: i32 },
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemWalletDefaultName {
+    pub name: String,
+    pub has_existing_wallets: bool,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]

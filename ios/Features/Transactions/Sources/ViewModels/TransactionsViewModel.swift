@@ -39,7 +39,7 @@ public final class TransactionsViewModel {
     }
 
     private static func filterChains(_ service: any GemTransactionsServiceProtocol, wallet: Wallet) -> [Chain] {
-        service.filterChains(accounts: wallet.accounts.map { $0.map() }).map { Chain(core: $0) }
+        service.filterChains(wallet: wallet.json()).map { Chain(core: $0) }
     }
 
     public var title: String {

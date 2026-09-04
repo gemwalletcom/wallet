@@ -8,7 +8,7 @@ use crate::services::error::GemServiceError;
 use std::future::Future;
 use std::sync::Arc;
 
-use primitives::{Account, NFTAssetData, NFTAssetId, NFTData, ReportNft, WalletId};
+use primitives::{Account, NFTAssetData, NFTAssetId, NFTData, ReportNft, Wallet, WalletId};
 
 pub use collectible::{GemCollectibleLinks, GemCollectibleService};
 pub use rules::GemNftSearchItem;
@@ -52,8 +52,8 @@ impl GemNftService {
         Ok(())
     }
 
-    pub fn receive_accounts(&self, accounts: Vec<Account>, query: String) -> Vec<Account> {
-        rules::receive_accounts(&accounts, &query)
+    pub fn receive_accounts(&self, wallet: Wallet, query: String) -> Vec<Account> {
+        rules::receive_accounts(&wallet, &query)
     }
 
     pub fn sorted_collections(&self, data: Vec<NFTData>) -> Vec<NFTData> {

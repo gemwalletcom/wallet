@@ -1,7 +1,5 @@
 package com.gemwallet.android.features.create_wallet.views
 
-import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ext.requireChain
 import uniffi.gemstone.GemWalletDefaultName
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -118,11 +116,7 @@ private fun UI(
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
-    val name = when (defaultName) {
-        is GemWalletDefaultName.Multicoin -> stringResource(id = R.string.wallet_default_name, defaultName.index)
-        is GemWalletDefaultName.Chain -> stringResource(id = R.string.wallet_default_name_chain, defaultName.chain.requireChain().asset().name, defaultName.index)
-        null -> ""
-    }
+    val name = defaultName?.name.orEmpty()
     Scene(
         title = stringResource(id = R.string.wallet_new_title),
         onClose = onCancel,
@@ -172,7 +166,7 @@ fun PreviewCreateUI() {
     WalletTheme {
         Column {
             UI(
-                defaultName = GemWalletDefaultName.Multicoin(2),
+                defaultName = GemWalletDefaultName("Wallet #2", true),
                 data = listOf(
                     "cinnamon", "two", "three", "cinnamon", "five", "six",
                     "seven", "eight", "cinnamon", "ten", "eleven", "twelve"

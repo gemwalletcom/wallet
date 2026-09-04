@@ -1,6 +1,8 @@
 package com.gemwallet.android.data.services.gemstone.di
 
+import dagger.hilt.android.qualifiers.ApplicationContext
 import android.content.Context
+import uniffi.gemstone.GemLocalizer
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
@@ -13,7 +15,6 @@ import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemKeystore
 import uniffi.gemstone.GemWalletService
@@ -50,6 +51,7 @@ object WalletsModule {
         walletPreferencesService: GemWalletPreferencesService,
         explorerService: GemExplorerService,
         addressStore: GemstoneAddressStore,
+        localizer: GemLocalizer,
     ): GemWalletService = GemWalletService(
         keystore,
         GemstoneKeystorePassword(passwordStore),
@@ -60,6 +62,7 @@ object WalletsModule {
         walletPreferencesService,
         explorerService,
         addressStore,
+        localizer,
     )
 
     @Provides
