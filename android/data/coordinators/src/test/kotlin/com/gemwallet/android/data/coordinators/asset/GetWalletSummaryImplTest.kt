@@ -9,7 +9,6 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletType
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import uniffi.gemstone.BalanceCalculator
 import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
 
 class GetWalletSummaryImplTest {
@@ -44,8 +43,8 @@ class GetWalletSummaryImplTest {
     fun buildWalletSummaryDisplayState_formatsSmallValuesWithTwoDecimals() {
         val state = buildWalletSummaryDisplayState(
             currency = Currency.USD,
-            balanceCalculator = BalanceCalculator(),
             total = GemTotalFiatValue(value = 0.1041, pnlAmount = 0.1041, pnlPercentage = 0.0),
+            showsPnl = true,
         )
 
         assertEquals("\$0.10", state.totalValue)
@@ -56,8 +55,8 @@ class GetWalletSummaryImplTest {
     fun buildWalletSummaryDisplayState_withZeroBalance_showsZeroTotalAndHidesChange() {
         val state = buildWalletSummaryDisplayState(
             currency = Currency.USD,
-            balanceCalculator = BalanceCalculator(),
             total = GemTotalFiatValue(value = 0.0, pnlAmount = 0.0, pnlPercentage = 0.0),
+            showsPnl = false,
         )
 
         assertEquals("\$0.00", state.totalValue)

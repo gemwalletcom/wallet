@@ -4,9 +4,17 @@ use crate::services::collections::{missing, unique};
 
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
-use primitives::{Account, Asset, AssetBalance, AssetId, Chain};
+use primitives::{Account, Asset, AssetBalance, AssetFiatValue, AssetId, BalanceCalculator, Chain, TotalFiatValue};
 
 use super::model::{GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
+
+pub fn total_fiat_value(balances: &[AssetFiatValue]) -> TotalFiatValue {
+    BalanceCalculator::total_fiat_value(balances)
+}
+
+pub fn shows_pnl(total: &TotalFiatValue) -> bool {
+    total.value > 0.0 && total.pnl_amount != 0.0
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BalanceRequest {
@@ -112,6 +120,19 @@ pub fn unique_asset_ids(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
 mod tests {
     use super::*;
     use primitives::{AssetType, Balance};
+
+    #[test]
+    fn test_pnl_shows_only_for_a_funded_wallet_that_moved() {
+        let total = |value: f64, pnl_amount: f64| TotalFiatValue {
+            value,
+            pnl_amount,
+            pnl_percentage: 0.0,
+        };
+
+        assert!(shows_pnl(&total(20.0, 1.0)));
+        assert!(!shows_pnl(&total(20.0, 0.0)));
+        assert!(!shows_pnl(&total(0.0, 1.0)));
+    }
 
     #[test]
     fn test_balance_requests_match_tokens_by_typed_chain() {

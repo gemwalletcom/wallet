@@ -22,7 +22,6 @@ import SwiftUI
 @MainActor
 public final class WalletSceneViewModel: Sendable, AssetActions {
     private let service: any GemWalletHomeServiceProtocol
-    private let balanceCalculator = BalanceCalculator()
 
     let observablePreferences: ObservablePreferences
 
@@ -77,7 +76,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     }
 
     public var totalFiatValue: TotalFiatValue {
-        balanceCalculator.totalFiatValue(fiatValuesQuery.value)
+        service.totalFiatValue(balances: fiatValuesQuery.value.map { $0.map() }).map()
     }
 
     public var assets: [AssetData] {
@@ -149,6 +148,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
             walletType: wallet.type,
             totalValue: totalFiatValue,
             currencyCode: currencyCode,
+            showsPnl: service.showsPnl(total: totalFiatValue.map()),
             bannerEventsViewModel: HeaderBannerEventViewModel(events: banners.map(\.event)),
         )
     }

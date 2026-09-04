@@ -251,6 +251,18 @@ fun com.wallet.core.primitives.Asset.toGem(): uniffi.gemstone.Asset = uniffi.gem
     assetType = type.toGem(),
 )
 
+fun uniffi.gemstone.AssetFiatValue.toPrimitives(): com.wallet.core.primitives.AssetFiatValue = com.wallet.core.primitives.AssetFiatValue(
+    amount = amount,
+    price = price,
+    priceChangePercentage24h = priceChangePercentage24h,
+)
+
+fun com.wallet.core.primitives.AssetFiatValue.toGem(): uniffi.gemstone.AssetFiatValue = uniffi.gemstone.AssetFiatValue(
+    amount = amount,
+    price = price,
+    priceChangePercentage24h = priceChangePercentage24h,
+)
+
 fun uniffi.gemstone.Latency.toPrimitives(): com.wallet.core.primitives.Latency = com.wallet.core.primitives.Latency(
     latencyType = latencyType.toPrimitives(),
     value = value,
@@ -275,4 +287,16 @@ fun com.wallet.core.primitives.SimulationPayloadField.toGem(): uniffi.gemstone.S
     value = value,
     fieldType = fieldType.toGem(),
     display = display.toGem(),
+)
+
+fun uniffi.gemstone.TotalFiatValue.toPrimitives(): com.wallet.core.primitives.TotalFiatValue = com.wallet.core.primitives.TotalFiatValue(
+    value = value,
+    pnlAmount = pnlAmount,
+    pnlPercentage = pnlPercentage,
+)
+
+fun com.wallet.core.primitives.TotalFiatValue.toGem(): uniffi.gemstone.TotalFiatValue = uniffi.gemstone.TotalFiatValue(
+    value = value,
+    pnlAmount = pnlAmount,
+    pnlPercentage = pnlPercentage,
 )

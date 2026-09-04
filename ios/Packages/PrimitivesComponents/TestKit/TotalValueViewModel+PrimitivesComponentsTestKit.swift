@@ -10,10 +10,12 @@ public extension TotalValueViewModel {
         value: Double = 1000,
         pnlAmount: Double = 50,
         pnlPercentage: Double = 5,
+        showsPnl: Bool = true,
     ) -> TotalValueViewModel {
         TotalValueViewModel(
             totalValue: .mock(value: value, pnlAmount: pnlAmount, pnlPercentage: pnlPercentage),
             currencyFormatter: CurrencyFormatter.usd,
+            showsPnl: showsPnl,
         )
     }
 }

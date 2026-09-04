@@ -1,11 +1,12 @@
 use std::sync::Arc;
 
 use primitives::chart::ChartCandleUpdate;
-use primitives::{Asset, AssetId, Chain, ChartPeriod, Currency, Perpetual, PerpetualPosition};
+use primitives::{Asset, AssetFiatValue, AssetId, Chain, ChartPeriod, Currency, Perpetual, PerpetualPosition, TotalFiatValue};
 
 use super::model::{GemPerpetualPositionAction, GemPerpetualPositionKind};
 use super::{GemPerpetualService, rules};
 use crate::models::perpetual::{GemChartCandleStick, GemPerpetualSubscription};
+use crate::services::balance::rules as balance_rules;
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::transactions::GemTransactionsService;
@@ -39,6 +40,14 @@ impl GemPerpetualDetailsService {
 
     pub fn get_currency(&self) -> Currency {
         self.preferences.get_currency()
+    }
+
+    pub fn total_fiat_value(&self, balances: Vec<AssetFiatValue>) -> TotalFiatValue {
+        balance_rules::total_fiat_value(&balances)
+    }
+
+    pub fn shows_pnl(&self, total: TotalFiatValue) -> bool {
+        balance_rules::shows_pnl(&total)
     }
 
     pub fn position_action(

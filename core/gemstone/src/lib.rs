@@ -4,7 +4,6 @@ pub mod alien;
 pub mod api;
 pub mod application;
 pub mod auth;
-pub mod balance_calculator;
 pub mod block_explorer;
 pub mod config;
 pub mod crypto_fiat_converter;

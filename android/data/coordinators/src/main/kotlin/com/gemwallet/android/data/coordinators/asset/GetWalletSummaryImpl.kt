@@ -29,7 +29,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigDecimal
 import uniffi.gemstone.AssetFiatValue as GemAssetFiatValue
-import uniffi.gemstone.BalanceCalculator
+import uniffi.gemstone.GemWalletHomeServiceInterface
 import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -39,7 +39,7 @@ class GetWalletSummaryImpl(
     private val getPerpetualBalance: GetPerpetualBalance,
     private val hasMultiSign: HasMultiSign,
     private val userConfig: UserConfig,
-    private val balanceCalculator: BalanceCalculator,
+    private val walletHomeService: GemWalletHomeServiceInterface,
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetWalletSummary {
 
@@ -64,12 +64,14 @@ class GetWalletSummaryImpl(
                 }
             )
 
+            val total = walletHomeService.totalFiatValue(balances)
+
             WalletSummaryAggregateImpl(
                 wallet = wallet,
                 displayState = buildWalletSummaryDisplayState(
                     currency = session.currency,
-                    balanceCalculator = balanceCalculator,
-                    total = balanceCalculator.totalFiatValue(balances),
+                    total = total,
+                    showsPnl = walletHomeService.showsPnl(total),
                 ),
                 isBalanceHidden = hideBalances,
                 isOperationsAvailable = !hasMultiSign,
@@ -85,11 +87,11 @@ class GetWalletSummaryImpl(
 internal fun buildWalletSummaryDisplayState(
     currency: Currency,
     total: GemTotalFiatValue,
-    balanceCalculator: BalanceCalculator,
+    showsPnl: Boolean,
 ): WalletSummaryDisplayState {
     val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
     val totalValue = total.value.toBigDecimal()
-    if (!balanceCalculator.showsPnl(total)) {
+    if (!showsPnl) {
         return WalletSummaryDisplayState(
             totalValue = formatter.string(totalValue.coerceAtLeast(BigDecimal.ZERO)),
             changedValue = null,

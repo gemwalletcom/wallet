@@ -22,7 +22,6 @@ public final class PerpetualSceneViewModel {
     private let observerService: any PerpetualObservable
     private let onTransferData: TransferDataAction
     private let onPerpetualRecipientData: ((PerpetualRecipientData) -> Void)?
-    private let balanceCalculator = BalanceCalculator()
 
     public let wallet: Wallet
     public let asset: Asset
@@ -43,7 +42,7 @@ public final class PerpetualSceneViewModel {
     }
 
     public var perpetualTotalValue: TotalFiatValue {
-        balanceCalculator.totalFiatValue(perpetualFiatValuesQuery.value)
+        service.totalFiatValue(balances: perpetualFiatValuesQuery.value.map { $0.map() }).map()
     }
 
     public var transactions: [TransactionExtended] {

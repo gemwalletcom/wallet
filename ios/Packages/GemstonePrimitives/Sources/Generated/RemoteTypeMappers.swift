@@ -396,6 +396,26 @@ public extension Primitives.Asset {
     }
 }
 
+public extension Gemstone.AssetFiatValue {
+    func map() -> Primitives.AssetFiatValue {
+        Primitives.AssetFiatValue(
+            amount: amount,
+            price: price,
+            priceChangePercentage24h: priceChangePercentage24h,
+        )
+    }
+}
+
+public extension Primitives.AssetFiatValue {
+    func map() -> Gemstone.AssetFiatValue {
+        Gemstone.AssetFiatValue(
+            amount: amount,
+            price: price,
+            priceChangePercentage24h: priceChangePercentage24h,
+        )
+    }
+}
+
 public extension Gemstone.Latency {
     func map() -> Primitives.Latency {
         Primitives.Latency(
@@ -434,6 +454,26 @@ public extension Primitives.SimulationPayloadField {
             value: value,
             fieldType: fieldType.map(),
             display: display.map(),
+        )
+    }
+}
+
+public extension Gemstone.TotalFiatValue {
+    func map() -> Primitives.TotalFiatValue {
+        Primitives.TotalFiatValue(
+            value: value,
+            pnlAmount: pnlAmount,
+            pnlPercentage: pnlPercentage,
+        )
+    }
+}
+
+public extension Primitives.TotalFiatValue {
+    func map() -> Gemstone.TotalFiatValue {
+        Gemstone.TotalFiatValue(
+            value: value,
+            pnlAmount: pnlAmount,
+            pnlPercentage: pnlPercentage,
         )
     }
 }

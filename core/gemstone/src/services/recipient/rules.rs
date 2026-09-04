@@ -15,6 +15,15 @@ pub fn validation(chain: Chain, input: &str, name_record: Option<&NameRecord>) -
     }
 }
 
+pub fn recipient_id(recipient: &GemRecipient) -> String {
+    [
+        recipient.name.as_deref().unwrap_or_default(),
+        &recipient.address,
+        recipient.memo.as_deref().unwrap_or_default(),
+    ]
+    .join("_")
+}
+
 pub fn recipient(chain: Chain, input: &str, name_record: Option<&NameRecord>, memo: Option<String>, references: Vec<String>) -> Result<GemRecipient, GemRecipientError> {
     if name_record.is_some_and(|record| !matches_input(record, chain, input)) {
         return Err(GemRecipientError::NameRecordMismatch);

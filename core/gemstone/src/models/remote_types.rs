@@ -2,9 +2,9 @@
 // Declared in core/bin/generate/remote_types.yml.
 
 use primitives::{
-    Account, Asset, AssetType, Chain, Currency, FeePriority, FeeUnitType, Latency, LatencyType, PerpetualProvider, PortfolioType, RecentActivityType, SimulationPayloadField,
-    SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, TpslType, VerificationStatus, WalletConnectionVerificationStatus, WalletSource,
-    WalletType,
+    Account, Asset, AssetFiatValue, AssetType, Chain, Currency, FeePriority, FeeUnitType, Latency, LatencyType, PerpetualProvider, PortfolioType, RecentActivityType,
+    SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, TotalFiatValue, TpslType, VerificationStatus,
+    WalletConnectionVerificationStatus, WalletSource, WalletType,
 };
 use std::str::FromStr;
 
@@ -157,6 +157,13 @@ pub struct Asset {
 }
 
 #[uniffi::remote(Record)]
+pub struct AssetFiatValue {
+    pub amount: f64,
+    pub price: f64,
+    pub price_change_percentage_24h: f64,
+}
+
+#[uniffi::remote(Record)]
 pub struct Latency {
     pub latency_type: LatencyType,
     pub value: f64,
@@ -169,4 +176,11 @@ pub struct SimulationPayloadField {
     pub value: String,
     pub field_type: SimulationPayloadFieldType,
     pub display: SimulationPayloadFieldDisplay,
+}
+
+#[uniffi::remote(Record)]
+pub struct TotalFiatValue {
+    pub value: f64,
+    pub pnl_amount: f64,
+    pub pnl_percentage: f64,
 }

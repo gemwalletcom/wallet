@@ -1,5 +1,6 @@
 remote:
   - Account
+  - AssetFiatValue
   - AssetType
   - Asset
   - FeePriority
@@ -18,6 +19,7 @@ remote:
   - LatencyType
   - Latency
   - PortfolioType
+  - TotalFiatValue
 codes:
   - Chain
   - Currency

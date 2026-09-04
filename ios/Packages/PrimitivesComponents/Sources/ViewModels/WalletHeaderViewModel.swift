@@ -16,13 +16,14 @@ public struct WalletHeaderViewModel {
         walletType: WalletType,
         totalValue: TotalFiatValue,
         currencyCode: String,
+        showsPnl: Bool,
         bannerEventsViewModel: HeaderBannerEventViewModel,
     ) {
         self.walletType = walletType
         self.totalValue = totalValue
         self.bannerEventsViewModel = bannerEventsViewModel
         let formatter = CurrencyFormatter(type: .fiat, currencyCode: currencyCode)
-        totalValueViewModel = TotalValueViewModel(totalValue: totalValue, currencyFormatter: formatter)
+        totalValueViewModel = TotalValueViewModel(totalValue: totalValue, currencyFormatter: formatter, showsPnl: showsPnl)
     }
 }
 
