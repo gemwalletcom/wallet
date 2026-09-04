@@ -9,6 +9,7 @@ import com.gemwallet.android.application.support.cases.FailPendingSupportMessage
 import com.gemwallet.android.application.support.cases.GetSupportMessages
 import com.gemwallet.android.application.support.cases.GetSupportTyping
 import com.gemwallet.android.ext.millisToSeconds
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageSender
@@ -79,11 +80,7 @@ class SupportChatSceneViewModel @Inject constructor(
     }
 
     private suspend fun perform(context: String, block: suspend () -> Unit) {
-        try {
-            block()
-        } catch (err: Throwable) {
-            Log.e(TAG, "$context error", err)
-        }
+        runCatchingCancellable(block).onFailure { Log.e(TAG, "$context error", it) }
     }
 
     companion object {
