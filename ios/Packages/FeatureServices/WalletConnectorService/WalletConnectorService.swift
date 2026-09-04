@@ -1,13 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
 import class Gemstone.GemChainService
-import enum Gemstone.GemWalletConnectError
+import Foundation
 import enum Gemstone.GemWalletConnectFailure
-import protocol Gemstone.GemWalletConnectServiceProtocol
 import struct Gemstone.GemWalletConnectSessionRequest
-import protocol Gemstone.GemWalletSessionServiceProtocol
+import enum Gemstone.GemWalletConnectError
+import protocol Gemstone.GemWalletConnectServiceProtocol
 import GemstonePrimitives
+import protocol Gemstone.GemWalletSessionServiceProtocol
 import Primitives
 @preconcurrency import ReownWalletKit
 @preconcurrency import WalletConnectPairing
@@ -60,38 +60,31 @@ extension WalletConnectorService: WalletConnectorServiceable {
     }
 
     public func setup() async {
-        await setupState.start {
+        await setupState.runOnce {
             Events.instance.setTelemetryEnabled(false)
             let sessionsStream = UncheckedSendable(value: self.interactor.sessionsStream)
             let sessionProposalStream = UncheckedSendable(value: self.interactor.sessionProposalStream)
             let sessionRequestStream = UncheckedSendable(value: self.interactor.sessionRequestStream)
             let sessionDeleteStream = UncheckedSendable(value: self.interactor.sessionDeleteStream)
 
-            return Task {
-                await withTaskGroup(of: Void.self) { group in
-                    group.addTask {
-                        await self.handleSessions(sessionsStream.value)
-                    }
-
-                    group.addTask {
-                        await self.handleSessionProposals(sessionProposalStream.value)
-                    }
-
-                    group.addTask {
-                        await self.handleSessionRequests(sessionRequestStream.value)
-                    }
-
-                    group.addTask {
-                        await self.handleSessionDeletes(sessionDeleteStream.value)
-                    }
-                }
+            _ = Task {
+                await self.handleSessions(sessionsStream.value)
+            }
+            _ = Task {
+                await self.handleSessionProposals(sessionProposalStream.value)
+            }
+            _ = Task {
+                await self.handleSessionRequests(sessionRequestStream.value)
+            }
+            _ = Task {
+                await self.handleSessionDeletes(sessionDeleteStream.value)
             }
         }
     }
 
     public func pair(uri: String) async throws {
-        await setup()
         let uri = try WalletConnectURI(uriString: uri)
+        await setup()
         try await Pair.instance.pair(uri: uri)
     }
 

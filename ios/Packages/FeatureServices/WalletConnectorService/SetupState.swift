@@ -3,14 +3,11 @@
 import Foundation
 
 actor SetupState {
-    private var task: Task<Void, Never>?
+    private var isStarted = false
 
-    deinit {
-        task?.cancel()
-    }
-
-    func start(_ makeTask: @Sendable () -> Task<Void, Never>) {
-        guard task == nil else { return }
-        task = makeTask()
+    func runOnce(_ operation: @Sendable () -> Void) {
+        guard !isStarted else { return }
+        operation()
+        isStarted = true
     }
 }
