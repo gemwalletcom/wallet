@@ -31,7 +31,7 @@ class TransactionsViewModelSyncTest {
 
     private val session = MutableStateFlow<Session?>(mockSession(wallet = mockWallet()))
     private val service = mockk<GemTransactionsService> {
-        every { filterChains() } returns emptyList()
+        every { filterChains(any()) } returns emptyList()
     }
     private val getTransactions = mockk<GetTransactions> {
         every { getTransactions(any()) } returns MutableStateFlow(emptyList<TransactionDataAggregate>())
