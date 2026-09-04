@@ -11,6 +11,7 @@ public extension SwapperQuoteAsset {
             id: asset.id.identifier,
             symbol: asset.symbol,
             decimals: UInt32(asset.decimals),
+            assetType: asset.type.map(),
         )
     }
 }

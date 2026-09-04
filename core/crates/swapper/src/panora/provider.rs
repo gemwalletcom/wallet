@@ -130,7 +130,7 @@ fn token_address(asset: &SwapperQuoteAsset) -> String {
 mod tests {
     use super::*;
     use crate::{Options, SwapperQuoteAsset, fees::default_referral_fees};
-    use primitives::asset_constants::APTOS_USDT_ASSET_ID;
+    use primitives::{AssetType, asset_constants::APTOS_USDT_ASSET_ID};
 
     const TEST_WALLET: &str = "0x4eb20e735591a85bb58921ef2e6b55c385bba10e817ffe1e02e50deb6c594aef";
     const QUOTE_RESPONSE: &str = include_str!("testdata/quote_response.json");
@@ -141,11 +141,13 @@ mod tests {
                 id: Chain::Aptos.as_ref().to_string(),
                 symbol: "APT".to_string(),
                 decimals: 8,
+                asset_type: AssetType::NATIVE,
             },
             to_asset: SwapperQuoteAsset {
                 id: APTOS_USDT_ASSET_ID.to_string(),
                 symbol: "USDT".to_string(),
                 decimals: 6,
+                asset_type: AssetType::TOKEN,
             },
             wallet_address: TEST_WALLET.to_string(),
             destination_address: TEST_WALLET.to_string(),

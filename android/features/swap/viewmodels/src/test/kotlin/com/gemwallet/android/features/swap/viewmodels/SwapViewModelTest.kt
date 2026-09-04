@@ -12,6 +12,7 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.domains.swap.SwapItemType
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.swap.viewmodels.models.SwapActionState
 import com.gemwallet.android.ui.models.ButtonState
@@ -781,11 +782,13 @@ class SwapViewModelTest {
                 id = solAsset.id.toIdentifier(),
                 symbol = solAsset.symbol,
                 decimals = solAsset.decimals.toUInt(),
+                assetType = solAsset.type.toGem(),
             ),
             toAsset = SwapperQuoteAsset(
                 id = usdcAsset.id.toIdentifier(),
                 symbol = usdcAsset.symbol,
                 decimals = usdcAsset.decimals.toUInt(),
+                assetType = usdcAsset.type.toGem(),
             ),
             walletAddress = solInfo.owner!!.address,
             destinationAddress = usdcInfo.owner!!.address,
