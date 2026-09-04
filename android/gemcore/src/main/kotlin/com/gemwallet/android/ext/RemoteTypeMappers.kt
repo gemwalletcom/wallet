@@ -409,6 +409,66 @@ fun com.wallet.core.primitives.TpslType.toGem(): uniffi.gemstone.TpslType = when
     com.wallet.core.primitives.TpslType.StopLoss -> uniffi.gemstone.TpslType.STOP_LOSS
 }
 
+fun uniffi.gemstone.TransactionState.toPrimitives(): com.wallet.core.primitives.TransactionState = when (this) {
+    uniffi.gemstone.TransactionState.PENDING -> com.wallet.core.primitives.TransactionState.Pending
+    uniffi.gemstone.TransactionState.CONFIRMED -> com.wallet.core.primitives.TransactionState.Confirmed
+    uniffi.gemstone.TransactionState.IN_TRANSIT -> com.wallet.core.primitives.TransactionState.InTransit
+    uniffi.gemstone.TransactionState.FAILED -> com.wallet.core.primitives.TransactionState.Failed
+    uniffi.gemstone.TransactionState.REVERTED -> com.wallet.core.primitives.TransactionState.Reverted
+    uniffi.gemstone.TransactionState.REFUNDED -> com.wallet.core.primitives.TransactionState.Refunded
+}
+
+fun com.wallet.core.primitives.TransactionState.toGem(): uniffi.gemstone.TransactionState = when (this) {
+    com.wallet.core.primitives.TransactionState.Pending -> uniffi.gemstone.TransactionState.PENDING
+    com.wallet.core.primitives.TransactionState.Confirmed -> uniffi.gemstone.TransactionState.CONFIRMED
+    com.wallet.core.primitives.TransactionState.InTransit -> uniffi.gemstone.TransactionState.IN_TRANSIT
+    com.wallet.core.primitives.TransactionState.Failed -> uniffi.gemstone.TransactionState.FAILED
+    com.wallet.core.primitives.TransactionState.Reverted -> uniffi.gemstone.TransactionState.REVERTED
+    com.wallet.core.primitives.TransactionState.Refunded -> uniffi.gemstone.TransactionState.REFUNDED
+}
+
+fun uniffi.gemstone.TransactionType.toPrimitives(): com.wallet.core.primitives.TransactionType = when (this) {
+    uniffi.gemstone.TransactionType.TRANSFER -> com.wallet.core.primitives.TransactionType.Transfer
+    uniffi.gemstone.TransactionType.TRANSFER_NFT -> com.wallet.core.primitives.TransactionType.TransferNFT
+    uniffi.gemstone.TransactionType.SWAP -> com.wallet.core.primitives.TransactionType.Swap
+    uniffi.gemstone.TransactionType.TOKEN_APPROVAL -> com.wallet.core.primitives.TransactionType.TokenApproval
+    uniffi.gemstone.TransactionType.STAKE_DELEGATE -> com.wallet.core.primitives.TransactionType.StakeDelegate
+    uniffi.gemstone.TransactionType.STAKE_UNDELEGATE -> com.wallet.core.primitives.TransactionType.StakeUndelegate
+    uniffi.gemstone.TransactionType.STAKE_REWARDS -> com.wallet.core.primitives.TransactionType.StakeRewards
+    uniffi.gemstone.TransactionType.STAKE_REDELEGATE -> com.wallet.core.primitives.TransactionType.StakeRedelegate
+    uniffi.gemstone.TransactionType.STAKE_WITHDRAW -> com.wallet.core.primitives.TransactionType.StakeWithdraw
+    uniffi.gemstone.TransactionType.STAKE_FREEZE -> com.wallet.core.primitives.TransactionType.StakeFreeze
+    uniffi.gemstone.TransactionType.STAKE_UNFREEZE -> com.wallet.core.primitives.TransactionType.StakeUnfreeze
+    uniffi.gemstone.TransactionType.ASSET_ACTIVATION -> com.wallet.core.primitives.TransactionType.AssetActivation
+    uniffi.gemstone.TransactionType.SMART_CONTRACT_CALL -> com.wallet.core.primitives.TransactionType.SmartContractCall
+    uniffi.gemstone.TransactionType.PERPETUAL_OPEN_POSITION -> com.wallet.core.primitives.TransactionType.PerpetualOpenPosition
+    uniffi.gemstone.TransactionType.PERPETUAL_CLOSE_POSITION -> com.wallet.core.primitives.TransactionType.PerpetualClosePosition
+    uniffi.gemstone.TransactionType.PERPETUAL_MODIFY_POSITION -> com.wallet.core.primitives.TransactionType.PerpetualModifyPosition
+    uniffi.gemstone.TransactionType.EARN_DEPOSIT -> com.wallet.core.primitives.TransactionType.EarnDeposit
+    uniffi.gemstone.TransactionType.EARN_WITHDRAW -> com.wallet.core.primitives.TransactionType.EarnWithdraw
+}
+
+fun com.wallet.core.primitives.TransactionType.toGem(): uniffi.gemstone.TransactionType = when (this) {
+    com.wallet.core.primitives.TransactionType.Transfer -> uniffi.gemstone.TransactionType.TRANSFER
+    com.wallet.core.primitives.TransactionType.TransferNFT -> uniffi.gemstone.TransactionType.TRANSFER_NFT
+    com.wallet.core.primitives.TransactionType.Swap -> uniffi.gemstone.TransactionType.SWAP
+    com.wallet.core.primitives.TransactionType.TokenApproval -> uniffi.gemstone.TransactionType.TOKEN_APPROVAL
+    com.wallet.core.primitives.TransactionType.StakeDelegate -> uniffi.gemstone.TransactionType.STAKE_DELEGATE
+    com.wallet.core.primitives.TransactionType.StakeUndelegate -> uniffi.gemstone.TransactionType.STAKE_UNDELEGATE
+    com.wallet.core.primitives.TransactionType.StakeRewards -> uniffi.gemstone.TransactionType.STAKE_REWARDS
+    com.wallet.core.primitives.TransactionType.StakeRedelegate -> uniffi.gemstone.TransactionType.STAKE_REDELEGATE
+    com.wallet.core.primitives.TransactionType.StakeWithdraw -> uniffi.gemstone.TransactionType.STAKE_WITHDRAW
+    com.wallet.core.primitives.TransactionType.StakeFreeze -> uniffi.gemstone.TransactionType.STAKE_FREEZE
+    com.wallet.core.primitives.TransactionType.StakeUnfreeze -> uniffi.gemstone.TransactionType.STAKE_UNFREEZE
+    com.wallet.core.primitives.TransactionType.AssetActivation -> uniffi.gemstone.TransactionType.ASSET_ACTIVATION
+    com.wallet.core.primitives.TransactionType.SmartContractCall -> uniffi.gemstone.TransactionType.SMART_CONTRACT_CALL
+    com.wallet.core.primitives.TransactionType.PerpetualOpenPosition -> uniffi.gemstone.TransactionType.PERPETUAL_OPEN_POSITION
+    com.wallet.core.primitives.TransactionType.PerpetualClosePosition -> uniffi.gemstone.TransactionType.PERPETUAL_CLOSE_POSITION
+    com.wallet.core.primitives.TransactionType.PerpetualModifyPosition -> uniffi.gemstone.TransactionType.PERPETUAL_MODIFY_POSITION
+    com.wallet.core.primitives.TransactionType.EarnDeposit -> uniffi.gemstone.TransactionType.EARN_DEPOSIT
+    com.wallet.core.primitives.TransactionType.EarnWithdraw -> uniffi.gemstone.TransactionType.EARN_WITHDRAW
+}
+
 fun uniffi.gemstone.TransferDataOutputAction.toPrimitives(): com.wallet.core.primitives.TransferDataOutputAction = when (this) {
     uniffi.gemstone.TransferDataOutputAction.SIGN -> com.wallet.core.primitives.TransferDataOutputAction.Sign
     uniffi.gemstone.TransferDataOutputAction.SEND -> com.wallet.core.primitives.TransferDataOutputAction.Send

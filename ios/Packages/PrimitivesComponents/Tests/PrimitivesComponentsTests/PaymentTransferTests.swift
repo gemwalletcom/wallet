@@ -133,7 +133,7 @@ struct PaymentTransferTests {
             ).json(),
             account: try Primitives.ChainAddress(chain: .solana, address: "account").json(),
             transaction: "encoded-transaction",
-            transactionType: Primitives.TransactionType.transfer.json(),
+            transactionType: Primitives.TransactionType.transfer.map(),
             memo: memo,
             request: request.map { $0.json() },
         )

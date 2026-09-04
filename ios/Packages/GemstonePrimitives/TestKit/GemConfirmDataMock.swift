@@ -127,7 +127,7 @@ public extension GemTransferDataExtra {
             data: data,
             outputType: outputType.map(),
             outputAction: outputAction.map(),
-            transactionType: transactionType.json(),
+            transactionType: transactionType.map(),
             approval: approval,
         )
     }

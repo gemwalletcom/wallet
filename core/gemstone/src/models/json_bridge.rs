@@ -17,7 +17,7 @@ use primitives::{
     AccountDataType, ApplicationMetadata, ApplicationMetadataSource, AssetList, ChainAsset, ContractCallData, DelegationBase, DelegationState, DelegationValidator, NFTAsset,
     NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, NFTImages, NFTResource, NFTType, Payment, PaymentAmount, PaymentLink, PaymentRequest, Perpetual, PerpetualMarketData,
     PerpetualPosition, PerpetualTriggerOrder, ReportNft, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationHeader, SimulationResult, SolanaNftStandard,
-    SolanaTokenProgramId, StakeProviderType, StakeValidator, TransactionPerpetualMetadata, TransactionState, TransactionType, TronStakeData, TronUnfreeze, TronVote, UTXO,
+    SolanaTokenProgramId, StakeProviderType, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
 use primitives::{
     AddressName, AuthNonce, AuthPayload, ChainAddress, ChartValuePercentage, Device, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification,
@@ -170,8 +170,6 @@ json_bridge!(
     TransactionExtended,
     TransactionPerpetualMetadata,
     TransactionId,
-    TransactionState,
-    TransactionType,
     TransactionsResponse,
     TronStakeData,
     TronUnfreeze,

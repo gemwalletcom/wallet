@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
+import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.TransferDataOutputAction
 import com.wallet.core.primitives.TransferDataOutputType
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
@@ -95,7 +96,7 @@ class WalletConnectSignerTest {
                     data = "tx".toByteArray(),
                     outputType = TransferDataOutputType.EncodedTransaction.toGem(),
                     outputAction = TransferDataOutputAction.Send.toGem(),
-                    transactionType = "\"smartContractCall\"",
+                    transactionType = TransactionType.SmartContractCall.toGem(),
                     approval = null,
                 ),
             ),

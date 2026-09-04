@@ -248,6 +248,34 @@ fn swift_case(variant: &str) -> String {
         .collect()
 }
 
+/// UniFFI lowers a variant with `heck`, which treats a run of capitals as one word: `TransferNFT`
+/// becomes `transferNft`, where TypeShare keeps `transferNFT`. The two sides of a mapper therefore
+/// spell the same variant differently whenever it contains an acronym.
+fn uniffi_swift_case(variant: &str) -> String {
+    let mut words: Vec<String> = Vec::new();
+    let characters: Vec<char> = variant.chars().collect();
+    let mut word = String::new();
+    for (index, character) in characters.iter().enumerate() {
+        let starts_word =
+            character.is_ascii_uppercase() && !word.is_empty() && (characters[index - 1].is_ascii_lowercase() || characters.get(index + 1).is_some_and(char::is_ascii_lowercase));
+        if starts_word {
+            words.push(std::mem::take(&mut word));
+        }
+        word.push(*character);
+    }
+    if !word.is_empty() {
+        words.push(word);
+    }
+    words
+        .iter()
+        .enumerate()
+        .map(|(index, word)| match index {
+            0 => word.to_ascii_lowercase(),
+            _ => word[..1].to_ascii_uppercase() + &word[1..].to_ascii_lowercase(),
+        })
+        .collect()
+}
+
 fn field_names(field: &Field, index: usize) -> (String, String) {
     match index {
         0 => (field.serialized.clone(), camel_case(&field.rust)),
@@ -282,7 +310,12 @@ pub fn swift(types: &[RemoteType]) -> String {
                 RemoteType::Enum { variants, .. } => {
                     out.push_str("        switch self {\n");
                     for variant in variants {
-                        out.push_str(&format!("        case .{case}: .{case}\n", case = swift_case(variant)));
+                        let (core, app) = (uniffi_swift_case(variant), swift_case(variant));
+                        let (from_case, to_case) = match index {
+                            0 => (&core, &app),
+                            _ => (&app, &core),
+                        };
+                        out.push_str(&format!("        case .{from_case}: .{to_case}\n"));
                     }
                     out.push_str("        }\n");
                 }

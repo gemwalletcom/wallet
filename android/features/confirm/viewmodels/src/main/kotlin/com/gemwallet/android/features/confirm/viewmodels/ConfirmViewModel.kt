@@ -205,7 +205,7 @@ class ConfirmViewModel @Inject constructor(
         }
 
         AmountUIModel(
-            transactionType = inputType.transactionType().decodeJson<TransactionType>(),
+            transactionType = inputType.transactionType().toPrimitives(),
             headerKind = inputType.headerKind(),
             amount = amount.atomicValue,
             fromAsset = preload.fromAsset,

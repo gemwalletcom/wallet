@@ -48,9 +48,9 @@ struct AmountTransferViewModelTests {
         let deposit = try AmountTransferViewModel(asset: .mock(), action: .deposit(.mock())).makeTransferData(value: 200, useMaxAmount: false)
         let withdraw = try AmountTransferViewModel(asset: .mock(), action: .withdraw(.mock())).makeTransferData(value: 300, useMaxAmount: false)
 
-        #expect(TransactionType(core: send.inputType.transactionType()) == .transfer)
-        #expect(TransactionType(core: deposit.inputType.transactionType()) == .transfer)
-        #expect(TransactionType(core: withdraw.inputType.transactionType()) == .transfer)
+        #expect(send.inputType.transactionType().map() == .transfer)
+        #expect(deposit.inputType.transactionType().map() == .transfer)
+        #expect(withdraw.inputType.transactionType().map() == .transfer)
         #expect(send.value == "100")
         #expect(deposit.value == "200")
         #expect(withdraw.value == "300")

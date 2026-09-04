@@ -33,6 +33,8 @@ remote:
   - PriceAlertDirection
   - PriceAlertNotificationType
   - TotalFiatValue
+  - TransactionState
+  - TransactionType
   - TransferDataOutputAction
   - TransferDataOutputType
 codes:
