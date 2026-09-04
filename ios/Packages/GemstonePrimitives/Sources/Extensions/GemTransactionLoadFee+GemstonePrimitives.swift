@@ -6,7 +6,7 @@ import Primitives
 
 public extension GemTransactionLoadFee {
     func map() throws -> Fee {
-        try Fee(
+        Fee(
             fee: fee,
             gasPriceType: gasPriceType.map(),
             gasLimit: gasLimit,

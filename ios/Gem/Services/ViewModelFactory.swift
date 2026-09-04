@@ -527,7 +527,7 @@ public struct ViewModelFactory: Sendable {
             wallet: wallet,
             service: confirmTransferService(),
             onComplete: { [toastPresenter] in
-                Task { await toastPresenter.present(.transfer(for: data.inputType)) }
+                Task { toastPresenter.present(.transfer(for: data.inputType)) }
                 onComplete?()
             },
         )

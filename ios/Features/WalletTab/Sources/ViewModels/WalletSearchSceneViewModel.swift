@@ -278,7 +278,7 @@ extension WalletSearchSceneViewModel {
     private func search(query: String) async {
         state = .loading
         do {
-            try await service.search(query: query, scope: .all)
+            let _ = try await service.search(query: query, scope: .all)
             state = .data(true)
         } catch {
             state.setError(error)
