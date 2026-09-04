@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemConfirmFeeSelection
 import Components
 import Foundation
 import struct Gemstone.GemConfirmData
@@ -27,7 +28,7 @@ import WalletConnector
 @Observable
 @MainActor
 public final class ConfirmTransferSceneViewModel {
-    var feeSelection: FeeSelection
+    var feeSelection: GemConfirmFeeSelection
     var feeAssetSelection: FeeAssetSelection
     var state: ConfirmTransferState {
         didSet { onStateChange(state: state) }
@@ -76,7 +77,7 @@ public final class ConfirmTransferSceneViewModel {
             inputType: request.data.inputType,
             simulation: request.simulation?.json(),
         )
-        feeSelection = .preset(initialState.feePriority.map())
+        feeSelection = .priority(priority: initialState.feePriority)
         feeAssetSelection = .automatic
 
         let recipientAddress = request.data.recipient.address
@@ -172,7 +173,7 @@ public final class ConfirmTransferSceneViewModel {
             feeAsset: state.feeAsset,
             currency: currency,
             selection: feeSelection,
-            feeRates: state.confirmData?.feeRateRows(selection: feeSelection.map(), feeAsset: state.feeAsset.map()),
+            feeRates: state.confirmData?.feeRateRows(selection: feeSelection, feeAsset: state.feeAsset.map()),
             feeAssetPrice: state.metadata?.feePrice,
             feeAmount: state.transaction.value?.fee.fee,
             feeAssets: state.feeAssets.compactMap { try? $0.feeAssetItem(currency: currency) },
@@ -401,7 +402,7 @@ extension ConfirmTransferSceneViewModel {
         service.explorerLink(chain: chain, address: address)
     }
 
-    func load(request: ConfirmTransferRequest, selection: FeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferData {
+    func load(request: ConfirmTransferRequest, selection: GemConfirmFeeSelection, feeAssetSelection: FeeAssetSelection) async throws -> ConfirmTransferData {
         let scene = try await service.load(
             input: service.confirmInput(transfer: request.data),
             options: options(selection: selection, feeAssetSelection: feeAssetSelection),
@@ -419,9 +420,9 @@ extension ConfirmTransferSceneViewModel {
         )
     }
 
-    private func options(selection: FeeSelection, feeAssetSelection: FeeAssetSelection) -> GemConfirmLoadOptions {
+    private func options(selection: GemConfirmFeeSelection, feeAssetSelection: FeeAssetSelection) -> GemConfirmLoadOptions {
         GemConfirmLoadOptions(
-            feeSelection: selection.map(),
+            feeSelection: selection,
             feeAssetId: feeAssetSelection.selectedAssetId?.identifier,
         )
     }

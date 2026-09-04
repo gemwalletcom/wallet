@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemConfirmFeeSelection
 import BigInt
 import Components
 import struct Gemstone.GemFeeRateRow
@@ -13,23 +14,23 @@ import SwiftUI
 public struct NetworkFeeSceneViewModel {
     private let feeAsset: Asset
     private let currency: Currency
-    private let selection: FeeSelection
+    private let selection: GemConfirmFeeSelection
     private let feeRates: GemFeeRateRows?
     private let feeAssetPrice: Price?
     private let feeAmount: BigInt?
     private let feeAssets: [FeeAssetItem]
-    private let onSelect: (@MainActor (FeeSelection) -> Void)?
+    private let onSelect: (@MainActor (GemConfirmFeeSelection) -> Void)?
     private let onSelectFeeAsset: (@MainActor (AssetId) -> Void)?
 
     public init(
         feeAsset: Asset,
         currency: Currency,
-        selection: FeeSelection,
+        selection: GemConfirmFeeSelection,
         feeRates: GemFeeRateRows? = nil,
         feeAssetPrice: Price? = nil,
         feeAmount: BigInt? = nil,
         feeAssets: [FeeAssetItem] = [],
-        onSelect: (@MainActor (FeeSelection) -> Void)? = nil,
+        onSelect: (@MainActor (GemConfirmFeeSelection) -> Void)? = nil,
         onSelectFeeAsset: (@MainActor (AssetId) -> Void)? = nil,
     ) {
         self.feeAsset = feeAsset
@@ -75,12 +76,12 @@ public struct NetworkFeeSceneViewModel {
     }
 
     public var selectedFeeRateViewModel: FeeRateViewModel? {
-        guard let priority = selection.presetPriority else { return nil }
+        guard let priority = selection.selectedPriority()?.map() else { return nil }
         return feeRatesViewModels.first(where: { $0.priority == priority })
     }
 
     public func isSelected(_ rate: FeeRateViewModel) -> Bool {
-        selection.presetPriority == rate.priority
+        selection.selectedPriority()?.map() == rate.priority
     }
 
     public func rowItem(for rate: FeeRateViewModel) -> ListItemModel {
@@ -101,7 +102,7 @@ public struct NetworkFeeSceneViewModel {
     // MARK: - Custom Fee
 
     public var supportsCustomFee: Bool { onSelect != nil && feeRates?.supportsCustomFee == true }
-    public var isCustomSelected: Bool { selection.customRate != nil }
+    public var isCustomSelected: Bool { selection.customGasPrice() != nil }
     public var customRowItem: ListItemModel { rowItem(title: Localized.FeeRate.custom, rate: customFeeRateViewModel) }
 
     @MainActor
@@ -116,13 +117,13 @@ public struct NetworkFeeSceneViewModel {
             baseFee: feeAmount,
             baseTotal: feeRates?.selectedTotal,
             normalTotal: feeRates?.normalTotal ?? feeRates?.selectedTotal,
-            initialRate: selection.customRate,
-            onSelect: { onSelect?(.custom($0)) },
+            initialRate: selection.customGasPrice(),
+            onSelect: { onSelect?(.custom(gasPrice: $0)) },
         )
     }
 
     @MainActor
-    public func select(_ selection: FeeSelection) {
+    public func select(_ selection: GemConfirmFeeSelection) {
         onSelect?(selection)
     }
 
@@ -151,7 +152,7 @@ private extension NetworkFeeSceneViewModel {
     }
 
     var customFeeRateViewModel: FeeRateViewModel? {
-        selection.customRate.map { feeRateViewModel(priority: .normal, unitValue: $0, fee: feeAmount) }
+        selection.customGasPrice().map { feeRateViewModel(priority: .normal, unitValue: $0, fee: feeAmount) }
     }
 
     func rowItem(title: String, rate: FeeRateViewModel?) -> ListItemModel {

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemConfirmFeeSelection
 import Foundation
 import enum Gemstone.GemConfirmError
 import struct Gemstone.GemConfirmMetadata
@@ -157,7 +158,7 @@ struct ConfirmSubmissionTests {
         )
 
         let request = ConfirmTransferRequest.mock()
-        let state = try await service.load(request: request, selection: FeeSelection.preset(.normal), feeAssetSelection: FeeAssetSelection.automatic).simulation
+        let state = try await service.load(request: request, selection: GemConfirmFeeSelection.priority(priority: .normal), feeAssetSelection: FeeAssetSelection.automatic).simulation
 
         #expect(state.payload.primaryFields.count == 1)
         #expect(state.payload.secondaryFields.isEmpty)

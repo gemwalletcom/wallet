@@ -213,7 +213,7 @@ extension TransactionSceneViewModel {
         NetworkFeeSceneViewModel(
             feeAsset: model.transaction.feeAsset,
             currency: Currency(core: service.getCurrency()),
-            selection: .preset(.normal),
+            selection: .priority(priority: .normal),
             feeAssetPrice: model.transaction.feePrice,
             feeAmount: BigInt(model.transaction.transaction.fee),
         )

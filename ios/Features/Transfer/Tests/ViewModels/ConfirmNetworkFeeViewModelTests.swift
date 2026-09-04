@@ -50,7 +50,7 @@ struct ConfirmNetworkFeeViewModelTests {
         let feeModel = NetworkFeeSceneViewModel(
             feeAsset: pathUSD.asset,
             currency: .usd,
-            selection: .preset(.normal),
+            selection: .priority(priority: .normal),
             feeAssetPrice: .mock(price: 1),
             feeAmount: 1,
             feeAssets: [pathUSD, usdc],
@@ -80,7 +80,7 @@ struct ConfirmNetworkFeeViewModelTests {
             feeModel: NetworkFeeSceneViewModel(
                 feeAsset: pathUSD.asset,
                 currency: .usd,
-                selection: .preset(.normal),
+                selection: .priority(priority: .normal),
                 feeAssetPrice: .mock(price: 1),
                 feeAmount: 1,
                 feeAssets: [pathUSD, usdc],
@@ -121,7 +121,7 @@ struct ConfirmNetworkFeeViewModelTests {
         NetworkFeeSceneViewModel(
             feeAsset: .mockEthereum(),
             currency: .usd,
-            selection: .preset(.normal),
+            selection: .priority(priority: .normal),
             feeAssetPrice: feeAssetPrice,
             feeAmount: feeAmount,
         )

@@ -9,12 +9,3 @@ public extension GemTransferData {
         GemConfirmInput(from: account.map(), transfer: self)
     }
 }
-
-public extension FeeSelection {
-    func map() -> GemConfirmFeeSelection {
-        switch self {
-        case let .preset(priority): .priority(priority: priority.map())
-        case let .custom(gasPrice): .custom(gasPrice: gasPrice)
-        }
-    }
-}

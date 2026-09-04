@@ -6,6 +6,7 @@ import enum Gemstone.FeeUnitType
 import enum Gemstone.FeePriority
 import struct Gemstone.GemFeeRateRow
 import struct Gemstone.GemFeeRateRows
+import enum Gemstone.GemConfirmFeeSelection
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesComponentsTestKit
@@ -202,25 +203,25 @@ struct NetworkFeeSceneViewModelTests {
         let rates = rows([(.normal, 2, nil), (.fast, 3, nil)], unitType: .native, decimals: 9)
 
         #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), feeRates: rates).selectedFeeRateViewModel?.priority == .normal)
-        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), selection: .preset(.fast), feeRates: rates).selectedFeeRateViewModel?.priority == .fast)
-        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), selection: .custom(5), feeRates: rates).selectedFeeRateViewModel == nil)
+        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), selection: .priority(priority: .fast), feeRates: rates).selectedFeeRateViewModel?.priority == .fast)
+        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), selection: .custom(gasPrice: 5), feeRates: rates).selectedFeeRateViewModel == nil)
     }
 
     @Test
     func selectForwardsSelectionToOwner() async {
         await confirmation { selected in
             NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), onSelect: {
-                #expect($0 == .preset(.fast))
+                #expect($0 == .priority(priority: .fast))
                 selected()
             })
-            .select(.preset(.fast))
+            .select(.priority(priority: .fast))
         }
     }
 
     @Test
     func supportsCustomFeeOnlyWhenSelectable() {
         let rates = rows([(.normal, 1, nil), (.fast, 2, nil)], unitType: .satVb, decimals: 1, supportsCustomFee: true)
-        let onSelect: @MainActor (FeeSelection) -> Void = { _ in }
+        let onSelect: @MainActor (GemConfirmFeeSelection) -> Void = { _ in }
 
         #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mock(), feeRates: rates, onSelect: onSelect).supportsCustomFee)
         #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mock(), feeRates: rates).supportsCustomFee == false)
@@ -248,7 +249,7 @@ struct NetworkFeeSceneViewModelTests {
     func customFeeConfirmForwardsSelectionToOwner() async {
         await confirmation { selected in
             let custom = bitcoinScene(onSelect: {
-                #expect($0 == .custom(40))
+                #expect($0 == .custom(gasPrice: 40))
                 selected()
             }).customFeeModel()
             custom.input = "4"
@@ -269,14 +270,14 @@ struct NetworkFeeSceneViewModelTests {
     func customFeeMaxAnchoredToNormalRate() async {
         await confirmation { selected in
             let custom = bitcoinScene(onSelect: {
-                #expect($0 == .custom(200))
+                #expect($0 == .custom(gasPrice: 200))
                 selected()
             }).customFeeModel()
             custom.input = "20"
             custom.confirm()
         }
 
-        let reopened = bitcoinScene(selection: .custom(200)).customFeeModel()
+        let reopened = bitcoinScene(selection: .custom(gasPrice: 200)).customFeeModel()
         reopened.input = "21"
         #expect(reopened.isConfirmEnabled == false)
         #expect(reopened.errorText != nil)
@@ -284,7 +285,7 @@ struct NetworkFeeSceneViewModelTests {
 
     @Test
     func customRowShowsValueOnlyWhenSelected() {
-        let selected = bitcoinScene(selection: .custom(200))
+        let selected = bitcoinScene(selection: .custom(gasPrice: 200))
         #expect(selected.isCustomSelected)
         #expect(selected.customRowItem.subtitle != nil)
 
@@ -294,13 +295,13 @@ struct NetworkFeeSceneViewModelTests {
     }
 
     private func bitcoinScene(
-        selection: FeeSelection = .preset(.normal),
-        onSelect: (@MainActor (FeeSelection) -> Void)? = nil,
+        selection: GemConfirmFeeSelection = .priority(priority: .normal),
+        onSelect: (@MainActor (GemConfirmFeeSelection) -> Void)? = nil,
     ) -> NetworkFeeSceneViewModel {
         .mock(
             feeAsset: .mock(),
             selection: selection,
-            feeRates: rows([(.normal, 20, 1000)], unitType: .satVb, decimals: 1, supportsCustomFee: true, selectedTotal: selection.customRate ?? 20),
+            feeRates: rows([(.normal, 20, 1000)], unitType: .satVb, decimals: 1, supportsCustomFee: true, selectedTotal: selection.customGasPrice() ?? 20),
             feeAmount: BigInt(1000),
             onSelect: onSelect,
         )

@@ -270,7 +270,7 @@ struct ConfirmTransferSceneViewModelTests {
         #expect(model.state.transaction.value?.confirmData.feeRates.map(\.priority) == priorities)
 
         model.state.simulation = .mock(warnings: [SimulationWarning(severity: .warning, warning: .externallyOwnedSpender, message: nil)])
-        model.feeSelection = .preset(.fast)
+        model.feeSelection = .priority(priority: .fast)
         await model.load()
 
         #expect(model.state.simulation.warnings.isEmpty)

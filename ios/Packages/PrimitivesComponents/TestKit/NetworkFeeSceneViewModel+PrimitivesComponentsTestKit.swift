@@ -2,6 +2,7 @@
 
 import BigInt
 import struct Gemstone.GemFeeRateRows
+import enum Gemstone.GemConfirmFeeSelection
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit
@@ -10,12 +11,12 @@ public extension NetworkFeeSceneViewModel {
     static func mock(
         feeAsset: Asset = .mockEthereum(),
         currency: Currency = .usd,
-        selection: FeeSelection = .preset(.normal),
+        selection: GemConfirmFeeSelection = .priority(priority: .normal),
         feeRates: GemFeeRateRows? = nil,
         feeAssetPrice: Price? = nil,
         feeAmount: BigInt? = nil,
         feeAssets: [FeeAssetItem] = [],
-        onSelect: (@MainActor (FeeSelection) -> Void)? = nil,
+        onSelect: (@MainActor (GemConfirmFeeSelection) -> Void)? = nil,
         onSelectFeeAsset: (@MainActor (AssetId) -> Void)? = nil,
     ) -> NetworkFeeSceneViewModel {
         NetworkFeeSceneViewModel(

@@ -34,6 +34,23 @@ pub enum GemConfirmFeeSelection {
     Custom { gas_price: GemBigInt },
 }
 
+#[uniffi::export]
+impl GemConfirmFeeSelection {
+    pub fn selected_priority(&self) -> Option<FeePriority> {
+        match self {
+            Self::Priority { priority } => Some(*priority),
+            Self::Custom { .. } => None,
+        }
+    }
+
+    pub fn custom_gas_price(&self) -> Option<GemBigInt> {
+        match self {
+            Self::Priority { .. } => None,
+            Self::Custom { gas_price } => Some(gas_price.clone()),
+        }
+    }
+}
+
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmLoadOptions {
     pub fee_selection: GemConfirmFeeSelection,
@@ -170,4 +187,20 @@ pub struct GemConfirmSimulation {
     pub header: Option<GemSimulationValue>,
     pub balance_changes: Vec<GemSimulationBalanceChange>,
     pub has_critical_warning: bool,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fee_selection_answers_only_for_its_own_case() {
+        let priority = GemConfirmFeeSelection::Priority { priority: FeePriority::Fast };
+        let custom = GemConfirmFeeSelection::Custom { gas_price: 7.into() };
+
+        assert_eq!(priority.selected_priority(), Some(FeePriority::Fast));
+        assert_eq!(priority.custom_gas_price(), None);
+        assert_eq!(custom.selected_priority(), None);
+        assert_eq!(custom.custom_gas_price(), Some(7.into()));
+    }
 }
