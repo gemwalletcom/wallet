@@ -30,14 +30,25 @@ struct PerpetualsSceneViewModelTests {
         let perpetuals = GemPerpetualServiceMock()
         let model = PerpetualsSceneViewModel.mock(perpetualService: perpetuals)
 
-        await model.updateMarkets(source: .timer)
+        await model.load(source: .timer)
         #expect(perpetuals.syncMarketsCount == 1)
 
-        await model.updateMarkets(source: .timer)
+        await model.load(source: .timer)
         #expect(perpetuals.syncMarketsCount == 1)
 
-        await model.updateMarkets(source: .user)
+        await model.load(source: .user)
         #expect(perpetuals.syncMarketsCount == 2)
+    }
+
+    @Test
+    func openingTheSceneSyncsPositionsAndMarkets() async {
+        let perpetuals = GemPerpetualServiceMock()
+        let model = PerpetualsSceneViewModel.mock(perpetualService: perpetuals)
+
+        await model.load()
+
+        #expect(perpetuals.syncPositionsCount == 1)
+        #expect(perpetuals.syncMarketsCount == 1)
     }
 }
 

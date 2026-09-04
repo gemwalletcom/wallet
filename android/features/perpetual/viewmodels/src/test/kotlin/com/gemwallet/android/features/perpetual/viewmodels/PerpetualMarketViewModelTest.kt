@@ -48,12 +48,22 @@ class PerpetualMarketViewModelTest {
     fun `pull to refresh asks core for a user requested markets sync`() = runTest(dispatcher) {
         val trigger = CompletableDeferred<GemMarketsRefreshTrigger>()
         val service = mockk<GemPerpetualServiceInterface>()
-        coEvery { service.syncMarketsIfNeeded(Chain.HyperCore.string, any()) } answers { trigger.complete(secondArg()); true }
-        coEvery { service.syncCurrentPositions() } returns Unit
+        coEvery { service.refresh(any()) } answers { trigger.complete(firstArg()); emptyList() }
 
         viewModel(service).onRefresh()
 
         assertEquals(GemMarketsRefreshTrigger.USER_REQUESTED, trigger.await())
+    }
+
+    @Test
+    fun `opening the screen asks core for a scheduled refresh, not positions alone`() = runTest(dispatcher) {
+        val trigger = CompletableDeferred<GemMarketsRefreshTrigger>()
+        val service = mockk<GemPerpetualServiceInterface>()
+        coEvery { service.refresh(any()) } answers { trigger.complete(firstArg()); emptyList() }
+
+        viewModel(service).fetch()
+
+        assertEquals(GemMarketsRefreshTrigger.SCHEDULED, trigger.await())
     }
 
     private fun viewModel(service: GemPerpetualServiceInterface): PerpetualMarketViewModel {

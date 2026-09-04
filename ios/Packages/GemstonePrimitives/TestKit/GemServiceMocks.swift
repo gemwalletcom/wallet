@@ -650,6 +650,7 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
     public var isPerpetualEnabled = true
     public var connects = true
     public private(set) var syncMarketsCount = 0
+    public private(set) var syncPositionsCount = 0
     public private(set) var clearMarketsCount = 0
     public var connectionFailures = 0
     private var updatedAt: Int64?
@@ -697,7 +698,15 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         updatedAt = nil
     }
 
-    public func syncCurrentPositions() async throws {}
+    public func syncCurrentPositions() async throws {
+        syncPositionsCount += 1
+    }
+
+    public func refresh(trigger: Gemstone.GemMarketsRefreshTrigger) async -> [Gemstone.GemPerpetualRefreshFailure] {
+        try? await syncCurrentPositions()
+        _ = try? await syncMarketsIfNeeded(chain: "hypercore", trigger: trigger)
+        return []
+    }
 
     public func connection(wallet: Gemstone.Wallet) async throws -> Gemstone.GemPerpetualConnection? {
         if connectionFailures > 0 {

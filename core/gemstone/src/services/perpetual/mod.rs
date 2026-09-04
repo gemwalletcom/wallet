@@ -6,7 +6,8 @@ pub mod store;
 pub mod stream;
 
 use crate::services::error::GemServiceError;
-use model::GemPerpetualConnection;
+use crate::services::failures::record;
+use model::{GemPerpetualConnection, GemPerpetualRefreshFailure, GemPerpetualRefreshStep};
 use std::sync::Arc;
 
 use chrono::Utc;
@@ -73,6 +74,16 @@ impl GemPerpetualService {
 
     pub fn autoclose_summary(&self, data: PerpetualModifyConfirmData) -> Option<GemAutocloseSummary> {
         rules::autoclose_summary(&data)
+    }
+
+    pub async fn refresh(&self, trigger: GemMarketsRefreshTrigger) -> Vec<GemPerpetualRefreshFailure> {
+        let mut failures = Vec::new();
+        record(&mut failures, GemPerpetualRefreshStep::Positions, self.sync_current_positions()).await;
+        record(&mut failures, GemPerpetualRefreshStep::Markets, async {
+            self.sync_markets_if_needed(Chain::HyperCore, trigger).await.map(|_| ())
+        })
+        .await;
+        failures
     }
 
     pub async fn sync_markets_if_needed(&self, chain: Chain, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {

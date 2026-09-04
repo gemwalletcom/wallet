@@ -79,15 +79,14 @@ class PerpetualMarketViewModel @Inject constructor(
     fun onRefresh() {
         sceneState.update { PerpetualMarketSceneState.Refreshing }
         viewModelScope.launch(Dispatchers.IO) {
-            syncMarkets(GemMarketsRefreshTrigger.USER_REQUESTED)
-            syncPositions()
+            refresh(GemMarketsRefreshTrigger.USER_REQUESTED)
             delay(500)
             sceneState.update { PerpetualMarketSceneState.Idle }
         }
     }
 
     fun fetch() {
-        viewModelScope.launch(Dispatchers.IO) { syncPositions() }
+        viewModelScope.launch(Dispatchers.IO) { refresh(GemMarketsRefreshTrigger.SCHEDULED) }
     }
 
     fun subscribeMarketPrices() {
@@ -111,14 +110,10 @@ class PerpetualMarketViewModel @Inject constructor(
         }
     }
 
-    private suspend fun syncMarkets(trigger: GemMarketsRefreshTrigger) {
-        runCatchingCancellable { service.syncMarketsIfNeeded(Chain.HyperCore.string, trigger) }
-            .onFailure { Log.e(TAG, "perpetual markets sync failed", it) }
-    }
-
-    private suspend fun syncPositions() {
-        runCatchingCancellable { service.syncCurrentPositions() }
-            .onFailure { Log.e(TAG, "perpetual positions sync failed", it) }
+    private suspend fun refresh(trigger: GemMarketsRefreshTrigger) {
+        runCatchingCancellable { service.refresh(trigger) }
+            .onSuccess { failures -> failures.forEach { Log.e(TAG, "perpetual refresh failed at ${it.step}: ${it.message}") } }
+            .onFailure { Log.e(TAG, "perpetual refresh failed", it) }
     }
 
     private companion object {
