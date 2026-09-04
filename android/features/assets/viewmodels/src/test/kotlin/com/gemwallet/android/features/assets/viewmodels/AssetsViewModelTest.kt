@@ -86,7 +86,7 @@ class AssetsViewModelTest {
         val refreshStarted = CompletableDeferred<Unit>()
         val refreshGate = CompletableDeferred<Unit>()
         every { service.showsInitialLoading() } returns true
-        coEvery { service.refresh(any()) } coAnswers {
+        coEvery { service.refresh() } coAnswers {
             refreshStarted.complete(Unit)
             refreshGate.await()
         }
@@ -99,7 +99,7 @@ class AssetsViewModelTest {
         assertTrue(viewModel.isLoadingAssets.value)
         refreshGate.complete(Unit)
         assertFalse(viewModel.isLoadingAssets.first { !it })
-        coVerify(exactly = 1) { service.refresh(any()) }
+        coVerify(exactly = 1) { service.refresh() }
     }
 
     @Test
@@ -107,7 +107,7 @@ class AssetsViewModelTest {
         val refreshStarted = CompletableDeferred<Unit>()
         val refreshGate = CompletableDeferred<Unit>()
         every { service.showsInitialLoading() } returns false
-        coEvery { service.refresh(any()) } coAnswers {
+        coEvery { service.refresh() } coAnswers {
             refreshStarted.complete(Unit)
             refreshGate.await()
         }

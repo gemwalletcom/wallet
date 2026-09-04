@@ -233,7 +233,6 @@ struct WalletIdMigrationTests {
         let userDefaults = UserDefaults.mock()
         let db = DB.mockWithChains([.ethereum])
         let walletStore = WalletStore(db: db)
-        let balanceStore = BalanceStore(db: db)
         let assetStore = AssetStore(db: db)
 
         let oldId = "uuid-with-balances"
@@ -258,8 +257,13 @@ struct WalletIdMigrationTests {
         }
 
         let newWalletId = try WalletId.from(id: "multicoin_\(ethAddress)")
-        let balances = try balanceStore.getBalances(walletId: newWalletId, assetIds: [asset.asset.id])
-        #expect(balances.count == 1)
+        let balanceCount = try db.dbQueue.read { db in
+            try BalanceRecord
+                .filter(BalanceRecord.Columns.walletId == newWalletId.id)
+                .filter(BalanceRecord.Columns.assetId == asset.asset.id.identifier)
+                .fetchCount(db)
+        }
+        #expect(balanceCount == 1)
     }
 
     @Test

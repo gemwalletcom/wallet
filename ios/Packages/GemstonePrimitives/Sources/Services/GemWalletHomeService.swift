@@ -6,10 +6,6 @@ import protocol Gemstone.GemWalletHomeServiceProtocol
 import Primitives
 
 public extension GemWalletHomeServiceProtocol {
-    func refresh(assetIds: [AssetId]) async throws {
-        try await refresh(assetIds: assetIds.ids)
-    }
-
     func updateBalances(assetIds: [AssetId]) async throws {
         try await updateBalances(assetIds: assetIds.ids)
     }

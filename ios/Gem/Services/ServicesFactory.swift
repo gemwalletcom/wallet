@@ -107,15 +107,16 @@ struct ServicesFactory {
         let avatarService = Gemstone.GemAvatarService(wallets: gemstoneWalletStore, files: gemstoneFileStore, provider: nativeProvider)
         let webSocket = Self.makeWebSocket(deviceKeyService: deviceKeyService, reconnection: connectionService)
         let gemstonePriceAlertStore = GemstonePriceAlertStore(store: storeManager.priceAlertStore)
+        let gemstoneBalanceStore = GemstoneBalanceStore(store: storeManager.balanceStore)
         let streamSubscriptionService = Gemstone.GemStreamSubscriptionService(
-            price: priceService,
+            balances: gemstoneBalanceStore,
             alerts: gemstonePriceAlertStore,
             connection: GemstoneStreamConnection(webSocket: webSocket),
         )
         let balanceService = gatewayService.balanceService(
             walletStore: gemstoneWalletStore,
             assetStore: gemstoneAssetStore,
-            store: GemstoneBalanceStore(store: storeManager.balanceStore),
+            store: gemstoneBalanceStore,
             assets: assetsService,
             price: priceService,
             stream: streamSubscriptionService,

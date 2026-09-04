@@ -1,7 +1,7 @@
 use std::sync::Mutex;
 
 use primitives::currency::Currency;
-use primitives::{AssetId, AssetMarket, FiatRate, WalletId};
+use primitives::{AssetId, AssetMarket, FiatRate};
 
 use super::{GemAssetPrice, GemPriceStore, GemPriceUpdate};
 use crate::services::error::GemServiceError;
@@ -18,10 +18,6 @@ impl GemPriceStore for MemoryPriceStore {
     async fn get_prices(&self, _asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetPrice>, GemServiceError> {
         Ok(vec![])
     }
-    async fn get_enabled_price_asset_ids(&self, _wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
-        Ok(vec![])
-    }
-
     async fn get_rate(&self, currency: Currency) -> Result<Option<FiatRate>, GemServiceError> {
         Ok(self.rates.lock().unwrap().iter().find(|rate| rate.symbol == currency).cloned())
     }

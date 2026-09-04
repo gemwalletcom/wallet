@@ -14,7 +14,6 @@ pub use model::{GemAssetBalance, GemBalanceRequirement, GemBalanceRow, GemBalanc
 pub use store::GemBalanceStore;
 
 use crate::gateway::GemGateway;
-use crate::services::assets::rules::default_balances;
 use crate::services::assets::{GemAssetStore, GemAssetsService};
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
@@ -71,7 +70,7 @@ impl GemBalanceService {
         if enabled {
             self.assets.sync_missing_assets(asset_ids.clone()).await?;
         }
-        let enabled_ids = self.store.get_enabled_asset_ids(wallet_id.clone(), asset_ids.clone()).await?;
+        let enabled_ids = self.store.get_enabled_asset_ids(wallet_id.clone()).await?;
         self.assets.add_missing_balances(wallet_id.clone(), asset_ids.clone()).await?;
         self.store.set_assets_enabled(wallet_id.clone(), asset_ids.clone(), enabled).await?;
         if enabled {
@@ -119,9 +118,13 @@ impl GemBalanceService {
 }
 
 impl GemBalanceService {
+    pub async fn update_enabled_balances(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        let asset_ids = self.store.get_enabled_asset_ids(wallet_id.clone()).await?;
+        self.update(wallet_id, asset_ids).await
+    }
+
     pub async fn setup_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {
-        let (defaults, _) = default_balances(&wallet);
-        let stored = self.store.get_enabled_asset_ids(wallet.id.clone(), defaults).await?;
+        let stored = self.store.get_enabled_asset_ids(wallet.id.clone()).await?;
         let enabled = self.assets.setup_wallet(wallet.clone()).await?;
         self.refresh_enabled_assets(wallet.id, rules::newly_enabled_asset_ids(&enabled, &stored)).await;
         Ok(())
