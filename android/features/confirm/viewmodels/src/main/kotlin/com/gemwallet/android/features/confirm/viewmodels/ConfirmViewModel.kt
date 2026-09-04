@@ -125,7 +125,7 @@ class ConfirmViewModel @Inject constructor(
                 simulation = simulationResult.value?.toJson(),
             )
             scene.preload.confirmData.simulation?.let { simulationResult.value = it.decodeJson() }
-            val currency = confirmService.currency().toCurrency()
+            val currency = confirmService.getCurrency().toCurrency()
             Preload(
                 signerParams = scene.preload.toSignerParams(),
                 amount = scene.preload.amount,

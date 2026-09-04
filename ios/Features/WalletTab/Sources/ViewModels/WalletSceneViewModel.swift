@@ -129,7 +129,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     }
 
     var currencyCode: String {
-        observablePreferences.currency
+        observablePreferences.currency.rawValue
     }
 
     var sections: AssetsSections {

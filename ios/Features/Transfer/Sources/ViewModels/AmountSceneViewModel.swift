@@ -55,7 +55,7 @@ public final class AmountSceneViewModel {
         self.wallet = wallet
         self.service = service
         self.onTransferAction = onTransferAction
-        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: service.currency())
+        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: service.getCurrency())
         provider = .make(from: input, service: service)
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
         amountInputModel = InputValidationViewModel(mode: .onDemand, validators: [])

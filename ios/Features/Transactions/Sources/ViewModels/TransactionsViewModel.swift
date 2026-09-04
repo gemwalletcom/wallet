@@ -51,7 +51,7 @@ public final class TransactionsViewModel {
     }
 
     public var currency: String {
-        service.currency()
+        service.getCurrency()
     }
 
     public var emptyContentModel: EmptyContentTypeViewModel {

@@ -34,7 +34,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         self.asset = asset
         self.data = data
         self.service = service
-        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: service.currency())
+        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: service.getCurrency())
         (leverageSelection, leverageTextStyle) = Self.makeLeverageSelection(data: data, service: service)
         (takeProfit, stopLoss) = Self.makeDefaultAutoclose(data: data, leverage: leverageSelection?.selected.value ?? data.positionAction.data.leverage, service: service)
     }

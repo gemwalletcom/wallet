@@ -8,8 +8,8 @@ import Primitives
 import struct Gemstone.GemTransferData
 
 public extension GemSwapQuoteServiceProtocol {
-    var currencyCode: String {
-        currency()
+    var currency: Primitives.Currency {
+        Primitives.Currency(core: getCurrency())
     }
 
     var slippage: SwapSlippage {
@@ -26,7 +26,7 @@ public extension GemSwapQuoteServiceProtocol {
     func supportedAssets(for assetId: Primitives.AssetId) -> ([Primitives.Chain], [Primitives.AssetId]) {
         let assetList = supportedAssets(assetId: assetId.identifier)
         return (
-            assetList.chains.compactMap { try? $0.map() },
+            assetList.chains.map { Primitives.Chain(core: $0) },
             assetList.assetIds.compactMap { try? Primitives.AssetId(id: $0) },
         )
     }

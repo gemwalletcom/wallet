@@ -23,12 +23,12 @@ impl GemCurrencyService {
         Self { preferences, prices, device }
     }
 
-    pub fn currency(&self) -> Currency {
+    pub fn get_currency(&self) -> Currency {
         self.preferences.get_currency()
     }
 
     pub fn recommended_currencies(&self, locale: Option<Currency>) -> Vec<Currency> {
-        rules::recommended_currencies(self.currency(), locale)
+        rules::recommended_currencies(self.get_currency(), locale)
     }
 
     pub fn other_currencies(&self, locale: Option<Currency>) -> Vec<Currency> {
@@ -36,7 +36,7 @@ impl GemCurrencyService {
     }
 
     pub async fn set_currency(&self, currency: Currency) -> Result<(), GemServiceError> {
-        if currency == self.currency() {
+        if currency == self.get_currency() {
             return Ok(());
         }
         self.preferences.set_currency(currency.clone())?;

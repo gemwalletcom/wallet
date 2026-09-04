@@ -21,5 +21,5 @@ pub trait GemDevicePlatform: Send + Sync {
     async fn device_info(&self) -> Result<GemDeviceInfo, GemServiceError>;
     async fn push_token(&self) -> Result<String, GemServiceError>;
     async fn is_push_enabled(&self) -> Result<bool, GemServiceError>;
-    async fn currency(&self) -> Result<Currency, GemServiceError>;
+    async fn get_currency(&self) -> Result<Currency, GemServiceError>;
 }

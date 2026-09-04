@@ -57,7 +57,7 @@ public final class GemstoneDevicePlatform: GemDevicePlatform, @unchecked Sendabl
         return await UNUserNotificationCenter.current().notificationSettings().authorizationStatus.isAuthorized
     }
 
-    public func currency() async throws -> String {
+    public func getCurrency() async throws -> String {
         preferencesService.getCurrency()
     }
 }

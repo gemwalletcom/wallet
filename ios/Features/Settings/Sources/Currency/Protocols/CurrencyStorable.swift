@@ -1,7 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Primitives
 
 public protocol CurrencyStorable: Sendable {
-    var currency: String { get set }
+    var currency: Primitives.Currency { get set }
 }

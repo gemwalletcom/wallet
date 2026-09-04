@@ -71,7 +71,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         )
     }
 
-    public func currency() -> Currency {
+    public func getCurrency() -> Currency {
         Primitives.Currency.usd.rawValue
     }
 

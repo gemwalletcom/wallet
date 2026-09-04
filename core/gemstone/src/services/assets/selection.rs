@@ -52,7 +52,7 @@ impl GemAssetSelectionService {
         }
     }
 
-    pub fn currency(&self) -> Currency {
+    pub fn get_currency(&self) -> Currency {
         self.preferences.get_currency()
     }
 
@@ -81,11 +81,11 @@ impl GemAssetSelectionService {
     }
 
     pub async fn search_assets(&self, query: String) -> Result<Vec<AssetBasic>, GemServiceError> {
-        self.search.search_assets(self.session.current_wallet()?, query, self.currency()).await
+        self.search.search_assets(self.session.current_wallet()?, query, self.get_currency()).await
     }
 
     pub async fn search(&self, query: String, scope: GemSearchScope) -> Result<bool, GemServiceError> {
-        self.search.search(self.session.current_wallet()?, query, scope, self.currency()).await
+        self.search.search(self.session.current_wallet()?, query, scope, self.get_currency()).await
     }
 
     pub async fn set_assets_enabled(&self, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {

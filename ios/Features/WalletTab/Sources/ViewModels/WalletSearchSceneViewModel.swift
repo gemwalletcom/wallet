@@ -102,7 +102,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var currencyCode: String {
-        service.currency()
+        service.getCurrency()
     }
 
     var showRecents: Bool {

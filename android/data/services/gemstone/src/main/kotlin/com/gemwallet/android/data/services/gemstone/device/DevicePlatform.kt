@@ -57,5 +57,5 @@ class GemstoneDevicePlatform(
             preferencesService.isPushNotificationsEnabled() &&
             NotificationManagerCompat.from(context).areNotificationsEnabled()
 
-    override suspend fun currency(): String = preferencesService.getCurrency()
+    override suspend fun getCurrency(): String = preferencesService.getCurrency()
 }

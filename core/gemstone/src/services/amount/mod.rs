@@ -34,7 +34,7 @@ impl GemAmountService {
         Self { stake, preferences, session }
     }
 
-    pub fn currency(&self) -> Currency {
+    pub fn get_currency(&self) -> Currency {
         self.preferences.get_currency()
     }
 

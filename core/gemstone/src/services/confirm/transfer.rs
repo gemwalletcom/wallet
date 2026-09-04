@@ -64,7 +64,7 @@ impl GemConfirmTransferService {
         }
     }
 
-    pub fn currency(&self) -> Currency {
+    pub fn get_currency(&self) -> Currency {
         self.preferences.get_currency()
     }
 

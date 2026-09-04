@@ -49,7 +49,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
                 price: priceQuery.value?.price,
                 priceAlert: .default(for: asset.id, currency: .default),
             ),
-            currency: service.currency(),
+            currency: service.getCurrency(),
         )
     }
 
@@ -66,7 +66,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
         priceAlerts
             .filter { $0.priceAlert.type != .auto }
             .displayedAlerts
-            .map { PriceAlertItemViewModel(data: $0, currency: service.currency()) }
+            .map { PriceAlertItemViewModel(data: $0, currency: service.getCurrency()) }
     }
 }
 

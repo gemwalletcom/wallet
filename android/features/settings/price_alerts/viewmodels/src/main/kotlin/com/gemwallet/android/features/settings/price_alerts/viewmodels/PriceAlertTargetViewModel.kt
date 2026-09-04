@@ -60,7 +60,7 @@ class PriceAlertTargetViewModel @Inject constructor(
     val assetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
 
     val assetInfo = getAssetInfo(assetId)
-    val currency = service.currency().toCurrency()
+    val currency = service.getCurrency().toCurrency()
     val currentPrice = assetInfo.map { info ->
         info?.price?.let { CurrencyFormatter(currency = it.currency).string(it.price.price) } ?: ""
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")

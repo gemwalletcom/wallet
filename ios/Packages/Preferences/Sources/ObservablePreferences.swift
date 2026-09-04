@@ -14,15 +14,14 @@ public final class ObservablePreferences: Sendable {
     }
 
     @ObservationIgnored
-    public var currency: String {
+    public var currency: Primitives.Currency {
         get {
             access(keyPath: \.currency)
-            return preferencesService.currencyCode
+            return preferencesService.currency
         }
         set {
             withMutation(keyPath: \.currency) {
-                guard let currency = Currency(rawValue: newValue) else { return }
-                write { try preferencesService.setCurrencyValue(currency) }
+                write { try preferencesService.setCurrencyValue(newValue) }
             }
         }
     }

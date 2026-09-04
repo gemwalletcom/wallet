@@ -2,7 +2,7 @@
 // Declared in core/bin/generate/remote_types.yml.
 
 use primitives::{
-    Asset, AssetType, Currency, FeePriority, FeeUnitType, Latency, LatencyType, PerpetualProvider, PortfolioType, RecentActivityType, SimulationPayloadField,
+    Account, Asset, AssetType, Chain, Currency, FeePriority, FeeUnitType, Latency, LatencyType, PerpetualProvider, PortfolioType, RecentActivityType, SimulationPayloadField,
     SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, TpslType, VerificationStatus, WalletConnectionVerificationStatus, WalletSource,
     WalletType,
 };
@@ -25,6 +25,12 @@ pub enum AssetType {
     PERPETUAL,
     SPOT,
 }
+
+uniffi::custom_type!(Chain, String, {
+    remote,
+    lower: |value| value.as_ref().to_string(),
+    try_lift: |value| Chain::from_str(&value).map_err(|_| uniffi::deps::anyhow::Error::msg("Invalid Chain")),
+});
 
 uniffi::custom_type!(Currency, String, {
     remote,
@@ -131,6 +137,14 @@ pub enum WalletType {
     Single,
     PrivateKey,
     View,
+}
+
+#[uniffi::remote(Record)]
+pub struct Account {
+    pub chain: Chain,
+    pub address: String,
+    pub derivation_path: String,
+    pub extended_public_key: Option<String>,
 }
 
 #[uniffi::remote(Record)]

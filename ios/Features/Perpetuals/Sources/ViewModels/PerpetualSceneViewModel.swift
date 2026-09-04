@@ -97,7 +97,7 @@ public final class PerpetualSceneViewModel {
     }
 
     public var currency: String {
-        service.currency()
+        service.getCurrency()
     }
 
     public var hasOpenPosition: Bool {

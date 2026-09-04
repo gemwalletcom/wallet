@@ -37,7 +37,7 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
     public var filterChainsResult: [Gemstone.Chain] = []
     public private(set) var pinnedPerpetuals: [(perpetualId: String, pinned: Bool)] = []
 
-    public func currency() -> Currency {
+    public func getCurrency() -> Currency {
         Primitives.Currency.usd.rawValue
     }
 

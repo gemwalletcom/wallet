@@ -55,7 +55,7 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     }
 
     var currencyCode: String {
-        service.currency()
+        service.getCurrency()
     }
 
     var active: [AssetData] {

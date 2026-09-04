@@ -69,7 +69,7 @@ class FiatViewModelTest {
     }
     private val fiatFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
     private val service = mockk<GemFiatQuoteServiceInterface> {
-        every { currency() } returns Currency.USD.toGem()
+        every { getCurrency() } returns Currency.USD.toGem()
         every { config() } returns uniffi.gemstone.FiatConfig(50, 100, 5, 10000, 1000, listOf(100, 250), 10)
         every { defaultAmount(FiatQuoteType.Buy.toJson()) } returns 50u
         every { defaultAmount(FiatQuoteType.Sell.toJson()) } returns 100u

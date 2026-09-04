@@ -59,7 +59,7 @@ impl GemPriceAlertService {
         self.device.synchronize().await.map(|_| ())
     }
 
-    pub fn currency(&self) -> Currency {
+    pub fn get_currency(&self) -> Currency {
         self.preferences.get_currency()
     }
 
@@ -69,7 +69,7 @@ impl GemPriceAlertService {
     }
 
     pub async fn set_auto_alert(&self, asset_id: AssetId, enabled: bool) -> Result<(), GemServiceError> {
-        let alert = PriceAlert::new_auto(asset_id, self.currency());
+        let alert = PriceAlert::new_auto(asset_id, self.get_currency());
         match enabled {
             true => self.enable_price_alert(alert).await,
             false => self.delete_price_alerts(vec![alert]).await,

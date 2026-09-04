@@ -15,20 +15,7 @@ private let chainAssets: [Primitives.Chain: Primitives.ChainAsset] = Primitives.
     result[chain] = chainAsset
 }
 
-public extension Gemstone.Chain {
-    func map() throws -> Primitives.Chain {
-        try Primitives.Chain(id: self)
-    }
-}
-
 public extension Primitives.Chain {
-    init(core rawValue: String) {
-        guard let chain = Primitives.Chain(rawValue: rawValue) else {
-            preconditionFailure("failed to decode Chain from Core: \(rawValue)")
-        }
-        self = chain
-    }
-
     func map() -> Gemstone.Chain {
         rawValue
     }

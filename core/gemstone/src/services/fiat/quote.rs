@@ -27,7 +27,7 @@ impl GemFiatQuoteService {
         Self { fiat, balances, session }
     }
 
-    pub fn currency(&self) -> Currency {
+    pub fn get_currency(&self) -> Currency {
         CURRENCY
     }
 

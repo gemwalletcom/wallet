@@ -66,7 +66,7 @@ impl GemTransactionsService {
         Ok(chain_rules::wallet_chains_by_rank(&self.session.current_wallet()?))
     }
 
-    pub fn currency(&self) -> Currency {
+    pub fn get_currency(&self) -> Currency {
         self.preferences.get_currency()
     }
 

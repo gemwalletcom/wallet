@@ -33,7 +33,7 @@ public final class PriceAlertsSceneViewModel: Sendable {
     }
 
     var currencyCode: String {
-        service.currency()
+        service.getCurrency()
     }
 
     var enableTitle: String {

@@ -29,7 +29,7 @@ public struct SignMessagePayload: Sendable {
 
     public init(_ request: GemWalletConnectMessageRequest) throws {
         try self.init(
-            chain: request.chain.map(),
+            chain: Primitives.Chain(core: request.chain),
             session: WalletConnectionSession(request.session),
             wallet: Wallet(request.wallet),
             message: request.message,

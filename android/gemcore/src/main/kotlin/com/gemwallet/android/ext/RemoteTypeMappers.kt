@@ -37,6 +37,11 @@ fun com.wallet.core.primitives.AssetType.toGem(): uniffi.gemstone.AssetType = wh
     com.wallet.core.primitives.AssetType.SPOT -> uniffi.gemstone.AssetType.SPOT
 }
 
+fun uniffi.gemstone.Chain.toChain(): com.wallet.core.primitives.Chain = com.wallet.core.primitives.Chain.entries.firstOrNull { it.string == this }
+    ?: throw IllegalStateException("Core returned a Chain this build does not know: $this")
+
+fun com.wallet.core.primitives.Chain.toGem(): uniffi.gemstone.Chain = string
+
 fun uniffi.gemstone.Currency.toCurrency(): com.wallet.core.primitives.Currency = com.wallet.core.primitives.Currency.entries.firstOrNull { it.string == this }
     ?: throw IllegalStateException("Core returned a Currency this build does not know: $this")
 
@@ -215,6 +220,20 @@ fun com.wallet.core.primitives.WalletType.toGem(): uniffi.gemstone.WalletType = 
     com.wallet.core.primitives.WalletType.PrivateKey -> uniffi.gemstone.WalletType.PRIVATE_KEY
     com.wallet.core.primitives.WalletType.View -> uniffi.gemstone.WalletType.VIEW
 }
+
+fun uniffi.gemstone.Account.toPrimitives(): com.wallet.core.primitives.Account = com.wallet.core.primitives.Account(
+    chain = chain.toChain(),
+    address = address,
+    derivationPath = derivationPath,
+    extendedPublicKey = extendedPublicKey,
+)
+
+fun com.wallet.core.primitives.Account.toGem(): uniffi.gemstone.Account = uniffi.gemstone.Account(
+    chain = chain.toGem(),
+    address = address,
+    derivationPath = derivationPath,
+    extendedPublicKey = extendedPublicKey,
+)
 
 fun uniffi.gemstone.Asset.toPrimitives(): com.wallet.core.primitives.Asset = com.wallet.core.primitives.Asset(
     id = id.toAssetId()!!,

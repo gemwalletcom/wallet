@@ -38,7 +38,7 @@ public final class SetPriceAlertViewModel {
     ) {
         self.asset = asset
         self.service = service
-        currencyFormatter = CurrencyFormatter(currencyCode: service.currency())
+        currencyFormatter = CurrencyFormatter(currencyCode: service.getCurrency())
         self.onComplete = onComplete
         state = SetPriceAlertViewModelState()
         assetQuery = ObservableQuery(AssetRequest(walletId: walletId, assetId: asset.id), initialValue: .with(asset: asset))
@@ -148,7 +148,7 @@ public final class SetPriceAlertViewModel {
         }
         return Primitives.PriceAlert(
             assetId: asset.id,
-            currency: Currency(core: service.currency()),
+            currency: Currency(core: service.getCurrency()),
             price: price,
             pricePercentChange: pricePercentChange,
             priceDirection: alertDirection,

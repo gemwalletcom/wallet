@@ -55,6 +55,10 @@ impl GemPaymentService {
         transfer_data(&transfer, asset)
     }
 
+    pub fn transaction_asset_id(&self, transaction: GemPaymentTransaction) -> AssetId {
+        payment_asset_id(&transaction)
+    }
+
     pub fn transaction_transfer_data(&self, transaction: GemPaymentTransaction, asset: Asset) -> GemTransferData {
         let wallet_asset = GemPaymentWalletAsset {
             asset_id: asset.id.clone(),
@@ -150,6 +154,14 @@ pub enum GemPaymentDestination {
         chains: Vec<Chain>,
     },
     Unsupported,
+}
+
+fn payment_asset_id(transaction: &GemPaymentTransaction) -> AssetId {
+    transaction
+        .request
+        .as_ref()
+        .and_then(|request| request.asset_id.clone())
+        .unwrap_or_else(|| AssetId::from_chain(transaction.account.chain))
 }
 
 fn payment_destination(request: &GemPaymentRequest, assets: Vec<GemPaymentWalletAsset>) -> GemPaymentDestination {
@@ -439,6 +451,35 @@ mod tests {
 
         let missing_value = request(SOLANA_ADDRESS, None, None, Some(solana_usdc.asset_id.clone()));
         assert_eq!(payment_decoded_transfer(&missing_value, solana_usdc), None);
+    }
+
+    #[test]
+    fn test_payment_asset_id_prefers_the_request_asset_over_the_chain_asset() {
+        let transaction = |asset_id: Option<AssetId>| GemPaymentTransaction {
+            merchant: ApplicationMetadata::mock(),
+            account: ChainAddress::new(Chain::Solana, SOLANA_ADDRESS.to_string()),
+            transaction: "encoded".to_string(),
+            transaction_type: TransactionType::Transfer,
+            memo: None,
+            request: Some(GemPaymentRequest {
+                address: SOLANA_ADDRESS.to_string(),
+                amount: None,
+                memo: None,
+                references: None,
+                asset_id,
+            }),
+        };
+        let usdc = AssetId::from_token(Chain::Solana, USDC_MINT);
+
+        assert_eq!(payment_asset_id(&transaction(Some(usdc.clone()))), usdc);
+        assert_eq!(payment_asset_id(&transaction(None)), AssetId::from_chain(Chain::Solana));
+        assert_eq!(
+            payment_asset_id(&GemPaymentTransaction {
+                request: None,
+                ..transaction(None)
+            }),
+            AssetId::from_chain(Chain::Solana)
+        );
     }
 
     #[test]

@@ -702,7 +702,7 @@ public struct ViewModelFactory: Sendable {
     ) -> DelegationSceneViewModel {
         DelegationSceneViewModel(
             wallet: wallet,
-            model: DelegationViewModel(service: stakeService, delegation: delegation, asset: asset, formatter: .auto, currencyCode: stakeService.currency()),
+            model: DelegationViewModel(service: stakeService, delegation: delegation, asset: asset, formatter: .auto, currencyCode: stakeService.getCurrency()),
             asset: asset,
             service: stakeService,
             validators: validators,

@@ -46,7 +46,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     }
 
     var currencyCode: String {
-        service.currency()
+        service.getCurrency()
     }
 
     var sections: WalletSearchSections {

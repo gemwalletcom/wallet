@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import struct Gemstone.Account
 import protocol Gemstone.GemWalletConnectServiceProtocol
 import enum Gemstone.WalletConnectionVerificationStatus
 import Primitives
@@ -37,9 +36,9 @@ public extension GemWalletConnectServiceProtocol {
 
     func sessionApproval(wallet: Wallet) throws -> WalletConnectSessionApproval {
         let approval = sessionApproval(wallet: wallet.json())
-        return try WalletConnectSessionApproval(
-            chains: approval.chains.map { try $0.map() },
-            accounts: approval.accounts.map { try $0.map() },
+        return WalletConnectSessionApproval(
+            chains: approval.chains.map { Primitives.Chain(core: $0) },
+            accounts: approval.accounts.map { $0.map() },
             methods: approval.methods,
             events: approval.events,
         )
@@ -55,11 +54,5 @@ public extension GemWalletConnectServiceProtocol {
 
     func updateSessions(_ sessions: [WalletConnectionSession]) async throws {
         try await updateSessions(sessions: sessions.map { $0.json() })
-    }
-}
-
-private extension Gemstone.Account {
-    func map() throws -> Primitives.Account {
-        Primitives.Account(chain: try chain.map(), address: address, derivationPath: derivationPath, extendedPublicKey: extendedPublicKey)
     }
 }

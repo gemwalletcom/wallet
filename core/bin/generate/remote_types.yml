@@ -1,4 +1,5 @@
 remote:
+  - Account
   - AssetType
   - Asset
   - FeePriority
@@ -18,6 +19,7 @@ remote:
   - Latency
   - PortfolioType
 codes:
+  - Chain
   - Currency
 identifiers:
   - AssetId

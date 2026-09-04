@@ -111,7 +111,7 @@ public final class SwapSceneViewModel {
             toAssetPrice: toAssetPrice,
             selectedQuote: selectedQuote,
             slippage: selectedSlippage,
-            currency: service.currencyCode,
+            currency: service.currency.rawValue,
             isProviderSelectionEnabled: isQuoteInteractionEnabled,
             swapPriceImpact: fromAssetPrice.swapValue(BigUInt(selectedQuote.fromValueBigInt))
                 .priceImpact(receive: toAssetPrice.swapValue(BigUInt(selectedQuote.toValueBigInt)))
@@ -130,7 +130,7 @@ public final class SwapSceneViewModel {
                 asset: toAssetPrice.asset,
                 swapperQuote: $0,
                 selectedProvider: selectedQuote.providerData.provider,
-                priceViewModel: PriceViewModel(price: toAssetPrice.price, currencyCode: service.currencyCode),
+                priceViewModel: PriceViewModel(price: toAssetPrice.price, currencyCode: service.currency.rawValue),
                 valueFormatter: ValueFormatter(style: .auto),
             )
         }
@@ -220,7 +220,7 @@ public final class SwapSceneViewModel {
                 AssetDataViewModel(
                     assetData: assetData,
                     formatter: .auto,
-                    currencyCode: service.currencyCode,
+                    currencyCode: service.currency.rawValue,
                     currencyFormatterType: .currency,
                 ),
             ),

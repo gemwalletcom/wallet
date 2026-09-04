@@ -317,7 +317,7 @@ class RequestSwapQuotesImplTest {
 
         override suspend fun addPrices(assetIds: List<String>) = Unit
 
-        override fun currency(): String = "USD"
+        override fun getCurrency(): String = "USD"
 
         override fun defaultSlippage(chain: String): SwapperSlippage = throw UnsupportedOperationException()
 

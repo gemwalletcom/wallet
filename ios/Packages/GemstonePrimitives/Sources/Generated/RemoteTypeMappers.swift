@@ -46,6 +46,15 @@ public extension Primitives.AssetType {
     }
 }
 
+public extension Primitives.Chain {
+    init(core: Gemstone.Chain) {
+        guard let value = Primitives.Chain(rawValue: core) else {
+            fatalError("Core returned a Chain this build does not know: \(core)")
+        }
+        self = value
+    }
+}
+
 public extension Primitives.Currency {
     init(core: Gemstone.Currency) {
         guard let value = Primitives.Currency(rawValue: core) else {
@@ -338,6 +347,28 @@ public extension Primitives.WalletType {
         case .privateKey: .privateKey
         case .view: .view
         }
+    }
+}
+
+public extension Gemstone.Account {
+    func map() -> Primitives.Account {
+        Primitives.Account(
+            chain: Primitives.Chain(core: chain),
+            address: address,
+            derivationPath: derivationPath,
+            extendedPublicKey: extendedPublicKey,
+        )
+    }
+}
+
+public extension Primitives.Account {
+    func map() -> Gemstone.Account {
+        Gemstone.Account(
+            chain: chain.rawValue,
+            address: address,
+            derivationPath: derivationPath,
+            extendedPublicKey: extendedPublicKey,
+        )
     }
 }
 

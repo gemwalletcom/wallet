@@ -56,7 +56,7 @@ public final class FiatSceneViewModel {
         locale: Locale = .current,
     ) {
         self.service = service
-        currencyFormatter = CurrencyFormatter(locale: locale, currencyCode: service.currencyCode)
+        currencyFormatter = CurrencyFormatter(locale: locale, currencyCode: service.currency.rawValue)
         self.assetAddress = assetAddress
         self.wallet = wallet
         self.type = type

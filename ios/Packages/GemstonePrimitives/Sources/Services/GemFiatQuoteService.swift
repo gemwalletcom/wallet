@@ -6,8 +6,8 @@ import protocol Gemstone.GemFiatQuoteServiceProtocol
 import Primitives
 
 public extension GemFiatQuoteServiceProtocol {
-    var currencyCode: String {
-        Currency(core: currency()).rawValue
+    var currency: Primitives.Currency {
+        Primitives.Currency(core: getCurrency())
     }
 
     func amountCheck(type: FiatQuoteType, amount: Double, quote: FiatQuote?, available: BigInt) -> GemFiatAmountCheck {

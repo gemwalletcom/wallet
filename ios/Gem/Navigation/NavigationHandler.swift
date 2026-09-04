@@ -174,9 +174,7 @@ extension NavigationHandler {
             toastPresenter.toastMessage = ToastMessage(title: Localized.Common.loading, image: SystemImage.network)
             let addresses = wallet.accounts.map { ChainAddress(chain: $0.chain, address: $0.address) }
             let transaction = try await paymentService.load(link: link, addresses: addresses)
-            let chain = try Primitives.ChainAddress(transaction.account).chain
-            let assetId = try transaction.request?.map().assetId ?? chain.asset.id
-            let asset = try await assetsService.ensureTokenAsset(for: assetId)
+            let asset = try await assetsService.ensureTokenAsset(for: Primitives.AssetId(core: paymentService.transactionAssetId(transaction: transaction)))
             toastPresenter.toastMessage = nil
             presenter.isPresentingPayment.wrappedValue = PaymentDestinationBuilder.build(transaction: transaction, asset: asset, paymentService: paymentService)
         }

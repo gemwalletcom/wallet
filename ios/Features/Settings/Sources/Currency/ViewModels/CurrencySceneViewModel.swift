@@ -15,15 +15,8 @@ public final class CurrencySceneViewModel {
     private let service: any GemCurrencyServiceProtocol
 
     private(set) var currency: Currency {
-        get {
-            guard let currency = Currency(rawValue: currencyStorage.currency) else {
-                fatalError("unsupported currency")
-            }
-            return currency
-        }
-        set {
-            currencyStorage.currency = newValue.rawValue
-        }
+        get { currencyStorage.currency }
+        set { currencyStorage.currency = newValue }
     }
 
     public init(

@@ -95,7 +95,7 @@ impl GemDeviceService {
             token,
             locale: DeviceLocale::from_locale_identifier(&info.locale_identifier),
             version: info.version,
-            currency: self.platform.currency().await?,
+            currency: self.platform.get_currency().await?,
             is_push_enabled,
             is_price_alerts_enabled: Some(self.preferences.is_price_alerts_enabled()),
             subscriptions_version: 0,

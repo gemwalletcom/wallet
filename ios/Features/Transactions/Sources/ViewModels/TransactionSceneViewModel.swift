@@ -147,7 +147,7 @@ extension TransactionSceneViewModel {
 
 extension TransactionSceneViewModel {
     private var model: TransactionViewModel {
-        TransactionViewModel(transaction: transactionExtended, currency: service.currency())
+        TransactionViewModel(transaction: transactionExtended, currency: service.getCurrency())
     }
 
     private var transactionLink: BlockExplorerLink {
@@ -212,7 +212,7 @@ extension TransactionSceneViewModel {
     var feeDetailsViewModel: NetworkFeeSceneViewModel {
         NetworkFeeSceneViewModel(
             feeAsset: model.transaction.feeAsset,
-            currency: Currency(core: service.currency()),
+            currency: Currency(core: service.getCurrency()),
             selection: .preset(.normal),
             feeAssetPrice: model.transaction.feePrice,
             feeAmount: BigInt(model.transaction.transaction.fee),

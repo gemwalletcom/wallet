@@ -230,7 +230,7 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
 
     public func deletePriceAlerts(alerts _: [Gemstone.PriceAlert]) async throws {}
 
-    public func currency() -> Gemstone.Currency {
+    public func getCurrency() -> Gemstone.Currency {
         Primitives.Currency.usd.rawValue
     }
 
@@ -352,7 +352,7 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         self.builder = builder
     }
 
-    public func currency() -> Gemstone.Currency {
+    public func getCurrency() -> Gemstone.Currency {
         Primitives.Currency.usd.rawValue
     }
 
@@ -386,7 +386,7 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
         self.check = check
     }
 
-    public func currency() -> Gemstone.Currency {
+    public func getCurrency() -> Gemstone.Currency {
         Primitives.Currency.usd.rawValue
     }
 
@@ -537,7 +537,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         claimable
     }
 
-    public func currency() -> Gemstone.Currency {
+    public func getCurrency() -> Gemstone.Currency {
         Primitives.Currency.usd.rawValue
     }
 
@@ -735,7 +735,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
 
     public init() {}
 
-    public func currency() -> Gemstone.Currency {
+    public func getCurrency() -> Gemstone.Currency {
         Primitives.Currency.usd.rawValue
     }
 
@@ -776,7 +776,7 @@ public final class GemCurrencyServiceMock: GemCurrencyServiceProtocol, @unchecke
         self.error = error
     }
 
-    public func currency() -> Gemstone.Currency {
+    public func getCurrency() -> Gemstone.Currency {
         setCurrencies.last ?? Primitives.Currency.usd.rawValue
     }
 
@@ -786,7 +786,7 @@ public final class GemCurrencyServiceMock: GemCurrencyServiceProtocol, @unchecke
     }
 
     public func recommendedCurrencies(locale _: Gemstone.Currency?) -> [Gemstone.Currency] {
-        [currency()]
+        [getCurrency()]
     }
 
     public func otherCurrencies(locale _: Gemstone.Currency?) -> [Gemstone.Currency] {

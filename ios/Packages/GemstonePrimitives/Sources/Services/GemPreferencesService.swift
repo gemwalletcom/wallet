@@ -9,10 +9,6 @@ public extension GemPreferencesServiceProtocol {
         Primitives.Currency(core: getCurrency())
     }
 
-    var currencyCode: String {
-        getCurrency()
-    }
-
     func setCurrencyValue(_ currency: Primitives.Currency) throws {
         try setCurrency(currency: currency.rawValue)
     }

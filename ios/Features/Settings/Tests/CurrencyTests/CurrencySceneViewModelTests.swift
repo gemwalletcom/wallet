@@ -10,8 +10,8 @@ import Primitives
 import Testing
 
 private final class MockCurrencyStorage: CurrencyStorable, @unchecked Sendable {
-    var currency: String
-    init(currency: String = "USD") {
+    var currency: Currency
+    init(currency: Currency = .usd) {
         self.currency = currency
     }
 }
@@ -30,7 +30,7 @@ struct CurrencySceneViewModelTests {
 
     @Test
     func gBPCurrencyValue() {
-        let gbpCurrencyStorage = MockCurrencyStorage(currency: "GBP")
+        let gbpCurrencyStorage = MockCurrencyStorage(currency: .gbp)
         let viewModel = CurrencySceneViewModel(currencyStorage: gbpCurrencyStorage, service: GemCurrencyServiceMock())
         #expect(viewModel.selectedCurrencyValue == "🇬🇧 GBP")
     }
@@ -44,8 +44,8 @@ struct CurrencySceneViewModelTests {
         try await viewModel.setCurrency(.ars)
 
         #expect(service.setCurrencies == [Currency.ars.rawValue])
-        #expect(usdCurrencyStorage.currency == Currency.ars.id)
-        #expect(usdCurrencyStorage.currency == viewModel.currency.id)
+        #expect(usdCurrencyStorage.currency == .ars)
+        #expect(usdCurrencyStorage.currency == viewModel.currency)
     }
 
     @Test
@@ -54,6 +54,6 @@ struct CurrencySceneViewModelTests {
         let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, service: GemCurrencyServiceMock(error: AnyError("offline")))
 
         await #expect(throws: (any Error).self) { try await viewModel.setCurrency(.ars) }
-        #expect(usdCurrencyStorage.currency == Currency.usd.id)
+        #expect(usdCurrencyStorage.currency == .usd)
     }
 }

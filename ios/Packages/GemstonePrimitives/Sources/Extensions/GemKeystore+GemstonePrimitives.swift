@@ -4,9 +4,9 @@ import Gemstone
 import Primitives
 
 public extension GemKeystoreAccount {
-    func mapToAccount() throws -> Primitives.Account {
-        try Primitives.Account(
-            chain: chain.map(),
+    func mapToAccount() -> Primitives.Account {
+        Primitives.Account(
+            chain: Primitives.Chain(core: chain),
             address: address,
             derivationPath: derivationPath,
             extendedPublicKey: publicKey ?? "",
@@ -23,7 +23,7 @@ public extension GemStoredWallet {
             name: name,
             index: 0,
             type: walletType.map(),
-            accounts: accounts.map { try $0.mapToAccount() },
+            accounts: accounts.map { $0.mapToAccount() },
             isPinned: false,
             imageUrl: nil,
             source: source,

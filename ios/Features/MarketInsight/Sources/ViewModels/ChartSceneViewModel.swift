@@ -19,7 +19,7 @@ public final class ChartSceneViewModel: ChartListViewable {
     private let service: any GemChartServiceProtocol
 
     private var currencyCode: String {
-        service.currency()
+        service.getCurrency()
     }
 
     let walletId: WalletId

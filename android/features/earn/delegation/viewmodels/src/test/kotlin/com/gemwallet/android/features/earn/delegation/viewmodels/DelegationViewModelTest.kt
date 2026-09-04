@@ -65,7 +65,7 @@ class DelegationViewModelTest {
             getAssetInfo = getAssetInfo,
             getDelegation = getDelegation,
             stakeService = mockk<GemStakeServiceInterface>(relaxed = true) {
-                every { currency() } returns Currency.USD.toGem()
+                every { getCurrency() } returns Currency.USD.toGem()
             },
             getSession = getSession,
             savedStateHandle = SavedStateHandle(

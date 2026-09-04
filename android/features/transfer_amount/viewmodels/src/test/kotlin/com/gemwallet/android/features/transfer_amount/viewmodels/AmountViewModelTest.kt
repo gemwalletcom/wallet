@@ -72,7 +72,7 @@ class AmountViewModelTest {
         coEvery { buildTransfer(capture(builtAmounts), capture(builtIsMax)) } returns confirmInput
     }
     private val factory = mockk<AmountProviderFactory> { every { create(any(), any()) } returns provider }
-    private val service = mockk<GemAmountServiceInterface> { every { currency() } returns Currency.USD.string }
+    private val service = mockk<GemAmountServiceInterface> { every { getCurrency() } returns Currency.USD.string }
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)

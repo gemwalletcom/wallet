@@ -112,7 +112,7 @@ class DelegationViewModel @Inject constructor(
         if (assetInfo == null || delegation == null) {
             return@combine null
         }
-        HeadDelegationInfo(delegation, assetInfo, stakeService.currency().toCurrency())
+        HeadDelegationInfo(delegation, assetInfo, stakeService.getCurrency().toCurrency())
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

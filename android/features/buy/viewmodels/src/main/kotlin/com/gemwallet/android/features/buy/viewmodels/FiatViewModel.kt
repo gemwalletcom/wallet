@@ -61,7 +61,7 @@ class FiatViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val currency = service.currency().toCurrency()
+    private val currency = service.getCurrency().toCurrency()
     private val currencySymbol = java.util.Currency.getInstance(currency.name).symbol
 
     private val initialType = savedStateHandle.get<FiatQuoteType>(RouteArgument.Type.key) ?: FiatQuoteType.Buy

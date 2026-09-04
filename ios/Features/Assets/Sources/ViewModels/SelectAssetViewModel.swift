@@ -141,7 +141,7 @@ public final class SelectAssetViewModel {
     }
 
     var currencyCode: String {
-        service.currency()
+        service.getCurrency()
     }
 }
 

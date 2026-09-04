@@ -40,14 +40,6 @@ pub struct WCEthereumTransactionData {
     pub data: Option<String>,
 }
 
-#[uniffi::remote(Record)]
-pub struct Account {
-    pub chain: Chain,
-    pub address: String,
-    pub derivation_path: String,
-    pub extended_public_key: Option<String>,
-}
-
 #[derive(Debug, Clone)]
 pub struct WCSolanaTransactionData {
     pub transaction: String,
