@@ -6,6 +6,11 @@
 -optimizations !code/allocation/variable
 -optimizations !class/unboxing/enum
 
+-keep class com.sun.jna.** { *; }
+-keep class * extends com.sun.jna.Structure { *; }
+-keep class uniffi.** { *; }
+-keepattributes RuntimeVisibleAnnotations
+
 -keepnames @dagger.hilt.android.lifecycle.HiltViewModel class * extends androidx.lifecycle.ViewModel
 
 # Reproducible builds: prevent R8 non-deterministic inlining of appcompat methods
