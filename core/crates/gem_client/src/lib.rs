@@ -28,7 +28,8 @@ pub use content_type::{CONTENT_TYPE, ContentType};
 pub use multipart::{MULTIPART_FORM_DATA, MultipartForm};
 pub use provider_config::RemoteProviderConfig;
 pub use query::{build_path_with_query, build_request_url};
-pub use request::{GetRequest, PostRequest, Verb};
+use request::BodyMethod;
+pub use request::{GetRequest, PostRequest};
 pub use target::Target;
 pub use types::{ClientError, Response, decode_json_byte_array, deserialize_response, encode_request_body};
 
@@ -75,14 +76,14 @@ pub trait ClientExt: Client {
     where
         T: Serialize + Send + Sync,
     {
-        PostRequest::new(self, Verb::Post, target.path(), target.headers(), body)
+        PostRequest::new(self, BodyMethod::Post, target.path(), target.headers(), body)
     }
 
     fn patch<'a, T, R>(&'a self, target: impl Target, body: &'a T) -> PostRequest<'a, Self, T, R>
     where
         T: Serialize + Send + Sync,
     {
-        PostRequest::new(self, Verb::Patch, target.path(), target.headers(), body)
+        PostRequest::new(self, BodyMethod::Patch, target.path(), target.headers(), body)
     }
 
     async fn get_or_error<R, E>(&self, target: impl Target + Send) -> Result<R, ClientError<Option<E>>>

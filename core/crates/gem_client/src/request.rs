@@ -54,15 +54,15 @@ impl<'a, C: Client + ?Sized, R: DeserializeOwned + Send + 'a> Future for GetRequ
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-pub enum Verb {
+#[derive(Clone, Copy)]
+pub(crate) enum BodyMethod {
     Post,
     Patch,
 }
 
 pub struct PostRequest<'a, C: ?Sized, T, R> {
     client: &'a C,
-    verb: Verb,
+    method: BodyMethod,
     path: String,
     body: &'a T,
     headers: HashMap<String, String>,
@@ -70,10 +70,10 @@ pub struct PostRequest<'a, C: ?Sized, T, R> {
 }
 
 impl<'a, C: Client + ?Sized, T: Serialize + Send + Sync, R> PostRequest<'a, C, T, R> {
-    pub(crate) fn new(client: &'a C, verb: Verb, path: String, headers: HashMap<String, String>, body: &'a T) -> Self {
+    pub(crate) fn new(client: &'a C, method: BodyMethod, path: String, headers: HashMap<String, String>, body: &'a T) -> Self {
         Self {
             client,
-            verb,
+            method,
             path,
             body,
             headers,
@@ -100,13 +100,13 @@ impl<'a, C: Client + ?Sized, T: Serialize + Send + Sync, R: DeserializeOwned + S
         if request.response.is_none() {
             let client = request.client;
             let body = request.body;
-            let verb = request.verb;
+            let method = request.method;
             let path = std::mem::take(&mut request.path);
             let headers = std::mem::take(&mut request.headers);
             request.response = Some(Box::pin(async move {
-                match verb {
-                    Verb::Post => client.post_with(&path, body, headers).await,
-                    Verb::Patch => client.patch_with(&path, body, headers).await,
+                match method {
+                    BodyMethod::Post => client.post_with(&path, body, headers).await,
+                    BodyMethod::Patch => client.patch_with(&path, body, headers).await,
                 }
             }));
         }
