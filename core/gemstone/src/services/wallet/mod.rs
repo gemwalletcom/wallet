@@ -44,7 +44,7 @@ use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
 pub use error::GemWalletImportError;
-pub use model::{GemWalletDeletion, GemWalletImportResult, GemWalletImportType, GemWalletSecret};
+pub use model::{GemWalletDeletion, GemWalletImportResult, GemWalletDefaultName, GemWalletImportType, GemWalletSecret};
 pub use password::{GemKeystoreAuthentication, GemKeystorePassword};
 pub use store::GemWalletStore;
 
@@ -112,8 +112,12 @@ impl GemWalletService {
         Mnemonic::generate(12).map_err(|error| GemServiceError::Core { msg: error.to_string() })
     }
 
-    pub fn next_wallet_index(&self, wallets: Vec<Wallet>) -> i32 {
-        rules::next_wallet_index(&wallets)
+    pub async fn default_wallet_name(&self, chain: Option<Chain>) -> Result<GemWalletDefaultName, GemServiceError> {
+        let index = rules::next_wallet_index(&self.store.get_wallets().await?);
+        Ok(match chain {
+            Some(chain) => GemWalletDefaultName::Chain { chain, index },
+            None => GemWalletDefaultName::Multicoin { index },
+        })
     }
 
 

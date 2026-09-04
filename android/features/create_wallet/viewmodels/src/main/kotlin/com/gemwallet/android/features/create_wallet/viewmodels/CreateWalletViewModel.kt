@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.create_wallet.viewmodels
 
+import uniffi.gemstone.GemWalletDefaultName
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.domains.wallet_import.multicoinImport
@@ -31,7 +32,7 @@ class CreateWalletViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            state.update { it.copy(generatedNameIndex = service.nextWalletIndex(service.wallets())) }
+            state.update { it.copy(defaultName = service.defaultWalletName(null)) }
             runCatchingCancellable { service.createWallet() }
                 .onSuccess { words -> state.update { it.copy(data = words) } }
                 .onFailure { err -> state.update { it.copy(dataError = err.message.orEmpty()) } }
@@ -86,11 +87,17 @@ class CreateWalletViewModel @Inject constructor(
 
 data class CreateWalletViewModelState(
     val loading: Boolean = false,
-    val generatedNameIndex: Int = 0,
+    val defaultName: GemWalletDefaultName? = null,
     val name: String = "",
     val data: List<String> = emptyList(),
     val dataError: String? = null,
     val isShowSafeMessage: Boolean = false,
 ) {
-    fun isExistingWallets() = generatedNameIndex > 1
+    fun isExistingWallets() = defaultName.index() > 1
+}
+
+private fun GemWalletDefaultName?.index(): Int = when (this) {
+    is GemWalletDefaultName.Multicoin -> index
+    is GemWalletDefaultName.Chain -> index
+    null -> 0
 }

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
+import uniffi.gemstone.GemWalletDefaultName
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
@@ -68,7 +69,7 @@ class ImportViewModel @Inject constructor(
 
     fun importSelect(importType: ImportType) = viewModelScope.launch {
         val generatedNameIndex = withContext(Dispatchers.IO) {
-            service.nextWalletIndex(service.wallets())
+            service.defaultWalletName(importType.chain?.string).index()
         }
         val chainName = if (importType.walletType == WalletType.Multicoin) "" else importType.chain?.networkName().orEmpty()
         state.update {
@@ -154,3 +155,8 @@ data class ImportUIState(
     val dataError: Throwable? = null,
     val existingWalletResult: WalletImportResult.Existing? = null,
 )
+
+private fun GemWalletDefaultName.index(): Int = when (this) {
+    is GemWalletDefaultName.Multicoin -> index
+    is GemWalletDefaultName.Chain -> index
+}

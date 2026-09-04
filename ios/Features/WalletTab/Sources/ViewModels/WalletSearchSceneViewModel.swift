@@ -147,7 +147,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     var showAddToken: Bool {
-        service.supportsTokens(wallet: wallet.json())
+        service.supportsTokens(accounts: wallet.accounts.map { $0.map() })
     }
 
     var previewAssets: [AssetData] {

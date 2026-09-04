@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.nft
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemCollectibleServiceInterface
 import com.gemwallet.android.application.nft.cases.GetNftAssetDetails
@@ -37,7 +38,7 @@ class GetNftAssetDetailsImpl(
                             collection = nftData.collection,
                             asset = nftAsset,
                             account = account,
-                            canSend = collectibleService.canSend(session.wallet.toJson(), chain.string),
+                            canSend = collectibleService.canSend(session.wallet.type.toGem(), chain.string),
                             contractExplorerLink = links?.contract?.let { BlockExplorerLink(it.name, it.link) },
                             tokenIdExplorerLink = links?.token?.let { BlockExplorerLink(it.name, it.link) },
                         )

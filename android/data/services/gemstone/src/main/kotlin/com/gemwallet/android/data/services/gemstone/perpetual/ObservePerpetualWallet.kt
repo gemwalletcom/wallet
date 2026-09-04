@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.perpetual
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.application.session.cases.GetCurrentWallet

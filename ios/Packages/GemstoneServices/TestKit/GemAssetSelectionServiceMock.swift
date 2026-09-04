@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+public import struct Gemstone.Account
 import Foundation
 import typealias Gemstone.Asset
 import typealias Gemstone.AssetBasic
@@ -49,11 +50,11 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
         nftSearchItems
     }
 
-    public func supportsTokens(wallet _: String?) -> Bool {
+    public func supportsTokens(accounts _: [Gemstone.Account]) -> Bool {
         tokensSupported
     }
 
-    public func filterChains(wallet _: String) -> [Gemstone.Chain] {
+    public func filterChains(accounts _: [Gemstone.Account]) -> [Gemstone.Chain] {
         filterChainsResult
     }
 

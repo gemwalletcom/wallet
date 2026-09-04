@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.assets.viewmodels
 
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Wallet
 import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemSearchScope

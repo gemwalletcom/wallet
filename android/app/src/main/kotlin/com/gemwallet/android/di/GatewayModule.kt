@@ -201,7 +201,7 @@ object GatewayModule {
         authService: GemAuthService,
         balanceService: GemBalanceService,
         sessionService: GemWalletSessionService,
-    ): GemRewardsServiceInterface = GemRewardsService(apiClient, authService, balanceService, sessionService)
+    ): GemRewardsServiceInterface = GemRewardsService(apiClient, authService, balanceService)
 
 
     @Provides

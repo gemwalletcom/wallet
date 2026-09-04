@@ -283,7 +283,6 @@ struct ServicesFactory {
                 deviceKey: deviceKeyService,
             ),
             balance: balanceService,
-            session: walletSessionService,
         )
         let toastPresenter = ToastPresenter()
         let pushNotificationService = Gemstone.GemPushNotificationService()

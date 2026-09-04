@@ -1,4 +1,4 @@
-use primitives::{Account, Chain, NFTAssetData, NFTData, VerificationStatus, Wallet, WalletType};
+use primitives::{Account, Chain, NFTAssetData, NFTData, VerificationStatus, WalletType};
 
 use crate::config::chain::supports_nft_transfer;
 use crate::services::chain::rules::chain_matches_query;
@@ -60,9 +60,8 @@ pub fn nft_chains() -> Vec<Chain> {
     Chain::all().into_iter().filter(Chain::is_nft_supported).collect()
 }
 
-pub fn receive_accounts(wallet: &Wallet, query: &str) -> Vec<Account> {
-    wallet
-        .accounts
+pub fn receive_accounts(accounts: &[Account], query: &str) -> Vec<Account> {
+    accounts
         .iter()
         .filter(|account| account.chain.is_nft_supported() && chain_matches_query(account.chain, query))
         .cloned()
@@ -82,12 +81,13 @@ fn collections(data: Vec<NFTData>, verified: bool) -> Vec<NFTData> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::Wallet;
     use primitives::NFTData;
 
     #[test]
     fn test_receive_accounts_keeps_nft_chains_matching_the_query() {
         let wallet = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::Ethereum, Chain::Bitcoin, Chain::Solana], "address"));
-        let chains = |query: &str| receive_accounts(&wallet, query).into_iter().map(|account| account.chain).collect::<Vec<_>>();
+        let chains = |query: &str| receive_accounts(&wallet.accounts, query).into_iter().map(|account| account.chain).collect::<Vec<_>>();
         assert_eq!(chains(""), vec![Chain::Ethereum, Chain::Solana]);
         assert_eq!(chains("sol"), vec![Chain::Solana]);
     }

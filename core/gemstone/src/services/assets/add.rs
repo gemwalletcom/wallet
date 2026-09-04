@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, Chain, Wallet};
+use primitives::{Account, Asset, AssetId, Chain, Wallet};
 
 use super::rules;
 use crate::address::checksum_address;
@@ -25,8 +25,8 @@ impl GemAddAssetService {
         Self { assets, balances, explorer }
     }
 
-    pub fn chains(&self, wallet: Wallet) -> Vec<Chain> {
-        rules::token_chains(&wallet)
+    pub fn chains(&self, accounts: Vec<Account>) -> Vec<Chain> {
+        rules::token_chains(&accounts)
     }
 
     pub fn default_chain(&self, chains: Vec<Chain>) -> Option<Chain> {

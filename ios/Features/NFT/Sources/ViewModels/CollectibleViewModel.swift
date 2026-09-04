@@ -144,7 +144,7 @@ public final class CollectibleViewModel {
     }
 
     var isSendEnabled: Bool {
-        service.canSend(wallet: wallet.json(), chain: assetData.asset.chain.map())
+        service.canSend(walletType: wallet.type.map(), chain: assetData.asset.chain.map())
     }
 
     var headerButtons: [HeaderButton] {

@@ -9,6 +9,12 @@ pub enum GemWalletImportType {
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]
+pub enum GemWalletDefaultName {
+    Multicoin { index: i32 },
+    Chain { chain: Chain, index: i32 },
+}
+
+#[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemWalletImportResult {
     New { wallet: Wallet },
     Existing { wallet: Wallet },

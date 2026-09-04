@@ -70,10 +70,10 @@ extension CreateWalletModel {
     }
 
     func createWallet(words: [String]) async throws -> Wallet {
-        let wallets = (try? await service.getWallets()) ?? []
-        hasExistingWallets = wallets.isNotEmpty
+        let generator = WalletNameGenerator(defaultName: try await service.defaultWalletName(chain: .none))
+        hasExistingWallets = generator.hasExistingWallets
         let result = try await service.importWallet(
-            name: WalletNameGenerator(type: .multicoin, wallets: wallets, service: service).name(),
+            name: generator.name(),
             type: .phrase(words: words, chains: AssetConfiguration.allChains),
             source: .create,
         )

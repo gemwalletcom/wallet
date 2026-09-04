@@ -1,5 +1,8 @@
 package com.gemwallet.android.features.create_wallet.views
 
+import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.requireChain
+import uniffi.gemstone.GemWalletDefaultName
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
@@ -77,7 +80,7 @@ fun CreateWalletScreen(
                 onCancel = viewModel::handleCreateDismiss,
             )
             false -> UI(
-                generatedNameIndex = uiState.generatedNameIndex,
+                defaultName = uiState.defaultName,
                 data = uiState.data,
                 dataError = uiState.dataError,
                 onCreate = viewModel::handleReadyToCreate,
@@ -107,7 +110,7 @@ fun CreateWalletScreen(
 
 @Composable
 private fun UI(
-    generatedNameIndex: Int,
+    defaultName: GemWalletDefaultName?,
     data: List<String>,
     dataError: String?,
     onCreate: (String) -> Unit,
@@ -115,7 +118,11 @@ private fun UI(
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
-    val name = stringResource(id = R.string.wallet_default_name, generatedNameIndex)
+    val name = when (defaultName) {
+        is GemWalletDefaultName.Multicoin -> stringResource(id = R.string.wallet_default_name, defaultName.index)
+        is GemWalletDefaultName.Chain -> stringResource(id = R.string.wallet_default_name_chain, defaultName.chain.requireChain().asset().name, defaultName.index)
+        null -> ""
+    }
     Scene(
         title = stringResource(id = R.string.wallet_new_title),
         onClose = onCancel,
@@ -165,7 +172,7 @@ fun PreviewCreateUI() {
     WalletTheme {
         Column {
             UI(
-                generatedNameIndex = 2,
+                defaultName = GemWalletDefaultName.Multicoin(2),
                 data = listOf(
                     "cinnamon", "two", "three", "cinnamon", "five", "six",
                     "seven", "eight", "cinnamon", "ten", "eleven", "twelve"

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.add_asset.viewmodels
 
+import com.gemwallet.android.ext.toGem
 import android.util.Log
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.mutableStateOf
@@ -54,7 +55,7 @@ class AddAssetViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val availableChains = wallet.map { wallet ->
-        wallet?.let { service.chains(it.toJson()).map { chain -> chain.requireChain() } }
+        wallet?.let { service.chains(it.accounts.map { account -> account.toGem() }).map { chain -> chain.requireChain() } }
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)

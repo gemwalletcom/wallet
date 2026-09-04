@@ -1,30 +1,33 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemWalletDefaultName
 import Localization
 import Primitives
-import protocol Gemstone.GemWalletServiceProtocol
 import GemstonePrimitives
 
 struct WalletNameGenerator {
-    private let type: ImportWalletType
-    private let wallets: [Wallet]
-    private let service: any GemWalletServiceProtocol
+    private let defaultName: GemWalletDefaultName
 
-    init(type: ImportWalletType, wallets: [Wallet], service: any GemWalletServiceProtocol) {
-        self.type = type
-        self.wallets = wallets
-        self.service = service
+    init(defaultName: GemWalletDefaultName) {
+        self.defaultName = defaultName
+    }
+
+    var hasExistingWallets: Bool {
+        index > 1
     }
 
     func name() -> String {
-        name(type: type, index: service.nextWalletIndex(wallets: wallets))
+        switch defaultName {
+        case let .multicoin(index): Localized.Wallet.defaultName(Int(index))
+        case let .chain(chain, index): Localized.Wallet.defaultNameChain(Chain(core: chain).networkName, Int(index))
+        }
     }
 
-    private func name(type: ImportWalletType, index: Int) -> String {
-        switch type {
-        case .multicoin: Localized.Wallet.defaultName(index)
-        case let .chain(chain): Localized.Wallet.defaultNameChain(chain.networkName, index)
+    private var index: Int32 {
+        switch defaultName {
+        case let .multicoin(index): index
+        case let .chain(_, index): index
         }
     }
 }
