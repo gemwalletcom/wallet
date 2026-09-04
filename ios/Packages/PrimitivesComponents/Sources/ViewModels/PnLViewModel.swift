@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.PriceChangeCalculator
 import Components
 import Formatters
 import Foundation

@@ -23,7 +23,7 @@ public struct WalletViewModel: Sendable {
             return Localized.Wallet.multicoin
         case .view, .single, .privateKey:
             guard let account = wallet.accounts.first else { return .none }
-            return AddressFormatter(style: .extra(1), address: account.address, chain: account.chain).value()
+            return AddressFormatter(style: .extra(extra: 1), address: account.address, chain: account.chain).value()
         }
     }
 

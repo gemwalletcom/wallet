@@ -15,8 +15,8 @@ final class AddressFormatterTests {
 
     @Test
     func testExtra() {
-        #expect(AddressFormatter(style: .extra(2), address: "0x1231232221321312", chain: .ethereum).value() == "0x1231232...1321312")
-        #expect(AddressFormatter(style: .extra(2), address: "0x12313332321321312", chain: .aptos).value() == "0x123133...1321312")
+        #expect(AddressFormatter(style: .extra(extra: 2), address: "0x1231232221321312", chain: .ethereum).value() == "0x1231232...1321312")
+        #expect(AddressFormatter(style: .extra(extra: 2), address: "0x12313332321321312", chain: .aptos).value() == "0x123133...1321312")
     }
 
     @Test

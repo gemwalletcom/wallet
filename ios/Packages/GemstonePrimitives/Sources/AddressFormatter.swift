@@ -1,25 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import class Gemstone.GemAddressService
-import protocol Gemstone.GemAddressServiceProtocol
-import Gemstone
+import enum Gemstone.GemAddressFormatStyle
 import Primitives
 
 private let addressService = GemAddressService()
 
 public struct AddressFormatter {
-    public enum Style {
-        case short
-        case full
-        case extra(Int)
-    }
-
-    private let style: Self.Style
+    private let style: GemAddressFormatStyle
     private let address: String
     private let chain: Primitives.Chain?
 
     public init(
-        style: Self.Style = .short,
+        style: GemAddressFormatStyle = .short,
         address: String,
         chain: Primitives.Chain?,
     ) {
@@ -29,16 +22,6 @@ public struct AddressFormatter {
     }
 
     public func value() -> String {
-        let gemstoneStyle: Gemstone.GemAddressFormatStyle = switch style {
-        case .short: .short
-        case .full: .full
-        case let .extra(extra): .extra(extra: UInt32(clamping: max(extra, 0)))
-        }
-
-        return addressService.format(
-            address: address,
-            chain: chain?.rawValue,
-            style: gemstoneStyle,
-        )
+        addressService.format(address: address, chain: chain?.rawValue, style: style)
     }
 }
