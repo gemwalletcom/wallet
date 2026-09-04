@@ -16,3 +16,6 @@ serde_urlencoded = { workspace = true }
 reqwest = { workspace = true, optional = true }
 hex = { workspace = true }
 tokio = { workspace = true, features = ["time"], optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt"] }

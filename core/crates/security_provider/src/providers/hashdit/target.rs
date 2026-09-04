@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-
-use gem_client::{CONTENT_TYPE, Target};
+use gem_client::Target;
 
 #[derive(Clone, Debug)]
 pub enum HashDitTarget {
@@ -14,9 +12,5 @@ impl Target for HashDitTarget {
             Self::AddressSecurity => "/v2/hashdit/address-security-v2".to_string(),
             Self::TokenSecurity => "/v2/hashdit/token-security".to_string(),
         }
-    }
-
-    fn headers(&self) -> HashMap<String, String> {
-        HashMap::from([(CONTENT_TYPE.to_string(), "application/json".to_string())])
     }
 }

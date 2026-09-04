@@ -228,7 +228,7 @@ mod tests {
     async fn test_submit_transaction() {
         let client = AptosClient::new(MockClient::new().with_post_with_headers(|path, body, headers| {
             assert_eq!(path, "/v1/transactions");
-            assert_eq!(body, b"[1,2,3]");
+            assert_eq!(body, [1, 2, 3]);
             assert_eq!(headers.get(CONTENT_TYPE).map(String::as_str), Some(ContentType::ApplicationAptosBcs.as_str()));
             Ok(br#"{"hash":"0xhash"}"#.to_vec())
         }));
