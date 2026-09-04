@@ -63,6 +63,8 @@ public struct AutocloseScene: View {
             )
         }
         .navigationTitle(model.title)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar { ToolbarDismissItem(type: .close, placement: .topBarLeading) }
         .onChange(of: focusedField, model.onChangeFocusField)
     }
 

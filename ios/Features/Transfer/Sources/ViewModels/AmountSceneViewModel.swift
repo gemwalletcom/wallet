@@ -187,12 +187,9 @@ extension AmountSceneViewModel {
         isPresentingSheet = .autoclose(perpetual.makeAutocloseData(size: amount))
     }
 
-    public func onAutocloseComplete(takeProfit: InputValidationViewModel, stopLoss: InputValidationViewModel) {
+    public func onAutocloseComplete(_ selection: AutocloseSelection) {
         if case let .perpetual(perpetual) = provider {
-            perpetual.updateAutoclose(
-                takeProfit: takeProfit.text.isEmpty ? nil : takeProfit.text,
-                stopLoss: stopLoss.text.isEmpty ? nil : stopLoss.text,
-            )
+            perpetual.updateAutoclose(takeProfit: selection.takeProfit, stopLoss: selection.stopLoss)
         }
         isPresentingSheet = nil
     }

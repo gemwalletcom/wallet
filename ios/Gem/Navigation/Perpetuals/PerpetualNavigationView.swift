@@ -19,14 +19,12 @@ public struct PerpetualNavigationView: View {
 
     public var body: some View {
         PerpetualScene(model: model)
-            .sheet(isPresented: $model.isPresentingAutoclose) {
-                if let position = model.positions.first {
-                    AutocloseNavigationStack(
-                        position: position,
-                        wallet: model.wallet,
-                        onComplete: model.onAutocloseComplete,
-                    )
-                }
+            .sheet(item: $model.isPresentingAutoclose) { position in
+                AutocloseNavigationStack(
+                    position: position,
+                    wallet: model.wallet,
+                    onComplete: model.onAutocloseComplete,
+                )
             }
             .bindQuery(model.positionsQuery, model.perpetualQuery, model.transactionsQuery, model.perpetualFiatValuesQuery)
             .onChange(of: isPresentingSheet) { oldValue, newValue in

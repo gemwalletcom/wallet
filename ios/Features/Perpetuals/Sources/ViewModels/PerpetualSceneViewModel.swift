@@ -54,7 +54,7 @@ public final class PerpetualSceneViewModel {
 
     public var isPresentingInfoSheet: InfoSheetType?
     public var isPresentingModifyAlert: Bool?
-    public var isPresentingAutoclose: Bool = false
+    public var isPresentingAutoclose: PerpetualPositionData?
 
     public init(
         wallet: Wallet,
@@ -227,7 +227,7 @@ public extension PerpetualSceneViewModel {
     }
 
     func onSelectAutoclose() {
-        isPresentingAutoclose = true
+        isPresentingAutoclose = positions.first
     }
 
     func onSelectAutocloseInfo() {
@@ -265,7 +265,7 @@ public extension PerpetualSceneViewModel {
     }
 
     func onAutocloseComplete() {
-        isPresentingAutoclose = false
+        isPresentingAutoclose = nil
     }
 }
 

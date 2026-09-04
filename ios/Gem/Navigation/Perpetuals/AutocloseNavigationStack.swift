@@ -4,7 +4,6 @@ import Components
 import Perpetuals
 import GemstonePrimitives
 import Primitives
-import PrimitivesComponents
 import Store
 import SwiftUI
 import Transfer
@@ -26,8 +25,6 @@ struct AutocloseNavigationStack: View {
                     type: .modify(position, onTransferAction: { navigationPath.append($0) }),
                 ),
             )
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarDismissItem(type: .close, placement: .topBarLeading) }
             .navigationDestination(for: GemTransferData.self) {
                 ConfirmTransferNavigationView(
                     model: viewModelFactory.confirmTransferScene(

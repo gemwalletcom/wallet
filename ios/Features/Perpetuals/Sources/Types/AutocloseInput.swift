@@ -26,6 +26,13 @@ struct AutocloseInput {
         stopLossText.map { stopLoss.text = $0 }
     }
 
+    var selection: AutocloseSelection {
+        AutocloseSelection(
+            takeProfit: takeProfit.text.isEmpty ? nil : takeProfit.text,
+            stopLoss: stopLoss.text.isEmpty ? nil : stopLoss.text,
+        )
+    }
+
     var focused: InputValidationViewModel? {
         switch focusField {
         case .takeProfit: takeProfit

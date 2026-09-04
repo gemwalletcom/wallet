@@ -1,8 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import Primitives
-import PrimitivesComponents
 import SwiftUI
 
 public struct AutocloseSheet: View {
@@ -15,8 +13,6 @@ public struct AutocloseSheet: View {
     public var body: some View {
         NavigationStack {
             AutocloseScene(model: model)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarDismissItem(type: .close, placement: .topBarLeading) }
         }
     }
 }
