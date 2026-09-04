@@ -44,7 +44,6 @@ pub use retry::{default_should_retry, retry, retry_policy};
 pub use client_config::{builder, reqwest_client};
 
 pub const DEFAULT_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
-pub const X_CACHE_TTL: &str = "x-gem-cache-ttl";
 
 #[async_trait]
 pub trait Client: Send + Sync + Debug {

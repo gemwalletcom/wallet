@@ -5,7 +5,7 @@ use crate::{
 };
 use async_trait::async_trait;
 use gem_client::Client;
-use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcResult};
+use gem_jsonrpc::client::JsonRpcClient;
 use gem_solana::{
     JUPITER_PROGRAM_ID, MAX_COMPUTE_UNIT_LIMIT, SolanaAccountEncoding, SolanaRpc, TOKEN_PROGRAM, USDC_TOKEN_MINT, USDS_TOKEN_MINT, USDT_TOKEN_MINT, WSOL_TOKEN_ADDRESS,
     get_pubkey_by_str,
@@ -50,8 +50,7 @@ where
 
     async fn get_token_program(&self, mint: &str) -> Result<String, SwapperError> {
         let request = SolanaRpc::GetAccountInfo(mint.to_string(), SolanaAccountEncoding::Base64);
-        let rpc_result: JsonRpcResult<ValueResult<Option<AccountData>>> = self.rpc_client.request_with_cache(&request, Some(u64::MAX)).await?;
-        let value = rpc_result.take()?;
+        let value: ValueResult<Option<AccountData>> = self.rpc_client.request(request).await?;
 
         value
             .value
@@ -73,9 +72,8 @@ where
         }
 
         let request = SolanaRpc::GetAccountInfo(fee_account.clone(), SolanaAccountEncoding::Base64);
-        let rpc_result: JsonRpcResult<ValueResult<Option<AccountData>>> = self.rpc_client.request_with_cache(&request, None).await?;
-        rpc_result
-            .take()?
+        let value: ValueResult<Option<AccountData>> = self.rpc_client.request(request).await?;
+        value
             .value
             .map(|_| fee_account)
             .ok_or_else(|| SwapperError::compute_quote_error("Jupiter referral fee account is unavailable"))

@@ -11,7 +11,6 @@ import Primitives
 public actor NativeProvider {
     private let session: URLSession
     private let nodeProvider: any NodeURLProvidable
-    private let cache: MemoryCache
     private let requestInterceptor: any RequestInterceptable
 
     public init(
@@ -21,7 +20,6 @@ public actor NativeProvider {
     ) {
         self.session = session
         self.nodeProvider = nodeProvider
-        self.cache = MemoryCache()
         self.requestInterceptor = requestInterceptor
     }
 
@@ -42,19 +40,11 @@ struct ApiOnlyNodes: NodeURLProvidable {
 
 extension NativeProvider: AlienProvider {
     public func request(target: AlienTarget) async throws -> AlienResponse {
-        let cacheKey = target.nativeCacheKey
-        if let cacheKey, let data = await cache.get(key: cacheKey) {
-            return AlienResponse(status: 200, data: data)
-        }
         do {
             var request = try target.asRequest()
             requestInterceptor.intercept(request: &request)
             let (data, response) = try await session.data(for: request)
             let statusCode = (response as? HTTPURLResponse)?.statusCode
-
-            if let cacheKey {
-                await cache.set(key: cacheKey, value: data)
-            }
 
             return AlienResponse(status: statusCode.map(UInt16.init), data: data)
         } catch {

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, error::Error};
+use std::error::Error;
 
 use primitives::{Asset, AssetId, AssetType, chain::Chain};
 
@@ -57,22 +57,12 @@ impl<C: Client> TonClient<C> {
     }
 
     pub async fn run_get_method(&self, address: &str, method: &str, stack: Vec<StackArg>) -> Result<RunGetMethodResult, Box<dyn Error + Send + Sync>> {
-        self.run_get_method_with_headers(address, method, stack, HashMap::new()).await
-    }
-
-    pub async fn run_get_method_with_headers(
-        &self,
-        address: &str,
-        method: &str,
-        stack: Vec<StackArg>,
-        headers: HashMap<String, String>,
-    ) -> Result<RunGetMethodResult, Box<dyn Error + Send + Sync>> {
         let request = RunGetMethodRequest {
             address: address.to_string(),
             method: method.to_string(),
             stack,
         };
-        let response: ApiResult<serde_json::Value> = self.client.post(TonCenterTarget::RunGetMethod, &request).headers(headers).await?;
+        let response: ApiResult<serde_json::Value> = self.client.post(TonCenterTarget::RunGetMethod, &request).await?;
         if !response.ok {
             let message = match response.result.as_str() {
                 Some(message) => message.to_string(),
