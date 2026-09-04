@@ -30,7 +30,7 @@ public struct PerpetualRecipientData: Equatable, Hashable, Sendable {
 
 extension PerpetualRecipientData: Identifiable {
     public var id: String {
-        let data = positionAction.data
+        let data = positionAction.transferData()
         return "\(data.assetIndex)_\(data.direction)"
     }
 }

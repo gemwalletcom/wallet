@@ -10,7 +10,6 @@ public extension GemTransferData {
     }
 
     var id: String {
-        [chain.rawValue, recipient.address, value.description].joined(separator: "-")
+        identifier()
     }
 }
-

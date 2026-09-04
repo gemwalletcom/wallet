@@ -106,6 +106,13 @@ pub enum GemPerpetualPositionAction {
     },
 }
 
+#[uniffi::export]
+impl GemPerpetualPositionAction {
+    pub fn transfer_data(&self) -> GemPerpetualTransferData {
+        self.data().clone()
+    }
+}
+
 impl GemPerpetualPositionAction {
     pub fn data(&self) -> &GemPerpetualTransferData {
         match self {

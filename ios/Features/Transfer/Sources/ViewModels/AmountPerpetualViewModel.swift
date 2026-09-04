@@ -36,7 +36,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         self.service = service
         currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: service.getCurrency())
         (leverageSelection, leverageTextStyle) = Self.makeLeverageSelection(data: data, service: service)
-        (takeProfit, stopLoss) = Self.makeDefaultAutoclose(data: data, leverage: leverageSelection?.selected.value ?? data.positionAction.data.leverage, service: service)
+        (takeProfit, stopLoss) = Self.makeDefaultAutoclose(data: data, leverage: leverageSelection?.selected.value ?? data.positionAction.transferData().leverage, service: service)
     }
 
     var leverageTitle: String {
@@ -48,7 +48,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     }
 
     private var transferData: GemPerpetualTransferData {
-        data.positionAction.data
+        data.positionAction.transferData()
     }
 
     private var leverage: UInt8 {
@@ -168,7 +168,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         guard case .open = data.positionAction else {
             return (nil, nil)
         }
-        let transferData = data.positionAction.data
+        let transferData = data.positionAction.transferData()
         let autoclose = service.perpetualAutoclose(price: transferData.price, direction: transferData.direction, leverage: leverage)
         let formatter = PerpetualFormatter(provider: .hypercore)
         return (

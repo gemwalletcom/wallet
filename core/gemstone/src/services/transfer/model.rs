@@ -23,6 +23,13 @@ pub struct GemRecipient {
 }
 
 #[uniffi::export]
+impl GemTransferData {
+    pub fn identifier(&self) -> String {
+        [self.input_type.asset().chain().as_ref(), &self.recipient.address, &self.value.to_string()].join("-")
+    }
+}
+
+#[uniffi::export]
 impl GemRecipient {
     pub fn identifier(&self) -> String {
         [self.name.as_deref().unwrap_or_default(), &self.address, self.memo.as_deref().unwrap_or_default()].join("_")
@@ -111,6 +118,23 @@ pub enum GemConfirmDestination {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_transfer_identifier_separates_transfers_by_chain_recipient_and_value() {
+        let transfer = |address: &str, value: i32| GemTransferData {
+            input_type: GemTransactionInputType::Transfer {
+                asset: primitives::Asset::from_chain(primitives::Chain::Bitcoin),
+            },
+            recipient: GemRecipient::address(address.to_string()),
+            value: value.into(),
+            use_max_amount: false,
+            minimum_value: None,
+        };
+
+        assert_eq!(transfer("bc1q", 10).identifier(), "bitcoin-bc1q-10");
+        assert_ne!(transfer("bc1q", 10).identifier(), transfer("bc1q", 11).identifier());
+        assert_ne!(transfer("bc1q", 10).identifier(), transfer("bc1r", 10).identifier());
+    }
 
     #[test]
     fn test_recipient_identifier_separates_a_named_recipient_from_a_bare_address() {
