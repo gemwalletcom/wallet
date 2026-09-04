@@ -16,14 +16,14 @@ struct TotalValueViewModelTests {
     func pnlAmountText() {
         #expect(TotalValueViewModel.mock(pnlAmount: 50).pnlAmountText == "+$50.00")
         #expect(TotalValueViewModel.mock(pnlAmount: -50).pnlAmountText == "-$50.00")
-        #expect(TotalValueViewModel.mock(pnlAmount: 0).pnlAmountText == nil)
+        #expect(TotalValueViewModel.mock(pnlAmount: 0, showsPnl: false).pnlAmountText == nil)
     }
 
     @Test
     func pnlPercentageText() {
         #expect(TotalValueViewModel.mock(pnlPercentage: 5).pnlPercentageText == "5.00%")
         #expect(TotalValueViewModel.mock(pnlPercentage: -5).pnlPercentageText == "5.00%")
-        #expect(TotalValueViewModel.mock(pnlAmount: 0).pnlPercentageText == nil)
+        #expect(TotalValueViewModel.mock(pnlAmount: 0, showsPnl: false).pnlPercentageText == nil)
     }
 
     @Test

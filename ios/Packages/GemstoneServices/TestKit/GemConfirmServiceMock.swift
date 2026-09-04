@@ -42,8 +42,8 @@ public final class GemConfirmServiceMock: GemConfirmServiceProtocol, @unchecked 
     ) {
         executeResult = execute
         metadataResult = metadata ?? .success(GemConfirmMetadata(
-            assetBalance: GemAssetBalance(assetId: "", available: "0", frozen: "0", locked: "0", staked: "0", pending: "0", pendingUnconfirmed: "0", rewards: "0", reserved: "0", withdrawable: "0", earn: "0", metadata: nil),
-            feeAssetBalance: GemAssetBalance(assetId: "", available: "0", frozen: "0", locked: "0", staked: "0", pending: "0", pendingUnconfirmed: "0", rewards: "0", reserved: "0", withdrawable: "0", earn: "0", metadata: nil),
+            assetBalance: GemAssetBalance(assetId: Primitives.Asset.mock().id.identifier, available: "0", frozen: "0", locked: "0", staked: "0", pending: "0", pendingUnconfirmed: "0", rewards: "0", reserved: "0", withdrawable: "0", earn: "0", metadata: nil),
+            feeAssetBalance: GemAssetBalance(assetId: Primitives.Asset.mock().id.identifier, available: "0", frozen: "0", locked: "0", staked: "0", pending: "0", pendingUnconfirmed: "0", rewards: "0", reserved: "0", withdrawable: "0", earn: "0", metadata: nil),
             prices: [],
         ))
         feeAssetRows = feeAssets

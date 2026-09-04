@@ -67,8 +67,12 @@ public extension GemConfirmMetadata {
 
     var balance: Primitives.Balance? { try? Primitives.Balance(assetBalance) }
 
+    func price(for assetId: String) -> Primitives.Price? {
+        price(assetId: assetId).map { Primitives.Price($0) }
+    }
+
     func price(for assetId: Primitives.AssetId) -> Primitives.Price? {
-        price(assetId: assetId.identifier).map { Primitives.Price($0) }
+        price(for: assetId.identifier)
     }
 
     var assetPrices: [Primitives.AssetId: Primitives.Price] {
