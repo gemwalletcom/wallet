@@ -146,7 +146,14 @@ class StakeViewModel @Inject constructor(
             return
         }
         val assetInfo = assetInfo.value ?: return
-        onConfirm(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toJson(), BigInteger(delegation.base.balance), false))
+        onConfirm(
+            stakeService.stakeTransferData(
+                asset = assetInfo.asset.toGem(),
+                stakeType = StakeType.Withdraw(delegation).toJson<StakeType>(),
+                value = BigInteger(delegation.base.balance),
+                useMaxAmount = false,
+            )
+        )
     }
 
     fun onRewards(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {

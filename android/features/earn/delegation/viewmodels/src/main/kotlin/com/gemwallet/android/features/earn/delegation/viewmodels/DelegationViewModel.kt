@@ -127,7 +127,14 @@ class DelegationViewModel @Inject constructor(
             buildUndelegate()?.let { amountCall(it) }
             return
         }
-        confirmCall(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Unstake(delegation).toJson(), BigInteger(delegation.base.balance), false))
+        confirmCall(
+            stakeService.stakeTransferData(
+                asset = assetInfo.asset.toGem(),
+                stakeType = StakeType.Unstake(delegation).toJson<StakeType>(),
+                value = BigInteger(delegation.base.balance),
+                useMaxAmount = false,
+            )
+        )
     }
 
     fun onRedelegate(call: AmountTransactionAction) {
@@ -137,7 +144,14 @@ class DelegationViewModel @Inject constructor(
     fun onWithdraw(call: ConfirmTransactionAction) {
         val assetInfo = assetInfo.value ?: return
         val delegation = delegation.value ?: return
-        call(stakeService.stakeTransferData(assetInfo.asset.toGem(), StakeType.Withdraw(delegation).toJson(), BigInteger(delegation.base.balance), false))
+        call(
+            stakeService.stakeTransferData(
+                asset = assetInfo.asset.toGem(),
+                stakeType = StakeType.Withdraw(delegation).toJson<StakeType>(),
+                value = BigInteger(delegation.base.balance),
+                useMaxAmount = false,
+            )
+        )
     }
 
     fun onClaimRewards(call: ConfirmTransactionAction) {
@@ -145,10 +159,10 @@ class DelegationViewModel @Inject constructor(
         val delegation = delegation.value ?: return
         call(
             stakeService.stakeTransferData(
-                assetInfo.asset.toGem(),
-                StakeType.Rewards(listOf(delegation.validator)).toJson(),
-                delegation.rewardsBalance(),
-                false,
+                asset = assetInfo.asset.toGem(),
+                stakeType = StakeType.Rewards(listOf(delegation.validator)).toJson<StakeType>(),
+                value = delegation.rewardsBalance(),
+                useMaxAmount = false,
             )
         )
     }
