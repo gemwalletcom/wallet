@@ -5,7 +5,7 @@ use reqwest::header::USER_AGENT;
 use reqwest::{Method, RequestBuilder};
 use serde::{Serialize, de::DeserializeOwned};
 
-use crate::{Client, ClientError, Response, build_request_url, deserialize_response, encode_request, retry_policy};
+use crate::{Client, ClientError, Response, build_request_url, deserialize_response, encode_request_body, retry_policy};
 
 #[derive(Debug, Clone)]
 pub struct ReqwestClient {
@@ -136,7 +136,7 @@ impl ReqwestClient {
         R: DeserializeOwned,
     {
         let url = build_request_url(&self.base_url, path);
-        let (headers, request_body) = encode_request(headers, body)?;
+        let request_body = encode_request_body(&headers, body)?;
         let request = self.build_request(self.client.request(method, &url).body(request_body), headers);
         let response = request.send().await.map_err(Self::map_reqwest_error)?;
 

@@ -10,7 +10,7 @@ mod request;
 mod target;
 mod types;
 
-#[cfg(feature = "testkit")]
+#[cfg(any(test, feature = "testkit"))]
 pub mod testkit;
 
 #[cfg(feature = "reqwest")]
@@ -31,7 +31,8 @@ pub use query::{build_path_with_query, build_request_url};
 use request::BodyMethod;
 pub use request::{GetRequest, PostRequest};
 pub use target::Target;
-pub use types::{ClientError, Response, decode_json_byte_array, deserialize_response, encode_request};
+use target::body_headers;
+pub use types::{ClientError, Response, decode_json_byte_array, deserialize_response, encode_request_body};
 
 #[cfg(feature = "reqwest")]
 pub use reqwest_client::{ReqwestClient, json_response};
@@ -76,14 +77,14 @@ pub trait ClientExt: Client {
     where
         T: Serialize + Send + Sync,
     {
-        PostRequest::new(self, BodyMethod::Post, target.path(), target.headers(), body)
+        PostRequest::new(self, BodyMethod::Post, target.path(), body_headers(&target), body)
     }
 
     fn patch<'a, T, R>(&'a self, target: impl Target, body: &'a T) -> PostRequest<'a, Self, T, R>
     where
         T: Serialize + Send + Sync,
     {
-        PostRequest::new(self, BodyMethod::Patch, target.path(), target.headers(), body)
+        PostRequest::new(self, BodyMethod::Patch, target.path(), body_headers(&target), body)
     }
 
     async fn get_or_error<R, E>(&self, target: impl Target + Send) -> Result<R, ClientError<Option<E>>>
