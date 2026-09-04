@@ -42,7 +42,7 @@ import com.wallet.core.primitives.swap.SwapPriceImpactType
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.listItemIconSize
-import uniffi.gemstone.SwapperProvider
+import uniffi.gemstone.SwapProvider
 
 @Composable
 fun SwapDetailsSummaryItem(
@@ -89,7 +89,7 @@ fun SwapDetailsBottomSheet(
     modifier: Modifier = Modifier,
     skipPartiallyExpanded: Boolean = false,
     showProviderSectionHeader: Boolean = false,
-    onProviderSelect: ((SwapperProvider) -> Unit)? = null,
+    onProviderSelect: ((SwapProvider) -> Unit)? = null,
 ) {
     if (model == null) return
 
@@ -186,7 +186,7 @@ private fun SwapProviderListItemView(
     provider: SwapProviderUIModel,
     listPosition: ListPosition,
     isSelected: Boolean,
-    onProviderSelect: (SwapperProvider) -> Unit,
+    onProviderSelect: (SwapProvider) -> Unit,
 ) {
     ListItem(
         modifier = Modifier.clickable { onProviderSelect(provider.id) },

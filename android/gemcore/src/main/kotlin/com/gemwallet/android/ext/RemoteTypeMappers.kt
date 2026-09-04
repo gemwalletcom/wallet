@@ -279,6 +279,58 @@ fun com.wallet.core.primitives.SimulationPayloadFieldType.toGem(): uniffi.gemsto
     com.wallet.core.primitives.SimulationPayloadFieldType.Timestamp -> uniffi.gemstone.SimulationPayloadFieldType.TIMESTAMP
 }
 
+fun uniffi.gemstone.SwapProvider.toPrimitives(): com.wallet.core.primitives.SwapProvider = when (this) {
+    uniffi.gemstone.SwapProvider.UNISWAP_V3 -> com.wallet.core.primitives.SwapProvider.UniswapV3
+    uniffi.gemstone.SwapProvider.UNISWAP_V4 -> com.wallet.core.primitives.SwapProvider.UniswapV4
+    uniffi.gemstone.SwapProvider.PANCAKESWAP_V3 -> com.wallet.core.primitives.SwapProvider.PancakeswapV3
+    uniffi.gemstone.SwapProvider.AERODROME -> com.wallet.core.primitives.SwapProvider.Aerodrome
+    uniffi.gemstone.SwapProvider.PANORA -> com.wallet.core.primitives.SwapProvider.Panora
+    uniffi.gemstone.SwapProvider.THORCHAIN -> com.wallet.core.primitives.SwapProvider.Thorchain
+    uniffi.gemstone.SwapProvider.JUPITER -> com.wallet.core.primitives.SwapProvider.Jupiter
+    uniffi.gemstone.SwapProvider.OKX -> com.wallet.core.primitives.SwapProvider.Okx
+    uniffi.gemstone.SwapProvider.ACROSS -> com.wallet.core.primitives.SwapProvider.Across
+    uniffi.gemstone.SwapProvider.OKU -> com.wallet.core.primitives.SwapProvider.Oku
+    uniffi.gemstone.SwapProvider.WAGMI -> com.wallet.core.primitives.SwapProvider.Wagmi
+    uniffi.gemstone.SwapProvider.STONFI_V2 -> com.wallet.core.primitives.SwapProvider.StonfiV2
+    uniffi.gemstone.SwapProvider.MAYAN -> com.wallet.core.primitives.SwapProvider.Mayan
+    uniffi.gemstone.SwapProvider.CHAINFLIP -> com.wallet.core.primitives.SwapProvider.Chainflip
+    uniffi.gemstone.SwapProvider.NEAR_INTENTS -> com.wallet.core.primitives.SwapProvider.NearIntents
+    uniffi.gemstone.SwapProvider.CETUS_AGGREGATOR -> com.wallet.core.primitives.SwapProvider.CetusAggregator
+    uniffi.gemstone.SwapProvider.CETUS_CLMM -> com.wallet.core.primitives.SwapProvider.CetusClmm
+    uniffi.gemstone.SwapProvider.RELAY -> com.wallet.core.primitives.SwapProvider.Relay
+    uniffi.gemstone.SwapProvider.HYPERLIQUID -> com.wallet.core.primitives.SwapProvider.Hyperliquid
+    uniffi.gemstone.SwapProvider.ORCA -> com.wallet.core.primitives.SwapProvider.Orca
+    uniffi.gemstone.SwapProvider.SQUID -> com.wallet.core.primitives.SwapProvider.Squid
+    uniffi.gemstone.SwapProvider.MAYACHAIN -> com.wallet.core.primitives.SwapProvider.Mayachain
+    uniffi.gemstone.SwapProvider.SWAPS_XYZ -> com.wallet.core.primitives.SwapProvider.SwapsXyz
+}
+
+fun com.wallet.core.primitives.SwapProvider.toGem(): uniffi.gemstone.SwapProvider = when (this) {
+    com.wallet.core.primitives.SwapProvider.UniswapV3 -> uniffi.gemstone.SwapProvider.UNISWAP_V3
+    com.wallet.core.primitives.SwapProvider.UniswapV4 -> uniffi.gemstone.SwapProvider.UNISWAP_V4
+    com.wallet.core.primitives.SwapProvider.PancakeswapV3 -> uniffi.gemstone.SwapProvider.PANCAKESWAP_V3
+    com.wallet.core.primitives.SwapProvider.Aerodrome -> uniffi.gemstone.SwapProvider.AERODROME
+    com.wallet.core.primitives.SwapProvider.Panora -> uniffi.gemstone.SwapProvider.PANORA
+    com.wallet.core.primitives.SwapProvider.Thorchain -> uniffi.gemstone.SwapProvider.THORCHAIN
+    com.wallet.core.primitives.SwapProvider.Jupiter -> uniffi.gemstone.SwapProvider.JUPITER
+    com.wallet.core.primitives.SwapProvider.Okx -> uniffi.gemstone.SwapProvider.OKX
+    com.wallet.core.primitives.SwapProvider.Across -> uniffi.gemstone.SwapProvider.ACROSS
+    com.wallet.core.primitives.SwapProvider.Oku -> uniffi.gemstone.SwapProvider.OKU
+    com.wallet.core.primitives.SwapProvider.Wagmi -> uniffi.gemstone.SwapProvider.WAGMI
+    com.wallet.core.primitives.SwapProvider.StonfiV2 -> uniffi.gemstone.SwapProvider.STONFI_V2
+    com.wallet.core.primitives.SwapProvider.Mayan -> uniffi.gemstone.SwapProvider.MAYAN
+    com.wallet.core.primitives.SwapProvider.Chainflip -> uniffi.gemstone.SwapProvider.CHAINFLIP
+    com.wallet.core.primitives.SwapProvider.NearIntents -> uniffi.gemstone.SwapProvider.NEAR_INTENTS
+    com.wallet.core.primitives.SwapProvider.CetusAggregator -> uniffi.gemstone.SwapProvider.CETUS_AGGREGATOR
+    com.wallet.core.primitives.SwapProvider.CetusClmm -> uniffi.gemstone.SwapProvider.CETUS_CLMM
+    com.wallet.core.primitives.SwapProvider.Relay -> uniffi.gemstone.SwapProvider.RELAY
+    com.wallet.core.primitives.SwapProvider.Hyperliquid -> uniffi.gemstone.SwapProvider.HYPERLIQUID
+    com.wallet.core.primitives.SwapProvider.Orca -> uniffi.gemstone.SwapProvider.ORCA
+    com.wallet.core.primitives.SwapProvider.Squid -> uniffi.gemstone.SwapProvider.SQUID
+    com.wallet.core.primitives.SwapProvider.Mayachain -> uniffi.gemstone.SwapProvider.MAYACHAIN
+    com.wallet.core.primitives.SwapProvider.SwapsXyz -> uniffi.gemstone.SwapProvider.SWAPS_XYZ
+}
+
 fun uniffi.gemstone.TpslType.toPrimitives(): com.wallet.core.primitives.TpslType = when (this) {
     uniffi.gemstone.TpslType.TAKE_PROFIT -> com.wallet.core.primitives.TpslType.TakeProfit
     uniffi.gemstone.TpslType.STOP_LOSS -> com.wallet.core.primitives.TpslType.StopLoss

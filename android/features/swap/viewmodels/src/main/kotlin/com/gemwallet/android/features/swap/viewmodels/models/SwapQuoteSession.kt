@@ -4,7 +4,7 @@ import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
 import uniffi.gemstone.SwapperException
-import uniffi.gemstone.SwapperProvider
+import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperQuote
 
 internal sealed interface SwapQuotePhase {
@@ -18,21 +18,21 @@ internal sealed interface SwapTransferPhase {
     data object Idle : SwapTransferPhase
     data class Loading(
         val requestKey: SwapQuoteRequestKey,
-        val providerId: SwapperProvider,
+        val providerId: SwapProvider,
     ) : SwapTransferPhase
 
     data class Failed(
         val requestKey: SwapQuoteRequestKey,
-        val providerId: SwapperProvider,
+        val providerId: SwapProvider,
         val error: Throwable,
     ) : SwapTransferPhase
 }
 
-internal typealias SelectQuote = (List<SwapperQuote>, SwapperProvider?) -> SwapperQuote?
+internal typealias SelectQuote = (List<SwapperQuote>, SwapProvider?) -> SwapperQuote?
 
 internal data class SwapQuoteSession(
     val quotes: SwapQuotesResult? = null,
-    val selectedProvider: SwapperProvider? = null,
+    val selectedProvider: SwapProvider? = null,
     val selectedQuote: SwapperQuote? = null,
     val quotePhase: SwapQuotePhase = SwapQuotePhase.NoInput,
     val transferPhase: SwapTransferPhase = SwapTransferPhase.Idle,
@@ -86,7 +86,7 @@ private fun SwapQuotesResult.quoteErrorOrNull(): Throwable? = when {
 private fun SwapQuotesResult.phaseFor(error: Throwable?): SwapQuotePhase =
     if (error == null) SwapQuotePhase.Ready else SwapQuotePhase.Failed(requestKey, error)
 
-internal fun SwapQuoteSession.onProviderSelected(provider: SwapperProvider, select: SelectQuote): SwapQuoteSession = copy(
+internal fun SwapQuoteSession.onProviderSelected(provider: SwapProvider, select: SelectQuote): SwapQuoteSession = copy(
     selectedProvider = provider,
     selectedQuote = quotes?.let { select(it.items, provider) },
     transferPhase = SwapTransferPhase.Idle,

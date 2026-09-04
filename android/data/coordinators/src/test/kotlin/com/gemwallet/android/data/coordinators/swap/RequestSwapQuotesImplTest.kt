@@ -32,7 +32,7 @@ import uniffi.gemstone.SwapperSlippage
 import uniffi.gemstone.GemSwapPairSuggestion
 import uniffi.gemstone.GemSwapTransfer
 import uniffi.gemstone.SwapperAssetList
-import uniffi.gemstone.SwapperProvider
+import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperQuote
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -323,7 +323,7 @@ class RequestSwapQuotesImplTest {
 
         override fun quoteDebounceMilliseconds(): ULong = 0u
 
-        override fun selectedQuote(quotes: List<SwapperQuote>, preferred: SwapperProvider?): SwapperQuote? = throw UnsupportedOperationException()
+        override fun selectedQuote(quotes: List<SwapperQuote>, preferred: SwapProvider?): SwapperQuote? = throw UnsupportedOperationException()
 
         override fun refreshIntervalMilliseconds(): ULong = 0u
 

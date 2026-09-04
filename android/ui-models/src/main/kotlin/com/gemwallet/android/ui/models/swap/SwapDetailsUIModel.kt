@@ -2,10 +2,10 @@ package com.gemwallet.android.ui.models.swap
 
 import com.gemwallet.android.domains.swap.AssetRatePair
 import com.wallet.core.primitives.swap.SwapPriceImpactType
-import uniffi.gemstone.SwapperProvider
+import uniffi.gemstone.SwapProvider
 
 data class SwapProviderUIModel(
-    val id: SwapperProvider,
+    val id: SwapProvider,
     val title: String,
     val icon: String,
     val amount: String? = null,

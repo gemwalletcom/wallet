@@ -4,7 +4,8 @@
 use primitives::{
     Account, Asset, AssetFiatValue, AssetType, Chain, ChainType, ConnectionComponent, ConnectionStatus, Currency, FeePriority, FeeUnitType, Latency, LatencyType, LinkType,
     PerpetualProvider, PortfolioType, PriceAlertDirection, PriceAlertNotificationType, RecentActivityType, SimulationPayloadField, SimulationPayloadFieldDisplay,
-    SimulationPayloadFieldKind, SimulationPayloadFieldType, TotalFiatValue, TpslType, VerificationStatus, WalletConnectionVerificationStatus, WalletSource, WalletType,
+    SimulationPayloadFieldKind, SimulationPayloadFieldType, SwapProvider, TotalFiatValue, TpslType, VerificationStatus, WalletConnectionVerificationStatus, WalletSource,
+    WalletType,
 };
 use std::str::FromStr;
 
@@ -167,6 +168,33 @@ pub enum SimulationPayloadFieldType {
     Text,
     Address,
     Timestamp,
+}
+
+#[uniffi::remote(Enum)]
+pub enum SwapProvider {
+    UniswapV3,
+    UniswapV4,
+    PancakeswapV3,
+    Aerodrome,
+    Panora,
+    Thorchain,
+    Jupiter,
+    Okx,
+    Across,
+    Oku,
+    Wagmi,
+    StonfiV2,
+    Mayan,
+    Chainflip,
+    NearIntents,
+    CetusAggregator,
+    CetusClmm,
+    Relay,
+    Hyperliquid,
+    Orca,
+    Squid,
+    Mayachain,
+    SwapsXyz,
 }
 
 #[uniffi::remote(Enum)]

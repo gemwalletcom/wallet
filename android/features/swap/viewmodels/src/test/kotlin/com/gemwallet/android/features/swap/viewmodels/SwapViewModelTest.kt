@@ -68,7 +68,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.SwapperOptions
-import uniffi.gemstone.SwapperProvider
+import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperProviderData
 import uniffi.gemstone.SwapperProviderMode
 import uniffi.gemstone.SwapperProviderType
@@ -405,7 +405,7 @@ class SwapViewModelTest {
         viewModel.swap {}
         awaitCondition { viewModel.uiState.value.action is SwapActionState.TransferError }
 
-        viewModel.setProvider(SwapperProvider.UNISWAP_V3)
+        viewModel.setProvider(SwapProvider.UNISWAP_V3)
         advanceUntilIdle()
 
         assertEquals(SwapActionState.Ready, viewModel.uiState.value.action)
@@ -583,7 +583,7 @@ class SwapViewModelTest {
     fun `onPrimaryAction shows price impact warning before swap`() = runTest(testDispatcher) {
         every { SwapDetailsUIModelFactory.create(any()) } returns SwapDetailsUIModel(
             provider = SwapProviderUIModel(
-                id = SwapperProvider.UNISWAP_V3,
+                id = SwapProvider.UNISWAP_V3,
                 title = "Uniswap v3",
                 icon = "",
             ),
@@ -760,7 +760,7 @@ class SwapViewModelTest {
         toValue = BigInteger(toValue),
         data = SwapperProviderData(
             provider = SwapperProviderType(
-                id = SwapperProvider.UNISWAP_V3,
+                id = SwapProvider.UNISWAP_V3,
                 name = "Uniswap",
                 protocol = "v3",
                 protocolId = "uniswap_v3",

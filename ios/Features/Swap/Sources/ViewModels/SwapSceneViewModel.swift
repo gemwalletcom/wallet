@@ -10,7 +10,7 @@ import struct Gemstone.GemSwapButtonInput
 import protocol Gemstone.GemSwapQuoteServiceProtocol
 import class Gemstone.GemSwapQuoteSummary
 import enum Gemstone.SwapperError
-import enum Gemstone.SwapperProvider
+import enum Gemstone.SwapProvider
 import struct Gemstone.SwapperQuote
 import GemstonePrimitives
 import Localization
@@ -45,7 +45,7 @@ public final class SwapSceneViewModel {
     var pairSelectorModel: SwapPairSelectorViewModel
 
     var selectedSwapQuote: SwapperQuote?
-    private var preferredProvider: SwapperProvider?
+    private var preferredProvider: SwapProvider?
 
     var amountInputModel: InputValidationViewModel = .init(mode: .onDemand)
     var toValue: String = ""

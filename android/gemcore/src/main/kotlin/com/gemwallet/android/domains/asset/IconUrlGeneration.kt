@@ -15,7 +15,7 @@ import com.wallet.core.primitives.FiatProvider
 import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
-import uniffi.gemstone.SwapperProvider
+import uniffi.gemstone.SwapProvider
 
 //fun Int.getDrawableUri() = "android.resource://com.gemwallet.android/drawable/$this"
 
@@ -53,31 +53,31 @@ fun FiatProviderName.getFiatProviderIcon(): String = "file:///android_asset/fiat
 
 fun FiatProvider.getFiatProviderIcon(): String = "file:///android_asset/fiat/${id.lowercase()}.svg"
 
-fun SwapperProvider.getSwapProviderIcon(): String {
+fun SwapProvider.getSwapProviderIcon(): String {
     val iconName = when (this) {
-        SwapperProvider.UNISWAP_V4,
-        SwapperProvider.UNISWAP_V3 -> "uniswap"
-        SwapperProvider.PANCAKESWAP_V3 -> "pancakeswap"
-        SwapperProvider.THORCHAIN -> "thorchain"
-        SwapperProvider.MAYACHAIN -> return Chain.Mayachain.getIconUrl()
-        SwapperProvider.JUPITER -> "jupiter"
-        SwapperProvider.ACROSS -> "across"
-        SwapperProvider.OKU -> "oku"
-        SwapperProvider.WAGMI -> "wagmi"
-        SwapperProvider.CETUS_AGGREGATOR,
-        SwapperProvider.CETUS_CLMM -> "cetus"
-        SwapperProvider.STONFI_V2 -> "stonfi"
-        SwapperProvider.MAYAN -> "mayan"
-        SwapperProvider.CHAINFLIP -> "chainflip"
-        SwapperProvider.RELAY -> "relay"
-        SwapperProvider.AERODROME -> "aerodrome"
-        SwapperProvider.HYPERLIQUID -> "hyperliquid"
-        SwapperProvider.NEAR_INTENTS -> "near"
-        SwapperProvider.ORCA -> "orca"
-        SwapperProvider.PANORA -> "panora"
-        SwapperProvider.OKX -> "okx"
-        SwapperProvider.SQUID -> "squid"
-        SwapperProvider.SWAPS_XYZ -> "swaps_xyz"
+        SwapProvider.UNISWAP_V4,
+        SwapProvider.UNISWAP_V3 -> "uniswap"
+        SwapProvider.PANCAKESWAP_V3 -> "pancakeswap"
+        SwapProvider.THORCHAIN -> "thorchain"
+        SwapProvider.MAYACHAIN -> return Chain.Mayachain.getIconUrl()
+        SwapProvider.JUPITER -> "jupiter"
+        SwapProvider.ACROSS -> "across"
+        SwapProvider.OKU -> "oku"
+        SwapProvider.WAGMI -> "wagmi"
+        SwapProvider.CETUS_AGGREGATOR,
+        SwapProvider.CETUS_CLMM -> "cetus"
+        SwapProvider.STONFI_V2 -> "stonfi"
+        SwapProvider.MAYAN -> "mayan"
+        SwapProvider.CHAINFLIP -> "chainflip"
+        SwapProvider.RELAY -> "relay"
+        SwapProvider.AERODROME -> "aerodrome"
+        SwapProvider.HYPERLIQUID -> "hyperliquid"
+        SwapProvider.NEAR_INTENTS -> "near"
+        SwapProvider.ORCA -> "orca"
+        SwapProvider.PANORA -> "panora"
+        SwapProvider.OKX -> "okx"
+        SwapProvider.SQUID -> "squid"
+        SwapProvider.SWAPS_XYZ -> "swaps_xyz"
     }
     return "file:///android_asset/swap/${iconName.lowercase()}.svg"
 }

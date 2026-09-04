@@ -11,7 +11,7 @@ import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.swap.SwapPriceImpact
 import java.math.BigInteger
-import uniffi.gemstone.SwapperProvider
+import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperProviderType
 
 object SwapProviderUIModelFactory {
@@ -29,7 +29,7 @@ object SwapProviderUIModelFactory {
     }
 
     fun create(
-        providerId: SwapperProvider,
+        providerId: SwapProvider,
         title: String,
         receiveAsset: AssetPriceValue,
         toValue: BigInteger,

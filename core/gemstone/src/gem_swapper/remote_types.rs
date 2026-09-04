@@ -1,5 +1,4 @@
 use crate::models::custom_types::GemBigUint;
-use std::str::FromStr;
 
 use primitives::{AssetId, Chain};
 pub use swapper::{
@@ -74,33 +73,6 @@ pub struct SwapperQuote {
 }
 
 #[uniffi::remote(Enum)]
-pub enum SwapperProvider {
-    UniswapV3,
-    UniswapV4,
-    PancakeswapV3,
-    Aerodrome,
-    Panora,
-    Thorchain,
-    Jupiter,
-    Okx,
-    Across,
-    Oku,
-    Wagmi,
-    StonfiV2,
-    Mayan,
-    Chainflip,
-    NearIntents,
-    CetusAggregator,
-    CetusClmm,
-    Relay,
-    Hyperliquid,
-    Orca,
-    Squid,
-    Mayachain,
-    SwapsXyz,
-}
-
-#[uniffi::remote(Enum)]
 pub enum SwapperProviderMode {
     OnChain,
     CrossChain,
@@ -125,25 +97,4 @@ pub struct SwapperQuoteAsset {
     pub id: String,
     pub symbol: String,
     pub decimals: u32,
-}
-
-#[uniffi::export]
-fn swapper_provider_from_str(s: &str) -> Option<SwapperProvider> {
-    SwapperProvider::from_str(s).ok()
-}
-
-#[uniffi::export]
-fn swapper_provider_to_str(provider: SwapperProvider) -> String {
-    provider.as_ref().to_string()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_swapper_provider_from_str() {
-        assert_eq!(swapper_provider_from_str("stonfi_v2"), Some(SwapperProvider::StonfiV2));
-        assert_eq!(swapper_provider_from_str("dedust"), None);
-    }
 }

@@ -14,7 +14,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import com.wallet.core.primitives.swap.SwapPriceImpact
 import com.wallet.core.primitives.swap.SwapPriceImpactType
-import uniffi.gemstone.SwapperProvider
+import uniffi.gemstone.SwapProvider
 import java.math.BigInteger
 
 class SwapDetailsUIModelFactoryTest {
@@ -198,7 +198,7 @@ class SwapDetailsUIModelFactoryTest {
         toValue: String,
         receiveAsset: AssetPriceValue = this.receiveAsset,
     ) = SwapProviderUIModelFactory.create(
-        providerId = SwapperProvider.OKX,
+        providerId = SwapProvider.OKX,
         title = "OKX (DEX)",
         receiveAsset = receiveAsset,
         toValue = BigInteger(toValue),

@@ -82,7 +82,7 @@ import uniffi.gemstone.GemSwapButtonInput
 import uniffi.gemstone.GemSlippageCheck
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemSwapQuoteSummary
-import uniffi.gemstone.SwapperProvider
+import uniffi.gemstone.SwapProvider
 import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
@@ -282,7 +282,7 @@ class SwapViewModel @Inject constructor(
         payValue.clearText()
     }
 
-    fun setProvider(provider: SwapperProvider) {
+    fun setProvider(provider: SwapProvider) {
         session.update { it.onProviderSelected(provider, swapQuoteService::selectedQuote) }
     }
 

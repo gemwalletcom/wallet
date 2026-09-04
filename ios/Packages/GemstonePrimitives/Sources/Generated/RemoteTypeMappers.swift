@@ -416,6 +416,66 @@ public extension Primitives.SimulationPayloadFieldType {
     }
 }
 
+public extension Gemstone.SwapProvider {
+    func map() -> Primitives.SwapProvider {
+        switch self {
+        case .uniswapV3: .uniswapV3
+        case .uniswapV4: .uniswapV4
+        case .pancakeswapV3: .pancakeswapV3
+        case .aerodrome: .aerodrome
+        case .panora: .panora
+        case .thorchain: .thorchain
+        case .jupiter: .jupiter
+        case .okx: .okx
+        case .across: .across
+        case .oku: .oku
+        case .wagmi: .wagmi
+        case .stonfiV2: .stonfiV2
+        case .mayan: .mayan
+        case .chainflip: .chainflip
+        case .nearIntents: .nearIntents
+        case .cetusAggregator: .cetusAggregator
+        case .cetusClmm: .cetusClmm
+        case .relay: .relay
+        case .hyperliquid: .hyperliquid
+        case .orca: .orca
+        case .squid: .squid
+        case .mayachain: .mayachain
+        case .swapsXyz: .swapsXyz
+        }
+    }
+}
+
+public extension Primitives.SwapProvider {
+    func map() -> Gemstone.SwapProvider {
+        switch self {
+        case .uniswapV3: .uniswapV3
+        case .uniswapV4: .uniswapV4
+        case .pancakeswapV3: .pancakeswapV3
+        case .aerodrome: .aerodrome
+        case .panora: .panora
+        case .thorchain: .thorchain
+        case .jupiter: .jupiter
+        case .okx: .okx
+        case .across: .across
+        case .oku: .oku
+        case .wagmi: .wagmi
+        case .stonfiV2: .stonfiV2
+        case .mayan: .mayan
+        case .chainflip: .chainflip
+        case .nearIntents: .nearIntents
+        case .cetusAggregator: .cetusAggregator
+        case .cetusClmm: .cetusClmm
+        case .relay: .relay
+        case .hyperliquid: .hyperliquid
+        case .orca: .orca
+        case .squid: .squid
+        case .mayachain: .mayachain
+        case .swapsXyz: .swapsXyz
+        }
+    }
+}
+
 public extension Gemstone.TpslType {
     func map() -> Primitives.TpslType {
         switch self {

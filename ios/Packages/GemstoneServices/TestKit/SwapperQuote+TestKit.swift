@@ -2,7 +2,7 @@
 
 import BigInt
 import Foundation
-import enum Gemstone.SwapperProvider
+import enum Gemstone.SwapProvider
 import struct Gemstone.SwapperQuote
 
 public extension SwapperQuote {
@@ -10,7 +10,7 @@ public extension SwapperQuote {
         fromValue: BigUInt = 1_000_000_000_000_000_000,
         minFromValue: BigUInt? = nil,
         toValue: BigUInt = 250_000_000_000,
-        provider: SwapperProvider = .pancakeswapV3,
+        provider: SwapProvider = .pancakeswapV3,
         etaInSeconds: UInt32? = nil,
     ) -> SwapperQuote {
         SwapperQuote(
