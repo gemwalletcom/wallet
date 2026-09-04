@@ -3,8 +3,8 @@
 
 use primitives::{
     Account, Asset, AssetFiatValue, AssetType, Chain, ChainType, ConnectionComponent, ConnectionStatus, Currency, FeePriority, FeeUnitType, Latency, LatencyType, LinkType,
-    PerpetualProvider, PortfolioType, RecentActivityType, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType,
-    TotalFiatValue, TpslType, VerificationStatus, WalletConnectionVerificationStatus, WalletSource, WalletType,
+    PerpetualProvider, PortfolioType, PriceAlertDirection, PriceAlertNotificationType, RecentActivityType, SimulationPayloadField, SimulationPayloadFieldDisplay,
+    SimulationPayloadFieldKind, SimulationPayloadFieldType, TotalFiatValue, TpslType, VerificationStatus, WalletConnectionVerificationStatus, WalletSource, WalletType,
 };
 use std::str::FromStr;
 
@@ -119,6 +119,19 @@ pub enum PerpetualProvider {
 pub enum PortfolioType {
     Wallet,
     Perpetuals,
+}
+
+#[uniffi::remote(Enum)]
+pub enum PriceAlertDirection {
+    Up,
+    Down,
+}
+
+#[uniffi::remote(Enum)]
+pub enum PriceAlertNotificationType {
+    Auto,
+    Price,
+    PricePercentChange,
 }
 
 #[uniffi::remote(Enum)]

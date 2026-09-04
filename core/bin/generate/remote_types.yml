@@ -23,6 +23,8 @@ remote:
   - LinkType
   - Latency
   - PortfolioType
+  - PriceAlertDirection
+  - PriceAlertNotificationType
   - TotalFiatValue
 codes:
   - Chain

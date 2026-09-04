@@ -284,6 +284,44 @@ public extension Primitives.PortfolioType {
     }
 }
 
+public extension Gemstone.PriceAlertDirection {
+    func map() -> Primitives.PriceAlertDirection {
+        switch self {
+        case .up: .up
+        case .down: .down
+        }
+    }
+}
+
+public extension Primitives.PriceAlertDirection {
+    func map() -> Gemstone.PriceAlertDirection {
+        switch self {
+        case .up: .up
+        case .down: .down
+        }
+    }
+}
+
+public extension Gemstone.PriceAlertNotificationType {
+    func map() -> Primitives.PriceAlertNotificationType {
+        switch self {
+        case .auto: .auto
+        case .price: .price
+        case .pricePercentChange: .pricePercentChange
+        }
+    }
+}
+
+public extension Primitives.PriceAlertNotificationType {
+    func map() -> Gemstone.PriceAlertNotificationType {
+        switch self {
+        case .auto: .auto
+        case .price: .price
+        case .pricePercentChange: .pricePercentChange
+        }
+    }
+}
+
 public extension Gemstone.RecentActivityType {
     func map() -> Primitives.RecentActivityType {
         switch self {

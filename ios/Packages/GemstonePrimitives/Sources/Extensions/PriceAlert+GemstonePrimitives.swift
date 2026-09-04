@@ -20,10 +20,7 @@ extension PriceAlertData: @retroactive Identifiable {
 
 public extension PriceAlert {
     var type: PriceAlertNotificationType {
-        guard let type = try? PriceAlertNotificationType(priceAlertFormatter.notificationType(alert: json())) else {
-            return .auto
-        }
-        return type
+        priceAlertFormatter.notificationType(alert: json()).map()
     }
 }
 

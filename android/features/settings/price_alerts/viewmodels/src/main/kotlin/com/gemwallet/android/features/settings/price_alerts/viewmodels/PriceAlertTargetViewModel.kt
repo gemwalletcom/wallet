@@ -25,6 +25,8 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.PriceAlert
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.PriceAlertNotificationType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -100,11 +102,11 @@ class PriceAlertTargetViewModel @Inject constructor(
         snapshotFlow { value.text }, currentPriceValue, _type, _direction,
     ) { text, currentPrice, type, selectedDirection ->
         priceAlertFormatter.alertDirection(
-            notificationType = type.toJson(),
+            notificationType = type.toGem(),
             inputValue = numericFormatter.double(text.toString()),
             currentPrice = currentPrice,
-            selectedDirection = selectedDirection.toJson(),
-        )?.decodeJson<PriceAlertDirection>()
+            selectedDirection = selectedDirection.toGem(),
+        )?.toPrimitives()
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

@@ -195,6 +195,28 @@ fun com.wallet.core.primitives.PortfolioType.toGem(): uniffi.gemstone.PortfolioT
     com.wallet.core.primitives.PortfolioType.Perpetuals -> uniffi.gemstone.PortfolioType.PERPETUALS
 }
 
+fun uniffi.gemstone.PriceAlertDirection.toPrimitives(): com.wallet.core.primitives.PriceAlertDirection = when (this) {
+    uniffi.gemstone.PriceAlertDirection.UP -> com.wallet.core.primitives.PriceAlertDirection.Up
+    uniffi.gemstone.PriceAlertDirection.DOWN -> com.wallet.core.primitives.PriceAlertDirection.Down
+}
+
+fun com.wallet.core.primitives.PriceAlertDirection.toGem(): uniffi.gemstone.PriceAlertDirection = when (this) {
+    com.wallet.core.primitives.PriceAlertDirection.Up -> uniffi.gemstone.PriceAlertDirection.UP
+    com.wallet.core.primitives.PriceAlertDirection.Down -> uniffi.gemstone.PriceAlertDirection.DOWN
+}
+
+fun uniffi.gemstone.PriceAlertNotificationType.toPrimitives(): com.wallet.core.primitives.PriceAlertNotificationType = when (this) {
+    uniffi.gemstone.PriceAlertNotificationType.AUTO -> com.wallet.core.primitives.PriceAlertNotificationType.Auto
+    uniffi.gemstone.PriceAlertNotificationType.PRICE -> com.wallet.core.primitives.PriceAlertNotificationType.Price
+    uniffi.gemstone.PriceAlertNotificationType.PRICE_PERCENT_CHANGE -> com.wallet.core.primitives.PriceAlertNotificationType.PricePercentChange
+}
+
+fun com.wallet.core.primitives.PriceAlertNotificationType.toGem(): uniffi.gemstone.PriceAlertNotificationType = when (this) {
+    com.wallet.core.primitives.PriceAlertNotificationType.Auto -> uniffi.gemstone.PriceAlertNotificationType.AUTO
+    com.wallet.core.primitives.PriceAlertNotificationType.Price -> uniffi.gemstone.PriceAlertNotificationType.PRICE
+    com.wallet.core.primitives.PriceAlertNotificationType.PricePercentChange -> uniffi.gemstone.PriceAlertNotificationType.PRICE_PERCENT_CHANGE
+}
+
 fun uniffi.gemstone.RecentActivityType.toPrimitives(): com.wallet.core.primitives.RecentActivityType = when (this) {
     uniffi.gemstone.RecentActivityType.SEARCH -> com.wallet.core.primitives.RecentActivityType.Search
     uniffi.gemstone.RecentActivityType.TRANSFER -> com.wallet.core.primitives.RecentActivityType.Transfer

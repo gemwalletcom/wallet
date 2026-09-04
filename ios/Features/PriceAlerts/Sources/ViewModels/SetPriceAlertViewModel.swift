@@ -67,12 +67,12 @@ public final class SetPriceAlertViewModel {
 
     var alertDirection: Primitives.PriceAlertDirection? {
         priceAlertFormatter.alertDirection(
-            notificationType: state.type.notificationType.json(),
+            notificationType: state.type.notificationType.map(),
             inputValue: amountValue,
             currentPrice: assetData.price?.price,
-            selectedDirection: state.selectedDirection.json(),
-        )
-        .flatMap { try? Primitives.PriceAlertDirection($0) }
+            selectedDirection: state.selectedDirection.map(),
+        )?
+        .map()
     }
 
     var alertDirectionTitle: String {

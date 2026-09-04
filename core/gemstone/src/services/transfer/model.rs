@@ -22,6 +22,13 @@ pub struct GemRecipient {
     pub references: Vec<String>,
 }
 
+#[uniffi::export]
+impl GemRecipient {
+    pub fn identifier(&self) -> String {
+        [self.name.as_deref().unwrap_or_default(), &self.address, self.memo.as_deref().unwrap_or_default()].join("_")
+    }
+}
+
 impl GemRecipient {
     pub fn address(address: String) -> Self {
         Self {
@@ -99,4 +106,23 @@ pub enum GemConfirmDestination {
     Validator { name: String, address: String },
     Resource { resource: Resource },
     Provider { name: String, address: String },
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_recipient_identifier_separates_a_named_recipient_from_a_bare_address() {
+        let recipient = |name: Option<&str>, address: &str, memo: Option<&str>| GemRecipient {
+            address: address.to_string(),
+            name: name.map(str::to_string),
+            memo: memo.map(str::to_string),
+            references: Vec::new(),
+        };
+
+        assert_eq!(recipient(Some("Alice"), "0xabc", Some("order 7")).identifier(), "Alice_0xabc_order 7");
+        assert_eq!(recipient(None, "0xabc", None).identifier(), "_0xabc_");
+        assert_ne!(recipient(Some("Alice"), "0xabc", None).identifier(), recipient(None, "0xabc", None).identifier());
+    }
 }
