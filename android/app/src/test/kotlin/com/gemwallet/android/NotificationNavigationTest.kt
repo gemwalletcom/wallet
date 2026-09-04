@@ -19,6 +19,7 @@ import com.gemwallet.android.ui.navigation.routes.PerpetualPositionRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.gemwallet.android.ui.navigation.routes.SupportRoute
+import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
 import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
@@ -217,6 +218,31 @@ class NotificationNavigationTest {
         assertTrue(
             "openAsset reads the current wallet through a synchronous store callback that blocks on Room; " +
                 "the notification routes are built on the main scope. Got $callingThreads",
+            callingThreads.single().startsWith("DefaultDispatcher-worker"),
+        )
+    }
+
+    @Test
+    fun swapNotification_syncsAssetsThroughCore() = runBlocking {
+        val fromAssetId = mockAssetId(Chain.SmartChain, tokenId = "0xcake")
+        val toAssetId = mockAssetId(Chain.SmartChain)
+        val callingThreads = mutableListOf<String>()
+        coEvery { assetsService.syncMissingAssets(any()) } answers {
+            callingThreads += Thread.currentThread().name
+            emptyList()
+        }
+
+        val route = subject.prepareNavigation(
+            GemPushNotification.SwapAsset(
+                fromAssetId = fromAssetId.toIdentifier(),
+                toAssetId = toAssetId.toIdentifier(),
+            )
+        )
+
+        assertEquals(listOf(SwapPairRoute(fromAssetId, toAssetId)), route)
+        assertTrue(
+            "every notification branch reaches Core, which reads the store through synchronous " +
+                "callbacks that block on Room; routes must not be built on the main scope. Got $callingThreads",
             callingThreads.single().startsWith("DefaultDispatcher-worker"),
         )
     }

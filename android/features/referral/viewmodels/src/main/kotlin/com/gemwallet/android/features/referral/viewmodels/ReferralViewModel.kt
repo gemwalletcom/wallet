@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -51,11 +52,13 @@ class ReferralViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val availableWallets = getWallets().mapLatest { service.wallets().map { it.decodeJson<Wallet>() } }
+        .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val session = getSession()
         .filterNotNull()
         .combine(availableWallets) { _, _ -> service.selectedWallet()?.decodeJson<Wallet>() }
+        .flowOn(Dispatchers.IO)
         .onEach { wallet ->
             currentWallet.update {
                 if (it?.id == null || it.id == wallet?.id) {

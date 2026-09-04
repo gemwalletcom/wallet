@@ -234,13 +234,13 @@ class SwapViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, SwapUiState())
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             selectedSlippageBps.value = swapQuoteService.slippageBps()
         }
         matchedQuoteResults
             .onEach(::onQuoteResults)
             .launchIn(viewModelScope)
-        viewModelScope.launch { suggestPair() }
+        viewModelScope.launch(Dispatchers.IO) { suggestPair() }
     }
 
     private suspend fun suggestPair() {

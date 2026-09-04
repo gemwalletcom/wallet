@@ -54,26 +54,26 @@ class NotificationNavigation @Inject constructor(
         return prepareNavigation(notification)
     }
 
-    internal suspend fun prepareNavigation(notification: GemPushNotification): List<NavKey> {
-        return when (notification) {
+    internal suspend fun prepareNavigation(notification: GemPushNotification): List<NavKey> = withContext(Dispatchers.IO) {
+        when (notification) {
             is GemPushNotification.Asset -> prepareAssetRoute(notification.assetId.toAssetId())
             is GemPushNotification.PriceAlert -> prepareAssetRoute(notification.assetId.toAssetId())
             is GemPushNotification.BuyAsset -> {
-                val assetId = notification.assetId.toAssetId() ?: return emptyList()
+                val assetId = notification.assetId.toAssetId() ?: return@withContext emptyList()
                 prepareAssets(assetId)
                 listOf(FiatInputRoute(assetId))
             }
             is GemPushNotification.FiatTransaction -> prepareWalletAssetRoutes(WalletId(notification.walletId), notification.assetId.toAssetId())
             is GemPushNotification.Stake -> prepareWalletAssetRoutes(WalletId(notification.walletId), notification.assetId.toAssetId())
             is GemPushNotification.SwapAsset -> {
-                val fromAssetId = notification.fromAssetId.toAssetId() ?: return emptyList()
-                val toAssetId = notification.toAssetId.toAssetId() ?: return emptyList()
+                val fromAssetId = notification.fromAssetId.toAssetId() ?: return@withContext emptyList()
+                val toAssetId = notification.toAssetId.toAssetId() ?: return@withContext emptyList()
                 prepareAssets(fromAssetId, toAssetId)
                 listOf(SwapPairRoute(fromAssetId, toAssetId))
             }
             is GemPushNotification.Transaction -> prepareTransactionRoutes(
                 walletId = WalletId(notification.walletId),
-                assetId = notification.assetId.toAssetId() ?: return emptyList(),
+                assetId = notification.assetId.toAssetId() ?: return@withContext emptyList(),
                 transaction = notification.transaction.decodeJson(),
             )
             GemPushNotification.Rewards -> listOf(ReferralRoute())
@@ -86,9 +86,7 @@ class NotificationNavigation @Inject constructor(
         if (assetId == null) {
             return emptyList()
         }
-        val asset = withContext(Dispatchers.IO) {
-            assetsService.openAsset(assetId.toIdentifier())
-        }?.toPrimitives() ?: return emptyList()
+        val asset = assetsService.openAsset(assetId.toIdentifier())?.toPrimitives() ?: return emptyList()
         return listOf(AssetRoute(asset.id))
     }
 
