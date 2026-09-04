@@ -56,7 +56,7 @@ public struct TransactionStore: Sendable {
         }
     }
 
-    public func getTransaction(walletId: WalletId, transactionId: TransactionId) throws -> TransactionExtended {
+    public func getTransaction(walletId: WalletId, transactionId: TransactionId) throws -> TransactionExtended? {
         try db.read { db in
             try TransactionRequest(walletId: walletId, transactionId: transactionId).fetch(db)
         }

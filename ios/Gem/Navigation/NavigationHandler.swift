@@ -288,7 +288,9 @@ extension NavigationHandler {
             return
         }
         trackNotificationTransaction(walletId: walletId, transaction: transaction)
-        let transaction = try transactionStore.getTransaction(walletId: walletId, transactionId: transaction.id)
+        guard let transaction = try transactionStore.getTransaction(walletId: walletId, transactionId: transaction.id) else {
+            return
+        }
 
         await selectWalletIfNeeded(walletId)
         switch asset.type {
