@@ -69,7 +69,7 @@ class TransferDataCodecTest {
                 data = data.toTransactionData(),
                 outputType = outputType.toGem(),
                 outputAction = outputAction.toGem(),
-                transactionType = transactionType.toJson(),
+                transactionType = transactionType.toGem(),
                 approval = approval?.toJson(),
             ),
         ),
@@ -135,7 +135,7 @@ class TransferDataCodecTest {
         assertEquals(ApplicationMetadataSource.Payment, metadata.source)
         assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
         assertEquals(BigInteger("21000"), generic.extra.gasLimit)
-        assertEquals(TransactionType.Transfer, generic.extra.transactionType.decodeJson<TransactionType>())
+        assertEquals(TransactionType.Transfer, generic.extra.transactionType.toPrimitives())
         assertEquals(approval, requireNotNull(generic.extra.approval).decodeJson<ApprovalData>())
     }
 

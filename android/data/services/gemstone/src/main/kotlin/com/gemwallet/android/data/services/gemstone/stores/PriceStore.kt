@@ -25,7 +25,7 @@ class GemstonePriceStore(
     private val assetsDao: AssetsDao,
 ) : GemPriceStore {
 
-    override fun getPrices(assetIds: List<String>): List<GemAssetPrice> =
+    override suspend fun getPrices(assetIds: List<String>): List<GemAssetPrice> =
         pricesDao.getByAssets(assetIds).map { it.toGemAssetPrice() }
 
     override suspend fun getEnabledPriceAssetIds(walletId: String): List<String> = assetsDao.getAssetsPriceUpdate(walletId)

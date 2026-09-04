@@ -6,6 +6,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.minutes
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.perpetual.PerpetualConfig
@@ -39,7 +41,12 @@ fun PerpetualMarketNavScreen(
         snapshotFlow { query.text.toString() }.collect(viewModel::setQuery)
     }
 
-    LaunchedEffect(Unit) { viewModel.fetch() }
+    LaunchedEffect(Unit) {
+        while (true) {
+            viewModel.fetch()
+            delay(MARKETS_REFRESH_INTERVAL)
+        }
+    }
 
     DisposableEffect(Unit) {
         viewModel.subscribeMarketPrices()
@@ -77,3 +84,5 @@ fun PerpetualMarketNavScreen(
         onSelect = { onOpenPerpetualDetails(it.id) },
     )
 }
+
+private val MARKETS_REFRESH_INTERVAL = 1.minutes

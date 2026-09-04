@@ -125,19 +125,16 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func recipientNameItemModel() {
-        let db = DB.mockAssets()
+    func recipientNameItemModel() async {
         let address = "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw"
         let model = ConfirmTransferSceneViewModel.mock(
             data: .mock(
                 type: .transfer(.mock()),
                 recipient: .mock(address: address),
             ),
-            nameService: GemNameServiceMock(addressNames: [
-                .mock(chain: .ethereum, address: "0x1234567890123456789012345678901234567890", name: "Ethereum"),
-                .mock(chain: .bitcoin, address: "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw", name: "Bitcoin"),
-            ]),
+            load: .success(.mock(addressName: .mock(chain: .bitcoin, address: address, name: "Bitcoin"))),
         )
+        await model.load()
         let recipientItem = model.itemModel(for: .recipient) as? ConfirmRecipientViewModel
 
         if case let .recipient(addressViewModel) = recipientItem?.itemModel {
@@ -149,19 +146,16 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func recipientNameItemModelUsesStoredAddress() {
-        let db = DB.mockAssets()
+    func recipientNameItemModelUsesStoredAddress() async {
         let checksummedAddress = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4"
-        let nameService = GemNameServiceMock(addressNames: [
-            .mock(chain: .ethereum, address: checksummedAddress, name: "Uniswap"),
-        ])
         let model = ConfirmTransferSceneViewModel.mock(
             data: .mock(
                 type: .transfer(.mockEthereum()),
                 recipient: .mock(address: checksummedAddress),
             ),
-            nameService: nameService,
+            load: .success(.mock(addressName: .mock(chain: .ethereum, address: checksummedAddress, name: "Uniswap"))),
         )
+        await model.load()
         let recipientItem = model.itemModel(for: .recipient) as? ConfirmRecipientViewModel
 
         if case let .recipient(addressViewModel) = recipientItem?.itemModel {
@@ -260,7 +254,7 @@ struct ConfirmTransferSceneViewModelTests {
     func fetchAfterFeeChangeReplacesTheSceneWithTheServiceAnswer() async {
         let priorities: [Gemstone.FeePriority] = [.normal, .fast]
         let model = ConfirmTransferSceneViewModel.mock(
-            gemConfirmService: GemConfirmServiceMock(preload: .success(.mock(confirmData: .mock(feeRates: [
+            load: .success(.mock(preload: .mock(confirmData: .mock(feeRates: [
                 GemFeeRate(priority: .normal, gasPriceType: .regular(gasPrice: 20)),
                 GemFeeRate(priority: .fast, gasPriceType: .regular(gasPrice: 30)),
             ])))),
@@ -280,7 +274,7 @@ struct ConfirmTransferSceneViewModelTests {
     @Test
     func fetchIgnoresErrorAfterCancellation() async {
         let model = ConfirmTransferSceneViewModel.mock(
-            gemConfirmService: GemConfirmServiceMock(preload: .failure(AnyError("network"))),
+            load: .failure(AnyError("network")),
         )
 
         let task = Task { await model.load() }

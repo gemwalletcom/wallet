@@ -91,12 +91,6 @@ pub fn account(account: GemKeystoreAccount) -> Account {
     }
 }
 
-pub const WALLETS_LIMIT: u32 = 100;
-
-pub fn can_add_wallet(wallets_count: usize) -> bool {
-    wallets_count < WALLETS_LIMIT as usize
-}
-
 pub fn next_wallet_index(wallets: &[Wallet]) -> i32 {
     wallets.iter().map(|wallet| wallet.index).max().map(|index| index + 1).unwrap_or(1)
 }
@@ -301,14 +295,6 @@ mod tests {
         assert_eq!(result.wallet_type, WalletType::View);
         assert_eq!(result.accounts.len(), 1);
         assert_eq!(result.accounts[0].address, "0xabc");
-    }
-
-    #[test]
-    fn test_wallets_limit_blocks_the_next_wallet_only_when_reached() {
-        assert!(can_add_wallet(0));
-        assert!(can_add_wallet(WALLETS_LIMIT as usize - 1));
-        assert!(!can_add_wallet(WALLETS_LIMIT as usize));
-        assert!(!can_add_wallet(WALLETS_LIMIT as usize + 1));
     }
 
     #[test]

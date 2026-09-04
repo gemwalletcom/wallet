@@ -248,6 +248,34 @@ fn swift_case(variant: &str) -> String {
         .collect()
 }
 
+/// UniFFI lowers a variant with `heck`, which treats a run of capitals as one word: `TransferNFT`
+/// becomes `transferNft`, where TypeShare keeps `transferNFT`. The two sides of a mapper therefore
+/// spell the same variant differently whenever it contains an acronym.
+fn uniffi_swift_case(variant: &str) -> String {
+    let mut words: Vec<String> = Vec::new();
+    let characters: Vec<char> = variant.chars().collect();
+    let mut word = String::new();
+    for (index, character) in characters.iter().enumerate() {
+        let starts_word =
+            character.is_ascii_uppercase() && !word.is_empty() && (characters[index - 1].is_ascii_lowercase() || characters.get(index + 1).is_some_and(char::is_ascii_lowercase));
+        if starts_word {
+            words.push(std::mem::take(&mut word));
+        }
+        word.push(*character);
+    }
+    if !word.is_empty() {
+        words.push(word);
+    }
+    words
+        .iter()
+        .enumerate()
+        .map(|(index, word)| match index {
+            0 => word.to_ascii_lowercase(),
+            _ => word[..1].to_ascii_uppercase() + &word[1..].to_ascii_lowercase(),
+        })
+        .collect()
+}
+
 fn field_names(field: &Field, index: usize) -> (String, String) {
     match index {
         0 => (field.serialized.clone(), camel_case(&field.rust)),
@@ -282,7 +310,12 @@ pub fn swift(types: &[RemoteType]) -> String {
                 RemoteType::Enum { variants, .. } => {
                     out.push_str("        switch self {\n");
                     for variant in variants {
-                        out.push_str(&format!("        case .{case}: .{case}\n", case = swift_case(variant)));
+                        let (core, app) = (uniffi_swift_case(variant), swift_case(variant));
+                        let (from_case, to_case) = match index {
+                            0 => (&core, &app),
+                            _ => (&app, &core),
+                        };
+                        out.push_str(&format!("        case .{from_case}: .{to_case}\n"));
                     }
                     out.push_str("        }\n");
                 }
@@ -353,4 +386,58 @@ pub fn kotlin(types: &[RemoteType]) -> String {
         }
     }
     out
+}
+
+const JSON_BRIDGE_PATH: &str = "gemstone/src/models/json_bridge.rs";
+
+/// Types the JSON bridge carries whose Rust enum has data-carrying variants, so serde tags them.
+/// Kotlin infers the concrete subtype for a generic `T.toJson()`, which drops that tag, and Core
+/// rejects the payload at runtime. Each one needs an overload whose receiver is the base type.
+pub fn tagged_bridge_types(root: &Path) -> Vec<String> {
+    let Ok(bridge) = fs::read_to_string(root.join(JSON_BRIDGE_PATH)) else {
+        return Vec::new();
+    };
+    let Some(list) = bridge.split("json_bridge!(").nth(1).and_then(|rest| rest.split(");").next()) else {
+        return Vec::new();
+    };
+    let names: Vec<&str> = list.lines().map(|line| line.trim().trim_end_matches(',')).filter(|line| !line.is_empty()).collect();
+
+    let Ok(entries) = fs::read_dir(root.join(PRIMITIVES_SOURCE)) else {
+        return Vec::new();
+    };
+    let sources: Vec<String> = entries.flatten().filter_map(|entry| fs::read_to_string(entry.path()).ok()).collect();
+
+    let mut tagged: Vec<String> = names
+        .into_iter()
+        .filter(|name| {
+            sources
+                .iter()
+                .any(|source| enum_variants(source, name).is_some_and(|variants| variants.iter().any(|variant| !variant.chars().all(|c| c.is_alphanumeric() || c == '_'))))
+        })
+        .map(str::to_string)
+        .collect();
+    tagged.sort();
+    tagged.dedup();
+    tagged
+}
+
+fn enum_variants(source: &str, name: &str) -> Option<Vec<String>> {
+    let start = source.find(&format!("pub enum {name} {{"))?;
+    let body = source[start..].split_once('{')?.1.split_once("\n}")?.0;
+    Some(
+        body.lines()
+            .map(|line| line.trim().trim_end_matches(',').to_string())
+            .filter(|line| !line.is_empty() && !line.starts_with('#') && !line.starts_with("//"))
+            .collect(),
+    )
+}
+
+pub fn kotlin_tagged_bridge(types: &[String]) -> String {
+    let header = HEADER.replace("core/bin/generate/remote_types.yml", JSON_BRIDGE_PATH);
+    let imports: String = types.iter().map(|name| format!("import com.wallet.core.primitives.{name}\n")).collect();
+    let overloads: String = types
+        .iter()
+        .map(|name| format!("\nfun {name}.toJson(): String = jsonEncoder.encodeToString<{name}>(this)\n"))
+        .collect();
+    format!("{header}\npackage com.gemwallet.android.serializer\n\nimport kotlinx.serialization.encodeToString\n{imports}{overloads}")
 }

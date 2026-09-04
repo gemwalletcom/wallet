@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s diperlukan</string>
   <string name="errors_scan_transaction_malicious_description">Urus niaga ini tidak dapat diselesaikan — alamat dompet destinasi dipautkan kepada aktiviti yang mencurigakan atau berbahaya.</string>
   <string name="errors_scan_transaction_memo_required">%1$s alamat dompet destinasi memerlukan teg / memo destinasi</string>
-  <string name="errors_wallets_limit_title">Had Dompet Dicapai</string>
-  <string name="errors_wallets_limit_description">Anda telah mencapai bilangan maksimum dompet yang dibenarkan ( %1$d ). Sila alih keluar dompet sedia ada untuk menambah atau membuat yang baharu.</string>
   <string name="errors_scan_transaction_malicious_title">Aktiviti Meragukan</string>
   <string name="errors_connections_malicious_origin">Sambungan ini datang dari sumber yang tidak dipercayai.</string>
   <string name="errors_no_data_available">Tiada data tersedia</string>

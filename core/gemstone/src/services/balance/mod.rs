@@ -36,8 +36,8 @@ pub struct GemBalanceService {
 
 #[uniffi::export]
 impl GemBalanceService {
-    pub fn balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetBalance>, GemServiceError> {
-        self.store.get_available_balances(wallet_id, asset_ids)
+    pub async fn balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetBalance>, GemServiceError> {
+        self.store.get_available_balances(wallet_id, asset_ids).await
     }
 
     #[uniffi::constructor]
@@ -91,6 +91,7 @@ impl GemBalanceService {
         let Some(wallet) = self
             .wallet_store
             .get_wallet(wallet_id.clone())
+            .await
             .map_err(|error| GemServiceError::Store { msg: error.to_string() })?
         else {
             return Ok(());
@@ -105,6 +106,7 @@ impl GemBalanceService {
             let assets = self
                 .asset_store
                 .get_assets(balances.iter().map(|(_, balance)| balance.asset_id.clone()).collect())
+                .await
                 .map_err(|error| GemServiceError::Store { msg: error.to_string() })?;
             let updates = rules::balance_updates(&assets, balances);
             self.update_balances(wallet_id, updates).await?;

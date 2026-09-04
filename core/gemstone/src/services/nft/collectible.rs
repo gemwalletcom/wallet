@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use primitives::{Chain, NFTAssetId, ReportNft};
+use primitives::{Chain, NFTAssetId, ReportNft, Wallet};
 
 use super::{GemNftService, rules};
 use crate::block_explorer::GemBlockExplorerLink;
@@ -28,8 +28,8 @@ impl GemCollectibleService {
         Self { nfts, avatars, explorer }
     }
 
-    pub fn can_send(&self, chain: Chain) -> Result<bool, GemServiceError> {
-        Ok(rules::can_send(&self.nfts.session.current_wallet()?.wallet_type, chain))
+    pub fn can_send(&self, wallet: Wallet, chain: Chain) -> bool {
+        rules::can_send(&wallet.wallet_type, chain)
     }
 
     pub fn links(&self, chain: Chain, contract_address: String, token_id: String) -> GemCollectibleLinks {

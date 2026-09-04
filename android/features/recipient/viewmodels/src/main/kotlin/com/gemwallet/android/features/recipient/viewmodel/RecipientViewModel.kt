@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.application.contacts.values.ContactRecipient
 import com.gemwallet.android.application.contacts.cases.GetContacts
 import com.gemwallet.android.application.nft.cases.GetAssetNft
@@ -57,6 +58,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -70,6 +72,7 @@ import javax.inject.Inject
 @HiltViewModel
 class RecipientViewModel @Inject constructor(
     private val getSession: GetSession,
+    private val getWallets: GetWallets,
     private val getContacts: GetContacts,
     private val getAssetInfo: GetAssetInfo,
     private val getAssetNft: GetAssetNft,
@@ -115,7 +118,9 @@ class RecipientViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, RecipientState.Loading)
 
-    val wallets = session.map { service.recipientWallets().map { it.decodeJson<Wallet>() } }
+    val wallets = combine(session, getWallets()) { _, wallets ->
+        service.recipientWallets(wallets.map { it.toJson() }).map { it.decodeJson<Wallet>() }
+    }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

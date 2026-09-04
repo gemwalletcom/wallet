@@ -296,6 +296,7 @@ pub fn supported_assets() -> Vec<SwapperChainAsset> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::AssetType;
     use primitives::asset_constants::{
         APTOS_USDC_ASSET_ID, ARBITRUM_WETH_ASSET_ID, BASE_WETH_ASSET_ID, ETHEREUM_WETH_ASSET_ID, GNOSIS_WETH_ASSET_ID, OPTIMISM_WETH_ASSET_ID, POLYGON_WETH_ASSET_ID,
         STELLAR_USDC_ASSET_ID,
@@ -307,6 +308,7 @@ mod tests {
             id: "ethereum_0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48".into(),
             symbol: "USDC".into(),
             decimals: 6,
+            asset_type: AssetType::ERC20,
         };
 
         let result = get_near_asset_id(&asset).unwrap();

@@ -1,5 +1,5 @@
 use super::{constants::RouterInfo, quote::PoolData};
-use crate::{Quote, SwapperError, route_cache::Cache, static_read_cache_headers};
+use crate::{Quote, SwapperError, route_cache::Cache};
 use gem_client::Client;
 use gem_ton::{
     address::Address,
@@ -47,7 +47,7 @@ where
         let token0 = Address::parse(wallet0)?;
         let token1 = Address::parse(wallet1)?;
         let result = self
-            .run_static_get_method(
+            .run_validated_get_method(
                 router.address,
                 GET_POOL_ADDRESS_METHOD,
                 vec![StackArg::slice(token0.to_boc_base64()?), StackArg::slice(token1.to_boc_base64()?)],
@@ -83,19 +83,15 @@ where
         }
         let owner_address = Address::parse(owner)?;
         let result = self
-            .run_static_get_method(token, GET_WALLET_ADDRESS_METHOD, vec![StackArg::slice(owner_address.to_boc_base64()?)])
+            .run_validated_get_method(token, GET_WALLET_ADDRESS_METHOD, vec![StackArg::slice(owner_address.to_boc_base64()?)])
             .await?;
         let wallet = stack_cell_address(&result.stack, 0)?;
         self.jetton_wallet_cache.put(key, wallet.clone());
         Ok(wallet)
     }
 
-    async fn run_static_get_method(&self, address: &str, method: &str, stack: Vec<StackArg>) -> Result<RunGetMethodResult, SwapperError> {
-        let result = self
-            .ton_client
-            .run_get_method_with_headers(address, method, stack, static_read_cache_headers())
-            .await
-            .map_err(SwapperError::compute_quote_error)?;
+    async fn run_validated_get_method(&self, address: &str, method: &str, stack: Vec<StackArg>) -> Result<RunGetMethodResult, SwapperError> {
+        let result = self.ton_client.run_get_method(address, method, stack).await.map_err(SwapperError::compute_quote_error)?;
         validate_run_get_method(method, result)
     }
 }

@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s inahitajika</string>
   <string name="errors_scan_transaction_malicious_description">Muamala huu hauwezi kukamilika - anwani ya pochi lengwa imeunganishwa na shughuli za kutiliwa shaka au hatari.</string>
   <string name="errors_scan_transaction_memo_required">%1$s anwani ya mkoba lengwa inahitaji lebo/memo lengwa</string>
-  <string name="errors_wallets_limit_title">Kikomo cha Wallet Kimefikiwa</string>
-  <string name="errors_wallets_limit_description">Umefikia idadi ya juu zaidi ya pochi inayoruhusiwa ( %1$d ). Tafadhali ondoa pochi iliyopo ili kuongeza au kuunda mpya.</string>
   <string name="errors_scan_transaction_malicious_title">Shughuli ya kutiliwa shaka</string>
   <string name="errors_connections_malicious_origin">Muunganisho huu unatoka kwa chanzo kisichoaminika.</string>
   <string name="errors_no_data_available">Hakuna data inayopatikana</string>

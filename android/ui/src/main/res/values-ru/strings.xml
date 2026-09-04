@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s требуется</string>
   <string name="errors_scan_transaction_malicious_description">Эту транзакцию невозможно завершить — адрес кошелька назначения связан с подозрительной или вредоносной активностью.</string>
   <string name="errors_scan_transaction_memo_required">%1$s адрес кошелька назначения требует тега назначения / заметки</string>
-  <string name="errors_wallets_limit_title">Достигнут лимит кошельков</string>
-  <string name="errors_wallets_limit_description">Достигнуто максимально допустимое количество кошельков ( %1$d ). Чтобы добавить или создать новый, удалите существующий кошелёк.</string>
   <string name="errors_scan_transaction_malicious_title">Подозрительная активность</string>
   <string name="errors_connections_malicious_origin">Это соединение получено из ненадежного источника.</string>
   <string name="errors_no_data_available">Данные отсутствуют.</string>

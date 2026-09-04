@@ -37,9 +37,9 @@ impl GemRecipientService {
         self.names.recipient(chain, input, name_record, memo, references)
     }
 
-    pub fn recipient_wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
-        let current = self.session.current_wallet_id()?;
-        Ok(self.session.get_wallets()?.into_iter().filter(|wallet| wallet.id != current).collect())
+    pub fn recipient_wallets(&self, wallets: Vec<Wallet>) -> Vec<Wallet> {
+        let current = self.session.get_current_wallet_id().unwrap_or_default();
+        wallets.into_iter().filter(|wallet| Some(&wallet.id) != current.as_ref()).collect()
     }
 
     pub fn scan_destination(&self, url: String, asset: GemPaymentWalletAsset) -> Result<GemPaymentDestination, GemstoneError> {

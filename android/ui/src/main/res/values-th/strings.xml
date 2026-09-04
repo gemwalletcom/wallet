@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s เป็นสิ่งจำเป็น</string>
   <string name="errors_scan_transaction_malicious_description">ไม่สามารถทำธุรกรรมนี้ให้เสร็จสมบูรณ์ได้ — ที่อยู่กระเป๋าเงินปลายทางเชื่อมโยงกับกิจกรรมที่น่าสงสัยหรือเป็นอันตราย</string>
   <string name="errors_scan_transaction_memo_required">ที่อยู่กระเป๋าเงินปลายทาง %1$s ต้องมีแท็กปลายทาง / บันทึกช่วยจำ</string>
-  <string name="errors_wallets_limit_title">ถึงขีดจำกัดของกระเป๋าเงินแล้ว</string>
-  <string name="errors_wallets_limit_description">คุณมีจำนวนกระเป๋าสตางค์ถึงจำนวนสูงสุดที่อนุญาตแล้ว ( %1$d ) กรุณาลบกระเป๋าสตางค์ที่มีอยู่เพื่อเพิ่มหรือสร้างใหม่</string>
   <string name="errors_scan_transaction_malicious_title">กิจกรรมที่น่าสงสัย</string>
   <string name="errors_connections_malicious_origin">การเชื่อมต่อนี้มาจากแหล่งที่ไม่น่าเชื่อถือ</string>
   <string name="errors_no_data_available">ไม่มีข้อมูล</string>

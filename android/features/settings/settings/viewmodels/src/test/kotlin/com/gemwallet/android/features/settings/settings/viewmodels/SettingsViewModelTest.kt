@@ -14,6 +14,7 @@ import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.GemWalletSessionServiceInterface
 import io.mockk.coVerify
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -76,14 +77,14 @@ class SettingsViewModelTest {
 
     @Test
     fun `rewards follow core's answer for the loaded wallets`() = runTest(testDispatcher) {
-        every { walletSessionService.showsRewards() } returns false
+        every { walletSessionService.showsRewards(any()) } returns false
         wallets.value = listOf(mockWallet(type = WalletType.Single))
         viewModel = createViewModel()
         advanceUntilIdle()
 
         assertFalse(viewModel.isRewardsAvailable.first { !it })
 
-        every { walletSessionService.showsRewards() } returns true
+        every { walletSessionService.showsRewards(any()) } returns true
         wallets.value = listOf(mockWallet(type = WalletType.Multicoin))
         advanceUntilIdle()
 
@@ -91,7 +92,7 @@ class SettingsViewModelTest {
     }
 
     private val walletSessionService = mockk<GemWalletSessionServiceInterface>(relaxed = true).also {
-        every { it.showsRewards() } returns true
+        every { it.showsRewards(any()) } returns true
     }
 
     private val getCurrentCurrency = mockk<GetCurrentCurrency> {

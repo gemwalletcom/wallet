@@ -94,9 +94,8 @@ class ConfirmViewModelHeaderTest {
 
     private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
         every { confirmService.getCurrency() } returns Currency.USD.toGem()
-        every { confirmService.confirmInput(transfer) } returns GemConfirmInput(from = account.toGem(), transfer = transfer)
+        every { confirmService.confirmInput(any(), transfer) } returns GemConfirmInput(from = account.toGem(), transfer = transfer)
         every { confirmService.initialState(any(), any()) } returns mockGemConfirmInitialState(asset)
-        every { confirmService.addressName(any(), any()) } returns null
         coEvery { confirmService.load(any(), any(), any()) } coAnswers { awaitCancellation() }
         return ConfirmViewModel(
             getSession = mockk<GetSession> {

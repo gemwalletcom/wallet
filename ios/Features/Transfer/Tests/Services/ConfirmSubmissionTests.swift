@@ -141,29 +141,6 @@ struct ConfirmSubmissionTests {
         #expect(service.state.simulation.balanceChanges == [SimulationAssetChange(asset: usdt, value: -25)])
     }
 
-    @Test
-    func simulationStateIgnoresAddressNameLookupFailure() async throws {
-        let field = SimulationPayloadField.standard(kind: .contract, value: "0x123", fieldType: .address, display: .primary)
-        let service = ConfirmTransferSceneViewModel.mock(
-            gemConfirmService: GemConfirmServiceMock(
-                metadata: .success(GemConfirmMetadata(
-                    assetBalance: .mock(assetId: Asset.mock().id.identifier),
-                    feeAssetBalance: .mock(assetId: Asset.mock().id.identifier),
-                    prices: [],
-                )),
-                preload: .success(.mock()),
-                simulation: GemConfirmSimulation(primaryFields: [field.map()], secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
-            ),
-            nameService: GemNameServiceMock(error: NSError(domain: "test", code: 404)),
-        )
-
-        let request = ConfirmTransferRequest.mock()
-        let state = try await service.load(request: request, selection: GemConfirmFeeSelection.priority(priority: .normal), feeAssetSelection: FeeAssetSelection.automatic).simulation
-
-        #expect(state.payload.primaryFields.count == 1)
-        #expect(state.payload.secondaryFields.isEmpty)
-        #expect(state.payload.addressNames.isEmpty)
-    }
 }
 
 private final class ReportedValues: @unchecked Sendable {

@@ -8,4 +8,5 @@ struct ConfirmTransferData {
     let preload: ConfirmTransferPreload
     let simulation: ConfirmSimulationState
     let feeAssets: [GemFeeAsset]
+    let addressName: AddressName?
 }

@@ -5,7 +5,8 @@ use primitives::{
     Account, Asset, AssetFiatValue, AssetType, Chain, ChainType, ChartPeriod, ConnectionComponent, ConnectionStatus, Currency, FeePriority, FeeUnitType, FiatQuoteType, Latency,
     LatencyType, LinkType, PerpetualDirection, PerpetualMarginType, PerpetualOrderType, PerpetualProvider, PortfolioType, PriceAlertDirection, PriceAlertNotificationType,
     RecentActivityType, Resource, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SwapProvider, TotalFiatValue,
-    TpslType, TransferDataOutputAction, TransferDataOutputType, VerificationStatus, WalletConnectionVerificationStatus, WalletSource, WalletType,
+    TpslType, TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType, VerificationStatus, WalletConnectionVerificationStatus, WalletSource,
+    WalletType,
 };
 use std::str::FromStr;
 
@@ -241,6 +242,38 @@ pub enum SwapProvider {
 pub enum TpslType {
     TakeProfit,
     StopLoss,
+}
+
+#[uniffi::remote(Enum)]
+pub enum TransactionState {
+    Pending,
+    Confirmed,
+    InTransit,
+    Failed,
+    Reverted,
+    Refunded,
+}
+
+#[uniffi::remote(Enum)]
+pub enum TransactionType {
+    Transfer,
+    TransferNFT,
+    Swap,
+    TokenApproval,
+    StakeDelegate,
+    StakeUndelegate,
+    StakeRewards,
+    StakeRedelegate,
+    StakeWithdraw,
+    StakeFreeze,
+    StakeUnfreeze,
+    AssetActivation,
+    SmartContractCall,
+    PerpetualOpenPosition,
+    PerpetualClosePosition,
+    PerpetualModifyPosition,
+    EarnDeposit,
+    EarnWithdraw,
 }
 
 #[uniffi::remote(Enum)]

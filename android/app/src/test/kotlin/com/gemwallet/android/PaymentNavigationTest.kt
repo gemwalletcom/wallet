@@ -180,7 +180,7 @@ class PaymentNavigationTest {
         ).toJson(),
         account = ChainAddress(account.chain, account.address).toJson(),
         transaction = "encoded-transaction",
-        transactionType = TransactionType.Transfer.toJson(),
+        transactionType = TransactionType.Transfer.toGem(),
         memo = memo,
         request = request?.toJson(),
     )

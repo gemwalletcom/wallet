@@ -35,11 +35,11 @@ public final class TransactionsViewModel {
         self.service = service
         self.type = type
         self.wallet = wallet
-        filterModel = TransactionsFilterViewModel(wallet: wallet, chains: Self.filterChains(service), type: type)
+        filterModel = TransactionsFilterViewModel(wallet: wallet, chains: Self.filterChains(service, wallet: wallet), type: type)
     }
 
-    private static func filterChains(_ service: any GemTransactionsServiceProtocol) -> [Chain] {
-        ((try? service.filterChains()) ?? []).map { Chain(core: $0) }
+    private static func filterChains(_ service: any GemTransactionsServiceProtocol, wallet: Wallet) -> [Chain] {
+        service.filterChains(wallet: wallet.json()).map { Chain(core: $0) }
     }
 
     public var title: String {
@@ -83,7 +83,7 @@ public extension TransactionsViewModel {
 
 extension TransactionsViewModel {
     private func onSelectCleanFilters() {
-        filterModel = TransactionsFilterViewModel(wallet: wallet, chains: Self.filterChains(service), type: type)
+        filterModel = TransactionsFilterViewModel(wallet: wallet, chains: Self.filterChains(service, wallet: wallet), type: type)
     }
 
     private func onSelectReceive() {

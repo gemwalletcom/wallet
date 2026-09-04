@@ -84,7 +84,7 @@ class AssetsResultsViewModel @Inject constructor(
         is WalletSearchTag.List ->
             combine(
                 getPerpetuals.getPerpetuals(listPriorityQuery(scope.id)),
-                getSession().map { service.showPerpetuals() },
+                getSession().map { service.showPerpetuals(it?.wallet?.toJson()) },
             ) { items, show ->
                 if (show) items.take(WalletSearchConfig.resultsLimit) else emptyList()
             }

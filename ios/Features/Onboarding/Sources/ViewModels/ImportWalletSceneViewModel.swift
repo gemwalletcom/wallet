@@ -189,7 +189,7 @@ extension ImportWalletSceneViewModel {
         let recipient: RecipientImport = if let result = nameRecordViewModel?.state.result {
             RecipientImport(name: result.name, address: result.address)
         } else {
-            RecipientImport(name: await WalletNameGenerator(type: type, service: service).name(), address: trimmedInput)
+            RecipientImport(name: WalletNameGenerator(type: type, wallets: (try? await service.getWallets()) ?? [], service: service).name(), address: trimmedInput)
         }
         switch importType {
         case .phrase:

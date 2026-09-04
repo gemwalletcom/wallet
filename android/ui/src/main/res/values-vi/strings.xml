@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s là bắt buộc</string>
   <string name="errors_scan_transaction_malicious_description">Giao dịch này không thể hoàn tất — địa chỉ ví đích được liên kết với hoạt động đáng ngờ hoặc có hại.</string>
   <string name="errors_scan_transaction_memo_required">%1$s địa chỉ ví đích yêu cầu thẻ đích / ghi nhớ</string>
-  <string name="errors_wallets_limit_title">Đã đạt đến giới hạn ví</string>
-  <string name="errors_wallets_limit_description">Bạn đã đạt đến số lượng ví tối đa được phép ( %1$d ). Vui lòng xóa ví hiện có để thêm hoặc tạo ví mới.</string>
   <string name="errors_scan_transaction_malicious_title">Hoạt động đáng ngờ</string>
   <string name="errors_connections_malicious_origin">Kết nối này đến từ một nguồn không đáng tin cậy.</string>
   <string name="errors_no_data_available">Không có dữ liệu có sẵn</string>

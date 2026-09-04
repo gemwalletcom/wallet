@@ -11,7 +11,7 @@ import GemstoneServicesTestKit
 struct WalletNameGeneratorTests {
     @Test
     func walletNameUsesNextWalletIndex() async {
-        let generator = WalletNameGenerator(type: .multicoin, service: GemWalletService.mock())
+        let generator = WalletNameGenerator(type: .multicoin, wallets: [], service: GemWalletService.mock())
 
         #expect(await generator.name() == "Wallet #1")
     }

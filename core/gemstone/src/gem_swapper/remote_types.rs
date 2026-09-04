@@ -1,6 +1,6 @@
 use crate::models::custom_types::GemBigUint;
 
-use primitives::{AssetId, Chain};
+use primitives::{AssetId, AssetType, Chain};
 pub use swapper::{
     AssetList as SwapperAssetList, FetchQuoteData, Options as SwapperOptions, ProviderData as SwapperProviderData, ProviderType as SwapperProviderType, Quote as SwapperQuote,
     QuoteRequest as SwapperQuoteRequest, Route as SwapperRoute, SwapperProvider, SwapperProviderMode, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode,
@@ -97,4 +97,5 @@ pub struct SwapperQuoteAsset {
     pub id: String,
     pub symbol: String,
     pub decimals: u32,
+    pub asset_type: AssetType,
 }

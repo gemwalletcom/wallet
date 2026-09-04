@@ -11,9 +11,7 @@ pub(super) struct SecurityRequest {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct SecurityResponse {
-    pub(super) code: String,
-    pub(super) status: String,
-    pub(super) data: Option<SecurityData>,
+    pub(super) data: SecurityData,
 }
 
 #[derive(Debug, Deserialize)]
@@ -54,22 +52,6 @@ impl RiskLevel {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_security_response() {
-        let response = serde_json::from_str::<SecurityResponse>(r#"{"code":"0","status":"ok","data":{"overall_risk_level":"No Obvious Risk"}}"#).unwrap();
-
-        assert_eq!(response.status, "ok");
-        assert_eq!(response.data.unwrap().overall_risk_level, RiskLevel::NoObvious);
-    }
-
-    #[test]
-    fn test_in_progress_response() {
-        let response = serde_json::from_str::<SecurityResponse>(r#"{"code":"0","status":"in progress","pollAfter":10}"#).unwrap();
-
-        assert_eq!(response.status, "in progress");
-        assert!(response.data.is_none());
-    }
 
     #[test]
     fn test_risk_levels() {

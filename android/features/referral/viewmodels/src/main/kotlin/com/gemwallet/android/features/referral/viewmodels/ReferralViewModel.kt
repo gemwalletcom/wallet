@@ -50,12 +50,12 @@ class ReferralViewModel @Inject constructor(
     val referralLink = rewards.mapLatest { it?.code?.let(service::referralLink) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val availableWallets = getWallets().mapLatest { service.wallets().map { it.decodeJson<Wallet>() } }
+    val availableWallets = getWallets().mapLatest { wallets -> service.wallets(wallets.map { it.toJson() }).map { it.decodeJson<Wallet>() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val session = getSession()
         .filterNotNull()
-        .combine(availableWallets) { _, _ -> service.selectedWallet()?.decodeJson<Wallet>() }
+        .combine(availableWallets) { session, wallets -> service.selectedWallet(session?.wallet?.toJson(), wallets.map { it.toJson() })?.decodeJson<Wallet>() }
         .onEach { wallet ->
             currentWallet.update {
                 if (it?.id == null || it.id == wallet?.id) {

@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s ay kinakailangan</string>
   <string name="errors_scan_transaction_malicious_description">Ang transaksyong ito ay hindi makukumpleto — ang patutunguhang wallet address ay naka-link sa kahina-hinala o nakakapinsalang aktibidad.</string>
   <string name="errors_scan_transaction_memo_required">Nangangailangan ang %1$s destination wallet address ng destination tag / memo</string>
-  <string name="errors_wallets_limit_title">Naabot na ang Limitasyon ng Wallets</string>
-  <string name="errors_wallets_limit_description">Naabot mo na ang maximum na bilang ng mga wallet na pinapayagan ( %1$d ). Mangyaring alisin ang isang umiiral na wallet upang magdagdag o gumawa ng bago.</string>
   <string name="errors_scan_transaction_malicious_title">Kahina-hinalang Aktibidad</string>
   <string name="errors_connections_malicious_origin">Ang koneksyon na ito ay nagmula sa isang hindi pinagkakatiwalaang pinagmulan.</string>
   <string name="errors_no_data_available">Walang available na data</string>

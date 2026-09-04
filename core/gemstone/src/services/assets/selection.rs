@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{Asset, AssetBasic, AssetId, Chain, NFTData};
+use primitives::{Asset, AssetBasic, AssetId, Chain, NFTData, Wallet};
 
 use super::model::GemAssetAction;
 use super::rules;
@@ -56,36 +56,28 @@ impl GemAssetSelectionService {
         self.preferences.get_currency()
     }
 
-    pub fn filter_chains(&self) -> Result<Vec<Chain>, GemServiceError> {
-        Ok(chain_rules::wallet_chains_by_rank(&self.session.current_wallet()?))
+    pub fn filter_chains(&self, wallet: Wallet) -> Vec<Chain> {
+        chain_rules::wallet_chains_by_rank(&wallet)
     }
 
-    pub fn supports_tokens(&self) -> bool {
-        self.session
-            .get_current_wallet()
-            .ok()
-            .flatten()
-            .is_some_and(|wallet| !rules::token_chains(&wallet).is_empty())
+    pub fn supports_tokens(&self, wallet: Option<Wallet>) -> bool {
+        wallet.is_some_and(|wallet| !rules::token_chains(&wallet).is_empty())
     }
 
     pub fn search_collections(&self, data: Vec<NFTData>, query: String) -> Vec<GemNftSearchItem> {
         nft_rules::search_collections(data, &query)
     }
 
-    pub fn show_perpetuals(&self) -> bool {
-        self.session
-            .get_current_wallet()
-            .ok()
-            .flatten()
-            .is_some_and(|wallet| self.preferences.show_perpetuals(wallet))
+    pub fn show_perpetuals(&self, wallet: Option<Wallet>) -> bool {
+        wallet.is_some_and(|wallet| self.preferences.show_perpetuals(wallet))
     }
 
     pub async fn search_assets(&self, query: String) -> Result<Vec<AssetBasic>, GemServiceError> {
-        self.search.search_assets(self.session.current_wallet()?, query, self.get_currency()).await
+        self.search.search_assets(self.session.current_wallet().await?, query, self.get_currency()).await
     }
 
     pub async fn search(&self, query: String, scope: GemSearchScope) -> Result<bool, GemServiceError> {
-        self.search.search(self.session.current_wallet()?, query, scope, self.get_currency()).await
+        self.search.search(self.session.current_wallet().await?, query, scope, self.get_currency()).await
     }
 
     pub async fn set_assets_enabled(&self, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {

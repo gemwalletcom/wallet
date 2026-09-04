@@ -271,7 +271,7 @@ mod tests {
     use crate::{SwapperQuoteAsset, alien::mock::ProviderMock};
     use gem_client::testkit::MockClient;
     use primitives::{
-        AssetId,
+        AssetId, AssetType,
         asset_constants::{ARBITRUM_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID},
     };
     use std::collections::BTreeSet;
@@ -331,11 +331,13 @@ mod tests {
                 id: ARBITRUM_USDC_ASSET_ID.to_string(),
                 symbol: "USDC".to_string(),
                 decimals: 6,
+                asset_type: AssetType::ERC20,
             },
             to_asset: SwapperQuoteAsset {
                 id: HYPERCORE_SPOT_USDC_ASSET_ID.to_string(),
                 symbol: "USDC".to_string(),
                 decimals: 8,
+                asset_type: AssetType::SPOT,
             },
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),

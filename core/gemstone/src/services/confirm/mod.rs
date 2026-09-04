@@ -27,7 +27,7 @@ use crate::services::price::GemPriceService;
 use crate::services::simulation::{GemSimulationFormatter, GemSimulationService};
 use crate::services::transaction_state::{GemTransactionStateService, GemTransactionStatusService};
 use crate::signer::GemSignerError;
-use primitives::{AssetId, Chain, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransferDataOutputAction, WalletId};
+use primitives::{Asset, AssetId, Chain, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransferDataOutputAction, WalletId};
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmService {
@@ -68,10 +68,10 @@ impl GemConfirmService {
         }
     }
 
-    pub fn metadata(&self, wallet_id: WalletId, asset_id: AssetId, fee_asset_id: AssetId, extra_asset_ids: Vec<AssetId>) -> Result<GemConfirmMetadata, GemConfirmError> {
+    pub async fn metadata(&self, wallet_id: WalletId, asset_id: AssetId, fee_asset_id: AssetId, extra_asset_ids: Vec<AssetId>) -> Result<GemConfirmMetadata, GemConfirmError> {
         let asset_ids = rules::metadata_asset_ids(&asset_id, &fee_asset_id, extra_asset_ids);
-        let balances = self.balance.balances(wallet_id, asset_ids.clone())?;
-        let prices = self.price.prices(asset_ids)?;
+        let balances = self.balance.balances(wallet_id, asset_ids.clone()).await?;
+        let prices = self.price.prices(asset_ids).await?;
         rules::build_metadata(asset_id, fee_asset_id, balances, prices)
     }
 
@@ -144,10 +144,8 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
-    pub fn simulation(&self, input_type: GemTransactionInputType, simulation: Option<SimulationResult>) -> Result<GemConfirmSimulation, GemConfirmError> {
-        let asset_ids = simulation.as_ref().map(SimulationResult::asset_ids).unwrap_or_default();
+    pub fn simulation(&self, input_type: GemTransactionInputType, simulation: Option<SimulationResult>, assets: Vec<Asset>) -> Result<GemConfirmSimulation, GemConfirmError> {
         let has_critical_warning = simulation.as_ref().map(SimulationResult::has_critical_warning).unwrap_or(false);
-        let assets = self.assets.assets(asset_ids)?;
         let approval = input_type.approval_value();
         let shows_header = self.simulation_formatter.shows_header(simulation.clone(), approval.is_some());
         let payload_fields = self
@@ -221,27 +219,30 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
-    async fn ensure_simulation_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), crate::services::error::GemServiceError> {
+    async fn ensure_simulation_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, crate::services::error::GemServiceError> {
         self.assets.ensure_simulation_assets(asset_ids).await
     }
 
-    pub fn fee_assets(&self, wallet_id: WalletId, chain: Chain) -> Result<Vec<GemFeeAsset>, GemConfirmError> {
+    pub async fn fee_assets(&self, wallet_id: WalletId, chain: Chain) -> Result<Vec<GemFeeAsset>, GemConfirmError> {
         let fee_asset_ids = chain_fee_asset_ids(chain);
         if fee_asset_ids.is_empty() {
             return Ok(Vec::new());
         }
-        let assets = self.assets.assets(fee_asset_ids.clone())?;
-        let balances = self.balance.balances(wallet_id, fee_asset_ids.clone())?;
-        let prices = self.price.prices(fee_asset_ids)?;
+        let assets = self.assets.assets(fee_asset_ids.clone()).await?;
+        let balances = self.balance.balances(wallet_id, fee_asset_ids.clone()).await?;
+        let prices = self.price.prices(fee_asset_ids).await?;
         Ok(rules::selectable_fee_assets(assets, balances, prices))
     }
     pub async fn preload(&self, wallet_id: WalletId, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmPreload, GemConfirmError> {
         let confirm_data = self.load(input, options).await?;
         let fee_asset_id = confirm_data.fee.fee_asset.clone();
-        let metadata = self.input_metadata(wallet_id.clone(), &confirm_data.input.transfer.input_type, fee_asset_id.clone())?;
+        let metadata = self
+            .input_metadata(wallet_id.clone(), &confirm_data.input.transfer.input_type, fee_asset_id.clone())
+            .await?;
         let fee_asset = self
             .assets
-            .assets(vec![fee_asset_id.clone()])?
+            .assets(vec![fee_asset_id.clone()])
+            .await?
             .into_iter()
             .next()
             .ok_or(GemConfirmError::BalanceMissing { asset_id: fee_asset_id.clone() })?;
@@ -322,7 +323,7 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
-    fn input_metadata(&self, wallet_id: WalletId, input_type: &GemTransactionInputType, fee_asset_id: AssetId) -> Result<GemConfirmMetadata, GemConfirmError> {
-        self.metadata(wallet_id, input_type.transaction_asset().id, fee_asset_id, input_type.asset_ids())
+    async fn input_metadata(&self, wallet_id: WalletId, input_type: &GemTransactionInputType, fee_asset_id: AssetId) -> Result<GemConfirmMetadata, GemConfirmError> {
+        self.metadata(wallet_id, input_type.transaction_asset().id, fee_asset_id, input_type.asset_ids()).await
     }
 }

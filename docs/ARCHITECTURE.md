@@ -547,6 +547,31 @@ struct that implements six traits. Cross-cutting doubles (`TestAlienProvider`) l
 `gemstone/src/testkit.rs`. A double that exists to probe one behavior of one test (a store that
 counts writes or delays a read) stays inline with that test.
 
+**A test never hand-rolls a double a testkit already ships.** A `struct` in a test module that
+implements `Client`, `Target` or a store trait is a stand-in nobody else uses: it drifts the moment
+the real trait grows a method, and it asserts the stand-in rather than the path the app takes. Take
+the double from the owning crate's `testkit` — enabled through that crate's `testkit` feature under
+`[dev-dependencies]`, never copied — and drive the real request through it:
+
+```rust
+let client = AlgorandClient::new(MockClient::new().with_post_with_headers(|path, body, headers| {
+    assert_eq!(path, "/v2/transactions");
+    assert_eq!(body, [0xde, 0xad, 0xbe, 0xef]);
+    assert_eq!(headers.get(CONTENT_TYPE).map(String::as_str), Some(ContentType::ApplicationXBinary.as_str()));
+    Ok(br#"{"txId":"TXID"}"#.to_vec())
+}));
+```
+
+`MockClient` encodes the body exactly as `ReqwestClient` and `RpcClient` do, so a handler that
+asserts bytes and headers is asserting the wire. References:
+[`gem_client::testkit`](../core/crates/gem_client/src/testkit.rs) and `mock_jsonrpc_client` for HTTP,
+[`gem_hypercore/src/testkit.rs`](../core/crates/gem_hypercore/src/testkit.rs) for a chain client,
+[`primitives/src/testkit/asset_mock.rs`](../core/crates/primitives/src/testkit/asset_mock.rs) and
+[`storage/src/testkit/scan_address_mock.rs`](../core/crates/storage/src/testkit/scan_address_mock.rs)
+for fixtures; call sites in
+[`gem_algorand/src/rpc/client.rs`](../core/crates/gem_algorand/src/rpc/client.rs) and
+[`gem_stellar/src/rpc/client.rs`](../core/crates/gem_stellar/src/rpc/client.rs).
+
 ### Do not test the same rule twice through a thicker stack
 
 An app test that stands up a real Core service over a real store and then asserts *Core's decision* is a second copy of a Core test, paid for in database setup and simulator time. It fails for the same reasons the Core test does, and it goes stale in a different file.
@@ -636,7 +661,8 @@ impl<C: Client> TronGridClient<C> {
 ```
 
 Variant fields are named: `GetAccount(String)` does not say what the string is. The target implements
-`gem_client::Target` (`path()`, and `headers()` when a request carries one); the client owns the
+`gem_client::Target` (`path()`, `headers()` when a request carries one, and `content_type()` when a
+body is not JSON); the client owns the
 transport, the credentials, the clock, the signature, the envelope and the pagination loop. A
 method is `self.client.get(target).await` or `self.client.post(target, &body).await`. A private helper exists only for shared work: credentials
 (`TronGridClient::send`), a 404 that is a value (`StellarClient::get_or_not_found`), an envelope
@@ -649,13 +675,13 @@ method is `self.client.get(target).await` or `self.client.post(target, &body).aw
 | Query string | Part of `path()`; a transport only ever sees a path. One or two fixed parameters are a `format!`; more, or any optional one, is a flat `Serialize` struct rendered by `build_path_with_query` (`None` omitted, values encoded, a slice of pairs for a repeated key). A client without a target yet calls `client.get(path).query(&query)`, which renders the same way | `GemApiTarget`, `CoinMarketsQuery`, `mayan::quote_path` |
 | Optional parameter | An `Option` field of the query struct, omitted when `None`, never a second variant | `TransactionsQuery { limit, fingerprint: Option<String> }`, `PaymentsQuery { cursor, .. }` |
 | Method and body | The method calls `post(target, &body)` with the body it has; a POST variant carries nothing the path does not need. `Client` speaks GET and POST; the device client builds `gem_jsonrpc::Target` with a `method()` for PUT and DELETE. A host that multiplexes on the body (HyperCore `/info`, Cardano GraphQL) has a constant path and a variant per query | `AptosClient::submit_transaction`, `GemDeviceApiTarget` |
-| Raw body | `String` for `text/plain` and form-urlencoded, `Vec<u8>` for binary; the content type in the target's `headers()`, always from `ContentType` | Bitcoin `sendtx`, Stellar, Algorand, Aptos BCS, `SendSupportImage` |
+| Raw body | `String` for `text/plain` and form-urlencoded, `Vec<u8>` for binary; the content type from the target's `content_type()`, always a `ContentType` variant, never a `Content-Type` string in `headers()`. A body-carrying request declares `application/json` by default, so only a non-JSON body overrides it | Bitcoin `sendtx`, Stellar, Algorand, Aptos BCS, `SendSupportImage` |
 | Credentials | `fn headers(&self)` on the client, empty when the key is blank (`Option<String>` decided once at construction), passed as `.headers(self.headers())`; a key the host wants in the query is appended by `send` the same way. Transport default headers are backend-only: `RpcClient` has none | `JupiterClient`, `NearIntentsClient`, Blockscout `apikey` |
-| Request header | On the target: cache TTL (`X_CACHE_TTL`), API version, idempotency key | `HyperCoreClient`, TON emulate, Flashnet |
+| Request header | On the target: API version, idempotency key | TON emulate, Flashnet |
 | Signature | A pure `fn` in `auth.rs` over method, path, body, timestamp and nonce; the client reads the clock and merges the result last. A refreshed token sits behind an injected port | `okx::auth::sign`, `GoPlusProvider::sign`, `build_device_auth_header` |
 | Envelope | Unwrapped once in `send`; a typed error body through `get_or_error::<_, ErrorResponse>`; a 404 that means "none" is a value (§ 3) | TON `ApiResult`, GoPlus `Response`, THORChain, Stellar `AccountResult` |
 | Pagination | The cursor on the variant, the page size a `const`, the loop in the client with a page cap and a repeated-cursor guard; the loop takes a closure that builds the page's variant | `get_transaction_pages`, `AlchemyClient::get_nfts_by_owner` |
-| JSON-RPC | `ToJsonRpcRequest` with constants from `method.rs` and typed parameter enums beside it; `batch_request` then `take_all`; `request_with_cache`; the same enum posted to a path when a REST host has an RPC route | `SolanaRpc`, `EthereumRpc`, Chainflip broker |
+| JSON-RPC | `ToJsonRpcRequest` with constants from `method.rs` and typed parameter enums beside it; `batch_request` then `take_all`; the same enum posted to a path when a REST host has an RPC route | `SolanaRpc`, `EthereumRpc`, Chainflip broker |
 | Construction | `new(client, key)` with `C: Client` already pointed at the host. Never `ReqwestClient::request` from a client: it bypasses `Client` and never works on the apps | `TronGridClient` |
 
 **Tests.** A client test over `MockClient` or `mock_jsonrpc_client` asserts behaviour the wire

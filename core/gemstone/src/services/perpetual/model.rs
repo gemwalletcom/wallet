@@ -1,4 +1,5 @@
 use crate::models::custom_types::{GemBigInt, GemBigUint};
+use crate::services::failures::StepFailure;
 use primitives::chart::ChartCandleUpdate;
 use primitives::{Asset, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualProvider};
 use serde::{Deserialize, Serialize};
@@ -70,6 +71,26 @@ pub struct GemAutocloseSummary {
 pub enum GemMarketsRefreshTrigger {
     Scheduled,
     UserRequested,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualRefreshStep {
+    Positions,
+    Markets,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemPerpetualRefreshFailure {
+    pub step: GemPerpetualRefreshStep,
+    pub message: String,
+}
+
+impl StepFailure for GemPerpetualRefreshFailure {
+    type Step = GemPerpetualRefreshStep;
+
+    fn new(step: GemPerpetualRefreshStep, message: String) -> Self {
+        Self { step, message }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, uniffi::Enum)]

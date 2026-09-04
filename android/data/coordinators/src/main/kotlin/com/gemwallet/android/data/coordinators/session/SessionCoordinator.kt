@@ -47,10 +47,10 @@ class SessionCoordinator(
 
     private val currencyState = MutableStateFlow(preferencesService.getCurrency().toCurrency())
 
-    private val currentWallet: Flow<Wallet?> = sessionStore.observeSession()
-        .flatMapLatest { record ->
-            val walletId = record?.walletId ?: return@flatMapLatest flow { emit(null) }
-            walletStore.observeWallet(WalletId(walletId))
+    private val currentWallet: Flow<Wallet?> = sessionStore.observeWalletId()
+        .flatMapLatest { walletId ->
+            val id = walletId ?: return@flatMapLatest flow { emit(null) }
+            walletStore.observeWallet(WalletId(id))
         }
 
     private val session: StateFlow<Session?> = combine(currentWallet, currencyState) { wallet, currency ->
@@ -59,7 +59,7 @@ class SessionCoordinator(
 
     init {
         scope.launch {
-            setCurrency(preferencesService.setupCurrency(sessionStore.storedCurrency()?.toGem() ?: localeCurrencyCode()).toCurrency())
+            setCurrency(preferencesService.setupCurrency(localeCurrencyCode()).toCurrency())
         }
     }
 

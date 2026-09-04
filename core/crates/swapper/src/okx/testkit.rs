@@ -39,9 +39,9 @@ pub(super) fn mock_client(quote_response: &'static str, swap_response: &'static 
 
 pub(super) fn mock_quote_asset_with_symbol(id: &str, symbol: &str) -> QuoteAsset {
     QuoteAsset {
-        id: id.to_string(),
         symbol: symbol.to_string(),
         decimals: 18,
+        ..QuoteAsset::from(AssetId::new(id).unwrap())
     }
 }
 

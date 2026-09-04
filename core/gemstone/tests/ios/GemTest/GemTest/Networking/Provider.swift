@@ -6,7 +6,6 @@ import Gemstone
 public actor NativeProvider {
     let nodeConfig: [String: URL]
     let session: URLSession
-    let cache: Cache<AlienTarget, Data>
 
     init(session: URLSession = .shared) {
         self.nodeConfig = [
@@ -24,7 +23,6 @@ public actor NativeProvider {
             "ink": URL(string: "https://rpc-qnd.inkonchain.com")!
         ]
         self.session = session
-        self.cache = Cache()
     }
 }
 
@@ -39,19 +37,10 @@ extension NativeProvider: AlienProvider {
     public func request(target: Gemstone.AlienTarget) async throws -> Gemstone.AlienResponse {
         print("==> handle request: \(target)")
 
-        if let data = await self.cache.get(key: target) {
-            print("<== cached response size: \(data.count)")
-            return Gemstone.AlienResponse(status: nil, data: data)
-        }
-
         let (data, response) = try await self.session.data(for: target.asRequest())
         let status = (response as? HTTPURLResponse)?.statusCode
 
         print("<== response size: \(data.count)")
-
-        if let ttl = target.headers?["x-gem-cache-ttl"] {
-            await self.cache.set(value: data, forKey: target, ttl: TimeInterval(ttl))
-        }
 
         return Gemstone.AlienResponse(status: status.map(UInt16.init), data: data)
     }

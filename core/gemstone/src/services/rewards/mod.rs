@@ -25,12 +25,12 @@ impl GemRewardsService {
         Self { api, auth, balance, session }
     }
 
-    pub fn wallets(&self) -> Result<Vec<Wallet>, GemServiceError> {
-        Ok(session_rules::rewards_wallets(self.session.get_wallets()?))
+    pub fn wallets(&self, wallets: Vec<Wallet>) -> Vec<Wallet> {
+        session_rules::rewards_wallets(wallets)
     }
 
-    pub fn selected_wallet(&self) -> Result<Option<Wallet>, GemServiceError> {
-        Ok(session_rules::rewards_wallet(self.session.get_current_wallet()?, &self.wallets()?))
+    pub fn selected_wallet(&self, current: Option<Wallet>, wallets: Vec<Wallet>) -> Option<Wallet> {
+        session_rules::rewards_wallet(current, &self.wallets(wallets))
     }
 
     pub fn referral_link(&self, code: String) -> String {

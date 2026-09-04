@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s الزامی است</string>
   <string name="errors_scan_transaction_malicious_description">این تراکنش قابل انجام نیست — آدرس کیف پول مقصد به فعالیت مشکوک یا مضر مرتبط است.</string>
   <string name="errors_scan_transaction_memo_required">%1$s آدرس کیف پول مقصد به یک برچسب / یادداشت مقصد نیاز دارد.</string>
-  <string name="errors_wallets_limit_title">محدودیت کیف پول‌ها تکمیل شد</string>
-  <string name="errors_wallets_limit_description">شما به حداکثر تعداد کیف پول مجاز ( %1$d ) رسیده‌اید. لطفاً برای اضافه کردن یا ایجاد کیف پول جدید، کیف پول موجود را حذف کنید.</string>
   <string name="errors_scan_transaction_malicious_title">فعالیت مشکوک</string>
   <string name="errors_connections_malicious_origin">این اتصال از یک منبع غیرقابل اعتماد می‌آید.</string>
   <string name="errors_no_data_available">داده‌ای موجود نیست</string>

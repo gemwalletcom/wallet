@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s为必填项</string>
   <string name="errors_scan_transaction_malicious_description">此交易无法完成——目标钱包地址与可疑或有害活动有关。</string>
   <string name="errors_scan_transaction_memo_required">%1$s目标钱包地址需要目标标签/备注</string>
-  <string name="errors_wallets_limit_title">钱包已达上限</string>
-  <string name="errors_wallets_limit_description">您已达到允许的最大钱包数量（ %1$d ）。请移除现有钱包以添加或创建新钱包。</string>
   <string name="errors_scan_transaction_malicious_title">可疑活动</string>
   <string name="errors_connections_malicious_origin">此连接来自不可信来源。</string>
   <string name="errors_no_data_available">暂无数据</string>

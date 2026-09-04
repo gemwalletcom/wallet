@@ -93,6 +93,13 @@ fn generate_remote_mappers(generator_type: &GeneratorType, platform_directory_pa
         GeneratorType::TypeScript => return,
     };
     write_generated(&path, contents);
+
+    if matches!(generator_type, GeneratorType::Kotlin) {
+        write_generated(
+            &format!("{platform_directory_path}/../../gemwallet/android/serializer/TaggedJsonBridge.kt"),
+            remote_mappers::kotlin_tagged_bridge(&remote_mappers::tagged_bridge_types(Path::new("."))),
+        );
+    }
 }
 
 fn write_generated(path: &str, contents: String) {

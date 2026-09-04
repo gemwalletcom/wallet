@@ -43,7 +43,7 @@ class SwapSelectViewModelTest {
         every { getRecentAssets(any()) } returns flowOf(emptyList())
         every { searchSwapAssets(any(), any(), any(), any()) } returns flowOf(emptyList())
         coEvery { service.searchAssets(any()) } returns emptyList()
-        every { service.supportsTokens() } returns false
+        every { service.supportsTokens(any()) } returns false
     }
 
     @After

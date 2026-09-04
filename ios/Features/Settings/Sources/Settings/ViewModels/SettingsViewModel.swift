@@ -9,6 +9,7 @@ import Localization
 import Preferences
 import Primitives
 import PrimitivesComponents
+import Store
 import Style
 import SwiftUI
 import GemstoneServices
@@ -16,16 +17,15 @@ import GemstoneServices
 @Observable
 @MainActor
 public final class SettingsViewModel {
-    private let walletId: WalletId
     private let service: any GemWalletSessionServiceProtocol
     private let observablePreferences: ObservablePreferences
 
+    public let walletsQuery = ObservableQuery(WalletsRequest(isPinned: .none), initialValue: [Wallet]())
+
     public init(
-        walletId: WalletId,
         service: any GemWalletSessionServiceProtocol,
         observablePreferences: ObservablePreferences,
     ) {
-        self.walletId = walletId
         self.service = service
         self.observablePreferences = observablePreferences
     }
@@ -43,12 +43,7 @@ public final class SettingsViewModel {
     }
 
     var walletsValue: String {
-        do {
-            return try "\(service.walletsCount())"
-        } catch {
-            debugLog("wallets count unavailable: \(error)")
-            return .empty
-        }
+        "\(walletsQuery.value.count)"
     }
 
     var walletsImage: AssetImage {
@@ -96,7 +91,7 @@ public final class SettingsViewModel {
     }
 
     var showsRewards: Bool {
-        service.showsRewardsValue
+        service.showsRewards(wallets: walletsQuery.value)
     }
 
     var aboutUsTitle: String {

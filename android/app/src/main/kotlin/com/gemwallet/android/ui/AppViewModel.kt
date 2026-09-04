@@ -180,7 +180,9 @@ class AppViewModel @Inject constructor(
                 ?.sortedWith(compareBy({ it.index }, { it.id.id }))
                 ?.firstOrNull()
             if (wallet != null) {
-                setCurrentWallet.setCurrentWallet(wallet.id)
+                if (getCurrentWallet.getCurrentWallet() == null) {
+                    setCurrentWallet.setCurrentWallet(wallet.id)
+                }
                 WalletRootRoute
             } else {
                 OnboardingRoute

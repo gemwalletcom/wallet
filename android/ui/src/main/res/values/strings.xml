@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s is required</string>
   <string name="errors_scan_transaction_malicious_description">This transaction cannot be completed — the destination wallet address is linked to suspicious or harmful activity.</string>
   <string name="errors_scan_transaction_memo_required">%1$s destination wallet address requires a destination tag / memo</string>
-  <string name="errors_wallets_limit_title">Wallets Limit Reached</string>
-  <string name="errors_wallets_limit_description">You\'ve reached the maximum number of wallets allowed (%1$d). Please remove an existing wallet to add or create a new one.</string>
   <string name="errors_scan_transaction_malicious_title">Suspicious Activity</string>
   <string name="errors_connections_malicious_origin">This connection comes from an untrusted source.</string>
   <string name="errors_no_data_available">No data available</string>

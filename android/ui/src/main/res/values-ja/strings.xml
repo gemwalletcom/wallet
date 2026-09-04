@@ -216,8 +216,6 @@
   <string name="errors_required">%1$sは必須です</string>
   <string name="errors_scan_transaction_malicious_description">この取引は完了できません。送信先のウォレット アドレスが疑わしいまたは有害なアクティビティにリンクされています。</string>
   <string name="errors_scan_transaction_memo_required">%1$s宛先ウォレットアドレスには宛先タグ/メモが必要です</string>
-  <string name="errors_wallets_limit_title">ウォレットの上限に達しました</string>
-  <string name="errors_wallets_limit_description">ウォレットの上限数（ %1$d ）に達しました。既存のウォレットを削除して、新しいウォレットを追加するか作成してください。</string>
   <string name="errors_scan_transaction_malicious_title">不審な活動</string>
   <string name="errors_connections_malicious_origin">この接続は信頼できないソースからのものです。</string>
   <string name="errors_no_data_available">データなし</string>

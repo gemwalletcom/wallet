@@ -33,14 +33,7 @@ impl<C: Client> HashDitProvider<C> {
 
     async fn security(&self, target: HashDitTarget, body: &SecurityRequest) -> Result<SecurityData, Box<dyn std::error::Error + Send + Sync>> {
         let response: SecurityResponse = self.client.post(target, body).headers(self.headers()).await?;
-        if response.code != "0" {
-            return Err(format!("HashDit request failed with code {}", response.code).into());
-        }
-        match response.status.as_str() {
-            "ok" => response.data.ok_or_else(|| "HashDit response has no data".into()),
-            "in progress" => Err("HashDit synchronous request is still in progress".into()),
-            status => Err(format!("HashDit returned unexpected status: {status}").into()),
-        }
+        Ok(response.data)
     }
 
     async fn scan<T: Clone + Send + Sync + 'static>(

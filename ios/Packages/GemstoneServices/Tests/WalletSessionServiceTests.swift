@@ -12,7 +12,7 @@ import GemstoneServicesTestKit
 
 struct WalletSessionServiceTests {
     @Test
-    func currentWalletResolvesSelectedWalletAmongMany() throws {
+    func currentWalletResolvesSelectedWalletAmongMany() async throws {
         let store = WalletStore.mock(db: .mockWithChains([.bitcoin, .ethereum]))
         let first = Wallet.mock(
             id: .mock(address: "0x1"),
@@ -30,8 +30,9 @@ struct WalletSessionServiceTests {
 
         try service.setCurrent(walletId: second.id)
 
-        #expect(service.currentWallet?.id == second.id)
-        #expect(service.currentWallet?.name == "Second")
-        #expect(service.currentWallet?.accounts == second.accounts)
+        let current = await service.currentWallet
+        #expect(current?.id == second.id)
+        #expect(current?.name == "Second")
+        #expect(current?.accounts == second.accounts)
     }
 }
