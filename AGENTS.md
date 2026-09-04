@@ -12,7 +12,6 @@ Guidance for Coding Agents (Claude Code, Codex, etc.) collaborating in this mono
 - [Project Overview](skills/project-overview.md) — Repo layout, layer architecture, and ownership boundaries
 - [Development Commands](skills/development-commands.md) — Root build, generate, localization, and platform entrypoint commands
 - [Quality Checks](skills/quality-checks.md) — Iteration and closing check matrices per change type
-- [Context Efficiency](skills/context-efficiency.md) — Delegating to subagents, the auto-compact cap, and context hygiene for long tasks
 - [Code Review](skills/code-review.md) — Review checklist for correctness, conventions, parity, and adversarial security hardening
 - [Security](skills/security.md) — Wallet-critical security rules for key material, signing, auth, and transaction handling
 - [Localization](skills/localization.md) — Fluent sources, generation, and generated output locations for both apps
