@@ -663,8 +663,11 @@ shape does not show: an envelope's failure branch, the paths a pagination loop p
 body and content type of a broadcast, a merged credential header. Do not test `path()` by
 restating the string it formats; that test passes for every wrong path too.
 
-**Still to converge.** The `name_resolver` REST providers (aptos, did, eths, lens, sns,
-spaceid, ton, ud), deferred until that crate's provider restructure settles.
+**Deliberate exceptions.** Three things stay on raw `reqwest` because they are not REST clients:
+the off-chain NFT metadata fetch (an arbitrary HTTPS URL read under a byte cap with redirects
+off), the image downloader (binary bodies), and the egress node health probe (only the status
+matters). The OKX client sends the string it signed rather than a target, and the alien reqwest
+provider is the transport itself.
 
 ## 13. Shapes that were tried and reverted
 

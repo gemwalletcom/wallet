@@ -1,16 +1,32 @@
 use super::{HeliusPriorityFeeOptions, HeliusPriorityFeeParams, HeliusPriorityFeeRequest, HeliusPriorityFeeResponse, HeliusPriorityFees};
+use gem_client::{ClientExt, ReqwestClient, Target};
 use std::error::Error;
 
+const HELIUS_URL: &str = "https://mainnet.helius-rpc.com";
+
+#[derive(Clone, Debug)]
+enum HeliusTarget {
+    Rpc,
+}
+
+impl Target for HeliusTarget {
+    fn path(&self) -> String {
+        match self {
+            Self::Rpc => "/".to_string(),
+        }
+    }
+}
+
 pub struct HeliusClient {
-    client: reqwest::Client,
-    endpoint: String,
+    client: ReqwestClient,
+    api_key: String,
 }
 
 impl HeliusClient {
     pub fn new(api_key: &str) -> Self {
         Self {
-            client: gem_client::reqwest_client(),
-            endpoint: format!("https://mainnet.helius-rpc.com/?api-key={}", api_key),
+            client: ReqwestClient::new(HELIUS_URL.to_string(), gem_client::reqwest_client()),
+            api_key: api_key.to_string(),
         }
     }
 
@@ -28,9 +44,7 @@ impl HeliusClient {
             }],
         };
 
-        let response = self.client.post(&self.endpoint).json(&request).send().await?;
-
-        let result: HeliusPriorityFeeResponse = response.json().await?;
+        let result: HeliusPriorityFeeResponse = self.client.post(HeliusTarget::Rpc, &request).query(&[("api-key", self.api_key.as_str())]).await?;
 
         let levels = result.result.priority_fee_levels.ok_or("No priority fee levels in response")?;
 

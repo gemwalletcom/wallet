@@ -1,12 +1,13 @@
 // https://api.gasflow.dev/predict
 
+use gem_client::{ClientError, ClientExt, ReqwestClient, Target};
 use num_bigint::BigInt;
 use primitives::{PriorityFeeValue, fee::FeePriority};
 use serde::Deserialize;
 
 use crate::client::GemstoneFeeData;
 
-const GASFLOW_API_URL: &str = "https://api.gasflow.dev/predict";
+const GASFLOW_URL: &str = "https://api.gasflow.dev";
 
 #[derive(Debug, Deserialize)]
 pub struct PredictedQuantiles {
@@ -50,18 +51,37 @@ impl GasflowResponse {
     }
 }
 
+#[derive(Clone, Debug)]
+enum GasflowTarget {
+    Predict,
+}
+
+impl Target for GasflowTarget {
+    fn path(&self) -> String {
+        match self {
+            Self::Predict => "/predict".to_string(),
+        }
+    }
+}
+
 pub struct GasflowClient {
-    client: reqwest::Client,
+    client: ReqwestClient,
+}
+
+impl Default for GasflowClient {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl GasflowClient {
     pub fn new() -> Self {
         Self {
-            client: gem_client::reqwest_client(),
+            client: ReqwestClient::new(GASFLOW_URL.to_string(), gem_client::reqwest_client()),
         }
     }
 
-    pub async fn fetch_prediction(&self) -> Result<GasflowResponse, reqwest::Error> {
-        self.client.get(GASFLOW_API_URL).send().await?.json::<GasflowResponse>().await
+    pub async fn fetch_prediction(&self) -> Result<GasflowResponse, ClientError> {
+        self.client.get(GasflowTarget::Predict).await
     }
 }
