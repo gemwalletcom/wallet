@@ -7,7 +7,7 @@ use crate::rpc::proto::{BalanceChange, ExecutedTransaction};
 pub fn map_simulation_result(sender: &str, transaction: &ExecutedTransaction) -> SimulationResult {
     if !transaction.execution_success() {
         let message = transaction.execution_error().unwrap_or_else(|| "execution failed".to_string());
-        return SimulationResult::new(vec![SimulationWarning::validation_error(message)], vec![]);
+        return SimulationResult::new(vec![SimulationWarning::execution_error(message)], vec![]);
     }
 
     match map_balance_changes(sender, &transaction.balance_changes) {
@@ -15,7 +15,7 @@ pub fn map_simulation_result(sender: &str, transaction: &ExecutedTransaction) ->
             balance_changes,
             ..Default::default()
         },
-        Err(message) => SimulationResult::new(vec![SimulationWarning::validation_error(message)], vec![]),
+        Err(message) => SimulationResult::new(vec![SimulationWarning::execution_error(message)], vec![]),
     }
 }
 
@@ -69,7 +69,7 @@ mod tests {
     }
 
     #[test]
-    fn test_map_simulation_result_malformed_signer_change_returns_validation_warning() {
+    fn test_map_simulation_result_malformed_signer_change_returns_execution_warning() {
         let cases = [
             (
                 BalanceChange {
@@ -98,7 +98,7 @@ mod tests {
 
             let result = map_simulation_result(TEST_ADDRESS, &transaction);
 
-            assert_eq!(result.warnings, vec![SimulationWarning::validation_error(message)]);
+            assert_eq!(result.warnings, vec![SimulationWarning::execution_error(message)]);
             assert!(result.balance_changes.is_empty());
         }
 
@@ -131,7 +131,7 @@ mod tests {
     }
 
     #[test]
-    fn test_map_simulation_result_failed_execution_returns_validation_warning() {
+    fn test_map_simulation_result_failed_execution_returns_execution_warning() {
         let transaction = ExecutedTransaction {
             effects: Some(TransactionEffects::mock(false, Some("InsufficientGas"))),
             balance_changes: vec![BalanceChange::mock(TEST_ADDRESS, SUI_COIN_TYPE_FULL, -101_744_880)],
@@ -140,13 +140,14 @@ mod tests {
 
         let result = map_simulation_result(TEST_ADDRESS, &transaction);
 
-        assert_eq!(result.warnings, vec![SimulationWarning::validation_error("InsufficientGas")]);
+        assert_eq!(result.warnings, vec![SimulationWarning::execution_error("InsufficientGas")]);
+        assert!(!result.has_critical_warning());
         assert!(result.balance_changes.is_empty());
 
         let missing_status = ExecutedTransaction::default();
         assert_eq!(
             map_simulation_result(TEST_ADDRESS, &missing_status).warnings,
-            vec![SimulationWarning::validation_error("execution failed")]
+            vec![SimulationWarning::execution_error("execution failed")]
         );
     }
 }
