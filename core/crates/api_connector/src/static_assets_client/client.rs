@@ -1,34 +1,30 @@
 use super::models::Validator;
+use super::target::StaticAssetsTarget;
+use gem_client::{ClientError, ClientExt, ReqwestClient};
 use primitives::{AssetId, Chain};
 
 #[derive(Clone)]
 pub struct StaticAssetsClient {
-    url: String,
-    client: reqwest::Client,
+    client: ReqwestClient,
 }
 
 impl StaticAssetsClient {
     pub fn new(url: &str) -> Self {
         Self {
-            url: url.to_string(),
-            client: gem_client::reqwest_client(),
+            client: ReqwestClient::new(url.to_string(), gem_client::reqwest_client()),
         }
     }
 
-    pub async fn get_validators(&self, chain: Chain) -> Result<Vec<Validator>, reqwest::Error> {
-        let url = format!("{}/blockchains/{chain}/validators.json", self.url);
-        self.client.get(&url).send().await?.json().await
+    pub async fn get_validators(&self, chain: Chain) -> Result<Vec<Validator>, ClientError> {
+        self.client.get(StaticAssetsTarget::Validators { chain }).await
     }
 
-    pub async fn get_assets_list(&self, chain: Chain) -> Result<Vec<AssetId>, reqwest::Error> {
-        let url = format!("{}/blockchains/{}/assets.json", self.url, chain.as_ref());
-        let response = self.client.get(&url).send().await?;
-
-        if !response.status().is_success() {
-            return Ok(vec![]);
-        }
-
-        let addresses: Vec<String> = response.json().await?;
+    pub async fn get_assets_list(&self, chain: Chain) -> Result<Vec<AssetId>, ClientError> {
+        let addresses: Vec<String> = match self.client.get(StaticAssetsTarget::Assets { chain }).await {
+            Ok(addresses) => addresses,
+            Err(ClientError::Http { .. }) => Vec::new(),
+            Err(error) => return Err(error),
+        };
         Ok(addresses.into_iter().map(|x| AssetId::from(chain, Some(x))).collect())
     }
 }

@@ -1,8 +1,7 @@
 use std::error::Error;
 
 use crate::models::{Block, TransactionLookup, Transactions};
-
-#[cfg(feature = "rpc")]
+use crate::rpc::target::AlgorandIndexerTarget;
 use gem_client::{Client, ClientExt};
 
 #[derive(Clone, Debug)]
@@ -16,14 +15,14 @@ impl<C: Client> AlgorandIndexer<C> {
     }
 
     pub async fn get_account_transactions(&self, address: &str) -> Result<Transactions, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/v2/accounts/{address}/transactions")).await?)
+        Ok(self.client.get(AlgorandIndexerTarget::AccountTransactions { address: address.to_string() }).await?)
     }
 
     pub async fn get_block(&self, block_number: u64) -> Result<Block, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/v2/blocks/{block_number}")).await?)
+        Ok(self.client.get(AlgorandIndexerTarget::Block { number: block_number }).await?)
     }
 
     pub async fn get_transaction(&self, txid: &str) -> Result<TransactionLookup, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(&format!("/v2/transactions/{txid}")).await?)
+        Ok(self.client.get(AlgorandIndexerTarget::Transaction { id: txid.to_string() }).await?)
     }
 }

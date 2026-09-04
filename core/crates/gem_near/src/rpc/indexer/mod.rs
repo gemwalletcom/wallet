@@ -1,5 +1,6 @@
 mod mapper;
 mod model;
+mod target;
 
 use std::{
     cmp::Reverse,
@@ -17,6 +18,7 @@ use self::mapper::{map_address_transfer, map_asset_id, map_raw_transaction};
 use self::model::{
     FastNearTransaction, FastNearTransfer, NearDataBlockResponse, TransactionsRequest, TransactionsResponse, TransferDirection, TransfersRequest, TransfersResponse,
 };
+use self::target::{FastNearTarget, NearDataTarget};
 use crate::{models::ExecutionStatus, rpc::mapper::map_transaction};
 
 const MAX_TRANSFERS_LIMIT: usize = 100;
@@ -46,7 +48,7 @@ impl<C: Client> NearIndexer<C> {
             limit: MAX_TRANSFERS_LIMIT,
             from_timestamp_ms,
         };
-        let response: TransfersResponse = self.transfers_client.post("/v0/transfers", &request).await?;
+        let response: TransfersResponse = self.transfers_client.post(FastNearTarget::Transfers, &request).await?;
         Ok(response.transfers)
     }
 
@@ -76,14 +78,14 @@ impl<C: Client> NearIndexer<C> {
     async fn get_transactions_by_hashes(&self, transaction_ids: &[String]) -> Result<Vec<FastNearTransaction>, Box<dyn Error + Send + Sync>> {
         let requests = transaction_ids.chunks(TRANSACTIONS_BATCH_SIZE).map(|transaction_ids| async move {
             let request = TransactionsRequest { tx_hashes: transaction_ids };
-            let response: TransactionsResponse = self.transactions_client.post("/v0/transactions", &request).await?;
+            let response: TransactionsResponse = self.transactions_client.post(FastNearTarget::Transactions, &request).await?;
             Ok::<_, Box<dyn Error + Send + Sync>>(response.transactions)
         });
         Ok(try_join_all(requests).await?.into_iter().flatten().collect())
     }
 
     pub(crate) async fn get_transactions_by_block(&self, block_number: u64) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        let response: NearDataBlockResponse = match self.neardata_client.get(&format!("/v0/block/{block_number}")).await {
+        let response: NearDataBlockResponse = match self.neardata_client.get(NearDataTarget::Block { number: block_number }).await {
             Ok(Some(response)) => response,
             Ok(None) => return Ok(Vec::new()),
             Err(ClientError::Http { status: 404, .. }) => return Ok(Vec::new()),

@@ -1,6 +1,8 @@
 #[cfg(feature = "backend")]
 mod chatwoot;
 #[cfg(feature = "backend")]
+mod chatwoot_target;
+#[cfg(feature = "backend")]
 mod client;
 #[cfg(feature = "backend")]
 mod constants;

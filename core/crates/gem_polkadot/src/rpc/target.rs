@@ -28,3 +28,16 @@ impl Target for PolkadotTarget {
         }
     }
 }
+
+#[derive(Clone, Debug)]
+pub enum SubscanTarget {
+    Transfers,
+}
+
+impl Target for SubscanTarget {
+    fn path(&self) -> String {
+        match self {
+            Self::Transfers => "/api/v2/scan/transfers".to_string(),
+        }
+    }
+}

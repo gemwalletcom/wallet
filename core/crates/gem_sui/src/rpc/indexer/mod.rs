@@ -1,4 +1,5 @@
 mod mapper;
+mod target;
 
 use std::error::Error;
 
@@ -7,9 +8,9 @@ use primitives::graphql::GraphqlData;
 use serde::Deserialize;
 
 use self::mapper::{GraphqlTransaction, map_transaction};
+use self::target::SuiIndexerTarget;
 use crate::models::Digest;
 
-const TRANSACTIONS_BY_ADDRESS_QUERY: &str = "query GetTransactionsByAddress($address: SuiAddress!, $limit: Int!, $before: String) { transactions(last: $limit, before: $before, filter: { affectedAddress: $address }) { nodes { digest effects { status timestamp gasEffects { gasObject { owner { ... on AddressOwner { address { address } } } } gasSummary { computationCost storageCost storageRebate nonRefundableStorageFee } } balanceChanges(first: 50) { nodes { owner { address } coinType { repr } amount } } events(first: 50) { nodes { contents { type { repr } json } transactionModule { package { address } } } } } } pageInfo { hasPreviousPage startCursor } } }";
 const TRANSACTIONS_PAGE_SIZE: usize = 50;
 
 #[derive(Debug, Deserialize)]
@@ -48,16 +49,13 @@ impl<C: Client> SuiIndexer<C> {
 
         while transactions.len() < limit {
             let page_size = (limit - transactions.len()).min(TRANSACTIONS_PAGE_SIZE);
-            let request = serde_json::json!({
-                "operationName": "GetTransactionsByAddress",
-                "variables": {
-                    "address": address,
-                    "limit": page_size,
-                    "before": before,
-                },
-                "query": TRANSACTIONS_BY_ADDRESS_QUERY,
-            });
-            let response: GraphqlData<TransactionsData> = self.client.post("/graphql", &request).await?;
+            let target = SuiIndexerTarget::Transactions {
+                address: address.to_string(),
+                limit: page_size,
+                before: before.clone(),
+            };
+            let body = target.body();
+            let response: GraphqlData<TransactionsData> = self.client.post(target, &body).await?;
             if let Some(error) = response.errors.and_then(|errors| errors.into_iter().next()) {
                 return Err(error.message.into());
             }
@@ -108,7 +106,15 @@ mod tests {
         );
         assert_eq!(requests.len(), 2);
         assert_eq!(requests[0]["operationName"], "GetTransactionsByAddress");
-        assert_eq!(requests[0]["query"], TRANSACTIONS_BY_ADDRESS_QUERY);
+        assert_eq!(
+            requests[0]["query"],
+            SuiIndexerTarget::Transactions {
+                address: String::new(),
+                limit: 0,
+                before: None
+            }
+            .query()
+        );
         assert_eq!(requests[0]["variables"]["address"], "address");
         assert_eq!(requests[0]["variables"]["limit"], 50);
         assert_eq!(requests[0]["variables"]["before"], serde_json::Value::Null);

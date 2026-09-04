@@ -9,6 +9,7 @@ use primitives::Transaction;
 use serde::{Deserialize, Serialize, de};
 
 use self::mapper::map_transaction;
+use crate::rpc::target::SubscanTarget;
 
 const NATIVE_ASSET_SYMBOL: &str = "DOT";
 const MAX_TRANSFERS_LIMIT: usize = 25;
@@ -75,7 +76,7 @@ impl<C: Client> PolkadotIndexer<C> {
             page: 0,
             row: limit.min(MAX_TRANSFERS_LIMIT),
         };
-        let response: SubscanResponse = self.client.post("/api/v2/scan/transfers", &request).await?;
+        let response: SubscanResponse = self.client.post(SubscanTarget::Transfers, &request).await?;
         Ok(response
             .data
             .transfers

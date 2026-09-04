@@ -29,3 +29,20 @@ impl Target for AlgorandTarget {
         }
     }
 }
+
+#[derive(Clone, Debug)]
+pub enum AlgorandIndexerTarget {
+    AccountTransactions { address: String },
+    Block { number: u64 },
+    Transaction { id: String },
+}
+
+impl Target for AlgorandIndexerTarget {
+    fn path(&self) -> String {
+        match self {
+            Self::AccountTransactions { address } => format!("/v2/accounts/{address}/transactions"),
+            Self::Block { number } => format!("/v2/blocks/{number}"),
+            Self::Transaction { id } => format!("/v2/transactions/{id}"),
+        }
+    }
+}

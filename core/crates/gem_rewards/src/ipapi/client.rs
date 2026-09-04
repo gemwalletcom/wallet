@@ -1,23 +1,23 @@
 use std::error::Error;
 
 use async_trait::async_trait;
+use gem_client::{ClientExt, ReqwestClient};
 
 use super::model::IpApiResponse;
+use super::target::IpApiTarget;
 use crate::ip_check_provider::IpCheckProvider;
 use crate::model::IpCheckResult;
 
 #[derive(Clone)]
 pub struct IpApiClient {
-    client: reqwest::Client,
-    url: String,
+    client: ReqwestClient,
     api_key: String,
 }
 
 impl IpApiClient {
     pub fn new(url: String, api_key: String) -> Self {
         Self {
-            client: gem_client::reqwest_client(),
-            url,
+            client: ReqwestClient::new(url, gem_client::reqwest_client()),
             api_key,
         }
     }
@@ -30,14 +30,12 @@ impl IpCheckProvider for IpApiClient {
     }
 
     async fn check_ip(&self, ip_address: &str) -> Result<IpCheckResult, Box<dyn Error + Send + Sync>> {
-        let url = format!("{}/", self.url);
-        let response = self
+        let response: IpApiResponse = self
             .client
-            .get(&url)
-            .query(&[("q", ip_address), ("key", &self.api_key)])
-            .send()
-            .await?
-            .json::<IpApiResponse>()
+            .get(IpApiTarget::Check {
+                ip_address: ip_address.to_string(),
+            })
+            .query(&[("key", self.api_key.as_str())])
             .await?;
 
         Ok(response.as_ip_check_result())
