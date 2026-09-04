@@ -6,23 +6,11 @@ import Primitives
 
 public extension GemTransactionInputType {
     var asset: Primitives.Asset {
-        switch self {
-        case let .transfer(asset),
-             let .deposit(asset),
-             let .withdrawal(asset),
-             let .stake(asset, _),
-             let .tokenApprove(asset, _),
-             let .account(asset, _),
-             let .perpetual(asset, _),
-             let .transferNft(asset, _),
-             let .generic(asset, _, _): asset.map()
-        case let .earn(asset, _, _): asset.map()
-        case let .swap(fromAsset, _, _): fromAsset.map()
-        }
+        inputAsset().map()
     }
 
     var chain: Primitives.Chain {
-        asset.chain
+        Primitives.Chain(core: chain())
     }
 
     var applicationMetadata: Primitives.ApplicationMetadata? {

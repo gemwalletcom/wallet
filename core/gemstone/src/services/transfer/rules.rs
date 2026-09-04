@@ -22,6 +22,14 @@ impl GemTransactionInputType {
         TransactionInputType::from(self.clone()).transaction_type()
     }
 
+    pub fn input_asset(&self) -> Asset {
+        self.asset().clone()
+    }
+
+    pub fn chain(&self) -> Chain {
+        self.asset().chain()
+    }
+
     pub fn transaction_asset(&self) -> Asset {
         match self {
             Self::TransferNft { asset, .. } => Asset::from_chain(asset.chain()),
