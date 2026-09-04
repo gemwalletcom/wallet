@@ -55,6 +55,50 @@ public extension Primitives.Chain {
     }
 }
 
+public extension Gemstone.ChainType {
+    func map() -> Primitives.ChainType {
+        switch self {
+        case .ethereum: .ethereum
+        case .bitcoin: .bitcoin
+        case .solana: .solana
+        case .cosmos: .cosmos
+        case .ton: .ton
+        case .tron: .tron
+        case .aptos: .aptos
+        case .sui: .sui
+        case .xrp: .xrp
+        case .near: .near
+        case .stellar: .stellar
+        case .algorand: .algorand
+        case .polkadot: .polkadot
+        case .cardano: .cardano
+        case .hyperCore: .hyperCore
+        }
+    }
+}
+
+public extension Primitives.ChainType {
+    func map() -> Gemstone.ChainType {
+        switch self {
+        case .ethereum: .ethereum
+        case .bitcoin: .bitcoin
+        case .solana: .solana
+        case .cosmos: .cosmos
+        case .ton: .ton
+        case .tron: .tron
+        case .aptos: .aptos
+        case .sui: .sui
+        case .xrp: .xrp
+        case .near: .near
+        case .stellar: .stellar
+        case .algorand: .algorand
+        case .polkadot: .polkadot
+        case .cardano: .cardano
+        case .hyperCore: .hyperCore
+        }
+    }
+}
+
 public extension Primitives.Currency {
     init(core: Gemstone.Currency) {
         guard let value = Primitives.Currency(rawValue: core) else {

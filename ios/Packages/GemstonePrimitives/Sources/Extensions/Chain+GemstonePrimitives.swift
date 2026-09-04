@@ -2,14 +2,12 @@
 
 import BigInt
 import Foundation
-import Gemstone
 import class Gemstone.GemAssetConfigService
+import Gemstone
 import Primitives
 
-private let assetConfig = GemAssetConfigService()
-
 private let chainAssets: [Primitives.Chain: Primitives.ChainAsset] = Primitives.Chain.allCases.reduce(into: [:]) { result, chain in
-    guard let chainAsset = try? Primitives.ChainAsset(assetConfig.chainAsset(chain: chain.rawValue)) else {
+    guard let chainAsset = try? Primitives.ChainAsset(GemAssetConfigService.shared.chainAsset(chain: chain.rawValue)) else {
         preconditionFailure("Invalid chain asset for \(chain)")
     }
     result[chain] = chainAsset
@@ -40,11 +38,8 @@ public extension Primitives.Chain {
         ChainConfig.config(chain: self).isStakeSupported
     }
 
-    var type: ChainType {
-        guard let type = ChainType(rawValue: ChainConfig.config(chain: self).chainType) else {
-            preconditionFailure("Invalid chain type for \(self)")
-        }
-        return type
+    var type: Primitives.ChainType {
+        ChainConfig.config(chain: self).chainType.map()
     }
 
     var iconChain: Primitives.Chain {
@@ -56,7 +51,7 @@ public extension Primitives.Chain {
     }
 
     var defaultAssets: [Primitives.Asset] {
-        assetConfig.walletDefaultAssets(chain: map()).map { $0.map() }
+        GemAssetConfigService.shared.walletDefaultAssets(chain: map()).map { $0.map() }
     }
 
     func defaultAsset(type: Primitives.AssetType) -> Primitives.Asset {
@@ -83,6 +78,6 @@ private extension Primitives.Chain {
 public extension [Primitives.Asset] {
     func matching(query: String) -> [Primitives.Asset] {
         let assets = map { $0.map() }
-        return assetConfig.matchingAssets(assets: assets, query: query).map { $0.map() }
+        return GemAssetConfigService.shared.matchingAssets(assets: assets, query: query).map { $0.map() }
     }
 }

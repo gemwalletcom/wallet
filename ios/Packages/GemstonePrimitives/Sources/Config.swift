@@ -3,6 +3,7 @@
 import Foundation
 import typealias Gemstone.ChainConfig
 import class Gemstone.Config
+import class Gemstone.GemAssetConfigService
 import enum Gemstone.DocsUrl
 import enum Gemstone.NodeRegion
 import enum Gemstone.PublicUrl
@@ -12,6 +13,10 @@ import struct Gemstone.StakeChainConfig
 import struct Gemstone.SwapConfig
 import typealias Gemstone.WalletConnectConfig
 import Primitives
+
+public extension GemAssetConfigService {
+    static let shared = GemAssetConfigService()
+}
 
 public extension Config {
     static let shared = Config()

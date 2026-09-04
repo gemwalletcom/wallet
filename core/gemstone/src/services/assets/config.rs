@@ -1,6 +1,6 @@
-use primitives::{Asset, AssetId, Chain, ChainAsset};
+use primitives::{Asset, AssetBasic, AssetId, Chain, ChainAsset};
 
-use super::rules::{default_token_chain, icon_asset_id, popular_asset_ids};
+use super::rules::{default_asset_basic, default_token_chain, icon_asset_id, popular_asset_ids};
 use crate::models::asset::{asset_default_rank, asset_is_swapable, chain_asset_wrapper, chain_fee_asset_ids, default_token_rank, wallet_default_assets};
 use crate::services::confirm::{GemAcquireAssetFlow, acquire_asset_flow};
 use crate::services::search::rules::matching_assets;
@@ -13,6 +13,10 @@ impl GemAssetConfigService {
     #[uniffi::constructor]
     pub fn new() -> Self {
         Self {}
+    }
+
+    pub fn default_asset_basic(&self, asset: Asset) -> AssetBasic {
+        default_asset_basic(asset)
     }
 
     pub fn default_rank(&self, asset_id: AssetId) -> i32 {

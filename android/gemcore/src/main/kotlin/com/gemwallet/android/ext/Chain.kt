@@ -22,10 +22,7 @@ private fun Chain.chainAsset(): ChainAsset {
     return chainAssetCache[this] ?: throw IllegalArgumentException("Unsupported chain: $string")
 }
 
-fun Chain.assetType(): AssetType? {
-    val defaultAssetType = Config().getChainConfig(string).defaultAssetType ?: return null
-    return AssetType.entries.firstOrNull { it.string == defaultAssetType }
-}
+fun Chain.assetType(): AssetType? = Config().getChainConfig(string).defaultAssetType?.toPrimitives()
 
 fun Chain.isStakeSupported(): Boolean = Config().getChainConfig(this.string).isStakeSupported
 
@@ -40,10 +37,7 @@ fun Chain.networkName(): String {
 fun Chain.Companion.available() = Chain.entries.toSet()
 
 
-fun Chain.toChainType(): ChainType {
-    val chainType = Config().getChainConfig(string).chainType
-    return requireNotNull(ChainType.entries.firstOrNull { it.string == chainType }) { "Unknown chain type: $chainType" }
-}
+fun Chain.toChainType(): ChainType = Config().getChainConfig(string).chainType.toPrimitives()
 
 
 

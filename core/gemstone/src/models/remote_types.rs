@@ -2,7 +2,7 @@
 // Declared in core/bin/generate/remote_types.yml.
 
 use primitives::{
-    Account, Asset, AssetFiatValue, AssetType, Chain, Currency, FeePriority, FeeUnitType, Latency, LatencyType, PerpetualProvider, PortfolioType, RecentActivityType,
+    Account, Asset, AssetFiatValue, AssetType, Chain, ChainType, Currency, FeePriority, FeeUnitType, Latency, LatencyType, PerpetualProvider, PortfolioType, RecentActivityType,
     SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, TotalFiatValue, TpslType, VerificationStatus,
     WalletConnectionVerificationStatus, WalletSource, WalletType,
 };
@@ -31,6 +31,25 @@ uniffi::custom_type!(Chain, String, {
     lower: |value| value.as_ref().to_string(),
     try_lift: |value| Chain::from_str(&value).map_err(|_| uniffi::deps::anyhow::Error::msg("Invalid Chain")),
 });
+
+#[uniffi::remote(Enum)]
+pub enum ChainType {
+    Ethereum,
+    Bitcoin,
+    Solana,
+    Cosmos,
+    Ton,
+    Tron,
+    Aptos,
+    Sui,
+    Xrp,
+    Near,
+    Stellar,
+    Algorand,
+    Polkadot,
+    Cardano,
+    HyperCore,
+}
 
 uniffi::custom_type!(Currency, String, {
     remote,

@@ -5,9 +5,6 @@ import Primitives
 
 public extension Primitives.AssetId {
     var assetType: AssetType? {
-        guard let type = ChainConfig.config(chain: chain).defaultAssetType else {
-            return .none
-        }
-        return AssetType(rawValue: type)
+        ChainConfig.config(chain: chain).defaultAssetType?.map()
     }
 }

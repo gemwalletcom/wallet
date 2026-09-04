@@ -2,6 +2,7 @@ remote:
   - Account
   - AssetFiatValue
   - AssetType
+  - ChainType
   - Asset
   - FeePriority
   - FeeUnitType

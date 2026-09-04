@@ -1,4 +1,4 @@
-use primitives::{BitcoinChain, Chain, ChainType, EVMChain, chain_transaction_timeout};
+use primitives::{AssetType, BitcoinChain, Chain, ChainType, EVMChain, FeeUnitType, chain_transaction_timeout};
 
 #[derive(uniffi::Record, Debug, Clone, PartialEq)]
 pub struct ChainConfig {
@@ -7,9 +7,9 @@ pub struct ChainConfig {
     pub slip_44: i32,
     pub rank: i32,
     pub denom: Option<String>,
-    pub chain_type: String,
-    pub fee_unit_type: String,
-    pub default_asset_type: Option<String>,
+    pub chain_type: ChainType,
+    pub fee_unit_type: FeeUnitType,
+    pub default_asset_type: Option<AssetType>,
     pub is_token_supported: bool,
     pub account_activation_fee: Option<i32>,
     pub account_activation_fee_url: Option<String>,
@@ -34,9 +34,9 @@ pub fn get_chain_config(chain: Chain) -> ChainConfig {
         slip_44: chain.as_slip44() as i32,
         rank: chain.rank(),
         denom: chain.as_denom().map(|x| x.to_string()),
-        chain_type: chain.chain_type().as_ref().to_string(),
-        fee_unit_type: chain.fee_unit_type().as_ref().to_string(),
-        default_asset_type: chain.default_asset_type().map(|x| x.as_ref().to_string()),
+        chain_type: chain.chain_type(),
+        fee_unit_type: chain.fee_unit_type(),
+        default_asset_type: chain.default_asset_type(),
         is_token_supported: chain.default_asset_type().is_some(),
         account_activation_fee: chain.account_activation_fee(),
         account_activation_fee_url: account_activation_fee_url(chain).map(|x| x.to_string()),

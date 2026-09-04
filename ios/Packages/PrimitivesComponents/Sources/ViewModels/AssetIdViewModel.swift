@@ -7,7 +7,6 @@ import GemstonePrimitives
 import Primitives
 import SwiftUI
 
-private let assetConfig = GemAssetConfigService()
 
 public struct AssetIdViewModel: Sendable {
     private let assetId: AssetId
@@ -32,7 +31,7 @@ public struct AssetIdViewModel: Sendable {
             placeholder: imagePlaceholder,
             chainPlaceholder: chainPlaceholder,
         )
-        let iconAssetId = AssetId(core: assetConfig.iconAssetId(assetId: assetId.identifier))
+        let iconAssetId = AssetId(core: GemAssetConfigService.shared.iconAssetId(assetId: assetId.identifier))
         guard iconAssetId != assetId else {
             return defaultAssetImage
         }

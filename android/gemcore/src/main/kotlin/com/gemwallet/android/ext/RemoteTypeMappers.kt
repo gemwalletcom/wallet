@@ -42,6 +42,42 @@ fun uniffi.gemstone.Chain.toChain(): com.wallet.core.primitives.Chain = com.wall
 
 fun com.wallet.core.primitives.Chain.toGem(): uniffi.gemstone.Chain = string
 
+fun uniffi.gemstone.ChainType.toPrimitives(): com.wallet.core.primitives.ChainType = when (this) {
+    uniffi.gemstone.ChainType.ETHEREUM -> com.wallet.core.primitives.ChainType.Ethereum
+    uniffi.gemstone.ChainType.BITCOIN -> com.wallet.core.primitives.ChainType.Bitcoin
+    uniffi.gemstone.ChainType.SOLANA -> com.wallet.core.primitives.ChainType.Solana
+    uniffi.gemstone.ChainType.COSMOS -> com.wallet.core.primitives.ChainType.Cosmos
+    uniffi.gemstone.ChainType.TON -> com.wallet.core.primitives.ChainType.Ton
+    uniffi.gemstone.ChainType.TRON -> com.wallet.core.primitives.ChainType.Tron
+    uniffi.gemstone.ChainType.APTOS -> com.wallet.core.primitives.ChainType.Aptos
+    uniffi.gemstone.ChainType.SUI -> com.wallet.core.primitives.ChainType.Sui
+    uniffi.gemstone.ChainType.XRP -> com.wallet.core.primitives.ChainType.Xrp
+    uniffi.gemstone.ChainType.NEAR -> com.wallet.core.primitives.ChainType.Near
+    uniffi.gemstone.ChainType.STELLAR -> com.wallet.core.primitives.ChainType.Stellar
+    uniffi.gemstone.ChainType.ALGORAND -> com.wallet.core.primitives.ChainType.Algorand
+    uniffi.gemstone.ChainType.POLKADOT -> com.wallet.core.primitives.ChainType.Polkadot
+    uniffi.gemstone.ChainType.CARDANO -> com.wallet.core.primitives.ChainType.Cardano
+    uniffi.gemstone.ChainType.HYPER_CORE -> com.wallet.core.primitives.ChainType.HyperCore
+}
+
+fun com.wallet.core.primitives.ChainType.toGem(): uniffi.gemstone.ChainType = when (this) {
+    com.wallet.core.primitives.ChainType.Ethereum -> uniffi.gemstone.ChainType.ETHEREUM
+    com.wallet.core.primitives.ChainType.Bitcoin -> uniffi.gemstone.ChainType.BITCOIN
+    com.wallet.core.primitives.ChainType.Solana -> uniffi.gemstone.ChainType.SOLANA
+    com.wallet.core.primitives.ChainType.Cosmos -> uniffi.gemstone.ChainType.COSMOS
+    com.wallet.core.primitives.ChainType.Ton -> uniffi.gemstone.ChainType.TON
+    com.wallet.core.primitives.ChainType.Tron -> uniffi.gemstone.ChainType.TRON
+    com.wallet.core.primitives.ChainType.Aptos -> uniffi.gemstone.ChainType.APTOS
+    com.wallet.core.primitives.ChainType.Sui -> uniffi.gemstone.ChainType.SUI
+    com.wallet.core.primitives.ChainType.Xrp -> uniffi.gemstone.ChainType.XRP
+    com.wallet.core.primitives.ChainType.Near -> uniffi.gemstone.ChainType.NEAR
+    com.wallet.core.primitives.ChainType.Stellar -> uniffi.gemstone.ChainType.STELLAR
+    com.wallet.core.primitives.ChainType.Algorand -> uniffi.gemstone.ChainType.ALGORAND
+    com.wallet.core.primitives.ChainType.Polkadot -> uniffi.gemstone.ChainType.POLKADOT
+    com.wallet.core.primitives.ChainType.Cardano -> uniffi.gemstone.ChainType.CARDANO
+    com.wallet.core.primitives.ChainType.HyperCore -> uniffi.gemstone.ChainType.HYPER_CORE
+}
+
 fun uniffi.gemstone.Currency.toCurrency(): com.wallet.core.primitives.Currency = com.wallet.core.primitives.Currency.entries.firstOrNull { it.string == this }
     ?: throw IllegalStateException("Core returned a Currency this build does not know: $this")
 
