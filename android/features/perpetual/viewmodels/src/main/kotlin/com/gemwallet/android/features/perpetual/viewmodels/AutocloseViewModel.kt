@@ -113,7 +113,7 @@ class AutocloseViewModel @Inject constructor(
         val assetIndex = position.perpetual.identifier.toIntOrNull() ?: return
         val takeProfitField = autocloseField(position, TpslType.TakeProfit, takeProfitText.value)
         val stopLossField = autocloseField(position, TpslType.StopLoss, stopLossText.value)
-        val modify = GemAutocloseModify(position.position.direction.toJson(), assetIndex, takeProfitField.toGem(), stopLossField.toGem())
+        val modify = GemAutocloseModify(position.position.direction.toGem(), assetIndex, takeProfitField.toGem(), stopLossField.toGem())
         if (!modify.canBuild()) return
         _confirmRequests.tryEmit(modify.transfer(position.perpetual.provider.toGem(), position.asset.toGem()))
     }
@@ -127,7 +127,7 @@ class AutocloseViewModel @Inject constructor(
         val takeProfit = autocloseField(position, TpslType.TakeProfit, takeProfitText)
         val stopLoss = autocloseField(position, TpslType.StopLoss, stopLossText)
         val confirmEnabled = if (submitAttempted) {
-            GemAutocloseModify(position.position.direction.toJson(), 0, takeProfit.toGem(), stopLoss.toGem()).canBuild()
+            GemAutocloseModify(position.position.direction.toGem(), 0, takeProfit.toGem(), stopLoss.toGem()).canBuild()
         } else {
             takeProfit.toGem().hasPendingChange() || stopLoss.toGem().hasPendingChange()
         }
@@ -170,7 +170,7 @@ class AutocloseViewModel @Inject constructor(
     private fun estimator(position: PerpetualPositionData) = GemAutocloseEstimator(
         entryPrice = position.position.entryPrice,
         positionSize = position.position.size,
-        direction = position.position.direction.toJson(),
+        direction = position.position.direction.toGem(),
         leverage = position.position.leverage,
     )
 

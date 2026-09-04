@@ -8,6 +8,9 @@ remote:
   - Asset
   - FeePriority
   - FeeUnitType
+  - PerpetualDirection
+  - PerpetualMarginType
+  - PerpetualOrderType
   - PerpetualProvider
   - WalletType
   - WalletSource

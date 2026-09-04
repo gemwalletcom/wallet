@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.perpetual.viewmodels
 
+import com.gemwallet.android.ext.toGem
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -197,7 +198,7 @@ class PerpetualDetailsViewModel @Inject constructor(
     }
 
     fun openPosition(direction: PerpetualDirection, amountAction: AmountTransactionAction) =
-        position(GemPerpetualPositionKind.Open(direction.toJson()), amountAction)
+        position(GemPerpetualPositionKind.Open(direction.toGem()), amountAction)
 
     fun increasePosition(amountAction: AmountTransactionAction) = position(GemPerpetualPositionKind.Increase, amountAction)
 

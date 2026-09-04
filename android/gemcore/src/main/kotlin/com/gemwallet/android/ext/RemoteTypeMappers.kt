@@ -177,6 +177,36 @@ fun com.wallet.core.primitives.LinkType.toGem(): uniffi.gemstone.LinkType = when
     com.wallet.core.primitives.LinkType.TikTok -> uniffi.gemstone.LinkType.TIK_TOK
 }
 
+fun uniffi.gemstone.PerpetualDirection.toPrimitives(): com.wallet.core.primitives.PerpetualDirection = when (this) {
+    uniffi.gemstone.PerpetualDirection.SHORT -> com.wallet.core.primitives.PerpetualDirection.Short
+    uniffi.gemstone.PerpetualDirection.LONG -> com.wallet.core.primitives.PerpetualDirection.Long
+}
+
+fun com.wallet.core.primitives.PerpetualDirection.toGem(): uniffi.gemstone.PerpetualDirection = when (this) {
+    com.wallet.core.primitives.PerpetualDirection.Short -> uniffi.gemstone.PerpetualDirection.SHORT
+    com.wallet.core.primitives.PerpetualDirection.Long -> uniffi.gemstone.PerpetualDirection.LONG
+}
+
+fun uniffi.gemstone.PerpetualMarginType.toPrimitives(): com.wallet.core.primitives.PerpetualMarginType = when (this) {
+    uniffi.gemstone.PerpetualMarginType.CROSS -> com.wallet.core.primitives.PerpetualMarginType.Cross
+    uniffi.gemstone.PerpetualMarginType.ISOLATED -> com.wallet.core.primitives.PerpetualMarginType.Isolated
+}
+
+fun com.wallet.core.primitives.PerpetualMarginType.toGem(): uniffi.gemstone.PerpetualMarginType = when (this) {
+    com.wallet.core.primitives.PerpetualMarginType.Cross -> uniffi.gemstone.PerpetualMarginType.CROSS
+    com.wallet.core.primitives.PerpetualMarginType.Isolated -> uniffi.gemstone.PerpetualMarginType.ISOLATED
+}
+
+fun uniffi.gemstone.PerpetualOrderType.toPrimitives(): com.wallet.core.primitives.PerpetualOrderType = when (this) {
+    uniffi.gemstone.PerpetualOrderType.MARKET -> com.wallet.core.primitives.PerpetualOrderType.Market
+    uniffi.gemstone.PerpetualOrderType.LIMIT -> com.wallet.core.primitives.PerpetualOrderType.Limit
+}
+
+fun com.wallet.core.primitives.PerpetualOrderType.toGem(): uniffi.gemstone.PerpetualOrderType = when (this) {
+    com.wallet.core.primitives.PerpetualOrderType.Market -> uniffi.gemstone.PerpetualOrderType.MARKET
+    com.wallet.core.primitives.PerpetualOrderType.Limit -> uniffi.gemstone.PerpetualOrderType.LIMIT
+}
+
 fun uniffi.gemstone.PerpetualProvider.toPrimitives(): com.wallet.core.primitives.PerpetualProvider = when (this) {
     uniffi.gemstone.PerpetualProvider.HYPERCORE -> com.wallet.core.primitives.PerpetualProvider.Hypercore
 }

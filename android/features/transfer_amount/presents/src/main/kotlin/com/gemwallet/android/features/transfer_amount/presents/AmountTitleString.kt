@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.presents
 
+import com.gemwallet.android.ext.toPrimitives
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.perpetual.data
@@ -29,7 +30,7 @@ fun AmountTitle.asString(): String = when (this) {
 
 @Composable
 private fun perpetualTitle(action: GemPerpetualPositionAction): String {
-    val directionLabel = stringResource(when (action.data.direction.decodeJson<PerpetualDirection>()) {
+    val directionLabel = stringResource(when (action.transferData().direction.toPrimitives()) {
         PerpetualDirection.Short -> R.string.perpetual_short
         PerpetualDirection.Long -> R.string.perpetual_long
     })

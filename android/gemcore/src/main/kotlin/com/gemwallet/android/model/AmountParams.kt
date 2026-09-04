@@ -1,5 +1,6 @@
 package com.gemwallet.android.model
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.GemRecipientSerializer
 import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.serializer.GemPerpetualPositionActionSerializer
@@ -122,7 +123,7 @@ sealed interface AmountParams {
         @Serializable(GemPerpetualPositionActionSerializer::class)
         val positionAction: GemPerpetualPositionAction,
     ) : AmountParams {
-        val direction: PerpetualDirection get() = positionAction.data.direction.decodeJson()
+        val direction: PerpetualDirection get() = positionAction.transferData().direction.toPrimitives()
 
         override val transactionType: TransactionType get() = when (positionAction) {
             is GemPerpetualPositionAction.Open -> TransactionType.PerpetualOpenPosition

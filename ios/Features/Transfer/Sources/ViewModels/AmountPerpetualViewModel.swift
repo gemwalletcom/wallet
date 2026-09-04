@@ -63,7 +63,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     }
 
     private var direction: PerpetualDirection {
-        PerpetualDirection(core: transferData.direction)
+        transferData.direction.map()
     }
 
     var autocloseText: (subtitle: String, subtitleExtra: String?) {
@@ -148,7 +148,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         let maxLeverage = openData.leverage
         let textStyle = TextStyle(
             font: .callout,
-            color: PerpetualDirectionViewModel(direction: PerpetualDirection(core: openData.direction)).color,
+            color: PerpetualDirectionViewModel(direction: openData.direction.map()).color,
         )
         let selection = SelectionState(
             options: LeverageOption.options(maxLeverage: maxLeverage),

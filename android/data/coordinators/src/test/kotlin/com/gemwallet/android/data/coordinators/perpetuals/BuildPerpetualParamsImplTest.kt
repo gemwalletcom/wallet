@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.serializer.decodeJson
@@ -68,8 +69,8 @@ class BuildPerpetualParamsImplTest {
         val own = reduceFor(ownWalletId)
         val other = reduceFor(otherWalletId)
 
-        assertEquals(PerpetualDirection.Long.toJson(), own.data.direction)
-        assertEquals(PerpetualDirection.Short.toJson(), other.data.direction)
+        assertEquals(PerpetualDirection.Long.toGem(), own.data.direction)
+        assertEquals(PerpetualDirection.Short.toGem(), other.data.direction)
         assertEquals(true, own.available < other.available)
     }
 

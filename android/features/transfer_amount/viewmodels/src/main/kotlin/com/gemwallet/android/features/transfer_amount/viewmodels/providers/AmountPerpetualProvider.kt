@@ -104,7 +104,7 @@ class AmountPerpetualProvider(
             marketPrice = marketPrice,
             size = usdAmount,
             leverage = leverage.toUByte(),
-            direction = direction.toJson(),
+            direction = direction.toGem(),
         )
     }
 

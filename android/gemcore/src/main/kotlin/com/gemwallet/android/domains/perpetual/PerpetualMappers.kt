@@ -47,11 +47,6 @@ fun PerpetualAccountMode.toGem(): GemPerpetualAccountMode = toJson()
 
 fun PerpetualTriggerOrder.toGem(): GemPerpetualTriggerOrder = toJson()
 
-fun PerpetualOrderType.toGem(): GemPerpetualOrderType = toJson()
 
-fun PerpetualDirection.toGem(): GemPerpetualDirection = toJson()
-
-
-fun PerpetualMarginType.toGem(): GemPerpetualMarginType = toJson()
 
 fun PerpetualType.toGem(): GemPerpetualType = toJson()

@@ -94,11 +94,11 @@ fun mockGemPerpetualTransferData(
     leverage: UByte = 1u,
 ) = GemPerpetualTransferData(
     provider = PerpetualProvider.Hypercore.toGem(),
-    direction = direction.toJson(),
+    direction = direction.toGem(),
     asset = asset.toGem(),
     baseAsset = mockAssetHyperCoreUSDC().toGem(),
     assetIndex = 0,
     price = 100.0,
     leverage = leverage,
-    marginType = PerpetualMarginType.Cross.toJson(),
+    marginType = PerpetualMarginType.Cross.toGem(),
 )

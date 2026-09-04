@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.GemAmountSign
+import enum Gemstone.PerpetualDirection
 import enum Gemstone.GemTransactionSubtitle
 import enum Gemstone.GemTransactionValue
 import enum Gemstone.GemTransactionTitle
@@ -36,12 +37,12 @@ extension GemTransactionTitle {
     }
 
     private static func perpetualTitle(
-        _ direction: String?,
+        _ direction: Gemstone.PerpetualDirection?,
         _ directionTitle: (String) -> String,
         _ fallback: String,
     ) -> String {
-        guard let direction, let value = try? Primitives.PerpetualDirection(direction) else { return fallback }
-        return directionTitle(PerpetualDirectionViewModel(direction: value).title)
+        guard let direction else { return fallback }
+        return directionTitle(PerpetualDirectionViewModel(direction: direction.map()).title)
     }
 }
 

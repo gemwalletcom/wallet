@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
@@ -39,7 +40,7 @@ class AmountPerpetualProviderTest {
         val provider = makeProvider(direction = PerpetualDirection.Short)
         val title = provider.title as AmountTitle.Perpetual
         val open = title.action as GemPerpetualPositionAction.Open
-        assertEquals(PerpetualDirection.Short.toJson(), open.data.direction)
+        assertEquals(PerpetualDirection.Short.toGem(), open.data.direction)
     }
 
     @Test

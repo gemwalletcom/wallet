@@ -246,11 +246,11 @@ public extension PerpetualSceneViewModel {
     }
 
     func onOpenLongPosition() {
-        onPositionAction(.open(direction: PerpetualDirection.long.json()))
+        onPositionAction(.open(direction: PerpetualDirection.long.map()))
     }
 
     func onOpenShortPosition() {
-        onPositionAction(.open(direction: PerpetualDirection.short.json()))
+        onPositionAction(.open(direction: PerpetualDirection.short.map()))
     }
 
     func onIncreasePosition() {

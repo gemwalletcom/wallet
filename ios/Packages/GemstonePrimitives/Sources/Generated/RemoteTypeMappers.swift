@@ -250,6 +250,60 @@ public extension Primitives.LinkType {
     }
 }
 
+public extension Gemstone.PerpetualDirection {
+    func map() -> Primitives.PerpetualDirection {
+        switch self {
+        case .short: .short
+        case .long: .long
+        }
+    }
+}
+
+public extension Primitives.PerpetualDirection {
+    func map() -> Gemstone.PerpetualDirection {
+        switch self {
+        case .short: .short
+        case .long: .long
+        }
+    }
+}
+
+public extension Gemstone.PerpetualMarginType {
+    func map() -> Primitives.PerpetualMarginType {
+        switch self {
+        case .cross: .cross
+        case .isolated: .isolated
+        }
+    }
+}
+
+public extension Primitives.PerpetualMarginType {
+    func map() -> Gemstone.PerpetualMarginType {
+        switch self {
+        case .cross: .cross
+        case .isolated: .isolated
+        }
+    }
+}
+
+public extension Gemstone.PerpetualOrderType {
+    func map() -> Primitives.PerpetualOrderType {
+        switch self {
+        case .market: .market
+        case .limit: .limit
+        }
+    }
+}
+
+public extension Primitives.PerpetualOrderType {
+    func map() -> Gemstone.PerpetualOrderType {
+        switch self {
+        case .market: .market
+        case .limit: .limit
+        }
+    }
+}
+
 public extension Gemstone.PerpetualProvider {
     func map() -> Primitives.PerpetualProvider {
         switch self {

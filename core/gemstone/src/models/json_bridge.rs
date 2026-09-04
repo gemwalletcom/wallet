@@ -15,10 +15,10 @@ use primitives::stake_type::Resource;
 use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType};
 use primitives::{
     AccountDataType, ApplicationMetadata, ApplicationMetadataSource, AssetList, ChainAsset, ContractCallData, DelegationBase, DelegationState, DelegationValidator, NFTAsset,
-    NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, NFTImages, NFTResource, NFTType, Payment, PaymentAmount, PaymentLink, PaymentRequest, Perpetual, PerpetualDirection,
-    PerpetualMarginType, PerpetualMarketData, PerpetualOrderType, PerpetualPosition, PerpetualTriggerOrder, ReportNft, ScanAddressTarget, ScanTransaction, ScanTransactionPayload,
-    SimulationHeader, SimulationResult, SolanaNftStandard, SolanaTokenProgramId, StakeProviderType, StakeValidator, TransactionPerpetualMetadata, TransactionState,
-    TransactionType, TransferDataOutputAction, TransferDataOutputType, TronStakeData, TronUnfreeze, TronVote, UTXO,
+    NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, NFTImages, NFTResource, NFTType, Payment, PaymentAmount, PaymentLink, PaymentRequest, Perpetual, PerpetualMarketData,
+    PerpetualPosition, PerpetualTriggerOrder, ReportNft, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationHeader, SimulationResult, SolanaNftStandard,
+    SolanaTokenProgramId, StakeProviderType, StakeValidator, TransactionPerpetualMetadata, TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType,
+    TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
 use primitives::{
     AddressName, AuthNonce, AuthPayload, ChainAddress, ChartValuePercentage, Device, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification,
@@ -121,13 +121,10 @@ json_bridge!(
     PerpetualConfirmData,
     Perpetual,
     PerpetualData,
-    PerpetualDirection,
-    PerpetualMarginType,
     PerpetualMarketData,
     PerpetualMetadata,
     PerpetualModifyConfirmData,
     PerpetualModifyPositionType,
-    PerpetualOrderType,
     PerpetualPortfolio,
     PerpetualPortfolioTimeframeData,
     Platform,

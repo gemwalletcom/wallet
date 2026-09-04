@@ -3,9 +3,9 @@
 
 use primitives::{
     Account, Asset, AssetFiatValue, AssetType, Chain, ChainType, ConnectionComponent, ConnectionStatus, Currency, FeePriority, FeeUnitType, Latency, LatencyType, LinkType,
-    PerpetualProvider, PortfolioType, PriceAlertDirection, PriceAlertNotificationType, RecentActivityType, SimulationPayloadField, SimulationPayloadFieldDisplay,
-    SimulationPayloadFieldKind, SimulationPayloadFieldType, SwapProvider, TotalFiatValue, TpslType, VerificationStatus, WalletConnectionVerificationStatus, WalletSource,
-    WalletType,
+    PerpetualDirection, PerpetualMarginType, PerpetualOrderType, PerpetualProvider, PortfolioType, PriceAlertDirection, PriceAlertNotificationType, RecentActivityType,
+    SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SwapProvider, TotalFiatValue, TpslType, VerificationStatus,
+    WalletConnectionVerificationStatus, WalletSource, WalletType,
 };
 use std::str::FromStr;
 
@@ -109,6 +109,24 @@ pub enum LinkType {
     MagicEden,
     CoinMarketCap,
     TikTok,
+}
+
+#[uniffi::remote(Enum)]
+pub enum PerpetualDirection {
+    Short,
+    Long,
+}
+
+#[uniffi::remote(Enum)]
+pub enum PerpetualMarginType {
+    Cross,
+    Isolated,
+}
+
+#[uniffi::remote(Enum)]
+pub enum PerpetualOrderType {
+    Market,
+    Limit,
 }
 
 #[uniffi::remote(Enum)]

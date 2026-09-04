@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.models.perpetual.autoclose
 
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregateImpl
@@ -29,7 +30,7 @@ object AutocloseUIModelFactory {
         val estimator = GemAutocloseEstimator(
             entryPrice = position.position.entryPrice,
             positionSize = position.position.size,
-            direction = position.position.direction.toJson(),
+            direction = position.position.direction.toGem(),
             leverage = position.position.leverage,
         )
         return AutocloseUIModel(

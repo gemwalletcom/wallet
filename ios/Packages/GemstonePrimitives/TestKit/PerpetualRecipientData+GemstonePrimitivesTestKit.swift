@@ -27,13 +27,13 @@ public extension GemPerpetualTransferData {
     ) -> GemPerpetualTransferData {
         GemPerpetualTransferData(
             provider: PerpetualProvider.hypercore.map(),
-            direction: direction.json(),
+            direction: direction.map(),
             asset: asset.map(),
             baseAsset: Asset.mock().map(),
             assetIndex: 0,
             price: 100.0,
             leverage: leverage,
-            marginType: PerpetualMarginType.cross.json(),
+            marginType: PerpetualMarginType.cross.map(),
         )
     }
 }

@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.list_item.transaction
 
+import com.gemwallet.android.ext.toPrimitives
 import androidx.annotation.StringRes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -54,8 +55,8 @@ fun GemTransactionTitle.string(): String = when (this) {
 }
 
 @Composable
-private fun perpetualTitle(direction: String?, @StringRes directionTitle: Int, @StringRes fallback: Int): String {
-    val side = when (direction?.decodeJsonOrNull<PerpetualDirection>()) {
+private fun perpetualTitle(direction: uniffi.gemstone.PerpetualDirection?, @StringRes directionTitle: Int, @StringRes fallback: Int): String {
+    val side = when (direction?.toPrimitives()) {
         PerpetualDirection.Long -> stringResource(R.string.perpetual_long)
         PerpetualDirection.Short -> stringResource(R.string.perpetual_short)
         null -> return stringResource(fallback)

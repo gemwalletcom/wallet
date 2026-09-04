@@ -30,7 +30,7 @@ public final class AutocloseSceneViewModel {
             GemAutocloseEstimator(
                 entryPrice: position.position.entryPrice,
                 positionSize: position.position.size,
-                direction: position.position.direction.json(),
+                direction: position.position.direction.map(),
                 leverage: position.position.leverage,
             )
         case let .open(data, _):
@@ -38,7 +38,7 @@ public final class AutocloseSceneViewModel {
                 marketPrice: data.marketPrice,
                 size: data.size,
                 leverage: data.leverage,
-                direction: data.direction.json(),
+                direction: data.direction.map(),
             )
         }
     }
@@ -159,7 +159,7 @@ extension AutocloseSceneViewModel {
 
     private var modify: GemAutocloseModify {
         GemAutocloseModify(
-            direction: type.direction.json(),
+            direction: type.direction.map(),
             assetIndex: assetIndex,
             takeProfit: takeProfitField,
             stopLoss: stopLossField,
