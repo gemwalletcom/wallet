@@ -8,16 +8,16 @@ use crate::perpetual_formatter::USDC_DECIMALS_MULTIPLIER;
 const HYPERCORE_BUILDER_FEE_RATE_SCALE: f64 = 100_000.0;
 const HYPERCORE_PERPETUAL_USDC_DECIMALS: i32 = 6;
 
-pub fn calculate_perpetual_fee_amount(fiat_value: f64, fee_rate: f64) -> BigInt {
-    let result = fiat_value * fee_rate * USDC_DECIMALS_MULTIPLIER;
-    BigInt::from(result as i64)
+pub fn calculate_perpetual_fee_amount(fiat_value: f64, fee_rate: f64, builder_fee_bps: u32) -> BigInt {
+    fee_amount_in_usdc(fiat_value, fee_rate + builder_fee_rate(builder_fee_bps))
 }
 
 pub fn calculate_spot_fee_amount(swap_data: &SwapData, from_asset: &Asset, to_asset: &Asset, fee_rate: f64, builder_fee_bps: u32) -> Result<BigInt, Box<dyn Error + Send + Sync>> {
     let fiat_value = calculate_spot_usdc_value(swap_data, from_asset, to_asset, builder_fee_bps)?;
     let usdc_decimals = spot_usdc_decimals(from_asset, to_asset)?;
-    let trade_fee = calculate_perpetual_fee_amount(fiat_value * decimal_scale(usdc_decimals - HYPERCORE_PERPETUAL_USDC_DECIMALS), fee_rate);
-    let builder_fee = BigInt::from((fiat_value * f64::from(builder_fee_bps) * decimal_scale(usdc_decimals - 5)) as i64);
+    let value = fiat_value * decimal_scale(usdc_decimals - HYPERCORE_PERPETUAL_USDC_DECIMALS);
+    let trade_fee = fee_amount_in_usdc(value, fee_rate);
+    let builder_fee = fee_amount_in_usdc(value, builder_fee_rate(builder_fee_bps));
 
     Ok(trade_fee + builder_fee)
 }
@@ -55,6 +55,14 @@ fn decimal_scale(power: i32) -> f64 {
     10_i64.pow(power as u32) as f64
 }
 
+fn fee_amount_in_usdc(value: f64, fee_rate: f64) -> BigInt {
+    BigInt::from((value * fee_rate * USDC_DECIMALS_MULTIPLIER) as i64)
+}
+
+fn builder_fee_rate(builder_fee_bps: u32) -> f64 {
+    f64::from(builder_fee_bps) / HYPERCORE_BUILDER_FEE_RATE_SCALE
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -65,15 +73,17 @@ mod tests {
 
     #[test]
     fn calculate_perpetual_fee_amount_cases() {
-        for (fiat_value, fee_rate, expected) in [
-            (100.0, 0.00045, 45_000_i64),
-            (1000.0, 0.000315, 315_000),
-            (1000.0, 0.0, 0),
-            (0.0, 0.000025, 0),
-            (1.0, 0.000043, 43),
-            (10000.0, 0.001, 10_000_000),
+        for (fiat_value, fee_rate, builder_fee_bps, expected) in [
+            (100.0, 0.00045, 0, 45_000_i64),
+            (1000.0, 0.000315, 0, 315_000),
+            (1000.0, 0.0, 0, 0),
+            (0.0, 0.000025, 45, 0),
+            (1.0, 0.000043, 0, 43),
+            (10000.0, 0.001, 0, 10_000_000),
+            (10000.0, 0.00045, 45, 9_000_000),
+            (100.0, 0.0, 45, 45_000),
         ] {
-            assert_eq!(calculate_perpetual_fee_amount(fiat_value, fee_rate), BigInt::from(expected));
+            assert_eq!(calculate_perpetual_fee_amount(fiat_value, fee_rate, builder_fee_bps), BigInt::from(expected));
         }
     }
 
