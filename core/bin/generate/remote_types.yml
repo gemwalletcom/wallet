@@ -3,6 +3,8 @@ remote:
   - AssetFiatValue
   - AssetType
   - ChainType
+  - ConnectionComponent
+  - ConnectionStatus
   - Asset
   - FeePriority
   - FeeUnitType
@@ -18,6 +20,7 @@ remote:
   - SimulationPayloadFieldKind
   - SimulationPayloadField
   - LatencyType
+  - LinkType
   - Latency
   - PortfolioType
   - TotalFiatValue

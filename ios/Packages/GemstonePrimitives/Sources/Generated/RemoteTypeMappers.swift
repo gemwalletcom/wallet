@@ -99,6 +99,48 @@ public extension Primitives.ChainType {
     }
 }
 
+public extension Gemstone.ConnectionComponent {
+    func map() -> Primitives.ConnectionComponent {
+        switch self {
+        case .internet: .internet
+        case .api: .api
+        case .nodes: .nodes
+        case .stream: .stream
+        }
+    }
+}
+
+public extension Primitives.ConnectionComponent {
+    func map() -> Gemstone.ConnectionComponent {
+        switch self {
+        case .internet: .internet
+        case .api: .api
+        case .nodes: .nodes
+        case .stream: .stream
+        }
+    }
+}
+
+public extension Gemstone.ConnectionStatus {
+    func map() -> Primitives.ConnectionStatus {
+        switch self {
+        case .online: .online
+        case .noInternet: .noInternet
+        case .noService: .noService
+        }
+    }
+}
+
+public extension Primitives.ConnectionStatus {
+    func map() -> Gemstone.ConnectionStatus {
+        switch self {
+        case .online: .online
+        case .noInternet: .noInternet
+        case .noService: .noService
+        }
+    }
+}
+
 public extension Primitives.Currency {
     init(core: Gemstone.Currency) {
         guard let value = Primitives.Currency(rawValue: core) else {
@@ -162,6 +204,48 @@ public extension Primitives.LatencyType {
         case .fast: .fast
         case .normal: .normal
         case .slow: .slow
+        }
+    }
+}
+
+public extension Gemstone.LinkType {
+    func map() -> Primitives.LinkType {
+        switch self {
+        case .x: .x
+        case .discord: .discord
+        case .reddit: .reddit
+        case .telegram: .telegram
+        case .gitHub: .gitHub
+        case .youTube: .youTube
+        case .facebook: .facebook
+        case .website: .website
+        case .coingecko: .coingecko
+        case .openSea: .openSea
+        case .instagram: .instagram
+        case .magicEden: .magicEden
+        case .coinMarketCap: .coinMarketCap
+        case .tikTok: .tikTok
+        }
+    }
+}
+
+public extension Primitives.LinkType {
+    func map() -> Gemstone.LinkType {
+        switch self {
+        case .x: .x
+        case .discord: .discord
+        case .reddit: .reddit
+        case .telegram: .telegram
+        case .gitHub: .gitHub
+        case .youTube: .youTube
+        case .facebook: .facebook
+        case .website: .website
+        case .coingecko: .coingecko
+        case .openSea: .openSea
+        case .instagram: .instagram
+        case .magicEden: .magicEden
+        case .coinMarketCap: .coinMarketCap
+        case .tikTok: .tikTok
         }
     }
 }

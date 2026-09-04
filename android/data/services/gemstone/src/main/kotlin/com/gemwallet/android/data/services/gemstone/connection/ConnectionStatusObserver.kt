@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.connection
 
 import android.util.Log
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.ConnectionComponent
 import com.wallet.core.primitives.ConnectionStatus
 import kotlinx.coroutines.CoroutineScope
@@ -54,7 +55,7 @@ class ConnectionStatusObserver(
 
     internal fun update(component: ConnectionComponent, isHealthy: Boolean) {
         state.update { current ->
-            val base = if (connectionService.resetsComponentHealth(component.toJson(), isHealthy, current[component])) emptyMap() else current
+            val base = if (connectionService.resetsComponentHealth(component.toGem(), isHealthy, current[component])) emptyMap() else current
             base + (component to isHealthy)
         }
     }

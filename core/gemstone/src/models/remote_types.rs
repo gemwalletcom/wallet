@@ -2,9 +2,9 @@
 // Declared in core/bin/generate/remote_types.yml.
 
 use primitives::{
-    Account, Asset, AssetFiatValue, AssetType, Chain, ChainType, Currency, FeePriority, FeeUnitType, Latency, LatencyType, PerpetualProvider, PortfolioType, RecentActivityType,
-    SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, TotalFiatValue, TpslType, VerificationStatus,
-    WalletConnectionVerificationStatus, WalletSource, WalletType,
+    Account, Asset, AssetFiatValue, AssetType, Chain, ChainType, ConnectionComponent, ConnectionStatus, Currency, FeePriority, FeeUnitType, Latency, LatencyType, LinkType,
+    PerpetualProvider, PortfolioType, RecentActivityType, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType,
+    TotalFiatValue, TpslType, VerificationStatus, WalletConnectionVerificationStatus, WalletSource, WalletType,
 };
 use std::str::FromStr;
 
@@ -51,6 +51,21 @@ pub enum ChainType {
     HyperCore,
 }
 
+#[uniffi::remote(Enum)]
+pub enum ConnectionComponent {
+    Internet,
+    Api,
+    Nodes,
+    Stream,
+}
+
+#[uniffi::remote(Enum)]
+pub enum ConnectionStatus {
+    Online,
+    NoInternet,
+    NoService,
+}
+
 uniffi::custom_type!(Currency, String, {
     remote,
     lower: |value| value.as_ref().to_string(),
@@ -75,6 +90,24 @@ pub enum LatencyType {
     Fast,
     Normal,
     Slow,
+}
+
+#[uniffi::remote(Enum)]
+pub enum LinkType {
+    X,
+    Discord,
+    Reddit,
+    Telegram,
+    GitHub,
+    YouTube,
+    Facebook,
+    Website,
+    Coingecko,
+    OpenSea,
+    Instagram,
+    MagicEden,
+    CoinMarketCap,
+    TikTok,
 }
 
 #[uniffi::remote(Enum)]

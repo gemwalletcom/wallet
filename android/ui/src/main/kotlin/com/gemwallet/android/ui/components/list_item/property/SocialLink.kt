@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.gemwallet.android.ext.getShortUrl
 import com.gemwallet.android.ext.linkType
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.AssetLink
 import com.wallet.core.primitives.LinkType
@@ -70,4 +71,4 @@ private val LinkType.icon: Int
     }
 
 private val LinkType.order: Int
-    get() = linkTypeOrder(string)
+    get() = linkTypeOrder(toGem())

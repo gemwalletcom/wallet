@@ -78,6 +78,32 @@ fun com.wallet.core.primitives.ChainType.toGem(): uniffi.gemstone.ChainType = wh
     com.wallet.core.primitives.ChainType.HyperCore -> uniffi.gemstone.ChainType.HYPER_CORE
 }
 
+fun uniffi.gemstone.ConnectionComponent.toPrimitives(): com.wallet.core.primitives.ConnectionComponent = when (this) {
+    uniffi.gemstone.ConnectionComponent.INTERNET -> com.wallet.core.primitives.ConnectionComponent.Internet
+    uniffi.gemstone.ConnectionComponent.API -> com.wallet.core.primitives.ConnectionComponent.Api
+    uniffi.gemstone.ConnectionComponent.NODES -> com.wallet.core.primitives.ConnectionComponent.Nodes
+    uniffi.gemstone.ConnectionComponent.STREAM -> com.wallet.core.primitives.ConnectionComponent.Stream
+}
+
+fun com.wallet.core.primitives.ConnectionComponent.toGem(): uniffi.gemstone.ConnectionComponent = when (this) {
+    com.wallet.core.primitives.ConnectionComponent.Internet -> uniffi.gemstone.ConnectionComponent.INTERNET
+    com.wallet.core.primitives.ConnectionComponent.Api -> uniffi.gemstone.ConnectionComponent.API
+    com.wallet.core.primitives.ConnectionComponent.Nodes -> uniffi.gemstone.ConnectionComponent.NODES
+    com.wallet.core.primitives.ConnectionComponent.Stream -> uniffi.gemstone.ConnectionComponent.STREAM
+}
+
+fun uniffi.gemstone.ConnectionStatus.toPrimitives(): com.wallet.core.primitives.ConnectionStatus = when (this) {
+    uniffi.gemstone.ConnectionStatus.ONLINE -> com.wallet.core.primitives.ConnectionStatus.Online
+    uniffi.gemstone.ConnectionStatus.NO_INTERNET -> com.wallet.core.primitives.ConnectionStatus.NoInternet
+    uniffi.gemstone.ConnectionStatus.NO_SERVICE -> com.wallet.core.primitives.ConnectionStatus.NoService
+}
+
+fun com.wallet.core.primitives.ConnectionStatus.toGem(): uniffi.gemstone.ConnectionStatus = when (this) {
+    com.wallet.core.primitives.ConnectionStatus.Online -> uniffi.gemstone.ConnectionStatus.ONLINE
+    com.wallet.core.primitives.ConnectionStatus.NoInternet -> uniffi.gemstone.ConnectionStatus.NO_INTERNET
+    com.wallet.core.primitives.ConnectionStatus.NoService -> uniffi.gemstone.ConnectionStatus.NO_SERVICE
+}
+
 fun uniffi.gemstone.Currency.toCurrency(): com.wallet.core.primitives.Currency = com.wallet.core.primitives.Currency.entries.firstOrNull { it.string == this }
     ?: throw IllegalStateException("Core returned a Currency this build does not know: $this")
 
@@ -115,6 +141,40 @@ fun com.wallet.core.primitives.LatencyType.toGem(): uniffi.gemstone.LatencyType 
     com.wallet.core.primitives.LatencyType.Fast -> uniffi.gemstone.LatencyType.FAST
     com.wallet.core.primitives.LatencyType.Normal -> uniffi.gemstone.LatencyType.NORMAL
     com.wallet.core.primitives.LatencyType.Slow -> uniffi.gemstone.LatencyType.SLOW
+}
+
+fun uniffi.gemstone.LinkType.toPrimitives(): com.wallet.core.primitives.LinkType = when (this) {
+    uniffi.gemstone.LinkType.X -> com.wallet.core.primitives.LinkType.X
+    uniffi.gemstone.LinkType.DISCORD -> com.wallet.core.primitives.LinkType.Discord
+    uniffi.gemstone.LinkType.REDDIT -> com.wallet.core.primitives.LinkType.Reddit
+    uniffi.gemstone.LinkType.TELEGRAM -> com.wallet.core.primitives.LinkType.Telegram
+    uniffi.gemstone.LinkType.GIT_HUB -> com.wallet.core.primitives.LinkType.GitHub
+    uniffi.gemstone.LinkType.YOU_TUBE -> com.wallet.core.primitives.LinkType.YouTube
+    uniffi.gemstone.LinkType.FACEBOOK -> com.wallet.core.primitives.LinkType.Facebook
+    uniffi.gemstone.LinkType.WEBSITE -> com.wallet.core.primitives.LinkType.Website
+    uniffi.gemstone.LinkType.COINGECKO -> com.wallet.core.primitives.LinkType.Coingecko
+    uniffi.gemstone.LinkType.OPEN_SEA -> com.wallet.core.primitives.LinkType.OpenSea
+    uniffi.gemstone.LinkType.INSTAGRAM -> com.wallet.core.primitives.LinkType.Instagram
+    uniffi.gemstone.LinkType.MAGIC_EDEN -> com.wallet.core.primitives.LinkType.MagicEden
+    uniffi.gemstone.LinkType.COIN_MARKET_CAP -> com.wallet.core.primitives.LinkType.CoinMarketCap
+    uniffi.gemstone.LinkType.TIK_TOK -> com.wallet.core.primitives.LinkType.TikTok
+}
+
+fun com.wallet.core.primitives.LinkType.toGem(): uniffi.gemstone.LinkType = when (this) {
+    com.wallet.core.primitives.LinkType.X -> uniffi.gemstone.LinkType.X
+    com.wallet.core.primitives.LinkType.Discord -> uniffi.gemstone.LinkType.DISCORD
+    com.wallet.core.primitives.LinkType.Reddit -> uniffi.gemstone.LinkType.REDDIT
+    com.wallet.core.primitives.LinkType.Telegram -> uniffi.gemstone.LinkType.TELEGRAM
+    com.wallet.core.primitives.LinkType.GitHub -> uniffi.gemstone.LinkType.GIT_HUB
+    com.wallet.core.primitives.LinkType.YouTube -> uniffi.gemstone.LinkType.YOU_TUBE
+    com.wallet.core.primitives.LinkType.Facebook -> uniffi.gemstone.LinkType.FACEBOOK
+    com.wallet.core.primitives.LinkType.Website -> uniffi.gemstone.LinkType.WEBSITE
+    com.wallet.core.primitives.LinkType.Coingecko -> uniffi.gemstone.LinkType.COINGECKO
+    com.wallet.core.primitives.LinkType.OpenSea -> uniffi.gemstone.LinkType.OPEN_SEA
+    com.wallet.core.primitives.LinkType.Instagram -> uniffi.gemstone.LinkType.INSTAGRAM
+    com.wallet.core.primitives.LinkType.MagicEden -> uniffi.gemstone.LinkType.MAGIC_EDEN
+    com.wallet.core.primitives.LinkType.CoinMarketCap -> uniffi.gemstone.LinkType.COIN_MARKET_CAP
+    com.wallet.core.primitives.LinkType.TikTok -> uniffi.gemstone.LinkType.TIK_TOK
 }
 
 fun uniffi.gemstone.PerpetualProvider.toPrimitives(): com.wallet.core.primitives.PerpetualProvider = when (this) {

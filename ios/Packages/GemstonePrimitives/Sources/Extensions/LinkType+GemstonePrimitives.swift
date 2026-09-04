@@ -6,6 +6,6 @@ import Primitives
 
 public extension LinkType {
     var order: Int {
-        linkTypeOrder(linkType: rawValue).asInt
+        linkTypeOrder(linkType: map()).asInt
     }
 }
