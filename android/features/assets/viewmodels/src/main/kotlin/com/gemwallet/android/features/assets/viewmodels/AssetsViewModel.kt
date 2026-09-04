@@ -106,8 +106,7 @@ class AssetsViewModel @Inject constructor(
     }
 
     private suspend fun refresh() {
-        val assetIds = assetGroups.value.let { it.pinned + it.unpinned }.map { it.id.toIdentifier() }
-        runCatchingCancellable { service.refresh(assetIds) }
+        runCatchingCancellable { service.refresh() }
             .onFailure { Log.e(TAG, "assets refresh failed", it) }
     }
 

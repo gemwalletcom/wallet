@@ -7,8 +7,10 @@ use primitives::{AssetId, StreamMessage, StreamMessagePrices, WalletId};
 
 use super::connection::GemStreamConnection;
 use super::rules;
+use crate::models::asset::asset_ids_enabled_by_default;
+use crate::services::balance::GemBalanceStore;
 use crate::services::error::GemServiceError;
-use crate::services::price::GemPriceService;
+use crate::services::price::rules as price_rules;
 use crate::services::price_alert::GemPriceAlertStore;
 
 #[derive(Default)]
@@ -19,7 +21,7 @@ struct SubscriptionState {
 
 #[derive(uniffi::Object)]
 pub struct GemStreamSubscriptionService {
-    price: Arc<GemPriceService>,
+    balances: Arc<dyn GemBalanceStore>,
     alerts: Arc<dyn GemPriceAlertStore>,
     connection: Arc<dyn GemStreamConnection>,
     state: Mutex<SubscriptionState>,
@@ -28,9 +30,9 @@ pub struct GemStreamSubscriptionService {
 #[uniffi::export]
 impl GemStreamSubscriptionService {
     #[uniffi::constructor]
-    pub fn new(price: Arc<GemPriceService>, alerts: Arc<dyn GemPriceAlertStore>, connection: Arc<dyn GemStreamConnection>) -> Self {
+    pub fn new(balances: Arc<dyn GemBalanceStore>, alerts: Arc<dyn GemPriceAlertStore>, connection: Arc<dyn GemStreamConnection>) -> Self {
         Self {
-            price,
+            balances,
             alerts,
             connection,
             state: Mutex::new(SubscriptionState::default()),
@@ -54,7 +56,8 @@ impl GemStreamSubscriptionService {
             return Ok(());
         }
         let alert_asset_ids = self.alerts.get_price_alerts(None).await?.into_iter().map(|alert| alert.asset_id).collect();
-        let asset_ids = self.price.observable_asset_ids(wallet_id, alert_asset_ids).await?;
+        let enabled_asset_ids = self.balances.get_enabled_asset_ids(wallet_id).await?;
+        let asset_ids = price_rules::observable_asset_ids(enabled_asset_ids, alert_asset_ids, asset_ids_enabled_by_default());
         let target: HashSet<AssetId> = asset_ids.iter().cloned().collect();
         if subscribed == target {
             return Ok(());
@@ -84,52 +87,29 @@ impl GemStreamSubscriptionService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::alien::{AlienError, AlienProvider, AlienResponse, AlienTarget};
-    use crate::api::GemApiClient;
-    use crate::services::price::GemAssetPrice;
-    use crate::services::price::{GemPriceStore, GemPriceUpdate};
+    use crate::services::balance::{GemAssetBalance, GemBalanceUpdate};
     use async_trait::async_trait;
     use primitives::currency::Currency;
-    use primitives::{AssetMarket, Chain, FiatRate, PriceAlert};
+    use primitives::{Chain, PriceAlert};
     use std::sync::atomic::{AtomicBool, Ordering};
-
-    #[derive(Debug)]
-    struct NoopProvider;
-
-    #[async_trait]
-    impl AlienProvider for NoopProvider {
-        async fn request(&self, _target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
-            Err(AlienError::ResponseError { msg: "unused".into() })
-        }
-
-        fn get_endpoint(&self, _chain: Chain) -> Result<String, AlienError> {
-            Ok("https://example.com".into())
-        }
-    }
 
     struct EnabledStore(Vec<AssetId>);
 
     #[async_trait]
-    impl GemPriceStore for EnabledStore {
-        async fn get_prices(&self, _asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetPrice>, GemServiceError> {
+    impl GemBalanceStore for EnabledStore {
+        async fn get_available_balances(&self, _wallet_id: WalletId, _asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetBalance>, GemServiceError> {
             Ok(vec![])
         }
-        async fn get_rate(&self, _currency: Currency) -> Result<Option<FiatRate>, GemServiceError> {
-            Ok(None)
+        async fn update_balances(&self, _wallet_id: WalletId, _updates: Vec<GemBalanceUpdate>) -> Result<(), GemServiceError> {
+            Ok(())
         }
-        async fn get_enabled_price_asset_ids(&self, _wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
+        async fn get_enabled_asset_ids(&self, _wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
             Ok(self.0.clone())
         }
-        async fn save_rates(&self, _rates: Vec<FiatRate>) -> Result<(), GemServiceError> {
+        async fn set_assets_enabled(&self, _wallet_id: WalletId, _asset_ids: Vec<AssetId>, _enabled: bool) -> Result<(), GemServiceError> {
             Ok(())
         }
-        async fn save_prices(&self, _currency: Currency, _prices: Vec<GemPriceUpdate>) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-        async fn convert_prices(&self, _currency: Currency, _rate: f64) -> Result<(), GemServiceError> {
-            Ok(())
-        }
-        async fn save_market(&self, _asset_id: AssetId, _market: AssetMarket) -> Result<(), GemServiceError> {
+        async fn set_asset_pinned(&self, _wallet_id: WalletId, _asset_id: AssetId, _pinned: bool) -> Result<(), GemServiceError> {
             Ok(())
         }
     }
@@ -175,12 +155,8 @@ mod tests {
         }
     }
 
-    fn service(connection: Arc<Connection>) -> GemStreamSubscriptionService {
-        let price = GemPriceService::new(
-            Arc::new(GemApiClient::new(Arc::new(NoopProvider))),
-            Arc::new(EnabledStore(vec![AssetId::from_chain(Chain::Bitcoin)])),
-        );
-        GemStreamSubscriptionService::new(Arc::new(price), Arc::new(AlertStore(vec![AssetId::from_chain(Chain::Bitcoin)])), connection)
+    fn service(connection: Arc<Connection>, enabled: Vec<AssetId>, alerts: Vec<AssetId>) -> GemStreamSubscriptionService {
+        GemStreamSubscriptionService::new(Arc::new(EnabledStore(enabled)), Arc::new(AlertStore(alerts)), connection)
     }
 
     fn subscribed(connection: &Connection) -> Vec<Vec<AssetId>> {
@@ -200,7 +176,7 @@ mod tests {
     fn test_subscribes_once_when_connected_and_after_reset() {
         futures::executor::block_on(async {
             let connection = Arc::new(Connection::default());
-            let service = service(connection.clone());
+            let service = service(connection.clone(), vec![AssetId::from_chain(Chain::Bitcoin)], vec![AssetId::from_chain(Chain::Bitcoin)]);
             let wallet_id = WalletId::Multicoin("0x1".into());
 
             service.setup_assets(wallet_id.clone()).await.unwrap();
@@ -221,6 +197,19 @@ mod tests {
             service.reset().await;
             service.resubscribe().await.unwrap();
             assert_eq!(subscribed(&connection).len(), 2);
+        });
+    }
+
+    #[test]
+    fn test_subscribes_to_alerted_assets_the_wallet_has_not_enabled() {
+        futures::executor::block_on(async {
+            let connection = Arc::new(Connection::default());
+            let service = service(connection.clone(), vec![AssetId::from_chain(Chain::Bitcoin)], vec![AssetId::from_chain(Chain::Ethereum)]);
+            connection.connected.store(true, Ordering::SeqCst);
+
+            service.setup_assets(WalletId::Multicoin("0x1".into())).await.unwrap();
+
+            assert_eq!(subscribed(&connection)[0], vec![AssetId::from_chain(Chain::Bitcoin), AssetId::from_chain(Chain::Ethereum)]);
         });
     }
 }

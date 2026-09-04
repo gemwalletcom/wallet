@@ -74,9 +74,9 @@ impl GemWalletHomeService {
         Ok(rules::shows_initial_loading(completed, self.wallet_preferences.get_assets_timestamp(wallet_id)))
     }
 
-    pub async fn refresh(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+    pub async fn refresh(&self) -> Result<(), GemServiceError> {
         let wallet_id = self.session.current_wallet_id()?;
-        let (balances, discovery) = futures::join!(self.balances.update(wallet_id.clone(), asset_ids), self.discovery.discover(wallet_id));
+        let (balances, discovery) = futures::join!(self.balances.update_enabled_balances(wallet_id.clone()), self.discovery.discover(wallet_id));
         balances?;
         discovery
     }

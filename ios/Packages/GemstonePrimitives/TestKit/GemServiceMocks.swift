@@ -767,7 +767,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         showsLoading
     }
 
-    public func refresh(assetIds _: [Gemstone.AssetId]) async throws {}
+    public func refresh() async throws {}
 
     public func setAssetPinned(assetId: Gemstone.AssetId, pinned isPinned: Bool) async throws {
         pinned.append((assetId, isPinned))

@@ -243,14 +243,6 @@ interface AssetsDao {
     fun getAssetsInfoByAllWallets(walletId: String, ids: List<String>): Flow<List<DbAssetInfo>>
 
     @Query("""
-        SELECT asset.id FROM asset
-        JOIN balances ON balances.asset_id = asset.id
-        WHERE balances.is_visible = 1
-        AND balances.wallet_id = :walletId
-    """)
-    suspend fun getAssetsPriceUpdate(walletId: String): List<String>
-
-    @Query("""
         SELECT asset_info.*
         FROM $ASSET_INFO WHERE
             asset_info.id NOT IN (:exclude)
