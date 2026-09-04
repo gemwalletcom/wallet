@@ -388,6 +388,17 @@ Three gotchas if you repeat the sweep, all met on this pass:
   in is the one `GemAssetBalance` record, bridged once per app). What is left per app is the
   input text ↔ value conversion (both through Core converters) and the type-specific
   `makeTransferData` / `buildTransfer` dispatch.
+- **The generator is the way a duplicated type stops being duplicated.** Adding a fieldless enum or
+  a scalar-field record to `core/bin/generate/remote_types.yml` replaces a hand-written mapper on
+  both apps at once: `Account`, `Chain`, `ChainType`, `ConnectionStatus`, `ConnectionComponent`,
+  `LinkType`, `PriceAlertDirection`, `PriceAlertNotificationType`, `AssetFiatValue`,
+  `TotalFiatValue` and `SwapProvider` moved that way, each deleting an app-side copy and, in four
+  cases, a rule the two platforms disagreed on. What it cannot represent yet is a data-carrying
+  enum: `remote_mappers.rs` reads variant names only, so `GasPriceType` would generate an empty
+  mapping. That blocks the last hand-written fee mappers (`GemGasPriceType` ↔ `GasPriceType`,
+  `GemTransactionLoadFee` ↔ `Fee`, `GemFeeOptions` ↔ `FeeOptionMap`), where the same conversion is
+  written twice — once as `impl From<GemGasPriceType> for GasPriceType` in Rust and once in Swift.
+  Teaching the generator about associated values unblocks the whole class.
 - **Screens read their rows from one Core answer.** `GemTransactionDetailsService::details`
   (swap progress steps, swap-again, provider name, confirmation ETA, pnl, price) and
   `GemAssetBalance::detail_rows` (available, staked, earn, pending, reserved) replaced the
@@ -865,7 +876,9 @@ forwards name methods and no client declares a protocol intersection. The forwar
 `GemOnboardingService` is deleted: create and import wallet screens hold `GemWalletService`, which
 already owns `createWallet`, `importWallet`, `nextWalletIndex`, `wallets` and `setCurrentWalletId`;
 `avatarService` is injected beside it where the wallet image is shown, and
-`ImportWalletTypeViewModel` builds the dependency-free `GemChainService` itself. `ConfirmTransferSceneViewModel` is done: it holds `service` alone, with `signer`, the keystore
+`ImportWalletTypeViewModel` takes the shared `GemChainService.shared`, which is where every stateless
+Core object the apps reach for lives (`Config.shared`, `GemAssetConfigService.shared`, Android's
+`assetConfig`) rather than a fresh instance per caller. `ConfirmTransferSceneViewModel` is done: it holds `service` alone, with `signer`, the keystore
 password and the recent-activity store as outbound ports the app implements and
 `GemConfirmTransferService` owns, and reads the currency from `service.currency()`. It hands out no
 other service: `GemFeeService` is deleted (the custom-fee estimate is a `GemCustomFee.estimate`
