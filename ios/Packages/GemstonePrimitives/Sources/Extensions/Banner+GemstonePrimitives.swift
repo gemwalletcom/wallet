@@ -2,10 +2,8 @@
 
 import Foundation
 import enum Gemstone.GemBannerAction
-import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerContext
 import struct Gemstone.GemBannerItem
-import protocol Gemstone.GemBannerServiceProtocol
 import struct Gemstone.GemBannerKey
 import Primitives
 
@@ -30,12 +28,6 @@ public extension Primitives.BannerActionType {
             case .closeBanner: .close
             }
         }
-    }
-}
-
-public extension GemBannerServiceProtocol {
-    func content(for banner: Banner) -> GemBannerContent {
-        bannerContent(event: banner.event.json(), asset: banner.asset?.map())
     }
 }
 
