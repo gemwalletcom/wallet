@@ -3,9 +3,8 @@
 import Foundation
 import GemstonePrimitives
 import Primitives
-import PrimitivesComponents
 
-public typealias AutocloseCompletion = (_ takeProfit: InputValidationViewModel, _ stopLoss: InputValidationViewModel) -> Void
+public typealias AutocloseCompletion = (AutocloseSelection) -> Void
 
 public enum AutocloseType {
     case modify(PerpetualPositionData, onTransferAction: TransferDataAction)

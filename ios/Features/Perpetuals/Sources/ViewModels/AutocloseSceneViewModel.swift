@@ -114,7 +114,7 @@ public extension AutocloseSceneViewModel {
             onTransferAction?(modify.transfer(provider: position.perpetual.provider.map(), asset: position.asset.map()))
 
         case let .open(_, onComplete):
-            onComplete(input.takeProfit, input.stopLoss)
+            onComplete(input.selection)
         }
     }
 

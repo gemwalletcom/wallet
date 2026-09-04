@@ -15,6 +15,6 @@ extension AutocloseType {
     static func mockOpen(
         data: AutocloseOpenData = .mock(),
     ) -> AutocloseType {
-        .open(data, onComplete: { _, _ in })
+        .open(data, onComplete: { _ in })
     }
 }
