@@ -5,6 +5,7 @@ import GemstoneServices
 import BigInt
 import Foundation
 import GemstonePrimitives
+import struct Gemstone.GemTransactionLoadFee
 import Primitives
 import PrimitivesComponents
 import Style
@@ -12,7 +13,7 @@ import struct Gemstone.GemTransferData
 
 public struct TransactionInputViewModel: Sendable {
     let data: GemTransferData
-    let fee: Fee?
+    let fee: GemTransactionLoadFee?
     let metaData: GemConfirmMetadata?
     let transferAmount: TransferAmountValidation?
     let feeAsset: Asset
@@ -21,7 +22,7 @@ public struct TransactionInputViewModel: Sendable {
 
     public init(
         data: GemTransferData,
-        fee: Fee?,
+        fee: GemTransactionLoadFee?,
         metaData: GemConfirmMetadata?,
         transferAmount: TransferAmountValidation?,
         feeAsset: Asset,

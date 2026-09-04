@@ -28,7 +28,7 @@ public extension ConfirmTransferPreload {
             metadata: preload.metadata,
             input: ConfirmTransferInput(
                 confirmData: preload.confirmData,
-                fee: try preload.confirmData.fee.map(),
+                fee: preload.confirmData.fee,
                 transferAmount: preload.amount.map(),
                 feeAsset: preload.feeAsset.map(),
             ),

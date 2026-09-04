@@ -5,6 +5,7 @@ import enum Gemstone.GemTransactionInputType
 import BigInt
 import Foundation
 import GemstonePrimitives
+import struct Gemstone.GemTransferDataExtra
 import Primitives
 import PrimitivesTestKit
 import struct Gemstone.GemTransferData
@@ -36,12 +37,7 @@ public extension GemTransferData {
             type: .generic(
                 asset: asset,
                 metadata: .mock(source: .payment),
-                extra: .mock(
-                    data: Data(transaction.utf8),
-                    outputType: .encodedTransaction,
-                    outputAction: .send,
-                    transactionType: .transfer,
-                ),
+                extra: .mock(data: Data(transaction.utf8)),
             ),
             recipient: recipient,
             value: value,

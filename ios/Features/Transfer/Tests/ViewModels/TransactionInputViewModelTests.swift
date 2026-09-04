@@ -75,7 +75,7 @@ struct TransactionInputViewModelTests {
         let feeAsset = Asset.mockEthereumUSDT()
         let viewModel = TransactionInputViewModel(
             data: .mock(),
-            fee: .mock(fee: 1_000_000, feeAsset: feeAsset),
+            fee: .mock(fee: 1_000_000, feeAsset: feeAsset.id.identifier),
             metaData: nil,
             transferAmount: nil,
             feeAsset: feeAsset,

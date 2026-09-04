@@ -12,6 +12,7 @@ public import struct Gemstone.GemConfirmInput
 public import struct Gemstone.GemFeeOptions
 public import struct Gemstone.GemFeeRate
 public import enum Gemstone.GemGasPriceType
+public import struct Gemstone.GemTransferDataExtra
 public import enum Gemstone.GemTransactionLoadMetadata
 public import struct Gemstone.GemTransactionLoadFee
 import Foundation
@@ -104,6 +105,30 @@ public extension GemConfirmMetadata {
             assetBalance: .mock(assetId: assetId),
             feeAssetBalance: .mock(assetId: assetId),
             prices: [],
+        )
+    }
+}
+
+public extension GemTransferDataExtra {
+    static func mock(
+        to: String = "",
+        gasLimit: BigInt? = .none,
+        gasPrice: GemGasPriceType? = .none,
+        data: Data? = .none,
+        outputType: Primitives.TransferDataOutputType = .encodedTransaction,
+        outputAction: Primitives.TransferDataOutputAction = .send,
+        transactionType: Primitives.TransactionType = .transfer,
+        approval: String? = .none,
+    ) -> GemTransferDataExtra {
+        GemTransferDataExtra(
+            to: to,
+            gasLimit: gasLimit,
+            gasPrice: gasPrice,
+            data: data,
+            outputType: outputType.json(),
+            outputAction: outputAction.json(),
+            transactionType: transactionType.json(),
+            approval: approval,
         )
     }
 }
