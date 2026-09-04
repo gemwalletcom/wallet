@@ -1,6 +1,6 @@
 package com.gemwallet.android.ext
 
-import com.gemwallet.android.domains.asset.defaultAssets
+import com.gemwallet.android.domains.asset.assetConfig
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -17,5 +17,6 @@ fun Wallet.getAccount(assetId: AssetId): Account? = getAccount(assetId.chain)
 
 val WalletType.isViewOnly: Boolean get() = this == WalletType.View
 
-val HypercoreUSDC: Asset = Chain.HyperCore.defaultAssets
-    .first { it.type == AssetType.PERPETUAL }
+val HypercoreUSDC: Asset = requireNotNull(assetConfig.defaultAsset(Chain.HyperCore.string, AssetType.PERPETUAL.toGem())) {
+    "Missing perpetual default asset for HyperCore"
+}.toPrimitives()

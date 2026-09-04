@@ -1,4 +1,4 @@
-use primitives::{Asset, AssetBasic, AssetId, Chain, ChainAsset};
+use primitives::{Asset, AssetBasic, AssetId, AssetType, Chain, ChainAsset};
 
 use super::rules::{default_asset_basic, default_token_chain, icon_asset_id, popular_asset_ids};
 use crate::models::asset::{asset_default_rank, asset_is_swapable, chain_asset_wrapper, chain_fee_asset_ids, default_token_rank, wallet_default_assets};
@@ -25,6 +25,10 @@ impl GemAssetConfigService {
 
     pub fn default_token_rank(&self) -> i32 {
         default_token_rank()
+    }
+
+    pub fn default_asset(&self, chain: Chain, asset_type: AssetType) -> Option<Asset> {
+        wallet_default_assets(chain).into_iter().find(|asset| asset.asset_type == asset_type)
     }
 
     pub fn wallet_default_assets(&self, chain: Chain) -> Vec<Asset> {
@@ -62,5 +66,19 @@ impl GemAssetConfigService {
     }
     pub fn default_token_chain(&self, chains: Vec<Chain>) -> Option<Chain> {
         default_token_chain(&chains)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default_asset_picks_the_chain_asset_of_that_type() {
+        let config = GemAssetConfigService::new();
+        let perpetual = config.default_asset(Chain::HyperCore, AssetType::PERPETUAL);
+
+        assert_eq!(perpetual.map(|asset| asset.symbol), Some("USDC".to_string()));
+        assert_eq!(config.default_asset(Chain::Bitcoin, AssetType::PERPETUAL), None);
     }
 }

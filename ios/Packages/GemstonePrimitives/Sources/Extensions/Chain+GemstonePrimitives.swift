@@ -55,10 +55,10 @@ public extension Primitives.Chain {
     }
 
     func defaultAsset(type: Primitives.AssetType) -> Primitives.Asset {
-        guard let asset = defaultAssets.first(where: { $0.type == type }) else {
+        guard let asset = GemAssetConfigService.shared.defaultAsset(chain: map(), assetType: type.map()) else {
             preconditionFailure("Missing \(type) default asset for \(self)")
         }
-        return asset
+        return asset.map()
     }
 
     var isPrivateKeyImportSupported: Bool {
