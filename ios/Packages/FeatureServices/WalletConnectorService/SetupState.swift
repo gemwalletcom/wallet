@@ -3,11 +3,11 @@
 import Foundation
 
 actor SetupState {
-    private var isStarted = false
+    private var isSetup = false
 
-    func runOnce(_ operation: @Sendable () -> Void) {
-        guard !isStarted else { return }
+    func start(_ operation: @Sendable () -> Void) {
+        guard !isSetup else { return }
         operation()
-        isStarted = true
+        isSetup = true
     }
 }

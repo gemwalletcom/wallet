@@ -6,7 +6,7 @@ import Testing
 
 struct SetupStateTests {
     @Test
-    func runsOnceBeforeConcurrentCallersReturn() async {
+    func startsOnceBeforeConcurrentCallersReturn() async {
         let callerCount = 20
         let observations = OSAllocatedUnfairLock(initialState: (
             starts: 0,
@@ -18,7 +18,7 @@ struct SetupStateTests {
         await withTaskGroup(of: Void.self) { group in
             for _ in 0..<callerCount {
                 group.addTask {
-                    await state.runOnce {
+                    await state.start {
                         observations.withLock {
                             $0.starts += 1
                             $0.isReady = true

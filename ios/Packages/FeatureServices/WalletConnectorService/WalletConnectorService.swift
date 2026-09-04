@@ -60,7 +60,7 @@ extension WalletConnectorService: WalletConnectorServiceable {
     }
 
     public func setup() async {
-        await setupState.runOnce {
+        await setupState.start {
             Events.instance.setTelemetryEnabled(false)
             let sessionsStream = UncheckedSendable(value: self.interactor.sessionsStream)
             let sessionProposalStream = UncheckedSendable(value: self.interactor.sessionProposalStream)
@@ -83,8 +83,8 @@ extension WalletConnectorService: WalletConnectorServiceable {
     }
 
     public func pair(uri: String) async throws {
-        let uri = try WalletConnectURI(uriString: uri)
         await setup()
+        let uri = try WalletConnectURI(uriString: uri)
         try await Pair.instance.pair(uri: uri)
     }
 
