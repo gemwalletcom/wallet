@@ -354,3 +354,57 @@ pub fn kotlin(types: &[RemoteType]) -> String {
     }
     out
 }
+
+const JSON_BRIDGE_PATH: &str = "gemstone/src/models/json_bridge.rs";
+
+/// Types the JSON bridge carries whose Rust enum has data-carrying variants, so serde tags them.
+/// Kotlin infers the concrete subtype for a generic `T.toJson()`, which drops that tag, and Core
+/// rejects the payload at runtime. Each one needs an overload whose receiver is the base type.
+pub fn tagged_bridge_types(root: &Path) -> Vec<String> {
+    let Ok(bridge) = fs::read_to_string(root.join(JSON_BRIDGE_PATH)) else {
+        return Vec::new();
+    };
+    let Some(list) = bridge.split("json_bridge!(").nth(1).and_then(|rest| rest.split(");").next()) else {
+        return Vec::new();
+    };
+    let names: Vec<&str> = list.lines().map(|line| line.trim().trim_end_matches(',')).filter(|line| !line.is_empty()).collect();
+
+    let Ok(entries) = fs::read_dir(root.join(PRIMITIVES_SOURCE)) else {
+        return Vec::new();
+    };
+    let sources: Vec<String> = entries.flatten().filter_map(|entry| fs::read_to_string(entry.path()).ok()).collect();
+
+    let mut tagged: Vec<String> = names
+        .into_iter()
+        .filter(|name| {
+            sources
+                .iter()
+                .any(|source| enum_variants(source, name).is_some_and(|variants| variants.iter().any(|variant| !variant.chars().all(|c| c.is_alphanumeric() || c == '_'))))
+        })
+        .map(str::to_string)
+        .collect();
+    tagged.sort();
+    tagged.dedup();
+    tagged
+}
+
+fn enum_variants(source: &str, name: &str) -> Option<Vec<String>> {
+    let start = source.find(&format!("pub enum {name} {{"))?;
+    let body = source[start..].split_once('{')?.1.split_once("\n}")?.0;
+    Some(
+        body.lines()
+            .map(|line| line.trim().trim_end_matches(',').to_string())
+            .filter(|line| !line.is_empty() && !line.starts_with('#') && !line.starts_with("//"))
+            .collect(),
+    )
+}
+
+pub fn kotlin_tagged_bridge(types: &[String]) -> String {
+    let header = HEADER.replace("core/bin/generate/remote_types.yml", JSON_BRIDGE_PATH);
+    let imports: String = types.iter().map(|name| format!("import com.wallet.core.primitives.{name}\n")).collect();
+    let overloads: String = types
+        .iter()
+        .map(|name| format!("\nfun {name}.toJson(): String = jsonEncoder.encodeToString<{name}>(this)\n"))
+        .collect();
+    format!("{header}\npackage com.gemwallet.android.serializer\n\nimport kotlinx.serialization.encodeToString\n{imports}{overloads}")
+}
