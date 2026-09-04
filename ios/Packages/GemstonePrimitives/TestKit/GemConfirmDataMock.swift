@@ -132,3 +132,13 @@ public extension GemTransferDataExtra {
         )
     }
 }
+
+public extension GemTransferAmount {
+    static func mock(
+        value: BigInt = 100,
+        networkFee: BigInt = 1,
+        isMaxAmount: Bool = false,
+    ) -> GemTransferAmount {
+        GemTransferAmount(value: value, networkFee: networkFee, isMaxAmount: isMaxAmount)
+    }
+}

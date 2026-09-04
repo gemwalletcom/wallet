@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.GemConfirmFeeSelection
+import struct Gemstone.GemTransferAmount
 import Components
 import Foundation
 import struct Gemstone.GemConfirmData
@@ -352,7 +353,7 @@ extension ConfirmTransferSceneViewModel {
         }
     }
 
-    private func confirm(confirmData: GemConfirmData, amount: TransferAmount) {
+    private func confirm(confirmData: GemConfirmData, amount: GemTransferAmount) {
         guard !state.confirmation.isConfirming else { return }
         state.confirmation = .confirming
         Task {
@@ -427,7 +428,7 @@ extension ConfirmTransferSceneViewModel {
         )
     }
 
-    func submit(request: ConfirmTransferRequest, confirmData: GemConfirmData, amount: TransferAmount, simulation: Primitives.SimulationResult?) async throws {
+    func submit(request: ConfirmTransferRequest, confirmData: GemConfirmData, amount: GemTransferAmount, simulation: Primitives.SimulationResult?) async throws {
         let result: GemExecuteResult
         do {
             result = try await service.execute(

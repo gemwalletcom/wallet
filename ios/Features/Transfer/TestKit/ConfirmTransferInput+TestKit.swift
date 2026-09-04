@@ -6,6 +6,7 @@ import struct Gemstone.GemConfirmData
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import struct Gemstone.GemTransactionLoadFee
+import struct Gemstone.GemTransferAmount
 import Primitives
 import PrimitivesComponents
 import PrimitivesTestKit
@@ -18,7 +19,7 @@ public extension ConfirmTransferInput {
         confirmData: GemConfirmData = .mock(input: GemTransferData.mock().confirmInput(from: .mock())),
         fee: GemTransactionLoadFee = .mock(),
         transferAmount: TransferAmountValidation = .success(
-            TransferAmount(value: BigInt(100), networkFee: BigInt(21000), useMaxAmount: false),
+            GemTransferAmount(value: BigInt(100), networkFee: BigInt(21000), isMaxAmount: false),
         ),
         feeAsset: Asset = .mock(),
     ) -> ConfirmTransferInput {

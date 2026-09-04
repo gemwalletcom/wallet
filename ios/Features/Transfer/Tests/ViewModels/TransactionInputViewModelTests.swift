@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemTransferAmount
 import struct Gemstone.GemAssetPrice
 import struct Gemstone.GemBalanceRequirement
 import enum Gemstone.GemConfirmError
@@ -20,7 +21,7 @@ struct TransactionInputViewModelTests {
             data: .mock(),
             fee: nil,
             metaData: nil,
-            transferAmount: .success(TransferAmount(value: 200, networkFee: 1, useMaxAmount: false)),
+            transferAmount: .success(GemTransferAmount(value: 200, networkFee: 1, isMaxAmount: false)),
             feeAsset: .mock(),
             currency: Currency.usd.rawValue,
         )
