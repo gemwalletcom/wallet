@@ -27,11 +27,8 @@ struct AmountValueValidator: ValueValidator {
             throw SilentValidationError()
         } catch let GemAmountError.BelowMinimum(minimum) {
             throw TransferError.minimumAmount(asset: asset, required: minimum)
-        } catch let GemAmountError.InsufficientBalance(available) {
-            throw TransferAmountCalculatorError.insufficientBalance(
-                asset,
-                requirement: BalanceRequirement(required: value, available: available),
-            )
+        } catch let GemAmountError.InsufficientBalance(requirement) {
+            throw TransferAmountCalculatorError.insufficientBalance(asset, requirement: requirement.map())
         }
     }
 

@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAssetSelectionService
 import uniffi.gemstone.GemAssetSelectionServiceInterface
+import com.gemwallet.android.data.services.gemstone.transactions.TransactionStatusService
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemBalanceService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
@@ -36,7 +37,7 @@ import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemSearchService
 import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemTransactionStateService
-import uniffi.gemstone.TransactionSimulationService
+import uniffi.gemstone.GemSimulationService
 import javax.inject.Singleton
 import uniffi.gemstone.GemDeviceService
 
@@ -48,13 +49,14 @@ object DataModule {
     @Singleton
     fun provideConfirmService(
         gateway: GemGateway,
-        simulationService: TransactionSimulationService,
+        simulationService: GemSimulationService,
         scanService: GemScanService,
         transactionStateService: GemTransactionStateService,
         balanceService: GemBalanceService,
         priceService: GemPriceService,
         assetsService: GemAssetsService,
-    ): GemConfirmServiceInterface = GemConfirmService(gateway, simulationService, scanService, transactionStateService, balanceService, priceService, assetsService)
+        transactionStatusService: TransactionStatusService,
+    ): GemConfirmServiceInterface = GemConfirmService(gateway, simulationService, scanService, transactionStateService, balanceService, priceService, assetsService, transactionStatusService)
 
     @Provides
     @Singleton

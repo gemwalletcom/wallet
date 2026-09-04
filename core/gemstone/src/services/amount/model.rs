@@ -1,4 +1,5 @@
 use crate::models::custom_types::{GemBigInt, GemBigUint};
+use crate::services::balance::GemBalanceRequirement;
 use primitives::{Delegation, Resource};
 
 #[derive(Debug, Clone, uniffi::Enum)]
@@ -64,7 +65,7 @@ pub struct GemPerpetualAutoclose {
 pub enum GemAmountError {
     Zero,
     BelowMinimum { minimum: GemBigInt },
-    InsufficientBalance { available: GemBigInt },
+    InsufficientBalance { requirement: GemBalanceRequirement },
 }
 
 impl std::fmt::Display for GemAmountError {
@@ -72,7 +73,7 @@ impl std::fmt::Display for GemAmountError {
         match self {
             Self::Zero => write!(f, "amount must be positive"),
             Self::BelowMinimum { minimum } => write!(f, "amount is below the minimum {minimum}"),
-            Self::InsufficientBalance { available } => write!(f, "amount exceeds the available balance {available}"),
+            Self::InsufficientBalance { requirement } => write!(f, "amount exceeds the available balance {}", requirement.available),
         }
     }
 }

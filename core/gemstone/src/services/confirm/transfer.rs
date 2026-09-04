@@ -126,10 +126,6 @@ impl GemConfirmTransferService {
         Ok(load)
     }
 
-    pub async fn track_pending(&self) -> Result<(), GemServiceError> {
-        self.confirm.track_pending().await
-    }
-
     pub fn address_url(&self, chain: Chain, address: String) -> GemBlockExplorerLink {
         self.explorer.get_address_url(chain, address)
     }

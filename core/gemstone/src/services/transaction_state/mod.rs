@@ -4,7 +4,6 @@ pub mod store;
 #[cfg(test)]
 pub(crate) mod testkit;
 pub mod tracker;
-pub mod tracking_port;
 
 use crate::services::error::GemServiceError;
 use crate::services::failures::record;
@@ -17,13 +16,17 @@ use primitives::{Asset, AssetId, JobConfiguration, Transaction, TransactionId, T
 pub use model::{GemPendingTransaction, GemPostProcessingFailure, GemPostProcessingStep, GemTransactionStateResult, GemTransactionStateUpdate};
 pub use store::GemTransactionStateStore;
 use tracker::{GemTransactionUpdater, Tracking, poll};
-pub use tracking_port::GemTransactionTracking;
 
 use crate::gateway::GemGateway;
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::nft::GemNftService;
 use crate::services::stake::GemStakeService;
+
+#[uniffi::export(with_foreign)]
+pub trait GemTransactionStatusService: Send + Sync {
+    fn track(&self, wallet_id: WalletId, transactions: Vec<Transaction>);
+}
 
 #[derive(uniffi::Object)]
 pub struct GemTransactionStateService {

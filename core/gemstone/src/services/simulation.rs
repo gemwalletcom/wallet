@@ -25,12 +25,12 @@ use crate::{
 };
 
 #[derive(uniffi::Object)]
-pub struct TransactionSimulationService {
+pub struct GemSimulationService {
     provider: Arc<dyn AlienProvider>,
 }
 
 #[uniffi::export]
-impl TransactionSimulationService {
+impl GemSimulationService {
     #[uniffi::constructor]
     pub fn new(provider: Arc<dyn AlienProvider>) -> Self {
         Self {
@@ -39,7 +39,7 @@ impl TransactionSimulationService {
     }
 }
 
-impl TransactionSimulationService {
+impl GemSimulationService {
     pub async fn simulate_sign_message(&self, chain: Chain, sign_type: SignDigestType, data: String, session_domain: String) -> Result<SimulationResult, GemstoneError> {
         let sign_type: WcSignDigestType = sign_type.into();
         let validation_warnings = simulation::sign_message_validation_warnings(chain, &sign_type, &data, &session_domain);
@@ -82,7 +82,7 @@ impl TransactionSimulationService {
     }
 }
 
-impl TransactionSimulationService {
+impl GemSimulationService {
     async fn simulate_eip712_message(&self, chain: Chain, message: &gem_evm::eip712::EIP712Message) -> Result<SimulationResult, GemstoneError> {
         let provider = self.ethereum_provider(chain)?;
         Ok(SimulationClient::new(&provider).simulate_eip712_message(chain, message).await?)
@@ -365,7 +365,7 @@ mod tests {
     #[test]
     fn test_wallet_connect_send_transaction_ignores_simulation_error() {
         futures::executor::block_on(async {
-            let service = TransactionSimulationService::new(Arc::new(TestProvider));
+            let service = GemSimulationService::new(Arc::new(TestProvider));
 
             let result = service
                 .simulate_send_transaction(

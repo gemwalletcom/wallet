@@ -504,7 +504,7 @@ struct ConfirmTransferSceneViewModelTests {
             Issue.record("Expected insufficientNetworkFee sheet")
             return
         }
-        #expect(sheetRequirement == BalanceRequirement(required: required, available: .zero))
+        #expect(sheetRequirement == BalanceRequirement(required: required, available: .zero, shortfall: required))
     }
 
     @Test
@@ -547,7 +547,7 @@ struct ConfirmTransferSceneViewModelTests {
             Issue.record("Expected balanceRequired sheet")
             return
         }
-        #expect(requirement == BalanceRequirement(required: 36_798_300, available: 36_070_000))
+        #expect(requirement == BalanceRequirement(required: 36_798_300, available: 36_070_000, shortfall: 728_300))
         #expect(InfoSheetModelFactory.create(from: sheet).description == Localized.Info.balanceRequiredDescription(
             "36.7983 TRX".boldMarkdown(),
             "36.07 TRX".boldMarkdown(),
@@ -613,12 +613,12 @@ struct ConfirmTransferSceneViewModelTests {
         let required = BigInt(2_000_000_000_000_000)
 
         let withPrice = InfoSheetModelFactory.create(from: .insufficientNetworkFee(
-            asset, image: image, requirement: BalanceRequirement(required: required, available: .zero),
+            asset, image: image, requirement: BalanceRequirement(required: required, available: .zero, shortfall: required),
             price: Price(price: 2000, priceChangePercentage24h: 0, updatedAt: Date()),
             currency: "USD", button: .action(title: "", action: {}),
         ))
         let withoutPrice = InfoSheetModelFactory.create(from: .insufficientNetworkFee(
-            asset, image: image, requirement: BalanceRequirement(required: required, available: .zero),
+            asset, image: image, requirement: BalanceRequirement(required: required, available: .zero, shortfall: required),
             price: nil, currency: "USD", button: .action(title: "", action: {}),
         ))
 

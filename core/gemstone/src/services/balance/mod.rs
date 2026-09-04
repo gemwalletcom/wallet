@@ -10,7 +10,7 @@ use std::sync::Arc;
 use futures::future::join_all;
 use primitives::{AssetBalance, AssetId, Wallet, WalletId};
 
-pub use model::{GemAssetBalance, GemBalanceRow, GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
+pub use model::{GemAssetBalance, GemBalanceRequirement, GemBalanceRow, GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
 pub use store::GemBalanceStore;
 
 use crate::gateway::GemGateway;

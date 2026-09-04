@@ -3,7 +3,7 @@ use primitives::{
     TransactionPreloadInput, Wallet,
 };
 
-use super::error::{GemBalanceRequirement, GemConfirmError};
+use super::error::GemConfirmError;
 use super::model::{
     GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFeeSelection, GemConfirmInput, GemConfirmMetadata, GemFeeAsset, GemFeeRateRow, GemFeeRateRows,
     GemTransferAmountResult, SendInput,
@@ -13,6 +13,7 @@ use crate::models::custom_types::GemBigUint;
 use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPreloadInput};
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionInputType, GemTransactionLoadFee, GemTransactionLoadInput};
 use crate::services::balance::GemAssetBalance;
+use crate::services::balance::GemBalanceRequirement;
 use crate::services::price::GemAssetPrice;
 use crate::services::transfer::GemPendingTransactionInput;
 use crate::transfer_amount::{GemTransferAmountError, GemTransferAmountInput};

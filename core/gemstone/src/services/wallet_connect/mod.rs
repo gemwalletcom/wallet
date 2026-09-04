@@ -14,8 +14,8 @@ use chrono::{DateTime, Utc};
 use primitives::{Account, ApplicationMetadata, Chain, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
 
 use crate::services::error::GemServiceError;
+use crate::services::simulation::GemSimulationService;
 use crate::services::wallet_session::GemWalletSessionService;
-use crate::transaction_simulation::TransactionSimulationService;
 use crate::wallet_connect::{WalletConnect, WalletConnectAction, WalletConnectChainOperation, WalletConnectTransactionType};
 
 pub use error::GemWalletConnectError;
@@ -30,7 +30,7 @@ pub use store::GemConnectionStore;
 #[derive(uniffi::Object)]
 pub struct GemWalletConnectService {
     wallet_connect: WalletConnect,
-    simulation: Arc<TransactionSimulationService>,
+    simulation: Arc<GemSimulationService>,
     store: Arc<dyn GemConnectionStore>,
     signer: Arc<dyn GemWalletConnectSigner>,
     session: Arc<GemWalletSessionService>,
@@ -42,12 +42,7 @@ const SEEN_MESSAGES_LIMIT: usize = 512;
 #[uniffi::export]
 impl GemWalletConnectService {
     #[uniffi::constructor]
-    pub fn new(
-        simulation: Arc<TransactionSimulationService>,
-        store: Arc<dyn GemConnectionStore>,
-        signer: Arc<dyn GemWalletConnectSigner>,
-        session: Arc<GemWalletSessionService>,
-    ) -> Self {
+    pub fn new(simulation: Arc<GemSimulationService>, store: Arc<dyn GemConnectionStore>, signer: Arc<dyn GemWalletConnectSigner>, session: Arc<GemWalletSessionService>) -> Self {
         Self {
             wallet_connect: WalletConnect::new(),
             simulation,
@@ -315,7 +310,7 @@ mod tests {
         let session = rules::session("topic".to_string(), vec![Chain::Ethereum], Utc::now(), ApplicationMetadata::mock());
         store.add_connection(WalletConnection { session, wallet: Wallet::mock() }).await.unwrap();
         GemWalletConnectService::new(
-            Arc::new(TransactionSimulationService::new(Arc::new(TestAlienProvider::with_status(200)))),
+            Arc::new(GemSimulationService::new(Arc::new(TestAlienProvider::with_status(200)))),
             store,
             Arc::new(TestWalletConnectSigner { result: signer }),
             Arc::new(GemWalletSessionService::new(

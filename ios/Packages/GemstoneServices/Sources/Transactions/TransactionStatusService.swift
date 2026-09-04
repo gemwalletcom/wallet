@@ -3,9 +3,9 @@
 import Foundation
 import Primitives
 import protocol Gemstone.GemTransactionStateServiceProtocol
-import protocol Gemstone.GemTransactionTracking
+import protocol Gemstone.GemTransactionStatusService
 
-public final class GemstoneTransactionTracking: GemTransactionTracking, Sendable {
+public final class GemstoneTransactionStatusService: GemTransactionStatusService, Sendable {
     private let service: any GemTransactionStateServiceProtocol
 
     public init(service: any GemTransactionStateServiceProtocol) {
@@ -17,7 +17,7 @@ public final class GemstoneTransactionTracking: GemTransactionTracking, Sendable
             do {
                 try await service.track(walletId: walletId, transactions: transactions)
             } catch {
-                debugLog("TransactionTracking: tracking failed for \(walletId): \(error)")
+                debugLog("GemstoneTransactionStatusService: failed for \(walletId): \(error)")
             }
         }
     }

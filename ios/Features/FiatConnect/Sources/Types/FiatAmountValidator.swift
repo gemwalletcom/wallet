@@ -41,11 +41,8 @@ struct FiatAmountValidator: ValueValidator {
             throw AnyError(Localized.Transfer.minimumAmount(currencyFormatter.string(Double(minimum))))
         case let .aboveMaximum(maximum):
             throw AnyError(Localized.Transfer.maximumAmount(currencyFormatter.string(Double(maximum))))
-        case let .insufficientBalance(required, available):
-            throw TransferAmountCalculatorError.insufficientBalance(
-                asset,
-                requirement: BalanceRequirement(required: BigInt(required), available: BigInt(available)),
-            )
+        case let .insufficientBalance(requirement):
+            throw TransferAmountCalculatorError.insufficientBalance(asset, requirement: requirement.map())
         case .valid:
             break
         }

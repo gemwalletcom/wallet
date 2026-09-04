@@ -16,7 +16,7 @@ struct ConfirmInfoSheetBuilderTests {
     @Test
     func insufficientBalanceSheet() {
         let asset = Asset.mock()
-        let requirement = BalanceRequirement(required: 2, available: 1)
+        let requirement = BalanceRequirement(required: 2, available: 1, shortfall: 1)
 
         guard case let .balanceRequired(sheetAsset, _, sheetRequirement, _) = build(for: GemConfirmError.InsufficientBalance(asset: asset.map(), requirement: GemBalanceRequirement(required: 2, available: 1, shortfall: 1))) else {
             Issue.record("Expected balanceRequired sheet")

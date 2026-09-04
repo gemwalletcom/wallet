@@ -1,5 +1,19 @@
-use crate::models::custom_types::GemBigUint;
+use crate::models::custom_types::{GemBigInt, GemBigUint};
 use primitives::{AssetId, asset_balance::BalanceMetadata};
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemBalanceRequirement {
+    pub required: GemBigInt,
+    pub available: GemBigInt,
+    pub shortfall: GemBigInt,
+}
+
+impl GemBalanceRequirement {
+    pub fn new(required: GemBigInt, available: GemBigInt) -> Self {
+        let shortfall = (&required - &available).max(GemBigInt::ZERO);
+        Self { required, available, shortfall }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemBalanceValue {

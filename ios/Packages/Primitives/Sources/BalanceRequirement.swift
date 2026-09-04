@@ -5,13 +5,11 @@ import BigInt
 public struct BalanceRequirement: Equatable, Sendable {
     public let required: BigInt
     public let available: BigInt
+    public let shortfall: BigInt
 
-    public var shortfall: BigInt {
-        max(required - available, .zero)
-    }
-
-    public init(required: BigInt, available: BigInt) {
+    public init(required: BigInt, available: BigInt, shortfall: BigInt) {
         self.required = required
         self.available = available
+        self.shortfall = shortfall
     }
 }

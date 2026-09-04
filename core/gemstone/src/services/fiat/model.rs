@@ -1,9 +1,9 @@
-use crate::models::custom_types::GemBigUint;
+use crate::services::balance::GemBalanceRequirement;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemFiatAmountCheck {
     BelowMinimum { minimum: u32 },
     AboveMaximum { maximum: u32 },
-    InsufficientBalance { required: GemBigUint, available: GemBigUint },
+    InsufficientBalance { requirement: GemBalanceRequirement },
     Valid,
 }

@@ -85,7 +85,7 @@ struct ServicesFactory {
             ),
         )
         let paymentService = Gemstone.GemPaymentService(provider: nativeProvider)
-        let transactionSimulationService = TransactionSimulationService(provider: nativeProvider)
+        let transactionSimulationService = GemSimulationService(provider: nativeProvider)
         let serviceStatusConfiguration = URLSessionConfiguration.default
         serviceStatusConfiguration.timeoutIntervalForRequest = TimeInterval(serviceStatusTimeoutSeconds())
         let serviceStatusService = Gemstone.GemServiceStatus(
@@ -146,7 +146,7 @@ struct ServicesFactory {
             walletPreferences: walletPreferencesService,
             preferences: preferencesService,
             session: walletSessionService,
-            tracking: GemstoneTransactionTracking(service: transactionStateService),
+            transactionStatus: GemstoneTransactionStatusService(service: transactionStateService),
         )
 
         let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService)
@@ -342,6 +342,7 @@ struct ServicesFactory {
             balance: balanceService,
             price: priceService,
             assets: assetsService,
+            transactionStatus: GemstoneTransactionStatusService(service: transactionStateService),
         )
         let viewModelFactory = ViewModelFactory(
             apiClient: apiClient,
@@ -455,7 +456,7 @@ extension ServicesFactory {
     private static func makeWalletConnector(
         connectionsStore: ConnectionStore,
         interactor: WalletConnectorInteractor,
-        transactionSimulationService: TransactionSimulationService,
+        transactionSimulationService: GemSimulationService,
         walletSessionService: GemWalletSessionService,
         chainService: Gemstone.GemChainService,
     ) -> WalletConnectorService {

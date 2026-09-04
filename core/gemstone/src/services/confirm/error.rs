@@ -1,6 +1,6 @@
 use crate::GemstoneError;
 use crate::gateway::GatewayError;
-use crate::models::custom_types::GemBigInt;
+use crate::services::balance::GemBalanceRequirement;
 use crate::services::error::GemServiceError;
 use crate::signer::GemSignerError;
 use primitives::{Asset, AssetId, Chain};
@@ -48,20 +48,6 @@ impl std::fmt::Display for GemConfirmError {
 }
 
 impl std::error::Error for GemConfirmError {}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemBalanceRequirement {
-    pub required: GemBigInt,
-    pub available: GemBigInt,
-    pub shortfall: GemBigInt,
-}
-
-impl GemBalanceRequirement {
-    pub fn new(required: GemBigInt, available: GemBigInt) -> Self {
-        let shortfall = (&required - &available).max(GemBigInt::ZERO);
-        Self { required, available, shortfall }
-    }
-}
 
 pub(super) fn sign_error(chain: Chain, error: GemstoneError) -> GemConfirmError {
     match error {

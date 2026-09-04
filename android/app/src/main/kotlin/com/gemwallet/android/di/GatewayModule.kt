@@ -64,8 +64,8 @@ import uniffi.gemstone.GemSecureStore
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemServiceStatus
 import uniffi.gemstone.serviceStatusTimeoutSeconds
-import uniffi.gemstone.TransactionSimulationService
-import uniffi.gemstone.TransactionSimulationServiceInterface
+import uniffi.gemstone.GemSimulationService
+import uniffi.gemstone.GemSimulationServiceInterface
 import javax.inject.Singleton
 import uniffi.gemstone.GemFileStore
 import uniffi.gemstone.GemWalletPreferencesService
@@ -302,15 +302,15 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemTransactionSimulationService(
+    fun provideGemGemSimulationService(
         alienProvider: AlienProvider,
-    ): TransactionSimulationService = TransactionSimulationService(alienProvider)
+    ): GemSimulationService = GemSimulationService(alienProvider)
 
     @Provides
     @Singleton
-    fun provideTransactionSimulationServiceInterface(
-        service: TransactionSimulationService,
-    ): TransactionSimulationServiceInterface = service
+    fun provideGemSimulationServiceInterface(
+        service: GemSimulationService,
+    ): GemSimulationServiceInterface = service
 
     @Provides
     fun provideGemSupportServiceInterface(service: GemSupportService): GemSupportServiceInterface = service

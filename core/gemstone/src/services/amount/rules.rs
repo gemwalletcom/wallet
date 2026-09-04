@@ -7,7 +7,7 @@ use super::model::{GemAmountEarnType, GemAmountError, GemAmountInput, GemAmountP
 use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT};
 use crate::config::stake::get_stake_config;
 use crate::models::custom_types::GemBigInt;
-use crate::services::balance::GemAssetBalance;
+use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
 use crate::services::transfer::rules as transfer_rules;
 use gem_hypercore::perpetual_formatter::PerpetualFormatter;
 
@@ -77,7 +77,9 @@ pub fn validate(value: &BigInt, available: &BigInt, minimum: &BigInt) -> Result<
         return Err(GemAmountError::BelowMinimum { minimum: minimum.clone() });
     }
     if value > available {
-        return Err(GemAmountError::InsufficientBalance { available: available.clone() });
+        return Err(GemAmountError::InsufficientBalance {
+            requirement: GemBalanceRequirement::new(value.clone(), available.clone()),
+        });
     }
     Ok(())
 }
@@ -390,7 +392,9 @@ mod tests {
         );
         assert_eq!(
             validate(&BigInt::from(11), &BigInt::from(10), &BigInt::from(0)),
-            Err(GemAmountError::InsufficientBalance { available: BigInt::from(10) })
+            Err(GemAmountError::InsufficientBalance {
+                requirement: GemBalanceRequirement::new(BigInt::from(11), BigInt::from(10))
+            })
         );
         assert_eq!(validate(&BigInt::from(5), &BigInt::from(10), &BigInt::from(2)), Ok(()));
         assert_eq!(validate(&BigInt::from(0), &BigInt::from(10), &BigInt::from(5)), Err(GemAmountError::Zero));
@@ -412,7 +416,9 @@ mod tests {
         );
         assert_eq!(
             GemAmountType::Transfer.validate(&bnb, &balance(10, 0, 0, 0), BigInt::from(11)),
-            Err(GemAmountError::InsufficientBalance { available: BigInt::from(10) })
+            Err(GemAmountError::InsufficientBalance {
+                requirement: GemBalanceRequirement::new(BigInt::from(11), BigInt::from(10))
+            })
         );
     }
 

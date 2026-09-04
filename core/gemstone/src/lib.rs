@@ -29,7 +29,6 @@ pub mod siwe;
 pub mod support;
 #[cfg(test)]
 pub(crate) mod testkit;
-pub mod transaction_simulation;
 pub mod transaction_state;
 pub mod transfer_amount;
 pub mod url_action;

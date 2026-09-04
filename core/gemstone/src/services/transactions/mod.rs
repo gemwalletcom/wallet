@@ -21,7 +21,7 @@ use crate::services::assets::GemAssetsService;
 use crate::services::chain::rules as chain_rules;
 use crate::services::name::GemAddressStore;
 use crate::services::preferences::GemPreferencesService;
-use crate::services::transaction_state::GemTransactionTracking;
+use crate::services::transaction_state::GemTransactionStatusService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -34,7 +34,7 @@ pub struct GemTransactionsService {
     wallet_preferences: Arc<GemWalletPreferencesService>,
     preferences: Arc<GemPreferencesService>,
     session: Arc<GemWalletSessionService>,
-    tracking: Arc<dyn GemTransactionTracking>,
+    transaction_status: Arc<dyn GemTransactionStatusService>,
 }
 
 #[uniffi::export]
@@ -48,7 +48,7 @@ impl GemTransactionsService {
         wallet_preferences: Arc<GemWalletPreferencesService>,
         preferences: Arc<GemPreferencesService>,
         session: Arc<GemWalletSessionService>,
-        tracking: Arc<dyn GemTransactionTracking>,
+        transaction_status: Arc<dyn GemTransactionStatusService>,
     ) -> Self {
         Self {
             api,
@@ -58,7 +58,7 @@ impl GemTransactionsService {
             wallet_preferences,
             preferences,
             session,
-            tracking,
+            transaction_status,
         }
     }
 
@@ -95,7 +95,7 @@ impl GemTransactionsService {
         self.address_store.save_address_names(response.address_names).await?;
         self.wallet_preferences.set_transactions_timestamp(wallet_id.clone(), asset_id, timestamp)?;
         if !pending.is_empty() {
-            self.tracking.track(wallet_id, pending);
+            self.transaction_status.track(wallet_id, pending);
         }
         Ok(())
     }

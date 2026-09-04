@@ -9,7 +9,7 @@ mod transfer;
 use std::sync::Arc;
 use std::time::Duration;
 
-pub use error::{GemBalanceRequirement, GemConfirmError};
+pub use error::GemConfirmError;
 pub use model::*;
 pub use rules::acquire_asset_flow;
 pub use signer::GemTransactionSigner;
@@ -24,20 +24,21 @@ use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::clock::sleep;
 use crate::services::price::GemPriceService;
-use crate::services::transaction_state::GemTransactionStateService;
+use crate::services::simulation::{GemSimulationFormatter, GemSimulationService};
+use crate::services::transaction_state::{GemTransactionStateService, GemTransactionStatusService};
 use crate::signer::GemSignerError;
-use crate::transaction_simulation::{GemSimulationFormatter, TransactionSimulationService};
 use primitives::{AssetId, Chain, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransferDataOutputAction, WalletId};
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmService {
     gateway: Arc<GemGateway>,
-    simulation: Arc<TransactionSimulationService>,
+    simulation: Arc<GemSimulationService>,
     scanner: Arc<GemScanService>,
     transaction_state: Arc<GemTransactionStateService>,
     balance: Arc<GemBalanceService>,
     price: Arc<GemPriceService>,
     assets: Arc<GemAssetsService>,
+    transaction_status: Arc<dyn GemTransactionStatusService>,
     simulation_formatter: GemSimulationFormatter,
 }
 
@@ -46,12 +47,13 @@ impl GemConfirmService {
     #[uniffi::constructor]
     pub fn new(
         gateway: Arc<GemGateway>,
-        simulation: Arc<TransactionSimulationService>,
+        simulation: Arc<GemSimulationService>,
         scanner: Arc<GemScanService>,
         transaction_state: Arc<GemTransactionStateService>,
         balance: Arc<GemBalanceService>,
         price: Arc<GemPriceService>,
         assets: Arc<GemAssetsService>,
+        transaction_status: Arc<dyn GemTransactionStatusService>,
     ) -> Self {
         Self {
             gateway,
@@ -61,6 +63,7 @@ impl GemConfirmService {
             balance,
             price,
             assets,
+            transaction_status,
             simulation_formatter: GemSimulationFormatter::new(),
         }
     }
@@ -74,14 +77,6 @@ impl GemConfirmService {
 
     pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, crate::services::error::GemServiceError> {
         self.assets.sync_missing_assets(asset_ids).await
-    }
-
-    pub async fn track_pending(&self) -> Result<(), crate::services::error::GemServiceError> {
-        self.transaction_state.track_pending().await
-    }
-
-    pub async fn track(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), crate::services::error::GemServiceError> {
-        self.transaction_state.track(wallet_id, transactions).await
     }
 
     pub async fn load(&self, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmData, GemConfirmError> {
@@ -215,19 +210,7 @@ impl GemConfirmService {
                 data: transactions.into_iter().map(|transaction| transaction.data).collect(),
             }),
             TransferDataOutputAction::Send => {
-                let wallet_id = input.wallet.id.clone();
-                let result = match self.send(input, transactions).await {
-                    Ok(result) => result,
-                    Err(error) => {
-                        if matches!(error, GemConfirmError::Broadcast { .. }) {
-                            let _ = self.track_pending().await;
-                        }
-                        return Err(error);
-                    }
-                };
-                if self.track(wallet_id, result.transactions.clone()).await.is_err() {
-                    let _ = self.track_pending().await;
-                }
+                let result = self.send(input, transactions).await?;
                 Ok(GemExecuteResult::Sent {
                     hashes: result.hashes,
                     transactions: result.transactions,
@@ -273,17 +256,24 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
-    async fn send(&self, input: SendInput, transactions: Vec<GemSignedTransaction>) -> Result<GemSendResult, GemConfirmError> {
-        let hashes = match self.broadcast(input.confirm.input.transfer.input_type.clone(), transactions.clone()).await {
-            Ok(hashes) => hashes,
-            Err(GemConfirmError::Broadcast { hashes, msg }) => {
-                let _ = self.record(&input, &hashes, &transactions).await;
-                return Err(GemConfirmError::Broadcast { hashes, msg });
+    async fn send(&self, input: SendInput, signed: Vec<GemSignedTransaction>) -> Result<GemSendResult, GemConfirmError> {
+        match self.broadcast(input.confirm.input.transfer.input_type.clone(), signed.clone()).await {
+            Ok(hashes) => {
+                let transactions = self.store_pending(&input, &hashes, &signed).await;
+                Ok(GemSendResult { hashes, transactions })
             }
-            Err(error) => return Err(error),
-        };
-        let transactions = self.record(&input, &hashes, &transactions).await.unwrap_or_default();
-        Ok(GemSendResult { hashes, transactions })
+            Err(GemConfirmError::Broadcast { hashes, msg }) => {
+                self.store_pending(&input, &hashes, &signed).await;
+                Err(GemConfirmError::Broadcast { hashes, msg })
+            }
+            Err(error) => Err(error),
+        }
+    }
+
+    async fn store_pending(&self, input: &SendInput, hashes: &[String], signed: &[GemSignedTransaction]) -> Vec<Transaction> {
+        let stored = self.record(input, hashes, signed).await.unwrap_or_default();
+        self.transaction_status.track(input.wallet.id.clone(), stored.clone());
+        stored
     }
 
     async fn broadcast(&self, input_type: GemTransactionInputType, transactions: Vec<GemSignedTransaction>) -> Result<Vec<String>, GemConfirmError> {
@@ -307,8 +297,8 @@ impl GemConfirmService {
         Ok(hashes)
     }
 
-    async fn record(&self, input: &SendInput, hashes: &[String], transactions: &[GemSignedTransaction]) -> Result<Vec<Transaction>, GemConfirmError> {
-        let pending = input.pending_transactions(hashes, transactions)?;
+    async fn record(&self, input: &SendInput, hashes: &[String], signed: &[GemSignedTransaction]) -> Result<Vec<Transaction>, GemConfirmError> {
+        let pending = input.pending_transactions(hashes, signed)?;
         if pending.is_empty() {
             return Ok(pending);
         }

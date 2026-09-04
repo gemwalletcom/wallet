@@ -4,6 +4,7 @@ use rand::RngExt;
 
 use super::model::GemFiatAmountCheck;
 use crate::config::fiat_config::FiatConfig;
+use crate::services::balance::GemBalanceRequirement;
 
 pub fn default_amount(config: &FiatConfig, quote_type: FiatQuoteType) -> u32 {
     match quote_type {
@@ -29,8 +30,7 @@ pub fn amount_check(config: &FiatConfig, quote_type: FiatQuoteType, amount: f64,
     }
     match (quote_type, quote) {
         (FiatQuoteType::Sell, Some(quote)) if quote.value > *available => GemFiatAmountCheck::InsufficientBalance {
-            required: quote.value.clone(),
-            available: available.clone(),
+            requirement: GemBalanceRequirement::new(quote.value.clone().into(), available.clone().into()),
         },
         _ => GemFiatAmountCheck::Valid,
     }
@@ -40,6 +40,7 @@ pub fn amount_check(config: &FiatConfig, quote_type: FiatQuoteType, amount: f64,
 mod tests {
     use super::*;
     use crate::config::fiat_config::get_fiat_config;
+    use num_bigint::BigInt;
     use primitives::{Asset, Chain, FiatProvider, FiatProviderName};
 
     fn quote(value: u32) -> FiatQuote {
@@ -81,8 +82,7 @@ mod tests {
         assert_eq!(
             amount_check(&config, FiatQuoteType::Sell, 100.0, Some(&quote(200)), &BigUint::from(100u32)),
             GemFiatAmountCheck::InsufficientBalance {
-                required: BigUint::from(200u32),
-                available: BigUint::from(100u32),
+                requirement: GemBalanceRequirement::new(BigInt::from(200), BigInt::from(100))
             }
         );
         assert_eq!(

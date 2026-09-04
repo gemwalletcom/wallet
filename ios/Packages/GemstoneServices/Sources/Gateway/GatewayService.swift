@@ -98,13 +98,14 @@ public actor GatewayService: Sendable {
     }
 
     public nonisolated func confirmService(
-        simulation: TransactionSimulationService,
+        simulation: GemSimulationService,
         scanner: GemScanService,
         transactionState: GemTransactionStateService,
         balance: GemBalanceService,
         price: GemPriceService,
         assets: GemAssetsService,
+        transactionStatus: any GemTransactionStatusService,
     ) -> GemConfirmService {
-        GemConfirmService(gateway: gateway, simulation: simulation, scanner: scanner, transactionState: transactionState, balance: balance, price: price, assets: assets)
+        GemConfirmService(gateway: gateway, simulation: simulation, scanner: scanner, transactionState: transactionState, balance: balance, price: price, assets: assets, transactionStatus: transactionStatus)
     }
 }

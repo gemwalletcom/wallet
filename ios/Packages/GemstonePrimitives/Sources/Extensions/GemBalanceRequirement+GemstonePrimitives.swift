@@ -5,6 +5,6 @@ import Primitives
 
 public extension GemBalanceRequirement {
     func map() -> BalanceRequirement {
-        BalanceRequirement(required: required, available: available)
+        BalanceRequirement(required: required, available: available, shortfall: shortfall)
     }
 }
