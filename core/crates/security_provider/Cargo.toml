@@ -7,12 +7,9 @@ edition = { workspace = true }
 async-trait = { workspace = true }
 serde = { workspace = true }
 primitives = { path = "../primitives" }
-uuid = { workspace = true }
 serde_json = { workspace = true }
 hex = { workspace = true }
-hmac = { workspace = true }
 sha1 = { workspace = true }
-sha2 = { workspace = true }
 gem_client = { path = "../gem_client", features = ["reqwest"] }
 jupiter = { path = "../jupiter" }
 

@@ -7742,15 +7742,12 @@ dependencies = [
  "async-trait",
  "gem_client",
  "hex",
- "hmac 0.13.0",
  "jupiter",
  "primitives",
  "serde",
  "serde_json",
  "sha1 0.11.0",
- "sha2 0.11.0",
  "tokio",
- "uuid",
 ]
 
 [[package]]

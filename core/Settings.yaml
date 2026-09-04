@@ -312,9 +312,8 @@ security:
       public: ""
       secret: ""
   hashdit:
-    url: "https://api.hashdit.io"
+    url: "https://service.hashdit.io"
     key:
-      public: ""
       secret: ""
   jupiter:
     url: "https://api.jup.ag"

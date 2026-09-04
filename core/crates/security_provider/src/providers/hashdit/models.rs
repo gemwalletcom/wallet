@@ -1,26 +1,54 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct DetectResponse {
-    pub status: String,
-    pub code: String,
-    pub error_data: Option<String>,
-    pub data: Option<RiskData>,
+pub(super) struct SecurityRequest {
+    pub(super) chain_id: &'static str,
+    pub(super) address: String,
+    pub(super) sync: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct RiskData {
-    #[serde(default)]
-    pub has_result: Option<bool>,
-    #[serde(default)]
-    pub risk_level: Option<i32>,
-    pub scanned_ts: Option<u64>,
-    pub risk_detail: Option<String>, // json string
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub(super) struct SecurityResponse {
+    pub(super) code: String,
+    pub(super) status: String,
+    pub(super) data: Option<SecurityData>,
+}
 
-    pub risk_category: Option<String>,
-    pub risk_code: Option<String>,
-    pub trust_score: Option<i32>,
+#[derive(Debug, Deserialize)]
+pub(super) struct SecurityData {
+    pub(super) overall_risk_level: RiskLevel,
+}
+
+#[derive(Debug, Deserialize, PartialEq, Eq)]
+pub(super) enum RiskLevel {
+    #[serde(rename = "No Obvious Risk")]
+    NoObvious,
+    #[serde(rename = "Low Risk")]
+    Low,
+    #[serde(rename = "Medium Risk")]
+    Medium,
+    #[serde(rename = "High Risk")]
+    High,
+    #[serde(rename = "Significant Risk")]
+    Significant,
+}
+
+impl RiskLevel {
+    pub(super) fn is_malicious(&self) -> bool {
+        matches!(self, Self::Medium | Self::High | Self::Significant)
+    }
+
+    pub(super) fn as_str(&self) -> &'static str {
+        match self {
+            Self::NoObvious => "No Obvious Risk",
+            Self::Low => "Low Risk",
+            Self::Medium => "Medium Risk",
+            Self::High => "High Risk",
+            Self::Significant => "Significant Risk",
+        }
+    }
 }
 
 #[cfg(test)]
@@ -28,90 +56,27 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_error_response() {
-        let json = r#"{
-            "status": "ERROR",
-            "type": "GENERAL",
-            "code": "0030002",
-            "errorData": "business is not found:app id can't match business",
-            "data": null,
-            "subData": null,
-            "params": null
-        }"#;
-        let response = serde_json::from_str::<DetectResponse>(json).unwrap();
+    fn test_security_response() {
+        let response = serde_json::from_str::<SecurityResponse>(r#"{"code":"0","status":"ok","data":{"overall_risk_level":"No Obvious Risk"}}"#).unwrap();
 
-        assert_eq!(response.status, "ERROR");
-        assert_eq!(response.code, "0030002");
-        assert_eq!(response.data, None);
-        assert!(!response.error_data.unwrap().is_empty());
+        assert_eq!(response.status, "ok");
+        assert_eq!(response.data.unwrap().overall_risk_level, RiskLevel::NoObvious);
     }
 
     #[test]
-    fn test_empty_response() {
-        let json = r#"{
-            "status": "OK",
-            "type": "GENERAL",
-            "code": "000000000",
-            "errorData": null,
-            "data": {
-                "risk_level": -1,
-                "scanned_ts": null,
-                "has_result": false,
-                "risk_detail": null,
-                "request_id": "8c8414f0bb0645afa4bc3670767cfc7b",
-                "polling_interval": 60000
-            },
-            "subData": null,
-            "params": null
-        }"#;
-        let response = serde_json::from_str::<DetectResponse>(json).unwrap();
+    fn test_in_progress_response() {
+        let response = serde_json::from_str::<SecurityResponse>(r#"{"code":"0","status":"in progress","pollAfter":10}"#).unwrap();
 
-        assert_eq!(response.status, "OK");
-        assert_eq!(response.code, "000000000");
-        assert_eq!(response.error_data, None);
-
-        let data = response.data.unwrap();
-
-        assert_eq!(data.has_result, Some(false));
-        assert_eq!(data.risk_level, Some(-1));
-        assert_eq!(data.risk_detail, None);
+        assert_eq!(response.status, "in progress");
+        assert!(response.data.is_none());
     }
 
     #[test]
-    fn test_address_response() {
-        let json = r#"{
-            "status": "OK",
-            "type": "GENERAL",
-            "code": "000000000",
-            "errorData": null,
-            "data": {
-                "risk_level": 1,
-                "scanned_ts": 1727869054771,
-                "has_result": true,
-                "risk_detail": "[]",
-                "request_id": "d8c401ff8fe84f1e8def321dd551b670",
-                "polling_interval": null
-            },
-            "subData": null,
-            "params": null
-        }"#;
-        let response = serde_json::from_str::<DetectResponse>(json).unwrap();
-
-        assert_eq!(response.status, "OK");
-        assert_eq!(response.code, "000000000");
-        assert_eq!(response.error_data, None);
-
-        let data = response.data.unwrap();
-
-        assert_eq!(data.has_result, Some(true));
-        assert_eq!(data.risk_level, Some(1));
-        assert_eq!(data.scanned_ts, Some(1727869054771));
-        assert_eq!(data.risk_detail.unwrap(), "[]");
+    fn test_risk_levels() {
+        assert!(!RiskLevel::NoObvious.is_malicious());
+        assert!(!RiskLevel::Low.is_malicious());
+        assert!(RiskLevel::Medium.is_malicious());
+        assert!(RiskLevel::High.is_malicious());
+        assert!(RiskLevel::Significant.is_malicious());
     }
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct DetectRequest {
-    pub chain_id: &'static str,
-    pub address: String,
 }

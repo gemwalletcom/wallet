@@ -11,11 +11,12 @@ pub struct ScanProviderRemoteConfig {
 pub struct AddressScanProviderConfig {
     pub timeout: Duration,
     pub goplus: ScanProviderRemoteConfig,
-    pub hashdit: ScanProviderRemoteConfig,
+    pub hashdit: RemoteProviderConfig,
 }
 
 pub struct TokenScanProviderConfig {
     pub timeout: Duration,
     pub goplus: ScanProviderRemoteConfig,
+    pub hashdit: RemoteProviderConfig,
     pub jupiter: RemoteProviderConfig,
 }

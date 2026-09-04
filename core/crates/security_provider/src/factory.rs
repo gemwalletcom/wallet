@@ -21,9 +21,8 @@ impl ScanProviderFactory {
                 Some(access_token_cacher),
             )),
             Arc::new(HashDitProvider::new(
-                ReqwestClient::new(config.hashdit.url, client),
-                &config.hashdit.public_key,
-                &config.hashdit.secret_key,
+                config.hashdit.configure_client(ReqwestClient::new(String::new(), client)),
+                &config.hashdit.key,
             )),
         ])
     }
@@ -36,6 +35,10 @@ impl ScanProviderFactory {
                 &config.goplus.public_key,
                 &config.goplus.secret_key,
                 Some(access_token_cacher),
+            )),
+            Arc::new(HashDitProvider::new(
+                config.hashdit.configure_client(ReqwestClient::new(String::new(), client.clone())),
+                &config.hashdit.key,
             )),
             Arc::new(JupiterProvider::new(
                 config.jupiter.configure_client(ReqwestClient::new(String::new(), client)),

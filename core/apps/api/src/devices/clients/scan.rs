@@ -19,11 +19,7 @@ pub fn scan_providers(settings: &Settings, cacher: CacherClient, timeout: Durati
             public_key: settings.security.goplus.key.public.clone(),
             secret_key: settings.security.goplus.key.secret.clone(),
         },
-        hashdit: ScanProviderRemoteConfig {
-            url: settings.security.hashdit.url.clone(),
-            public_key: settings.security.hashdit.key.public.clone(),
-            secret_key: settings.security.hashdit.key.secret.clone(),
-        },
+        hashdit: settings.security.hashdit.remote_provider_config(),
     };
     ScanProviderFactory::new_address_providers(config, Arc::new(AccessTokenCacherClient::new(cacher, GoPlusProvider::<ReqwestClient>::NAME)))
 }

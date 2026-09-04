@@ -1,4 +1,3 @@
-mod auth;
 mod mapper;
 mod models;
 pub mod provider;

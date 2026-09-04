@@ -197,6 +197,7 @@ fn scan_providers(settings: &Settings, cacher: CacherClient, timeout: Duration) 
             public_key: settings.security.goplus.key.public.clone(),
             secret_key: settings.security.goplus.key.secret.clone(),
         },
+        hashdit: settings.security.hashdit.remote_provider_config(),
         jupiter: settings.security.jupiter.remote_provider_config(),
     };
     ScanProviderFactory::new_token_providers(config, Arc::new(AccessTokenCacherClient::new(cacher, GoPlusProvider::<ReqwestClient>::NAME)))

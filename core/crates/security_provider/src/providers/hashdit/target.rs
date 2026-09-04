@@ -1,20 +1,22 @@
 use std::collections::HashMap;
 
-use gem_client::{CONTENT_TYPE, Target, build_path_with_query};
+use gem_client::{CONTENT_TYPE, Target};
 
 #[derive(Clone, Debug)]
 pub enum HashDitTarget {
-    Detect { business: &'static str },
+    AddressSecurity,
+    TokenSecurity,
 }
 
 impl Target for HashDitTarget {
     fn path(&self) -> String {
         match self {
-            Self::Detect { business } => build_path_with_query("/security-api/public/app/v1/detect", &[("business", business)]),
+            Self::AddressSecurity => "/v2/hashdit/address-security-v2".to_string(),
+            Self::TokenSecurity => "/v2/hashdit/token-security".to_string(),
         }
     }
 
     fn headers(&self) -> HashMap<String, String> {
-        HashMap::from([(CONTENT_TYPE.to_string(), "application/json;charset=UTF-8".to_string())])
+        HashMap::from([(CONTENT_TYPE.to_string(), "application/json".to_string())])
     }
 }

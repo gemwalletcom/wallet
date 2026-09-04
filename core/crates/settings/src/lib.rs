@@ -384,7 +384,7 @@ pub struct PusherIOS {
 pub struct Security {
     pub abuseipdb: UrlSecretKeySettings,
     pub goplus: UrlKeySettings,
-    pub hashdit: UrlKeySettings,
+    pub hashdit: ProviderSettings,
     pub jupiter: ProviderSettings,
     pub ipapi: UrlSecretKeySettings,
 }
