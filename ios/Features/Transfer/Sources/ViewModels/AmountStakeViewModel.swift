@@ -110,8 +110,8 @@ public final class AmountStakeViewModel: AmountDataProvidable {
         case let .redelegate(delegation, _, _): .redelegate(delegation: delegation.json())
         case let .withdraw(delegation): .withdraw(delegation: delegation.json())
         case let .claimRewards(delegations): .rewards(delegations: selectedRewardsDelegations(delegations).map { $0.json() })
-        case .freeze: .freeze(resource: selectedResource.json())
-        case .unfreeze: .unfreeze(resource: selectedResource.json())
+        case .freeze: .freeze(resource: selectedResource.map())
+        case .unfreeze: .unfreeze(resource: selectedResource.map())
         }
         return .stake(stakeType: stakeType)
     }

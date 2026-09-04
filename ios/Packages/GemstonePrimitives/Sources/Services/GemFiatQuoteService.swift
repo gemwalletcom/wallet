@@ -11,11 +11,11 @@ public extension GemFiatQuoteServiceProtocol {
     }
 
     func amountCheck(type: FiatQuoteType, amount: Double, quote: FiatQuote?, available: BigInt) -> GemFiatAmountCheck {
-        amountCheck(quoteType: type.json(), amount: amount, quote: quote?.json(), available: BigUInt(available))
+        amountCheck(quoteType: type.map(), amount: amount, quote: quote?.json(), available: BigUInt(available))
     }
 
     func quotes(type: FiatQuoteType, asset: Asset, amount: Double) async throws -> [FiatQuote] {
-        try await quotes(quoteType: type.json(), assetId: asset.id.identifier, amount: amount).map { try FiatQuote($0) }
+        try await quotes(quoteType: type.map(), assetId: asset.id.identifier, amount: amount).map { try FiatQuote($0) }
     }
 
     func quoteUrl(asset: Asset, quoteId: String) async throws -> FiatQuoteUrl {

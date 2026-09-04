@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.perpetual.viewmodels
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
@@ -111,7 +112,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val period = MutableStateFlow(service.chartPeriod().decodeJson<ChartPeriod>())
+    val period = MutableStateFlow(service.chartPeriod().toPrimitives())
 
     private val refreshTrigger = MutableStateFlow(0L)
     private val refreshState = MutableStateFlow(false)
@@ -123,13 +124,13 @@ class PerpetualDetailsViewModel @Inject constructor(
                 emit(StateViewType.Loading)
                 try {
                     val market = perpetual.value?.perpetual
-                    var candles = market?.let { service.candlesticks(it.toJson(), period.toJson()).map { candle -> candle.decodeJson<ChartCandleStick>() } }.orEmpty()
+                    var candles = market?.let { service.candlesticks(it.toJson(), period.toGem()).map { candle -> candle.decodeJson<ChartCandleStick>() } }.orEmpty()
                     refreshState.value = false
                     emit(candles.toChartState())
                     if (market == null) return@flow
                     perpetualObserver.chartUpdates
                         .collect { update ->
-                            candles = service.applyCandleUpdate(candles.map { it.toJson() }, update.toJson(), market.toJson(), period.toJson())
+                            candles = service.applyCandleUpdate(candles.map { it.toJson() }, update.toJson(), market.toJson(), period.toGem())
                                 ?.map { it.decodeJson<ChartCandleStick>() } ?: return@collect
                             emit(candles.toChartState())
                         }
@@ -158,7 +159,7 @@ class PerpetualDetailsViewModel @Inject constructor(
                 .collectLatest { subscriptionKey ->
                     val (market, period) = subscriptionKey ?: return@collectLatest
                     val subscriptions = listOf(
-                        service.candleSubscription(market.toJson(), period.toJson()),
+                        service.candleSubscription(market.toJson(), period.toGem()),
                         service.marketSubscription(market.toJson()),
                     )
                     subscriptions.forEach(perpetualObserver::subscribe)
@@ -180,7 +181,7 @@ class PerpetualDetailsViewModel @Inject constructor(
     }
 
     fun period(period: ChartPeriod) {
-        viewModelScope.launch(Dispatchers.IO) { service.setChartPeriod(period.toJson()) }
+        viewModelScope.launch(Dispatchers.IO) { service.setChartPeriod(period.toGem()) }
         this.period.update { period }
     }
 

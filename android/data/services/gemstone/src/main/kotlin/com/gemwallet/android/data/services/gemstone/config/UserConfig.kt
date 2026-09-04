@@ -1,5 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.config
 
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -53,9 +55,9 @@ class UserConfig(
 
     fun showCollections(wallet: Wallet): Boolean = preferencesService.showCollections(wallet.toJson())
 
-    fun chartPeriod(): ChartPeriod = preferencesService.getChartPeriod().decodeJson()
+    fun chartPeriod(): ChartPeriod = preferencesService.getChartPeriod().toPrimitives()
 
-    fun setChartPeriod(period: ChartPeriod) = preferencesService.setChartPeriod(period.toJson())
+    fun setChartPeriod(period: ChartPeriod) = preferencesService.setChartPeriod(period.toGem())
 
     private val hideBalancesState = MutableStateFlow(preferencesService.isHideBalanceEnabled())
     private val perpetualEnabledState = MutableStateFlow(preferencesService.isPerpetualEnabled())

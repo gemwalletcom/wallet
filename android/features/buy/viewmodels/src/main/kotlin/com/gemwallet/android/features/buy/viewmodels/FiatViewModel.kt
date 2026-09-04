@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
 import com.gemwallet.android.ext.tickerFlow
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toGemNetworkError
 import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toIdentifier
@@ -79,7 +80,7 @@ class FiatViewModel @Inject constructor(
     }
 
     private fun defaultAmount(type: FiatQuoteType): String =
-        initialAmount?.takeIf { type == initialType } ?: service.defaultAmount(type.toJson()).toString()
+        initialAmount?.takeIf { type == initialType } ?: service.defaultAmount(type.toGem()).toString()
 
     val amount: StateFlow<String> = type
         .flatMapLatest { operationFor(it).amount }
@@ -162,7 +163,7 @@ class FiatViewModel @Inject constructor(
             operation.updateState(FiatSceneState.Loading)
             operation.clearQuotes()
             val quotes = try {
-                service.quotes(currentType.toJson(), data.asset.id.toIdentifier(), amountParsed!!).map { it.decodeJson<FiatQuote>() }
+                service.quotes(currentType.toGem(), data.asset.id.toIdentifier(), amountParsed!!).map { it.decodeJson<FiatQuote>() }
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {
@@ -241,7 +242,7 @@ class FiatViewModel @Inject constructor(
     private fun amountError(type: FiatQuoteType, amount: Double?, data: AssetData, quote: FiatQuote?): BuyError? {
         amount ?: return BuyError.ValueIncorrect
         if (amount == 0.0) return BuyError.EmptyAmount
-        return when (val check = service.amountCheck(type.toJson(), amount, quote?.toJson(), BigInteger(data.balance.balance.available))) {
+        return when (val check = service.amountCheck(type.toGem(), amount, quote?.toJson(), BigInteger(data.balance.balance.available))) {
             is GemFiatAmountCheck.BelowMinimum -> BuyError.MinimumAmount(check.minimum.toInt())
             is GemFiatAmountCheck.AboveMaximum -> BuyError.MaximumAmount(check.maximum.toInt())
             is GemFiatAmountCheck.InsufficientBalance -> BuyError.InsufficientBalance

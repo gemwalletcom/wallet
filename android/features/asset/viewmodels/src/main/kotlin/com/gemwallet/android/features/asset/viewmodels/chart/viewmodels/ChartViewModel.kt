@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -48,7 +50,7 @@ class ChartViewModel internal constructor(
     private val assetPriceInfo = getAssetTokenInfo(assetId)
         .map { it?.price }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-    private val selectedPeriod = MutableStateFlow(chartService.chartPeriod().decodeJson<ChartPeriod>())
+    private val selectedPeriod = MutableStateFlow(chartService.chartPeriod().toPrimitives())
     private val refreshController = ChartRefreshController()
 
     val isRefreshing = refreshController.isRefreshing
@@ -61,7 +63,7 @@ class ChartViewModel internal constructor(
         .transformLatest { state ->
             emit(state)
             val chart = try {
-                chartService.syncCharts(assetId.toIdentifier(), state.period.toJson()).toChart()
+                chartService.syncCharts(assetId.toIdentifier(), state.period.toGem()).toChart()
             } catch (e: Exception) {
                 currentCoroutineContext().ensureActive()
                 null
@@ -94,7 +96,7 @@ class ChartViewModel internal constructor(
         if (period == selectedPeriod.value) {
             return
         }
-        viewModelScope.launch(Dispatchers.IO) { chartService.setChartPeriod(period.toJson()) }
+        viewModelScope.launch(Dispatchers.IO) { chartService.setChartPeriod(period.toGem()) }
         selectedPeriod.value = period
     }
 

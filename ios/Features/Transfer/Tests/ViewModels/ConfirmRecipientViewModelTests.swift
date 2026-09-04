@@ -24,7 +24,7 @@ struct ConfirmRecipientViewModelTests {
             #expect(item.account.address == address)
         }
         #expect(model(nil).recipientItem == nil)
-        #expect(try #require(model(.resource(resource: Resource.energy.json())).recipientItem).title == Localized.Stake.resource)
+        #expect(try #require(model(.resource(resource: Resource.energy.map())).recipientItem).title == Localized.Stake.resource)
     }
 
     @Test

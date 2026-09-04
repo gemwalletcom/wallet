@@ -3,11 +3,13 @@ remote:
   - AssetFiatValue
   - AssetType
   - ChainType
+  - ChartPeriod
   - ConnectionComponent
   - ConnectionStatus
   - Asset
   - FeePriority
   - FeeUnitType
+  - FiatQuoteType
   - PerpetualDirection
   - PerpetualMarginType
   - PerpetualOrderType
@@ -18,6 +20,7 @@ remote:
   - WalletConnectionVerificationStatus
   - VerificationStatus
   - RecentActivityType
+  - Resource
   - SimulationPayloadFieldType
   - SwapProvider
   - SimulationPayloadFieldDisplay
@@ -30,6 +33,8 @@ remote:
   - PriceAlertDirection
   - PriceAlertNotificationType
   - TotalFiatValue
+  - TransferDataOutputAction
+  - TransferDataOutputType
 codes:
   - Chain
   - Currency

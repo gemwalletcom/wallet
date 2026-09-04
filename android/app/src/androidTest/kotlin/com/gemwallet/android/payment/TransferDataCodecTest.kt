@@ -1,5 +1,6 @@
 package com.gemwallet.android.payment
 
+import com.gemwallet.android.ext.toPrimitives
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.pack
@@ -66,8 +67,8 @@ class TransferDataCodecTest {
                 gasLimit = gasLimit,
                 gasPrice = null,
                 data = data.toTransactionData(),
-                outputType = outputType.toJson(),
-                outputAction = outputAction.toJson(),
+                outputType = outputType.toGem(),
+                outputAction = outputAction.toGem(),
                 transactionType = transactionType.toJson(),
                 approval = approval?.toJson(),
             ),
@@ -128,8 +129,8 @@ class TransferDataCodecTest {
         assertEquals(asset.id, assetId)
         assertEquals("merchant", transfer.recipient.address)
         assertEquals("payment-memo", transfer.recipient.memo)
-        assertEquals(TransferDataOutputType.EncodedTransaction, generic.extra.outputType.decodeJson<TransferDataOutputType>())
-        assertEquals(TransferDataOutputAction.Send, generic.extra.outputAction.decodeJson<TransferDataOutputAction>())
+        assertEquals(TransferDataOutputType.EncodedTransaction, generic.extra.outputType.toPrimitives())
+        assertEquals(TransferDataOutputAction.Send, generic.extra.outputAction.toPrimitives())
         assertEquals("Merchant", metadata.name)
         assertEquals(ApplicationMetadataSource.Payment, metadata.source)
         assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
@@ -160,8 +161,8 @@ class TransferDataCodecTest {
         val generic = roundTrip(original).inputType as GemTransactionInputType.Generic
 
         assertArrayEquals(data.toTransactionData(), generic.extra.data)
-        assertEquals(TransferDataOutputType.Signature, generic.extra.outputType.decodeJson<TransferDataOutputType>())
-        assertEquals(TransferDataOutputAction.Sign, generic.extra.outputAction.decodeJson<TransferDataOutputAction>())
+        assertEquals(TransferDataOutputType.Signature, generic.extra.outputType.toPrimitives())
+        assertEquals(TransferDataOutputAction.Sign, generic.extra.outputAction.toPrimitives())
         assertEquals(null, generic.extra.approval)
     }
 

@@ -1,5 +1,6 @@
 package com.gemwallet.android.domains.confirm
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AddressType
@@ -44,7 +45,7 @@ sealed interface ConfirmProperty {
                 )
                 is GemConfirmDestination.Contract -> Contract(address = destination.address, chain = chain)
                 is GemConfirmDestination.Validator -> Stake(data = destination.name, address = destination.address)
-                is GemConfirmDestination.Resource -> Resource(destination.resource.decodeJson())
+                is GemConfirmDestination.Resource -> Resource(destination.resource.toPrimitives())
                 is GemConfirmDestination.Provider -> Provider(destination.name)
             }
         }

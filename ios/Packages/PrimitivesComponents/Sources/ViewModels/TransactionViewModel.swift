@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.Resource
 import BigInt
 import Components
 import Formatters
@@ -228,8 +229,7 @@ public struct TransactionViewModel: Sendable {
         return String(format: "%@ %@", prefix, value)
     }
 
-    private func resourceTitle(prefix: String, resource: String) -> String? {
-        guard let resource = try? Primitives.Resource(resource) else { return nil }
-        return String(format: "%@ %@", prefix, ResourceViewModel(resource: resource).title)
+    private func resourceTitle(prefix: String, resource: Gemstone.Resource) -> String {
+        String(format: "%@ %@", prefix, ResourceViewModel(resource: resource.map()).title)
     }
 }

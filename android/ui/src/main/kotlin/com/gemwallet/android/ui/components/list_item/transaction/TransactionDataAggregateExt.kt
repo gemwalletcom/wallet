@@ -75,8 +75,8 @@ fun TransactionDataAggregate.getBadgeColor(): Color = state.statusColor()
 fun TransactionDataAggregate.formatAddress(): String? = when (val subtitle = subtitle) {
     is GemTransactionSubtitle.ToAddress -> prefixed(R.string.transfer_to, addressName ?: address)
     is GemTransactionSubtitle.FromAddress -> prefixed(R.string.transfer_from, addressName ?: address)
-    is GemTransactionSubtitle.ToResource -> prefixed(R.string.transfer_to, stringResource(subtitle.resource.decodeJson<Resource>().titleRes()))
-    is GemTransactionSubtitle.FromResource -> prefixed(R.string.transfer_from, stringResource(subtitle.resource.decodeJson<Resource>().titleRes()))
+    is GemTransactionSubtitle.ToResource -> prefixed(R.string.transfer_to, stringResource(subtitle.resource.toPrimitives().titleRes()))
+    is GemTransactionSubtitle.FromResource -> prefixed(R.string.transfer_from, stringResource(subtitle.resource.toPrimitives().titleRes()))
     is GemTransactionSubtitle.Price -> "${stringResource(R.string.asset_price)}: ${usdFiatFormatter.string(subtitle.value)}"
     GemTransactionSubtitle.None -> null
 }

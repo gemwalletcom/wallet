@@ -96,7 +96,7 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
     }
 
     public func getChartPeriod() -> Gemstone.ChartPeriod {
-        (Primitives.ChartPeriod.day.json()) ?? "\"day\""
+        Primitives.ChartPeriod.day.map()
     }
 
     public func setChartPeriod(period _: Gemstone.ChartPeriod) throws {}
@@ -395,7 +395,7 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
     }
 
     public func defaultAmount(quoteType: Gemstone.FiatQuoteType) -> UInt32 {
-        (try? Primitives.FiatQuoteType(quoteType)) == .sell ? 100 : 50
+        quoteType.map() == .sell ? 100 : 50
     }
 
     public func randomAmount() -> UInt32 {

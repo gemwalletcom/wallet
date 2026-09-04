@@ -42,7 +42,7 @@ extension ConfirmRecipientViewModel: ItemModelProvidable {
         case let .recipient(name, address): (Localized.Transfer.Recipient.title, addressName?.name ?? name, address)
         case let .contract(address): (Localized.Asset.contract, addressName?.name, address)
         case let .validator(name, address): (Localized.Stake.validator, name, address)
-        case let .resource(resource): (Localized.Stake.resource, ResourceViewModel(resource: Primitives.Resource(core: resource)).title, "")
+        case let .resource(resource): (Localized.Stake.resource, ResourceViewModel(resource: resource.map()).title, "")
         case let .provider(name, address): (Localized.Common.provider, name, address)
         }
         return .recipient(

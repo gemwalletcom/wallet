@@ -125,8 +125,8 @@ public extension GemTransferDataExtra {
             gasLimit: gasLimit,
             gasPrice: gasPrice,
             data: data,
-            outputType: outputType.json(),
-            outputAction: outputAction.json(),
+            outputType: outputType.map(),
+            outputAction: outputAction.map(),
             transactionType: transactionType.json(),
             approval: approval,
         )

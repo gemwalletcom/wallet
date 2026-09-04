@@ -73,7 +73,7 @@ class PortfolioChartViewModel internal constructor(
         .transformLatest { (state, wallet) ->
             emit(state)
             val data = try {
-                service.portfolioData(wallet.toJson(), state.type.toGem(), state.period.toJson()).decodeJson<PortfolioData>()
+                service.portfolioData(wallet.toJson(), state.type.toGem(), state.period.toGem()).decodeJson<PortfolioData>()
             } catch (e: Exception) {
                 currentCoroutineContext().ensureActive()
                 null

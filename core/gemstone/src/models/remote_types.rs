@@ -2,10 +2,10 @@
 // Declared in core/bin/generate/remote_types.yml.
 
 use primitives::{
-    Account, Asset, AssetFiatValue, AssetType, Chain, ChainType, ConnectionComponent, ConnectionStatus, Currency, FeePriority, FeeUnitType, Latency, LatencyType, LinkType,
-    PerpetualDirection, PerpetualMarginType, PerpetualOrderType, PerpetualProvider, PortfolioType, PriceAlertDirection, PriceAlertNotificationType, RecentActivityType,
-    SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SwapProvider, TotalFiatValue, TpslType, VerificationStatus,
-    WalletConnectionVerificationStatus, WalletSource, WalletType,
+    Account, Asset, AssetFiatValue, AssetType, Chain, ChainType, ChartPeriod, ConnectionComponent, ConnectionStatus, Currency, FeePriority, FeeUnitType, FiatQuoteType, Latency,
+    LatencyType, LinkType, PerpetualDirection, PerpetualMarginType, PerpetualOrderType, PerpetualProvider, PortfolioType, PriceAlertDirection, PriceAlertNotificationType,
+    RecentActivityType, Resource, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SwapProvider, TotalFiatValue,
+    TpslType, TransferDataOutputAction, TransferDataOutputType, VerificationStatus, WalletConnectionVerificationStatus, WalletSource, WalletType,
 };
 use std::str::FromStr;
 
@@ -53,6 +53,16 @@ pub enum ChainType {
 }
 
 #[uniffi::remote(Enum)]
+pub enum ChartPeriod {
+    Hour,
+    Day,
+    Week,
+    Month,
+    Year,
+    All,
+}
+
+#[uniffi::remote(Enum)]
 pub enum ConnectionComponent {
     Internet,
     Api,
@@ -84,6 +94,12 @@ pub enum FeeUnitType {
     SatVb,
     Gwei,
     Native,
+}
+
+#[uniffi::remote(Enum)]
+pub enum FiatQuoteType {
+    Buy,
+    Sell,
 }
 
 #[uniffi::remote(Enum)]
@@ -166,6 +182,12 @@ pub enum RecentActivityType {
 }
 
 #[uniffi::remote(Enum)]
+pub enum Resource {
+    Bandwidth,
+    Energy,
+}
+
+#[uniffi::remote(Enum)]
 pub enum SimulationPayloadFieldDisplay {
     Primary,
     Secondary,
@@ -219,6 +241,18 @@ pub enum SwapProvider {
 pub enum TpslType {
     TakeProfit,
     StopLoss,
+}
+
+#[uniffi::remote(Enum)]
+pub enum TransferDataOutputAction {
+    Sign,
+    Send,
+}
+
+#[uniffi::remote(Enum)]
+pub enum TransferDataOutputType {
+    EncodedTransaction,
+    Signature,
 }
 
 #[uniffi::remote(Enum)]

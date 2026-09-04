@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
+import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
@@ -53,7 +54,7 @@ class ChartViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        every { chartService.chartPeriod() } returns ChartPeriod.Day.toJson()
+        every { chartService.chartPeriod() } returns ChartPeriod.Day.toGem()
     }
 
     @After
@@ -74,7 +75,7 @@ class ChartViewModelTest {
         val prices = mockChartPrices(values = listOf(10f, 12f, 14f))
         val tokenInfoFlow = MutableStateFlow<AssetInfo?>(null)
         every { getAssetTokenInfo(asset.id) } returns tokenInfoFlow
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toJson()) } returns prices.toGemChart()
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns prices.toGemChart()
 
         val viewModel = createViewModel(tokenInfoFlow)
         val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == prices.size }.chart.dataOrNull!!
@@ -89,7 +90,7 @@ class ChartViewModelTest {
         val prices = mockChartPrices(values = listOf(100f, 105f, 110f))
         val tokenInfoFlow = MutableStateFlow<AssetInfo?>(mockAssetInfo(asset = asset))
         every { getAssetTokenInfo(asset.id) } returns tokenInfoFlow
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toJson()) } returns prices.toGemChart()
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns prices.toGemChart()
 
         val viewModel = createViewModel(tokenInfoFlow)
         val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == prices.size }.chart.dataOrNull!!
@@ -103,13 +104,13 @@ class ChartViewModelTest {
         val prices = mockChartPrices(values = listOf(1f, 2f))
         val tokenInfoFlow = MutableStateFlow<AssetInfo?>(null)
         every { getAssetTokenInfo(asset.id) } returns tokenInfoFlow
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toJson()) } returns prices.toGemChart()
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns prices.toGemChart()
 
         val viewModel = createViewModel(tokenInfoFlow)
         val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == prices.size }.chart.dataOrNull!!
 
         coVerify(exactly = 1) {
-            chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toJson())
+            chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem())
         }
         assertEquals(prices.size, uiModel.chartPoints.size)
         assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
@@ -119,16 +120,16 @@ class ChartViewModelTest {
     fun `initial request uses saved chart period`() = runTest(testDispatcher) {
         val prices = mockChartPrices(values = listOf(1f, 2f))
         val tokenInfoFlow = MutableStateFlow<AssetInfo?>(null)
-        every { chartService.chartPeriod() } returns ChartPeriod.Month.toJson()
+        every { chartService.chartPeriod() } returns ChartPeriod.Month.toGem()
         every { getAssetTokenInfo(asset.id) } returns tokenInfoFlow
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Month.toJson()) } returns prices.toGemChart()
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Month.toGem()) } returns prices.toGemChart()
 
         val viewModel = createViewModel(tokenInfoFlow)
         viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == prices.size }
 
         assertEquals(ChartPeriod.Month, viewModel.chartUIState.value.period)
         coVerify(exactly = 1) {
-            chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Month.toJson())
+            chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Month.toGem())
         }
     }
 
@@ -141,7 +142,7 @@ class ChartViewModelTest {
         val state = viewModel.chartUIState.first { it.period == ChartPeriod.Month }
 
         assertEquals(ChartPeriod.Month, state.period)
-        verify(exactly = 1) { chartService.setChartPeriod(ChartPeriod.Month.toJson()) }
+        verify(exactly = 1) { chartService.setChartPeriod(ChartPeriod.Month.toGem()) }
     }
 
     private fun createViewModel(tokenInfoFlow: MutableStateFlow<AssetInfo?>): ChartViewModel {

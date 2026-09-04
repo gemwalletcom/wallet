@@ -171,8 +171,8 @@ class AmountStakeProvider(
                 is AmountParams.Stake.Redelegate -> currentDelegation?.let { GemAmountStakeType.Redelegate(it.toJson()) }
                 is AmountParams.Stake.Withdraw -> currentDelegation?.let { GemAmountStakeType.Withdraw(it.toJson()) }
                 is AmountParams.Stake.Rewards -> GemAmountStakeType.Rewards(listOfNotNull(currentDelegation).map { it.toJson() })
-                is AmountParams.Stake.Freeze -> GemAmountStakeType.Freeze(currentResource.toJson())
-                is AmountParams.Stake.Unfreeze -> GemAmountStakeType.Unfreeze(currentResource.toJson())
+                is AmountParams.Stake.Freeze -> GemAmountStakeType.Freeze(currentResource.toGem())
+                is AmountParams.Stake.Unfreeze -> GemAmountStakeType.Unfreeze(currentResource.toGem())
             }
             stakeType?.let { GemAmountType.Stake(it) }
         }.stateIn(scope, SharingStarted.Eagerly, null)

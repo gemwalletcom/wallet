@@ -27,7 +27,7 @@ public final class ChartSceneViewModel: ChartListViewable {
 
     public var chartState: StateViewType<ChartValuesViewModel> = .loading
     public var selectedPeriod: ChartPeriod {
-        didSet { try? service.setChartPeriod(period: selectedPeriod.json()) }
+        didSet { try? service.setChartPeriod(period: selectedPeriod.map()) }
     }
 
     public let priceQuery: ObservableQuery<PriceRequest>
@@ -63,7 +63,7 @@ public final class ChartSceneViewModel: ChartListViewable {
         self.service = service
         self.assetModel = assetModel
         self.walletId = walletId
-        selectedPeriod = (try? ChartPeriod(service.chartPeriod())) ?? .day
+        selectedPeriod = service.chartPeriod().map()
         priceQuery = ObservableQuery(PriceRequest(assetId: assetModel.asset.id), initialValue: nil)
         self.onSetPriceAlert = onSetPriceAlert
     }
@@ -86,7 +86,7 @@ public extension ChartSceneViewModel {
     func load() async {
         chartState = .loading
         do {
-            let chart = try await service.syncCharts(assetId: assetModel.asset.id.identifier, period: selectedPeriod.json())
+            let chart = try await service.syncCharts(assetId: assetModel.asset.id.identifier, period: selectedPeriod.map())
             let charts = try (chart.values + [chart.current].compactMap { $0 }).map { try ChartDateValue($0) }
             let chartValues = try ChartValues.from(charts: charts)
             let formatter = CurrencyFormatter(currencyCode: currencyCode)

@@ -99,6 +99,32 @@ public extension Primitives.ChainType {
     }
 }
 
+public extension Gemstone.ChartPeriod {
+    func map() -> Primitives.ChartPeriod {
+        switch self {
+        case .hour: .hour
+        case .day: .day
+        case .week: .week
+        case .month: .month
+        case .year: .year
+        case .all: .all
+        }
+    }
+}
+
+public extension Primitives.ChartPeriod {
+    func map() -> Gemstone.ChartPeriod {
+        switch self {
+        case .hour: .hour
+        case .day: .day
+        case .week: .week
+        case .month: .month
+        case .year: .year
+        case .all: .all
+        }
+    }
+}
+
 public extension Gemstone.ConnectionComponent {
     func map() -> Primitives.ConnectionComponent {
         switch self {
@@ -184,6 +210,24 @@ public extension Primitives.FeeUnitType {
         case .satVb: .satVb
         case .gwei: .gwei
         case .native: .native
+        }
+    }
+}
+
+public extension Gemstone.FiatQuoteType {
+    func map() -> Primitives.FiatQuoteType {
+        switch self {
+        case .buy: .buy
+        case .sell: .sell
+        }
+    }
+}
+
+public extension Primitives.FiatQuoteType {
+    func map() -> Gemstone.FiatQuoteType {
+        switch self {
+        case .buy: .buy
+        case .sell: .sell
         }
     }
 }
@@ -406,6 +450,24 @@ public extension Primitives.RecentActivityType {
     }
 }
 
+public extension Gemstone.Resource {
+    func map() -> Primitives.Resource {
+        switch self {
+        case .bandwidth: .bandwidth
+        case .energy: .energy
+        }
+    }
+}
+
+public extension Primitives.Resource {
+    func map() -> Gemstone.Resource {
+        switch self {
+        case .bandwidth: .bandwidth
+        case .energy: .energy
+        }
+    }
+}
+
 public extension Gemstone.SimulationPayloadFieldDisplay {
     func map() -> Primitives.SimulationPayloadFieldDisplay {
         switch self {
@@ -544,6 +606,42 @@ public extension Primitives.TpslType {
         switch self {
         case .takeProfit: .takeProfit
         case .stopLoss: .stopLoss
+        }
+    }
+}
+
+public extension Gemstone.TransferDataOutputAction {
+    func map() -> Primitives.TransferDataOutputAction {
+        switch self {
+        case .sign: .sign
+        case .send: .send
+        }
+    }
+}
+
+public extension Primitives.TransferDataOutputAction {
+    func map() -> Gemstone.TransferDataOutputAction {
+        switch self {
+        case .sign: .sign
+        case .send: .send
+        }
+    }
+}
+
+public extension Gemstone.TransferDataOutputType {
+    func map() -> Primitives.TransferDataOutputType {
+        switch self {
+        case .encodedTransaction: .encodedTransaction
+        case .signature: .signature
+        }
+    }
+}
+
+public extension Primitives.TransferDataOutputType {
+    func map() -> Gemstone.TransferDataOutputType {
+        switch self {
+        case .encodedTransaction: .encodedTransaction
+        case .signature: .signature
         }
     }
 }

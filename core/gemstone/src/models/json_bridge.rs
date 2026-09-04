@@ -1,4 +1,5 @@
 use primitives::Appearance;
+use primitives::Charts;
 use primitives::FiatRate;
 use primitives::TransactionId;
 use primitives::Wallet;
@@ -11,14 +12,12 @@ use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, Perpetu
 use primitives::perpetual::{PerpetualAccountMode, PerpetualBalance, PerpetualData, PerpetualMetadata, PerpetualPositionsSummary};
 use primitives::portfolio::{PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData};
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
-use primitives::stake_type::Resource;
 use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType};
 use primitives::{
     AccountDataType, ApplicationMetadata, ApplicationMetadataSource, AssetList, ChainAsset, ContractCallData, DelegationBase, DelegationState, DelegationValidator, NFTAsset,
     NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, NFTImages, NFTResource, NFTType, Payment, PaymentAmount, PaymentLink, PaymentRequest, Perpetual, PerpetualMarketData,
     PerpetualPosition, PerpetualTriggerOrder, ReportNft, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationHeader, SimulationResult, SolanaNftStandard,
-    SolanaTokenProgramId, StakeProviderType, StakeValidator, TransactionPerpetualMetadata, TransactionState, TransactionType, TransferDataOutputAction, TransferDataOutputType,
-    TronStakeData, TronUnfreeze, TronVote, UTXO,
+    SolanaTokenProgramId, StakeProviderType, StakeValidator, TransactionPerpetualMetadata, TransactionState, TransactionType, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
 use primitives::{
     AddressName, AuthNonce, AuthPayload, ChainAddress, ChartValuePercentage, Device, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification,
@@ -26,10 +25,9 @@ use primitives::{
     WalletConfigurationResult, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletSubscription, WalletSubscriptionChains,
 };
 use primitives::{
-    AssetBasic, AssetFull, AssetMarket, AssetPrice, BannerEvent, BannerState, ConfigResponse, ConfigVersions, Contact, FiatAssets, FiatQuoteType, Markets, PlatformStore, Release,
-    SearchResponse, StreamEvent, StreamMessage, SupportTyping,
+    AssetBasic, AssetFull, AssetMarket, AssetPrice, BannerEvent, BannerState, ConfigResponse, ConfigVersions, Contact, FiatAssets, Markets, PlatformStore, Release, SearchResponse,
+    StreamEvent, StreamMessage, SupportTyping,
 };
-use primitives::{ChartPeriod, Charts};
 use primitives::{Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction, TransactionExtended};
 use primitives::{DeviceLocale, Platform};
 
@@ -76,7 +74,6 @@ json_bridge!(
     ChartCandleStick,
     ChartCandleUpdate,
     ChartDateValue,
-    ChartPeriod,
     ChartValuePercentage,
     Charts,
     ConfigResponse,
@@ -95,7 +92,6 @@ json_bridge!(
     FiatQuote,
     FiatRate,
     FiatQuoteRequest,
-    FiatQuoteType,
     FiatQuoteUrl,
     FiatQuotes,
     FiatTransactionData,
@@ -145,7 +141,6 @@ json_bridge!(
     RedemptionResult,
     ReferralCode,
     ReportNft,
-    Resource,
     Rewards,
     ScanAddressTarget,
     ScanTransaction,
@@ -178,8 +173,6 @@ json_bridge!(
     TransactionState,
     TransactionType,
     TransactionsResponse,
-    TransferDataOutputAction,
-    TransferDataOutputType,
     TronStakeData,
     TronUnfreeze,
     TronVote,

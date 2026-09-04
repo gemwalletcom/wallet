@@ -78,6 +78,24 @@ fun com.wallet.core.primitives.ChainType.toGem(): uniffi.gemstone.ChainType = wh
     com.wallet.core.primitives.ChainType.HyperCore -> uniffi.gemstone.ChainType.HYPER_CORE
 }
 
+fun uniffi.gemstone.ChartPeriod.toPrimitives(): com.wallet.core.primitives.ChartPeriod = when (this) {
+    uniffi.gemstone.ChartPeriod.HOUR -> com.wallet.core.primitives.ChartPeriod.Hour
+    uniffi.gemstone.ChartPeriod.DAY -> com.wallet.core.primitives.ChartPeriod.Day
+    uniffi.gemstone.ChartPeriod.WEEK -> com.wallet.core.primitives.ChartPeriod.Week
+    uniffi.gemstone.ChartPeriod.MONTH -> com.wallet.core.primitives.ChartPeriod.Month
+    uniffi.gemstone.ChartPeriod.YEAR -> com.wallet.core.primitives.ChartPeriod.Year
+    uniffi.gemstone.ChartPeriod.ALL -> com.wallet.core.primitives.ChartPeriod.All
+}
+
+fun com.wallet.core.primitives.ChartPeriod.toGem(): uniffi.gemstone.ChartPeriod = when (this) {
+    com.wallet.core.primitives.ChartPeriod.Hour -> uniffi.gemstone.ChartPeriod.HOUR
+    com.wallet.core.primitives.ChartPeriod.Day -> uniffi.gemstone.ChartPeriod.DAY
+    com.wallet.core.primitives.ChartPeriod.Week -> uniffi.gemstone.ChartPeriod.WEEK
+    com.wallet.core.primitives.ChartPeriod.Month -> uniffi.gemstone.ChartPeriod.MONTH
+    com.wallet.core.primitives.ChartPeriod.Year -> uniffi.gemstone.ChartPeriod.YEAR
+    com.wallet.core.primitives.ChartPeriod.All -> uniffi.gemstone.ChartPeriod.ALL
+}
+
 fun uniffi.gemstone.ConnectionComponent.toPrimitives(): com.wallet.core.primitives.ConnectionComponent = when (this) {
     uniffi.gemstone.ConnectionComponent.INTERNET -> com.wallet.core.primitives.ConnectionComponent.Internet
     uniffi.gemstone.ConnectionComponent.API -> com.wallet.core.primitives.ConnectionComponent.Api
@@ -129,6 +147,16 @@ fun com.wallet.core.primitives.FeeUnitType.toGem(): uniffi.gemstone.FeeUnitType 
     com.wallet.core.primitives.FeeUnitType.SatVb -> uniffi.gemstone.FeeUnitType.SAT_VB
     com.wallet.core.primitives.FeeUnitType.Gwei -> uniffi.gemstone.FeeUnitType.GWEI
     com.wallet.core.primitives.FeeUnitType.Native -> uniffi.gemstone.FeeUnitType.NATIVE
+}
+
+fun uniffi.gemstone.FiatQuoteType.toPrimitives(): com.wallet.core.primitives.FiatQuoteType = when (this) {
+    uniffi.gemstone.FiatQuoteType.BUY -> com.wallet.core.primitives.FiatQuoteType.Buy
+    uniffi.gemstone.FiatQuoteType.SELL -> com.wallet.core.primitives.FiatQuoteType.Sell
+}
+
+fun com.wallet.core.primitives.FiatQuoteType.toGem(): uniffi.gemstone.FiatQuoteType = when (this) {
+    com.wallet.core.primitives.FiatQuoteType.Buy -> uniffi.gemstone.FiatQuoteType.BUY
+    com.wallet.core.primitives.FiatQuoteType.Sell -> uniffi.gemstone.FiatQuoteType.SELL
 }
 
 fun uniffi.gemstone.LatencyType.toPrimitives(): com.wallet.core.primitives.LatencyType = when (this) {
@@ -269,6 +297,16 @@ fun com.wallet.core.primitives.RecentActivityType.toGem(): uniffi.gemstone.Recen
     com.wallet.core.primitives.RecentActivityType.Perpetual -> uniffi.gemstone.RecentActivityType.PERPETUAL
 }
 
+fun uniffi.gemstone.Resource.toPrimitives(): com.wallet.core.primitives.Resource = when (this) {
+    uniffi.gemstone.Resource.BANDWIDTH -> com.wallet.core.primitives.Resource.Bandwidth
+    uniffi.gemstone.Resource.ENERGY -> com.wallet.core.primitives.Resource.Energy
+}
+
+fun com.wallet.core.primitives.Resource.toGem(): uniffi.gemstone.Resource = when (this) {
+    com.wallet.core.primitives.Resource.Bandwidth -> uniffi.gemstone.Resource.BANDWIDTH
+    com.wallet.core.primitives.Resource.Energy -> uniffi.gemstone.Resource.ENERGY
+}
+
 fun uniffi.gemstone.SimulationPayloadFieldDisplay.toPrimitives(): com.wallet.core.primitives.SimulationPayloadFieldDisplay = when (this) {
     uniffi.gemstone.SimulationPayloadFieldDisplay.PRIMARY -> com.wallet.core.primitives.SimulationPayloadFieldDisplay.Primary
     uniffi.gemstone.SimulationPayloadFieldDisplay.SECONDARY -> com.wallet.core.primitives.SimulationPayloadFieldDisplay.Secondary
@@ -369,6 +407,26 @@ fun uniffi.gemstone.TpslType.toPrimitives(): com.wallet.core.primitives.TpslType
 fun com.wallet.core.primitives.TpslType.toGem(): uniffi.gemstone.TpslType = when (this) {
     com.wallet.core.primitives.TpslType.TakeProfit -> uniffi.gemstone.TpslType.TAKE_PROFIT
     com.wallet.core.primitives.TpslType.StopLoss -> uniffi.gemstone.TpslType.STOP_LOSS
+}
+
+fun uniffi.gemstone.TransferDataOutputAction.toPrimitives(): com.wallet.core.primitives.TransferDataOutputAction = when (this) {
+    uniffi.gemstone.TransferDataOutputAction.SIGN -> com.wallet.core.primitives.TransferDataOutputAction.Sign
+    uniffi.gemstone.TransferDataOutputAction.SEND -> com.wallet.core.primitives.TransferDataOutputAction.Send
+}
+
+fun com.wallet.core.primitives.TransferDataOutputAction.toGem(): uniffi.gemstone.TransferDataOutputAction = when (this) {
+    com.wallet.core.primitives.TransferDataOutputAction.Sign -> uniffi.gemstone.TransferDataOutputAction.SIGN
+    com.wallet.core.primitives.TransferDataOutputAction.Send -> uniffi.gemstone.TransferDataOutputAction.SEND
+}
+
+fun uniffi.gemstone.TransferDataOutputType.toPrimitives(): com.wallet.core.primitives.TransferDataOutputType = when (this) {
+    uniffi.gemstone.TransferDataOutputType.ENCODED_TRANSACTION -> com.wallet.core.primitives.TransferDataOutputType.EncodedTransaction
+    uniffi.gemstone.TransferDataOutputType.SIGNATURE -> com.wallet.core.primitives.TransferDataOutputType.Signature
+}
+
+fun com.wallet.core.primitives.TransferDataOutputType.toGem(): uniffi.gemstone.TransferDataOutputType = when (this) {
+    com.wallet.core.primitives.TransferDataOutputType.EncodedTransaction -> uniffi.gemstone.TransferDataOutputType.ENCODED_TRANSACTION
+    com.wallet.core.primitives.TransferDataOutputType.Signature -> uniffi.gemstone.TransferDataOutputType.SIGNATURE
 }
 
 fun uniffi.gemstone.VerificationStatus.toPrimitives(): com.wallet.core.primitives.VerificationStatus = when (this) {

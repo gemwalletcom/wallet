@@ -41,7 +41,7 @@ final class FiatOperationViewModel {
         self.type = type
         self.asset = asset
         self.currencyFormatter = currencyFormatter
-        amount = String(service.defaultAmount(quoteType: type.json()))
+        amount = String(service.defaultAmount(quoteType: type.map()))
         inputValidationModel = InputValidationViewModel(
             mode: .onDemand,
             validators: [],

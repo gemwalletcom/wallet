@@ -14,11 +14,11 @@ public extension GemPreferencesServiceProtocol {
     }
 
     var chartPeriodValue: ChartPeriod {
-        (try? ChartPeriod(getChartPeriod())) ?? .day
+        getChartPeriod().map()
     }
 
     func setChartPeriodValue(_ period: ChartPeriod) {
-        try? setChartPeriod(period: period.json())
+        try? setChartPeriod(period: period.map())
     }
 
     var appearanceValue: Primitives.Appearance {

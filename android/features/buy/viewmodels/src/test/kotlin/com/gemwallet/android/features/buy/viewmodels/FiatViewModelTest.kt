@@ -71,8 +71,8 @@ class FiatViewModelTest {
     private val service = mockk<GemFiatQuoteServiceInterface> {
         every { getCurrency() } returns Currency.USD.toGem()
         every { config() } returns uniffi.gemstone.FiatConfig(50, 100, 5, 10000, 1000, listOf(100, 250), 10)
-        every { defaultAmount(FiatQuoteType.Buy.toJson()) } returns 50u
-        every { defaultAmount(FiatQuoteType.Sell.toJson()) } returns 100u
+        every { defaultAmount(FiatQuoteType.Buy.toGem()) } returns 50u
+        every { defaultAmount(FiatQuoteType.Sell.toGem()) } returns 100u
         every { randomAmount() } returns 500u
         every { amountCheck(any(), any(), any(), any()) } returns GemFiatAmountCheck.Valid
         every { quoteDebounceMilliseconds() } returns 250uL
@@ -106,7 +106,7 @@ class FiatViewModelTest {
             runCurrent()
 
             coVerify(exactly = 1) {
-                service.quotes(FiatQuoteType.Buy.toJson(), asset.id.toIdentifier(), 50.0)
+                service.quotes(FiatQuoteType.Buy.toGem(), asset.id.toIdentifier(), 50.0)
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -128,7 +128,7 @@ class FiatViewModelTest {
             runCurrent()
 
             coVerify(exactly = 1) {
-                service.quotes(FiatQuoteType.Buy.toJson(), asset.id.toIdentifier(), 50.0)
+                service.quotes(FiatQuoteType.Buy.toGem(), asset.id.toIdentifier(), 50.0)
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -145,7 +145,7 @@ class FiatViewModelTest {
 
             assertEquals("10", viewModel.amount.value)
             coVerify(exactly = 1) {
-                service.quotes(FiatQuoteType.Buy.toJson(), asset.id.toIdentifier(), 10.0)
+                service.quotes(FiatQuoteType.Buy.toGem(), asset.id.toIdentifier(), 10.0)
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -167,10 +167,10 @@ class FiatViewModelTest {
 
             assertEquals("100", viewModel.amount.value)
             coVerify(exactly = 0) {
-                service.quotes(FiatQuoteType.Sell.toJson(), asset.id.toIdentifier(), 50.0)
+                service.quotes(FiatQuoteType.Sell.toGem(), asset.id.toIdentifier(), 50.0)
             }
             coVerify(exactly = 1) {
-                service.quotes(FiatQuoteType.Sell.toJson(), asset.id.toIdentifier(), 100.0)
+                service.quotes(FiatQuoteType.Sell.toGem(), asset.id.toIdentifier(), 100.0)
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -218,7 +218,7 @@ class FiatViewModelTest {
             assertEquals(FiatSceneState.Ready, viewModel.state.value)
             assertTrue(viewModel.quotes.value.isNotEmpty())
             coVerify(exactly = 2) {
-                service.quotes(FiatQuoteType.Buy.toJson(), asset.id.toIdentifier(), 50.0)
+                service.quotes(FiatQuoteType.Buy.toGem(), asset.id.toIdentifier(), 50.0)
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -292,7 +292,7 @@ class FiatViewModelTest {
             assertEquals(FiatQuoteType.Buy, viewModel.type.value)
             assertEquals("25", viewModel.amount.value)
             coVerify(exactly = 1) {
-                service.quotes(FiatQuoteType.Buy.toJson(), asset.id.toIdentifier(), 25.0)
+                service.quotes(FiatQuoteType.Buy.toGem(), asset.id.toIdentifier(), 25.0)
             }
         } finally {
             viewModel.viewModelScope.cancel()

@@ -1,5 +1,6 @@
 package com.gemwallet.android
 
+import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemTransferService
 import com.gemwallet.android.application.asset_select.cases.GetSelectAssetsInfo
 import com.gemwallet.android.ext.toIdentifier
@@ -86,8 +87,8 @@ class PaymentNavigationTest {
         assertEquals(account.address, transfer.recipient.address)
         assertEquals(BigInteger("19000000"), transfer.value)
         assertEquals(ApplicationMetadataSource.Payment, metadataSource)
-        assertEquals(TransferDataOutputType.EncodedTransaction, generic.extra.outputType.decodeJson<TransferDataOutputType>())
-        assertEquals(TransferDataOutputAction.Send, generic.extra.outputAction.decodeJson<TransferDataOutputAction>())
+        assertEquals(TransferDataOutputType.EncodedTransaction, generic.extra.outputType.toPrimitives())
+        assertEquals(TransferDataOutputAction.Send, generic.extra.outputAction.toPrimitives())
     }
 
     @Test

@@ -55,7 +55,7 @@ class PortfolioChartViewModelTest {
 
     private fun stubPortfolio(type: PortfolioType? = null, period: ChartPeriod? = null, data: PortfolioData) {
         coEvery {
-            service.portfolioData(any(), type?.toGem() ?: any(), period?.toJson() ?: any())
+            service.portfolioData(any(), type?.toGem() ?: any(), period?.toGem() ?: any())
         } returns data.toJson()
     }
 
@@ -96,7 +96,7 @@ class PortfolioChartViewModelTest {
         viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == 2 }
 
         assertEquals(ChartPeriod.All, viewModel.chartUIState.first { it.chart != StateViewType.Loading }.period)
-        coVerify(exactly = 1) { service.portfolioData(session.wallet.toJson(), PortfolioType.Wallet.toGem(), ChartPeriod.All.toJson()) }
+        coVerify(exactly = 1) { service.portfolioData(session.wallet.toJson(), PortfolioType.Wallet.toGem(), ChartPeriod.All.toGem()) }
     }
 
     @Test
@@ -110,7 +110,7 @@ class PortfolioChartViewModelTest {
         val state = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == 3 }
 
         assertEquals(ChartPeriod.Month, state.period)
-        coVerify { service.portfolioData(any(), PortfolioType.Wallet.toGem(), ChartPeriod.Month.toJson()) }
+        coVerify { service.portfolioData(any(), PortfolioType.Wallet.toGem(), ChartPeriod.Month.toGem()) }
     }
 
     @Test
@@ -124,7 +124,7 @@ class PortfolioChartViewModelTest {
         val state = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == 3 }
 
         assertEquals(ChartPeriod.Day, state.period)
-        coVerify { service.portfolioData(any(), PortfolioType.Wallet.toGem(), ChartPeriod.Day.toJson()) }
+        coVerify { service.portfolioData(any(), PortfolioType.Wallet.toGem(), ChartPeriod.Day.toGem()) }
     }
 
     @Test
