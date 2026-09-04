@@ -28,7 +28,7 @@ pub struct SwapTxResponse {
 impl SwapTxResponse {
     pub fn swap_status(&self) -> SwapStatus {
         match self.state.as_str() {
-            "COMPLETED" if self.refund_egress.is_some() => SwapStatus::Failed,
+            "COMPLETED" if self.refund_egress.is_some() => SwapStatus::Refunded,
             "COMPLETED" => SwapStatus::Completed,
             "FAILED" => SwapStatus::Failed,
             _ => SwapStatus::Pending,
@@ -287,7 +287,7 @@ pub mod test {
         assert_eq!(
             map_swap_result(&swap_response(include_str!("./test/swap_btc_to_usdt_refunded.json"))),
             SwapResult {
-                status: SwapStatus::Failed,
+                status: SwapStatus::Refunded,
                 metadata: Some(TransactionSwapMetadata {
                     from_asset: AssetId::from_chain(Chain::Bitcoin),
                     from_value: BigUint::from(1508475u64),

@@ -10,4 +10,5 @@ public enum TransactionState: String, Codable, CaseIterable, Equatable, Sendable
 	case inTransit
 	case failed
 	case reverted
+	case refunded
 }

@@ -50,6 +50,7 @@ private extension GemSwapProgressStep {
         case .completed: .completed
         case .failed: .failed
         case .reverted: .reverted
+        case .refunded: .refunded
         }
     }
 }

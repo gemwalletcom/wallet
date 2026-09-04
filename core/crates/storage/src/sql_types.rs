@@ -167,7 +167,7 @@ diesel_enum!(
     TransactionState,
     PrimitiveTransactionState,
     TransactionStateSql,
-    [Pending, Confirmed, InTransit, Failed, Reverted]
+    [Pending, Confirmed, InTransit, Failed, Reverted, Refunded]
 );
 
 diesel_enum!(UsernameStatus, PrimitiveUsernameStatus, UsernameStatusSql, [Unverified, Verified]);

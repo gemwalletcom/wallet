@@ -189,7 +189,7 @@ impl StoreTransactionsConsumer {
     fn should_store_asset_addresses(transaction: &Transaction) -> bool {
         match transaction.state {
             TransactionState::Confirmed | TransactionState::InTransit => true,
-            TransactionState::Pending | TransactionState::Failed | TransactionState::Reverted => false,
+            TransactionState::Pending | TransactionState::Failed | TransactionState::Reverted | TransactionState::Refunded => false,
         }
     }
 

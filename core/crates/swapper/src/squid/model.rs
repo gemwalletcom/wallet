@@ -83,7 +83,7 @@ impl SquidStatus {
         match self {
             Self::Success | Self::PartialSuccess => SwapStatus::Completed,
             Self::Ongoing | Self::NeedsGas | Self::NotFound => SwapStatus::Pending,
-            Self::Refund => SwapStatus::Failed,
+            Self::Refund => SwapStatus::Refunded,
         }
     }
 }

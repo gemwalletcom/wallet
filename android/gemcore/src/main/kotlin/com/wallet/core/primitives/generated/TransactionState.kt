@@ -19,5 +19,7 @@ enum class TransactionState(val string: String) {
 	Failed("failed"),
 	@SerialName("reverted")
 	Reverted("reverted"),
+	@SerialName("refunded")
+	Refunded("refunded"),
 }
 

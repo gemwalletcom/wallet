@@ -10,7 +10,9 @@ pub fn map_transaction_status_with_fee(receipt: &TransactionReceipt, network_fee
     let state = match receipt.get_state() {
         TransactionState::Confirmed => TransactionState::Confirmed,
         TransactionState::Reverted => TransactionState::Reverted,
-        TransactionState::Pending | TransactionState::InTransit | TransactionState::Failed => return TransactionUpdate::new_state(TransactionState::Pending),
+        TransactionState::Pending | TransactionState::InTransit | TransactionState::Failed | TransactionState::Refunded => {
+            return TransactionUpdate::new_state(TransactionState::Pending);
+        }
     };
     TransactionUpdate::new(
         state,

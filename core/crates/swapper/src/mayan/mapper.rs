@@ -114,7 +114,7 @@ mod tests {
         for (json, status) in [
             (include_str!("test/eth_to_sui_swift.json"), SwapStatus::Completed),
             (include_str!("test/mctp_pending.json"), SwapStatus::Pending),
-            (include_str!("test/swift_refunded.json"), SwapStatus::Failed),
+            (include_str!("test/swift_refunded.json"), SwapStatus::Refunded),
         ] {
             assert_eq!(
                 map_swap_result(&result(json)),

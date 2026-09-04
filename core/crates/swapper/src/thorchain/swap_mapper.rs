@@ -222,7 +222,7 @@ mod tests {
         assert_eq!(
             map_swap_result(&response, THORChainNetwork::Mayachain),
             SwapResult {
-                status: SwapStatus::Failed,
+                status: SwapStatus::Refunded,
                 metadata: None,
                 eta_in_seconds: None,
             }

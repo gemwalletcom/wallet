@@ -143,6 +143,7 @@ pub enum GemSwapProgressStep {
     Completed,
     Failed,
     Reverted,
+    Refunded,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

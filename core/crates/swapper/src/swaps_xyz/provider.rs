@@ -134,7 +134,8 @@ where
     fn map_status(status: &str) -> SwapStatus {
         match status.to_ascii_lowercase().as_str() {
             "success" | "completed" => SwapStatus::Completed,
-            "failed" | "refunded" | "requires refund" | "expired" => SwapStatus::Failed,
+            "refunded" | "requires refund" => SwapStatus::Refunded,
+            "failed" | "expired" => SwapStatus::Failed,
             _ => SwapStatus::Pending,
         }
     }
@@ -369,7 +370,8 @@ mod tests {
     #[test]
     fn test_map_status() {
         assert_eq!(SwapsXyz::<MockClient>::map_status("completed"), SwapStatus::Completed);
-        assert_eq!(SwapsXyz::<MockClient>::map_status("requires refund"), SwapStatus::Failed);
+        assert_eq!(SwapsXyz::<MockClient>::map_status("requires refund"), SwapStatus::Refunded);
+        assert_eq!(SwapsXyz::<MockClient>::map_status("expired"), SwapStatus::Failed);
         assert_eq!(SwapsXyz::<MockClient>::map_status("submitted"), SwapStatus::Pending);
     }
 }

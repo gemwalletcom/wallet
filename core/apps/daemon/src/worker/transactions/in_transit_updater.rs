@@ -266,6 +266,15 @@ mod tests {
     }
 
     #[test]
+    fn test_resolve_status_refunded() {
+        let now = Utc::now().naive_utc();
+        let Some((state, _)) = resolve_status(&swap_result(SwapStatus::Refunded, None), now, now) else {
+            panic!("refunded status should resolve");
+        };
+        assert_eq!(*state, PrimitiveTransactionState::Refunded);
+    }
+
+    #[test]
     fn test_resolve_status_pending_within_timeout() {
         let now = Utc::now().naive_utc();
         let cutoff = (Utc::now() - HOUR).naive_utc();

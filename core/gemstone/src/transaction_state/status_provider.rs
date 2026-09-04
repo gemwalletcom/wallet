@@ -88,7 +88,7 @@ impl StatusProvider {
                 Ok(pending_cross_chain_swap_update(source_chain_update))
             }
             TransactionState::InTransit => self.swap_provider_status(chain, request.swap_provider, &request.transaction.id).await,
-            state @ (TransactionState::Confirmed | TransactionState::Failed | TransactionState::Reverted) => Ok(TransactionUpdate::new_state(state)),
+            state @ (TransactionState::Confirmed | TransactionState::Failed | TransactionState::Reverted | TransactionState::Refunded) => Ok(TransactionUpdate::new_state(state)),
         }
     }
 
@@ -141,7 +141,7 @@ fn transaction_timeout(chain: Chain, destination_chain: Option<Chain>, state: Tr
     match state {
         TransactionState::Pending => Some(i64::from(chain_transaction_timeout(chain))),
         TransactionState::InTransit => Some(swap_transaction_timeout(chain, destination_chain.unwrap_or(chain)) as i64),
-        TransactionState::Confirmed | TransactionState::Failed | TransactionState::Reverted => None,
+        TransactionState::Confirmed | TransactionState::Failed | TransactionState::Reverted | TransactionState::Refunded => None,
     }
 }
 

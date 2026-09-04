@@ -142,7 +142,7 @@ impl TransactionStatus {
         let outbound_done = self.stages.outbound_signed.as_ref().is_none_or(|s| s.completed);
 
         if swap_done && self.is_refunded() {
-            SwapStatus::Failed
+            SwapStatus::Refunded
         } else if swap_done && has_output && outbound_done {
             SwapStatus::Completed
         } else {
@@ -355,7 +355,7 @@ mod tests {
     #[test]
     fn test_transaction_status_refunded_mayachain() {
         let status: TransactionStatus = serde_json::from_str(include_str!("testdata/transaction_status_mayachain_refund.json")).unwrap();
-        assert_eq!(status.swap_status(), SwapStatus::Failed);
+        assert_eq!(status.swap_status(), SwapStatus::Refunded);
         assert!(status.destination_coin().is_none());
     }
 

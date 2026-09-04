@@ -558,7 +558,7 @@ impl MayanClientStatus {
     pub fn swap_status(&self) -> SwapStatus {
         match self {
             MayanClientStatus::Completed => SwapStatus::Completed,
-            MayanClientStatus::Refunded => SwapStatus::Failed,
+            MayanClientStatus::Refunded => SwapStatus::Refunded,
             MayanClientStatus::InProgress => SwapStatus::Pending,
         }
     }

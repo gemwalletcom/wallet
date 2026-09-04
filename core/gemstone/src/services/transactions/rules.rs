@@ -224,6 +224,7 @@ fn swap_progress(extended: &TransactionExtended, metadata: Option<&TransactionSw
         TransactionState::InTransit => (GemSwapProgressStep::Completed, GemSwapProgressStep::Pending),
         TransactionState::Failed => (GemSwapProgressStep::Completed, GemSwapProgressStep::Failed),
         TransactionState::Reverted => (GemSwapProgressStep::Reverted, GemSwapProgressStep::Waiting),
+        TransactionState::Refunded => (GemSwapProgressStep::Completed, GemSwapProgressStep::Refunded),
         TransactionState::Confirmed => return None,
     };
     Some(GemSwapProgress {
@@ -588,6 +589,8 @@ mod tests {
         );
         let reverted = details(&swap(TransactionState::Reverted, Some("thorchain"), None)).swap_progress.unwrap();
         assert_eq!((reverted.transfer, reverted.swap), (GemSwapProgressStep::Reverted, GemSwapProgressStep::Waiting));
+        let refunded = details(&swap(TransactionState::Refunded, Some("thorchain"), None)).swap_progress.unwrap();
+        assert_eq!((refunded.transfer, refunded.swap), (GemSwapProgressStep::Completed, GemSwapProgressStep::Refunded));
 
         let confirmed = details(&swap(TransactionState::Confirmed, Some("thorchain"), None));
         assert!(confirmed.swap_progress.is_none());

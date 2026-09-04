@@ -110,7 +110,7 @@ public struct TransactionViewModel: Sendable {
         let model = TransactionStateViewModel(state: transaction.transaction.state)
         let title: String? = switch transaction.transaction.state {
         case .confirmed: .none
-        case .pending, .inTransit, .failed, .reverted: model.title
+        case .pending, .inTransit, .failed, .reverted, .refunded: model.title
         }
         return title.map {
             TextValue(

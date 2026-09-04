@@ -109,6 +109,7 @@ pub enum SwapStatus {
     Pending,
     Completed,
     Failed,
+    Refunded,
 }
 
 impl SwapStatus {
@@ -116,6 +117,7 @@ impl SwapStatus {
         match self {
             SwapStatus::Completed => Some(TransactionState::Confirmed),
             SwapStatus::Failed => Some(TransactionState::Failed),
+            SwapStatus::Refunded => Some(TransactionState::Refunded),
             SwapStatus::Pending => None,
         }
     }

@@ -252,6 +252,7 @@ internal fun GemSwapProgressStep.status(): SwapProgressStatus = when (this) {
     GemSwapProgressStep.COMPLETED -> SwapProgressStatus.Completed
     GemSwapProgressStep.FAILED -> SwapProgressStatus.Failed
     GemSwapProgressStep.REVERTED -> SwapProgressStatus.Reverted
+    GemSwapProgressStep.REFUNDED -> SwapProgressStatus.Refunded
 }
 
 internal enum class SwapProgressStatus {

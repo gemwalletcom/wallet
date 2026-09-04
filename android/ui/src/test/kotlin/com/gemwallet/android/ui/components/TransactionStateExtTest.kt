@@ -31,6 +31,17 @@ class TransactionStateExtTest {
     }
 
     @Test
+    fun refunded_usesRefundedBadgeWithoutSpinner() {
+        val state = TransactionState.Refunded
+
+        assertEquals(R.string.transaction_status_refunded, state.statusLabelRes())
+        assertEquals(R.drawable.transaction_state_error, state.statusBadgeIconRes())
+        assertEquals(TransactionStateTone.Refunded, state.statusTone())
+        assertTrue(state.showsStatusBadge())
+        assertFalse(state.showsStatusProgress())
+    }
+
+    @Test
     fun confirmed_hidesCompactBadgeAndUsesSuccessPresentation() {
         val state = TransactionState.Confirmed
 

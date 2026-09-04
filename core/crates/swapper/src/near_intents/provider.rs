@@ -148,7 +148,7 @@ where
     fn map_transaction_status(status: &str) -> SwapStatus {
         match status {
             "SWAP_COMPLETED" | "SWAP_COMPLETED_TX" | "SUCCESS" => SwapStatus::Completed,
-            "REFUNDED" | "SWAP_REFUNDED" => SwapStatus::Failed,
+            "REFUNDED" | "SWAP_REFUNDED" => SwapStatus::Refunded,
             "SWAP_FAILED" | "FAILED" | "SWAP_LIQUIDITY_TIMEOUT" | "SWAP_RISK_FAILED" => SwapStatus::Failed,
             "KNOWN_DEPOSIT_TX" | "PENDING_DEPOSIT" | "INCOMPLETE_DEPOSIT" | "PROCESSING" => SwapStatus::Pending,
             _ => SwapStatus::Pending,
@@ -502,7 +502,7 @@ mod tests {
         assert_eq!(
             result,
             SwapResult {
-                status: SwapStatus::Failed,
+                status: SwapStatus::Refunded,
                 metadata: Some(TransactionSwapMetadata {
                     from_asset: TON_USDT_ASSET_ID.clone(),
                     from_value: BigUint::from(6321766u64),
@@ -525,8 +525,8 @@ mod tests {
 
         assert_eq!(map("FAILED"), SwapStatus::Failed);
         assert_eq!(map("SWAP_FAILED"), SwapStatus::Failed);
-        assert_eq!(map("REFUNDED"), SwapStatus::Failed);
-        assert_eq!(map("SWAP_REFUNDED"), SwapStatus::Failed);
+        assert_eq!(map("REFUNDED"), SwapStatus::Refunded);
+        assert_eq!(map("SWAP_REFUNDED"), SwapStatus::Refunded);
         assert_eq!(map("SWAP_LIQUIDITY_TIMEOUT"), SwapStatus::Failed);
         assert_eq!(map("SWAP_RISK_FAILED"), SwapStatus::Failed);
 
