@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s ist erforderlich</string>
   <string name="errors_scan_transaction_malicious_description">Diese Transaktion kann nicht abgeschlossen werden – die Ziel-Wallet-Adresse ist mit verdächtigen oder schädlichen Aktivitäten verknüpft.</string>
   <string name="errors_scan_transaction_memo_required">%1$s Für die Ziel-Wallet-Adresse wird ein Ziel-Tag/Memo benötigt.</string>
-  <string name="errors_wallets_limit_title">Wallet-Limit erreicht</string>
-  <string name="errors_wallets_limit_description">Sie haben die maximal zulässige Anzahl an Wallets erreicht ( %1$d ). Bitte entfernen Sie ein vorhandenes Wallet, um ein neues hinzuzufügen oder zu erstellen.</string>
   <string name="errors_scan_transaction_malicious_title">Verdächtige Aktivitäten</string>
   <string name="errors_connections_malicious_origin">Diese Verbindung stammt aus einer nicht vertrauenswürdigen Quelle.</string>
   <string name="errors_no_data_available">Keine Daten verfügbar</string>

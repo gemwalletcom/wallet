@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s প্রয়োজন</string>
   <string name="errors_scan_transaction_malicious_description">এই লেনদেনটি সম্পন্ন করা যাবে না — গন্তব্যস্থলের ওয়ালেট ঠিকানাটি সন্দেহজনক বা ক্ষতিকারক কার্যকলাপের সাথে যুক্ত।</string>
   <string name="errors_scan_transaction_memo_required">%1$s গন্তব্য ওয়ালেট ঠিকানার জন্য একটি গন্তব্য ট্যাগ / মেমো প্রয়োজন।</string>
-  <string name="errors_wallets_limit_title">ওয়ালেটের সীমা পৌঁছে গেছে</string>
-  <string name="errors_wallets_limit_description">আপনি সর্বাধিক অনুমোদিত ওয়ালেটের সংখ্যা ( %1$d ) এ পৌঁছে গেছেন। নতুন একটি ওয়ালেট যোগ করতে বা তৈরি করতে অনুগ্রহ করে বিদ্যমান একটি ওয়ালেট সরিয়ে ফেলুন।</string>
   <string name="errors_scan_transaction_malicious_title">সন্দেহজনক কার্যকলাপ</string>
   <string name="errors_connections_malicious_origin">এই সংযোগটি একটি অবিশ্বস্ত উৎস থেকে আসে।</string>
   <string name="errors_no_data_available">কোন তথ্য নেই</string>

@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s є обов\'язковим</string>
   <string name="errors_scan_transaction_malicious_description">Цю транзакцію неможливо завершити — адреса гаманця призначення пов\'язана з підозрілою або шкідливою активністю.</string>
   <string name="errors_scan_transaction_memo_required">%1$s адреса гаманця призначення вимагає тегу / мемо призначення</string>
-  <string name="errors_wallets_limit_title">Досягнуто ліміту гаманців</string>
-  <string name="errors_wallets_limit_description">Ви досягли максимальної дозволеної кількості гаманців ( %1$d ). Будь ласка, видаліть існуючий гаманець, щоб додати або створити новий.</string>
   <string name="errors_scan_transaction_malicious_title">Підозріла активність</string>
   <string name="errors_connections_malicious_origin">Цей зв\'язок походить з ненадійного джерела.</string>
   <string name="errors_no_data_available">Дані недоступні</string>

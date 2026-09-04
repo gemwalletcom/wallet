@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s gereklidir</string>
   <string name="errors_scan_transaction_malicious_description">Bu işlem tamamlanamıyor; hedef cüzdan adresi şüpheli veya zararlı bir etkinlikle bağlantılı.</string>
   <string name="errors_scan_transaction_memo_required">%1$s hedef cüzdan adresi bir hedef etiketi / notu gerektiriyor</string>
-  <string name="errors_wallets_limit_title">Cüzdan Limiti Doldu</string>
-  <string name="errors_wallets_limit_description">İzin verilen maksimum cüzdan sayısına ulaştınız ( %1$d ). Lütfen yeni bir cüzdan eklemek veya oluşturmak için mevcut bir cüzdanı kaldırın.</string>
   <string name="errors_scan_transaction_malicious_title">Şüpheli Etkinlik</string>
   <string name="errors_connections_malicious_origin">Bu bağlantı güvenilir olmayan bir kaynaktan geliyor.</string>
   <string name="errors_no_data_available">Veri mevcut değil</string>

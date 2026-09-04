@@ -472,9 +472,7 @@ errors_scan_transaction_malicious_description = This transaction cannot be compl
 # Used in error cards and validation UI for the scan transaction memo required label. Contains 1 string placeholder.
 errors_scan_transaction_memo_required = %@ destination wallet address requires a destination tag / memo
 # Used in error cards and validation UI for the wallets limit title.
-errors_wallets_limit_title = Wallets Limit Reached
 # Used in error cards and validation UI for the wallets limit description. Contains 1 integer placeholder.
-errors_wallets_limit_description = You've reached the maximum number of wallets allowed (%d). Please remove an existing wallet to add or create a new one.
 # Used in error cards and validation UI for the scan transaction malicious title.
 errors_scan_transaction_malicious_title = Suspicious Activity
 # Used in error cards and validation UI for the connections malicious origin label.

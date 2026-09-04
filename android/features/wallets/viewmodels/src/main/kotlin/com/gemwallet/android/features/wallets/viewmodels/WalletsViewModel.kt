@@ -28,19 +28,6 @@ class WalletsViewModel @Inject constructor(
     val wallets = getAllWallets.getAllWallets()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val walletsLimit = service.walletsLimit()
-
-    val isWalletsLimitReached = MutableStateFlow(false)
-
-    fun onAddWallet(onAllowed: () -> Unit) = viewModelScope.launch {
-        val allowed = withContext(Dispatchers.IO) { runCatchingCancellable { service.canAddWallet() }.getOrDefault(true) }
-        if (allowed) onAllowed() else isWalletsLimitReached.value = true
-    }
-
-    fun dismissWalletsLimit() {
-        isWalletsLimitReached.value = false
-    }
-
     fun selectWallet(walletId: WalletId) = viewModelScope.launch(Dispatchers.IO) {
         setCurrentWallet.setCurrentWallet(walletId)
     }

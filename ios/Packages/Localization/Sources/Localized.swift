@@ -527,16 +527,6 @@ public enum Localized {
       /// Invalid Token ID
       public static let invalidId = Localized.tr("Localizable", "errors.token.invalid_id", fallback: "Invalid Token ID")
     }
-    public enum Wallets {
-      public enum Limit {
-        /// You've reached the maximum number of wallets allowed (%d). Please remove an existing wallet to add or create a new one.
-        public static func description(_ p1: Int) -> String {
-          return Localized.tr("Localizable", "errors.wallets.limit.description", p1, fallback: "You've reached the maximum number of wallets allowed (%d). Please remove an existing wallet to add or create a new one.")
-        }
-        /// Wallets Limit Reached
-        public static let title = Localized.tr("Localizable", "errors.wallets.limit.title", fallback: "Wallets Limit Reached")
-      }
-    }
   }
   public enum FeeRate {
     /// Custom

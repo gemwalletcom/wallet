@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s مطلوب</string>
   <string name="errors_scan_transaction_malicious_description">لا يمكن إكمال هذه المعاملة - عنوان المحفظة الوجهة مرتبط بنشاط مشبوه أو ضار.</string>
   <string name="errors_scan_transaction_memo_required">يتطلب عنوان محفظة الوجهة %1$s علامة وجهة/مذكرة</string>
-  <string name="errors_wallets_limit_title">تم الوصول إلى حد المحفظة</string>
-  <string name="errors_wallets_limit_description">لقد وصلت إلى الحد الأقصى لعدد المحافظ المسموح به ( %1$d ). يُرجى إزالة محفظة موجودة لإضافة محفظة جديدة أو إنشائها.</string>
   <string name="errors_scan_transaction_malicious_title">نشاط مشبوه</string>
   <string name="errors_connections_malicious_origin">يأتي هذا الاتصال من مصدر غير موثوق.</string>
   <string name="errors_no_data_available">لا توجد بيانات متاحة</string>

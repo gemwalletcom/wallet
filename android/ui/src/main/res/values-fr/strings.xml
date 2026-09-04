@@ -216,8 +216,6 @@
   <string name="errors_required">%1$s est requis</string>
   <string name="errors_scan_transaction_malicious_description">Cette transaction ne peut être effectuée — l\'adresse du portefeuille de destination est liée à une activité suspecte ou malveillante.</string>
   <string name="errors_scan_transaction_memo_required">%1$s L\'adresse du portefeuille de destination nécessite une étiquette/un mémo de destination</string>
-  <string name="errors_wallets_limit_title">Limite de portefeuilles atteinte</string>
-  <string name="errors_wallets_limit_description">Vous avez atteint le nombre maximal de portefeuilles autorisés ( %1$d ). Veuillez supprimer un portefeuille existant pour en ajouter ou en créer un nouveau.</string>
   <string name="errors_scan_transaction_malicious_title">Activité suspecte</string>
   <string name="errors_connections_malicious_origin">Cette connexion provient d\'une source non fiable.</string>
   <string name="errors_no_data_available">Aucune donnée disponible</string>
