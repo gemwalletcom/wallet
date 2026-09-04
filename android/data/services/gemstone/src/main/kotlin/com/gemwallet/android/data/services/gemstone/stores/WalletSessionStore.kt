@@ -1,29 +1,24 @@
 package com.gemwallet.android.data.services.gemstone.stores
 
-import com.gemwallet.android.ext.toCurrency
-import com.gemwallet.android.data.service.store.database.SessionDao
-import com.gemwallet.android.data.service.store.database.entities.DbSession
-import com.gemwallet.android.serializer.decodeJson
-import com.wallet.core.primitives.Currency
 import kotlinx.coroutines.flow.Flow
-import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemWalletSessionStore
 
 class GemstoneWalletSessionStore(
-    private val sessionDao: SessionDao,
-    private val preferencesService: GemPreferencesService,
+    private val preferences: GemstonePreferencesStore,
 ) : GemWalletSessionStore {
 
-    override fun getCurrentWalletId(): String? = sessionDao.getSession()?.walletId
+    override fun getCurrentWalletId(): String? = preferences.get(CURRENT_WALLET_ID)
 
     override fun setCurrentWalletId(walletId: String?) {
-        val walletId = walletId ?: return sessionDao.clearNow()
-        val session = sessionDao.getSession()?.copy(walletId = walletId)
-            ?: DbSession(walletId = walletId, currency = preferencesService.getCurrency().toCurrency())
-        sessionDao.updateNow(session)
+        when (walletId) {
+            null -> preferences.remove(CURRENT_WALLET_ID)
+            else -> preferences.set(CURRENT_WALLET_ID, walletId)
+        }
     }
 
-    fun observeSession(): Flow<DbSession?> = sessionDao.session()
+    fun observeWalletId(): Flow<String?> = preferences.observe(CURRENT_WALLET_ID)
 
-    suspend fun storedCurrency(): Currency? = sessionDao.getCurrency()
+    private companion object {
+        const val CURRENT_WALLET_ID = "current_wallet_id"
+    }
 }
