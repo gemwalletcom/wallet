@@ -88,4 +88,12 @@ impl Client for MockClient {
         let data = handler(path, &body_bytes, &headers)?;
         deserialize_response(&Response { status: Some(200), data })
     }
+
+    async fn patch_with<T, R>(&self, path: &str, body: &T, headers: HashMap<String, String>) -> Result<R, ClientError>
+    where
+        T: Serialize + Send + Sync,
+        R: DeserializeOwned,
+    {
+        self.post_with(path, body, headers).await
+    }
 }

@@ -2,12 +2,11 @@ use std::{
     collections::HashMap,
     error::Error,
     fmt::{Debug, Display},
-    str::FromStr,
     sync::Arc,
 };
 
 use async_trait::async_trait;
-use gem_client::{Client, ClientError, ContentType, Response, build_request_url, decode_json_byte_array, deserialize_response};
+use gem_client::{CONTENT_TYPE, Client, ClientError, ContentType, Response, build_request_url, deserialize_response, encode_request_body};
 use primitives::Chain;
 use serde::{Serialize, de::DeserializeOwned};
 
@@ -116,41 +115,40 @@ where
         T: Serialize + Send + Sync,
         R: DeserializeOwned,
     {
+        self.send_body(HttpMethod::Post, path, body, headers).await
+    }
+
+    async fn patch_with<T, R>(&self, path: &str, body: &T, headers: HashMap<String, String>) -> Result<R, ClientError>
+    where
+        T: Serialize + Send + Sync,
+        R: DeserializeOwned,
+    {
+        self.send_body(HttpMethod::Patch, path, body, headers).await
+    }
+}
+
+impl<E> RpcClient<E>
+where
+    E: RpcClientError,
+{
+    async fn send_body<T, R>(&self, method: HttpMethod, path: &str, body: &T, headers: HashMap<String, String>) -> Result<R, ClientError>
+    where
+        T: Serialize + Send + Sync,
+        R: DeserializeOwned,
+    {
         let url = build_request_url(&self.base_url, path);
-
-        let mut request_headers = HashMap::from([("Content-Type".to_string(), ContentType::ApplicationJson.as_str().to_string())]);
+        let mut request_headers = HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationJson.as_str().to_string())]);
         request_headers.extend(headers);
-
-        let content_type = request_headers.get("Content-Type").and_then(|s| ContentType::from_str(s).ok());
-
-        let data = match content_type {
-            Some(ContentType::TextPlain) | Some(ContentType::ApplicationFormUrlEncoded) => {
-                let json_value = serde_json::to_value(body)?;
-                match json_value {
-                    serde_json::Value::String(s) => s.into_bytes(),
-                    _ => return Err(ClientError::Serialization("Expected string body for text/plain content-type".to_string())),
-                }
-            }
-            Some(ContentType::ApplicationXBinary) | Some(ContentType::ApplicationAptosBcs) => {
-                let json_value = serde_json::to_value(body)?;
-                match json_value {
-                    serde_json::Value::String(s) => hex::decode(&s).map_err(|e| ClientError::Serialization(format!("Failed to decode hex string: {e}")))?,
-                    serde_json::Value::Array(values) => decode_json_byte_array(values)?,
-                    _ => return Err(ClientError::Serialization("Expected hex string body for binary content-type".to_string())),
-                }
-            }
-            _ => serde_json::to_vec(body)?,
-        };
+        let data = encode_request_body(&request_headers, body)?;
 
         let target = Target {
             url,
-            method: HttpMethod::Post,
+            method,
             headers: Some(request_headers),
             body: Some(data),
         };
 
         let response = self.provider.request(target).await.map_err(|e| e.into_client_error())?;
-
         deserialize_response(&response)
     }
 }

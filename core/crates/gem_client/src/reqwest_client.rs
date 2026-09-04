@@ -1,11 +1,11 @@
-use std::{collections::HashMap, str::FromStr, time::Duration};
+use std::{collections::HashMap, time::Duration};
 
 use async_trait::async_trait;
 use reqwest::header::USER_AGENT;
 use reqwest::{Method, RequestBuilder};
 use serde::{Serialize, de::DeserializeOwned};
 
-use crate::{CONTENT_TYPE, Client, ClientError, ContentType, Response, build_request_url, deserialize_response, retry_policy};
+use crate::{CONTENT_TYPE, Client, ClientError, ContentType, Response, build_request_url, deserialize_response, encode_request_body, retry_policy};
 
 #[derive(Debug, Clone)]
 pub struct ReqwestClient {
@@ -117,36 +117,32 @@ impl Client for ReqwestClient {
         T: Serialize + Send + Sync,
         R: DeserializeOwned,
     {
+        self.send_body(Method::POST, path, body, headers).await
+    }
+
+    async fn patch_with<T, R>(&self, path: &str, body: &T, headers: HashMap<String, String>) -> Result<R, ClientError>
+    where
+        T: Serialize + Send + Sync,
+        R: DeserializeOwned,
+    {
+        self.send_body(Method::PATCH, path, body, headers).await
+    }
+}
+
+impl ReqwestClient {
+    async fn send_body<T, R>(&self, method: Method, path: &str, body: &T, headers: HashMap<String, String>) -> Result<R, ClientError>
+    where
+        T: Serialize + Send + Sync,
+        R: DeserializeOwned,
+    {
         let url = build_request_url(&self.base_url, path);
         let headers = if headers.is_empty() {
             HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationJson.as_str().to_string())])
         } else {
             headers
         };
-
-        let content_type = headers.get(CONTENT_TYPE).and_then(|s| ContentType::from_str(s).ok());
-
-        let request_body = match content_type {
-            Some(ContentType::TextPlain) | Some(ContentType::ApplicationFormUrlEncoded) | Some(ContentType::ApplicationXBinary) | Some(ContentType::ApplicationAptosBcs) => {
-                let json_value = serde_json::to_value(body).map_err(|e| ClientError::Serialization(format!("Failed to serialize request: {e}")))?;
-                match json_value {
-                    serde_json::Value::String(s) => {
-                        if matches!(content_type, Some(ContentType::ApplicationXBinary) | Some(ContentType::ApplicationAptosBcs)) {
-                            hex::decode(&s).map_err(|e| ClientError::Serialization(format!("Failed to decode hex string: {e}")))?
-                        } else {
-                            s.into_bytes()
-                        }
-                    }
-                    serde_json::Value::Array(values) if matches!(content_type, Some(ContentType::ApplicationXBinary) | Some(ContentType::ApplicationAptosBcs)) => {
-                        crate::decode_json_byte_array(values)?
-                    }
-                    _ => return Err(ClientError::Serialization("Expected string body for text/plain or binary content-type".to_string())),
-                }
-            }
-            _ => serde_json::to_vec(body).map_err(|e| ClientError::Serialization(format!("Failed to serialize request: {e}")))?,
-        };
-
-        let request = self.build_request(self.client.post(&url).body(request_body), headers);
+        let request_body = encode_request_body(&headers, body)?;
+        let request = self.build_request(self.client.request(method, &url).body(request_body), headers);
         let response = request.send().await.map_err(Self::map_reqwest_error)?;
 
         json_response(response).await

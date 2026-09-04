@@ -314,6 +314,14 @@ mod swap_integration_tests {
             Err(ClientError::Network("not supported".into()))
         }
 
+        async fn patch_with<T, R>(&self, _path: &str, _body: &T, _headers: HashMap<String, String>) -> Result<R, ClientError>
+        where
+            T: Serialize + Send + Sync,
+            R: DeserializeOwned,
+        {
+            Err(ClientError::Network("not supported".into()))
+        }
+
         async fn post_with<T, R>(&self, path: &str, body: &T, _headers: HashMap<String, String>) -> Result<R, ClientError>
         where
             T: Serialize + Send + Sync,
