@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
+import com.gemwallet.android.domains.asset.assetConfig
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.runtime.snapshotFlow
@@ -34,7 +35,6 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualId
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.requireChain
-import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import com.wallet.core.primitives.Wallet
 import kotlinx.collections.immutable.toImmutableList
@@ -66,8 +66,7 @@ open class BaseAssetSelectViewModel(
     private val remoteSearch: Boolean = true,
 ) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
 
-    private val assetConfig = GemAssetConfigService()
-
+    
     val queryState = TextFieldState()
     val chainFilter = MutableStateFlow<List<Chain>>(emptyList())
     val balanceFilter = MutableStateFlow(false)

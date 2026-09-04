@@ -8,7 +8,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.Config
-import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemImage
 import com.wallet.core.primitives.DelegationValidator
 import com.wallet.core.primitives.FiatProvider
@@ -43,7 +42,7 @@ fun AssetId.getSupportIconUrl(): String? = when (type()) {
     AssetSubtype.TOKEN -> chain.getIconUrl()
 }
 
-fun Asset.getIconUrl(): String = (GemAssetConfigService().iconAssetId(id.toIdentifier()).toAssetId() ?: id).getIconUrl()
+fun Asset.getIconUrl(): String = (assetConfig.iconAssetId(id.toIdentifier()).toAssetId() ?: id).getIconUrl()
 
 fun Asset.getSupportIconUrl(): String? = id.getSupportIconUrl()
 

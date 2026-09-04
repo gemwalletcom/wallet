@@ -1,5 +1,6 @@
 package com.gemwallet.android.ext
 
+import com.gemwallet.android.domains.asset.assetConfig
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetType
@@ -8,9 +9,7 @@ import com.wallet.core.primitives.ChainAsset
 import com.wallet.core.primitives.ChainType
 import uniffi.gemstone.Config
 import uniffi.gemstone.supportsPrivateKeyImport
-import uniffi.gemstone.GemAssetConfigService
 
-private val assetConfig = GemAssetConfigService()
 
 private val chainAssetCache: Map<Chain, ChainAsset> by lazy {
     Chain.entries.associateWith { chain ->

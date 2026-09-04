@@ -19,7 +19,6 @@ public struct NetworkSelectorViewModel: SelectableSheetViewable {
 
     public let title: String
 
-    private let chainService = GemChainService()
 
     public init(
         state: StateViewType<SelectableListType<Chain>>,
@@ -43,6 +42,6 @@ public struct NetworkSelectorViewModel: SelectableSheetViewable {
     public var confirmButtonTitle: String { Localized.Transfer.confirm }
 
     private func filter(chain: Chain, query: String) -> Bool {
-        !chainService.getMatchingChains(chains: [chain.rawValue], query: query).isEmpty
+        !GemChainService.shared.getMatchingChains(chains: [chain.rawValue], query: query).isEmpty
     }
 }

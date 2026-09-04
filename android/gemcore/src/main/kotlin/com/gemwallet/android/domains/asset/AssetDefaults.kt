@@ -6,9 +6,7 @@ import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetBasic
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemAssetConfigService
 
-private val assetConfig = GemAssetConfigService()
 
 val Chain.defaultAssets: List<Asset>
     get() = assetConfig.walletDefaultAssets(string).map { it.toPrimitives() }

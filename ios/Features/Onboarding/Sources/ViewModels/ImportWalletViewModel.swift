@@ -45,7 +45,7 @@ public final class ImportWalletViewModel {
     }
 
     func importWalletTypeModel() -> ImportWalletTypeViewModel {
-        ImportWalletTypeViewModel(preferences: preferences, service: GemChainService())
+        ImportWalletTypeViewModel(preferences: preferences, service: GemChainService.shared)
     }
 
     func setupWalletModel(wallet: Wallet, onComplete: @escaping (Wallet) -> Void) -> SetupWalletViewModel {
