@@ -304,7 +304,7 @@ intentional one-sided integration surfaces.
 - **Hosts live in Core.** `GemApiClient`, `GemDeviceApiClient` and `GemStaticApiClient` construct on the production hosts, `GemDeviceRequestSigner::device_stream_request` returns the socket URL with its `Authorization` header, and `WalletConnectConfig` carries the project id and the app metadata Reown needs, so neither app keeps an assets or stream URL constant (Android's `Constants` object is gone; iOS keeps the app-group identifier and `apiURL`, which only the widget's `GemAPI` reads, for the reason below).
 - **iOS `Packages/GemAPI`** — one endpoint, one caller: `GemPriceWidget` reads asset prices with it. It stays. Routing the widget through Core would link the Rust library into an app extension that runs under a tight memory budget and makes a single GET, so the trade is wrong; nothing else in the app or the feature packages depends on the package. Android's equivalent is already down to the alien provider itself: `data/services/native-provider` is `NativeProvider` plus its cache, named after the trait it implements the way iOS's `NativeProviderService` package is.
 - **iOS `Packages/GemstonePrimitives` remains mostly load-bearing.** A prior sweep removed declarations with no reader outside the package. What remains is primarily JSON bridge conformances, chain and stake config accessors, and typed wrappers over Core's JSON-string APIs — it shrinks when primitives stop crossing as JSON strings, not by chasing a line-count target.
-- iOS `Primitives` keeps hand-written views of Core types (`GasPriceType`, `FeeRate`, `Fee`, `FeeSelection`, `TransferAmount`, `BalanceRequirement`, and ids such as `WalletId`/`TransactionId`/`AssetId`). They stay: they are typed views bridged once at the seam, not a second source of truth — a view carries Core's answer as data (`BalanceRequirement.shortfall` is stored, never recomputed in Swift). Navigation inputs that carry a Core record (`RecipientData`, `AmountInput`, `SelectAssetType`, `SelectedAssetInput`, `ChainRecipient`) live in `GemstonePrimitives`, because `Primitives` cannot import `Gemstone`.
+- iOS `Primitives` keeps hand-written views of Core types (`FeeRate`, `FeeSelection`, `TransferAmount`, `BalanceRequirement`, and ids such as `WalletId`/`TransactionId`/`AssetId`). They stay: they are typed views bridged once at the seam, not a second source of truth — a view carries Core's answer as data (`BalanceRequirement.shortfall` is stored, never recomputed in Swift). Navigation inputs that carry a Core record (`RecipientData`, `AmountInput`, `SelectAssetType`, `SelectedAssetInput`, `ChainRecipient`) live in `GemstonePrimitives`, because `Primitives` cannot import `Gemstone`.
 
 ## TODO — finish Core as the single owner of logic
 
@@ -397,8 +397,11 @@ Three gotchas if you repeat the sweep, all met on this pass:
   enum: `remote_mappers.rs` reads variant names only, so `GasPriceType` would generate an empty
   mapping. That blocks the last hand-written fee mappers (`GemGasPriceType` ↔ `GasPriceType`,
   `GemTransactionLoadFee` ↔ `Fee`, `GemFeeOptions` ↔ `FeeOptionMap`), where the same conversion is
-  written twice — once as `impl From<GemGasPriceType> for GasPriceType` in Rust and once in Swift.
-  Teaching the generator about associated values unblocks the whole class.
+  written twice. The fee chain no longer needs it: `Fee`, `GasPriceType`, `FeeOption`/`FeeOptionMap`
+  and `TransferDataExtra` are deleted from iOS `Primitives`, because nothing read them — the confirm
+  screen takes `GemTransactionLoadFee` and `GemTransferDataExtra` straight from Core, as Android
+  always has. Teaching the generator about associated values is still what a data-carrying enum
+  needs before it can cross typed.
 - **Screens read their rows from one Core answer.** `GemTransactionDetailsService::details`
   (swap progress steps, swap-again, provider name, confirmation ETA, pnl, price) and
   `GemAssetBalance::detail_rows` (available, staked, earn, pending, reserved) replaced the
