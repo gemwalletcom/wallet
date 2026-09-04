@@ -18,6 +18,7 @@ struct ConfirmTransferStateTests {
             ),
             simulation: .mock(warnings: [warning]),
             feeAssets: [.mock(asset: .mockTempoUSDC())],
+            addressName: .mock(name: "Uniswap"),
         )
 
         let loaded = ConfirmTransferState.loaded(data)
@@ -26,5 +27,6 @@ struct ConfirmTransferStateTests {
         #expect(loaded.metadata != nil)
         #expect(loaded.feeAssets.count == 1)
         #expect(loaded.simulation.warnings.count == 1)
+        #expect(loaded.addressName?.name == "Uniswap")
     }
 }

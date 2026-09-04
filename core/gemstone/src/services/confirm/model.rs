@@ -24,7 +24,6 @@ pub struct GemConfirmInput {
 pub struct GemConfirmInitialState {
     pub fee_priority: FeePriority,
     pub fee_asset: Asset,
-    pub metadata: Option<GemConfirmMetadata>,
     pub simulation: Option<GemConfirmSimulation>,
 }
 
@@ -155,6 +154,7 @@ pub struct GemConfirmLoad {
     pub fee_assets: Vec<GemFeeAsset>,
     pub preload: GemConfirmPreload,
     pub simulation: GemConfirmSimulationState,
+    pub address_name: Option<AddressName>,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]

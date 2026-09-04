@@ -6,10 +6,6 @@ import struct Gemstone.GemConfirmSimulationState
 import Primitives
 
 public extension GemConfirmTransferServiceProtocol {
-    func addressName(chain: Primitives.Chain, address: String) throws -> Primitives.AddressName? {
-        try addressName(chain: chain.rawValue, address: address).map { try Primitives.AddressName($0) }
-    }
-
     func explorerLink(chain: Primitives.Chain, address: String) -> BlockExplorerLink {
         BlockExplorerLink(addressUrl(chain: chain.rawValue, address: address))
     }

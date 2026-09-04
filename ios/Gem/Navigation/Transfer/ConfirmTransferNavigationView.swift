@@ -75,8 +75,6 @@ struct ConfirmTransferNavigationView: View {
                             .presentationDetentsForCurrentDeviceSize(expandable: true)
                             .presentationBackground(Colors.grayBackground)
                     }
-                case let .addContact(action):
-                    AddContactNavigationView(action: action)
                 }
             }
     }

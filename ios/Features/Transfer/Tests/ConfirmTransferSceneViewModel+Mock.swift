@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemConfirmData
-import protocol Gemstone.GemNameServiceProtocol
+import struct Gemstone.GemConfirmLoad
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import struct Gemstone.GemTransferData
 import GemstonePrimitives
@@ -23,7 +23,7 @@ extension ConfirmTransferSceneViewModel {
         data: GemTransferData = .mock(),
         simulation: SimulationResult? = nil,
         gemConfirmService: GemConfirmServiceMock = GemConfirmServiceMock(),
-        nameService: any GemNameServiceProtocol = GemNameServiceMock(),
+        load: Result<GemConfirmLoad, any Error> = .success(.mock()),
         transactionStateService: any GemTransactionStateServiceProtocol = GemTransactionStateServiceMock(),
         onComplete: VoidAction = nil,
     ) -> ConfirmTransferSceneViewModel {
@@ -34,7 +34,7 @@ extension ConfirmTransferSceneViewModel {
             service: GemConfirmTransferServiceMock(
                 wallet: wallet,
                 confirm: gemConfirmService,
-                names: nameService,
+                load: load,
                 transactionState: transactionStateService,
             ),
             onComplete: onComplete,

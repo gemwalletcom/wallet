@@ -9,6 +9,7 @@ import Primitives
 
 struct ConfirmTransferState {
     var simulation: ConfirmSimulationState
+    var addressName: AddressName?
     var metadata: GemConfirmMetadata?
     var confirmData: GemConfirmData?
     var feeAsset: Asset
@@ -21,6 +22,7 @@ extension ConfirmTransferState {
     static func loaded(_ data: ConfirmTransferData) -> ConfirmTransferState {
         ConfirmTransferState(
             simulation: data.simulation,
+            addressName: data.addressName,
             metadata: data.preload.metadata,
             confirmData: data.preload.input.confirmData,
             feeAsset: data.preload.input.feeAsset,

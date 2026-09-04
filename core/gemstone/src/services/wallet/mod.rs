@@ -448,16 +448,16 @@ mod tests {
             let context = TestContext::new();
             let wallet = context.import("Savings", PHRASE).await;
             let account = wallet.accounts[0].clone();
-            let name = |context: &TestContext| context.addresses.get_address_name(account.chain, account.address.clone()).unwrap();
+            let name = async |context: &TestContext| context.addresses.get_address_name(account.chain, account.address.clone()).await.unwrap();
 
-            let stored = name(&context).unwrap();
+            let stored = name(&context).await.unwrap();
             assert_eq!((stored.name.as_str(), stored.address_type), ("Savings", AddressType::InternalWallet));
 
             context.service.rename(wallet.id.clone(), "Spending".to_string()).await.unwrap();
-            assert_eq!(name(&context).unwrap().name, "Spending");
+            assert_eq!(name(&context).await.unwrap().name, "Spending");
 
             context.service.delete_wallet(wallet.id.clone()).await.unwrap();
-            assert!(name(&context).is_none());
+            assert!(name(&context).await.is_none());
         });
     }
 

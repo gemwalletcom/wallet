@@ -51,7 +51,6 @@ public final class ConfirmTransferSceneViewModel {
         }
     }
 
-    public let recipientAddressNameQuery: ObservableQuery<AddressNameRequest>
 
     private let request: ConfirmTransferRequest
     private let wallet: Wallet
@@ -81,19 +80,13 @@ public final class ConfirmTransferSceneViewModel {
         feeSelection = .priority(priority: initialState.feePriority)
         feeAssetSelection = .automatic
 
-        let recipientAddress = request.data.recipient.address
-        recipientAddressNameQuery = ObservableQuery(
-            AddressNameRequest(chain: request.data.chain, address: recipientAddress),
-            initialValue: try? service.addressName(chain: request.data.chain, address: recipientAddress),
-        )
-
         state = ConfirmTransferState(
             simulation: ConfirmSimulationState(
                 data: request.data,
                 simulation: request.simulation,
                 state: GemConfirmSimulationState(simulation: initialState.simulation, addressNames: []),
             ),
-            metadata: initialState.metadata,
+            metadata: .none,
             feeAsset: initialState.feeAsset.map(),
             transaction: .loading,
         )
@@ -223,9 +216,8 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
                 destination: request.data.destination(),
                 chain: dataModel.chain,
                 memo: dataModel.recipient.memo,
-                addressName: recipientAddressNameQuery.value,
+                addressName: state.addressName,
                 addressLink: explorerLink(chain: dataModel.chain, address: dataModel.recipient.address),
-                onAddContact: onSelectAddRecipientToContacts,
             )
         case .memo:
             ConfirmMemoViewModel(type: request.data.inputType, recipient: request.data.recipient)
@@ -296,10 +288,6 @@ extension ConfirmTransferSceneViewModel {
 
     func onSelectPerpetualDetails(_ model: PerpetualDetailsViewModel) {
         isPresentingSheet = .perpetualDetails(model)
-    }
-
-    func onSelectAddRecipientToContacts(_ action: AddContactType) {
-        isPresentingSheet = .addContact(action)
     }
 
     func onSelectConfirm() {
@@ -418,6 +406,7 @@ extension ConfirmTransferSceneViewModel {
                 state: scene.simulation,
             ),
             feeAssets: scene.feeAssets,
+            addressName: scene.addressName.map(AddressName.init(core:)),
         )
     }
 

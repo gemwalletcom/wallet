@@ -73,7 +73,7 @@ impl GemChartService {
         let rate = self.price.rate(currency.clone()).await?.ok_or(GemServiceError::InvalidInput {
             msg: format!("unknown currency: {currency}"),
         })?;
-        let latest = self.price.prices(vec![asset_id])?.into_iter().next();
+        let latest = self.price.prices(vec![asset_id]).await?.into_iter().next();
         let values = rules::converted_values(charts.prices, rate.rate);
         let current = rules::current_value(&values, latest, Utc::now());
         Ok(GemChart { values, current })

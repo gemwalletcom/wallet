@@ -63,7 +63,7 @@ public final class GemConfirmServiceMock: GemConfirmServiceProtocol, @unchecked 
         try preloadResult.get()
     }
 
-    public func feeAssets(walletId _: WalletId, chain _: Chain) throws -> [GemFeeAsset] {
+    public func feeAssets(walletId _: WalletId, chain _: Chain) async throws -> [GemFeeAsset] {
         feeAssetRows
     }
 

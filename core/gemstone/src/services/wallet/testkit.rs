@@ -76,7 +76,7 @@ pub struct MemoryAddressStore {
 
 #[async_trait::async_trait]
 impl GemAddressStore for MemoryAddressStore {
-    fn get_address_name(&self, chain: Chain, address: String) -> Result<Option<AddressName>, GemServiceError> {
+    async fn get_address_name(&self, chain: Chain, address: String) -> Result<Option<AddressName>, GemServiceError> {
         Ok(self.names.lock().unwrap().get(&(chain, address)).cloned())
     }
     async fn save_address_names(&self, names: Vec<AddressName>) -> Result<(), GemServiceError> {

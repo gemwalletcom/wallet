@@ -34,7 +34,7 @@ class GemstoneAssetStore(
         assetsDao.getAssetIds(assetIds)
     }
 
-    override fun getAssets(assetIds: List<String>): List<uniffi.gemstone.Asset> =
+    override suspend fun getAssets(assetIds: List<String>): List<uniffi.gemstone.Asset> =
         assetsDao.getAssetsByIds(assetIds).toDTO().map { it.toGem() }
 
     override suspend fun saveAssets(assets: List<String>) = withContext(Dispatchers.IO) {

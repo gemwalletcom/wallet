@@ -111,7 +111,7 @@ mod tests {
 
     #[async_trait]
     impl GemPriceStore for EnabledStore {
-        fn get_prices(&self, _asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetPrice>, GemServiceError> {
+        async fn get_prices(&self, _asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetPrice>, GemServiceError> {
             Ok(vec![])
         }
         async fn get_rate(&self, _currency: Currency) -> Result<Option<FiatRate>, GemServiceError> {

@@ -32,8 +32,8 @@ impl GemPriceService {
 }
 
 impl GemPriceService {
-    pub fn prices(&self, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetPrice>, GemServiceError> {
-        self.store.get_prices(asset_ids)
+    pub async fn prices(&self, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetPrice>, GemServiceError> {
+        self.store.get_prices(asset_ids).await
     }
 
     pub async fn get_prices(&self, currency: Currency, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPrice>, GemApiError> {

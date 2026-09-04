@@ -4,6 +4,10 @@ public import BigInt
 public import enum Gemstone.FeePriority
 public import struct Gemstone.GemConfirmData
 public import struct Gemstone.GemConfirmPreload
+public import struct Gemstone.GemConfirmLoad
+public import struct Gemstone.GemConfirmSimulation
+public import struct Gemstone.GemConfirmSimulationState
+public import struct Gemstone.GemFeeAsset
 public import struct Gemstone.GemConfirmMetadata
 public import struct Gemstone.GemAssetBalance
 public import enum Gemstone.GemTransferAmountResult
@@ -140,5 +144,21 @@ public extension GemTransferAmount {
         isMaxAmount: Bool = false,
     ) -> GemTransferAmount {
         GemTransferAmount(value: value, networkFee: networkFee, isMaxAmount: isMaxAmount)
+    }
+}
+
+public extension GemConfirmLoad {
+    static func mock(
+        preload: GemConfirmPreload = .mock(),
+        feeAssets: [GemFeeAsset] = [],
+        simulation: GemConfirmSimulation? = nil,
+        addressName: Primitives.AddressName? = nil,
+    ) -> GemConfirmLoad {
+        GemConfirmLoad(
+            feeAssets: feeAssets,
+            preload: preload,
+            simulation: GemConfirmSimulationState(simulation: simulation, addressNames: []),
+            addressName: addressName?.json(),
+        )
     }
 }

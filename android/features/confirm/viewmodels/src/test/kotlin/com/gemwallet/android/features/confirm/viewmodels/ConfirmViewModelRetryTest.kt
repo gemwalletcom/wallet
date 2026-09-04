@@ -104,6 +104,7 @@ class ConfirmViewModelRetryTest {
             } else {
                 GemConfirmLoad(
                     feeAssets = emptyList(),
+                    addressName = null,
                     simulation = GemConfirmSimulationState(simulation = null, addressNames = emptyList()),
                     preload = GemConfirmPreload(
                     confirmData = GemConfirmData(

@@ -34,7 +34,6 @@ public struct ConfirmTransferScene: View {
         .navigationBarTitleDisplayMode(.inline)
         .activityIndicator(isLoading: model.isConfirming, message: model.progressMessage)
         .alertSheet($model.isPresentingAlertMessage)
-        .bindQuery(model.recipientAddressNameQuery)
     }
 }
 

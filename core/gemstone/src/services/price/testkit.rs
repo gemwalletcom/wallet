@@ -15,7 +15,7 @@ pub struct MemoryPriceStore {
 
 #[async_trait::async_trait]
 impl GemPriceStore for MemoryPriceStore {
-    fn get_prices(&self, _asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetPrice>, GemServiceError> {
+    async fn get_prices(&self, _asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetPrice>, GemServiceError> {
         Ok(vec![])
     }
     async fn get_enabled_price_asset_ids(&self, _wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {

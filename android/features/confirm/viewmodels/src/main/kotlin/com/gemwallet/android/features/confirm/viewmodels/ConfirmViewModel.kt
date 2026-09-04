@@ -135,6 +135,7 @@ class ConfirmViewModel @Inject constructor(
                 feeAsset = FeeAssetUIModel.from(scene.preload.feeAsset.toPrimitives(), scene.preload.metadata.feeAssetBalance, scene.preload.metadata.feePrice(), currency),
                 feeAssets = scene.feeAssets.map { it.toFeeAssetUIModel(currency) },
                 simulation = scene.simulation,
+                addressName = scene.addressName?.decodeJson<AddressName>(),
             )
         } catch (error: CancellationException) {
             throw error
@@ -226,19 +227,10 @@ class ConfirmViewModel @Inject constructor(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val recipientAddressName = request
-        .filterNotNull()
-        .map { it.inputType.asset.id.chain to it.recipient.address.takeIf { address -> address.isNotEmpty() } }
-        .distinctUntilChanged()
-        .map { (chain, address) ->
-            address?.let { confirmService.addressName(chain.string, it)?.decodeJson<AddressName>() }
-        }
-        .flowOn(Dispatchers.IO)
-
-    val transactionProperties = combine(request, session, recipientAddressName) { request, session, addressName ->
+    val transactionProperties = combine(request, session, preloadData) { request, session, preload ->
         request ?: return@combine emptyList()
         session ?: return@combine emptyList()
-        buildConfirmProperties(request, session.wallet, addressName)
+        buildConfirmProperties(request, session.wallet, preload?.addressName)
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -351,6 +343,7 @@ class ConfirmViewModel @Inject constructor(
         val feeAsset: FeeAssetUIModel,
         val feeAssets: List<FeeAssetUIModel>,
         val simulation: GemConfirmSimulationState,
+        val addressName: AddressName?,
     )
 
     private fun buildDetailElements(
