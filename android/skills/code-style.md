@@ -6,6 +6,7 @@ Use for any Kotlin or Compose change.
 - Kotlin conventions and existing project patterns; Jetpack Compose for UI; Hilt for dependency injection; repository-based data access
 - Do not add unnecessary comments; clean imports after every modification
 - In suspend or flow code, a `catch (e: Throwable)` must rethrow `CancellationException` before mapping to an error state; otherwise a cancelled collection surfaces as a failure (see `InAppUpdateServiceImpl.kt`)
+- No blocking store, Room, or gemstone call on the main thread. A synchronous getter reached from a view model constructor, a Hilt provider, or composition throws and kills the process; expose it as a suspend function or flow and collect it. `allowMainThreadQueries()` belongs to migration tests only
 - Prefer the smallest change that satisfies the requirement
 
 ## Security and Hygiene
@@ -22,7 +23,7 @@ Use for any Kotlin or Compose change.
 ## Room Schema
 
 - Table names are plural `snake_case` (`nft_collections`, `nft_assets`, `nft_assets_associations`)
-- Entity fields are Kotlin `camelCase` stored as SQLite `snake_case` columns via `@ColumnInfo(name = "asset_id")`
+- Entity fields are Kotlin `camelCase` and the column keeps the property name. `@ColumnInfo` maps only the older entities that already own `snake_case` columns; a new entity does not add it. Reference: `data/services/store/src/main/kotlin/com/gemwallet/android/data/service/store/database/entities/DbContact.kt`
 - When an equivalent iOS store model exists, mirror its schema naming instead of inventing Android-only variants; keep one naming scheme within a table
 
 Shared clean-code principles live in `../../skills/engineering-principles.md`.

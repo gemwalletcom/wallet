@@ -20,7 +20,9 @@ The most important rule in this file. Before changing anything, ask why the fail
 - No code comments. Convey intent through names and structure; if code seems to need a comment, rename or restructure it. Only compiler- or tooling-required comments (attributes, lint directives, license headers) are exceptions
 - Full domain terms in names (`transaction`, not `tx`) except when preserving external protocol fields, database columns, or URLs verbatim
 - Intent-specific names that state the domain action and result (`parse_destination_tag`, `build_transfer_message`, `map_balance_assets`). Generic verbs such as `process`, `handle`, `manage`, `perform`, `execute`, and `resolve` hide the contract; keep them only when a framework or protocol owns the signature
+- Search for the existing component, domain type, mapper, or testkit fixture before adding a new one; a new view, property, or helper next to one that already does the job is a finding
 - Understand a nearby pattern before copying it; copying patterns you cannot explain is how dead conventions spread
+- Model variants with a type, not a boolean flag or a bare string. An enum or sealed hierarchy the compiler checks exhaustively replaces paired booleans, optional-plus-flag pairs, and default branches that hide a missing state
 - Small API surface: public only when it must be
 - Immutable bindings (`let`, `val`, non-`mut`); mutation only where ownership requires it, in the narrowest scope
 - When two patterns contradict (iOS vs. Android on a shared flow, two error-mapping styles in `core/`, parallel providers), do not blend them. Pick the more recent or better tested one, say why, and flag the other for follow-up
@@ -38,8 +40,8 @@ The most important rule in this file. Before changing anything, ask why the fail
 
 ## Tests
 
-- Tests verify intent, not just behavior. If the test still passes after the business rule flips, it is a tautology: fix the assertion or the function under test
-- For a high-impact bug, add the smallest test that materially reduces regression risk; skip trivial, framework, formatting-only, and purely visual coverage unless asked or already cheap
+- Tests verify intent, not just behavior. If the test still passes after the business rule flips, it is a tautology: break the rule, watch the test fail, then fix the assertion or the function under test. A test that mocks the layer where the defect lives proves nothing about that defect
+- For a high-impact bug with a deterministic seam, add the smallest test that materially reduces regression risk and write it before the fix; skip trivial, framework, formatting-only, and purely visual coverage unless asked or already cheap
 - "Tests pass" is not a green light if any were skipped, marked expected-failure, or gated behind features you did not run. Report what you executed
 - Unit tests never spin up ad hoc HTTP/TCP servers. Use the platform testkit fixtures, pure mappers and parsers, or injected clients; when network behavior matters, use the gated integration tests
 
