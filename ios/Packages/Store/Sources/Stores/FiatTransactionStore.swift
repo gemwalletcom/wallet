@@ -11,9 +11,13 @@ public struct FiatTransactionStore: Sendable {
         self.db = db.dbQueue
     }
 
-    public func addTransactions(walletId: WalletId, transactions: [FiatTransactionData]) throws {
-        guard transactions.isNotEmpty else { return }
+    public func setTransactions(walletId: WalletId, transactions: [FiatTransactionData]) throws {
         try db.write { db in
+            try FiatTransactionRecord
+                .filter(FiatTransactionRecord.Columns.walletId == walletId.id)
+                .filter(!transactions.map(\.transaction.id).contains(FiatTransactionRecord.Columns.id))
+                .deleteAll(db)
+
             for transaction in transactions {
                 try transaction.record(walletId: walletId.id).upsert(db)
             }

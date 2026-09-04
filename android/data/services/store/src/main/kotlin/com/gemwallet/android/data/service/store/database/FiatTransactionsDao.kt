@@ -13,7 +13,16 @@ import kotlinx.coroutines.flow.Flow
 interface FiatTransactionsDao {
 
     @Insert(entity = DbFiatTransaction::class, onConflict = OnConflictStrategy.REPLACE)
-    fun insert(transactions: List<DbFiatTransaction>)
+    suspend fun insert(transactions: List<DbFiatTransaction>)
+
+    @Query("DELETE FROM fiat_transactions WHERE walletId = :walletId AND id NOT IN (:ids)")
+    suspend fun deleteExcept(walletId: String, ids: List<String>)
+
+    @Transaction
+    suspend fun setFiatTransactions(walletId: String, transactions: List<DbFiatTransaction>) {
+        deleteExcept(walletId, transactions.map { it.id })
+        insert(transactions)
+    }
 
     @Transaction
     @Query("SELECT * FROM fiat_transactions WHERE walletId = :walletId ORDER BY createdAt DESC")

@@ -201,7 +201,7 @@ impl FiatTransactionRow {
         let value = BigUint::from_str(value).map_err(|error| DatabaseError::Error(format!("Fiat transaction {} has an invalid value: {error}", self.quote_id)))?;
 
         Ok(FiatTransaction {
-            id: self.quote_id.clone(),
+            id: self.id.to_string(),
             asset_id: self.asset_id.0.clone(),
             transaction_type: self.transaction_type.0.clone(),
             provider: self.provider_id.0,
@@ -342,7 +342,7 @@ mod tests {
 
         let transaction = row.as_primitive().unwrap();
 
-        assert_eq!(transaction.id, "quote_123");
+        assert_eq!(transaction.id, "1");
         assert_eq!(transaction.value, BigUint::from(123_000_000_000_000_000u64));
         assert_eq!(transaction.created_at, DateTime::<Utc>::from_timestamp(1, 0).unwrap());
         assert_eq!(transaction.updated_at, DateTime::<Utc>::from_timestamp(2, 0).unwrap());
