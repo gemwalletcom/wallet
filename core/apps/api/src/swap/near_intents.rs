@@ -1,22 +1,35 @@
 use cacher::{CacheKey, CacherClient};
-use gem_client::build_request_url;
+use gem_client::{ClientExt, ReqwestClient, Target};
 use primitives::SwapProvider;
 
+#[derive(Clone, Debug)]
+enum NearIntentsProxyTarget {
+    Quote,
+}
+
+impl Target for NearIntentsProxyTarget {
+    fn path(&self) -> String {
+        match self {
+            Self::Quote => "/v0/quote".to_string(),
+        }
+    }
+}
+
 pub struct NearIntentsProxyClient {
-    client: reqwest::Client,
-    url: String,
+    client: ReqwestClient,
     cacher: CacherClient,
 }
 
 impl NearIntentsProxyClient {
     pub fn new(url: String, cacher: CacherClient) -> Self {
-        let client = gem_client::reqwest_client();
-        Self { client, url, cacher }
+        Self {
+            client: ReqwestClient::new(url, gem_client::reqwest_client()),
+            cacher,
+        }
     }
 
     pub async fn quote(&self, body: serde_json::Value) -> Result<serde_json::Value, Box<dyn std::error::Error + Send + Sync>> {
-        let url = build_request_url(&self.url, "/v0/quote");
-        let response = self.client.post(&url).json(&body).send().await?.json::<serde_json::Value>().await?;
+        let response: serde_json::Value = self.client.post(NearIntentsProxyTarget::Quote, &body).await?;
 
         if let Some(address) = response.pointer("/quote/depositAddress").and_then(|v| v.as_str())
             && !address.is_empty()

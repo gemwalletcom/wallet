@@ -1,6 +1,9 @@
+use gem_client::{ClientError, ClientExt, ReqwestClient, Target};
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::{ChainRequest, ChainRequestProtocol, ChainRequestType, TransactionId};
+use serde_json::Value;
 use settings_chain::BroadcastProviders;
+use std::collections::HashMap;
 
 use crate::config::WebhookConfig;
 use crate::jsonrpc_types::{JsonRpcRequest, RequestType};
@@ -65,19 +68,20 @@ impl DynodeBroadcastWebhookClient {
 
     async fn deliver(client: reqwest::Client, url: String, token: String, payload: TransactionId, request_id: String) {
         let transaction_id = payload.to_string();
+        let client = ReqwestClient::new(url, client);
+        let headers = HashMap::from([("Authorization".to_string(), format!("Bearer {token}"))]);
 
-        match client.post(&url).bearer_auth(token).json(&payload).send().await {
-            Ok(response) => {
-                if response.status().is_success() {
-                    info_with_fields!("broadcast webhook delivered", transaction_id = transaction_id.as_str(), request_id = request_id.as_str(),);
-                } else {
-                    info_with_fields!(
-                        "broadcast webhook delivery failed",
-                        transaction_id = transaction_id.as_str(),
-                        request_id = request_id.as_str(),
-                        status = response.status().as_u16(),
-                    );
-                }
+        match client.post::<_, Value>(WebhookTarget::Broadcast, &payload).headers(headers).await {
+            Ok(_) => {
+                info_with_fields!("broadcast webhook delivered", transaction_id = transaction_id.as_str(), request_id = request_id.as_str(),);
+            }
+            Err(ClientError::Http { status, .. }) => {
+                info_with_fields!(
+                    "broadcast webhook delivery failed",
+                    transaction_id = transaction_id.as_str(),
+                    request_id = request_id.as_str(),
+                    status = status,
+                );
             }
             Err(err) => {
                 error_with_fields!(
@@ -160,5 +164,18 @@ mod tests {
         let request = make_request(Chain::Tron, reqwest::Method::POST, "/wallet/broadcasttransaction", br#"{"txID":"abc"}"#);
 
         assert!(is_broadcast_request(&request, &broadcast_providers()));
+    }
+}
+
+#[derive(Clone, Debug)]
+enum WebhookTarget {
+    Broadcast,
+}
+
+impl Target for WebhookTarget {
+    fn path(&self) -> String {
+        match self {
+            Self::Broadcast => String::new(),
+        }
     }
 }

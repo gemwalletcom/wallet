@@ -1,13 +1,14 @@
 // https://api.etherscan.io/api?module=gastracker&action=gasoracle&apikey=YourApiKeyToken
 
 use crate::client::GemstoneFeeData;
+use gem_client::{ClientExt, ReqwestClient, Target, build_path_with_query};
 use num_bigint::BigInt;
 use primitives::{PriorityFeeValue, fee::FeePriority};
 use serde::Deserialize;
 use serde_serializers::deserialize_u64_from_str;
 use std::error::Error;
 
-const ETHERSCAN_API_URL: &str = "https://api.etherscan.io/api";
+const ETHERSCAN_URL: &str = "https://api.etherscan.io";
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -61,22 +62,34 @@ pub struct EtherscanResponse {
     pub result: EtherscanResult,
 }
 
+#[derive(Clone, Debug)]
+enum EtherscanTarget {
+    GasOracle,
+}
+
+impl Target for EtherscanTarget {
+    fn path(&self) -> String {
+        match self {
+            Self::GasOracle => build_path_with_query("/api", &[("module", "gastracker"), ("action", "gasoracle")]),
+        }
+    }
+}
+
 pub struct EtherscanClient {
-    client: reqwest::Client,
+    client: ReqwestClient,
     api_key: String,
 }
 
 impl EtherscanClient {
     pub fn new(api_key: String) -> Self {
         Self {
-            client: gem_client::reqwest_client(),
+            client: ReqwestClient::new(ETHERSCAN_URL.to_string(), gem_client::reqwest_client()),
             api_key,
         }
     }
 
     pub async fn fetch_gas_oracle(&self) -> Result<EtherscanResponse, Box<dyn Error + Send + Sync>> {
-        let url = format!("{}?module=gastracker&action=gasoracle&apikey={}", ETHERSCAN_API_URL, self.api_key);
-        let response = self.client.get(&url).send().await?.json::<EtherscanResponse>().await?;
+        let response: EtherscanResponse = self.client.get(EtherscanTarget::GasOracle).query(&[("apikey", self.api_key.as_str())]).await?;
         if response.status != "1" {
             return Err(format!("Etherscan API error: {}", response.message).into());
         }

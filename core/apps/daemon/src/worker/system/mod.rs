@@ -1,6 +1,7 @@
 mod device_updater;
 mod model;
 mod observers;
+mod store_target;
 mod transaction_cleanup;
 mod version_updater;
 

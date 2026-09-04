@@ -1,9 +1,10 @@
+use gem_client::{ClientExt, ReqwestClient};
 use primitives::{GEM_ANDROID_PACKAGE_ID, GEM_IOS_BUNDLE_ID, PlatformStore, config::Release};
-use serde_json::json;
 use std::error::Error;
 use storage::{Database, ReleasesRepository, models::ReleaseRow};
 
 use super::model::{FdroidPackageResponse, GitHubRepository, HuaweiStoreResponse, ITunesLookupResponse, SamsungStoreDetail, SolanaStoreRelease};
+use super::store_target::{HuaweiAppRequest, StoreTarget};
 
 pub struct VersionUpdater {
     database: Database,
@@ -67,15 +68,21 @@ impl VersionUpdater {
         Ok(())
     }
 
+    fn store(&self, target: &StoreTarget) -> ReqwestClient {
+        ReqwestClient::new(target.host().to_string(), self.client.clone())
+    }
+
     async fn get_app_store_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let url = format!("https://itunes.apple.com/lookup?bundleId={GEM_IOS_BUNDLE_ID}");
-        let response = self.client.get(url).send().await?.json::<ITunesLookupResponse>().await?;
+        let target = StoreTarget::AppStoreLookup {
+            bundle_id: GEM_IOS_BUNDLE_ID.to_string(),
+        };
+        let response: ITunesLookupResponse = self.store(&target).get(target).await?;
         response.results.first().map(|r| r.version.clone()).ok_or_else(|| "no results".into())
     }
 
     async fn get_github_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let url = "https://api.github.com/repos/gemwalletcom/wallet/releases";
-        let response = self.client.get(url).send().await?.json::<Vec<GitHubRepository>>().await?;
+        let target = StoreTarget::GithubReleases;
+        let response: Vec<GitHubRepository> = self.store(&target).get(target).await?;
         response
             .into_iter()
             .find(|x| !x.draft && !x.prerelease && x.assets.iter().any(|a| a.name.contains("gem_wallet_universal_")))
@@ -84,28 +91,27 @@ impl VersionUpdater {
     }
 
     async fn get_fdroid_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let url = format!("https://f-droid.org/api/v1/packages/{GEM_ANDROID_PACKAGE_ID}");
-        let response = self.client.get(url).send().await?.error_for_status()?.json::<FdroidPackageResponse>().await?;
+        let target = StoreTarget::FdroidPackage {
+            package: GEM_ANDROID_PACKAGE_ID.to_string(),
+        };
+        let response: FdroidPackageResponse = self.store(&target).get(target).await?;
         response.latest_version().ok_or_else(|| "f-droid version not found".into())
     }
 
     async fn get_huawei_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let url = "https://web-dre.hispace.dbankcloud.com/edge/single/filtered";
-        let response = self
-            .client
-            .post(url)
-            .json(&json!({ "pkgName": GEM_ANDROID_PACKAGE_ID }))
-            .send()
-            .await?
-            .error_for_status()?
-            .json::<HuaweiStoreResponse>()
-            .await?;
+        let target = StoreTarget::HuaweiApp;
+        let request = HuaweiAppRequest {
+            pkg_name: GEM_ANDROID_PACKAGE_ID.to_string(),
+        };
+        let response: HuaweiStoreResponse = self.store(&target).post(target, &request).await?;
         response.app_info.map(|app| app.version).ok_or_else(|| "huawei version not found".into())
     }
 
     async fn get_samsung_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let url = format!("https://galaxystore.samsung.com/api/detail/{GEM_ANDROID_PACKAGE_ID}");
-        let response = self.client.get(url).send().await?.json::<SamsungStoreDetail>().await?;
+        let target = StoreTarget::SamsungDetail {
+            package: GEM_ANDROID_PACKAGE_ID.to_string(),
+        };
+        let response: SamsungStoreDetail = self.store(&target).get(target).await?;
         match response.details {
             Some(details) => Ok(details.version),
             None => Err(response.error_message.unwrap_or_else(|| "no version found".to_string()).into()),
@@ -113,8 +119,10 @@ impl VersionUpdater {
     }
 
     async fn get_solana_store_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let url = format!("https://publish.solanamobile.com/api/{GEM_ANDROID_PACKAGE_ID}/release");
-        let response = self.client.get(url).send().await?.json::<SolanaStoreRelease>().await?;
+        let target = StoreTarget::SolanaRelease {
+            package: GEM_ANDROID_PACKAGE_ID.to_string(),
+        };
+        let response: SolanaStoreRelease = self.store(&target).get(target).await?;
         Ok(response.version_name)
     }
 }
