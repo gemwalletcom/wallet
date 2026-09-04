@@ -16,14 +16,16 @@ pub struct FetchAssetStatusConsumer {
 #[derive(Debug, PartialEq, Eq)]
 struct AssetStatusVerdict {
     is_malicious: bool,
-    is_complete: bool,
+    provider_count: usize,
+    failed_providers: Vec<&'static str>,
 }
 
 impl AssetStatusVerdict {
-    fn from_provider_results(results: &[Option<bool>]) -> Self {
+    fn from_provider_results(results: &[(&'static str, Option<bool>)]) -> Self {
         Self {
-            is_malicious: results.contains(&Some(true)),
-            is_complete: !results.is_empty() && !results.contains(&None),
+            is_malicious: results.iter().any(|(_, result)| *result == Some(true)),
+            provider_count: results.len(),
+            failed_providers: results.iter().filter_map(|(provider, result)| result.is_none().then_some(*provider)).collect(),
         }
     }
 }
@@ -49,14 +51,14 @@ impl MessageConsumer<AssetId, bool> for FetchAssetStatusConsumer {
             .map(|(provider, result)| match result {
                 Ok(result) => {
                     info_with_fields!(
-                        "asset status result",
+                        "asset status provider result",
                         provider = result.provider.as_str(),
                         chain = result.target.chain.as_ref(),
                         token_id = result.target.token_id.as_str(),
                         malicious = result.is_malicious,
                         reason = result.reason.as_deref().unwrap_or_default()
                     );
-                    Some(result.is_malicious)
+                    (provider, Some(result.is_malicious))
                 }
                 Err(error) => {
                     error_with_fields!(
@@ -66,7 +68,7 @@ impl MessageConsumer<AssetId, bool> for FetchAssetStatusConsumer {
                         chain = target.chain.as_ref(),
                         token_id = target.token_id.as_str()
                     );
-                    None
+                    (provider, None)
                 }
             })
             .collect::<Vec<_>>();
@@ -77,10 +79,16 @@ impl MessageConsumer<AssetId, bool> for FetchAssetStatusConsumer {
                 .assets()?
                 .update_assets(vec![asset_id], vec![AssetUpdate::Rank(AssetRank::Fraudulent.threshold()), AssetUpdate::IsEnabled(false)])?;
         }
-        if !verdict.is_complete {
-            let provider_failures = provider_results.iter().filter(|result| result.is_none()).count();
-            return Err(format!("{provider_failures} asset status provider requests failed").into());
-        }
+        let failed_providers = verdict.failed_providers.join(",");
+        info_with_fields!(
+            "asset status result",
+            chain = target.chain.as_ref(),
+            token_id = target.token_id.as_str(),
+            malicious = verdict.is_malicious,
+            provider_count = verdict.provider_count,
+            provider_failures = verdict.failed_providers.len(),
+            failed_providers = failed_providers.as_str()
+        );
         Ok(verdict.is_malicious)
     }
 }
@@ -90,26 +98,37 @@ mod tests {
     use super::AssetStatusVerdict;
 
     #[test]
-    fn test_provider_results_require_complete_safe_verdict() {
+    fn test_from_provider_results() {
         assert_eq!(
-            AssetStatusVerdict::from_provider_results(&[Some(false), Some(false)]),
+            AssetStatusVerdict::from_provider_results(&[("GoPlus", Some(false)), ("Jupiter", Some(false))]),
             AssetStatusVerdict {
                 is_malicious: false,
-                is_complete: true,
+                provider_count: 2,
+                failed_providers: vec![],
             }
         );
         assert_eq!(
-            AssetStatusVerdict::from_provider_results(&[Some(false), None]),
+            AssetStatusVerdict::from_provider_results(&[("GoPlus", Some(false)), ("Jupiter", None)]),
             AssetStatusVerdict {
                 is_malicious: false,
-                is_complete: false,
+                provider_count: 2,
+                failed_providers: vec!["Jupiter"],
             }
         );
         assert_eq!(
-            AssetStatusVerdict::from_provider_results(&[Some(true), None]),
+            AssetStatusVerdict::from_provider_results(&[("GoPlus", Some(true)), ("Jupiter", None)]),
             AssetStatusVerdict {
                 is_malicious: true,
-                is_complete: false,
+                provider_count: 2,
+                failed_providers: vec!["Jupiter"],
+            }
+        );
+        assert_eq!(
+            AssetStatusVerdict::from_provider_results(&[("GoPlus", None), ("Jupiter", None)]),
+            AssetStatusVerdict {
+                is_malicious: false,
+                provider_count: 2,
+                failed_providers: vec!["GoPlus", "Jupiter"],
             }
         );
     }

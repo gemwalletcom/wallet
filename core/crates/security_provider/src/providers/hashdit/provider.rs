@@ -4,7 +4,7 @@ use crate::providers::hashdit::{
     models::{DetectRequest, DetectResponse},
     target::HashDitTarget,
 };
-use crate::{AddressScanProvider, AddressTarget, ScanResult, TokenScanProvider, TokenTarget};
+use crate::{AddressScanProvider, AddressTarget, ScanResult};
 use async_trait::async_trait;
 use gem_client::{Client, ClientError, ClientExt, Target};
 use primitives::Chain;
@@ -12,7 +12,6 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 const PROVIDER_NAME: &str = "HashDit";
 const ADDRESS_DETECTION: &str = "gem_wallet_address_detection";
-const TOKEN_DETECTION: &str = "gem_wallet_token_detection";
 
 pub struct HashDitProvider<C: Client> {
     client: C,
@@ -94,24 +93,5 @@ impl<C: Client> AddressScanProvider for HashDitProvider<C> {
             address: target.address.clone(),
         };
         self.scan(target, ADDRESS_DETECTION, &body).await
-    }
-}
-
-#[async_trait]
-impl<C: Client> TokenScanProvider for HashDitProvider<C> {
-    fn name(&self) -> &'static str {
-        PROVIDER_NAME
-    }
-
-    fn supports_chain(&self, chain: Chain) -> bool {
-        mapper::map_chain(chain).is_ok()
-    }
-
-    async fn scan_token(&self, target: &TokenTarget) -> Result<ScanResult<TokenTarget>, Box<dyn std::error::Error + Send + Sync>> {
-        let body = DetectRequest {
-            chain_id: mapper::map_chain(target.chain)?,
-            address: target.token_id.clone(),
-        };
-        self.scan(target, TOKEN_DETECTION, &body).await
     }
 }

@@ -17,6 +17,5 @@ pub struct AddressScanProviderConfig {
 pub struct TokenScanProviderConfig {
     pub timeout: Duration,
     pub goplus: ScanProviderRemoteConfig,
-    pub hashdit: ScanProviderRemoteConfig,
     pub jupiter: RemoteProviderConfig,
 }

@@ -108,38 +108,6 @@ mod tests {
         assert_eq!(data.scanned_ts, Some(1727869054771));
         assert_eq!(data.risk_detail.unwrap(), "[]");
     }
-
-    #[test]
-    fn test_token_response_minimal() {
-        let json = r#"{
-            "status": "OK",
-            "type": "GENERAL",
-            "code": "000000000",
-            "errorData": null,
-            "data": {
-                "has_result": true,
-                "risk_level": 0,
-                "result": {
-                    "token-symbol": "USDC",
-                    "token-name": "USD Coin",
-                    "owner-address": "0x0000000000000000000000000000000000000000",
-                    "holders-count": "10",
-                    "holders": [
-                        { "acountAddress": "0xabc", "tokenBalance": "123" },
-                        { "acountAddress": "0xdef", "tokenBalance": "456" }
-                    ]
-                }
-            },
-            "subData": null,
-            "params": null
-        }"#;
-
-        let response = serde_json::from_str::<DetectResponse>(json).unwrap();
-        assert_eq!(response.status, "OK");
-        let data = response.data.unwrap();
-        assert_eq!(data.has_result, Some(true));
-        assert_eq!(data.risk_level, Some(0));
-    }
 }
 
 #[derive(Debug, Clone, Serialize)]
