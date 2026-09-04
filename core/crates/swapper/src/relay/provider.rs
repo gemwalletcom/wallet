@@ -13,16 +13,17 @@ use primitives::{
 
 use super::{
     asset::{SUPPORTED_CHAINS, asset_to_currency},
-    chain::RelayChain,
+    chain::{RelayChain, TON_CHAIN_ID},
     client::RelayClient,
     mapper,
     model::{RelayAppFee, RelayQuoteRequest, RelayQuoteResponse},
-    solana,
+    solana, ton,
 };
 use crate::{
     FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, Swapper, SwapperChainAsset, SwapperError,
     SwapperProvider, SwapperQuoteData,
     approval::{check_approval_erc20, check_approval_trc20},
+    client_factory::create_ton_client,
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
     fees::{DEFAULT_REFERRER, default_referral_fees},
@@ -150,10 +151,14 @@ where
                 let step = response.get_solana_step().ok_or(SwapperError::InvalidRoute)?;
                 solana::build_quote_data(&quote.request.wallet_address, step, self.rpc_provider.clone()).await
             }
+            RelayChain::Ton => mapper::map_ton_quote_data(&response),
         }
     }
 
-    async fn get_swap_result(&self, _chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
+    async fn get_swap_result(&self, chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
+        if chain == Chain::Ton {
+            return self.get_ton_swap_result(transaction_hash).await;
+        }
         let response = self.client.get_request(transaction_hash).await?;
         let request = response.requests.first().ok_or(SwapperError::InvalidRoute)?;
         Ok(mapper::map_swap_result(request))
@@ -172,10 +177,20 @@ impl<C> Relay<C>
 where
     C: Client + Clone + Send + Sync + std::fmt::Debug + 'static,
 {
+    async fn get_ton_swap_result(&self, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
+        let client = create_ton_client(self.rpc_provider.clone())?;
+        let Some(deposit) = ton::find_deposit(&client, transaction_hash).await? else {
+            return Ok(SwapResult::pending());
+        };
+        let response = self.client.get_requests(&deposit.sender, TON_CHAIN_ID).await?;
+        let request = response.requests.iter().find(|request| request.has_input_transaction(&deposit.transaction_hashes));
+        Ok(request.map(mapper::map_swap_result).unwrap_or_else(SwapResult::pending))
+    }
+
     async fn check_approval(&self, quote: &Quote, quote_response: &RelayQuoteResponse, from_asset_id: &AssetId) -> Result<Option<ApprovalData>, SwapperError> {
         let chain = RelayChain::from_chain(&from_asset_id.chain).ok_or(SwapperError::NotSupportedChain)?;
         let token = match (chain, from_asset_id.token_id.clone()) {
-            (RelayChain::Solana, _) | (RelayChain::Tron, None) => return Ok(None),
+            (RelayChain::Solana | RelayChain::Ton, _) | (RelayChain::Tron, None) => return Ok(None),
             (_, Some(token)) => token,
             (RelayChain::Evm(chain), None) => match chain.native_asset_contract() {
                 Some(token) => token.to_string(),
@@ -201,7 +216,7 @@ where
                 let spender = TronAddress::parse_hex_or_base58(&spender).map_err(|_| SwapperError::InvalidRoute)?.to_string();
                 check_approval_trc20(quote.request.wallet_address.clone(), token, spender, amount, self.rpc_provider.clone()).await?
             }
-            RelayChain::Solana => return Ok(None),
+            RelayChain::Solana | RelayChain::Ton => return Ok(None),
         };
 
         Ok(approval.approval_data())
@@ -330,6 +345,8 @@ mod swap_integration_tests {
         asset_constants::{
             BASE_USDC_ASSET_ID, CELO_WETH_TOKEN_ID, SMARTCHAIN_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TRON_USDT_ASSET_ID,
         },
+        swap::SwapStatus,
+        testkit::signer_mock::TEST_TON_SENDER,
     };
     use std::collections::HashMap;
 
@@ -467,6 +484,52 @@ mod swap_integration_tests {
         let quote = relay.get_quote(&reverse_request).await?;
         assert_eq!(quote.from_value, reverse_request.value);
         assert!(quote.to_value > BigUint::ZERO);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_relay_ton_live() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let provider = Arc::new(NativeProvider::default());
+        let relay = Relay::new(provider);
+
+        let request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ton)),
+            to_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
+            wallet_address: TEST_TON_SENDER.to_string(),
+            destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
+            value: BigUint::from(5_000_000_000u64),
+            options: Options::new_with_slippage(100.into()),
+        };
+
+        let quote = relay.get_quote(&request).await?;
+        assert_eq!(quote.from_value, request.value);
+        assert!(quote.to_value > BigUint::ZERO);
+
+        let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+        println!("ton quote_data: to={}, value={}, data={}", quote_data.to, quote_data.value, quote_data.data);
+        assert!(quote_data.to.starts_with("EQ"));
+        assert_eq!(quote_data.value, request.value);
+        assert!(quote_data.data.starts_with("te6cc"));
+        assert!(quote_data.approval.is_none());
+
+        let reverse_request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
+            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ton)),
+            wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
+            destination_address: TEST_TON_SENDER.to_string(),
+            value: BigUint::from(10_000_000u64),
+            options: Options::new_with_slippage(100.into()),
+        };
+        let quote = relay.get_quote(&reverse_request).await?;
+        assert_eq!(quote.from_value, reverse_request.value);
+        assert!(quote.to_value > BigUint::ZERO);
+
+        let result = relay
+            .get_swap_result(Chain::Ton, "e86159ff0662a587649bc1d2ff0cd146e6628c3cc37396f7b680bd28260f44b5")
+            .await?;
+        assert_eq!(result.status, SwapStatus::Completed);
+        assert_eq!(result.metadata.unwrap().from_asset, AssetId::from_chain(Chain::Ton));
 
         Ok(())
     }

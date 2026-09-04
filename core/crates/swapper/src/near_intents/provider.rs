@@ -383,11 +383,7 @@ where
 
     async fn get_swap_result(&self, _chain: Chain, hash: &str) -> Result<SwapResult, SwapperError> {
         let Some(tx) = self.explorer.search_transaction(hash).await? else {
-            return Ok(SwapResult {
-                status: SwapStatus::Pending,
-                metadata: None,
-                eta_in_seconds: None,
-            });
+            return Ok(SwapResult::pending());
         };
 
         let status = Self::map_transaction_status(&tx.status);

@@ -217,11 +217,7 @@ where
     async fn get_swap_result(&self, chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
         let chain = SwapsXyzChain::from_chain(chain).ok_or(SwapperError::NotSupportedChain)?;
         let Some(response) = self.client.get_status(transaction_hash, chain.id).await? else {
-            return Ok(SwapResult {
-                status: SwapStatus::Pending,
-                metadata: None,
-                eta_in_seconds: None,
-            });
+            return Ok(SwapResult::pending());
         };
         let metadata = response.action_response.and_then(|status| {
             Some(TransactionSwapMetadata {

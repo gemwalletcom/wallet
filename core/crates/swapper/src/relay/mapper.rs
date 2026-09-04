@@ -40,6 +40,20 @@ pub fn map_tron_quote_data(quote_response: &RelayQuoteResponse, approval: Option
     ))
 }
 
+pub fn map_ton_quote_data(quote_response: &RelayQuoteResponse) -> Result<SwapperQuoteData, SwapperError> {
+    let ton = quote_response.get_ton_step().ok_or(SwapperError::InvalidRoute)?;
+    let [message] = ton.messages.as_slice() else {
+        return Err(SwapperError::InvalidRoute);
+    };
+    Ok(SwapperQuoteData::new_contract(
+        message.to.clone(),
+        BigUint::from_str(&message.value).map_err(SwapperError::compute_quote_error)?,
+        message.body.clone(),
+        None,
+        None,
+    ))
+}
+
 pub fn map_swap_result(request: &RelayRequest) -> SwapResult {
     let metadata = request.data.as_ref().and_then(|data| {
         let actual = data.route.as_ref()?.actual.as_ref()?;
@@ -128,6 +142,22 @@ mod tests {
     }
 
     #[test]
+    fn test_map_ton_quote_data() {
+        let quote_response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_ton_to_base_usdc.json")).unwrap();
+        let result = map_ton_quote_data(&quote_response).unwrap();
+
+        assert_eq!(result.to, "EQCrdGsDTqA2t6xRR4N6V4J705F7w_VQbUdHnofsh-8lVIPs");
+        assert_eq!(result.value, BigUint::from(5_000_000_000u64));
+        assert!(result.data.starts_with("te6cckEBAQEASAAAjAAAAAAweGVk"));
+        assert!(result.approval.is_none());
+        assert!(result.gas_limit.is_none());
+
+        assert_eq!(map_evm_quote_data(&quote_response, None).unwrap_err(), SwapperError::InvalidRoute);
+        let tron_quote: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_tron_to_base_usdc.json")).unwrap();
+        assert_eq!(map_ton_quote_data(&tron_quote).unwrap_err(), SwapperError::InvalidRoute);
+    }
+
+    #[test]
     fn test_map_swap_result() {
         let cross_chain_response: RelayRequestsResponse = serde_json::from_str(include_str!("testdata/request_arb_eth_to_base_eth.json")).unwrap();
         let result = map_swap_result(cross_chain_response.requests.first().unwrap());
@@ -149,6 +179,16 @@ mod tests {
         assert_eq!(metadata.from_value, BigUint::from(1366348234320898u64));
         assert_eq!(metadata.to_asset, AssetId::from_token(Chain::Base, "0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452"));
         assert_eq!(metadata.to_value, BigUint::from(1101293561931134u64));
+
+        let ton_response: RelayRequestsResponse = serde_json::from_str(include_str!("testdata/request_ton_to_robinhood.json")).unwrap();
+        let result = map_swap_result(ton_response.requests.first().unwrap());
+
+        assert_eq!(result.status, SwapStatus::Completed);
+        let metadata = result.metadata.unwrap();
+        assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::Ton));
+        assert_eq!(metadata.from_value, BigUint::from(2172206291u64));
+        assert_eq!(metadata.to_asset, AssetId::from_token(Chain::Robinhood, "0x3B542B9B72441e4BA0E70885f983075C51ea5c16"));
+        assert_eq!(metadata.to_value, BigUint::parse_bytes(b"201884432306130998993971", 10).unwrap());
 
         let pending = map_swap_result(&RelayRequest::mock_with_status(RelayStatus::Pending));
         assert_eq!(pending.status, SwapStatus::Pending);

@@ -1,0 +1,123 @@
+{
+  "traces": [
+    {
+      "is_incomplete": false,
+      "actions": [
+        {
+          "type": "ton_transfer",
+          "success": true,
+          "details": null
+        },
+        {
+          "type": "ton_transfer",
+          "success": true,
+          "details": null
+        },
+        {
+          "type": "ton_transfer",
+          "success": true,
+          "details": null
+        }
+      ],
+      "transactions_order": [
+        "6GFZ/wZipYdkm8HS/wzRRuZijDzDc5b3toC9KCYPRLU=",
+        "54RKxf1Is/Xc+87LNKjVz+JhTqbE5NwcvVtSjbarX6w=",
+        "iQdgIl1vU8M30vJdqBdhtTjvU+SLkWdYi4Twx+Re554=",
+        "mbmLg2RvuuBNW4YIX5r5+nhdUGp/z/rYVUerMRKGaVY="
+      ],
+      "transactions": {
+        "54RKxf1Is/Xc+87LNKjVz+JhTqbE5NwcvVtSjbarX6w=": {
+          "hash": "54RKxf1Is/Xc+87LNKjVz+JhTqbE5NwcvVtSjbarX6w=",
+          "now": 1788486761,
+          "total_fees": "38498",
+          "description": {
+            "aborted": false,
+            "compute_ph": {
+              "success": true
+            }
+          },
+          "in_msg": {
+            "source": "0:FB92F7F9BE570D9D7BA6B1547CE917D980B29C1B77B68CB67299FD80E3EAEEBD",
+            "destination": "0:AB746B034EA036B7AC5147837A57827BD3917BC3F5506D47479E87EC87EF2554",
+            "value": "2172206291",
+            "opcode": "0x00000000"
+          },
+          "out_msgs": []
+        },
+        "6GFZ/wZipYdkm8HS/wzRRuZijDzDc5b3toC9KCYPRLU=": {
+          "hash": "6GFZ/wZipYdkm8HS/wzRRuZijDzDc5b3toC9KCYPRLU=",
+          "now": 1788486761,
+          "total_fees": "800087",
+          "description": {
+            "aborted": false,
+            "compute_ph": {
+              "success": true
+            }
+          },
+          "in_msg": {
+            "source": null,
+            "destination": "0:FB92F7F9BE570D9D7BA6B1547CE917D980B29C1B77B68CB67299FD80E3EAEEBD",
+            "value": null,
+            "opcode": "0x7369676e"
+          },
+          "out_msgs": [
+            {
+              "source": "0:FB92F7F9BE570D9D7BA6B1547CE917D980B29C1B77B68CB67299FD80E3EAEEBD",
+              "destination": "0:AB746B034EA036B7AC5147837A57827BD3917BC3F5506D47479E87EC87EF2554",
+              "value": "2172206291",
+              "opcode": "0x00000000"
+            },
+            {
+              "source": "0:FB92F7F9BE570D9D7BA6B1547CE917D980B29C1B77B68CB67299FD80E3EAEEBD",
+              "destination": "0:C27DDC138FCE46DF2A66933F86E42CBA6297E1841FAF3B57504CC24DC164EFE3",
+              "value": "21941477",
+              "opcode": null
+            },
+            {
+              "source": "0:FB92F7F9BE570D9D7BA6B1547CE917D980B29C1B77B68CB67299FD80E3EAEEBD",
+              "destination": "0:AB746B034EA036B7AC5147837A57827BD3917BC3F5506D47479E87EC87EF2554",
+              "value": "1097073884",
+              "opcode": "0x00000000"
+            }
+          ]
+        },
+        "iQdgIl1vU8M30vJdqBdhtTjvU+SLkWdYi4Twx+Re554=": {
+          "hash": "iQdgIl1vU8M30vJdqBdhtTjvU+SLkWdYi4Twx+Re554=",
+          "now": 1788486761,
+          "total_fees": "36425",
+          "description": {
+            "aborted": false,
+            "compute_ph": {
+              "success": true
+            }
+          },
+          "in_msg": {
+            "source": "0:FB92F7F9BE570D9D7BA6B1547CE917D980B29C1B77B68CB67299FD80E3EAEEBD",
+            "destination": "0:C27DDC138FCE46DF2A66933F86E42CBA6297E1841FAF3B57504CC24DC164EFE3",
+            "value": "21941477",
+            "opcode": null
+          },
+          "out_msgs": []
+        },
+        "mbmLg2RvuuBNW4YIX5r5+nhdUGp/z/rYVUerMRKGaVY=": {
+          "hash": "mbmLg2RvuuBNW4YIX5r5+nhdUGp/z/rYVUerMRKGaVY=",
+          "now": 1788486761,
+          "total_fees": "38468",
+          "description": {
+            "aborted": false,
+            "compute_ph": {
+              "success": true
+            }
+          },
+          "in_msg": {
+            "source": "0:FB92F7F9BE570D9D7BA6B1547CE917D980B29C1B77B68CB67299FD80E3EAEEBD",
+            "destination": "0:AB746B034EA036B7AC5147837A57827BD3917BC3F5506D47479E87EC87EF2554",
+            "value": "1097073884",
+            "opcode": "0x00000000"
+          },
+          "out_msgs": []
+        }
+      }
+    }
+  ]
+}

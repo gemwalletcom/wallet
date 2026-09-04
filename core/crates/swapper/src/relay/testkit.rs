@@ -1,6 +1,8 @@
 use num_bigint::BigInt;
 
-use super::model::{CurrencyAmount, EvmStepData, QuoteDetails, RelayQuoteResponse, RelayRequest, RelayStatus, Step, StepData, StepItem};
+use super::model::{
+    CurrencyAmount, EvmStepData, QuoteDetails, RelayChainInfo, RelayProtocol, RelayProtocolV2, RelayQuoteResponse, RelayRequest, RelayStatus, Step, StepData, StepItem,
+};
 
 impl RelayQuoteResponse {
     pub fn mock_with_steps(steps: Vec<Step>) -> Self {
@@ -25,6 +27,26 @@ impl QuoteDetails {
 impl RelayRequest {
     pub fn mock_with_status(status: RelayStatus) -> Self {
         Self { status, data: None }
+    }
+}
+
+impl RelayChainInfo {
+    pub fn mock_depository(depository: Option<&str>) -> Self {
+        Self {
+            solver_addresses: vec![],
+            protocol: Some(RelayProtocol {
+                v2: Some(RelayProtocolV2 {
+                    depository: depository.map(str::to_string),
+                }),
+            }),
+        }
+    }
+
+    pub fn mock_solvers(solver_addresses: &[&str]) -> Self {
+        Self {
+            solver_addresses: solver_addresses.iter().map(|address| address.to_string()).collect(),
+            protocol: None,
+        }
     }
 }
 

@@ -1,12 +1,14 @@
 use primitives::{Chain, ChainType, chain_evm::EVMChain};
 
 const SOLANA_CHAIN_ID: u64 = 792703809;
+pub(super) const TON_CHAIN_ID: u64 = 224235520;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RelayChain {
     Evm(EVMChain),
     Tron,
     Solana,
+    Ton,
 }
 
 impl RelayChain {
@@ -15,6 +17,7 @@ impl RelayChain {
             Self::Evm(chain) => Some(chain.chain_id()),
             Self::Tron => Chain::Tron.network_id_value(),
             Self::Solana => Some(SOLANA_CHAIN_ID),
+            Self::Ton => Some(TON_CHAIN_ID),
         }
     }
 
@@ -23,6 +26,7 @@ impl RelayChain {
             ChainType::Ethereum => Some(Self::Evm(EVMChain::from_chain(*chain)?)),
             ChainType::Tron => Some(Self::Tron),
             ChainType::Solana => Some(Self::Solana),
+            ChainType::Ton => Some(Self::Ton),
             _ => None,
         }
     }
@@ -32,14 +36,16 @@ impl RelayChain {
             Self::Evm(chain) => chain.to_chain(),
             Self::Tron => Chain::Tron,
             Self::Solana => Chain::Solana,
+            Self::Ton => Chain::Ton,
         }
     }
 
     pub fn from_chain_id(chain_id: u64) -> Option<Self> {
-        if chain_id == SOLANA_CHAIN_ID {
-            return Some(Self::Solana);
+        match chain_id {
+            SOLANA_CHAIN_ID => Some(Self::Solana),
+            TON_CHAIN_ID => Some(Self::Ton),
+            _ => Self::from_chain(&Chain::from_chain_id(chain_id)?),
         }
-        Self::from_chain(&Chain::from_chain_id(chain_id)?)
     }
 }
 
@@ -60,6 +66,10 @@ mod tests {
         assert_eq!(RelayChain::Solana.chain_id(), Some(792703809));
         assert_eq!(RelayChain::from_chain_id(792703809), Some(RelayChain::Solana));
         assert_eq!(RelayChain::Solana.to_chain(), Chain::Solana);
+        assert_eq!(RelayChain::from_chain(&Chain::Ton), Some(RelayChain::Ton));
+        assert_eq!(RelayChain::Ton.chain_id(), Some(224235520));
+        assert_eq!(RelayChain::from_chain_id(224235520), Some(RelayChain::Ton));
+        assert_eq!(RelayChain::Ton.to_chain(), Chain::Ton);
         assert!(RelayChain::from_chain(&Chain::Bitcoin).is_none());
         assert!(RelayChain::from_chain(&Chain::Cosmos).is_none());
     }

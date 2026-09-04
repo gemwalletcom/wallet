@@ -13,7 +13,7 @@ use primitives::{
         TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID, TEMPO_USDT0_ASSET_ID, TRON_USDT_ASSET_ID, TRON_USDT_TOKEN_ID, UNICHAIN_USDC_ASSET_ID, WORLD_USDC_E_ASSET_ID,
         ZKSYNC_USDT_ASSET_ID,
     },
-    contract_constants::{EVM_ZERO_ADDRESS, TRON_BLACK_HOLE_ADDRESS},
+    contract_constants::{EVM_ZERO_ADDRESS, TON_ZERO_ADDRESS, TRON_BLACK_HOLE_ADDRESS},
 };
 
 fn is_native_currency(chain: Chain, currency: &str) -> bool {
@@ -21,6 +21,7 @@ fn is_native_currency(chain: Chain, currency: &str) -> bool {
         Chain::Bitcoin => true,
         Chain::Solana => currency == SYSTEM_PROGRAM_ID || currency == WSOL_TOKEN_ADDRESS,
         Chain::Tron => currency == TRON_BLACK_HOLE_ADDRESS,
+        Chain::Ton => currency == TON_ZERO_ADDRESS,
         _ if currency == EVM_ZERO_ADDRESS => true,
         _ => false,
     }
@@ -83,6 +84,7 @@ pub static SUPPORTED_CHAINS: LazyLock<Vec<SwapperChainAsset>> = LazyLock::new(||
                 SOLANA_CBBTC_ASSET_ID.clone(),
             ],
         ),
+        SwapperChainAsset::Assets(Chain::Ton, vec![]),
     ]
 });
 
@@ -111,6 +113,13 @@ pub fn asset_to_currency(asset_id: &AssetId) -> Result<String, SwapperError> {
                 Err(SwapperError::NotSupportedAsset)
             }
         }
+        ChainType::Ton => {
+            if asset_id.is_native() {
+                Ok(TON_ZERO_ADDRESS.to_string())
+            } else {
+                Err(SwapperError::NotSupportedAsset)
+            }
+        }
         _ => Err(SwapperError::NotSupportedChain),
     }
 }
@@ -119,7 +128,10 @@ pub fn asset_to_currency(asset_id: &AssetId) -> Result<String, SwapperError> {
 mod tests {
     use super::*;
     use gem_solana::USDC_TOKEN_MINT;
-    use primitives::{Chain, asset_constants::ETHEREUM_USDC_TOKEN_ID};
+    use primitives::{
+        Chain,
+        asset_constants::{ETHEREUM_USDC_TOKEN_ID, TON_USDT_ASSET_ID},
+    };
 
     #[test]
     fn test_evm_native_asset() {
@@ -138,7 +150,7 @@ mod tests {
     fn test_solana_assets() {
         assert_eq!(asset_to_currency(&AssetId::from_chain(Chain::Solana)).unwrap(), SYSTEM_PROGRAM_ID);
         assert_eq!(asset_to_currency(&AssetId::from_token(Chain::Solana, USDC_TOKEN_MINT)).unwrap(), USDC_TOKEN_MINT);
-        assert_eq!(asset_to_currency(&AssetId::from_chain(Chain::Ton)), Err(SwapperError::NotSupportedChain));
+        assert_eq!(asset_to_currency(&AssetId::from_chain(Chain::Bitcoin)), Err(SwapperError::NotSupportedChain));
 
         assert_eq!(map_currency_to_asset_id(Chain::Solana, SYSTEM_PROGRAM_ID), AssetId::from_chain(Chain::Solana));
         assert_eq!(
@@ -155,6 +167,20 @@ mod tests {
 
         assert_eq!(map_currency_to_asset_id(Chain::Tron, TRON_BLACK_HOLE_ADDRESS), AssetId::from_chain(Chain::Tron));
         assert_eq!(map_currency_to_asset_id(Chain::Tron, TRON_USDT_TOKEN_ID), TRON_USDT_ASSET_ID.clone());
+    }
+
+    #[test]
+    fn test_ton_assets() {
+        assert_eq!(asset_to_currency(&AssetId::from_chain(Chain::Ton)).unwrap(), TON_ZERO_ADDRESS);
+        assert_eq!(asset_to_currency(&TON_USDT_ASSET_ID), Err(SwapperError::NotSupportedAsset));
+
+        assert_eq!(map_currency_to_asset_id(Chain::Ton, TON_ZERO_ADDRESS), AssetId::from_chain(Chain::Ton));
+
+        let assets = SUPPORTED_CHAINS.iter().find_map(|supported| match supported {
+            SwapperChainAsset::Assets(Chain::Ton, assets) => Some(assets.clone()),
+            _ => None,
+        });
+        assert_eq!(assets, Some(vec![]));
     }
 
     #[test]

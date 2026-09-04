@@ -1,0 +1,82 @@
+{
+  "steps": [
+    {
+      "id": "deposit",
+      "kind": "transaction",
+      "requestId": "0x1788486830d06cdab9b8b037b6e9431888b302209e4894af419ddcc5471a38de",
+      "items": [
+        {
+          "status": "incomplete",
+          "data": {
+            "messages": [
+              {
+                "from": "UQAzoUpalAaXnVm5MoiYWRZguLFzY0KxFjLv3MkRq5BXz3VV",
+                "to": "EQCrdGsDTqA2t6xRR4N6V4J705F7w_VQbUdHnofsh-8lVIPs",
+                "mode": 1,
+                "value": "5000000000",
+                "bounce": false,
+                "body": "te6cckEBAQEASAAAjAAAAAAweGVkMWE4ZWEwZDUxZTU0ZDAyZWJjNzY0MzAyNzgzMjYxYTNkNjU1MmZmYzI4ZTM2Mjk1OTIxYzM0NjVkZTRkMzQx7VsP"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "details": {
+    "currencyOut": {
+      "currency": {
+        "chainId": 8453,
+        "address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+        "symbol": "USDC",
+        "name": "USD Coin",
+        "decimals": 6,
+        "metadata": {
+          "logoURI": "https://coin-images.coingecko.com/coins/images/6319/large/usdc.png?1696506694",
+          "verified": true
+        }
+      },
+      "amount": "6798648",
+      "amountFormatted": "6.798648",
+      "amountUsd": "6.797601",
+      "minimumAmount": "6662675"
+    },
+    "slippageTolerance": {
+      "total": "200",
+      "origin": {
+        "usd": "0.000000",
+        "value": "0",
+        "percent": "0.00"
+      },
+      "destination": {
+        "usd": "0.135952",
+        "value": "135973",
+        "percent": "2.00"
+      }
+    },
+    "swapImpact": {
+      "usd": "-0.011704",
+      "percent": "-0.17"
+    },
+    "timeEstimate": 2
+  },
+  "fees": {
+    "gas": {
+      "currency": {
+        "chainId": 224235520,
+        "address": "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c",
+        "symbol": "GRAM",
+        "name": "Gram",
+        "decimals": 9,
+        "metadata": {
+          "logoURI": "https://assets.relay.link/icons/currencies/ton.png",
+          "verified": true
+        }
+      },
+      "amount": "0",
+      "amountFormatted": "0.0",
+      "amountUsd": "0",
+      "minimumAmount": "0"
+    }
+  }
+}
