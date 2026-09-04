@@ -307,6 +307,7 @@ private extension AmountSceneViewModel {
         return (try? valueConverter.convertToFiat(
             amount: amountInputModel.text,
             price: price.mapToAssetPrice(assetId: asset.id),
+            decimals: asset.decimals.asInt,
         )).or(.zero)
     }
 

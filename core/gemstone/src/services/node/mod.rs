@@ -44,10 +44,6 @@ impl GemNodeService {
         rules::websocket_url(&self.node_url(chain))
     }
 
-    pub fn selected_node(&self, chain: Chain) -> Node {
-        rules::preferred_chain_node(chain, self.selected_url(chain))
-    }
-
     pub async fn select_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
         let stored = self.store.get_nodes(chain).await?;
         let selected = rules::chain_node(chain, Some(url), stored);
@@ -82,6 +78,10 @@ impl GemNodeService {
 }
 
 impl GemNodeService {
+    pub(crate) fn selected_node(&self, chain: Chain) -> Node {
+        rules::preferred_chain_node(chain, self.selected_url(chain))
+    }
+
     pub async fn get_nodes(&self, chain: Chain) -> Result<Vec<Node>, GemServiceError> {
         let stored = self.store.get_nodes(chain).await?;
         let nodes = rules::merge_nodes(rules::default_nodes(chain), stored);

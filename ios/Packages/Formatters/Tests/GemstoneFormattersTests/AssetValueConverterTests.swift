@@ -14,10 +14,10 @@ struct AssetValueConverterTests {
     @Test
     func testConvertToFiat() throws {
         let price = AssetPrice.mock(price: 2.5)
-        #expect(try converter.convertToFiat(amount: "1", price: price) == 2.5)
-        #expect(try converter.convertToFiat(amount: "0.4", price: price) == 1.0)
-        #expect(try converter.convertToFiat(amount: "10", price: price) == 25.0)
-        #expect(try converter.convertToFiat(amount: "0", price: price) == 0.0)
+        #expect(try converter.convertToFiat(amount: "1", price: price, decimals: 8) == 2.5)
+        #expect(try converter.convertToFiat(amount: "0.4", price: price, decimals: 8) == 1.0)
+        #expect(try converter.convertToFiat(amount: "10", price: price, decimals: 8) == 25.0)
+        #expect(try converter.convertToFiat(amount: "0", price: price, decimals: 8) == 0.0)
     }
 
     @Test
@@ -30,7 +30,7 @@ struct AssetValueConverterTests {
 
     @Test
     func convertToFiatWithZeroAmount() throws {
-        #expect(try converter.convertToFiat(amount: "0", price: .mock(price: 2.5)) == 0.0)
+        #expect(try converter.convertToFiat(amount: "0", price: .mock(price: 2.5), decimals: 8) == 0.0)
     }
 
     @Test
@@ -52,7 +52,7 @@ struct AssetValueConverterTests {
 
     @Test
     func convertToFiatWithSmallAmount() throws {
-        #expect(try converter.convertToFiat(amount: "0.00000001", price: .mock(price: 2.5)) == 0.000000025)
+        #expect(try converter.convertToFiat(amount: "0.00000001", price: .mock(price: 2.5), decimals: 8) == 0.000000025)
     }
 
     @Test

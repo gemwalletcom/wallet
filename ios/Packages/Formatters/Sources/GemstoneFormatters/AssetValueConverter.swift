@@ -3,12 +3,12 @@
 import BigInt
 import Formatters
 import Foundation
-import GemstonePrimitives
+import class Gemstone.CryptoFiatConverter
 import Primitives
 
 public struct AssetValueConverter: Sendable {
     private let formatter: ValueFormatter
-    private let cryptoFiatConverter = CryptoFiatConverter()
+    private let converter = CryptoFiatConverter()
 
     public init(formatter: ValueFormatter = .auto) {
         self.formatter = formatter
@@ -17,9 +17,14 @@ public struct AssetValueConverter: Sendable {
     public func convertToFiat(
         amount: String,
         price: AssetPrice,
+        decimals: Int,
     ) throws -> Decimal {
-        let value = try formatter.number(amount: amount)
-        return value * Decimal(price.price)
+        let value = try formatter.displayedNumber(from: formatter.number(amount: amount), decimals: decimals)
+        let fiat = try converter.toFiat(value: value, decimals: UInt32(decimals), price: price.price)
+        guard let result = Decimal(string: fiat) else {
+            throw AnyError("Invalid fiat value: \(fiat)")
+        }
+        return result
     }
 
     public func convertToDisplayedAmount(
@@ -45,7 +50,7 @@ extension AssetValueConverter {
         price: AssetPrice,
         decimals: Int,
     ) throws -> Decimal {
-        let value = try cryptoFiatConverter.toCrypto(fiatAmount: "\(fiat)", decimals: decimals, price: price.price)
+        let value = try converter.toCrypto(fiatAmount: "\(fiat)", decimals: UInt32(decimals), price: price.price)
         guard let amount = Decimal(string: value) else {
             throw AnyError("Invalid amount: \(value)")
         }
