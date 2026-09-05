@@ -23,9 +23,9 @@ struct JsonCodableTests {
 
     @Test
     func roundTripsNestedRecord() throws {
-        let images = Primitives.NFTImages(preview: Primitives.NFTResource(url: "https://example.com/a.png", mimeType: "image/png"))
-        let decoded = try Primitives.NFTImages(images.json())
-        #expect(decoded.preview.url == images.preview.url)
-        #expect(decoded.preview.mimeType == images.preview.mimeType)
+        let delegation = Primitives.Delegation.mock()
+        let decoded = try Primitives.Delegation(delegation.json())
+        #expect(decoded.base.delegationId == delegation.base.delegationId)
+        #expect(decoded.validator.id == delegation.validator.id)
     }
 }

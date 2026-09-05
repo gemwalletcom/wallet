@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.nft.viewmodels
 
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import uniffi.gemstone.GemNftServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -8,8 +10,6 @@ import com.gemwallet.android.application.nft.cases.GetNftCollections
 import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.NftItemUIModel
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.WalletId
@@ -53,10 +53,10 @@ class NftListViewModels @Inject constructor(
         .map { data ->
             val filtered = when (mode) {
                 is NftListMode.Collection -> data.filter { it.assets.isNotEmpty() }
-                NftListMode.Unverified -> nftService.unverifiedCollections(data.map { it.toJson() }).map { it.decodeJson<NFTData>() }
-                NftListMode.Collections -> nftService.verifiedCollections(data.map { it.toJson() }).map { it.decodeJson<NFTData>() }
+                NftListMode.Unverified -> nftService.unverifiedCollections(data.map { it.toGem() }).map { it.toPrimitives() }
+                NftListMode.Collections -> nftService.verifiedCollections(data.map { it.toGem() }).map { it.toPrimitives() }
             }
-            nftService.sortedCollections(filtered.map { it.toJson() }).map { it.decodeJson<NFTData>() }.flatMap { nftData ->
+            nftService.sortedCollections(filtered.map { it.toGem() }).map { it.toPrimitives() }.flatMap { nftData ->
                 val isSingleAsset = nftData.assets.size == 1
                 if (mode is NftListMode.Collection || isSingleAsset) {
                     nftData.assets.map { NftItemUIModel(nftData.collection, it) }
@@ -68,7 +68,7 @@ class NftListViewModels @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val unverifiedCount = nftData
-        .map { data -> nftService.unverifiedCollections(data.map { it.toJson() }).size }
+        .map { data -> nftService.unverifiedCollections(data.map { it.toGem() }).size }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     fun syncIfNeeded() {

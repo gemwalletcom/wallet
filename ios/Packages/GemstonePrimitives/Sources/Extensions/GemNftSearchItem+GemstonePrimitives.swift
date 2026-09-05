@@ -4,10 +4,10 @@ import enum Gemstone.GemNftSearchItem
 import Primitives
 
 public extension GemNftSearchItem {
-    func map() throws -> NFTSearchItem {
+    func map() -> NFTSearchItem {
         switch self {
-        case let .collection(data): try .collection(NFTData(data))
-        case let .asset(data): try .asset(NFTAssetData(data))
+        case let .collection(data): .collection(data.map())
+        case let .asset(data): .asset(data.map())
         }
     }
 }

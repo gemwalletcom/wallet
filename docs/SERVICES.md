@@ -797,6 +797,14 @@ Three gotchas if you repeat the sweep, all met on this pass:
   pairing proposal, the message and transaction requests' session, the recipient validation and
   the name lookup pass typed values on both apps; the Android pending request keeps the typed
   session instead of a JSON string it decoded lazily.
+- **NFT collections, assets and the device record cross the FFI typed.** `NFTData`, `NFTAsset`,
+  `NFTCollection`, `NFTAssetData`, `NFTAttribute`, `NFTImages` and `NFTResource` (with the
+  `NFTType` and `NFTAttributeType` enums) and `Device` (with `DeviceLocale`) are `remote_types.yml`
+  records, and `NFTAssetId` / `NFTCollectionId` are identifiers, so the NFT store callbacks, the
+  collection sorting and filtering, the NFT search items, the transfer-NFT input and the
+  transaction header pass typed values on both apps; the Kotlin identifier types gained the string
+  constructors and the iOS ones the `init(core:)` the identifier convention expects, and the
+  hand-written Android NFT asset JSON mapper is gone.
 - **The network-assets screen refreshes balances through its screen service on Android.**
   `NetworkAssetsViewModel` called `GetChainAssets.updateBalances(chain)`, which re-read the
   chain's assets from the store and ran `SyncBalances` (`GemBalanceService::update` per

@@ -19,7 +19,6 @@ extension Primitives.ConfigVersions: JsonCodable {}
 extension Primitives.ContractCallData: JsonCodable {}
 extension Primitives.Delegation: JsonCodable {}
 extension Primitives.DelegationBase: JsonCodable {}
-extension Primitives.Device: JsonCodable {}
 extension Primitives.EarnType: JsonCodable {}
 extension Primitives.FiatAssets: JsonCodable {}
 extension Primitives.FiatQuote: JsonCodable {}
@@ -29,12 +28,6 @@ extension Primitives.FiatQuotes: JsonCodable {}
 extension Primitives.FiatTransactionData: JsonCodable {}
 extension Primitives.InAppNotification: JsonCodable {}
 extension Primitives.Markets: JsonCodable {}
-extension Primitives.NFTAsset: JsonCodable {}
-extension Primitives.NFTAssetData: JsonCodable {}
-extension Primitives.NFTAttribute: JsonCodable {}
-extension Primitives.NFTData: JsonCodable {}
-extension Primitives.NFTImages: JsonCodable {}
-extension Primitives.NFTResource: JsonCodable {}
 extension Primitives.Payment: JsonCodable {}
 extension Primitives.PaymentAmount: JsonCodable {}
 extension Primitives.PaymentLink: JsonCodable {}

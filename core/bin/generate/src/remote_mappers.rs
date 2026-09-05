@@ -346,6 +346,11 @@ fn swift_case(variant: &str) -> String {
 /// UniFFI lowers a variant with `heck`, which treats a run of capitals as one word: `TransferNFT`
 /// becomes `transferNft`, where TypeShare keeps `transferNFT`. The two sides of a mapper therefore
 /// spell the same variant differently whenever it contains an acronym.
+fn uniffi_type_name(name: &str) -> String {
+    let camel = uniffi_swift_case(name);
+    camel[..1].to_ascii_uppercase() + &camel[1..]
+}
+
 fn uniffi_swift_case(variant: &str) -> String {
     let mut words: Vec<String> = Vec::new();
     let characters: Vec<char> = variant.chars().collect();
@@ -401,9 +406,15 @@ pub fn swift(types: &[RemoteType]) -> String {
             continue;
         }
         for index in 0..2 {
-            let (from, to, function) = language.direction(index);
+            let (_, _, function) = language.direction(index);
             let name = remote.name();
-            out.push_str(&format!("\npublic extension {from}.{name} {{\n    func {function}() -> {to}.{name} {{\n"));
+            let core_type = format!("{}.{}", language.core_module, uniffi_type_name(name));
+            let app_type = format!("{}.{name}", language.app_module);
+            let (from, to) = match index {
+                0 => (&core_type, &app_type),
+                _ => (&app_type, &core_type),
+            };
+            out.push_str(&format!("\npublic extension {from} {{\n    func {function}() -> {to} {{\n"));
             match remote {
                 RemoteType::Enum { variants, .. } => {
                     out.push_str("        switch self {\n");
@@ -418,7 +429,7 @@ pub fn swift(types: &[RemoteType]) -> String {
                     out.push_str("        }\n");
                 }
                 RemoteType::Record { fields, .. } => {
-                    out.push_str(&format!("        {to}.{name}(\n"));
+                    out.push_str(&format!("        {to}(\n"));
                     for field in fields {
                         let (label, accessor) = field_names(field, index);
                         match (field.skipped, index) {
@@ -463,7 +474,7 @@ pub fn kotlin(types: &[RemoteType]) -> String {
         for index in 0..2 {
             let (_, _, function) = language.direction(index);
             let name = remote.name();
-            let core_type = format!("{core}.{name}");
+            let core_type = format!("{core}.{}", uniffi_type_name(name));
             let app_type = remote.app_type(app);
             let (from, to) = match index {
                 0 => (&core_type, &app_type),
@@ -651,6 +662,20 @@ mod tests {
             )
         );
         assert!(kotlin.contains("fun com.wallet.core.primitives.swap.SwapPriceImpact.toGem(): uniffi.gemstone.SwapPriceImpact = uniffi.gemstone.SwapPriceImpact(\n"));
+    }
+
+    #[test]
+    fn test_core_type_names_follow_uniffi_casing() {
+        assert_eq!(uniffi_type_name("NFTAsset"), "NftAsset");
+        assert_eq!(uniffi_type_name("TPSLOrderData"), "TpslOrderData");
+        assert_eq!(uniffi_type_name("AssetId"), "AssetId");
+        assert_eq!(uniffi_type_name("UTXO"), "Utxo");
+        let record = RemoteType::Record {
+            name: "NFTImages".to_string(),
+            module: String::new(),
+            fields: vec![],
+        };
+        assert!(swift(&[record]).contains("public extension Gemstone.NftImages {\n    func map() -> Primitives.NFTImages {\n"));
     }
 
     #[test]

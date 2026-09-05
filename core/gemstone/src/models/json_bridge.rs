@@ -5,14 +5,13 @@ use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::swap::{ApprovalData, SwapData, SwapProviderData, SwapQuote, SwapQuoteData};
 use primitives::{AssetBasic, AssetFull, AssetMarket, ConfigResponse, ConfigVersions, FiatAssets, Markets, SearchResponse, StreamEvent, StreamMessage, SupportTyping};
 use primitives::{
-    AssetList, ChainAsset, ContractCallData, DelegationBase, NFTAsset, NFTAssetData, NFTAttribute, NFTData, NFTImages, NFTResource, Payment, PaymentAmount, PaymentLink,
-    PaymentRequest, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationHeader, SimulationResult, SimulationWarning, SolanaNftStandard, StakeValidator,
-    TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, TronVote, UTXO,
+    AssetList, ChainAsset, ContractCallData, DelegationBase, Payment, PaymentAmount, PaymentLink, PaymentRequest, ScanAddressTarget, ScanTransaction, ScanTransactionPayload,
+    SimulationHeader, SimulationResult, SimulationWarning, SolanaNftStandard, StakeValidator, TransactionPerpetualMetadata, TronStakeData, TronUnfreeze, TronVote, UTXO,
 };
 use primitives::{
-    AuthNonce, AuthPayload, ChartValuePercentage, Device, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, PortfolioAsset,
-    PortfolioAssets, PortfolioAssetsRequest, PortfolioData, ReferralCode, Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult,
-    WalletSubscription, WalletSubscriptionChains,
+    AuthNonce, AuthPayload, ChartValuePercentage, FiatQuote, FiatQuoteRequest, FiatQuoteUrl, FiatQuotes, FiatTransactionData, InAppNotification, PortfolioAsset, PortfolioAssets,
+    PortfolioAssetsRequest, PortfolioData, ReferralCode, Rewards, SupportMessage, SupportMessageInput, TransactionsResponse, WalletConfigurationResult, WalletSubscription,
+    WalletSubscriptionChains,
 };
 use primitives::{Delegation, EarnType, PerpetualConfirmData, PerpetualType, Price, StakeType, Transaction, TransactionExtended};
 
@@ -53,7 +52,6 @@ json_bridge!(
     ContractCallData,
     Delegation,
     DelegationBase,
-    Device,
     EarnType,
     FiatAssets,
     FiatQuote,
@@ -63,12 +61,6 @@ json_bridge!(
     FiatTransactionData,
     InAppNotification,
     Markets,
-    NFTAsset,
-    NFTAssetData,
-    NFTAttribute,
-    NFTData,
-    NFTImages,
-    NFTResource,
     Payment,
     PaymentAmount,
     PaymentLink,

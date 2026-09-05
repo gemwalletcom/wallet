@@ -98,8 +98,8 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
     }
 
     private var nftSearchItems: [NFTSearchItem] {
-        service.searchCollections(data: searchResult.collections.map { $0.json() }, query: searchQuery.request.searchBy)
-            .compactMap { try? $0.map() }
+        service.searchCollections(data: searchResult.collections.map { $0.map() }, query: searchQuery.request.searchBy)
+            .map { $0.map() }
     }
 
     var currencyCode: String {

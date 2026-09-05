@@ -1,8 +1,8 @@
 package com.gemwallet.android.features.assets.viewmodels
 
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Wallet
-import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import androidx.lifecycle.viewModelScope
@@ -27,8 +27,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetList
 import com.wallet.core.primitives.NFTData
 import uniffi.gemstone.GemNftSearchItem
-import com.wallet.core.primitives.NFTAssetData
-import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -143,10 +141,10 @@ class WalletSearchViewModel @Inject constructor(
     private fun assetsLimit(query: String): Int = limits(query).assets.toInt()
 
     private fun searchNfts(data: List<NFTData>, query: String): List<NftItemUIModel> =
-        service.searchCollections(data.map { it.toJson() }, query).map { item ->
+        service.searchCollections(data.map { it.toGem() }, query).map { item ->
             when (item) {
-                is GemNftSearchItem.Collection -> item.data.decodeJson<NFTData>().toNftItem()
-                is GemNftSearchItem.Asset -> item.data.decodeJson<NFTAssetData>().let { NftItemUIModel(it.collection, it.asset) }
+                is GemNftSearchItem.Collection -> item.data.toPrimitives().toNftItem()
+                is GemNftSearchItem.Asset -> item.data.toPrimitives().let { NftItemUIModel(it.collection, it.asset) }
             }
         }
 

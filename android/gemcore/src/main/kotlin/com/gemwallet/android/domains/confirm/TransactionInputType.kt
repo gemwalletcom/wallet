@@ -45,7 +45,7 @@ val GemTransactionInputType.swapData: SwapData?
     get() = (this as? GemTransactionInputType.Swap)?.swapData?.decodeJson<SwapData>()
 
 val GemTransactionInputType.nftAsset: NFTAsset?
-    get() = (this as? GemTransactionInputType.TransferNft)?.nftAsset?.decodeJson<NFTAsset>()
+    get() = (this as? GemTransactionInputType.TransferNft)?.nftAsset?.toPrimitives()
 
 val GemTransactionInputType.stakeType: StakeType?
     get() = (this as? GemTransactionInputType.Stake)?.stakeType?.decodeJson<StakeType>()

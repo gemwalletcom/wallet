@@ -33,7 +33,7 @@ public extension GemTransactionInputType {
     }
 
     static func transferNft(_ nftAsset: Primitives.NFTAsset) -> Self {
-        .transferNft(asset: nftAsset.chain.asset.map(), nftAsset: nftAsset.json())
+        .transferNft(asset: nftAsset.chain.asset.map(), nftAsset: nftAsset.map())
     }
 
     static func swap(_ fromAsset: Primitives.Asset, _ toAsset: Primitives.Asset, _ swapData: Primitives.SwapData) -> Self {

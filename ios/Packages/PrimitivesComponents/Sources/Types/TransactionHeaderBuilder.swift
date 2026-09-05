@@ -49,7 +49,7 @@ public enum TransactionHeaderTypeBuilder {
                 return .amount(showFiat: showsFiat)
             case .nft:
                 guard case let .transferNft(_, nftAsset) = dataType else { return .amount(showFiat: false) }
-                let nft = Primitives.NFTAsset(core: nftAsset)
+                let nft = nftAsset.map()
                 return .nft(name: nft.name, id: nft.id.identifier)
             case .swap:
                 guard case let .swap(fromAsset, toAsset, data) = dataType else { return .amount(showFiat: true) }

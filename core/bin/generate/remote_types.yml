@@ -24,6 +24,8 @@ remote:
   - Contact
   - ContactAddress
   - DelegationValidator
+  - Device
+  - DeviceLocale
   - Asset
   - AssetLink
   - AssetPrice
@@ -72,6 +74,15 @@ remote:
   - LinkType
   - NameProvider
   - NameRecord
+  - NFTAsset
+  - NFTAssetData
+  - NFTAttribute
+  - NFTAttributeType
+  - NFTCollection
+  - NFTData
+  - NFTImages
+  - NFTResource
+  - NFTType
   - Node
   - NodeState
   - Latency
@@ -90,6 +101,8 @@ codes:
   - Currency
 identifiers:
   - AssetId
+  - NFTAssetId
+  - NFTCollectionId
   - PerpetualId
   - TransactionId
   - WalletId
